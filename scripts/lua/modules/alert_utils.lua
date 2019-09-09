@@ -2687,6 +2687,10 @@ end
 -- Global function
 -- NOTE: this is executed in a system VM, with no interfaces references
 function checkStoreAlertsFromC(deadline)
+  if(not areAlertsEnabled()) then
+    return
+  end
+
   while(os.time() <= deadline) do
     -- TODO add max_length check and alert
     local message = ntop.lpopCache(store_alerts_queue)
@@ -2715,6 +2719,10 @@ end
 
 -- NOTE: this is executed in a system VM, with no interfaces references
 function processAlertNotifications(now, periodic_frequency, force_export)
+   if(not areAlertsEnabled()) then
+      return
+   end
+
    local interfaces = interface.getIfNames()
 
    -- Get new alerts

@@ -108,7 +108,8 @@ void LocalHost::initialize() {
   char *strIP = ip.print(buf, sizeof(buf));
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
 
-  ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
+  if(ntop->getPrefs()->is_dns_resolution_enabled())
+    ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
 
   PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
@@ -181,6 +182,7 @@ void LocalHost::deserialize(json_object *o) {
 /* *************************************** */
 
 void LocalHost::updateHostTrafficPolicy(char *key) {
+#ifdef HAVE_NEDGE
   char buf[64], *host;
 
   if(key)
@@ -196,6 +198,7 @@ void LocalHost::updateHostTrafficPolicy(char *key) {
       drop_all_host_traffic = true;
 
   }
+#endif
 }
 
 /* ***************************************** */

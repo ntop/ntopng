@@ -141,6 +141,10 @@ end
 -- the other scripts and as a necessity to avoid a deadlock on the
 -- host hash in the host.lua script
 function alerts_api.checkPendingStoreAlerts(deadline)
+  if(not areAlertsEnabled()) then
+    return(false)
+  end
+
   local ifnames = interface.getIfNames()
   ifnames[getSystemInterfaceId()] = getSystemInterfaceName()
 
@@ -199,6 +203,10 @@ function alerts_api.store(entity_info, type_info, when)
   local subtype = type_info.alert_subtype or ""
   when = when or os.time()
 
+  if(not areAlertsEnabled()) then
+    return(false)
+  end
+
   if alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id) then
     incDisabledAlertsCount(ifid, granularity_id, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
     return(false)
@@ -242,6 +250,10 @@ end
 function alerts_api.trigger(entity_info, type_info, when)
   when = when or os.time()
   local ifid = interface.getId()
+
+  if(not areAlertsEnabled()) then
+    return(false)
+  end
 
   if(type_info.alert_granularity == nil) then
     alertErrorTraceback("Missing mandatory granularity")
@@ -311,6 +323,10 @@ function alerts_api.release(entity_info, type_info, when)
   local ifid = interface.getId()
   local params = {alert_key_name, granularity_id, when}
   local released = nil
+
+  if(not areAlertsEnabled()) then
+    return(false)
+  end
 
   if(type_info.alert_severity == nil) then
     alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_id or ""))

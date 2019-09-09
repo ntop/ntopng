@@ -1337,6 +1337,9 @@ void Host::dumpDropbox(lua_State *vm) {
 void Host::refreshDisableFlowAlertTypes() {
   char keybuf[128], buf[128], rsp[32];
 
+  if(ntop->getPrefs()->are_alerts_disabled())
+    return;
+
   snprintf(buf, sizeof(buf), CONST_HOST_REFRESH_DISABLED_FLOW_ALERT_TYPES,
     iface->get_id(), get_hostkey(keybuf, sizeof(keybuf), true));
 

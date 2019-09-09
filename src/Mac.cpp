@@ -65,15 +65,16 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 			       iface->getNumL2Devices());
 #endif
 
-  if(!special_mac)
+  if(!special_mac && ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
     deserializeFromRedis();
 
-  // Load the user defined device type, if available
-  snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
-  if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
-    forceDeviceType((DeviceType)atoi(rsp));
+    // Load the user defined device type, if available
+    snprintf(redis_key, sizeof(redis_key), MAC_CUSTOM_DEVICE_TYPE, mac_ptr);
+    if((ntop->getRedis()->get(redis_key, rsp, sizeof(rsp)) == 0) && rsp[0])
+      forceDeviceType((DeviceType)atoi(rsp));
 
-  readDHCPCache();
+    readDHCPCache();
+  }
 
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
 }
@@ -87,7 +88,7 @@ Mac::~Mac() {
   if(!special_mac) {
     if(data_delete_requested)
       deleteRedisSerialization();
-    else
+    else if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
       serializeToRedis();
   }
 
