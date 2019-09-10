@@ -2056,7 +2056,9 @@ bool Flow::idle() {
        TWH from staying in memory for too long. */
     if((tcp_flags & TH_FIN
 	|| tcp_flags & TH_RST
-	|| (iface->isPacketInterface() && !isThreeWayHandshakeOK()))
+	|| ((iface->isPacketInterface()
+	     || tcp_flags /* If not a packet interfaces, we expect flags to be set to be sure they've been exported */)
+	    && !isThreeWayHandshakeOK()))
        /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
        && iface->getTimeLastPktRcvd() > doNotExpireBefore
        && isIdle(MAX_TCP_FLOW_IDLE)) {
