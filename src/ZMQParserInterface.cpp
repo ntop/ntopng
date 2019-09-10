@@ -923,6 +923,11 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     bool key_is_string = false, value_is_string = false;
 
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV key type = %u value type = %u", kt, et);
+
+    if (et == ndpi_serialization_end_of_record) {
+      ndpi_deserialize_next(deserializer);
+      goto end_of_record;
+    }
       
     switch(kt) {
       case ndpi_serialization_uint32:
@@ -968,11 +973,6 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       ndpi_deserialize_value_string(deserializer, &vs);
       value.string = vs.str;
       value_is_string = true;
-      break;
-
-    case ndpi_serialization_end_of_record:
-      ndpi_deserialize_next(deserializer);
-      goto end_of_record;
       break;
 
     default:
