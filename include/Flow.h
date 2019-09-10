@@ -85,7 +85,6 @@ class Flow : public GenericHashEntry {
   void *cli_id, *srv_id;
   json_object *json_info;
   char *host_server_name, *bt_hash;
-  char *community_id_flow_hash;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
   u_int32_t marker;
