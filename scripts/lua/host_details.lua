@@ -623,7 +623,7 @@ if debug_score then
 end
 
 if(host["active_alerted_flows"] > 0) then
-  print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li> <a href='".. ntop.getHttpPrefix() .."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=flows&flow_status=alerted'><span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span></a> <span id=flow_alerts_trend></span></td></tr>\n")
+  print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <a href='".. ntop.getHttpPrefix() .."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=flows&flow_status=alerted'>"..i18n("host_details.active_alerted_flows").."</a></th><td colspan=2></li> <span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span> <span id=flow_alerts_trend></span></td></tr>\n")
 end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
