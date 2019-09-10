@@ -649,6 +649,9 @@ AlertType Utils::flowStatus2AlertType(FlowStatus s) {
   case status_ids_alert:
     return(alert_ids);
   }
+
+  /* Should be never reached */
+  return(alert_none);
 }
 
 /* **************************************************** */
