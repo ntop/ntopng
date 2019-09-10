@@ -899,14 +899,16 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 					   u_int8_t source_id,
 					   NetworkInterface *iface) {
-  ndpi_serialization_element_type et;
+  ndpi_serialization_type kt, et;
   ParsedFlow flow;
   int ret = 0, rc;
 
   /* Reset data */
   flow.source_id = source_id;
 
-  while((et = ndpi_deserialize_get_nextitem_type(deserializer)) != ndpi_serialization_unknown) {
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing TLV record");
+
+  while((et = ndpi_deserialize_get_item_type(deserializer, &kt)) != ndpi_serialization_unknown) {
     ParsedValue value = { 0 };
     u_int32_t pen = 0, key_id;
     u_int32_t v32 = 0;
@@ -916,84 +918,60 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     int64_t i64 = 0;
     ndpi_string key, vs;
     char key_str[64];
-    u_int8_t vbkp, kbkp;
+    u_int8_t vbkp;
     bool add_to_additional_fields = false;
     bool key_is_string = false, value_is_string = false;
 
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV Type %u", et);
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV key type = %u value type = %u", kt, et);
       
+    switch(kt) {
+      case ndpi_serialization_uint32:
+        ndpi_deserialize_key_uint32(deserializer, &key_id);
+      break;
+      case ndpi_serialization_string:
+        ndpi_deserialize_key_string(deserializer, &key);
+        key_is_string = true;
+      break;
+      default:
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV key type %u\n", kt);
+        ret = -1;
+      goto error;
+    }
+
     switch(et) {
-    case ndpi_serialization_uint32_uint32:
-      ndpi_deserialize_uint32_uint32(deserializer, &key_id, &v32);
+    case ndpi_serialization_uint32:
+      ndpi_deserialize_value_uint32(deserializer, &v32);
       value.double_num = value.uint_num = v32;
       break;
 
-    case ndpi_serialization_uint32_uint64:
-      ndpi_deserialize_uint32_uint64(deserializer, &key_id, &v64);
+    case ndpi_serialization_uint64:
+      ndpi_deserialize_value_uint64(deserializer, &v64);
       value.double_num = value.uint_num = v64;
       break;
 
-    case ndpi_serialization_uint32_int32:
-      ndpi_deserialize_uint32_int32(deserializer, &key_id, &i32);
+    case ndpi_serialization_int32:
+      ndpi_deserialize_value_int32(deserializer, &i32);
       value.double_num = value.uint_num = i32;
       break;
 
-    case ndpi_serialization_uint32_int64:
-      ndpi_deserialize_uint32_int64(deserializer, &key_id, &i64);
+    case ndpi_serialization_int64:
+      ndpi_deserialize_value_int64(deserializer, &i64);
       value.double_num = value.uint_num = i64;
       break;
 
-    case ndpi_serialization_uint32_float:
-      ndpi_deserialize_uint32_float(deserializer, &key_id, &f);
-      value.double_num = f;
+    case ndpi_serialization_float:
+      ndpi_deserialize_value_float(deserializer, &f);
       value.double_num = f;
       break;
 
-    case ndpi_serialization_uint32_string:
-      ndpi_deserialize_uint32_string(deserializer, &key_id, &vs);
+    case ndpi_serialization_string:
+      ndpi_deserialize_value_string(deserializer, &vs);
       value.string = vs.str;
       value_is_string = true;
       break;
-	      
-    case ndpi_serialization_string_int32:
-      ndpi_deserialize_string_int32(deserializer, &key, &i32);
-      value.double_num = value.uint_num = i32;
-      key_is_string = true;
-      break;
-
-    case ndpi_serialization_string_uint32:
-      ndpi_deserialize_string_uint32(deserializer, &key, &v32);
-      value.double_num = value.uint_num = v32;
-      key_is_string = true;
-      break;
-
-    case ndpi_serialization_string_int64:
-      ndpi_deserialize_string_int64(deserializer, &key, &i64);
-      value.double_num = value.uint_num = i64;
-      key_is_string = true;
-      break;
-
-    case ndpi_serialization_string_uint64:
-      ndpi_deserialize_string_uint64(deserializer, &key, &v64);
-      value.double_num = value.uint_num = v64;
-      key_is_string = true;
-      break;
-
-    case ndpi_serialization_string_float:
-      ndpi_deserialize_string_float(deserializer, &key, &f);
-      value.double_num = f;
-      value.double_num = f;
-      key_is_string = true;
-      break;
-
-    case ndpi_serialization_string_string:
-      ndpi_deserialize_string_string(deserializer, &key, &vs);
-      value.string = vs.str;
-      key_is_string = value_is_string = true;
-      break;
 
     case ndpi_serialization_end_of_record:
-      ndpi_deserialize_end_of_record(deserializer);
+      ndpi_deserialize_next(deserializer);
       goto end_of_record;
       break;
 
@@ -1001,16 +979,21 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV type %u\n", et);
       ret = -1;
       goto error;
-      break;
     }
 
-    /* Adding '\0' to the end of the string, backing up the character */
+    ndpi_deserialize_next(deserializer);
+
     if(key_is_string) {
-      kbkp = key.str[key.str_len];
+      u_int8_t kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
+
       getKeyId(key.str, key.str_len, &pen, &key_id);
+
+      key.str[key.str_len] = kbkp;
     }
+
     if(value_is_string) {
+      /* Adding '\0' to the end of the string, backing up the character */
       vbkp = vs.str[vs.str_len];
       vs.str[vs.str_len] = '\0';
     }
@@ -1090,7 +1073,6 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     }
 
     /* Restoring backed up character at the end of the string in place of '\0' */
-    if(key_is_string) key.str[key.str_len] = kbkp;
     if(value_is_string) vs.str[vs.str_len] = vbkp;
     
   } /* while */
@@ -1157,6 +1139,7 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
 
 u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   ndpi_deserializer deserializer;
+  ndpi_serialization_type kt;
   NetworkInterface *iface = (NetworkInterface *) data;
   int rc;
 
@@ -1177,7 +1160,7 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payloa
 #endif
    
   rc = 0;
-  while(ndpi_deserialize_get_nextitem_type(&deserializer) != ndpi_serialization_unknown) {
+  while(ndpi_deserialize_get_item_type(&deserializer, &kt) != ndpi_serialization_unknown) {
     if(parseSingleTLVFlow(&deserializer, source_id, iface) != 0)
       break;
     rc++;
