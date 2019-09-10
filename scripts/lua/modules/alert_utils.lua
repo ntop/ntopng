@@ -915,14 +915,20 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
            <input id="status_trigger_alert" name="disabled_status" type="hidden" />
            <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
 
-      for status_id, status in pairsByValues(flow_consts.flow_status_types, asc_insensitive) do
+      for status_id, status in pairsByKeys(flow_consts.flow_status_types, asc) do
+        if(status_id == flow_consts.status_normal) then
+          goto continue
+        end
+
         print[[<option value="]] print(string.format("%d", status_id))
         if ntop.bitmapIsSet(cur_bitmap, tonumber(status_id)) then
           print[[" selected="selected]]
         end
         print[[">]]
-        print(status.i18n)
+        print(i18n(status.i18n_title))
         print[[</option>]]
+
+        ::continue::
       end
 
       print[[</select><div style="margin-top:1em;"><i>]] print(i18n("host_details.multiple_selection")) print[[</i></div>
