@@ -442,6 +442,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	    tcp_issues = tcp_issues.." Loss"
 	 end
 
+         if isEmptyString(tcp_issues) then
+            tcp_issues = " TCP Sequence Issues"
+         end
+
 	 column_proto_l4 = column_proto_l4..'<span title=\'Issues detected:'..tcp_issues..'\'><font color=#B94A48>'..value["proto.l4"].."</font></span>"
       elseif value["flow_goodput.low"] == true then
 	 column_proto_l4 = column_proto_l4.."<font color=#B94A48><span title='Low Goodput'>"..value["proto.l4"].."</span></font>"
