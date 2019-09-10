@@ -622,8 +622,8 @@ if debug_score then
   end
 end
 
-if(host["num_flow_alerts"] > 0) then
-  print("<tr><th>"..i18n("show_alerts.flow_alerts").."</th><td colspan=2></li> <span id=num_flow_alerts>"..host["num_flow_alerts"] .. "</span> <span id=flow_alerts_trend></span></td></tr>\n")
+if(host["active_alerted_flows"] > 0) then
+  print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li> <a href='".. ntop.getHttpPrefix() .."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=flows&flow_status=alerted'><span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span></a> <span id=flow_alerts_trend></span></td></tr>\n")
 end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
@@ -669,7 +669,7 @@ end
    end
 
    if interfaceHasNindexSupport() then
-      flows_th = flows_th .. ' <a href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&flow_status=alerted"><i class="fa fa-search-plus"></i></a>'
+      flows_th = flows_th .. ' <a href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&flow_status=misbehaving"><i class="fa fa-search-plus"></i></a>'
    end
 
    print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
@@ -2168,7 +2168,7 @@ if(not only_historical) and (host ~= nil) then
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
    print("var last_num_alerts = " .. host["num_alerts"] .. ";\n")
    print("var last_score = " .. host["score"] .. ";\n")
-   print("var last_num_flow_alerts = " .. host["num_flow_alerts"] .. ";\n")
+   print("var last_num_flow_alerts = " .. host["active_alerted_flows"] .. ";\n")
    print("var last_active_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
    print("var last_active_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
    print("var last_flows_as_server = " .. host["flows.as_server"] .. ";\n")
@@ -2256,7 +2256,7 @@ if(not only_historical) and (host ~= nil) then
    			}
    			$('#num_alerts').html(host["num_alerts"]);
    			$('#score').html(host["score"]);
-   			$('#num_flow_alerts').html(host["num_flow_alerts"]);
+   			$('#num_flow_alerts').html(host["active_alerted_flows"]);
    			$('#active_flows_as_client').html(addCommas(host["active_flows.as_client"]));
    			$('#active_flows_as_server').html(addCommas(host["active_flows.as_server"]));
    			$('#active_peers_as_client').html(addCommas(host["contacts.as_client"]));
@@ -2398,7 +2398,7 @@ print [[
 
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
 			$('#score_trend').html(drawTrend(host["score"], last_score, " style=\"color: #B94A48;\""));
-			$('#flow_alerts_trend').html(drawTrend(host["num_flow_alerts"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
+			$('#flow_alerts_trend').html(drawTrend(host["active_alerted_flows"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
 
@@ -2414,7 +2414,7 @@ print [[
 
    			last_num_alerts = host["num_alerts"];
    			last_score = host["score"];
-   			last_num_flow_alerts = host["num_flow_alerts"];
+   			last_num_flow_alerts = host["active_alerted_flows"];
    			last_pkts_sent = host["packets.sent"];
    			last_pkts_rcvd = host["packets.rcvd"];
    			last_active_flows_as_client = host["active_flows.as_client"];

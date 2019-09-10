@@ -39,6 +39,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   OperatingSystem os;
   time_t last_stats_reset;
   u_int16_t alert_score;
+  u_int32_t active_alerted_flows;
   u_int32_t disabled_flow_status;
   FlowStatusMap anomalous_flows_as_client_status, anomalous_flows_as_server_status;
  
@@ -238,6 +239,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   void incNumFlows(time_t t, bool as_client, Host *peer);
   void decNumFlows(time_t t, bool as_client, Host *peer);
+  inline void incNumAlertedFlows()        { active_alerted_flows++; }
+  inline void decNumAlertedFlows()        { active_alerted_flows--; }
+  inline u_int32_t getNumAlertedFlows()   { return(active_alerted_flows); }
   inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); }
   inline void incNumHostUnreachableFlows(bool as_server) { if(stats) stats->incNumHostUnreachableFlows(as_server); };
   inline void incnDPIFlows(u_int16_t l7_protocol)    { if(stats) stats->incnDPIFlows(l7_protocol); }

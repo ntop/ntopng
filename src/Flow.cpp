@@ -338,8 +338,13 @@ void Flow::dumpFlowAlert() {
 	do_dump = false;
     }
 
-    if(do_dump)
+    if(do_dump) {
       iface->getAlertsManager()->storeFlowAlert(this);
+      flow_alerted = true;
+
+      if(cli_host) cli_host->incNumAlertedFlows();
+      if(srv_host) srv_host->incNumAlertedFlows();
+    }
   }
 }
 
@@ -515,7 +520,6 @@ void Flow::processDetectedProtocol() {
     if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
       protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
       protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
-      if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe) setFlowAlerted();
       protos.ssl.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
     }
 
@@ -1969,6 +1973,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   lua_push_bool_table_entry(vm, "flow.idle", idle());
   lua_push_uint64_table_entry(vm, "flow.status", getFlowStatus(&status_map));
+  lua_push_bool_table_entry(vm, "flow.alerted", flow_alerted);
 
   lua_push_uint64_table_entry(vm, "status_map", status_map);
 
@@ -4036,6 +4041,11 @@ void Flow::postFlowSetIdle(time_t t) {
 
     if(cli_host) cli_host->incNumAnomalousFlows(true);
     if(srv_host) srv_host->incNumAnomalousFlows(false);
+  }
+
+  if(flow_alerted) {
+    if(cli_host) cli_host->decNumAlertedFlows();
+    if(srv_host) srv_host->decNumAlertedFlows();
   }
 }
 

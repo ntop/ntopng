@@ -567,7 +567,6 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     if((rc == 0) && (cur_rowid != (u_int64_t)-1))
       notifyFlowAlert(cur_rowid);
 
-    f->setFlowAlerted();
     if(cli) cli->incTotalAlerts(alert_type);
     if(srv) srv->incTotalAlerts(alert_type);
 

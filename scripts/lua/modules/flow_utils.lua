@@ -1212,6 +1212,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local entries = {
 	  {"normal", i18n("flows_page.normal")},
+	  {"misbehaving", i18n("flows_page.all_misbehaving")},
 	  {"alerted", i18n("flows_page.all_alerted")},
        }
 
@@ -1219,11 +1220,11 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        local first = true
        for t,s in ipairs(flow_consts.flow_status_types) do
           if t then
-             if first then
-                entries[#entries + 1] = '<li role="separator" class="divider"></li>'
-                first = false
-             end
              if status_stats[t] and status_stats[t].count > 0 then
+               if first then
+                 entries[#entries + 1] = '<li role="separator" class="divider"></li>'
+                 first = false
+               end
                entries[#entries + 1] = {string.format("%u", t), i18n(s.i18n_title) .. " ("..status_stats[t].count..")"}
              end
           end

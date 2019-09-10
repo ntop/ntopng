@@ -402,6 +402,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_settable(vm, -3);
 
   lua_push_uint64_table_entry(vm, "num_alerts", triggerAlerts() ? getNumTriggeredAlerts() : 0);
+  lua_push_uint64_table_entry(vm, "active_alerted_flows", triggerAlerts() ? getNumAlertedFlows() : 0);
 
   lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
 

@@ -157,7 +157,10 @@ end
 if not isEmptyString(flow_status) then
    if flow_status == "normal" then
       pageinfo["alertedFlows"] = false
+      pageinfo["misbehavingFlows"] = false
       pageinfo["filteredFlows"] = false
+   elseif flow_status == "misbehaving" then
+      pageinfo["misbehavingFlows"] = true
    elseif flow_status == "alerted" then
       pageinfo["alertedFlows"] = true
    elseif flow_status == "filtered" then
@@ -417,10 +420,13 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    local column_proto_l4 = ''
 
-   if(value["flow.status"] ~= 0) then
-	 column_proto_l4 = "<i class='fa fa-warning' style='color: orange;'"
-	    .." title='"..noHtml(getFlowStatus(value["flow.status"], flow2statusinfo(value)))
-	    .."'></i> "
+   -- NOTE: an alerted flow *may* have an invalid status set
+   local status_info = getFlowStatus(value["flow.status"], flow2statusinfo(value))
+
+   if(value["flow.alerted"]) then
+      column_proto_l4 = "<i class='fa fa-warning' style='color: #B94A48' title='"..noHtml(status_info) .."'></i> "
+   elseif(value["flow.status"] ~= 0) then
+      column_proto_l4 = "<i class='fa fa-warning' style='color: orange;' title='"..noHtml(status_info) .."'></i> "
    end
 
    if value["proto.l4"] == "TCP" or value["proto.l4"] == "UDP" then

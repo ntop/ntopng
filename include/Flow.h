@@ -479,7 +479,6 @@ class Flow : public GenericHashEntry {
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); }
   inline bool      isFlowAlerted()        { return(flow_alerted);                   }
-  inline void      setFlowAlerted()       { flow_alerted = true;                    }
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {

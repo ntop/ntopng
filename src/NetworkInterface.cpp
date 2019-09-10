@@ -3769,7 +3769,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   TcpFlowStateFilter tcp_flow_state_filter;
-  bool unicast, unidirectional, alerted_flows;
+  bool unicast, unidirectional, alerted_flows, misbehaving_flows;
   u_int32_t asn_filter;
   char* username_filter;
   char* pidname_filter;
@@ -3954,9 +3954,15 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     status = f->getFlowStatus(&status_map);
 
     if(retriever->pag
+       && retriever->pag->misbehavingFlows(&misbehaving_flows)
+       && ((misbehaving_flows && status == status_normal)
+	   || (!misbehaving_flows && status != status_normal)))
+      return(false);
+
+    if(retriever->pag
        && retriever->pag->alertedFlows(&alerted_flows)
-       && ((alerted_flows && status == status_normal)
-	   || (!alerted_flows && status != status_normal)))
+       && ((alerted_flows && !f->isFlowAlerted())
+	   || (!alerted_flows && f->isFlowAlerted())))
       return(false);
 
     /* Flow Status filter */

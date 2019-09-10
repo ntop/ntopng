@@ -358,7 +358,7 @@ local function validateFlowStatusNumber(status)
 end
 
 local function validateFlowStatus(mode)
-   local modes = {"normal", "alerted", "filtered"}
+   local modes = {"normal", "alerted", "filtered", "misbehaving"}
 
    if validateFlowStatusNumber(mode) then
       return true
