@@ -3816,6 +3816,20 @@ static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_interface_is_view(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool rv = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(ntop_interface) rv = ntop_interface->isView();
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_interface_is_running(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -9602,6 +9616,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "isDiscoverableInterface",          ntop_interface_is_discoverable_interface },
   { "isBridgeInterface",                ntop_interface_is_bridge_interface },
   { "isPcapDumpInterface",              ntop_interface_is_pcap_dump_interface },
+  { "isView",                           ntop_interface_is_view },
   { "isRunning",                        ntop_interface_is_running },
   { "isIdle",                           ntop_interface_is_idle },
   { "setInterfaceIdleState",            ntop_interface_set_idle },

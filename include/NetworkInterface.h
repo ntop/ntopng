@@ -45,6 +45,7 @@ class Paginator;
 class NetworkInterfaceTsPoint;
 class ArpStatsMatrixElement;
 class ArpStatsHashMatrix;
+class ViewInterface;
 
 #ifdef NTOPNG_PRO
 class AggregatedFlow;
@@ -78,7 +79,7 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
   u_int32_t num_dropped_alerts;
   bool has_stored_alerts;
-  AlertsQueue *alerts_queue;
+  AlertsQueue *alertsQueue;
 
   /* External alerts contain alertable entities other than host/interface/network
    * which are dynamically allocated when an alert for them occurs.
@@ -88,8 +89,8 @@ class NetworkInterface : public AlertableEntity {
   std::map<std::pair<AlertEntity, std::string>, AlertableEntity*> external_alerts;
   Mutex external_alerts_lock;
 
-  bool is_view;   /* Whether this is a view interface */
-  bool is_viewed; /* Whether this interface is 'viewed' by a ViewInterface */
+  bool is_view;             /* Whether this is a view interface */
+  ViewInterface *viewed_by; /* Whether this interface is 'viewed' by a ViewInterface */
 
   /* Disaggregations */
   u_int16_t numVirtualInterfaces;
@@ -263,7 +264,7 @@ class NetworkInterface : public AlertableEntity {
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
-  bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const;
+  bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeBPFEvents();
 
  public:
@@ -559,9 +560,10 @@ class NetworkInterface : public AlertableEntity {
   void addAllAvailableInterfaces();
   inline bool idle() { return(is_idle); }
   inline u_int16_t getMTU() { return(ifMTU); }
-  inline void setIdleState(bool new_state)         { is_idle = new_state;           }
-  inline StatsManager  *getStatsManager()          { return statsManager;           }
-  inline AlertsManager *getAlertsManager()         { return alertsManager;          }
+  inline void setIdleState(bool new_state)         { is_idle = new_state;  };
+  inline StatsManager  *getStatsManager()          { return statsManager;  };
+  AlertsManager *getAlertsManager() const;
+  AlertsQueue* getAlertsQueue() const;
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules();
@@ -660,9 +662,11 @@ class NetworkInterface : public AlertableEntity {
   bool isHiddenFromTop(Host *host);
   virtual bool areTrafficDirectionsSupported() { return(false); };
 
-  bool isView()   const { return is_view;   };
-  bool isViewed() const { return is_viewed; };
-  inline  void setViewed()      { is_viewed = true; };
+  inline bool isView()             const { return is_view;    };
+  inline ViewInterface* viewedBy() const { return viewed_by;  };
+  inline bool isViewed()           const { return viewedBy(); };
+
+  inline void setViewed(ViewInterface *view_iface) { viewed_by = view_iface; };
 
   bool getMacInfo(lua_State* vm, char *mac);
   bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
@@ -764,7 +768,6 @@ class NetworkInterface : public AlertableEntity {
   inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
   inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
   inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
-  inline AlertsQueue* getAlertsQueue()                    { return(alerts_queue); }
   void walkAlertables(int entity_type, const char *entity_value, std::set<int> *entity_excludes, alertable_callback *callback, void *user_data);
   void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value, std::set<int> *entity_excludes);
   void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity, std::set<int> *entity_excludes);

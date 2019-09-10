@@ -54,7 +54,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 	    else if(what->isViewed())
 	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface already belonging to a view [%s][%d]", ifName, i);
 	    else {
-	      what->setViewed();
+	      what->setViewed(this);
 	      viewed_interfaces[num_viewed_interfaces++] = what;
 	      is_packet_interface &= what->isPacketInterface();
 	    }

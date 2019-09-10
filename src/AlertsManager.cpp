@@ -2,7 +2,7 @@
  *
  * (C) 2013-19 - ntop.org
  *
- *o
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
@@ -377,6 +377,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     sqlite3_stmt *stmt = NULL, *stmt2 = NULL, *stmt3 = NULL;
     int rc = 0;
     Host *cli, *srv;
+    const IpAddress *cli_ip_addr, *srv_ip_addr;
     char *cli_ip = NULL, *srv_ip = NULL;
     char cb[64], cb1[64], cli_os[64], srv_os[64];
     AlertType alert_type;
@@ -401,10 +402,12 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     alert_severity = Utils::flowStatus2AlertLevel(status, f->getIDSAlertSeverity());
 
     cli = f->get_cli_host(), srv = f->get_srv_host();
-    if(cli && cli->get_ip())
-      cli_ip = cli->get_ip()->print(cli_ip_buf, sizeof(cli_ip_buf));
-    if(srv && srv->get_ip())
-      srv_ip = srv->get_ip()->print(srv_ip_buf, sizeof(srv_ip_buf));
+    cli_ip_addr = f->get_cli_ip_addr(), srv_ip_addr = f->get_srv_ip_addr();
+
+    if(cli_ip_addr)
+      cli_ip = cli_ip_addr->print(cli_ip_buf, sizeof(cli_ip_buf));
+    if(srv_ip_addr)
+      srv_ip = srv_ip_addr->print(srv_ip_buf, sizeof(srv_ip_buf));
 
     json_object *status_info = f->flow2statusinfojson();
 

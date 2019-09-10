@@ -287,9 +287,9 @@ bool Flow::triggerAlerts() const {
   bool cli_trigger_alerts, srv_trigger_alerts;
 
   /* client is either remote, or has alerts enabled... */
-  cli_trigger_alerts = cli_host && (!cli_host->isLocalHost() || cli_host->triggerAlerts());
+  cli_trigger_alerts = !cli_host || !cli_host->isLocalHost() || cli_host->triggerAlerts();
   /* server is either remote, or has alerts enabled.. */
-  srv_trigger_alerts = srv_host && (!srv_host->isLocalHost() || srv_host->triggerAlerts());
+  srv_trigger_alerts = !srv_host || !srv_host->isLocalHost() || srv_host->triggerAlerts();
 
   return cli_trigger_alerts && srv_trigger_alerts;
 }
@@ -2538,10 +2538,9 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
 /* *************************************** */
 
 bool Flow::isBlacklistedFlow() const {
-  bool res = (cli_host && srv_host
-	      && (cli_host->isBlacklisted()
-		  || srv_host->isBlacklisted()
-		  || (get_protocol_category() == CUSTOM_CATEGORY_MALWARE)));
+  bool res = ((cli_host && cli_host->isBlacklisted())
+	      || (srv_host && srv_host->isBlacklisted())
+	      || (get_protocol_category() == CUSTOM_CATEGORY_MALWARE));
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
   if(res) {

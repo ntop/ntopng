@@ -296,7 +296,8 @@ void NetworkInterface::init() {
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
   has_stored_alerts = false;
 
-  is_view = is_viewed = false;
+  is_view = false;
+  viewed_by = NULL;
 
   db = NULL;
 #ifdef NTOPNG_PRO
@@ -2580,83 +2581,83 @@ decode_packet_eth:
     if(dstMac) dstMac->incRcvdStats(h->ts.tv_sec, 1, len_on_wire);
 #endif
 
-    if(srcMac && dstMac && (!srcMac->isNull() || !dstMac->isNull())) {
-      setSeenMacAddresses();
-      srcMac->setSourceMac();
+    if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header) + sizeof(struct ndpi_ethhdr)))) {
+      struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
+      u_int16_t arp_opcode = ntohs(arpp->ar_op);
+      bool src2dst_element = false;
+      ArpStatsMatrixElement* e;
 
-      if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header)+sizeof(struct ndpi_ethhdr)))) {
-	struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
-	u_int16_t arp_opcode = ntohs(arpp->ar_op);
-	bool src2dst_element = false;
-	ArpStatsMatrixElement* e;
+      u_int32_t src = ntohl(arpp->arp_spa);
+      u_int32_t dst = ntohl(arpp->arp_tpa);
+      u_int32_t net = src & dst;
+      u_int32_t diff;
+      IpAddress cur_bcast_domain;
 
-	u_int32_t src = ntohl(arpp->arp_spa);
-	u_int32_t dst = ntohl(arpp->arp_tpa);
-	u_int32_t net = src & dst;
-	u_int32_t diff;
-	IpAddress cur_bcast_domain;
+      if(src > dst) {
+	u_int32_t r = src;
+	src = dst;
+	dst = r;
+      }
 
-	if(src > dst) {
-	  u_int32_t r = src;
-	  src = dst;
-	  dst = r;
-	}
+      diff = dst - src;
 
-	diff = dst - src;
+      /*
+	Following is an heuristic which tries to detect the broadcast domain
+	with its size and network-part of the address. Detection is done by checking
+	source and target protocol addresses found in arp.
 
-        /*
-          Following is an heuristic which tries to detect the broadcast domain
-          with its size and network-part of the address. Detection is done by checking
-          source and target protocol addresses found in arp.
+	Link-local addresses are excluded, as well as arp Probes with a zero source IP.
 
-          Link-local addresses are excluded, as well as arp Probes with a zero source IP.
+	ARP Probes are defined in RFC 5227:
+	In this document, the term 'ARP Probe' is used to refer to an ARP
+	Request packet, broadcast on the local link, with an all-zero 'sender
+	IP address'.  [...]  The 'target IP
+	address' field MUST be set to the address being probed.  An ARP Probe
+	conveys both a question ("Is anyone using this address?") and an
+	implied statement ("This is the address I hope to use.").
+      */
 
-          ARP Probes are defined in RFC 5227:
-           In this document, the term 'ARP Probe' is used to refer to an ARP
-           Request packet, broadcast on the local link, with an all-zero 'sender
-           IP address'.  [...]  The 'target IP
-           address' field MUST be set to the address being probed.  An ARP Probe
-           conveys both a question ("Is anyone using this address?") and an
-           implied statement ("This is the address I hope to use.").
-         */
+      if(diff
+	 && src /* Not a zero source IP (ARP Probe) */
+	 && (src & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */
+	 && (dst & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */) {
+	u_int32_t cur_mask;
+	u_int8_t cur_cidr;
 
-	if(diff
-	   && src /* Not a zero source IP (ARP Probe) */
-	   && (src & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */
-	   && (dst & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */) {
-	  u_int32_t cur_mask;
-	  u_int8_t cur_cidr;
+	for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask > 0x00000000; cur_mask <<= 1, cur_cidr--) {
+	  if((diff & cur_mask) == 0) { /* diff < cur_mask */
+	    net &= cur_mask;
 
-	  for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask > 0x00000000; cur_mask <<= 1, cur_cidr--) {
-	    if((diff & cur_mask) == 0) { /* diff < cur_mask */
-	      net &= cur_mask;
+	    if((src & cur_mask) != (dst & cur_mask)) {
+	      cur_mask <<= 1, cur_cidr -= 1;
+	      net = src & cur_mask;
+	    }
 
-	      if((src & cur_mask) != (dst & cur_mask)) {
-		cur_mask <<= 1, cur_cidr -= 1;
-		net = src & cur_mask;
-	      }
+	    cur_bcast_domain.set(htonl(net));
 
-	      cur_bcast_domain.set(htonl(net));
-
-	      if(!checkBroadcastDomainTooLarge(cur_mask, vlan_id, srcMac, dstMac, src, dst)) {
-		/* NOTE: call this also for existing domains in order to update the hits */
-		bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
+	    if(!checkBroadcastDomainTooLarge(cur_mask, vlan_id, ethernet->h_source, ethernet->h_dest, src, dst)) {
+	      /* NOTE: call this also for existing domains in order to update the hits */
+	      bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
 
 #ifdef BROADCAST_DOMAINS_DEBUG
-		char buf1[32], buf2[32], buf3[32];
-		ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
-					     Utils::intoaV4(src, buf1, sizeof(buf1)),
-					     Utils::intoaV4(dst, buf2, sizeof(buf2)),
-					     Utils::intoaV4(net, buf3, sizeof(buf3)),
-					     cur_cidr);
+	      char buf1[32], buf2[32], buf3[32];
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
+					   Utils::intoaV4(src, buf1, sizeof(buf1)),
+					   Utils::intoaV4(dst, buf2, sizeof(buf2)),
+					   Utils::intoaV4(net, buf3, sizeof(buf3)),
+					   cur_cidr);
 #endif
-	      }
-
-	      break;
 	    }
+
+	    break;
 	  }
 	}
+      }
 
+      if(srcMac && dstMac && (!srcMac->isNull() || !dstMac->isNull())) {
+	setSeenMacAddresses();
+	srcMac->setSourceMac();
+	
 	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(),
 				    src, dst,
 				    &src2dst_element);
@@ -6264,9 +6265,12 @@ void NetworkInterface::allocateStructures() {
 
     networkStats     = new NetworkStats*[numNetworks];
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
-    alertsManager    = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
-    alerts_queue     = new AlertsQueue(this);
     ndpiStats        = new nDPIStats(true /* Enable throughput calculation */);
+
+    if(!isViewed()) {
+      alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
+      alertsQueue   = new AlertsQueue(this);
+    }
 
     for(u_int8_t i = 0; i < numNetworks; i++)
       networkStats[i] = new NetworkStats(this, i);
@@ -6283,6 +6287,24 @@ void NetworkInterface::allocateStructures() {
   setEntityValue(buf);
 
   refreshHasAlerts();
+}
+
+/* **************************************** */
+
+AlertsManager *NetworkInterface::getAlertsManager() const {
+  if(isViewed())
+    return viewedBy()->getAlertsManager();
+  else
+    return alertsManager;
+}
+
+/* **************************************** */
+
+AlertsQueue *NetworkInterface::getAlertsQueue() const {
+  if(isViewed())
+    return viewedBy()->getAlertsQueue();
+  else
+    return alertsQueue;
 }
 
 /* **************************************** */
@@ -6966,7 +6988,7 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
     u_char tmp[16];
     Utils::int2mac(it->second, tmp);
 
-	  alerts_queue->pushMacIpAssociationChangedAlert(ntohl(ipv4), tmp, _mac);
+	  getAlertsQueue()->pushMacIpAssociationChangedAlert(ntohl(ipv4), tmp, _mac);
 
 	  ip_mac[ipv4] = mac;
 	}
@@ -6991,15 +7013,15 @@ void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhc
     ip.set(ipv4);
 
     if(!isInDhcpRange(&ip))
-      alerts_queue->pushOutsideDhcpRangeAlert(_mac, sender_mac, ntohl(ipv4), ntohl(dhcp_reply->siaddr), vlan_id);
+      getAlertsQueue()->pushOutsideDhcpRangeAlert(_mac, sender_mac, ntohl(ipv4), ntohl(dhcp_reply->siaddr), vlan_id);
   }
 }
 
 /* *************************************** */
 
-bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const Mac * const src_mac, const Mac * const dst_mac, u_int32_t spa, u_int32_t tpa) const {
+bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa) const {
   if(bcast_mask < 0xFFFF0000) {
-    alerts_queue->pushBroadcastDomainTooLargeAlert((u_int8_t*)src_mac->get_mac(), (u_int8_t*)dst_mac->get_mac(), spa, tpa, vlan_id);
+    getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, spa, tpa, vlan_id);
     return true; /* At most a /16 broadcast domain is acceptable */
   }
 

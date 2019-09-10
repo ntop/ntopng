@@ -668,7 +668,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
    local status_info = alert2statusinfo(decoded)
 
    -- active flow lookup
-   if status_info and status_info["ntopng.key"] and record["alert_tstamp"] then
+   if not interface.isView() and status_info and status_info["ntopng.key"] and record["alert_tstamp"] then
       -- attempt a lookup on the active flows
       local active_flow = interface.findFlowByKey(status_info["ntopng.key"])
 
