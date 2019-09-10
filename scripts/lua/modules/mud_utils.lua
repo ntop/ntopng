@@ -286,23 +286,23 @@ local function getAclMatches(conn, dir)
          if(not isEmptyString(conn.host_fingerprint)) then
             -- NTOP_MUD
             matches["ja3"] = matches["ja3"] or {}
-            matches["ja3"]["source-fingerprint"] = conn.host_fingerprint
+            matches["ja3"]["client-fingerprint"] = conn.host_fingerprint
          end
          if(not isEmptyString(conn.peer_fingerprint)) then
             -- NTOP_MUD
             matches["ja3"] = matches["ja3"] or {}
-            matches["ja3"]["destination-fingerprint"] = conn.peer_fingerprint
+            matches["ja3"]["server-fingerprint"] = conn.peer_fingerprint
          end
       elseif(conn.fingerprint_type == "HASSH") then
          if(not isEmptyString(conn.host_fingerprint)) then
             -- NTOP_MUD
             matches["hassh"] = matches["hassh"] or {}
-            matches["hassh"]["source-fingerprint"] = conn.host_fingerprint
+            matches["hassh"]["client-fingerprint"] = conn.host_fingerprint
          end
          if(not isEmptyString(conn.peer_fingerprint)) then
             -- NTOP_MUD
             matches["hassh"] = matches["hassh"] or {}
-            matches["hassh"]["destination-fingerprint"] = conn.peer_fingerprint
+            matches["hassh"]["server-fingerprint"] = conn.peer_fingerprint
          end
       end
    end
