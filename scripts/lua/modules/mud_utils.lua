@@ -8,10 +8,10 @@
 -- type:
 --
 -- <General Purpose Host>
---  - Local: <l4_proto, peer_key, peer_port>
+--  - Local: <l4_proto, peer_key, srv_port>
 --  - Remote: <l4_proto, l7_proto, fp_type, host_fp>
 -- <Special Purpose Host>
---  - Local: <l4_proto, peer_key, peer_port>
+--  - Local: <l4_proto, peer_key, srv_port>
 --  - Remote: <l4_proto, l7_proto, fp_type, host_fp, peer_fp, peer_key>
 --
 -- Items marked with the NTOP_MUD comment are part of the ntop MUD proposal
@@ -52,7 +52,7 @@ end
 -- ###########################################
 
 local function local_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
-   return(string.format("%s|%s|%u", info["proto.l4"], peer_key, peer_port))
+   return(string.format("%s|%s|%u", info["proto.l4"], peer_key, info["srv.port"]))
 end
 
 local function local_mud_decode(value)
@@ -61,7 +61,7 @@ local function local_mud_decode(value)
    return({
       l4proto = v[1],
       peer_key = v[2],
-      peer_port = tonumber(v[3]),
+      srv_port = tonumber(v[3]),
    })
 end
 
@@ -261,16 +261,16 @@ local function getAclMatches(conn, dir)
       end
    end
 
-   if(conn.peer_port ~= nil) then
+   if(conn.srv_port ~= nil) then
       matches[mud_l4proto] = {}
 
       if(conn.l4proto == "TCP") then
          matches[mud_l4proto]["ietf-mud:direction-initiated"] = dir.mud_direction
       end
 
-      matches[mud_l4proto][dir.mud_port] = {
+      matches[mud_l4proto]["destination-port"] = {
          ["operator"] = "eq",
-         ["port"] = conn.peer_port,
+         ["port"] = conn.srv_port,
       }
    end
 
@@ -354,7 +354,6 @@ function mud_utils.getHostMUD(host_key)
          host = "from-ipv4-"..host_name,
          mud_direction = "from-device",
          mud_network = "destination-ipv4-network",
-         mud_port = "destination-port",
          mud_dnsname = "ietf-acldns:dst-dnsname",
          mud_l3proto = "ipv4",
          mud_mac_address = "destination-mac-address",
@@ -366,7 +365,6 @@ function mud_utils.getHostMUD(host_key)
          host = "to-ipv4-"..host_name,
          mud_direction = "to-device",
          mud_network = "source-ipv4-network",
-         mud_port = "source-port",
          mud_dnsname = "ietf-acldns:src-dnsname",
          mud_l3proto = "ipv4",
          mud_mac_address = "source-mac-address",
@@ -378,7 +376,6 @@ function mud_utils.getHostMUD(host_key)
          host = "from-ipv6-"..host_name,
          mud_direction = "from-device",
          mud_network = "destination-ipv6-network",
-         mud_port = "destination-port",
          mud_dnsname = "ietf-acldns:dst-dnsname",
          mud_l3proto = "ipv6",
          mud_mac_address = "destination-mac-address",
@@ -390,7 +387,6 @@ function mud_utils.getHostMUD(host_key)
          host = "to-ipv6-"..host_name,
          mud_direction = "to-device",
          mud_network = "source-ipv6-network",
-         mud_port = "source-port",
          mud_dnsname = "ietf-acldns:src-dnsname",
          mud_l3proto = "ipv6",
          mud_mac_address = "source-mac-address",
