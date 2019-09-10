@@ -1826,7 +1826,7 @@ print [[/lua/rest/get/interface/data.lua',
 
               if(diff > 0) {
                  rate = ((diff * 1000)/time_diff).toFixed(1);
-                 label = " ["+rate+" Flows/sec] "+get_trend(1,0);
+                 label = " [" + fflows(rate) + "] " + get_trend(1,0);
               } else {
                  label = " "+get_trend(0,0);
               }
