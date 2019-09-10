@@ -585,7 +585,6 @@ print [[
 if(flow == nil) then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
 else
-
    if isAdministrator() then
       if(_POST["drop_flow_policy"] == "true") then
 	 interface.dropFlowTraffic(tonumber(flow_key))
@@ -630,7 +629,7 @@ else
 	 print(i18n("flow_details.ssl_old_protocol_version"))
       end
    end
-   
+
    if(ifstats.inline) then
       if(flow["verdict.pass"]) then
 	 print('<form class="form-inline pull-right" style="margin-bottom: 0px;" method="post">')
@@ -792,8 +791,8 @@ else
       print("<tr><th width=30%>"..i18n("flow_details.application_latency").."</th><td colspan=2>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
    end
 
-    if(not string.starts(ifname, "nf:")) then
-       if((flow["cli2srv.packets"] > 1) and (flow["interarrival.cli2srv"]["max"] > 0)) then
+   if(not string.starts(ifname, "nf:")) then
+      if flow["cli2srv.packets"] > 1 and flow["interarrival.cli2srv"] and flow["interarrival.cli2srv"]["max"] > 0 then
 	  print("<tr><th width=30%")
 	  if(flow["flow.idle"] == true) then print(" rowspan=2") end
 	  print(">"..i18n("flow_details.packet_inter_arrival_time").."</th><td nowrap>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server")..": ")

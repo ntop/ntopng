@@ -155,6 +155,15 @@ Flow::Flow(NetworkInterface *_iface,
   if(!iface->isPacketInterface())
     last_update_time.tv_sec = (long)first_seen;
 
+  if(iface->isPacketInterface() && !iface->isSampledTraffic()) {
+    cli2srvPktTime = new (std::nothrow) InterarrivalStats();
+    srv2cliPktTime = new (std::nothrow) InterarrivalStats();
+  } else {
+    cli2srvPktTime = NULL;
+    srv2cliPktTime = NULL;
+  }
+    
+
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   trafficProfile = NULL;
@@ -236,6 +245,9 @@ Flow::~Flow() {
 
   if(cli_ebpf) delete cli_ebpf;
   if(srv_ebpf) delete srv_ebpf;
+
+  if(cli2srvPktTime) delete cli2srvPktTime;
+  if(srv2cliPktTime) delete srv2cliPktTime;
 
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
@@ -2589,7 +2601,8 @@ bool Flow::update_partial_traffic_stats_db_dump() {
 /* *************************************** */
 
 void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *when) {
-  stats->updatePacketStats((struct timeval*)when);
+  if(stats)
+    stats->updatePacketStats((struct timeval*)when);
 }
 
 /* *************************************** */
@@ -2597,18 +2610,20 @@ void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *whe
 void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
   InterarrivalStats *s = cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats();
 
-  lua_newtable(vm);
+  if(s) {
+    lua_newtable(vm);
   
-  lua_push_float_table_entry(vm, "min",    (float)s->getMin());
-  lua_push_float_table_entry(vm, "max",    (float)s->getMax());
-  lua_push_float_table_entry(vm, "avg",    s->getAvg());
-  lua_push_float_table_entry(vm, "stddev", s->getStdDev());
+    lua_push_uint64_table_entry(vm, "min",   s->getMin());
+    lua_push_uint64_table_entry(vm, "max",   s->getMax());
+    lua_push_float_table_entry(vm, "avg",    s->getAvg());
+    lua_push_float_table_entry(vm, "stddev", s->getStdDev());
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.1f / %u", s->getMin(), s->getAvg(), s->getMax());
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.1f / %u", s->getMin(), s->getAvg(), s->getMax());
 			       
-  lua_pushstring(vm, cli2srv_direction ? "interarrival.cli2srv" : "interarrival.srv2cli");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+    lua_pushstring(vm, cli2srv_direction ? "interarrival.cli2srv" : "interarrival.srv2cli");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* *************************************** */

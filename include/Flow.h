@@ -166,7 +166,7 @@ class Flow : public GenericHashEntry {
   struct timeval c2sFirstGoodputTime;
   float rttSec, applLatencyMsec;
 
-  InterarrivalStats cli2srvPktTime, srv2cliPktTime;
+  InterarrivalStats *cli2srvPktTime, *srv2cliPktTime;
   
   /* Counter values at last host update */
   struct {
@@ -211,7 +211,7 @@ class Flow : public GenericHashEntry {
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
   bool isLowGoodput();
-  void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
+  static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   bool isReadyToBeMarkedAsIdle();
   bool isBlacklistedFlow() const;
@@ -466,9 +466,9 @@ class Flow : public GenericHashEntry {
   inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
   inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
 
-  inline InterarrivalStats* getCli2SrvIATStats()   { return(&cli2srvPktTime); }
-  inline InterarrivalStats* getSrv2CliIATStats()   { return(&srv2cliPktTime); }
-  
+  inline InterarrivalStats* getCli2SrvIATStats() const { return cli2srvPktTime; }
+  inline InterarrivalStats* getSrv2CliIATStats() const { return srv2cliPktTime; }
+
   bool isIdleFlow();
   inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset()
 						 && ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))
