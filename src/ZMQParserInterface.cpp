@@ -760,7 +760,7 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
 
     if(flow->pkt_sampling_rate == 0)
       flow->pkt_sampling_rate = 1;
-    
+
     /* Process Flow */
     PROFILING_SECTION_ENTER("processFlow", 30);
     iface->processFlow(flow, true);
@@ -907,8 +907,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
   /* Reset data */
   flow.source_id = source_id;
 
+  PROFILING_SECTION_ENTER("Decode TLV", 9);
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing TLV record");
-
   while((et = ndpi_deserialize_get_item_type(deserializer, &kt)) != ndpi_serialization_unknown) {
     ParsedValue value = { 0 };
     u_int32_t pen = 0, key_id;
@@ -1080,7 +1080,10 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
  end_of_record:
 
+  PROFILING_SECTION_EXIT(9); /* Closes Decode TLV */
+  PROFILING_SECTION_ENTER("processFlow", 10);
   preprocessFlow(&flow, iface);
+  PROFILING_SECTION_EXIT(10);
 
  error:
   return ret;

@@ -892,10 +892,10 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
      || (dstMac && Utils::macHash(dstMac->get_mac()) != 0))
     setSeenMacAddresses();
 
-  PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 5);
+  PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
 			 vlan_id, l4_proto, icmp_info, src2dst_direction);
-  PROFILING_SECTION_EXIT(5);
+  PROFILING_SECTION_EXIT(1);
 
   if(ret == NULL) {
     if(!create_if_missing)
@@ -904,13 +904,13 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     *new_flow = true;
 
     try {
-      PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 6);
+      PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
       ret = new Flow(this, vlan_id, l4_proto,
 		     srcMac, src_ip, src_port,
 		     dstMac, dst_ip, dst_port,
 		     icmp_info,
 		     first_seen, last_seen);
-      PROFILING_SECTION_EXIT(6);
+      PROFILING_SECTION_EXIT(2);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -1164,18 +1164,14 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
     return;
   }
 
-  PROFILING_SECTION_ENTER("processFlow getMac", 20);
-
   if(!ntop->getPrefs()->do_ignore_macs()) {
     srcMac = getMac((u_int8_t*)zflow->src_mac, true /* Create if missing */, true /* Inline call */);
     dstMac = getMac((u_int8_t*)zflow->dst_mac, true /* Create if missing */, true /* Inline call */);
   }
 
-  PROFILING_SECTION_EXIT(20);
-
   srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
 
-  PROFILING_SECTION_ENTER("processFlow getFlow", 21);
+  PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow", 0);
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
@@ -1190,7 +1186,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 		 zflow->last_switched,
 		 0, &new_flow, true);
 
-  PROFILING_SECTION_EXIT(21);
+  PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL)
     return;
@@ -1288,8 +1284,6 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
       (src2dst_direction) ? 1 : 0);
 #endif
 
-  PROFILING_SECTION_ENTER("processFlow Inc", 22);
-
   /* Update Mac stats
      Note: do not use src2dst_direction to inc the stats as
      in_bytes/in_pkts and out_bytes/out_pkts are already relative to the current
@@ -1334,8 +1328,6 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 			 zflow->tcp.lost_out_pkts, 0 /* TODO: add keepalive */);
   }
 
-  PROFILING_SECTION_EXIT(22);
-
 #ifdef NTOPNG_PRO
   if(zflow->deviceIP) {
     // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
@@ -1364,23 +1356,15 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 		     zflow->pkt_sampling_rate*zflow->out_fragments,
 		     zflow->last_switched);
 
-  PROFILING_SECTION_ENTER("processFlow NDPI", 23);
   p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   flow->setDetectedProtocol(p, true);
-  PROFILING_SECTION_EXIT(23);
 
-  PROFILING_SECTION_ENTER("processFlow setJSONInfo", 24);
   flow->setJSONInfo(zflow->getAdditionalFields());
-  PROFILING_SECTION_EXIT(24);
 
-  PROFILING_SECTION_ENTER("processFlow local stats", 25);
   flow->updateInterfaceLocalStats(src2dst_direction,
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
-  PROFILING_SECTION_EXIT(25);
-
-  PROFILING_SECTION_ENTER("processFlow strings", 26);
 
   if(zflow->dns_query && zflow->dns_query[0] != '\0' && zflow->dns_query[0] != '\n')
     flow->setDNSQuery(zflow->dns_query);
@@ -1401,10 +1385,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
     flow->setBTHash(zflow->bittorrent_hash);
 
   if(zflow->vrfId)      flow->setVRFid(zflow->vrfId);
-  PROFILING_SECTION_EXIT(26);
 
 #ifdef NTOPNG_PRO
-  PROFILING_SECTION_ENTER("processFlow custom app", 27);
   if(zflow->custom_app.pen) {
     flow->setCustomApp(zflow->custom_app);
 
@@ -1413,15 +1395,11 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 				 zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
     }
   }
-  PROFILING_SECTION_EXIT(27);
 #endif
 
-  PROFILING_SECTION_ENTER("processFlow fillZmqFlowCategory", 28);
   // NOTE: fill the category only after the server name is set
   flow->fillZmqFlowCategory();
-  PROFILING_SECTION_EXIT(28);
 
-  PROFILING_SECTION_ENTER("processFlow incStats", 29);
   /* Do not put incStats before guessing the flow protocol */
   incStats(true /* ingressPacket */,
 	   now, srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
@@ -1429,7 +1407,6 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
-  PROFILING_SECTION_EXIT(29);
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
@@ -1668,13 +1645,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 #endif
 
-  PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 1);
+  PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 0);
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0,
 		 l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
 		 &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, len_on_wire, &new_flow, true);
-  PROFILING_SECTION_EXIT(1);
+  PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL) {
     incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
@@ -1747,9 +1724,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     tv_ts.tv_usec = h->ts.tv_usec;
     flow->incStats(src2dst_direction, len_on_wire, payload, trusted_payload_len, l4_proto, is_fragment, &tv_ts);
 #else
-    PROFILING_SECTION_ENTER("NetworkInterface::processPacket: flow->incStats", 2);
     flow->incStats(src2dst_direction, len_on_wire, payload, trusted_payload_len, l4_proto, is_fragment, &h->ts);
-    PROFILING_SECTION_EXIT(2);
 #endif
 #endif
   }
@@ -2032,11 +2007,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     flow->updateCommunityIdFlowHash();
 #endif
 
-  PROFILING_SECTION_ENTER("NetworkInterface::processPacket: incStats", 4);
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().app_protocol, l4_proto,
 	   len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-  PROFILING_SECTION_EXIT(4);
 
   return(pass_verdict);
 }
@@ -2404,7 +2377,6 @@ decode_packet_eth:
 	ethernet = &dummy_ethernet;
 
       try {
-        PROFILING_SECTION_ENTER("NetworkInterface::dissectPacket: processPacket", 0);
 	pass_verdict = processPacket(bridge_iface_idx,
 				     ingressPacket, &h->ts, time,
 				     ethernet,
@@ -2413,7 +2385,6 @@ decode_packet_eth:
 				     ip_offset,
 				     len_on_wire,
 				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
-        PROFILING_SECTION_EXIT(0);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -2545,7 +2516,6 @@ decode_packet_eth:
 	  ethernet = &dummy_ethernet;
 
 	try {
-          PROFILING_SECTION_ENTER("NetworkInterface::dissectPacket: processPacket", 0);
 	  pass_verdict = processPacket(bridge_iface_idx,
 				       ingressPacket, &h->ts, time,
 				       ethernet,
@@ -2554,7 +2524,6 @@ decode_packet_eth:
 				       ip_offset,
 				       len_on_wire,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
-          PROFILING_SECTION_EXIT(0);
 	  
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
@@ -2830,10 +2799,10 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
     return;
   }
 
-  PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
+  PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
   (*src) = hosts_hash->get(vlanId, _src_ip, true /* Inline call */);
-  PROFILING_SECTION_EXIT(8);
+  PROFILING_SECTION_EXIT(3);
 
   if((*src) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -2843,17 +2812,21 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
     }
 
     if(_src_ip && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 9);
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, _src_ip);
-      PROFILING_SECTION_EXIT(9);
+      PROFILING_SECTION_EXIT(4);
     } else {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 10);
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
       (*src) = new (std::nothrow) RemoteHost(this, src_mac, vlanId, _src_ip);
-      PROFILING_SECTION_EXIT(10);
+      PROFILING_SECTION_EXIT(5);
     }
 
     if(*src) {
-      if(!hosts_hash->add(*src, false /* Don't lock, we're inline with the purgeIdle */)) {
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->add", 6);
+      bool add_res = hosts_hash->add(*src, false /* Don't lock, we're inline with the purgeIdle */);
+      PROFILING_SECTION_EXIT(6);
+
+      if(!add_res) {
 	//ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
 	delete *src;
 	*src = *dst = NULL;
@@ -2867,9 +2840,9 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
   /* ***************************** */
 
-  PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 8);
+  PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
   (*dst) = hosts_hash->get(vlanId, _dst_ip, true /* Inline call */);
-  PROFILING_SECTION_EXIT(8);
+  PROFILING_SECTION_EXIT(3);
 
   if((*dst) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -2881,17 +2854,21 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
     if(_dst_ip
        && (_dst_ip->isLocalHost(&local_network_id)
 	   || _dst_ip->isLocalInterfaceAddress())) {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 9);
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, _dst_ip);
-      PROFILING_SECTION_EXIT(9);
+      PROFILING_SECTION_EXIT(4);
     } else {
-      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 10);
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
       (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlanId, _dst_ip);
-      PROFILING_SECTION_EXIT(10);
+      PROFILING_SECTION_EXIT(5);
     }
 
     if(*dst) {
-      if(!hosts_hash->add(*dst, false /* Don't lock, we're inline with the purgeIdle */)) {
+      PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->add", 6);
+      bool add_res = hosts_hash->add(*dst, false /* Don't lock, we're inline with the purgeIdle */);
+      PROFILING_SECTION_EXIT(6);
+
+      if(!add_res) {
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
 	delete *dst;
 	*dst = NULL;
