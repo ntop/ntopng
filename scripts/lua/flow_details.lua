@@ -12,6 +12,8 @@ local have_nedge = ntop.isnEdge()
 local NfConfig = nil
 local flow_consts = require "flow_consts"
 
+local debug_score = (ntop.getPref("ntopng.prefs.beta_score") == "1")
+
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
@@ -960,8 +962,10 @@ else
       end
       print("</td></tr>\n")
 
-      if(flow["score"] > 0) then
-        print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
+      if debug_score then
+        if(flow["score"] > 0) then
+          print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
+        end
       end
    end
 

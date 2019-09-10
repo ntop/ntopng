@@ -18,11 +18,11 @@ redis-cli set "ntopng.prefs.disable_influxdb_rollup" "1"
 ## [Debug] Add a dropdown into the charts to select the InfluxDB data rollup to use
 redis-cli set "ntopng.prefs.influxdb.debug_aggregation" "1"
 
-## [Beta] Enable alerts based on anomaly indexes
-redis-cli set "ntopng.prefs.beta_anomaly_index_alerts" "1"
-
 ## [Debug] Log InfluxDB queries to console
 redis-cli set "ntopng.prefs.influxdb.print_queries" "1"
 
 ## [Debug] Log RRD operations to console
 redis-cli set "ntopng.prefs.rrd_debug_enabled" "1"
+
+## [Beta] Enable flow/host score
+redis-cli set "ntopng.prefs.beta_score" "1"

@@ -33,7 +33,7 @@ local info = ntop.getInfo()
 local have_nedge = ntop.isnEdge()
 
 local debug_hosts = false
-local debug_score = false
+local debug_score = (ntop.getPref("ntopng.prefs.beta_score") == "1")
 
 local page        = _GET["page"]
 local protocol_id = _GET["protocol"]
