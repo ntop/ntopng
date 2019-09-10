@@ -43,6 +43,8 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    -- ZMQ stats
    if ifstats.zmqRecvStats ~= nil then
       ts_utils.append("iface:zmq_recv_flows", {ifid = ifstats.id, flows = ifstats.zmqRecvStats.flows or 0}, when)
+      ts_utils.append("iface:zmq_rcvd_msgs", {ifid = ifstats.id, msgs = ifstats.zmqRecvStats.zmq_msg_rcvd or 0}, when)
+      ts_utils.append("iface:zmq_msg_drops", {ifid = ifstats.id, msgs = ifstats.zmqRecvStats.zmq_msg_drops or 0}, when)
       ts_utils.append("iface:zmq_flow_coll_drops", {ifid = ifstats.id, drops = ifstats["zmq.drops.flow_collection_drops"] or 0}, when)
       ts_utils.append("iface:zmq_flow_coll_udp_drops", {ifid = ifstats.id, drops = ifstats["zmq.drops.flow_collection_udp_socket_drops"] or 0}, when)
    else

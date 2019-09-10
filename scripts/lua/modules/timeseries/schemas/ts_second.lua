@@ -32,6 +32,18 @@ schema:addMetric("flows")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:zmq_rcvd_msgs", {step=1, rrd_fname = "zmq_rcvd_msgs"})
+schema:addTag("ifid")
+schema:addMetric("msgs")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("iface:zmq_msg_drops", {step=1, rrd_fname = "zmq_msg_drops"})
+schema:addTag("ifid")
+schema:addMetric("msgs")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("iface:zmq_flow_coll_drops", {step = 1, rrd_fname = "zmq_flow_coll_drops"})
 schema:addTag("ifid")
 schema:addMetric("drops")

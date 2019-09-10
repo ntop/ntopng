@@ -175,6 +175,19 @@ function fflows(fps) {
     return Math.round(res[0] * 100) / 100 + ' ' + res[1];
 }
 
+function fmsgs(mps) {
+    if(typeof(mps) === "undefined")
+      return "-";
+
+    var sizes = ['msgs/s', 'Kmsgs/s', 'Msgs/s', 'Gmsgs/s', 'Tmsgs/s'];
+    if(mps == 0) return '0';
+    if((mps > 0) && (mps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' mps');
+    var res = scaleValue(mps, sizes, 1000);
+
+    // Round to two decimal digits
+    return Math.round(res[0] * 100) / 100 + ' ' + res[1];
+}
+
 function falerts(aps) {
   if(typeof(aps) === "undefined")
     return "-";
@@ -362,6 +375,10 @@ function formatPoints(n) {
 
 function formatFlows(n) {
   return(addCommas(n.toFixed(0))+" Flows");
+}
+
+function formatMessages(n) {
+  return(addCommas(n.toFixed(0))+" Messages");
 }
 
 function fmillis(value) {
