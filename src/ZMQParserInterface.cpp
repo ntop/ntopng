@@ -982,8 +982,6 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       goto error;
     }
 
-    ndpi_deserialize_next(deserializer);
-
     if(key_is_string) {
       u_int8_t kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
@@ -1069,13 +1067,20 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
     if(add_to_additional_fields) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s (Key-ID: %u PEN: %u)", key_str, key_id, pen);
-      flow.addAdditionalField(key_str,  
+#if 0
+      flow.addAdditionalField(deserializer);
+#else
+      flow.addAdditionalField(key_str,
         value_is_string ? json_object_new_string(value.string) : json_object_new_int64(value.uint_num));
+#endif
     }
 
     /* Restoring backed up character at the end of the string in place of '\0' */
     if(value_is_string) vs.str[vs.str_len] = vbkp;
-    
+
+    /* Move to the next element */    
+    ndpi_deserialize_next(deserializer);
+
   } /* while */
 
  end_of_record:

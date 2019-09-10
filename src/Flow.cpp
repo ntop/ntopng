@@ -62,7 +62,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
-  json_info = NULL, cli2srv_direction = true, twh_over = twh_ok = false,
+  json_info = NULL, tlv_info = NULL, cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
     bt_hash = NULL;
@@ -241,6 +241,10 @@ Flow::~Flow() {
   if(last_partial)         free(last_partial);
   if(last_db_dump.partial) free(last_db_dump.partial);
   if(json_info)            json_object_put(json_info);
+  if(tlv_info) {
+    ndpi_term_serializer(tlv_info);
+    free(tlv_info);
+  }
   if(host_server_name)     free(host_server_name);
 
   if(cli_ebpf) delete cli_ebpf;
@@ -660,6 +664,19 @@ void Flow::setJSONInfo(json_object *json) {
     json_object_put(json_info);
 
   json_info = json_object_get(json);
+}
+
+/* *************************************** */
+
+void Flow::setTLVInfo(ndpi_serializer *tlv) {
+  if(tlv == NULL) return;
+
+  if(tlv_info != NULL) { 
+    ndpi_term_serializer(tlv_info);
+    free(tlv_info);
+  }
+
+  tlv_info = tlv;
 }
 
 /* *************************************** */
@@ -1632,6 +1649,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   const IpAddress *src_ip = get_cli_ip_addr(), *dst_ip = get_srv_ip_addr();
   bool src_match = true, dst_match = true;
   bool mask_cli_host = true, mask_dst_host = true, mask_flow;
+  bool has_json_info = false;
   FlowStatusMap status_map;
 
   if(ptree) {
@@ -1907,7 +1925,28 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       }
     }
 
-    lua_push_str_table_entry(vm, "moreinfo.json", get_json_info() ? json_object_to_json_string(get_json_info()) : "{}");
+    if (get_json_info()) {
+      lua_push_str_table_entry(vm, "moreinfo.json", json_object_to_json_string(get_json_info()));
+      has_json_info = true;
+    } else if (get_tlv_info()) {
+      ndpi_deserializer deserializer;
+      if (ndpi_init_deserializer(&deserializer, get_tlv_info()) == 0) {
+        ndpi_serializer serializer;
+        if (ndpi_init_serializer(&serializer, ndpi_serialization_format_json) >= 0) {
+          char *buffer;
+          u_int32_t buffer_len;
+          ndpi_deserialize_clone_all(&deserializer, &serializer);
+          buffer = ndpi_serializer_get_buffer(&serializer, &buffer_len);
+          if (buffer) {
+            lua_push_str_table_entry(vm, "moreinfo.json", buffer);
+            has_json_info = true;
+          }
+          ndpi_term_serializer(&serializer);
+        }
+      }
+    }
+    if (!has_json_info)
+      lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
     if(cli_ebpf) processLua(vm, cli_ebpf, true);
     if(srv_ebpf) processLua(vm, srv_ebpf, false);

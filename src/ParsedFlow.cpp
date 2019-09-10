@@ -24,7 +24,8 @@
 /* *************************************** */
 
 ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
-  additional_fields = NULL;
+  additional_fields_json = NULL;
+  additional_fields_tlv = NULL;
   http_url = http_site = NULL;
   dns_query = ssl_server_name = NULL;
   ja3c_hash = ja3s_hash = NULL;
@@ -44,7 +45,10 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
 /* *************************************** */
 
 ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf) {
-  additional_fields = NULL; /* Currently we avoid additional fields in the copy constructor */
+
+  /* Currently we avoid additional fields in the copy constructor */
+  additional_fields_json = NULL; 
+  additional_fields_tlv = NULL; 
 
   if(pf.http_url)  http_url = strdup(pf.http_url); else http_url = NULL;
   if(pf.http_site) http_site = strdup(pf.http_site); else http_site = NULL;
@@ -72,8 +76,13 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
 /* *************************************** */
 
 ParsedFlow::~ParsedFlow() {
-  if(additional_fields)
-    json_object_put(additional_fields);
+  if(additional_fields_json)
+    json_object_put(additional_fields_json);
+
+  if(additional_fields_tlv) {
+    ndpi_term_serializer(additional_fields_tlv);
+    free(additional_fields_tlv);
+  }
 
   if(parsed_flow_free_memory) {
     if(http_url)  free(http_url);

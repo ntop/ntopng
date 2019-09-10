@@ -1360,7 +1360,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   flow->setDetectedProtocol(p, true);
 
-  flow->setJSONInfo(zflow->getAdditionalFields());
+  flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
+  flow->setTLVInfo(zflow->getAdditionalFieldsTLV());
 
   flow->updateInterfaceLocalStats(src2dst_direction,
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
