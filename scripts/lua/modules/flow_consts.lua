@@ -8,7 +8,7 @@ local locales_utils = require "locales_utils"
 local format_utils  = require "format_utils"
 
 -- Keep in sync with C
--- Update Utils::flowstatus2str / FlowStatus enum
+-- Update Utils::flowStatus2AlertType / FlowStatus enum
 -- Utils::flowStatus2str determines the actual alert_type to set
 
 flow_consts.status_normal = 0
@@ -43,34 +43,34 @@ flow_consts.status_malicious_signature = 27
 -- ################################################################################
 
 flow_consts.flow_status_types = {
-   [flow_consts.status_normal]                       = { relevance =   0, i18n = i18n("flow_details.normal") },
-   [flow_consts.status_slow_tcp_connection]          = { relevance =  10, i18n = i18n("flow_details.slow_tcp_connection") },
-   [flow_consts.status_slow_application_header]      = { relevance =  10, i18n = i18n("flow_details.slow_application_header") },
-   [flow_consts.status_slow_data_exchange]           = { relevance =  10, i18n = i18n("flow_details.slow_data_exchange") },
-   [flow_consts.status_low_goodput]                  = { relevance =  10, i18n = i18n("flow_details.low_goodput") },
-   [flow_consts.status_suspicious_tcp_syn_probing]   = { relevance =  30, i18n = i18n("flow_details.suspicious_tcp_syn_probing") },
-   [flow_consts.status_tcp_connection_issues]        = { relevance =  10, i18n = i18n("flow_details.tcp_connection_issues") },
-   [flow_consts.status_suspicious_tcp_probing]       = { relevance =  30, i18n = i18n("flow_details.suspicious_tcp_probing") },
-   [flow_consts.status_flow_when_interface_alerted]  = { relevance =  10, i18n = i18n("flow_details.flow_emitted") },
-   [flow_consts.status_tcp_connection_refused]       = { relevance =  10, i18n = i18n("flow_details.tcp_connection_refused") },
-   [flow_consts.status_ssl_certificate_mismatch]     = { relevance =  50, i18n = i18n("flow_details.ssl_certificate_mismatch") },
-   [flow_consts.status_dns_invalid_query]            = { relevance =  30, i18n = i18n("flow_details.dns_invalid_query") },
-   [flow_consts.status_remote_to_remote]             = { relevance =  50, i18n = i18n("flow_details.remote_to_remote") },
-   [flow_consts.status_blacklisted]                  = { relevance = 100, i18n = i18n("flow_details.blacklisted_flow") },
-   [flow_consts.status_blocked]                      = { relevance =  50, i18n = i18n("flow_details.flow_blocked_by_bridge") },
-   [flow_consts.status_web_mining_detected]          = { relevance =  50, i18n = i18n("flow_details.web_mining_detected") },
-   [flow_consts.status_device_protocol_not_allowed]  = { relevance =  80, i18n = i18n("flow_details.suspicious_device_protocol") },
-   [flow_consts.status_elephant_local_to_remote]     = { relevance =  20, i18n = i18n("flow_details.elephant_flow_l2r") },
-   [flow_consts.status_elephant_remote_to_local]     = { relevance =  20, i18n = i18n("flow_details.elephant_flow_r2l") },
-   [flow_consts.status_longlived]                    = { relevance =  20, i18n = i18n("flow_details.longlived_flow") },
-   [flow_consts.status_not_purged]                   = { relevance =   0, i18n = i18n("flow_details.not_purged") },
-   [flow_consts.status_ids_alert]                    = { relevance =   0, i18n = i18n("alerts_dashboard.ids_alert") },
-   [flow_consts.status_tcp_severe_connection_issues] = { relevance =  20, i18n = i18n("flow_details.tcp_severe_connection_issues") },
-   [flow_consts.status_ssl_unsafe_ciphers]           = { relevance =  50, i18n = i18n("flow_details.ssl_unsafe_ciphers") },
-   [flow_consts.status_data_exfiltration]            = { relevance =  30, i18n = i18n("flow_details.data_exfiltration") },
-   [flow_consts.status_ssl_old_protocol_version]     = { relevance =  30, i18n = i18n("flow_details.ssl_old_protocol_version") },
-   [flow_consts.status_potentially_dangerous]        = { relevance =  20, i18n = i18n("flow_details.potentially_dangerous_protocol") },
-   [flow_consts.status_malicious_signature]          = { relevance =  80, i18n = i18n("alerts_dashboard.malicious_signature_detected") },
+   [flow_consts.status_normal]                       = { relevance =   0, i18n_title = "flow_details.normal" },
+   [flow_consts.status_slow_tcp_connection]          = { relevance =  10, i18n_title = "flow_details.slow_tcp_connection" },
+   [flow_consts.status_slow_application_header]      = { relevance =  10, i18n_title = "flow_details.slow_application_header" },
+   [flow_consts.status_slow_data_exchange]           = { relevance =  10, i18n_title = "flow_details.slow_data_exchange" },
+   [flow_consts.status_low_goodput]                  = { relevance =  10, i18n_title = "flow_details.low_goodput" },
+   [flow_consts.status_suspicious_tcp_syn_probing]   = { relevance =  30, i18n_title = "flow_details.suspicious_tcp_syn_probing" },
+   [flow_consts.status_tcp_connection_issues]        = { relevance =  10, i18n_title = "flow_details.tcp_connection_issues" },
+   [flow_consts.status_suspicious_tcp_probing]       = { relevance =  30, i18n_title = "flow_details.suspicious_tcp_probing" },
+   [flow_consts.status_flow_when_interface_alerted]  = { relevance =  10, i18n_title = "flow_details.flow_emitted" },
+   [flow_consts.status_tcp_connection_refused]       = { relevance =  10, i18n_title = "flow_details.tcp_connection_refused" },
+   [flow_consts.status_ssl_certificate_mismatch]     = { relevance =  50, i18n_title = "flow_details.ssl_certificate_mismatch" },
+   [flow_consts.status_dns_invalid_query]            = { relevance =  30, i18n_title = "flow_details.dns_invalid_query" },
+   [flow_consts.status_remote_to_remote]             = { relevance =  50, i18n_title = "flow_details.remote_to_remote" },
+   [flow_consts.status_blacklisted]                  = { relevance = 100, i18n_title = "flow_details.blacklisted_flow" },
+   [flow_consts.status_blocked]                      = { relevance =  50, i18n_title = "flow_details.flow_blocked_by_bridge" },
+   [flow_consts.status_web_mining_detected]          = { relevance =  50, i18n_title = "flow_details.web_mining_detected" },
+   [flow_consts.status_device_protocol_not_allowed]  = { relevance =  80, i18n_title = "flow_details.suspicious_device_protocol" },
+   [flow_consts.status_elephant_local_to_remote]     = { relevance =  20, i18n_title = "flow_details.elephant_flow_l2r" },
+   [flow_consts.status_elephant_remote_to_local]     = { relevance =  20, i18n_title = "flow_details.elephant_flow_r2l" },
+   [flow_consts.status_longlived]                    = { relevance =  20, i18n_title = "flow_details.longlived_flow" },
+   [flow_consts.status_not_purged]                   = { relevance =   0, i18n_title = "flow_details.not_purged" },
+   [flow_consts.status_ids_alert]                    = { relevance =   0, i18n_title = "alerts_dashboard.ids_alert" },
+   [flow_consts.status_tcp_severe_connection_issues] = { relevance =  20, i18n_title = "flow_details.tcp_severe_connection_issues" },
+   [flow_consts.status_ssl_unsafe_ciphers]           = { relevance =  50, i18n_title = "flow_details.ssl_unsafe_ciphers" },
+   [flow_consts.status_data_exfiltration]            = { relevance =  30, i18n_title = "flow_details.data_exfiltration" },
+   [flow_consts.status_ssl_old_protocol_version]     = { relevance =  30, i18n_title = "flow_details.ssl_old_protocol_version" },
+   [flow_consts.status_potentially_dangerous]        = { relevance =  20, i18n_title = "flow_details.potentially_dangerous_protocol" },
+   [flow_consts.status_malicious_signature]          = { relevance =  80, i18n_title = "alerts_dashboard.malicious_signature_detected" },
 }
 
 -- ################################################################################

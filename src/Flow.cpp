@@ -307,98 +307,7 @@ void Flow::dumpFlowAlert() {
   status = getFlowStatus(&status_map);
 
   if(!isFlowAlerted()) {
-    bool do_dump = true;
-
-    switch(status) {
-    case status_normal:
-      do_dump = false;
-      break;
-
-    case status_not_purged:
-      do_dump = true;
-      break;
-
-    case status_web_mining_detected:
-      do_dump = ntop->getPrefs()->are_mining_alerts_enabled();
-      break;
-
-    case status_malicious_signature:
-    case status_blacklisted:
-      do_dump = ntop->getPrefs()->are_malware_alerts_enabled();
-      break;
-
-    case status_slow_tcp_connection: /* 1 */
-    case status_slow_application_header: /* 2 */
-    case status_slow_data_exchange: /* 3 */
-    case status_low_goodput: /* 4 */
-    case status_tcp_connection_issues: /* 6 - i.e. too many retransmission ooo... or similar */
-    case status_tcp_severe_connection_issues: /* 22 */
-      /* Don't log them for the time being otherwise we'll have too many flows */
-      do_dump = false;
-      break;
-
-    case status_suspicious_tcp_syn_probing: /* 5 */
-    case status_suspicious_tcp_probing:     /* 7 */
-    case status_tcp_connection_refused: /* 9 */
-      do_dump = ntop->getPrefs()->are_probing_alerts_enabled();
-      break;
-
-    case status_flow_when_interface_alerted /* 8 */:
-#if 0
-      do_dump = ntop->getPrefs()->do_dump_flow_alerts_when_iface_alerted();
-#endif
-      break;
-
-    case status_ssl_certificate_mismatch: /* 10 */
-    case status_ssl_unsafe_ciphers:       /* 23 */
-    case status_ssl_old_protocol_version: /* 24 */
-      do_dump = ntop->getPrefs()->are_ssl_alerts_enabled();
-      break;
-
-    case status_dns_invalid_query:
-      do_dump = ntop->getPrefs()->are_dns_alerts_enabled();
-      break;
-
-    case status_remote_to_remote:
-      do_dump = ntop->getPrefs()->are_remote_to_remote_alerts_enabled();
-      break;
-
-    case status_blocked:
-#ifdef HAVE_NEDGE
-      do_dump = ntop->getPrefs()->are_dropped_flows_alerts_enabled();
-#else
-      do_dump = false;
-#endif
-      break;
-
-    case status_device_protocol_not_allowed:
-      do_dump = ntop->getPrefs()->are_device_protocols_alerts_enabled();
-      break;
-
-    case status_potentially_dangerous:
-      do_dump = ntop->getPrefs()->are_potentially_dangerous_protocols_alerts_enabled();
-      break;
-
-    case status_elephant_local_to_remote:
-    case status_elephant_remote_to_local:
-      do_dump = ntop->getPrefs()->are_elephant_flows_alerts_enabled();
-      break;
-
-    case status_longlived:
-      do_dump = ntop->getPrefs()->are_longlived_flows_alerts_enabled();
-      break;
-
-    case status_data_exfiltration:
-      do_dump = ntop->getPrefs()->are_exfiltration_alerts_enabled();
-      break;
-
-    case status_ids_alert:
-      do_dump = ntop->getPrefs()->are_ids_alerts_enabled();
-      break;
-
-    case num_flow_status: /* nothing to do here */
-      break;
-    }
+    bool do_dump = Utils::dumpFlowStatus(status);
 
 #ifdef HAVE_NEDGE
     /* NOTE: this must be explicitly re-checked as a more specific alert
@@ -3804,11 +3713,6 @@ FlowStatus Flow::getFlowStatus(FlowStatusMap *status_map) {
 
   if(protos.ssl.ja3.server_unsafe_cipher != ndpi_cipher_safe)
     *status_map = Utils::bitmapSet(*status_map, status = status_ssl_unsafe_ciphers);
-
-#if 0
-  if(iface->hasAlerts())
-    *status_map = Utils::bitmapSet(*status_map, status = status_flow_when_interface_alerted);
-#endif
 
 #ifdef HAVE_NEDGE
   /* Leave this at the end. A more specific status should be returned above if avaialble. */

@@ -122,7 +122,7 @@ typedef enum {
   alert_flow_flood,
   alert_threshold_exceeded,
   alert_suspicious_activity,
-  alert_interface_alerted,
+  alert_connection_issues,
   alert_flow_misbehaviour,
   alert_remote_to_remote,
   alert_flow_blacklisted,

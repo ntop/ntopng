@@ -807,6 +807,7 @@ end
 -- ##############################################
 
 -- Keep ID in sync with AlertType
+-- NOTE: flow alerts are formatted based on their status. See flow_consts.flow_status_types.
 alert_consts.alert_types = {
   tcp_syn_flood = {
     alert_id = 0,
@@ -827,9 +828,9 @@ alert_consts.alert_types = {
     alert_id = 3,
     i18n_title = "alerts_dashboard.suspicious_activity",
     icon = "fa-exclamation",
-  }, interface_alerted = {
+  }, alert_connection_issues = {
     alert_id = 4,
-    i18n_title = "alerts_dashboard.interface_alerted",
+    i18n_title = "alerts_dashboard.connection_issues",
     icon = "fa-exclamation",
   }, flow_misbehaviour = {
     alert_id = 5,
@@ -1046,7 +1047,7 @@ alert_consts.alert_types = {
 -- ##############################################
 
 -- See flow_consts.flow_status_types in flow_consts for flow alerts
--- See Utils::flowStatus2str to determine the alert_type for flow alerts
+-- See Utils::flowStatus2AlertType to determine the alert_type for flow alerts
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity
 alert_consts.alert_entities = {

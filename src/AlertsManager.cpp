@@ -379,7 +379,6 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     Host *cli, *srv;
     char *cli_ip = NULL, *srv_ip = NULL;
     char cb[64], cb1[64], cli_os[64], srv_os[64];
-    const char *msg;
     AlertType alert_type;
     AlertLevel alert_severity;
     time_t now = time(NULL);
@@ -398,8 +397,8 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     info = f->getFlowInfo();
     status = f->getFlowStatus(&status_map);
 
-    msg = Utils::flowStatus2str(status, f->getIDSAlertSeverity(),
-      &alert_type, &alert_severity);
+    alert_type = Utils::flowStatus2AlertType(status);
+    alert_severity = Utils::flowStatus2AlertLevel(status, f->getIDSAlertSeverity());
 
     cli = f->get_cli_host(), srv = f->get_srv_host();
     if(cli && cli->get_ip())
@@ -571,7 +570,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
 
     iface->setHasAlerts(true);
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, alert_json);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
     json_object_put(alert_json_obj);
 
     return rc;

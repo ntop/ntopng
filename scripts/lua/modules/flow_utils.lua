@@ -1456,7 +1456,7 @@ function getFlowsTableTitle()
     if _GET["flow_status"] then
       local flow_status_id = tonumber(_GET["flow_status"])
       if flow_status_id and flow_consts.flow_status_types[flow_status_id] then
-        status_type = flow_consts.flow_status_types[flow_status_id].i18n
+        status_type = i18n(flow_consts.flow_status_types[flow_status_id].i18n_title)
       else
         status_type = _GET["flow_status"]
       end

@@ -2606,6 +2606,7 @@ end
 
 -- ###############################################
 
+-- TODO put description formatter into flow_consts.flow_status_types
 function getFlowStatus(status, flowstatus_info, alert, no_icon)
    local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
    local res = warn_sign..i18n("flow_details.unknown_status",{status=status})
@@ -2629,9 +2630,9 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
      res = warn_sign..i18n("flow_details.tcp_severe_connection_issues")
    elseif(status == flow_consts.status_malicious_signature) then res = warn_sign..formatMaliciousSignature(flowstatus_info)
    elseif(status == flow_consts.status_normal) then 
-     res = flow_consts.flow_status_types[flow_consts.status_normal].i18n
+     res = i18n(flow_consts.flow_status_types[flow_consts.status_normal].i18n_title)
    elseif(flow_consts.flow_status_types[status] ~= nil) then 
-     res = warn_sign..flow_consts.flow_status_types[status].i18n
+     res = warn_sign..i18n(flow_consts.flow_status_types[status].i18n_title)
    end
 
    return res

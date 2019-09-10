@@ -866,7 +866,6 @@
 
 #define ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME "ntopng.alerts.notifications_queue"
 #define ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED NTOPNG_PREFS_PREFIX".alerts.external_notifications_enabled"
-#define ALERTS_DUMP_DURING_IFACE_ALERTED       NTOPNG_PREFS_PREFIX".alerts.dump_alerts_when_iface_is_alerted"
 
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"

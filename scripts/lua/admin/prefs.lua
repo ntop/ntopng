@@ -344,14 +344,6 @@ function printAlerts()
      showElements = false
   end
 
-  --[[
-  prefsToggleButton(subpage_active, {
-    field = "toggle_flow_alerts_iface",
-    default = "0",
-    pref = "alerts.dump_alerts_when_iface_is_alerted",
-    hidden = not showElements,
-  })]]
-
   prefsToggleButton(subpage_active, {
     field = "toggle_mysql_check_open_files_limit",
     default = "1",

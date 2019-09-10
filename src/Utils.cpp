@@ -574,101 +574,125 @@ int Utils::mkdir(const char *path, mode_t mode) {
 
 /* **************************************************** */
 
-/* NOTE: this function also determines the AlertType to use */
-const char* Utils::flowStatus2str(FlowStatus s, u_int8_t ext_severity /* e.g. IDS severity */, 
-                                  AlertType *aType, AlertLevel *aLevel) {
-  *aType = alert_flow_misbehaviour; /* Default */
-  *aLevel = alert_level_warning;
+AlertLevel Utils::flowStatus2AlertLevel(FlowStatus s, u_int8_t ext_severity /* e.g. IDS severity */) {
+  AlertLevel default_level = alert_level_warning;
+  AlertLevel level = default_level;
 
   switch(s) {
   case status_normal:
-    *aType = alert_none;
-    *aLevel = alert_level_none;
-    return("Normal");
+    level = alert_level_none;
     break;
-  case status_slow_tcp_connection:
-    return("Slow TCP Connection");
-    break;
-  case status_slow_application_header:
-    return("Slow Application Header");
-    break;
-  case status_slow_data_exchange:
-    return("Slow Data Exchange (Slowloris?)");
-    break;
-  case status_low_goodput:
-    return("Low Goodput");
-    break;
-  case status_suspicious_tcp_syn_probing:
-    *aType = alert_suspicious_activity;
-    return("Suspicious TCP SYN Probing (or server port down)");
-    break;
-  case status_tcp_connection_issues:
-    return("TCP Connection Issues");
-    break;
-  case status_tcp_severe_connection_issues:
-    return("Severe TCP Connection Issues");
-    break;
-  case status_suspicious_tcp_probing:
-    *aType = alert_suspicious_activity;
-    return("Suspicious TCP Probing");
-  case status_flow_when_interface_alerted:
-    *aType = alert_interface_alerted;
-    return("Flow emitted during alerted interface");
-  case status_tcp_connection_refused:
-    *aType = alert_suspicious_activity;
-    return("TCP connection refused");
-  case status_ssl_certificate_mismatch:
-    *aType = alert_suspicious_activity;
-    return("SSL certificate mismatch");
-  case status_dns_invalid_query:
-    *aType = alert_suspicious_activity;
-    return("Invalid DNS query");
-  case status_remote_to_remote:
-    *aType = alert_remote_to_remote;
-    return("Remote client and remote server");
-  case status_web_mining_detected:
-    *aType = alert_flow_web_mining;
-    return("Web miner detected");
-  case status_blacklisted:
-    *aType = alert_flow_blacklisted;
-    *aLevel = alert_level_error;
-    return("Client or server blacklisted (or both)");
   case status_blocked:
-    *aLevel = alert_level_info;
-    *aType = alert_flow_blocked;
-    return("Flow blocked");
-  case status_device_protocol_not_allowed:
-    *aType = alert_device_protocol_not_allowed;
-    return("Protocol not allowed for this device type");
+    level = alert_level_info;
+    break;
+  case status_malicious_signature:
+    level = alert_level_warning;
+    break;
+  case status_blacklisted:
   case status_potentially_dangerous:
-    *aType = alert_potentially_dangerous_protocol;
-    *aLevel = alert_level_error;
-    return("Potentially dangerous protocol");
-    break;
-  case status_elephant_local_to_remote:
-    return("Elephant flow (local to remote)");
-    break;
-  case status_data_exfiltration:
-    return("Data Exfiltration");
-    break;
-  case status_elephant_remote_to_local:
-    return("Elephant flow (remote to local)");
-    break;
-  case status_longlived:
-    return("Long-lived flow");
+    level = alert_level_error;
     break;
   case status_ids_alert:
-    *aType = alert_ids;
-    if (ext_severity == 1)
-      *aLevel = alert_level_error;
-    return("IDS alert");
-  case status_malicious_signature:
-    *aType = alert_malicious_signature;
-    *aLevel = alert_level_warning;
-    return("Possibly Malicious Signature Detected");
-  default:
-    return("Unknown status");
+    if(ext_severity == 1)
+      level = alert_level_error;
     break;
+  default:
+    level = default_level;
+  }
+
+  return(level);
+}
+
+/* **************************************************** */
+
+AlertType Utils::flowStatus2AlertType(FlowStatus s) {
+  switch(s) {
+  case status_normal:
+  case num_flow_status:
+  case status_flow_when_interface_alerted: /* TODO replace with new status */
+    return(alert_none);
+  case status_slow_tcp_connection:
+  case status_slow_application_header:
+  case status_slow_data_exchange:
+  case status_low_goodput:
+  case status_tcp_connection_issues:
+  case status_tcp_severe_connection_issues:
+  case status_not_purged: /* Move to new type? */
+    return(alert_connection_issues);
+  case status_suspicious_tcp_syn_probing:
+  case status_suspicious_tcp_probing:
+  case status_tcp_connection_refused:
+  case status_dns_invalid_query:
+    return(alert_suspicious_activity);
+  case status_elephant_local_to_remote:
+  case status_data_exfiltration:
+  case status_elephant_remote_to_local:
+  case status_longlived:
+    return(alert_flow_misbehaviour);
+  case status_malicious_signature:
+    return(alert_malicious_signature);
+  case status_remote_to_remote:
+    return(alert_remote_to_remote);
+  case status_web_mining_detected:
+    return(alert_flow_web_mining);
+  case status_blacklisted:
+    return(alert_flow_blacklisted);
+  case status_blocked:
+    return(alert_flow_blocked);
+  case status_device_protocol_not_allowed:
+    return(alert_device_protocol_not_allowed);
+  case status_potentially_dangerous:
+  case status_ssl_certificate_mismatch:
+  case status_ssl_unsafe_ciphers:
+  case status_ssl_old_protocol_version:
+    return(alert_potentially_dangerous_protocol);
+  case status_ids_alert:
+    return(alert_ids);
+  }
+}
+
+/* **************************************************** */
+
+bool Utils::dumpFlowStatus(FlowStatus s) {
+  switch(s) {
+  case status_not_purged:
+    return(true);
+  case status_web_mining_detected:
+    return(ntop->getPrefs()->are_mining_alerts_enabled());
+  case status_malicious_signature:
+  case status_blacklisted:
+    return(ntop->getPrefs()->are_malware_alerts_enabled());
+  case status_suspicious_tcp_syn_probing:
+  case status_suspicious_tcp_probing:
+  case status_tcp_connection_refused:
+    return(ntop->getPrefs()->are_probing_alerts_enabled());
+  case status_ssl_certificate_mismatch:
+  case status_ssl_unsafe_ciphers:
+  case status_ssl_old_protocol_version:
+    return(ntop->getPrefs()->are_ssl_alerts_enabled());
+  case status_dns_invalid_query:
+    return(ntop->getPrefs()->are_dns_alerts_enabled());
+  case status_remote_to_remote:
+    return(ntop->getPrefs()->are_remote_to_remote_alerts_enabled());
+#ifdef HAVE_NEDGE
+  case status_blocked:
+    return(ntop->getPrefs()->are_dropped_flows_alerts_enabled());
+#endif
+  case status_device_protocol_not_allowed:
+    return(ntop->getPrefs()->are_device_protocols_alerts_enabled());
+  case status_potentially_dangerous:
+    return(ntop->getPrefs()->are_potentially_dangerous_protocols_alerts_enabled());
+  case status_elephant_local_to_remote:
+  case status_elephant_remote_to_local:
+    return(ntop->getPrefs()->are_elephant_flows_alerts_enabled());
+  case status_longlived:
+    return(ntop->getPrefs()->are_longlived_flows_alerts_enabled());
+  case status_data_exfiltration:
+    return(ntop->getPrefs()->are_exfiltration_alerts_enabled());
+  case status_ids_alert:
+    return(ntop->getPrefs()->are_ids_alerts_enabled());
+  default:
+    return(false);
   }
 }
 
