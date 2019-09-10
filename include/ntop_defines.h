@@ -1040,7 +1040,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #endif
 
 #define MIN_TIME_SPAWN_THREAD_POOL        10 /* sec */
-#define DONT_NOT_EXPIRE_BEFORE_SEC        30 /* sec */
+#define DONT_NOT_EXPIRE_BEFORE_SEC        15 /* sec */
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
 #define MAX_NUM_PCAP_CAPTURES             4
 #define MAX_NUM_COMPANION_INTERFACES      4
