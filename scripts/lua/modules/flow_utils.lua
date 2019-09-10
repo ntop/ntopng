@@ -1224,7 +1224,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
                 first = false
              end
              if status_stats[t] and status_stats[t].count > 0 then
-               entries[#entries + 1] = {string.format("%u", t), s.i18n .. " ("..status_stats[t].count..")"}
+               entries[#entries + 1] = {string.format("%u", t), i18n(s.i18n_title) .. " ("..status_stats[t].count..")"}
              end
           end
        end
