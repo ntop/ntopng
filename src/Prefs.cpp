@@ -543,7 +543,7 @@ void Prefs::reloadPrefsFromRedis() {
     local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION),
     local_host_max_idle       = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE),
     non_local_host_max_idle   = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE),
-    flow_max_idle             = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE),
+    pkt_ifaces_flow_max_idle  = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE),
     active_local_hosts_cache_interval = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL, CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL),
 
     log_to_file         = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_LOG_TO_FILE, false);
@@ -1691,7 +1691,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
   lua_push_uint64_table_entry(vm, "local_host_max_idle", local_host_max_idle);
   lua_push_uint64_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
-  lua_push_uint64_table_entry(vm, "flow_max_idle", flow_max_idle);
+  lua_push_uint64_table_entry(vm, "flow_max_idle", pkt_ifaces_flow_max_idle);
   if(enable_active_local_hosts_cache)
     lua_push_uint64_table_entry(vm, "active_local_hosts_cache_interval", active_local_hosts_cache_interval);
 

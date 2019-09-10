@@ -31,6 +31,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
   zmq_remote_initial_exported_flows = 0;
   once = false;
+  flow_max_idle = ntop->getPrefs()->get_pkt_ifaces_flow_max_idle();
 #ifdef NTOPNG_PRO
   custom_app_maps = NULL;
 #endif
@@ -1476,7 +1477,12 @@ u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() {
     update_freq = update_freq_min;
   
   return max_val(update_freq, update_freq_min);
-		 
+}
+
+/* **************************************** */
+
+u_int32_t ZMQParserInterface::getFlowMaxIdle() {
+  return flow_max_idle;
 }
 
 /* **************************************** */
@@ -1486,6 +1492,9 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
 
   ifSpeed = zrs->remote_ifspeed, last_pkt_rcvd = 0, last_pkt_rcvd_remote = zrs->remote_time,
     last_remote_pps = zrs->avg_pps, last_remote_bps = zrs->avg_bps;
+
+  /* Recalculate the flow max idle according to the timeouts received */
+  flow_max_idle = zrs->remote_lifetime_timeout + 10 /* Safe margin */;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
      || (zrs->remote_bytes < zmq_initial_bytes) /* nProbe has been restarted */

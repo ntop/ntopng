@@ -448,6 +448,7 @@ class NetworkInterface : public AlertableEntity {
   void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   virtual u_int32_t periodicStatsUpdateFrequency();
   void periodicStatsUpdate();
+  virtual u_int32_t getFlowMaxIdle();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);

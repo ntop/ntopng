@@ -2072,7 +2072,7 @@ bool Flow::idle() {
     }
   }
 
-  return(isIdle(ntop->getPrefs()->get_flow_max_idle()));
+  return(isIdle(iface->getFlowMaxIdle()));
 }
 
 /* *************************************** */
@@ -2420,7 +2420,7 @@ bool Flow::isNetfilterIdleFlow() {
   } else {
     /* if an conntrack update hasn't been seen for this flow
        we use the standard idleness check */
-    return(isIdle(ntop->getPrefs()->get_flow_max_idle()));
+    return(isIdle(iface->getFlowMaxIdle()));
   }
 }
 #endif
@@ -3705,7 +3705,7 @@ FlowStatus Flow::getFlowStatus(FlowStatusMap *status_map) {
   *status_map = 0;
 
   if(iface->isPacketInterface() && iface->is_purge_idle_interface()
-     && !idle() && isIdle(10 * ntop->getPrefs()->get_flow_max_idle())) {
+     && !idle() && isIdle(10 * iface->getFlowMaxIdle())) {
     /* Should've already been marked as idle and purged */
     *status_map = Utils::bitmapSet(*status_map, status = status_not_purged);
     return status;

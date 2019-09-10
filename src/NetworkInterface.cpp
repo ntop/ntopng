@@ -3038,6 +3038,12 @@ u_int32_t NetworkInterface::periodicStatsUpdateFrequency() {
 
 /* **************************************************** */
 
+u_int32_t NetworkInterface::getFlowMaxIdle() {
+  return ntop->getPrefs()->get_pkt_ifaces_flow_max_idle();
+}
+
+/* **************************************************** */
+
 // #define PERIODIC_STATS_UPDATE_DEBUG_TIMING
 
 void NetworkInterface::periodicStatsUpdate() {
