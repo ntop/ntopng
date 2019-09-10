@@ -750,4 +750,10 @@ typedef struct bcast_domain_info {
   u_int64_t hits;
 } bcast_domain_info;
 
+typedef enum mud_recording {
+  mud_recording_disabled = 0,
+  mud_recording_general_purpose = 1,
+  mud_recording_special_purpose = 2,
+} MudRecording;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

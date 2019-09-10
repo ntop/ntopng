@@ -1984,12 +1984,18 @@ elseif (page == "config") then
 
       if(_POST["mud_recording"] ~= nil) then
          mud_utils.setHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
+         interface.reloadHostPrefs(host_info.host)
       end
 
       if(_POST["action"] == "delete_mud") then
         mud_utils.deleteHostMUD(ifId, host_info.host)
       end
    end
+
+   print[[<form id="delete-mud-form" method="post">]]
+   print[[<input name="action" type="hidden" value="delete_mud" />]]
+   print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+   print[[</form>]]
 
    print[[
    <form id="host_config" class="form-inline" method="post">
@@ -2033,12 +2039,7 @@ elseif (page == "config") then
 
       if mud_utils.hasRecordedMUD(ifId, host_info.host) then
          print(" <a style=\"margin-left: 0.5em\" href=\""..ntop.getHttpPrefix().."/lua/rest/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fa fa-lg fa-download\"></i></a>")
-
-         print[[<form id="delete-mud-form" method="post">]]
-         print[[<input name="action" type="hidden" value="delete_mud" />]]
-         print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-         print("<a style=\"margin-left: 1em\" href=\"#\" onclick=\"$(this).closest('form').submit();\"><i class=\"fa fa-lg fa-trash\"></i></a>")
-         print[[</form>]]
+         print("<a style=\"margin-left: 1em\" href=\"#\" onclick=\"$('#delete-mud-form').submit();\"><i class=\"fa fa-lg fa-trash\"></i></a>")
       end
 
       print[[</td>

@@ -4124,6 +4124,27 @@ static int ntop_reload_host_disabled_flow_alert_types(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_host_prefs(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char buf[64], *host_ip;
+  Host *host;
+  u_int16_t vlan_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  if((host = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */)))
+    host->reloadPrefs();
+
+  lua_pushboolean(vm, (host != NULL));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 
 static int ntop_set_lan_ip_address(lua_State* vm) {
@@ -8442,10 +8463,51 @@ static int ntop_flow_get_peer_score(lua_State* vm, bool client) {
 static int ntop_flow_get_client_score(lua_State* vm) {
   return(ntop_flow_get_peer_score(vm, true /* client */));
 }
-/* ****************************************** */
 
 static int ntop_flow_get_server_score(lua_State* vm) {
   return(ntop_flow_get_peer_score(vm, false /* server */));
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_peer_mud_pref(lua_State* vm, bool client) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Host *host;
+  MudRecording mud_pref;
+  const char *val;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(c->flow == NULL) return(CONST_LUA_ERROR);
+
+  host = client ? c->flow->get_cli_host() : c->flow->get_srv_host();
+
+  if(!host)
+    return(CONST_LUA_ERROR);
+
+  mud_pref = host->getMUDRecording();
+
+  switch(mud_pref) {
+  case mud_recording_general_purpose:
+    val = MUD_RECORDING_GENERAL_PURPOSE;
+    break;
+  case mud_recording_special_purpose:
+    val = MUD_RECORDING_SPECIAL_PURPOSE;
+    break;
+  default:
+    val = MUD_RECORDING_DISABLED;
+  }
+
+  lua_pushstring(vm, val);
+
+  return(CONST_LUA_OK);
+}
+
+static int ntop_flow_get_client_mud_pref(lua_State* vm) {
+  return(ntop_flow_get_peer_mud_pref(vm, true /* client */));
+}
+
+static int ntop_flow_get_server_mud_pref(lua_State* vm) {
+  return(ntop_flow_get_peer_mud_pref(vm, false /* server */));
 }
 
 /* ****************************************** */
@@ -9548,6 +9610,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
   { "reloadHostDisableFlowAlertTypes",  ntop_reload_host_disabled_flow_alert_types },
+  { "reloadHostPrefs",                  ntop_reload_host_prefs },
   { "setHostOperatingSystem",           ntop_set_host_operating_system },
 
   /* Mac */
@@ -9742,6 +9805,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getServerScore",           ntop_flow_get_server_score           },
   { "setClientScore",           ntop_flow_set_client_score           },
   { "setServerScore",           ntop_flow_set_server_score           },
+  { "getClientMUDPref",         ntop_flow_get_client_mud_pref        },
+  { "getServerMUDPref",         ntop_flow_get_server_mud_pref        },
   { "serializeClientByMac",     ntop_flow_serialize_client_by_mac    },
   { "serializeServerByMac",     ntop_flow_serialize_server_by_mac    },
 

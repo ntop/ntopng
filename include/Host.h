@@ -51,6 +51,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   char *mdns_info;
   char *ssdpLocation;
   bool host_label_set;
+  bool prefs_loaded;
+  MudRecording mud_pref;
   /* END Host data: */
 
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
@@ -317,6 +319,16 @@ class Host : public GenericHashEntry, public AlertableEntity {
 			   const char *info, time_t when) { ; }
   virtual void luaPortsDump(lua_State* vm) { lua_pushnil(vm); }    
   void refreshDisableFlowAlertTypes();
+
+  void setPrefsChanged()                   { prefs_loaded = false;  }
+  virtual void reloadPrefs()               {}
+  inline void checkReloadPrefs()           {
+    if(!prefs_loaded) {
+      reloadPrefs();
+      prefs_loaded = true;
+    }
+  }
+  inline MudRecording getMUDRecording()    { return(mud_pref); };
 
   inline void setScore(u_int16_t score)    { alert_score = score; };
   inline u_int16_t getScore()              { return(alert_score); };

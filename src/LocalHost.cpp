@@ -427,3 +427,31 @@ void LocalHost::setFlowPort(bool as_server, Host *peer, u_int8_t protocol,
   }
   m.unlock(__FILE__, __LINE__);
 }
+
+/* *************************************** */
+
+/*
+ * Reload non-critical host prefs. Such prefs are not reloaded inline to
+ * avoid slowing down the packet capture. The default value (set into the
+ * host initializer) will be returned until this delayed method is called. */
+void LocalHost::reloadPrefs() {
+  char keybuf[128], buf[64], rsp[32];
+
+  /* MUD recording */
+  if(vlan_id == 0) {
+    snprintf(keybuf, sizeof(keybuf), HOST_PREF_MUD_RECORDING, iface->get_id(), ip.print(buf, sizeof(buf)));
+
+    if(!ntop->getRedis()->get(keybuf, rsp, sizeof(rsp)) && (rsp[0] != '\0')) {
+      if(!strcmp(rsp, MUD_RECORDING_GENERAL_PURPOSE))
+        mud_pref = mud_recording_general_purpose;
+      else if(!strcmp(rsp, MUD_RECORDING_SPECIAL_PURPOSE))
+        mud_pref = mud_recording_special_purpose;
+      else
+        mud_pref = mud_recording_disabled;
+    } else
+      mud_pref = mud_recording_disabled;
+  } else
+    mud_pref = mud_recording_disabled;
+
+  Host::reloadPrefs();
+}

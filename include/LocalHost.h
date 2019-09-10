@@ -82,6 +82,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual void luaTCP(lua_State *vm) const                { stats->lua(vm,false,details_normal); };
   virtual u_int16_t getNumActiveContactsAsClient() const  { return stats->getNumActiveContactsAsClient(); };
   virtual u_int16_t getNumActiveContactsAsServer() const  { return stats->getNumActiveContactsAsServer(); };
+  virtual void reloadPrefs();
 
   virtual void deserialize(json_object *obj);
   virtual void serialize(json_object *obj, DetailsLevel details_level) { return Host::serialize(obj, details_level); };

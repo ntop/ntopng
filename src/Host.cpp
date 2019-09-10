@@ -141,6 +141,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   data_delete_requested = false, stats_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = os_unknown;
+  prefs_loaded = false;
+  mud_pref = mud_recording_disabled;
 
   anomalous_flows_as_client_status = anomalous_flows_as_server_status = 0;
 

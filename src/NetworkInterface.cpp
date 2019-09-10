@@ -2971,6 +2971,7 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *ma
   Host *host = (Host*)node;
   update_hosts_stats_user_data_t *update_hosts_stats_user_data = (update_hosts_stats_user_data_t*)user_data;
 
+  host->checkReloadPrefs();
   host->updateStats(update_hosts_stats_user_data);
   *matched = true;
 

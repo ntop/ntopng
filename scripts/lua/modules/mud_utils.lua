@@ -218,8 +218,8 @@ end
 -- @notes This function is called with a LuaC flow context set
 function mud_utils.handleFlow(info)
    local ifid = interface.getId()
-   local cli_recording = mud_utils.getHostMUDRecordingPref(ifid, info["cli.ip"])
-   local srv_recording = mud_utils.getHostMUDRecordingPref(ifid, info["srv.ip"])
+   local cli_recording = flow.getClientMUDPref()
+   local srv_recording = flow.getServerMUDPref()
    local is_local_connection = flow.isLocal()
 
    if(cli_recording ~= "disabled") then
