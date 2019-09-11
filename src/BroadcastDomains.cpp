@@ -141,8 +141,10 @@ bool BroadcastDomains::isLocalBroadcastDomain(const IpAddress * const ipa, int n
 bool BroadcastDomains::isLocalBroadcastDomainHost(const Host * const h, bool isInlineCall) const {
   AddressTree *cur_tree = isInlineCall ? inline_broadcast_domains : broadcast_domains;
 
-  if(cur_tree && h)
-    return h->match(cur_tree);
+  if(cur_tree
+     && h
+     && h->isIPv4() /* IPv6 not handled */)
+      return h->match(cur_tree);
 
   return false;
 }

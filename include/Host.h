@@ -163,7 +163,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void set_ipv4(u_int32_t _ipv4)             { ip.set(_ipv4);                 };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
-  inline IpAddress* get_ip()                 { return(&ip);              }
+  inline IpAddress* get_ip()                        { return(&ip);                   };
+  inline bool isIPv4()                        const { return ip.isIPv4();            };
+  inline bool isIPv6()                        const { return ip.isIPv6();            };
   void set_mac(Mac  *m);
   inline bool isBlacklisted()                  { return(blacklisted_host);  };
   void reloadHostBlacklist();
