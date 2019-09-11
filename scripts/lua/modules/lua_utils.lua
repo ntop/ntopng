@@ -28,7 +28,6 @@ formatFlows     = format_utils.formatFlows
 formatValue     = format_utils.formatValue
 pktsToSize      = format_utils.pktsToSize
 bitsToSize      = format_utils.bitsToSize
-maxRateToString = format_utils.maxRateToString
 round           = format_utils.round
 bitsToSizeMultiplier = format_utils.bitsToSizeMultiplier
 
