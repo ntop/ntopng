@@ -54,8 +54,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
     if (!additional_fields_tlv) {
       additional_fields_tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
       if (additional_fields_tlv)
-        ndpi_init_serializer(additional_fields_tlv, 
-          ndpi_serialization_format_tlv);
+        ndpi_init_serializer_ll(additional_fields_tlv, 
+          ndpi_serialization_format_tlv, 64);
     }
     if (additional_fields_tlv)
       ndpi_deserialize_clone_item(deserializer, additional_fields_tlv);
