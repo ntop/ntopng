@@ -465,7 +465,20 @@ function mud_utils.getHostMUDRecordingPref(ifid, host_key)
 end
 
 function mud_utils.setHostMUDRecordingPref(ifid, host_key, val)
-   ntop.setPref(getHostMUDRecordingKey(ifid, host_key), val)
+   local key = getHostMUDRecordingKey(ifid, host_key)
+
+   if(val == "disabled") then
+      ntop.delCache(key)
+   else
+      ntop.setPref(key, val)
+   end
+end
+
+-- ###########################################
+
+function mud_utils.isMUDRecordingEnabled(ifid)
+  local pattern = getHostMUDRecordingKey(ifid, "*")
+  return(table.len(ntop.getKeysCache(pattern)) > 0)
 end
 
 -- ###########################################

@@ -964,11 +964,12 @@ end
 --  - scripts/callbacks/interface/alerts/flow for community scripts
 --  - scripts/callbacks/interface/alerts/flow for pro/enterprise scripts
 --
--- A script must return a lua table, with the following optional fields:
---  - setup(): a function to call once before processing any flow
---  - protocolDetected(info): a function which will be called once the flow protocol
+-- A script must return a lua table, with the following fields:
+--  - setup(): a function to call once before processing any flow. It must return true
+--    if the module is enabled, false otherwise.
+--  - protocolDetected(info) (optional): a function which will be called once the flow protocol
 --    has been detected or detection has been aborted. This should happen once per flow.
---  - statusChanged(info): a function which will be called *after* the protocolDetected()
+--  - statusChanged(info) (optional): a function which will be called *after* the protocolDetected()
 --    if the flow status changes.
 --
 function alerts_api.load_flow_check_modules()

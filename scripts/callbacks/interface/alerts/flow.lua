@@ -26,11 +26,18 @@ local check_modules = {}
 function setup()
   if(do_trace) then print("flow.lua:setup() called\n") end
 
-  check_modules = alerts_api.load_flow_check_modules()
+  local available_modules = alerts_api.load_flow_check_modules()
+  check_modules = {}
 
-  for _, _module in pairs(check_modules) do
+  for modk, _module in pairs(available_modules) do
     if _module.setup then
-      _module.setup()
+      local is_enabled = _module.setup()
+
+      if(is_enabled) then
+        check_modules[modk] = _module
+      end
+    else
+      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("%s module is missing the mandatory setup() function, it will be ignored", modk))
     end
   end
 end
@@ -38,6 +45,11 @@ end
 -- #################################################################
 
 function protocolDetected()
+  if(table.empty(check_modules)) then
+    if(do_trace) then print("No flow.lua modules, skipping protocolDetected()\n") end
+    return
+  end
+
   local info = flow.getInfo()
 
   if(do_trace) then print("protocolDetected(): ".. shortFlowLabel(info) .. "\n") end
@@ -52,6 +64,11 @@ end
 -- #################################################################
 
 function statusChanged()
+  if(table.empty(check_modules)) then
+    if(do_trace) then print("No flow.lua modules, skipping statusChanged()\n") end
+    return
+  end
+
   local info = flow.getInfo()
 
   if(do_trace) then print("statusChanged(): ".. shortFlowLabel(info) .. "\n") end
