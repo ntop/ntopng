@@ -53,7 +53,7 @@ local to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
-local ifid = interface.getStats()["id"]
+local ifid = interface.getId()
 local pools_stats = interface.getHostPoolsStats()
 local total_rows = 0
 

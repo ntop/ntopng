@@ -81,7 +81,7 @@ for n, _ in pairsByValues(sort_helper, ternary(sOrder, asc, rev)) do
       goto continue
    end
 
-   local record = network2record(interface.getStats()["id"], networks_stats[n])
+   local record = network2record(interface.getId(), networks_stats[n])
    res_formatted[#res_formatted + 1] = record
 
    if cur_row >= perPage then

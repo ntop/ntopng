@@ -75,7 +75,7 @@ function getInterfaceName(interface_id, windows_skip_description)
 
    if iface ~= nil then
       if(windows_skip_description ~= true and string.contains(iface, "{")) then -- Windows
-         local old_iface = interface.getStats().id
+         local old_iface = interface.getId()
 
          -- Use the interface description instead of the name
          interface.select(tostring(iface))

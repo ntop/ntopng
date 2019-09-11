@@ -49,7 +49,7 @@ function companion_interface_utils.setCompanion(ifid, companion_ifid)
 end
 
 function companion_interface_utils.getAvailableCompanions()
-   local cur_ifid = interface.getStats().id
+   local cur_ifid = interface.getId()
    local ifaces = interface.getIfNames()
 
    local res = { {ifid = "", ifname = "None"} }

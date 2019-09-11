@@ -194,14 +194,16 @@ end
 
 local function dumpTopTalkers(_ifname, ifstats, verbose)
   -- Dump topTalkers every minute
-  local talkers = top_talkers_utils.makeTopJson(_ifname)
+   local talkers = top_talkers_utils.makeTopJson(_ifname)
 
-  if(verbose) then
-    print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
-    print(talkers)
-  end
+   if talkers then
+      if(verbose) then
+	 print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
+	 print(talkers)
+      end
 
-  ntop.insertMinuteSampling(ifstats.id, talkers)
+      ntop.insertMinuteSampling(ifstats.id, talkers)
+   end
 end
 
 function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)

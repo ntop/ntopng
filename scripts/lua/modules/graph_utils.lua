@@ -7,6 +7,7 @@ require "historical_utils"
 require "rrd_paths"
 local dkjson = require("dkjson")
 local host_pools_utils = require "host_pools_utils"
+local top_talkers_utils = require "top_talkers_utils"
 local os_utils = require "os_utils"
 local have_nedge = ntop.isnEdge()
 
@@ -973,7 +974,10 @@ if(stats ~= nil) then
 end
 
 print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
-print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
+
+if top_talkers_utils.areTopEnabled(ifid) then
+   print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
+end
 
 
 print [[

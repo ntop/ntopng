@@ -1623,6 +1623,7 @@ local lang = {
     ["hide_from_top_networks_descr"] = "es. %{example}",
     ["interface_network_discovery"] = "Scansione Periodica delle rete tramite l'interfaccia",
     ["interface_rrd_creation"] = "Crea Serie Temporali per l'interfaccia",
+    ["interface_top_talkers_creation"] = "Crea Top Talker per l'interfaccia",
     ["interface_speed"] = "Velocità Interfaccia (Mbit/s)",
     ["interface_speed_popup_msg"] = "Specifica la massima velocità dell'interfaccia",
     ["is_mirrored_traffic"] = "Traffico proveniente da un mirror",

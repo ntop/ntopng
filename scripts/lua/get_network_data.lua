@@ -18,7 +18,7 @@ local n = interface.getNetworkStats(network)
 local res = {}
 
 for k, v in pairs(n) do
-   res = network2record(interface.getStats()["id"], v)
+   res = network2record(interface.getId(), v)
    break
 end
 

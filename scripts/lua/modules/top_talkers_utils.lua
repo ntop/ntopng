@@ -10,6 +10,7 @@ local json = require "dkjson"
 local top_talkers_utils = {}
 top_talkers_utils.MAX_NUM_ENTRIES = 10
 top_talkers_utils.THRESHOLD_LOW = .05
+top_talkers_utils.TOP_ENABLED_KEY = "ntopng.prefs.ifid_%i.interface_top_talkers_creation"
 
 local vlan_totals = {}
 local asname_cache    = {}
@@ -19,15 +20,25 @@ local ipaddr_cache = {}
 
 -- ########################################################
 
+local function getTopEnabledKey(ifid)
+   return string.format(top_talkers_utils.TOP_ENABLED_KEY, ifid)
+end
+
+-- ########################################################
+
 local function updateCache(cache, key, val)
    if cache[key] == nil then
       cache[key] = val
    end
 end
 
+-- ########################################################
+
 local function getCache(cache, key)
    return cache[key]
 end
+
+-- ########################################################
 
 local function updateRes(res, vlan, what_key, what_value, direction, delta)
    if res == nil then res = {} end
@@ -38,6 +49,8 @@ local function updateRes(res, vlan, what_key, what_value, direction, delta)
 
    res[vlan][what_key][direction][what_value] = res[vlan][what_key][direction][what_value] + delta
 end
+
+-- ########################################################
 
 local function sortRes(res)
    for vlan_k, vlan_val in pairs(res) do
@@ -73,6 +86,8 @@ local function sortRes(res)
       end
    end
 end
+
+-- ########################################################
 
 local function finalizeRes(res)
    for vlan_k, vlan_val in pairs(res) do
@@ -138,11 +153,37 @@ end
 
 -- ########################################################
 
+function top_talkers_utils.areTopEnabled(ifid)
+   local k = getTopEnabledKey(ifid)
+
+   return not (ntop.getPref(k) == "false")
+end
+
+-- ########################################################
+
+function top_talkers_utils.disableTop(ifid)
+   local k = getTopEnabledKey(ifid)
+   ntop.setPref(k, "false")
+end
+
+-- ########################################################
+
+function top_talkers_utils.enableTop(ifid)
+   local k = getTopEnabledKey(ifid)
+   ntop.delCache(k)
+end
+
+-- ########################################################
+
 function top_talkers_utils.makeTopJson(_ifname)
    local ifid = getInterfaceId(_ifname)
    local res = {}
 
-   local in_time = callback_utils.foreachHost(_ifname, os.time() + 60 --[[1 minute --]], function (hostname, hoststats)
+   if not top_talkers_utils.areTopEnabled(ifid) then
+      return nil
+   end
+
+   local in_time = callback_utils.foreachHost(_ifname, os.time() + 50 --[[ seconds --]], function (hostname, hoststats)
       local checkpoint = interface.checkpointHostTalker(ifid, hostname)
       local tskey = hoststats["tskey"]
       local vlan = hoststats["vlan"]

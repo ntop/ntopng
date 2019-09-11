@@ -18,6 +18,7 @@ local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local os_utils = require "os_utils"
 local format_utils  = require "format_utils"
+local top_talkers_utils = require "top_talkers_utils"
 local page_utils = require("page_utils")
 
 require "lua_utils"
@@ -1099,12 +1100,14 @@ elseif(page == "historical") then
    }
    url = url.."&page=historical"
 
+   local top_enabled = top_talkers_utils.areTopEnabled(ifid)
+
    drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_protocols = "top:iface:ndpi",
       top_categories = "top:iface:ndpi_categories",
       top_profiles = "top:profile:traffic",
-      top_senders = "top:local_senders",
-      top_receivers = "top:local_receivers",
+      top_senders = ternary(top_enabled, "top:local_senders", nil),
+      top_receivers = ternary(top_enabled, "top:local_receivers", nil),
       l4_protocols = "iface:l4protos",
       show_historical = not ifstats.isViewed,
       timeseries = {
@@ -1443,6 +1446,31 @@ elseif(page == "config") then
          <th>]] print(i18n("if_stats_config.interface_rrd_creation")) print[[</th>
          <td>
             <input name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
+         </td>
+      </tr>]]
+
+   -- per-interface Top-Talkers generation
+   local interface_top_talkers_creation = true
+   local interface_top_talkers_creation_checked = "checked"
+
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      if _POST["interface_top_talkers_creation"] ~= "1" then
+	 interface_top_talkers_creation = false
+	 interface_top_talkers_creation_checked = ""
+	 top_talkers_utils.disableTop(ifId)
+      else
+	 top_talkers_utils.enableTop(ifId)
+      end
+   else
+      if not top_talkers_utils.areTopEnabled(ifId) then
+	 interface_top_talkers_creation_checked = ""
+      end
+   end
+
+   print [[<tr>
+         <th>]] print(i18n("if_stats_config.interface_top_talkers_creation")) print[[</th>
+         <td>
+            <input name="interface_top_talkers_creation" type="checkbox" value="1" ]] print(interface_top_talkers_creation_checked) print[[>
          </td>
       </tr>]]
 

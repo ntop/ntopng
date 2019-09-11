@@ -18,7 +18,7 @@ local n = interface.getHostPoolStats(pool)
 local res = {}
 
 for k, v in pairs(n) do
-   res = host_pools_utils.hostpool2record(interface.getStats()["id"], k, v)
+   res = host_pools_utils.hostpool2record(interface.getId(), k, v)
    break
 end
 

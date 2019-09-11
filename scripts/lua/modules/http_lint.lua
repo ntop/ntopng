@@ -1149,6 +1149,7 @@ local known_parameters = {
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
    ["interface_rrd_creation"]                      = validateBool,
+   ["interface_top_talkers_creation"]              = validateBool,
    ["interface_flow_dump"]                         = validateBool,
    ["is_mirrored_traffic"]                         = validateBool,
    ["interface_network_discovery"]                 = validateBool,
