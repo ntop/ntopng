@@ -1067,7 +1067,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
     if(add_to_additional_fields) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional field: %s (Key-ID: %u PEN: %u)", key_str, key_id, pen);
-#if 0
+#if 1
       flow.addAdditionalField(deserializer);
 #else
       flow.addAdditionalField(key_str,
