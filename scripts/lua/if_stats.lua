@@ -205,10 +205,12 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
-if(page == "networks") then
-   print("<li class=\"active\"><a href=\"#\">" .. i18n("networks") .. "</a></li>\n")
-else
-   print("<li><a href=\""..url.."&page=networks\">" .. i18n("networks") .. "</a></li>")
+if interface.isPacketInterface() then
+   if(page == "networks") then
+      print("<li class=\"active\"><a href=\"#\">" .. i18n("networks") .. "</a></li>\n")
+   else
+      print("<li><a href=\""..url.."&page=networks\">" .. i18n("networks") .. "</a></li>")
+   end
 end
 
 -- Disable Packets and Protocols tab in case of the number of packets is equal to 0
@@ -779,7 +781,7 @@ if(ifstats.zmqRecvStats ~= nil) then
 
    print("</table>\n")
 
-elseif((page == "networks")) then
+elseif page == "networks" and interface.isPacketInterface() then
    print("<table class=\"table table-striped table-bordered\">")
 
    if(ifstats.ip_addresses ~= "") then
