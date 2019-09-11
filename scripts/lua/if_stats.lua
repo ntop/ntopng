@@ -425,7 +425,15 @@ if((page == "overview") or (page == nil)) then
       if not isEmptyString(ifstats["zmq.num_exporters"]) then
 	 num_remote_flow_exporters = "<b>"..i18n("if_stats_overview.probe_zmq_num_endpoints").."</b>: <span id=if_num_remote_zmq_exporters>"..formatValue(ifstats["zmq.num_exporters"]).."</span>"
       end
-      print("<tr><th rowspan=3>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap><b>"..i18n("if_stats_overview.interface_name").."</b>: "..ifstats["remote.name"].." [ ".. bitsToSize(ifstats.speed*1000000) .." ]</td>")
+
+      local remote_ifname = ''
+      if ifstats["remote.name"] == "none" then
+	 remote_ifname = i18n("if_stats_overview.remote_probe_collector_mode")
+      else
+	 remote_ifname = string.format("<b>%s</b>: %s [%s]", i18n("if_stats_overview.interface_name"), ifstats["remote.name"], bitsToSize(ifstats.speed*1000000))
+      end
+
+      print("<tr><th rowspan=3>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap>"..remote_ifname.."</td>")
       print("<td nowrap>"..remote_if_addr.."</td>")
       print("<td nowrap>"..remote_probe_ip.."</td>")
       print("<td nowrap colspan=2>"..remote_probe_public_ip.."</td>\n")
@@ -543,7 +551,7 @@ if((page == "overview") or (page == nil)) then
       if (tonumber(speed) == nil) then
 	 speed = ifstats.speed
       end
-      print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. bitsToSize(speed*1000000) .. "</td>")
+      print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. bitsToSize(speed * 1000000) .. "</td>")
       print("</tr>")
    end
 
