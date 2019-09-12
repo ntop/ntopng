@@ -4260,21 +4260,12 @@ bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *t
 }
 
 /* ***************************************************** */
-#define FLOW_LUA_CALL_DEBUG
+
 void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle) {
   const char *lua_call_fn_name = NULL;
   std::map<FlowLuaCall, struct timeval>::iterator it;
 
-#ifdef FLOW_LUA_CALL_DEBUG
-  char buf[256];
-  print(buf, sizeof(buf));
-  //  ntop->getTrace()->traceEvent(TRACE_INFO, "[MDNS] %s", ndpiFlow->protos.mdns.answer);
-#endif
-
   if(isLuaCallPerformed(flow_lua_call, tv)) {
-#ifdef FLOW_LUA_CALL_DEBUG
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Already called [flow_lua_call:%u][%s]", flow_lua_call, buf);
-#endif
     return;
   }
 
