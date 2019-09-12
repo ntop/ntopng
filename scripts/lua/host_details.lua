@@ -541,7 +541,7 @@ if((page == "overview") or (page == nil)) then
       print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..host["vlan"].."</A></td></tr>\n")
    end
 
-   if(host["os"] ~= "") then
+   if(host["os"] ~= "" and host["os"] ~= 0) then
       print("<tr>")
       if(host["os"] ~= "") then
         local os_detail = ""
