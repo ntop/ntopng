@@ -89,7 +89,7 @@ for key, value in pairsByKeys(_ports, rev) do
 end
 
 -- In case there is some leftover do print it as "Other"
-if(accumulate < tot) then
+if accumulate < tot then
   local other_label = i18n("other")
   if(num > 0) then
     print (",\n")
@@ -102,7 +102,8 @@ if(accumulate < tot) then
   print("\t { \"label\": \""..other_label.."\", \"value\": ".. (tot-accumulate) .." }")
 end
 
-if(tot == 0) then
-       print("\t { \"label\": \"Other\", \"value\": ".. 0 .." }")
+if tot == 0 then
+   print("\t { \"label\": \""..i18n("no_ports").."\", \"value\": 0 }")
 end
-    print "\n]"
+
+ print "\n]"
