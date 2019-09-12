@@ -46,68 +46,42 @@ end
 
 -- #################################################################
 
+local function call_modules(mod_fn)
+   if table.empty(check_modules[mod_fn]) then
+      if do_trace then print(string.format("No flow.lua modules, skipping %s()\n", mod_fn)) end
+      return
+   end
+
+   local info = flow.getInfo()
+
+   if do_trace then print(string.format("%s(): %s\n", mod_fn, shortFlowLabel(info))) end
+
+   for _, _module in pairs(check_modules[mod_fn]) do
+      _module[mod_fn](info)
+   end
+
+end
+
+-- #################################################################
+
 function protocolDetected()
-  if table.empty(check_modules["protocolDetected"]) then
-    if do_trace then print("No flow.lua modules, skipping protocolDetected()\n") end
-    return
-  end
-
-  local info = flow.getInfo()
-
-  if do_trace then print("protocolDetected(): ".. shortFlowLabel(info) .. "\n") end
-
-  for _, _module in pairs(check_modules["protocolDetected"]) do
-     _module.protocolDetected(info)
-  end
+   return call_modules("protocolDetected")
 end
 
 -- #################################################################
 
 function statusChanged()
-  if table.empty(check_modules["statusChanged"]) then
-    if do_trace then print("No flow.lua modules, skipping statusChanged()\n") end
-    return
-  end
-
-  local info = flow.getInfo()
-
-  if do_trace then print("statusChanged(): ".. shortFlowLabel(info) .. "\n") end
-
-  for _, _module in pairs(check_modules["statusChanged"]) do
-     _module.statusChanged(info)
-  end
+   return call_modules("statusChanged")
 end
 
 -- #################################################################
 
 function idle()
-  if table.empty(check_modules["idle"]) then
-    if do_trace then print("No flow.lua modules, skipping idle()\n") end
-    return
-  end
-
-  local info = flow.getInfo()
-
-  if do_trace then print("idle(): ".. shortFlowLabel(info) .. "\n") end
-
-  for _, _module in pairs(check_modules["idle"]) do
-     _module.idle(info)
-  end
+   return call_modules("idle")
 end
 
 -- #################################################################
 
 function periodicUpdate()
-  if table.empty(check_modules["periodicUpdate"]) then
-    if do_trace then print("No flow.lua modules, skipping periodicUpdate()\n") end
-    return
-  end
-
-  local info = flow.getInfo()
-
-  if do_trace then print("periodicUpdate(): ".. shortFlowLabel(info) .. "\n") end
-
-  for _, _module in pairs(check_modules["periodicUpdate"]) do
-     _module.periodicUpdate(info)
-  end
+   return call_modules("periodicUpdate")
 end
