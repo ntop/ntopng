@@ -381,6 +381,8 @@ print [[
    ]]
 
 if((page == "overview") or (page == nil)) then
+   local tags = {ifid = ifstats.id}
+
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")
    if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
@@ -443,14 +445,14 @@ if((page == "overview") or (page == nil)) then
       local colspan = 4
 
       if ifstats["timeout.lifetime"] > 0 then
-	print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
+	 print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
       else
-	colspan = colspan - 1
+	 colspan = colspan - 1
       end
       if ifstats["timeout.idle"] > 0 then
-	print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
+	 print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
       else
-	colspan = colspan - 1
+	 colspan = colspan - 1
       end
 
       print("<td nowrap colspan="..colspan..">"..num_remote_flow_exporters.."</td>")
@@ -528,7 +530,7 @@ if((page == "overview") or (page == nil)) then
    if((isAdministrator()) and (not is_pcap_dump)) then
       s = s .. " <a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
    end
-   
+
    print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
 
    print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
@@ -558,10 +560,12 @@ if((page == "overview") or (page == nil)) then
    if((ifstats.num_alerts_engaged > 0) or (ifstats.num_dropped_alerts > 0)) then
       print("<tr>")
       local warning = "<i class='fa fa-warning fa-lg' style='color: #B94A48;'></i> "
+      local engaged_alerts_chart_available = ts_utils.exists("iface:engaged_alerts", tags)
+
       print("<th>".. ternary(ifstats.num_alerts_engaged > 0, warning, "") ..i18n("show_alerts.engaged_alerts")..
-        "</th><td colspan=2  nowrap>".. formatValue(ifstats.num_alerts_engaged) .." <span id=engaged_alerts_trend></span></td>\n")
+	       ternary(engaged_alerts_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:engaged_alerts'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td colspan=2  nowrap>".. formatValue(ifstats.num_alerts_engaged) .." <span id=engaged_alerts_trend></span></td>\n")
       print("<th width=250>".. ternary(ifstats.num_dropped_alerts > 0, warning, "")..i18n("show_alerts.dropped_alerts")..
-        "</th><td colspan=2>" .. formatValue(ifstats.num_dropped_alerts) .. " <span id=dropped_alerts_trend></span></td>\n</td>")
+	       "</th><td colspan=2>" .. formatValue(ifstats.num_dropped_alerts) .. " <span id=dropped_alerts_trend></span></td>\n</td>")
    end
 
    label = i18n("pkts")
@@ -574,42 +578,52 @@ if((page == "overview") or (page == nil)) then
       print [[ <td colspan=5><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr> ]]
    end
 
-print [[
+   print [[
 	<script type='text/javascript'>
 	       window.onload=function() {
 				   do_pie("#ifaceTrafficBreakdown", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/iface_local_stats.lua', { ifid: ]] print(ifstats.id .. " }, \"\", refresh); \n")
+   print (ntop.getHttpPrefix())
+   print [[/lua/iface_local_stats.lua', { ifid: ]] print(ifstats.id .. " }, \"\", refresh); \n")
 
-if(ifstats.type ~= "zmq") then
-print [[				   do_pie("#ifaceTrafficDistribution", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/iface_local_stats.lua', { ifid: ]] print(ifstats.id .. ", iflocalstat_mode: \"distribution\" }, \"\", refresh); \n")
-end
-print [[ }
+   if(ifstats.type ~= "zmq") then
+      print [[				   do_pie("#ifaceTrafficDistribution", ']]
+      print (ntop.getHttpPrefix())
+      print [[/lua/iface_local_stats.lua', { ifid: ]] print(ifstats.id .. ", iflocalstat_mode: \"distribution\" }, \"\", refresh); \n")
+   end
+   print [[ }
 
 ]]
-print("</script>\n")
+   print("</script>\n")
 
-if(ifstats.zmqRecvStats ~= nil) then
-   print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.zmq_rx_statistics").."</th></tr>\n")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
-   print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
-   print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
-   print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
-   print("<th nowrap> <i class='fa fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.zmq_message_drops").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
-   print("<th nowrap> "..i18n("if_stats_overview.zmq_avg_msg_flows").."</th><td width=20%><span id=if_zmq_avg_msg_flows></span></td></tr>")
+   if(ifstats.zmqRecvStats ~= nil) then
+      print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.zmq_rx_statistics").."</th></tr>\n")
+
+      local collected_flows_chart_available = ts_utils.exists("iface:zmq_recv_flows", tags)
+      print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows")..ternary(collected_flows_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
+
+      print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
+
+      print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
+
+      local collected_msgs_chart_available = ts_utils.exists("iface:zmq_rcvd_msgs", tags)
+      print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd")..ternary(collected_msgs_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
+
+      print("<th nowrap> <i class='fa fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.zmq_message_drops")..ternary(collected_msgs_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
+      print("<th nowrap> "..i18n("if_stats_overview.zmq_avg_msg_flows").."</th><td width=20%><span id=if_zmq_avg_msg_flows></span></td></tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
-   print("<tr><th nowrap>"..i18n("report.total_traffic").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
+
+   local traffic_chart_available = ts_utils.exists("iface:traffic", tags)
+   print("<tr><th nowrap>"..i18n("report.total_traffic")..ternary(traffic_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
 
    print("<span id=pkts_trend></span></td>")
 
-   if ifstats.isDynamic == false then
+   if not ifstats.isDynamic then
       print("<th width=20%><span id='if_packet_drops_drop'><i class='fa fa-tint' aria-hidden='true'></i></span> ")
 
-      print(i18n("if_stats_overview.dropped_packets").."</th>")
+      local drops_chart_available = ts_utils.exists("iface:drops", tags)
+      print(i18n("if_stats_overview.dropped_packets")..ternary(drops_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:drops'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th>")
 
       print("<td width=20% colspan=3><span id=if_drops>")
 
@@ -630,19 +644,21 @@ if(ifstats.zmqRecvStats ~= nil) then
       if(ifstats.zmqRecvStats ~= nil) then
 	 print("<p><small> <b>"..i18n("if_stats_overview.note").."</b>:<br>".. i18n("if_stats_overview.note_drops_sflow").."</small>")
       end
-      
+
       print("</td>")
    else
       print("<td width=20% colspan=3>")
       print("<small><b>"..i18n("if_stats_overview.note")..":</b> "..i18n("if_stats_overview.note_drop_ifstats_dynamic").."</small>")
       print("</td>")
-   end      
+   end
 
    print("</tr>")
 
    if(ifstats.has_traffic_directions) then
-      print("<tr><th nowrap>"..i18n("http_page.traffic_sent").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(ifstats.eth.egress.bytes).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
-      print("<th nowrap>"..i18n("http_page.traffic_received").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
+      local txrx_chart_available = ts_utils.exists("iface:traffic_rxtx", tags)
+
+      print("<tr><th nowrap>"..i18n("http_page.traffic_sent")..ternary(txrx_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(ifstats.eth.egress.bytes).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
+      print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(txrx_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
    end
 
    if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
@@ -661,12 +677,12 @@ if(ifstats.zmqRecvStats ~= nil) then
       local export_rate      = ifstats.stats.flow_export_rate
       local export_drops     = ifstats.stats.flow_export_drops
       local export_drops_pct = 0
-      if export_drops == nill then 
+      if export_drops == nill then
 
       elseif export_drops > 0 and export_count > 0 then
 	 export_drops_pct = export_drops / export_count * 100
       elseif export_drops > 0 then
-         export_drops_pct = 100
+	 export_drops_pct = 100
       end
 
       print("<tr><th colspan=7 nowrap>"..dump_to.." "..i18n("if_stats_overview.flows_export_statistics").."</th></tr>\n")
@@ -675,7 +691,7 @@ if(ifstats.zmqRecvStats ~= nil) then
       print("<th nowrap>"..i18n("if_stats_overview.exported_flows").."</th>")
       print("<td><span id=exported_flows>"..formatValue(export_count).."</span>")
       if export_rate == nil then
-	export_rate = 0
+	 export_rate = 0
       end
       print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
 
@@ -683,9 +699,9 @@ if(ifstats.zmqRecvStats ~= nil) then
       print(i18n("if_stats_overview.dropped_flows").."</th>")
 
       local span_danger = ""
-      if export_drops == nil then 
+      if export_drops == nil then
 
-     
+
       elseif(export_drops > 0) then
 	 span_danger = ' class="label label-danger"'
       end
@@ -695,51 +711,51 @@ if(ifstats.zmqRecvStats ~= nil) then
       print("<td colspan=3>&nbsp;</td>")
       print("</tr>")
    end
-  
+
    if isAdministrator() and ifstats.isView == false then
-      local storage_info = storage_utils.interfaceStorageInfo(ifid) 
+      local storage_info = storage_utils.interfaceStorageInfo(ifid)
       local storage_items = {}
 
       if ts_utils.getDriverName() == "rrd" then
-        if storage_info.rrd ~= nil and storage_info.rrd > 0 then
-          table.insert(storage_items, {
-            title = i18n("if_stats_overview.rrd_timeseries"),
-            value = storage_info.rrd,
-            class = "primary",
-          })
-        end
+	 if storage_info.rrd ~= nil and storage_info.rrd > 0 then
+	    table.insert(storage_items, {
+			    title = i18n("if_stats_overview.rrd_timeseries"),
+			    value = storage_info.rrd,
+			    class = "primary",
+	    })
+	 end
       end
 
       if storage_info.flows ~= nil and storage_info.flows > 0 then
-        table.insert(storage_items, {
-          title = i18n("flows"),
-          value = storage_info.flows,
-          class = "info",
-        })
+	 table.insert(storage_items, {
+			 title = i18n("flows"),
+			 value = storage_info.flows,
+			 class = "info",
+	 })
       end
 
       if storage_info.pcap ~= nil and storage_info.pcap > 0 then
-        local link = nil
+	 local link = nil
 
-        if recording_utils.isAvailable(ifstats.id) then
-          link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
-        end
+	 if recording_utils.isAvailable(ifstats.id) then
+	    link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
+	 end
 
-        table.insert(storage_items, {
-          title = i18n("traffic_recording.packet_dumps"),
-          value = storage_info.pcap,
-          class = "warning",
-          link = link
-        })
+	 table.insert(storage_items, {
+			 title = i18n("traffic_recording.packet_dumps"),
+			 value = storage_info.pcap,
+			 class = "warning",
+			 link = link
+	 })
       end
 
       if #storage_items > 0 then
-        print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=5>")
-        print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
-        print("</td></tr>\n")
+	 print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=5>")
+	 print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
+	 print("</td></tr>\n")
       end
    end
- 
+
    if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
@@ -747,15 +763,15 @@ if(ifstats.zmqRecvStats ~= nil) then
       live_traffic_utils.printLiveTrafficForm(ifId)
 
       print("</td></tr>\n")
-      
+
       print("<tr><th width=250>"..i18n("if_stats_overview.reset_counters").."</th>")
       print("<td colspan=5>")
 
       local tot	= ifstats.stats.bytes + ifstats.stats.packets + ifstats.stats.drops
       if(ifstats.stats.flow_export_count ~= nil) then
-      	tot = tot + ifstats.stats.flow_export_count + ifstats.stats.flow_export_drops
+	 tot = tot + ifstats.stats.flow_export_count + ifstats.stats.flow_export_drops
       end
-      
+
       print('<button id="btn_reset_all" type="button" class="btn btn-default" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
 
       print('<button id="btn_reset_drops" type="button" class="btn btn-default" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
@@ -782,7 +798,7 @@ if(ifstats.zmqRecvStats ~= nil) then
       print("<tr><th nowrap>Conntrack Flow Entries</th><td colspan=5>")
       print("<span id=num_conntrack_entries>"..formatValue(st.nfq.num_conntrack_entries).."</span></td>")
       print("</tr>")
-  end
+   end
 
    print [[
    <tr><td colspan=7> <small> <b>]] print(i18n("if_stats_overview.note").."</b>:<p>"..i18n("if_stats_overview.note_packets")) print[[</small> </td></tr>
