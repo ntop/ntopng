@@ -1134,7 +1134,7 @@ bool Host::statsResetRequested() {
 
 /* *************************************** */
 
-void Host::updateStats(update_hosts_stats_user_data_t *update_hosts_stats_user_data) {
+void Host::updateStats(update_stats_user_data_t *update_hosts_stats_user_data) {
   struct timeval *tv = update_hosts_stats_user_data->tv;
   Mac *cur_mac = getMac();
 

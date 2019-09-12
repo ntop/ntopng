@@ -2934,10 +2934,12 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
 static bool flow_update_hosts_stats(GenericHashEntry *node,
 				    void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
-  struct timeval *tv = (struct timeval*)user_data;
+  update_stats_user_data_t *update_flows_stats_user_data = (update_stats_user_data_t*)user_data;
+
+  struct timeval *tv = update_flows_stats_user_data->tv;
   bool dump_alert = (((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) || flow->getInterface()->read_from_pcap_dump()) ? true : false;
 
-  flow->update_hosts_stats(tv, dump_alert);
+  flow->update_hosts_stats(dump_alert, update_flows_stats_user_data);
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -2948,7 +2950,7 @@ static bool flow_update_hosts_stats(GenericHashEntry *node,
 /* NOTE: host is not a GenericTrafficElement */
 static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *host = (Host*)node;
-  update_hosts_stats_user_data_t *update_hosts_stats_user_data = (update_hosts_stats_user_data_t*)user_data;
+  update_stats_user_data_t *update_hosts_stats_user_data = (update_stats_user_data_t*)user_data;
 
   host->checkReloadPrefs();
   host->updateStats(update_hosts_stats_user_data);
@@ -3056,8 +3058,18 @@ void NetworkInterface::periodicStatsUpdate() {
   ethStats.updateStats(&tv);
   ndpiStats->updateStats(&tv);
 
-  if(!isView() && flows_hash) /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-    walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, (void*)&tv, true);
+  if(!isView() && flows_hash) { /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+    update_stats_user_data_t update_flows_stats_user_data;
+
+    update_flows_stats_user_data.acle = NULL /* Lazy instantiation */,
+      update_flows_stats_user_data.tv = &tv;
+
+    begin_slot = 0;
+    walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, &update_flows_stats_user_data, true);
+
+    if(update_flows_stats_user_data.acle)
+      delete update_flows_stats_user_data.acle;
+  }
 
   topItemsCommit(&tv);
 
@@ -3074,7 +3086,7 @@ void NetworkInterface::periodicStatsUpdate() {
   checkReloadHostsBroadcastDomain();
 
   if(hosts_hash) {
-    update_hosts_stats_user_data_t update_hosts_stats_user_data;
+    update_stats_user_data_t update_hosts_stats_user_data;
 
     update_hosts_stats_user_data.acle = NULL /* Lazy instantiation */,
       update_hosts_stats_user_data.tv = &tv;
@@ -7746,57 +7758,6 @@ void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
   AlertCheckLuaEngine acle(alert_entity_interface, p, this);
 
   handle_entity_alerts(&acle, this);
-}
-
-/* *************************************** */
-
-static bool flow_check_lua(GenericHashEntry *entry, void *user_data, bool *matched) {
-  Flow *flow = (Flow*)entry;
-  lua_State *vm = (lua_State*)user_data;
-  const char *lua_callback = flow->getLuaCallback();
-
-  if(lua_callback) {
-    struct ntopngLuaContext *c = getLuaVMContext(vm);
-    c->flow = flow;
-
-    lua_getglobal(vm, lua_callback);
-
-    if(lua_pcall(vm, 0, 0, 0)) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(vm, -1));
-      return(true); /* true: stop walking */
-    }
-  }
-
-  *matched = true;
-  return(false); /* false = keep on walking */
-}
-
-/* *************************************** */
-
-bool NetworkInterface::checkFlowsLua() {
-  bool walk_all = true;
-  u_int32_t begin_slot = 0;
-  LuaEngine flows_engine;
-  char script_path[MAX_PATH];
-  lua_State *vm = flows_engine.getState();
-
-  snprintf(script_path, sizeof(script_path),
-      "%s/callbacks/interface/alerts/flow.lua",
-      ntop->getPrefs()->get_scripts_dir());
-
-  ntop->fixPath(script_path);
-
-  if(flows_engine.run_script(script_path, this, true /* Load only */) < 0)
-    return(false);
-
-  lua_getglobal(vm, "setup");
-
-  if(lua_pcall(vm, 0, 0, 0)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(vm, -1));
-    return(false);
-  }
-
-  return(walker(&begin_slot, walk_all, walker_flows, flow_check_lua, vm));
 }
 
 /* *************************************** */

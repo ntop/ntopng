@@ -53,12 +53,12 @@ typedef enum {
   mask_remote_hosts = 2
 } HostMask;
 
-/* Struct used to pass parameters when walking hosts periodically to update their stats */
+/* Struct used to pass parameters when walking hosts and flows periodically to update their stats */
 class AlertCheckLuaEngine;
 typedef struct {
   AlertCheckLuaEngine *acle;
   struct timeval *tv;
-} update_hosts_stats_user_data_t;
+} update_stats_user_data_t;
 
 /* Keep in sync with alert_consts.alerts_granularities and Utils */
 typedef enum {
@@ -374,6 +374,13 @@ typedef enum {
      If # status >= 64 then change FlowStatusMap
   */
 } FlowStatus;
+
+typedef enum {
+  flow_lua_call_protocol_detected,
+  flow_lua_call_flow_status_changed,
+  flow_lua_call_periodic_update,
+  flow_lua_call_idle,
+} FlowLuaCall;
 
 typedef u_int64_t FlowStatusMap;
 

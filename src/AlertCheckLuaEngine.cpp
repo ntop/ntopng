@@ -38,6 +38,9 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
   case alert_entity_interface:
     lua_file = "interface.lua";
     break;
+  case alert_entity_flow:
+    lua_file = "flow.lua";
+    break;
   default:
     /* Example: lua_file = "generic.lua" to handle a generic entity */
     break;

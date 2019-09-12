@@ -22,7 +22,7 @@ local check_modules = {}
 
 -- #################################################################
 
--- The function below ia called once (#pragma once)
+-- The function below is called once (#pragma once)
 function setup()
   if(do_trace) then print("flow.lua:setup() called\n") end
 
@@ -76,6 +76,45 @@ function statusChanged()
   for _, _module in pairs(check_modules) do
     if _module.statusChanged then
       _module.statusChanged(info)
+    end
+  end
+end
+
+-- #################################################################
+
+function idle()
+  if(table.empty(check_modules)) then
+    if(do_trace) then print("No flow.lua modules, skipping idle()\n") end
+    return
+  end
+
+  local info = flow.getInfo()
+
+  if(do_trace) then print("idle(): ".. shortFlowLabel(info) .. "\n") end
+
+  for _, _module in pairs(check_modules) do
+    if _module.idle then
+      _module.idle(info)
+    end
+  end
+end
+
+
+-- #################################################################
+
+function periodicUpdate()
+  if(table.empty(check_modules)) then
+    if(do_trace) then print("No flow.lua modules, skipping periodicUpdate()\n") end
+    return
+  end
+
+  local info = flow.getInfo()
+
+  if(do_trace) then print("periodicUpdate(): ".. shortFlowLabel(info) .. "\n") end
+
+  for _, _module in pairs(check_modules) do
+    if _module.periodicUpdate then
+      _module.periodicUpdate(info)
     end
   end
 end

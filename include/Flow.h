@@ -55,6 +55,7 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t alert_score;
   FlowStatusMap last_notified_status_map;
+  std::map<FlowLuaCall, struct timeval> performed_lua_calls;
   struct ndpi_flow_struct *ndpiFlow;
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
@@ -66,7 +67,7 @@ class Flow : public GenericHashEntry {
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
-    quota_exceeded, has_malicious_signature, lua_detection_notified;
+    quota_exceeded, has_malicious_signature;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   bool counted_in_aggregated_flow, status_counted_in_aggregated_flow;
@@ -232,7 +233,9 @@ class Flow : public GenericHashEntry {
   void updateJA3();
   void updateHASSH(bool as_client);
   const char* cipher_weakness2str(ndpi_cipher_weakness w);
-  bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;  
+  bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
+  bool isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv);
+  void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle);
 
  public:
   Flow(NetworkInterface *_iface,
@@ -412,7 +415,7 @@ class Flow : public GenericHashEntry {
   void set_acknowledge_to_purge();
 
   char* print(char *buf, u_int buf_len) const;
-  void update_hosts_stats(struct timeval *tv, bool dump_alert);
+  void update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_flows_stats_user_data);
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port,
 		       Host *srv, u_int16_t srv_port,
@@ -514,7 +517,6 @@ class Flow : public GenericHashEntry {
 
   inline void setScore(u_int16_t score)    { alert_score = score; };
   inline u_int16_t getScore()              { return(alert_score); };
-  const char* getLuaCallback();
 
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }

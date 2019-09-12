@@ -60,6 +60,7 @@ class LuaEngine {
   /* Set Hosts and Networks into the Lua context */
   void setHost(Host* h);
   void setNetwork(NetworkStats* ns);
+  void setFlow(Flow*f);
 
   inline Host* getHost()     { return(getLuaVMContext(L)->host); }
   inline NetworkInterface* getNetworkInterface() { return(getLuaVMContext(L)->iface); }

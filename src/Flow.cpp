@@ -66,7 +66,6 @@ Flow::Flow(NetworkInterface *_iface,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
     bt_hash = NULL;
-  lua_detection_notified = false;
 
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
     bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, top_pkts_thpt = 0;
@@ -1004,7 +1003,8 @@ void Flow::incFlowDroppedCounters() {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
+void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_flows_stats_user_data) {
+  struct timeval *tv = update_flows_stats_user_data->tv;
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
@@ -1068,7 +1068,12 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
 
     update_flow_port_stats = false;
   }
-  
+
+  if(isDetectionCompleted())
+    performLuaCall(flow_lua_call_protocol_detected, tv, &update_flows_stats_user_data->acle);
+
+  performLuaCall(flow_lua_call_flow_status_changed, tv, &update_flows_stats_user_data->acle);
+
   if(get_state() == hash_entry_state_idle) {
     if(iface->isViewed()) {
       /* Must acknowledge so the overlying 'view' interface can actually set 
@@ -1083,6 +1088,9 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     }
 
     postFlowSetIdle(tv->tv_sec);
+    performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
+  } else {
+    performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
   }
 
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_TLS)) {
@@ -4216,34 +4224,94 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 
 /* ***************************************************** */
 
-/* Returns NULL if no LUA callback should be called. Otherwise returns the name
- * of the flow.lua callback to call.
- * See alerts_api.load_flow_check_modules() for an explanation.
- */
-const char* Flow::getLuaCallback() {
+bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv) {
   FlowStatusMap status_map;
-  getFlowStatus(&status_map);
+  std::map<FlowLuaCall, struct timeval>::const_iterator it = performed_lua_calls.find(flow_lua_call);
+  bool found = it != performed_lua_calls.end();
+  u_int32_t periodic_update_freq;
 
-  if(cli_host && srv_host && isDetectionCompleted()) {
-    const char *lua_callback = NULL;
-
-    if(!lua_detection_notified) {
-      lua_detection_notified = true;
-      lua_callback = "protocolDetected";
-    } else if(status_map != last_notified_status_map)
-      lua_callback = "statusChanged";
+  switch(flow_lua_call) {
+  case flow_lua_call_flow_status_changed:
+    getFlowStatus(&status_map);
 
     if(status_map != last_notified_status_map) {
-      /* Update the hosts status */
-      cli_host->setAnomalousFlowsStatusMap(status_map, true);
-      srv_host->setAnomalousFlowsStatusMap(status_map, false);
-
       last_notified_status_map = status_map;
+      /* Update the hosts status */
+      if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
+      if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
+      return false;
     }
 
-    return lua_callback;
+    return true;
+  case flow_lua_call_periodic_update:
+    periodic_update_freq = iface->getFlowMaxIdle() * 5; /* 5 times the max flow idleness */
+
+    if(found)
+      /* Don't re-call it before the maximum flow lifetime */
+      return it->second.tv_sec + periodic_update_freq > tv->tv_sec;
+    else
+      /* Call the first time only after getFlowMaxIdle() seconds have elapsed */
+      return get_duration() < periodic_update_freq;
+  default:
+    break;
   }
 
-  /* Nothing to call */
-  return(NULL);
+  return found;
+}
+
+/* ***************************************************** */
+#define FLOW_LUA_CALL_DEBUG
+void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle) {
+  const char *lua_call_fn_name = NULL;
+  std::map<FlowLuaCall, struct timeval>::iterator it;
+
+#ifdef FLOW_LUA_CALL_DEBUG
+  char buf[256];
+  print(buf, sizeof(buf));
+  //  ntop->getTrace()->traceEvent(TRACE_INFO, "[MDNS] %s", ndpiFlow->protos.mdns.answer);
+#endif
+
+  if(isLuaCallPerformed(flow_lua_call, tv)) {
+#ifdef FLOW_LUA_CALL_DEBUG
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Already called [flow_lua_call:%u][%s]", flow_lua_call, buf);
+#endif
+    return;
+  }
+
+  if(!*acle
+     && !(*acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, iface)))
+    return;
+
+  lua_State *L = (*acle)->getState();
+  (*acle)->setFlow(this);
+
+  switch(flow_lua_call) {
+  case flow_lua_call_protocol_detected:
+    lua_call_fn_name = FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME;
+    break;
+  case flow_lua_call_flow_status_changed:
+    lua_call_fn_name = FLOW_LUA_CALL_FLOW_STATUS_CHANGE_FN_NAME;
+    break;
+  case flow_lua_call_periodic_update:
+    lua_call_fn_name = FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME;
+    break;
+  case flow_lua_call_idle:
+    lua_call_fn_name = FLOW_LUA_CALL_IDLE_FN_NAME;
+    break;
+  default:
+    lua_call_fn_name = NULL;
+    break;
+  }
+
+  if(lua_call_fn_name) {
+    /* Call the function */
+    lua_getglobal(L, lua_call_fn_name); /* Called function */
+    (*acle)->pcall(0 /* 0 arguments */, 0 /* 0 results */);
+
+    /* Mark it as called */
+    if((it = performed_lua_calls.find(flow_lua_call)) != performed_lua_calls.end())
+      it->second = *tv;
+    else
+      performed_lua_calls.insert(make_pair(flow_lua_call, *tv));
+  }
 }

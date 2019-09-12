@@ -26,8 +26,5 @@ interface.checkNetworksAlertsMin()
 -- checks the current interface alerts
 interface.checkInterfaceAlertsMin()
 
--- Run lua scripts on flows
-interface.checkFlowsLua()
-
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
