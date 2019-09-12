@@ -1141,8 +1141,7 @@ elseif(page == "historical") then
          {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
 
          {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-	 {schema="iface:zmq_rcvd_msgs",         label=i18n("if_stats_overview.zmq_message_rcvd"), nedge_exclude=1, value_formatter = {"fmsgs", "formatMessages"}},
-	 {schema="iface:zmq_msg_drops",         label=i18n("if_stats_overview.zmq_message_drops"), nedge_exclude=1,  value_formatter = {"fmsgs", "formatMessages"}},
+	 {schema="custom:zmq_msg_rcvd_vs_drops",label=i18n("graphs.zmq_msg_rcvd_vs_drops"), check={"iface:zmq_rcvd_msgs", "iface:zmq_msg_drops"}, metrics_labels = {i18n("if_stats_overview.zmq_message_rcvd"), i18n("if_stats_overview.zmq_message_drops")}, value_formatter = {"fmsgs", "formatMessages"}},
 	 {schema="iface:zmq_flow_coll_drops",   label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1, value_formatter = {"fflows", "formatFlows"}},
 	 {schema="iface:zmq_flow_coll_udp_drops", label=i18n("graphs.zmq_flow_coll_udp_drops"), nedge_exclude=1, value_formatter = {"fpackets", "formatPackets"}},
          {schema="iface:exported_flows",        label=i18n("if_stats_overview.exported_flows"), nedge_exclude=1},

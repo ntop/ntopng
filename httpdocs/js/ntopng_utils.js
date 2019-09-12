@@ -179,7 +179,7 @@ function fmsgs(mps) {
     if(typeof(mps) === "undefined")
       return "-";
 
-    var sizes = ['msgs/s', 'Kmsgs/s', 'Msgs/s', 'Gmsgs/s', 'Tmsgs/s'];
+    var sizes = ['msg/s', 'Kmsg/s', 'Msg/s', 'Gmsg/s', 'Tmsg/s'];
     if(mps == 0) return '0';
     if((mps > 0) && (mps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' mps');
     var res = scaleValue(mps, sizes, 1000);
