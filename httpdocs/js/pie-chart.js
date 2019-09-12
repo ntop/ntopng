@@ -180,9 +180,10 @@ function PieChart(name, update_url, url_params, units, refresh) {
 			    return "end";
 			}
 		    }).text(function(d){
-			    var percentage = (d.value/totalOctets)*100;
-			    return percentage.toFixed(1) + "%";
-			});
+			if (totalOctets <= 1) return "";
+			var percentage = (d.value/totalOctets)*100;
+		     	return percentage.toFixed(1) + "%";
+		   });
 
 	    valueLabels.transition().duration(tweenDuration).attrTween("transform", textTween);
 	    valueLabels.exit().remove();
