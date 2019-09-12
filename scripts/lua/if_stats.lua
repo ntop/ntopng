@@ -700,12 +700,14 @@ if(ifstats.zmqRecvStats ~= nil) then
       local storage_info = storage_utils.interfaceStorageInfo(ifid) 
       local storage_items = {}
 
-      if storage_info.rrd ~= nil and storage_info.rrd > 0 then
-        table.insert(storage_items, {
-          title = i18n("if_stats_overview.rrd_timeseries"),
-          value = storage_info.rrd,
-          class = "primary",
-        })
+      if ts_utils.getDriverName() == "rrd" then
+        if storage_info.rrd ~= nil and storage_info.rrd > 0 then
+          table.insert(storage_items, {
+            title = i18n("if_stats_overview.rrd_timeseries"),
+            value = storage_info.rrd,
+            class = "primary",
+          })
+        end
       end
 
       if storage_info.flows ~= nil and storage_info.flows > 0 then
