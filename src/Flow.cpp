@@ -3961,15 +3961,19 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   */
   last_conntrack_update = now;
 
-  iface->_incStats(isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol, protocol,
+  iface->_incStats(isIngress2EgressDirection(), now, eth_proto,
+		   getStatsProtocol(), get_protocol_category(),
+		   protocol,
 		   nf_existing_flow ? s2d_bytes - stats.cli2srv_bytes : s2d_bytes,
 		   nf_existing_flow ? s2d_pkts - stats.cli2srv_packets : s2d_pkts,
 		   overhead);
 
-  iface->_incStats(!isIngress2EgressDirection(), now, eth_proto, ndpiDetectedProtocol.app_protocol, protocol,
-		  nf_existing_flow ? d2s_bytes - stats.srv2cli_bytes : d2s_bytes,
-		  nf_existing_flow ? d2s_pkts - stats.srv2cli_packets : d2s_pkts,
-		  overhead);
+  iface->_incStats(!isIngress2EgressDirection(), now, eth_proto,
+		   getStatsProtocol(), get_protocol_category(),
+		   protocol,
+		   nf_existing_flow ? d2s_bytes - stats.srv2cli_bytes : d2s_bytes,
+		   nf_existing_flow ? d2s_pkts - stats.srv2cli_packets : d2s_pkts,
+		   overhead);
 
   if(nf_existing_flow) {
     stats.cli2srv_packets = s2d_pkts, stats.cli2srv_bytes = s2d_bytes,
