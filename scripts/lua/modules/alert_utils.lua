@@ -1,10 +1,9 @@
 --
--- (C) 2014-18 - ntop.org
+-- (C) 2014-19 - ntop.org
 --
 
 -- This file contains the description of all functions
 -- used to trigger host alerts
-
 local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
 local callback_utils = require "callback_utils"
 local template = require "template_utils"
@@ -18,7 +17,6 @@ local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local alert_endpoints = require "alert_endpoints_utils"
 local flow_consts = require "flow_consts"
-
 local store_alerts_queue = "ntopng.alert_store_queue"
 local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
 
@@ -1704,40 +1702,50 @@ function toggleAlert(disable) {
 
       local status = _GET["status"]
       if(status == nil) then
-        local tab = _GET["tab"]
+	 local tab = _GET["tab"]
 
-        if(tab == "past_alert_list") then
-          status = "historical"
-        elseif(tab == "flow_alert_list") then
-          status = "historical-flows"
-        end
+	 if(tab == "past_alert_list") then
+	    status = "historical"
+	 elseif(tab == "flow_alert_list") then
+	    status = "historical-flows"
+	 end
       end
 
       local status_reset = (status == nil)
+      local ts_utils = require "ts_utils"
 
       if(has_engaged_alerts) then
-	 alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
+	 alert_items[#alert_items + 1] = {
+	    ["label"] = i18n("show_alerts.engaged_alerts"),
+	    ["chart"] = ternary(ts_utils.exists("iface:engaged_alerts", {ifid = ifid}), "iface:engaged_alerts", ""),
 	    ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
       elseif status == "engaged" then
 	 status = nil; status_reset = 1
       end
 
       if(has_past_alerts) then
-	 alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_alerts"),
+	 alert_items[#alert_items +1] = {
+	    ["label"] = i18n("show_alerts.past_alerts"),
+	    ["chart"] = "",
 	    ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
       elseif status == "historical" then
 	 status = nil; status_reset = 1
       end
 
       if(has_flow_alerts) then
-	 alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.flow_alerts"),
+	 alert_items[#alert_items +1] = {
+	    ["label"] = i18n("show_alerts.flow_alerts"),
+	    ["chart"] = "",
 	    ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
       elseif status == "historical-flows" then
 	 status = nil; status_reset = 1
       end
 
       if has_disabled_alerts then
-        alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.disabled_alerts"), ["div-id"] = "table-disabled-alerts",  ["status"] = "disabled-alerts"}
+	 alert_items[#alert_items +1] = {
+	    ["label"] = i18n("show_alerts.disabled_alerts"),
+	    ["chart"] = "",
+	    ["div-id"] = "table-disabled-alerts",  ["status"] = "disabled-alerts"}
       end
 
       for k, t in ipairs(alert_items) do
@@ -1747,7 +1755,7 @@ function toggleAlert(disable) {
 	 end
 	 print [[
       <div class="tab-pane fade in" id="tab-]] print(t["div-id"]) print[[">
-        <div id="]] print(t["div-id"]) print[["></div>
+	<div id="]] print(t["div-id"]) print[["></div>
       </div>
 
       <script type="text/javascript">
@@ -1771,7 +1779,7 @@ function toggleAlert(disable) {
 	       showPagination: true,
                buttons: [']]
 
-	 local title = t["label"]
+   local title = t["label"]..ternary(t["chart"] ~= "", " <small><A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid.."&page=historical&ts_schema="..t["chart"].."'><i class='fa fa-area-chart fa-sm'></i></A></small>", "")
 
 	 if(options.hide_filters ~= true)  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
