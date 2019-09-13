@@ -116,6 +116,13 @@ if ifstats.stats and ifstats.stats_since_reset then
    end
 end
 
+if ifstats.zmqRecvStats and ifstats.zmqRecvStats_since_reset then
+   -- override stats with the values calculated from the latest user reset
+   for k, v in pairs(ifstats.zmqRecvStats_since_reset) do
+      ifstats.zmqRecvStats[k] = v
+   end
+end
+
 local ext_interfaces = {}
 
 -- refresh traffic recording availability as one may have installed n2disk
@@ -756,7 +763,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
+   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
@@ -1840,7 +1847,7 @@ var resetInterfaceCounters = function(drops_only) {
     url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/reset_stats.lua',
-    data: 'resetstats_mode=' + action + "&csrf=]] print(ntop.getRandomCSRFValue()) print[[",
+    data: {ifid: ]] print(ifstats.id) print [[, resetstats_mode:  action, csrf: "]] print(ntop.getRandomCSRFValue()) print[["},
     success: function(rsp) {},
     complete: function() {
       /* reload the page to generate a new CSRF */

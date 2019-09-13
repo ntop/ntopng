@@ -40,7 +40,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
     u_int32_t num_flows, num_events, num_counters,
       num_templates, num_options, num_network_events,
       zmq_msg_rcvd, zmq_msg_drops;
-  } recvStats;
+  } recvStats, recvStatsCheckpoint;
   std::map<u_int8_t, u_int32_t>source_id_last_msg_id;
   bool is_collector;
   u_int8_t num_subscribers;
@@ -55,6 +55,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   virtual bool is_ndpi_enabled() const    { return(false);      };
   inline char* getEndpoint(u_int8_t id)   { return((id < num_subscribers) ?
 						   subscriber[id].endpoint : (char*)""); };
+  virtual void checkPointCounters(bool drops_only);
   virtual bool isPacketInterface() const  { return(false);      };
   void collect_flows();
 

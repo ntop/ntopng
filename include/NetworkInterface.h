@@ -364,7 +364,7 @@ class NetworkInterface : public AlertableEntity {
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
-  void checkPointCounters(bool drops_only);
+  virtual void checkPointCounters(bool drops_only);
 
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointNumBytes();

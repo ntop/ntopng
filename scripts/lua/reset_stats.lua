@@ -1,8 +1,8 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
@@ -11,8 +11,9 @@ local json = require("dkjson")
 sendHTTPContentTypeHeader('application/json')
 
 local action = _POST["resetstats_mode"]
+local ifid = _POST["ifid"]
 
-interface.select(ifname)
+interface.select(ifid)
 
 local res = { ["status"] = "ok" }
 if((action ~= nil) and (haveAdminPrivileges())) then

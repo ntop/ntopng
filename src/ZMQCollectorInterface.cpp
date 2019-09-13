@@ -29,7 +29,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
   char *tmp, *e, *t;
   const char *topics[] = { "flow", "event", "counter", "template", "option", NULL };
 
-  memset(&recvStats, 0, sizeof(recvStats));
+  memset(&recvStats, 0, sizeof(recvStats)),
+    memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
   num_subscribers = 0;
 
   context = zmq_ctx_new();
@@ -146,6 +147,24 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
   }
 
   zmq_ctx_destroy(context);
+}
+
+/* **************************************************** */
+
+void ZMQCollectorInterface::checkPointCounters(bool drops_only) {
+  if(!drops_only) {
+    recvStatsCheckpoint.num_flows = recvStats.num_flows,
+      recvStatsCheckpoint.num_events = recvStats.num_events,
+      recvStatsCheckpoint.num_counters = recvStats.num_counters,
+      recvStatsCheckpoint.num_templates = recvStats.num_templates,
+      recvStatsCheckpoint.num_options = recvStats.num_options,
+      recvStatsCheckpoint.num_network_events = recvStats.num_network_events,
+      recvStatsCheckpoint.zmq_msg_rcvd = recvStats.zmq_msg_rcvd;
+  }
+
+  recvStatsCheckpoint.zmq_msg_drops = recvStats.zmq_msg_drops;
+
+  NetworkInterface::checkPointCounters(drops_only);
 }
 
 /* **************************************************** */
@@ -398,6 +417,16 @@ void ZMQCollectorInterface::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "zmq_msg_rcvd", recvStats.zmq_msg_rcvd);
   lua_push_uint64_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops);
   lua_pushstring(vm, "zmqRecvStats");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows - recvStatsCheckpoint.num_flows);
+  lua_push_uint64_table_entry(vm, "events", recvStats.num_events - recvStatsCheckpoint.num_events);
+  lua_push_uint64_table_entry(vm, "counters", recvStats.num_counters - recvStatsCheckpoint.num_counters);
+  lua_push_uint64_table_entry(vm, "zmq_msg_rcvd", recvStats.zmq_msg_rcvd - recvStatsCheckpoint.zmq_msg_rcvd);
+  lua_push_uint64_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops - recvStatsCheckpoint.zmq_msg_drops);
+  lua_pushstring(vm, "zmqRecvStats_since_reset");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
