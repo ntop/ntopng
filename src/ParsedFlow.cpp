@@ -39,7 +39,6 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   memset(&custom_app, 0, sizeof(custom_app));
 
   has_parsed_ebpf = false;
-  parsed_flow_free_memory = false;
 }
 
 /* *************************************** */
@@ -69,8 +68,6 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
 
   memcpy(&custom_app, &pf.custom_app, sizeof(custom_app));
   has_parsed_ebpf = pf.has_parsed_ebpf;
-  
-  parsed_flow_free_memory = true;
 }
 
 /* *************************************** */
@@ -84,16 +81,14 @@ ParsedFlow::~ParsedFlow() {
     free(additional_fields_tlv);
   }
 
-  if(parsed_flow_free_memory) {
-    if(http_url)  free(http_url);
-    if(http_site) free(http_site);
-    if(dns_query) free(dns_query);
-    if(ssl_server_name) free(ssl_server_name);
-    if(bittorrent_hash) free(bittorrent_hash);
-    if(ja3c_hash) free(ja3c_hash);
-    if(ja3s_hash) free(ja3s_hash);
-    if(suricata_alert) free(suricata_alert);
-  }
+  if(http_url)  free(http_url);
+  if(http_site) free(http_site);
+  if(dns_query) free(dns_query);
+  if(ssl_server_name) free(ssl_server_name);
+  if(bittorrent_hash) free(bittorrent_hash);
+  if(ja3c_hash) free(ja3c_hash);
+  if(ja3s_hash) free(ja3s_hash);
+  if(suricata_alert) free(suricata_alert);
 }
 
 /* *************************************** */

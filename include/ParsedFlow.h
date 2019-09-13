@@ -26,7 +26,6 @@
 
 class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
  private:
-  bool parsed_flow_free_memory;
   bool has_parsed_ebpf;
   json_object *additional_fields_json;
   ndpi_serializer *additional_fields_tlv;

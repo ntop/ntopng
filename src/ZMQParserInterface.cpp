@@ -552,7 +552,8 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->tcp.applLatencyMsec = value->double_num;
     break;
   case DNS_QUERY:
-    flow->dns_query = (char *) value->string;
+    if (value->string[0] && value->string[0] != '\n')
+      flow->dns_query = strdup(value->string);
     break;
   case DNS_QUERY_TYPE:
     flow->dns_query_type = value->uint_num;
@@ -561,22 +562,27 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->dns_ret_code = value->uint_num;
     break;
   case HTTP_URL:
-    flow->http_url = (char *) value->string;
+    if (value->string[0] && value->string[0] != '\n')
+      flow->http_url = strdup(value->string);
     break;
   case HTTP_SITE:
-    flow->http_site = (char *) value->string;
+    if (value->string[0] && value->string[0] != '\n')
+      flow->http_site = strdup(value->string);
     break;
   case HTTP_RET_CODE:
     flow->http_ret_code = value->uint_num;
     break;
   case SSL_SERVER_NAME:
-    flow->ssl_server_name = (char *) value->string;
+    if (value->string[0] && value->string[0] != '\n')
+      flow->ssl_server_name = strdup(value->string);
     break;
   case JA3C_HASH:
-    flow->ja3c_hash = (char *) value->string;
+    if (value->string[0])
+      flow->ja3c_hash = strdup(value->string);
     break;
   case JA3S_HASH:
-    flow->ja3s_hash = (char *) value->string;
+    if (value->string[0])
+      flow->ja3s_hash = strdup(value->string);
     break;
   case SSL__CIPHER:
     flow->ssl_cipher = value->uint_num;
@@ -585,7 +591,8 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->ssl_unsafe_cipher = value->uint_num;
     break;
   case BITTORRENT_HASH:
-    flow->bittorrent_hash = (char *) value->string;
+    if (value->string[0] && value->string[0] != '\n')
+      flow->bittorrent_hash = strdup(value->string);
     break;
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */

@@ -1367,23 +1367,33 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
 
-  if(zflow->dns_query && zflow->dns_query[0] != '\0' && zflow->dns_query[0] != '\n')
+  if(zflow->dns_query) {
     flow->setDNSQuery(zflow->dns_query);
+    zflow->dns_query = NULL;
+  }
   flow->setDNSQueryType(zflow->dns_query_type);
   flow->setDNSRetCode(zflow->dns_ret_code);
 
-  if(zflow->http_url && zflow->http_url[0] != '\0' && zflow->http_url[0] != '\n')
+  if(zflow->http_url) {
     flow->setHTTPURL(zflow->http_url);
+    zflow->http_url = NULL;
+  }
 
-  if(zflow->http_site && zflow->http_site[0] != '\0' && zflow->http_site[0] != '\n')
+  if(zflow->http_site) {
     flow->setServerName(zflow->http_site);
+    zflow->http_site = NULL;
+  }
   flow->setHTTPRetCode(zflow->http_ret_code);
 
-  if(zflow->ssl_server_name && zflow->ssl_server_name[0] != '\0' && zflow->ssl_server_name[0] != '\n')
+  if(zflow->ssl_server_name) {
     flow->setServerName(zflow->ssl_server_name);
+    zflow->ssl_server_name = NULL;
+  }
 
-  if(zflow->bittorrent_hash && zflow->bittorrent_hash[0] != '\0'&& zflow->bittorrent_hash[0] != '\n')
+  if(zflow->bittorrent_hash) {
     flow->setBTHash(zflow->bittorrent_hash);
+    zflow->bittorrent_hash = NULL;
+  }
 
   if(zflow->vrfId)      flow->setVRFid(zflow->vrfId);
 
