@@ -1145,7 +1145,7 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
-	  srv_host->getMac()->incnDPIStats(tv->tv_sec, stats_protocol,
+	  srv_host->getMac()->incnDPIStats(tv->tv_sec, get_protocol_category(),
 					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 
@@ -1159,7 +1159,7 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
-          cli_host->getMac()->incnDPIStats(tv->tv_sec, stats_protocol,
+          cli_host->getMac()->incnDPIStats(tv->tv_sec, get_protocol_category(),
 					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
         }

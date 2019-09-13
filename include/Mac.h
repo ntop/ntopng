@@ -134,11 +134,11 @@ class Mac : public GenericHashEntry, public SerializableElement {
     stats->incSentStats(t, num_pkts, num_bytes), last_seen = t;
   }
   
-  inline void incnDPIStats(time_t when, u_int16_t protocol,
+  inline void incnDPIStats(time_t when, ndpi_protocol_category_t ndpi_category,
 	    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 	    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
-    stats->incnDPIStats(when, protocol, sent_packets, sent_bytes, sent_goodput_bytes,
-      rcvd_packets, rcvd_bytes, rcvd_goodput_bytes);
+    stats->incnDPIStats(when, ndpi_category, sent_packets, sent_bytes, sent_goodput_bytes,
+			rcvd_packets, rcvd_bytes, rcvd_goodput_bytes);
   }
   
   inline void incRcvdStats(time_t t,u_int64_t num_pkts, u_int64_t num_bytes) {
