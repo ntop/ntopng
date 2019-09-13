@@ -378,7 +378,7 @@ class NetworkInterface : public AlertableEntity {
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
-    ndpiStats->incCategoryStats(when, get_ndpi_proto_category(ndpi_proto), 0 /* see above comment */, pkt_len);
+    ndpiStats->incCategoryStats(when, ndpi_category, 0 /* see above comment */, pkt_len);
     pktStats.incStats(pkt_len);
     l4Stats.incStats(when, l4proto,
       ingressPacket ? num_pkts : 0, ingressPacket ? pkt_len : 0,
