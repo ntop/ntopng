@@ -371,7 +371,9 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t getCheckPointNumPacketDrops();
 
   inline void _incStats(bool ingressPacket, time_t when,
-			u_int16_t eth_proto, u_int16_t ndpi_proto, u_int8_t l4proto,
+			u_int16_t eth_proto,
+			u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
+			u_int8_t l4proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
@@ -384,14 +386,15 @@ class NetworkInterface : public AlertableEntity {
   };
 
   inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
-  inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
+  inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto,
+		       u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
 		       u_int8_t l4proto, u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
 #ifdef HAVE_NEDGE
     /* In nedge, we only update the stats periodically with conntrack */
     return;
 #endif
 
-    _incStats(ingressPacket, when, eth_proto, ndpi_proto, l4proto, pkt_len, num_pkts, pkt_overhead);
+    _incStats(ingressPacket, when, eth_proto, ndpi_proto, ndpi_category, l4proto, pkt_len, num_pkts, pkt_overhead);
   };
 
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {

@@ -134,7 +134,8 @@ void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level, b
 
 /* *************************************** */
 
-void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
+void HostStats::incStats(time_t when, u_int8_t l4_proto,
+			 u_int ndpi_proto, ndpi_protocol_category_t ndpi_category,
 			 custom_app_t custom_app,
 			 u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 			 u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
@@ -144,9 +145,7 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
   
   if(ndpiStats) {
     ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes),
-      ndpiStats->incCategoryStats(when,
-				  iface->get_ndpi_proto_category(ndpi_proto),
-				  sent_bytes, rcvd_bytes);
+      ndpiStats->incCategoryStats(when, ndpi_category, sent_bytes, rcvd_bytes);
   }
 
 #ifdef NTOPNG_PRO

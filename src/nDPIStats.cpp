@@ -190,9 +190,10 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
   if (with_categories) {
     lua_newtable(vm);
 
-    for (int i=0; i<NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
-      if(unlikely(cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd > 0)) {
+    for (int i = 0;  i < NDPI_PROTOCOL_NUM_CATEGORIES; i++) {
+      if(cat_counters[i].bytes.sent + cat_counters[i].bytes.rcvd) {
 	const char *name = iface->get_ndpi_category_name((ndpi_protocol_category_t)i);
+
 
 	if(!tsLua) {
 	  lua_newtable(vm);

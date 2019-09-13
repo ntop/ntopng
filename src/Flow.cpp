@@ -1190,7 +1190,8 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
 
       // Update network stats
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-      cli_host->incStats(tv->tv_sec, protocol, stats_protocol, custom_app,
+      cli_host->incStats(tv->tv_sec, protocol,
+			 stats_protocol, get_protocol_category(), custom_app,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			 get_srv_ip_addr()->isNonEmptyUnicastAddress());
@@ -1213,7 +1214,8 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
       NetworkStats *srv_network_stats;
 
       srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-      srv_host->incStats(tv->tv_sec, protocol, stats_protocol, custom_app,
+      srv_host->incStats(tv->tv_sec, protocol,
+			 stats_protocol, get_protocol_category(), custom_app,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
 			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
 			 get_cli_ip_addr()->isNonEmptyUnicastAddress());

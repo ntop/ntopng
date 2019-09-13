@@ -282,7 +282,9 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 			   NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
 
       if(cli_host) {
-	cli_host->incStats(tv->tv_sec, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
+	cli_host->incStats(tv->tv_sec, f->get_protocol(),
+			   f->getStatsProtocol(), f->get_protocol_category(),
+			   f->getCustomApp(),
 			   partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
 			   partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
 			   cli_ip->isNonEmptyUnicastAddress());
@@ -295,7 +297,9 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
       }
 
       if(srv_host) {
-	srv_host->incStats(tv->tv_sec, f->get_protocol(), f->getStatsProtocol(), f->getCustomApp(),
+	srv_host->incStats(tv->tv_sec, f->get_protocol(),
+			   f->getStatsProtocol(), f->get_protocol_category(),
+			   f->getCustomApp(),
 			   partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
 			   partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
 			   srv_ip->isNonEmptyUnicastAddress());
@@ -309,7 +313,8 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 
       iface->incStats(true /* ingressPacket */,
 		      tv->tv_sec, cli_ip && cli_ip->isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-		      f->getStatsProtocol(), f->get_protocol(),
+		      f->getStatsProtocol(), f->get_protocol_category(),
+		      f->get_protocol(),
 		      partials.srv2cli_bytes + partials.cli2srv_bytes,
 		      partials.srv2cli_packets + partials.cli2srv_packets,
 		      24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);

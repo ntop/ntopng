@@ -44,11 +44,12 @@ class LocalHostStats: public HostStats {
   inline HTTPstats* getHTTPStats() const  { return(http); }
   inline ICMPstats* getICMPStats() const  { return(icmp); }
 
-  virtual void incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
-		custom_app_t custom_app,
-		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
-		bool peer_is_unicast);
+  virtual void incStats(time_t when, u_int8_t l4_proto,
+			u_int ndpi_proto, ndpi_protocol_category_t ndpi_category,
+			custom_app_t custom_app,
+			u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+			u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
+			bool peer_is_unicast);
   virtual void updateStats(struct timeval *tv);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);
