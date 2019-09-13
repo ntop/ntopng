@@ -763,7 +763,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if (isAdministrator() and ifstats.isDynamic == false) then
+   if isAdministrator() then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
