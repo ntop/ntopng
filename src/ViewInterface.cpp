@@ -181,6 +181,13 @@ u_int32_t ViewInterface::getCheckPointNumPacketDrops() {
 
 /* **************************************************** */
 
+void ViewInterface::checkPointCounters(bool drops_only) {
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    viewed_interfaces[s]->checkPointCounters(drops_only);
+};
+
+/* **************************************************** */
+
 bool ViewInterface::hasSeenVlanTaggedPackets() const {
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
     if(viewed_interfaces[s]->hasSeenVlanTaggedPackets())

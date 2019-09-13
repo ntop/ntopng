@@ -57,6 +57,7 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
+  virtual void checkPointCounters(bool drops_only);
 
   virtual bool hasSeenVlanTaggedPackets() const;
 
