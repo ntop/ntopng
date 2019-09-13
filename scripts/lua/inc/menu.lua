@@ -280,7 +280,7 @@ print("</ul> </li>")
 end -- closes not ifs.isViewed
 
 -- Exporters
-info = ntop.getInfo()
+local info = ntop.getInfo()
 
 if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
   if active_page == "exporters" then
@@ -295,13 +295,24 @@ if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
       <ul class="dropdown-menu">
 ]]
 
-  if ifs.has_seen_ebpf_events then
+   local has_ebpf_events, has_sflow_devs = false, false
+   if ifs.has_seen_ebpf_events then
+      has_ebpf_events = true
       print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
-   else
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+   elseif table.len(interface.getSFlowDevices() or {}) > 0 then
+      has_sflow_devs = true
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
+
    end
 
-   print [[
+   if has_ebpf_events or has_sflow_devs then
+      print('<li class="divider"></li>')
+      print('<li class="dropdown-header">') print(i18n("flows")) print('</li>')
+   end
+
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+
+  print [[
 
       </ul>
     </li>]]
