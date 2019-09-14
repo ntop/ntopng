@@ -30,84 +30,111 @@ if(query == nil) then query = "" end
 interface.select(ifname)
 
 if not hosts_only then
--- Look by network
-local network_stats = interface.getNetworksStats()
-cur_results = 0
-
-for network, stats in pairs(network_stats) do
-   if((cur_results >= max_group_items) or (#results >= max_total_items)) then
-      break
-   end
-
-   local name = getFullLocalNetworkName(network)
-
-   if string.contains(string.lower(name), string.lower(query)) then
-      local network_id = stats.network_id
-
-      results[#results + 1] = {
-	 name = name,
-	 type="network", network = network_id,
-      }
-      cur_results = cur_results + 1
-   end
-end
-
--- Look by AS
-local as_info = interface.getASesInfo() or {}
-cur_results = 0
-
-for _, as in pairs(as_info.ASes or {}) do
-   if((cur_results >= max_group_items) or (#results >= max_total_items)) then
-      break
-   end
-
-   local asn = "AS" .. as.asn
-   local as_name = as.asname
-
-   if string.contains(string.lower(as_name), string.lower(query)) then
-      results[#results + 1] = {
-	 name = string.format("%s [%s]", as_name, asn),
-	 type="asn", asn = as.asn,
-      }
-   elseif string.contains(string.lower(asn), string.lower(query)) then
-      results[#results + 1] = {
-	 name = asn,
-	 type="asn", asn = as.asn,
-      }
-   end
-   cur_results = cur_results + 1
-end
-
--- Check also in the mac addresses of snmp devices
--- The query can be partial so we can't use functions to
--- test if it'a an IPv4, an IPv6, or a mac as they would yield
--- wrong results. We can just check for a dot in the string as if
--- there's a dot then we're sure it can't be a mac
-if ntop.isEnterprise() and not query:find("%.") then
-   local mac = string.upper(query)
-   local devices = get_snmp_devices()
-   local matches = find_mac_snmp_ports(mac, true)
+   -- Look by network
+   local network_stats = interface.getNetworksStats()
    cur_results = 0
 
-   for _, snmp_port in ipairs(matches) do
+   for network, stats in pairs(network_stats) do
       if((cur_results >= max_group_items) or (#results >= max_total_items)) then
-	 break
+         break
       end
 
-      local snmp_device_ip = snmp_port["snmp_device_ip"]
-      local matching_mac = snmp_port["mac"]
-      local snmp_port_idx = snmp_port["id"]
-      local snmp_port_name = snmp_port["name"]
+      local name = getFullLocalNetworkName(network)
 
-      local title = get_localized_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = snmp_port_name})
+      if string.contains(string.lower(name), string.lower(query)) then
+         local network_id = stats.network_id
 
-      results[#results + 1] = {
-	 name = matching_mac .. ' '..title, type = "snmp",
-	 ip = snmp_device_ip, snmp_port_idx = snmp_port_idx}
+         results[#results + 1] = {
+	    name = name,
+            type="network", network = network_id,
+         }
+         cur_results = cur_results + 1
+      end
+   end
+
+   -- Look by AS
+   local as_info = interface.getASesInfo() or {}
+   cur_results = 0
+
+   for _, as in pairs(as_info.ASes or {}) do
+      if((cur_results >= max_group_items) or (#results >= max_total_items)) then
+         break
+      end
+
+      local asn = "AS" .. as.asn
+      local as_name = as.asname
+
+      if string.contains(string.lower(as_name), string.lower(query)) then
+         results[#results + 1] = {
+	    name = string.format("%s [%s]", as_name, asn),
+            type="asn", asn = as.asn,
+         }
+      elseif string.contains(string.lower(asn), string.lower(query)) then
+         results[#results + 1] = {
+            name = asn,
+	    type="asn", asn = as.asn,
+         }
+      end
       cur_results = cur_results + 1
    end
-end
-end -- hosts only
+
+   -- Check also in the mac addresses of snmp devices
+   -- The query can be partial so we can't use functions to
+   -- test if it'a an IPv4, an IPv6, or a mac as they would yield
+   -- wrong results. We can just check for a dot in the string as if
+   -- there's a dot then we're sure it can't be a mac
+   if ntop.isEnterprise() and not query:find("%.") then
+      local mac = string.upper(query)
+      local devices = get_snmp_devices()
+      local matches = find_mac_snmp_ports(mac, true)
+      cur_results = 0
+
+      for _, snmp_port in ipairs(matches) do
+         if((cur_results >= max_group_items) or (#results >= max_total_items)) then
+	    break
+         end
+
+         local snmp_device_ip = snmp_port["snmp_device_ip"]
+         local matching_mac = snmp_port["mac"]
+         local snmp_port_idx = snmp_port["id"]
+         local snmp_port_name = snmp_port["name"]
+
+         local title = get_localized_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = snmp_port_name})
+
+         results[#results + 1] = {
+	    name = matching_mac .. ' '..title, type = "snmp",
+	    ip = snmp_device_ip, snmp_port_idx = snmp_port_idx}
+         cur_results = cur_results + 1
+      end
+   end
+
+   -- Look by SNMP device
+   if ntop.isEnterprise() then
+      local name = string.upper(query)
+      local devices = get_snmp_devices()
+      local matches = find_snmp_devices(name, true)
+      cur_results = 0
+
+      for _, snmp_device in ipairs(matches) do
+         if cur_results >= max_group_items or #results >= max_total_items then
+	    break
+         end
+
+         -- snmp_device["ip"]
+         -- snmp_device["name"]
+         -- snmp_device["community"]
+
+         local title = get_snmp_device_label(snmp_device["ip"])
+         results[#results + 1] = {
+	    name = title.." ["..i18n("snmp.snmp_device").."]", 
+            type = "snmp_device",
+	    ip = snmp_device["ip"]
+         }
+         cur_results = cur_results + 1
+      end
+   end
+
+end -- not hosts only
 
 -- Hosts
 local res = interface.findHost(query)
