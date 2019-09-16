@@ -139,9 +139,13 @@ bool ICMPinfo::equal(const ICMPinfo * const _icmp_info) const {
 /* *************************************** */
 
 void ICMPinfo::lua(lua_State* vm, AddressTree * ptree, NetworkInterface *iface, u_int16_t vlan_id) const {
+  char buf[64];
+
   if(vm && unreach) {
     lua_newtable(vm);
 
+    lua_push_str_table_entry(vm, "src_ip", unreach->src_ip.print(buf, sizeof(buf)));
+    lua_push_str_table_entry(vm, "dst_ip", unreach->dst_ip.print(buf, sizeof(buf)));
     lua_push_uint64_table_entry(vm, "src_port", ntohs(unreach->src_port));
     lua_push_uint64_table_entry(vm, "dst_port", ntohs(unreach->dst_port));
     lua_push_uint64_table_entry(vm, "protocol", unreach->protocol);

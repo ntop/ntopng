@@ -635,11 +635,20 @@ local function getFlowStatusInfo(record, status_info)
    local res = ""
 
    local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+
    if l7proto_name == "ICMP" then -- is ICMPv4
+      -- TODO: old format - remove when the all the flow alers will be generated in lua
       local type_code = {type = status_info["icmp.icmp_type"], code = status_info["icmp.icmp_code"]}
 
-      if status_info["icmp.unreach.src_ip"] then
+      if table.empty(type_code) and status_info["icmp"] then
+	 -- This is the new format created when setting the alert from lua
+	 type_code = {type = status_info["icmp"]["type"], code = status_info["icmp"]["code"]}
+      end
+
+      if status_info["icmp.unreach.src_ip"] then -- TODO: old format to be removed
 	 res = string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp.unreach.dst_ip"], unreach_port=status_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp.unreach.protocol"])}))
+      elseif status_info["icmp"] and status_info["icmp"]["unreach"] then -- New format
+	 res = string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp"]["unreach"]["dst_ip"], unreach_port=status_info["icmp"]["unreach"]["dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp"]["unreach"]["protocol"])}))
       else
 	 res = string.format("[%s]", getICMPTypeCode(type_code))
       end
@@ -663,6 +672,12 @@ local function formatRawFlow(record, flow_json, skip_add_links)
    end
 
    local decoded = json.decode(flow_json)
+
+   if type(decoded["status_info"]) == "string" then
+      -- This is for backward compatibility
+      decoded["status_info"] = json.decode(decoded["status_info"])
+   end
+
    local status_info = alert2statusinfo(decoded)
 
    -- active flow lookup

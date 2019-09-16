@@ -64,6 +64,7 @@ class AlertsManager : protected StoreManager {
     ========== FLOW alerts API =========
    */
   int storeFlowAlert(Flow *f);
+  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *status_info);
 
   /*
     ========== raw API ======

@@ -279,6 +279,17 @@ Flow::~Flow() {
 
 /* *************************************** */
 
+int Flow::storeFlowAlert(AlertType alert_type, AlertLevel alert_severity, const char *status_info) {
+  AlertsManager *am = iface->getAlertsManager();
+
+  if(am)
+    return am->storeFlowAlert(this, alert_type, alert_severity, status_info);
+
+  return -1;
+}
+
+/* *************************************** */
+
 bool Flow::triggerAlerts() const {
   /* If a flow involves at least a local endpoint,
      then that endpoint may have disabled alerts.
@@ -2171,6 +2182,7 @@ char* Flow::serialize(bool es_json) {
 /* *************************************** */
 
 /* Returns a stripped-down JSON specifically used for providing more alert information */
+/* TODO: this method will be thrown away once the migration to the lua flows alerts generation is completed */
 json_object* Flow::flow2statusinfojson() {
   FlowStatusMap status_map;
   DeviceProtoStatus proto_status = device_proto_allowed;
@@ -2231,7 +2243,7 @@ json_object* Flow::flow2statusinfojson() {
       json_object_object_add(obj, "ja3_signature", json_object_new_string(protos.ssl.ja3.client_hash));
   }
 
-  if(isICMP()) {
+  if(isICMP()) { /* TODO: throw this block away once the lua alerts migration is completed */ 
     json_object_object_add(obj, "icmp.icmp_type", json_object_new_int(protos.icmp.icmp_type)),
       json_object_object_add(obj, "icmp.icmp_code", json_object_new_int(protos.icmp.icmp_code));
 

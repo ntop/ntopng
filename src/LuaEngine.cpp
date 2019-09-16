@@ -8512,6 +8512,37 @@ static int ntop_flow_get_server_mud_pref(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_store_alert(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f;
+  AlertLevel alert_severity;
+  AlertType alert_type;
+  const char *status_info = NULL;
+  int idx = 1;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(c->flow == NULL) return(CONST_LUA_ERROR);
+
+  if(!(f = c->flow))
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_type = (AlertType)lua_tonumber(vm, idx++);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_severity = (AlertLevel)lua_tonumber(vm, idx++);
+
+  if(lua_type(vm, idx) == LUA_TSTRING)
+    status_info = lua_tostring(vm, idx);
+
+  if(!f->storeFlowAlert(alert_type, alert_severity, status_info))
+    return(CONST_LUA_OK);
+
+  return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_release_engaged_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
 
@@ -9807,6 +9838,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getServerMUDPref",         ntop_flow_get_server_mud_pref        },
   { "serializeClientByMac",     ntop_flow_serialize_client_by_mac    },
   { "serializeServerByMac",     ntop_flow_serialize_server_by_mac    },
+  { "storeAlert",               ntop_flow_store_alert                },
 
   { NULL,                     NULL }
 };

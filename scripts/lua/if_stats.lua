@@ -27,6 +27,7 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 local ts_utils = require "ts_utils"
+local flow_callbacks_utils = require "flow_callbacks_utils"
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
@@ -334,6 +335,13 @@ if(isAdministrator()) then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    elseif not is_pcap_dump then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
+   end
+   if false then -- TODO: activate when migration done
+      if(page == "flow_callbacks") then
+	 print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
+      else
+	 print("\n<li><a href=\""..url.."&page=flow_callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+      end
    end
 end
 
@@ -1652,6 +1660,13 @@ elseif(page == "config") then
    <script>
       aysHandleForm("#iface_config");
    </script>]]
+
+elseif(page == "flow_callbacks") then
+   if(not isAdministrator()) then
+      return
+   end
+
+   flow_callbacks_utils.print_callbacks_config()
 
 elseif(page == "snmp_bind") then
    if ((not hasSnmpDevices(ifstats.id)) or (not is_packet_interface)) then

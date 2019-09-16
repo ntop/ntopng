@@ -462,6 +462,7 @@ class Flow : public GenericHashEntry {
   inline void setIDSAlert(json_object *a, u_int8_t severity) { if (ids_alert) json_object_put(ids_alert); ids_alert = a; ids_alert_severity = severity; };
   inline json_object *getIDSAlert() { return ids_alert; };
   inline u_int8_t getIDSAlertSeverity() { return ids_alert_severity; };
+  int storeFlowAlert(AlertType alert_type, AlertLevel alert_severity, const char *status_info);
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }

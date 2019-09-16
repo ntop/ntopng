@@ -240,6 +240,14 @@ end
 
 -- ##############################################
 
+function alerts_api.storeFlowAlert(alert_type, alert_severity, flow_info)
+   if flow then
+      -- flow.storeAlert(alert_type.alert_id, alert_severity.severity_id, json.encode(flow_info))
+   end
+end
+
+-- ##############################################
+
 --! @brief Trigger an alert of given type on the entity
 --! @param entity_info data returned by one of the entity_info building functions
 --! @param type_info data returned by one of the type_info building functions
@@ -1146,6 +1154,13 @@ function alerts_api.threshold_cross_input_builder(gui_conf, input_id, value)
     gui_conf.field_min or "0", gui_conf.field_max or "", gui_conf.field_step or "1",
     input_val, value.edge, i18n(gui_conf.i18n_field_unit))
   )
+end
+
+
+-- ##############################################
+
+function alerts_api.no_input_input_builder(gui_conf, input_id, value)
+   return string.format("<i>%s.</i>", i18n("flow_callbacks_config.no_input"))
 end
 
 -- ##############################################

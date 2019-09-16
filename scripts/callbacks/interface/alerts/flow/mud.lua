@@ -3,21 +3,33 @@
 --
 
 local mud_utils = require "mud_utils"
-
-local flow_module = {}
+local alerts_api = require "alerts_api"
 
 -- #################################################################
 
-function flow_module.setup()
+local check_module = {
+   key = "mud",
+
+   gui = {
+      i18n_title = "flow_callbacks_config.mud",
+      i18n_description = "flow_callbacks_config.mud_description",
+      input_builder = alerts_api.no_input_input_builder,
+   }
+}
+
+
+-- #################################################################
+
+function check_module.setup()
   return(mud_utils.isMUDRecordingEnabled(interface.getId()))
 end
 
 -- #################################################################
 
-function flow_module.protocolDetected(info)
+function check_module.protocolDetected(info)
   mud_utils.handleFlow(info)
 end
 
 -- #################################################################
 
-return(flow_module)
+return check_module

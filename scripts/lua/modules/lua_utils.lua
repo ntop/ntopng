@@ -2559,11 +2559,11 @@ function formatBlacklistedFlow(status, flowstatus_info, alert)
       return i18n("flow_details.blacklisted_flow")
    end
 
-   if flowstatus_info["blacklisted.cli"] then
+   if flowstatus_info["blacklisted.cli"] --[[ old format --]] or flowstatus_info["cli.blacklisted"] --[[ new format --]] then
       who[#who + 1] = i18n("client")
    end
 
-   if flowstatus_info["blacklisted.srv"] then
+   if flowstatus_info["blacklisted.srv"] --[[ old format --]] or flowstatus_info["srv.blacklisted"] --[[ new format --]] then
       who[#who + 1] = i18n("server")
    end
 
@@ -2788,7 +2788,11 @@ function getICMPV6TypeCode(icmp)
     end
   end
 
- return(t.."/"..c)
+  if t and c then
+     return (t or '').."/"..(c or '')
+  else
+     return ''
+  end
 end
 
 -- #############################################
