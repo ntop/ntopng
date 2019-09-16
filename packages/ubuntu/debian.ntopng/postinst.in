@@ -43,6 +43,9 @@ if [ ! -d "$DATA_DIR" ]; then
     /bin/chmod 700 $DATA_DIR
 fi
 
+LOGROTATE_CONF=/etc/logrotate.d/ntopng
+/bin/chmod 644 $LOGROTATE_CONF
+
 echo "Rebuilding ld cache..."
 /sbin/ldconfig
 
