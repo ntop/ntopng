@@ -322,12 +322,13 @@ local function outsideDhcpRangeFormatter(ifid, alert, info)
     client_mac = get_symbolic_mac(info.client_mac, true),
     client_ip = hostkey,
     client_ip_url = getHostUrl(hostinfo["host"], hostinfo["vlan"]),
-    dhcp_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid="..ifid.."page=dhcp",
+    dhcp_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid="..ifid.."&page=dhcp",
     sender_url = getMacUrl(info.sender_mac),
     sender_mac = get_symbolic_mac(info.sender_mac, true),
+  }) .. " " .. ternary(router_info["host"] == "0.0.0.0", "", i18n("alert_messages.ip_outside_dhcp_range_router_ip", {
     router_url = getHostUrl(router_info["host"], router_info["vlan"]),
     router_ip = info.router_host,
-  }))
+  })))
 end
 
 -- ##############################################
