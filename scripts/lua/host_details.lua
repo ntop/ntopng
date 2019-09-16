@@ -404,11 +404,13 @@ if(not(isLoopback(ifname))) then
       end
    end
 
-   if(page == "geomap") then
-      print("<li class=\"active\"><a href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
-   else
-      if(host["ip"] ~= nil) then
-	 print("<li><a href=\""..url.."&page=geomap\"><i class='fa fa-globe fa-lg'></i></a></li>")
+   if not host.privatehost then
+      if(page == "geomap") then
+	 print("<li class=\"active\"><a href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
+      else
+	 if(host["ip"] ~= nil) then
+	    print("<li><a href=\""..url.."&page=geomap\"><i class='fa fa-globe fa-lg'></i></a></li>")
+	 end
       end
    end
 end
@@ -1805,7 +1807,7 @@ elseif(page == "dropbox") then
    end
 
    print("</ul>")
-elseif(page == "geomap") then
+elseif not host.privatehost and page == "geomap" then
 print("<center>")
 
 
