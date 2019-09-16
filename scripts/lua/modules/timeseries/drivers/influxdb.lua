@@ -326,7 +326,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
       goto continue
     end
 
-    if(cur_t >= last_ts) then
+    if(cur_t > last_ts) then
       -- skip values exceeding the last point
       break
     end
@@ -366,7 +366,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
 
    -- Fill the missing points at the end
   while((tend - next_t) >= 0) do
-    if(next_t >= last_ts) then
+    if(next_t > last_ts) then
       -- skip values exceeding the last point
       break
     end
@@ -545,7 +545,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local series, count
 
   -- Perform an additional query to determine the last point in the raw data
-  local last_ts_query = string.format('SELECT LAST('.. schema._metrics[1] ..') FROM %s', query_schema)
+  local last_ts_query = string.format('SELECT LAST('.. schema._metrics[1] ..') FROM %s WHERE 1=1 AND %s', query_schema, table.tconcat(tags, "=", " AND ", nil, "'"))
   local jres = influx_query_multi(url .. "/query?db=".. getDatabaseName(schema, self.db) .."&epoch=s", string.format("%s;%s", query, last_ts_query), self.username, self.password, options)
   local last_ts = os.time()
 
