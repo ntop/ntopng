@@ -47,7 +47,6 @@ if _GET["tskey"] then
 end
 
 local driver = ts_utils.getQueryDriver()
-local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
 
 local options = {
   max_num_points = tonumber(_GET["limit"]) or 60,
@@ -56,7 +55,13 @@ local options = {
   target_aggregation = ts_aggregation,
 }
 
+
+-- Not necessary anymore as the influxdb driver:query method uses the
+-- series last timestamp to avoid going in the future
+--[[
 -- Check end time bound and realign if necessary
+local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
+
 if (tend > latest_tstamp) and ((tend - latest_tstamp) <= ts_utils.MAX_EXPORT_TIME) then
   local delta = tend - latest_tstamp
   local alignment = (tend - tstart) / options.max_num_points
@@ -65,6 +70,7 @@ if (tend > latest_tstamp) and ((tend - latest_tstamp) <= ts_utils.MAX_EXPORT_TIM
   tend = math.floor(tend - delta)
   tstart = math.floor(tstart - delta)
 end
+]]
 
 if tags.ifid then
   interface.select(tags.ifid)
