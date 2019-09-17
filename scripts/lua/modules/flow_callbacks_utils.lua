@@ -103,7 +103,11 @@ function flow_callbacks_utils.print_callbacks_config()
    end
    
    print[[</tbody></table>]]
-   print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" type="submit">]] print(i18n("save_configuration")) print[[</button>]]
+
+   if has_modules then
+      print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" type="submit">]] print(i18n("save_configuration")) print[[</button>]]
+   end
+
    print[[</form>]]
 
    print[[
