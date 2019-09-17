@@ -109,12 +109,6 @@ local BUILTIN_LISTS = {
     category = CUSTOM_CATEGORY_MALWARE,
     enabled = true,
     update_interval = DEFAULT_UPDATE_INTERVAL,
-  }, ["Nooder Networks Honeypot"] = {
-    url = "http://45.138.200.2:9085/?key=ntopng@blacklist",
-    format = "ip",
-    category = CUSTOM_CATEGORY_MALWARE,
-    enabled = false,
-    update_interval = DEFAULT_UPDATE_INTERVAL,
   }
 }
 
