@@ -1029,7 +1029,7 @@ end
 --    if the flow status changes.
 --
 function alerts_api.load_flow_check_modules(enabled_only)
-   local available_modules = {protocolDetected = {}, statusChanged = {}, idle = {}, periodicUpdate = {}}
+   local available_modules = {protocolDetected = {}, statusChanged = {}, idle = {}, periodicUpdate = {}, all = {}}
    local check_dirs = {
       os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/flow"),
    }
@@ -1058,6 +1058,7 @@ function alerts_api.load_flow_check_modules(enabled_only)
 		     if check_module.statusChanged    then available_modules["statusChanged"][modname] = check_module end
 		     if check_module.idle             then available_modules["idle"][modname] = check_module end
 		     if check_module.periodicUpdate   then available_modules["periodicUpdate"][modname] = check_module end
+		     available_modules["all"][modname] = check_module
 		  end
 	       end
 	    end
@@ -1218,14 +1219,6 @@ function alerts_api.threshold_cross_input_builder(gui_conf, input_id, value)
   )
 end
 
-
--- ##############################################
-
-function alerts_api.no_input_input_builder(gui_conf, input_id, value)
-   return string.format("<i>%s.</i>", i18n("flow_callbacks_config.no_input"))
-end
-
-
 -- ##############################################
 
 function alerts_api.checkbox_input_builder(gui_conf, input_id, value)
@@ -1237,10 +1230,13 @@ end
 
 -- ##############################################
 
-function alerts_api.enable_check_input_builder(check_module)
-   local hidden_k = string.format('<input type="hidden" name="check_module_key" value="%s">', check_module.key)
-   local checkbox = alerts_api.checkbox_input_builder(nil, "check_module_enabled", check_module["conf"]["enabled"])
-   return hidden_k..checkbox
+function alerts_api.flow_checkbox_input_builder(check_module)
+   local input_id = string.format("enabled_%s", check_module.key)
+
+   return(string.format([[
+  <input type="hidden", value="off", name="%s"/>
+  <input type="checkbox" name="%s" %s/>
+  ]], input_id, input_id, ternary(check_module.conf.enabled, "checked", "")))
 end
 
 -- ##############################################
