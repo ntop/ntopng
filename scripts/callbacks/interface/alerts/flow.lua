@@ -33,15 +33,14 @@ end
 
 local function call_modules(mod_fn)
    if table.empty(check_modules[mod_fn]) then
-      if do_trace then print(string.format("No flow.lua modules, skipping %s()\n", mod_fn)) end
+      if do_trace then print(string.format("No flow.lua modules, skipping %s() for %s\n", mod_fn, shortFlowLabel(flow.getInfo()))) end
       return
    end
 
    local info = flow.getInfo()
 
-   if do_trace then print(string.format("%s(): %s\n", mod_fn, shortFlowLabel(info))) end
-
    for _, _module in pairs(check_modules[mod_fn]) do
+      if do_trace then print(string.format("%s() [check: %s]: %s\n", mod_fn, _module.key, shortFlowLabel(info))) end
       _module[mod_fn](info)
    end
 

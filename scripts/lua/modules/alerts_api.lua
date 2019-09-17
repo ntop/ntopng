@@ -1048,13 +1048,17 @@ function alerts_api.load_flow_check_modules(enabled_only)
 	    load_flow_check_module_conf(check_module)
 
 	    if check_module.setup then
-	       local is_enabled = check_module["conf"]["enabled"] and check_module.setup()
+	       local is_enabled = check_module["conf"]["enabled"]
 
-	       if not enabled_only or is_enabled then
-		  if check_module.protocolDetected then available_modules["protocolDetected"][modname] = check_module end
-		  if check_module.statusChanged    then available_modules["statusChanged"][modname] = check_module end
-		  if check_module.idle             then available_modules["idle"][modname] = check_module end
-		  if check_module.periodicUpdate   then available_modules["periodicUpdate"][modname] = check_module end
+	       if is_enabled or not enabled_only then
+		  local setup_ok = check_module.setup()
+
+		  if setup_ok then
+		     if check_module.protocolDetected then available_modules["protocolDetected"][modname] = check_module end
+		     if check_module.statusChanged    then available_modules["statusChanged"][modname] = check_module end
+		     if check_module.idle             then available_modules["idle"][modname] = check_module end
+		     if check_module.periodicUpdate   then available_modules["periodicUpdate"][modname] = check_module end
+		  end
 	       end
 	    end
 	 end
