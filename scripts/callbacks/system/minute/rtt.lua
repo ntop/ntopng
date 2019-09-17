@@ -92,14 +92,18 @@ function probe.runTask(when, ts_utils)
        ip_address = ntop.resolveHostV4(host_label)
 
        if(ip_address == nil) then
-	  print("[RTT] Could not resolve IPv4 host: ".. host_label .."\n")
+          if(debug) then
+             print("[RTT] Could not resolve IPv4 host: ".. host_label .."\n")
+          end
 	  goto continue
        end
      elseif(not isIPv6(host_label) and is_v6) then
 	ip_address = ntop.resolveHostV6(host_label)
 
 	if(ip_address == nil) then
-	  print("[RTT] Could not resolve IPv6 host: ".. host_label .."\n")
+          if(debug) then
+             print("[RTT] Could not resolve IPv6 host: ".. host_label .."\n")
+          end
 	  goto continue
 	end
      end

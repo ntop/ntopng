@@ -49,12 +49,10 @@ if host ~= nil then
 end
 print("</a></li>\n")
 
-if isEmptyString(host) then
-  if((page == "overview") or (page == nil)) then
-     print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
-  else
-     print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
-  end
+if((page == "overview") or (page == nil)) then
+   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
+else
+   print("<li><a href=\"".. ntop.getHttpPrefix() .."/lua/system/rtt_stats.lua\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
 if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host=host})) then
