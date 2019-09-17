@@ -337,9 +337,9 @@ if(isAdministrator()) then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
    if(page == "flow_callbacks") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers\"></i></a></li>\n")
    else
-      print("\n<li><a href=\""..url.."&page=flow_callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+      print("\n<li><a href=\""..url.."&page=flow_callbacks\"><i class=\"fa fa-superpowers\"></i></a></li>")
    end
 end
 
