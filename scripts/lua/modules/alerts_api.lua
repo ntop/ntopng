@@ -967,6 +967,54 @@ end
 
 -- ##############################################
 
+local function get_flow_check_module_enabled_key(check_module_key)
+   return string.format("ntopng.prefs.flow_check_modules.ifid_%d.%s", interface.getId(), check_module_key)
+end
+
+-- ##############################################
+
+local function refresh_flow_check_module_conf(flow_check_module)
+   if table.len(_POST) > 0 then
+      local conf_hash = get_flow_check_module_enabled_key(flow_check_module.key)
+
+      for k, v in pairs(_POST) do
+	 if k:ends(flow_check_module.key) then
+	    if k == "enabled_"..flow_check_module.key then
+	       if v == "off" then
+		  ntop.setHashCache(conf_hash, "enabled", "false")
+	       elseif v == "on" then
+		  ntop.delHashCache(conf_hash, "enabled")
+	       end
+	    end
+	 end
+      end
+   end
+end
+
+-- ##############################################
+
+local function load_flow_check_module_conf(flow_check_module)
+   if not flow_check_module["conf"] then
+      flow_check_module["conf"] = {}
+   end
+
+   -- if there's a _POST we try and refresh the module conf with possibly new
+   -- submitted values
+   refresh_flow_check_module_conf(flow_check_module)
+
+   local k = get_flow_check_module_enabled_key(flow_check_module.key)
+
+   local enabled = ntop.getHashCache(k, "enabled")
+
+   if enabled ~= "false" then
+      flow_check_module["conf"]["enabled"] = true
+   else
+      flow_check_module["conf"]["enabled"] = false
+   end
+end
+
+-- ##############################################
+
 --
 -- Flow check modules are lua scripts located into the following locations:
 --  - scripts/callbacks/interface/alerts/flow for community scripts
@@ -980,30 +1028,40 @@ end
 --  - statusChanged(info) (optional): a function which will be called *after* the protocolDetected()
 --    if the flow status changes.
 --
-function alerts_api.load_flow_check_modules()
-  local available_modules = {}
-  local check_dirs = {
-    os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/flow"),
-  }
+function alerts_api.load_flow_check_modules(enabled_only)
+   local available_modules = {protocolDetected = {}, statusChanged = {}, idle = {}, periodicUpdate = {}}
+   local check_dirs = {
+      os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/flow"),
+   }
 
-  if ntop.isPro() then
-    check_dirs[#check_dirs + 1] = os_utils.fixPath(dirs.installdir .. "/pro/scripts/callbacks/interface/alerts/flow")
-  end
+   if ntop.isPro() then
+      check_dirs[#check_dirs + 1] = os_utils.fixPath(dirs.installdir .. "/pro/scripts/callbacks/interface/alerts/flow")
+   end
 
-  for _, checks_dir in pairs(check_dirs) do
-    package.path = checks_dir .. "/?.lua;" .. package.path
+   for _, checks_dir in pairs(check_dirs) do
+      package.path = checks_dir .. "/?.lua;" .. package.path
 
-    for fname in pairs(ntop.readdir(checks_dir)) do
-      if ends(fname, ".lua") then
-        local modname = string.sub(fname, 1, string.len(fname) - 4)
-        local check_module = require(modname)
+      for fname in pairs(ntop.readdir(checks_dir)) do
+	 if ends(fname, ".lua") then
+	    local modname = string.sub(fname, 1, string.len(fname) - 4)
+	    local check_module = require(modname)
+	    load_flow_check_module_conf(check_module)
 
-        available_modules[modname] = check_module
+	    if check_module.setup then
+	       local is_enabled = check_module["conf"]["enabled"] and check_module.setup()
+
+	       if not enabled_only or is_enabled then
+		  if check_module.protocolDetected then available_modules["protocolDetected"][modname] = check_module end
+		  if check_module.statusChanged    then available_modules["statusChanged"][modname] = check_module end
+		  if check_module.idle             then available_modules["idle"][modname] = check_module end
+		  if check_module.periodicUpdate   then available_modules["periodicUpdate"][modname] = check_module end
+	       end
+	    end
+	 end
       end
-    end
-  end
+   end
 
-  return available_modules
+   return available_modules
 end
 
 -- ##############################################
@@ -1163,12 +1221,22 @@ function alerts_api.no_input_input_builder(gui_conf, input_id, value)
    return string.format("<i>%s.</i>", i18n("flow_callbacks_config.no_input"))
 end
 
+
 -- ##############################################
 
 function alerts_api.checkbox_input_builder(gui_conf, input_id, value)
   return(string.format([[
+  <input type="hidden", value="off", name="%s"/>
   <input type="checkbox" name="%s" %s/>
-  ]], input_id, ternary(value, "checked", "")))
+  ]], input_id, input_id, ternary(value, "checked", "")))
+end
+
+-- ##############################################
+
+function alerts_api.enable_check_input_builder(check_module)
+   local hidden_k = string.format('<input type="hidden" name="check_module_key" value="%s">', check_module.key)
+   local checkbox = alerts_api.checkbox_input_builder(nil, "check_module_enabled", check_module["conf"]["enabled"])
+   return hidden_k..checkbox
 end
 
 -- ##############################################

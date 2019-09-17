@@ -336,12 +336,10 @@ if(isAdministrator()) then
    elseif not is_pcap_dump then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
-   if false then -- TODO: activate when migration done
-      if(page == "flow_callbacks") then
-	 print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
-      else
-	 print("\n<li><a href=\""..url.."&page=flow_callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
-      end
+   if(page == "flow_callbacks") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=flow_callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
    end
 end
 

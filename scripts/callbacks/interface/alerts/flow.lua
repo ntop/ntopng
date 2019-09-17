@@ -18,7 +18,7 @@ if ntop.isPro() then
 end
 
 local do_trace = false
-local check_modules = {protocolDetected = {}, statusChanged = {}, idle = {}, periodicUpdate = {}}
+local check_modules = {}
 
 -- #################################################################
 
@@ -26,22 +26,7 @@ local check_modules = {protocolDetected = {}, statusChanged = {}, idle = {}, per
 function setup()
   if do_trace then print("flow.lua:setup() called\n") end
 
-  local available_modules = alerts_api.load_flow_check_modules()
-
-  for modk, _module in pairs(available_modules) do
-    if _module.setup then
-      local is_enabled = _module.setup()
-
-      if is_enabled then
-	if _module.protocolDetected then check_modules["protocolDetected"][modk] = _module end
-	if _module.statusChanged    then check_modules["statusChanged"][modk] = _module end
-	if _module.idle             then check_modules["idle"][modk] = _module end
-	if _module.periodicUpdate   then check_modules["periodicUpdate"][modk] = _module end
-      end
-    else
-      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("%s module is missing the mandatory setup() function, it will be ignored", modk))
-    end
-  end
+  check_modules = alerts_api.load_flow_check_modules(true --[[ only enabled modules --]])
 end
 
 -- #################################################################

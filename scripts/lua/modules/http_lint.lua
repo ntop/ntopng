@@ -1537,6 +1537,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["op_"]                     = { validateAlertDescriptor,   validateOperator },    -- key: an alert descriptor, value: alert operator
    ["value_"]                  = { validateAlertDescriptor,   validateAlertValue },  -- key: an alert descriptor, value: alert value
    ["slack_ch_"]               = { validateNumber, validateSingleWord },             -- slack channel name
+   ["enabled_"]                  = { validateAlertDescriptor,   validateAlertValue },  -- key: a check module key, value: alert value
 
 -- Protocol to categories match
    ["proto_"]                  = { validateProtocolId, validateCategory },

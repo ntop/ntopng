@@ -1866,7 +1866,14 @@ local lang = {
      ["idle"] = "Idle",
      ["callback"] = "Flow Callback",
      ["callback_config"] = "Configuration",
+     ["callback_enabled"] = "Enabled",
      ["no_callbacks_defined"] = "No callbacks found for \"%{cb}\"",
+     ["notes"] = "NOTES",
+     ["note_flow_lifecycle"] = "Callbacks are executed at certain moments in the lifecycle of a flow.",
+     ["note_flow_application_detected"] = "\"Application Detected\" callbacks are executed right after the detection of the application. This occurs within the first 12 packets of a flow for packet interfaces or immediately after a flow has been received for ZMQ interfaces.",
+     ["note_flow_staus_changed"] = "\"Status Changed\" callbacks are executed every time there is a status change in the flow. For example when connection issues such as retransmissions are seen.",
+     ["note_flow_periodic_update"] = "\"Periodic Update\" callbacks are executed periodically after a flow has been active for more than five minutes.",
+     ["note_flow_idle"] = "\"Idle\" callbacks are executed when a flow has terminated its activity and it has gone idle.",
   },
   ["flow_callbacks_config"] = {
       ["score"] = "Flow Score",
@@ -1874,7 +1881,7 @@ local lang = {
       ["mud"] = "MUD",
       ["mud_description"] = "Handle host Manufacturer usage descriptions (MUD)",
       ["blacklisted"] = "Blacklisted Flow",
-      ["blacklisted_description"] = "Triggers an alert when at least one among the client and server is blacklisted",
+      ["blacklisted_description"] = "Trigger an alert when at least one among the client and server is blacklisted",
       ["no_input"] = "No configuration necessary",
   },
   ["if_stats_config"] = {
