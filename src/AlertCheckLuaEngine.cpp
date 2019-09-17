@@ -63,7 +63,18 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
       return;
   } else {
     /* Possibly handle a generic entity */
-    script_path[0] = '0';
+    script_path[0] = '\0';
+  }
+}
+
+/* ****************************************** */
+
+AlertCheckLuaEngine::~AlertCheckLuaEngine() {
+  if(script_path[0] != '\0') {
+    lua_getglobal(L, "teardown"); /* Called function */
+
+    if(lua_isfunction(L, -1))
+      pcall(0 /* 1 argument */, 0);
   }
 }
 

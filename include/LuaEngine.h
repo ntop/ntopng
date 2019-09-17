@@ -55,7 +55,7 @@ class LuaEngine {
    * @brief A Destructor.
    *
    */
-  ~LuaEngine();
+  virtual ~LuaEngine();
 
   /* Set Hosts and Networks into the Lua context */
   void setHost(Host* h);
