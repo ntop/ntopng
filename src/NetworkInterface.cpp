@@ -194,6 +194,10 @@ NetworkInterface::NetworkInterface(const char *name,
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
+
+  sub_interfaces = ntop->getPro()->has_valid_license() ? new SubInterfaces() : NULL;
+  if(sub_interfaces) sub_interfaces->loadSubInterfaces();
+  shadow_sub_interfaces = NULL;
 #endif
 
   /* Lazy, instantiated on demand */
@@ -314,8 +318,8 @@ void NetworkInterface::init() {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   flow_profiles = shadow_flow_profiles = NULL;
+  sub_interfaces = shadow_sub_interfaces = NULL;
 #endif
-
 #endif
 
   dhcp_ranges = dhcp_ranges_shadow = NULL;
@@ -643,6 +647,8 @@ NetworkInterface::~NetworkInterface() {
 #ifndef HAVE_NEDGE
   if(flow_profiles)         delete(flow_profiles);
   if(shadow_flow_profiles)  delete(shadow_flow_profiles);
+  if(sub_interfaces)        delete(sub_interfaces);
+  if(shadow_sub_interfaces) delete(shadow_sub_interfaces);
 #endif
   if(custom_app_stats)      delete custom_app_stats;
   if(flow_interfaces_stats) delete flow_interfaces_stats;
@@ -992,7 +998,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
 /* **************************************************** */
 
-NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool parser_interface) {
+NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool parser_interface) {
 #ifndef HAVE_NEDGE
   FlowHashing *h = NULL;
 
@@ -1075,7 +1081,7 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria, bool par
 
 /* **************************************************** */
 
-void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
+void NetworkInterface::processFlow(ParsedFlow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p = Flow::ndpiUnknownProtocol;
@@ -1083,83 +1089,39 @@ void NetworkInterface::processFlow(ParsedFlow *zflow, bool zmq_flow) {
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
 
-  if(zmq_flow) {
-    /* In ZMQ flows we need to fix the clock drift */
-
-    if(last_pkt_rcvd_remote > 0) {
-      int drift = now - last_pkt_rcvd_remote;
-
-      if(drift >= 0)
-	zflow->last_switched += drift, zflow->first_switched += drift;
-      else {
-	u_int32_t d = (u_int32_t)-drift;
-
-	if(d < zflow->last_switched)  zflow->last_switched  += drift;
-	if(d < zflow->first_switched) zflow->first_switched += drift;
-      }
-
-#ifdef DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				   zflow->first_switched,  zflow->last_switched,
-				   zflow->last_switched-zflow->first_switched, drift,
-				   now, last_pkt_rcvd_remote);
-#endif
-    } else {
-      /* Old nProbe */
-
-    if(!last_pkt_rcvd)
-      last_pkt_rcvd = now;
-
-    /* NOTE: do not set last_pkt_rcvd_remote here as doing so will trigger the
-     * drift calculation above on next flows, leading to incorrect timestamps.
-     */
-#if 0
-      if((time_t)zflow->last_switched > (time_t)last_pkt_rcvd_remote)
-	last_pkt_rcvd_remote = zflow->last_switched;
-
-#ifdef DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
-				   zflow->first_switched,  zflow->last_switched,
-				   zflow->last_switched- zflow->first_switched);
-#endif
-#endif
-    }
-  }
-
   if((!isDynamicInterface()) && (flowHashingMode != flowhashing_none)) {
     NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
     switch(flowHashingMode) {
     case flowhashing_probe_ip:
-      vIface = getSubInterface((u_int32_t)zflow->deviceIP, true);
+      vIface = getDynInterface((u_int32_t)zflow->deviceIP, true);
       break;
 
     case flowhashing_iface_idx:
       if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->outIndex) == flowHashingIgnoredInterfaces.end())
-	 vIfaceEgress = getSubInterface((u_int32_t)zflow->outIndex, true);
+	 vIfaceEgress = getDynInterface((u_int32_t)zflow->outIndex, true);
       /* No break HERE, want to get two interfaces, one for the ingress
          and one for the egress. */
 
     case flowhashing_ingress_iface_idx:
       if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->inIndex) == flowHashingIgnoredInterfaces.end())
-	vIface = getSubInterface((u_int32_t)zflow->inIndex, true);
+	vIface = getDynInterface((u_int32_t)zflow->inIndex, true);
       break;
 
     case flowhashing_vrfid:
-      vIface = getSubInterface((u_int32_t)zflow->vrfId, true);
+      vIface = getDynInterface((u_int32_t)zflow->vrfId, true);
       break;
 
     case flowhashing_vlan:
-      vIface = getSubInterface((u_int32_t)zflow->vlan_id, true);
+      vIface = getDynInterface((u_int32_t)zflow->vlan_id, true);
       break;
 
     default:
       break;
     }
 
-    if(vIface)       vIface->processFlow(zflow, zmq_flow);
-    if(vIfaceEgress) vIfaceEgress->processFlow(zflow, zmq_flow);
+    if(vIface)       vIface->processFlow(zflow);
+    if(vIfaceEgress) vIfaceEgress->processFlow(zflow);
 
     return;
   }
@@ -1466,7 +1428,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if((!isDynamicInterface()) && (flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
     NetworkInterface *vIface;
 
-    if((vIface = getSubInterface((u_int32_t)vlan_id, false)) != NULL) {
+    if((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
       bool ret;
 
       vIface->setTimeLastPktRcvd(h->ts.tv_sec);
@@ -3644,8 +3606,8 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineC
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-
 #ifndef HAVE_NEDGE
+
 static bool update_flow_profile(GenericHashEntry *h, void *user_data, bool *matched) {
   Flow *flow = (Flow*)h;
 
@@ -3680,8 +3642,27 @@ void NetworkInterface::updateFlowProfiles() {
       walker(&begin_slot, walk_all, walker_flows, update_flow_profile, NULL);
   }
 }
-#endif
 
+/* **************************************************** */
+
+void NetworkInterface::updateSubInterfaces() {
+  if(ntop->getPro()->has_valid_license()) {
+    SubInterfaces *new_si;
+
+    if(shadow_sub_interfaces) {
+      delete shadow_sub_interfaces;
+      shadow_sub_interfaces = NULL;
+    }
+
+    shadow_sub_interfaces = sub_interfaces;
+    new_si = new SubInterfaces();
+
+    new_si->loadSubInterfaces(); /* and reload */
+    sub_interfaces = new_si; /* Overwrite the current profiles */
+  }
+}
+
+#endif
 #endif
 
 /* **************************************************** */

@@ -217,6 +217,8 @@ using namespace std;
 #ifndef HAVE_NEDGE
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
+#include "SubInterface.h"
+#include "SubInterfaces.h"
 #endif
 #include "CounterTrend.h"
 #include "LRUMacIP.h"

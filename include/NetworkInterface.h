@@ -130,6 +130,7 @@ class NetworkInterface : public AlertableEntity {
   L7Policer *policer;
 #ifndef HAVE_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
+  SubInterfaces *sub_interfaces, *shadow_sub_interfaces;
 #endif
   CustomAppStats *custom_app_stats;
   FlowInterfacesStats *flow_interfaces_stats;
@@ -208,7 +209,7 @@ class NetworkInterface : public AlertableEntity {
 
   void init();
   void deleteDataStructures();
-  NetworkInterface* getSubInterface(u_int32_t criteria, bool parser_interface);
+  NetworkInterface* getDynInterface(u_int32_t criteria, bool parser_interface);
   Flow* getFlow(Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
 		u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
 		const ICMPinfo * const icmp_info,
@@ -322,6 +323,7 @@ class NetworkInterface : public AlertableEntity {
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
   virtual bool is_ndpi_enabled() const         { return(true);          }
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
+  inline time_t getTimeLastPktRcvdRemote()     { return(last_pkt_rcvd_remote); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd ? last_pkt_rcvd : last_pkt_rcvd_remote); };
   inline void  setTimeLastPktRcvd(time_t t)    { if(t > last_pkt_rcvd) last_pkt_rcvd = t; };
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(ndpi_struct, proto)); };
@@ -446,7 +448,7 @@ class NetworkInterface : public AlertableEntity {
 		     const u_char *packet,
 		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
-  void processFlow(ParsedFlow *zflow, bool zmq_flow);
+  void processFlow(ParsedFlow *zflow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   virtual u_int32_t periodicStatsUpdateFrequency();
@@ -620,10 +622,11 @@ class NetworkInterface : public AlertableEntity {
   void getsDPIStats(lua_State *vm);
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
-
 #ifndef HAVE_NEDGE
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
+
+  void updateSubInterfaces();
 #endif
 
   bool passShaperPacket(TrafficShaper *a_shaper, TrafficShaper *b_shaper, struct pcap_pkthdr *h);

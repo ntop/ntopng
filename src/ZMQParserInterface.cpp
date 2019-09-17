@@ -614,6 +614,199 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
 /* **************************************************** */
 
+bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const {
+  IpAddress ip_aux; /* used to check empty IPs */
+
+  switch(field) {
+  case IN_SRC_MAC:
+  case OUT_SRC_MAC:
+  {
+    u_int8_t mac[6];
+    Utils::parseMac(mac, value->string);
+    return (memcmp(flow->src_mac, mac, sizeof(mac)) == 0);
+  }
+
+  case IN_DST_MAC:
+  case OUT_DST_MAC:
+  {
+    u_int8_t mac[6];
+    Utils::parseMac(mac, value->string);
+    return (memcmp(flow->dst_mac, mac, sizeof(mac)) == 0);
+  }
+
+  case SRC_TOS:
+    if (value->string) return (flow->src_tos == atoi(value->string));
+    else return (flow->src_tos == value->uint_num);
+
+  case DST_TOS:
+    if (value->string) return (flow->dst_tos == atoi(value->string));
+    else return (flow->dst_tos == value->uint_num);
+
+  case IPV4_SRC_ADDR:
+  case IPV6_SRC_ADDR:
+  {
+    IpAddress ip;
+    if (value->string) ip.set((char *) value->string);
+    else ip.set(ntohl(value->uint_num));
+    return (flow->src_ip.compare(&ip) == 0);
+  }
+
+  case IP_PROTOCOL_VERSION:
+    if (value->string) return (flow->version == atoi(value->string));
+    else return (flow->version == value->uint_num);
+
+  case IPV4_DST_ADDR:
+  case IPV6_DST_ADDR:
+  {
+    IpAddress ip;
+    if (value->string) ip.set((char *) value->string);
+    else ip.set(ntohl(value->uint_num));
+    return (flow->dst_ip.compare(&ip) == 0);
+  }
+
+  case L4_SRC_PORT:
+    if (value->string) return (flow->src_port == htons((u_int32_t) atoi(value->string)));
+    else return (flow->src_port == htons((u_int32_t) value->uint_num));
+
+  case L4_DST_PORT:
+    if (value->string) return (flow->dst_port == htons((u_int32_t) atoi(value->string)));
+    else return (flow->dst_port == htons((u_int32_t) value->uint_num));
+
+  case SRC_VLAN:
+  case DST_VLAN:
+  case DOT1Q_SRC_VLAN:
+  case DOT1Q_DST_VLAN:
+    if (value->string) return (flow->vlan_id == atoi(value->string));
+    else return (flow->vlan_id == value->uint_num);
+
+  case PROTOCOL:
+    if (value->string) return (flow->l4_proto == atoi(value->string));
+    else return (flow->l4_proto == value->uint_num);
+
+  case DIRECTION:
+    if (value->string) return (flow->direction == atoi(value->string));
+    else return (flow->direction == value->uint_num);
+
+  case EXPORTER_IPV4_ADDRESS:
+    return (flow->deviceIP == ntohl(inet_addr(value->string)));
+
+  case INPUT_SNMP:
+    if (value->string) return (flow->inIndex == atoi(value->string));
+    else return (flow->inIndex == value->uint_num);
+
+  case OUTPUT_SNMP:
+    if (value->string) return (flow->outIndex == atoi(value->string));
+    else return (flow->outIndex == value->uint_num);
+
+  case INGRESS_VRFID:
+    if (value->string) return (flow->vrfId == (u_int) atoi(value->string));
+    else return (flow->vrfId == value->uint_num);
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping no-PEN flow fieldId %u", field);
+    break;
+  }
+
+  return false;
+}
+
+/* **************************************************** */
+
+bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const {
+ 
+  /* Check for backward compatibility to handle cases like field = 123 (CLIENT_NW_LATENCY_MS)
+   * instead of field = 57595 (NTOP_BASE_ID + 123) */ 
+  if(field < NTOP_BASE_ID)
+    field += NTOP_BASE_ID;
+
+  switch(field) {
+  case L7_PROTO:
+  {
+    ndpi_proto l7_proto = { 0 };
+    if (value->string) {
+      if (!strchr(value->string, '.')) {
+        /* Old behaviour, only the app protocol */
+        l7_proto.app_protocol = atoi(value->string);
+      } else {
+        char *proto_dot;
+        l7_proto.master_protocol = (u_int16_t)strtoll(value->string, &proto_dot, 10);
+        l7_proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
+      }
+    } else {
+      l7_proto.app_protocol = value->uint_num;
+    }
+    return (flow->l7_proto.app_protocol == l7_proto.app_protocol);
+  }
+
+  //TODO this should be supported too:
+  //case L7_PROTO_NAME:
+  //  break;
+
+  case DNS_QUERY:
+    if (value->string && flow->dns_query)
+      return (strcmp(flow->dns_query, value->string) == 0);
+    break;
+
+  case DNS_QUERY_TYPE:
+    if (value->string) return (flow->dns_query_type == atoi(value->string));
+    else return (flow->dns_query_type == value->uint_num);
+
+  case HTTP_URL:
+    if (value->string && flow->http_url)
+      return (strcmp(flow->http_url, value->string) == 0);
+
+  case HTTP_SITE:
+    if (value->string && flow->http_site)
+      return (strcmp(flow->http_site, value->string) == 0);
+
+  case SSL_SERVER_NAME:
+    if (value->string && flow->ssl_server_name)
+      return (strcmp(flow->ssl_server_name, value->string) == 0);
+
+  case NPROBE_IPV4_ADDRESS:
+    return (flow->deviceIP == ntohl(inet_addr(value->string)));
+
+  default:
+    break;
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Field %u not supported by flow filtering", field);
+
+  return false;
+}
+
+/* **************************************************** */
+
+bool ZMQParserInterface::matchField(ParsedFlow * const flow, const char * const key, ParsedValue * value) {
+  u_int32_t pen, key_id;
+  bool res;
+
+  if (!getKeyId((char*)key, strlen(key), &pen, &key_id)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Field %s not supported by flow filtering", key);
+    return false;
+  }
+
+  switch(pen) {
+    case 0: /* No PEN */
+      res = matchPENZeroField(flow, key_id, value);
+      if (res)
+        break;
+    /* Dont'break when res == false for backward compatibility: attempt to parse Zero-PEN as Ntop-PEN */
+    case NTOP_PEN:
+      res = matchPENNtopField(flow, key_id, value);
+    break;
+    case UNKNOWN_PEN:
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Field %s not supported by flow filtering", key);
+      res = false;
+    break;
+  }
+
+  return res;
+}
+
+/* **************************************************** */
+
 bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const char * const key, ParsedValue *value, json_object * const jvalue) const {
   bool ret = false;
   json_object *obj;
@@ -721,6 +914,7 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
 /* **************************************************** */
 
 void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *iface) {
+  time_t now = time(NULL);
   bool invalid_flow = false;
 
   if(flow->vlan_id && ntop->getPrefs()->do_ignore_vlans())
@@ -768,9 +962,40 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
     if(flow->pkt_sampling_rate == 0)
       flow->pkt_sampling_rate = 1;
 
+    /* We need to fix the clock drift */
+    if(iface->getTimeLastPktRcvdRemote() > 0) {
+      int drift = now - iface->getTimeLastPktRcvdRemote();
+
+      if(drift >= 0)
+	flow->last_switched += drift, flow->first_switched += drift;
+      else {
+	u_int32_t d = (u_int32_t)-drift;
+
+	if(d < flow->last_switched)  flow->last_switched  += drift;
+	if(d < flow->first_switched) flow->first_switched += drift;
+      }
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
+				   flow->first_switched,  flow->last_switched,
+				   flow->last_switched-flow->first_switched, drift,
+				   now, iface->getTimeLastPktRcvdRemote());
+#endif
+    } else {
+      /* Old nProbe */
+
+      if(!iface->getTimeLastPktRcvd())
+        iface->setTimeLastPktRcvd(now);
+
+      /* NOTE: do not set TimeLastPktRcvdRemote here as doing so will trigger the
+       * drift calculation above on next flows, leading to incorrect timestamps.
+       */
+    }
+
     /* Process Flow */
     PROFILING_SECTION_ENTER("processFlow", 30);
-    iface->processFlow(flow, true);
+    iface->processFlow(flow);
     PROFILING_SECTION_EXIT(30);
 
     /* Deliver eBPF info to companion queues */

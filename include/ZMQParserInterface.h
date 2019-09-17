@@ -42,6 +42,8 @@ class ZMQParserInterface : public ParserInterface {
   void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
   bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   bool parsePENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
+  bool matchPENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
+  bool matchPENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   static bool parseContainerInfo(json_object *jo, ContainerInfo * const container_info);
   bool parseNProbeAgentField(ParsedFlow * const flow, const char * const key, ParsedValue *value, json_object * const jvalue) const;
   void parseSingleJSONFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
@@ -55,6 +57,8 @@ class ZMQParserInterface : public ParserInterface {
  public:
   ZMQParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ZMQParserInterface();
+
+  bool matchField(ParsedFlow * const flow, const char * const key, ParsedValue * value);
 
   u_int8_t parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseTLVFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data);

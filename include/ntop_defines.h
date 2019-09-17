@@ -269,6 +269,7 @@
 #define CONST_INTERFACE_TYPE_DIVERT    "divert"
 #define CONST_INTERFACE_TYPE_DUMMY     "dummy"
 #define CONST_INTERFACE_TYPE_ZC_FLOW   "ZC-flow"
+#define CONST_INTERFACE_TYPE_CUSTOM    "custom"
 #define CONST_INTERFACE_TYPE_UNKNOWN   "unknown"
 
 #define CONST_DEMO_MODE_DURATION       600 /* 10 min */
@@ -577,6 +578,7 @@
 #define HOST_POOL_MEMBERS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.members.%s"
 #define HOST_POOL_SHAPERS_KEY               NTOPNG_PREFS_PREFIX".%u.l7_policies.%s"
 #define HOST_POOL_DETAILS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.details.%u"
+#define CONST_SUBINTERFACES_PREFS           NTOPNG_PREFS_PREFIX".subinterfaces"
 
 #define CONST_PREFS_CLIENT_X509_AUTH        NTOPNG_PREFS_PREFIX".is_client_x509_auth_enabled"
 

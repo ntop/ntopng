@@ -225,7 +225,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
           flow.in_pkts, flow.in_bytes);
 #endif
 
-        processFlow(&flow, false);
+        processFlow(&flow);
         num_flows++;
 #endif /* USE_SURICATA_NETFLOW */
       } else if(strcmp(event_type, "flow") == 0 && json_object_object_get_ex(o, "flow", &f)) {
