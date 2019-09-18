@@ -659,7 +659,7 @@ end
 
 -- #################################
 
-local function formatRawFlow(record, flow_json, skip_add_links)
+local function formatRawFlow(record, flow_json, skip_add_links, skip_peers)
    require "flow_utils"
    local time_bounds
    local add_links = (not skip_add_links)
@@ -681,7 +681,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
    local status_info = alert2statusinfo(decoded)
 
    -- active flow lookup
-   if not interface.isView() and status_info and status_info["ntopng.key"] and record["alert_tstamp"] then
+   if not interface.isView() and status_info and status_info["ntopng.key"] and record["alert_tstamp"] and (not skip_peers) then
       -- attempt a lookup on the active flows
       local active_flow = interface.findFlowByKey(status_info["ntopng.key"])
 
@@ -700,7 +700,12 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
       ["srv.blacklisted"] = tostring(record["srv_blacklisted"]) == "1",
       ["vlan"] = record["vlan_id"]}
-   flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds, host_page) or "").."] "
+
+   if skip_peers then
+      flow = ""
+   else
+      flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds, host_page) or "").."] "
+   end
 
    local l4_proto_label = l4_proto_to_string(record["proto"] or 0) or ""
 
@@ -2591,11 +2596,11 @@ end
 
 -- #################################
 
-function formatAlertMessage(ifid, alert)
+function formatAlertMessage(ifid, alert, skip_peers)
   local msg
 
   if(alert.alert_entity == alertEntity("flow") or (alert.alert_entity == nil)) then
-    msg = formatRawFlow(alert, alert["alert_json"])
+    msg = formatRawFlow(alert, alert["alert_json"], nil, skip_peers)
   else
     msg = alert["alert_json"]
 

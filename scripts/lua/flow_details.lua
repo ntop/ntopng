@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local shaper_utils
 require "lua_utils"
+require "alert_utils"
 local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local NfConfig = nil
@@ -951,21 +952,37 @@ else
    end
 
    -- ######################################
-   
-   if interface.isPacketInterface() then
-      print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>")
-      for id, t in pairs(flow_consts.flow_status_types) do
-         if ntop.bitmapIsSet(flow["status_map"], id) then
-            print(getFlowStatus(id, flow2statusinfo(flow)).."<br />")
+
+   if flow["flow.alerted"] then
+      local message = nil
+
+      print("<tr><th width=30%><i class='fa fa-warning' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
+
+      if(flow["flow.alert_rowid"] ~= nil) then
+         -- Try to fetch the alert
+         local res = performAlertsQuery("SELECT *", "historical-flows", {row_id = flow["flow.alert_rowid"]})
+
+         if((res ~= nil) and (#res == 1)) then
+            message = formatAlertMessage(ifid, res[1], true --[[ skip peers, we are already showing the flow ]])
          end
       end
-      print("</td></tr>\n")
 
-      if debug_score then
-        if(flow["score"] > 0) then
-          print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
-        end
+      print(message)
+      print("</td></tr>\n")
+   end
+
+   print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>")
+   for id, t in pairs(flow_consts.flow_status_types) do
+      if ntop.bitmapIsSet(flow["status_map"], id) then
+         print(getFlowStatus(id, flow2statusinfo(flow)).."<br />")
       end
+   end
+   print("</td></tr>\n")
+
+   if debug_score then
+     if(flow["score"] > 0) then
+       print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
+     end
    end
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then

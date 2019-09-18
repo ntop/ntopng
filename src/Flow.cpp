@@ -45,9 +45,10 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, good_low_flow_detected = false,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
-    flow_alerted = flow_dropped_counts_increased = false, vrfId = 0;
+    flow_dropped_counts_increased = false, vrfId = 0;
     alert_score = CONST_NO_SCORE_SET;
 
+  alert_rowid = -1;
   last_notified_status_map = Utils::bitmapSet(0, status_normal);
   purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
@@ -354,7 +355,6 @@ void Flow::dumpFlowAlert() {
 
     if(do_dump) {
       iface->getAlertsManager()->storeFlowAlert(this);
-      flow_alerted = true;
 
       if(cli_host) cli_host->incNumAlertedFlows();
       if(srv_host) srv_host->incNumAlertedFlows();
@@ -2033,7 +2033,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   lua_push_bool_table_entry(vm, "flow.idle", idle());
   lua_push_uint64_table_entry(vm, "flow.status", getFlowStatus(&status_map));
-  lua_push_bool_table_entry(vm, "flow.alerted", flow_alerted);
+
+  if(isFlowAlerted()) {
+    lua_push_bool_table_entry(vm, "flow.alerted", isFlowAlerted());
+    lua_push_uint64_table_entry(vm, "flow.alert_rowid", alert_rowid);
+  }
 
   lua_push_uint64_table_entry(vm, "status_map", status_map);
 
@@ -4108,7 +4112,7 @@ void Flow::postFlowSetIdle(time_t t) {
     if(srv_host) srv_host->incNumAnomalousFlows(false);
   }
 
-  if(flow_alerted) {
+  if(isFlowAlerted()) {
     if(cli_host) cli_host->decNumAlertedFlows();
     if(srv_host) srv_host->decNumAlertedFlows();
   }

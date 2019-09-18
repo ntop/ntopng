@@ -564,8 +564,10 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     if(stmt3) sqlite3_finalize(stmt3);
     m.unlock(__FILE__, __LINE__);
 
-    if((rc == 0) && (cur_rowid != (u_int64_t)-1))
+    if((rc == 0) && (cur_rowid != (u_int64_t)-1)) {
+      f->setFlowAlerted(cur_rowid);
       notifyFlowAlert(cur_rowid);
+    }
 
     if(cli) cli->incTotalAlerts(alert_type);
     if(srv) srv->incTotalAlerts(alert_type);
@@ -771,8 +773,10 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
     if(stmt3) sqlite3_finalize(stmt3);
     m.unlock(__FILE__, __LINE__);
 
-    if((rc == 0) && (cur_rowid != (u_int64_t)-1))
+    if((rc == 0) && (cur_rowid != (u_int64_t)-1)) {
+      f->setFlowAlerted(cur_rowid);
       notifyFlowAlert(cur_rowid);
+    }
 
     if(cli) cli->incTotalAlerts(alert_type);
     if(srv) srv->incTotalAlerts(alert_type);

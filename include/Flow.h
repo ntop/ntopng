@@ -65,10 +65,11 @@ class Flow : public GenericHashEntry {
 
   bool detection_completed, protocol_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
-    check_tor, l7_protocol_guessed, flow_alerted, flow_dropped_counts_increased,
+    check_tor, l7_protocol_guessed, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
     quota_exceeded, has_malicious_signature;
   u_int16_t diff_num_http_requests;
+  int64_t alert_rowid;
 #ifdef NTOPNG_PRO
   bool counted_in_aggregated_flow, status_counted_in_aggregated_flow;
   bool ingress2egress_direction;
@@ -485,7 +486,8 @@ class Flow : public GenericHashEntry {
 						 && ((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN))); }
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); }
-  inline bool      isFlowAlerted()        { return(flow_alerted);                   }
+  inline bool      isFlowAlerted()                { return(alert_rowid >= 0);               }
+  inline void      setFlowAlerted(int64_t rowid)  { alert_rowid = rowid;                    }
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
