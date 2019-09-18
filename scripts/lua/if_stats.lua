@@ -576,7 +576,7 @@ if((page == "overview") or (page == nil)) then
       local engaged_alerts_chart_available = ts_utils.exists("iface:engaged_alerts", tags)
 
       print("<th>".. ternary(ifstats.num_alerts_engaged > 0, warning, "") ..i18n("show_alerts.engaged_alerts")..
-	       ternary(engaged_alerts_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:engaged_alerts'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td colspan=2  nowrap>".. formatValue(ifstats.num_alerts_engaged) .." <span id=engaged_alerts_trend></span></td>\n")
+	       ternary(engaged_alerts_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:engaged_alerts'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td colspan=2  nowrap><a href='".. ntop.getHttpPrefix() .."/lua/show_alerts.lua?ifid="..ifstats.id.."'>".. formatValue(ifstats.num_alerts_engaged) .."</a> <span id=engaged_alerts_trend></span></td>\n")
       print("<th width=250>".. ternary(ifstats.num_dropped_alerts > 0, warning, "")..i18n("show_alerts.dropped_alerts")..
 	       "</th><td colspan=2>" .. formatValue(ifstats.num_dropped_alerts) .. " <span id=dropped_alerts_trend></span></td>\n</td>")
    end
