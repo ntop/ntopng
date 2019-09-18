@@ -2607,31 +2607,30 @@ end
 
 -- TODO put description formatter into flow_consts.flow_status_types
 function getFlowStatus(status, flowstatus_info, alert, no_icon)
-   local warn_sign = ternary(no_icon, "", "<i class=\"fa fa-warning\" aria-hidden=true style=\"color: orange;\"></i> ")
-   local res = warn_sign..i18n("flow_details.unknown_status",{status=status})
+   local res = i18n("flow_details.unknown_status",{status=status})
 
    -- NOTE: flowstatus_info can be nil
    if(status == flow_consts.status_ssl_certificate_mismatch) then 
-     res = warn_sign..formatSSLCertificateMismatch(status, flowstatus_info, alert)
+     res = formatSSLCertificateMismatch(status, flowstatus_info, alert)
    elseif(status == flow_consts.status_blacklisted) then 
-     res = warn_sign..formatBlacklistedFlow(status, flowstatus_info, alert)
+     res = formatBlacklistedFlow(status, flowstatus_info, alert)
    elseif(status == flow_consts.status_device_protocol_not_allowed) then 
      res = formatSuspiciousDeviceProtocolAlert(flowstatus_info)
    elseif(status == flow_consts.status_elephant_local_to_remote) then 
-     res = warn_sign..formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]])
+     res = formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]])
    elseif(status == flow_consts.status_elephant_remote_to_local) then 
-     res = warn_sign..formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
+     res = formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
    elseif(status == flow_consts.status_longlived) then 
-     res = warn_sign..formatLongLivedFlowAlert(flowstatus_info)
-   elseif(status == flow_consts.status_ids_alert) then 
-     res = warn_sign..formatIDSFlowAlert(flowstatus_info)
+     res = formatLongLivedFlowAlert(flowstatus_info)
+   elseif(status == flow_consts.status_ids_alert) then
+     res = formatIDSFlowAlert(flowstatus_info)
    elseif(status == flow_consts.status_tcp_severe_connection_issues) then 
-     res = warn_sign..i18n("flow_details.tcp_severe_connection_issues")
-   elseif(status == flow_consts.status_malicious_signature) then res = warn_sign..formatMaliciousSignature(flowstatus_info)
+     res = i18n("flow_details.tcp_severe_connection_issues")
+   elseif(status == flow_consts.status_malicious_signature) then res = formatMaliciousSignature(flowstatus_info)
    elseif(status == flow_consts.status_normal) then 
      res = i18n(flow_consts.flow_status_types[flow_consts.status_normal].i18n_title)
    elseif(flow_consts.flow_status_types[status] ~= nil) then 
-     res = warn_sign..i18n(flow_consts.flow_status_types[status].i18n_title)
+     res = i18n(flow_consts.flow_status_types[status].i18n_title)
    end
 
    return res

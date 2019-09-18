@@ -426,7 +426,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    if(value["flow.alerted"]) then
       column_proto_l4 = "<i class='fa fa-warning' style='color: #B94A48' title='"..noHtml(status_info) .."'></i> "
    elseif(value["flow.status"] ~= 0) then
-      column_proto_l4 = "<i class='fa fa-warning' style='color: orange;' title='"..noHtml(status_info) .."'></i> "
+      column_proto_l4 = "<i class='fa fa-exclamation-circle' style='color: orange;' title='"..noHtml(status_info) .."'></i> "
    end
 
    if value["proto.l4"] == "TCP" or value["proto.l4"] == "UDP" then

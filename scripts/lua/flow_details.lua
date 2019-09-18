@@ -971,7 +971,13 @@ else
       print("</td></tr>\n")
    end
 
-   print("<tr><th width=30%>"..i18n("flow_details.flow_status").."</th><td colspan=2>")
+   local status_icon = ""
+
+   if(flow["status_map"] ~= 0) then
+      status_icon = "<i class=\"fa fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
+   end
+
+   print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_status").."</th><td colspan=2>")
    for id, t in pairs(flow_consts.flow_status_types) do
       if ntop.bitmapIsSet(flow["status_map"], id) then
          print(getFlowStatus(id, flow2statusinfo(flow)).."<br />")
