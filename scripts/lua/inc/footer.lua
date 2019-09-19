@@ -113,7 +113,7 @@ else
   print[[        <div class="col-md-12"> ]]
 end
 
-if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
+if not interface.isPcapDumpInterface() and not have_nedge then
    if(ifname ~= nil) then
      maxSpeed = getInterfaceSpeed(_ifstats.id)
    end
@@ -139,10 +139,11 @@ if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
         <div>]]
 end -- closes interface.isPcapDumpInterface() == false
 
-if _ifstats.has_traffic_directions then
-   print [[  <a href="]]
-   print (ntop.getHttpPrefix())
-   print [[/lua/if_stats.lua">
+if not interface.isPcapDumpInterface() then
+   if _ifstats.has_traffic_directions then
+      print [[  <a href="]]
+      print (ntop.getHttpPrefix())
+      print [[/lua/if_stats.lua">
             <table style="border-collapse:collapse; !important">
             <tr><td><i class="fa fa-arrow-up" title="]] print(i18n("iface_upload", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-upload-text"></td></tr>
             <tr><td><i class="fa fa-arrow-down" title="]] print(i18n("iface_download", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-download-text"></td></tr>
@@ -150,16 +151,17 @@ if _ifstats.has_traffic_directions then
             </div>
             <div class="col-xs-6 col-sm-4">
             </a>]]
-else
-  print [[  <a href="]]
-   print (ntop.getHttpPrefix())
-   print [[/lua/if_stats.lua">
+   else
+      print [[  <a href="]]
+      print (ntop.getHttpPrefix())
+      print [[/lua/if_stats.lua">
             <table style="border-collapse:collapse; !important">
             <tr><td class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-total-text"></td></tr>
             </table>
             </div>
             <div class="col-xs-6 col-sm-4">
             </a>]]
+   end
 end
 
 print [[
