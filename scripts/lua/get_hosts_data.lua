@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local discover = require "discover_utils"
 local custom_column_utils = require "custom_column_utils"
+local format_utils = require "format_utils"
 local json = require "dkjson"
 local have_nedge = ntop.isnEdge()
 
@@ -372,7 +373,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       record["column_location"] = column_location
    end
 
-   record["column_num_flows"] = tostring(value["active_flows.as_client"] + value["active_flows.as_server"])
+   record["column_num_flows"] = format_utils.formatValue(value["active_flows.as_client"] + value["active_flows.as_server"])
 
    -- exists only for bridged interfaces
    if isBridgeInterface(interface.getStats()) then
