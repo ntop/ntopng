@@ -2454,6 +2454,24 @@ json_object* Flow::flow2json() {
 
 /* *************************************** */
 
+bool Flow::isFlowAlerted() const {
+  return alert_rowid >= 0;
+}
+
+/* *************************************** */
+
+void Flow::setFlowAlerted(int64_t rowid) {
+  if(rowid < 0)
+    return;
+
+  if(!isFlowAlerted())
+    iface->incNumAlertedFlows();
+
+  alert_rowid = rowid;
+}
+
+/* *************************************** */
+
 #ifdef HAVE_NEDGE
 
 bool Flow::isNetfilterIdleFlow() {
@@ -4115,6 +4133,7 @@ void Flow::postFlowSetIdle(time_t t) {
   if(isFlowAlerted()) {
     if(cli_host) cli_host->decNumAlertedFlows();
     if(srv_host) srv_host->decNumAlertedFlows();
+    iface->decNumAlertedFlows();
   }
 }
 

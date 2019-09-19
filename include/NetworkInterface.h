@@ -77,6 +77,7 @@ class NetworkInterface : public AlertableEntity {
   u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
+  u_int64_t num_active_alerted_flows, num_idle_alerted_flows;
   u_int32_t num_dropped_alerts;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
@@ -768,7 +769,10 @@ class NetworkInterface : public AlertableEntity {
   void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
 
-  inline void setHasAlerts(bool has_stored_alerts)               { this->has_stored_alerts = has_stored_alerts; }
+  inline void incNumAlertedFlows()                        { num_active_alerted_flows++;                               };
+  inline void decNumAlertedFlows()                        { num_idle_alerted_flows++;                                 };
+  virtual u_int64_t getNumActiveAlertedFlows()      const { return num_active_alerted_flows - num_idle_alerted_flows; };
+  inline void setHasAlerts(bool has_stored_alerts)        { this->has_stored_alerts = has_stored_alerts; }
   inline void incNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]++; }
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
   inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }

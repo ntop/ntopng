@@ -298,6 +298,7 @@ void NetworkInterface::init() {
   num_live_captures = 0, num_dropped_alerts = 0;
   memset(live_captures, 0, sizeof(live_captures));
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
+  num_active_alerted_flows = num_idle_alerted_flows = 0;
   has_stored_alerts = false;
 
   is_view = false;
@@ -5587,6 +5588,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
   lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
+  lua_push_int32_table_entry(vm, "num_alerted_flows", getNumActiveAlertedFlows());
   lua_push_int32_table_entry(vm, "num_dropped_alerts", num_dropped_alerts);
   lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
 

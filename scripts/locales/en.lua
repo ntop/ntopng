@@ -70,6 +70,7 @@ local lang = {
   ["flow_search_from_aggregated"] = "(Aggregated)",
   ["flow_search_results"] = "Flow Search Results",
   ["flows"] = "Flows",
+  ["devices"] = "Devices",
   ["forbidden"] = "Forbidden",
   ["free"] = "Free",
   ["from"] = "from",

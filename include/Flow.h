@@ -476,7 +476,6 @@ class Flow : public GenericHashEntry {
   inline InterarrivalStats* getCli2SrvIATStats() const { return cli2srvPktTime; }
   inline InterarrivalStats* getSrv2CliIATStats() const { return srv2cliPktTime; }
 
-  bool isIdleFlow();
   inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset()
 						 && ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))
 						 && ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))); }
@@ -486,8 +485,8 @@ class Flow : public GenericHashEntry {
 						 && ((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN))); }
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); }
-  inline bool      isFlowAlerted()                { return(alert_rowid >= 0);               }
-  inline void      setFlowAlerted(int64_t rowid)  { alert_rowid = rowid;                    }
+  bool isFlowAlerted() const;
+  void setFlowAlerted(int64_t rowid);
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {

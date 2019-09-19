@@ -299,24 +299,33 @@ print[[
 
                 msg += "<br>";
 
-                if(rsp.engaged_alerts > 0) {
-                   // var warning_color = "#F0AD4E"; // bootstrap warning orange
-                   // var warning_label = "label-warning";
+                if(rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) {
                    var error_color = "#B94A48";  // bootstrap danger red
                    var error_label = "label-danger";
                    var error_color = error_color;
                    var color = error_color;
                    var label = error_label;
 
+                   if(rsp.engaged_alerts > 0) {
                    msg += "&nbsp;<a href=\"]]
  print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua\">"
 
-                   msg += "<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-warning\"></i></span></A>";
+                    msg += "<span class=\"label " + label + "\">"+addCommas(formatValue(rsp.engaged_alerts))+" <i class=\"fa fa-warning\"></i></span></A>";
+                   }
+
+                   if(rsp.alerted_flows > 0) {
+                   msg += "&nbsp;<a href=\"]]
+ print (ntop.getHttpPrefix())
+print [[/lua/flows_stats.lua?flow_status=alerted\">"
+
+                    msg += "<span class=\"label " + label + "\">"+addCommas(formatValue(rsp.alerted_flows))+ " ]] print(i18n("flows")) print[[ <i class=\"fa fa-warning\"></i></span></A>";
+                   }
+
                    //Push.create('Hello World!');
                 }
 
-                if((rsp.engaged_alerts > 0 || rsp.has_alerts) && $("#alerts-id").is(":visible") == false) {
+                if((rsp.engaged_alerts > 0 || rsp.has_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
                   $("#alerts-id").show();
                 }
 
@@ -337,7 +346,7 @@ print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=local\">";
 
                   msg += "<span title=\"]] print(i18n("alerts_thresholds_config.active_local_hosts")) print[[\" class=\"label label-success\">";
-                  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+                  msg += addCommas(formatValue(rsp.num_local_hosts))+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 
                   checkMigrationMessage(rsp);
                 }
@@ -357,7 +366,7 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
                   msg += "<span title=\"" + remove_hosts_label +"\" class=\"label label-danger\">";
                 }
 
-                msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
+                msg += addCommas(formatValue(rsp.num_hosts-rsp.num_local_hosts))+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
 
             if(typeof rsp.num_devices !== "undefined") {
               var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
@@ -374,7 +383,7 @@ print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
                   msg += "<span title=\"" + macs_label +"\" class=\"label label-danger\">";
                 }
 
-                msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
+                msg += addCommas(formatValue(rsp.num_devices))+" ]] print(i18n("devices")) print[[</span></a> ";
             }
 
             if(typeof rsp.num_flows !== "undefined") {
@@ -391,12 +400,12 @@ print [[/lua/flows_stats.lua\">";
                   msg += "<span class=\"label label-danger\">";
                 }
 
-                msg += addCommas(rsp.num_flows)+" Flows </span> </a>";
+                msg += addCommas(formatValue(rsp.num_flows))+" ]] print(i18n("flows")) print[[ </span> </a>";
 
                 if(rsp.flow_export_drops > 0) {
                    msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"></i> <span class=\"label label-danger\">"+addCommas(rsp.flow_export_drops)+" Dropped flow";
+print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"></i> <span class=\"label label-danger\">"+addCommas(formatValue(rsp.flow_export_drops))+" Dropped flow";
                    if(rsp.flow_export_drops > 1) msg += "s";
 
                    msg += "</span></A> ";
@@ -408,7 +417,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
                 print (ntop.getHttpPrefix())
                 print [[/lua/live_capture_stats.lua\">";
                 msg += "<span class=\"label label-primary\">";
-                msg += addCommas(rsp.num_live_captures)+" <i class=\"fa fa-download fa-lg\"></i></A> </span> ";
+                msg += addCommas(formatValue(rsp.num_live_captures))+" <i class=\"fa fa-download fa-lg\"></i></A> </span> ";
             }
 
             if(typeof rsp.remote_assistance !== "undefined") {
