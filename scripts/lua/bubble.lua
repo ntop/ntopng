@@ -28,7 +28,7 @@ print("<hr /><h2>Host Explorer</h2>")
 local modes = {
    { mode = 0, label = "All Flows" },
    { mode = 1, label = "Unreacheable Flows" },
-   { mode = 2, label = "Anomalous Flows" },
+   { mode = 2, label = "Misbehaving Flows" },
    { mode = 3, label = "DNS Queries vs Replies" },
    { mode = 4, label = "SYN Distribution" },
 }
@@ -51,8 +51,8 @@ elseif(bubble_mode == 1) then
    x_label = 'Unreachable Flows as Server'
    y_label = 'Unreachable Flows as Client'
 elseif(bubble_mode == 2) then
-   x_label = 'Anomalous Flows as Server'
-   y_label = 'Anomalous Flows as Client'
+   x_label = 'Misbehaving Flows as Server'
+   y_label = 'Misbehaving Flows as Client'
 elseif(bubble_mode == 3) then
    x_label = 'Positive DNS Replies Received'
    y_label = 'DNS Queries Sent'
@@ -66,7 +66,7 @@ function string.starts(String,Start)
 end
 
 function processHost(hostname, host)
-   local line = nil
+   local line
    
    --io.write("================================\n")
    --io.write(hostname.."\n")
@@ -75,7 +75,8 @@ function processHost(hostname, host)
    local label = hostinfo2hostkey(host)
 
    if((label == nil) or (string.len(label) == 0) or string.starts(label, "@")) then label = hostname end
-
+   line = nil
+   
    if(bubble_mode == 0) then
       line = { link = hostname, label = label, x = host["active_flows.as_server"], y = host["active_flows.as_client"], r = host["bytes.sent"]+host["bytes.rcvd"] }
    elseif(bubble_mode == 1) then
@@ -83,11 +84,13 @@ function processHost(hostname, host)
 	 line = { link = hostname, label = label, x = host["unreachable_flows.as_server"], y = host["unreachable_flows.as_client"], r = host["bytes.sent"]+host["bytes.rcvd"] }
       end
    elseif(bubble_mode == 2) then
-      if(host["anomalous_flows.as_server"] + host["anomalous_flows.as_client"] > 0) then
-	 line = { link = hostname, label = label, x = host["anomalous_flows.as_server"], y = host["anomalous_flows.as_client"], r = host["bytes.sent"]+host["bytes.rcvd"] }
+      if((host["anomalous_flows.as_server"] ~= nil)
+	    and (host["anomalous_flows.as_client"] ~= nil)
+	 and (host["anomalous_flows.as_server"] + host["anomalous_flows.as_client"] > 0)) then
+	 line = { link = hostname, label = label, x = host["anomalous_flows.as_server"], y = host["anomalous_flows.as_client"], r = host["anomalous_flows.as_server"] + host["anomalous_flows.as_client"] }
+	 -- if(label == "74.125.20.109") then tprint(line) end
       end
    elseif(bubble_mode == 3) then
-      -- if(hostname == "192.168.1.65") then tprint(host) end
       if((host["dns"] ~= nil) and ((host["dns"]["sent"]["num_queries"]+host["dns"]["rcvd"]["num_queries"]) > 0)) then
 	 line = { link = hostname, label = label, x = host["dns"]["rcvd"]["num_replies_ok"], y = host["dns"]["sent"]["num_queries"], r = host["dns"]["rcvd"]["num_replies_error"] }
       end
