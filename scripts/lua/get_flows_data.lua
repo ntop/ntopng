@@ -432,10 +432,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    -- NOTE: an alerted flow *may* have an invalid status set
    local status_info = getFlowStatus(value["flow.status"], flow2statusinfo(value))
-
    if value["flow.alerted"] then
       column_proto_l4 = "<i class='fa fa-warning' style='color: #B94A48' title='"..noHtml(status_info) .."'></i> "
-   elseif value["status_map"] then
+   elseif value["status_map"] and value["flow.status"] ~= flow_consts.status_normal then
       local title = ''
 
       for id, t in pairs(flow_consts.flow_status_types) do
