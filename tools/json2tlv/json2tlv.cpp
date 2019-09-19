@@ -359,47 +359,50 @@ int main(int argc, char *argv[]) {
         return -1;
       }
 
-      ndpi_serialization_element_type et;
-      while ((et = ndpi_deserialize_get_nextitem_type(&deserializer)) != ndpi_serialization_unknown) {
+      ndpi_serialization_type kt, et;
+      while((et = ndpi_deserialize_get_item_type(&deserializer, &kt)) != ndpi_serialization_unknown) {
         u_int32_t k32, v32;
         ndpi_string ks, vs;
         u_int8_t bkp, bkpk;
 
-        switch(et) {
-          case ndpi_serialization_uint32_uint32:
-          ndpi_deserialize_uint32_uint32(&deserializer, &k32, &v32);
-          if (verbose) printf("%u=%u ", k32, v32);
-          break;
-
-          case ndpi_serialization_uint32_string:
-          ndpi_deserialize_uint32_string(&deserializer, &k32, &vs);
-          bkp = vs.str[vs.str_len];
-          vs.str[vs.str_len] = '\0';
-          if (verbose) printf("%u='%s' ", k32, vs.str);
-          vs.str[vs.str_len] = bkp;
-          break;
-
-          case ndpi_serialization_string_string:
-          ndpi_deserialize_string_string(&deserializer, &ks, &vs);
-          bkpk = ks.str[ks.str_len], bkp = vs.str[vs.str_len];
-          ks.str[ks.str_len] = vs.str[vs.str_len] = '\0';
-          if (verbose) printf("%s='%s' ", ks.str, vs.str);
-          ks.str[ks.str_len] = bkpk, vs.str[vs.str_len] = bkp;
-          break;
-
-          case ndpi_serialization_string_uint32:
-          ndpi_deserialize_string_uint32(&deserializer, &ks, &v32);
-          bkpk = ks.str[ks.str_len];
-          ks.str[ks.str_len] = '\0';
-          if (verbose) printf("%s=%u ", ks.str, v32);
-          ks.str[ks.str_len] = bkpk;
-          break;
-
-          case ndpi_serialization_end_of_record:
-          ndpi_deserialize_end_of_record(&deserializer);
+        if (et == ndpi_serialization_end_of_record) {
           if (verbose) printf("EOR\n");
           j++;
           z = 0;
+          goto next;
+        }
+
+        switch(kt) {
+          case ndpi_serialization_uint32:
+          ndpi_deserialize_key_uint32(&deserializer, &k32);
+          if (verbose) printf("%u=", k32);
+          break;
+
+          case ndpi_serialization_string:
+          ndpi_deserialize_key_string(&deserializer, &ks);
+          bkpk = ks.str[ks.str_len];
+          ks.str[ks.str_len] = '\0';
+          if (verbose) printf("%s=", ks.str);
+          ks.str[ks.str_len] = bkpk;
+          break;
+
+          default:
+          printf("Unsupported key type %u [msg: %u][record: %u][element: %u]\n", kt, i, j, z);
+          goto close_message;
+        }
+
+        switch(et) {
+          case ndpi_serialization_uint32:
+          ndpi_deserialize_value_uint32(&deserializer, &v32);
+          if (verbose) printf("%u ", v32);
+          break;
+
+          case ndpi_serialization_string:
+          ndpi_deserialize_value_string(&deserializer, &vs);
+          bkp = vs.str[vs.str_len];
+          vs.str[vs.str_len] = '\0';
+          if (verbose) printf("'%s' ", vs.str);
+          vs.str[vs.str_len] = bkp;
           break;
 
           default:
@@ -407,6 +410,9 @@ int main(int argc, char *argv[]) {
           goto close_message;
           break;
         }
+
+        next:
+        ndpi_deserialize_next(&deserializer);
 
         z++;
       }
