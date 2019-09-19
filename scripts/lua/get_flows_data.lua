@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "flow_utils"
 local format_utils = require("format_utils")
+local flow_consts = require "flow_consts"
 local json = require "dkjson"
 
 local have_nedge = ntop.isnEdge()
@@ -423,38 +424,25 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    -- NOTE: an alerted flow *may* have an invalid status set
    local status_info = getFlowStatus(value["flow.status"], flow2statusinfo(value))
 
-   if(value["flow.alerted"]) then
+   if value["flow.alerted"] then
       column_proto_l4 = "<i class='fa fa-warning' style='color: #B94A48' title='"..noHtml(status_info) .."'></i> "
-   elseif(value["flow.status"] ~= 0) then
-      column_proto_l4 = "<i class='fa fa-exclamation-circle' style='color: orange;' title='"..noHtml(status_info) .."'></i> "
-   end
+   elseif value["status_map"] then
+      local title = ''
 
-   if value["proto.l4"] == "TCP" or value["proto.l4"] == "UDP" then
-      if value["tcp.seq_problems"] == true then
-	 local tcp_issues = ""
-	 if value["cli2srv.out_of_order"] > 0 or value["srv2cli.out_of_order"] > 0 then
-	    tcp_issues = tcp_issues.." Out-of-order"
+      for id, t in pairs(flow_consts.flow_status_types) do
+	 if ntop.bitmapIsSet(value["status_map"], id) then
+	    if title ~= '' then
+	       title = title..'\n'
+	    end
+	    title = title..getFlowStatus(id, flow2statusinfo(value))
 	 end
-	 if value["cli2srv.retransmissions"] > 0 or value["srv2cli.retransmissions"] > 0 then
-	    tcp_issues = tcp_issues.." Retransmissions"
-	 end
-	 if value["cli2srv.lost"] > 0 or value["srv2cli.lost"] > 0 then
-	    tcp_issues = tcp_issues.." Loss"
-	 end
-
-         if isEmptyString(tcp_issues) then
-            tcp_issues = " TCP Sequence Issues"
-         end
-
-	 column_proto_l4 = column_proto_l4..'<span title=\'Issues detected:'..tcp_issues..'\'><font color=#B94A48>'..value["proto.l4"].."</font></span>"
-      elseif value["flow_goodput.low"] == true then
-	 column_proto_l4 = column_proto_l4.."<font color=#B94A48><span title='Low Goodput'>"..value["proto.l4"].."</span></font>"
-      else
-	 column_proto_l4 = column_proto_l4..value["proto.l4"]
       end
-   else
-      column_proto_l4 = column_proto_l4..value["proto.l4"]
+
+      column_proto_l4 = "<i class='fa fa-exclamation-circle' style='color: orange;' title='"..noHtml(title) .."'></i> "
    end
+
+   column_proto_l4 = column_proto_l4..value["proto.l4"]
+
    if(value["verdict.pass"] == false) then
      column_proto_l4 = "<strike>"..column_proto_l4.."</strike>"
    end
