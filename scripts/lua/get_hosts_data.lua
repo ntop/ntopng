@@ -232,6 +232,10 @@ for _key, _value in pairsByKeys(vals, funct) do
       column_ip = column_ip .. " ".. discover.getOsIcon(value.operatingSystem)
    end
 
+   if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
+      column_ip = column_ip .. " <i class='fa fa-warning' style='color: #B94A48;'></i>"
+   end
+
    if value["systemhost"]    then column_ip = column_ip .. "&nbsp;<i class='fa fa-flag'></i> " end
    if value["hiddenFromTop"] then column_ip = column_ip .. "&nbsp;<i class='fa fa-eye-slash'></i> " end
    if value["childSafe"]     then column_ip = column_ip .. getSafeChildIcon() end
@@ -289,12 +293,8 @@ for _key, _value in pairsByKeys(vals, funct) do
       end
    end
 
-   if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
-      column_name = column_name .. " <i class='fa fa-warning fa-lg' style='color: #B94A48;'></i>"
-   end
-
    if value["has_blocking_quota"] or value["has_blocking_shaper"] then
-      column_name = column_name .. " <i class='fa fa-ban fa-lg' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
+      column_name = column_name .. " <i class='fa fa-ban' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
    end
 
    if debug_score then
