@@ -3005,7 +3005,8 @@ static bool update_generic_element_stats(GenericHashEntry *node, void *user_data
 bool NetworkInterface::checkPeriodicStatsUpdateTime(const struct timeval *tv) {
   float diff = Utils::msTimevalDiff(tv, &last_periodic_stats_update) / 1000;
 
-  if(diff >= periodicStatsUpdateFrequency()) {
+  if(diff < 0 /* Need a reset */
+     || diff >= periodicStatsUpdateFrequency()) {
     memcpy(&last_periodic_stats_update, tv, sizeof(last_periodic_stats_update));
     return true;
   }
