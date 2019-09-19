@@ -483,6 +483,7 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
   if(label ~= "") then print('</td></tr>') end
   print('\n')
   print('<script>\n')
+
   print[[function ]] print(submit_field) print [[_functionOn(){
     var classOn = document.getElementById("]] print(submit_field) print [[_on_id");
     var classOff = document.getElementById("]] print(submit_field) print [[_off_id");

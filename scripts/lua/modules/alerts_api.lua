@@ -1221,6 +1221,60 @@ end
 
 -- ##############################################
 
+local function build_on_off_toggle(submit_field)
+   local on_value = "on"
+   local off_value = "off"
+   local value
+   local on_color = "success"
+   local off_color = "danger"
+
+   local on_active
+   local off_active
+
+   if active then
+      value = on_value
+      on_active  = "btn-"..on_color.." active"
+      off_active = "btn-default"
+   else
+      value = off_value
+      on_active  = "btn-default"
+      off_active = "btn-"..off_color.." active"
+   end
+
+   local on_active = "btn-default"
+   local off_active = "btn-"..off_color.." active"
+
+   return [[
+  <div class="btn-group btn-toggle">
+  <button type="button" onclick="]]..submit_field..[[_on_fn()" id="]]..submit_field..[[_on_id" class="btn btn-sm ]]..on_active..[[">On</button>
+  <button type="button" onclick="]]..submit_field..[[_off_fn()" id="]]..submit_field..[[_off_id" class="btn btn-sm ]]..off_active..[[">Off</button>
+  </div>
+<script>
+
+
+function ]]..submit_field..[[_on_fn() {
+  var class_on = document.getElementById("]]..submit_field..[[_on_id");
+  var class_off = document.getElementById("]]..submit_field..[[_off_id");
+  class_on.removeAttribute("class");
+  class_off.removeAttribute("class");
+  class_on.setAttribute("class", "btn btn-sm btn-]]..on_color..[[ active");
+  class_off.setAttribute("class", "btn btn-sm btn-default");
+}
+
+function ]]..submit_field..[[_off_fn() {
+  var class_on = document.getElementById("]]..submit_field..[[_on_id");
+  var class_off = document.getElementById("]]..submit_field..[[_off_id");
+  class_on.removeAttribute("class");
+  class_off.removeAttribute("class");
+  class_on.setAttribute("class", "btn btn-sm btn-default");
+  class_off.setAttribute("class", "btn btn-sm btn-]]..off_color..[[ active");
+}
+</script>
+]]
+end
+
+-- ##############################################
+
 function alerts_api.checkbox_input_builder(gui_conf, input_id, value)
   return(string.format([[
   <input type="hidden", value="off", name="%s"/>
@@ -1233,10 +1287,14 @@ end
 function alerts_api.flow_checkbox_input_builder(check_module)
    local input_id = string.format("enabled_%s", check_module.key)
 
-   return(string.format([[
-  <input type="hidden", value="off", name="%s"/>
+   local built = string.format([[
+  %s
+  <input type="hidden" value="off", name="%s"/>
   <input type="checkbox" name="%s" %s/>
-  ]], input_id, input_id, ternary(check_module.conf.enabled, "checked", "")))
+  ]], "", -- build_on_off_toggle(check_module.key),
+      input_id, input_id, ternary(check_module.conf.enabled, "checked", ""))
+
+   return built
 end
 
 -- ##############################################
