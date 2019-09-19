@@ -589,6 +589,10 @@ if((page == "overview") or (page == nil)) then
       -- tprint(host) io.write("\n")
       print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
 
+      if host["is_blacklisted"] then
+	 print(" <i class=\'fa fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>")
+      end
+
       print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
       print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
 

@@ -257,7 +257,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if((host ~= nil) and (host["is_blacklisted"] == true)) then
-      column_ip = column_ip .. "&nbsp;<span class='label label-danger'>"..i18n("hosts_stats.label_blacklisted_host").."</span>"
+      column_ip = column_ip .. " <i class=\'fa fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
    end
 
    record["column_ip"] = column_ip
