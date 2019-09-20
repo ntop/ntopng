@@ -2231,6 +2231,11 @@ function getPasswordInputPattern()
   return [[^[\w\$\\!\/\(\)= \?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,31}$]]
 end
 
+-- NOTE: keep in sync with validateLicense()
+function getLicensePattern()
+  return [[^[a-zA-Z0-9\+/=]+$]]
+end
+
 function getIPv4Pattern()
   return "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 end

@@ -201,9 +201,9 @@ local function whereCleanup(p)
    return(p:gsub('%W><!()','_'))
 end
 
+-- NOTE: keep in sync with getLicensePattern()
 local function validateLicense(p)
-   -- A password (e.g. used in ntopng authentication)
-   return string.match(p,"[%l%u%d/+]+=*") == p or validateEmpty(p)
+   return string.match(p,"[%l%u%d/+=]+") == p or validateEmpty(p)
 end
 
 local function validatePassword(p)
@@ -1329,7 +1329,7 @@ local known_parameters = {
    ["file_id"]                                     = validateNumber,
    ["job_action"]                                  = validateExtractionJobAction,
    ["job_id"]                                      = validateNumber,
-   ["n2disk_license"]                              = validateSingleAlphanumericWord,
+   ["n2disk_license"]                              = {licenseCleanup, validateLicense},
    ["record_traffic"]                              = validateBool,
    ["max_extracted_pcap_bytes"]                    = validateNumber,
    ["traffic_recording_provider"]                  = validateTrafficRecordingProvider,
