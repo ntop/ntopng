@@ -453,9 +453,28 @@ end
 
 -- ##############################################
 
+local function getLastTsQuery(schema, query_schema, tags)
+  return string.format('SELECT LAST('.. schema._metrics[1] ..') FROM %s WHERE 1=1 AND %s', query_schema, table.tconcat(tags, "=", " AND ", nil, "'"))
+end
+
+-- ##############################################
+
 function driver:_makeTotalSerie(schema, query_schema, raw_step, tstart, tend, tags, options, url, time_step, label, unaligned_offset, data_type)
   local query = getTotalSerieQuery(schema, query_schema, raw_step, tstart, tend + unaligned_offset, tags, time_step, data_type, label)
-  local data = influx_query(url .. "/query?db=".. self.db .."&epoch=s", query, self.username, self.password, options)
+  local last_ts_query = getLastTsQuery(schema, query_schema, tags)
+  local jres = influx_query_multi(url .. "/query?db=".. self.db .."&epoch=s", string.format("%s;%s", query, last_ts_query), self.username, self.password, options)
+  local last_ts = os.time()
+  local data = {}
+
+  if(jres and jres.results and (#jres.results == 2)) then
+    if jres.results[1].series then
+      data = jres.results[1]
+    end
+
+    if jres.results[2].series and jres.results[2].series[1].values then
+      last_ts = jres.results[2].series[1].values[1][1]
+    end
+  end
 
   if table.empty(data) then
     local rv = {}
@@ -471,7 +490,7 @@ function driver:_makeTotalSerie(schema, query_schema, raw_step, tstart, tend, ta
 
   data = data.series[1]
 
-  local series, count, tstart = influx2Series(schema, tstart + time_step, tend, tags, options, data, time_step)
+  local series, count, tstart = influx2Series(schema, tstart + time_step, tend, tags, options, data, time_step, last_ts)
   return series[1].data
 end
 
@@ -545,7 +564,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local series, count
 
   -- Perform an additional query to determine the last point in the raw data
-  local last_ts_query = string.format('SELECT LAST('.. schema._metrics[1] ..') FROM %s WHERE 1=1 AND %s', query_schema, table.tconcat(tags, "=", " AND ", nil, "'"))
+  local last_ts_query = getLastTsQuery(schema, query_schema, tags)
   local jres = influx_query_multi(url .. "/query?db=".. getDatabaseName(schema, self.db) .."&epoch=s", string.format("%s;%s", query, last_ts_query), self.username, self.password, options)
   local last_ts = os.time()
 
