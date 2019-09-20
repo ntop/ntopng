@@ -379,13 +379,13 @@ if host["localhost"] == true then
 	 print("<li><a href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
       end
    end
+end
 
-   if not ntop.isWindows() then
-      if(page == "rtt") then
-	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.rtt").."</a></li>\n")
-      else
-	 print("<li><a href=\""..url.."&page=rtt\">"..i18n("host_details.rtt").."</a></li>")
-      end
+if not ntop.isWindows() then
+   if(page == "rtt") then
+      print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.rtt").."</a></li>\n")
+   else
+      print("<li><a href=\""..url.."&page=rtt\">"..i18n("host_details.rtt").."</a></li>")
    end
 end
 
