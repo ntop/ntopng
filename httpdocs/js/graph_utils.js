@@ -417,8 +417,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     d3_sel.datum(new_data);
 
     /* This additional refresh is needed to determine the yticks
-     * and domain, needed below. */
-    d3_sel.call(chart);
+     * and domain, needed below.
+     * NOTE: calling transition().duration(500) is important to properly refresh
+     * the tooltip position. */
+    d3_sel.transition().duration(500).call(chart);
 
     if(first_run) {
       num_ticks_y1 = chart.yAxis1.ticks();
@@ -463,7 +465,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.yDomain2(domain_y2);
 
     /* Refresh the chart */
-    d3_sel.transition().call(chart);
+    d3_sel.call(chart);
     nv.utils.windowResize(chart.update);
     spinner.remove();
   }
