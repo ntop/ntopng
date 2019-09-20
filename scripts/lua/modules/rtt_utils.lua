@@ -213,7 +213,9 @@ function rtt_utils.print_host_rtt_table(host)
 
    print_host_rtt_table_row(host, "ip_address", host_ip, host_ip_data)
 
-   if host_name ~= host_ip and host_name_data then
+   if host_name ~= host_ip and host_name_data
+      and ((host_name_data["conf"]["iptype"] == "ipv4" and isIPv4(host_ip))
+	 or (host_name_data["conf"]["iptype"] == "ipv6" and isIPv6(host_ip))) then
       print_host_rtt_table_row(host, "name", host_name, host_name_data)
    end
 
