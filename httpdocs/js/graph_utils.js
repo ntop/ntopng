@@ -75,7 +75,7 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
 }
 
 // Value formatter
-function getValueFormatter(schema, metric_type, series, custom_formatter) {
+function getValueFormatter(schema, metric_type, series, custom_formatter, stats) {
   if(series && series.length && series[0].label) {
     if(custom_formatter) {
       var formatters = [];
@@ -119,6 +119,11 @@ function getValueFormatter(schema, metric_type, series, custom_formatter) {
   }
 
   // fallback
+  if(stats && (stats.max_val < 1)) {
+    /* Use the float formatter to avoid having the same 0 value repeated into the scale */
+    return [ffloat, ffloat];
+  }
+
   return [fint,fint];
 }
 
@@ -434,9 +439,13 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
        * ticks to avoid repeated ticks with same integer value.
        * Other solutions (documented in https://stackoverflow.com/questions/21075245/nvd3-prevent-repeated-values-on-y-axis)
        * are not easily applicable in this case.
+       *
+       * NOTE: the problem should not occur when using ffloat
        */
-      chart.yAxis1.ticks(Math.min(cur_domain_y1, num_ticks_y1));
-      chart.yAxis2.ticks(Math.min(cur_domain_y2, num_ticks_y2));
+      if(chart.yAxis1.tickFormat() != ffloat)
+        chart.yAxis1.ticks(Math.min(cur_domain_y1, num_ticks_y1));
+      if(chart.yAxis2.tickFormat() != ffloat)
+        chart.yAxis2.ticks(Math.min(cur_domain_y2, num_ticks_y2));
     }
 
     var y1_sum = chart_data_sum(new_data.filter(function(x) { return(x.yAxis == 1); }))
@@ -909,7 +918,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       }
 
       // get the value formatter
-      var formatter1 = getValueFormatter(schema_name, metric_type, series.filter(function(d) { return(d.axis != 2); }), visualization.value_formatter);
+      var formatter1 = getValueFormatter(schema_name, metric_type, series.filter(function(d) { return(d.axis != 2); }), visualization.value_formatter, data.statistics);
       var value_formatter = formatter1[0];
       var tot_formatter = formatter1[1] || value_formatter;
       var stats_formatter = formatter1[2] || value_formatter;
@@ -917,7 +926,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.yAxis1_formatter = value_formatter;
 
       var second_axis_series = series.filter(function(d) { return(d.axis == 2); });
-      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series, visualization.value_formatter);
+      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series, visualization.value_formatter, data.statistics);
       var value_formatter2 = formatter2[0];
       chart.yAxis2.tickFormat(value_formatter2);
       chart.yAxis2_formatter = value_formatter2;

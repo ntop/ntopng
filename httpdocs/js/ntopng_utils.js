@@ -204,6 +204,14 @@ function fint(value) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function ffloat(value) {
+    if(typeof(value) === "undefined")
+      return "-";
+
+    var x = Math.round(value * 10) / 10.;
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function fpercent(value) {
     if(typeof(value) === "undefined")
       return "-";
