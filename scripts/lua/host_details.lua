@@ -1969,6 +1969,7 @@ elseif (page == "config") then
    local top_hiddens = ntop.getMembersCache(getHideFromTopSet(ifId) or {})
    local is_top_hidden = swapKeysValues(top_hiddens)[hostkey_compact] ~= nil
    local host_key = hostinfo2hostkey(host_info, nil, true --[[show vlan]])
+   local rtt_host_key = rtt_utils.host2key(host["ip"], ternary(isIPv4(host["ip"]), "ipv4", "ipv6"), "icmp")
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
       if(ifstats.inline and (host.localhost or host.systemhost)) then
@@ -1999,13 +2000,21 @@ elseif (page == "config") then
          interface.reloadHideFromTop()
       end
 
-      if(_POST["mud_recording"] ~= nil) then
+      if _POST["mud_recording"] then
          mud_utils.setHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
          interface.reloadHostPrefs(host_info.host)
       end
 
-      if(_POST["action"] == "delete_mud") then
+      if _POST["action"] == "delete_mud" then
         mud_utils.deleteHostMUD(ifId, host_info.host)
+      end
+
+      if _POST["rtt_max"] then
+	 -- pretty insane not to reuse rtt_host_key and build another key which is equal to rtt_host_key but separated by
+	 -- pipes... can't really figure out why...
+	 rtt_utils.addHost(rtt_host_key, string.format("%s|%s|%s|%s", host["ip"], ternary(isIPv4(host["ip"]), "ipv4", "ipv6"), "icmp", _POST["rtt_max"]))
+      else
+	 rtt_utils.deleteHost(rtt_host_key)
       end
    end
 
@@ -2028,6 +2037,29 @@ elseif (page == "config") then
    print [[
          </td>
       </tr>]]
+
+   if not ntop.isWindows() then
+      local host_conf = rtt_utils.getHost(rtt_host_key)
+
+      local max_rtt
+      if host_conf then
+	 max_rtt = string.format("%u", host_conf["max_rtt"])
+      end
+
+      print[[
+       <tr>
+         <th>]] print(i18n("system_stats.max_rtt_no_ms")) print[[</th>
+         <td>
+               <input type="number" name="rtt_max" class="form-control" placeholder="" style="width: 280px;" min="1" max="10000" value="]]
+      if max_rtt then
+	 print(max_rtt)
+      end
+   print[["></input> ms]]
+
+   print [[
+         </td>
+      </tr>]]
+   end
 
    printPoolChangeDropdown(ifId, host_pool_id, have_nedge)
 

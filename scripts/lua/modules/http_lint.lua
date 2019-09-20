@@ -1501,6 +1501,7 @@ local known_parameters = {
    ["hosts_only"]              = validateBool,
    ["rtt_hosts"]               = validateListOfTypeInline(validateSingleWord), -- TODO
    ["rtt_host"]                = validateSingleWord,
+   ["rtt_max"]                 = validateEmptyOr(validateNumber),
    ["disabled_status"]         = validateListOfTypeInline(validateNumber),
 
    -- Containers

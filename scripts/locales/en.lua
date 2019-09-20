@@ -1587,9 +1587,10 @@ local lang = {
   },
   ["host_config"] = {
     ["drop_all_host_traffic"] = "Drop All Host Traffic",
-    ["hide_from_top"] = "Hide from Top Talkers",
+    ["hide_from_top"] = "Hide From Top Talkers",
     ["hide_host_from_top_descr"] = "Do not account host %{host} in top talkers computation",
     ["host_alias"] = "Host Alias",
+    ["rtt_monitor"] = "RTT Monitor",
     ["host_pool"] = "Host Pool",
     ["host_traffic_policy"] = "Host Traffic Policy",
     ["modify_host_pool_policy_btn"] = "Modify Host Pool Policy",
