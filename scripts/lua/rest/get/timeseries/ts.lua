@@ -135,8 +135,8 @@ res.max_points = options.max_num_points
 
 if not isEmptyString(compare_backward) and compare_backward ~= "1Y" and (res.step ~= nil) then
   local backward_sec = getZoomDuration(compare_backward)
-  local tstart_cmp = tstart - backward_sec
-  local tend_cmp = tend - backward_sec
+  local tstart_cmp = res.start - backward_sec
+  local tend_cmp = tstart_cmp + res.step * res.count
 
   -- Try to use the same aggregation as the original query
   local res_cmp = performQuery(tstart_cmp, tend_cmp, true, {target_aggregation=res.source_aggregation})
