@@ -1092,6 +1092,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow) {
 
   if(!isDynamicInterface()) {
 
+#ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
     /* Custom disaggregation */
     if (sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
       bool processed = sub_interfaces->processFlow(this, zflow);
@@ -1099,6 +1101,8 @@ void NetworkInterface::processFlow(ParsedFlow *zflow) {
       if (processed) 
         return;
     }
+#endif
+#endif
 
     if (flowHashingMode != flowhashing_none) {
       NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
@@ -1438,6 +1442,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if(!isDynamicInterface()) {
 
+#ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
     /* Custom disaggregation */
     if (sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
       bool processed = sub_interfaces->processPacket(this,
@@ -1453,6 +1459,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if (processed) 
         return(pass_verdict);
     }
+#endif
+#endif
 
     /* VLAN disaggregation */
     if (flowHashingMode == flowhashing_vlan && vlan_id > 0) {
