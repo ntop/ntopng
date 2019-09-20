@@ -66,7 +66,7 @@ print[[</small>
    if(isAdministrator()) then
       if(info["pro.use_redis_license"] or (info["pro.license"] == "")) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('<input id="ntopng_licence" type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 value="')
+	 print('<input id="ntopng_licence" type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 pattern='.. getLicensePattern() ..' value="')
 	 print(info["ntopng.license"])
 	 
 	 print [["></input>

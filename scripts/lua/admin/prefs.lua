@@ -812,7 +812,8 @@ function printRecording()
       ..ternary(n2disk_info.systemid ~= nil, i18n("prefs.n2disk_license_systemid", {systemid=n2disk_info.systemid}), ""),
     "ntopng.prefs.", "n2disk_license",
     ternary(n2disk_info.license ~= nil, n2disk_info.license, ""),
-    false, nil, nil, nil, {style={width="25em;"}, min = 50, max = 64 })
+    false, nil, nil, nil, {style={width="25em;"}, min = 50, max = 64,
+    pattern = getLicensePattern()})
 
   print('<tr><th colspan=2 class="info">'..i18n("traffic_recording.settings")..'</th></tr>')
 
