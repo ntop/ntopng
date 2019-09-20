@@ -25,6 +25,7 @@ local ts_utils = require "ts_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
 local mud_utils = require "mud_utils"
+local rtt_utils = require "rtt_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 
@@ -376,6 +377,14 @@ if host["localhost"] == true then
 	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
       else
 	 print("<li><a href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
+      end
+   end
+
+   if not ntop.isWindows() then
+      if(page == "rtt") then
+	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.rtt").."</a></li>\n")
+      else
+	 print("<li><a href=\""..url.."&page=rtt\">"..i18n("host_details.rtt").."</a></li>")
       end
    end
 end
@@ -1790,6 +1799,8 @@ elseif(page == "snmp" and ntop.isEnterprise() and isAllowedSystemInterface()) th
       print_host_snmp_localization_table_entry(host["mac"])
       print[[</table>]]
    end
+elseif(page == "rtt") and not ntop.isWindows() then
+   rtt_utils.print_host_rtt_table(host)
 elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
    ebpf_utils.draw_processes_graph(host_info)
