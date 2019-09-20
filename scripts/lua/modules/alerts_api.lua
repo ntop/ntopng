@@ -1231,7 +1231,6 @@ local function build_on_off_toggle(submit_field, active)
    local on_active
    local off_active
 
-   tprint(active)
    if active then
 
       value = on_value
