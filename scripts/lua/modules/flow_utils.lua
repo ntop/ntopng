@@ -1223,6 +1223,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
              if status_stats[t] and status_stats[t].count > 0 then
                if first then
                  entries[#entries + 1] = '<li role="separator" class="divider"></li>'
+                 entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.mibehaving_flows") ..'</li>'
                  first = false
                end
                entries[#entries + 1] = {string.format("%u", t), i18n(s.i18n_title) .. " ("..status_stats[t].count..")"}
