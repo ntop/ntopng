@@ -163,6 +163,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   low_goodput_client_flows.reset(), low_goodput_server_flows.reset();
   num_active_flows_as_client.reset(), num_active_flows_as_server.reset();
   alert_score = CONST_NO_SCORE_SET;
+  active_alerted_flows = 0;
 
   flow_alert_counter = NULL;
   good_low_flow_detected = false;
