@@ -3257,6 +3257,7 @@ local lang = {
     ["users"] = "Users",
   },
   ["system_stats"] = {
+    ["probes"] = "Probes",
     ["delete_rtt_confirm"] = "Do you really want to delete host \"%{host}\" ?",
     ["delete_rtt_host"] = "Delete RTT Host",
     ["descr_influxdb_cardinality"] = "<a href='%{car_url}'>Series cardinality  %{car_fa}</a> provides an indication of how challenging is for InfluxDB to handle written points. High series cardinality is a primary driver of high memory usage for many database workloads. <a href='%{sizing_url}'>Hardware sizing guidelines %{sizing_fa}</a> for series cardinality recommendations are available based on the hardware.",
@@ -3291,6 +3292,7 @@ local lang = {
     ["no_hosts_configured"] = "No Hosts Configured",
     ["no_rtt_configured_for_host"] = "No RTT configured for %{host}",
     ["probe"] = "Probe",
+    ["probe_config"] = "Configuration",
     ["series_cardinality"] = "Series Cardinality",
     ["short_desc_influxdb_cardinality"] = "An indication of how challenging is for InfluxDB to handle written points.",
     ["short_desc_influxdb_dropped_points"] = "Total number of points dropped due to InfluxDB write failures.",

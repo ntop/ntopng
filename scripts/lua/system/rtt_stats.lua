@@ -55,7 +55,7 @@ else
    print("<li><a href=\"".. ntop.getHttpPrefix() .."/lua/system/rtt_stats.lua\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
-if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host=host})) then
+if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host = host})) then
   if(page == "historical") then
     print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
   else
@@ -145,7 +145,7 @@ if(page == "overview") then
 
 	 $("#table-hosts").datatable({
 	 	url: "]]
-      print (getPageUrl(ntop.getHttpPrefix().."/lua/get_rtt_hosts.lua", page_params))
+  print (getPageUrl(ntop.getHttpPrefix().."/lua/get_rtt_hosts.lua", {rtt_host = host}))
       print[[",
       title: "",
       forceTable: true,

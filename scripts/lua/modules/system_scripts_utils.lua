@@ -78,6 +78,26 @@ end
 
 -- ##############################################
 
+function system_scripts.getEntityProbes(entity_type, entity_value)
+   local configs = {}
+
+   for task in system_scripts.getTasks() do
+      for probe_name, probe in system_scripts.getSystemProbes(task) do
+	 if probe.entityConfig then
+	    local probe_entity_config = probe.entityConfig(entity_type, entity_value)
+
+	    if probe_entity_config then
+	       configs[#configs + 1] = {probe = probe, config = probe_entity_config}
+	    end
+	 end
+      end
+   end
+
+   return configs
+end
+
+-- ##############################################
+
 local tasks_cached = nil
 
 function system_scripts.getTasks()

@@ -15,11 +15,12 @@ sendHTTPContentTypeHeader('application/json')
 
 -- ################################################
 
-local currentPage  = _GET["currentPage"]
-local perPage      = _GET["perPage"]
-local sortColumn   = _GET["sortColumn"]
-local sortOrder    = _GET["sortOrder"]
+local currentPage   = _GET["currentPage"]
+local perPage       = _GET["perPage"]
+local sortColumn    = _GET["sortColumn"]
+local sortOrder     = _GET["sortOrder"]
 local cont_filter_s = _GET["custom_hosts"]
+local rtt_host      = _GET["rtt_host"]
 
 local sortPrefs = "rtt_hosts"
 
@@ -65,10 +66,17 @@ local rtt_hosts = rtt_utils.getHosts()
 local totalRows = 0
 local sort_to_key = {}
 
-for key, config in pairs(rtt_hosts) do
-  sort_to_key[key] = config.host
+if rtt_host then
+   if rtt_hosts[rtt_host] then
+      sort_to_key[rtt_host] = rtt_hosts[rtt_host]["host"]
+      totalRows = 1
+   end
+else
+   for key, config in pairs(rtt_hosts) do
+      sort_to_key[key] = config.host
 
-  totalRows = totalRows + 1
+      totalRows = totalRows + 1
+   end
 end
 
  --################################################

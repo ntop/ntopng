@@ -19,7 +19,6 @@ local alert_endpoints = require "alert_endpoints_utils"
 local flow_consts = require "flow_consts"
 local store_alerts_queue = "ntopng.alert_store_queue"
 local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
-
 local shaper_utils = nil
 
 if(ntop.isnEdge()) then
@@ -853,6 +852,33 @@ local global_redis_thresholds_key = "thresholds"
 
 -- #################################
 
+local function printProbesTab(entity_probes, entity_type, entity_value, page_name, page_params, alt_name, options)
+   local system_scripts = require("system_scripts_utils")
+
+   if #entity_probes > 0 then
+      print[[
+   <br>
+   <table class="table table-bordered table-striped">
+     <tr>
+       <th width="10%">]] print(i18n("system_stats.probe")) print[[</th>
+       <th width="25%">]] print(i18n("system_stats.probe_config")) print[[</th>
+     </tr>]]
+
+      for _, probe in ipairs(entity_probes) do
+      print[[
+     <tr>
+       <td>]] print(probe["probe"]["name"]) print[[</td>
+       <td><a href="]] print(probe["config"]["url"]) print[["><i class="fa fa-cog" aria-hidden="true"></i></a></td>
+     </tr>]]
+	 
+      end
+
+      print[[</table>]]
+   end
+end
+
+-- #################################
+
 local function printConfigTab(entity_type, entity_value, page_name, page_params, alt_name, options)
    local trigger_alerts = true
    local ifid = interface.getId()
@@ -1108,7 +1134,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    if(tab == nil) then tab = "min" end
    local is_alert_list_tab = ((tab == "alert_list") or (tab == "past_alert_list") or (tab == "flow_alert_list"))
 
-   if((not is_alert_list_tab) and (tab ~= "config")) then
+   if not is_alert_list_tab and tab ~= "config" and tab ~= "probes" then
       local granularity_label = alertEngineLabel(alertEngine(tab))
 
       print(
@@ -1146,6 +1172,13 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       end
    end
 
+   local system_scripts = require("system_scripts_utils")
+   local entity_probes = system_scripts.getEntityProbes(entity_type, alert_source)
+
+   if #entity_probes > 0 then
+      printTab("probes", i18n("system_stats.probes"), tab)
+   end
+
    printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
 
    local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, not options.remote_host)
@@ -1156,6 +1189,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
    elseif(tab == "config") then
       printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
+   elseif(tab == "probes") and #entity_probes > 0 then
+      printProbesTab(entity_probes, entity_type, alert_source, page_name, page_params, alt_name, options)
    else
       -- Before doing anything we need to check if we need to save values
 
