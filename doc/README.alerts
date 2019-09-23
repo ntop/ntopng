@@ -10,9 +10,7 @@ could trigger, for example, an external bash script with custom logic.
 The custom alert endpoint can be enabled as follows:
 
   1. Run `cp /usr/share/ntopng/scripts/lua/modules/alert_endpoints/{sample.lua,custom.lua}`
-  2. Enable "Alerts to Third-Party Endpoints" from the "Alert Endpoints" settings
-  3. Run `redis-cli set ntopng.prefs.alerts.custom_notifications_enabled 1`
-  4. Restart ntopng
+  2. Restart ntopng
 
 The file `/usr/share/ntopng/scripts/lua/modules/alert_endpoints/custom.lua` can then be
 modified with custom logic.

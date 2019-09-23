@@ -53,7 +53,6 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
     enable_arp_matrix_generation = false, enable_exfiltration_alerts = true,
     enable_informative_captive_portal = false,
-    external_notifications_enabled = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
     use_ports_to_determine_src_and_dst = false;
     hostMask = no_host_mask;
@@ -596,7 +595,6 @@ void Prefs::reloadPrefsFromRedis() {
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
     enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
     enabled_ids_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_IDS_ALERTS, CONST_DEFAULT_IDS_ALERTS_ENABLED),
-    external_notifications_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_EXTERNAL_NOTIFICATIONS_ENABLED, false),
 
     enable_arp_matrix_generation = getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
 

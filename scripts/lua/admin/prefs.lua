@@ -553,19 +553,6 @@ function printExternalAlertsReport()
   local alert_sev_labels = {i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")}
   local alert_sev_values = {"error", "warning", "info"}
 
-  print('<tr><th colspan="2" class="info">'..i18n("prefs.alerts_notifications")..'</th></tr>')
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_external_alerts",
-    pref = "alerts.external_notifications_enabled",
-    default = "0",
-    hidden = not showElements,
-  })
-
-  local external_alerts_enabled = ntop.getPref("ntopng.prefs.alerts.external_notifications_enabled") == "1"
-
-  if external_alerts_enabled then
-
      if ntop.sendMail then -- only if sendmail is defined, and thus, supported
 	print('<tr><th colspan="2" class="info">'..i18n("prefs.email_notification")..'</th></tr>')
 	
@@ -761,8 +748,6 @@ function printExternalAlertsReport()
 
     print('<tr id="webhook_test" style="' .. ternary(showWebhookNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-default disable-on-dirty" type="button" onclick="sendTestWebhook();" style="width:230px; float:left;">'..i18n("prefs.send_test_webhook")..'</button></td></tr>')
 
-  end
-  
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

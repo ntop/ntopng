@@ -69,10 +69,9 @@ end
 -- ##############################################
 
 local function getEnabledAlertNotificationModules()
-   local notifications_enabled = (ntop.getPref("ntopng.prefs.alerts.external_notifications_enabled") == "1")
    local has_alerts_disabled = (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1")
 
-   if not notifications_enabled or has_alerts_disabled then
+   if has_alerts_disabled then
       return {}
    end
 

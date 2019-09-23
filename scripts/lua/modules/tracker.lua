@@ -65,7 +65,6 @@ local function tracker_filter_pref(key)
      k == "alerts.device_first_seen_alert" or
      k == "alerts.device_connection_alert" or
      k == "alerts.pool_connection_alert" or
-     k == "alerts.external_notifications_enabled" or
      k == "alerts.email_notifications_enabled" or
      k == "alerts.slack_notifications_enabled" or
      k == "alerts.syslog_notifications_enabled" or

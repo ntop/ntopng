@@ -339,8 +339,7 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 bool AlertsManager::notifyFlowAlert(u_int64_t rowid) {
   bool rv = false;
 
-  if(!ntop->getPrefs()->are_alerts_disabled()
-	  && ntop->getPrefs()->are_ext_alerts_notifications_enabled()) {
+  if(!ntop->getPrefs()->are_alerts_disabled()) {
     json_object *notif = json_object_new_object();
 
     if(notif) {
