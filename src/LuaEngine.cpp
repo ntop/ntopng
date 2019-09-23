@@ -10607,6 +10607,9 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   // now it's time to set the interface.
   setInterface(user, ifname, sizeof(ifname), &is_interface_allowed);
 
+  if(!valid_csrf)
+    lua_push_bool_table_entry(L, "INVALID_CSRF", true);
+
   lua_setglobal(L, "_SESSION"); /* Like in php */
 
   if(user[0] != '\0') {

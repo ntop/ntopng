@@ -1418,7 +1418,7 @@ elseif(page == "config") then
    local serialize_by_mac
    local serialize_by_mac_key = string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifId)
 
-   if _SERVER["REQUEST_METHOD"] == "POST" then
+   if(_POST["lbd_hosts_as_macs"] ~= nil) then
       serialize_by_mac = _POST["lbd_hosts_as_macs"]
 
       if ntop.getPref(serialize_by_mac_key) ~= serialize_by_mac then

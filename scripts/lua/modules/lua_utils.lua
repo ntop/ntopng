@@ -169,24 +169,37 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers)
   info = ntop.getInfo(false)
   local cookie_attr = ntop.getCookieAttributes()
+  local lines = {
+    'Cache-Control: max-age=0, no-cache, no-store',
+    'Server: ntopng '..info["version"]..' ['.. info["platform"]..']',
+    'Pragma: no-cache',
+    'X-Frame-Options: DENY',
+    'X-Content-Type-Options: nosniff',
+    'Content-Type: '.. mime,
+    'Last-Modified: '..os.date("!%a, %m %B %Y %X %Z"),
+  }
 
-  print('HTTP/1.1 200 OK\r\n')
-  print('Cache-Control: max-age=0, no-cache, no-store\r\n')
-  print('Server: ntopng '..info["version"]..' ['.. info["platform"]..']\r\n')
-  print('Pragma: no-cache\r\n')
-  print('X-Frame-Options: DENY\r\n')
-  print('X-Content-Type-Options: nosniff\r\n')
-  if(_SESSION ~= nil) then print('Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr .. '\r\n') end
-  if(ifname ~= nil) then print('Set-Cookie: ifname=' .. ifname .. '; path=/' .. cookie_attr .. '\r\n') end
-  print('Content-Type: '.. mime ..'\r\n')
-  if(content_disposition ~= nil) then print('Content-Disposition: '..content_disposition..'\r\n') end
+  if(_SESSION ~= nil) then
+    lines[#lines + 1] = 'Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr
+  end
+
+  if(ifname ~= nil) then
+    lines[#lines + 1] = 'Set-Cookie: ifname=' .. ifname .. '; path=/' .. cookie_attr
+  end
+
+  if(content_disposition ~= nil) then
+    lines[#lines + 1] = 'Content-Disposition: '..content_disposition
+  end
+
   if type(extra_headers) == "table" then
      for hname, hval in pairs(extra_headers) do
-	print(hname..': '..hval..'\r\n')
+        lines[#lines + 1] = hname..': '..hval
      end
   end
-  print('Last-Modified: '..os.date("!%a, %m %B %Y %X %Z").."\r\n")
-  print('\r\n')
+
+  -- Buffer the HTTP reply and write it in one "print" to avoid fragmenting
+  -- it into multiple packets, to ease HTTP debugging with wireshark.
+  print("HTTP/1.1 200 OK\r\n" .. table.concat(lines, "\r\n") .. "\r\n\r\n")
 end
 
 -- ##############################################
