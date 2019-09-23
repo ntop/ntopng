@@ -1454,7 +1454,7 @@ local function printDisabledAlerts(ifid)
 
   <script>
   $("#table-disabled-alerts").datatable({
-    url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_disabled_alerts.lua?ifid=]] print(ifid) print[[",
+    url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_disabled_alerts.lua?ifid=]] print(string.format("%d", ifid)) print[[",
     showPagination: true,
     title: "]] print(i18n("show_alerts.disabled_alerts")) print[[",
       columns: [
@@ -1799,7 +1799,7 @@ function toggleAlert(disable) {
 	       showPagination: true,
                buttons: [']]
 
-   local title = t["label"]..ternary(t["chart"] ~= "", " <small><A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid.."&page=historical&ts_schema="..t["chart"].."'><i class='fa fa-area-chart fa-sm'></i></A></small>", "")
+   local title = t["label"]..ternary(t["chart"] ~= "", " <small><A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..string.format("%d", ifid).."&page=historical&ts_schema="..t["chart"].."'><i class='fa fa-area-chart fa-sm'></i></A></small>", "")
 
 	 if(options.hide_filters ~= true)  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
