@@ -1883,7 +1883,8 @@ bool Prefs::in_elephant_whitelist(const Flow * f) const {
 
 bool Prefs::is_longlived_flow(const Flow * f) const {
   bool ret = !in_longlived_whitelist(f)
-    && f->get_duration() > get_longlived_flow_duration();
+    && f->get_duration() > get_longlived_flow_duration()
+    && f->get_srv_ip_addr()->isNonEmptyUnicastAddress();
 
   return ret;
 }
