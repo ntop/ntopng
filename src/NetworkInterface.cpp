@@ -582,6 +582,8 @@ void NetworkInterface::deleteDataStructures() {
 /* **************************************************** */
 
 NetworkInterface::~NetworkInterface() {
+  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
+
 #ifdef PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
   if (isPacketInterface() && n > 0) {
@@ -623,6 +625,10 @@ NetworkInterface::~NetworkInterface() {
     delete []networkStats;
   }
   if(interfaceStats) delete interfaceStats;
+
+  for(it = external_alerts.begin(); it != external_alerts.end(); ++it)
+    delete it->second;
+  external_alerts.clear();
 
   if(flowHashing) {
     FlowHashing *current, *tmp;
