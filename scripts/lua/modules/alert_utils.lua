@@ -1450,8 +1450,6 @@ local function printDisabledAlerts(ifid)
   local entitites = alerts_api.listEntitiesWithAlertsDisabled(ifid)
 
   print[[
-  <div id="#table-disabled-alerts"></div>
-
   <script>
   $("#table-disabled-alerts").datatable({
     url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_disabled_alerts.lua?ifid=]] print(string.format("%d", ifid)) print[[",
