@@ -118,6 +118,7 @@ int Ping::ping(char *_addr, bool use_v6) {
   struct ping_packet pckt;
   u_int i;
   struct timeval *tv;
+  ssize_t res;
 
   if(hname == NULL)
     return(-1);
@@ -146,13 +147,18 @@ int Ping::ping(char *_addr, bool use_v6) {
   pckt.hdr.checksum = checksum(&pckt, sizeof(ping_packet));
 
   if(use_v6)
-    return(sendto(sd6, &pckt, sizeof(pckt), 0,
-		  (struct sockaddr*)&addr6,
-		  sizeof(addr6)));
-else
-  return(sendto(sd, &pckt, sizeof(pckt), 0,
-		(struct sockaddr*)&addr,
-		sizeof(addr)));
+    res = sendto(sd6, &pckt, sizeof(pckt), 0,
+		 (struct sockaddr*)&addr6,
+		 sizeof(addr6));
+  else
+    res = sendto(sd, &pckt, sizeof(pckt), 0,
+		 (struct sockaddr*)&addr,
+		 sizeof(addr));
+
+  if(res == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send ping [address: %s][v6: %u][reason: %s]", _addr, use_v6 ? 1 : 0, strerror(errno));
+
+  return res;
 }
 
 /* ****************************************** */

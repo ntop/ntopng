@@ -214,12 +214,8 @@ class Ntop {
     address->resolveHostName(numeric_ip, symbolic, symbolic_len);
   }
 
-  inline bool resolveHostV4(char *host, char *rsp, u_int rsp_len) {
-    return(address->resolveHostV4(host, rsp, rsp_len));
-  }
-
-  inline bool resolveHostV6(char *host, char *rsp, u_int rsp_len) {
-    return(address->resolveHostV6(host, rsp, rsp_len));
+  inline bool resolveHost(char *host, char *rsp, u_int rsp_len, bool v4) {
+    return address->resolveHost(host, rsp, rsp_len, v4);
   }
 
   /**

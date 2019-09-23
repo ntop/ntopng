@@ -147,40 +147,26 @@ void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int
 
 /* **************************************************** */
 
-bool AddressResolution::resolveHostV4(char *host, char *rsp, u_int rsp_len) {
+bool AddressResolution::resolveHost(char *host, char *rsp, u_int rsp_len, bool v4) {
   struct addrinfo hints, *servinfo, *rp;
-  int rv;
+  const char *dst = NULL;
 
-  memset(&hints,0,sizeof(hints));
+  memset(&hints, 0, sizeof(hints));
 
-  hints.ai_family = AF_INET;
+  hints.ai_family = v4 ? AF_INET : AF_INET6;
   hints.ai_socktype = SOCK_STREAM;
 
-  if((rv = getaddrinfo(host, NULL, &hints, &servinfo)) == 0) {
-    for(rp = servinfo; rp != NULL; rp = rp->ai_next)
-      return(inet_ntop(rp->ai_family,
-        &((struct sockaddr_in *)rp->ai_addr)->sin_addr, rsp, rsp_len) != NULL);
+  if(!getaddrinfo(host, NULL, &hints, &servinfo)) {
+    for(rp = servinfo; rp != NULL; rp = rp->ai_next) {
+      if((v4 && (dst = inet_ntop(rp->ai_family, &((struct sockaddr_in *)rp->ai_addr)->sin_addr, rsp, rsp_len)))
+	 || (dst = inet_ntop(rp->ai_family, &((struct sockaddr_in6 *)rp->ai_addr)->sin6_addr, rsp, rsp_len)))
+	break;
+    }
+
+    freeaddrinfo(servinfo);
   }
 
-  return(false);
-}
-
-bool AddressResolution::resolveHostV6(char *host, char *rsp, u_int rsp_len) {
-  struct addrinfo hints, *servinfo, *rp;
-  int rv;
-
-  memset(&hints,0,sizeof(hints));
-
-  hints.ai_family = AF_INET6;
-  hints.ai_socktype = SOCK_STREAM;
-
-  if((rv = getaddrinfo(host, NULL, &hints, &servinfo)) == 0) {
-    for(rp = servinfo; rp != NULL; rp = rp->ai_next)
-      return(inet_ntop(rp->ai_family,
-        &((struct sockaddr_in6 *)rp->ai_addr)->sin6_addr, rsp, rsp_len) != NULL);
-  }
-
-  return(false);
+  return dst != NULL;
 }
 
 /* **************************************************** */

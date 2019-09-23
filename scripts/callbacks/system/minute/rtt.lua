@@ -82,37 +82,37 @@ function probe.runTask(when, ts_utils)
      local ip_address = host_label
      local is_v6
 
-     if(host.iptype == "ipv6") then
+     if host.iptype == "ipv6" then
 	is_v6 = true
      else
 	is_v6 = false
      end
      
-     if(not isIPv4(host_label) and not(is_v6)) then
-       ip_address = ntop.resolveHostV4(host_label)
+     if not isIPv4(host_label) and not is_v6 then
+       ip_address = ntop.resolveHost(host_label, true --[[IPv4 --]])
 
-       if(ip_address == nil) then
-          if(debug) then
+       if not ip_address then
+          if debug then
              print("[RTT] Could not resolve IPv4 host: ".. host_label .."\n")
           end
 	  goto continue
        end
-     elseif(not isIPv6(host_label) and is_v6) then
-	ip_address = ntop.resolveHostV6(host_label)
+     elseif not isIPv6(host_label) and is_v6 then
+	ip_address = ntop.resolveHost(host_label, false --[[IPv6 --]])
 
-	if(ip_address == nil) then
-          if(debug) then
+	if not ip_address then
+          if debug then
              print("[RTT] Could not resolve IPv6 host: ".. host_label .."\n")
           end
 	  goto continue
 	end
      end
 
-     if(debug) then
+     if debug then
 	print("[RTT] Pinging "..ip_address.."/"..host_label.."\n")
      end
 
-     ntop.pingHost(host_label, is_v6)
+     ntop.pingHost(ip_address, is_v6)
      pinged_hosts[ip_address] = key
      max_latency[ip_address]  = host.max_rtt
 
