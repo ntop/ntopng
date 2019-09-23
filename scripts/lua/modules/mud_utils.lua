@@ -276,8 +276,8 @@ local function getAclMatches(conn, dir)
 
    if(conn.l7proto ~= nil) then
       -- NTOP_MUD
-      matches["ndpi_l7"] = {
-         ["application"] = string.lower(conn.l7proto),
+      matches["cybersec-mud:ndpi"] = {
+         ["application-protocol"] = string.lower(conn.l7proto),
       }
    end
 
@@ -285,24 +285,24 @@ local function getAclMatches(conn, dir)
       if(conn.fingerprint_type == "JA3") then
          if(not isEmptyString(conn.host_fingerprint)) then
             -- NTOP_MUD
-            matches["ja3"] = matches["ja3"] or {}
-            matches["ja3"]["client-fingerprint"] = conn.host_fingerprint
+            matches["cybersec-mud:ja3"] = matches["cybersec-mud:ja3"] or {}
+            matches["cybersec-mud:ja3"]["client-fingerprint"] = conn.host_fingerprint
          end
          if(not isEmptyString(conn.peer_fingerprint)) then
             -- NTOP_MUD
-            matches["ja3"] = matches["ja3"] or {}
-            matches["ja3"]["server-fingerprint"] = conn.peer_fingerprint
+            matches["cybersec-mud:ja3"] = matches["cybersec-mud:ja3"] or {}
+            matches["cybersec-mud:ja3"]["server-fingerprint"] = conn.peer_fingerprint
          end
       elseif(conn.fingerprint_type == "HASSH") then
          if(not isEmptyString(conn.host_fingerprint)) then
             -- NTOP_MUD
-            matches["hassh"] = matches["hassh"] or {}
-            matches["hassh"]["client-fingerprint"] = conn.host_fingerprint
+            matches["cybersec-mud:hassh"] = matches["cybersec-mud:hassh"] or {}
+            matches["cybersec-mud:hassh"]["client-fingerprint"] = conn.host_fingerprint
          end
          if(not isEmptyString(conn.peer_fingerprint)) then
             -- NTOP_MUD
-            matches["hassh"] = matches["hassh"] or {}
-            matches["hassh"]["server-fingerprint"] = conn.peer_fingerprint
+            matches["cybersec-mud:hassh"] = matches["cybersec-mud:hassh"] or {}
+            matches["cybersec-mud:hassh"]["server-fingerprint"] = conn.peer_fingerprint
          end
       end
    end
