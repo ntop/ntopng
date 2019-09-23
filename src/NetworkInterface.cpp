@@ -173,7 +173,6 @@ NetworkInterface::NetworkInterface(const char *name,
     next_idle_flow_purge = next_idle_host_purge = 0;
     cpu_affinity = -1 /* no affinity */,
       has_vlan_packets = has_ebpf_events = has_mac_addresses = false;
-    arp_requests = arp_replies = 0;
 
     running = false,
       inline_interface = false;
@@ -274,6 +273,7 @@ void NetworkInterface::init() {
     has_too_many_hosts = has_too_many_flows = false,
     slow_stats_update = false, flow_dump_disabled = false,
     numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
+    arp_requests = arp_replies = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
