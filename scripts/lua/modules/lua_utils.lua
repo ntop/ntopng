@@ -2552,16 +2552,27 @@ end
 
 function formatMaliciousSignature(flowstatus_info)
   local res = i18n("alerts_dashboard.malicious_signature_detected")
+  local cli_signature = flowstatus_info.cli_ja3_signature or
+    (flowstatus_info.ja3_signature --[[ for compatibility with existing alerts ]])
+  local srv_signature = flowstatus_info.srv_ja3_signature
 
   if not flowstatus_info then
     return res
   end
 
-  if(flowstatus_info.ja3_signature ~= nil) then
+  if(cli_signature ~= nil) then
     res = i18n("flow_details.malicious_ja3_signature", {
-      signature = flowstatus_info.ja3_signature,
-      url = "https://sslbl.abuse.ch/ja3-fingerprints/" .. flowstatus_info.ja3_signature,
+      signature = cli_signature,
+      url = "https://sslbl.abuse.ch/ja3-fingerprints/" .. cli_signature,
       icon = " <i class=\"fa fa-external-link\"></i>",
+      cli_or_srv = i18n("client"),
+    })
+  elseif(srv_signature ~= nil) then
+    res = i18n("flow_details.malicious_ja3_signature", {
+      signature = srv_signature,
+      url = "https://sslbl.abuse.ch/ja3-fingerprints/" .. srv_signature,
+      icon = " <i class=\"fa fa-external-link\"></i>",
+      cli_or_srv = i18n("server"),
     })
   end
 

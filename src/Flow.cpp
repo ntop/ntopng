@@ -136,7 +136,7 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   passVerdict = true, quota_exceeded = false;
-  has_malicious_signature = false;
+  has_malicious_cli_signature = has_malicious_srv_signature = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
@@ -528,13 +528,14 @@ void Flow::processDetectedProtocol() {
 
     if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
       protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
-      updateJA3();
+      updateCliJA3();
     }
 
     if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
       protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
       protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
       protos.ssl.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
+      updateSrvJA3();
     }
 
     if(check_tor) {
@@ -1933,8 +1934,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	if(protos.ssl.server_certificate)
 	  lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
 
-	if(protos.ssl.ja3.client_hash)
+	if(protos.ssl.ja3.client_hash) {
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.client_hash", protos.ssl.ja3.client_hash);
+
+    if(has_malicious_cli_signature)
+      lua_push_bool_table_entry(vm, "protos.ssl.ja3.client_malicious", true);
+  }
 
 	if(protos.ssl.ja3.server_hash) {
 	  lua_push_str_table_entry(vm, "protos.ssl.ja3.server_hash", protos.ssl.ja3.server_hash);
@@ -1942,6 +1947,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 				   cipher_weakness2str(protos.ssl.ja3.server_unsafe_cipher));
 	  lua_push_int32_table_entry(vm, "protos.ssl.ja3.server_cipher",
 				     protos.ssl.ja3.server_cipher);
+
+    if(has_malicious_srv_signature)
+      lua_push_bool_table_entry(vm, "protos.ssl.ja3.server_malicious", true);
 	}
       }
     }
@@ -2243,8 +2251,10 @@ json_object* Flow::flow2statusinfojson() {
 			   json_object_new_int64(ntop->getPrefs()->get_elephant_flow_remote_to_local_bytes()));
 
   if(Utils::bitmapIsSet(status_map, status_malicious_signature)) {
-    if(isSSL() && protos.ssl.ja3.client_hash)
-      json_object_object_add(obj, "ja3_signature", json_object_new_string(protos.ssl.ja3.client_hash));
+    if(has_malicious_cli_signature)
+      json_object_object_add(obj, "cli_ja3_signature", json_object_new_string(protos.ssl.ja3.client_hash));
+    if(has_malicious_srv_signature)
+      json_object_object_add(obj, "srv_ja3_signature", json_object_new_string(protos.ssl.ja3.server_hash));
   }
 
   if(isICMP()) { /* TODO: throw this block away once the lua alerts migration is completed */ 
@@ -3929,7 +3939,7 @@ FlowStatus Flow::getFlowStatus(FlowStatusMap *status_map) {
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)
     *status_map = Utils::bitmapSet(*status_map, status = status_web_mining_detected);
 
-  if(has_malicious_signature)
+  if(has_malicious_cli_signature || has_malicious_srv_signature)
     *status_map = Utils::bitmapSet(*status_map, status = status_malicious_signature);
 
   if(!isDeviceAllowedProtocol())
@@ -4074,19 +4084,31 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
       iface->setSeenPods();
   }
 
-  updateJA3();
+  updateCliJA3();
+  updateSrvJA3();
   updateHASSH(true /* AS client */);
   updateHASSH(false /* AS server */);
 }
 
 /* ***************************************************** */
 
-void Flow::updateJA3() {
+void Flow::updateCliJA3() {
   if(cli_host && isSSL() && protos.ssl.ja3.client_hash) {
     cli_host->getJA3Fingerprint()->update(protos.ssl.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
 
-    has_malicious_signature |= ntop->isMaliciousJA3Hash(protos.ssl.ja3.client_hash);
+    has_malicious_cli_signature |= ntop->isMaliciousJA3Hash(protos.ssl.ja3.client_hash);
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::updateSrvJA3() {
+  if(srv_host && isSSL() && protos.ssl.ja3.server_hash) {
+    srv_host->getJA3Fingerprint()->update(protos.ssl.ja3.server_hash,
+					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL);
+
+    has_malicious_srv_signature |= ntop->isMaliciousJA3Hash(protos.ssl.ja3.server_hash);
   }
 }
 

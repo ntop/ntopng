@@ -67,7 +67,7 @@ class Flow : public GenericHashEntry {
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
-    quota_exceeded, has_malicious_signature;
+    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
   u_int16_t diff_num_http_requests;
   int64_t alert_rowid;
 #ifdef NTOPNG_PRO
@@ -231,7 +231,8 @@ class Flow : public GenericHashEntry {
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
   bool triggerAlerts() const;
   void dumpFlowAlert();
-  void updateJA3();
+  void updateCliJA3();
+  void updateSrvJA3();
   void updateHASSH(bool as_client);
   const char* cipher_weakness2str(ndpi_cipher_weakness w);
   bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;

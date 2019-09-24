@@ -868,10 +868,16 @@ else
 
    if((flow["protos.ssl.ja3.client_hash"] ~= nil) or (flow["protos.ssl.ja3.server_hash"] ~= nil)) then
       print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
+      if(flow["protos.ssl.ja3.client_malicious"]) then
+        print('<i class="fa fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
+      end
       ja3url(flow["protos.ssl.ja3.client_hash"], nil)
       print("</td><td>")
+      if(flow["protos.ssl.ja3.server_malicious"]) then
+        print('<i class="fa fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
+      end
       ja3url(flow["protos.ssl.ja3.server_hash"], flow["protos.ssl.ja3.server_unsafe_cipher"])
-      print(cipher2str(flow["protos.ssl.ja3.server_cipher"]))
+      --print(cipher2str(flow["protos.ssl.ja3.server_cipher"]))
       print("</td></tr>")
    end
 
@@ -953,6 +959,8 @@ else
 
    -- ######################################
 
+   local alerted_status = nil
+
    if flow["flow.alerted"] then
       local message = nil
 
@@ -963,27 +971,38 @@ else
          local res = performAlertsQuery("SELECT *", "historical-flows", {row_id = flow["flow.alert_rowid"]})
 
          if((res ~= nil) and (#res == 1)) then
-            message = formatAlertMessage(ifid, res[1], true --[[ skip peers, we are already showing the flow ]])
+            local alert_json = json.decode(res[1]["alert_json"])
+
+            if(alert_json ~= nil) and (alert_json["status_info"] ~= nil)then
+               alerted_status = tonumber(res[1].flow_status)
+               message = getFlowStatus(alerted_status, alert_json["status_info"])
+            end
          end
       end
 
       print(message)
       print("</td></tr>\n")
    end
+   
+   local additional_status = flow["status_map"]
 
-   local status_icon = ""
+   additional_status = ntop.bitmapClear(additional_status, flow_consts.status_normal)
 
-   if(flow["status_map"] ~= 0) then
-      status_icon = "<i class=\"fa fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
+   if(alerted_status ~= nil) then
+      additional_status = ntop.bitmapClear(additional_status, alerted_status)
    end
 
-   print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_status").."</th><td colspan=2>")
-   for id, t in pairs(flow_consts.flow_status_types) do
-      if ntop.bitmapIsSet(flow["status_map"], id) then
-         print(getFlowStatus(id, flow2statusinfo(flow)).."<br />")
+   if(additional_status ~= 0) then
+      local status_icon = "<i class=\"fa fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
+
+      print("<tr><th width=30%>"..status_icon..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
+      for id, t in pairs(flow_consts.flow_status_types) do
+         if ntop.bitmapIsSet(additional_status, id) then
+            print(getFlowStatus(id, flow2statusinfo(flow)).."<br />")
+         end
       end
+      print("</td></tr>\n")
    end
-   print("</td></tr>\n")
 
    if debug_score then
      if(flow["score"] > 0) then
