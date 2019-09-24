@@ -2627,9 +2627,10 @@ bool Flow::update_partial_traffic_stats_db_dump() {
 
 /* *************************************** */
 
-void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *when) {
+void Flow::updatePacketStats(InterarrivalStats *stats,
+			     const struct timeval *when, bool update_iat) {
   if(stats)
-    stats->updatePacketStats((struct timeval*)when);
+    stats->updatePacketStats((struct timeval*)when, update_iat);
 }
 
 /* *************************************** */
@@ -2690,11 +2691,20 @@ bool Flow::isSSLProto() {
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int8_t *payload, u_int payload_len,
                     u_int8_t l4_proto, u_int8_t is_fragment,
-		    const struct timeval *when) {
+		    u_int16_t tcp_flags, const struct timeval *when) {
+  bool update_iat = true;
+  
   payload_len *= iface->getScalingFactor();
-
   updateSeen();
-  updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when);
+
+  /*
+    Do not update IAT during initial or final 3WH as we want to compute
+    it only on the main traffic flow and not on connection or tear-down
+  */
+  if((l4_proto == IPPROTO_TCP) && (tcp_flags & (TH_SYN|TH_FIN|TH_RST)))
+    update_iat = false;
+  
+  updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when, update_iat);
 
   if(cli2srv_direction) {
     stats.cli2srv_packets++, stats.cli2srv_bytes += pkt_len, stats.cli2srv_goodput_bytes += payload_len, ip_stats_s2d.pktFrag += is_fragment;

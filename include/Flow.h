@@ -214,7 +214,7 @@ class Flow : public GenericHashEntry {
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
   bool isLowGoodput();
-  static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
+  static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when, bool update_iat);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   bool isReadyToBeMarkedAsIdle();
   bool isBlacklistedFlow() const;
@@ -331,7 +331,7 @@ class Flow : public GenericHashEntry {
   void incStats(bool cli2srv_direction, u_int pkt_len,
 		u_int8_t *payload, u_int payload_len, 
                 u_int8_t l4_proto, u_int8_t is_fragment,
-		const struct timeval *when);
+		u_int16_t tcp_flags, const struct timeval *when);
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
 		    u_int in_fragments, u_int out_fragments, time_t last_seen);

@@ -28,10 +28,11 @@ InterarrivalStats::InterarrivalStats() {
 
 /* ******************************************** */
 
-void InterarrivalStats::updatePacketStats(struct timeval* when) {
-  if(lastTime.tv_sec) {
+void InterarrivalStats::updatePacketStats(struct timeval* when,
+					  bool update_iat) {
+  if(update_iat && lastTime.tv_sec) {
     float deltaMS = Utils::msTimevalDiff(when, &lastTime);
-
+    
     if(deltaMS > 0)
       ndpi_data_add_value(&delta_ms, (u_int32_t)deltaMS);    
   }

@@ -32,7 +32,7 @@ private:
 public:
   InterarrivalStats();
 
-  void updatePacketStats(struct timeval *when);
+  void updatePacketStats(struct timeval *when, bool update_iat);
 
   inline u_int32_t getMin()    { return(ndpi_data_min(&delta_ms));     }
   inline u_int32_t getMax()    { return(ndpi_data_max(&delta_ms));     }

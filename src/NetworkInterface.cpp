@@ -1448,7 +1448,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   *hostFlow = NULL;
 
   if(!isDynamicInterface()) {
-
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
@@ -1753,11 +1752,17 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #ifndef HAVE_NEDGE
 #ifdef __OpenBSD__
     struct timeval tv_ts;
+
     tv_ts.tv_sec  = h->ts.tv_sec;
     tv_ts.tv_usec = h->ts.tv_usec;
-    flow->incStats(src2dst_direction, len_on_wire, payload, trusted_payload_len, l4_proto, is_fragment, &tv_ts);
+
+    flow->incStats(src2dst_direction, len_on_wire, payload,
+		   trusted_payload_len, l4_proto, is_fragment,
+		   tcp_flags, &tv_ts);
 #else
-    flow->incStats(src2dst_direction, len_on_wire, payload, trusted_payload_len, l4_proto, is_fragment, &h->ts);
+    flow->incStats(src2dst_direction, len_on_wire, payload,
+		   trusted_payload_len, l4_proto, is_fragment,
+		   tcp_flags, &h->ts);
 #endif
 #endif
   }
