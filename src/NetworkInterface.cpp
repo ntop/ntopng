@@ -195,8 +195,7 @@ NetworkInterface::NetworkInterface(const char *name,
   shadow_flow_profiles = NULL;
 
   sub_interfaces = ntop->getPro()->has_valid_license() ? new SubInterfaces() : NULL;
-  if(sub_interfaces) sub_interfaces->loadSubInterfaces();
-  shadow_sub_interfaces = NULL;
+  if(sub_interfaces) sub_interfaces->loadSubInterfaces(this);
 #endif
 
   /* Lazy, instantiated on demand */
@@ -320,7 +319,7 @@ void NetworkInterface::init() {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   flow_profiles = shadow_flow_profiles = NULL;
-  sub_interfaces = shadow_sub_interfaces = NULL;
+  sub_interfaces = NULL;
 #endif
 #endif
 
@@ -656,7 +655,6 @@ NetworkInterface::~NetworkInterface() {
   if(flow_profiles)         delete(flow_profiles);
   if(shadow_flow_profiles)  delete(shadow_flow_profiles);
   if(sub_interfaces)        delete(sub_interfaces);
-  if(shadow_sub_interfaces) delete(shadow_sub_interfaces);
 #endif
   if(custom_app_stats)      delete custom_app_stats;
   if(flow_interfaces_stats) delete flow_interfaces_stats;
@@ -1104,7 +1102,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow) {
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
     if (sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
-      bool processed = sub_interfaces->processFlow(this, zflow);
+      bool processed = sub_interfaces->processFlow(zflow);
      
       if (processed) 
         return;
@@ -1453,8 +1451,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
     if (sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
-      bool processed = sub_interfaces->processPacket(this,
-						     bridge_iface_idx,
+      bool processed = sub_interfaces->processPacket(bridge_iface_idx,
 						     ingressPacket, when, packet_time,
 						     eth, vlan_id,
 						     iph, ip6,
@@ -1463,8 +1460,14 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 						     h, packet, ndpiProtocol,
 						     srcHost, dstHost, hostFlow);
      
-      if (processed) 
+      if (processed) { 
+        incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
+	         NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
+	         0,
+	         len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+
         return(pass_verdict);
+      }
     }
 #endif
 #endif
@@ -3693,25 +3696,6 @@ void NetworkInterface::updateFlowProfiles() {
 
     if(flows_hash)
       walker(&begin_slot, walk_all, walker_flows, update_flow_profile, NULL);
-  }
-}
-
-/* **************************************************** */
-
-void NetworkInterface::updateSubInterfaces() {
-  if(ntop->getPro()->has_valid_license()) {
-    SubInterfaces *new_si;
-
-    if(shadow_sub_interfaces) {
-      delete shadow_sub_interfaces;
-      shadow_sub_interfaces = NULL;
-    }
-
-    shadow_sub_interfaces = sub_interfaces;
-    new_si = new SubInterfaces();
-
-    new_si->loadSubInterfaces(); /* and reload */
-    sub_interfaces = new_si; /* Overwrite the current profiles */
   }
 }
 

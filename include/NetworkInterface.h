@@ -131,7 +131,7 @@ class NetworkInterface : public AlertableEntity {
   L7Policer *policer;
 #ifndef HAVE_NEDGE
   FlowProfiles  *flow_profiles, *shadow_flow_profiles;
-  SubInterfaces *sub_interfaces, *shadow_sub_interfaces;
+  SubInterfaces *sub_interfaces;
 #endif
   CustomAppStats *custom_app_stats;
   FlowInterfacesStats *flow_interfaces_stats;
@@ -627,7 +627,7 @@ class NetworkInterface : public AlertableEntity {
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 
-  void updateSubInterfaces();
+  inline bool checkSubInterfaceSyntax(char *filter) { return(sub_interfaces ? sub_interfaces->checkSyntax(filter) : false); }
 #endif
 
   bool passShaperPacket(TrafficShaper *a_shaper, TrafficShaper *b_shaper, struct pcap_pkthdr *h);

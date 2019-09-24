@@ -9115,6 +9115,26 @@ static int ntop_nagios_withdraw_alert(lua_State* vm) {
 
 #ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
+static int ntop_check_sub_interface_syntax(lua_State* vm) {
+  char *filter;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  filter = (char*)lua_tostring(vm, 1);
+
+  lua_pushboolean(vm, ntop_interface ? ntop_interface->checkSubInterfaceSyntax(filter) : false);
+
+  return(CONST_LUA_OK);
+}
+#endif
+#endif
+
+/* ****************************************** */
+
+#ifndef HAVE_NEDGE
+#ifdef NTOPNG_PRO
 static int ntop_check_profile_syntax(lua_State* vm) {
   char *filter;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -9904,6 +9924,7 @@ static const luaL_Reg ntop_reg[] = {
   { "reloadNagiosConfig",     ntop_nagios_reload_config  },
 #endif
 #ifndef HAVE_NEDGE
+  { "checkSubInterfaceSyntax", ntop_check_sub_interface_syntax },
   { "checkProfileSyntax",     ntop_check_profile_syntax    },
   { "reloadProfiles",         ntop_reload_traffic_profiles },
 #endif

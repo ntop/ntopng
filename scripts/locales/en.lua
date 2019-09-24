@@ -3257,6 +3257,16 @@ local lang = {
     ["tree"] = "Tree",
     ["users"] = "Users",
   },
+  ["sub_interfaces"] = {
+    ["add_sub_if"] = "Add Sub-Interface",
+    ["confirm_delete"] = "Are you sure you want to delete %{name}?",
+    ["delete"] = "Delete Sub-Interface",
+    ["disaggregation"] = "Traffic Disaggregation",
+    ["filter_description"] = "An extended nBPF format is supported: in addition to the standard BPF syntax, NetFlow fields can also be used (collector mode only), including INPUT_SNMP, OUTPUT_SNMP, SRC_VLAN, DST_VLAN.",
+    ["filter_examples"] = "Filters examples",
+    ["sub_if_name"] = "Sub-Interface Name",
+    ["traffic_filter_xbpf"] = "Traffic Filter (Extended nBPF Format)",
+  },
   ["system_stats"] = {
     ["delete_rtt_confirm"] = "Do you really want to delete host \"%{host}\" ?",
     ["delete_rtt_host"] = "Delete RTT Host",
