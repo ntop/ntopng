@@ -67,7 +67,8 @@ class Flow : public GenericHashEntry {
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
-    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
+    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
+    is_alerted;
   u_int16_t diff_num_http_requests;
   int64_t alert_rowid;
 #ifdef NTOPNG_PRO
@@ -488,7 +489,8 @@ class Flow : public GenericHashEntry {
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); }
   bool isFlowAlerted() const;
-  void setFlowAlerted(int64_t rowid);
+  void setFlowAlerted();
+  void setFlowAlertId(int64_t rowid);
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {

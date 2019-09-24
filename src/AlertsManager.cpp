@@ -564,7 +564,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     m.unlock(__FILE__, __LINE__);
 
     if((rc == 0) && (cur_rowid != (u_int64_t)-1)) {
-      f->setFlowAlerted(cur_rowid);
+      f->setFlowAlertId(cur_rowid);
       notifyFlowAlert(cur_rowid);
     }
 
@@ -773,7 +773,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
     m.unlock(__FILE__, __LINE__);
 
     if((rc == 0) && (cur_rowid != (u_int64_t)-1)) {
-      f->setFlowAlerted(cur_rowid);
+      f->setFlowAlertId(cur_rowid);
       notifyFlowAlert(cur_rowid);
     }
 

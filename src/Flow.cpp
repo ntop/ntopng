@@ -139,6 +139,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   passVerdict = true, quota_exceeded = false;
   has_malicious_cli_signature = has_malicious_srv_signature = false;
+  is_alerted = false;
   if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
@@ -358,6 +359,8 @@ void Flow::dumpFlowAlert() {
     if(do_dump) {
       iface->getAlertsManager()->storeFlowAlert(this);
 
+      setFlowAlerted();
+      iface->incNumAlertedFlows();
       if(cli_host) cli_host->incNumAlertedFlows();
       if(srv_host) srv_host->incNumAlertedFlows();
     }
@@ -2482,18 +2485,19 @@ json_object* Flow::flow2json() {
 /* *************************************** */
 
 bool Flow::isFlowAlerted() const {
-  return alert_rowid >= 0;
+  return is_alerted;
 }
 
 /* *************************************** */
 
-void Flow::setFlowAlerted(int64_t rowid) {
-  if(rowid < 0)
-    return;
-
+void Flow::setFlowAlerted() {
   if(!isFlowAlerted())
-    iface->incNumAlertedFlows();
+    is_alerted = true;
+}
 
+/* *************************************** */
+
+void Flow::setFlowAlertId(int64_t rowid) {
   alert_rowid = rowid;
 }
 
