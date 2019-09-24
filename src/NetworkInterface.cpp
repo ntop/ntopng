@@ -908,7 +908,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
   PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
-			 vlan_id, l4_proto, icmp_info, src2dst_direction);
+			 vlan_id, l4_proto, icmp_info, src2dst_direction,
+			 true /* Inline call */);
   PROFILING_SECTION_EXIT(1);
 
   if(ret == NULL) {
@@ -5962,7 +5963,7 @@ Flow* NetworkInterface::findFlowByTuple(u_int16_t vlan_id,
   if(!flows_hash)
     return NULL;
 
-  f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id, l4_proto, NULL, &src2dst);
+  f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id, l4_proto, NULL, &src2dst, false /* Not an inline call */);
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
 
