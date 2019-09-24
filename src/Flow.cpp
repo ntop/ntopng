@@ -370,10 +370,18 @@ void Flow::dumpFlowAlert() {
       iface->getAlertsManager()->storeFlowAlert(this);
 
       setFlowAlerted();
-      iface->incNumAlertedFlows(this);
+
+      if(!idle()) {
+	/* If idle() and not alerted, the interface
+	   counter for active alerted flows is not incremented as
+	   it means the purgeIdle() has traversed this flow and marked 
+           it as state_idle before it was alerted */
+	iface->incNumAlertedFlows(this);
 #ifdef ALERTED_FLOWS_DEBUG
-      iface_alert_inc = true;
+	iface_alert_inc = true;
 #endif
+      }
+
       if(cli_host) cli_host->incNumAlertedFlows();
       if(srv_host) srv_host->incNumAlertedFlows();
     }
