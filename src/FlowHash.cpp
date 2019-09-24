@@ -59,7 +59,8 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 	ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);
 	max_num_loops = num_loops;
       }
-      return(head);
+
+      break;
     } else
       head = (Flow*)head->next(), num_loops++;
   }
@@ -72,5 +73,5 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
   if(!is_inline_call)
     locks[hash]->unlock(__FILE__, __LINE__);
 
-  return(NULL);
+  return(head);
 }
