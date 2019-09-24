@@ -48,7 +48,7 @@ Vlan::~Vlan() {
 
 /* *************************************** */
 
-bool Vlan::idle() {
+bool Vlan::is_hash_entry_state_idle_transition_ready() {
   bool rc;
 
 #ifdef VLAN_DEBUG
@@ -56,8 +56,6 @@ bool Vlan::idle() {
 			       vlan_id, num_uses,
 			       last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
 #endif
-
-  if(GenericHashEntry::idle()) return(true);
   
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);

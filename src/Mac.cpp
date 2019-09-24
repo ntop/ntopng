@@ -82,6 +82,24 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 /* *************************************** */
 
 Mac::~Mac() {
+  if(model) free(model);
+  if(ssid) free(ssid);
+  if(fingerprint) free(fingerprint);
+  freeMacData();
+  if(stats) delete(stats);
+  if(stats_shadow) delete(stats_shadow);
+
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
+			       Utils::formatMac(mac, buf, sizeof(buf)),
+			       iface->getNumL2Devices(),
+			       source_mac ? "Host" : "Special");
+#endif
+}
+
+/* *************************************** */
+
+void Mac::set_hash_entry_state_idle() {
   if(source_mac)
     iface->decNumL2Devices();
 
@@ -113,29 +131,15 @@ Mac::~Mac() {
 			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
 #endif
 
-  if(model) free(model);
-  if(ssid) free(ssid);
-  if(fingerprint) free(fingerprint);
-  freeMacData();
-  if(stats) delete(stats);
-  if(stats_shadow) delete(stats_shadow);
-
-#ifdef DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
-			       Utils::formatMac(mac, buf, sizeof(buf)),
-			       iface->getNumL2Devices(),
-			       source_mac ? "Host" : "Special");
-#endif
+  GenericHashEntry::set_hash_entry_state_idle();
 }
 
 /* *************************************** */
 
-bool Mac::idle() {
+bool Mac::is_hash_entry_state_idle_transition_ready() {
   bool rc;
 
-  if(GenericHashEntry::idle()) return(true);
-
-  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
+  if(getUses() > 0 || !iface->is_purge_idle_interface())
     return(false);
 
   rc = isIdle(MAX_LOCAL_HOST_IDLE);
@@ -146,7 +150,7 @@ bool Mac::idle() {
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Is idle %s [uses %u][%s][last: %u][diff: %d]",
 				 Utils::formatMac(mac, buf, sizeof(buf)),
-				 num_uses,
+				 getUses(),
 				 rc ? "Idle" : "Not Idle",
 				 last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
   }

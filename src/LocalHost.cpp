@@ -40,10 +40,6 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanI
 /* *************************************** */
 
 LocalHost::~LocalHost() {
-  iface->decNumHosts(true /* A local host */);
-  if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
-    ns->decNumHosts();
-
   if(initial_ts_point) delete(initial_ts_point);
   freeLocalHostData();
 }
@@ -62,6 +58,10 @@ void LocalHost::set_hash_entry_state_idle() {
     checkStatsReset();
     serializeToRedis();
   }
+
+  iface->decNumHosts(true /* A local host */);
+  if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
+    ns->decNumHosts();
 
   GenericHashEntry::set_hash_entry_state_idle();
 }

@@ -272,7 +272,7 @@ void NetworkInterface::init() {
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = false,
     slow_stats_update = false, flow_dump_disabled = false,
-    numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
+    numL2Devices = 0, numFlows = 0, numHosts = 0, numLocalHosts = 0,
     arp_requests = arp_replies = 0,
     has_mac_addresses = false,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
@@ -5376,7 +5376,7 @@ u_int32_t NetworkInterface::getNumPacketDrops() {
 /* **************************************************** */
 
 u_int NetworkInterface::getNumFlows() {
-  return(flows_hash ? flows_hash->getNumEntries() : 0);
+  return(numFlows);
 };
 
 /* **************************************************** */
@@ -7749,6 +7749,17 @@ void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_catego
     ndpi_load_hostname_category(ndpi_struct, (char*)toadd.c_str(), id);
   }
 }
+
+/* *************************************** */
+
+u_int64_t NetworkInterface::getNumActiveAlertedFlows() const {
+  if(num_active_alerted_flows >= num_idle_alerted_flows)
+    return num_active_alerted_flows - num_idle_alerted_flows;
+  else {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error, active alerted flows less than idle alerted flows");
+    return 0;
+  }
+};
 
 /* *************************************** */
 

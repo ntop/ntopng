@@ -156,12 +156,17 @@ class GenericHashEntry {
   inline void set_hash_entry_state_ready_to_be_purged() {
     set_state(hash_entry_state_ready_to_be_purged);
   };
+  /**
+   * @brief Determine whether this entry is ready for the transition to the idle state
+   * 
+   */
+  virtual bool is_hash_entry_state_idle_transition_ready() = 0;
   HashEntryState get_state();
   void updateSeen();
   void updateSeen(time_t _last_seen);
   bool equal(GenericHashEntry *b)         { return((this == b) ? true : false); };  
   inline NetworkInterface* getInterface() { return(iface);                      };
-  virtual bool idle();
+  bool idle();
   virtual void housekeep(time_t t)     { return;                 };
   inline u_int get_duration()          { return((u_int)(1+last_seen-first_seen)); };
   virtual u_int32_t key()              { return(0);         };  

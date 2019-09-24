@@ -57,7 +57,7 @@ class Vlan : public GenericHashEntry, public GenericTrafficElement, public Seria
     incRcvdStats(when, rcvd_packets, rcvd_bytes);
   }
 
-  bool idle();
+  bool is_hash_entry_state_idle_transition_ready();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
   inline void deserialize(json_object *obj) {

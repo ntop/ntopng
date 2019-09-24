@@ -74,11 +74,9 @@ void AutonomousSystem::updateRoundTripTime(u_int32_t rtt_msecs) {
 
 /* *************************************** */
 
-bool AutonomousSystem::idle() {
+bool AutonomousSystem::is_hash_entry_state_idle_transition_ready() {
   bool rc;
 
-  if(GenericHashEntry::idle()) return(true);
-  
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 

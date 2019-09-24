@@ -411,7 +411,8 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_srv2cli();
 
   /* Methods to handle the flow in-memory lifecycle */
-  virtual bool idle();
+  void set_hash_entry_state_idle();
+  bool is_hash_entry_state_idle_transition_ready();
   virtual void set_to_purge(time_t t);
   bool is_acknowledged_to_purge() const;
   void set_acknowledge_to_purge();

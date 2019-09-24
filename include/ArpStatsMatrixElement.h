@@ -55,7 +55,7 @@ class ArpStatsMatrixElement : public GenericHashEntry {
   bool equal(const u_int8_t _src_mac[6],
 	    const u_int32_t _src_ip, const u_int32_t _dst_ip,
       bool * const src2dst);
-  virtual bool idle();
+  bool is_hash_entry_state_idle_transition_ready();
   u_int32_t key();
   void lua(lua_State* vm);
   void print(char *msg) const;

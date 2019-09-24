@@ -62,7 +62,7 @@ class Country : public GenericHashEntry, public GenericTrafficElement, public Se
     dirstats.incInner(t, num_pkts, num_bytes, broadcast);
   }
 
-  bool idle();
+  bool is_hash_entry_state_idle_transition_ready();
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
   void deserialize(json_object *obj);

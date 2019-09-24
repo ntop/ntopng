@@ -112,7 +112,8 @@ class Mac : public GenericHashEntry, public SerializableElement {
   }
   inline DeviceType getDeviceType()        { return (device_type); }
   char * getDHCPName(char * const buf, ssize_t buf_size);
-  bool idle();
+  void set_hash_entry_state_idle();
+  bool is_hash_entry_state_idle_transition_ready();
   void lua(lua_State* vm, bool show_details, bool asListElement);
   virtual char* get_string_key(char *buf, u_int buf_len) const { return(Utils::formatMac(mac, buf, buf_len)); };
   inline int16_t findAddress(AddressTree *ptree)        { return ptree ? ptree->findMac(mac) : -1;     };

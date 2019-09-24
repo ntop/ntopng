@@ -42,7 +42,7 @@ class VirtualHost : public GenericHashEntry {
   VirtualHost(HostHash *_h, char *_name);
   ~VirtualHost();
 
-  virtual inline bool idle() { return(false); };
+  bool is_hash_entry_state_idle_transition_ready() { return(false); };
   inline char* get_name()    { return(name);  };
   inline void incStats(time_t t, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd) {
     sent_stats.incStats(t, 1, bytes_sent),

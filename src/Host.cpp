@@ -48,9 +48,9 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 /* *************************************** */
 
 Host::~Host() {
-  if(num_uses > 0 && (!iface->isView()
+  if(getUses() > 0 && (!iface->isView()
 		      || !ntop->getGlobals()->isShutdownRequested() /* View hosts are not in sync with viewed flows so during shutdown it can be normal */))
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", getUses());
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
 
@@ -169,7 +169,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   good_low_flow_detected = false;
   nextResolveAttempt = 0, mdns_info = NULL;
   host_label_set = false;
-  num_uses = 0, vlan_id = _vlanId % MAX_NUM_VLAN,
+  vlan_id = _vlanId % MAX_NUM_VLAN,
   first_seen = last_seen = iface->getTimeLastPktRcvd();
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
@@ -623,10 +623,8 @@ const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
 
 /* ***************************************** */
 
-bool Host::idle() {
-  if(GenericHashEntry::idle()) return(true);
-
-  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
+bool Host::is_hash_entry_state_idle_transition_ready() {
+  if(getUses() > 0 || !iface->is_purge_idle_interface())
     return(false);
 
   switch(ntop->getPrefs()->get_host_stickiness()) {

@@ -91,6 +91,8 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
 
+  iface->incNumFlows();
+
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
     cli_host->incUses();
@@ -229,12 +231,12 @@ void Flow::freeDPIMemory() {
 
 Flow::~Flow() {
   if(cli_host)
-    cli_host->decNumFlows(last_seen, true, srv_host),  cli_host->decUses();
+    cli_host->decUses();
   else if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
     delete cli_ip_addr;
 
   if(srv_host)
-    srv_host->decNumFlows(last_seen, false, cli_host), srv_host->decUses();
+    srv_host->decUses();
   else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
 
@@ -2113,9 +2115,24 @@ void Flow::set_acknowledge_to_purge() {
 
 /* *************************************** */
 
-bool Flow::idle() {
-  if(GenericHashEntry::idle()) return(true);
+void Flow::set_hash_entry_state_idle() {
+  if(cli_host)
+    cli_host->decNumFlows(last_seen, true, srv_host);
 
+  if(srv_host)
+    srv_host->decNumFlows(last_seen, false, cli_host);
+
+  iface->decNumFlows();
+
+  if(isFlowAlerted())
+    iface->decNumAlertedFlows();
+
+  GenericHashEntry::set_hash_entry_state_idle();
+}
+
+/* *************************************** */
+
+bool Flow::is_hash_entry_state_idle_transition_ready() {
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());
@@ -2485,8 +2502,6 @@ void Flow::setFlowAlerted(int64_t rowid) {
 #ifdef HAVE_NEDGE
 
 bool Flow::isNetfilterIdleFlow() {
-  if(GenericHashEntry::idle()) return(true);
-
   /*
      Note that on netfilter interfaces we never observe the
      FIN/RST flags as they have been offloaded to kernel
@@ -4155,7 +4170,6 @@ void Flow::postFlowSetIdle(time_t t) {
   if(isFlowAlerted()) {
     if(cli_host) cli_host->decNumAlertedFlows();
     if(srv_host) srv_host->decNumAlertedFlows();
-    iface->decNumAlertedFlows();
   }
 }
 

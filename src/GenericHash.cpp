@@ -221,7 +221,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	  head->housekeep(now);
 
 	  if(head_state == hash_entry_state_active
-	     && (head->idle()
+	     && (head->is_hash_entry_state_idle_transition_ready()
 		 || force_idle))
 	    head->set_hash_entry_state_idle();
 

@@ -146,7 +146,7 @@ class NetworkInterface : public AlertableEntity {
   pthread_t pollLoop;
   bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool slow_stats_update, flow_dump_disabled;
-  u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
+  u_int32_t ifSpeed, numL2Devices, numFlows, numHosts, numLocalHosts, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
@@ -682,6 +682,8 @@ class NetworkInterface : public AlertableEntity {
   bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
   bool getArpStatsMatrixInfo(lua_State* vm);
+  inline void incNumFlows() { numFlows++; };
+  inline void decNumFlows() { numFlows--; };
   inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };
   inline void decNumHosts(bool local) { if(local) numLocalHosts--; numHosts--; };
   inline void incNumL2Devices()       { numL2Devices++; }
@@ -771,7 +773,7 @@ class NetworkInterface : public AlertableEntity {
 
   inline void incNumAlertedFlows()                        { num_active_alerted_flows++;                               };
   inline void decNumAlertedFlows()                        { num_idle_alerted_flows++;                                 };
-  virtual u_int64_t getNumActiveAlertedFlows()      const { return num_active_alerted_flows - num_idle_alerted_flows; };
+  virtual u_int64_t getNumActiveAlertedFlows()      const;
   inline void setHasAlerts(bool has_stored_alerts)        { this->has_stored_alerts = has_stored_alerts; }
   inline void incNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]++; }
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }

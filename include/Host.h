@@ -214,7 +214,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   char* get_tskey(char *buf, size_t bufsize);
 
-  virtual bool idle();
+  bool is_hash_entry_state_idle_transition_ready();
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {};
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,

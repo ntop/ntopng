@@ -40,7 +40,14 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vla
 /* *************************************** */
 
 RemoteHost::~RemoteHost() {
+}
+
+/* *************************************** */
+
+void RemoteHost::set_hash_entry_state_idle() {
   iface->decNumHosts(false /* A remote host */);
+
+  GenericHashEntry::set_hash_entry_state_idle();
 }
 
 /* *************************************** */
