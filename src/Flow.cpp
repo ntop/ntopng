@@ -360,7 +360,7 @@ void Flow::dumpFlowAlert() {
       iface->getAlertsManager()->storeFlowAlert(this);
 
       setFlowAlerted();
-      iface->incNumAlertedFlows();
+      iface->incNumAlertedFlows(this);
       if(cli_host) cli_host->incNumAlertedFlows();
       if(srv_host) srv_host->incNumAlertedFlows();
     }
@@ -2128,7 +2128,7 @@ void Flow::set_hash_entry_state_idle() {
   iface->decNumFlows();
 
   if(isFlowAlerted())
-    iface->decNumAlertedFlows();
+    iface->decNumAlertedFlows(this);
 
   GenericHashEntry::set_hash_entry_state_idle();
 }

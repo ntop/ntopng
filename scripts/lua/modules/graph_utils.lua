@@ -202,12 +202,15 @@ function stackedProgressBars(total, bars, other_label, formatter, css_class)
       }
    end
 
+   num = 0
    for _, bar in ipairs(legend_items) do
       res[#res + 1] = [[<span>]]
+      if(num > 0) then res[#res + 1] = [[<br>]] end
       if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
       res[#res + 1] = [[<span class="label label-]].. (bar.class) ..[[" style="]] .. bar.style .. [[">&nbsp;</span>]]
       if bar.link ~= nil then res[#res + 1] = [[</a>]] end
       res[#res + 1] = [[<span>]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
+      num = num + 1
    end
 
    res[#res + 1] = [[<span style="margin-left: 0"><span></span><span>&nbsp;&nbsp;-&nbsp;&nbsp;]] .. i18n("total") .. ": ".. formatter(total) .."</span></span>"

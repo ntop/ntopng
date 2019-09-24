@@ -7757,6 +7757,39 @@ void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_catego
 
 /* *************************************** */
 
+void NetworkInterface::incNumAlertedFlows(Flow *f) {
+  num_active_alerted_flows++;
+
+#ifdef ALERTED_FLOWS_DEBUG
+  if(f) {
+    char buf[256];
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[inc][num_active_alerted_flows: %u][num_idle_alerted_flows: %u] %s",
+				 num_active_alerted_flows,
+				 num_idle_alerted_flows,
+				 f->print(buf, sizeof(buf)));
+  }
+#endif
+}
+
+
+/* *************************************** */
+
+void NetworkInterface::decNumAlertedFlows(Flow *f){
+  num_idle_alerted_flows++;
+
+#ifdef ALERTED_FLOWS_DEBUG
+  if(f) {
+    char buf[256];
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[dec][num_active_alerted_flows: %u][num_idle_alerted_flows: %u] %s",
+				 num_active_alerted_flows,
+				 num_idle_alerted_flows,
+				 f->print(buf, sizeof(buf)));
+  }
+#endif
+};
+
+/* *************************************** */
+
 u_int64_t NetworkInterface::getNumActiveAlertedFlows() const {
   if(num_active_alerted_flows >= num_idle_alerted_flows)
     return num_active_alerted_flows - num_idle_alerted_flows;

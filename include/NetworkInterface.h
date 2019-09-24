@@ -771,8 +771,8 @@ class NetworkInterface : public AlertableEntity {
   void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
 
-  inline void incNumAlertedFlows()                        { num_active_alerted_flows++;                               };
-  inline void decNumAlertedFlows()                        { num_idle_alerted_flows++;                                 };
+  void incNumAlertedFlows(Flow *f);
+  void decNumAlertedFlows(Flow *f);
   virtual u_int64_t getNumActiveAlertedFlows()      const;
   inline void setHasAlerts(bool has_stored_alerts)        { this->has_stored_alerts = has_stored_alerts; }
   inline void incNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]++; }
