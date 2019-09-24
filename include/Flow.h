@@ -69,6 +69,9 @@ class Flow : public GenericHashEntry {
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
     quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
     is_alerted;
+#ifdef ALERTED_FLOWS_DEBUG
+  bool iface_alert_inc, iface_alert_dec;
+#endif
   u_int16_t diff_num_http_requests;
   int64_t alert_rowid;
 #ifdef NTOPNG_PRO

@@ -140,6 +140,9 @@ Flow::Flow(NetworkInterface *_iface,
   passVerdict = true, quota_exceeded = false;
   has_malicious_cli_signature = has_malicious_srv_signature = false;
   is_alerted = false;
+#ifdef ALERTED_FLOWS_DEBUG
+  iface_alert_inc = iface_alert_dec = false;
+#endif
   if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
@@ -231,6 +234,13 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
+#ifdef ALERTED_FLOWS_DEBUG
+  if(iface_alert_inc && !iface_alert_dec) {
+    char buf[256];
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[MISMATCH][inc but not dec] %s",
+				 print(buf, sizeof(buf)));
+  }
+#endif
   if(cli_host)
     cli_host->decUses();
   else if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
@@ -361,6 +371,9 @@ void Flow::dumpFlowAlert() {
 
       setFlowAlerted();
       iface->incNumAlertedFlows(this);
+#ifdef ALERTED_FLOWS_DEBUG
+      iface_alert_inc = true;
+#endif
       if(cli_host) cli_host->incNumAlertedFlows();
       if(srv_host) srv_host->incNumAlertedFlows();
     }
@@ -2127,8 +2140,12 @@ void Flow::set_hash_entry_state_idle() {
 
   iface->decNumFlows();
 
-  if(isFlowAlerted())
+  if(isFlowAlerted()) {
     iface->decNumAlertedFlows(this);
+#ifdef ALERTED_FLOWS_DEBUG
+      iface_alert_dec = true;
+#endif
+  }
 
   GenericHashEntry::set_hash_entry_state_idle();
 }
