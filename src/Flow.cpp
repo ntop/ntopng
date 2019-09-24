@@ -237,8 +237,8 @@ Flow::~Flow() {
 #ifdef ALERTED_FLOWS_DEBUG
   if(iface_alert_inc && !iface_alert_dec) {
     char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[MISMATCH][inc but not dec] %s",
-				 print(buf, sizeof(buf)));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[MISMATCH][inc but not dec][alerted: %u] %s",
+				 print(buf, sizeof(buf)), isFlowAlerted() ? 1 : 0);
   }
 #endif
   if(cli_host)
