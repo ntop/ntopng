@@ -133,7 +133,7 @@ NetworkInterface::NetworkInterface(const char *name,
 	discovery = NULL;
       }
 
-      if (discovery) {
+      if(discovery) {
 	try {
 	  mdns = new MDNS(this);
 	}
@@ -589,9 +589,9 @@ NetworkInterface::~NetworkInterface() {
 
 #ifdef PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
-  if (isPacketInterface() && n > 0) {
+  if(isPacketInterface() && n > 0) {
     for (u_int i = 0; i < PROFILING_NUM_SECTIONS; i++) {
-      if (PROFILING_SECTION_LABEL(i) != NULL)
+      if(PROFILING_SECTION_LABEL(i) != NULL)
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks",
           i, PROFILING_SECTION_LABEL(i), PROFILING_SECTION_AVG(i, n));
     }
@@ -1102,14 +1102,14 @@ void NetworkInterface::processFlow(ParsedFlow *zflow) {
 
   if(!isDynamicInterface()) {
 
-    if (flowHashingMode == flowhashing_none) {
+    if(flowHashingMode == flowhashing_none) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
       /* Custom disaggregation */
-      if (sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
+      if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
         bool processed = sub_interfaces->processFlow(zflow);
      
-        if (processed) 
+        if(processed) 
           return;
       }
 #endif
@@ -1451,11 +1451,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   *hostFlow = NULL;
 
   if(!isDynamicInterface()) {
-    if (flowHashingMode == flowhashing_none) {
+    if(flowHashingMode == flowhashing_none) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
       /* Custom disaggregation */
-      if (sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
+      if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
         bool processed = sub_interfaces->processPacket(bridge_iface_idx,
 						       ingressPacket, when, packet_time,
 						       eth, vlan_id,
@@ -1465,7 +1465,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 						       h, packet, ndpiProtocol,
 						       srcHost, dstHost, hostFlow);
      
-        if (processed) { 
+        if(processed) { 
           incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
 	           NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 	           0,
@@ -1478,7 +1478,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
     } else {
       /* VLAN disaggregation */
-      if (flowHashingMode == flowhashing_vlan && vlan_id > 0) {
+      if(flowHashingMode == flowhashing_vlan && vlan_id > 0) {
         NetworkInterface *vIface;
 
         if((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
@@ -1656,7 +1656,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
-  } else if (l4_proto == IPPROTO_ICMP) {
+  } else if(l4_proto == IPPROTO_ICMP) {
     icmp_info.dissectICMP(trusted_l4_packet_len, l4);
   } else {
     /* non TCP/UDP protocols */
@@ -2088,14 +2088,17 @@ void NetworkInterface::purgeIdle(time_t when) {
     }
   }
 
-  if (sub_interfaces) {
+#ifndef HAVE_NEDGE
+  if(sub_interfaces) {
     int i, n = sub_interfaces->getNumSubInterfaces();
     for (i = 0; i < n; i++) { 
       NetworkInterface *sub_iface = sub_interfaces->getNetworkInterface(i);
-      if (sub_iface) 
+      
+      if(sub_iface) 
         sub_iface->purgeIdle(when);
     }
   }
+#endif
 }
 
 /* **************************************************** */
@@ -2132,9 +2135,9 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
     if(!mtuWarningShown) {
 #ifdef __linux__
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max len: %u].", h->len, ifMTU);
-      if (!read_from_pcap_dump()) {
+      if(!read_from_pcap_dump()) {
         ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
-        if (strchr(ifname, ':') == NULL) /* print ethtool command for standard interfaces only */
+        if(strchr(ifname, ':') == NULL) /* print ethtool command for standard interfaces only */
           ntop->getTrace()->traceEvent(TRACE_WARNING, "Use sudo ethtool -K %s gro off gso off tso off", ifname);
       }
 #endif
@@ -2770,11 +2773,11 @@ void NetworkInterface::pollQueuedeBPFEvents() {
 	if(new_flow)
 	  flow->updateSeen();
 
-        if (dequeued->suricata_alert) {
+        if(dequeued->suricata_alert) {
           /* Flow from SyslogParserInterface (Suricata) */
           enum json_tokener_error jerr = json_tokener_success;
           json_object *o = json_tokener_parse_verbose(dequeued->suricata_alert, &jerr);
-          if (o) flow->setIDSAlert(o, dequeued->suricata_alert_severity);
+          if(o) flow->setIDSAlert(o, dequeued->suricata_alert_severity);
         } else {
           /* Flow from ZMQParserInterface (nProbe Agent) */
 	  flow->setParsedeBPFInfo(dequeued, src2dst_direction);
@@ -2806,7 +2809,7 @@ void NetworkInterface::reloadCustomCategories() {
 /* **************************************************** */
 
 void NetworkInterface::startPacketPolling() {
-  if (pollLoopCreated) {
+  if(pollLoopCreated) {
     if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
       if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
         ntop->getTrace()->traceEvent(TRACE_WARNING, "Couldn't set affinity of interface %s to core %d",
@@ -6448,7 +6451,7 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 
   if(!ntop->getRedis()) return;
 
-  if ((new_tree = new VlanAddressTree) == NULL) {
+  if((new_tree = new VlanAddressTree) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
   }
@@ -7142,9 +7145,9 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 	if(!db) throw "Not enough memory";
       }
 #ifndef HAVE_NEDGE
-	else if (ntop->getPrefs()->do_dump_flows_on_es())
+	else if(ntop->getPrefs()->do_dump_flows_on_es())
 	  db = new ElasticSearch(this);
-	else if (ntop->getPrefs()->do_dump_flows_on_ls())
+	else if(ntop->getPrefs()->do_dump_flows_on_ls())
 	  db = new Logstash(this);
 #endif
     }
