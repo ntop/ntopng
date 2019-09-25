@@ -103,10 +103,7 @@ local menu_subpages = {
       description = i18n("prefs.client_x509_auth_descr"),
     },
   }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  hidden=false, nedge_hidden=true, entries={
-    dynamic_interfaces_creation = {
-      title       = i18n("prefs.dynamic_interfaces_creation_title"),
-      description = i18n("prefs.dynamic_interfaces_creation_description"),
-    }, ignored_interfaces = {
+    ignored_interfaces = {
       title       = i18n("prefs.ignored_interfaces_title"),
       description = i18n("prefs.ignored_interfaces_description", {product=info.product}),
     }, toggle_src_with_post_nat_src = {

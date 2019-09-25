@@ -436,12 +436,13 @@ void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow
 
 /* **************************************************** */
 
-void NetworkInterface::checkAggregationMode() {
+void NetworkInterface::checkDisaggregationMode() {
   if(!customIftype) {
-    char rsp[32];
+    char rkey[128], rsp[16];
 
-    if((!ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)))
-       && (rsp[0] != '\0')) {
+   snprintf(rkey, sizeof(rkey), CONST_IFACE_DYN_IFACE_MODE_PREFS, id);
+
+   if((!ntop->getRedis()->get(rkey, rsp, sizeof(rsp))) && (rsp[0] != '\0')) {
       if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
 	if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
 	else if(!strcmp(rsp, DISAGGREGATION_IFACE_ID))         flowHashingMode = flowhashing_iface_idx;

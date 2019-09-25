@@ -2027,7 +2027,7 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
 void Ntop::initInterface(NetworkInterface *_if) {
   if(_if->initFlowDump(num_dump_interfaces))
     num_dump_interfaces++;
-  _if->checkAggregationMode();
+  _if->checkDisaggregationMode();
   _if->startDBLoop();
 }
 

@@ -297,7 +297,7 @@ class NetworkInterface : public AlertableEntity {
 		      void *user_data,
 		      bool walk_idle = false /* Should never walk idle unless in ViewInterface::flowPollLoop */);
 
-  void checkAggregationMode();
+  void checkDisaggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
   virtual void startPacketPolling();

@@ -46,6 +46,8 @@ ifid = _GET["ifid"]
 ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
+local disaggregation_criterion_key = "ntopng.prefs.dynamic_sub_interfaces.ifid_"..tostring(ifid)..".mode"
+
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class)
    if(can_edit) then
       print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
@@ -269,6 +271,14 @@ if not have_nedge and (table.len(ifstats.profiles) > 0) then
 end
 if _SERVER["REQUEST_METHOD"] == "POST" and _POST["companion_interface"] ~= nil then
    companion_interface_utils.setCompanion(ifstats.id, _POST["companion_interface"])
+end
+
+if _SERVER["REQUEST_METHOD"] == "POST" and _POST["disaggregation_criterion"] ~= nil then
+   if _POST["disaggregation_criterion"] == "none" then
+      ntop.delCache(disaggregation_criterion_key)
+   else
+      ntop.setCache(disaggregation_criterion_key, _POST["disaggregation_criterion"])
+   end
 end
 
 if _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_recording_provider"]) then
@@ -1658,6 +1668,54 @@ elseif(page == "config") then
       end
    end
 
+   if not ifstats.isDynamic then
+      local cur_mode = ntop.getCache(disaggregation_criterion_key)
+      if isEmptyString(cur_mode) then
+         cur_mode = "none"
+      end
+
+      local labels = {
+	i18n("prefs.none"),
+	i18n("prefs.vlan"),
+	i18n("prefs.probe_ip_address"),
+	i18n("prefs.flow_interface"),
+	i18n("prefs.ingress_flow_interface"),
+	i18n("prefs.ingress_vrf_id")
+      }
+
+      local values = {
+	"none",
+	"vlan",
+	"probe_ip",
+	"iface_idx",
+	"ingress_iface_idx",
+	"ingress_vrf_id"
+      }
+
+      print [[
+       <tr>
+	 <th>]] print(i18n("prefs.dynamic_interfaces_creation_title")) print[[</th>
+	 <td>
+	   <select name="disaggregation_criterion" class="form-control" style="width:36em; display:inline;">]]
+
+	 for k, value in ipairs(values) do
+	    local label = labels[k]
+	    print[[<option value="]] print(value) print[[" ]] if cur_mode == value then print('selected="selected"') end print[[">]] print(label) print[[</option>]]
+	 end
+
+	 print[[
+	   </select>
+	  ]] 
+          print ("<br><br><small><p><b>"..i18n("notes").."</b><ul>"..
+		"<li>"..i18n("prefs.dynamic_interfaces_creation_description").."</li>"..
+		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
+		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
+		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li>"..
+		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_3").."</li></ul></small>")
+         print [[
+	 </td>
+       </tr>]]
+   end
 
       print[[
    </table>
