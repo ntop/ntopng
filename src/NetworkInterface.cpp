@@ -4752,16 +4752,11 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				u_int8_t ipver_filter, int proto_filter,
 				TrafficType traffic_type_filter,
 				char *sortColumn) {
-  u_int32_t maxHits;
   u_int8_t macAddr[6];
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
     return -1;
-
-  maxHits = getHostsHashSize();
-  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
-    maxHits = CONST_MAX_NUM_HITS;
 
   memset(retriever, 0, sizeof(struct flowHostRetriever));
 
@@ -4786,7 +4781,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->hideTopHidden = hide_top_hidden,
     retriever->ndpi_proto = proto_filter,
     retriever->traffic_type = traffic_type_filter,
-    retriever->maxNumEntries = maxHits;
+    retriever->maxNumEntries = getHostsHashSize();
   retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
   if(retriever->elems == NULL) {
@@ -4844,21 +4839,16 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
 			       const char *manufacturer,
 			       char *sortColumn, u_int16_t pool_filter,
 			       u_int8_t devtype_filter, u_int8_t location_filter) {
-  u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
     return -1;
 
-  maxHits = getMacsHashSize();
-  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
-    maxHits = CONST_MAX_NUM_HITS;
-
   retriever->sourceMacsOnly = sourceMacsOnly,
     retriever->actNumEntries = 0,
     retriever->poolFilter = pool_filter,
     retriever->manufacturer = (char *)manufacturer,
-    retriever->maxNumEntries = maxHits,
+    retriever->maxNumEntries = getMacsHashSize();
     retriever->devtypeFilter = devtype_filter,
     retriever->locationFilter = location_filter,
     retriever->ndpi_proto = -1,
@@ -4892,7 +4882,6 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
 /* **************************************************** */
 
 int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortColumn) {
-  u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -4900,12 +4889,8 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
   if(retriever == NULL)
     return -1;
 
-  maxHits = getASesHashSize();
-  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
-    maxHits = CONST_MAX_NUM_HITS;
-
   retriever->actNumEntries = 0,
-    retriever->maxNumEntries = maxHits,
+    retriever->maxNumEntries = getASesHashSize();
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
   if(retriever->elems == NULL) {
@@ -4933,7 +4918,6 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
 
 int NetworkInterface::sortCountries(struct flowHostRetriever *retriever,
 	       char *sortColumn) {
-  u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -4941,12 +4925,8 @@ int NetworkInterface::sortCountries(struct flowHostRetriever *retriever,
   if(retriever == NULL)
     return -1;
 
-  maxHits = getCountriesHashSize();
-  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
-    maxHits = CONST_MAX_NUM_HITS;
-
   retriever->actNumEntries = 0,
-    retriever->maxNumEntries = maxHits,
+    retriever->maxNumEntries = getCountriesHashSize();
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
   if(retriever->elems == NULL) {
@@ -4972,7 +4952,6 @@ int NetworkInterface::sortCountries(struct flowHostRetriever *retriever,
 /* **************************************************** */
 
 int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortColumn) {
-  u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -4980,12 +4959,8 @@ int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortC
   if(retriever == NULL)
     return -1;
 
-  maxHits = getVLANsHashSize();
-  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
-    maxHits = CONST_MAX_NUM_HITS;
-
   retriever->actNumEntries = 0,
-    retriever->maxNumEntries = maxHits,
+    retriever->maxNumEntries = getVLANsHashSize();
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
   if(retriever->elems == NULL) {
