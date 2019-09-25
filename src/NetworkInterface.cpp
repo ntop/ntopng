@@ -2088,6 +2088,7 @@ void NetworkInterface::purgeIdle(time_t when) {
     }
   }
 
+#ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   if(sub_interfaces) {
     int i, n = sub_interfaces->getNumSubInterfaces();
@@ -2098,6 +2099,7 @@ void NetworkInterface::purgeIdle(time_t when) {
         sub_iface->purgeIdle(when);
     }
   }
+#endif
 #endif
 }
 
