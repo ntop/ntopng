@@ -343,7 +343,7 @@ if(isAdministrator()) then
    end
 end
 
-if(isAdministrator() and ntop.isEnterprise()) then
+if(isAdministrator() and ntop.isEnterprise() and not ifstats.isDynamic) then
    if(page == "sub_interfaces") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-code-fork\"></i></a></li>\n")
    else
