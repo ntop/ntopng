@@ -1717,6 +1717,7 @@ elseif(page == "config") then
          print ("<br><br><small><p><b>"..i18n("notes").."</b><ul>"..
 		"<li>"..i18n("prefs.dynamic_interfaces_creation_description").."</li>"..
 		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
+		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_4").."</li>"..
 		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>")
          if not is_packet_interface then
             print("<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li>"..
