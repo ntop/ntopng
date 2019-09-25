@@ -7729,12 +7729,8 @@ bool NetworkInterface::enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_l
 /* *************************************** */
 
 void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
-  if(what) {
-    std::string toadd(what);
-
-    new_custom_categories.push_front(toadd);
-    ndpi_load_ip_category(ndpi_struct, (char*)toadd.c_str(), id);
-  }
+  if(what)
+    ndpi_load_ip_category(ndpi_struct, what, id);
 }
 
 /* *************************************** */
