@@ -353,7 +353,7 @@ if(isAdministrator()) then
    end
 end
 
-if(isAdministrator() and ntop.isEnterprise() and not ifstats.isDynamic) then
+if(isAdministrator() and ntop.isEnterprise() and not ifstats.isDynamic) and isEmptyString(ntop.getCache(disaggregation_criterion_key)) then
    if(page == "sub_interfaces") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-code-fork\"></i></a></li>\n")
    else
@@ -1683,14 +1683,22 @@ elseif(page == "config") then
 	i18n("prefs.ingress_vrf_id")
       }
 
-      local values = {
-	"none",
-	"vlan",
-	"probe_ip",
-	"iface_idx",
-	"ingress_iface_idx",
-	"ingress_vrf_id"
-      }
+      local values = {}
+      if is_packet_interface then
+        values = {
+ 	  "none",
+	  "vlan"
+        }
+      else
+        values = {
+ 	  "none",
+	  "vlan",
+	  "probe_ip",
+	  "iface_idx",
+	  "ingress_iface_idx",
+	  "ingress_vrf_id"
+        }
+      end
 
       print [[
        <tr>
@@ -1706,13 +1714,16 @@ elseif(page == "config") then
 	 print[[
 	   </select>
 	  ]] 
-          print ("<br><br><small><p><b>"..i18n("notes").."</b><ul>"..
+         print ("<br><br><small><p><b>"..i18n("notes").."</b><ul>"..
 		"<li>"..i18n("prefs.dynamic_interfaces_creation_description").."</li>"..
 		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
-		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>"..
-		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li>"..
-		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_3").."</li></ul></small>")
+		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>")
+         if not is_packet_interface then
+            print("<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li>"..
+		  "<li>"..i18n("prefs.dynamic_interfaces_creation_note_3").."</li>")
+         end
          print [[
+           </ul></small>
 	 </td>
        </tr>]]
    end
