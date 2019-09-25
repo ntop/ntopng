@@ -1790,7 +1790,7 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_reloadCustomCategories(lua_State* vm) {
-  int i, j, max_wait = 10;
+  int i, j, max_wait = 20;
   NetworkInterface *iface;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
