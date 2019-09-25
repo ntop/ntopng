@@ -193,9 +193,6 @@ NetworkInterface::NetworkInterface(const char *name,
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
-
-  sub_interfaces = ntop->getPro()->has_valid_license() ? new SubInterfaces() : NULL;
-  if(sub_interfaces) sub_interfaces->loadSubInterfaces(this);
 #endif
 
   /* Lazy, instantiated on demand */
@@ -247,6 +244,12 @@ NetworkInterface::NetworkInterface(const char *name,
   updateTrafficMirrored();
   updateFlowDumpDisabled();
   updateLbdIdentifier();
+
+#ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
+  sub_interfaces = ntop->getPro()->has_valid_license() ? new SubInterfaces(this) : NULL;
+#endif
+#endif
 }
 
 /* **************************************************** */
@@ -2791,18 +2794,20 @@ void NetworkInterface::reloadCustomCategories() {
 /* **************************************************** */
 
 void NetworkInterface::startPacketPolling() {
-  if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
-    if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Couldn't set affinity of interface %s to core %d",
-				   get_name(), cpu_affinity);
-    else
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
-				   get_name(), cpu_affinity);
-  }
+  if (pollLoopCreated) {
+    if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
+      if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Couldn't set affinity of interface %s to core %d",
+				     get_name(), cpu_affinity);
+      else
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
+				     get_name(), cpu_affinity);
+    }
 
 #ifdef __linux__
-  pthread_setname_np(pollLoop, get_name());
+    pthread_setname_np(pollLoop, get_name());
 #endif
+  }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",

@@ -343,6 +343,14 @@ if(isAdministrator()) then
    end
 end
 
+if(isAdministrator() and ntop.isEnterprise()) then
+   if(page == "sub_interfaces") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-code-fork\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=sub_interfaces\"><i class=\"fa fa-code-fork\"></i></a></li>")
+   end
+end
+
 if isAdministrator() then
    local num_pool_hosts = ifstats.num_members.num_hosts
    local label
@@ -1823,6 +1831,10 @@ elseif(page == "snmp_bind") then
       snmp_recheck_selection();
    });
 </script>]]
+elseif(page == "sub_interfaces") then
+   if(isAdministrator() and ntop.isEnterprise()) then
+      dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/sub_interfaces.lua")
+   end
 elseif(page == "pools") then
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
 elseif(page == "dhcp") then
