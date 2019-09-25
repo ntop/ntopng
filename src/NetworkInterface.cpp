@@ -2087,6 +2087,15 @@ void NetworkInterface::purgeIdle(time_t when) {
 	current->iface->purgeIdle(when);
     }
   }
+
+  if (sub_interfaces) {
+    int i, n = sub_interfaces->getNumSubInterfaces();
+    for (i = 0; i < n; i++) { 
+      NetworkInterface *sub_iface = sub_interfaces->getNetworkInterface(i);
+      if (sub_iface) 
+        sub_iface->purgeIdle(when);
+    }
+  }
 }
 
 /* **************************************************** */
