@@ -63,7 +63,7 @@ class Flow : public GenericHashEntry {
      seen the flow until it has become idle. */
   bool purge_acknowledged_mark;
 
-  bool detection_completed, protocol_processed,
+  bool detection_completed, protocol_processed, fully_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
@@ -315,6 +315,7 @@ class Flow : public GenericHashEntry {
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
+  void processFullyDetectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
   inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));
@@ -366,6 +367,7 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_bytes_srv2cli()   const { return last_db_dump.delta.srv2cli_bytes;   };
   inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.cli2srv_packets; };
   inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.srv2cli_packets; };
+  bool needsExtraDissection();
   bool get_partial_traffic_stats_view(FlowTrafficStats *delta, bool *first_partial);
   inline FlowTrafficStats * getFlowTrafficStats() { return &stats; };
   bool update_partial_traffic_stats_db_dump();
