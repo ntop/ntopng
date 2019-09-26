@@ -3266,6 +3266,7 @@ local lang = {
     ["disaggregation"] = "Custom Traffic Disaggregation",
     ["filter_description"] = "An extended nBPF format is supported: in addition to the standard BPF syntax, NetFlow fields can also be used, including INPUT_SNMP, OUTPUT_SNMP, SRC_VLAN, DST_VLAN.",
     ["filter_examples"] = "Filter examples",
+    ["invalid_xnbpf"] = "Invalid nBPF filter",
     ["note"] = "ntopng can use BPF-like filters to disaggregate incoming traffic, diverting it to logical sub-interfaces. The same traffic can be diverted to multiple interfaces in case of overlapping in the filters.",
     ["sub_if_name"] = "Sub-Interface Name",
     ["traffic_filter_nbpf"] = "Traffic Filter (nBPF Format)",
