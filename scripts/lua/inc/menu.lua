@@ -340,6 +340,7 @@ local ifnames = {}
 local ifdescr = {}
 local ifHdescr = {}
 local ifCustom = {}
+local dynamic = {}
 
 for v,k in pairs(iface_names) do
    interface.select(k)
@@ -348,6 +349,7 @@ for v,k in pairs(iface_names) do
    ifdescr[_ifstats.id] = _ifstats.description
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
+   if(_ifstats.isDynamic == true) then dynamic[k] = true end
    if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
    if(interface.isPacketInterface()) then packetinterfaces[k] = true end
    if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
@@ -400,6 +402,10 @@ for round = 1, 2 do
 
 	 if(views[v] == true) then
 	    print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
+	 end
+
+	 if(dynamic[v] == true) then
+	    print(' <i class="fa fa-code-fork" aria-hidden="true"></i> ')
 	 end
 
 	 if(drops[v] == true) then
