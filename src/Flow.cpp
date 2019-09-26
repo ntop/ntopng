@@ -633,7 +633,8 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 	      || ndpif->protos.ssh.hassh_server[0] == '\0'))
          )
      ) {
-    ndpif->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
+    /* In the cases above the detection continues even if all the protocols
+     * have been detected, in order to possibly extract additional information */
     return;
   }
 
