@@ -155,7 +155,13 @@ NetworkInterface::NetworkInterface(const char *name,
     ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
+#ifdef HAVE_NEDGE
+  /* In nEdge, also dissect the DNS reply to avoid generating DNS alerts
+   * and possibly inspect the DNS reply. */
+  ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  0);
+#else
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  1);
+#endif
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_enable_category_substring_match, 1);
 
   memset(d_port, 0, sizeof(d_port));
@@ -1980,24 +1986,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	}
       }
 
-      if(ndpi_flow) {
-	struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
-	struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
-
-	memset(&ndpi_flow->detected_protocol_stack,
-	       0, sizeof(ndpi_flow->detected_protocol_stack));
-
-	ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-				      ip, trusted_ip_len, (u_int32_t)packet_time,
-				      src2dst_direction ? cli : srv,
-				      src2dst_direction ? srv : cli);
-
-	/*
-	  We reset the nDPI flow so that it can decode new packets
-	  of the same flow (e.g. the DNS response)
-	*/
-	ndpi_flow->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
-      }
       break;
 
     case NDPI_PROTOCOL_MDNS:
