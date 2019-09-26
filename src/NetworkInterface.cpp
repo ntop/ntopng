@@ -50,7 +50,7 @@ NetworkInterface::NetworkInterface(const char *name,
   u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
 
   init();
-  customIftype = custom_interface_type, flowHashingMode = flowhashing_none, tsExporter = NULL;
+  customIftype = custom_interface_type, tsExporter = NULL;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -250,12 +250,6 @@ NetworkInterface::NetworkInterface(const char *name,
   updateTrafficMirrored();
   updateFlowDumpDisabled();
   updateLbdIdentifier();
-
-#ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
-  sub_interfaces = ntop->getPro()->has_valid_license() ? new SubInterfaces(this) : NULL;
-#endif
-#endif
 }
 
 /* **************************************************** */
@@ -271,7 +265,7 @@ void NetworkInterface::init() {
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, is_dynamic_interface = false,
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false;
-  numVirtualInterfaces = 0, flowHashing = NULL,
+  numSubInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
@@ -443,43 +437,49 @@ void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow
 /* **************************************************** */
 
 void NetworkInterface::checkDisaggregationMode() {
-  if(!customIftype) {
-    char rkey[128], rsp[16];
+  char rkey[128], rsp[16];
 
-   snprintf(rkey, sizeof(rkey), CONST_IFACE_DYN_IFACE_MODE_PREFS, id);
+  if(customIftype || isSubInterface()) 
+    return;
 
-   if((!ntop->getRedis()->get(rkey, rsp, sizeof(rsp))) && (rsp[0] != '\0')) {
-      if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
-	if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
-	else if(!strcmp(rsp, DISAGGREGATION_IFACE_ID))         flowHashingMode = flowhashing_iface_idx;
-	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
-	else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID))   flowHashingMode = flowhashing_vrfid;
-	else if(!strcmp(rsp, DISAGGREGATION_VLAN))             flowHashingMode = flowhashing_vlan;
-	else if(strcmp(rsp,  DISAGGREGATION_NONE))
-	  ntop->getTrace()->traceEvent(TRACE_ERROR,
-				       "Unknown aggregation value for interface %s [rsp: %s]",
-				       get_type(), rsp);
-      } else { /* non-ZMQ interface */
-	if(!strcmp(rsp, DISAGGREGATION_VLAN)) flowHashingMode = flowhashing_vlan;
-	else if(strcmp(rsp,  DISAGGREGATION_NONE))
-	  ntop->getTrace()->traceEvent(TRACE_ERROR,
-				       "Unknown aggregation value for interface %s [rsp: %s]",
-				       get_type(), rsp);
+  snprintf(rkey, sizeof(rkey), CONST_IFACE_DYN_IFACE_MODE_PREFS, id);
 
-      }
-    }
+  if((!ntop->getRedis()->get(rkey, rsp, sizeof(rsp))) && (rsp[0] != '\0')) {
+    if(getIfType() == interface_type_ZMQ) { /* ZMQ interface */
+      if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
+      else if(!strcmp(rsp, DISAGGREGATION_IFACE_ID))         flowHashingMode = flowhashing_iface_idx;
+      else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
+      else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID))   flowHashingMode = flowhashing_vrfid;
+      else if(!strcmp(rsp, DISAGGREGATION_VLAN))             flowHashingMode = flowhashing_vlan;
+      else if(strcmp(rsp,  DISAGGREGATION_NONE))
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown aggregation value for interface %s [rsp: %s]",
+				     get_type(), rsp);
+    } else { /* non-ZMQ interface */
+      if(!strcmp(rsp, DISAGGREGATION_VLAN)) flowHashingMode = flowhashing_vlan;
+      else if(strcmp(rsp,  DISAGGREGATION_NONE))
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown aggregation value for interface %s [rsp: %s]",
+				     get_type(), rsp);
 
-    /* Populate ignored interfaces */
-    rsp[0] = '\0';
-    if((!ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IGNORED_INTERFACES, rsp, sizeof(rsp)))
-       && (rsp[0] != '\0')) {
-      char *token;
-      char *rest = rsp;
-
-      while((token = strtok_r(rest, ",", &rest)))
-	flowHashingIgnoredInterfaces.insert(atoi(token));
     }
   }
+
+  /* Populate ignored interfaces */
+  rsp[0] = '\0';
+  if((!ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IGNORED_INTERFACES, rsp, sizeof(rsp)))
+     && (rsp[0] != '\0')) {
+    char *token;
+    char *rest = rsp;
+
+    while((token = strtok_r(rest, ",", &rest)))
+      flowHashingIgnoredInterfaces.insert(atoi(token));
+  }
+
+#ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
+  if (flowHashingMode == flowhashing_none)
+    sub_interfaces = ntop->getPro()->has_valid_license() ? new SubInterfaces(this) : NULL;
+#endif
+#endif
 }
 
 /* **************************************************** */
@@ -1015,23 +1015,59 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
 /* **************************************************** */
 
+bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface, u_int32_t criteria) {
+  FlowHashing *h = NULL;
+
+  h = (FlowHashing*)malloc(sizeof(FlowHashing));
+
+  if (h == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+    delete sub_iface; /* Note: deleting here as ntop->registerInterface is also deleting it on failure */
+    return false;
+  }
+
+  if (!ntop->registerInterface(sub_iface)) 
+    return false;
+
+  sub_iface->setSubInterface();
+  sub_iface->allocateStructures();
+
+  ntop->initInterface(sub_iface);
+
+  sub_iface->startPacketPolling(); /* Won't actually start a thread, just mark this interface as running */
+
+  h->criteria = criteria;
+  h->iface = sub_iface;
+
+  HASH_ADD_INT(flowHashing, criteria, h);
+
+  numSubInterfaces++;
+  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char * const)"1");
+
+  return true;
+}
+
+/* **************************************************** */
+
 NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool parser_interface) {
+  NetworkInterface *sub_iface = NULL;
 #ifndef HAVE_NEDGE
   FlowHashing *h = NULL;
 
   HASH_FIND_INT(flowHashing, &criteria, h);
 
-  if(h == NULL) {
+  if(h != NULL) {
+
+    sub_iface = h->iface;
+
+  } else {
     /* Interface not found */
 
-    if(numVirtualInterfaces < MAX_NUM_VIRTUAL_INTERFACES) {
-      if((h = (FlowHashing*)malloc(sizeof(FlowHashing))) != NULL) {
-	char buf[64], buf1[48];
-	const char *vIface_type;
+    if(numSubInterfaces < MAX_NUM_VIRTUAL_INTERFACES) {
+      char buf[64], buf1[48];
+      const char *vIface_type;
 
-	h->criteria = criteria;
-
-	switch(flowHashingMode) {
+      switch(flowHashingMode) {
 	case flowhashing_vlan:
 	  vIface_type = CONST_INTERFACE_TYPE_VLAN;
 	  snprintf(buf, sizeof(buf), "%s [VLAN Id: %u]", ifname, criteria);
@@ -1061,39 +1097,28 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool par
 	  free(h);
 	  return(NULL);
 	  break;
-	}
+      }
 
-	if(dynamic_cast<ZMQParserInterface*>(this))
-	  h->iface = new ZMQParserInterface(buf, vIface_type);
-	else if(dynamic_cast<SyslogParserInterface*>(this))
-	  h->iface = new SyslogParserInterface(buf, vIface_type);
-	else
-	  h->iface = new NetworkInterface(buf, vIface_type);
+      if(dynamic_cast<ZMQParserInterface*>(this))
+        sub_iface = new ZMQParserInterface(buf, vIface_type);
+      else if(dynamic_cast<SyslogParserInterface*>(this))
+        sub_iface = new SyslogParserInterface(buf, vIface_type);
+      else
+        sub_iface = new NetworkInterface(buf, vIface_type);
 
-	if(h->iface) {
-	  if(ntop->registerInterface(h->iface))
-            ntop->initInterface(h->iface);
-	  h->iface->allocateStructures();
-	  h->iface->setDynamicInterface();
-	  h->iface->startPacketPolling(); /* Won't actually start a thread, just mark this interface as running */
-	  HASH_ADD_INT(flowHashing, criteria, h);
-	  numVirtualInterfaces++;
-	  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char * const)"1");
-	} else {
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
-          free(h);
-          return(NULL);
+      if(sub_iface) {
+        if (!this->registerSubInterface(sub_iface, criteria)) {
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure registering sub-interface");
+          sub_iface = NULL;
         }
       } else {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
       }
     }
   }
-
-  if(h) return(h->iface);
 #endif
 
-  return(NULL);
+  return(sub_iface);
 }
 
 /* **************************************************** */
@@ -1106,7 +1131,7 @@ void NetworkInterface::processFlow(ParsedFlow *zflow) {
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
 
-  if(!isDynamicInterface()) {
+  if(!isSubInterface()) {
 
     if(flowHashingMode == flowhashing_none) {
 #ifdef NTOPNG_PRO
@@ -1456,7 +1481,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int16_t l4_len = 0;
   *hostFlow = NULL;
 
-  if(!isDynamicInterface()) {
+  if(!isSubInterface()) {
     if(flowHashingMode == flowhashing_none) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -2075,20 +2100,6 @@ void NetworkInterface::purgeIdle(time_t when) {
 	current->iface->purgeIdle(when);
     }
   }
-
-#ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
-  if(sub_interfaces) {
-    int i, n = sub_interfaces->getNumSubInterfaces();
-    for (i = 0; i < n; i++) { 
-      NetworkInterface *sub_iface = sub_interfaces->getNetworkInterface(i);
-      
-      if(sub_iface) 
-        sub_iface->purgeIdle(when);
-    }
-  }
-#endif
-#endif
 }
 
 /* **************************************************** */
@@ -5345,7 +5356,7 @@ u_int64_t NetworkInterface::getNumBytes() {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getNumPacketDrops() {
-  return(!isDynamicInterface() ? getNumDroppedPackets() : 0);
+  return(!isSubInterface() ? getNumDroppedPackets() : 0);
 };
 
 /* **************************************************** */
@@ -5596,7 +5607,7 @@ void NetworkInterface::lua(lua_State *vm) {
   if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isViewed", isViewed()); /* Viewed interface */
-  lua_push_bool_table_entry(vm, "isDynamic", isDynamicInterface()); /* An runtime-instantiated interface */
+  lua_push_bool_table_entry(vm, "isDynamic", isSubInterface()); /* An runtime-instantiated interface */
   lua_push_uint64_table_entry(vm, "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());

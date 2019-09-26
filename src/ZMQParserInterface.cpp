@@ -785,21 +785,19 @@ bool ZMQParserInterface::matchField(ParsedFlow * const flow, const char * const 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Field %s not supported by flow filtering", key);
     return false;
   }
-
+  
   switch(pen) {
     case 0: /* No PEN */
       res = matchPENZeroField(flow, key_id, value);
-      if (res)
-        break;
-    /* Dont'break when res == false for backward compatibility: attempt to parse Zero-PEN as Ntop-PEN */
+      break;
     case NTOP_PEN:
       res = matchPENNtopField(flow, key_id, value);
-    break;
+      break;
     case UNKNOWN_PEN:
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Field %s not supported by flow filtering", key);
       res = false;
-    break;
+      break;
   }
 
   return res;

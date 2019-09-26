@@ -94,7 +94,7 @@ class NetworkInterface : public AlertableEntity {
   ViewInterface *viewed_by; /* Whether this interface is 'viewed' by a ViewInterface */
 
   /* Disaggregations */
-  u_int16_t numVirtualInterfaces;
+  u_int16_t numSubInterfaces;
   set<u_int32_t>  flowHashingIgnoredInterfaces;
   FlowHashingEnum flowHashingMode;
   FlowHashing *flowHashing;
@@ -210,6 +210,7 @@ class NetworkInterface : public AlertableEntity {
 
   void init();
   void deleteDataStructures();
+
   NetworkInterface* getDynInterface(u_int32_t criteria, bool parser_interface);
   Flow* getFlow(Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
 		u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
@@ -368,6 +369,7 @@ class NetworkInterface : public AlertableEntity {
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
   virtual void checkPointCounters(bool drops_only);
+  bool registerSubInterface(NetworkInterface *sub_iface, u_int32_t criteria);
 
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointNumBytes();
@@ -724,8 +726,8 @@ class NetworkInterface : public AlertableEntity {
   void topProtocolsAdd(u_int16_t pool_id, u_int16_t protocol, u_int32_t bytes);
   inline void luaTopPoolsProtos(lua_State *vm) { frequentProtocols->luaTopPoolsProtocols(vm); }
   void topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes);
-  inline bool isDynamicInterface()                { return(is_dynamic_interface);            };
-  inline void setDynamicInterface()               { is_dynamic_interface = true;             };
+  inline bool isSubInterface()                { return(is_dynamic_interface);            };
+  inline void setSubInterface()               { is_dynamic_interface = true;             };
   bool isLocalBroadcastDomainHost(Host * const h, bool is_inline_call);
   inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline MDNS* getMDNS() { return(mdns); }
