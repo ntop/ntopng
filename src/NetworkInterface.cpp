@@ -154,14 +154,11 @@ NetworkInterface::NetworkInterface(const char *name,
   if(ntop->getCustomnDPIProtos() != NULL)
     ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
-  ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
-#ifdef HAVE_NEDGE
-  /* In nEdge, also dissect the DNS reply to avoid generating DNS alerts
-   * and possibly inspect the DNS reply. */
-  ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  0);
-#else
+  /* DNS response dissection in nEdge is handled separately via needsExtraDissection().
+   * In this way the DNS protocol is returned in the first packet and additional information
+   * may also be returned later. */
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  1);
-#endif
+  ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_enable_category_substring_match, 1);
 
   memset(d_port, 0, sizeof(d_port));
@@ -1478,6 +1475,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
+  bool extra_dissection = false;
   u_int16_t l4_len = 0;
   *hostFlow = NULL;
 
@@ -1810,19 +1808,21 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   /* Protocol Detection */
   flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
+  extra_dissection = flow->needsExtraDissection();
 
-  if(!flow->isDetectionCompleted()) {
+  if(!flow->isDetectionCompleted() || extra_dissection) {
     if(!is_fragment) {
       struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
       struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
       struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
-      if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS) {
+      if((flow->get_packets() >= NDPI_MIN_NUM_PACKETS) && !extra_dissection) {
 	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
-      } else
+      } else {
 	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
 								ip, trusted_ip_len, (u_int32_t)packet_time,
 								cli, srv), false);
+      }
     } else {
       // FIX - only handle unfragmented packets
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
@@ -5440,8 +5440,14 @@ void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_
 /* *************************************** */
 
 static void guess_all_ndpi_protocols_walker(Flow *flow, NetworkInterface *iface) {
-  if(!flow->isDetectionCompleted() && iface->get_ndpi_struct() && flow->get_ndpi_flow())
-    flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1), true);
+  if(iface->get_ndpi_struct() && flow->get_ndpi_flow()) {
+    if(!flow->isDetectionCompleted())
+      flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1), true);
+
+    /* Ensure that the callbacks are called */
+    flow->processDetectedProtocol();
+    flow->processFullyDetectedProtocol();
+  }
 }
 
 static bool process_all_active_flows_walker(GenericHashEntry *node, void *user_data, bool *matched) {

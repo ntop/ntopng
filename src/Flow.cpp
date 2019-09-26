@@ -51,6 +51,7 @@ Flow::Flow(NetworkInterface *_iface,
   alert_rowid = -1;
   last_notified_status_map = Utils::bitmapSet(0, status_normal);
   purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
+  fully_processed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
 
@@ -404,6 +405,8 @@ u_int16_t Flow::getStatsProtocol() const {
 
 /* *************************************** */
 
+/* This function is called as soon as the protocol detection is
+ * completed. See processFullyDetectedProtocol for a later callback. */
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
@@ -507,30 +510,8 @@ void Flow::processDetectedProtocol() {
     }
     break;
 
-  case NDPI_PROTOCOL_SSH:
-    if(protos.ssh.client_signature == NULL)
-      protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
-    if(protos.ssh.server_signature == NULL)
-      protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
-
-    if(protos.ssh.hassh.client_hash == NULL
-       && ndpiFlow->protos.ssh.hassh_client[0] != '\0') {
-      protos.ssh.hassh.client_hash = strdup(ndpiFlow->protos.ssh.hassh_client);
-      updateHASSH(true /* As client */);
-    }
-
-    if(protos.ssh.hassh.server_hash == NULL
-       && ndpiFlow->protos.ssh.hassh_server[0] != '\0') {
-      protos.ssh.hassh.server_hash = strdup(ndpiFlow->protos.ssh.hassh_server);
-      updateHASSH(false /* As server */);
-    }
-
-    break;
-
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_TLS:
-    protos.ssl.ssl_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
-
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> [client: %s][server: %s]",
 				 ndpiFlow->protos.stun_ssl.ssl.client_certificate,
@@ -545,23 +526,6 @@ void Flow::processDetectedProtocol() {
 	if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_TOR))
 	  check_tor = true;
       }
-    }
-
-    if((protos.ssl.server_certificate == NULL)
-       && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
-      protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
-    }
-
-    if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
-      protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
-      updateCliJA3();
-    }
-
-    if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
-      protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
-      protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
-      protos.ssl.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
-      updateSrvJA3();
     }
 
     if(check_tor) {
@@ -605,62 +569,137 @@ void Flow::processDetectedProtocol() {
     }
     break;
   } /* switch */
-
-  if(protocol_processed
-     /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
-     && (l7proto != NDPI_PROTOCOL_DNS))
-    freeDPIMemory();
 }
 
 /* *************************************** */
 
-void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
+/* This is called only once per Flow, when all the protocol information,
+ * including extra dissection information (e.g. the TLS certificate), is
+ * available. */
+void Flow::processFullyDetectedProtocol() {
+  u_int16_t l7proto;
+
+  if((ndpiFlow == NULL) || (fully_processed))
+    return;
+
+  l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
+
+  switch(l7proto) {
+
+  case NDPI_PROTOCOL_SSH:
+    if(protos.ssh.client_signature == NULL)
+      protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
+    if(protos.ssh.server_signature == NULL)
+      protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
+
+    if(protos.ssh.hassh.client_hash == NULL
+       && ndpiFlow->protos.ssh.hassh_client[0] != '\0') {
+      protos.ssh.hassh.client_hash = strdup(ndpiFlow->protos.ssh.hassh_client);
+      updateHASSH(true /* As client */);
+    }
+
+    if(protos.ssh.hassh.server_hash == NULL
+       && ndpiFlow->protos.ssh.hassh_server[0] != '\0') {
+      protos.ssh.hassh.server_hash = strdup(ndpiFlow->protos.ssh.hassh_server);
+      updateHASSH(false /* As server */);
+    }
+    break;
+
+  case NDPI_PROTOCOL_TLS:
+    protos.ssl.ssl_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
+
+    if((protos.ssl.server_certificate == NULL)
+       && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
+      protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
+    }
+
+    if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
+      protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
+      updateCliJA3();
+    }
+
+    if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
+      protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
+      protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
+      protos.ssl.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
+      updateSrvJA3();
+    }
+    break;
+  };
+
+  fully_processed = true;
+
+  /* Free the nDPI memory */
+  freeDPIMemory();
+}
+
+/* *************************************** */
+
+bool Flow::needsExtraDissection() {
   ndpi_flow_struct* ndpif;
 
-  /* Let the client SSL certificate win over the server SSL certificate
-     this addresses detection for youtube, e.g., when the client
-     requests s.youtube.com but the server responds with google.com */
-
-  if(!forceDetection
-     && get_packets() < NDPI_MIN_NUM_PACKETS
+  return((get_packets() < NDPI_MIN_NUM_PACKETS) /* Never exceed NDPI_MIN_NUM_PACKETS */
      && (ndpif = get_ndpi_flow())
      && (
-         (proto_id.master_protocol == NDPI_PROTOCOL_TLS
+         /* NOTE: Disable certificate check in nEdge to offload flows as soon as possible. */
+#ifndef HAVE_NEDGE
+         /* SSL certificates are missing? */
+         (ndpiDetectedProtocol.master_protocol == NDPI_PROTOCOL_TLS
           && (ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0'
               || ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0'))
-         || (proto_id.app_protocol == NDPI_PROTOCOL_SSH
+         /* SSH fingerprint is missing? */
+      || (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSH
           && (ndpif->protos.ssh.hassh_client[0] == '\0'
-	      || ndpif->protos.ssh.hassh_server[0] == '\0'))
-         )
-     ) {
-    /* In the cases above the detection continues even if all the protocols
-     * have been detected, in order to possibly extract additional information */
-    return;
-  }
+              || ndpif->protos.ssh.hassh_server[0] == '\0'))
+#endif
+      /* Always wait for the DNS reply. In nEdge this is needed to avoid
+       * generating DNS alerts and possibly inspect the DNS reply. */
+      || (isDNS() && (ndpif->protos.dns.rsp_type == 0))
+        )
+  );
+}
 
+/* *************************************** */
+
+/* NOTE: this function can be called multiple times, even after the detection
+ * has compleated. This usually happens if needsExtraDissection() returns true. */
+void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   if((proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || forceDetection
      || (get_packets() >= NDPI_MIN_NUM_PACKETS)
      || (!iface->is_ndpi_enabled())
      || iface->isSampledTraffic()) {
-    u_int8_t is_proto_user_defined;
+    /* Only execute this if the detection is was not already completed. */
+    if(!detection_completed) {
+        u_int8_t is_proto_user_defined;
 
-    if(forceDetection && (proto_id.app_protocol == NDPI_PROTOCOL_UNKNOWN))
-      proto_id.app_protocol = (int16_t)ndpi_guess_protocol_id(iface->get_ndpi_struct(),
+      if(forceDetection && (proto_id.app_protocol == NDPI_PROTOCOL_UNKNOWN))
+        proto_id.app_protocol = (int16_t)ndpi_guess_protocol_id(iface->get_ndpi_struct(),
 							      NULL, protocol, get_cli_port(),
 							      get_srv_port(), &is_proto_user_defined);
 
-    ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
-    ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
+      ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
+      ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
 
-    /* NOTE: only overwrite the category if it was not set.
-     * This prevents overwriting already determined category (e.g. by IP or Host)
-     */
-    if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
-      ndpiDetectedProtocol.category = proto_id.category;
+      /* NOTE: only overwrite the category if it was not set.
+      * This prevents overwriting already determined category (e.g. by IP or Host)
+      */
+      if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
+        ndpiDetectedProtocol.category = proto_id.category;
 
-    processDetectedProtocol();
-    detection_completed = true;
+      processDetectedProtocol();
+      detection_completed = true;
+
+#ifdef HAVE_NEDGE
+      updateFlowShapers(true);
+#endif
+      update_flow_port_stats = true;
+    }
+
+    if(detection_completed && (forceDetection || !needsExtraDissection())) {
+      /* Extra detection was completed */
+      processFullyDetectedProtocol();
+    }
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
     if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
@@ -672,14 +711,6 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
     }
 #endif
-  }
-
-  if(detection_completed) {
-#ifdef HAVE_NEDGE
-    updateFlowShapers(true);
-#endif
-
-    update_flow_port_stats = true;
   }
 
 #ifdef NTOPNG_PRO
