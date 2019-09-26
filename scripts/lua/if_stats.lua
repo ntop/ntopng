@@ -347,17 +347,17 @@ if(isAdministrator()) then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
    if(page == "flow_callbacks") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers\"></i></a></li>\n")
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
    else
-      print("\n<li><a href=\""..url.."&page=flow_callbacks\"><i class=\"fa fa-superpowers\"></i></a></li>")
+      print("\n<li><a href=\""..url.."&page=flow_callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
    end
 end
 
 if(isAdministrator() and ntop.isEnterprise() and not ifstats.isDynamic) and isEmptyString(ntop.getCache(disaggregation_criterion_key)) then
    if(page == "sub_interfaces") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-code-fork\"></i></a></li>\n")
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-code-fork fa-lg\"></i></a></li>\n")
    else
-      print("\n<li><a href=\""..url.."&page=sub_interfaces\"><i class=\"fa fa-code-fork\"></i></a></li>")
+      print("\n<li><a href=\""..url.."&page=sub_interfaces\"><i class=\"fa fa-code-fork fa-lg\"></i></a></li>")
    end
 end
 
@@ -378,9 +378,9 @@ if isAdministrator() then
 
    if not have_nedge then
       if(page == "pools") then
-         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i> "..label.."</a></li>\n")
+         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users fa-lg\"></i> "..label.."</a></li>\n")
       else
-         print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i> "..label.."</a></li>")
+         print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users fa-lg\"></i> "..label.."</a></li>")
       end
    end
 end
