@@ -712,13 +712,18 @@ end
 
 -- Exports a timeseries file in line format to InfluxDB
 -- Returns a tuple(success, file_still_existing)
-function driver:_exportTsFile(fname)
+function driver:_exportTsFile(exportable)
   local rv = true
+  local fname = exportable["fname"]
 
   if not ntop.exists(fname) then
     traceError(TRACE_ERROR, TRACE_CONSOLE,
-      string.format("Cannot find ts file %s. Some timeseries data will be lost.", fname))
-    return false, false
+	       string.format("Cannot find ts file %s. Some timeseries data will be lost.", fname))
+    -- The file isn't in place, probably has been manually deleted or a write failure prevented
+    -- it from being written. It's safe to remove the corresponding item from the queue as this
+    -- won't be a recoverable export.
+    ntop.lremCache(INFLUX_EXPORT_QUEUE, exportable["item"])
+    return false
   end
 
   -- Delete the file after POST
@@ -915,7 +920,7 @@ function driver:_performExport(exportable)
    local prev_t = tonumber(ntop.getCache(time_key)) or 0
 
    local start_t = ntop.gettimemsec()
-   local rv = self:_exportTsFile(exportable["fname"])
+   local rv = self:_exportTsFile(exportable)
    local end_t = ntop.gettimemsec()
 
    if rv then
@@ -944,6 +949,7 @@ local function getExportable(item)
       return res
    end
 
+   res["item"]       = item
    res["fname"]      = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/ts_export/" .. export_id .. "_" .. time_ref)
    res["ifid_str"]   = ifid_str
    res["ifid"]       = ifid
