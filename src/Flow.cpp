@@ -640,22 +640,7 @@ bool Flow::needsExtraDissection() {
 
   return((get_packets() < NDPI_MIN_NUM_PACKETS) /* Never exceed NDPI_MIN_NUM_PACKETS */
      && (ndpif = get_ndpi_flow())
-     && (
-         /* NOTE: Disable certificate check in nEdge to offload flows as soon as possible. */
-#ifndef HAVE_NEDGE
-         /* SSL certificates are missing? */
-         (ndpiDetectedProtocol.master_protocol == NDPI_PROTOCOL_TLS
-          && (ndpif->protos.stun_ssl.ssl.client_certificate[0] == '\0'
-              || ndpif->protos.stun_ssl.ssl.server_certificate[0] == '\0'))
-         /* SSH fingerprint is missing? */
-      || (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSH
-          && (ndpif->protos.ssh.hassh_client[0] == '\0'
-              || ndpif->protos.ssh.hassh_server[0] == '\0'))
-#endif
-      /* Always wait for the DNS reply. In nEdge this is needed to avoid
-       * generating DNS alerts and possibly inspect the DNS reply. */
-      || (isDNS() && (ndpif->protos.dns.rsp_type == 0))
-        )
+     && (ndpi_extra_dissection_possible(iface->get_ndpi_struct(), ndpif))
   );
 }
 

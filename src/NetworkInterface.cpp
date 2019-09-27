@@ -154,10 +154,12 @@ NetworkInterface::NetworkInterface(const char *name,
   if(ntop->getCustomnDPIProtos() != NULL)
     ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
-  /* DNS response dissection in nEdge is handled separately via needsExtraDissection().
-   * In this way the DNS protocol is returned in the first packet and additional information
-   * may also be returned later. */
+#ifdef HAVE_NEDGE
+  /* nEdge requires to see the DNS reply */
+  ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  0);
+#else
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  1);
+#endif
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_enable_category_substring_match, 1);
 
