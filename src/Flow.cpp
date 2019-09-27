@@ -406,7 +406,7 @@ u_int16_t Flow::getStatsProtocol() const {
 /* *************************************** */
 
 /* This function is called as soon as the protocol detection is
- * completed. See processFullyDetectedProtocol for a later callback. */
+ * completed. See processFullyDissectedProtocol for a later callback. */
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
@@ -576,7 +576,7 @@ void Flow::processDetectedProtocol() {
 /* This is called only once per Flow, when all the protocol information,
  * including extra dissection information (e.g. the TLS certificate), is
  * available. */
-void Flow::processFullyDetectedProtocol() {
+void Flow::processFullyDissectedProtocol() {
   u_int16_t l7proto;
 
   if((ndpiFlow == NULL) || (fully_processed))
@@ -647,7 +647,8 @@ bool Flow::needsExtraDissection() {
 /* *************************************** */
 
 /* NOTE: this function can be called multiple times, even after the detection
- * has compleated. This usually happens if needsExtraDissection() returns true. */
+ * has compleated. This usually happens if needsExtraDissection() returns true.
+ * See doc/README.developers.flow_state.md for more details. */
 void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   if((proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || forceDetection
@@ -683,7 +684,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 
     if(detection_completed && (forceDetection || !needsExtraDissection())) {
       /* Extra detection was completed */
-      processFullyDetectedProtocol();
+      processFullyDissectedProtocol();
     }
 
 #if 0

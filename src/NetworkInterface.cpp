@@ -5443,9 +5443,10 @@ static void guess_all_ndpi_protocols_walker(Flow *flow, NetworkInterface *iface)
     if(!flow->isDetectionCompleted())
       flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1), true);
 
-    /* Ensure that the callbacks are called */
+    /* Ensure that the callbacks are called. Normally processFullyDissectedProtocol
+     * sould not be called because the detection of the flow is not completed yet. */
     flow->processDetectedProtocol();
-    flow->processFullyDetectedProtocol();
+    flow->processFullyDissectedProtocol();
   }
 }
 

@@ -315,7 +315,7 @@ class Flow : public GenericHashEntry {
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
-  void processFullyDetectedProtocol();
+  void processFullyDissectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
   inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));
