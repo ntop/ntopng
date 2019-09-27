@@ -1474,7 +1474,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
-  bool extra_dissection = false;
   u_int16_t l4_len = 0;
   *hostFlow = NULL;
 
@@ -1807,15 +1806,15 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   /* Protocol Detection */
   flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
-  extra_dissection = flow->needsExtraDissection();
 
-  if(!flow->isDetectionCompleted() || extra_dissection) {
+  if(!flow->isDetectionCompleted() || flow->needsExtraDissection()) {
     if(!is_fragment) {
+      /* NOTE: can be NULL */
       struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
       struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
       struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
-      if((flow->get_packets() >= NDPI_MIN_NUM_PACKETS) && !extra_dissection) {
+      if(flow->hasDissectedTooManyPackets()) {
 	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
       } else {
 	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,

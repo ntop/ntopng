@@ -638,8 +638,10 @@ void Flow::processFullyDissectedProtocol() {
 bool Flow::needsExtraDissection() {
   ndpi_flow_struct* ndpif;
 
-  return((get_packets() < NDPI_MIN_NUM_PACKETS) /* Never exceed NDPI_MIN_NUM_PACKETS */
-     && (ndpif = get_ndpi_flow())
+  /* NOTE: do not check hasDissectedTooManyPackets() here, otherwise
+   * ndpi_detection_giveup won't be called. */
+  return((ndpif = get_ndpi_flow())
+     && (!fully_processed)
      && (ndpi_extra_dissection_possible(iface->get_ndpi_struct(), ndpif))
   );
 }
@@ -652,7 +654,7 @@ bool Flow::needsExtraDissection() {
 void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   if((proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || forceDetection
-     || (get_packets() >= NDPI_MIN_NUM_PACKETS)
+     || (hasDissectedTooManyPackets())
      || (!iface->is_ndpi_enabled())
      || iface->isSampledTraffic()) {
     /* Only execute this if the detection is was not already completed. */
@@ -4448,4 +4450,24 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, A
     else
       performed_lua_calls.insert(make_pair(flow_lua_call, *tv));
   }
+}
+
+/* ***************************************************** */
+
+bool Flow::hasDissectedTooManyPackets() {
+  u_int32_t num_packets;
+
+#ifdef HAVE_NEDGE
+  /* NOTE: in nEdge packet stats are update periodically, so
+   * we cannot rely on get_packets() */
+  if(ndpiFlow)
+    /* WARNING: can wrap! */
+    num_packets = ndpiFlow->num_processed_pkts;
+  else
+    num_packets = get_packets();
+#else
+  num_packets = get_packets();
+#endif
+
+  return(num_packets >= NDPI_MIN_NUM_PACKETS);
 }

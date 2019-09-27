@@ -368,6 +368,7 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.cli2srv_packets; };
   inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.srv2cli_packets; };
   bool needsExtraDissection();
+  bool hasDissectedTooManyPackets();
   bool get_partial_traffic_stats_view(FlowTrafficStats *delta, bool *first_partial);
   inline FlowTrafficStats * getFlowTrafficStats() { return &stats; };
   bool update_partial_traffic_stats_db_dump();
