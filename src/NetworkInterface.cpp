@@ -154,12 +154,9 @@ NetworkInterface::NetworkInterface(const char *name,
   if(ntop->getCustomnDPIProtos() != NULL)
     ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
-#ifdef HAVE_NEDGE
-  /* nEdge requires to see the DNS reply */
+  /* The DNS reply must be dissected to properly generate requests vs replies ratio
+   * and update the DnsStats. */
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  0);
-#else
-  ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  1);
-#endif
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
   ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_enable_category_substring_match, 1);
 

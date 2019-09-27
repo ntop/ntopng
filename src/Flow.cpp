@@ -686,6 +686,15 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       processFullyDetectedProtocol();
     }
 
+#if 0
+    {
+      char buf[32];
+
+      printf("completed=%d, fully_processed=%d - pkts=%lu, proto=%s\n", detection_completed,
+        fully_processed, get_packets(), get_detected_protocol_name(buf, sizeof(buf)));
+    }
+#endif
+
 #ifdef BLACKLISTED_FLOWS_DEBUG
     if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
       char buf[512];
