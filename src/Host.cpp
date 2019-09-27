@@ -819,11 +819,6 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
     return policer->getShaper(DEFAULT_SHAPER_ID);
   }
 
-  // Avoid dropping critical protocols
-  if(Utils::isCriticalNetworkProtocol(ndpiProtocol.master_protocol) ||
-	  Utils::isCriticalNetworkProtocol(ndpiProtocol.app_protocol))
-    return policer->getShaper(PASS_ALL_SHAPER_ID);
-
   shaper_id = policer->getShaperIdForPool(get_host_pool(), ndpiProtocol, isIngress, &policy_source);
 
 #ifdef SHAPER_DEBUG
