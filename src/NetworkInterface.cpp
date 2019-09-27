@@ -1879,7 +1879,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #ifdef DHCP_DEBUG
 	      ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'", client_mac, name);
 #endif
-	    } else if(id == 55 /* Parameters List (Fingerprint) */) {
+	    } else if((id == 55 /* Parameters List (Fingerprint) */) && flow->get_ndpi_flow()) {
 	      char fingerprint[64], buf[32];
 	      u_int idx, offset = 0;
 
