@@ -2513,12 +2513,15 @@ json_object* Flow::flow2json() {
   if(isDNS() && protos.dns.last_query)
     json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(protos.dns.last_query));
 
-  if(isHTTP() && protos.http.last_url && protos.http.last_method) {
+  if(isHTTP()) {
     if(host_server_name && (host_server_name[0] != '\0'))
       json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
-    json_object_object_add(my_object, "HTTP_URL", json_object_new_string(protos.http.last_url));
-    json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(protos.http.last_method));
-    json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)protos.http.last_return_code));
+    if(protos.http.last_url)
+      json_object_object_add(my_object, "HTTP_URL", json_object_new_string(protos.http.last_url));
+    if(protos.http.last_method)
+      json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(protos.http.last_method));
+    if(protos.http.last_return_code)
+      json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)protos.http.last_return_code));
   }
 
   if(bt_hash)
