@@ -25,7 +25,6 @@ local ts_utils = require "ts_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
 local mud_utils = require "mud_utils"
-local rtt_utils = require "rtt_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 
@@ -378,14 +377,6 @@ if host["localhost"] == true then
       else
 	 print("<li><a href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
       end
-   end
-end
-
-if not ntop.isWindows() then
-   if(page == "rtt") then
-      print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.rtt").."</a></li>\n")
-   else
-      print("<li><a href=\""..url.."&page=rtt\">"..i18n("host_details.rtt").."</a></li>")
    end
 end
 
@@ -1800,8 +1791,6 @@ elseif(page == "snmp" and ntop.isEnterprise() and isAllowedSystemInterface()) th
       print_host_snmp_localization_table_entry(host["mac"])
       print[[</table>]]
    end
-elseif(page == "rtt") and not ntop.isWindows() then
-   rtt_utils.print_host_rtt_table(host)
 elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
    ebpf_utils.draw_processes_graph(host_info)
@@ -1969,7 +1958,6 @@ elseif (page == "config") then
    local top_hiddens = ntop.getMembersCache(getHideFromTopSet(ifId) or {})
    local is_top_hidden = swapKeysValues(top_hiddens)[hostkey_compact] ~= nil
    local host_key = hostinfo2hostkey(host_info, nil, true --[[show vlan]])
-   local rtt_host_key = rtt_utils.host2key(host["ip"], ternary(isIPv4(host["ip"]), "ipv4", "ipv6"), "icmp")
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
       if(ifstats.inline and (host.localhost or host.systemhost)) then
@@ -2008,14 +1996,6 @@ elseif (page == "config") then
       if _POST["action"] == "delete_mud" then
         mud_utils.deleteHostMUD(ifId, host_info.host)
       end
-
-      if _POST["rtt_max"] then
-	 -- pretty insane not to reuse rtt_host_key and build another key which is equal to rtt_host_key but separated by
-	 -- pipes... can't really figure out why...
-	 rtt_utils.addHost(rtt_host_key, string.format("%s|%s|%s|%s", host["ip"], ternary(isIPv4(host["ip"]), "ipv4", "ipv6"), "icmp", _POST["rtt_max"]))
-      else
-	 rtt_utils.deleteHost(rtt_host_key)
-      end
    end
 
    print[[<form id="delete-mud-form" method="post">]]
@@ -2037,29 +2017,6 @@ elseif (page == "config") then
    print [[
          </td>
       </tr>]]
-
-   if not ntop.isWindows() then
-      local host_conf = rtt_utils.getHost(rtt_host_key)
-
-      local max_rtt
-      if host_conf then
-	 max_rtt = string.format("%u", host_conf["max_rtt"])
-      end
-
-      print[[
-       <tr>
-         <th>]] print(i18n("system_stats.max_rtt_no_ms")) print[[</th>
-         <td>
-               <input type="number" name="rtt_max" class="form-control" placeholder="" style="width: 280px;" min="1" max="10000" value="]]
-      if max_rtt then
-	 print(max_rtt)
-      end
-   print[["></input> ms]]
-
-   print [[
-         </td>
-      </tr>]]
-   end
 
    printPoolChangeDropdown(ifId, host_pool_id, have_nedge)
 
