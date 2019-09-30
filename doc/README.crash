@@ -12,9 +12,10 @@ An easy way to get a stack trace on linux is to run ntopng through the *gdb* deb
 1. Install gdb (e.g. `sudo apt-get install gdb`)
 2. Stop the running service: `sudo systemctl stop ntopng`
 3. Start gdb: `gdb --args ntopng /etc/ntopng/ntopng.conf`
-4. Run ntopng through gdb with the `run` command
-5. Wait for the crash to occur
-6. Now run `bt` into gdb to get a stack trace of the crash
+4. Execute `handle SIG33 nostop noprint pass` and `handle SIGPIPE nostop noprint pass`
+5. Execute `run` to start debunning ntopng
+6. Wait for the crash to occur
+7. Now run `bt` into gdb to get a stack trace of the crash
 
 # Windows
 
