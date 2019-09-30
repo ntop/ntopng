@@ -4550,10 +4550,6 @@ bool Flow::lua(lua_State* vm, FlowLuaMethod flm) const {
     lua_get_packets(vm);
     break;
 
-  case flow_lua_method_get_throughput:
-    lua_get_throughput(vm);
-    break;
-
   case flow_lua_method_get_time:
     lua_get_time(vm);
     break;
@@ -4633,7 +4629,6 @@ std::map<FlowLuaMethod, std::string> Flow::initLuaMethodIdToName() {
   m[flow_lua_method_get_cli2srv_traffic] = "getClient2ServerTraffic";
   m[flow_lua_method_get_srv2cli_traffic] = "getServer2ClientTraffic";
   m[flow_lua_method_get_packets]         = "getPackets";
-  m[flow_lua_method_get_throughput]      = "getThroughput";
   m[flow_lua_method_get_time]            = "getTime";
   m[flow_lua_method_get_cli_ip]          = "getClientIp";
   m[flow_lua_method_get_srv_ip]          = "getServerIp";
