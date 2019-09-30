@@ -163,6 +163,35 @@ srv2cli.bytes number 1842
 srv2cli.pkt_len.max number 1201
 ```
 
+### getClient2ServerIAT
+
+`getClient2ServerIAT` returns interarrival time statistics for the client to server direction of the flow. Returned statistics have minimum, average, maximum and standard deviation.
+
+Returned table example:
+```
+ table
+interarrival.cli2srv table
+interarrival.cli2srv.min number 0
+interarrival.cli2srv.avg number 49.652172088623
+interarrival.cli2srv.max number 195
+interarrival.cli2srv.stddev number 35.158782958984
+
+```
+
+### getServer2ClientIAT
+
+`getServer2ClientIAT` returns interarrival time statistics for the server to client direction of the flow. Returned statistics have minimum, average, maximum and standard deviation.
+
+Returned table example:
+```
+ table
+interarrival.srv2cli table
+interarrival.srv2cli.min number 0
+interarrival.srv2cli.avg number 80.307693481445
+interarrival.srv2cli.max number 298
+interarrival.srv2cli.stddev number 76.409202575684
+```
+
 ### getPackets
 
 `getPackets` returns the total number of packets, counted as sum in both directions, that is, client to server and server to client.
