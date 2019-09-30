@@ -11,6 +11,9 @@ package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. pack
 if ntop.isnEdge() then
    package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
 
+   -- Select the NetfilterInterface, as by default the System interface is selected
+   interface.select(nil)
+
    require("lua_utils")
    local NfConfig = require("nf_config")
 
