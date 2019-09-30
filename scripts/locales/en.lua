@@ -1064,6 +1064,7 @@ local lang = {
     ["flow_end_microseconds"] = "uSec (epoch) of the first flow packet",
     ["flow_end_milliseconds"] = "Msec (epoch) of the last flow packet",
     ["flow_end_sec"] = "Seconds (epoch) of the last flow packet",
+    ["flow_end_reason"] = "Flow End Reason",
     ["flow_id"] = "Serial Flow Identifier",
     ["flow_inactive_timeout"] = "Inactivity timeout of flow cache entries",
     ["flow_proto_port"] = "L7 port that identifies the flow application or 0 if unknown",

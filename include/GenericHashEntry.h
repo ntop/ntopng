@@ -93,7 +93,7 @@ class GenericHashEntry {
   time_t first_seen;   /**< Time of first seen. */
   time_t last_seen;    /**< Time of last seen. */
   NetworkInterface *iface; /**< Pointer of network interface. */
-  virtual bool isIdle(u_int max_idleness);
+  bool isIdle(u_int max_idleness) const;
 
  public:
   /**
@@ -161,12 +161,12 @@ class GenericHashEntry {
    * 
    */
   virtual bool is_hash_entry_state_idle_transition_ready() = 0;
-  HashEntryState get_state();
+  HashEntryState get_state() const;
   void updateSeen();
   void updateSeen(time_t _last_seen);
   bool equal(GenericHashEntry *b)         { return((this == b) ? true : false); };  
   inline NetworkInterface* getInterface() { return(iface);                      };
-  bool idle();
+  bool idle() const;
   virtual void housekeep(time_t t)     { return;                 };
   inline u_int get_duration()          { return((u_int)(1+last_seen-first_seen)); };
   virtual u_int32_t key()              { return(0);         };  

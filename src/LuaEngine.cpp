@@ -8487,12 +8487,42 @@ static int ntop_flow_get_peer_mud_pref(lua_State* vm, bool client) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 static int ntop_flow_get_client_mud_pref(lua_State* vm) {
   return(ntop_flow_get_peer_mud_pref(vm, true /* client */));
 }
 
+/* ****************************************** */
+
 static int ntop_flow_get_server_mud_pref(lua_State* vm) {
   return(ntop_flow_get_peer_mud_pref(vm, false /* server */));
+}
+
+/* ****************************************** */
+
+static int ntop_flow_method_names_to_ids(lua_State* vm) {
+  Flow::luaMethodNamesToIds(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_call_method_by_id(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  Flow *f;
+  FlowLuaMethod flm;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!c
+     || !(f = c->flow)
+     || ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_ERROR);
+
+  flm = (FlowLuaMethod)lua_tonumber(vm, 1);
+
+  return f->lua(vm, flm) ? CONST_LUA_OK : CONST_LUA_ERROR;
 }
 
 /* ****************************************** */
@@ -9844,6 +9874,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "serializeClientByMac",     ntop_flow_serialize_client_by_mac    },
   { "serializeServerByMac",     ntop_flow_serialize_server_by_mac    },
   { "storeAlert",               ntop_flow_store_alert                },
+  { "methodNamesToIds",         ntop_flow_method_names_to_ids        },
+  { "callMethodById",           ntop_flow_call_method_by_id          },
 
   { NULL,                     NULL }
 };

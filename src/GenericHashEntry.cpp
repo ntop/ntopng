@@ -68,19 +68,19 @@ void GenericHashEntry::set_state(HashEntryState s) {
 
 /* ***************************************** */
 
-HashEntryState GenericHashEntry::get_state() {
+HashEntryState GenericHashEntry::get_state() const {
   return hash_entry_state;
 };
 
 /* ***************************************** */
 
-bool GenericHashEntry::idle() {
+bool GenericHashEntry::idle() const {
   return get_state() != hash_entry_state_active;
 };
 
 /* ***************************************** */
 
-bool GenericHashEntry::isIdle(u_int max_idleness) {
+bool GenericHashEntry::isIdle(u_int max_idleness) const {
   return((((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness)) ? true : false));
 }
 

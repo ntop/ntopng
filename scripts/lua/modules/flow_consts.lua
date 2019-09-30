@@ -147,6 +147,7 @@ flow_consts.flow_fields_description = {
     ["SAMPLED_PACKET_ID"] = i18n("flow_fields_description.sampled_packet_id"),
     ["EXPORTER_IPV4_ADDRESS"] = i18n("flow_fields_description.exporter_ipv4_address"),
     ["EXPORTER_IPV6_ADDRESS"] = i18n("flow_fields_description.exporter_ipv6_address"),
+    ["FLOW_END_REASON"] = i18n("flow_fields_description.flow_end_reason"),
     ["FLOW_ID"] = i18n("flow_fields_description.flow_id"),
     ["FLOW_START_SEC"] = i18n("flow_fields_description.flow_start_sec"),
     ["FLOW_END_SEC"] = i18n("flow_fields_description.flow_end_sec"),

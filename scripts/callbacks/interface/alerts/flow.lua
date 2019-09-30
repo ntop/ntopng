@@ -74,9 +74,44 @@ end
 
 -- The function below is called once (#pragma once)
 function setup()
-  if do_trace then print("flow.lua:setup() called\n") end
+   if do_trace then print("flow.lua:setup() called\n") end
 
-  check_modules = alerts_api.load_flow_check_modules(true --[[ only enabled modules --]])
+   -- Retrieve a table which maps method names to their corresponding ids
+   -- e.g.,
+   -- getTuple number 0
+   -- getClientCountry number 3
+   -- getServerIp number 2
+   -- getServerCountry number 4
+   -- getClientIp number 1
+   local method_names_to_ids = flow.methodNamesToIds()
+
+   -- Save the current flow metatable, which is the one populated
+   -- from C upon VM creation
+   local cur_metatable = getmetatable(flow)
+
+   -- Implement a new metatable function which first tries to
+   -- call methods populated by C and then, if no method is found,
+   -- rather than giving up it tries to see if there is a method
+   -- available in method_names_to_ids. In such case, the method
+   -- is returned (wrapped in a function) so it is ready to be called
+   local metatable_fn = function(t, k)
+      local existing = cur_metatable.__index[k]
+      if existing then
+	 return existing
+      end
+
+      local method_id = method_names_to_ids[k]
+      if method_id then
+	 return function(...)
+	    return flow.callMethodById(method_id, ...)
+	 end
+      end
+   end
+
+   -- Set the new metatable to the flow
+   setmetatable(flow, {__index = metatable_fn})
+
+   check_modules = alerts_api.load_flow_check_modules(true --[[ only enabled modules --]])
 end
 
 -- #################################################################

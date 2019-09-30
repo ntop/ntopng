@@ -56,6 +56,7 @@ class Flow : public GenericHashEntry {
   u_int16_t alert_score;
   FlowStatusMap last_notified_status_map;
   std::map<FlowLuaCall, struct timeval> performed_lua_calls;
+  static const std::map<FlowLuaMethod, std::string> lua_method_id_to_name;
   struct ndpi_flow_struct *ndpiFlow;
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
@@ -216,12 +217,12 @@ class Flow : public GenericHashEntry {
   void allocDPIMemory();
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
-  bool isLowGoodput();
+  bool isLowGoodput() const;
   static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when, bool update_iat);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   bool isReadyToBeMarkedAsIdle();
   bool isBlacklistedFlow() const;
-  inline bool isDeviceAllowedProtocol() {
+  inline bool isDeviceAllowedProtocol() const {
       return(!cli_host || !srv_host ||
         ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
          (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
@@ -238,10 +239,29 @@ class Flow : public GenericHashEntry {
   void updateCliJA3();
   void updateSrvJA3();
   void updateHASSH(bool as_client);
-  const char* cipher_weakness2str(ndpi_cipher_weakness w);
+  const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
   bool isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv);
   void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle);
+  static std::map<FlowLuaMethod, std::string> initLuaMethodIdToName();
+
+  void lua_get_status(lua_State* vm) const;
+  void lua_get_protocols(lua_State* vm) const;
+  void lua_get_bytes(lua_State* vm) const;
+  void lua_get_dir_traffic(lua_State* vm, bool cli2srv) const;
+  void lua_get_packets(lua_State* vm) const;
+  void lua_get_throughput(lua_State* vm) const;
+  void lua_get_time(lua_State* vm) const;
+  void lua_get_ip(lua_State *vm, bool client) const;
+  void lua_get_info(lua_State *vm, bool client) const;
+  void lua_get_ssl_info(lua_State *vm) const;
+  void lua_get_ssh_info(lua_State *vm) const;
+  void lua_get_http_info(lua_State *vm) const;
+  void lua_get_dns_info(lua_State *vm) const;
+  void lua_get_icmp_info(lua_State *vm) const;
+  void lua_get_tcp_info(lua_State *vm) const;
+  void lua_get_port(lua_State *vm, bool client) const;
+  void lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_city) const;
 
  public:
   Flow(NetworkInterface *_iface,
@@ -252,7 +272,7 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  FlowStatus getFlowStatus(FlowStatusMap *status_map);
+  FlowStatus getFlowStatus(FlowStatusMap *status_map) const;
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
   static const ndpi_protocol ndpiUnknownProtocol;
@@ -290,7 +310,7 @@ class Flow : public GenericHashEntry {
   char* get_proc_name(bool client);
   char* get_user_name(bool client);
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
-  double toMs(const struct timeval *t);
+  static double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
   const char* getFlowInfo();
   inline char* getFlowServerInfo() {
@@ -410,12 +430,12 @@ class Flow : public GenericHashEntry {
   u_int32_t get_packetsRetr();
   u_int32_t get_packetsOOO();
 
-  u_int64_t get_current_bytes_cli2srv();
-  u_int64_t get_current_bytes_srv2cli();
-  u_int64_t get_current_goodput_bytes_cli2srv();
-  u_int64_t get_current_goodput_bytes_srv2cli();
-  u_int64_t get_current_packets_cli2srv();
-  u_int64_t get_current_packets_srv2cli();
+  u_int64_t get_current_bytes_cli2srv() const;
+  u_int64_t get_current_bytes_srv2cli() const;
+  u_int64_t get_current_goodput_bytes_cli2srv() const;
+  u_int64_t get_current_goodput_bytes_srv2cli() const;
+  u_int64_t get_current_packets_cli2srv() const;
+  u_int64_t get_current_packets_srv2cli() const;
 
   /* Methods to handle the flow in-memory lifecycle */
   void set_hash_entry_state_idle();
@@ -431,6 +451,8 @@ class Flow : public GenericHashEntry {
 		       Host *srv, u_int16_t srv_port,
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
+  static void luaMethodNamesToIds(lua_State* vm);
+  bool lua(lua_State* vm, FlowLuaMethod flm) const;
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
@@ -470,8 +492,8 @@ class Flow : public GenericHashEntry {
   bool isSSLProto();
 
   inline void setIDSAlert(json_object *a, u_int8_t severity) { if (ids_alert) json_object_put(ids_alert); ids_alert = a; ids_alert_severity = severity; };
-  inline json_object *getIDSAlert() { return ids_alert; };
-  inline u_int8_t getIDSAlertSeverity() { return ids_alert_severity; };
+  inline json_object *getIDSAlert()     const { return ids_alert; };
+  inline u_int8_t getIDSAlertSeverity() const { return ids_alert_severity; };
   int storeFlowAlert(AlertType alert_type, AlertLevel alert_severity, const char *status_info);
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
@@ -479,8 +501,8 @@ class Flow : public GenericHashEntry {
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */
-  inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
-  inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
+  inline float getCli2SrvMaxThpt() const { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
+  inline float getSrv2CliMaxThpt() const { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
 
   inline InterarrivalStats* getCli2SrvIATStats() const { return cli2srvPktTime; }
   inline InterarrivalStats* getSrv2CliIATStats() const { return srv2cliPktTime; }
