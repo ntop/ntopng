@@ -64,8 +64,8 @@ end
 
 -- #################################################################
 
-function check_module.protocolDetected(info)
-  -- info contains the output of Flow::lua()
+function check_module.protocolDetected()
+  -- Custom actions
 end
 
 -- #################################################################
@@ -78,3 +78,321 @@ The `key` is a unique identifier for the script. The `gui` part contains a `titl
 Function `setup()` must always be present and it must return true if the module has to be enabled or false if the module has to be disabled.
 
 Then, the script can define zero or more of the functions highlighted above, namely: `protocolDetected`, `statusChanged`, `periodicUpdate` and `idle`. Defining a function will cause ntopng to call it, passing a table generated out of the `Flow::lua()` call as the first argument.
+
+# Obtaining Flow Information From Custom Scripts
+
+The number of flows on which custom scripts can be run against can be potentially very high, so it is fundamental to keep the computational cost of these scripts as low as possible. Experiments run highlighted that calling the `Flow::lua` for every flow was prohibitive. To reduce the computational cost but still be able to fetch flow information, we have factorized `Flow::lua` into several smaller functions and have exposed them to lua individually.
+
+## Currently Exposed Functions
+
+All exposed functions return a table with one or more keys. Keys depend on the function called. An always-updated list is  available in method `Flow::initLuaMethodIdToName`. The list of functions which have been currently exposed is the following:
+
+### getStatus
+
+`getStatus` returns the status bitmap of the flow, a boolean indicating if the flow is idle, and another boolean indicating if the flow is alerted
+
+Returned table example:
+```
+ table
+flow.status number 0
+flow.idle boolean false
+status_map number 1
+```
+
+### getProtocols
+
+`getProtocols` returns the Layer-4 and the Layer-7 protocols, along with the Layer-7 protocol category and breed.
+
+Returned table example:
+```
+ table
+proto.ndpi_id number 7
+proto.ndpi_breed string Acceptable
+proto.l4 string TCP
+proto.ndpi_cat string Web
+proto.ndpi_cat_id number 5
+proto.ndpi string HTTP
+```
+
+### getBytes
+
+`getBytes` returns the total number of bytes and goodput bytes, counted as sum in both directions, that is, client to server and server to client.
+
+Returned table example:
+```
+ table
+bytes.last number 2695
+goodput_bytes.last number 1949
+bytes number 2695
+goodput_bytes number 1949
+```
+
+### getClient2ServerTraffic
+
+`getClient2ServerTraffic` returns bytes, packets and packet length distributions for the client to server direction.
+
+Returned table example:
+```
+ table
+cli2srv.goodput_bytes number 448
+cli2srv.pkt_len.min number 66
+cli2srv.pkt_len.stddev number 166
+cli2srv.last number 856
+cli2srv.pkt_len.avg number 142
+cli2srv.packets number 6
+cli2srv.fragments number 0
+cli2srv.bytes number 856
+cli2srv.pkt_len.max number 514
+```
+
+### getServer2ClientTraffic
+
+`getServer2ClientTraffic` returns bytes, packets and packet length distributions for the client server to client direction.
+
+Returned table example:
+```
+ table
+srv2cli.pkt_len.stddev number 439
+srv2cli.goodput_bytes number 1504
+srv2cli.fragments number 0
+srv2cli.packets number 5
+srv2cli.pkt_len.min number 66
+srv2cli.last number 1842
+srv2cli.pkt_len.avg number 368
+srv2cli.bytes number 1842
+srv2cli.pkt_len.max number 1201
+```
+
+### getPackets
+
+`getPackets` returns the total number of packets, counted as sum in both directions, that is, client to server and server to client.
+
+Returned table example:
+```
+ table
+packets number 12
+packets.last number 12
+```
+
+### getTime
+
+`getTime` returns flow duration, along with the first and last seen, expressed as unix epochs.
+
+Returned table example:
+```
+ table
+duration number 1
+seen.first number 1569859250
+seen.last number 1569859251
+```
+
+### getClientIp
+`getClientIp` returns the ip address of the client, along with the ip address key
+
+Returned table example:
+```
+ table
+cli.key number 3232236253
+cli.ip string 192.168.2.221
+```
+
+### getServerIp
+
+`getServerIp` returns the ip address of the server, along with the ip address key
+
+Returned table example:
+```
+ table
+srv.key number 2412515162
+srv.ip string 143.204.15.90
+```
+
+### getClientInfo
+
+`getClientInfo` returns detailed information on the flow client. Information include network and host pool ids, whether this host is private, blacklisted, local or a system host, its mac address, and a visual name.
+
+Returned table example:
+```
+ table
+cli.network_id number 1
+cli.host string ubuntu
+cli.private boolean true
+cli.source_id number 0
+cli.pool_id number 3
+cli.blacklisted boolean false
+cli.systemhost boolean false
+cli.mac string 0C:C4:7A:CC:C4:4A
+```
+
+### getServerInfo
+
+`getServerInfo` is identical to `getClientInfo` except that it returns values for the server of the flow.
+
+Returned table example:
+```
+ table
+srv.blacklisted boolean false
+srv.source_id number 0
+srv.private boolean true
+srv.mac string 00:25:90:D4:CC:F9
+srv.pool_id number 2
+srv.network_id number 1
+srv.host string devel
+srv.systemhost boolean true
+```
+
+### getSSLInfo
+
+`getSSLInfo` returns SSL information, including the dissected certificate name, JA3 fingerprints, ciphers and version. An empty table is returned for non-SSL flows.
+
+Returned table example:
+```
+ table
+protos.ssl.server_certificate string www.lastampa.it
+protos.ssl.ja3.client_hash string 4e69e4e5627c5e4c2846ba3e64d23fb9
+protos.ssl.ja3.server_unsafe_cipher string safe
+protos.ssl.ja3.server_hash string 76cc3e2d3028143b23ec18e27dbd7ca9
+protos.ssl_version number 771
+protos.ssl.ja3.server_cipher number 49199
+protos.ssl.certificate string www.lastampa.it
+```
+
+### getSSHInfo
+
+`getSSHInfo` returns SSH information, including the HASSH hashes and the signatures of client and server. An empty table is returned for non-SSH flows.
+
+Returned table example:
+```
+protos.ssh.hassh.server_hash string D43D91BC39D5AAED819AD9F6B57B7348
+protos.ssh.server_signature string SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.8
+protos.ssh.hassh.client_hash string 68E0BA85E1A818F7C49EA3F4B849BD15
+protos.ssh.client_signature string SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.8
+```
+
+### getHTTPInfo
+
+`getHTTPInfo` returns HTTP information, including the server name and the last url, last method and last return code seen. An empty table is returned for non-HTTP flows.
+
+Returned table example:
+```
+protos.http.server_name string devel
+protos.http.last_url string devel/lua/get_flow_data.lua?flow_key=2169509007&_=1569859119920
+protos.http.last_return_code number 200
+protos.http.last_method string GET
+```
+
+### getDNSInfo
+
+`getDNSInfo` returns DNS information, including the last query sent, the query type and the return code. An empty table is returned for non-DNS flows. 
+
+Returned table example:
+```
+protos.dns.last_query string www.repubblica.it
+protos.dns.last_return_code number 0
+protos.dns.last_query_type number 0
+```
+
+### getICMPInfo
+
+`getICMPInfo` returns the type and code for ICMP flows. If the ICMP involves an unreachable messages, reachability information is added as well. An empty table is returned for non-ICMP flows.
+
+Returned table example:
+```
+ table
+icmp table
+icmp.code number 3
+icmp.type number 3
+icmp.unreach table
+icmp.unreach.dst_port number 6343
+icmp.unreach.dst_ip string 192.168.2.225
+icmp.unreach.src_ip string 192.168.2.222
+icmp.unreach.protocol number 17
+icmp.unreach.src_port number 45099
+```
+
+### getTCPInfo
+
+`getTCPInfo` returns TCP information for TCP flows. Information include the sequence numbers analysis (retransmissions, out-of-order, lost and keepalive packets), latencies and status. An empty table is returned for non-TCP flows.
+
+Returned table example:
+```
+ table
+tcp_established boolean false
+srv2cli.tcp_flags number 24
+cli2srv.keep_alive number 0
+srv2cli.keep_alive number 0
+tcp.appl_latency number 1.8630000352859
+srv2cli.retransmissions number 0
+tcp_closed boolean false
+tcp.nw_latency.client number 0.0
+cli2srv.tcp_flags number 24
+tcp.max_thpt.srv2cli number 0.0
+tcp.max_thpt.cli2srv number 0.0
+srv2cli.lost number 0
+srv2cli.out_of_order number 0
+tcp_connecting boolean false
+cli2srv.out_of_order number 0
+tcp_reset boolean false
+tcp.nw_latency.server number 0.0
+cli2srv.lost number 0
+cli2srv.retransmissions number 0
+tcp.seq_problems boolean false
+```
+
+### getClientPort
+
+`getClientPort` returns the port used by the client of the flow.
+
+
+Returned table example:
+```
+ table
+cli.port number 52504
+```
+
+
+### getServerPort
+
+`getServerPort` returns the port used by the server of the flow.
+
+
+Returned table example:
+```
+ table
+srv.port number 3000
+```
+
+### getClientGeolocation
+
+`getClientGeolocation` returns latitude, longitude, city and country of the client. When geolocation information is not available (e.g., for private ip addresses) empty strings and zero coordinates are returned.
+
+Returned table example:
+```
+ table
+cli.latitude number 0.0
+cli.city string
+cli.longitude number 0.0
+cli.country string
+```
+
+
+### getServerGeolocation
+
+`getServerGeolocation` returns latitude, longitude, city and country of the server. When geolocation information is not available (e.g., for private ip addresses) empty strings and zero coordinates are returned.
+
+Returned table example:
+```
+ table
+srv.latitude number 0.0
+srv.city string
+srv.longitude number 0.0
+srv.country string
+```
+
+
+## Exposing a new function
+
+To expose a new function so that it can be called from a custom lua script, the following steps are necessary.
+
+First, add a new entry to the enum `FlowLuaMethod` in `ntop_typedefs.h`. Then, add a new mapping between the new enum entry and a string in `Flow::initLuaMethodIdToName`. The string added here will be the function name available from lua. Finally, add a new case to the `Flow::lua(lua_State* vm, FlowLuaMethod flm)` switch to call the right lua function.
+
