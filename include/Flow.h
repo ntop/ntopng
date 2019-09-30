@@ -297,7 +297,7 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getTcpFlagsSrv2Cli() const { return(dst2src_tcp_flags);                      };
 #ifdef HAVE_NEDGE
   bool checkPassVerdict(const struct tm *now);
-  bool isPassVerdict();
+  bool isPassVerdict() const;
   inline void setConntrackMarker(u_int32_t marker) 	{ this->marker = marker; }
   inline u_int32_t getConntrackMarker() 		{ return(marker); }
 #endif

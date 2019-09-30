@@ -65,7 +65,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual u_int32_t getActiveHTTPHosts()             { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
   virtual HostStats* allocateStats()                 { return(new LocalHostStats(this));               };
 
-  virtual bool dropAllTraffic()  { return(drop_all_host_traffic); };
+  virtual bool dropAllTraffic() const { return(drop_all_host_traffic); };
   virtual void inlineSetOSDetail(const char *_os_detail);
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
   virtual void updateHostTrafficPolicy(char *key);

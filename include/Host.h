@@ -267,7 +267,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   bool match(const AddressTree * const tree) const { return ip.match(tree); };
   void updateHostPool(bool isInlineCall, bool firstUpdate = false);
-  virtual bool dropAllTraffic()  { return(false); };
+  virtual bool dropAllTraffic() const { return(false); };
   bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };
   virtual void incrVisitedWebSite(char *hostname) {};

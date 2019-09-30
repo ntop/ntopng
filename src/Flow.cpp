@@ -3493,7 +3493,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 #ifdef HAVE_NEDGE
 
-bool Flow::isPassVerdict() {
+bool Flow::isPassVerdict() const {
   if(!passVerdict)
     return(false);
 
