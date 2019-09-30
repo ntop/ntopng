@@ -219,7 +219,6 @@ class Flow : public GenericHashEntry {
   void setBittorrentHash(char *hash);
   bool isLowGoodput() const;
   static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when, bool update_iat);
-  void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   bool isReadyToBeMarkedAsIdle();
   bool isBlacklistedFlow() const;
   inline bool isDeviceAllowedProtocol() const {
@@ -249,6 +248,7 @@ class Flow : public GenericHashEntry {
   void lua_get_protocols(lua_State* vm) const;
   void lua_get_bytes(lua_State* vm) const;
   void lua_get_dir_traffic(lua_State* vm, bool cli2srv) const;
+  void lua_get_dir_iat(lua_State* vm, bool cli2srv) const;
   void lua_get_packets(lua_State* vm) const;
   void lua_get_throughput(lua_State* vm) const;
   void lua_get_time(lua_State* vm) const;

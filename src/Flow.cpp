@@ -1863,10 +1863,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_get_throughput(vm);
 
-    /* ********************* */
-
-    dumpPacketStats(vm, true);
-    dumpPacketStats(vm, false);
+    /* Interarrival Times */
+    lua_get_dir_iat(vm, true /* Client to Server */);
+    lua_get_dir_iat(vm, false /* Server to Client */);
 
     if((!mask_flow) && (details_level >= details_higher)) {
       lua_get_geoloc(vm, true /* Client */, true /* Coordinates */, false /* Country and City */);
@@ -2468,27 +2467,6 @@ void Flow::updatePacketStats(InterarrivalStats *stats,
 			     const struct timeval *when, bool update_iat) {
   if(stats)
     stats->updatePacketStats((struct timeval*)when, update_iat);
-}
-
-/* *************************************** */
-
-void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
-  InterarrivalStats *s = cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats();
-
-  if(s) {
-    lua_newtable(vm);
-  
-    lua_push_uint64_table_entry(vm, "min",   s->getMin());
-    lua_push_uint64_table_entry(vm, "max",   s->getMax());
-    lua_push_float_table_entry(vm, "avg",    s->getAvg());
-    lua_push_float_table_entry(vm, "stddev", s->getStdDev());
-
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.1f / %u", s->getMin(), s->getAvg(), s->getMax());
-			       
-    lua_pushstring(vm, cli2srv_direction ? "interarrival.cli2srv" : "interarrival.srv2cli");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
 }
 
 /* *************************************** */
@@ -4285,6 +4263,25 @@ void Flow::lua_get_dir_traffic(lua_State* vm, bool cli2srv) const {
 
 /* ***************************************************** */
 
+void Flow::lua_get_dir_iat(lua_State* vm, bool cli2srv) const {
+  InterarrivalStats *s = cli2srv ? getCli2SrvIATStats() : getSrv2CliIATStats();
+
+  if(s) {
+    lua_newtable(vm);
+
+    lua_push_uint64_table_entry(vm, "min",   s->getMin());
+    lua_push_uint64_table_entry(vm, "max",   s->getMax());
+    lua_push_float_table_entry(vm, "avg",    s->getAvg());
+    lua_push_float_table_entry(vm, "stddev", s->getStdDev());
+
+    lua_pushstring(vm, cli2srv ? "interarrival.cli2srv" : "interarrival.srv2cli");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_packets(lua_State* vm) const {  
   lua_push_uint64_table_entry(vm, "packets", stats.cli2srv_packets + stats.srv2cli_packets);
   lua_push_uint64_table_entry(vm, "packets.last",
@@ -4546,6 +4543,14 @@ bool Flow::lua(lua_State* vm, FlowLuaMethod flm) const {
     lua_get_dir_traffic(vm, false /* Server to Client */);
     break;
 
+  case flow_lua_method_get_cli2srv_iat:
+    lua_get_dir_iat(vm, true /* Client to Server */);
+    break;
+
+  case flow_lua_method_get_srv2cli_iat:
+    lua_get_dir_iat(vm, false /* Server to Client */);
+    break;
+
   case flow_lua_method_get_packets:
     lua_get_packets(vm);
     break;
@@ -4628,6 +4633,8 @@ std::map<FlowLuaMethod, std::string> Flow::initLuaMethodIdToName() {
   m[flow_lua_method_get_bytes]           = "getBytes";
   m[flow_lua_method_get_cli2srv_traffic] = "getClient2ServerTraffic";
   m[flow_lua_method_get_srv2cli_traffic] = "getServer2ClientTraffic";
+  m[flow_lua_method_get_cli2srv_iat]     = "getClient2ServerIAT";
+  m[flow_lua_method_get_srv2cli_iat]     = "getServer2ClientIAT";
   m[flow_lua_method_get_packets]         = "getPackets";
   m[flow_lua_method_get_time]            = "getTime";
   m[flow_lua_method_get_cli_ip]          = "getClientIp";

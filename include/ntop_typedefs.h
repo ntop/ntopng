@@ -388,6 +388,8 @@ typedef enum {
   flow_lua_method_get_bytes,
   flow_lua_method_get_cli2srv_traffic,
   flow_lua_method_get_srv2cli_traffic,
+  flow_lua_method_get_cli2srv_iat,
+  flow_lua_method_get_srv2cli_iat,
   flow_lua_method_get_packets,
   flow_lua_method_get_time,
   flow_lua_method_get_cli_ip,
