@@ -931,6 +931,7 @@ end
 
 function alerts_api.load_check_modules(subdir, str_granularity)
   local checks_dir = os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/" .. subdir)
+  local is_nedge = ntop.isnEdge()
   local available_modules = {}
 
   package.path = checks_dir .. "/?.lua;" .. package.path
@@ -941,6 +942,10 @@ function alerts_api.load_check_modules(subdir, str_granularity)
       local check_module = require(modname)
 
       if check_module.check_function and check_module.key then
+         if check_module.nedge_exclude and is_nedge then
+           goto continue
+         end
+
 	 if check_module.granularity and str_granularity then
 	    -- When the module specify one or more granularities
 	    -- at which checks have to be run, the module is only
@@ -960,6 +965,8 @@ function alerts_api.load_check_modules(subdir, str_granularity)
 	 end
       end
     end
+
+    ::continue::
   end
 
   return available_modules

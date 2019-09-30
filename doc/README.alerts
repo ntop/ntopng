@@ -73,6 +73,7 @@ and here is a description of the module fields:
   - `gui`: information on how to draw the alert configuration into the gui. See below for more details.
   - `local_only`: if true, only call the `check_function` on local hosts
   - `granularity`: if specified, contains a list of granularities for which the `check_function` should be called
+  - `nedge_exclude`: if true, do not call the `check_function` on nEdge
 
 ## Triggering alerts
 
