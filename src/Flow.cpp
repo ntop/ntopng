@@ -4612,8 +4612,8 @@ bool Flow::lua(lua_State* vm, FlowLuaMethod flm) const {
     break;
 
   case flow_lua_method_get_srv_geoloc:
-    break;
     lua_get_geoloc(vm, false /* Server */, true /* Coordinates */, true  /* Country and City */);
+    break;
 
   default:
     lua_pushnil(vm);
