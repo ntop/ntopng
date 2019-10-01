@@ -17,7 +17,7 @@ During these periodic visits, ntopng can call certain functions found inside cus
 
 Specifically, ntopng periodically iterates all the custom lua scripts and calls the function on all the scripts in which it is defined.
 
-NOTE: for pcap dump interfaces, only the `protocolDetected` is called.
+NOTE: flows never go idle when processing pcap files. However, function `idle` is called one time for every flow once ntopng has finished processing all the packets in the pcap file. 
 
 ## protocolDetected
 
