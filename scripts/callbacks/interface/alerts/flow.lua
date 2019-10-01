@@ -17,8 +17,9 @@ if ntop.isPro() then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 end
 
-local do_benchmark = false
-local do_trace = false
+local do_benchmark = true         -- Compute benchmarks and store their results
+local do_print_benchmark = false  -- Print benchmarks results to standard output
+local do_trace = false            -- Trace lua calls
 
 local check_modules = {}
 local benchmarks = {}
@@ -28,17 +29,15 @@ local benchmarks = {}
 local function benchmark_begin(mod_fn, mod_key)
    if not do_benchmark then return end
 
-   if not benchmarks[mod_fn] then
-      benchmarks[mod_fn] = {}
+   if not benchmarks[mod_key] then
+      benchmarks[mod_key] = {}
    end
 
-   if not benchmarks[mod_fn][mod_key] then
-      benchmarks[mod_fn][mod_key] = {num = 0, elapsed = 0}
+   if not benchmarks[mod_key][mod_fn] then
+      benchmarks[mod_key][mod_fn] = {num = 0, elapsed = 0}
    end
 
-   benchmarks[mod_fn][mod_key]["begin"] = os.clock()
-
-   -- print(string.format("begin: %.4f\n", benchmarks[mod_fn][mod_key]["begin"]))
+   benchmarks[mod_key][mod_fn]["begin"] = os.clock()
 end
 
 -- #################################################################
@@ -46,25 +45,33 @@ end
 local function benchmark_end(mod_fn, mod_key)
    if not do_benchmark then return end
 
-   if benchmarks[mod_fn] and benchmarks[mod_fn][mod_key] then
+   if benchmarks[mod_key] and benchmarks[mod_key][mod_fn] then
       local bend = os.clock()
-      local latest_elapsed = bend - benchmarks[mod_fn][mod_key]["begin"]
-      -- print(string.format("end: %.2f\n", bend))
+      local latest_elapsed = bend - benchmarks[mod_key][mod_fn]["begin"]
 
-      benchmarks[mod_fn][mod_key]["elapsed"] = benchmarks[mod_fn][mod_key]["elapsed"] + latest_elapsed
-      benchmarks[mod_fn][mod_key]["num"] = benchmarks[mod_fn][mod_key]["num"] + 1
+      benchmarks[mod_key][mod_fn]["elapsed"] = benchmarks[mod_key][mod_fn]["elapsed"] + latest_elapsed
+      benchmarks[mod_key][mod_fn]["num"] = benchmarks[mod_key][mod_fn]["num"] + 1
+   end
+end
+
+-- #################################################################
+
+local function store_benchmark()
+   if do_benchmark then
+      alerts_api.store_flow_check_modules_benchmarks(benchmarks)
    end
 end
 
 -- #################################################################
 
 local function print_benchmark()
-   if do_benchmark then
-      for mod_fn, modules in pairs(benchmarks) do
-	 for mod_k, mod_benchmark in pairs(modules) do
-	    print(string.format("%s() [check: %s][elapsed: %.4f][num: %u][avg: %.4f]\n",
-				mod_fn, mod_k, mod_benchmark["elapsed"], mod_benchmark["num"],
-				mod_benchmark["elapsed"] / mod_benchmark["num"]))
+   if do_benchmark and do_print_benchmark then
+      for mod_k, modules in pairs(benchmarks) do
+	 for mod_fn, mod_benchmark in pairs(modules) do
+	    traceError(TRACE_NORMAL,TRACE_CONSOLE,
+		       string.format("%s() [check: %s][elapsed: %.2f][num: %u][avg: %.2f]\n",
+				     mod_fn, mod_k, mod_benchmark["elapsed"], mod_benchmark["num"],
+				     mod_benchmark["elapsed"] / mod_benchmark["num"]))
 	 end
       end
    end
@@ -119,8 +126,17 @@ end
 -- The function below is called once (#pragma once) right before
 -- the lua virtual machine is destroyed
 function teardown()
-   if do_trace then print("flow.lua:teardown() called\n") end
-   if do_benchmark then print_benchmark() end
+   if do_trace then
+      print("flow.lua:teardown() called\n")
+   end
+
+   if do_benchmark then
+      store_benchmark()
+
+      if do_print_benchmark then
+	 print_benchmark()
+      end
+   end
 end
 
 -- #################################################################

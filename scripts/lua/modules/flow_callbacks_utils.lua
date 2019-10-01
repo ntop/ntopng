@@ -5,6 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local alerts_api = require "alerts_api"
+local format_utils = require "format_utils"
 
 local flow_callbacks_utils = {}
 
@@ -23,12 +24,14 @@ function flow_callbacks_utils.print_callbacks_config()
    print[[<tr>]]
    print[[<th width=30%>]] print(i18n("flow_callbacks.callback")) print[[</th>]]
    print[[<th>]] print(i18n("flow_callbacks.callback_config")) print[[</th>]]
+   print[[<th>]] print(i18n("flow_callbacks.callback_benchmarks")) print[[</th>]]
    print[[</tr>]]
 
    print[[<form id="flow-callbacks-config" class="form-inline" method="post">]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    local has_modules = false
+
    for _, check_module in pairsByKeys(descr["all"], asc) do
       if check_module.gui then
 	 if not has_modules then
@@ -40,13 +43,34 @@ function flow_callbacks_utils.print_callbacks_config()
 
 	 print("</td><td>")
 	 print(check_module.gui.input_builder(check_module))
+	 print("</td>")
+
+	 print("<td>")
+
+	 if check_module.benchmark then
+	    for mod_fn, mod_benchmark in pairsByKeys(check_module.benchmark, asc) do
+	       local avg_fps = mod_benchmark["num"] / mod_benchmark["elapsed"]
+
+	       if avg_fps ~= avg_fps or not avg_fps or avg_fps < 0.01 then
+		  avg_fps = "< 0.01"
+	       else
+		  avg_fps = format_utils.formatValue(format_utils.round(avg_fps, 2))
+	       end
+
+	       print(string.format("<b>%s</b>: %s [%s %s]<br>",
+				   mod_fn,
+				   format_utils.secondsToTime(mod_benchmark["elapsed"]),
+				   avg_fps,
+				   i18n("flow_callbacks.callback_elapsed_time_avg")))
+	    end
+	 end
 
 	 print("</td></tr>")
       end
    end
 
    if not has_modules then
-      print("<tr><td colspan=2><i>"..i18n("flow_callbacks.no_callbacks_defined")..".</i></td></tr>")
+      print("<tr><td colspan=3><i>"..i18n("flow_callbacks.no_callbacks_defined")..".</i></td></tr>")
    end
    
    print[[</tbody></table>]]

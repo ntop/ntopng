@@ -1022,6 +1022,41 @@ end
 
 -- ##############################################
 
+local function flow_check_modules_benchmarks_key(mod_k)
+   local ifid = interface.getId()
+
+   return string.format("ntopng.cache.ifid_%d.flow_check_modules_benchmarks.mod_%s", ifid, mod_k)
+end
+
+-- ##############################################
+
+function alerts_api.store_flow_check_modules_benchmarks(benchmarks)
+   for mod_k, modules in pairs(benchmarks or {}) do
+      local k = flow_check_modules_benchmarks_key(mod_k)
+
+
+      for mod_fn, mod_benchmark in pairs(modules) do
+	 ntop.setHashCache(k, mod_fn, json.encode(mod_benchmark))
+      end
+   end
+end
+
+-- ##############################################
+
+function alerts_api.get_flow_check_module_benchmarks(mod_k)
+   local k = flow_check_modules_benchmarks_key(mod_k)
+   -- ntop.delCache(k)
+   local res = ntop.getHashAllCache(k)
+
+   for mod_fn, benchmark in pairs(res or {}) do
+      res[mod_fn] = json.decode(benchmark)
+   end
+
+   return res
+end
+
+-- ##############################################
+
 --
 -- Flow check modules are lua scripts located into the following locations:
 --  - scripts/callbacks/interface/alerts/flow for community scripts
@@ -1037,6 +1072,8 @@ end
 --
 function alerts_api.load_flow_check_modules(enabled_only)
    local available_modules = {protocolDetected = {}, statusChanged = {}, idle = {}, periodicUpdate = {}, all = {}}
+
+
    local check_dirs = {
       os_utils.fixPath(ALERT_CHECKS_MODULES_BASEDIR .. "/flow"),
    }
@@ -1053,6 +1090,8 @@ function alerts_api.load_flow_check_modules(enabled_only)
 	    local modname = string.sub(fname, 1, string.len(fname) - 4)
 	    local check_module = require(modname)
 	    load_flow_check_module_conf(check_module)
+
+	    check_module["benchmark"] = alerts_api.get_flow_check_module_benchmarks(modname)
 
 	    if check_module.setup then
 	       local is_enabled = check_module["conf"]["enabled"]
