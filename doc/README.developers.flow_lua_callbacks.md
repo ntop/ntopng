@@ -79,6 +79,69 @@ Function `setup()` must always be present and it must return true if the module 
 
 Then, the script can define zero or more of the functions highlighted above, namely: `protocolDetected`, `statusChanged`, `periodicUpdate` and `idle`. Defining a function will cause ntopng to call it, passing a table generated out of the `Flow::lua()` call as the first argument.
 
+A global `flow` table is available in each of the functions above. Such table gives direct access to flow information through a series of callable functions. Those function are documented in the next section.
+
+### Example
+
+Let's see how to create a custom script which checks flow client and server countries, and perform certain actions when either the client or the server is found to be from China. As this script should be executed as early as possible in the lifecycle of a flow, `protocolDetected` function is used to do the check on the countries and to perform the actions.
+
+The script can be written to file `suspicious_countries.lua`. Although any file name is valid, it is recommended to pick a name which is somehow indicative of the actual script actions. To make sure ntopng will execute it, `suspicious_countries.lua` has to be placed under directory `scripts/callbacks/interface/alerts/flow/`.
+
+The minimum contents of such script are the following:
+
+```
+
+--
+-- (C) 2019 - ntop.org
+--
+
+local alerts_api = require "alerts_api"
+local alert_consts = require "alert_consts"
+local do_trace = false
+
+-- #################################################################
+
+local check_module = {
+   key = "suspicious_countries",
+
+   gui = {
+      i18n_title = "Suspicious Countries",
+      i18n_description = "Trigger an alert when at least one among the client and server is from a suspicious country",
+      input_builder = alerts_api.flow_checkbox_input_builder,
+   }
+}
+
+-- #################################################################
+
+function check_module.setup()
+   return true
+end
+
+-- #################################################################
+
+function check_module.protocolDetected()
+   local cli_geo = flow.getClientGeolocation()
+   local srv_geo = flow.getServerGeolocation()
+
+   if cli_geo["cli.country"] == "CN" or srv_geo["srv.country"] == "CN" then
+      tprint("From China") -- this will print the message "From China" to the standard output
+      -- Execute custom actions:
+      -- Raise an alert...
+      -- Increase the flow score...
+   end
+end
+
+-- #################################################################
+
+return check_module
+
+```
+
+Let's focus on the `check_module.protocolDetected`, which is the function ntopng will execute, as the other parts of the script have already been discussed above.
+
+The first thing to do in `check_module.protocolDetected` is to access global table `flow` to fetch client and server countries. Countries can be fetched with `getClientGeolocation` and `getServerGeolocation`, both documented in the next section. Those functions return a table with multiple keys containing geolocation information. Countries are contained in keys `cli.country` and `srv.country`, so for the script it suffices to check table values for such keys to determine whether the client or the server is from China. If any of the two peers is from China (country code `CN`), then actions contained in the if branch will be executed. The script just print a message to the standard output but other actions such as raising an alert or increasing the flow score can be done in this branch as well.
+
+
 # Obtaining Flow Information From Custom Scripts
 
 The number of flows on which custom scripts can be run against can be potentially very high, so it is fundamental to keep the computational cost of these scripts as low as possible. Experiments run highlighted that calling the `Flow::lua` for every flow was prohibitive. To reduce the computational cost but still be able to fetch flow information, we have factorized `Flow::lua` into several smaller functions and have exposed them to lua individually.
