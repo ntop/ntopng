@@ -11,16 +11,65 @@ local flow_callbacks_utils = {}
 
 -- #################################
 
-function flow_callbacks_utils.print_callbacks_config()
-   local tab = _GET["tab"] or "application_detected"
-   local descr = alerts_api.load_flow_check_modules(entity_type)
+local function print_callbacks_config_tbody_simple_view(descr)
+   print[[<tbody>]]
+   print[[<tr>]]
+   print[[<th width=30%>]] print(i18n("flow_callbacks.callback")) print[[</th>]]
+   print[[<th>]] print(i18n("flow_callbacks.callback_config")) print[[</th>]]
+   print[[<th style="text-align: center;" width=20%>]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th>]]
+   print[[</tr>]]
 
-   print [[
+   print[[<form id="flow-callbacks-config" class="form-inline" method="post">]]
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-<br>
-<table id="callbacks_config_table" class="table table-bordered table-striped" style="clear: both">
-<thead></thead>
-<tbody>]]
+   local has_modules = false
+
+   for _, check_module in pairsByKeys(descr["all"], asc) do
+      if check_module.gui then
+         if not has_modules then
+            has_modules = true
+         end
+
+         print("<tr><td><b>".. i18n(check_module.gui.i18n_title) .."</b><br>")
+         print("<small>"..i18n(check_module.gui.i18n_description)..".</small>\n")
+
+         print("</td><td>")
+         print(check_module.gui.input_builder(check_module))
+         print("</td>")
+
+         if check_module.benchmark and table.len(check_module.benchmark) > 0 then
+            local max_duration
+
+            for mod_fn, mod_benchmark in pairsByKeys(check_module.benchmark, asc) do
+               -- Just show the maximum duration among all available functions
+               if not max_duration or max_duration < mod_benchmark["elapsed"] then
+                  max_duration = mod_benchmark["elapsed"]
+               end
+            end
+
+            print(string.format("<td align='center'>%s</td>", format_utils.secondsToTime(max_duration)))
+
+         else
+            print("<td></td>")
+         end
+
+         print("</tr>")
+      end
+   end
+
+   if not has_modules then
+      print("<tr><td colspan=3><i>"..i18n("flow_callbacks.no_callbacks_defined")..".</i></td></tr>")
+   end
+
+   print[[</tbody>]]
+
+   return has_modules
+end
+
+-- #################################
+
+local function print_callbacks_config_tbody_expert_view(descr)
+   print[[<tbody>]]
    print[[<tr>]]
    print[[<th colspan=2></th>]]
    print[[<th colspan=4  style="text-align: center;">]] print(i18n("flow_callbacks.callback_latest_run")) print[[</th>]]
@@ -42,55 +91,55 @@ function flow_callbacks_utils.print_callbacks_config()
 
    for _, check_module in pairsByKeys(descr["all"], asc) do
       if check_module.gui then
-	 if not has_modules then
-	    has_modules = true
-	 end
+         if not has_modules then
+            has_modules = true
+         end
 
-	 local rowspan = 1
-	 if check_module.benchmark and table.len(check_module.benchmark) > 0 then
-	    rowspan = table.len(check_module.benchmark)
-	 end
+         local rowspan = 1
+         if check_module.benchmark and table.len(check_module.benchmark) > 0 then
+            rowspan = table.len(check_module.benchmark)
+         end
 
 
-	 print("<tr><td rowspan="..rowspan.."><b>".. i18n(check_module.gui.i18n_title) .."</b><br>")
-	 print("<small>"..i18n(check_module.gui.i18n_description)..".</small>\n")
+         print("<tr><td rowspan="..rowspan.."><b>".. i18n(check_module.gui.i18n_title) .."</b><br>")
+         print("<small>"..i18n(check_module.gui.i18n_description)..".</small>\n")
 
-	 print("</td><td rowspan="..rowspan..">")
-	 print(check_module.gui.input_builder(check_module))
-	 print("</td>")
+         print("</td><td rowspan="..rowspan..">")
+         print(check_module.gui.input_builder(check_module))
+         print("</td>")
 
-	 print("<td>")
+         print("<td>")
 
-	 local num = 1
-	 if check_module.benchmark and table.len(check_module.benchmark) > 0 then
-	    for mod_fn, mod_benchmark in pairsByKeys(check_module.benchmark, asc) do
-	       local avg_fps = mod_benchmark["num"] / mod_benchmark["elapsed"]
+         local num = 1
+         if check_module.benchmark and table.len(check_module.benchmark) > 0 then
+            for mod_fn, mod_benchmark in pairsByKeys(check_module.benchmark, asc) do
+               local avg_fps = mod_benchmark["num"] / mod_benchmark["elapsed"]
 
-	       if avg_fps ~= avg_fps or not avg_fps or avg_fps < 0.01 then
-		  avg_fps = "< 0.01"
-	       else
-		  avg_fps = format_utils.formatValue(format_utils.round(avg_fps, 0))
-	       end
+               if avg_fps ~= avg_fps or not avg_fps or avg_fps < 0.01 then
+                  avg_fps = "< 0.01"
+               else
+                  avg_fps = format_utils.formatValue(format_utils.round(avg_fps, 0))
+               end
 
-	       local trtd, slash_tdtr = "<tr><td>", "</td></tr>"
-	       if num == 1 then
-		  trtd = ''
-	       end
+               local trtd, slash_tdtr = "<tr><td>", "</td></tr>"
+               if num == 1 then
+                  trtd = ''
+               end
 
-	       print(string.format("%s %s </td><td align='center'>%s</td><td align='center'>%s</td><td align='right'>%s %s<br>%s",
-				   trtd,
-				   mod_fn,
-				   format_utils.secondsToTime(mod_benchmark["elapsed"]),
-				   format_utils.formatValue(mod_benchmark["num"]),
-				   avg_fps,
-				   i18n("flow_callbacks.callback_elapsed_time_avg"),
-				   slash_tdtr))
+               print(string.format("%s %s </td><td align='center'>%s</td><td align='center'>%s</td><td align='right'>%s %s<br>%s",
+                                   trtd,
+                                   mod_fn,
+                                   format_utils.secondsToTime(mod_benchmark["elapsed"]),
+                                   format_utils.formatValue(mod_benchmark["num"]),
+                                   avg_fps,
+                                   i18n("flow_callbacks.callback_elapsed_time_avg"),
+                                   slash_tdtr))
 
-	       num = num + 1
-	    end
-	 else
-	    print("</td><td></td><td></td><td></td></tr>")
-	 end
+               num = num + 1
+            end
+         else
+            print("</td><td></td><td></td><td></td></tr>")
+         end
       end
    end
 
@@ -98,15 +147,69 @@ function flow_callbacks_utils.print_callbacks_config()
       print("<tr><td colspan=6><i>"..i18n("flow_callbacks.no_callbacks_defined")..".</i></td></tr>")
    end
 
-   print[[</tbody></table>]]
+   print[[</tbody>]]
+
+   return has_modules
+end
+
+-- #################################
+
+function flow_callbacks_utils.print_callbacks_config()
+   local show_advanced_prefs = false
+   if _POST and _POST["show_advanced_prefs"] and _POST["show_advanced_prefs"] == "true" then
+      show_advanced_prefs = true
+   end
+   local descr = alerts_api.load_flow_check_modules(entity_type)
+
+   print [[
+
+<br>
+<table id="callbacks_config_table" class="table table-bordered table-striped" style="clear: both">
+<thead></thead>]]
+
+   local has_modules
+
+   if show_advanced_prefs then
+      has_modules = print_callbacks_config_tbody_expert_view(descr)
+   else
+      has_modules = print_callbacks_config_tbody_simple_view(descr)
+   end
+
+   print[[</table>]]
 
    if has_modules then
+      print[[<input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("true") else print("false") end print[["/>]]
       print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" type="submit">]] print(i18n("save_configuration")) print[[</button>]]
    end
 
    print[[</form>]]
+   print[[
+
+<form method="post">
+  <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  <input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
+
+  <div class="btn-group btn-toggle">
+]]
+
+   local cls_on      = "btn btn-sm"
+   local cls_off     = cls_on
+
+   if show_advanced_prefs then
+      cls_on  = cls_on..' btn-primary active'
+      cls_off = cls_off..' btn-default'
+   else
+      cls_on = cls_on..' btn-default'
+      cls_off = cls_off..' btn-primary active'
+   end
+
+   print('<button type="button" class="'..cls_on..'" onclick="this.form.submit();">'..i18n("prefs.expert_view")..'</button>')
+   print('<button type="button" class="'..cls_off..'" onclick="this.form.submit();">'..i18n("prefs.simple_view")..'</button>')
 
    print[[
+  </div>
+</form>
+
 <script>
 </script>
 ]]

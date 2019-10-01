@@ -778,6 +778,7 @@ local lang = {
     ["callback_config"] = "Configuration",
     ["callback_latest_run"] = "Latest Run",
     ["callback_function"] = "Function",
+    ["callback_function_duration_simple_view"] = "Latest Run Duration",
     ["callback_function_duration"] = "Duration",
     ["callback_function_num_flows"] = "Flows",
     ["callback_function_throughput"] = "Processing Speed",
