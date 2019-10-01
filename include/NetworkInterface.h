@@ -752,7 +752,9 @@ class NetworkInterface : public AlertableEntity {
   inline uint32_t getMaxSpeed() const        { return(ifSpeed);     }
   inline bool isLoopback() const             { return(is_loopback); }
 
-  virtual bool read_from_pcap_dump()         { return(false); };
+  virtual bool read_from_pcap_dump()      const { return(false); };
+  virtual bool read_from_pcap_dump_done() const { return(false); };
+  virtual void set_read_from_pcap_dump_done()   { ; };
   virtual void updateDirectionStats()        { ; }
   void makeTsPoint(NetworkInterfaceTsPoint *pt);
   void tsLua(lua_State* vm);

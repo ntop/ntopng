@@ -1160,6 +1160,12 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
     performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
   }
 
+  /* For pcap-dump interface, the lua method idle is executed when there are no
+     more packets left in the pcap file. There's no risk to call this twice
+     as flows never for idle for pcap dump interfaces. */
+  if(iface->read_from_pcap_dump() && iface->read_from_pcap_dump_done())
+    performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
+
   if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_TLS)) {
     char rsp[256];
 

@@ -27,7 +27,7 @@
 class PcapInterface : public NetworkInterface {
  private:
   pcap_t *pcap_handle;
-  bool read_pkts_from_pcap_dump, emulate_traffic_directions;
+  bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done, emulate_traffic_directions;
   ProtoStats initial_stats_in, initial_stats_out;
   FILE *pcap_list;
 
@@ -48,7 +48,9 @@ class PcapInterface : public NetworkInterface {
   inline FILE*   get_pcap_list()   { return(pcap_list);     };
   void startPacketPolling();
   bool set_packet_filter(char *filter);
-  inline bool read_from_pcap_dump() { return(read_pkts_from_pcap_dump);            };
+  bool read_from_pcap_dump()      const { return(read_pkts_from_pcap_dump);        };
+  bool read_from_pcap_dump_done() const { return(read_pkts_from_pcap_dump_done);   };
+  void set_read_from_pcap_dump_done()   { read_pkts_from_pcap_dump_done = true;    };
   inline void sendTermination()     { if(pcap_handle) pcap_breakloop(pcap_handle); };
   bool reproducePcapOriginalSpeed() const;
   virtual void updateDirectionStats();

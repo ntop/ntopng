@@ -40,6 +40,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
   pcap_handle = NULL, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
   emulate_traffic_directions = false;
+  read_pkts_from_pcap_dump = read_pkts_from_pcap_dump_done = false;
   
   if((stat(name, &buf) == 0) || (name[0] == '-') || !strncmp(name, "stdin", 5)) {
     /*
@@ -334,6 +335,7 @@ static void* packetPollLoop(void* ptr) {
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->processAllActiveFlows();
     iface->guessAllBroadcastDomainHosts();
+    iface->set_read_from_pcap_dump_done();
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
