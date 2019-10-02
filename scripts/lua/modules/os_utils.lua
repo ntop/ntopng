@@ -90,7 +90,9 @@ end
 function os_utils.hasService(service_name, ...)
    local prefs = ntop.getPrefs()
 
-   if not isEmptyString(prefs.user) and prefs.user ~= "ntopng" then
+   if not isEmptyString(prefs.user) 
+      and prefs.user ~= "ntopng"
+      and prefs.user ~= "root" then
      return false
    end
 
