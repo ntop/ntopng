@@ -441,19 +441,27 @@ if isAllowedSystemInterface() then
    print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">]]
    print(i18n("system")) print[[ <b class="caret"></b>
-         </a>
+	 </a>
        <ul class="dropdown-menu">]]
-
-   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
-
-   for _, entry in ipairs(system_scripts.getSystemMenuEntries()) do
-      print[[<li><a href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
-   end
 
    if ntop.isEnterprise() then
       print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
    end
-   print[[</ul></li>]]
+
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
+
+   local system_menu_entries = system_scripts.getSystemMenuEntries()
+
+   if #system_menu_entries > 0 then
+      print('<li class="divider"></li>')
+      print('<li class="dropdown-header">') print(i18n("system_stats.probes")) print('</li>')
+
+      for _, entry in ipairs(system_scripts.getSystemMenuEntries()) do
+	 print[[<li><a href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
+      end
+   end
+
+   print[[</ul>]]
 end
 
 -- Admin
