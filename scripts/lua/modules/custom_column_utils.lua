@@ -19,12 +19,12 @@ custom_column_utils.available_custom_columns = {
    { "traffic_unknown", i18n("flows_page.total_bytes_unknown"), "bytes.ndpi.unknown", bytesToSize, "right" },
    { "num_flows_as_client", i18n("flows_page.flows_as_client"), "active_flows.as_client", format_utils.formatValue, "center", "page=flows" },
    { "num_flows_as_server", i18n("flows_page.flows_as_server"), "active_flows.as_server", format_utils.formatValue, "center", "page=flows" },
-   { "total_num_anomalous_flows_as_client", i18n("total_outgoing_anomalous_flows"), "anomalous_flows.as_client", format_utils.formatValue, "center", "page=flows&flow_status=misbehaving" },
-   { "total_num_anomalous_flows_as_server", i18n("total_incoming_anomalous_flows"), "anomalous_flows.as_server", format_utils.formatValue, "center", "page=flows&flow_status=misbehaving" },
+   { "total_num_anomalous_flows_as_client", i18n("total_outgoing_anomalous_flows"), "anomalous_flows.as_client", format_utils.formatValue, "center" },
+   { "total_num_anomalous_flows_as_server", i18n("total_incoming_anomalous_flows"), "anomalous_flows.as_server", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_client", i18n("total_outgoing_unreachable_flows"), "unreachable_flows.as_client", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_server", i18n("total_incoming_unreachable_flows"), "unreachable_flows.as_server", format_utils.formatValue, "center" },
    { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center", "page=alerts" },
-   { "total_alerts", i18n("alerts_dashboard.total_alerts"), "total_alerts", format_utils.formatValue, "center", "page=alerts" },
+   { "total_alerts", i18n("alerts_dashboard.total_alerts"), "total_alerts", format_utils.formatValue, "center" },
 }
 local available_custom_columns = custom_column_utils.available_custom_columns
 
