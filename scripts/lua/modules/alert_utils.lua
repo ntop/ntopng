@@ -2833,6 +2833,10 @@ function processAlertNotifications(now, periodic_frequency, force_export)
         message.rowid = nil
         message.table_name = nil
         message = table.merge(message, res[1])
+
+	-- silly but necessary due to the AlertsManager::notifyFlowAlert
+	message.alert_entity = alert_consts.alert_entities.flow.entity_id -- silly but necessary due to the AlertsManager::notifyFlowAlert
+	message.alert_entity_val = "flow" 
         json_message = json.encode(message)
       end
 
