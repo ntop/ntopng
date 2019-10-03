@@ -468,6 +468,7 @@ void Flow::processDetectedProtocol() {
 	protos.dns.invalid_query = false;
       }
       protos.dns.last_query = strdup((const char*)ndpiFlow->host_server_name);
+      protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
 
       for(int i = 0; protos.dns.last_query[i] != '\0'; i++) {
 	if(!isprint(protos.dns.last_query[i])) {
@@ -479,35 +480,7 @@ void Flow::processDetectedProtocol() {
       if(!protos.dns.invalid_query)
 	protos.dns.invalid_query = (strlen(protos.dns.last_query) > MAX_VALID_DNS_QUERY_LEN) ? true : false;
     }
-
-    if(ntop->getPrefs()->decode_dns_responses()) {
-      if(ndpiFlow->host_server_name[0] != '\0') {
-	char delimiter = '@', *name = NULL;
-	char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
-
-	/* Consider only positive DNS replies */
-	if(at != NULL)
-	  name = &at[1], at[0] = '\0';
-	else if((!strstr((const char*)ndpiFlow->host_server_name, ".in-addr.arpa"))
-		&& (!strstr((const char*)ndpiFlow->host_server_name, ".ip6.arpa")))
-	  name = (char*)ndpiFlow->host_server_name;
-
-	if(name) {
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);
-
-	  if(ndpiFlow->protos.dns.reply_code == 0) {
-	    if(ndpiFlow->protos.dns.num_answers > 0) {
-	      protocol_processed = true;
-
-	      if(at != NULL) {
-		// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
-		ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
-	      }
-	    }
-	  }
-	}
-      }
-    }
+    /* See Flow::processFullyDissectedProtocol for reply dissection */
     break;
 
   case NDPI_PROTOCOL_TOR:
@@ -623,6 +596,39 @@ void Flow::processFullyDissectedProtocol() {
       protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
       protos.ssl.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
       updateSrvJA3();
+    }
+    break;
+
+  case NDPI_PROTOCOL_DNS:
+    if(ntop->getPrefs()->decode_dns_responses()) {
+
+      if(ndpiFlow->host_server_name[0] != '\0') {
+	char delimiter = '@', *name = NULL;
+	char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
+
+	/* Consider only positive DNS replies */
+	if(at != NULL)
+	  name = &at[1], at[0] = '\0';
+	else if((!strstr((const char*)ndpiFlow->host_server_name, ".in-addr.arpa"))
+		&& (!strstr((const char*)ndpiFlow->host_server_name, ".ip6.arpa")))
+	  name = (char*)ndpiFlow->host_server_name;
+
+	if(name) {
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);
+	  protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
+
+	  if(ndpiFlow->protos.dns.reply_code == 0) {
+	    if(ndpiFlow->protos.dns.num_answers > 0) {
+	      protocol_processed = true;
+
+	      if(at != NULL) {
+		// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
+		ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
+	      }
+	    }
+	  }
+	}
+      }
     }
     break;
   };

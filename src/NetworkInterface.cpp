@@ -1829,8 +1829,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if(flow->isDetectionCompleted()
      && (!isSampledTraffic())
      && flow->get_cli_host() && flow->get_srv_host()) {
-    struct ndpi_flow_struct *ndpi_flow;
-
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
       {
@@ -1969,8 +1967,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       break;
 
     case NDPI_PROTOCOL_DNS:
-      ndpi_flow = flow->get_ndpi_flow();
-
       /*
 	DNS-over-TCP flows may carry zero-payload TCP segments
 	e.g., during three-way-handshake, or when acknowledging.
@@ -1981,11 +1977,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  DNS-over-TCP has a 2-bytes field with DNS payload length
 	  at the beginning. See RFC1035 section 4.2.2. TCP usage.
 	*/
-	u_int8_t dns_offset = ((l4_proto == IPPROTO_TCP) && (trusted_payload_len > 1)) ? 2 : 0;
-	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
-	u_int16_t dns_flags = ntohs(header->flags);
-	bool is_query   = (dns_flags & 0x8000) ? 0 : 1;
-
 	if(flow->get_cli_host() && flow->get_srv_host()) {
 	  Host *client = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
 	  Host *server = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
@@ -1996,13 +1987,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	    by applications.
 	  */
 
-	  if(is_query) {
-	    u_int16_t query_type = ndpi_flow ? ndpi_flow->protos.dns.query_type : 0;
-
+	  if(flow->isDNSQuery()) {
+	    u_int16_t query_type = flow->getLastQueryType();
 	    client->incNumDNSQueriesSent(query_type), server->incNumDNSQueriesRcvd(query_type);
 	  } else {
-	    u_int8_t ret_code = (dns_flags & 0x000F);
-
+	    u_int8_t ret_code = flow->getDNSRetCode();
 	    client->incNumDNSResponsesSent(ret_code), server->incNumDNSResponsesRcvd(ret_code);
 	  }
 	}

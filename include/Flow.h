@@ -484,6 +484,9 @@ class Flow : public GenericHashEntry {
   inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = v; } }
   inline void  setDNSQueryType(u_int16_t t) { if(isDNS()) { protos.dns.last_query_type = t; } }
   inline void  setDNSRetCode(u_int16_t c) { if(isDNS()) { protos.dns.last_return_code = c; } }
+  inline u_int16_t getLastQueryType() { return(isDNS() ? protos.dns.last_query_type : 0); }
+  inline u_int16_t getDNSRetCode()  { return(isDNS() ? protos.dns.last_return_code : 0); }
+  inline bool  isDNSQuery()         { return(isDNS() && ndpiFlow && ndpiFlow->protos.dns.is_query); }
   inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }
   inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = v; } }
   inline void  setHTTPRetCode(u_int16_t c) { if(isHTTP()) { protos.http.last_return_code = c; } }
