@@ -9,6 +9,7 @@ local ts_utils = require("ts_utils")
 local info = ntop.getInfo() 
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
+local os_utils = require "os_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -26,8 +27,8 @@ info = ntop.getInfo()
 print("<hr /><h2>"..i18n("about.about_x", {product=info["product"]}).."</h2>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
-print("<tr><th>") print(i18n("about.copyright")) print("</th><td>"..info["copyright"].."</td></tr>\n")
-print("<tr><th>") print(i18n("about.licence")) print("</th><td>")
+print("<tr><th>") print(i18n("about.copyright")) print("</th><td colspan=2>"..info["copyright"].."</td></tr>\n")
+print("<tr><th>") print(i18n("about.licence")) print("</th><td colspan=2>")
 
 info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then
@@ -102,16 +103,25 @@ else
    ntopng_git_url = info["version"]
 end
 
-print("<tr><th>"..i18n("about.version").."</th><td>"..ntopng_git_url.." - ")
+print("<tr><th>"..i18n("about.version").."</th><td colspan=2>"..ntopng_git_url.." - ")
 
 printntopngRelease(info)
 
 if((info["OS"] ~= nil) and (info["OS"] ~= "")) then
-   print("<tr><th>"..i18n("about.built_on").."</th><td>"..info["OS"].."</td></tr>\n") 
+   print("<tr><th>"..i18n("about.built_on").."</th><td colspan=2>"..info["OS"].."</td></tr>\n") 
 end
 
-print("<tr><th nowrap>"..i18n("about.platform").."</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
-print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td>".. info["product"] .." "..info["command_line"].."</td></tr>\n")
+print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
+print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td colspan=2>".. info["product"] .." "..info["command_line"].."</td></tr>\n")
+
+print("<tr><th nowrap rowspan=2>"..i18n("about.directories").."</th><td>"..i18n("about.data_directory").."</td><td>"..dirs.workingdir.."</td></tr>\n")
+print("<td>"..i18n("about.scripts_directory").."</td><td>"..dirs.scriptdir.."</td></tr>\n")
+
+print("<tr><th nowrap rowspan=4>"..i18n("about.callback_directories").."</th><td><a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?page=flow_callbacks'>"..i18n("about.flow_callbacks_directory").."</a></td><td>"..os_utils.fixPath(dirs.callbacksdir.."/interface/alerts/flow/").."</td></tr>\n")
+print("<td>"..i18n("about.host_callbacks_directory").."</td><td>"..os_utils.fixPath(dirs.callbacksdir.."/interface/alerts/host/").."</td></tr>\n")
+print("<td>"..i18n("about.network_callbacks_directory").."</td><td>"..os_utils.fixPath(dirs.callbacksdir.."/interface/alerts/network/").."</td></tr>\n")
+print("<td>"..i18n("about.interface_callbacks_directory").."</td><td>"..os_utils.fixPath(dirs.callbacksdir.."/interface/alerts/interface/").."</td></tr>\n")
+
 
 --print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
@@ -124,26 +134,26 @@ if (ndpi_ver ~= nil) then
      vers = string.split(v_all, ":")
      ndpi_hash = vers[1]
      ndpi_date = vers[2]
-     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</a></th><td> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</a></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
   else
-     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</A></th><td> <A HREF=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.."</A></td></tr>\n")
+     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</A></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.."</A></td></tr>\n")
   end
 end
 
-print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A></th><td>"..info["version.curl"].."</td></tr>\n")
+print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A></th><td colspan=2>"..info["version.curl"].."</td></tr>\n")
 
-print("<tr><th><a href=\"http://twitter.github.io/\" target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")
-print("<tr><th><a href=\"http://fortawesome.github.io/Font-Awesome/\" target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td>4.x</td></tr>\n")
-print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A></th><td>"..info["version.rrd"].."</td></tr>\n")
+print("<tr><th><a href=\"http://twitter.github.io/\" target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td colspan=2>3.x</td></tr>\n")
+print("<tr><th><a href=\"http://fortawesome.github.io/Font-Awesome/\" target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td colspan=2>4.x</td></tr>\n")
+print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A></th><td colspan=2>"..info["version.rrd"].."</td></tr>\n")
 
 if(info["version.nindex"] ~= nil) then
-   print("<tr><th>nIndex</th><td>"..info["version.nindex"].."</td></tr>\n")
+   print("<tr><th>nIndex</th><td colspan=2>"..info["version.nindex"].."</td></tr>\n")
 end
 
 local l7_resolution = "5m"
 
 if ts_utils.getDriverName() == "influxdb" then
-   print("<tr><th><a href=\"http://www.influxdata.com\" target=\"_blank\">InfluxDB</A></th><td><img id=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
+   print("<tr><th><a href=\"http://www.influxdata.com\" target=\"_blank\">InfluxDB</A></th><td colspan=2><img id=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
    print[[<script>
 $(function() {
    $.get("]] print(ntop.getHttpPrefix()) print[[/lua/get_influxdb_info.lua", function(info) {
@@ -166,22 +176,22 @@ $(function() {
    end
 end
 
-print("<tr><th>".. i18n("prefs.timeseries_resolution_resolution_title") .."</th><td>"..l7_resolution.."</td></tr>\n")
-print("<tr><th><a href=\"http://www.redis.io\" target=\"_blank\">Redis</A> Server</th><td>"..info["version.redis"].."</td></tr>\n")
-print("<tr><th><a href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server</A></th><td>"..info["version.httpd"].."</td></tr>\n")
-print("<tr><th><a href=\"http://www.luajit.org\" target=\"_blank\">LuaJIT</A></th><td>"..info["version.luajit"].."</td></tr>\n")
+print("<tr><th>".. i18n("prefs.timeseries_resolution_resolution_title") .."</th><td colspan=2>"..l7_resolution.."</td></tr>\n")
+print("<tr><th><a href=\"http://www.redis.io\" target=\"_blank\">Redis</A> Server</th><td colspan=2>"..info["version.redis"].."</td></tr>\n")
+print("<tr><th><a href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server</A></th><td colspan=2>"..info["version.httpd"].."</td></tr>\n")
+print("<tr><th><a href=\"http://www.luajit.org\" target=\"_blank\">LuaJIT</A></th><td colspan=2>"..info["version.luajit"].."</td></tr>\n")
 if info["version.zmq"] ~= nil then
-   print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ</A></th><td>"..info["version.zmq"].."</td></tr>\n")
+   print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ</A></th><td colspan=2>"..info["version.zmq"].."</td></tr>\n")
 end
 if(info["version.geoip"] ~= nil) then
-print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoLite</A></th><td>"..info["version.geoip"])
+print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoLite</A></th><td colspan=2>"..info["version.geoip"])
 
 print [[ <br><small>]] print(i18n("about.maxmind", {maxmind_url="http://www.maxmind.com/"})) print[[</small>
 ]]
 
 print("</td></tr>\n")
 end
-print("<tr><th><a href=\"http://www.d3js.org\" target=\"_blank\">Data-Driven Documents (d3js)</A></th><td>2.9.1 / 3.0</td></tr>\n")
+print("<tr><th><a href=\"http://www.d3js.org\" target=\"_blank\">Data-Driven Documents (d3js)</A></th><td colspan=2>2.9.1 / 3.0</td></tr>\n")
 
 
 
