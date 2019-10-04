@@ -435,12 +435,12 @@ void Flow::processDetectedProtocol() {
       Signatures are swapped as the server observes the client signature
       and vice-versa
      */
-    protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.client_signature);
-    protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.server_signature);
+    protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
+    protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
     break;
 
   case NDPI_PROTOCOL_TOR:
-  case NDPI_PROTOCOL_SSL:
+  case NDPI_PROTOCOL_TLS:
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> [client: %s][server: %s]",
 				 ndpiFlow->protos.stun_ssl.ssl.client_certificate,
@@ -547,12 +547,15 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     /* Let the client SSL certificate win over the server SSL certificate
        this addresses detection for youtube, e.g., when the client
        requests s.youtube.com but the server responds with google.com */
-    if((proto_id.master_protocol == NDPI_PROTOCOL_SSL)
+    if((proto_id.master_protocol == NDPI_PROTOCOL_TLS)
        && (get_packets() < NDPI_MIN_NUM_PACKETS)
        && (ndpiFlow)
-       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] == '\0')
-       && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] == '\0')) {
-      get_ndpi_flow()->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
+       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] == '\0'
+	   || ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] == '\0')) {
+      /*
+	Should never be mangled directly, returning is enough.
+       */
+      // get_ndpi_flow()->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
       return;
     }
 
@@ -965,7 +968,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool dump_alert) {
     set_to_purge();
   }
 
-  if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_SSL)) {
+  if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_TLS)) {
     char rsp[256];
 
     if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
@@ -2288,7 +2291,7 @@ bool Flow::isSSLProto() {
   u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   return(
-    (lower == NDPI_PROTOCOL_SSL) ||
+    (lower == NDPI_PROTOCOL_TLS) ||
     (lower == NDPI_PROTOCOL_MAIL_IMAPS) ||
     (lower == NDPI_PROTOCOL_MAIL_SMTPS) ||
     (lower == NDPI_PROTOCOL_MAIL_POPS)
@@ -3468,7 +3471,7 @@ FlowStatus Flow::getFlowStatus() {
 	/* 3WH is over */
 
 	switch(l7proto) {
-	case NDPI_PROTOCOL_SSL:
+	case NDPI_PROTOCOL_TLS:
 #ifndef HAVE_NEDGE
 	  if(!protos.ssl.firstdata_seen && isIdle)
 	    return status_slow_application_header;

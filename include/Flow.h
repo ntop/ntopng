@@ -248,7 +248,7 @@ class Flow : public GenericHashEntry {
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
   bool isTiny();
-  inline bool isSSL()                  { return(isProto(NDPI_PROTOCOL_SSL));  }
+  inline bool isSSL()                  { return(isProto(NDPI_PROTOCOL_TLS));  }
   inline bool isSSH()                  { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()                  { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isDHCP()                 { return(isProto(NDPI_PROTOCOL_DHCP)); }
