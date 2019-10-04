@@ -74,3 +74,13 @@ Locks
 -----
 
 As additions and deletions to the hash tables are performed _inline_, there is no need to lock when the same _inline_ thread accesses the hash table. Indeed, if the thread is accessing the hash table, it will not delete or add entries to it. For this reason, methods such as `HostHash::get` take a parameter `is_inline_call` and will only `lock` the hash table when called _offline_.
+
+Hash table locks are implemented in class `RwLock` which uses pthread read-write locks:
+- _offline_ operations always acquire read locks `RwLock::rdlock` when accessing any hash table. This guarantees an elevated degree of parallelism as multiple _offline_ threads can access the same hash table entries simultaneously.
+- _inline_ additions are performed withouth locks as list access won't break any concurrent hash table access.
+- _inline_ deletions, only performed in `GenericHash::purgeIdle`, use a `RwLock::trywrlock`. When there is no other reader the lock is aquired successfully and the `GenericHash::purgeIdle` is free to delete entries from the hash table. When there are one or more readers, the lock is not acquired and `GenericHash::purgeIdle` will try to acquire the lock again during a successive cycle.
+
+
+
+
+
