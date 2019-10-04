@@ -1741,7 +1741,7 @@ static int ntop_match_custom_category(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   host_to_match = (char*)lua_tostring(vm, 1);
 
-  if((!iface) || (ndpi_get_custom_category_match(iface->get_ndpi_struct(), host_to_match, &match) != 0))
+  if((!iface) || (ndpi_get_custom_category_match(iface->get_ndpi_struct(), host_to_match, strlen(host_to_match), &match) != 0))
     lua_pushnil(vm);
   else
     lua_pushinteger(vm, (int)match);

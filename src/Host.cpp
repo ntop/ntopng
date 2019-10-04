@@ -1245,7 +1245,7 @@ void Host::reloadHostBlacklist() {
   char *ip_str = ip.print(ipbuf, sizeof(ipbuf));
   unsigned long category;
 
-  blacklisted_host = ((ndpi_get_custom_category_match(iface->get_ndpi_struct(), ip_str, &category) == 0) &&
+  blacklisted_host = ((ndpi_get_custom_category_match(iface->get_ndpi_struct(), ip_str, strlen(ip_str), &category) == 0) &&
     (category == CUSTOM_CATEGORY_MALWARE));
 }
 
