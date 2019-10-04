@@ -4035,7 +4035,7 @@ void Flow::fillZmqFlowCategory() {
   if(srv_name && srv_name[0]) {
     unsigned long id;
 
-    if(ndpi_match_custom_category(ndpi_struct, srv_name, &id) == 0) {
+    if(ndpi_match_custom_category(ndpi_struct, srv_name, strlen(srv_name), &id) == 0) {
       ndpiDetectedProtocol.category = (ndpi_protocol_category_t)id;
       return;
     }
