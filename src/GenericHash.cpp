@@ -34,8 +34,8 @@ GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
   for(u_int i = 0; i < num_hashes; i++)
     table[i] = NULL;
 
-  locks = new Mutex*[num_hashes];
-  for(u_int i = 0; i < num_hashes; i++) locks[i] = new Mutex();
+  locks = new RwLock*[num_hashes];
+  for(u_int i = 0; i < num_hashes; i++) locks[i] = new RwLock();
 
   last_purged_hash = _num_hashes - 1;
 }
@@ -77,7 +77,7 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
     u_int32_t hash = (h->key() % num_hashes);
 
     if(do_lock)
-      locks[hash]->lock(__FILE__, __LINE__);
+      locks[hash]->wrlock(__FILE__, __LINE__);
 
     h->set_next(table[hash]);
     table[hash] = h;
@@ -107,7 +107,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Locking %d [%p]", hash_id, locks[hash_id]);
 #endif
 
-      locks[hash_id]->lock(__FILE__, __LINE__);
+      locks[hash_id]->rdlock(__FILE__, __LINE__);
       head = table[hash_id];
 
       while(head) {
@@ -192,7 +192,9 @@ u_int GenericHash::purgeIdle(bool force_idle) {
       GenericHashEntry *head, *prev = NULL;
 
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[purge] Locking %d", i);
-      locks[i]->lock(__FILE__, __LINE__);
+      if(!locks[i]->trywrlock(__FILE__, __LINE__))
+	continue; /* Busy, will retry next round */
+
       head = table[i];
 
       while(head) {
@@ -253,7 +255,8 @@ GenericHashEntry* GenericHash::findByKey(u_int32_t key) {
 
   if(head == NULL) return(NULL);
 
-  locks[hash]->lock(__FILE__, __LINE__);
+  locks[hash]->rdlock(__FILE__, __LINE__);
+
   while(head) {
     if(!head->idle() && head->key() == key)
       break;

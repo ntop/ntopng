@@ -39,7 +39,7 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress *key, bool is_inline_call) {
     Host *head;
 
     if(!is_inline_call)
-      locks[hash]->lock(__FILE__, __LINE__);
+      locks[hash]->rdlock(__FILE__, __LINE__);
 
     head = (Host*)table[hash];
     

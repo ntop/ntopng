@@ -38,7 +38,7 @@ VirtualHost* VirtualHostHash::get(char *key) {
   } else {
     VirtualHost *head;
 
-    locks[hash]->lock(__FILE__, __LINE__);
+    locks[hash]->wrlock(__FILE__, __LINE__);
     head = (VirtualHost*)table[hash];
     
     while(head != NULL) {      

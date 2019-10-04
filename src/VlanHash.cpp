@@ -41,7 +41,7 @@ Vlan* VlanHash::get(u_int16_t _vlan_id, bool is_inline_call) {
     Vlan *head;
 
     if(!is_inline_call)
-      locks[hash]->lock(__FILE__, __LINE__);
+      locks[hash]->rdlock(__FILE__, __LINE__);
 
     head = (Vlan*)table[hash];
 

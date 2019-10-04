@@ -24,55 +24,96 @@
 /* ******************************* */
 
 RwLock::RwLock() {
+#ifndef HAVE_RW_LOCK
+  Mutex m;
+#else
   pthread_rwlock_init(&the_rwlock, NULL);
-#ifdef RWLOCK_DEBUG
-  num_locks = num_unlocks = 0;
-  last_lock_file[0] = '\0', last_unlock_file[0] = '\0';
-  last_lock_line = last_unlock_line = 0;
 #endif
 }
 
 /* ******************************* */
 
-void RwLock::lock(const char *filename, const int line, bool readonly) {
-  int rc;
+RwLock::~RwLock() {
+#ifndef HAVE_RW_LOCK
+  /* Mutex destructor called automatically */
+#else
+  pthread_rwlock_destroy(&the_rwlock);
+#endif
+}
 
-  errno = 0;
+/* ******************************* */
+
+void RwLock::lock(const char *filename, int line, bool readonly) {
+#ifndef HAVE_RW_LOCK
+  m.lock(filename, line);
+#else
+  int rc;
 
   if(readonly)
     rc = pthread_rwlock_rdlock(&the_rwlock);
   else
     rc = pthread_rwlock_wrlock(&the_rwlock);
 
-  if(rc != 0)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, 
-					"Unable to acquire lock. Return code %d [%s][errno=%d]", 
-					rc, strerror(rc), errno);
-
-#ifdef RWLOCK_DEBUG
-  snprintf(last_lock_file, sizeof(last_lock_file), "%s", filename);
-  last_lock_line = line, num_locks++;
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, this);
+  if(rc)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to acquire lock. Return code %d [%s]", rc, strerror(rc), errno);
 #endif
 }
 
 /* ******************************* */
 
-void RwLock::unlock(const char *filename, const int line) {
+bool RwLock::trylock(const char *filename, int line, bool readonly) {
+#ifndef HAVE_RW_LOCK
+  m.lock(filename, line);
+  return true; /* Pretend to be always successful - indeed, if here the lock is acquired even in a blocking fashion */
+#else
   int rc;
 
-  errno = 0;  
+  if(readonly)
+    rc = pthread_rwlock_tryrdlock(&the_rwlock);
+  else
+    rc = pthread_rwlock_trywrlock(&the_rwlock);
+
+  if(!rc)
+    return true; /* Lock acquired successfully */
+
+  if(rc == EBUSY)
+    ;  /* Normal, lock is being held by someone else */
+  else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to acquire lock. Return code %d [%s]",  rc, strerror(rc));
+
+  return false; /* Lock not acquired, held by someone else or there was an error */
+#endif
+}
+
+/* ******************************* */
+
+void RwLock::rdlock(const char *filename, int line) {
+  lock(filename, line, true /* readonly */);
+}
+
+/* ******************************* */
+
+void RwLock::wrlock(const char *filename, int line) {
+  lock(filename, line, false /* write */);
+}
+
+/* ******************************* */
+
+bool RwLock::trywrlock(const char *filename, int line) {
+  return trylock(filename, line, false /* write */);
+}
+
+/* ******************************* */
+
+void RwLock::unlock(const char *filename, int line) {
+#ifndef HAVE_RW_LOCK
+  m.unlock(filename, line);
+#else
+  int rc;
 
   rc = pthread_rwlock_unlock(&the_rwlock);
-  
-  if(rc != 0)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, 
-					"pthread_rwlock_unlock() returned %d [%s][errno=%d]",
-					rc, strerror(rc), errno);
 
-#ifdef RWLOCK_DEBUG
-  snprintf(last_unlock_file, sizeof(last_unlock_file), "%s", filename);
-  last_unlock_line = line, num_unlocks++;
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, this);
+  if(rc)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "pthread_rwlock_unlock() returned %d [%s]", rc, strerror(rc), errno);
 #endif
 }

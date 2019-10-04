@@ -41,7 +41,7 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6],
   } else {
     ArpStatsMatrixElement *head;
     
-    locks[hash]->lock(__FILE__, __LINE__);
+    locks[hash]->wrlock(__FILE__, __LINE__);
     head = (ArpStatsMatrixElement*)table[hash];
     
     while(head != NULL) {

@@ -44,7 +44,7 @@ Mac* MacHash::get(const u_int8_t mac[6], bool is_inline_call) {
       Mac *head;
 
       if(!is_inline_call)
-	locks[hash]->lock(__FILE__, __LINE__);
+	locks[hash]->rdlock(__FILE__, __LINE__);
 
       head = (Mac*)table[hash];
 

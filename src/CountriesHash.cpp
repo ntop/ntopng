@@ -42,7 +42,7 @@ Country* CountriesHash::get(const char *country_name, bool is_inline_call) {
     Country *head;
 
     if(!is_inline_call)
-      locks[hash]->lock(__FILE__, __LINE__);
+      locks[hash]->rdlock(__FILE__, __LINE__);
 
     head = (Country*)table[hash];
 

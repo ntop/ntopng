@@ -48,7 +48,7 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
     return(NULL);
 
   if(!is_inline_call)
-    locks[hash]->lock(__FILE__, __LINE__);
+    locks[hash]->rdlock(__FILE__, __LINE__);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u:%u / %u:%u [icmp: %u][key: %u][icmp info key: %u][head: 0x%x]", src_ip->key(), src_port, dst_ip->key(), dst_port, icmp_info ? 1 : 0, hash, icmp_info ? icmp_info->key() : 0, head);
 

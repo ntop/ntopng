@@ -28,18 +28,22 @@
 
 class RwLock {
  private:
+#ifndef HAVE_RW_LOCK
+  Mutex m;
+#else
   pthread_rwlock_t the_rwlock;
-#ifdef RWLOCK_DEBUG
-  char last_lock_file[64], last_unlock_file[64];
-  int  last_lock_line, last_unlock_line;
-  u_int num_locks, num_unlocks;
 #endif
-  void initialize();
+  void lock(const char *filename, int line, bool readonly);
+  bool trylock(const char *filename, int line, bool readonly);
 
  public:
   RwLock();
-  void lock(const char *filename, const int line, bool readonly);
-  void unlock(const char *filename, const int line);  
+  ~RwLock();
+
+  void rdlock(const char *filename, int line);
+  void wrlock(const char *filename, int line);
+  bool trywrlock(const char *filename, int line);
+  void unlock(const char *filename, int line);
 };
 
 

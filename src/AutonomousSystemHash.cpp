@@ -45,7 +45,7 @@ AutonomousSystem* AutonomousSystemHash::get(IpAddress *ipa, bool is_inline_call,
     AutonomousSystem *head;
 
     if(!is_inline_call)
-      locks[hash]->lock(__FILE__, __LINE__);
+      locks[hash]->rdlock(__FILE__, __LINE__);
 
     head = (AutonomousSystem*)table[hash];
 

@@ -535,6 +535,22 @@ then
   fi
 fi
 
+AC_CACHE_CHECK([if pthread rwlocks are supported], [my_cv_rw_locks_supported], [
+  AC_TRY_RUN([
+  #include <pthread.h>
+
+  int main() {
+    pthread_rwlock_t t;
+    return 0;
+  }
+]
+, [my_cv_rw_locks_supported=yes], [my_cv_rw_locks_supported=no])
+]
+)
+
+if test "$my_cv_rw_locks_supported" = yes; then
+  AC_DEFINE_UNQUOTED(HAVE_RW_LOCK, 1, [pthread rwlocks supported])
+fi
 
 if test -f /usr/bin/lsb_release; then
   LINUX_OS_RELEASE=`lsb_release -r | cut -f 2|cut -d '.' -f 1`
