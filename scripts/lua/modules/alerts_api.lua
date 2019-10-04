@@ -15,7 +15,7 @@ local alerts_api = {}
 
 -- NOTE: sqlite can handle about 10-50 alerts/sec
 local MAX_NUM_ENQUEUED_ALERT_PER_INTERFACE = 256
-local ALERT_CHECKS_MODULES_BASEDIR = dirs.installdir .. "/scripts/callbacks/interface/alerts"
+local ALERT_CHECKS_MODULES_BASEDIR = dirs.installdir .. "/scripts/callbacks/interface"
 
 -- Just helpers
 local str_2_periodicity = {
@@ -1059,8 +1059,8 @@ end
 
 --
 -- Flow check modules are lua scripts located into the following locations:
---  - scripts/callbacks/interface/alerts/flow for community scripts
---  - scripts/callbacks/interface/alerts/flow for pro/enterprise scripts
+--  - scripts/callbacks/interface/flow for community scripts
+--  - pro/scripts/callbacks/interface/flow for pro/enterprise scripts
 --
 -- A script must return a lua table, with the following fields:
 --  - setup(): a function to call once before processing any flow. It must return true
@@ -1079,7 +1079,7 @@ function alerts_api.load_flow_check_modules(enabled_only)
    }
 
    if ntop.isPro() then
-      check_dirs[#check_dirs + 1] = os_utils.fixPath(dirs.installdir .. "/pro/scripts/callbacks/interface/alerts/flow")
+      check_dirs[#check_dirs + 1] = os_utils.fixPath(dirs.installdir .. "/pro/scripts/callbacks/interface/flow")
    end
 
    for _, checks_dir in pairs(check_dirs) do

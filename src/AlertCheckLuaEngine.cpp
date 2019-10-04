@@ -48,7 +48,7 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
 
   if(lua_file) {
     snprintf(script_path, sizeof(script_path),
-	     "%s/callbacks/interface/alerts/%s",
+	     "%s/callbacks/interface/%s",
 	     ntop->getPrefs()->get_scripts_dir(),
 	     lua_file);
     ntop->fixPath(script_path);

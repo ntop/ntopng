@@ -87,13 +87,19 @@ if ts_utils.getDriverName() == "rrd" then
    end
 end
 
-if((network ~= nil) and (areAlertsEnabled())) then
+if((network ~= nil) and (isAdministrator())) then
     if(page == "config") then
 	print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
 
     else
 	print("\n<li><a href=\""..nav_url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
     end
+
+    if(page == "callbacks") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..nav_url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+   end
 end
 
 print [[
@@ -158,11 +164,19 @@ elseif (page == "config") then
      aysHandleForm("#network_config");
    </script>]]
 
+elseif(page == "callbacks") then
+   if(not isAdministrator()) then
+      return
+   end
+
+   drawAlertSourceSettings("network", network_name,
+      i18n("show_alerts.network_delete_config_btn", {network=network_name}), "show_alerts.network_delete_config_confirm",
+      "network_details.lua", {network=network}, network_name, "network")
+
 elseif(page == "alerts") then
 
-    drawAlertSourceSettings("network", network_name,
-	i18n("show_alerts.network_delete_config_btn", {network=network_name}), "show_alerts.network_delete_config_confirm",
-	"network_details.lua", {network=network}, network_name, "network")
+    printAlertTables("network", network_name,
+      "network_details.lua", {network=network}, network_name, "network")
 
 elseif page == "traffic_report" then
     dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")

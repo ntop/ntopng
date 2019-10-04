@@ -462,6 +462,11 @@ if(isAdministrator()) then
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
+   if(page == "callbacks") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+   end
 end
 
 print [[
@@ -1940,9 +1945,18 @@ else
    print(i18n("contacts_page.no_contacts_message"))
 end
 
-elseif(page == "alerts") then
+elseif(page == "callbacks") then
+   if(not isAdministrator()) then
+      return
+   end
+
    drawAlertSourceSettings("host", hostkey,
       i18n("show_alerts.host_delete_config_btn", {host=host_name}), "show_alerts.host_delete_config_confirm",
+      "host_details.lua", {ifid=ifId, host=hostkey},
+      host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"])})
+
+elseif(page == "alerts") then
+   printAlertTables("host", hostkey,
       "host_details.lua", {ifid=ifId, host=hostkey},
       host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"])})
 

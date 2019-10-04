@@ -85,7 +85,7 @@ A global `flow` table is available in each of the functions above. Such table gi
 
 Let's see how to create a custom script which checks flow client and server countries, and perform certain actions when either the client or the server is found to be from China. As this script should be executed as early as possible in the lifecycle of a flow, `protocolDetected` function is used to do the check on the countries and to perform the actions.
 
-The script can be written to file `suspicious_countries.lua`. Although any file name is valid, it is recommended to pick a name which is somehow indicative of the actual script actions. To make sure ntopng will execute it, `suspicious_countries.lua` has to be placed under directory `scripts/callbacks/interface/alerts/flow/`.
+The script can be written to file `suspicious_countries.lua`. Although any file name is valid, it is recommended to pick a name which is somehow indicative of the actual script actions. To make sure ntopng will execute it, `suspicious_countries.lua` has to be placed under directory `scripts/callbacks/interface/flow/`.
 
 The minimum contents of such script are the following:
 

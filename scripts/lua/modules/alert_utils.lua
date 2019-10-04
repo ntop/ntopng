@@ -1066,71 +1066,36 @@ end
 -- #################################
 
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
-   local has_engaged_alerts, has_past_alerts, has_flow_alerts = false,false,false
-   local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
-   local tab = _GET["tab"]
-   local have_nedge = ntop.isnEdge()
    options = options or {}
-
-   local descr = alerts_api.load_check_modules(entity_type)
-
-   local anomaly_config_key = nil
-   local flow_rate_alert_thresh, syn_alert_thresh
-
-   if entity_type == "host" then
-      anomaly_config_key = 'ntopng.prefs.'..(options.host_ip)..':'..tostring(options.host_vlan)..'.alerts_config'
-   end
-
-   print('<ul class="nav nav-tabs">')
+   local tab = _GET["tab"] or "min"
 
    local function printTab(tab, content, sel_tab)
       if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
-      print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=alerts&tab="..tab)
+      print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=callbacks&tab="..tab)
       for param, value in pairs(page_params) do
          print("&"..param.."="..value)
       end
       print("\">"..content.."</a></li>\n")
    end
 
-   if(show_entity) then
-      -- these fields will be used to perform queries
-      _GET["entity"] = alertEntity(show_entity)
-      _GET["entity_val"] = alert_source
-   end
+   print('<ul class="nav nav-tabs">')
 
-   if(show_entity) then
-      -- possibly process pending delete arguments
-      checkDeleteStoredAlerts()
+   for k, granularity in pairsByField(alert_consts.alerts_granularities, "granularity_id", asc) do
+      local l = i18n(granularity.i18n_title)
+      local resolution = granularity.granularity_seconds
 
-      -- possibly add a tab if there are alerts configured for the host
-      has_engaged_alerts = hasAlerts("engaged", getTabParameters(_GET, "engaged"))
-      has_past_alerts = hasAlerts("historical", getTabParameters(_GET, "historical"))
-      has_flow_alerts = hasAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
-
-      if(has_engaged_alerts or has_past_alerts or has_flow_alerts) then
-         if(has_engaged_alerts) then
-           tab = tab or "alert_list"
-           printTab("alert_list", i18n("show_alerts.engaged_alerts"), tab)
-         end
-         if(has_past_alerts) then
-           tab = tab or "past_alert_list"
-           printTab("past_alert_list", i18n("show_alerts.past_alerts"), tab)
-         end
-         if(has_flow_alerts) then
-           tab = tab or "flow_alert_list"
-           printTab("flow_alert_list", i18n("show_alerts.flow_alerts"), tab)
-         end
-      else
-         -- if there are no alerts, we show the alert settings
-         if(tab=="alert_list") then tab = nil end
+      if (not options.remote_host) or resolution <= 60 then
+	 --~ l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
+	 printTab(k, l, tab)
       end
    end
 
-   -- Default tab
-   if(tab == nil) then tab = "min" end
-   local is_alert_list_tab = ((tab == "alert_list") or (tab == "past_alert_list") or (tab == "flow_alert_list"))
+   if(entity_type == "interface") then
+      local l = i18n("flows")
+      printTab("flows", l, tab)
+   end
 
-   if not is_alert_list_tab and tab ~= "config" and tab ~= "probes" then
+   if tab ~= "flows" then
       local granularity_label = alertEngineLabel(alertEngine(tab))
 
       print(
@@ -1158,42 +1123,21 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       )
    end
 
-   for k, granularity in pairsByField(alert_consts.alerts_granularities, "granularity_id", asc) do
-      local l = i18n(granularity.i18n_title)
-      local resolution = granularity.granularity_seconds
-
-      if (not options.remote_host) or resolution <= 60 then
-	 --~ l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
-	 printTab(k, l, tab)
-      end
-   end
-
-   local system_scripts = require("system_scripts_utils")
-   local entity_probes = system_scripts.getEntityProbes(entity_type, alert_source)
-
-   if #entity_probes > 0 then
-      printTab("probes", i18n("system_stats.probes"), tab)
-   end
-
-   printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
+   print('</ul>')
 
    local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, not options.remote_host)
 
-   print('</ul>')
-
-   if((show_entity) and is_alert_list_tab) then
-      drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
-   elseif(tab == "config") then
-      printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
-   elseif(tab == "probes") and #entity_probes > 0 then
-      printProbesTab(entity_probes, entity_type, alert_source, page_name, page_params, alt_name, options)
+   if((tab == "flows") and (entity_type == "interface")) then
+      local flow_callbacks_utils = require "flow_callbacks_utils"
+      flow_callbacks_utils.print_callbacks_config()
    else
-      -- Before doing anything we need to check if we need to save values
+      local descr = alerts_api.load_check_modules(entity_type)
 
-      vals = { }
-      alerts = ""
-      global_alerts = ""
-      to_save = false
+      -- Before doing anything we need to check if we need to save values
+      local vals = { }
+      local alerts = ""
+      local global_alerts = ""
+      local to_save = false
 
       -- Needed to handle the defaults
       local check_modules = alerts_api.load_check_modules(entity_type)
@@ -1213,9 +1157,9 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       end
 
       if _POST["to_delete"] ~= "local" then
-	 if not table.empty(_POST) then
-	    to_save = true
-	 end
+    if not table.empty(_POST) then
+       to_save = true
+    end
 
          -- TODO refactor this into the threshold cross checker
          for _, check_module in pairs(descr) do
@@ -1279,14 +1223,14 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       global_alerts = alert_config[get_global_alerts_hash_key(entity_type, not options.remote_host)]
 
       for _, al in pairs({
-	    {prefix = "", config = alerts},
-	    {prefix = "global_", config = global_alerts},
+       {prefix = "", config = alerts},
+       {prefix = "global_", config = global_alerts},
       }) do
-	 if al.config ~= nil then
+    if al.config ~= nil then
       for k, v in pairs(al.config) do
         vals[(al.prefix)..k] = v
       end
-	 end
+    end
       end
 
       local label
@@ -1313,24 +1257,24 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       for _, check_module in pairsByKeys(descr, asc) do
         local key = check_module.key
         local gui_conf = check_module.gui
-	local show_input = true
+   local show_input = true
 
-	if check_module.granularity then
-	   -- check if the check is performed and thus has to
-	   -- be configured at this granularity
-	   show_input = false
+   if check_module.granularity then
+      -- check if the check is performed and thus has to
+      -- be configured at this granularity
+      show_input = false
 
-	   for _, gran in pairs(check_module.granularity) do
-	      if gran == tab then
-		 show_input = true
-		 break
-	      end
-	   end
-  end
+      for _, gran in pairs(check_module.granularity) do
+         if gran == tab then
+       show_input = true
+       break
+         end
+      end
+   end
 
-  if(check_module.local_only and options.remote_host) then
+   if(check_module.local_only and options.remote_host) then
     show_input = false
-  end
+   end
 
         if not gui_conf or not show_input then
           goto next_module
@@ -1381,7 +1325,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print("<li>" .. i18n("alerts_thresholds_config.note_consecutive_checks") .. "</li>")
 
       if (entity_type == "host") then
-	 print("<li>" .. i18n("alerts_thresholds_config.note_checks_on_active_hosts") .. "</li>")
+    print("<li>" .. i18n("alerts_thresholds_config.note_checks_on_active_hosts") .. "</li>")
       end
 
       print("</ul></div>")
@@ -1413,6 +1357,91 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          });
       </script>
       ]]
+   end
+end
+
+-- #################################
+
+function printAlertTables(entity_type, alert_source, page_name, page_params, alt_name, show_entity, options)
+   local has_engaged_alerts, has_past_alerts, has_flow_alerts = false,false,false
+   local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
+   local tab = _GET["tab"]
+   local have_nedge = ntop.isnEdge()
+   options = options or {}
+
+   local anomaly_config_key = nil
+   local flow_rate_alert_thresh, syn_alert_thresh
+
+   if entity_type == "host" then
+      anomaly_config_key = 'ntopng.prefs.'..(options.host_ip)..':'..tostring(options.host_vlan)..'.alerts_config'
+   end
+
+   print('<ul class="nav nav-tabs">')
+
+   local function printTab(tab, content, sel_tab)
+      if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
+      print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=alerts&tab="..tab)
+      for param, value in pairs(page_params) do
+         print("&"..param.."="..value)
+      end
+      print("\">"..content.."</a></li>\n")
+   end
+
+   if(show_entity) then
+      -- these fields will be used to perform queries
+      _GET["entity"] = alertEntity(show_entity)
+      _GET["entity_val"] = alert_source
+   end
+
+   if(show_entity) then
+      -- possibly process pending delete arguments
+      checkDeleteStoredAlerts()
+
+      -- possibly add a tab if there are alerts configured for the host
+      has_engaged_alerts = hasAlerts("engaged", getTabParameters(_GET, "engaged"))
+      has_past_alerts = hasAlerts("historical", getTabParameters(_GET, "historical"))
+      has_flow_alerts = hasAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+
+      if(has_engaged_alerts or has_past_alerts or has_flow_alerts) then
+         if(has_engaged_alerts) then
+           tab = tab or "alert_list"
+           printTab("alert_list", i18n("show_alerts.engaged_alerts"), tab)
+         end
+         if(has_past_alerts) then
+           tab = tab or "past_alert_list"
+           printTab("past_alert_list", i18n("show_alerts.past_alerts"), tab)
+         end
+         if(has_flow_alerts) then
+           tab = tab or "flow_alert_list"
+           printTab("flow_alert_list", i18n("show_alerts.flow_alerts"), tab)
+         end
+      else
+         -- if there are no alerts, we show the alert settings
+         if(tab=="alert_list") then tab = nil end
+      end
+   end
+
+   -- Default tab
+   if(tab == nil) then tab = "min" end
+   local is_alert_list_tab = ((tab == "alert_list") or (tab == "past_alert_list") or (tab == "flow_alert_list"))
+
+   local system_scripts = require("system_scripts_utils")
+   local entity_probes = system_scripts.getEntityProbes(entity_type, alert_source)
+
+   if #entity_probes > 0 then
+      printTab("probes", i18n("system_stats.probes"), tab)
+   end
+
+   printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
+
+   print('</ul>')
+
+   if((show_entity) and is_alert_list_tab) then
+      drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
+   elseif(tab == "config") then
+      printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
+   elseif(tab == "probes") and #entity_probes > 0 then
+      printProbesTab(entity_probes, entity_type, alert_source, page_name, page_params, alt_name, options)
    end
 end
 

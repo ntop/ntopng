@@ -27,7 +27,6 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 local ts_utils = require "ts_utils"
-local flow_callbacks_utils = require "flow_callbacks_utils"
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
@@ -346,10 +345,10 @@ if(isAdministrator()) then
    elseif not is_pcap_dump then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
-   if(page == "flow_callbacks") then
+   if(page == "callbacks") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
    else
-      print("\n<li><a href=\""..url.."&page=flow_callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+      print("\n<li><a href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
    end
 end
 
@@ -1327,8 +1326,7 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
    print('</div></div>')
 elseif(page == "alerts") then
 
-   drawAlertSourceSettings("interface", ifname_clean,
-      i18n("show_alerts.iface_delete_config_btn", {iface=if_name}), "show_alerts.iface_delete_config_confirm",
+   printAlertTables("interface", ifname_clean,
       "if_stats.lua", {ifid=ifid}, if_name, "interface")
 
 elseif(page == "config") then
@@ -1737,12 +1735,14 @@ elseif(page == "config") then
       aysHandleForm("#iface_config");
    </script>]]
 
-elseif(page == "flow_callbacks") then
+elseif(page == "callbacks") then
    if(not isAdministrator()) then
       return
    end
 
-   flow_callbacks_utils.print_callbacks_config()
+   drawAlertSourceSettings("interface", ifname_clean,
+      i18n("show_alerts.iface_delete_config_btn", {iface=if_name}), "show_alerts.iface_delete_config_confirm",
+      "if_stats.lua", {ifid=ifid}, if_name, "interface")
 
 elseif(page == "snmp_bind") then
    if ((not hasSnmpDevices(ifstats.id)) or (not is_packet_interface)) then

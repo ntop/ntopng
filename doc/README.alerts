@@ -21,8 +21,8 @@ Custom Alert Generation
 Ntopng periodically checks the status of its internal elements and determines if an
 alert should be generated. The checks are performed into lua scripts, called
 "alert check modules".
-The alert check modules are located under `scripts/callbacks/interface/alerts/{alarmable}` .
-For example, hosts alert check modules are located under `scripts/callbacks/interface/alerts/host`.
+The alert check modules are located under `scripts/callbacks/interface/{alarmable}` .
+For example, hosts alert check modules are located under `scripts/callbacks/interface/host`.
 
 ntopng supports the following alarmable:
 
