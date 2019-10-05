@@ -86,10 +86,10 @@ void SyslogParserInterface::parseSuricataHTTP(json_object *h, ParsedFlow *flow) 
   json_object *w;
  
   /* Other available fields:
-   *  protocol
-   *  http_refer
-   *  http_content_type
-   *  length
+   *  protocol (string)
+   *  http_refer (string)
+   *  http_content_type (string)
+   *  length (int)
    */
 
   if(json_object_object_get_ex(h, "http_method", &w))
@@ -117,8 +117,8 @@ void SyslogParserInterface::parseSuricataDNS(json_object *d, ParsedFlow *flow) {
   json_object *w;
  
   /* Other available fields:
-   * id 
-   * tx_id
+   * id (int) 
+   * tx_id (int)
    */
 
   if(json_object_object_get_ex(d, "type", &w)) {
@@ -132,6 +132,22 @@ void SyslogParserInterface::parseSuricataDNS(json_object *d, ParsedFlow *flow) {
       }
     }
   }
+}
+
+/* **************************************************** */
+
+void SyslogParserInterface::parseSuricataTLS(json_object *t, ParsedFlow *flow) {
+  json_object *w;
+ 
+  /* Other available fields:
+   * version (string)
+   * session_resumed (bool)
+   * ja3 (obj)
+   * ja3s (obj)
+   */
+
+  if(json_object_object_get_ex(t, "sni", &w))
+    flow->ssl_server_name = strdup(json_object_get_string(w));
 }
 
 /* **************************************************** */
@@ -309,6 +325,11 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
       } else if(strcmp(event_type, "dns") == 0 && json_object_object_get_ex(o, "dns", &f)) {
         /* Suricata DNS metadata */
         parseSuricataDNS(f, &flow);
+        processFlow(&flow);
+
+      } else if(strcmp(event_type, "tls") == 0 && json_object_object_get_ex(o, "tls", &f)) {
+        /* Suricata DNS metadata */
+        parseSuricataTLS(f, &flow);
         processFlow(&flow);
 
 #ifdef SYSLOG_DEBUG
