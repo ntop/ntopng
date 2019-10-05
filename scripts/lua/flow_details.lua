@@ -1091,10 +1091,13 @@ else
 
    if(flow["protos.http.last_url"] ~= nil) then
       print("<tr><th width=30% rowspan=4>"..i18n("http").."</th>")
-      print("<th>"..i18n("flow_details.http_method").."</th><td>"..(flow["protos.http.last_method"] or '').."</td>")
-      print("</tr>")
+      if(not isEmptyString(flow["protos.http.last_method"])) then
+        print("<th>"..i18n("flow_details.http_method").."</th><td>"..(flow["protos.http.last_method"] or '').."</td>")
+        print("</tr>")
+        print("<tr>")
+      end
 
-      print("<tr><th>"..i18n("flow_details.server_name").."</th><td colspan=2>")
+      print("<th>"..i18n("flow_details.server_name").."</th><td colspan=2>")
       local s = flowinfo2hostname(flow,"srv")
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
@@ -1110,7 +1113,7 @@ else
       print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '', 64).."</A> <i class=\"fa fa-external-link\">")
       print("</td></tr>\n")
 
-      if not have_nedge then
+      if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then
         print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2>"..(flow["protos.http.last_return_code"] or '').."</td></tr>\n")
       end
    else

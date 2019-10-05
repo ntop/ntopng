@@ -26,7 +26,7 @@
 ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields_json = NULL;
   additional_fields_tlv = NULL;
-  http_url = http_site = NULL;
+  http_url = http_site = http_method = NULL;
   dns_query = ssl_server_name = NULL;
   ja3c_hash = ja3s_hash = NULL;
   suricata_alert = NULL;
@@ -51,6 +51,7 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
 
   if(pf.http_url)  http_url = strdup(pf.http_url); else http_url = NULL;
   if(pf.http_site) http_site = strdup(pf.http_site); else http_site = NULL;
+  if(pf.http_method) http_method = strdup(pf.http_method); else http_method = NULL;
   if(pf.dns_query) dns_query = strdup(pf.dns_query); else dns_query = NULL;
   if(pf.ssl_server_name) ssl_server_name = strdup(pf.ssl_server_name); else ssl_server_name = NULL;
   if(pf.bittorrent_hash) bittorrent_hash = strdup(pf.bittorrent_hash); else bittorrent_hash = NULL;
@@ -81,8 +82,9 @@ ParsedFlow::~ParsedFlow() {
     free(additional_fields_tlv);
   }
 
-  if(http_url)  free(http_url);
+  if(http_url) free(http_url);
   if(http_site) free(http_site);
+  if(http_method) free(http_method);
   if(dns_query) free(dns_query);
   if(ssl_server_name) free(ssl_server_name);
   if(bittorrent_hash) free(bittorrent_hash);

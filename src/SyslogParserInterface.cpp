@@ -82,6 +82,37 @@ void SyslogParserInterface::parseSuricataFlow(json_object *f, ParsedFlow *flow) 
 
 /* **************************************************** */
 
+void SyslogParserInterface::parseSuricataHTTP(json_object *h, ParsedFlow *flow) {
+  json_object *w;
+ 
+  /* Other available fields:
+   *  protocol
+   *  http_refer
+   *  http_content_type
+   *  length
+   */
+
+  if(json_object_object_get_ex(h, "http_method", &w))
+    flow->http_method = strdup(json_object_get_string(w));
+
+  if(json_object_object_get_ex(h, "hostname", &w)) {
+    flow->http_site = strdup(json_object_get_string(w));
+
+    if(json_object_object_get_ex(h, "url", &w)) {
+      const char *url = json_object_get_string(w);
+      int url_size = strlen(flow->http_site) + strlen(url) + 1;
+      flow->http_url = (char *) malloc(url_size);
+      if (flow->http_url)
+      snprintf(flow->http_url, url_size, "%s%s", flow->http_site, url);
+    }
+  }
+
+  if(json_object_object_get_ex(h, "status", &w)) 
+    flow->http_ret_code = json_object_get_int(w);
+}
+
+/* **************************************************** */
+
 void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow, ICMPinfo *icmp_info, bool flow_alert) {
   json_object *w;
   u_int8_t severity; 
@@ -247,10 +278,18 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
         num_flows++;
 #endif /* USE_SURICATA_NETFLOW */
 
+      } else if(strcmp(event_type, "http") == 0 && json_object_object_get_ex(o, "http", &f)) {
+
+        /* Suricata HTTP metadata */
+
+        parseSuricataHTTP(f, &flow);
+
+        processFlow(&flow);
+
 #ifdef SYSLOG_DEBUG
       } else {
         /* Other Events */
-        ntop->getTrace()->traceEvent(TRACE_INFO, "[Suricata] Event '%s' [%s] JSON: %s (ignored)", event_type, timestamp, content);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Event '%s' [%s] JSON: %s (ignored)", event_type, timestamp, content);
 #endif
       }
 

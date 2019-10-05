@@ -1397,6 +1397,12 @@ void NetworkInterface::processFlow(ParsedFlow *zflow) {
     flow->setServerName(zflow->http_site);
     zflow->http_site = NULL;
   }
+
+  if(zflow->http_method) {
+    flow->setHTTPMethod(zflow->http_method);
+    zflow->http_method = NULL;
+  }
+
   flow->setHTTPRetCode(zflow->http_ret_code);
 
   if(zflow->ssl_server_name) {
