@@ -217,7 +217,7 @@ char* Utils::l4proto2name(u_int8_t proto) {
 
 /* ****************************************************** */
 
-u_int8_t Utils::l4name2proto(char *name) {
+u_int8_t Utils::l4name2proto(const char *name) {
        if(strcmp(name, "IP") == 0) return 0;
   else if(strcmp(name, "ICMP") == 0) return 1;
   else if(strcmp(name, "IGMP") == 0) return 2;
@@ -233,6 +233,35 @@ u_int8_t Utils::l4name2proto(char *name) {
   else if(strcmp(name, "PIM") == 0) return 103;
   else if(strcmp(name, "VRRP") == 0) return 112;
   else if(strcmp(name, "HIP") == 0) return 139;
+  else return 0;
+}
+
+/* ****************************************************** */
+
+u_int8_t Utils::queryname2type(const char *name) {
+       if(strcmp(name, "A") == 0) return 1;
+  else if(strcmp(name, "NS") == 0) return 2;
+  else if(strcmp(name, "MD") == 0) return 3;
+  else if(strcmp(name, "MF") == 0) return 4;
+  else if(strcmp(name, "CNAME") == 0) return 5;
+  else if(strcmp(name, "SOA") == 0) return 6;
+  else if(strcmp(name, "MB") == 0) return 7;
+  else if(strcmp(name, "MG") == 0) return 8;
+  else if(strcmp(name, "MR") == 0) return 9;
+  else if(strcmp(name, "NULL") == 0) return 10;
+  else if(strcmp(name, "WKS") == 0) return 11;
+  else if(strcmp(name, "PTR") == 0) return 12;
+  else if(strcmp(name, "HINFO") == 0) return 13;
+  else if(strcmp(name, "MINFO") == 0) return 14;
+  else if(strcmp(name, "MX") == 0) return 15;
+  else if(strcmp(name, "TXT") == 0) return 16;
+  else if(strcmp(name, "AAAA") == 0) return 28;
+  else if(strcmp(name, "A6") == 0) return 38;
+  else if(strcmp(name, "SPF") == 0) return 99;
+  else if(strcmp(name, "AXFR") == 0) return 252;
+  else if(strcmp(name, "MAILB") == 0) return 253;
+  else if(strcmp(name, "MAILA") == 0) return 254;
+  else if(strcmp(name, "ANY") == 0) return 255;
   else return 0;
 }
 

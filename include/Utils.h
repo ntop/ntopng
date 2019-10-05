@@ -42,7 +42,8 @@ class Utils {
   static char* formatTraffic(float numBits, bool bits, char *buf, u_int buf_len);
   static char* formatPackets(float numPkts, char *buf, u_int buf_len);
   static char* l4proto2name(u_int8_t proto);
-  static u_int8_t l4name2proto(char *name);
+  static u_int8_t l4name2proto(const char *name);
+  static u_int8_t queryname2type(const char *name);
   static bool  isIPAddress(char *name);
   static int   setThreadAffinity(pthread_t thread, int core_id);
   static void  setThreadName(const char *name);

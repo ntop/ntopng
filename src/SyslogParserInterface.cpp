@@ -103,12 +103,35 @@ void SyslogParserInterface::parseSuricataHTTP(json_object *h, ParsedFlow *flow) 
       int url_size = strlen(flow->http_site) + strlen(url) + 1;
       flow->http_url = (char *) malloc(url_size);
       if (flow->http_url)
-      snprintf(flow->http_url, url_size, "%s%s", flow->http_site, url);
+        snprintf(flow->http_url, url_size, "%s%s", flow->http_site, url);
     }
   }
 
   if(json_object_object_get_ex(h, "status", &w)) 
     flow->http_ret_code = json_object_get_int(w);
+}
+
+/* **************************************************** */
+
+void SyslogParserInterface::parseSuricataDNS(json_object *d, ParsedFlow *flow) {
+  json_object *w;
+ 
+  /* Other available fields:
+   * id 
+   * tx_id
+   */
+
+  if(json_object_object_get_ex(d, "type", &w)) {
+    const char *type = json_object_get_string(w);
+    if (strcmp(type, "query") == 0) {
+      if(json_object_object_get_ex(d, "rrname", &w))
+        flow->dns_query = strdup(json_object_get_string(w));
+      if(json_object_object_get_ex(d, "rrtype", &w)) {
+        const char *query_type = json_object_get_string(w);
+        flow->dns_query_type = Utils::queryname2type(query_type);
+      }
+    }
+  }
 }
 
 /* **************************************************** */
@@ -279,11 +302,13 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 #endif /* USE_SURICATA_NETFLOW */
 
       } else if(strcmp(event_type, "http") == 0 && json_object_object_get_ex(o, "http", &f)) {
-
         /* Suricata HTTP metadata */
-
         parseSuricataHTTP(f, &flow);
+        processFlow(&flow);
 
+      } else if(strcmp(event_type, "dns") == 0 && json_object_object_get_ex(o, "dns", &f)) {
+        /* Suricata DNS metadata */
+        parseSuricataDNS(f, &flow);
         processFlow(&flow);
 
 #ifdef SYSLOG_DEBUG
