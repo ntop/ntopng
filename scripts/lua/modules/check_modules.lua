@@ -22,6 +22,12 @@ local PERIODIC_HOOKS = {"min", "5mins", "hour", "day"}
 
 -- ##############################################
 
+function check_modules.getSubdirectoryPath(subdir)
+  return os_utils.fixPath(CHECK_MODULES_BASEDIR .. "/" .. subdir)
+end
+
+-- ##############################################
+
 local function getCheckModuleConfHash(ifid, subdir, module_key)
    return string.format("ntopng.prefs.check_modules.conf.%s.ifid_%d.%s", subdir, ifid, module_key)
 end
