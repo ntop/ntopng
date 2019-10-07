@@ -6,6 +6,7 @@ local driver = {}
 
 local os_utils = require("os_utils")
 local ts_common = require("ts_common")
+local data_retention_utils = require "data_retention_utils"
 require("ntop_utils")
 require("rrd_paths")
 
@@ -931,7 +932,7 @@ end
 function driver:deleteOldData(ifid)
   local paths = getRRDPaths()
   local dirs = ntop.getDirs()
-  local retention_days = tonumber(ntop.getPref("ntopng.prefs.old_rrd_files_retention")) or 365
+  local retention_days = data_retention_utils.getDataRetentionDays()
 
   for _, path in pairs(paths) do
     local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")

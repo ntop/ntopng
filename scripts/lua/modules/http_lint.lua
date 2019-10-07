@@ -1230,12 +1230,7 @@ local known_parameters = {
 
    -- Input fields
    ["companion_interface"]                         = validateEmptyOr(validateInterface),
-   ["minute_top_talkers_retention"]                = validateNumber,
-   ["nindex_retention_days"]                       = validateNumber,
-   ["mysql_retention"]                             = validateNumber,
-   ["influx_retention"]                            = validateNumber,
-   ["old_rrd_files_retention"]                     = validateNumber,
-   ["minute_top_talkers_retention"]                = validateNumber,
+   ["data_retention_days"]                         = validateNumber,
    ["max_num_alerts_per_entity"]                   = validateNumber,
    ["elephant_flow_remote_to_local_bytes"]         = validateNumber,
    ["elephant_flow_local_to_remote_bytes"]         = validateNumber,

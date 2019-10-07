@@ -201,15 +201,9 @@ local menu_subpages = {
     }, influxdb_password = {
       title       = i18n("login.password"),
       description = i18n("prefs.influxdb_password_description"),
-    }, influxdb_storage = {
-      title       = i18n("prefs.influxdb_storage_title"),
-      description = i18n("prefs.influxdb_storage_description"),
     }, timeseries_resolution_resolution = {
       title       = i18n("prefs.timeseries_resolution_resolution_title"),
       description = i18n("prefs.timeseries_resolution_resolution_description"),
-    }, rrd_files_retention = {
-      title       = i18n("prefs.rrd_files_retention_title"),
-      description = i18n("prefs.rrd_files_retention_description"),
     },
   }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_disable_alerts == true), entries={
     disable_alerts_generation = {
@@ -391,14 +385,6 @@ local menu_subpages = {
     }, max_num_aggregated_flows_per_export = {
       title       = i18n("prefs.max_num_aggregated_flows_per_export_title"),
       description = i18n("prefs.max_num_aggregated_flows_per_export_description"),
-    }, mysql_retention = {
-      title       = i18n("prefs.mysql_retention_title"),
-      description = i18n("prefs.mysql_retention_description"),
-      hidden      = hasNindex,
-    }, nindex_retention = {
-      title       = i18n("prefs.nindex_retention_title"),
-      description = i18n("prefs.nindex_retention_description") .. ternary(not ntop.isEnterprise(), "<br><b>" .. i18n("prefs.flows_dump_limited_days", {days=max_nindex_retention}), "") .. "</b>",
-      hidden      = not hasNindex,
     }
   }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
     toggle_snmp_rrds = {
@@ -454,6 +440,11 @@ local menu_subpages = {
       title       = i18n("prefs.n2n_supernode_title"),
       description = i18n("prefs.n2n_supernode_description", {url="https://www.ntop.org/products/n2n"}),
     },
+  }}, {id="retention", label=i18n("prefs.data_retention"), advanced=true, pro_only=false, hidden=false, entries={
+    data_retention = {
+      title       = i18n("prefs.data_retention"),
+      description = i18n("prefs.data_retention_descr"),
+    },
   }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
     toggle_autologout = {
       title       = i18n("prefs.toggle_autologout_title"),
@@ -482,9 +473,6 @@ local menu_subpages = {
     }, topk_heuristic_precision = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
-    }, minute_top_talkers_retention = {
-      title       = i18n("prefs.minute_top_talkers_retention_title"),
-      description = i18n("prefs.minute_top_talkers_retention_description"),
     }
   }},
 }

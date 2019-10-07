@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path -- for influxdb
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
@@ -18,6 +18,7 @@ local slack_utils = require("slack")
 local webhook_utils = require("webhook")
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
+local data_retention_utils = require "data_retention_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local influxdb = require("influxdb")
@@ -943,6 +944,24 @@ end
 
 -- ================================================================================
 
+function printDataRetention()
+  print('<form method="post">')
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">'..i18n("prefs.data_retention")..'</th></tr>')
+
+  prefsInputFieldPrefs(subpage_active.entries["data_retention"].title,
+		       subpage_active.entries["data_retention"].description,
+		       "ntopng.prefs.", "data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil, {min=1, max=365 * 10})
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
+end
+
+-- ================================================================================
+
 function printMisc()
   print('<form method="post">')
   print('<table class="table">')
@@ -970,15 +989,6 @@ function printMisc()
 		       "google_apis_browser_key",
 		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
-  -- ######################
-
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
-
-  --default value
-  minute_top_talkers_retention = 365
-  prefsInputFieldPrefs(subpage_active.entries["minute_top_talkers_retention"].title, subpage_active.entries["minute_top_talkers_retention"].description,
-      "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10})
-  
   -- ######################
 
   print('<tr><th colspan=2 class="info">'..i18n("prefs.report")..'</th></tr>')
@@ -1430,16 +1440,6 @@ function printStatsTimeseries()
 				    "ntopng.prefs.ts_high_resolution", has_custom_housekeeping,
 				    nil, nil, nil, influx_active)
 
-  local default_influx_retention = 365
-  prefsInputFieldPrefs(subpage_active.entries["influxdb_storage"].title, subpage_active.entries["influxdb_storage"].description .. "<br>" ..
-      i18n("prefs.influxdb_storage_note", {interval=influxdb.getShardGroupDuration(tonumber(_POST["influx_retention"] or ntop.getPref("ntopng.prefs.influx_retention")) or default_influx_retention), url="https://docs.influxdata.com/influxdb/v1.7/query_language/database_management/#description-of-syntax-1"}),
-      "ntopng.prefs.", "influx_retention", default_influx_retention, "number", influx_active, nil, nil, {min=0, max=365*10})
-
-  prefsInputFieldPrefs(subpage_active.entries["rrd_files_retention"].title, subpage_active.entries["rrd_files_retention"].description,
-		       "ntopng.prefs.", "old_rrd_files_retention", 365, "number",
-		       not influx_active,
-		       nil, nil, {min=1, max=365*10})
-
   print('<tr><th colspan=2 class="info">'..i18n('prefs.interfaces_timeseries')..'</th></tr>')
 
   -- TODO: make also per-category interface RRDs
@@ -1737,21 +1737,6 @@ function printFlowDBDump()
 		       prefs.max_num_aggregated_flows_per_export, "number", showElement, false, nil,
 		       {min = 1000, max = 2^32-1})
 
-  print('<tr><th colspan=2 class="info">'..i18n("prefs.databases")..'</th></tr>')
-
-  if hasNindexSupport() then
-    -- nIndex specific settings
-    local cur_retention, max_retention, default_retention = nindex_utils.getRetention()
-
-    prefsInputFieldPrefs(subpage_active.entries["nindex_retention"].title, subpage_active.entries["nindex_retention"].description,
-        "ntopng.prefs.", "nindex_retention_days", default_retention, "number", nil, nil, nil, {min=1, max=max_retention})
-  else
-    -- MySQL specific settings
-    local mysql_retention = 7
-    prefsInputFieldPrefs(subpage_active.entries["mysql_retention"].title, subpage_active.entries["mysql_retention"].description .. "-F mysql;&lt;host|socket&gt;;&lt;dbname&gt;;&lt;table name&gt;;&lt;user&gt;;&lt;pw&gt;.",
-    "ntopng.prefs.", "mysql_retention", mysql_retention, "number", not subpage_active.entries["mysql_retention"].hidden, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
-  end
-
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -1865,9 +1850,14 @@ if(tab == "remote_assistance") then
    printRemoteAssitance()
 end
 
+if(tab == "retention") then
+   printDataRetention()
+end
+
 if(tab == "misc") then
    printMisc()
 end
+
 if(tab == "auth") then
    printAuthentication()
 end

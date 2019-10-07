@@ -9,6 +9,7 @@ local ts_common = require("ts_common")
 local json = require("dkjson")
 local os_utils = require("os_utils")
 local alerts_api = require("alerts_api")
+local data_retention_utils = require "data_retention_utils"
 require("ntop_utils")
 require "alert_utils"
 
@@ -76,7 +77,7 @@ end
 -- ##############################################
 
 local function getDatabaseRetentionDays()
-  return tonumber(ntop.getPref("ntopng.prefs.influx_retention")) or 365 -- TODO make in common with prefs.lua
+   return data_retention_utils.getDataRetentionDays()
 end
 
 local function get1dDatabaseRetentionDays()
