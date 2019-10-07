@@ -218,6 +218,9 @@ function flow_callbacks_utils.print_callbacks_config()
 
    print("<li>" .. i18n("flow_callbacks.note_flow_lifecycle") .. "</li>")
 
+   print("<li>" .. i18n("flow_callbacks.note_create_custom_scripts", {url = "https://github.com/ntop/ntopng/blob/dev/doc/README.developers.flow_lua_callbacks.md"}) .. "</li>")
+   print("<li>" .. i18n("flow_callbacks.note_add_custom_scripts", {url = ntop.getHttpPrefix().."/lua/directories.lua", product=ntop.getInfo()["product"]}) .. "</li>")
+
    print("</ul></div>")
 end
 

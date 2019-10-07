@@ -23,7 +23,6 @@ if(_POST["ntopng_license"] ~= nil) then
    ntop.checkLicense()
 end
 
-info = ntop.getInfo()
 print("<hr /><h2>"..i18n("about.about_x", {product=info["product"]}).."</h2>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
@@ -113,16 +112,6 @@ end
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td colspan=2>".. info["product"] .." "..info["command_line"].."</td></tr>\n")
-
-print("<tr><th nowrap rowspan=2>"..i18n("about.directories").."</th><td>"..i18n("about.data_directory").."</td><td>"..dirs.workingdir.."</td></tr>\n")
-print("<td>"..i18n("about.scripts_directory").."</td><td>"..dirs.scriptdir.."</td></tr>\n")
-
-print("<tr><th nowrap rowspan=4>"..i18n("about.callback_directories").."</th><td><a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?page=flow_callbacks'>"..i18n("about.flow_callbacks_directory").."</a></td><td>"..os_utils.fixPath(dirs.callbacksdir.."/interface/alerts/flow/").."</td></tr>\n")
-print("<td>"..i18n("about.host_callbacks_directory").."</td><td>"..os_utils.fixPath(dirs.callbacksdir.."/interface/alerts/host/").."</td></tr>\n")
-print("<td>"..i18n("about.network_callbacks_directory").."</td><td>"..os_utils.fixPath(dirs.callbacksdir.."/interface/alerts/network/").."</td></tr>\n")
-print("<td>"..i18n("about.interface_callbacks_directory").."</td><td>"..os_utils.fixPath(dirs.callbacksdir.."/interface/alerts/interface/").."</td></tr>\n")
-
-
 --print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
 ndpi_ver = info["version.ndpi"]

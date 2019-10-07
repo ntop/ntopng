@@ -62,7 +62,7 @@ ifId = ifs.id
 
 -- ##############################################
 
-if active_page == "home" or active_page == "about" or active_page == "telemetry" then
+if active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories" then
   print [[ <li class="dropdown active"> ]]
 else
   print [[ <li class="dropdown"> ]]
@@ -73,9 +73,8 @@ print [[
         <i class="fa fa-home fa-lg"></i> <b class="caret"></b>
       </a>
     <ul class="dropdown-menu">
-      <li><a href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
+      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
+      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fa fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
       <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
       <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li><a href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
