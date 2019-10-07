@@ -56,7 +56,6 @@ class Flow : public GenericHashEntry {
   u_int16_t alert_score;
   FlowStatusMap last_notified_status_map;
   std::map<FlowLuaCall, struct timeval> performed_lua_calls;
-  static const std::map<FlowLuaMethod, std::string> lua_method_id_to_name;
   struct ndpi_flow_struct *ndpiFlow;
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
@@ -242,7 +241,6 @@ class Flow : public GenericHashEntry {
   bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
   bool isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv);
   void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle);
-  static std::map<FlowLuaMethod, std::string> initLuaMethodIdToName();
 
   void lua_get_status(lua_State* vm) const;
   void lua_get_protocols(lua_State* vm) const;

@@ -26,7 +26,6 @@
 const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
 						  NDPI_PROTOCOL_UNKNOWN,
 						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
-const std::map<FlowLuaMethod, std::string> Flow::lua_method_id_to_name = Flow::initLuaMethodIdToName();
 //#define DEBUG_DISCOVERY
 //#define DEBUG_UA
 
@@ -4524,6 +4523,32 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 /* ***************************************************** */
 
 void Flow::luaMethodNamesToIds(lua_State* vm) {
+  static map<FlowLuaMethod, std::string> lua_method_id_to_name;
+
+  lua_method_id_to_name[flow_lua_method_get_status]          = "getStatus";
+  lua_method_id_to_name[flow_lua_method_get_protocols]       = "getProtocols";
+  lua_method_id_to_name[flow_lua_method_get_bytes]           = "getBytes";
+  lua_method_id_to_name[flow_lua_method_get_cli2srv_traffic] = "getClient2ServerTraffic";
+  lua_method_id_to_name[flow_lua_method_get_srv2cli_traffic] = "getServer2ClientTraffic";
+  lua_method_id_to_name[flow_lua_method_get_cli2srv_iat]     = "getClient2ServerIAT";
+  lua_method_id_to_name[flow_lua_method_get_srv2cli_iat]     = "getServer2ClientIAT";
+  lua_method_id_to_name[flow_lua_method_get_packets]         = "getPackets";
+  lua_method_id_to_name[flow_lua_method_get_time]            = "getTime";
+  lua_method_id_to_name[flow_lua_method_get_cli_ip]          = "getClientIp";
+  lua_method_id_to_name[flow_lua_method_get_srv_ip]          = "getServerIp";
+  lua_method_id_to_name[flow_lua_method_get_cli_info]        = "getClientInfo";
+  lua_method_id_to_name[flow_lua_method_get_srv_info]        = "getServerInfo";
+  lua_method_id_to_name[flow_lua_method_get_ssl_info]        = "getSSLInfo";
+  lua_method_id_to_name[flow_lua_method_get_ssh_info]        = "getSSHInfo";
+  lua_method_id_to_name[flow_lua_method_get_http_info]       = "getHTTPInfo";
+  lua_method_id_to_name[flow_lua_method_get_dns_info]        = "getDNSInfo";
+  lua_method_id_to_name[flow_lua_method_get_icmp_info]       = "getICMPInfo";
+  lua_method_id_to_name[flow_lua_method_get_tcp_info]        = "getTCPInfo";
+  lua_method_id_to_name[flow_lua_method_get_cli_port]        = "getClientPort";
+  lua_method_id_to_name[flow_lua_method_get_srv_port]        = "getServerPort";
+  lua_method_id_to_name[flow_lua_method_get_cli_geoloc]      = "getClientGeolocation";
+  lua_method_id_to_name[flow_lua_method_get_srv_geoloc]      = "getServerGeolocation";
+
   std::map<FlowLuaMethod, std::string>::const_iterator it;
 
   lua_newtable(vm);
@@ -4636,38 +4661,6 @@ bool Flow::lua(lua_State* vm, FlowLuaMethod flm) const {
   }
 
   return true;
-}
-
-/* ***************************************************** */
-
-std::map<FlowLuaMethod, std::string> Flow::initLuaMethodIdToName() {
-  map<FlowLuaMethod, std::string> m;
-
-  m[flow_lua_method_get_status]          = "getStatus";
-  m[flow_lua_method_get_protocols]       = "getProtocols";
-  m[flow_lua_method_get_bytes]           = "getBytes";
-  m[flow_lua_method_get_cli2srv_traffic] = "getClient2ServerTraffic";
-  m[flow_lua_method_get_srv2cli_traffic] = "getServer2ClientTraffic";
-  m[flow_lua_method_get_cli2srv_iat]     = "getClient2ServerIAT";
-  m[flow_lua_method_get_srv2cli_iat]     = "getServer2ClientIAT";
-  m[flow_lua_method_get_packets]         = "getPackets";
-  m[flow_lua_method_get_time]            = "getTime";
-  m[flow_lua_method_get_cli_ip]          = "getClientIp";
-  m[flow_lua_method_get_srv_ip]          = "getServerIp";
-  m[flow_lua_method_get_cli_info]        = "getClientInfo";
-  m[flow_lua_method_get_srv_info]        = "getServerInfo";
-  m[flow_lua_method_get_ssl_info]        = "getSSLInfo";
-  m[flow_lua_method_get_ssh_info]        = "getSSHInfo";
-  m[flow_lua_method_get_http_info]       = "getHTTPInfo";
-  m[flow_lua_method_get_dns_info]        = "getDNSInfo";
-  m[flow_lua_method_get_icmp_info]       = "getICMPInfo";
-  m[flow_lua_method_get_tcp_info]        = "getTCPInfo";
-  m[flow_lua_method_get_cli_port]        = "getClientPort";
-  m[flow_lua_method_get_srv_port]        = "getServerPort";
-  m[flow_lua_method_get_cli_geoloc]      = "getClientGeolocation";
-  m[flow_lua_method_get_srv_geoloc]      = "getServerGeolocation";
-
-  return m;
 }
 
 /* ***************************************************** */

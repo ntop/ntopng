@@ -486,5 +486,5 @@ srv.country string
 
 To expose a new function so that it can be called from a custom lua script, the following steps are necessary.
 
-First, add a new entry to the enum `FlowLuaMethod` in `ntop_typedefs.h`. Then, add a new mapping between the new enum entry and a string in `Flow::initLuaMethodIdToName`. The string added here will be the function name available from lua. Finally, add a new case to the `Flow::lua(lua_State* vm, FlowLuaMethod flm)` switch to call the right lua function.
+First, add a new entry to the enum `FlowLuaMethod` in `ntop_typedefs.h`. Then, add a new mapping between the new enum entry and a string in `Flow::luaMethodNamesToIds`. The string added here will be the function name available from lua. Finally, add a new case to the `Flow::lua(lua_State* vm, FlowLuaMethod flm)` switch to call the right lua function.
 
