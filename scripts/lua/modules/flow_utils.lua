@@ -1186,7 +1186,6 @@ function printL4ProtoDropdown(base_url, page_params, l4_protocols)
 	  print[[><a href="]]
 
 	  local l4_table = ternary(key ~= 6, l4proto_params_non_tcp, l4proto_params)
-	  tprint(l4_table)
 
 	  l4_table["l4proto"] = key
 	  print(getPageUrl(base_url, l4_table))
