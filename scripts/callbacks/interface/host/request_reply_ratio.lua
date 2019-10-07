@@ -48,9 +48,13 @@ end
 
 check_module = {
   key = "request_reply_ratio",
-  check_function = request_reply_ratio,
   local_only = true,
+  is_alert = true,
   nedge_exclude = true,
+
+  hooks = {
+    all = request_reply_ratio
+  },
 
   default_values = {
     ["5mins"] = "request_reply_ratio;lt;50", -- 50%

@@ -2,7 +2,7 @@
 -- (C) 2019 - ntop.org
 --
 -- The functions below are called with a LuaC "flow" context set.
--- See alerts_api.load_flow_check_modules documentation for information
+-- See check_modules.load() documentation for information
 -- on adding custom scripts.
 --
 
@@ -11,7 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
-local alerts_api = require("alerts_api")
+local check_modules = require("check_modules")
 
 if ntop.isPro() then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -21,7 +21,7 @@ local do_benchmark = true          -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
 
-local check_modules = {}
+local available_modules = nil
 local benchmarks = {}
 
 -- #################################################################
@@ -78,15 +78,6 @@ local function benchmark_end(mod_fn, mod_key)
 
       benchmarks[mod_key][mod_fn]["elapsed"] = benchmarks[mod_key][mod_fn]["elapsed"] + latest_elapsed
       benchmarks[mod_key][mod_fn]["num"] = benchmarks[mod_key][mod_fn]["num"] + 1
-   end
-end
-
--- #################################################################
-
--- This function is just a wrapper to store the results of the benchmarks.
-local function store_benchmark()
-   if do_benchmark then
-      alerts_api.store_flow_check_modules_benchmarks(benchmarks)
    end
 end
 
@@ -149,7 +140,7 @@ function setup()
 
    -- Now that the metatable is in place, we can load all the custom
    -- flow check modules
-   check_modules = alerts_api.load_flow_check_modules(true --[[ only enabled modules --]])
+   available_modules = check_modules.load(interface.getId(), "flow")
 end
 
 -- #################################################################
@@ -163,7 +154,7 @@ function teardown()
 
    if do_benchmark then
       -- If the benchmark is enabled, it's time to store it
-      store_benchmark()
+      check_modules.storeFlowBenchmarks(benchmarks)
 
       if do_print_benchmark then
 	 -- Possibly print it to stdout
@@ -177,19 +168,21 @@ end
 -- Function for the actual module execution. Iterates over available (and enabled)
 -- modules, calling them one after one.
 local function call_modules(mod_fn)
-   if table.empty(check_modules[mod_fn]) then
+   if table.empty(available_modules.hooks[mod_fn]) then
       if do_trace then print(string.format("No flow.lua modules, skipping %s() for %s\n", mod_fn, shortFlowLabel(flow.getInfo()))) end
       return
    end
 
    local info = flow.getInfo()
 
-   for _, _module in pairs(check_modules[mod_fn]) do
-      if do_trace then print(string.format("%s() [check: %s]: %s\n", mod_fn, _module.key, shortFlowLabel(info))) end
+   for mod_key, hook_fn in pairs(available_modules.hooks[mod_fn]) do
+      if do_trace then print(string.format("%s() [check: %s]: %s\n", mod_fn, mod_key, shortFlowLabel(info))) end
 
-      benchmark_begin(mod_fn, _module.key)
-      _module[mod_fn](info)
-      benchmark_end(mod_fn, _module.key)
+      benchmark_begin(mod_fn, mod_key)
+      hook_fn({
+        flow_info = info
+      })
+      benchmark_end(mod_fn, mod_key)
    end
 
 end

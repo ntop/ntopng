@@ -7,8 +7,12 @@ local alert_consts = require("alert_consts")
 
 local check_module = {
   key = "flows",
-  check_function = alerts_api.threshold_check_function,
   local_only = true,
+  is_alert = true,
+
+  hooks = {
+    all = alerts_api.threshold_check_function
+  },
 
   gui = {
     i18n_title = "alerts_thresholds_config.alert_flows_title",

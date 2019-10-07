@@ -7,7 +7,11 @@ local alert_consts = require("alert_consts")
 
 local check_module = {
   key = "dns",
-  check_function = alerts_api.threshold_check_function,
+  is_alert = true,
+
+  hooks = {
+    all = alerts_api.threshold_check_function
+  },
 
   gui = {
     i18n_title = "alerts_thresholds_config.dns_traffic",

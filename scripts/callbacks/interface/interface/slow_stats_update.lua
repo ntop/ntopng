@@ -7,10 +7,13 @@ local alert_consts = require("alert_consts")
 
 local check_module = {
   key = "slow_stats_update",
-  granularity = {"min"},
   always_enabled = true,
-  check_function = alerts_api.anomaly_check_function,
+  is_alert = true,
   anomaly_type_builder = alerts_api.slowStatsUpdateType,
+
+  hooks = {
+    min = alerts_api.anomaly_check_function,
+  },
 }
 
 -- #################################################################

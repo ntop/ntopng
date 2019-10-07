@@ -7795,15 +7795,9 @@ bool NetworkInterface::dequeueFlowFromCompanion(ParsedFlow **f) {
 static void handle_entity_alerts(AlertCheckLuaEngine *acle, AlertableEntity *entity) {
   lua_State *L = acle->getState();
 
-  if(!entity->hasAlertsSuppressed()) {
-    lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
-    lua_pushstring(L, acle->getGranularity());  /* push 1st argument */
-    acle->pcall(1 /* num args */, 0);
-  } else if(entity->getNumTriggeredAlerts(acle->getPeriodicity()) > 0) {
-    lua_getglobal(L,  ALERT_ENTITY_CALLBACK_RELEASE_ALERTS);
-    lua_pushstring(L, acle->getGranularity());
-    acle->pcall(1 /* num args */, 0);
-  }
+  lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
+  lua_pushstring(L, acle->getGranularity());  /* push 1st argument */
+  acle->pcall(1 /* num args */, 0);
 }
 
 /* *************************************** */

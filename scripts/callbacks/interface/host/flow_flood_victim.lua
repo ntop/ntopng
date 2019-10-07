@@ -7,13 +7,12 @@ local alert_consts = require("alert_consts")
 
 local check_module = {
   key = "flow_flood_victim",
-  check_function = alerts_api.threshold_check_function,
   threshold_type_builder = alerts_api.flowFloodType,
   default_value = "flow_flood_victim;gt;50",
+  is_alert = true,
 
-  granularity = {
-     -- executed only in the minute-by-minute check
-     "min"
+  hooks = {
+     min = alerts_api.threshold_check_function,
   },
 
   gui = {

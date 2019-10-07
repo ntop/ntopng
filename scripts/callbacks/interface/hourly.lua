@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "alert_utils"
 local callback_utils = require "callback_utils"
+local check_modules = require("check_modules")
 
 if (ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
@@ -22,4 +23,4 @@ local _ifname = ifstats.name
 
 -- ########################################################
 
-scanAlerts("hour", ifstats)
+check_modules.runPeriodicScripts("hour")

@@ -6,10 +6,11 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local alerts_api = require "alerts_api"
 local format_utils = require "format_utils"
+local check_modules = require "check_modules"
 
 local flow_callbacks_utils = {}
 
--- #################################
+-- ##############################################
 
 local function print_callbacks_config_tbody_simple_view(descr)
    print[[<tbody>]]
@@ -24,7 +25,7 @@ local function print_callbacks_config_tbody_simple_view(descr)
 
    local has_modules = false
 
-   for _, check_module in pairsByKeys(descr["all"], asc) do
+   for _, check_module in pairsByKeys(descr.modules, asc) do
       if check_module.gui then
          if not has_modules then
             has_modules = true
@@ -89,7 +90,7 @@ local function print_callbacks_config_tbody_expert_view(descr)
 
    local has_modules = false
 
-   for _, check_module in pairsByKeys(descr["all"], asc) do
+   for _, check_module in pairsByKeys(descr.modules, asc) do
       if check_module.gui then
          if not has_modules then
             has_modules = true
@@ -159,13 +160,32 @@ function flow_callbacks_utils.print_callbacks_config()
    if _POST and _POST["show_advanced_prefs"] and _POST["show_advanced_prefs"] == "true" then
       show_advanced_prefs = true
    end
-   local descr = alerts_api.load_flow_check_modules(entity_type)
+
+   local ifid = interface.getId()
+   local descr = check_modules.load(ifid, "flow", nil, true --[[ also return disabled ]])
 
    print [[
 
 <br>
 <table id="callbacks_config_table" class="table table-bordered table-striped" style="clear: both">
 <thead></thead>]]
+
+   if table.len(_POST) > 0 then
+      for mod_key, check_module in pairs(descr.modules) do
+         local pref_key = "enabled_" .. mod_key
+         local val = _POST[pref_key]
+
+         if(val ~= nil) then
+            if(val == "on") then
+               check_modules.enableModule(ifid, "flow", mod_key)
+               check_module.enabled = true
+            else
+               check_modules.disableModule(ifid, "flow", mod_key)
+               check_module.enabled = false
+            end
+         end
+      end
+   end
 
    local has_modules
 

@@ -7,6 +7,7 @@ require "graph_utils"
 local os_utils = require "os_utils"
 local top_talkers_utils = require "top_talkers_utils"
 local ts_utils = require("ts_utils_core")
+local check_modules = require("check_modules")
 require("ts_minute")
 
 local ts_custom
@@ -208,7 +209,10 @@ end
 
 function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   dumpTopTalkers(_ifname, ifstats, verbose)
-  scanAlerts("min", ifstats)
+
+  check_modules.runPeriodicScripts("min")
+  check_macs_alerts(ifstats.id)
+  check_host_pools_alerts(ifstats.id)
 
   local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
     and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")

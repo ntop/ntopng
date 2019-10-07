@@ -27,9 +27,12 @@ end
 
 check_module = {
   key = "too_many_drops",
-  granularity = {"min"},
-  check_function = check_interface_drops,
   default_value = "too_many_drops;gt;5", -- 5%
+  is_alert = true,
+
+  hooks = {
+    min = check_interface_drops,
+  },
 
   gui = {
     i18n_title = "show_alerts.interface_drops_threshold",

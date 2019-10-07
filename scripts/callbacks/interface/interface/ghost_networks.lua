@@ -28,9 +28,12 @@ end
 
 check_module = {
   key = "ghost_networks",
-  granularity = {"min"},
   always_enabled = true,
-  check_function = check_ghost_networks,
+  is_alert = true,
+
+  hooks = {
+    min = check_ghost_networks,
+  },
 }
 
 -- #################################################################

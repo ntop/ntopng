@@ -17,6 +17,8 @@ local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local alert_endpoints = require "alert_endpoints_utils"
 local flow_consts = require "flow_consts"
+local check_modules = require "check_modules"
+
 local store_alerts_queue = "ntopng.alert_store_queue"
 local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
 local shaper_utils = nil
@@ -1017,7 +1019,7 @@ local function thresholdStr2Val(threshold)
   end
 end
 
-local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type, local_hosts, check_modules)
+local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type, local_hosts, available_modules)
    local thresholds_key = get_alerts_hash_name(granularity, ifname, entity_type)
    local thresholds_config = {}
    local skip_defaults = {}
@@ -1051,9 +1053,9 @@ local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_ty
 
    res[global_key] = res[global_key] or {}
 
-      -- Add defaults
-   for modname, check_module in pairs(check_modules) do
-     local default_value = alerts_api.getCheckModuleDefaultValue(check_module, granularity)
+   -- Add defaults
+   for modname, check_module in pairs(available_modules) do
+     local default_value = check_modules.getDefaultConfigValue(check_module, granularity)
 
      if((res[global_key][modname] == nil) and (default_value ~= nil) and (not skip_defaults[modname])) then
        res[global_key][modname] = thresholdStr2Val(default_value)
@@ -1131,8 +1133,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       local flow_callbacks_utils = require "flow_callbacks_utils"
       flow_callbacks_utils.print_callbacks_config()
    else
-      local descr = alerts_api.load_check_modules(entity_type)
-
       -- Before doing anything we need to check if we need to save values
       local vals = { }
       local alerts = ""
@@ -1140,7 +1140,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       local to_save = false
 
       -- Needed to handle the defaults
-      local check_modules = alerts_api.load_check_modules(entity_type)
+      local available_modules = check_modules.load(interface.getId(), entity_type, nil, true --[[ ignore disabled ]])
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          if _POST["to_delete"] == "local" then
@@ -1162,7 +1162,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
     end
 
          -- TODO refactor this into the threshold cross checker
-         for _, check_module in pairs(descr) do
+         for _, check_module in pairs(available_modules.modules) do
             k = check_module.key
             value    = _POST["value_"..k]
             operator = _POST["op_"..k] or "gt"
@@ -1180,7 +1180,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             if global_value == "on" then global_value = "1" end
             global_value = tonumber(global_value)
 
-            local default_value = alerts_api.getCheckModuleDefaultValue(check_modules[k], tab)
+            local default_value = check_modules.getDefaultConfigValue(available_modules.modules[k], tab)
 
             if((global_value == nil) and (default_value ~= nil)) then
                -- save an empty value to differentiate it from the default
@@ -1196,7 +1196,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
                   global_alerts = global_alerts..cur_value
                end
             end
-         end --END for k,_ in pairs(descr) do
+         end --END for k,_ in pairs(available_modules) do
 
          --print(alerts)
 
@@ -1218,7 +1218,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       end -- END if _POST["to_delete"] ~= nil
 
       -- Reuse getEntityConfiguredAlertThresholds instead of directly read from hash to handle defaults
-      local alert_config = getEntityConfiguredAlertThresholds(ifname, tab, entity_type, not options.remote_host, check_modules) or {}
+      local alert_config = getEntityConfiguredAlertThresholds(ifname, tab, entity_type, not options.remote_host, available_modules.modules) or {}
       alerts = alert_config[alert_source]
       global_alerts = alert_config[get_global_alerts_hash_key(entity_type, not options.remote_host)]
 
@@ -1254,7 +1254,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-      for _, check_module in pairsByKeys(descr, asc) do
+      for _, check_module in pairsByKeys(available_modules.modules, asc) do
         local key = check_module.key
         local gui_conf = check_module.gui
    local show_input = true
@@ -1425,7 +1425,7 @@ function printAlertTables(entity_type, alert_source, page_name, page_params, alt
    end
 
    -- Default tab
-   if(tab == nil) then tab = "min" end
+   if(tab == nil) then tab = "config" end
    local is_alert_list_tab = ((tab == "alert_list") or (tab == "past_alert_list") or (tab == "flow_alert_list"))
 
    local system_scripts = require("system_scripts_utils")
@@ -2214,8 +2214,8 @@ end
 -- Get all the configured threasholds for the specified interface
 -- NOTE: an additional "interfaces" key is added if there are globally
 -- configured threasholds (threasholds active for all the interfaces)
-function getInterfaceConfiguredAlertThresholds(ifname, granularity, check_modules)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "interface", nil, check_modules))
+function getInterfaceConfiguredAlertThresholds(ifname, granularity, available_modules)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "interface", nil, available_modules))
 end
 
 -- #################################
@@ -2223,8 +2223,8 @@ end
 -- Get all the configured threasholds for local hosts on the specified interface
 -- NOTE: an additional "local_hosts" key is added if there are globally
 -- configured threasholds (threasholds active for all the hosts of the interface)
-function getLocalHostsConfiguredAlertThresholds(ifname, granularity, check_modules)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", true, check_modules))
+function getLocalHostsConfiguredAlertThresholds(ifname, granularity, available_modules)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", true, available_modules))
 end
 
 -- #################################
@@ -2232,8 +2232,8 @@ end
 -- Get all the configured threasholds for remote hosts on the specified interface
 -- NOTE: an additional "local_hosts" key is added if there are globally
 -- configured threasholds (threasholds active for all the hosts of the interface)
-function getRemoteHostsConfiguredAlertThresholds(ifname, granularity, check_modules)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", false, check_modules))
+function getRemoteHostsConfiguredAlertThresholds(ifname, granularity, available_modules)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", false, available_modules))
 end
 
 -- #################################
@@ -2241,56 +2241,8 @@ end
 -- Get all the configured threasholds for networks on the specified interface
 -- NOTE: an additional "local_networks" key is added if there are globally
 -- configured threasholds (threasholds active for all the hosts of the interface)
-function getNetworksConfiguredAlertThresholds(ifname, granularity, check_modules)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "network", nil, check_modules))
-end
-
--- #################################
-
-function check_networks_alerts(granularity)
-   if(granularity == "min") then
-      interface.checkNetworksAlertsMin()
-   elseif(granularity == "5mins") then
-      interface.checkNetworksAlerts5Min()
-   elseif(granularity == "hour") then
-      interface.checkNetworksAlertsHour()
-   elseif(granularity == "day") then
-      interface.checkNetworksAlertsDay()
-   else
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
-   end
-end
-
--- #################################
-
-local function check_interface_alerts(granularity)
-   if(granularity == "min") then
-      interface.checkInterfaceAlertsMin()
-   elseif(granularity == "5mins") then
-      interface.checkInterfaceAlerts5Min()
-   elseif(granularity == "hour") then
-      interface.checkInterfaceAlertsHour()
-   elseif(granularity == "day") then
-      interface.checkInterfaceAlertsDay()
-   else
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
-   end
-end
-
--- #################################
-
-local function check_hosts_alerts(granularity)
-   if(granularity == "min") then
-      interface.checkHostsAlertsMin()
-   elseif(granularity == "5mins") then
-      interface.checkHostsAlerts5Min()
-   elseif(granularity == "hour") then
-      interface.checkHostsAlertsHour()
-   elseif(granularity == "day") then
-      interface.checkHostsAlertsDay()
-   else
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
-   end
+function getNetworksConfiguredAlertThresholds(ifname, granularity, available_modules)
+  return(getEntityConfiguredAlertThresholds(ifname, granularity, "network", nil, available_modules))
 end
 
 -- #################################
@@ -2333,11 +2285,7 @@ local function getSavedDeviceName(mac)
    return ntop.getCache(key)
 end
 
-local function check_macs_alerts(ifid, granularity)
-   if granularity ~= "min" then
-      return
-   end
-
+function check_macs_alerts(ifid)
    local active_devices_set = getActiveDevicesHashKey(ifid)
    local seen_devices_hash = getFirstSeenDevicesHashKey(ifid)
    local seen_devices = ntop.getHashAllCache(seen_devices_hash) or {}
@@ -2425,11 +2373,7 @@ end
 
 -- #################################
 
-function check_host_pools_alerts(ifid, granularity)
-   if granularity ~= "min" then
-      return
-   end
-
+function check_host_pools_alerts(ifid)
    local active_pools_set = getActivePoolsHashKey(ifid)
    local prev_active_pools = swapKeysValues(ntop.getMembersCache(active_pools_set)) or {}
    local alert_pool_connection_enabled = ntop.getPref("ntopng.prefs.alerts.pool_connection_alert") == "1"
@@ -2543,31 +2487,6 @@ function check_host_pools_alerts(ifid, granularity)
               alerts_api.poolDisconnectionType(pool)
             )
          end
-      end
-   end
-end
-
--- #################################
-
-function scanAlerts(granularity, ifstats)
-   if not mustScanAlerts(ifstats) then return end
-
-   local ifname = ifstats["name"]
-   local ifid = getInterfaceId(ifname)
-
-   if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."\n") end
-
-   check_interface_alerts(granularity)
-   check_networks_alerts(granularity)
-   check_hosts_alerts(granularity)
-   check_macs_alerts(ifid, granularity)
-   check_host_pools_alerts(ifid, granularity)
-
-   if ntop.getInfo()["test_mode"] then
-      package.path = dirs.installdir .. "/scripts/lua/modules/test/?.lua;" .. package.path
-      local test_utils = require "test_utils"
-      if test_utils then
-	 test_utils.check_alerts(ifid, granularity)
       end
    end
 end
@@ -2968,6 +2887,3 @@ end
 function notify_ntopng_stop()
    return(notify_ntopng_status(false))
 end
-
--- DEBUG: uncomment this to test
---~ scanAlerts("min", "wlan0")

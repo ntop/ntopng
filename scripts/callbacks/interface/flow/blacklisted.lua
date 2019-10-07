@@ -11,13 +11,15 @@ local do_trace = false
 local check_module = {
    key = "blacklisted",
 
+   -- NOTE: hooks defined below
+   hooks = {},
+
    gui = {
       i18n_title = "flow_callbacks_config.blacklisted",
       i18n_description = "flow_callbacks_config.blacklisted_description",
       input_builder = alerts_api.flow_checkbox_input_builder,
    }
 }
-
 
 -- #################################################################
 
@@ -27,7 +29,7 @@ end
 
 -- #################################################################
 
-function check_module.protocolDetected(flow_info)
+function check_module.hooks.protocolDetected(flow_info)
    if flow_info["cli.blacklisted"] or flow_info["srv.blacklisted"] then
       alerts_api.storeFlowAlert(alert_consts.alert_types.flow_blacklisted, alert_consts.alert_severities.error, flow_info)
    end

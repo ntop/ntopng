@@ -5,6 +5,7 @@ local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
+local check_modules = require("check_modules")
 require "ts_5min"
 
 -- Set to true to debug host timeseries points timestamps
@@ -402,10 +403,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
   local num_processed_hosts = 0
   local min_instant = when - (when % 60) - 60
 
-  -- alerts stuff
-  if(are_alerts_enabled) then
-    scanAlerts("5mins", ifstats)
-  end
+  check_modules.runPeriodicScripts("5mins")
 
   local dump_tstart = os.time()
   local dumped_hosts = {}

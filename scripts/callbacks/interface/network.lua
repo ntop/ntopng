@@ -8,6 +8,7 @@ require "lua_utils"
 require "alert_utils"
 
 local alerts_api = require("alerts_api")
+local check_modules = require("check_modules")
 local alert_consts = require("alert_consts")
 
 local do_trace      = false
@@ -22,30 +23,42 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the threshold checking functions
-   available_modules = alerts_api.load_check_modules("network", str_granularity)
+   available_modules = check_modules.load(ifid, "network", str_granularity)
 
-   config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity, available_modules)
+   config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
 end
 
 -- #################################################################
 
 -- The function below is called once per local network
 function checkAlerts(granularity)
+   if table.empty(available_modules.hooks[granularity]) then
+      if(do_trace) then print("network:checkAlerts("..granularity.."): no modules, skipping\n") end
+      return
+   end
+
+   local suppressed_alerts = network.hasAlertsSuppressed()
+
+   if suppressed_alerts then
+      releaseAlerts(granularity)
+   end
+
    local info = network.getNetworkStats()
    local network_key = info and info.network_key
    if not network_key then return end
 
    local network_config = config_alerts[network_key] or {}
    local global_config = config_alerts["local_networks"] or {}
-   local has_configured_alerts = (table.len(network_config) or table.len(global_config))
+   local has_configuration = (table.len(network_config) or table.len(global_config))
    local entity_info = alerts_api.networkAlertEntity(network_key)
 
-   if(has_configured_alerts) then
-      for _, check in pairs(available_modules) do
+   if(has_configuration) then
+      for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
+        local check = available_modules.modules[mod_key]
         local config = network_config[check.key] or global_config[check.key]
 
-        if config or check.always_enabled then
-           check.check_function({
+        if((config or check.always_enabled) and (not check.is_alert or not suppressed_alerts)) then
+           hook_fn({
               granularity = granularity,
               alert_entity = entity_info,
               entity_info = info,

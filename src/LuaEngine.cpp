@@ -8231,6 +8231,26 @@ static int ntop_network_get_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_has_alerts_suppressed(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  lua_pushboolean(vm, c->iface->hasAlertsSuppressed());
+  return(CONST_LUA_OK);
+}
+
+static int ntop_host_has_alerts_suppressed(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  lua_pushboolean(vm, c->host->hasAlertsSuppressed());
+  return(CONST_LUA_OK);
+}
+
+static int ntop_network_has_alerts_suppressed(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  lua_pushboolean(vm, c->network->hasAlertsSuppressed());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_network_check_context(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *entity_val;
@@ -9801,6 +9821,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getAlerts",              ntop_interface_get_alerts               },
   { "releaseEngagedAlerts",   ntop_interface_release_engaged_alerts   },
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },
+  { "hasAlertsSuppressed",    ntop_interface_has_alerts_suppressed    },
 
   /* Interface Alerts */
   { "checkInterfaceAlertsMin",    ntop_check_interface_alerts_min     },
@@ -9840,6 +9861,7 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getExpiredAlerts",       ntop_host_get_expired_alerts      },
   { "getAlerts",              ntop_host_get_alerts              },
   { "checkContext",           ntop_host_check_context           },
+  { "hasAlertsSuppressed",    ntop_host_has_alerts_suppressed   },
   
   { NULL,                     NULL }
 };
@@ -9855,6 +9877,7 @@ static const luaL_Reg ntop_network_reg[] = {
   { "getExpiredAlerts",         ntop_network_get_expired_alerts      },
   { "getAlerts",                ntop_network_get_alerts              },
   { "checkContext",             ntop_network_check_context           },
+  { "hasAlertsSuppressed",      ntop_network_has_alerts_suppressed   },
   
   { NULL,                     NULL }
 };

@@ -82,9 +82,12 @@ end
 
 check_module = {
   key = "experimental",
-  check_function = experimental_checks,
   local_only = true,
-  granularity = {"5mins"},
+  is_alert = true,
+
+  hooks = {
+    ["5mins"] = experimental_checks,
+  },
 
   gui = {
     i18n_title = "alerts_dashboard.experimental_checks",
