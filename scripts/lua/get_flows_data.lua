@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -9,6 +9,7 @@ require "lua_utils"
 require "flow_utils"
 local format_utils = require("format_utils")
 local flow_consts = require "flow_consts"
+local flow_utils = require "flow_utils"
 local json = require "dkjson"
 
 local have_nedge = ntop.isnEdge()
@@ -18,213 +19,19 @@ local debug = false
 local debug_process = false -- Show flow processed information
 local debug_score = (ntop.getPref("ntopng.prefs.beta_score") == "1")
 
-interface.select(ifname)
 local ifstats = interface.getStats()
--- printGETParameters(_GET)
-
--- Table parameters
-local currentPage = _GET["currentPage"]
-local perPage     = _GET["perPage"]
-local sortColumn  = _GET["sortColumn"]
-local sortOrder   = _GET["sortOrder"]
-local host_info   = url2hostinfo(_GET)
-local port        = _GET["port"]
-local application = _GET["application"]
-local category    = _GET["category"]
-local network_id  = _GET["network"]
-local vlan        = _GET["vlan"]
-local uid         = _GET["uid"]
-local pid         = _GET["pid"]
-local container   = _GET["container"]
-local pod         = _GET["pod"]
-local icmp_type   = _GET["icmp_type"]
-local icmp_code   = _GET["icmp_cod"]
-
-local deviceIP    = _GET["deviceIP"]
-local inIfIdx     = _GET["inIfIdx"]
-local outIfIdx    = _GET["outIfIdx"]
-
-local asn         = _GET["asn"]
-
-local vhost       = _GET["vhost"]
-local flowhosts_type = _GET["flowhosts_type"]
-local ipversion    = _GET["version"]
-local l4proto      = _GET["l4proto"]
-local traffic_type = _GET["traffic_type"]
-local flow_status = _GET["flow_status"]
-local tcp_state   = _GET["tcp_flow_state"]
-local traffic_profile = _GET["traffic_profile"]
 
 -- System host parameters
 local hosts  = _GET["hosts"]
-local username = _GET["username"]
-local host   = _GET["host"]
-local pid    = tonumber(_GET["pid"])
-local pid_name = _GET["pid_name"]
+local host   = _GET["host"] -- TODO: merge
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
 
-local prefs = ntop.getPrefs()
-
-if(network_id ~= nil) then
-   network_id = tonumber(network_id)
-end
-
-if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
-   sortColumn = getDefaultTableSort("flows")
-elseif sortColumn ~= "column_" and  sortColumn ~= "" then
-   tablePreferences("sort_flows", sortColumn)
-else
-   sortColumn = "column_client"
-end
-
-if sortOrder == nil then
-  sortOrder = getDefaultTableSortOrder("flows")
-elseif sortColumn ~= "column_" and sortColumn ~= "" then
-  tablePreferences("sort_order_flows", sortOrder)
-end
-
-if(currentPage == nil) then
-   currentPage = 1
-else
-   currentPage = tonumber(currentPage)
-end
-
-if(perPage == nil) then
-   perPage = getDefaultTableSize()
-else
-   perPage = tonumber(perPage)
-   tablePreferences("rows_number",perPage)
-end
-
-if(port ~= nil) then port = tonumber(port) end
-
-local to_skip = (currentPage - 1) * perPage
-
--- io.write("->"..sortColumn.."/"..perPage.."/"..sortOrder.."/"..sortColumn.."\n")
-interface.select(ifname)
-local a2z = false
-if(sortOrder == "desc") then a2z = false else a2z = true end
-
-local pageinfo = {
-   ["sortColumn"] = sortColumn, ["toSkip"] = to_skip, ["maxHits"] = perPage,
-   ["a2zSortOrder"] = a2z,
-   ["hostFilter"] = host,
-   ["portFilter"] = port,
-   ["LocalNetworkFilter"] = network_id
-}
-
-if application ~= nil and application ~= "" then
-   pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
-end
-
-if category ~= nil and category ~= "" then
-   pageinfo["l7categoryFilter"] = interface.getnDPICategoryId(category)
-end
-
-if traffic_profile ~= nil then
-   pageinfo["trafficProfileFilter"] = traffic_profile
-end
-
-if not isEmptyString(flowhosts_type) then
-   if flowhosts_type == "local_origin_remote_target" then
-      pageinfo["clientMode"] = "local"
-      pageinfo["serverMode"] = "remote"
-   elseif flowhosts_type == "local_only" then
-      pageinfo["clientMode"] = "local"
-      pageinfo["serverMode"] = "local"
-   elseif flowhosts_type == "remote_origin_local_target" then
-      pageinfo["clientMode"] = "remote"
-      pageinfo["serverMode"] = "local"
-   elseif flowhosts_type == "remote_only" then
-      pageinfo["clientMode"] = "remote"
-      pageinfo["serverMode"] = "remote"
-   end
-end
-
-if not isEmptyString(traffic_type) then
-   if traffic_type:contains("unicast") then
-      pageinfo["unicast"] = true
-   else
-      pageinfo["unicast"] = false
-   end
-
-   if traffic_type:contains("one_way") then
-      pageinfo["unidirectional"] = true
-   end
-end
-
-if not isEmptyString(flow_status) then
-   if flow_status == "normal" then
-      pageinfo["alertedFlows"] = false
-      pageinfo["misbehavingFlows"] = false
-      pageinfo["filteredFlows"] = false
-   elseif flow_status == "misbehaving" then
-      pageinfo["misbehavingFlows"] = true
-   elseif flow_status == "alerted" then
-      pageinfo["alertedFlows"] = true
-   elseif flow_status == "filtered" then
-      pageinfo["filteredFlows"] = true
-   else 
-      pageinfo["statusFilter"] = tonumber(flow_status)
-   end
-end
-
-if not isEmptyString(ipversion) then
-   pageinfo["ipVersion"] = tonumber(ipversion)
-end
-
-if not isEmptyString(l4proto) then
-   pageinfo["L4Protocol"] = tonumber(l4proto)
-end
-
-if not isEmptyString(vlan) then
-   pageinfo["vlanIdFilter"] = tonumber(vlan)
-end
-
-if not isEmptyString(username) then
-   pageinfo["usernameFilter"] = username
-end
-
-if not isEmptyString(pid_name) then
-   pageinfo["pidnameFilter"] = pid_name
-end
-
-if not isEmptyString(container) then
-   pageinfo["container"] = container
-end
-
-if not isEmptyString(pod) then
-   pageinfo["pod"] = pod
-end
-
-if not isEmptyString(deviceIP) then
-   pageinfo["deviceIpFilter"] = deviceIP
-
-   if not isEmptyString(inIfIdx) then
-      pageinfo["inIndexFilter"] = tonumber(inIfIdx)
-   end
-
-   if not isEmptyString(outIfIdx) then
-      pageinfo["outIndexFilter"] = tonumber(outIfIdx)
-   end
-end
-
-if not isEmptyString(asn) then
-   pageinfo["asnFilter"] = tonumber(asn)
-end
-
-pageinfo["icmp_type"] = tonumber(icmp_type)
-pageinfo["icmp_code"] = tonumber(icmp_code)
-
-if not isEmptyString(tcp_state) then
-   pageinfo["tcpFlowStateFilter"] = tcp_state
-end
-
-local flows_stats = interface.getFlowsInfo(host, pageinfo)
+local flows_filter = getFlowsFilter()
+local flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
 local total = flows_stats["numFlows"]
-local flows_stats = flows_stats["flows"]
+flows_stats = flows_stats["flows"]
 
 -- Prepare host
 local host_list = {}
@@ -255,7 +62,7 @@ for key, value in ipairs(flows_stats) do
    end
 
    -- safety checks against injections
-   info = noHtml(info) 
+   info = noHtml(info)
    info = info:gsub('"', '')
    local alt_info = info
 
@@ -334,11 +141,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       dst_container = flowinfo2container(value["server_container"])
 
       if value["server_container"] and value["server_container"].id then
-         record["column_server_container"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?container=' .. value["server_container"].id .. '">' .. format_utils.formatContainer(value["server_container"]) .. '</a>'
+	 record["column_server_container"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?container=' .. value["server_container"].id .. '">' .. format_utils.formatContainer(value["server_container"]) .. '</a>'
 
-         if value["server_container"]["k8s.pod"] then
-            record["column_server_pod"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/containers_stats.lua?pod=' .. value["server_container"]["k8s.pod"] .. '">' .. shortenString(value["server_container"]["k8s.pod"]) .. '</a>'
-         end
+	 if value["server_container"]["k8s.pod"] then
+	    record["column_server_pod"] = '<a href="' .. ntop.getHttpPrefix() .. '/lua/containers_stats.lua?pod=' .. value["server_container"]["k8s.pod"] .. '">' .. shortenString(value["server_container"]["k8s.pod"]) .. '</a>'
+	 end
       end
    else
       dst_key = shortenString(stripVlan(srv_name))
@@ -357,11 +164,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       ..value["ntopng.key"]
       .."'><span class='label label-info'>Info</span></A>"
    if(have_nedge) then
-     if (value["verdict.pass"]) then
-       column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-default block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
-     else
-       column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='label label-danger block-badge'><i class='fa fa-ban' /></span>"
-     end
+      if (value["verdict.pass"]) then
+	 column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-default block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
+      else
+	 column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='label label-danger block-badge'><i class='fa fa-ban' /></span>"
+      end
    end
    record["column_key"] = column_key
    record["key"] = value["ntopng.key"]
@@ -371,7 +178,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if info then
       if info.broadcast_domain_host then
-	  column_client = column_client.." <i class='fa fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
+	 column_client = column_client.." <i class='fa fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
       end
 
       if info.dhcpHost then
@@ -390,7 +197,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 				 ternary(src_port ~= '', ':', ''),
 				 src_port, src_process, src_container)
    if(value["verdict.pass"] == false) then
-     column_client = "<strike>"..column_client.."</strike>"
+      column_client = "<strike>"..column_client.."</strike>"
    end
 
    record["column_client"] = column_client
@@ -402,7 +209,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       if info.broadcast_domain_host then
 	 column_server = column_server.." <i class='fa fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
       end
-      
+
       if info.dhcpHost then
 	 column_server = column_server.." <i class=\'fa fa-flash fa-sm\' title=\'DHCP Host\'></i>"
       end
@@ -419,7 +226,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 				 ternary(dst_port ~= '', ':', ''),
 				 dst_port, dst_process, dst_container)
    if(value["verdict.pass"] == false) then
-     column_server = "<strike>"..column_server.."</strike>"
+      column_server = "<strike>"..column_server.."</strike>"
    end
    record["column_server"] = column_server
 
@@ -452,7 +259,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    column_proto_l4 = column_proto_l4..value["proto.l4"]
 
    if(value["verdict.pass"] == false) then
-     column_proto_l4 = "<strike>"..column_proto_l4.."</strike>"
+      column_proto_l4 = "<strike>"..column_proto_l4.."</strike>"
    end
    record["column_proto_l4"] = column_proto_l4
 
@@ -494,9 +301,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local info = value["info"]
 
    if debug_score then
-     if(value["score"] > 0) then
-       info = info .. string.format(" [<b>score: %u</b>]", value["score"])
-     end
+      if(value["score"] > 0) then
+	 info = info .. string.format(" [<b>score: %u</b>]", value["score"])
+      end
    end
 
    record["column_info"] = info
@@ -505,20 +312,15 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
 end -- for
 
-if(sortColumn == nil) then
-   sortColumn = ""
-end
-
-if(sortOrder == nil) then
-   sortOrder = ""
-end
-
-local result = {}
-
-result["perPage"] = perPage
-result["currentPage"] = currentPage
-result["totalRows"] = total
-result["data"] = formatted_res
-result["sort"] = {{sortColumn, sortOrder}}
+local result = {
+   perPage = flows_filter["perPage"],
+   currentPage = flows_filter["currentPage"],
+   totalRows = total,
+   data = formatted_res,
+   sort = {
+      {flows_filter["sortColumn"],
+       flows_filter["sortOrder"]}
+   },
+}
 
 print(json.encode(result))

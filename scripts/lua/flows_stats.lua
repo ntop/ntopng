@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -59,9 +59,10 @@ local client_asn = _GET["client_asn"]
 local server_asn = _GET["server_asn"]
 
 local prefs = ntop.getPrefs()
-interface.select(ifname)
 local ifstats = interface.getStats()
-local flowstats = interface.getActiveFlowsStats()
+
+local flows_filter = getFlowsFilter()
+local flowstats = interface.getActiveFlowsStats(host, flows_filter)
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
@@ -146,14 +147,6 @@ if(network_id ~= nil) then
   page_params["network"] = network_id
 end
 
-if(client_asn ~= nil) then
-   page_params["client_asn"] = client_asn
-end
-
-if(server_asn ~= nil) then
-   page_params["server_asn"] = server_asn
-end
-
 if(flowhosts_type ~= nil) then
   page_params["flowhosts_type"] = flowhosts_type
 end
@@ -197,6 +190,7 @@ print [[",
          showFilter: true,
          showPagination: true,
 ]]
+
 -- Automatic default sorted. NB: the column must be exists.
 print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 

@@ -36,6 +36,202 @@ end
 
 -- #######################
 
+function getFlowsFilter()
+   -- Pagination
+   local sortColumn  = _GET["sortColumn"]
+   local sortOrder   = _GET["sortOrder"]
+   local currentPage = _GET["currentPage"]
+   local perPage     = _GET["perPage"]
+
+   -- Other Filters
+   local port        = _GET["port"]
+   local application = _GET["application"]
+   local category    = _GET["category"]
+   local network_id  = _GET["network"]
+   local traffic_profile = _GET["traffic_profile"]
+   local flowhosts_type = _GET["flowhosts_type"]
+   local ipversion    = _GET["version"]
+   local l4proto      = _GET["l4proto"]
+   local vlan        = _GET["vlan"]
+   local username = _GET["username"]
+   local host   = _GET["host"]
+   local pid_name = _GET["pid_name"]
+   local container   = _GET["container"]
+   local pod         = _GET["pod"]
+   local icmp_type   = _GET["icmp_type"]
+   local icmp_code   = _GET["icmp_cod"]
+   local flow_status = _GET["flow_status"]
+   local deviceIP    = _GET["deviceIP"]
+   local inIfIdx     = _GET["inIfIdx"]
+   local outIfIdx    = _GET["outIfIdx"]
+   local asn         = _GET["asn"]
+   local tcp_state   = _GET["tcp_flow_state"]
+
+   if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
+      sortColumn = getDefaultTableSort("flows")
+   elseif sortColumn ~= "column_" and  sortColumn ~= "" then
+      tablePreferences("sort_flows", sortColumn)
+   else
+      sortColumn = "column_client"
+   end
+
+   if sortOrder == nil then
+      sortOrder = getDefaultTableSortOrder("flows")
+   elseif sortColumn ~= "column_" and sortColumn ~= "" then
+      tablePreferences("sort_order_flows", sortOrder)
+   end
+
+   if currentPage == nil then
+      currentPage = 1
+   else
+      currentPage = tonumber(currentPage)
+   end
+
+   if perPage == nil then
+      perPage = getDefaultTableSize()
+   else
+      perPage = tonumber(perPage)
+      tablePreferences("rows_number",perPage)
+   end
+
+   if port ~= nil then
+      port = tonumber(port)
+   end
+
+   if network_id ~= nil then
+      network_id = tonumber(network_id)
+   end
+
+   local to_skip = (currentPage - 1) * perPage
+
+   local a2z = false
+   if sortOrder == "desc" then
+      a2z = false
+   else a2z = true
+   end
+
+   local pageinfo = {
+      ["perPage"] = perPage, ["currentPage"] = currentPage,
+      ["sortOrder"] = sortOrder or "", ["sortColumn"] = sortColumn or "",
+      ["toSkip"] = to_skip, ["maxHits"] = perPage,
+      ["a2zSortOrder"] = a2z,
+      ["hostFilter"] = host,
+      ["portFilter"] = port,
+      ["LocalNetworkFilter"] = network_id,
+   }
+
+   if application ~= nil and application ~= "" then
+      pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+   end
+
+   if category ~= nil and category ~= "" then
+      pageinfo["l7categoryFilter"] = interface.getnDPICategoryId(category)
+   end
+
+   if traffic_profile ~= nil then
+      pageinfo["trafficProfileFilter"] = traffic_profile
+   end
+
+   if not isEmptyString(flowhosts_type) then
+      if flowhosts_type == "local_origin_remote_target" then
+	 pageinfo["clientMode"] = "local"
+	 pageinfo["serverMode"] = "remote"
+      elseif flowhosts_type == "local_only" then
+	 pageinfo["clientMode"] = "local"
+	 pageinfo["serverMode"] = "local"
+      elseif flowhosts_type == "remote_origin_local_target" then
+	 pageinfo["clientMode"] = "remote"
+	 pageinfo["serverMode"] = "local"
+      elseif flowhosts_type == "remote_only" then
+	 pageinfo["clientMode"] = "remote"
+	 pageinfo["serverMode"] = "remote"
+      end
+   end
+
+   if not isEmptyString(traffic_type) then
+      if traffic_type:contains("unicast") then
+	 pageinfo["unicast"] = true
+      else
+	 pageinfo["unicast"] = false
+      end
+
+      if traffic_type:contains("one_way") then
+	 pageinfo["unidirectional"] = true
+      end
+   end
+
+   if not isEmptyString(flow_status) then
+      if flow_status == "normal" then
+	 pageinfo["alertedFlows"] = false
+	 pageinfo["misbehavingFlows"] = false
+	 pageinfo["filteredFlows"] = false
+      elseif flow_status == "misbehaving" then
+	 pageinfo["misbehavingFlows"] = true
+      elseif flow_status == "alerted" then
+	 pageinfo["alertedFlows"] = true
+      elseif flow_status == "filtered" then
+	 pageinfo["filteredFlows"] = true
+      else
+	 pageinfo["statusFilter"] = tonumber(flow_status)
+      end
+   end
+
+   if not isEmptyString(ipversion) then
+      pageinfo["ipVersion"] = tonumber(ipversion)
+   end
+
+   if not isEmptyString(l4proto) then
+      pageinfo["L4Protocol"] = tonumber(l4proto)
+   end
+
+   if not isEmptyString(vlan) then
+      pageinfo["vlanIdFilter"] = tonumber(vlan)
+   end
+
+   if not isEmptyString(username) then
+      pageinfo["usernameFilter"] = username
+   end
+
+   if not isEmptyString(pid_name) then
+      pageinfo["pidnameFilter"] = pid_name
+   end
+
+   if not isEmptyString(container) then
+      pageinfo["container"] = container
+   end
+
+   if not isEmptyString(pod) then
+      pageinfo["pod"] = pod
+   end
+
+   if not isEmptyString(deviceIP) then
+      pageinfo["deviceIpFilter"] = deviceIP
+
+      if not isEmptyString(inIfIdx) then
+	 pageinfo["inIndexFilter"] = tonumber(inIfIdx)
+      end
+
+      if not isEmptyString(outIfIdx) then
+	 pageinfo["outIndexFilter"] = tonumber(outIfIdx)
+      end
+   end
+
+   if not isEmptyString(asn) then
+      pageinfo["asnFilter"] = tonumber(asn)
+   end
+
+   pageinfo["icmp_type"] = tonumber(icmp_type)
+   pageinfo["icmp_code"] = tonumber(icmp_code)
+
+   if not isEmptyString(tcp_state) then
+      pageinfo["tcpFlowStateFilter"] = tcp_state
+   end
+
+   return pageinfo
+end
+
+-- #######################
+
 function handleCustomFlowField(key, value, snmpdevice)
    if((key == 'TCP_FLAGS') or (key == '6')) then
       return(formatTcpFlags(value))

@@ -2955,53 +2955,6 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
 /* **************************************************** */
 
-struct ndpiStatsRetrieverData {
-  nDPIStats *ndpi_stats;
-  FlowStats *stats;
-  Host *host;
-};
-
-static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matched) {
-  ndpiStatsRetrieverData *retriever = (ndpiStatsRetrieverData*)user_data;
-  nDPIStats *ndpi_stats = retriever->ndpi_stats;
-  FlowStats *stats = retriever->stats;
-  Flow *f = (Flow*)flow;
-
-  if(f->idle())
-    return(false);
-
-  if(retriever->host
-     && (retriever->host != f->get_cli_host())
-     && (retriever->host != f->get_srv_host()))
-    return(false); /* false = keep on walking */
-
-  f->sumStats(ndpi_stats, stats);
-  *matched = true;
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
-					   AddressTree *allowed_hosts,
-					   const char *host_ip, u_int16_t vlan_id) {
-  ndpiStatsRetrieverData retriever;
-  Host *h = NULL;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  if(host_ip)
-    h = findHostByIP(allowed_hosts, (char *)host_ip, vlan_id);
-
-  retriever.ndpi_stats = ndpi_stats;
-  retriever.stats = stats;
-  retriever.host = h;
-  walker(&begin_slot, walk_all, walker_flows, flow_sum_stats, (void*)&retriever);
-}
-
-/* **************************************************** */
-
 static bool flow_update_hosts_stats(GenericHashEntry *node,
 				    void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
@@ -3820,6 +3773,10 @@ struct flowHostRetriever {
   u_int32_t maxNumEntries, actNumEntries;
   struct flowHostRetrieveList *elems;
 
+  /* Used by getActiveFlowsStats */
+  nDPIStats *ndpi_stats;
+  FlowStats *stats;
+
   /* Paginator */
   Paginator *pag;
 };
@@ -4580,6 +4537,44 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
   return(retriever->actNumEntries);
+}
+
+/* **************************************************** */
+
+static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matched) {
+  flowHostRetriever *retriever = (flowHostRetriever*)user_data;
+  nDPIStats *ndpi_stats = retriever->ndpi_stats;
+  FlowStats *stats = retriever->stats;
+  Flow *f = (Flow*)flow;
+
+  if(flow_matches(f, retriever)) {
+    f->sumStats(ndpi_stats, stats);
+    *matched = true;
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
+					   AddressTree *allowed_hosts,
+					   Host *h, Paginator *p) {
+  flowHostRetriever retriever;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  memset(&retriever, 0, sizeof(retriever));
+
+  retriever.pag = p;
+  retriever.host = h, retriever.location = location_all;
+  retriever.ndpi_proto = -1;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = getFlowsHashSize();
+  retriever.allowed_hosts = allowed_hosts;
+  retriever.ndpi_stats = ndpi_stats;
+  retriever.stats = stats;
+
+  walker(&begin_slot, walk_all, walker_flows, flow_sum_stats, &retriever);
 }
 
 /* **************************************************** */

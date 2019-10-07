@@ -453,7 +453,7 @@ class NetworkInterface : public AlertableEntity {
 		     Host **srcHost, Host **dstHost, Flow **flow);
   void processFlow(ParsedFlow *zflow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
-  void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
+  void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Paginator *p);
   virtual u_int32_t periodicStatsUpdateFrequency();
   void periodicStatsUpdate();
   virtual u_int32_t getFlowMaxIdle();

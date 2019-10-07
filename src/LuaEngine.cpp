@@ -458,24 +458,33 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   char *host_ip = NULL;
   u_int16_t vlan_id = 0;
   char buf[64];
+  Host *host = NULL;
+  Paginator *p = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  /* Optional host */
-  if(lua_type(vm, 1) == LUA_TSTRING)
-    get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+  if((p = new(std::nothrow) Paginator()) == NULL)
+    return(CONST_LUA_ERROR);
 
-  /* Optional VLAN id */
-  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+  /* Optional host */
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+    host = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */);
+  }
+
+  if(lua_type(vm, 2) == LUA_TTABLE)
+    p->readOptions(vm, 2);
 
   if(ntop_interface) {
-    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host_ip, vlan_id);
+    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, p);
 
     lua_newtable(vm);
     ndpi_stats.lua(ntop_interface, vm);
     stats.lua(vm);
   } else
     lua_pushnil(vm);
+
+  if(p) delete p;
 
   return(CONST_LUA_OK);
 }

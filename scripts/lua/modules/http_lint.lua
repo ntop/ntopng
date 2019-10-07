@@ -1,5 +1,5 @@
 --
--- (C) 2017-18 - ntop.org
+-- (C) 2017-19 - ntop.org
 --
 
 local pragma_once = 1
@@ -1107,8 +1107,6 @@ local known_parameters = {
    ["entity"]                  = validateNumber,                -- An alert entity type
    ["entity_excludes"]         = validateListOfTypeInline(validateNumber),
    ["asn"]                     = validateNumber,                -- An ASN number
-   ["client_asn"]              = validateNumber,                -- A client ASN number
-   ["server_asn"]              = validateNumber,                -- A server ASN number
    ["module"]                  = validateTopModule,             -- A top script module
    ["step"]                    = validateNumber,                -- A step value
    ["cf"]                      = validateConsolidationFunction, -- An RRD consolidation function
