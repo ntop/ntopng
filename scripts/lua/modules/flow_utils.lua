@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -1153,6 +1153,53 @@ end
 
 -- #######################
 
+function printL4ProtoDropdown(base_url, page_params, l4_protocols)
+   local l4proto = _GET["l4proto"]
+   local l4proto_filter
+   if not isEmptyString(l4proto) then
+      l4proto_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   else
+      l4proto_filter = ''
+   end
+
+   local l4proto_params = table.clone(page_params)
+   l4proto_params["l4proto"] = nil
+   -- Used to possibly remove tcp state filters when selecting a non-TCP l4 protocol
+   local l4proto_params_non_tcp = table.clone(l4proto_params)
+   if l4proto_params_non_tcp["tcp_flow_state"] then
+      l4proto_params_non_tcp["tcp_flow_state"] = nil
+   end
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.l4_protocol")) print[[]] print(l4proto_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+         <li><a href="]] print(getPageUrl(base_url, l4proto_params_non_tcp)) print[[">]] print(i18n("flows_page.all_l4_protocols")) print[[</a></li>]]
+
+    if l4_protocols then
+       for key, value in pairsByKeys(l4_protocols, asc) do
+	  print[[<li]]
+
+	  if tonumber(l4proto) == key then
+	     print(' class="active"')
+	  end
+
+	  print[[><a href="]]
+
+	  local l4_table = ternary(key ~= 6, l4proto_params_non_tcp, l4proto_params)
+	  tprint(l4_table)
+
+	  l4_table["l4proto"] = key
+	  print(getPageUrl(base_url, l4_table))
+
+	  print[[">]] print(l4_proto_to_string(key)) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
+      end
+    end
+
+    print[[</ul>]]
+end
+
+-- #######################
+
 local function printDropdownEntries(entries, base_url, param_arr, param_filter, curr_filter)
    for _, htype in ipairs(entries) do
       if type(htype) == "string" then
@@ -1241,7 +1288,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        </div>\
     ']]
 
-    if not is_ebpf_flows then
+    if not is_ebpf_flows and page_params["l4proto"] and page_params["l4proto"] == "6" then
 	-- TCP flow state filter
 	local tcp_state_params = table.clone(page_params)
 	tcp_state_params["tcp_flow_state"] = nil
