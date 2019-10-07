@@ -18,7 +18,7 @@ if ntop.isPro() then
 end
 
 local do_benchmark = true         -- Compute benchmarks and store their results
-local do_print_benchmark = false  -- Print benchmarks results to standard output
+local do_print_benchmark = true  -- Print benchmarks results to standard output
 local do_trace = false            -- Trace lua calls
 
 local check_modules = {}
@@ -26,6 +26,26 @@ local benchmarks = {}
 
 -- #################################################################
 
+-- This function is called, for each module and for each callback
+-- right before the actual callback call.
+-- Benchmarks are stored in a lua table `benchmarks` which which contains
+-- module names as keys and other tables as values. Each table contains
+-- callback names as keys and another table as value. Example:
+--
+-- table
+-- mud table
+-- mud.protocolDetected table
+-- mud.protocolDetected.elapsed number 0.00012199999991935
+-- mud.protocolDetected.num number 2
+-- mud.protocolDetected.begin number 1865.756381
+--
+-- In the example above:
+-- `mud` is the module name
+-- `protocolDetected` is the callback found inside script `mud.lua` which has been executed
+-- `elapsed` is the sum of the time taken during each execution of `protocolDetected`
+-- `num` is the number of times the callback has been executed
+-- `begin` is just the os.clock() value computed during the call of `benchmark_begin` and used
+--      by `benchmark_end` to compute the difference which will be added to `elapsed`
 local function benchmark_begin(mod_fn, mod_key)
    if not do_benchmark then return end
 
@@ -42,6 +62,13 @@ end
 
 -- #################################################################
 
+-- This function is called, for each module and for each callback,
+-- right after the actual callback.
+-- It computes the delta between the os.clock() computed by `benchmark_begin` and
+-- and the current os.clock() to determine the time, in milliseconds, it took for
+-- a particular callback to execute.
+-- Also the number of executed callbacks is counted so statistics such as the average
+-- time per-callback can be computed.
 local function benchmark_end(mod_fn, mod_key)
    if not do_benchmark then return end
 
@@ -56,6 +83,7 @@ end
 
 -- #################################################################
 
+-- This function is just a wrapper to store the results of the benchmarks.
 local function store_benchmark()
    if do_benchmark then
       alerts_api.store_flow_check_modules_benchmarks(benchmarks)
@@ -64,6 +92,7 @@ end
 
 -- #################################################################
 
+-- This function outputs the results of the benchmark to std output.
 local function print_benchmark()
    if do_benchmark and do_print_benchmark then
       for mod_k, modules in pairs(benchmarks) do
@@ -118,6 +147,8 @@ function setup()
    -- Set the new metatable to the flow
    setmetatable(flow, {__index = metatable_fn})
 
+   -- Now that the metatable is in place, we can load all the custom
+   -- flow check modules
    check_modules = alerts_api.load_flow_check_modules(true --[[ only enabled modules --]])
 end
 
@@ -131,9 +162,11 @@ function teardown()
    end
 
    if do_benchmark then
+      -- If the benchmark is enabled, it's time to store it
       store_benchmark()
 
       if do_print_benchmark then
+	 -- Possibly print it to stdout
 	 print_benchmark()
       end
    end
@@ -141,6 +174,8 @@ end
 
 -- #################################################################
 
+-- Function for the actual module execution. Iterates over available (and enabled)
+-- modules, calling them one after one.
 local function call_modules(mod_fn)
    if table.empty(check_modules[mod_fn]) then
       if do_trace then print(string.format("No flow.lua modules, skipping %s() for %s\n", mod_fn, shortFlowLabel(flow.getInfo()))) end
