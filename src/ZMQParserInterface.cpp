@@ -738,9 +738,13 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
     return (flow->l7_proto.app_protocol == l7_proto.app_protocol);
   }
 
-  //TODO this should be supported too:
-  //case L7_PROTO_NAME:
-  //  break;
+  case L7_PROTO_NAME:
+    if (value->string) {
+      /* This lookup should be optimized */
+      u_int16_t app_protocol = ndpi_get_proto_by_name(get_ndpi_struct(), value->string);
+      return (flow->l7_proto.app_protocol == app_protocol);
+    }
+    break;
 
   case DNS_QUERY:
     if (value->string && flow->dns_query)

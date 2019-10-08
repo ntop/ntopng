@@ -351,7 +351,7 @@ class NetworkInterface : public AlertableEntity {
   inline void setSeenPods()                    { has_seen_pods = true; }
   inline bool hasSeenContainers() const        { return(has_seen_containers); }
   inline void setSeenContainers()              { has_seen_containers = true; }
-  inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
+  inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
