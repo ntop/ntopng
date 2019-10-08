@@ -26,6 +26,10 @@ class AlertCheckLuaEngine : public LuaEngine {
  private:
   ScriptPeriodicity p;
   char script_path[MAX_PATH];
+#ifdef LUA_PROFILING
+  u_int num_calls;
+  struct timeval t_begin, t_end;
+#endif
 
  public:
   AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *iface);

@@ -24,6 +24,10 @@
 /* ****************************************** */
 
 AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *iface) : LuaEngine() {
+#ifdef LUA_PROFILING
+  num_calls = 0;
+  gettimeofday(&t_begin, NULL);
+#endif
   const char *lua_file = NULL;
 
   p = script_periodicity;
@@ -70,6 +74,14 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
 /* ****************************************** */
 
 AlertCheckLuaEngine::~AlertCheckLuaEngine() {
+#ifdef LUA_PROFILING
+  gettimeofday(&t_end, NULL);
+
+  float diff = Utils::msTimevalDiff(&t_end, &t_begin) / 1000;
+
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "[elapsed time: %.2f sec][num calls: %u][calls/sec: %.2f]", diff, num_calls, num_calls / diff);
+#endif
+
   if(script_path[0] != '\0') {
     lua_getglobal(L, "teardown"); /* Called function */
 
@@ -93,6 +105,10 @@ const char * AlertCheckLuaEngine::getGranularity() const {
 /* ****************************************** */
 
 bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
+#ifdef LUA_PROFILING
+  num_calls++;
+#endif
+
   if(lua_pcall(L, num_args, num_results, 0)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
     return(false);
