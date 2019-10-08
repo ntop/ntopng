@@ -2791,9 +2791,6 @@ void NetworkInterface::reloadCustomCategories() {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories [iface: %s]", get_name());
     ndpi_enable_loaded_categories(ndpi_struct);
 
-    custom_categories_to_purge = new_custom_categories;
-    new_custom_categories.clear();
-
     reload_custom_categories = false;
     reload_hosts_blacklist = true;
   }
@@ -7718,12 +7715,8 @@ void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t i
 /* *************************************** */
 
 void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
-  if(what) {
-    std::string toadd(what);
-
-    new_custom_categories.push_front(toadd);
-    ndpi_load_hostname_category(ndpi_struct, (char*)toadd.c_str(), id);
-  }
+  if(what)
+    ndpi_load_hostname_category(ndpi_struct, what, id);
 }
 
 /* *************************************** */
