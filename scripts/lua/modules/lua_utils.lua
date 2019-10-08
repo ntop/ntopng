@@ -632,7 +632,7 @@ function noHtml(s)
 end
 
 function alertLevelToSyslogLevel(v)
-  return alert_consts.alert_severities[v]
+  return alert_consts.alert_severities[v].syslog_severity
 end
 
 function areAlertsEnabled()
