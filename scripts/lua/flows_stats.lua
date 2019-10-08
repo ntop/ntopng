@@ -87,7 +87,9 @@ print[[
 
 if(category ~= nil) then
    page_params["category"] = category
-elseif(application ~= nil) then
+end
+
+if(application ~= nil) then
    page_params["application"] = application
 end
 

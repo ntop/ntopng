@@ -122,6 +122,7 @@ function getFlowsFilter()
 
    if application ~= nil and application ~= "" then
       pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+
    end
 
    if category ~= nil and category ~= "" then
@@ -1483,29 +1484,31 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        </div>\
     ']]
 
-    if not is_ebpf_flows and page_params["l4proto"] and page_params["l4proto"] == "6" then
-	-- TCP flow state filter
-	local tcp_state_params = table.clone(page_params)
-	tcp_state_params["tcp_flow_state"] = nil
+    if not is_ebpf_flows then
+       if page_params["l4proto"] and page_params["l4proto"] == "6" then
+	  -- TCP flow state filter
+	  local tcp_state_params = table.clone(page_params)
+	  tcp_state_params["tcp_flow_state"] = nil
 
-	print[[, '\
+	  print[[, '\
 	   <div class="btn-group">\
 	      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.tcp_state")) print(getParamFilter(page_params, "tcp_flow_state")) print[[<span class="caret"></span></button>\
 	      <ul class="dropdown-menu" role="menu">\
 	      <li><a href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
-	local entries = {}
-	for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
-	   entries[#entries + 1] = {entry, tcp_flow_state_utils.state2i18n(entry)}
-	end
+	  local entries = {}
+	  for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
+	     entries[#entries + 1] = {entry, tcp_flow_state_utils.state2i18n(entry)}
+	  end
 
-	printDropdownEntries(entries, base_url, tcp_state_params, "tcp_flow_state", page_params.tcp_flow_state)
-	print[[\
+	  printDropdownEntries(entries, base_url, tcp_state_params, "tcp_flow_state", page_params.tcp_flow_state)
+	  print[[\
 	      </ul>\
 	   </div>\
 	']]
+       end
 
-	-- Unidirectional flows selector
+       -- Unidirectional flows selector
 	local traffic_type_params = table.clone(page_params)
 	traffic_type_params["traffic_type"] = nil
 
@@ -1582,52 +1585,50 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	end
     end
 
-    if not page_params.category then
-       -- L7 Application
-       print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
-       print('<li><a href="')
-       local application_filter_params = table.clone(page_params)
-       application_filter_params["application"] = nil
+    -- L7 Application
+    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+    print('<li><a href="')
+
+    local application_filter_params = table.clone(page_params)
+    application_filter_params["application"] = nil
+    print(getPageUrl(base_url, application_filter_params))
+    print('">'..i18n("flows_page.all_proto")..'</a></li>')
+
+    for key, value in pairsByKeys(flowstats["ndpi"], asc) do
+       local class_active = ''
+       if(key == page_params.application) then
+
+	  class_active = ' class="active"'
+       end
+       print('<li '..class_active..'><a href="')
+       application_filter_params["application"] = key
        print(getPageUrl(base_url, application_filter_params))
-       print('">'..i18n("flows_page.all_proto")..'</a></li>')
-
-       for key, value in pairsByKeys(flowstats["ndpi"], asc) do
-	  local class_active = ''
-	  if(key == page_params.application) then
-	     class_active = ' class="active"'
-	  end
-	  print('<li '..class_active..'><a href="')
-	  application_filter_params["application"] = key
-	  print(getPageUrl(base_url, application_filter_params))
-	  print('">'..key..'</a></li>')
-       end
-
-       print("</ul> </div>'")
+       print('">'..key..'</a></li>')
     end
 
-    if not page_params.application then
-       -- L7 Application Category
-       print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
-       print('<li><a href="')
-       local category_filter_params = table.clone(page_params)
-       category_filter_params["category"] = nil
+    print("</ul> </div>'")
+
+    -- L7 Application Category
+    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+    print('<li><a href="')
+    local category_filter_params = table.clone(page_params)
+    category_filter_params["category"] = nil
+    print(getPageUrl(base_url, category_filter_params))
+    print('">'..i18n("flows_page.all_categories")..'</a></li>')
+    local ndpicatstats = ifstats["ndpi_categories"]
+
+    for key, value in pairsByKeys(ndpicatstats, asc) do
+       local class_active = ''
+       if(key == page_params.category) then
+	  class_active = ' class="active"'
+       end
+       print('<li '..class_active..'><a href="')
+       category_filter_params["category"] = key
        print(getPageUrl(base_url, category_filter_params))
-       print('">'..i18n("flows_page.all_categories")..'</a></li>')
-       local ndpicatstats = ifstats["ndpi_categories"]
-
-       for key, value in pairsByKeys(ndpicatstats, asc) do
-	  local class_active = ''
-	  if(key == page_params.category) then
-	     class_active = ' class="active"'
-	  end
-	  print('<li '..class_active..'><a href="')
-	  category_filter_params["category"] = key
-	  print(getPageUrl(base_url, category_filter_params))
-	  print('">'..key..'</a></li>')
-       end
-
-       print("</ul> </div>'")
+       print('">'..key..'</a></li>')
     end
+
+    print("</ul> </div>'")
 
     -- Ip version selector
     local ipversion_params = table.clone(page_params)
