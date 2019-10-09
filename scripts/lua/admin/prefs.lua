@@ -294,7 +294,7 @@ function printAlerts()
 			   "row_toggle_ip_reassignment_alerts", "row_toggle_dropped_flows_alerts", "row_alerts_informative_header",
 			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert", "row_toggle_mining_alerts", "row_toggle_device_protocols_alerts",
 			   "row_toggle_longlived_flows_alerts", "longlived_flow_duration", "row_toggle_elephant_flows_alerts", "elephant_flow_local_to_remote_bytes", "elephant_flow_remote_to_local_bytes",
-         "row_toggle_data_exfiltration", "row_toggle_ids_alerts", "row_toggle_potentially_dangerous_protocols_alerts"
+         "row_toggle_data_exfiltration", "row_toggle_external_alerts", "row_toggle_potentially_dangerous_protocols_alerts"
 			}
  
  if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
@@ -385,8 +385,8 @@ function printAlerts()
   })
 
   prefsToggleButton(subpage_active, {
-    field = "toggle_ids_alerts",
-    pref = "ids_alerts",
+    field = "toggle_external_alerts",
+    pref = "external_alerts",
     default = "1",
     hidden = not showElements,
   })

@@ -2770,7 +2770,7 @@ void NetworkInterface::pollQueuedeBPFEvents() {
           /* Flow from SyslogParserInterface (Suricata) */
           enum json_tokener_error jerr = json_tokener_success;
           json_object *o = json_tokener_parse_verbose(dequeued->suricata_alert, &jerr);
-          if(o) flow->setIDSAlert(o, dequeued->suricata_alert_severity);
+          if(o) flow->setExternalAlert(o, dequeued->suricata_alert_severity);
         } else {
           /* Flow from ZMQParserInterface (nProbe Agent) */
 	  flow->setParsedeBPFInfo(dequeued, src2dst_direction);

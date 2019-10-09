@@ -621,7 +621,7 @@ AlertLevel Utils::flowStatus2AlertLevel(FlowStatus s, u_int8_t ext_severity /* e
   case status_potentially_dangerous:
     level = alert_level_error;
     break;
-  case status_ids_alert:
+  case status_external_alert:
     if(ext_severity == 1)
       level = alert_level_error;
     break;
@@ -675,8 +675,8 @@ AlertType Utils::flowStatus2AlertType(FlowStatus s) {
   case status_ssl_unsafe_ciphers:
   case status_ssl_old_protocol_version:
     return(alert_potentially_dangerous_protocol);
-  case status_ids_alert:
-    return(alert_ids);
+  case status_external_alert:
+    return(alert_external);
   }
 
   /* Should be never reached */
@@ -721,8 +721,8 @@ bool Utils::dumpFlowStatus(FlowStatus s) {
     return(ntop->getPrefs()->are_longlived_flows_alerts_enabled());
   case status_data_exfiltration:
     return(ntop->getPrefs()->are_exfiltration_alerts_enabled());
-  case status_ids_alert:
-    return(ntop->getPrefs()->are_ids_alerts_enabled());
+  case status_external_alert:
+    return(ntop->getPrefs()->are_external_alerts_enabled());
   default:
     return(false);
   }

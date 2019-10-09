@@ -60,7 +60,7 @@ local function tracker_filter_pref(key)
      k == "remote_to_remote_alerts" or
      k == "mining_alerts" or
      k == "host_blacklist" or
-     k == "ids_alerts" or
+     k == "external_alerts" or
      k == "device_protocols_alerts" or
      k == "alerts.device_first_seen_alert" or
      k == "alerts.device_connection_alert" or

@@ -96,8 +96,8 @@ class Flow : public GenericHashEntry {
   u_int32_t last_conntrack_update; 
   u_int32_t marker;
 #endif
-  json_object *ids_alert;
-  u_int8_t ids_alert_severity;
+  json_object *external_alert;
+  u_int8_t external_alert_severity;
  
   union {
     struct {
@@ -493,9 +493,11 @@ class Flow : public GenericHashEntry {
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
 
-  inline void setIDSAlert(json_object *a, u_int8_t severity) { if (ids_alert) json_object_put(ids_alert); ids_alert = a; ids_alert_severity = severity; };
-  inline json_object *getIDSAlert()     const { return ids_alert; };
-  inline u_int8_t getIDSAlertSeverity() const { return ids_alert_severity; };
+  inline void setExternalAlert(json_object *a, u_int8_t severity) { 
+    if (external_alert) json_object_put(external_alert); 
+    external_alert = a; external_alert_severity = severity; };
+  inline json_object *getExternalAlert()     const { return external_alert; };
+  inline u_int8_t getExternalAlertSeverity() const { return external_alert_severity; };
   int storeFlowAlert(AlertType alert_type, AlertLevel alert_severity, const char *status_info);
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)

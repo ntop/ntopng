@@ -2451,9 +2451,9 @@ function formatIDSFlowAlert(flowstatus_info)
       return i18n("alerts_dashboard.ids_alert")
    end
 
-   local signature = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.signature)
-   local category = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.category)
-   local severity = (flowstatus_info.ids_alert and flowstatus_info.ids_alert.severity)
+   local signature = (flowstatus_info.external_alert and flowstatus_info.external_alert.signature)
+   local category = (flowstatus_info.external_alert and flowstatus_info.external_alert.category)
+   local severity = (flowstatus_info.external_alert and flowstatus_info.external_alert.severity)
    local signature_info = (signature and signature:split(" "));
    local maker = (signature_info and table.remove(signature_info, 1))
    local scope = (signature_info and table.remove(signature_info, 1))
@@ -2463,6 +2463,12 @@ function formatIDSFlowAlert(flowstatus_info)
    end
    local res = i18n("flow_details.ids_alert", { scope=scope, msg=msg, severity=severity, maker=maker } )
    return res
+end
+
+-- ###############################################
+
+function formatExternalFlowAlert(flowstatus_info)
+   return formatIDSFlowAlert(flowstatus_info)
 end
 
 -- ###############################################
@@ -2624,8 +2630,8 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
      res = formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
    elseif(status == flow_consts.status_longlived) then 
      res = formatLongLivedFlowAlert(flowstatus_info)
-   elseif(status == flow_consts.status_ids_alert) then
-     res = formatIDSFlowAlert(flowstatus_info)
+   elseif(status == flow_consts.status_external_alert) then
+     res = formatExternalFlowAlert(flowstatus_info)
    elseif(status == flow_consts.status_tcp_severe_connection_issues) then 
      res = i18n("flow_details.tcp_severe_connection_issues")
    elseif(status == flow_consts.status_malicious_signature) then res = formatMaliciousSignature(flowstatus_info)

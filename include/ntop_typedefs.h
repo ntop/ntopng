@@ -135,7 +135,7 @@ typedef enum {
   alert_influxdb_export_failure = 26,
   alert_port_errors = 27,
   alert_broadcast_domain_too_large = 34,
-  alert_ids = 35,
+  alert_external = 35,
   misconfigured_dhcp_range = 36,
   slow_periodic_activity = 40,
   login_failed = 42,
@@ -360,7 +360,7 @@ typedef enum {
   status_elephant_remote_to_local, /* 18 */
   status_longlived, /* 19 */
   status_not_purged, /* 20 */
-  status_ids_alert /* 21 */,
+  status_external_alert /* 21 */,
   status_tcp_severe_connection_issues /* 22 - higher severity than status_tcp_connection_issues */,
   status_ssl_unsafe_ciphers /* 23 */,
   status_data_exfiltration /* 24 */,

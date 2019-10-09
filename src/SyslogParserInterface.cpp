@@ -196,7 +196,7 @@ void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow,
       true /* create it if we didn't receive netflow yet */);
 
     if (f) {
-      f->setIDSAlert(json_object_get(a), severity);
+      f->setExternalAlert(json_object_get(a), severity);
     } else {
 #ifdef SYSLOG_DEBUG 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[Suricata] Flow matching the alert not found (ignored)", 

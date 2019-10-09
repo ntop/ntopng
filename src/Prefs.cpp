@@ -49,7 +49,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
     enable_potentially_dangerous_protocols_alerts = false,
     enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
-    enabled_malware_alerts = true, enabled_ids_alerts = true,
+    enabled_malware_alerts = true, enabled_external_alerts = true,
     enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
     enable_arp_matrix_generation = false, enable_exfiltration_alerts = true,
     enable_informative_captive_portal = false,
@@ -594,7 +594,7 @@ void Prefs::reloadPrefsFromRedis() {
 							      CONST_DEFAULT_ALERT_DATA_EXFILTRATION_ENABLED),
     enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
     enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
-    enabled_ids_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_IDS_ALERTS, CONST_DEFAULT_IDS_ALERTS_ENABLED),
+    enabled_external_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_EXTERNAL_ALERTS, CONST_DEFAULT_EXTERNAL_ALERTS_ENABLED),
 
     enable_arp_matrix_generation = getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
 

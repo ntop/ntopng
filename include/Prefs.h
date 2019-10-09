@@ -74,7 +74,7 @@ class Prefs {
   bool enable_dropped_flows_alerts, enable_device_protocols_alerts;
   bool enable_potentially_dangerous_protocols_alerts;
   bool enable_syslog_alerts;
-  bool enabled_malware_alerts, enabled_ids_alerts;
+  bool enabled_malware_alerts, enabled_external_alerts;
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   bool use_ports_to_determine_src_and_dst;
@@ -331,7 +331,7 @@ class Prefs {
   inline bool are_potentially_dangerous_protocols_alerts_enabled() { return(enable_potentially_dangerous_protocols_alerts); };
   inline bool are_alerts_syslog_enabled()                { return(enable_syslog_alerts);                };
   inline bool are_malware_alerts_enabled()               { return(enabled_malware_alerts);              };
-  inline bool are_ids_alerts_enabled()                   { return(enabled_ids_alerts);              };
+  inline bool are_external_alerts_enabled()              { return(enabled_external_alerts);              };
   inline bool are_elephant_flows_alerts_enabled()        { return(enable_elephant_flows_alerts);        };
   inline bool are_longlived_flows_alerts_enabled()       { return(enable_longlived_flows_alerts);       };
   inline bool are_exfiltration_alerts_enabled()          { return(enable_exfiltration_alerts);          };

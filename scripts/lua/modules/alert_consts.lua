@@ -594,7 +594,7 @@ local function userActivityFormatter(ifid, alert, info)
         elseif k == "remote_to_remote_alerts" then pref_desc = i18n("prefs.toggle_remote_to_remote_alerts_title")
         elseif k == "mining_alerts" then pref_desc = i18n("prefs.toggle_mining_alerts_title")
         elseif k == "host_blacklist" then pref_desc = i18n("prefs.toggle_malware_probing_title")
-        elseif k == "ids_alerts" then pref_desc = i18n("prefs.toggle_ids_alert_title")
+        elseif k == "external_alerts" then pref_desc = i18n("prefs.toggle_external_alert_title")
         elseif k == "device_protocols_alerts" then pref_desc = i18n("prefs.toggle_device_protocols_title")
         elseif k == "alerts.device_first_seen_alert" then pref_desc = i18n("prefs.toggle_device_first_seen_alert_title")
         elseif k == "alerts.device_connection_alert" then pref_desc = i18n("prefs.toggle_device_activation_alert_title")
@@ -974,9 +974,9 @@ alert_consts.alert_types = {
     i18n_title = "alerts_dashboard.broadcast_domain_too_large",
     i18n_description = formatBroadcastDomainAlert,
     icon = "fa-sitemap",
-  }, ids_alert = {
+  }, external_alert = {
     alert_id = 35,
-    i18n_title = "alerts_dashboard.ids_alert",
+    i18n_title = "alerts_dashboard.external_alert",
     icon = "fa-eye",
   }, ip_outsite_dhcp_range = {
     alert_id = 36,

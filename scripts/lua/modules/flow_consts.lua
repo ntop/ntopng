@@ -32,7 +32,7 @@ flow_consts.status_elephant_local_to_remote = 17
 flow_consts.status_elephant_remote_to_local = 18
 flow_consts.status_longlived = 19
 flow_consts.status_not_purged = 20
-flow_consts.status_ids_alert = 21
+flow_consts.status_external_alert = 21
 flow_consts.status_tcp_severe_connection_issues = 22
 flow_consts.status_ssl_unsafe_ciphers = 23
 flow_consts.status_data_exfiltration = 24
@@ -64,7 +64,7 @@ flow_consts.flow_status_types = {
    [flow_consts.status_elephant_remote_to_local]     = { relevance =  20, i18n_title = "flow_details.elephant_flow_r2l" },
    [flow_consts.status_longlived]                    = { relevance =  20, i18n_title = "flow_details.longlived_flow" },
    [flow_consts.status_not_purged]                   = { relevance =   0, i18n_title = "flow_details.not_purged" },
-   [flow_consts.status_ids_alert]                    = { relevance =   0, i18n_title = "alerts_dashboard.ids_alert" },
+   [flow_consts.status_external_alert]               = { relevance =   0, i18n_title = "alerts_dashboard.external_alert" },
    [flow_consts.status_tcp_severe_connection_issues] = { relevance =  20, i18n_title = "flow_details.tcp_severe_connection_issues" },
    [flow_consts.status_ssl_unsafe_ciphers]           = { relevance =  50, i18n_title = "flow_details.ssl_unsafe_ciphers" },
    [flow_consts.status_data_exfiltration]            = { relevance =  30, i18n_title = "flow_details.data_exfiltration" },

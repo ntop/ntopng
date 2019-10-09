@@ -80,8 +80,8 @@ Flow::Flow(NetworkInterface *_iface,
   ndpi_init_data_analysis(&stats.cli2srv_bytes_stats, 0),
     ndpi_init_data_analysis(&stats.srv2cli_bytes_stats, 0);
   
-  ids_alert = NULL;
-  ids_alert_severity = 255;
+  external_alert = NULL;
+  external_alert_severity = 255;
 
   memset(&last_db_dump, 0, sizeof(last_db_dump));
   memset(&protos, 0, sizeof(protos));
@@ -288,7 +288,7 @@ Flow::~Flow() {
 
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
-  if(ids_alert) json_object_put(ids_alert);
+  if(external_alert) json_object_put(external_alert);
 }
 
 /* *************************************** */
@@ -2087,10 +2087,10 @@ json_object* Flow::flow2statusinfojson() {
 
   getFlowStatus(&status_map);
 
-  if (Utils::bitmapIsSet(status_map, status_ids_alert)) {
-    json_object *obj_ids_alert = getIDSAlert();
-    if (obj_ids_alert)
-      json_object_object_add(obj, "ids_alert", json_object_get(obj_ids_alert));
+  if (Utils::bitmapIsSet(status_map, status_external_alert)) {
+    json_object *obj_external_alert = getExternalAlert();
+    if (obj_external_alert)
+      json_object_object_add(obj, "external_alert", json_object_get(obj_external_alert));
   }
 
   if (Utils::bitmapIsSet(status_map, status_blacklisted)) {
@@ -3790,8 +3790,8 @@ FlowStatus Flow::getFlowStatus(FlowStatusMap *status_map) const {
   }
 #endif
 
-  if(getIDSAlert())
-    *status_map = Utils::bitmapSet(*status_map, status = status_ids_alert);
+  if(getExternalAlert())
+    *status_map = Utils::bitmapSet(*status_map, status = status_external_alert);
 
   //if(get_protocol_category() == CUSTOM_CATEGORY_MINING)
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MINING)

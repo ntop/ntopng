@@ -239,9 +239,9 @@ local menu_subpages = {
     }, toggle_potentially_dangerous_protocols_alerts = {
       title       = i18n("prefs.toggle_potentially_dangerous_protocols_title"),
       description = i18n("prefs.toggle_potentially_dangerous_protocols_description"),
-    }, toggle_ids_alerts = {
-      title       = i18n("prefs.toggle_ids_alert_title"),
-      description = i18n("prefs.toggle_ids_alert_description"),
+    }, toggle_external_alerts = {
+      title       = i18n("prefs.toggle_external_alert_title"),
+      description = i18n("prefs.toggle_external_alert_description"),
     }, toggle_device_protocols_alerts = {
       title       = i18n("prefs.toggle_device_protocols_title"),
       description = i18n(ternary(have_nedge, "prefs.toggle_device_protocols_description_nedge", "prefs.toggle_device_protocols_description"), {url=getDeviceProtocolPoliciesUrl()}),
