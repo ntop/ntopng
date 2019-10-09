@@ -38,7 +38,6 @@ local function print_callbacks_config_tbody_simple_view(descr)
          print(check_module.gui.input_builder(check_module))
          print("</td>")
 
-
          if check_module.benchmark and table.len(check_module.benchmark) > 0 then
             local max_duration
 

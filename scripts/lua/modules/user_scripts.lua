@@ -182,10 +182,10 @@ end
 
 -- ##############################################
 
-local function user_scripts_benchmarks_key(subdir, mod_k)
+local function user_scripts_benchmarks_key(subdir, mod_k, hook)
    local ifid = interface.getId()
 
-   return string.format("ntopng.cache.ifid_%d.flow_user_scripts_benchmarks.subdir_%s.mod_%s", ifid, subdir, mod_k)
+   return string.format("ntopng.cache.ifid_%d.user_scripts_benchmarks.subdir_%s.mod_%s.hook_%s", ifid, subdir, mod_k, hook)
 end
 
 -- ##############################################
@@ -196,11 +196,10 @@ end
 function user_scripts.benchmark_dump(to_stdout)
    for subdir, check_modules in pairs(benchmarks) do
       for mod_k, hooks in pairs(check_modules) do
-	 local k = user_scripts_benchmarks_key(subdir, mod_k)
-
 	 for hook, hook_benchmark in pairs(hooks) do
 	    if hook_benchmark["tot_num_calls"] > 0 then
-	       ntop.setHashCache(k, hook, json.encode(hook_benchmark))
+	       local k = user_scripts_benchmarks_key(subdir, mod_k, hook)
+	       ntop.setCache(k, json.encode(hook_benchmark), 3600 --[[ 1 hour --]])
 
 	       if to_stdout then
 		  traceError(TRACE_NORMAL,TRACE_CONSOLE,
@@ -220,15 +219,13 @@ end
 --
 -- @param subdir the modules subdir
 -- @param mod_k the key of the user script
-local function benchmark_load(subdir, mod_k)
-   local k = user_scripts_benchmarks_key(subdir, mod_k)
-   local res = ntop.getHashAllCache(k)
+local function benchmark_load(subdir, mod_k, hook)
+   local k = user_scripts_benchmarks_key(subdir, mod_k, hook)
+   local res = ntop.getCache(k)
 
-   for hook, hook_benchmark in pairs(res or {}) do
-      res[hook] = json.decode(hook_benchmark)
+   if res and res ~= "" then
+      return json.decode(res)
    end
-
-   return res
 end
 
 -- ##############################################
@@ -323,12 +320,14 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                goto next_module
             end
 
-	    -- load previously computed benchmarks (if any)
-	    -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
-	    check_module["benchmark"] = benchmark_load(subdir, check_module.key)
+	    check_module["benchmark"] = {}
 
             -- Populate hooks fast lookup table
             for hook, hook_fn in pairs(check_module.hooks) do
+	       -- load previously computed benchmarks (if any)
+	       -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
+	       check_module["benchmark"][hook] = benchmark_load(subdir, check_module.key, hook)
+
 	       if do_benchmark then
 		  hook_fn = benchmark_init(subdir, check_module.key, hook, hook_fn)
 	       end
