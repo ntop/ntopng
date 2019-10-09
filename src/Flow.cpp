@@ -4698,10 +4698,21 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, A
     break;
   }
 
+
+
   if(lua_call_fn_name) {
+#ifdef LUA_PROFILING
+    for(int i = 0; i < 200000; i++) {
+      /* Call the function */
+      lua_getglobal(L, lua_call_fn_name); /* Called function */
+      (*acle)->pcall(0 /* 0 arguments */, 0 /* 0 results */);
+    }
+    return;
+#else
     /* Call the function */
     lua_getglobal(L, lua_call_fn_name); /* Called function */
     (*acle)->pcall(0 /* 0 arguments */, 0 /* 0 results */);
+#endif
 
     /* Mark it as called */
     if((it = performed_lua_calls.find(flow_lua_call)) != performed_lua_calls.end())
