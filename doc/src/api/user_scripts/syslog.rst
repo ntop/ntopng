@@ -20,7 +20,7 @@ A syslog module shoule implement the below functions:
 
  - `setup` (optional) which is called once to initialize the module.
  - `teardown` (optional) which is called once to terminate the module.
- - `handleEvent` which is called for each log message received from Suricata.
+ - `handleEvent` which is called for each log message matching the module.
 
 Script Example
 --------------
