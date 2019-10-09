@@ -38,8 +38,9 @@
   $ chronograf
 */
 TimeseriesExporter::TimeseriesExporter(NetworkInterface *_if) {
-  fd = -1, iface = _if, num_cached_entries = 0, dbCreated = false;
+  iface = _if, num_cached_entries = 0, dbCreated = false;
   cursize = num_exports = 0;
+  fp = NULL;
 
   snprintf(fbase, sizeof(fbase), "%s/%d/ts_export/", ntop->get_working_dir(), iface->get_id());
   ntop->fixPath(fbase);
@@ -66,14 +67,7 @@ void TimeseriesExporter::createDump() {
   /* Use the flushTime as the fname */
   snprintf(fname, sizeof(fname), "%s%u_%lu", fbase, num_exports, flushTime);
 
-#ifdef WIN32
-  fd = open(fname, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
-#else
-  fd = open(fname, O_RDWR | O_CREAT | O_EXCL | S_IREAD | S_IWRITE,
-	    CONST_DEFAULT_FILE_MODE);
-#endif
-
-  if(fd == -1)
+  if(!(fp = fopen(fname, "w")))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] Unable to dump TS data onto %s: %s",
 				 iface->get_name(), fname, strerror(errno));
   else
@@ -92,12 +86,12 @@ void TimeseriesExporter::createDump() {
 void TimeseriesExporter::exportData(char *data, bool do_lock) {
   if(do_lock) m.lock(__FILE__, __LINE__);
   
-  if(fd == -1)
+  if(!fp)
     createDump();
 
-  if(fd != -1) {
+  if(fp) {
     int exp = strlen(data);
-    int l = (int)write(fd, data, exp);
+    int l = fwrite(data, 1, strlen(data), fp); // (fd, data, exp);
 
     cursize += l;
 
@@ -120,9 +114,9 @@ void TimeseriesExporter::exportData(char *data, bool do_lock) {
 void TimeseriesExporter::flush() {
   m.lock(__FILE__, __LINE__);
 
-  if(fd != -1) {
-    close(fd);
-    fd = -1;
+  if(fp) {
+    fclose(fp);
+    fp = NULL;
     char buf[32];
     snprintf(buf, sizeof(buf), "%d|%lu|%u|%u", iface->get_id(), flushTime,
 				   num_exports, num_cached_entries);
