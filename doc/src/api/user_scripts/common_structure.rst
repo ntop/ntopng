@@ -1,5 +1,5 @@
-User Scripts Structure
-######################
+Scripts Structure
+#################
 
 Here is the skeleton for a generic user script:
 
@@ -35,16 +35,26 @@ A user script must expose the following attributes:
     hook. The list of available hooks depends on the script type, check out
     the flow/traffic element documentation for details.
 
+Note: `any` is a special hook name which will cause the associated callback to be called for all the events.
+
 The following optional attributes can also be exposed:
 
   - `gui`: See `GUI Configuration` below for more details.
-  - `local_only`: if true, the script will not be executed on remote hosts
+  - `local_only` (hosts only): if true, the script will not be executed on remote hosts
+  - `l4_proto` (flows only): only execute the script for flows matching the L4 proto ("tcp", "udp" or "any")
   - `nedge_exclude`: if true, the script will not be executed in nEdge
   - `default_value`: the default value for the script configuration,
-     in the form `<script_key>;<operator>;<value>` (e.g. `syn_flood_victim;gt;50`)
-  - `setup`: a function which will be called once per user script. If it
+    in the form `<script_key>;<operator>;<value>` (e.g. `syn_flood_victim;gt;50`)
+  - `always_enabled` (traffic element alerts only): the alert module will be
+    called even if there is no configuration defined for it
+
+Futhermore, a script may define the following extra callbacks, which are only called once per script:
+
+  - `setup()`: a function which will be called once per user script. If it
     returns `false` then the script is considered disabled and its hooks
     will not be called.
+  - `teardown()`: a function to be called after the script operation is complete
+    (e.g. after all the hosts have been iterated and hooks called).
 
 Scripts Location
 ----------------
@@ -66,12 +76,16 @@ The hook callback function takes the following form:
 
 The `params` object contains some information:
 
-- `hook_name`: the hook name (e.g. `protocolDetected`)
-- `user_script`: a reference to the current user script module being invocated
-- `config`: script configuration (usually configured via the `gui`)
+  - `hook_name`: the hook name (e.g. `protocolDetected`)
+  - `user_script`: a reference to the current user script module being invocated
+  - `config`: script configuration (usually configured via the `gui`)
 
-Additional information is exposed depending on the script type. Check out the
-flow/traffic element documentation for details.
+Some additional information is also present depending on the script type:
+
+  - `granularity` (traffic element only): the current granularity
+  - `alert_entity` (traffic element only): the traffic element entity type
+  - `entity_info` (traffic element only): contains entity specific data
+    (e.g. on hosts, it is the output of `Host:lua()`)
 
 Script Configuration
 --------------------

@@ -30,6 +30,19 @@ end
 
 -- #################################################################
 
+-- The function below ia called once (#pragma once)
+function teardown(str_granularity)
+   if(do_trace) then print("alert.lua:teardown("..str_granularity..") called\n") end
+
+   for _, check in pairs(available_modules.modules) do
+      if check.teardown then
+         check.teardown()
+      end
+   end
+end
+
+-- #################################################################
+
 -- The function below is called once
 function checkAlerts(granularity)
    if table.empty(available_modules.hooks[granularity]) then

@@ -29,6 +29,7 @@ local CHECK_MODULES_BASEDIR = dirs.installdir .. "/scripts/callbacks/interface"
 local CHECK_MODULES_PRO_BASEDIR = dirs.installdir .. "/pro/scripts/callbacks/interface"
 
 -- Hook points for flow/periodic modules
+-- NOTE: keep in sync with the Documentation
 local FLOW_HOOKS = {"protocolDetected", "statusChanged", "flowEnd", "periodicUpdate"}
 local PERIODIC_HOOKS = {"min", "5mins", "hour", "day"}
 

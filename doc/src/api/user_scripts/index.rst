@@ -14,22 +14,20 @@ placed under the `/usr/share/ntopng/user_scripts/flows` directory:
 
   -- #################################################################
 
-  -- The callback function to be called
-  function logDetectedFlow(params)
-    print("Detected Flow: ".. shortFlowLabel(flow.getInfo()) .."\n")
-  end
-
-  -- #################################################################
-
   local script = {
     -- A unique key for the script
     key = "flow_logger",
 
-    hooks = {
-      -- Attach an hook to the protocolDetected event
-      protocolDetected = logDetectedFlow,
-    },
+    -- Hooks are defined below
+    hooks = {},
   }
+
+  -- #################################################################
+
+  -- Attach a callback to the protocolDetected hook
+  function script.hooks.protocolDetected(params)
+    print("Detected Flow: ".. shortFlowLabel(flow.getInfo()) .."\n")
+  end
 
   -- #################################################################
 

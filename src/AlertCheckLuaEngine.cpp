@@ -85,8 +85,10 @@ AlertCheckLuaEngine::~AlertCheckLuaEngine() {
   if(script_path[0] != '\0') {
     lua_getglobal(L, "teardown"); /* Called function */
 
-    if(lua_isfunction(L, -1))
-      pcall(0 /* 1 argument */, 0);
+    if(lua_isfunction(L, -1)) {
+      lua_pushstring(L, Utils::periodicityToScriptName(p)); /* push 1st argument */
+      pcall(1 /* 1 argument */, 0);
+    }
   }
 }
 
