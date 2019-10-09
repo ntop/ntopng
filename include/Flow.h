@@ -55,7 +55,7 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t alert_score;
   FlowStatusMap last_notified_status_map;
-  std::map<FlowLuaCall, struct timeval> performed_lua_calls;
+  time_t performed_lua_calls[FLOW_LUA_CALL_MAX_VAL];
   struct ndpi_flow_struct *ndpiFlow;
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge

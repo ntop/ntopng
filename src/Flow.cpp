@@ -2417,11 +2417,11 @@ bool Flow::get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *f
   FlowTrafficStats tmp;
 
   if(!fts || !dst)
-    return false;
+    return(false);
 
   if(!*dst) {
     if(!(*dst = (FlowTrafficStats*)calloc(1, sizeof(FlowTrafficStats))))
-      return false;
+      return(false);
     *first_partial = true;
   } else
     *first_partial = false;
@@ -2447,7 +2447,7 @@ bool Flow::get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *f
 
   memcpy(*dst, &tmp, sizeof(tmp));
 
-  return true;
+  return(true);
 }
 
 /* *************************************** */
@@ -2463,7 +2463,7 @@ bool Flow::update_partial_traffic_stats_db_dump() {
   bool first_partial;
 
   if(!get_partial_traffic_stats(&last_db_dump.partial, &delta, &first_partial))
-    return false;
+    return(false);
 
   memcpy(&last_db_dump.delta, &delta, sizeof(delta));
 
@@ -2474,7 +2474,7 @@ bool Flow::update_partial_traffic_stats_db_dump() {
 
   last_db_dump.last_seen = get_last_seen();
 
-  return true;
+  return(true);
 }
 
 /* *************************************** */
@@ -4148,10 +4148,9 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 
 bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv) {
   FlowStatusMap status_map;
-  std::map<FlowLuaCall, struct timeval>::const_iterator it = performed_lua_calls.find(flow_lua_call);
-  bool found = it != performed_lua_calls.end();
   u_int32_t periodic_update_freq;
-
+  bool already_called = performed_lua_calls[flow_lua_call_periodic_update] ? true : false;
+  
   switch(flow_lua_call) {
   case flow_lua_call_flow_status_changed:
     getFlowStatus(&status_map);
@@ -4161,24 +4160,24 @@ bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *t
       /* Update the hosts status */
       if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
       if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
-      return false;
+      return(false);
     }
-
-    return true;
+    return(true);
+    
   case flow_lua_call_periodic_update:
     periodic_update_freq = iface->getFlowMaxIdle() * 5; /* 5 times the max flow idleness */
 
-    if(found)
+    if(already_called)
       /* Don't re-call it before the maximum flow lifetime */
-      return it->second.tv_sec + periodic_update_freq > tv->tv_sec;
+      return(performed_lua_calls[flow_lua_call_periodic_update] + periodic_update_freq > tv->tv_sec);
     else
       /* Call the first time only after getFlowMaxIdle() seconds have elapsed */
-      return get_duration() < periodic_update_freq;
+      return(get_duration() < periodic_update_freq);
   default:
     break;
   }
 
-  return found;
+  return(already_called);
 }
 
 /* ***************************************************** */
@@ -4527,10 +4526,9 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle) {
   const char *lua_call_fn_name = NULL;
   std::map<FlowLuaCall, struct timeval>::iterator it;
-
-  if(isLuaCallPerformed(flow_lua_call, tv)) {
-    return;
-  }
+  
+  if(isLuaCallPerformed(flow_lua_call, tv))
+    return;  
 
   if(!*acle
      && !(*acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, iface)))
@@ -4557,8 +4555,6 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, A
     break;
   }
 
-
-
   if(lua_call_fn_name) {
 #ifdef LUA_PROFILING
     for(int i = 0; i < 200000; i++) {
@@ -4574,10 +4570,7 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, A
 #endif
 
     /* Mark it as called */
-    if((it = performed_lua_calls.find(flow_lua_call)) != performed_lua_calls.end())
-      it->second = *tv;
-    else
-      performed_lua_calls.insert(make_pair(flow_lua_call, *tv));
+    performed_lua_calls[flow_lua_call] = tv->tv_sec;
   }
 }
 

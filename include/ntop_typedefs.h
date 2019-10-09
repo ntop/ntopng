@@ -376,10 +376,11 @@ typedef enum {
 } FlowStatus;
 
 typedef enum {
-  flow_lua_call_protocol_detected,
+  flow_lua_call_protocol_detected = 0,
   flow_lua_call_flow_status_changed,
   flow_lua_call_periodic_update,
   flow_lua_call_idle,
+  FLOW_LUA_CALL_MAX_VAL /* Leave it as last element */
 } FlowLuaCall;
 
 typedef u_int64_t FlowStatusMap;

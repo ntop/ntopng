@@ -348,7 +348,7 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                   -- no more hooks allowed
                   break
                elseif(rv.hooks[hook] == nil) then
-                  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unkown hook '%s' in module '%s'", hook, check_module.key))
+                  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, check_module.key))
                else
                   rv.hooks[hook][check_module.key] = hook_fn
                end
