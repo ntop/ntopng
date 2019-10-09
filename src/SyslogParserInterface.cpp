@@ -29,13 +29,28 @@
 /* **************************************************** */
 
 SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *custom_interface_type) : ParserInterface(endpoint, custom_interface_type) {
-
+  suricata_le = new SyslogLuaEngine("suricata", this);
 }
 
 /* **************************************************** */
 
 SyslogParserInterface::~SyslogParserInterface() {
+  if (suricata_le)
+    delete suricata_le;
+}
 
+/* **************************************************** */
+
+void SyslogParserInterface::handleAlertLua(SyslogLuaEngine *le, const char *alert) {
+  lua_State *L;
+
+  if (!le)
+    return;
+
+  L = le->getState();
+  lua_getglobal(L, SYSLOG_SCRIPT_CALLBACK_ALERT);
+  lua_pushstring(L, alert);
+  le->pcall(1 /* num args */, 0);
 }
 
 /* **************************************************** */
@@ -211,6 +226,10 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   enum json_tokener_error jerr = json_tokener_success;
   int num_flows = 0;
 
+#ifdef SYSLOG_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[SYSLOG] %s", log_line);
+#endif
+
   content = strstr(log_line, ": ");
 
   if(content == NULL)
@@ -268,6 +287,8 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 #ifdef SYSLOG_DEBUG
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Suricata] Alert JSON: %s", content);
 #endif
+
+        handleAlertLua(suricata_le, content);
 
         if(json_object_object_get_ex(o, "flow", &f)) {
           parseSuricataFlow(f, &flow);

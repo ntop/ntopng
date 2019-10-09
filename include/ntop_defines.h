@@ -891,6 +891,9 @@
 #define HOURLY_SCRIPT_PATH         "hourly.lua"
 #define DAILY_SCRIPT_PATH          "daily.lua"
 
+#define SYSLOG_SCRIPTS_PATH        "callbacks/syslog"
+#define SYSLOG_SCRIPT_CALLBACK_ALERT "handleAlert"
+
 /* GRE (Generic Route Encapsulation) */
 #ifndef IPPROTO_GRE
 #define IPPROTO_GRE 47

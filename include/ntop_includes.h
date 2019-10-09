@@ -280,6 +280,9 @@ using namespace std;
 #include "L4Stats.h"
 #include "AlertsQueue.h"
 #include "NetworkInterfaceTsPoint.h"
+#include "LuaEngine.h"
+#include "AlertCheckLuaEngine.h"
+#include "SyslogLuaEngine.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
@@ -341,8 +344,6 @@ using namespace std;
 #include "TimeseriesStats.h"
 #include "HostStats.h"
 #include "LocalHostStats.h"
-#include "LuaEngine.h"
-#include "AlertCheckLuaEngine.h"
 #include "PortContactStats.h"
 #include "Host.h"
 #include "LocalHost.h"
