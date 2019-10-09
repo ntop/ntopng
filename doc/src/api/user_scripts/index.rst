@@ -46,3 +46,4 @@ below.
     flow_hooks.rst
     traffic_element_hooks.rst
     alerts.rst
+    syslog.rst
