@@ -68,8 +68,15 @@ local benchmarks = {}
 
 function user_scripts.getSubdirectoryPath(script_type, subdir, is_pro)
   local prefix = ternary(is_pro, PRO_CALLBACKS_DIR, CALLBACKS_DIR)
+  local path
+  
+  if not isEmptyString(subdir) and subdir ~= "." then
+    path = string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir)
+  else
+    path = string.format("%s/%s", prefix, script_type.parent_dir)
+  end
 
-  return os_utils.fixPath(string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir))
+  return os_utils.fixPath(path)
 end
 
 -- ##############################################

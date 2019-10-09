@@ -8,7 +8,6 @@ require "lua_utils"
 require "alert_utils"
 local json = require ("dkjson")
 local alerts_api = require("alerts_api")
-local check_modules = require("check_modules")
 local alert_consts = require("alert_consts")
 
 local syslog_module = {
