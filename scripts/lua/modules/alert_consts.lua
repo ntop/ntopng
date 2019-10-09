@@ -1126,20 +1126,6 @@ alert_consts.alerts_granularities = {
 
 -- ################################################################################
 
-alert_consts.field_units = {
-  seconds = "field_units.seconds",
-  bytes = "field_units.bytes",
-  flows = "field_units.flows",
-  packets = "field_units.packets",
-  mbits = "field_units.mbits",
-  hosts = "field_units.hosts",
-  syn_sec = "field_units.syn_sec",
-  flow_sec = "field_units.flow_sec",
-  percentage = "field_units.percentage",
-}
-
--- ################################################################################
-
 alert_consts.ids_rule_maker = {
   GPL = "GPL",
   SURICATA = "Suricata",

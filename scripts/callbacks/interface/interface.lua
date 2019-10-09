@@ -8,7 +8,7 @@ require "lua_utils"
 require "alert_utils"
 
 local alerts_api = require("alerts_api")
-local check_modules = require("check_modules")
+local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 
 local do_trace      = false
@@ -23,7 +23,7 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the check modules
-   available_modules = check_modules.load(ifid, "interface", str_granularity)
+   available_modules = user_scripts.load(ifid, "interface", str_granularity)
 
    config_alerts = getInterfaceConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
 end

@@ -690,7 +690,7 @@
 #define FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME  "protocolDetected"
 #define FLOW_LUA_CALL_FLOW_STATUS_CHANGE_FN_NAME "statusChanged"
 #define FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME    "periodicUpdate"
-#define FLOW_LUA_CALL_IDLE_FN_NAME               "idle"
+#define FLOW_LUA_CALL_IDLE_FN_NAME               "flowEnd"
 
 /* Tiny Flows */
 #define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED        true  /* disabled by default */

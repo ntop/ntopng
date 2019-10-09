@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local alerts_api = require "alerts_api"
 local format_utils = require "format_utils"
-local check_modules = require "check_modules"
+local user_scripts = require "user_scripts"
 
 local flow_callbacks_utils = {}
 
@@ -162,7 +162,7 @@ function flow_callbacks_utils.print_callbacks_config()
    end
 
    local ifid = interface.getId()
-   local descr = check_modules.load(ifid, "flow", nil, true --[[ also return disabled ]])
+   local descr = user_scripts.load(ifid, "flow", nil, true --[[ also return disabled ]])
 
    print [[
 
@@ -177,10 +177,10 @@ function flow_callbacks_utils.print_callbacks_config()
 
          if(val ~= nil) then
             if(val == "on") then
-               check_modules.enableModule(ifid, "flow", mod_key)
+               user_scripts.enableModule(ifid, "flow", mod_key)
                check_module.enabled = true
             else
-               check_modules.disableModule(ifid, "flow", mod_key)
+               user_scripts.disableModule(ifid, "flow", mod_key)
                check_module.enabled = false
             end
          end

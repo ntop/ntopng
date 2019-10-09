@@ -4,6 +4,7 @@
 
 local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
+local user_scripts = require("user_scripts")
 local do_trace = false
 
 -- #################################################################
@@ -17,7 +18,7 @@ local check_module = {
    gui = {
       i18n_title = "flow_callbacks_config.blacklisted",
       i18n_description = "flow_callbacks_config.blacklisted_description",
-      input_builder = alerts_api.flow_checkbox_input_builder,
+      input_builder = user_scripts.flow_checkbox_input_builder,
    }
 }
 

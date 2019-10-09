@@ -2,7 +2,7 @@
 -- (C) 2019 - ntop.org
 --
 -- The functions below are called with a LuaC "flow" context set.
--- See check_modules.load() documentation for information
+-- See user_scripts.load() documentation for information
 -- on adding custom scripts.
 --
 
@@ -11,7 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
-local check_modules = require("check_modules")
+local user_scripts = require("user_scripts")
 
 if ntop.isPro() then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -140,7 +140,7 @@ function setup()
 
    -- Now that the metatable is in place, we can load all the custom
    -- flow check modules
-   available_modules = check_modules.load(interface.getId(), "flow")
+   available_modules = user_scripts.load(interface.getId(), "flow")
 end
 
 -- #################################################################
@@ -154,7 +154,7 @@ function teardown()
 
    if do_benchmark then
       -- If the benchmark is enabled, it's time to store it
-      check_modules.storeFlowBenchmarks(benchmarks)
+      user_scripts.storeFlowBenchmarks(benchmarks)
 
       if do_print_benchmark then
 	 -- Possibly print it to stdout
@@ -201,8 +201,8 @@ end
 
 -- #################################################################
 
-function idle()
-   return call_modules("idle")
+function flowEnd()
+   return call_modules("flowEnd")
 end
 
 -- #################################################################

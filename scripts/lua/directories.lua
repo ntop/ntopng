@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local page_utils = require "page_utils"
 local os_utils = require "os_utils"
-local check_modules = require "check_modules"
+local user_scripts = require "user_scripts"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -28,10 +28,10 @@ print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th nowrap rowspan=2>"..i18n("about.directories").."</th><td>"..i18n("about.data_directory").."</td><td>"..dirs.workingdir.."</td></tr>\n")
 print("<td>"..i18n("about.scripts_directory").."</td><td>"..dirs.scriptdir.."</td></tr>\n")
 
-print("<tr><th nowrap rowspan=4>"..i18n("about.callback_directories").."</th><td><a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?page=callbacks&tab=flows'>"..i18n("about.flow_callbacks_directory").."</a></td><td>".. check_modules.getSubdirectoryPath("flow") .."</td></tr>\n")
-print("<td>"..i18n("about.host_callbacks_directory").."</td><td>".. check_modules.getSubdirectoryPath("host") .."</td></tr>\n")
-print("<td>"..i18n("about.network_callbacks_directory").."</td><td>".. check_modules.getSubdirectoryPath("network") .."</td></tr>\n")
-print("<td>"..i18n("about.interface_callbacks_directory").."</td><td>".. check_modules.getSubdirectoryPath("interface") .."</td></tr>\n")
+print("<tr><th nowrap rowspan=4>"..i18n("about.callback_directories").."</th><td><a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?page=callbacks&tab=flows'>"..i18n("about.flow_callbacks_directory").."</a></td><td>".. user_scripts.getSubdirectoryPath("flow") .."</td></tr>\n")
+print("<td>"..i18n("about.host_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath("host") .."</td></tr>\n")
+print("<td>"..i18n("about.network_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath("network") .."</td></tr>\n")
+print("<td>"..i18n("about.interface_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath("interface") .."</td></tr>\n")
 
 print("</table>\n")
 

@@ -17,7 +17,7 @@ local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local alert_endpoints = require "alert_endpoints_utils"
 local flow_consts = require "flow_consts"
-local check_modules = require "check_modules"
+local user_scripts = require "user_scripts"
 
 local store_alerts_queue = "ntopng.alert_store_queue"
 local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
@@ -1055,7 +1055,7 @@ local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_ty
 
    -- Add defaults
    for modname, check_module in pairs(available_modules) do
-     local default_value = check_modules.getDefaultConfigValue(check_module, granularity)
+     local default_value = user_scripts.getDefaultConfigValue(check_module, granularity)
 
      if((res[global_key][modname] == nil) and (default_value ~= nil) and (not skip_defaults[modname])) then
        res[global_key][modname] = thresholdStr2Val(default_value)
@@ -1140,7 +1140,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       local to_save = false
 
       -- Needed to handle the defaults
-      local available_modules = check_modules.load(interface.getId(), entity_type, nil, true --[[ ignore disabled ]])
+      local available_modules = user_scripts.load(interface.getId(), entity_type, nil, true --[[ ignore disabled ]])
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          if _POST["to_delete"] == "local" then
@@ -1180,7 +1180,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             if global_value == "on" then global_value = "1" end
             global_value = tonumber(global_value)
 
-            local default_value = check_modules.getDefaultConfigValue(available_modules.modules[k], tab)
+            local default_value = user_scripts.getDefaultConfigValue(available_modules.modules[k], tab)
 
             if((global_value == nil) and (default_value ~= nil)) then
                -- save an empty value to differentiate it from the default
@@ -1288,7 +1288,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
               local k = prefix..key
               local value = vals[k]
 
-              if(check_module.gui.input_builder ~= alerts_api.threshold_cross_input_builder) then
+              if(check_module.gui.input_builder ~= user_scripts.threshold_cross_input_builder) then
                 -- Temporary fix to handle non-thresholds
                 k = "value_" .. k
 
