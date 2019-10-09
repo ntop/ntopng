@@ -26,84 +26,11 @@ local benchmarks = {}
 
 -- #################################################################
 
--- This function is called, for each module and for each callback
--- right before the actual callback call.
--- Benchmarks are stored in a lua table `benchmarks` which which contains
--- module names as keys and other tables as values. Each table contains
--- callback names as keys and another table as value. Example:
---
--- table
--- mud table
--- mud.protocolDetected table
--- mud.protocolDetected.elapsed number 0.00012199999991935
--- mud.protocolDetected.num number 2
--- mud.protocolDetected.begin number 1865.756381
---
--- In the example above:
--- `mud` is the module name
--- `protocolDetected` is the callback found inside script `mud.lua` which has been executed
--- `elapsed` is the sum of the time taken during each execution of `protocolDetected`
--- `num` is the number of times the callback has been executed
--- `begin` is just the os.clock() value computed during the call of `benchmark_begin` and used
---      by `benchmark_end` to compute the difference which will be added to `elapsed`
-local function benchmark_begin(mod_fn, mod_key)
-   if not do_benchmark then return end
-
-   if not benchmarks[mod_key] then
-      benchmarks[mod_key] = {}
-   end
-
-   if not benchmarks[mod_key][mod_fn] then
-      benchmarks[mod_key][mod_fn] = {num = 0, elapsed = 0}
-   end
-
-   benchmarks[mod_key][mod_fn]["begin"] = os.clock()
-end
-
--- #################################################################
-
--- This function is called, for each module and for each callback,
--- right after the actual callback.
--- It computes the delta between the os.clock() computed by `benchmark_begin` and
--- and the current os.clock() to determine the time, in milliseconds, it took for
--- a particular callback to execute.
--- Also the number of executed callbacks is counted so statistics such as the average
--- time per-callback can be computed.
-local function benchmark_end(mod_fn, mod_key)
-   if not do_benchmark then return end
-
-   if benchmarks[mod_key] and benchmarks[mod_key][mod_fn] then
-      local bend = os.clock()
-      local latest_elapsed = bend - benchmarks[mod_key][mod_fn]["begin"]
-
-      benchmarks[mod_key][mod_fn]["elapsed"] = benchmarks[mod_key][mod_fn]["elapsed"] + latest_elapsed
-      benchmarks[mod_key][mod_fn]["num"] = benchmarks[mod_key][mod_fn]["num"] + 1
-   end
-end
-
--- #################################################################
-
--- This function outputs the results of the benchmark to std output.
-local function print_benchmark()
-   if do_benchmark and do_print_benchmark then
-      for mod_k, modules in pairs(benchmarks) do
-	 for mod_fn, mod_benchmark in pairs(modules) do
-	    traceError(TRACE_NORMAL,TRACE_CONSOLE,
-		       string.format("%s() [check: %s][elapsed: %.2f][num: %u][avg: %.2f]\n",
-				     mod_fn, mod_k, mod_benchmark["elapsed"], mod_benchmark["num"],
-				     mod_benchmark["elapsed"] / mod_benchmark["num"]))
-	 end
-      end
-   end
-end
-
--- #################################################################
-
 -- The function below is called once (#pragma once)
 function setup()
    if do_trace then print("flow.lua:setup() called\n") end
 
-   available_modules = user_scripts.load(interface.getId(), "flow")
+   available_modules = user_scripts.load(interface.getId(), "flow", nil, nil, do_benchmark)
 end
 
 -- #################################################################
@@ -116,13 +43,7 @@ function teardown()
    end
 
    if do_benchmark then
-      -- If the benchmark is enabled, it's time to store it
-      user_scripts.storeFlowBenchmarks(benchmarks)
-
-      if do_print_benchmark then
-	 -- Possibly print it to stdout
-	 print_benchmark()
-      end
+      user_scripts.benchmark_dump(do_print_benchmark)
    end
 end
 
@@ -141,11 +62,9 @@ local function call_modules(mod_fn)
    for mod_key, hook_fn in pairs(available_modules.hooks[mod_fn]) do
       if do_trace then print(string.format("%s() [check: %s]: %s\n", mod_fn, mod_key, shortFlowLabel(info))) end
 
-      benchmark_begin(mod_fn, mod_key)
       hook_fn({
         flow_info = info
       })
-      benchmark_end(mod_fn, mod_key)
    end
 
 end

@@ -38,13 +38,14 @@ local function print_callbacks_config_tbody_simple_view(descr)
          print(check_module.gui.input_builder(check_module))
          print("</td>")
 
+
          if check_module.benchmark and table.len(check_module.benchmark) > 0 then
             local max_duration
 
             for mod_fn, mod_benchmark in pairsByKeys(check_module.benchmark, asc) do
                -- Just show the maximum duration among all available functions
-               if not max_duration or max_duration < mod_benchmark["elapsed"] then
-                  max_duration = mod_benchmark["elapsed"]
+               if not max_duration or max_duration < mod_benchmark["tot_elapsed"] then
+                  max_duration = mod_benchmark["tot_elapsed"]
                end
             end
 
@@ -114,7 +115,7 @@ local function print_callbacks_config_tbody_expert_view(descr)
          local num = 1
          if check_module.benchmark and table.len(check_module.benchmark) > 0 then
             for mod_fn, mod_benchmark in pairsByKeys(check_module.benchmark, asc) do
-               local avg_fps = mod_benchmark["num"] / mod_benchmark["elapsed"]
+               local avg_fps = mod_benchmark["tot_num_calls"] / mod_benchmark["tot_elapsed"]
 
                if avg_fps ~= avg_fps or not avg_fps or avg_fps < 0.01 then
                   avg_fps = "< 0.01"
@@ -130,8 +131,8 @@ local function print_callbacks_config_tbody_expert_view(descr)
                print(string.format("%s %s </td><td align='center'>%s</td><td align='center'>%s</td><td align='right'>%s %s<br>%s",
                                    trtd,
                                    mod_fn,
-                                   format_utils.secondsToTime(mod_benchmark["elapsed"]),
-                                   format_utils.formatValue(mod_benchmark["num"]),
+                                   format_utils.secondsToTime(mod_benchmark["tot_elapsed"]),
+                                   format_utils.formatValue(mod_benchmark["tot_num_calls"]),
                                    avg_fps,
                                    i18n("flow_callbacks.callback_elapsed_time_avg"),
                                    slash_tdtr))

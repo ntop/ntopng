@@ -35,6 +35,27 @@ local PERIODIC_HOOKS = {"min", "5mins", "hour", "day"}
 
 -- ##############################################
 
+-- Table to keep per-subdir then per-module then per-hook benchmarks
+--
+-- The structure is the following
+--
+-- table
+-- flow table
+-- flow.mud table
+-- flow.mud.protocolDetected table
+-- flow.mud.protocolDetected.tot_elapsed number 0.00031600000000021
+-- flow.mud.protocolDetected.tot_num_calls number 4
+-- flow.score table
+-- flow.score.protocolDetected table
+-- flow.score.protocolDetected.tot_elapsed number 0.00013700000000005
+-- flow.score.protocolDetected.tot_num_calls number 4
+-- flow.score.statusChanged table
+-- flow.score.statusChanged.tot_elapsed number 0
+-- flow.score.statusChanged.tot_num_calls number 0
+local benchmarks = {}
+
+-- ##############################################
+
 function user_scripts.getSubdirectoryPath(subdir)
   return os_utils.fixPath(CHECK_MODULES_BASEDIR .. "/" .. subdir)
 end
@@ -73,43 +94,6 @@ end
 
 -- ##############################################
 
-local function flow_user_scripts_benchmarks_key(mod_k)
-   local ifid = interface.getId()
-
-   return string.format("ntopng.cache.ifid_%d.flow_user_scripts_benchmarks.mod_%s", ifid, mod_k)
-end
-
--- ##############################################
-
--- Load previous benchmark infor
-local function getFlowBenchmarks(mod_k)
-   local k = flow_user_scripts_benchmarks_key(mod_k)
-   -- ntop.delCache(k)
-   local res = ntop.getHashAllCache(k)
-
-   for mod_fn, benchmark in pairs(res or {}) do
-      res[mod_fn] = json.decode(benchmark)
-   end
-
-   return res
-end
-
--- ##############################################
-
--- @brief Save flow.lua benchmarks results
-function user_scripts.storeFlowBenchmarks(benchmarks)
-   for mod_k, modules in pairs(benchmarks or {}) do
-      local k = flow_user_scripts_benchmarks_key(mod_k)
-
-
-      for mod_fn, mod_benchmark in pairs(modules) do
-         ntop.setHashCache(k, mod_fn, json.encode(mod_benchmark))
-      end
-   end
-end
-
--- ##############################################
-
 -- @brief Get the default configuration value for the given check module
 -- and granularity.
 -- @param check_module a check_module returned by user_scripts.load
@@ -127,13 +111,124 @@ end
 
 -- ##############################################
 
+-- @brief Wrap any hook function to compute its execution time which is then added
+-- to the benchmarks table.
+--
+-- @param subdir the modules subdir
+-- @param mod_k the key of the user script
+-- @param hook the name of the hook in the user script
+-- @param hook_fn the hook function in the user script
+--
+-- @return function(...) wrapper ready to be called for the execution of hook_fn
+local function benchmark_hook_fn(subdir, mod_k, hook, hook_fn)
+   return function(...)
+      local start  = os.clock()
+      local result = {hook_fn(...)}
+      local finish = os.clock()
+      local elapsed = finish - start
+
+      -- Update benchmark results by addin a function call and the elapsed time of this call
+      benchmarks[subdir][mod_k][hook]["tot_num_calls"] = benchmarks[subdir][mod_k][hook]["tot_num_calls"] + 1
+      benchmarks[subdir][mod_k][hook]["tot_elapsed"] = benchmarks[subdir][mod_k][hook]["tot_elapsed"] + elapsed
+
+      -- traceError(TRACE_NORMAL,TRACE_CONSOLE, string.format("[%s][elapsed: %.2f][tot_elapsed: %.2f][tot_num_calls: %u]",
+      --							   hook, elapsed,
+      --							   benchmarks[subdir][mod_k][hook]["tot_elapsed"],
+      --							   benchmarks[subdir][mod_k][hook]["tot_num_calls"]))
+
+      return table.unpack(result)
+   end
+end
+
+-- ##############################################
+
+-- @brief Initializes benchmark facilities for any hook function
+--
+-- @param subdir the modules subdir
+-- @param mod_k the key of the user script
+-- @param hook the name of the hook in the user script
+-- @param hook_fn the hook function in the user script
+--
+-- @return function(...) wrapper ready to be called for the execution of hook_fn
+local function benchmark_init(subdir, mod_k, hook, hook_fn)
+   -- Prepare the benchmark table fo the hook_fn which is being benchmarked
+   if not benchmarks[subdir] then
+      benchmarks[subdir] = {}
+   end
+
+   if not benchmarks[subdir][mod_k] then
+      benchmarks[subdir][mod_k] = {}
+   end
+
+   if not benchmarks[subdir][mod_k][hook] then
+      benchmarks[subdir][mod_k][hook] = {tot_num_calls = 0, tot_elapsed = 0}
+   end
+
+   -- Finally prepare and return the hook_fn wrapped with benchmark facilities
+   return benchmark_hook_fn(subdir, mod_k, hook, hook_fn)
+end
+
+-- ##############################################
+
+local function user_scripts_benchmarks_key(subdir, mod_k)
+   local ifid = interface.getId()
+
+   return string.format("ntopng.cache.ifid_%d.flow_user_scripts_benchmarks.subdir_%s.mod_%s", ifid, subdir, mod_k)
+end
+
+-- ##############################################
+
+-- @brief Save benchmarks results and possibly print them to stdout
+--
+-- @param to_stdout dump results also to stdout
+function user_scripts.benchmark_dump(to_stdout)
+   for subdir, check_modules in pairs(benchmarks) do
+      for mod_k, hooks in pairs(check_modules) do
+	 local k = user_scripts_benchmarks_key(subdir, mod_k)
+
+	 for hook, hook_benchmark in pairs(hooks) do
+	    if hook_benchmark["tot_num_calls"] > 0 then
+	       ntop.setHashCache(k, hook, json.encode(hook_benchmark))
+
+	       if to_stdout then
+		  traceError(TRACE_NORMAL,TRACE_CONSOLE,
+			     string.format("[%s] %s() [check: %s][elapsed: %.4f][num: %u][speed: %.4f]\n",
+					   subdir, hook, mod_k, hook_benchmark["tot_elapsed"], hook_benchmark["tot_num_calls"],
+					   hook_benchmark["tot_elapsed"] / hook_benchmark["tot_num_calls"]))
+	       end
+	    end
+	 end
+      end
+   end
+end
+
+-- ##############################################
+
+-- @brief Load benchmarks results 
+--
+-- @param subdir the modules subdir
+-- @param mod_k the key of the user script
+local function benchmark_load(subdir, mod_k)
+   local k = user_scripts_benchmarks_key(subdir, mod_k)
+   local res = ntop.getHashAllCache(k)
+
+   for hook, hook_benchmark in pairs(res or {}) do
+      res[hook] = json.decode(hook_benchmark)
+   end
+
+   return res
+end
+
+-- ##############################################
+
 -- @brief Load the check modules.
--- @params ifid the interface ID
--- @params subdir the modules subdir
--- @params hook_filter if non nil, only load the check modules for the specified hook
--- @params ignore_disabled if true, also returns disabled check modules
+-- @param ifid the interface ID
+-- @param subdir the modules subdir
+-- @param hook_filter if non nil, only load the check modules for the specified hook
+-- @param ignore_disabled if true, also returns disabled check modules
+-- @param do_benchmark if true, computes benchmarks for every hook
 -- @return {modules = key->check_module, hooks = check_module->function}
-function user_scripts.load(ifid, subdir, hook_filter, ignore_disabled)
+function user_scripts.load(ifid, subdir, hook_filter, ignore_disabled, do_benchmark)
    local rv = {modules = {}, hooks = {}}
    local is_nedge = ntop.isnEdge()
 
@@ -219,10 +314,16 @@ function user_scripts.load(ifid, subdir, hook_filter, ignore_disabled)
                goto next_module
             end
 
-            check_module["benchmark"] = getFlowBenchmarks(check_module.key)
+	    -- load previously computed benchmarks (if any)
+	    -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
+	    check_module["benchmark"] = benchmark_load(subdir, check_module.key)
 
             -- Populate hooks fast lookup table
             for hook, hook_fn in pairs(check_module.hooks) do
+	       if do_benchmark then
+		  hook_fn = benchmark_init(subdir, check_module.key, hook, hook_fn)
+	       end
+
                if(hook == "all") then
                   -- Register for all the hooks
                   for _, hook in pairs(available_hooks) do
