@@ -85,7 +85,6 @@ if not hosts_only then
    -- there's a dot then we're sure it can't be a mac
    if ntop.isEnterprise() and not query:find("%.") then
       local mac = string.upper(query)
-      local devices = get_snmp_devices()
       local matches = find_mac_snmp_ports(mac, true)
       cur_results = 0
 
@@ -102,8 +101,39 @@ if not hosts_only then
          local title = get_localized_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = snmp_port_name})
 
          results[#results + 1] = {
-	    name = matching_mac .. ' '..title, type = "snmp",
-	    ip = snmp_device_ip, snmp_port_idx = snmp_port_idx}
+            type = "snmp",
+	    name = matching_mac .. ' '..title,
+	    ip = snmp_device_ip, 
+            snmp_port_idx = snmp_port_idx
+         }
+         cur_results = cur_results + 1
+      end
+   end
+
+   -- Look by SNMP interface name
+   if ntop.isEnterprise() then
+      local name = string.upper(query)
+      local matches = find_snmp_ports_by_name(name, true)
+      cur_results = 0
+
+      for _, snmp_port in ipairs(matches) do
+         if cur_results >= max_group_items or #results >= max_total_items then
+	    break
+         end
+
+         local snmp_device_ip = snmp_port["snmp_device_ip"]
+         local snmp_port_idx = snmp_port["id"]
+         local snmp_port_name = snmp_port["name"]
+         local snmp_port_index_match = snmp_port["index_match"]
+
+         local title = get_localized_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = ternary(snmp_port_index_match, nil, snmp_port_name) })
+
+         results[#results + 1] = {
+            type = "snmp",
+	    name = title,
+	    ip = snmp_device_ip, 
+            snmp_port_idx = snmp_port_idx
+         }
          cur_results = cur_results + 1
       end
    end
@@ -111,7 +141,6 @@ if not hosts_only then
    -- Look by SNMP device
    if ntop.isEnterprise() then
       local name = string.upper(query)
-      local devices = get_snmp_devices()
       local matches = find_snmp_devices(name, true)
       cur_results = 0
 
@@ -120,14 +149,10 @@ if not hosts_only then
 	    break
          end
 
-         -- snmp_device["ip"]
-         -- snmp_device["name"]
-         -- snmp_device["community"]
-
          local title = get_snmp_device_label(snmp_device["ip"])
          results[#results + 1] = {
-	    name = title.." ["..i18n("snmp.snmp_device").."]", 
             type = "snmp_device",
+	    name = title.." ["..i18n("snmp.snmp_device").."]", 
 	    ip = snmp_device["ip"]
          }
          cur_results = cur_results + 1
