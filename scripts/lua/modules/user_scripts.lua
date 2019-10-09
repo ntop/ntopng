@@ -25,13 +25,23 @@ user_scripts.field_units = {
   percentage = "field_units.percentage",
 }
 
-local CHECK_MODULES_BASEDIR = dirs.installdir .. "/scripts/callbacks/interface"
-local CHECK_MODULES_PRO_BASEDIR = dirs.installdir .. "/pro/scripts/callbacks/interface"
+local CALLBACKS_DIR = dirs.installdir .. "/scripts/callbacks"
+local PRO_CALLBACKS_DIR = dirs.installdir .. "/pro/scripts/callbacks"
 
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
-local FLOW_HOOKS = {"protocolDetected", "statusChanged", "flowEnd", "periodicUpdate"}
-local PERIODIC_HOOKS = {"min", "5mins", "hour", "day"}
+user_scripts.script_types = {
+  flow = {
+    parent_dir = "interface",
+    hooks = {"protocolDetected", "statusChanged", "flowEnd", "periodicUpdate"},
+  }, traffic_element = {
+    parent_dir = "interface",
+    hooks = {"min", "5mins", "hour", "day"},
+  }, syslog = {
+    parent_dir = "syslog",
+    hooks = {"handleEvent"},
+  }
+}
 
 -- ##############################################
 
@@ -56,8 +66,10 @@ local benchmarks = {}
 
 -- ##############################################
 
-function user_scripts.getSubdirectoryPath(subdir)
-  return os_utils.fixPath(CHECK_MODULES_BASEDIR .. "/" .. subdir)
+function user_scripts.getSubdirectoryPath(script_type, subdir, is_pro)
+  local prefix = ternary(is_pro, PRO_CALLBACKS_DIR, CALLBACKS_DIR)
+
+  return os_utils.fixPath(string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir))
 end
 
 -- ##############################################
@@ -222,35 +234,32 @@ end
 -- ##############################################
 
 -- @brief Load the check modules.
--- @param ifid the interface ID
--- @param subdir the modules subdir
--- @param hook_filter if non nil, only load the check modules for the specified hook
--- @param ignore_disabled if true, also returns disabled check modules
+-- @params script_type one of user_scripts.script_types
+-- @params ifid the interface ID
+-- @params subdir the modules subdir
+-- @params hook_filter if non nil, only load the check modules for the specified hook
+-- @params ignore_disabled if true, also returns disabled check modules
 -- @param do_benchmark if true, computes benchmarks for every hook
 -- @return {modules = key->check_module, hooks = check_module->function}
-function user_scripts.load(ifid, subdir, hook_filter, ignore_disabled, do_benchmark)
+function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabled, do_benchmark)
    local rv = {modules = {}, hooks = {}}
    local is_nedge = ntop.isnEdge()
 
    local check_dirs = {
-      CHECK_MODULES_BASEDIR .. "/" .. subdir,
-      CHECK_MODULES_BASEDIR .. "/" .. subdir .. "/alerts",
+      user_scripts.getSubdirectoryPath(script_type, subdir),
+      user_scripts.getSubdirectoryPath(script_type, subdir) .. "/alerts",
    }
 
    if ntop.isPro() then
-      check_dirs[#check_dirs + 1] = CHECK_MODULES_PRO_BASEDIR .. "/" .. subdir
-      check_dirs[#check_dirs + 1] = CHECK_MODULES_PRO_BASEDIR .. "/" .. subdir .. "/alerts"
+      check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]])
+      check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]]) .. "/alerts"
    end
 
-   -- Load hook table keys
-   local available_hooks = ternary(subdir == "flow", FLOW_HOOKS, PERIODIC_HOOKS)
-
-   for _, hook in pairs(available_hooks) do
+   for _, hook in pairs(script_type.hooks) do
       rv.hooks[hook] = {}
    end
 
    for _, checks_dir in pairs(check_dirs) do
-      checks_dir = os_utils.fixPath(checks_dir)
       package.path = checks_dir .. "/?.lua;" .. package.path
 
       local is_alert_path = string.ends(checks_dir, "alerts")
@@ -326,7 +335,7 @@ function user_scripts.load(ifid, subdir, hook_filter, ignore_disabled, do_benchm
 
                if(hook == "all") then
                   -- Register for all the hooks
-                  for _, hook in pairs(available_hooks) do
+                  for _, hook in pairs(script_type.hooks) do
                      rv.hooks[hook][check_module.key] = hook_fn
                   end
 

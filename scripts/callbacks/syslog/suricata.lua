@@ -11,7 +11,10 @@ local alerts_api = require("alerts_api")
 local check_modules = require("check_modules")
 local alert_consts = require("alert_consts")
 
-local syslog_module = {}
+local syslog_module = {
+  key = "suricata",
+  hooks = {},
+}
 
 -- #################################################################
 
@@ -23,7 +26,7 @@ end
 -- #################################################################
 
 -- The function below is called for each received alert
-function syslog_module.handleEvent(message)
+function syslog_module.hooks.handleEvent(message)
    -- Example: printing the Suricata alert
    -- local alert = json.decode(message)
    -- if alert ~= nil then

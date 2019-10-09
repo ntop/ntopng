@@ -1140,7 +1140,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       local to_save = false
 
       -- Needed to handle the defaults
-      local available_modules = user_scripts.load(interface.getId(), entity_type, nil, true --[[ ignore disabled ]])
+      local available_modules = user_scripts.load(user_scripts.script_types.traffic_element, interface.getId(), entity_type, nil, true --[[ ignore disabled ]])
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          if _POST["to_delete"] == "local" then

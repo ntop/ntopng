@@ -23,7 +23,7 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the threshold checking functions
-   available_modules = user_scripts.load(ifid, "network", str_granularity)
+   available_modules = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "network", str_granularity)
 
    config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
 end

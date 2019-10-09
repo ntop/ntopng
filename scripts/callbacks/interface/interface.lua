@@ -23,7 +23,7 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the check modules
-   available_modules = user_scripts.load(ifid, "interface", str_granularity)
+   available_modules = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "interface", str_granularity)
 
    config_alerts = getInterfaceConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
 end

@@ -26,7 +26,7 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the threshold checking functions
-   available_modules = user_scripts.load(ifid, "host", str_granularity)
+   available_modules = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "host", str_granularity)
 
    config_alerts_local = getLocalHostsConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
    config_alerts_remote = getRemoteHostsConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)

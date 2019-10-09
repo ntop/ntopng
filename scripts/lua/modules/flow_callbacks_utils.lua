@@ -163,7 +163,7 @@ function flow_callbacks_utils.print_callbacks_config()
    end
 
    local ifid = interface.getId()
-   local descr = user_scripts.load(ifid, "flow", nil, true --[[ also return disabled ]])
+   local descr = user_scripts.load(user_scripts.script_types.flow, ifid, "flow", nil, true --[[ also return disabled ]])
 
    print [[
 

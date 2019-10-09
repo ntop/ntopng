@@ -30,7 +30,7 @@ local benchmarks = {}
 function setup()
    if do_trace then print("flow.lua:setup() called\n") end
 
-   available_modules = user_scripts.load(interface.getId(), "flow", nil, nil, do_benchmark)
+   available_modules = user_scripts.load(user_scripts.script_types.flow, interface.getId(), "flow", nil, nil, do_benchmark)
 end
 
 -- #################################################################
