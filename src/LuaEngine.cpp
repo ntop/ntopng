@@ -35,7 +35,6 @@ extern "C" {
 };
 
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } }; /* TODO remove */
-static Mutex rrd_lock;
 static int live_extraction_num = 0;
 static Mutex live_extraction_num_lock;
 
@@ -4278,7 +4277,6 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
 */
 
 static void reset_rrd_state(void) {
-  // rrd_lock.lock(__FILE__, __LINE__);
   optind = 0;
   opterr = 0;
   rrd_clear_error();
@@ -4641,7 +4639,6 @@ static int ntop_rrd_create(lua_State* vm) {
     chmod(filename, CONST_DEFAULT_FILE_MODE);
   }
 
-  // rrd_lock.unlock(__FILE__, __LINE__);
   return(CONST_LUA_OK);
 }
 
@@ -4706,12 +4703,9 @@ static int ntop_rrd_update(lua_State* vm) {
     } else
       lua_pushnil(vm);
 
-    // rrd_lock.unlock(__FILE__, __LINE__);
-
     free(buf);
     return(CONST_LUA_OK);
   }
-  // rrd_lock.unlock(__FILE__, __LINE__);
 
   return(CONST_LUA_ERROR);
 }
@@ -4727,14 +4721,12 @@ static int ntop_rrd_get_lastupdate(const char *filename, time_t *last_update, un
   status = rrd_lastupdate_r(filename, last_update, ds_count, &ds_names, &last_ds);
 
   if(status != 0) {
-    // rrd_lock.unlock(__FILE__, __LINE__);
     return(-1);
   } else {
     for(i = 0; i < *ds_count; i++)
       free(last_ds[i]), free(ds_names[i]);
 
     free(last_ds), free(ds_names);
-    // rrd_lock.unlock(__FILE__, __LINE__);
     return(0);
   }
 }
@@ -4795,7 +4787,6 @@ static int ntop_rrd_tune(lua_State* vm) {
 
   free(argv);
 
-  // rrd_lock.unlock(__FILE__, __LINE__);
   return(CONST_LUA_OK);
 }
 
@@ -4879,7 +4870,6 @@ static int ntop_rrd_fetch(lua_State* vm) {
   reset_rrd_state();
 
   if((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK) {
-    // rrd_lock.unlock(__FILE__, __LINE__);
     return status;
   }
 
@@ -4957,7 +4947,6 @@ static int ntop_rrd_fetch(lua_State* vm) {
   }
 
   rrd_freemem(data);
-  // rrd_lock.unlock(__FILE__, __LINE__);
 
   /* return the end as the last value */
   lua_pushinteger(vm, (lua_Integer) end);
@@ -4997,7 +4986,6 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 
   if((status = __ntop_rrd_args(vm, &filename,
 			       &cf, &start, &end)) != CONST_LUA_OK) {
-    // rrd_lock.unlock(__FILE__, __LINE__);
     return status;
   }
 
@@ -5008,7 +4996,6 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 					     &end, &step, &ds_cnt,
 					     &names, &data), filename,
 				 cf)) != CONST_LUA_OK) {
-    // rrd_lock.unlock(__FILE__, __LINE__);
     return status;
   }
 
@@ -5044,7 +5031,6 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
   /* end and npoints as last values */
   lua_pushinteger(vm, (lua_Integer) end);
   lua_pushinteger(vm, (lua_Integer) npoints);
-  // rrd_lock.unlock(__FILE__, __LINE__);
 
   /* number of return values */
   return(5);
