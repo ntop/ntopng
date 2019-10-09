@@ -2,7 +2,17 @@
 'use strict';
 
 function intoSequence(n) {
-    return Array.from(Array(n).keys());
+    if((Array.prototype.from) && (Array.prototype.keys)) {
+        // Not compatible with IE9
+        return Array.from(Array(n).keys());
+    } else {
+        var arr = Array(n);
+
+        for(i=0; i<n; i++)
+            arr[i] = i;
+
+        return(arr);
+    }
 }
 
 var _math = {};
