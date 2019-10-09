@@ -19,7 +19,7 @@ end
 
 local do_benchmark = true          -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
-local do_trace = true              -- Trace lua calls
+local do_trace = false             -- Trace lua calls
 
 local available_modules = nil
 local benchmarks = {}
