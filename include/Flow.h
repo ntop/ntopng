@@ -242,25 +242,6 @@ class Flow : public GenericHashEntry {
   bool isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv);
   void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle);
 
-  void lua_get_status(lua_State* vm) const;
-  void lua_get_protocols(lua_State* vm) const;
-  void lua_get_bytes(lua_State* vm) const;
-  void lua_get_dir_traffic(lua_State* vm, bool cli2srv) const;
-  void lua_get_dir_iat(lua_State* vm, bool cli2srv) const;
-  void lua_get_packets(lua_State* vm) const;
-  void lua_get_throughput(lua_State* vm) const;
-  void lua_get_time(lua_State* vm) const;
-  void lua_get_ip(lua_State *vm, bool client) const;
-  void lua_get_info(lua_State *vm, bool client) const;
-  void lua_get_ssl_info(lua_State *vm) const;
-  void lua_get_ssh_info(lua_State *vm) const;
-  void lua_get_http_info(lua_State *vm) const;
-  void lua_get_dns_info(lua_State *vm) const;
-  void lua_get_icmp_info(lua_State *vm) const;
-  void lua_get_tcp_info(lua_State *vm) const;
-  void lua_get_port(lua_State *vm, bool client) const;
-  void lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_city) const;
-
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -449,9 +430,27 @@ class Flow : public GenericHashEntry {
 		       Host *srv, u_int16_t srv_port,
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
-  static void luaMethodNamesToIds(lua_State* vm);
-  bool lua(lua_State* vm, FlowLuaMethod flm) const;
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
+  
+  void lua_get_status(lua_State* vm) const;
+  void lua_get_protocols(lua_State* vm) const;
+  void lua_get_bytes(lua_State* vm) const;
+  void lua_get_dir_traffic(lua_State* vm, bool cli2srv) const;
+  void lua_get_dir_iat(lua_State* vm, bool cli2srv) const;
+  void lua_get_packets(lua_State* vm) const;
+  void lua_get_throughput(lua_State* vm) const;
+  void lua_get_time(lua_State* vm) const;
+  void lua_get_ip(lua_State *vm, bool client) const;
+  void lua_get_info(lua_State *vm, bool client) const;
+  void lua_get_ssl_info(lua_State *vm) const;
+  void lua_get_ssh_info(lua_State *vm) const;
+  void lua_get_http_info(lua_State *vm) const;
+  void lua_get_dns_info(lua_State *vm) const;
+  void lua_get_icmp_info(lua_State *vm) const;
+  void lua_get_tcp_info(lua_State *vm) const;
+  void lua_get_port(lua_State *vm, bool client) const;
+  void lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_city) const;
+
   bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,

@@ -382,32 +382,6 @@ typedef enum {
   flow_lua_call_idle,
 } FlowLuaCall;
 
-typedef enum {
-  flow_lua_method_get_status = 0,
-  flow_lua_method_get_protocols,
-  flow_lua_method_get_bytes,
-  flow_lua_method_get_cli2srv_traffic,
-  flow_lua_method_get_srv2cli_traffic,
-  flow_lua_method_get_cli2srv_iat,
-  flow_lua_method_get_srv2cli_iat,
-  flow_lua_method_get_packets,
-  flow_lua_method_get_time,
-  flow_lua_method_get_cli_ip,
-  flow_lua_method_get_srv_ip,
-  flow_lua_method_get_cli_info,
-  flow_lua_method_get_srv_info,
-  flow_lua_method_get_ssl_info,
-  flow_lua_method_get_ssh_info,
-  flow_lua_method_get_http_info,
-  flow_lua_method_get_dns_info,
-  flow_lua_method_get_icmp_info,
-  flow_lua_method_get_tcp_info,
-  flow_lua_method_get_cli_port,
-  flow_lua_method_get_srv_port,
-  flow_lua_method_get_cli_geoloc,
-  flow_lua_method_get_srv_geoloc,
-} FlowLuaMethod;
-
 typedef u_int64_t FlowStatusMap;
 
 typedef enum {
