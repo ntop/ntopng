@@ -23,11 +23,12 @@
 
 /* ****************************************** */
 
-SyslogLuaEngine::SyslogLuaEngine(const char *script_name,  NetworkInterface *iface) : LuaEngine() {
+SyslogLuaEngine::SyslogLuaEngine(NetworkInterface *iface) : LuaEngine() {
   initialized = false;
 
-  snprintf(script_path, sizeof(script_path), "%s/%s/%s.lua",
-	   ntop->getPrefs()->get_scripts_dir(), SYSLOG_SCRIPTS_PATH, script_name);
+  snprintf(script_path, sizeof(script_path), "%s/%s",
+	   ntop->getPrefs()->get_scripts_dir(), 
+	   SYSLOG_SCRIPT_PATH);
 
   ntop->fixPath(script_path);
 
@@ -39,9 +40,9 @@ SyslogLuaEngine::SyslogLuaEngine(const char *script_name,  NetworkInterface *ifa
   initialized = true;
 
   /* Calling setup() */
-  lua_getglobal(L, "setup");      /* Called function   */
-  lua_pushstring(L, script_name); /* push 1st argument */
-  pcall(1 /* 1 argument */, 0);
+  lua_getglobal(L, "setup");
+  if (lua_isfunction(L, -1))
+    pcall(0 /* no argument */, 0);
 }
 
 /* ****************************************** */
@@ -51,9 +52,9 @@ SyslogLuaEngine::~SyslogLuaEngine() {
     return;
 
   /* Calling teardown() */
-  lua_getglobal(L, "teardown"); /* Called function */
+  lua_getglobal(L, "teardown");
   if (lua_isfunction(L, -1))
-    pcall(0 /* 1 argument */, 0);
+    pcall(0 /* no argument */, 0);
 }
 
 /* ****************************************** */
@@ -69,3 +70,14 @@ bool SyslogLuaEngine::pcall(int num_args, int num_results) {
 
   return true;
 }
+
+/* **************************************************** */
+
+void SyslogLuaEngine::handleEvent(const char *application, const char *message) {
+  lua_State *L = getState();
+  lua_getglobal(L, SYSLOG_SCRIPT_CALLBACK_EVENT);
+  lua_pushstring(L, application);
+  lua_pushstring(L, message);
+  pcall(2 /* num args */, 0);
+}
+

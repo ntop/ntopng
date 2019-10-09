@@ -27,11 +27,13 @@ class SyslogLuaEngine : public LuaEngine {
   char script_path[MAX_PATH];
   bool initialized;
 
+  bool pcall(int num_args, int num_results);
+
  public:
-  SyslogLuaEngine(const char *script_name,  NetworkInterface *iface);
+  SyslogLuaEngine(NetworkInterface *iface);
   virtual ~SyslogLuaEngine();
 
-  bool pcall(int num_args, int num_results);
+  void handleEvent(const char *application, const char *message);
 };
 
 #endif
