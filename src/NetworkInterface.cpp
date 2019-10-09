@@ -1820,7 +1820,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
       if(flow->hasDissectedTooManyPackets()) {
-	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1), false);
+	u_int8_t proto_guessed;
+	
+	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1, &proto_guessed ), false);
       } else {
 	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
 								ip, trusted_ip_len, (u_int32_t)packet_time,
@@ -5425,9 +5427,12 @@ void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_
 
 static void guess_all_ndpi_protocols_walker(Flow *flow, NetworkInterface *iface) {
   if(iface->get_ndpi_struct() && flow->get_ndpi_flow()) {
-    if(!flow->isDetectionCompleted())
-      flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1), true);
-
+    if(!flow->isDetectionCompleted()) {
+      u_int8_t proto_guessed;
+      
+      flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1, &proto_guessed), true);
+    }
+    
     /* Ensure that the callbacks are called. Normally processFullyDissectedProtocol
      * sould not be called because the detection of the flow is not completed yet. */
     flow->processDetectedProtocol();
