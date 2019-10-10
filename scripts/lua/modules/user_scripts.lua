@@ -493,4 +493,19 @@ end
 
 -- ##############################################
 
+-- @brief Teardown function, to be called at the end of the VM
+function user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
+   for _, check in pairs(available_modules.modules) do
+      if check.teardown then
+         check.teardown()
+      end
+   end
+
+   if do_benchmark then
+      user_scripts.benchmark_dump(do_print_benchmark)
+   end
+end
+
+-- ##############################################
+
 return(user_scripts)
