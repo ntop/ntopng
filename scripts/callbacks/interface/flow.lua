@@ -106,15 +106,15 @@ local function call_modules(l4_proto, mod_fn)
       return
    end
 
-   -- TODO too expensive, remove
-   local info = flow.getInfo()
+   local params = {
+      -- Flow specific information
+      flow_info = flow.getInfo(), -- TODO too expensive, remove
+   }
 
    for mod_key, hook_fn in pairs(hooks) do
       if do_trace then print(string.format("%s() [check: %s]: %s\n", mod_fn, mod_key, shortFlowLabel(info))) end
 
-      hook_fn({
-        flow_info = info
-      })
+      hook_fn(params)
    end
 end
 

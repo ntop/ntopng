@@ -254,6 +254,7 @@ end
 function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabled, do_benchmark)
    local rv = {modules = {}, hooks = {}}
    local is_nedge = ntop.isnEdge()
+   local alerts_disabled = (not areAlertsEnabled())
 
    local check_dirs = {
       user_scripts.getSubdirectoryPath(script_type, subdir),
@@ -309,6 +310,10 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
             -- Augument with additional attributes
             check_module.enabled = user_scripts.isEnabled(ifid, subdir, check_module.key)
             check_module.is_alert = is_alert_path
+
+            if(alerts_disabled and check_module.is_alert) then
+               goto next_module
+            end
 
             if((not check_module.enabled) and (not ignore_disabled)) then
                traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping disabled module '%s'", check_module.key))

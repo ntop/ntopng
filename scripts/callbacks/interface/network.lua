@@ -68,8 +68,17 @@ function checkAlerts(granularity)
       for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
         local check = available_modules.modules[mod_key]
         local config = network_config[check.key] or global_config[check.key]
+        local do_call
 
-        if((config or check.always_enabled) and (not check.is_alert or not suppressed_alerts)) then
+        if(check.is_alert) then
+          -- Alert modules are only called if there is a configuration defined or always_enabled is set
+          do_call = ((not suppressed_alerts) and (config or check.always_enabled))
+        else
+          -- always call non alert scripts. available_modules does not contain scripts disabled by the user
+          do_call = true
+        end
+
+        if(do_call) then
            hook_fn({
               granularity = granularity,
               alert_entity = entity_info,
