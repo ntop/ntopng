@@ -37,7 +37,7 @@ class ZMQParserInterface : public ParserInterface {
 #ifdef NTOPNG_PRO
   CustomAppMaps *custom_app_maps;
 #endif
-  void preprocessFlow(ParsedFlow *flow, NetworkInterface *iface);
+  void preprocessFlow(ParsedFlow *flow);
   bool getKeyId(char *sym, u_int32_t sym_len, u_int32_t * const pen, u_int32_t * const field) const;
   void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
   bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
@@ -46,8 +46,8 @@ class ZMQParserInterface : public ParserInterface {
   bool matchPENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   static bool parseContainerInfo(json_object *jo, ContainerInfo * const container_info);
   bool parseNProbeAgentField(ParsedFlow * const flow, const char * const key, ParsedValue *value, json_object * const jvalue) const;
-  void parseSingleJSONFlow(json_object *o, u_int8_t source_id, NetworkInterface *iface);
-  int parseSingleTLVFlow(ndpi_deserializer *deserializer, u_int8_t source_id, NetworkInterface *iface);
+  void parseSingleJSONFlow(json_object *o, u_int8_t source_id);
+  int parseSingleTLVFlow(ndpi_deserializer *deserializer, u_int8_t source_id);
   void setFieldMap(const ZMQ_FieldMap * const field_map) const;
   void setFieldValueMap(const ZMQ_FieldValueMap * const field_value_map) const;
 
@@ -60,7 +60,7 @@ class ZMQParserInterface : public ParserInterface {
 
   bool matchField(ParsedFlow * const flow, const char * const key, ParsedValue * value);
 
-  u_int8_t parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id);
   u_int8_t parseTLVFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseEvent(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data);

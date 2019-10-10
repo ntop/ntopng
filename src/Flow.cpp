@@ -4566,7 +4566,8 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, A
 #else
     /* Call the function */
     lua_getglobal(L, lua_call_fn_name); /* Called function */
-    (*acle)->pcall(0 /* 0 arguments */, 0 /* 0 results */);
+    lua_pushinteger(L, protocol);  /* pass the L4 protocol as first argument, needed for optimized L4 filter */
+    (*acle)->pcall(1 /* 1 arguments */, 0 /* 0 results */);
 #endif
 
     /* Mark it as called */

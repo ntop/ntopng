@@ -29,8 +29,8 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   http_url = http_site = http_method = NULL;
   dns_query = ssl_server_name = NULL;
   ja3c_hash = ja3s_hash = NULL;
-  suricata_alert = NULL;
-  suricata_alert_severity = 255;
+  external_alert = NULL;
+  external_alert_severity = 255;
 
   ssl_cipher = ssl_unsafe_cipher = http_ret_code = 0;
   dns_query_type = dns_ret_code = 0;
@@ -57,9 +57,9 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
   if(pf.bittorrent_hash) bittorrent_hash = strdup(pf.bittorrent_hash); else bittorrent_hash = NULL;
   if(pf.ja3c_hash) ja3c_hash = strdup(pf.ja3c_hash); else ja3c_hash = NULL;
   if(pf.ja3s_hash) ja3s_hash = strdup(pf.ja3s_hash); else ja3s_hash = NULL;
-  if(pf.suricata_alert) suricata_alert = strdup(pf.suricata_alert); else suricata_alert = NULL;
+  if(pf.external_alert) external_alert = strdup(pf.external_alert); else external_alert = NULL;
 
-  suricata_alert_severity = pf.suricata_alert_severity;
+  external_alert_severity = pf.external_alert_severity;
 
   ssl_cipher = pf.ssl_cipher;
   ssl_unsafe_cipher = pf.ssl_unsafe_cipher;
@@ -69,6 +69,104 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
 
   memcpy(&custom_app, &pf.custom_app, sizeof(custom_app));
   has_parsed_ebpf = pf.has_parsed_ebpf;
+}
+
+/* *************************************** */
+
+void ParsedFlow::fromLua(lua_State *L, int index) {
+  lua_pushnil(L);
+
+  while(lua_next(L, index) != 0) {
+      const char *key = lua_tostring(L, -2);
+      int t = lua_type(L, -1);
+
+      switch(t) {
+      case LUA_TSTRING:
+	if(!strcmp(key, "src_ip")) {
+           src_ip.set(lua_tostring(L, -1));
+	} else if(!strcmp(key, "dst_ip")) {
+           dst_ip.set(lua_tostring(L, -1));
+	} else if(!strcmp(key, "http_method")) {
+          if(http_method) free(http_method);
+          http_method = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "http_site")) {
+          if(http_site) free(http_site);
+          http_site = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "http_url")) {
+          if(http_url) free(http_url);
+          http_url = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "ssl_server_name")) {
+          if(ssl_server_name) free(ssl_server_name);
+          ssl_server_name = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "dns_query")) {
+          if(dns_query) free(dns_query);
+          dns_query = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "ja3c_hash")) {
+          if(ja3c_hash) free(ja3c_hash);
+          ja3c_hash = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "ja3s_hash")) {
+          if(ja3s_hash) free(ja3s_hash);
+          ja3s_hash = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "external_alert")) {
+	  if(external_alert) free(external_alert);
+	  external_alert = strdup(lua_tostring(L, -1));
+	} else {
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for %s", lua_tostring(L, -1), key);
+        }
+	break;
+
+      case LUA_TNUMBER:
+	if(!strcmp(key, "vlan_id"))
+	  vlan_id = lua_tonumber(L, -1);
+	else if(!strcmp(key, "version"))
+	  version = htons(lua_tonumber(L, -1));
+	else if(!strcmp(key, "src_port"))
+	  src_port = htons(lua_tonumber(L, -1));
+	else if(!strcmp(key, "dst_port"))
+	  dst_port = htons(lua_tonumber(L, -1));
+	else if(!strcmp(key, "l4_proto"))
+	  l4_proto = lua_tonumber(L, -1);
+	else if(!strcmp(key, "tcp_flags"))
+	  tcp.tcp_flags = htons(lua_tonumber(L, -1));
+	else if(!strcmp(key, "direction"))
+	  direction = htons(lua_tonumber(L, -1));
+	else if(!strcmp(key, "first_switched"))
+	  first_switched = lua_tonumber(L, -1);
+	else if(!strcmp(key, "last_switched"))
+	  last_switched = lua_tonumber(L, -1);
+	else if(!strcmp(key, "in_pkts"))
+	  in_pkts = lua_tonumber(L, -1);
+	else if(!strcmp(key, "in_bytes"))
+	  in_bytes = lua_tonumber(L, -1);
+	else if(!strcmp(key, "out_pkts"))
+	  out_pkts = lua_tonumber(L, -1);
+	else if(!strcmp(key, "out_bytes"))
+	  out_bytes = lua_tonumber(L, -1);
+	else if(!strcmp(key, "app_protocol"))
+	  l7_proto.app_protocol = lua_tonumber(L, -1);
+	else if(!strcmp(key, "dns_query_type"))
+	  dns_query_type = lua_tonumber(L, -1);
+	else if(!strcmp(key, "dns_ret_code"))
+	  dns_ret_code = lua_tonumber(L, -1);
+	else if(!strcmp(key, "http_ret_code"))
+	  http_ret_code = lua_tonumber(L, -1);
+	else if(!strcmp(key, "external_alert_severity"))
+	  external_alert_severity = lua_tonumber(L, -1);
+	else
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for %s", lua_tonumber(L, -1), key);
+	break;
+
+      case LUA_TBOOLEAN:
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid bool type for %s", key);
+	break;
+
+      default:
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: type %d not handled", t);
+	break;
+      }
+
+    lua_pop(L, 1);
+  }
 }
 
 /* *************************************** */
@@ -90,7 +188,7 @@ ParsedFlow::~ParsedFlow() {
   if(bittorrent_hash) free(bittorrent_hash);
   if(ja3c_hash) free(ja3c_hash);
   if(ja3s_hash) free(ja3s_hash);
-  if(suricata_alert) free(suricata_alert);
+  if(external_alert) free(external_alert);
 }
 
 /* *************************************** */

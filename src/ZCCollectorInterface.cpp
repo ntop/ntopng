@@ -98,7 +98,7 @@ void ZCCollectorInterface::collect_flows() {
 	parseEvent((char*)json, buffer->len, 0, (void*)this);
       } else {
 	json[buffer->len] = '\0';
-	parseJSONFlow((char*)json, buffer->len, 0, (void*)this);
+	parseJSONFlow((char*)json, buffer->len, 0);
       }
       // fprintf(stdout, "."); fflush(stdout);
     } else if(rc == 0) {

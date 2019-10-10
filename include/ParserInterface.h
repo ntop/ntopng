@@ -36,6 +36,8 @@ class ParserInterface : public NetworkInterface {
   ParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ParserInterface();
 
+  void processFlow(ParsedFlow *zflow);
+
   void deliverFlowToCompanions(ParsedFlow * const flow);
   inline bool companionsEnabled() { return num_companion_interfaces > 0; };
 };
