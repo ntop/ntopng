@@ -26,6 +26,18 @@ local benchmarks = {}
 
 -- #################################################################
 
+local function addL4Callaback(l4_proto, hook_name, script_key, callback)
+   local l4_scripts = available_modules.l4_hooks[l4_proto]
+
+   if(l4_scripts == nil) then
+      l4_scripts = {}
+      available_modules.l4_hooks[l4_proto] = l4_scripts
+   end
+
+   l4_scripts[hook_name] = l4_scripts[hook_name] or {}
+   l4_scripts[hook_name][script_key] = callback
+end
+
 -- The function below is called once (#pragma once)
 function setup()
    if do_trace then print("flow.lua:setup() called\n") end
@@ -40,32 +52,26 @@ function setup()
       -- available_modules.l4_hooks
       for script_key, callback in pairs(hooks) do
          local script = available_modules.modules[script_key]
-         local l4_proto
-         local l4_scripts
 
          if(script.l4_proto ~= nil) then
-            l4_proto = l4_proto_to_id(script.l4_proto)
+            local l4_proto = l4_proto_to_id(script.l4_proto)
+
+            if(l4_proto == nil) then
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Unknown l4_proto '%s' in module '%s', skipping", script.l4_proto, script_key))
+            else
+               addL4Callaback(l4_proto, hook_name, script_key, callback)
+            end
          else
             -- No l4 filter is active for the specified module
-            l4_proto = 255 -- "any" L4 proto
+            -- Attach the protocol to all the L4 protocols
+            for _, l4_proto in pairs(l4_keys) do
+               local l4_proto = l4_proto[3]
+
+               if(l4_proto > 0) then
+                  addL4Callaback(l4_proto, hook_name, script_key, callback)
+               end
+            end
          end
-
-         if(l4_proto == nil) then
-            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Unknown l4_proto '%s' in module '%s', skipping", script.l4_proto, script_key))
-            goto continue
-         end
-
-         l4_scripts = available_modules.l4_hooks[l4_proto]
-
-         if(l4_scripts == nil) then
-            l4_scripts = {}
-            available_modules.l4_hooks[l4_proto] = l4_scripts
-         end
-
-         l4_scripts[hook_name] = l4_scripts[hook_name] or {}
-         l4_scripts[hook_name][script_key] = callback
-
-         ::continue::
       end
    end
 end
@@ -120,26 +126,22 @@ end
 -- the hooks registered for any L4 protocol (id 255)
 function protocolDetected(l4_proto)
    call_modules(l4_proto, "protocolDetected")
-   call_modules(255, "protocolDetected")
 end
 
 -- #################################################################
 
 function statusChanged(l4_proto)
    call_modules(l4_proto, "statusChanged")
-   call_modules(255, "protocolDetected")
 end
 
 -- #################################################################
 
 function flowEnd(l4_proto)
    call_modules(l4_proto, "flowEnd")
-   call_modules(255, "protocolDetected")
 end
 
 -- #################################################################
 
 function periodicUpdate(l4_proto)
    call_modules(l4_proto, "periodicUpdate")
-   call_modules(255, "protocolDetected")
 end
