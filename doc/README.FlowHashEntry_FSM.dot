@@ -1,0 +1,18 @@
+# dot -T png README.FlowHashEntry_FSM.dot -o flow.png
+
+digraph finite_state_machine {
+  rankdir=LR;
+#  size="8,5"
+  node [shape = circle];
+
+  Allocated -> NotYetDetected [ label = "UDP Only: immediate state transition" ];
+  Allocated -> ProtocolDetected [ label = "No TCP/UDP (e.g. ICMP)" ];
+  Allocated-> NotYetDetected [ label = "TCP Only: when 3WH is completed" ];
+  NotYetDetected -> ProtocolDetected [ label = "When nDPI detectes the application protocol, or after too many pkts "];
+  Allocated -> ProtocolDetected [ label = "TCP Only: when 3WH is not completed but a FIN/RST has been observed. All: after 5 sec" ];
+  ProtocolDetected -> Active [ label = "Lua Callback: protocolDetected" ];
+  Active -> Active [ label = "Lua Callback: periodicUpdate (every 5 min), statusChange (only if the status changes)" ];
+  Active -> Idle [ label = "TCP:FIN/RST+duration >= 15 sec, last_seen >= 1 min" ];
+  Idle -> ReadyToBePurged [ label = ">= 24 sec since last packet seen, Lua Callback: flowEnd" ];
+  ReadyToBePurged -> Deleted [ label = "Removed from memory (no Lua Callback)" ];
+}

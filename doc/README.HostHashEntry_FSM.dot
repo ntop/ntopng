@@ -1,0 +1,12 @@
+# dot -T png README.HostHashEntry_FSM.dot -o host.png
+
+digraph finite_state_machine {
+  rankdir=LR;
+#  size="8,5"
+  node [shape = circle];
+
+  Active -> Active [ label = "Lua Callbacks: min, 5min, hour, day" ];
+  Active -> Idle [ label = "When entry becomes idle: No callbacks" ];
+  Idle -> ReadyToBePurged [ label = ">= 5 sec since idle. Internal callback: hostEnd (no user calleable)" ];
+  ReadyToBePurged -> Deleted [ label = ">= 5 sec since ReadyToBePurged" ];
+}
