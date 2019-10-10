@@ -1,8 +1,8 @@
 Syslog Scripts
 ##############
 
-Syslog scripts are used to handle syslog events and ingest data, including alerts,
-from external sources (alerts from Intrusion Detection Systems is an example).
+Syslog scripts are used to handle syslog events and ingest data, including 
+flows and alerts, from external sources (e.g. alerts from Intrusion Detection Systems).
 
 Scripts Location
 ----------------
@@ -25,8 +25,8 @@ A syslog module shoule implement the below functions:
 Script Example
 --------------
 
-Here is a sample script `suricata.lua` processing alerts from Suricata, exported
-to syslog in JSON format.
+Here is a sample script `suricata.lua` processing log messages from Suricata, 
+exported to syslog in Eve JSON format.
 
 .. code:: lua
 
@@ -57,5 +57,3 @@ to syslog in JSON format.
    end
    
    return syslog_module
-
-
