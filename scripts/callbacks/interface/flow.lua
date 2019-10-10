@@ -94,17 +94,17 @@ end
 
 -- Function for the actual module execution. Iterates over available (and enabled)
 -- modules, calling them one after one.
--- @param l4_filter the L4 protocol filter
+-- @param l4_proto the L4 protocol of the flow
 -- @param mod_fn the callback to call
-local function call_modules(l4_filter, mod_fn)
-   local hooks = available_modules.l4_hooks[l4_filter]
+local function call_modules(l4_proto, mod_fn)
+   local hooks = available_modules.l4_hooks[l4_proto]
 
    if(hooks ~= nil) then
       hooks = hooks[mod_fn]
    end
 
    if(hooks == nil) then
-      if do_trace then print(string.format("No flow.lua modules, skipping %s(%d) for %s\n", mod_fn, l4_filter, shortFlowLabel(flow.getInfo()))) end
+      if do_trace then print(string.format("No flow.lua modules, skipping %s(%d) for %s\n", mod_fn, l4_proto, shortFlowLabel(flow.getInfo()))) end
       return
    end
 

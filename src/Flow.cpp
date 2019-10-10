@@ -4149,7 +4149,7 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv) {
   FlowStatusMap status_map;
   u_int32_t periodic_update_freq;
-  bool already_called = performed_lua_calls[flow_lua_call_periodic_update] ? true : false;
+  bool already_called = performed_lua_calls[flow_lua_call] ? true : false;
   
   switch(flow_lua_call) {
   case flow_lua_call_flow_status_changed:
@@ -4169,7 +4169,7 @@ bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *t
 
     if(already_called)
       /* Don't re-call it before the maximum flow lifetime */
-      return(performed_lua_calls[flow_lua_call_periodic_update] + periodic_update_freq > tv->tv_sec);
+      return(performed_lua_calls[flow_lua_call] + periodic_update_freq > tv->tv_sec);
     else
       /* Call the first time only after getFlowMaxIdle() seconds have elapsed */
       return(get_duration() < periodic_update_freq);
