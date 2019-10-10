@@ -450,6 +450,33 @@ static int ntop_get_max_if_speed(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_process_flow(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) 
+    return(CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) != LUA_TTABLE) 
+    return(CONST_LUA_ERROR);
+
+  if(!dynamic_cast<ParserInterface*>(ntop_interface))
+    return(CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TTABLE) {
+    ParserInterface *ntop_parser_interface = dynamic_cast<ParserInterface*>(ntop_interface);
+    ParsedFlow flow;
+    flow.fromLua(vm, 1);
+    ntop_parser_interface->processFlow(&flow);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_get_active_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats ndpi_stats;
@@ -9874,6 +9901,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "deleteHostData",           ntop_interface_delete_host_data },
   { "resetMacStats",            ntop_interface_reset_mac_stats },
   { "deleteMacData",            ntop_interface_delete_mac_data },
+
+  { "processFlow",              ntop_process_flow },
 
   { "getActiveFlowsStats",      ntop_get_active_flows_stats },
   { "getnDPIProtoName",         ntop_get_ndpi_protocol_name },

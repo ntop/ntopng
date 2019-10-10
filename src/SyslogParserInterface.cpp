@@ -191,8 +191,8 @@ void SyslogParserInterface::parseSuricataAlert(json_object *a, ParsedFlow *flow,
     }
 
     if (companionsEnabled()) {
-      flow->suricata_alert = strdup(json_object_to_json_string(a));
-      flow->suricata_alert_severity = severity;
+      flow->external_alert = strdup(json_object_to_json_string(a));
+      flow->external_alert_severity = severity;
       deliverFlowToCompanions(flow);
     }
 

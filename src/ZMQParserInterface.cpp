@@ -915,7 +915,7 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
 
 /* **************************************************** */
 
-void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *iface) {
+void ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
   time_t now = time(NULL);
   bool invalid_flow = false;
 
@@ -965,8 +965,8 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
       flow->pkt_sampling_rate = 1;
 
     /* We need to fix the clock drift */
-    if(iface->getTimeLastPktRcvdRemote() > 0) {
-      int drift = now - iface->getTimeLastPktRcvdRemote();
+    if(getTimeLastPktRcvdRemote() > 0) {
+      int drift = now - getTimeLastPktRcvdRemote();
 
       if(drift >= 0)
 	flow->last_switched += drift, flow->first_switched += drift;
@@ -982,13 +982,13 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
 				   "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
 				   flow->first_switched,  flow->last_switched,
 				   flow->last_switched-flow->first_switched, drift,
-				   now, iface->getTimeLastPktRcvdRemote());
+				   now, getTimeLastPktRcvdRemote());
 #endif
     } else {
       /* Old nProbe */
 
-      if(!iface->getTimeLastPktRcvd())
-        iface->setTimeLastPktRcvd(now);
+      if(!getTimeLastPktRcvd())
+        setTimeLastPktRcvd(now);
 
       /* NOTE: do not set TimeLastPktRcvdRemote here as doing so will trigger the
        * drift calculation above on next flows, leading to incorrect timestamps.
@@ -997,23 +997,15 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow, NetworkInterface *ifac
 
     /* Process Flow */
     PROFILING_SECTION_ENTER("processFlow", 30);
-    iface->processFlow(flow);
+    processFlow(flow);
     PROFILING_SECTION_EXIT(30);
-
-    /* Deliver eBPF info to companion queues */
-    if(flow->process_info_set || 
-        flow->container_info_set || 
-        flow->tcp_info_set) {
-      deliverFlowToCompanions(flow);
-    }
   }
 }
 
 /* **************************************************** */
 
 void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
-					     u_int8_t source_id,
-					     NetworkInterface *iface) {
+					     u_int8_t source_id) {
   ParsedFlow flow;
   struct json_object_iterator it = json_object_iter_begin(o);
   struct json_object_iterator itEnd = json_object_iter_end(o);
@@ -1126,14 +1118,13 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
     json_object_iter_next(&it);
   } // while json_object_iter_equal
 
-  preprocessFlow(&flow, iface);
+  preprocessFlow(&flow);
 }
 
 /* **************************************************** */
 
 int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
-					   u_int8_t source_id,
-					   NetworkInterface *iface) {
+					   u_int8_t source_id) {
   ndpi_serialization_type kt, et;
   ParsedFlow flow;
   int ret = 0, rc;
@@ -1321,7 +1312,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
   PROFILING_SECTION_EXIT(9); /* Closes Decode TLV */
   PROFILING_SECTION_ENTER("processFlow", 10);
-  preprocessFlow(&flow, iface);
+  preprocessFlow(&flow);
   PROFILING_SECTION_EXIT(10);
 
  error:
@@ -1330,10 +1321,9 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id) {
   json_object *f;
   enum json_tokener_error jerr = json_tokener_success;
-  NetworkInterface *iface = (NetworkInterface*)data;
 
 #if 0
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", payload, strlen(payload));
@@ -1350,11 +1340,11 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
       int id, num_elements = json_object_array_length(f);
 
       for(id = 0; id < num_elements; id++)
-	parseSingleJSONFlow(json_object_array_get_idx(f, id), source_id, iface);
+	parseSingleJSONFlow(json_object_array_get_idx(f, id), source_id);
 
       rc = num_elements;
     } else {
-      parseSingleJSONFlow(f, source_id, iface);
+      parseSingleJSONFlow(f, source_id);
       rc = 1;
     }
 
@@ -1383,7 +1373,6 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
 u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   ndpi_deserializer deserializer;
   ndpi_serialization_type kt;
-  NetworkInterface *iface = (NetworkInterface *) data;
   int rc;
 
   rc = ndpi_init_deserializer_buf(&deserializer, (u_int8_t *) payload, payload_size);
@@ -1403,7 +1392,7 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payloa
    
   rc = 0;
   while(ndpi_deserialize_get_item_type(&deserializer, &kt) != ndpi_serialization_unknown) {
-    if(parseSingleTLVFlow(&deserializer, source_id, iface) != 0)
+    if(parseSingleTLVFlow(&deserializer, source_id) != 0)
       break;
     rc++;
   }
@@ -1447,7 +1436,6 @@ bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * con
 u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
-  NetworkInterface * iface = (NetworkInterface*)data;
   sFlowInterfaceStats stats;
 
   // payload[payload_size] = '\0';
@@ -1495,7 +1483,7 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
     } // while json_object_iter_equal
 
     /* Process Flow */
-    iface->processInterfaceStats(&stats);
+    processInterfaceStats(&stats);
 
     json_object_put(o);
   } else {

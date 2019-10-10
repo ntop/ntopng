@@ -265,7 +265,7 @@ class NetworkInterface : public AlertableEntity {
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
   bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa) const;
-  void pollQueuedeBPFEvents();
+  void pollQueuedeCompanionEvents();
 
  public:
   /**
@@ -448,7 +448,6 @@ class NetworkInterface : public AlertableEntity {
 		     const u_char *packet,
 		     u_int16_t *ndpiProtocol,
 		     Host **srcHost, Host **dstHost, Flow **flow);
-  void processFlow(ParsedFlow *zflow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Paginator *p);
   virtual u_int32_t periodicStatsUpdateFrequency();
