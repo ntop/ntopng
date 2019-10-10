@@ -7,7 +7,7 @@ local user_scripts = require("user_scripts")
 
 -- #################################################################
 
-local check_module = {
+local script = {
    key = "mud",
 
    -- NOTE: hooks defined below
@@ -22,16 +22,16 @@ local check_module = {
 
 -- #################################################################
 
-function check_module.setup()
+function script.setup()
   return(mud_utils.isMUDRecordingEnabled(interface.getId()))
 end
 
 -- #################################################################
 
-function check_module.hooks.protocolDetected(params)
+function script.hooks.protocolDetected(params)
   mud_utils.handleFlow(params.flow_info)
 end
 
 -- #################################################################
 
-return check_module
+return script

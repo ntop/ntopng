@@ -85,7 +85,7 @@ function checkAlerts(granularity)
               alert_entity = entity_info,
               entity_info = info,
               alert_config = config,
-              check_module = check,
+              user_script = check,
            })
         end
       end

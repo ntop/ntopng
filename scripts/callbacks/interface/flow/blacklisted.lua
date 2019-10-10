@@ -9,7 +9,7 @@ local do_trace = false
 
 -- #################################################################
 
-local check_module = {
+local script = {
    key = "blacklisted",
 
    -- NOTE: hooks defined below
@@ -24,13 +24,13 @@ local check_module = {
 
 -- #################################################################
 
-function check_module.setup()
+function script.setup()
    return false -- TODO: activate when migration to lua flow alerts completed
 end
 
 -- #################################################################
 
-function check_module.hooks.protocolDetected(flow_info)
+function script.hooks.protocolDetected(flow_info)
    if flow_info["cli.blacklisted"] or flow_info["srv.blacklisted"] then
       alerts_api.storeFlowAlert(alert_consts.alert_types.flow_blacklisted, alert_consts.alert_severities.error, flow_info)
    end
@@ -38,4 +38,4 @@ end
 
 -- #################################################################
 
-return check_module
+return script

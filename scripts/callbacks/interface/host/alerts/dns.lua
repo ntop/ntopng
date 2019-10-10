@@ -5,7 +5,7 @@
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
-local check_module = {
+local script = {
   key = "dns",
   local_only = true,
 
@@ -23,10 +23,10 @@ local check_module = {
 
 -- #################################################################
 
-function check_module.get_threshold_value(granularity, info)
-  return alerts_api.host_delta_val(check_module.key, granularity, alerts_api.application_bytes(info, "DNS"))
+function script.get_threshold_value(granularity, info)
+  return alerts_api.host_delta_val(script.key, granularity, alerts_api.application_bytes(info, "DNS"))
 end
 
 -- #################################################################
 
-return check_module
+return script

@@ -4,14 +4,14 @@
 
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
-local check_module
+local script
 
 -- #################################################################
 
 local function check_ghost_networks(params)
   for domain, domain_info in pairs(params.entity_info.bcast_domains or {}) do
     if(domain_info.ghost_network) then
-      local key = params.check_module.key .. "__" .. domain
+      local key = params.script.key .. "__" .. domain
       local delta_hits = alerts_api.interface_delta_val(key, params.granularity, domain_info.hits)
       local ghost_network_type = alerts_api.ghostNetworkType(domain, params.granularity)
 
@@ -26,7 +26,7 @@ end
 
 -- #################################################################
 
-check_module = {
+script = {
   key = "ghost_networks",
   always_enabled = true,
 
@@ -37,4 +37,4 @@ check_module = {
 
 -- #################################################################
 
-return check_module
+return script

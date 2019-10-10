@@ -1054,8 +1054,8 @@ local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_ty
    res[global_key] = res[global_key] or {}
 
    -- Add defaults
-   for modname, check_module in pairs(available_modules) do
-     local default_value = user_scripts.getDefaultConfigValue(check_module, granularity)
+   for modname, user_script in pairs(available_modules) do
+     local default_value = user_scripts.getDefaultConfigValue(user_script, granularity)
 
      if((res[global_key][modname] == nil) and (default_value ~= nil) and (not skip_defaults[modname])) then
        res[global_key][modname] = thresholdStr2Val(default_value)
@@ -1162,8 +1162,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
     end
 
          -- TODO refactor this into the threshold cross checker
-         for _, check_module in pairs(available_modules.modules) do
-            k = check_module.key
+         for _, user_script in pairs(available_modules.modules) do
+            k = user_script.key
             value    = _POST["value_"..k]
             operator = _POST["op_"..k] or "gt"
             if value == "on" then value = "1" end
@@ -1254,17 +1254,17 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-      for _, check_module in pairsByKeys(available_modules.modules, asc) do
-        local key = check_module.key
-        local gui_conf = check_module.gui
+      for _, user_script in pairsByKeys(available_modules.modules, asc) do
+        local key = user_script.key
+        local gui_conf = user_script.gui
    local show_input = true
 
-   if check_module.granularity then
+   if user_script.granularity then
       -- check if the check is performed and thus has to
       -- be configured at this granularity
       show_input = false
 
-      for _, gran in pairs(check_module.granularity) do
+      for _, gran in pairs(user_script.granularity) do
          if gran == tab then
        show_input = true
        break
@@ -1272,7 +1272,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       end
    end
 
-   if(check_module.local_only and options.remote_host) then
+   if(user_script.local_only and options.remote_host) then
     show_input = false
    end
 
@@ -1284,11 +1284,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
 
          for _, prefix in pairs({"", "global_"}) do
-            if check_module.gui.input_builder then
+            if user_script.gui.input_builder then
               local k = prefix..key
               local value = vals[k]
 
-              if(check_module.gui.input_builder ~= user_scripts.threshold_cross_input_builder) then
+              if(user_script.gui.input_builder ~= user_scripts.threshold_cross_input_builder) then
                 -- Temporary fix to handle non-thresholds
                 k = "value_" .. k
 
@@ -1299,16 +1299,16 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
               print("</td><td>")
 
-              print(check_module.gui.input_builder(check_module.gui or {}, k, value))
+              print(user_script.gui.input_builder(user_script.gui or {}, k, value))
             end
          end
 	 print("</td><td align='center'>\n")
 
-	 if check_module.benchmark and (check_module.benchmark[tab] or check_module.benchmark["all"]) then
-	    local hook = ternary(check_module.benchmark[tab], tab, "all")
+	 if user_script.benchmark and (user_script.benchmark[tab] or user_script.benchmark["all"]) then
+	    local hook = ternary(user_script.benchmark[tab], tab, "all")
 
-	    if check_module.benchmark[hook]["tot_elapsed"] then
-	       print(string.format(format_utils.secondsToTime(check_module.benchmark[hook]["tot_elapsed"])))
+	    if user_script.benchmark[hook]["tot_elapsed"] then
+	       print(string.format(format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"])))
 	    end
 	 end
 

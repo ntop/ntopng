@@ -934,16 +934,16 @@ end
 -- A user script (see user_scripts.lua) must implement:
 --   get_threshold_value(granularity, entity_info)
 --   A function, which returns the current value to be compared agains the threshold
--- The check_module may implement an additional threshold_type_builder function which
+-- The user_script may implement an additional threshold_type_builder function which
 -- which returns a type_info. Check alerts_api.thresholdCrossType for the threshold_type_builder signature.
 function alerts_api.threshold_check_function(params)
   local alarmed = false
-  local value = params.check_module.get_threshold_value(params.granularity, params.entity_info)
+  local value = params.user_script.get_threshold_value(params.granularity, params.entity_info)
   local threshold_config = params.alert_config
 
   local threshold_edge = tonumber(threshold_config.edge)
-  local threshold_builder = ternary(params.check_module.threshold_type_builder, params.check_module.threshold_type_builder, alerts_api.thresholdCrossType)
-  local threshold_type = threshold_builder(params.granularity, params.check_module.key, value, threshold_config.operator, threshold_edge)
+  local threshold_builder = ternary(params.user_script.threshold_type_builder, params.user_script.threshold_type_builder, alerts_api.thresholdCrossType)
+  local threshold_type = threshold_builder(params.granularity, params.user_script.key, value, threshold_config.operator, threshold_edge)
 
   if(threshold_config.operator == "lt") then
     if(value < threshold_edge) then alarmed = true end
@@ -961,12 +961,12 @@ end
 -- ##############################################
 
 -- An alert check function which checks for anomalies.
--- The check_module key is the type of the anomaly to check.
--- The check_module must implement a anomaly_type_builder(anomaly_key) function
+-- The user_script key is the type of the anomaly to check.
+-- The user_script must implement a anomaly_type_builder(anomaly_key) function
 -- which returns a type_info for the given anomaly.
 function alerts_api.anomaly_check_function(params)
-  local anomal_key = params.check_module.key
-  local type_info = params.check_module.anomaly_type_builder(anomal_key)
+  local anomal_key = params.user_script.key
+  local type_info = params.user_script.anomaly_type_builder(anomal_key)
 
   if params.entity_info.anomalies[anomal_key] then
     return alerts_api.trigger(params.alert_entity, type_info)

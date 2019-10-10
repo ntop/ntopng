@@ -5,7 +5,7 @@
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
-local check_module = {
+local script = {
   key = "syn_flood_victim",
   threshold_type_builder = alerts_api.synFloodType,
   default_value = "syn_flood_victim;gt;50",
@@ -27,10 +27,10 @@ local check_module = {
 
 -- #################################################################
 
-function check_module.get_threshold_value(granularity, info)
+function script.get_threshold_value(granularity, info)
   return(info["hits.syn_flood_victim"] or 0)
 end
 
 -- #################################################################
 
-return check_module
+return script

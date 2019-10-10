@@ -115,17 +115,17 @@ end
 
 -- @brief Get the default configuration value for the given check module
 -- and granularity.
--- @param check_module a check_module returned by user_scripts.load
+-- @param user_script a user_script returned by user_scripts.load
 -- @param granularity_str the target granularity
 -- @return nil if there is not default value, the given value otherwise
-function user_scripts.getDefaultConfigValue(check_module, granularity_str)
-  if((check_module.default_values ~= nil) and (check_module.default_values[granularity_str] ~= nil)) then
+function user_scripts.getDefaultConfigValue(user_script, granularity_str)
+  if((user_script.default_values ~= nil) and (user_script.default_values[granularity_str] ~= nil)) then
     -- granularity specific default
-    return(check_module.default_values[granularity_str])
+    return(user_script.default_values[granularity_str])
   end
 
   -- global default
-  return(check_module.default_value)
+  return(user_script.default_value)
 end
 
 -- ##############################################
@@ -201,8 +201,8 @@ end
 --
 -- @param to_stdout dump results also to stdout
 function user_scripts.benchmark_dump(to_stdout)
-   for subdir, check_modules in pairs(benchmarks) do
-      for mod_k, hooks in pairs(check_modules) do
+   for subdir, modules in pairs(benchmarks) do
+      for mod_k, hooks in pairs(modules) do
 	 for hook, hook_benchmark in pairs(hooks) do
 	    if hook_benchmark["tot_num_calls"] > 0 then
 	       local k = user_scripts_benchmarks_key(subdir, mod_k, hook)
@@ -250,7 +250,7 @@ end
 -- @params hook_filter if non nil, only load the check modules for the specified hook
 -- @params ignore_disabled if true, also returns disabled check modules
 -- @param do_benchmark if true, computes benchmarks for every hook
--- @return {modules = key->check_module, hooks = check_module->function}
+-- @return {modules = key->user_script, hooks = user_script->function}
 function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabled, do_benchmark)
    local rv = {modules = {}, hooks = {}}
    local is_nedge = ntop.isnEdge()
@@ -278,100 +278,100 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
       for fname in pairs(ntop.readdir(checks_dir)) do
          if ends(fname, ".lua") then
             local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-            local check_module = require(mod_fname)
+            local user_script = require(mod_fname)
             local setup_ok = true
 
             traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading check module '%s'", mod_fname))
 
-            if(check_module == nil) then
+            if(user_script == nil) then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", checks_dir.."/"..fname))
             end
 
-            if(check_module.key == nil) then
+            if(user_script.key == nil) then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'key' in check module '%s'", mod_fname))
                goto next_module
             end
 
-            if(rv.modules[check_module.key]) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", check_module.key))
+            if(rv.modules[user_script.key]) then
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", user_script.key))
                goto next_module
             end
 
-            if(check_module.nedge_exclude and is_nedge) then
+            if(user_script.nedge_exclude and is_nedge) then
                goto next_module
             end
 
-            if(table.empty(check_module.hooks)) then
-               traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in check module '%s'", check_module.key))
+            if(table.empty(user_script.hooks)) then
+               traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in check module '%s'", user_script.key))
                -- This guarantees that the "hooks" field is always available
-               check_module.hooks = {}
+               user_script.hooks = {}
             end
 
             -- Augument with additional attributes
-            check_module.enabled = user_scripts.isEnabled(ifid, subdir, check_module.key)
-            check_module.is_alert = is_alert_path
+            user_script.enabled = user_scripts.isEnabled(ifid, subdir, user_script.key)
+            user_script.is_alert = is_alert_path
 
-            if(alerts_disabled and check_module.is_alert) then
+            if(alerts_disabled and user_script.is_alert) then
                goto next_module
             end
 
-            if((not check_module.enabled) and (not ignore_disabled)) then
-               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping disabled module '%s'", check_module.key))
+            if((not user_script.enabled) and (not ignore_disabled)) then
+               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping disabled module '%s'", user_script.key))
                goto next_module
             end
 
             if(hook_filter ~= nil) then
                -- Only return modules which should be called for the specified hook
-               if((check_module.hooks[hook_filter] == nil) and (check_module.hooks["all"] == nil)) then
-                  traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for hook '%s'", check_module.key, hook_filter))
+               if((user_script.hooks[hook_filter] == nil) and (user_script.hooks["all"] == nil)) then
+                  traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for hook '%s'", user_script.key, hook_filter))
                   goto next_module
                end
             end
 
             -- If a setup function is available, call it
-            if(check_module.setup ~= nil) then
-               setup_ok = check_module.setup()
+            if(user_script.setup ~= nil) then
+               setup_ok = user_script.setup()
             end
 
             if(not setup_ok) then
-               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' as setup() returned %s", check_module.key, setup_ok))
+               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' as setup() returned %s", user_script.key, setup_ok))
                goto next_module
             end
 
-	    check_module["benchmark"] = {}
+	    user_script["benchmark"] = {}
 
             -- Populate hooks fast lookup table
-            for hook, hook_fn in pairs(check_module.hooks) do
+            for hook, hook_fn in pairs(user_script.hooks) do
 	       -- load previously computed benchmarks (if any)
 	       -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
                if(hook == "all") then
                   -- Register for all the hooks
                   for _, hook in pairs(script_type.hooks) do
-		     check_module["benchmark"][hook] = benchmark_load(subdir, check_module.key, hook)
+		     user_script["benchmark"][hook] = benchmark_load(subdir, user_script.key, hook)
 
 		     if do_benchmark then
-			rv.hooks[hook][check_module.key] = benchmark_init(subdir, check_module.key, hook, hook_fn)
+			rv.hooks[hook][user_script.key] = benchmark_init(subdir, user_script.key, hook, hook_fn)
 		     else
-			rv.hooks[hook][check_module.key] = hook_fn
+			rv.hooks[hook][user_script.key] = hook_fn
 		     end
                   end
 
                   -- no more hooks allowed
                   break
                elseif(rv.hooks[hook] == nil) then
-                  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, check_module.key))
+                  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, user_script.key))
                else
-		  check_module["benchmark"][hook] = benchmark_load(subdir, check_module.key, hook)
+		  user_script["benchmark"][hook] = benchmark_load(subdir, user_script.key, hook)
 
 		  if do_benchmark then
-		     rv.hooks[hook][check_module.key] = benchmark_init(subdir, check_module.key, hook, hook_fn)
+		     rv.hooks[hook][user_script.key] = benchmark_init(subdir, user_script.key, hook, hook_fn)
 		  else
-		     rv.hooks[hook][check_module.key] = hook_fn
+		     rv.hooks[hook][user_script.key] = hook_fn
 		  end
                end
             end
 
-            rv.modules[check_module.key] = check_module
+            rv.modules[user_script.key] = user_script
          end
 
          ::next_module::
@@ -470,9 +470,9 @@ end
 
 -- ##############################################
 
-function user_scripts.flow_checkbox_input_builder(check_module)
-   local input_id = string.format("enabled_%s", check_module.key)
-   local built = build_on_off_toggle(input_id, check_module.enabled)
+function user_scripts.flow_checkbox_input_builder(user_script)
+   local input_id = string.format("enabled_%s", user_script.key)
+   local built = build_on_off_toggle(input_id, user_script.enabled)
 
    return built
 end

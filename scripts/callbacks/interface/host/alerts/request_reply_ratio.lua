@@ -5,7 +5,7 @@
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
-local check_module
+local script
 
 -- #################################################################
 
@@ -26,7 +26,7 @@ local function request_reply_ratio(params)
   end
 
   for key, values in pairs(to_check) do
-    local to_check_key = check_module.key .. "__" .. key
+    local to_check_key = script.key .. "__" .. key
 
     -- true to avoid generating an alert due to a value just restored from redis
     local skip_first = true
@@ -46,7 +46,7 @@ end
 
 -- #################################################################
 
-check_module = {
+script = {
   key = "request_reply_ratio",
   local_only = true,
   nedge_exclude = true,
@@ -72,4 +72,4 @@ check_module = {
 
 -- #################################################################
 
-return check_module
+return script

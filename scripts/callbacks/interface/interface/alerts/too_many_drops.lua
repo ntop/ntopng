@@ -5,7 +5,7 @@
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
-local check_module
+local script
 
 -- #################################################################
 
@@ -25,7 +25,7 @@ end
 
 -- #################################################################
 
-check_module = {
+script = {
   key = "too_many_drops",
   default_value = "too_many_drops;gt;5", -- 5%
 
@@ -46,4 +46,4 @@ check_module = {
 
 -- #################################################################
 
-return check_module
+return script

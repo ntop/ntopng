@@ -25,23 +25,23 @@ local function print_callbacks_config_tbody_simple_view(descr)
 
    local has_modules = false
 
-   for _, check_module in pairsByKeys(descr.modules, asc) do
-      if check_module.gui then
+   for _, user_script in pairsByKeys(descr.modules, asc) do
+      if user_script.gui then
          if not has_modules then
             has_modules = true
          end
 
-         print("<tr><td><b>".. i18n(check_module.gui.i18n_title) .."</b><br>")
-         print("<small>"..i18n(check_module.gui.i18n_description)..".</small>\n")
+         print("<tr><td><b>".. i18n(user_script.gui.i18n_title) .."</b><br>")
+         print("<small>"..i18n(user_script.gui.i18n_description)..".</small>\n")
 
          print("</td><td>")
-         print(check_module.gui.input_builder(check_module))
+         print(user_script.gui.input_builder(user_script))
          print("</td>")
 
-         if check_module.benchmark and table.len(check_module.benchmark) > 0 then
+         if user_script.benchmark and table.len(user_script.benchmark) > 0 then
             local max_duration
 
-            for mod_fn, mod_benchmark in pairsByKeys(check_module.benchmark, asc) do
+            for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark, asc) do
                -- Just show the maximum duration among all available functions
                if not max_duration or max_duration < mod_benchmark["tot_elapsed"] then
                   max_duration = mod_benchmark["tot_elapsed"]
@@ -90,30 +90,30 @@ local function print_callbacks_config_tbody_expert_view(descr)
 
    local has_modules = false
 
-   for _, check_module in pairsByKeys(descr.modules, asc) do
-      if check_module.gui then
+   for _, user_script in pairsByKeys(descr.modules, asc) do
+      if user_script.gui then
          if not has_modules then
             has_modules = true
          end
 
          local rowspan = 1
-         if check_module.benchmark and table.len(check_module.benchmark) > 0 then
-            rowspan = table.len(check_module.benchmark)
+         if user_script.benchmark and table.len(user_script.benchmark) > 0 then
+            rowspan = table.len(user_script.benchmark)
          end
 
 
-         print("<tr><td rowspan="..rowspan.."><b>".. i18n(check_module.gui.i18n_title) .."</b><br>")
-         print("<small>"..i18n(check_module.gui.i18n_description)..".</small>\n")
+         print("<tr><td rowspan="..rowspan.."><b>".. i18n(user_script.gui.i18n_title) .."</b><br>")
+         print("<small>"..i18n(user_script.gui.i18n_description)..".</small>\n")
 
          print("</td><td rowspan="..rowspan..">")
-         print(check_module.gui.input_builder(check_module))
+         print(user_script.gui.input_builder(user_script))
          print("</td>")
 
          print("<td>")
 
          local num = 1
-         if check_module.benchmark and table.len(check_module.benchmark) > 0 then
-            for mod_fn, mod_benchmark in pairsByKeys(check_module.benchmark, asc) do
+         if user_script.benchmark and table.len(user_script.benchmark) > 0 then
+            for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark, asc) do
                local avg_fps = mod_benchmark["tot_num_calls"] / mod_benchmark["tot_elapsed"]
 
                if avg_fps ~= avg_fps or not avg_fps or avg_fps < 0.01 then
@@ -171,17 +171,17 @@ function flow_callbacks_utils.print_callbacks_config()
 <thead></thead>]]
 
    if table.len(_POST) > 0 then
-      for mod_key, check_module in pairs(descr.modules) do
+      for mod_key, user_script in pairs(descr.modules) do
          local pref_key = "enabled_" .. mod_key
          local val = _POST[pref_key]
 
          if(val ~= nil) then
             if(val == "on") then
                user_scripts.enableModule(ifid, "flow", mod_key)
-               check_module.enabled = true
+               user_script.enabled = true
             else
                user_scripts.disableModule(ifid, "flow", mod_key)
-               check_module.enabled = false
+               user_script.enabled = false
             end
          end
       end

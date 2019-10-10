@@ -75,13 +75,7 @@ The hook callback function takes the following form:
     -- ...
   end
 
-The `params` object contains some information:
-
-  - `hook_name`: the hook name (e.g. `protocolDetected`)
-  - `user_script`: a reference to the current user script module being invocated
-  - `config`: script configuration (usually configured via the `gui`)
-
-Some additional information is also present depending on the script type:
+The information contained into the params object depends on the script type:
 
   - `granularity` (traffic element only): the current granularity
   - `alert_entity` (traffic element only): the traffic element entity type

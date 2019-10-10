@@ -5,7 +5,7 @@
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
-local check_module = {
+local script = {
   key = "inner",
 
   hooks = {
@@ -22,10 +22,10 @@ local check_module = {
 
 -- #################################################################
 
-function check_module.get_threshold_value(granularity, info)
-  return alerts_api.network_delta_val(check_module.key, granularity, info["inner"])
+function script.get_threshold_value(granularity, info)
+  return alerts_api.network_delta_val(script.key, granularity, info["inner"])
 end
 
 -- #################################################################
 
-return check_module
+return script

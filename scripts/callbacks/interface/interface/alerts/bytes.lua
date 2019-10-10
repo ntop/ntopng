@@ -5,7 +5,7 @@
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
-local check_module = {
+local script = {
   key = "bytes",
 
   hooks = {
@@ -22,10 +22,10 @@ local check_module = {
 
 -- #################################################################
 
-function check_module.get_threshold_value(granularity, info)
-  return alerts_api.interface_delta_val(check_module.key, granularity, info["stats"]["bytes"])
+function script.get_threshold_value(granularity, info)
+  return alerts_api.interface_delta_val(script.key, granularity, info["stats"]["bytes"])
 end
 
 -- #################################################################
 
-return check_module
+return script

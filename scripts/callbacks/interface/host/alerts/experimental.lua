@@ -6,13 +6,13 @@ local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 
-local check_module
+local script
 
 -- #################################################################
 
 local function check_tcp_flags(params)
   local info = params.entity_info
-  local key = params.check_module.key
+  local key = params.script.key
   local sent_stats = info["pktStats.sent"]
   local rcvd_stats = info["pktStats.recv"]
   local rst_ratio_threshold = 50 -- 50%
@@ -45,7 +45,7 @@ end
 
 local function check_misbehaving_flows_ratio(params)
   local info = params.entity_info
-  local key = params.check_module.key
+  local key = params.script.key
   local bad_ratio_threshold = 30 -- 30%
 
   local cli_flows = alerts_api.host_delta_val(key .. "_cli_flows", params.granularity, info["total_flows.as_client"], true --[[ skip first]])
@@ -81,7 +81,7 @@ end
 
 -- #################################################################
 
-check_module = {
+script = {
   key = "experimental",
   local_only = true,
 
@@ -98,4 +98,4 @@ check_module = {
 
 -- #################################################################
 
-return check_module
+return script
