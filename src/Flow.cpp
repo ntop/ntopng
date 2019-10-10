@@ -167,8 +167,7 @@ Flow::Flow(NetworkInterface *_iface,
   } else {
     cli2srvPktTime = NULL;
     srv2cliPktTime = NULL;
-  }
-    
+  }    
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -180,11 +179,17 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 #endif
 
+  /* Reset the initial state */
+  set_hash_entry_state_allocated();
+
   switch(protocol) {
   case IPPROTO_TCP:
   case IPPROTO_UDP:
     if(iface->is_ndpi_enabled() && (!iface->isSampledTraffic()))
       allocDPIMemory();
+
+    if(protocol == IPPROTO_UDP)
+      set_hash_entry_state_flow_notyetdetected();
     break;
 
   case IPPROTO_ICMP:
@@ -659,7 +664,7 @@ bool Flow::needsExtraDissection() {
 void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   if((proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || forceDetection
-     || (hasDissectedTooManyPackets())
+     || hasDissectedTooManyPackets()
      || (!iface->is_ndpi_enabled())
      || iface->isSampledTraffic()) {
     /* Only execute this if the detection is was not already completed. */
@@ -681,7 +686,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
         ndpiDetectedProtocol.category = proto_id.category;
 
       processDetectedProtocol();
-      detection_completed = true;
+      detection_completed = true;      
 
 #ifdef HAVE_NEDGE
       updateFlowShapers(true);
@@ -689,19 +694,16 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       update_flow_port_stats = true;
     }
 
-    if(detection_completed && (forceDetection || !needsExtraDissection())) {
+    if(detection_completed && (forceDetection || (!needsExtraDissection()))) {
       /* Extra detection was completed */
       processFullyDissectedProtocol();
-    }
 
-#if 0
-    {
-      char buf[32];
-
-      printf("completed=%d, fully_processed=%d - pkts=%lu, proto=%s\n", detection_completed,
-        fully_processed, get_packets(), get_detected_protocol_name(buf, sizeof(buf)));
+      /*
+	We need to change state here as in Lua scripts we need to know
+	all metadata available
+      */
+      set_hash_entry_state_flow_protocoldetected();
     }
-#endif
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
     if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
@@ -1141,12 +1143,27 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
     update_flow_port_stats = false;
   }
 
-  if(isDetectionCompleted())
+  switch(get_state()) {
+  case hash_entry_state_allocated:
+  case hash_entry_state_flow_notyetdetected:
+    /* Nothing to do here */
+    break;
+    
+  case hash_entry_state_ready_to_be_purged:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid state detected");
+    break;
+      
+  case hash_entry_state_flow_protocoldetected:
     performLuaCall(flow_lua_call_protocol_detected, tv, &update_flows_stats_user_data->acle);
+    set_hash_entry_state_active();
+    break;
 
-  performLuaCall(flow_lua_call_flow_status_changed, tv, &update_flows_stats_user_data->acle);
-
-  if(get_state() == hash_entry_state_idle) {
+  case hash_entry_state_active:
+    performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
+    /* Don't change state: purgeIdle() will do */
+    break;
+    
+  case hash_entry_state_idle:
     if(iface->isViewed()) {
       /* Must acknowledge so the overlying 'view' interface can actually set 
          the flow state as ready to be purged once it has processed the flow for the last
@@ -1161,9 +1178,12 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
 
     postFlowSetIdle(tv->tv_sec);
     performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
-  } else {
-    performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
+    set_hash_entry_state_ready_to_be_purged(); /* Move to the next state */
+    break;
   }
+
+  /* TODO: this function needs some cleanup */
+  performLuaCall(flow_lua_call_flow_status_changed, tv, &update_flows_stats_user_data->acle);
 
   /* For pcap-dump interface, the lua method idle is executed when there are no
      more packets left in the pcap file. There's no risk to call this twice
@@ -2390,23 +2410,12 @@ bool Flow::isNetfilterIdleFlow() {
 /* *************************************** */
 
 void Flow::housekeep(time_t t) {
-  /* Following snippet no longer necessary as confirmed by Emanuele as flows are
-     idled in then Flow::update_hosts_stats */
-// #ifdef HAVE_NEDGE
-//   if(iface->getIfType() == interface_type_NETFILTER) {
-//     if(isNetfilterIdleFlow()) {
-//       // set_idle(iface->getTimeLastPktRcvd()); TODO: check
-//     }
-//   }
-// #endif
-
-  if((!isDetectionCompleted()) && ((t - get_last_seen()) > 5 /* sec */)
-     && iface->get_ndpi_struct()
-     && get_ndpi_flow()) {
+  if(((t - get_last_seen()) > 5 /* sec */)     
+     && iface->get_ndpi_struct() && get_ndpi_flow()) {
     u_int8_t proto_guessed;
     ndpi_protocol givenup_protocol = ndpi_detection_giveup(iface->get_ndpi_struct(),
 							   get_ndpi_flow(), 1, &proto_guessed);
-
+    
     setDetectedProtocol(givenup_protocol, true);
   }
 }
@@ -2628,6 +2637,7 @@ void Flow::setTcpFlags(u_int8_t flags, bool src2dst_direction) {
     if((src2dst_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)
        && ((dst2src_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))
       twh_ok = twh_over = true,
+	set_hash_entry_state_flow_notyetdetected(),
 	iface->getTcpFlowStats()->incEstablished();
   }
 
@@ -2710,9 +2720,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	twh_ok = true;
       }
 
-      twh_over = true, iface->getTcpFlowStats()->incEstablished();
+      twh_over = true, set_hash_entry_state_flow_notyetdetected(),
+	iface->getTcpFlowStats()->incEstablished();
     } else
-      twh_over = true, iface->getTcpFlowStats()->incEstablished();
+      twh_over = true, set_hash_entry_state_flow_notyetdetected(),
+	iface->getTcpFlowStats()->incEstablished();
   }
 }
 

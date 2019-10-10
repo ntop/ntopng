@@ -125,7 +125,8 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 bool GenericHash::walk(u_int32_t *begin_slot,
 		       bool walk_all,
-		       bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data, bool walk_idle) {
+		       bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched),
+		       void *user_data, bool walk_idle) {
   bool found = false;
   u_int16_t tot_matched = 0;
 
@@ -141,15 +142,14 @@ bool GenericHash::walk(u_int32_t *begin_slot,
       head = table[hash_id];
 
       while(head) {
-	HashEntryState head_state = head->get_state();
 	GenericHashEntry *next = head->next();
 
         /* FIXX get_state() does not always match idle() as the latter can be 
          * overriden (e.g. Flow), leading to wolking entries that are actually
          * idle even with walk_idle = false, what about using idle() here? */
 
-	if(head_state == hash_entry_state_active
-	   || (walk_idle && head_state == hash_entry_state_idle)) {
+	if(head->walkable()
+	   || (walk_idle && (head->get_state() == hash_entry_state_idle))) {
 	  bool matched = false;
 	  bool rc = walker(head, user_data, &matched);
 
@@ -236,12 +236,6 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 
 	buckets_checked++;
 	if(head_state == hash_entry_state_ready_to_be_purged) {
-	  if(!head->idle()) {
-	    /* This should never happen */
-	    ntop->getTrace()->traceEvent(TRACE_ERROR,
-	      "Inconsistent state: GenericHashEntry<%p> state=hash_entry_state_ready_to_be_purged but idle()=false", head_state);
-	  }
-
 	  if(prev == NULL) {
 	    table[i] = next;
 	  } else {
@@ -251,14 +245,27 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	  num_purged++, current_size--;
 	  delete(head);
 	  head = next;
-	} else {
-	  /* Do the chores */
-	  head->housekeep(now);
+	} else {	 
+	  switch(head_state) {
+	  case hash_entry_state_allocated:
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unexpected state (%u)", head_state);
+	    break;
 
-	  if(head_state == hash_entry_state_active
-	     && (head->is_hash_entry_state_idle_transition_ready()
-		 || force_idle))
-	    head->set_hash_entry_state_idle();
+	  case hash_entry_state_flow_notyetdetected:
+	    head->housekeep(now);
+	    break;
+	    
+	  case hash_entry_state_flow_protocoldetected:
+	  case hash_entry_state_idle:
+	  case hash_entry_state_ready_to_be_purged:
+	    /* Skip as this is handled by periodic activities thread */
+	    break;
+
+	  case hash_entry_state_active:
+	    if(head->is_hash_entry_state_idle_transition_ready() || force_idle)
+	      head->set_hash_entry_state_idle();
+	    break;
+	  }
 
 	  prev = head;
 	  head = next;
@@ -291,7 +298,7 @@ GenericHashEntry* GenericHash::findByKey(u_int32_t key) {
   locks[hash]->rdlock(__FILE__, __LINE__);
 
   while(head) {
-    if(!head->idle() && head->key() == key)
+    if(head->walkable() && head->key() == key)
       break;
     else
       head = head->next();

@@ -1997,7 +1997,6 @@ int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
 /* ****************************************** */
 
 bool Ntop::registerInterface(NetworkInterface *_if) {
-
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,

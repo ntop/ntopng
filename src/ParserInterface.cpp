@@ -48,7 +48,6 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   IpAddress srcIP, dstIP;
 
   if(!isSubInterface()) {
-
     /* Deliver eBPF info to companion queues */
     if(zflow->process_info_set || 
        zflow->container_info_set || 

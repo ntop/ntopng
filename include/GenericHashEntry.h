@@ -156,7 +156,41 @@ class GenericHashEntry {
   inline void set_hash_entry_state_ready_to_be_purged() {
     set_state(hash_entry_state_ready_to_be_purged);
   };
+
   /**
+   * @brief Set the hash entry state to active
+   */
+  inline void set_hash_entry_state_active() {
+    set_state(hash_entry_state_active);
+  };  
+
+  /**
+   * @brief Set the hash entry state to not yet detected (nDPI)
+   */
+  inline void set_hash_entry_state_flow_notyetdetected() {
+    set_state(hash_entry_state_flow_notyetdetected);
+  };  
+
+  /**
+   * @brief Set the hash entry state to protocol detected (nDPI).
+   * Note that unknown (protocol) is a valid protocol
+  */
+  inline void set_hash_entry_state_flow_protocoldetected() {
+    set_state(hash_entry_state_flow_protocoldetected);
+  };
+
+  /**
+   * @brief Set the hash entry state to allocated
+   */
+  inline void set_hash_entry_state_allocated() {
+    /*
+      We don't check anything here as it's used by flows to step back
+      to the initial state
+    */
+    hash_entry_state = hash_entry_state_allocated;
+  };  
+
+/**
    * @brief Determine whether this entry is ready for the transition to the idle state
    * 
    */
@@ -167,6 +201,7 @@ class GenericHashEntry {
   bool equal(GenericHashEntry *b)         { return((this == b) ? true : false); };  
   inline NetworkInterface* getInterface() { return(iface);                      };
   bool idle() const;
+  bool walkable() const;
   virtual void housekeep(time_t t)     { return;                 };
   inline u_int get_duration()          { return((u_int)(1+last_seen-first_seen)); };
   virtual u_int32_t key()              { return(0);         };  

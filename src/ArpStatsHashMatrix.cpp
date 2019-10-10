@@ -45,8 +45,7 @@ ArpStatsMatrixElement* ArpStatsHashMatrix::get(const u_int8_t _src_mac[6],
     head = (ArpStatsMatrixElement*)table[hash];
     
     while(head != NULL) {
-      if((!head->idle()) && head->equal(_src_mac, _src_ip, _dst_ip, src2dst))
-	
+      if((!head->idle()) && head->equal(_src_mac, _src_ip, _dst_ip, src2dst))	
 	break;
       else
 	head = (ArpStatsMatrixElement*)head->next();

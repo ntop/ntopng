@@ -488,6 +488,9 @@ typedef enum {
 } FlowHashingEnum;
 
 typedef enum {
+  hash_entry_state_allocated,
+  hash_entry_state_flow_notyetdetected,   /* Flow only */
+  hash_entry_state_flow_protocoldetected, /* Flow only */
   hash_entry_state_active,
   hash_entry_state_idle,
   hash_entry_state_ready_to_be_purged

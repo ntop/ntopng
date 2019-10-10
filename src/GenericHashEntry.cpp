@@ -26,7 +26,7 @@
 GenericHashEntry::GenericHashEntry(NetworkInterface *_iface) {
   hash_next = NULL, iface = _iface, first_seen = last_seen = 0, num_uses = 0;
 
-  hash_entry_state = hash_entry_state_active;
+  hash_entry_state = hash_entry_state_active; /* Default for all but Flow */
   
   if(iface && iface->getTimeLastPktRcvd() > 0)
     first_seen = last_seen = iface->getTimeLastPktRcvd();
@@ -74,12 +74,20 @@ HashEntryState GenericHashEntry::get_state() const {
 
 /* ***************************************** */
 
-bool GenericHashEntry::idle() const {
-  return get_state() != hash_entry_state_active;
+/* This entry can be walked by the user interface */
+bool GenericHashEntry::walkable() const {
+  return((get_state() < hash_entry_state_idle) ? true : false);
 };
 
 /* ***************************************** */
 
+bool GenericHashEntry::idle() const {
+  return((get_state() == hash_entry_state_idle) ? true : false);
+};
+
+/* ***************************************** */
+
+/* TODO: change name as it's misleading */
 bool GenericHashEntry::isIdle(u_int max_idleness) const {
   return((((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness)) ? true : false));
 }
