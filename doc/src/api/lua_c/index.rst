@@ -28,3 +28,4 @@ so it's available through the interface object API via `interface.getFlowsInfo()
 
     ntop/index
     interface/index
+    flow/index

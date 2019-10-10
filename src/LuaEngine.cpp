@@ -8544,6 +8544,7 @@ static int ntop_flow_get_server_mud_pref(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_flow_get_status(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8556,6 +8557,7 @@ static int ntop_flow_get_status(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_flow_get_protocols(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8568,6 +8570,7 @@ static int ntop_flow_get_protocols(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_flow_get_bytes(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8580,6 +8583,7 @@ static int ntop_flow_get_bytes(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_dir_traffic(lua_State* vm, bool cli2srv) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8592,18 +8596,21 @@ static int  ntop_flow_get_dir_traffic(lua_State* vm, bool cli2srv) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_cli2srv_traffic(lua_State* vm) {
   return ntop_flow_get_dir_traffic(vm, true /* Client to Server */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_srv2cli_traffic(lua_State* vm) {
   return ntop_flow_get_dir_traffic(vm,  false /* Server to Client */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_dir_iat(lua_State* vm, bool cli2srv) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8616,18 +8623,21 @@ static int  ntop_flow_get_dir_iat(lua_State* vm, bool cli2srv) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_cli2srv_iat(lua_State* vm) {
   return ntop_flow_get_dir_iat(vm, true /* Client to Server */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_srv2cli_iat(lua_State* vm) {
   return ntop_flow_get_dir_iat(vm,  false /* Server to Client */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_flow_get_packets(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8640,6 +8650,7 @@ static int ntop_flow_get_packets(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int ntop_flow_get_time(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8652,6 +8663,7 @@ static int ntop_flow_get_time(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_ip(lua_State* vm, bool client) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8664,18 +8676,21 @@ static int  ntop_flow_get_ip(lua_State* vm, bool client) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_cli_ip(lua_State* vm) {
   return ntop_flow_get_ip(vm, true /* Client */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_srv_ip(lua_State* vm) {
   return ntop_flow_get_ip(vm,  false /* Server */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_info(lua_State* vm, bool client) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8688,18 +8703,21 @@ static int  ntop_flow_get_info(lua_State* vm, bool client) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_cli_info(lua_State* vm) {
   return ntop_flow_get_info(vm, true /* Client */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_srv_info(lua_State* vm) {
   return ntop_flow_get_info(vm,  false /* Server */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_ssl_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8712,6 +8730,7 @@ static int  ntop_flow_get_ssl_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_ssh_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8724,6 +8743,7 @@ static int  ntop_flow_get_ssh_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_http_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8736,6 +8756,7 @@ static int  ntop_flow_get_http_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_dns_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8748,6 +8769,7 @@ static int  ntop_flow_get_dns_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_icmp_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8760,6 +8782,7 @@ static int  ntop_flow_get_icmp_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_tcp_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8772,6 +8795,7 @@ static int  ntop_flow_get_tcp_info(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_port(lua_State* vm, bool client) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8784,18 +8808,21 @@ static int  ntop_flow_get_port(lua_State* vm, bool client) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_cli_port(lua_State* vm) {
   return ntop_flow_get_port(vm, true /* Client */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_srv_port(lua_State* vm) {
   return ntop_flow_get_port(vm,  false /* Server */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_geoloc(lua_State* vm, bool client) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8808,12 +8835,14 @@ static int  ntop_flow_get_geoloc(lua_State* vm, bool client) {
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_cli_geoloc(lua_State* vm) {
   return ntop_flow_get_geoloc(vm, true /* Client */);
 }
 
 /* ****************************************** */
 
+// ***API***
 static int  ntop_flow_get_srv_geoloc(lua_State* vm) {
   return ntop_flow_get_geoloc(vm,  false /* Server */);
 }

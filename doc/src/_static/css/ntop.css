@@ -22,10 +22,19 @@ span[id^='group__module__interface'] + code.descname:before {
     content: "interface." !important;
 }
 
+span[id^='group__module__flow'] + code.descname:before {
+    content: "flow." !important;
+}
+
 span[id^='group__module__ts__utils'] + code.descname:before {
     content: "ts_utils." !important;
 }
 
 span[id^='group__module__driver'] + code.descname:before {
     content: "driver:" !important;
+}
+
+/* Remove margin in documentation paragraphs */
+dl.function dd p {
+    margin-bottom: 0 !important;
 }
