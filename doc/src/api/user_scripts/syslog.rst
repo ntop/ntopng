@@ -20,7 +20,7 @@ A syslog module shoule implement the below functions:
 
  - `setup` (optional) which is called once to initialize the module.
  - `teardown` (optional) which is called once to terminate the module.
- - `handleEvent` which is called for each log message matching the module.
+ - `hooks.handleEvent` which is called for each log message matching the module.
 
 Script Example
 --------------
@@ -35,7 +35,10 @@ to syslog in JSON format.
    require "lua_utils"
    local json = require ("dkjson")
    
-   local syslog_module = {}
+   local syslog_module = {
+      key = "suricata",
+      hooks = {},
+   }
    
    -- The function below is called once to initialize the script
    function syslog_module.setup()
@@ -43,7 +46,7 @@ to syslog in JSON format.
    end
    
    -- The function below is called for each log message received from Suricata
-   function syslog_module.handleEvent(message)
+   function syslog_module.hooks.handleEvent(message)
       local alert = json.decode(message)
       tprint(alert)
    end 
