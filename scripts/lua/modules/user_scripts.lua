@@ -231,7 +231,13 @@ local function benchmark_load(subdir, mod_k, hook)
    local res = ntop.getCache(k)
 
    if res and res ~= "" then
-      return json.decode(res)
+      local b = json.decode(res)
+
+      if b and b["tot_num_calls"] > 0 and b["tot_elapsed"] > 0 then
+	 b["avg_speed"] = b["tot_num_calls"] / b["tot_elapsed"]
+      end
+
+      return b
    end
 end
 
@@ -333,16 +339,16 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
             for hook, hook_fn in pairs(check_module.hooks) do
 	       -- load previously computed benchmarks (if any)
 	       -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
-	       check_module["benchmark"][hook] = benchmark_load(subdir, check_module.key, hook)
-
-	       if do_benchmark then
-		  hook_fn = benchmark_init(subdir, check_module.key, hook, hook_fn)
-	       end
-
                if(hook == "all") then
                   -- Register for all the hooks
                   for _, hook in pairs(script_type.hooks) do
-                     rv.hooks[hook][check_module.key] = hook_fn
+		     check_module["benchmark"][hook] = benchmark_load(subdir, check_module.key, hook)
+
+		     if do_benchmark then
+			rv.hooks[hook][check_module.key] = benchmark_init(subdir, check_module.key, hook, hook_fn)
+		     else
+			rv.hooks[hook][check_module.key] = hook_fn
+		     end
                   end
 
                   -- no more hooks allowed
@@ -350,7 +356,13 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                elseif(rv.hooks[hook] == nil) then
                   traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, check_module.key))
                else
-                  rv.hooks[hook][check_module.key] = hook_fn
+		  check_module["benchmark"][hook] = benchmark_load(subdir, check_module.key, hook)
+
+		  if do_benchmark then
+		     rv.hooks[hook][check_module.key] = benchmark_init(subdir, check_module.key, hook, hook_fn)
+		  else
+		     rv.hooks[hook][check_module.key] = hook_fn
+		  end
                end
             end
 

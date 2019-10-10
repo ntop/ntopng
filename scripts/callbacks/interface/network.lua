@@ -11,7 +11,10 @@ local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 
-local do_trace      = false
+local do_benchmark = true          -- Compute benchmarks and store their results
+local do_print_benchmark = false   -- Print benchmarks results to standard output
+local do_trace = false             -- Trace lua calls
+
 local config_alerts = nil
 local available_modules = nil
 local ifid = nil
@@ -23,7 +26,7 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the threshold checking functions
-   available_modules = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "network", str_granularity)
+   available_modules = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "network", str_granularity, nil, do_benchmark)
 
    config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
 end
@@ -38,6 +41,10 @@ function teardown(str_granularity)
       if check.teardown then
          check.teardown()
       end
+   end
+
+   if do_benchmark then
+      user_scripts.benchmark_dump(do_print_benchmark)
    end
 end
 

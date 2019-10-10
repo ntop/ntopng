@@ -1251,7 +1251,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
        <br>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
        <tr><th>]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
-      print[[</th></tr>]]
+      print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
       for _, check_module in pairsByKeys(available_modules.modules, asc) do
@@ -1302,6 +1302,15 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
               print(check_module.gui.input_builder(check_module.gui or {}, k, value))
             end
          end
+	 print("</td><td align='center'>\n")
+
+	 if check_module.benchmark and (check_module.benchmark[tab] or check_module.benchmark["all"]) then
+	    local hook = ternary(check_module.benchmark[tab], tab, "all")
+
+	    if check_module.benchmark[hook]["tot_elapsed"] then
+	       print(string.format(format_utils.secondsToTime(check_module.benchmark[hook]["tot_elapsed"])))
+	    end
+	 end
 
          print("</td></tr>\n")
          ::next_module::
