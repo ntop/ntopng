@@ -28,13 +28,6 @@ class SyslogParserInterface : public ParserInterface {
  private:
   SyslogLuaEngine *le;
 
-  void parseSuricataFlow(json_object *f, ParsedFlow *flow);
-  void parseSuricataNetflow(json_object *f, ParsedFlow *flow);
-  void parseSuricataHTTP(json_object *h, ParsedFlow *flow);
-  void parseSuricataDNS(json_object *d, ParsedFlow *flow);
-  void parseSuricataTLS(json_object *t, ParsedFlow *flow);
-  void parseSuricataAlert(json_object *a, ParsedFlow *flow, ICMPinfo *icmp_info, bool flow_alert);
-
  public:
   SyslogParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~SyslogParserInterface();

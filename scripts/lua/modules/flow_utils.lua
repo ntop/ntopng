@@ -354,6 +354,42 @@ function getL4ProtoName(proto_id)
 end
  
  -- #######################
+ 
+local dns_types = {
+  ['A'] = 1,
+  ['NS'] = 2,
+  ['MD'] = 3,
+  ['MF'] = 4,
+  ['CNAME'] = 5,
+  ['SOA'] = 6,
+  ['MB'] = 7,
+  ['MG'] = 8,
+  ['MR'] = 9,
+  ['NULL'] = 10,
+  ['WKS'] = 11,
+  ['PTR'] = 12,
+  ['HINFO'] = 13,
+  ['MINFO'] = 14,
+  ['MX'] = 15,
+  ['TXT'] = 16,
+  ['AAAA'] = 28,
+  ['A6'] = 38, 
+  ['SPF'] = 99,
+  ['AXFR'] = 252,
+  ['MAILB'] = 253,
+  ['MAILA'] = 254,
+  ['ANY'] = 255,
+}
+
+function get_dns_type(dns_type_name)
+   if dns_types[dns_type_name] then
+      return dns_types[dns_type_name]
+   else
+      return 0
+   end
+end
+
+ -- #######################
 
 local icmp_v4_msgs = {
    { 0, 0, i18n("icmp_v4_msgs.type_0_0_echo_reply") },

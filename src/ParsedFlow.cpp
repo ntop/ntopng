@@ -110,6 +110,12 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
 	} else if(!strcmp(key, "external_alert")) {
 	  if(external_alert) free(external_alert);
 	  external_alert = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "first_switched_iso8601")) {
+	  first_switched = Utils::str2epoch(lua_tostring(L, -1));
+	} else if(!strcmp(key, "last_switched_iso8601")) {
+	  last_switched = Utils::str2epoch(lua_tostring(L, -1));
+	} else if(!strcmp(key, "l4_proto")) {
+	  l4_proto = Utils::l4name2proto(lua_tostring(L, -1));
 	} else {
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for %s", lua_tostring(L, -1), key);
         }
