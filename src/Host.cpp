@@ -48,8 +48,9 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 /* *************************************** */
 
 Host::~Host() {
-  if(getUses() > 0 && (!iface->isView()
-		      || !ntop->getGlobals()->isShutdownRequested() /* View hosts are not in sync with viewed flows so during shutdown it can be normal */))
+  if((getUses() > 0)
+     /* View hosts are not in sync with viewed flows so during shutdown it can be normal */
+     && (!iface->isView() || !ntop->getGlobals()->isShutdownRequested()))
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", getUses());
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
@@ -624,7 +625,7 @@ const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
 /* ***************************************** */
 
 bool Host::is_hash_entry_state_idle_transition_ready() {
-  if(getUses() > 0 || !iface->is_purge_idle_interface())
+  if((getUses() > 0) || (!iface->is_purge_idle_interface()))
     return(false);
 
   switch(ntop->getPrefs()->get_host_stickiness()) {
@@ -1134,6 +1135,11 @@ void Host::updateStats(update_stats_user_data_t *update_hosts_stats_user_data) {
   Mac *cur_mac = getMac();
 
   if(get_state() == hash_entry_state_idle) {
+    if((getUses() > 0)
+       /* View hosts are not in sync with viewed flows so during shutdown it can be normal */
+       && (!iface->isView() || !ntop->getGlobals()->isShutdownRequested()))
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", getUses());
+    
     set_hash_entry_state_ready_to_be_purged();
 
     if(getNumTriggeredAlerts()

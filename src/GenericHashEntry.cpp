@@ -82,7 +82,7 @@ bool GenericHashEntry::walkable() const {
 /* ***************************************** */
 
 bool GenericHashEntry::idle() const {
-  return((get_state() == hash_entry_state_idle) ? true : false);
+  return((get_state() >= hash_entry_state_idle) ? true : false);
 };
 
 /* ***************************************** */

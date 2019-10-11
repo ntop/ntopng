@@ -119,6 +119,7 @@ NetworkInterface::NetworkInterface(const char *name,
 #if !defined(__APPLE__) && !defined(WIN32)
        || (Utils::readIPv4((char*)name) == 0)
 #endif
+       || custom_interface_type
        )
       ; /* Don't setup MDNS on ZC or RSS interfaces */
     else {

@@ -248,7 +248,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	} else {	 
 	  switch(head_state) {
 	  case hash_entry_state_allocated:
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unexpected state (%u)", head_state);
+	    /* TCP flows with 3WH not yet completed fall here */
 	    break;
 
 	  case hash_entry_state_flow_notyetdetected:
@@ -262,7 +262,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	    break;
 
 	  case hash_entry_state_active:
-	    if(head->is_hash_entry_state_idle_transition_ready() || force_idle)
+	    if(force_idle || head->is_hash_entry_state_idle_transition_ready())
 	      head->set_hash_entry_state_idle();
 	    break;
 	  }
