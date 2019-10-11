@@ -706,8 +706,10 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 	   make sure custom cateories are properly populated, function ndpi_fill_ip_protocol_category
 	   must be called explicitly.*/
 	if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED /* Override only if unspecified */
-	   && get_cli_ipv4() && get_srv_ipv4() /* Only IPv4 is supported */)
-	  ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(), get_cli_ipv4(), get_srv_ipv4(), &ndpiDetectedProtocol);
+	   && get_cli_ip_addr()->get_ipv4() && get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */)
+	  ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
+					 get_cli_ip_addr()->get_ipv4(), get_srv_ip_addr()->get_ipv4(),
+					 &ndpiDetectedProtocol);
 	break;
       }
 
