@@ -383,8 +383,6 @@ typedef enum {
   FLOW_LUA_CALL_MAX_VAL /* Leave it as last element */
 } FlowLuaCall;
 
-typedef u_int64_t FlowStatusMap;
-
 typedef enum {
   details_normal = 0,
   details_high,

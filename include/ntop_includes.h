@@ -190,6 +190,7 @@ using namespace std;
 #include "Trace.h"
 #include "ProtoStats.h"
 #include "Utils.h"
+#include "Bitmap.h"
 #include "NtopGlobals.h"
 #include "nDPIStats.h"
 #include "InterarrivalStats.h"

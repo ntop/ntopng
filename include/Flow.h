@@ -54,7 +54,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t alert_score;
-  FlowStatusMap last_notified_status_map;
+  Bitmap last_notified_status_map;
   time_t performed_lua_calls[FLOW_LUA_CALL_MAX_VAL];
   struct ndpi_flow_struct *ndpiFlow;
 
@@ -251,7 +251,7 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  FlowStatus getFlowStatus(FlowStatusMap *status_map) const;
+  FlowStatus getFlowStatus(Bitmap *status_map) const;
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
   static const ndpi_protocol ndpiUnknownProtocol;

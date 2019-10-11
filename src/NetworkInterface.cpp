@@ -3482,7 +3482,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   bool filtered_flows;
 #endif
   FlowStatus status;
-  FlowStatusMap status_map;
+  Bitmap status_map;
 
   if(f && (!f->idle())) {
     if(retriever->host) {

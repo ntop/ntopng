@@ -387,7 +387,7 @@ int AlertsManager::storeFlowAlert(Flow *f) {
     u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
     u_int64_t cur_cli2srv_bytes, cur_srv2cli_bytes, cur_cli2srv_packets, cur_srv2cli_packets = 0;
     FlowStatus status;
-    FlowStatusMap status_map;
+    Bitmap status_map;
  
     if(!store_initialized || !store_opened || !f)
       return(-1);
@@ -601,7 +601,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
     u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
     u_int64_t cur_cli2srv_bytes, cur_srv2cli_bytes, cur_cli2srv_packets, cur_srv2cli_packets = 0;
     FlowStatus status;
-    FlowStatusMap status_map;
+    Bitmap status_map;
  
     if(!store_initialized || !store_opened || !f)
       return(-1);

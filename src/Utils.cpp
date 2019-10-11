@@ -4054,3 +4054,34 @@ DeviceType Utils::getDeviceTypeFromOsDetail(const char *os) {
 
   return(device_unknown);
 }
+
+/* Bitmap functions */
+bool Utils::bitmapIsSet(u_int64_t bitmap, u_int8_t v) {
+  if(v > sizeof(bitmap)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmap set out of range (%u > %u)",
+				 v, sizeof(bitmap));
+    return(false);
+  }
+  
+  return(((bitmap >> v) & 1) ? true : false);
+}
+
+u_int64_t Utils::bitmapSet(u_int64_t bitmap, u_int8_t v) {
+  if(v > sizeof(bitmap))
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmap set out of range (%u > %u)",
+				 v, sizeof(bitmap));
+  else
+    bitmap |= ((u_int64_t)1) << v;
+  
+  return(bitmap);
+}
+
+u_int64_t Utils::bitmapClear(u_int64_t bitmap, u_int8_t v) {
+  if(v > sizeof(bitmap))
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmap set out of range (%u > %u)",
+				 v, sizeof(bitmap));
+  else
+    bitmap &= ~(((u_int64_t)1) << v);
+  
+  return(bitmap);
+}
