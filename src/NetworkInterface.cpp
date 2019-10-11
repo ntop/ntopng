@@ -100,29 +100,29 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 
   ifname = strdup(name);
-  if(custom_interface_type) {
+  if(custom_interface_type)
     ifDescription = strdup(name);
-  } else
+  else
     ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
 
 #ifdef NTOPNG_PRO
   aggregated_flows_hash = NULL;
 #endif
 
-    if(strchr(name, ':')
-       || strchr(name, '@')
-       || (!strcmp(name, "dummy"))
-       || strchr(name, '/') /* file path */
-       || strstr(name, ".pcap") /* pcap */
-       || (strncmp(name, "lo", 2) == 0)
-       || (strcmp(name, SYSTEM_INTERFACE_NAME) == 0)
+  if(strchr(name, ':')
+     || strchr(name, '@')
+     || (!strcmp(name, "dummy"))
+     || strchr(name, '/') /* file path */
+     || strstr(name, ".pcap") /* pcap */
+     || (strncmp(name, "lo", 2) == 0)
+     || (strcmp(name, SYSTEM_INTERFACE_NAME) == 0)
 #if !defined(__APPLE__) && !defined(WIN32)
-       || (Utils::readIPv4((char*)name) == 0)
+     || (Utils::readIPv4((char*)name) == 0)
 #endif
-       || custom_interface_type
-       )
-      ; /* Don't setup MDNS on ZC or RSS interfaces */
-    else {
+     || custom_interface_type
+     ) {
+    ; /* Don't setup MDNS on ZC or RSS interfaces */
+  } else {
     ipv4_network = ipv4_network_mask = 0;
     if(pcap_lookupnet(ifname, &ipv4_network, &ipv4_network_mask, pcap_error_buffer) == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read IPv4 address of %s: %s",
