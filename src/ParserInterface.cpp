@@ -307,7 +307,9 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
   p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-  flow->setDetectedProtocol(p, true);
+
+  if(!flow->isDetectionCompleted())
+    flow->setDetectedProtocol(p, true);
 
   flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
   flow->setTLVInfo(zflow->getAdditionalFieldsTLV());

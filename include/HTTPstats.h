@@ -99,7 +99,7 @@ class HTTPstats {
   inline u_int16_t makeRate(u_int16_t v, float tdiff) { return((u_int16_t)((((float)v* 1000)/tdiff) + .5f)); }
 
  public:
-  HTTPstats(HostHash *_h);
+  HTTPstats(NetworkInterface *_iface);
   ~HTTPstats();
 
   inline u_int32_t get_num_virtual_hosts() { return(virtualHosts ? virtualHosts->getNumEntries() : 0); }
