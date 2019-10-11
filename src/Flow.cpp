@@ -3780,7 +3780,7 @@ FlowStatus Flow::getFlowStatus(Bitmap *status_map) const {
 	if(isIdle && lowGoodput)  status_map->setBit(status = status_slow_data_exchange);
 
 	if(!isIdle && lowGoodput) {
-	  if(isTCPReset())
+	  if(isTCPReset() && !hasTCP3WHSCompleted())
 	    status_map->setBit(status = status_tcp_connection_refused);
 	  else
 	    status_map->setBit(status = status_low_goodput);

@@ -510,9 +510,9 @@ class Flow : public GenericHashEntry {
   inline InterarrivalStats* getCli2SrvIATStats() const { return cli2srvPktTime; }
   inline InterarrivalStats* getSrv2CliIATStats() const { return srv2cliPktTime; }
 
-  inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset()
-						 && ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))
-						 && ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))); }
+  inline bool hasTCP3WHSCompleted() const { return (((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))
+						    && ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))); }
+  inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset() && hasTCP3WHSCompleted()); }
   inline bool isTCPConnecting()  const { return (src2dst_tcp_flags == TH_SYN
 						 && (!dst2src_tcp_flags || (dst2src_tcp_flags == (TH_SYN | TH_ACK)))); }
   inline bool isTCPClosed()      const { return (((src2dst_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN))
