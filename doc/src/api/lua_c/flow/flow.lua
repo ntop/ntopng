@@ -1,9 +1,22 @@
---! @brief Get the status of the flow
---! @return table:<br>
---! flow.status: the most relevant flow status, see flow_consts.lua<br>
---! flow.idle: true if the flow is idle<br>
---! status_map: the flow status bitmap
+--! @brief Check if the flow is blacklisted
+--! @return true if blacklisted, false otherwise
+function flow.isBlacklistedFlow()
+
+--! @brief Get the status bitmap of the flow
+--! @return the flow status bitmap
 function flow.getStatus()
+
+--! @brief Sets a bit into the flow status
+--! @param status_bit the status bit to set, see flow_consts.lua
+--! @notes This is used to indicate that the Flow has a possible problem.
+function flow.addStatus(status_bit)
+
+--! @brief Trigger an alert on the current flow
+--! @param alerted_status the flow status which is causing the alert generation
+--! @param alert_type the alert_id of the alert to generate (see alert_consts.alert_types)
+--! @param alert_severity the severity_id of the alert to generate (see alert_consts.alert_types)
+--! @notes alert_json an optional string message or json to store into the alert
+function flow.triggerAlert(alerted_status, alert_type, alert_severity, alert_json = nil)
 
 --! @brief Get the Layer-4 and the Layer-7 protocols
 --! @return table:<br>

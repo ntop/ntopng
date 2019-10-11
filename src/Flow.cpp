@@ -47,6 +47,11 @@ Flow::Flow(NetworkInterface *_iface,
     flow_dropped_counts_increased = false, vrfId = 0;
     alert_score = CONST_NO_SCORE_SET;
 
+  tmp_alert_json = NULL;
+  alert_type = alert_none;
+  alert_level = alert_level_none;
+  alerted_status = status_normal;
+
   alert_rowid = -1;
   last_notified_status_map.setBit(status_normal);
   purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
@@ -295,6 +300,7 @@ Flow::~Flow() {
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
   if(external_alert) json_object_put(external_alert);
+  if(tmp_alert_json) free(tmp_alert_json);
 }
 
 /* *************************************** */
@@ -329,10 +335,12 @@ bool Flow::triggerAlerts() const {
 
 /* *************************************** */
 
+// TODO: refactor
 void Flow::dumpFlowAlert() {
   time_t when;
   FlowStatus status;
   Bitmap status_map;
+  bool is_from_lua = false;
 
   if(!triggerAlerts())
     return;
@@ -340,7 +348,13 @@ void Flow::dumpFlowAlert() {
   status = getFlowStatus(&status_map);
 
   if(!isFlowAlerted()) {
-    bool do_dump = Utils::dumpFlowStatus(status);
+    bool do_dump;
+    is_from_lua = (alert_type != alert_none);
+
+    if(is_from_lua)
+      do_dump = true;
+    else
+      do_dump = Utils::dumpFlowStatus(status);
 
 #ifdef HAVE_NEDGE
     /* NOTE: this must be explicitly re-checked as a more specific alert
@@ -373,7 +387,12 @@ void Flow::dumpFlowAlert() {
     }
 
     if(do_dump) {
-      iface->getAlertsManager()->storeFlowAlert(this);
+      if(is_from_lua) {
+        iface->getAlertsManager()->storeFlowAlert(this, alert_type, alert_level, tmp_alert_json);
+
+        if(tmp_alert_json) free(tmp_alert_json);
+      } else
+        iface->getAlertsManager()->storeFlowAlert(this);
 
       setFlowAlerted();
 
@@ -3681,6 +3700,10 @@ FlowStatus Flow::getFlowStatus(Bitmap *status_map) const {
 #endif
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
+  if(alerted_status != status_normal)
+    // TODO refactor
+    return(alerted_status);
+
   status_map->reset();
 
   if(iface->isPacketInterface() && iface->is_purge_idle_interface()
@@ -3833,9 +3856,6 @@ FlowStatus Flow::getFlowStatus(Bitmap *status_map) const {
 
   if(get_protocol_breed() == NDPI_PROTOCOL_DANGEROUS)
     status_map->setBit(status = status_potentially_dangerous);
-
-  if(isBlacklistedFlow())
-    status_map->setBit(status = status_blacklisted);
 
   if(status == status_normal)
     status_map->setBit(status_normal);
@@ -4619,4 +4639,17 @@ bool Flow::hasDissectedTooManyPackets() {
 #endif
 
   return(num_packets >= NDPI_MIN_NUM_PACKETS);
+}
+
+/* ***************************************************** */
+
+void Flow::triggerAlert(AlertType atype, AlertLevel severity, const char*alert_json) {
+  if((alert_type != alert_none) || isFlowAlerted()) {
+    /* Triggering multiple alerts is not supported */
+    return;
+  }
+
+  tmp_alert_json = alert_json ? strdup(alert_json) : NULL;
+  alert_level = severity;
+  alert_type = atype; /* set this as the last thing as "a notification" to avoid concurrency issues */
 }

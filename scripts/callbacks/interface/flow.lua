@@ -11,7 +11,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
+require "alert_utils"
 local user_scripts = require("user_scripts")
+local alert_consts = require("alert_consts")
+local flow_consts = require("flow_consts")
 
 if ntop.isPro() then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -94,8 +97,10 @@ end
 -- modules, calling them one after one.
 -- @param l4_proto the L4 protocol of the flow
 -- @param mod_fn the callback to call
+-- @return true if some module was called, false otherwise
 local function call_modules(l4_proto, mod_fn)
    local hooks = available_modules.l4_hooks[l4_proto]
+   local rv = false
 
    if(hooks ~= nil) then
       hooks = hooks[mod_fn]
@@ -103,7 +108,7 @@ local function call_modules(l4_proto, mod_fn)
 
    if(hooks == nil) then
       if do_trace then print(string.format("No flow.lua modules, skipping %s(%d) for %s\n", mod_fn, l4_proto, shortFlowLabel(flow.getInfo()))) end
-      return
+      return(false)
    end
 
    -- TODO too expensive, remove
@@ -118,6 +123,35 @@ local function call_modules(l4_proto, mod_fn)
       if do_trace then print(string.format("%s() [check: %s]: %s\n", mod_fn, mod_key, shortFlowLabel(info))) end
 
       hook_fn(params)
+      rv = true
+   end
+
+   return(rv)
+end
+
+-- #################################################################
+
+-- @brief This function determines the most critical problem of the flow
+-- and possibly triggers an alert
+-- @params status the flow status bitmap
+local function checkFlowStatus(status)
+   local alert_type = nil
+   local alerted_status = nil
+   local severity = alert_consts.alert_severities.error.severity_id
+
+   if(status == 0) then
+      return
+   end
+
+   if(ntop.bitmapIsSet(status, flow_consts.status_blacklisted)) then
+      alerted_status = flow_consts.status_blacklisted
+      alert_type = alert_consts.alert_types.flow_blacklisted.alert_id
+   end
+
+   if(alert_type ~= nil) then
+      if do_trace then print(string.format("flow.triggerAlert(type=%s, severity=%s)\n", alertTypeRaw(alert_type), alertSeverityRaw(severity))) end
+
+      flow.triggerAlert(alerted_status, alert_type, severity)
    end
 end
 
@@ -126,13 +160,23 @@ end
 -- Given an L4 protocol, we must call both the hooks registered for that protocol and
 -- the hooks registered for any L4 protocol (id 255)
 function protocolDetected(l4_proto)
-   call_modules(l4_proto, "protocolDetected")
+   local initial_status = flow.getStatus()
+
+   if call_modules(l4_proto, "protocolDetected") then
+      local new_status = flow.getStatus()
+
+      if(new_status ~= initial_status) then
+         -- The flow status has changed, possibly generate the alert
+         checkFlowStatus(new_status)
+      end
+   end
 end
 
 -- #################################################################
 
 function statusChanged(l4_proto)
    call_modules(l4_proto, "statusChanged")
+   checkFlowStatus(flow.getStatus())
 end
 
 -- #################################################################

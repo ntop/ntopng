@@ -73,7 +73,7 @@ The `flow` object keeps a context of the currently processed flow.
 The `flow.getClientGeolocation` and `flow.getServerGeolocation` functions extract the peers country information.
 The country code is then processed to determine if any of the peers is located in China (country code `CN`).
 
-An easier way to access all the flow information would be to call `flow.getStatus()`, but this should not be used in
+An easier way to access all the flow information would be to call `flow.getInfo()`, but this should not be used in
 production as it's a very expensive call.
 
 See the `Flow API`_ for a documentation of the available functions.

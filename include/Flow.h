@@ -54,9 +54,13 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t alert_score;
-  Bitmap last_notified_status_map;
+  Bitmap status_map, last_notified_status_map;
   time_t performed_lua_calls[FLOW_LUA_CALL_MAX_VAL];
   struct ndpi_flow_struct *ndpiFlow;
+  FlowStatus alerted_status;
+  AlertType alert_type;
+  AlertLevel alert_level;
+  char *tmp_alert_json;
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
      before the flow can actually be deleted from memory. This guarantees the view has
@@ -219,7 +223,6 @@ class Flow : public GenericHashEntry {
   bool isLowGoodput() const;
   static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when, bool update_iat);
   bool isReadyToBeMarkedAsIdle();
-  bool isBlacklistedFlow() const;
   inline bool isDeviceAllowedProtocol() const {
       return(!cli_host || !srv_host ||
         ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
@@ -251,7 +254,13 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
+  inline Bitmap getStatusBitmap()               { return(status_map);           }
+  inline void addStatus(FlowStatus status)      { status_map.setBit(status);    }
   FlowStatus getFlowStatus(Bitmap *status_map) const;
+  void triggerAlert(AlertType atype, AlertLevel severity, const char*alert_json);
+  inline void setAlertedStatus(FlowStatus status)      { alerted_status = status; };
+
+  bool isBlacklistedFlow() const;
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
   static const ndpi_protocol ndpiUnknownProtocol;
