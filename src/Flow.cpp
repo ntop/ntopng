@@ -2649,7 +2649,6 @@ void Flow::setTcpFlags(u_int8_t flags, bool src2dst_direction) {
     if((src2dst_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)
        && ((dst2src_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))
       twh_ok = twh_over = true,
-	set_hash_entry_state_flow_notyetdetected(),
 	iface->getTcpFlowStats()->incEstablished();
   }
 
