@@ -35,8 +35,10 @@ On Centos8
 - Set "enabled=1" in file /etc/yum.repos.d/CentOS-PowerTools.repo
 - yum install http://rpms.remirepo.net/enterprise/remi-release-8.rpm
 - yum config-manager --set-enabled remi
+- yum clean all
 - yum update
 - yum install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel
+- Then list the streams which provide redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
 
 On Fedora/CentOS 6-7
 - yum groupinstall "Development tools"
