@@ -2409,7 +2409,7 @@ void Flow::setFlowAlertId(int64_t rowid) {
 
 #ifdef HAVE_NEDGE
 
-bool Flow::isNetfilterIdleFlow() {
+bool Flow::isNetfilterIdleFlow() const {
   /*
      Note that on netfilter interfaces we never observe the
      FIN/RST flags as they have been offloaded to kernel
