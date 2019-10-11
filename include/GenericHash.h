@@ -43,32 +43,9 @@ class GenericHash {
   u_int32_t current_size; /**< Current size of hash (including idle or ready-to-purge elements).*/
   u_int32_t max_hash_size; /**< Max size of hash.*/
   RwLock **locks;
-  map<u_int, u_int8_t> busy_trylocks; /**< Counts the number of busy trylocks for each bucket */
   NetworkInterface *iface; /**< Pointer of network interface for this generic hash.*/
   u_int last_purged_hash; /**< Index of last purged hash.*/
   u_int purge_step;
-
-  /**
-   * @brief Perform certain actions when a bucket is found to be already locked
-   * @details purgeIdle performs trylocks on buckets and it may find them busy, already locked by other threads.
-   *          When the bucket is found to be busy, purgeIdle will call this method.
-   *
-   * @param hash_bucket The hash table index of the busy bucket
-   * @return void
-   *
-   */
-  void handleBusyTrylock(u_int hash_bucket);
-
-  /**
-   * @brief Perform certain actions when a bucket is found to be free
-   * @details purgeIdle performs trylocks on buckets and it may find them busy, already locked by other threads.
-   *          When the bucket is found to be free, purgeIdle will call this method.
-   *
-   * @param hash_bucket The hash table index of the free bucket
-   * @return void
-   *
-   */
-  void handleFreeTrylock(u_int hash_bucket);
 
  public:
   /**
