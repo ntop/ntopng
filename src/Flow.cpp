@@ -2753,11 +2753,20 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	twh_ok = true;
       }
 
-      twh_over = true, set_hash_entry_state_flow_notyetdetected(),
-	iface->getTcpFlowStats()->incEstablished();
-    } else
-      twh_over = true, set_hash_entry_state_flow_notyetdetected(),
-	iface->getTcpFlowStats()->incEstablished();
+      goto not_yet;
+    } else {
+    not_yet:
+      twh_over = true, iface->getTcpFlowStats()->incEstablished();
+
+      /*
+	Sometimes nDPI detects the protocol at the first packet
+	so we're already on the protocol detected slot. This is
+	is not a good news as we might have protocol detected
+	when 3WH is not yet completed.
+       */
+      if(get_state() != hash_entry_state_flow_protocoldetected)
+	set_hash_entry_state_flow_notyetdetected();
+    }
   }
 }
 

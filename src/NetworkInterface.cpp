@@ -1484,7 +1484,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if(flow->hasDissectedTooManyPackets()) {
 	u_int8_t proto_guessed;
 	
-	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1, &proto_guessed ), false);
+	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1, &proto_guessed), false);
       } else {
 	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
 								ip, trusted_ip_len, (u_int32_t)packet_time,
