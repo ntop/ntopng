@@ -48,31 +48,6 @@ Vlan::~Vlan() {
 
 /* *************************************** */
 
-bool Vlan::is_hash_entry_state_idle_transition_ready() {
-  bool rc;
-
-#ifdef VLAN_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking VLAN %u for purge [uses %u][last: %u][diff: %d]",
-			       vlan_id, num_uses,
-			       last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
-#endif
-  
-  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
-    return(false);
-
-  rc = isIdle(MAX_LOCAL_HOST_IDLE);
-
-#ifdef VLAN_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN %u for purge %s",
-			       vlan_id,
-			       rc ? "Idle: ready to be purged" : "Not Idle");
-#endif
-
-  return(rc);
-}
-
-/* *************************************** */
-
 void Vlan::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
   lua_newtable(vm);
 

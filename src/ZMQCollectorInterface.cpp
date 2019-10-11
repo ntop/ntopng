@@ -433,13 +433,13 @@ void ZMQCollectorInterface::lua(lua_State* vm) {
 
 /* **************************************************** */
 
-void ZMQCollectorInterface::purgeIdle(time_t when) {
+void ZMQCollectorInterface::purgeIdle(time_t when, bool force_idle) {
   NetworkInterface::purgeIdle(when);
 
   if(flowHashing) {
     FlowHashing *current, *tmp;
     HASH_ITER(hh, flowHashing, current, tmp)
-      static_cast<NetworkInterface*>(current->iface)->purgeIdle(when);
+      static_cast<NetworkInterface*>(current->iface)->purgeIdle(when, force_idle);
   }
 }
 
