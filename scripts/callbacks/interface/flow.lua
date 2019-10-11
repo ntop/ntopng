@@ -106,9 +106,12 @@ local function call_modules(l4_proto, mod_fn)
       return
    end
 
+   -- TODO too expensive, remove
+   local info = flow.getInfo()
+
    local params = {
       -- Flow specific information
-      flow_info = flow.getInfo(), -- TODO too expensive, remove
+      flow_info = info,
    }
 
    for mod_key, hook_fn in pairs(hooks) do

@@ -60,6 +60,7 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
+  memset(performed_lua_calls, 0, sizeof(performed_lua_calls));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
