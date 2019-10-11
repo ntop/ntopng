@@ -2638,7 +2638,7 @@ function getFlowStatus(status, flowstatus_info, alert, no_icon)
    elseif(status == flow_consts.status_normal) then 
      res = i18n(flow_consts.flow_status_types[flow_consts.status_normal].i18n_title)
    elseif(flow_consts.flow_status_types[status] ~= nil) then 
-     res = i18n(flow_consts.flow_status_types[status].i18n_title)
+     res = i18n(flow_consts.flow_status_types[status].i18n_title) or flow_consts.flow_status_types[status].i18n_title
    end
 
    return res

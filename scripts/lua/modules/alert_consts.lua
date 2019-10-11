@@ -1042,7 +1042,47 @@ alert_consts.alert_types = {
     i18n_title = "alerts_dashboard.malicious_signature_detected",
     icon = "fa-ban",
   },
+
+  -- Alert IDs reserved for custom users scripts
+  custom_1 = {
+    alert_id = 59,
+    i18n_title = "Custom Alert 1",
+    icon = "fa-exclamation",
+  },
+  custom_2 = {
+    alert_id = 60,
+    i18n_title = "Custom Alert 2",
+    icon = "fa-exclamation",
+  },
+  custom_3 = {
+    alert_id = 61,
+    i18n_title = "Custom Alert 3",
+    icon = "fa-exclamation",
+  },
+  custom_4 = {
+    alert_id = 62,
+    i18n_title = "Custom Alert 4",
+    icon = "fa-exclamation",
+  },
+  custom_5 = {
+    alert_id = 63,
+    i18n_title = "Custom Alert 5",
+    icon = "fa-exclamation",
+  },
 }
+
+-- ##############################################
+
+-- @brief Override alert type information
+function alert_consts.overrideType(atype, overrides)
+   for k, v in pairs(overrides) do
+      if(atype[k] == nil) then
+         traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown alert type field: " .. k)
+      else
+         atype[k] = v
+      end
+   end
+end
 
 -- ##############################################
 

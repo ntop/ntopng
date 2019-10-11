@@ -603,6 +603,7 @@ int Utils::mkdir(const char *path, mode_t mode) {
 
 /* **************************************************** */
 
+// TODO: remove from C?
 AlertLevel Utils::flowStatus2AlertLevel(FlowStatus s, u_int8_t ext_severity /* e.g. IDS severity */) {
   AlertLevel default_level = alert_level_warning;
   AlertLevel level = default_level;
@@ -634,11 +635,17 @@ AlertLevel Utils::flowStatus2AlertLevel(FlowStatus s, u_int8_t ext_severity /* e
 
 /* **************************************************** */
 
+// TODO: remove from C
 AlertType Utils::flowStatus2AlertType(FlowStatus s) {
   switch(s) {
   case status_normal:
   case num_flow_status:
   case status_flow_when_interface_alerted: /* TODO replace with new status */
+  case status_custom_1:
+  case status_custom_2:
+  case status_custom_3:
+  case status_custom_4:
+  case status_custom_5:
     return(alert_none);
   case status_slow_tcp_connection:
   case status_slow_application_header:

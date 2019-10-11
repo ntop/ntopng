@@ -141,6 +141,14 @@ typedef enum {
   login_failed = 42,
   alert_potentially_dangerous_protocol = 43,
   alert_malicious_signature = 48,
+
+  /* Custom user alerts */
+  alert_custom_1 = 59,
+  alert_custom_2 = 60,
+  alert_custom_3 = 61,
+  alert_custom_4 = 62,
+  alert_custom_5 = 63,
+
   /* 
      IMPORTANT IMPORTANT IMPORTANT
      If # status >= 64 then extend Utils.h and Lua bitmap functions to handle it
@@ -373,6 +381,13 @@ typedef enum {
      If # status >= 32 then change to 64 bit disabled_flow_status in Host.h 
      If # status >= 64 then change FlowStatusMap
   */
+
+  /* Custom user alerts */
+  status_custom_1 = 59,
+  status_custom_2 = 60,
+  status_custom_3 = 61,
+  status_custom_4 = 62,
+  status_custom_5 = 63,
 } FlowStatus;
 
 typedef enum {

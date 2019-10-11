@@ -513,4 +513,14 @@ end
 
 -- ##############################################
 
+function user_scripts.loadCustomPrefs()
+   -- Try to load custom prefs
+   if ntop.exists(dirs.installdir .. "/scripts/lua/modules/user_scripts_prefs.lua") then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, "Loading user_scripts_prefs...")
+      require("user_scripts_prefs")
+   end
+end
+
+-- ##############################################
+
 return(user_scripts)

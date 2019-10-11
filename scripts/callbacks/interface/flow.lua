@@ -45,6 +45,8 @@ end
 function setup()
    if do_trace then print("flow.lua:setup() called\n") end
 
+   user_scripts.loadCustomPrefs()
+
    available_modules = user_scripts.load(user_scripts.script_types.flow, interface.getId(), "flow", nil, nil, do_benchmark)
 
    -- Reorganize the modules to optimize lookup by L4 protocol
@@ -135,23 +137,28 @@ end
 -- and possibly triggers an alert
 -- @params status the flow status bitmap
 local function checkFlowStatus(status)
-   local alert_type = nil
-   local alerted_status = nil
-   local severity = alert_consts.alert_severities.error.severity_id
+   local alerted_status = flow_consts.flow_status_types[flow_consts.status_normal]
+   local alerted_status_id = nil
 
    if(status == 0) then
       return
    end
 
-   if(ntop.bitmapIsSet(status, flow_consts.status_blacklisted)) then
-      alerted_status = flow_consts.status_blacklisted
-      alert_type = alert_consts.alert_types.flow_blacklisted.alert_id
+   for status_id, info in pairs(flow_consts.flow_status_types) do
+      if((info.prio > alerted_status.prio) and ntop.bitmapIsSet(status, status_id)) then
+         -- found a status with an higher priority
+         alerted_status = info
+         alerted_status_id = status_id
+      end
    end
 
-   if(alert_type ~= nil) then
-      if do_trace then print(string.format("flow.triggerAlert(type=%s, severity=%s)\n", alertTypeRaw(alert_type), alertSeverityRaw(severity))) end
+   if(alerted_status_id ~= nil) then
+      if do_trace then
+         print(string.format("flow.triggerAlert(type=%s, severity=%s)\n",
+            alertTypeRaw(alerted_status.alert_type.alert_id), alertSeverityRaw(alerted_status.alert_severity.severity_id)))
+      end
 
-      flow.triggerAlert(alerted_status, alert_type, severity)
+      flow.triggerAlert(alerted_status_id, alerted_status.alert_type.alert_id, alerted_status.severity.severity_id, "This is a custom alert")
    end
 end
 
