@@ -47,7 +47,7 @@ Country* CountriesHash::get(const char *country_name, bool is_inline_call) {
     head = (Country*)table[hash];
 
     while(head != NULL) {
-      if(head->idle() && head->equal(country_name))
+      if((!head->idle()) && head->equal(country_name))
 	break;
       else
 	head = (Country*)head->next();
