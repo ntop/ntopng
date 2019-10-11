@@ -47,26 +47,6 @@ Country::~Country() {
 
 /* *************************************** */
 
-bool Country::is_hash_entry_state_idle_transition_ready() {
-  bool rc;
-  
-  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
-    return(false);
-
-  rc = isIdle(MAX_LOCAL_HOST_IDLE);
-
-#ifdef COUNTRY_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Country %s is idle [uses %u][%s][last: %u][diff: %d]",
-			       country_name, num_uses,
-			       rc ? "Idle" : "Not Idle",
-			       last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
-#endif
-
-  return(rc);
-}
-
-/* *************************************** */
-
 void Country::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
   lua_newtable(vm);
 

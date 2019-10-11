@@ -50,7 +50,7 @@ AutonomousSystem* AutonomousSystemHash::get(IpAddress *ipa, bool is_inline_call,
     head = (AutonomousSystem*)table[hash];
 
     while(head != NULL) {
-      if((!head->walkable()) && head->equal(asn))
+      if(!head->idle() && head->equal(asn))
 	break;
       else
 	head = (AutonomousSystem*)head->next();

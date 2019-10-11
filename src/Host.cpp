@@ -624,10 +624,7 @@ const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
 
 /* ***************************************** */
 
-bool Host::is_hash_entry_state_idle_transition_ready() {
-  if((getUses() > 0) || (!iface->is_purge_idle_interface()))
-    return(false);
-
+bool Host::is_hash_entry_state_idle_transition_ready() const {
   switch(ntop->getPrefs()->get_host_stickiness()) {
   case location_broadcast_domain_only:
   case location_none:

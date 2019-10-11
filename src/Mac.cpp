@@ -136,31 +136,6 @@ void Mac::set_hash_entry_state_idle() {
 
 /* *************************************** */
 
-bool Mac::is_hash_entry_state_idle_transition_ready() {
-  bool rc;
-
-  if(getUses() > 0 || !iface->is_purge_idle_interface())
-    return(false);
-
-  rc = isIdle(MAX_LOCAL_HOST_IDLE);
-
-#ifdef DEBUG
-  if(true) {
-    char buf[32];
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Is idle %s [uses %u][%s][last: %u][diff: %d]",
-				 Utils::formatMac(mac, buf, sizeof(buf)),
-				 getUses(),
-				 rc ? "Idle" : "Not Idle",
-				 last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
-  }
-#endif
-
-  return(rc);
-}
-
-/* *************************************** */
-
 static const char* location2str(MacLocation location) {
   switch(location) {
     case located_on_lan_interface: return "lan";

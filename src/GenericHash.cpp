@@ -148,7 +148,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
          * overriden (e.g. Flow), leading to wolking entries that are actually
          * idle even with walk_idle = false, what about using idle() here? */
 
-	if(head->walkable()
+	if(!head->idle()
 	   || (walk_idle && (head->get_state() == hash_entry_state_idle))) {
 	  bool matched = false;
 	  bool rc = walker(head, user_data, &matched);
@@ -201,20 +201,20 @@ bool GenericHash::walk(u_int32_t *begin_slot,
   Bucket Lifecycle
 
   Active -> Idle -> Ready to be Purged -> Purged
- */
+*/
 
 u_int GenericHash::purgeIdle(bool force_idle) {
   u_int i, num_purged = 0, buckets_checked = 0;
   time_t now = time(NULL);
   /* Visit all entries when force_idle is true */
-  u_int visit_fraction = !force_idle ? purge_step : num_hashes; 
+  u_int visit_fraction = !force_idle ? purge_step : num_hashes;
 
 #if WALK_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u][force_idle: %u]",
-				 name, iface->get_name(), last_purged_hash, visit_fraction, force_idle ? 1 : 0);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u][force_idle: %u]",
+			       name, iface->get_name(), last_purged_hash, visit_fraction, force_idle ? 1 : 0);
 #endif
 
-    for(u_int j = 0; j < visit_fraction; j++) {
+  for(u_int j = 0; j < visit_fraction; j++) {
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
     i = last_purged_hash;
 
@@ -235,41 +235,42 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	GenericHashEntry *next = head->next();
 
 	buckets_checked++;
-	if(head_state == hash_entry_state_ready_to_be_purged) {
-	  if(prev == NULL) {
+
+	switch(head_state) {
+	case hash_entry_state_ready_to_be_purged:
+	  if(!prev)
 	    table[i] = next;
-	  } else {
+	  else
 	    prev->set_next(next);
-	  }
 
 	  num_purged++, current_size--;
 	  delete(head);
 	  head = next;
-	} else {	 
-	  switch(head_state) {
-	  case hash_entry_state_allocated:
-	    /* TCP flows with 3WH not yet completed fall here */
-	    break;
+	  continue;
 
-	  case hash_entry_state_flow_notyetdetected:
-	    head->housekeep(now);
-	    break;
-	    
-	  case hash_entry_state_flow_protocoldetected:
-	  case hash_entry_state_idle:
-	  case hash_entry_state_ready_to_be_purged:
-	    /* Skip as this is handled by periodic activities thread */
-	    break;
+	case hash_entry_state_allocated:
+	  /* TCP flows with 3WH not yet completed fall here */
+	  break;
 
-	  case hash_entry_state_active:
-	    if(force_idle || head->is_hash_entry_state_idle_transition_ready())
-	      head->set_hash_entry_state_idle();
-	    break;
-	  }
+	case hash_entry_state_flow_notyetdetected:
+	  head->housekeep(now);
+	  break;
 
-	  prev = head;
-	  head = next;
+	case hash_entry_state_flow_protocoldetected:
+	case hash_entry_state_idle:
+	  /* Skip as this is handled by periodic activities thread */
+	  break;
+
+	case hash_entry_state_active:
+	  if(force_idle
+	     || (head->is_hash_entry_state_idle_transition_possible()
+		 && head->is_hash_entry_state_idle_transition_ready()))
+	    head->set_hash_entry_state_idle();
+	  break;
 	}
+
+	prev = head;
+	head = next;
       } /* while */
 
       locks[i]->unlock(__FILE__, __LINE__);
@@ -298,7 +299,7 @@ GenericHashEntry* GenericHash::findByKey(u_int32_t key) {
   locks[hash]->rdlock(__FILE__, __LINE__);
 
   while(head) {
-    if(head->walkable() && head->key() == key)
+    if(!head->idle() && head->key() == key)
       break;
     else
       head = head->next();

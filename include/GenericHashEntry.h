@@ -190,25 +190,29 @@ class GenericHashEntry {
     hash_entry_state = hash_entry_state_allocated;
   };  
 
-/**
+  /**
    * @brief Determine whether this entry is ready for the transition to the idle state
    * 
    */
-  virtual bool is_hash_entry_state_idle_transition_ready() = 0;
+  virtual bool is_hash_entry_state_idle_transition_ready() const;
+  /**
+   * @brief Determine whether it is possible to perform the idle transition for this entry
+   * 
+   */
+  bool is_hash_entry_state_idle_transition_possible() const;
   HashEntryState get_state() const;
   void updateSeen();
   void updateSeen(time_t _last_seen);
   bool equal(GenericHashEntry *b)         { return((this == b) ? true : false); };  
   inline NetworkInterface* getInterface() { return(iface);                      };
   bool idle() const;
-  bool walkable() const;
   virtual void housekeep(time_t t)     { return;                 };
   inline u_int get_duration()          { return((u_int)(1+last_seen-first_seen)); };
   virtual u_int32_t key()              { return(0);         };  
   virtual char* get_string_key(char *buf, u_int buf_len) const { buf[0] = '\0'; return(buf); };
   void incUses()                       { num_uses++;      }
   void decUses()                       { num_uses--;      }
-  u_int16_t getUses()                  { return num_uses; }
+  u_int16_t getUses()            const { return num_uses; }
 
   virtual void deserialize(json_object *obj);
   virtual void getJSONObject(json_object *obj, DetailsLevel details_level);

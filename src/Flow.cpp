@@ -2007,14 +2007,11 @@ void Flow::set_hash_entry_state_idle() {
 
 /* *************************************** */
 
-bool Flow::is_hash_entry_state_idle_transition_ready() {
+bool Flow::is_hash_entry_state_idle_transition_ready() const {
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());
 #endif
-
-  if(!iface->is_purge_idle_interface())
-    return(false);
 
   if(protocol == IPPROTO_TCP) {
     u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;

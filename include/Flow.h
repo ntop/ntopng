@@ -418,7 +418,7 @@ class Flow : public GenericHashEntry {
 
   /* Methods to handle the flow in-memory lifecycle */
   void set_hash_entry_state_idle();
-  bool is_hash_entry_state_idle_transition_ready();
+  bool is_hash_entry_state_idle_transition_ready() const;
   virtual void set_to_purge(time_t t);
   bool is_acknowledged_to_purge() const;
   void set_acknowledge_to_purge();

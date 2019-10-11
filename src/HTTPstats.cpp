@@ -30,10 +30,10 @@ struct http_walk_info {
 
 /* *************************************** */
 
-HTTPstats::HTTPstats(HostHash *_h) {
+HTTPstats::HTTPstats(NetworkInterface *_iface) {
   struct timeval tv;
 
-  h = _h, warning_shown = false;
+  h =_iface->get_hosts_hash(), warning_shown = false;
   memset(&query, 0, sizeof(query));
   memset(&response, 0, sizeof(response));
   memset(&query_rate, 0, sizeof(query_rate));
@@ -43,7 +43,7 @@ HTTPstats::HTTPstats(HostHash *_h) {
 
   gettimeofday(&tv, NULL);
   memcpy(&last_update_time, &tv, sizeof(struct timeval));
-  if((virtualHosts = new (std::nothrow) VirtualHostHash(NULL, 1, 4096)) == NULL) {
+  if((virtualHosts = new (std::nothrow) VirtualHostHash(_iface, 1, 4096)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: are you running out of memory?");
   }
 }

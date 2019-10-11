@@ -74,15 +74,23 @@ HashEntryState GenericHashEntry::get_state() const {
 
 /* ***************************************** */
 
-/* This entry can be walked by the user interface */
-bool GenericHashEntry::walkable() const {
-  return((get_state() < hash_entry_state_idle) ? true : false);
+bool GenericHashEntry::is_hash_entry_state_idle_transition_ready() const {
+  return isIdle(MAX_LOCAL_HOST_IDLE);
+}
+
+/* ***************************************** */
+
+bool GenericHashEntry::is_hash_entry_state_idle_transition_possible() const {
+  if(getUses() > 0 || !iface->is_purge_idle_interface())
+    return false;
+
+  return true;
 };
 
 /* ***************************************** */
 
 bool GenericHashEntry::idle() const {
-  return((get_state() >= hash_entry_state_idle) ? true : false);
+  return(get_state() > hash_entry_state_active);
 };
 
 /* ***************************************** */
