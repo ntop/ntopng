@@ -449,6 +449,7 @@ static int ntop_get_max_if_speed(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifndef HAVE_NEDGE
 // ***API***
 static int ntop_process_flow(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -473,6 +474,7 @@ static int ntop_process_flow(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+#endif
 
 /* ****************************************** */
 
@@ -9931,7 +9933,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "resetMacStats",            ntop_interface_reset_mac_stats },
   { "deleteMacData",            ntop_interface_delete_mac_data },
 
+#ifndef HAVE_NEDGE
   { "processFlow",              ntop_process_flow },
+#endif
 
   { "getActiveFlowsStats",      ntop_get_active_flows_stats },
   { "getnDPIProtoName",         ntop_get_ndpi_protocol_name },
