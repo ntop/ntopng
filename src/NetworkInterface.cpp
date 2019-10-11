@@ -1443,16 +1443,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	else
 	  icmp_v6.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
 
-	if(l4_proto == IPPROTO_ICMP) {
-	  ndpi_protocol icmp_proto = flow->get_detected_protocol();
-
-	  if(icmp_proto.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED) {
-	    ndpi_fill_ip_protocol_category(ndpi_struct,
-	      ((struct ndpi_iphdr*)ip)->saddr, ((struct ndpi_iphdr*)ip)->daddr, &icmp_proto);
-	    flow->setDetectedProtocol(icmp_proto, false);
-	  }
-	}
-
 	/* https://www.boiteaklou.fr/Data-exfiltration-with-PING-ICMP-NDH16.html */
 	if((((icmp_type == ICMP_ECHO) || (icmp_type == ICMP_ECHOREPLY)) && /* ICMPv4 ECHO */
 	      (trusted_l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH)) ||

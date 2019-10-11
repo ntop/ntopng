@@ -694,20 +694,30 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       update_flow_port_stats = true;
     }
 
-    switch(protocol) {
-    case IPPROTO_TCP:
-    case IPPROTO_UDP:
-      if(detection_completed && (forceDetection || (!needsExtraDissection()))) {
-	/* Extra detection was completed */
-	processFullyDissectedProtocol();
-	
-	/*
-	  We need to change state here as in Lua scripts we need to know
-	  all metadata available
-	*/
-	set_hash_entry_state_flow_protocoldetected();
+    if(detection_completed && (forceDetection || !needsExtraDissection())) {
+      switch(protocol) {
+      case IPPROTO_TCP:
+      case IPPROTO_UDP:
+	break;
+
+      default:
+	/* nDPI is not allocated for non-TCP non-UDP flows so, in order to
+	   make sure custom cateories are properly populated, function ndpi_fill_ip_protocol_category
+	   must be called explicitly.*/
+	if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED /* Override only if unspecified */
+	   && get_cli_ipv4() && get_srv_ipv4() /* Only IPv4 is supported */)
+	  ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(), get_cli_ipv4(), get_srv_ipv4(), &ndpiDetectedProtocol);
+	break;
       }
-      break;
+
+      /* Always called, not just for TCP or UDP */
+      processFullyDissectedProtocol();
+
+      /*
+	We need to change state here as in Lua scripts we need to know
+	all metadata available
+      */
+      set_hash_entry_state_flow_protocoldetected();
     }
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
