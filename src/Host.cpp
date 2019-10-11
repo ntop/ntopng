@@ -1126,14 +1126,14 @@ bool Host::statsResetRequested() {
 /* *************************************** */
 
 void Host::updateStats(update_stats_user_data_t *update_hosts_stats_user_data) {
+  char buf[64];
   struct timeval *tv = update_hosts_stats_user_data->tv;
   Mac *cur_mac = getMac();
 
   if(get_state() == hash_entry_state_idle) {
-    if((getUses() > 0)
-       /* View hosts are not in sync with viewed flows so during shutdown it can be normal */
-       && (!iface->isView() || !ntop->getGlobals()->isShutdownRequested()))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", getUses());
+    if(getUses() > 0 && !ntop->getGlobals()->isShutdownRequested())
+      /* During shutdown it is acceptable to have a getUses() > 0 as all the hosts are forced as idle */
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u [%s]", getUses(), get_ip()->print(buf, sizeof(buf)));
     
     set_hash_entry_state_ready_to_be_purged();
 

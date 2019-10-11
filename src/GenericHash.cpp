@@ -250,13 +250,18 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 
 	case hash_entry_state_allocated:
 	  /* TCP flows with 3WH not yet completed fall here */
+	  if(force_idle) head->set_hash_entry_state_idle();
 	  break;
 
 	case hash_entry_state_flow_notyetdetected:
 	  head->housekeep(now);
+	  if(force_idle) head->set_hash_entry_state_idle();
 	  break;
 
 	case hash_entry_state_flow_protocoldetected:
+	  if(force_idle) head->set_hash_entry_state_idle();
+	  break;
+
 	case hash_entry_state_idle:
 	  /* Skip as this is handled by periodic activities thread */
 	  break;

@@ -528,9 +528,9 @@ class NetworkInterface : public AlertableEntity {
 		const char *groupColumn);
   int dropFlowsTraffic(AddressTree *allowed_hosts, Paginator *p);
 
-  virtual void purgeIdle(time_t when);
-  u_int purgeIdleFlows();
-  u_int purgeIdleHostsMacsASesVlans();
+  virtual void purgeIdle(time_t when, bool force_idle = false);
+  u_int purgeIdleFlows(bool force_idle);
+  u_int purgeIdleHostsMacsASesVlans(bool force_idle);
 
   virtual u_int64_t getNumPackets();
   virtual u_int64_t getNumBytes();

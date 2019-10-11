@@ -1733,17 +1733,17 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 /* **************************************************** */
 
-void NetworkInterface::purgeIdle(time_t when) {
+void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   if(purge_idle_flows_hosts) {
     u_int n, m;
 
     last_pkt_rcvd = when;
 
-    if((n = purgeIdleFlows()) > 0)
+    if((n = purgeIdleFlows(force_idle)) > 0)
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
 				   n, getNumFlows(), ifname);
 
-    if((m = purgeIdleHostsMacsASesVlans()) > 0)
+    if((m = purgeIdleHostsMacsASesVlans(force_idle)) > 0)
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
 				   m, getNumHosts()+getNumMacs(), ifname);
   }
@@ -1753,7 +1753,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 
     HASH_ITER(hh, flowHashing, current, tmp) {
       if(current->iface)
-	current->iface->purgeIdle(when);
+	current->iface->purgeIdle(when, force_idle);
     }
   }
 }
@@ -2494,7 +2494,7 @@ void NetworkInterface::shutdown() {
     running = false;
     pthread_join(pollLoop, &res);
     /* purgeIdle one last time to make sure all entries will be marked as idle */
-    purgeIdle(time(NULL));
+    purgeIdle(time(NULL), true);
   }
 }
 
@@ -4961,10 +4961,9 @@ void NetworkInterface::getNetworksStats(lua_State* vm) const {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleFlows() {
+u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
   u_int n = 0;
   time_t last_packet_time = getTimeLastPktRcvd();
-  bool force_idle = !isRunning();
 
   pollQueuedeCompanionEvents();
   reloadCustomCategories();
@@ -4978,7 +4977,7 @@ u_int NetworkInterface::purgeIdleFlows() {
     /* Time to purge flows */
 
 #if 0
-    ntop->getTrace()->traceEvent(TRACE_INFO,
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
 				 ifname, id, flows_hash->getCurrentSize());
 #endif
@@ -5051,9 +5050,8 @@ u_int NetworkInterface::getNumArpStatsMatrixElements() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
+u_int NetworkInterface::purgeIdleHostsMacsASesVlans(bool force_idle) {
   time_t last_packet_time = getTimeLastPktRcvd();
-  bool force_idle = !isRunning();
 
   if(!purge_idle_flows_hosts) return(0);
 
@@ -5063,6 +5061,12 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans() {
     /* Time to purge hosts */
     u_int n;
     /* If the interface is no longer running it is safe to force all entries as idle */
+
+#if 0
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Purging idle hosts [ifname: %s] [ifid: %i] [current size: %i]",
+				   ifname, id, hosts_hash->getCurrentSize());
+#endif
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
     n = (hosts_hash ? hosts_hash->purgeIdle(force_idle) : 0)
