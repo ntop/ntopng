@@ -694,15 +694,20 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       update_flow_port_stats = true;
     }
 
-    if(detection_completed && (forceDetection || (!needsExtraDissection()))) {
-      /* Extra detection was completed */
-      processFullyDissectedProtocol();
-
-      /*
-	We need to change state here as in Lua scripts we need to know
-	all metadata available
-      */
-      set_hash_entry_state_flow_protocoldetected();
+    switch(protocol) {
+    case IPPROTO_TCP:
+    case IPPROTO_UDP:
+      if(detection_completed && (forceDetection || (!needsExtraDissection()))) {
+	/* Extra detection was completed */
+	processFullyDissectedProtocol();
+	
+	/*
+	  We need to change state here as in Lua scripts we need to know
+	  all metadata available
+	*/
+	set_hash_entry_state_flow_protocoldetected();
+      }
+      break;
     }
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
