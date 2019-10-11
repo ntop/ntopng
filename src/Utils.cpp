@@ -4057,7 +4057,7 @@ DeviceType Utils::getDeviceTypeFromOsDetail(const char *os) {
 
 /* Bitmap functions */
 bool Utils::bitmapIsSet(u_int64_t bitmap, u_int8_t v) {
-  if(v > sizeof(bitmap)) {
+  if(v > 64) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmap set out of range (%u > %u)",
 				 v, sizeof(bitmap));
     return(false);
@@ -4067,7 +4067,7 @@ bool Utils::bitmapIsSet(u_int64_t bitmap, u_int8_t v) {
 }
 
 u_int64_t Utils::bitmapSet(u_int64_t bitmap, u_int8_t v) {
-  if(v > sizeof(bitmap))
+  if(v > 64)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmap set out of range (%u > %u)",
 				 v, sizeof(bitmap));
   else
@@ -4077,7 +4077,7 @@ u_int64_t Utils::bitmapSet(u_int64_t bitmap, u_int8_t v) {
 }
 
 u_int64_t Utils::bitmapClear(u_int64_t bitmap, u_int8_t v) {
-  if(v > sizeof(bitmap))
+  if(v > 64)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmap set out of range (%u > %u)",
 				 v, sizeof(bitmap));
   else
