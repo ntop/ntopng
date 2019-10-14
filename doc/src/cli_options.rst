@@ -128,19 +128,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |     ./nprobe ... --mysql="localhost:ntopng:nf:root:root"
                                        |     ./ntopng ... --dump-flows="mysql-nprobe;localhost;ntopng;nf;root;root"
    [--export-flows|-I] <endpoint>      | Export flows with the specified endpoint
-   [--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).
-                                       | Values:
-                                       | all    - Dump all hosts
-                                       | local  - Dump only local hosts
-                                       | remote - Dump only remote hosts
-                                       | none   - Do not dump any host
-   [--sticky-hosts|-S] <mode>          | Don't flush hosts (default: none).
-                                       | Values:
-                                       | all    - Keep all hosts in memory
-                                       | local  - Keep only local hosts
-                                       | remote - Keep only remote hosts
-                                       | none   - Flush hosts when idle
-   [--hw-timestamp-mode <mode>]          | Enable hw timestamping/stripping.
+   [--hw-timestamp-mode <mode>]        | Enable hw timestamping/stripping.
                                        | Supported TS modes are:
                                        | apcon - Timestamped pkts by apcon.com
                                        |         hardware devices
