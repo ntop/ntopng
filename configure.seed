@@ -201,7 +201,7 @@ fi
 AC_MSG_CHECKING(for ntopng professional edition)
 
 SERVICE_ALIAS=
-SERVICE_REQUIRES=
+SERVICE_REQUIRES=redis.service
 SERVICE_WANTS=
 if test "$MACHINE" = "armv7l"; then
 SERVICE_AFTER="network.target syslog.target redis.service"
@@ -210,7 +210,7 @@ SERVICE_AFTER="network.target syslog.target redis.service"
   fi
 elif test "${with_nedge+set}" = "set"; then
 SERVICE_AFTER="network-online.target syslog.target redis.service"
-SERVICE_REQUIRES="nedge_pinger.service"
+SERVICE_REQUIRES="${SERVICE_REQUIRES} nedge_pinger.service"
 SERVICE_ALIAS="nedge.service"
 else
 SERVICE_AFTER="network.target syslog.target redis.service pf_ring.service cluster.service mysql.service"
