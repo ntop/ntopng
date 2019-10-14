@@ -2673,7 +2673,7 @@ static inline int influx_concat_table_fields(lua_State *L, int index, char *buf,
 
 /* ****************************************** */
 
-/* curl -i -XPOST "http://localhost:8086/write?db=ntopng" --data-binary 'profile:traffic,ifid=0,profile=a profile bytes=2506351 1559634840000000000' */
+/* curl -i -XPOST "http://localhost:8086/write?precision=s&db=ntopng" --data-binary 'profile:traffic,ifid=0,profile=a profile bytes=2506351 1559634840' */
 static int ntop_append_influx_db(lua_State* vm) {
   char data[512], *schema;
   int buflen = sizeof(data);
@@ -2695,12 +2695,12 @@ static int ntop_append_influx_db(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TTABLE) != CONST_LUA_OK) return(CONST_LUA_ERROR);
 
-  // "iface:traffic,ifid=0 bytes=0 1539358699000000000\n"
+  // "iface:traffic,ifid=0 bytes=0 1539358699\n"
   buflen -= snprintf(data, buflen, is_table_empty(vm, 3) ? "%s" : "%s,", schema);
   buflen = influx_concat_table_fields(vm, 3, data + sizeof(data) - buflen, buflen); // tags
   buflen -= snprintf(data + sizeof(data) - buflen, buflen, " ");
   buflen = influx_concat_table_fields(vm, 4, data + sizeof(data) - buflen, buflen); // metrics
-  buflen -= snprintf(data + sizeof(data) - buflen, buflen, " %lu000000000\n", tstamp);
+  buflen -= snprintf(data + sizeof(data) - buflen, buflen, " %lu\n", tstamp);
 
   if(ntop_interface && ntop_interface->getTSExporter()) {
     ntop_interface->getTSExporter()->exportData(data);

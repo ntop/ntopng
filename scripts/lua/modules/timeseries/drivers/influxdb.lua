@@ -729,7 +729,7 @@ function driver:_exportTsFile(exportable)
 
   -- Delete the file after POST
   local delete_file_after_post = false
-  local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?db=" .. self.db, fname, delete_file_after_post, 30 --[[ timeout ]])
+  local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?precision=s&db=" .. self.db, fname, delete_file_after_post, 30 --[[ timeout ]])
 
   if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
     -- local msg = self:_exportErrorMsg(ret)
