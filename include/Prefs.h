@@ -95,7 +95,6 @@ class Prefs {
   u_int8_t num_ts_slots, ts_num_steps;
   HostMask hostMask;
 
-  LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int32_t max_num_hosts, max_num_flows;
   u_int32_t attacker_max_num_flows_per_sec, victim_max_num_flows_per_sec;
   u_int32_t attacker_max_num_syn_per_sec, victim_max_num_syn_per_sec;
@@ -174,7 +173,6 @@ class Prefs {
   }
   time_t pro_edition_demo_ends_at();
   inline char* get_local_networks()                     { if (!local_networks_set) return NULL; return(local_networks); };
-  inline LocationPolicy get_host_stickiness()            { return(sticky_hosts);           };
   inline void disable_dns_resolution()                  { enable_dns_resolution = false;  };
   inline void resolve_all_hosts()                       { resolve_all_host_ip = true;     };
   inline bool is_dns_resolution_enabled_for_all_hosts() { return(resolve_all_host_ip);    };
@@ -256,8 +254,6 @@ class Prefs {
   void add_default_interfaces();
   int loadFromCLI(int argc, char *argv[]);
   int loadFromFile(const char *path);
-  inline void set_dump_hosts_to_db_policy(LocationPolicy p)   { dump_hosts_to_db = p;               };
-  inline LocationPolicy get_dump_hosts_to_db_policy()         { return(dump_hosts_to_db);           };
   void add_network_interface(char *name, char *description);
   inline bool json_labels_as_strings()                        { return(json_labels_string_format);       };
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };

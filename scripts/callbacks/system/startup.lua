@@ -27,31 +27,6 @@ local ts_utils = require "ts_utils"
 
 local prefs = ntop.getPrefs()
 
--- restore sticky hosts
-if prefs.sticky_hosts ~= nil then
-   -- if the sticky hosts are set, then we try and restore them out of redis
-   for _, ifname in pairs(interface.getIfNames()) do
-      interface.select(ifname)
-      local ifid = getInterfaceId(ifname)
-      -- an example key is ntopng.serialized_hosts.ifid_6__192.168.2.136@0
-      local keys_pattern = "ntopng.serialized_hosts.ifid_"..ifid.."__*"
-      local dumped_hosts = ntop.getKeysCache("ntopng.serialized_hosts.ifid_"..ifid.."__*")
-
-      if dumped_hosts ~= nil then
-	 for hostkey, _ in pairs(dumped_hosts) do
-	    -- let's extract just the host name and vlan from the whole key;
-	    -- restore host will do the rest ...
-	    local key_parts = string.split(hostkey, "__")
-	    if key_parts ~= nil and key_parts[2] ~= nil then
-	       local hostkey = key_parts[2]
-
-	       interface.restoreHost(hostkey, true --[[ skip privileges checks: no web access --]])
-	    end
-	 end
-      end
-   end
-end
-
 host_pools_utils.initPools()
 
 if(ntop.isPro()) then

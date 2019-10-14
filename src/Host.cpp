@@ -623,24 +623,6 @@ const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
 /* ***************************************** */
 
 bool Host::is_hash_entry_state_idle_transition_ready() const {
-  switch(ntop->getPrefs()->get_host_stickiness()) {
-  case location_broadcast_domain_only:
-  case location_none:
-    break;
-
-  case location_local_only:
-    if(isLocalHost() || isSystemHost()) return(false);
-    break;
-
-  case location_remote_only:
-    if(!(isLocalHost() || isSystemHost())) return(false);
-    break;
-
-  case location_all:
-    return(false);
-    break;
-  }
-
   return(isIdle(ntop->getPrefs()->get_host_max_idle(isLocalHost())));
 };
 
