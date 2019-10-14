@@ -40,7 +40,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROO
 mkdir -p $RPM_BUILD_ROOT/var/lib/ntopng
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/etc/sudoers.d/
-%if 0%{?centos_ver} != 7
+%if 0%{?centos_ver} == 6
 mkdir -p $RPM_BUILD_ROOT/etc/init.d 
 %endif
 cp $HOME/ntopng/ntopng $RPM_BUILD_ROOT/usr/bin
@@ -95,7 +95,7 @@ rm -fr $RPM_BUILD_ROOT
 /usr/share/man/man8/ntopng.8.gz
 %config(noreplace) /etc/ntopng/ntopng.conf
 /etc/ntopng/ntopng.conf.nprobe.sample
-%if 0%{?centos_ver} == 7
+%if 0%{?centos_ver} != 6
 /usr/lib/systemd/system/ntopng.service
 /usr/lib/systemd/system/ntopng@.service
 %else
@@ -146,7 +146,7 @@ if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
     fi
 fi
 
-%if 0%{?centos_ver} != 7
+%if 0%{?centos_ver} == 6
 case "$1" in
   1)
     # install
@@ -166,7 +166,7 @@ if test ! -e /usr/local/bin/ntopng ; then ln -s /usr/bin/ntopng /usr/local/bin/n
 if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled; fi
 
 if [ ! -f /.dockerenv ]; then
-%if 0%{?centos_ver} == 7
+%if 0%{?centos_ver} != 6
 /bin/systemctl daemon-reload
 %systemd_post ntopng.service
 %else
@@ -174,7 +174,7 @@ if [ ! -f /.dockerenv ]; then
 %endif
 fi
 
-%if 0%{?centos_ver} != 7
+%if 0%{?centos_ver} == 6
 case "$1" in
   1)
     # install
@@ -189,7 +189,7 @@ esac
 
 %preun
 if [ ! -f /.dockerenv ]; then
-%if 0%{?centos_ver} != 7
+%if 0%{?centos_ver} == 6
 case "$1" in
   0)
     # un-install
@@ -201,7 +201,7 @@ case "$1" in
 esac
 %endif
 
-%if 0%{?centos_ver} == 7
+%if 0%{?centos_ver} != 6
   %systemd_preun ntopng.service
 %else
   /sbin/chkconfig --del ntopng
@@ -210,7 +210,7 @@ fi
 
 %postun
 if [ ! -f /.dockerenv ]; then
-%if 0%{?centos_ver} == 7
+%if 0%{?centos_ver} != 6
   %systemd_postun_with_restart ntopng.service
 %endif
 fi
