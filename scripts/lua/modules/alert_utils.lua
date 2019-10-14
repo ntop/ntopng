@@ -1493,8 +1493,8 @@ function housekeepingAlertsMakeRoom(ifId)
 	 to_keep = round(to_keep, 0)
 	 local cleanup = interface.queryFlowAlertsRaw("DELETE",
 						      "WHERE rowid NOT IN (SELECT rowid FROM flows_alerts ORDER BY alert_tstamp DESC LIMIT "..to_keep..")")
-	 --tprint({total=count, to_delete=to_delete, cleanup=cleanup})
-	 --tprint(cleanup)
+	 -- tprint({total=count, to_delete=to_delete, cleanup=cleanup})
+	 -- tprint(cleanup)
 	 -- TODO: possibly raise a too many flow alerts
       end
    end

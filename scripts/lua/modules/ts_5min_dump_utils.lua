@@ -408,6 +408,8 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, s
   local dump_tstart = os.time()
   local dumped_hosts = {}
 
+  housekeepingAlertsMakeRoom(ifstats.id)
+
   -- Save hosts stats (if enabled from the preferences)
   if (is_rrd_creation_enabled and (config.host_rrd_creation ~= "0")) then
     local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, is_rrd_creation_enabled, function (hostname, host_ts)
