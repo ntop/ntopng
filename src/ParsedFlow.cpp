@@ -117,7 +117,8 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
 	} else if(!strcmp(key, "l4_proto")) {
 	  l4_proto = Utils::l4name2proto(lua_tostring(L, -1));
 	} else {
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for %s", lua_tostring(L, -1), key);
+          addAdditionalField(key, json_object_new_string(lua_tostring(L, -1)));
+          ntop->getTrace()->traceEvent(TRACE_DEBUG, "Key '%s' (string) not supported", key);
         }
 	break;
 
@@ -158,12 +159,15 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
 	  http_ret_code = lua_tonumber(L, -1);
 	else if(!strcmp(key, "external_alert_severity"))
 	  external_alert_severity = lua_tonumber(L, -1);
-	else
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for %s", lua_tonumber(L, -1), key);
+	else {
+          addAdditionalField(key, json_object_new_int64(lua_tonumber(L, -1)));
+          ntop->getTrace()->traceEvent(TRACE_DEBUG, "Key '%s' (number) not supported", key);
+        }
 	break;
 
       case LUA_TBOOLEAN:
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid bool type for %s", key);
+        addAdditionalField(key, json_object_new_boolean(lua_toboolean(L, -1)));
+        ntop->getTrace()->traceEvent(TRACE_DEBUG, "Key '%s' (boolean) not supported", key);
 	break;
 
       default:

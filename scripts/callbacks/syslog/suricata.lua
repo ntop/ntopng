@@ -61,46 +61,45 @@ end
 -- #################################################################
 
 local function parseHTTPMetadata(event_http, flow)
-
-   -- Additional fields:
-   -- event_http.protocol
-   -- event_http.http_refer
-   -- event_http.http_content_type
-   -- event_http.length
-
    flow.http_method = event_http.http_method
    flow.http_ret_code = tonumber(event_http.status)
    flow.http_site = event_http.hostname
    if event_http.hostname ~= nil and event_http.url ~= nil then
       flow.http_url = event_http.hostname..event_http.url
    end
+
+   -- Additional fields
+   flow.HTTP_PROTOCOL = event_http.protocol
+   flow.HTTP_REFERER = event_http.http_refer
+   flow.HTTP_MIME = event_http.http_content_type
+   flow.HTTP_LENGTH = event_http.length
 end
 
 -- #################################################################
 
 local function parseDNSMetadata(event_dns, flow)
 
-   -- Additional fields:
-   -- event_dns.id
-   -- event_dns.tx_id
-
    if event_dns.type == "query" then
       flow.dns_query = event_dns.rrname
       flow.dns_query_type = get_dns_type(event_dns.rrtype)
    end
+
+   -- Additional fields
+   flow.DNS_QUERY_ID = event_dns.id
+   flow.DNS_TX_ID = event_dns.tx_id
 end
 
 -- #################################################################
 
 local function parseTLSMetadata(event_tls, flow)
 
-   -- Additional fields:
-   -- event_tls.version
-   -- event_tls.session_resumed
-   -- event_tls.ja3
-   -- event_tls.ja3s
-
    flow.ssl_server_name = event_tls.sni
+   -- flow.ja3c_hash = event_tls.ja3
+   -- flow.ja3s_hash = event_tls.ja3s
+
+   -- Additional fields
+   flow.TLS_VERSION = event_tls.version
+   flow.TLS_SESSION_RESUMED = event_tls.session_resumed
 end
 
 -- #################################################################
@@ -112,15 +111,13 @@ function syslog_module.hooks.handleEvent(message)
       return
    end
 
-   -- Additional fields:
-   -- event.timestamp
-   -- event.event_type
-   -- event.flow_id
-   -- event.community_id
-   -- event.app_proto
-
    local flow = {}
    parseFiveTuple(event, flow)
+
+   -- Additional (common) fields
+   flow.SURICATA_FLOW_ID = event.flow_id
+   flow.SURICATA_APP_PROTO = event.app_proto
+   flow.COMMUNITY_ID = event.community_id
 
    if event.event_type == "alert" then
 

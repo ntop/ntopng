@@ -349,6 +349,7 @@ flow_consts.flow_fields_description = {
     ["DNS_NUM_ANSWERS"] = i18n("flow_fields_description.dns_num_answers"),
     ["DNS_TTL_ANSWER"] = i18n("flow_fields_description.dns_ttl_answer"),
     ["DNS_RESPONSE"] = i18n("flow_fields_description.dns_response"),
+    ["DNS_TX_ID"] = i18n("flow_fields_description.dns_tx_id"),
 
     -- FTP Protocol
     ["FTP_LOGIN"] = i18n("flow_fields_description.ftp_login"),
@@ -425,12 +426,14 @@ flow_consts.flow_fields_description = {
 
     -- HTTP Protocol
     ["HTTP_URL"] = i18n("flow_fields_description.http_url"),
+    ["HTTP_LENGTH"] = i18n("flow_fields_description.http_length"),
     ["HTTP_METHOD"] = i18n("flow_fields_description.http_method"),
     ["HTTP_RET_CODE"] = i18n("flow_fields_description.http_ret_code"),
     ["HTTP_REFERER"] = i18n("flow_fields_description.http_referer"),
     ["HTTP_UA"] = i18n("flow_fields_description.http_ua"),
     ["HTTP_MIME"] = i18n("flow_fields_description.http_mime"),
     ["HTTP_HOST"] = i18n("flow_fields_description.http_host"),
+    ["HTTP_PROTOCOL"] = i18n("flow_fields_description.http_protocol"),
     ["HTTP_SITE"] = i18n("flow_fields_description.http_site"),
     ["HTTP_X_FORWARDED_FOR"] = i18n("flow_fields_description.http_x_forwarded_for"),
     ["HTTP_VIA"] = i18n("flow_fields_description.http_via"),
@@ -575,6 +578,17 @@ flow_consts.flow_fields_description = {
     ["SSDP_SERVER"] = i18n("flow_fields_description.ssdp_server"),
     ["SSDP_TYPE"] = i18n("flow_fields_description.ssdp_type"),
     ["SSDP_METHOD"] = i18n("flow_fields_description.ssdp_method"),
+
+    -- SSL/TLS
+    ["TLS_VERSION"] = i18n("flow_fields_description.tls_version"),
+    ["TLS_SESSION_RESUMED"] = i18n("flow_fields_description.tls_session_resumed"),
+
+    -- Suricata
+    ["SURICATA_FLOW_ID"] = i18n("flow_fields_description.suricata_flow_id"),
+    ["SURICATA_APP_PROTO"] = i18n("flow_fields_description.suricata_app_proto"),
+
+    -- Misc
+    ["COMMUNITY_ID"] = i18n("flow_fields_description.community_id"),
 }
 
 -- ################################################################################
