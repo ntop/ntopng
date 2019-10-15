@@ -29,7 +29,7 @@ if ts_utils.hasHighResolutionTs() then
    local time_threshold = when - (when % 60) --[[ align ]] + 50 --[[ margin ]]
    local config = ts_5min_dump.getConfig()
 
-   ts_5min_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, false--[[ skip ts]], true--[[ skip alerts]], verbose)
+   ts_5min_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
 end
 
 -- ########################################################

@@ -396,19 +396,23 @@ end
 
 -- ########################################################
 
-function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, skip_ts, skip_alerts, verbose)
-  local working_status = nil
-  local is_rrd_creation_enabled = (not skip_ts) and (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
-  local are_alerts_enabled = (not skip_alerts) and mustScanAlerts(ifstats)
+-- This performs all the 5 minutes tasks execept the timeseries dump
+function ts_dump.run_5min_tasks(_ifname, ifstats)
+  user_scripts.runPeriodicScripts("5mins")
+
+  housekeepingAlertsMakeRoom(ifstats.id)
+end
+
+-- ########################################################
+
+-- NOTE: this is executed every minute if ts_utils.hasHighResolutionTs() is true
+function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
+  local is_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
   local num_processed_hosts = 0
   local min_instant = when - (when % 60) - 60
 
-  user_scripts.runPeriodicScripts("5mins")
-
   local dump_tstart = os.time()
   local dumped_hosts = {}
-
-  housekeepingAlertsMakeRoom(ifstats.id)
 
   -- Save hosts stats (if enabled from the preferences)
   if (is_rrd_creation_enabled and (config.host_rrd_creation ~= "0")) then

@@ -21,5 +21,9 @@ local _ifname = ifstats.name
 
 -- ########################################################
 
-local skip_ts = ts_utils.hasHighResolutionTs()
-ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, skip_ts, false --[[skip alerts]], verbose)
+ts_dump.run_5min_tasks(_ifname, ifstats)
+
+if(not ts_utils.hasHighResolutionTs()) then
+  ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
+-- else: perform the ts_dump.run_5min_dump in minute.lua
+end
