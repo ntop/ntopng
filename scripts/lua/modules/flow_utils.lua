@@ -1497,9 +1497,10 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local status_stats = flowstats["status"]
        local first = true
-       for _, s in ipairs(flow_consts.flow_status_types) do
+       for _, s in pairs(flow_consts.flow_status_types) do
           local t = s.status_id
-          if t then
+
+          if(t > 0) then
              if status_stats[t] and status_stats[t].count > 0 then
                if first then
                  entries[#entries + 1] = '<li role="separator" class="divider"></li>'
