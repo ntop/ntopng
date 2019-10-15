@@ -411,7 +411,7 @@ class NetworkInterface : public AlertableEntity {
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
-  inline int isRunning()	   { return running;             };
+  bool isRunning() const;
   inline bool isTrafficMirrored()  { return is_traffic_mirrored; };
   void  updateTrafficMirrored();
   void updateFlowDumpDisabled();

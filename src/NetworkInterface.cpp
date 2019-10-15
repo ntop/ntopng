@@ -496,6 +496,14 @@ void NetworkInterface::loadScalingFactorPrefs() {
 
 /* **************************************************** */
 
+bool NetworkInterface::isRunning() const {
+  return running
+    && !ntop->getGlobals()->isShutdownRequested()
+    && !ntop->getGlobals()->isShutdown();
+}
+
+/* **************************************************** */
+
 void NetworkInterface::updateTrafficMirrored() {
   char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
   bool is_mirrored = CONST_DEFAULT_MIRRORED_TRAFFIC;
@@ -2496,7 +2504,7 @@ void NetworkInterface::startPacketPolling() {
 void NetworkInterface::shutdown() {
   void *res;
 
-  if(isRunning()) {
+  if(running) {
     running = false;
     pthread_join(pollLoop, &res);
     /* purgeIdle one last time to make sure all entries will be marked as idle */
@@ -7477,7 +7485,7 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
   host->housekeepAlerts(acle->getPeriodicity() /* periodicity */);
 
   /* Stop as soon as a shutdown is in progress or the process
-     could hang for to long. */
+     could hang for too long. */
   return ntop->getGlobals()->isShutdownRequested();
 }
 
