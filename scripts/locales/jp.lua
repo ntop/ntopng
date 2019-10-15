@@ -2332,7 +2332,6 @@ local lang = {
     ["non_local_host_max_idle_title"] = "リモート ホスト Idle Timeout",
     ["none"] = "None",
     ["note_timeseries_resolution_disabled"] = "注意: \"%{pref}\" がデフォルト値に設定されていないため無効化されています",
-    ["note_update_frequency_disabled"] = "注意: \"%{pref}\" の要求条件により無効化されています",
     ["other_timeseries"] = "Other Timeseries",
     ["per_category"] = "Per カテゴリ",
     ["per_protocol"] = "Per プロトコル",

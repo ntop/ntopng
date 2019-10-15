@@ -2431,7 +2431,6 @@ local lang = {
     ["non_local_host_max_idle_title"] = "Tempo limite ocioso do host remoto",
     ["none"] = "Nenhum",
     ["note_timeseries_resolution_disabled"] = "NOTA: isso está desativado porque \"%{pref}\" não está definido para o valor padrão.",
-    ["note_update_frequency_disabled"] = "NOTA: isto está desativado por causa da \"%{pref}\" requisitos.",
     ["other_timeseries"] = "Outras séries temporais",
     ["per_category"] = "Por categoria",
     ["per_protocol"] = "Por aplicação",

@@ -48,14 +48,6 @@ end
 
 -- ##############################################
 
-function ts_utils.hasHighResolutionTs()
-   local driver_name = ntop.getPref("ntopng.prefs.timeseries_driver")
-   
-   return((driver_name == "influxdb") or (driver_name == "prometheus"))
-end
-
--- ##############################################
-
 --! @brief Find schema by name.
 --! @param name the schema identifier.
 --! @return a schema object on success, nil on error.
@@ -65,10 +57,10 @@ function ts_utils.getSchema(name)
   if schema then
     -- insertion_step: this corresponds to the interval of data writes
     -- step: used for visualization
-    schema.options.insertion_step = schema.options.step
+     schema.options.insertion_step = schema.options.step
   end
 
-  if schema and ts_utils.hasHighResolutionTs() then
+  if schema and interface.hasHighResTs() then
     if((schema.options.step == 300) and (schema.options.is_system_schema ~= true)) then
       schema.options.insertion_step = 60
       schema.options.step = 60

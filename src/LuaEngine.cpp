@@ -1752,6 +1752,20 @@ static int ntop_interface_has_ebpf(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_interface_has_high_res_ts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool rv = false;
+
+  if(ntop_interface && ntop_interface != ntop->getSystemInterface())
+    rv = TimeseriesRing::isRingEnabled(ntop_interface);
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_has_geoip(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -9957,6 +9971,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
   { "hasVLANs",                 ntop_interface_has_vlans },
   { "hasEBPF",                  ntop_interface_has_ebpf  },
+  { "hasHighResTs",             ntop_interface_has_high_res_ts },
   { "getStats",                 ntop_get_interface_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
   { "getInterfaceTimeseries",   ntop_get_interface_timeseries },

@@ -1306,12 +1306,9 @@ function printInMemory()
 		       "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil,
 		       {min=1, max=3600, tformat="smh"})
 
-  local has_high_resolution = ((tonumber(ntop.getPref("ntopng.prefs.ts_write_steps")) or 0) > 0)
-
   prefsInputFieldPrefs(subpage_active.entries["housekeeping_frequency"].title,
-		       subpage_active.entries["housekeeping_frequency"].description ..
-			  ternary(has_high_resolution, "<br>"..i18n("prefs.note_update_frequency_disabled", {pref=i18n("prefs.timeseries_resolution_resolution_title")}), ""),
-		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=60, disabled=has_high_resolution})
+		       subpage_active.entries["housekeeping_frequency"].description,
+		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min = 1, max = 60})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
@@ -1427,8 +1424,10 @@ function printStatsTimeseries()
 		       "influx_password", "",
            "password", auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
 
-  local ts_slots_labels = {"10s", "30s", "1m"}
-  local ts_slots_values = {"10", "30", "60"}
+  local ts_slots_labels = {"10s", "30s", "1m", "5m"}
+  local ts_slots_values = {"10", "30", "60", "300"}
+  -- Currently, high-resolution-timeseries seem to only work when the default housekeeping frequency is in place.
+  -- As a TODO, it would be nice to relax this assumption.
   local has_custom_housekeeping = (tonumber(ntop.getPref("ntopng.prefs.housekeeping_frequency")) or 5) ~= 5
 
   multipleTableButtonPrefs(subpage_active.entries["timeseries_resolution_resolution"].title,
@@ -1890,24 +1889,23 @@ aysHandleForm("form", {
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 
-if tonumber(_POST["ts_high_resolution"]) ~= nil then
+local high_res_secs = tonumber(_POST["ts_high_resolution"])      
+if high_res_secs then
   -- update ts_write_slots
   local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
   local new_slots = 0
   local new_steps = 0
 
-  if driver == "influxdb" then
-    new_slots = 60 / tonumber(_POST["ts_high_resolution"])
+  -- high_res_secs must be <= 60 to be considered high-resolution
+  -- the only other option is 300 seconds (5 minutes) and there's
+  -- no need to use timeseries rings
 
-    if new_slots == 1 then
-      -- no slots needed in this case
-      new_slots = 0
-    else
-      new_steps = 60 / new_slots / 5
+  if driver == "influxdb" and high_res_secs <= 60 then
+    new_slots = 60 / high_res_secs
+    new_steps = 60 / new_slots / 5 -- TODO: remove this hardcoded 5
 
-      -- important: add one extra slots to give "buffer" time to the writer
-      new_slots = new_slots + 1
-    end
+    -- important: add one extra slots to give "buffer" time to the writer
+    new_slots = new_slots + 1
   end
 
   -- When high resolution timeseries are enabled, the ntopng C core creates
@@ -1930,6 +1928,9 @@ if tonumber(_POST["ts_high_resolution"]) ~= nil then
   --
   ntop.setPref("ntopng.prefs.ts_write_slots", tostring(math.ceil(new_slots)))
   ntop.setPref("ntopng.prefs.ts_write_steps", tostring(math.ceil(new_steps)))
+
+--  tprint(ntop.getPref("ntopng.prefs.ts_write_slots"))
+--  tprint(ntop.getPref("ntopng.prefs.ts_write_steps"))
 end
 
 if(_SERVER["REQUEST_METHOD"] == "POST") then

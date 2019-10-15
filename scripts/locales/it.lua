@@ -2118,7 +2118,6 @@ local lang = {
     ["non_local_host_max_idle_title"] = "Tempo d'inattività per gli Host Remoti",
     ["none"] = "Nessuna",
     ["note_timeseries_resolution_disabled"] = "NOTA: questa opzione è disabilitata perchè \"%{pref}\" non è impostato al valore di default.",
-    ["note_update_frequency_disabled"] = "NOTA: questa opzione è disabilitata per soddisfare i vincoli di \"%{pref}\".",
     ["other_timeseries"] = "Altre Serie Temporali",
     ["per_category"] = "Per Categoria",
     ["per_protocol"] = "Per Protocollo",

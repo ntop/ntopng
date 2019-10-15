@@ -36,7 +36,7 @@ class TimeseriesRing {
     void insert(TimeseriesPoint *pt, time_t when);
     void lua(lua_State* vm);
 
-    static inline bool isRingEnabled(Prefs *prefs) { return(prefs->getNumTsSlots() > 0); }
+    static bool isRingEnabled(const NetworkInterface *_iface);
     static void luaSinglePoint(lua_State* vm, NetworkInterface *iface, TimeseriesPoint *pt);
 };
 

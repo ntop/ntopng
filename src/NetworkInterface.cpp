@@ -326,10 +326,8 @@ void NetworkInterface::init() {
 
   ts_ring = NULL;
 
-  if(ntop->getPrefs()) {
-    if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
-      ts_ring = new TimeseriesRing(this);
-  }
+  if(TimeseriesRing::isRingEnabled(this))
+    ts_ring = new TimeseriesRing(this);
 
   if(bridge_interface
      || is_dynamic_interface
@@ -2835,7 +2833,7 @@ void NetworkInterface::periodicStatsUpdate() {
       ns->updateStats(&tv);
   }
 
-  if(!ts_ring && TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+  if(!ts_ring && TimeseriesRing::isRingEnabled(this))
     ts_ring = new TimeseriesRing(this);
 
   if(ts_ring && ts_ring->isTimeToInsert()) {
@@ -7036,7 +7034,7 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
 /* *************************************** */
 
 void NetworkInterface::tsLua(lua_State* vm) {
-  if(!ts_ring || !TimeseriesRing::isRingEnabled(ntop->getPrefs())) {
+  if(!ts_ring || !TimeseriesRing::isRingEnabled(this)) {
     /* Use real time data */
     NetworkInterfaceTsPoint pt;
 

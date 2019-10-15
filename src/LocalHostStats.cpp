@@ -31,7 +31,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   icmp = NULL;
   nextSitesUpdate = 0;
 
-  if(TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+  if(TimeseriesRing::isRingEnabled(_host->getInterface()))
     ts_ring = new TimeseriesRing(iface);
   else
     ts_ring = NULL;
@@ -93,7 +93,7 @@ void LocalHostStats::updateStats(struct timeval *tv) {
   }
 
   /* The ring can be enabled at runtime so we need to check for allocation */
-  if(!ts_ring && TimeseriesRing::isRingEnabled(ntop->getPrefs()))
+  if(!ts_ring && TimeseriesRing::isRingEnabled(getHost()->getInterface()))
     ts_ring = new TimeseriesRing(iface);
   
   if(ts_ring && ts_ring->isTimeToInsert()) {
@@ -247,7 +247,7 @@ void LocalHostStats::decNumFlows(bool as_client, Host *peer) {
 /* *************************************** */
 
 void LocalHostStats::tsLua(lua_State* vm) {
-  if(!ts_ring || !TimeseriesRing::isRingEnabled(ntop->getPrefs())) {
+  if(!ts_ring || !TimeseriesRing::isRingEnabled(getHost()->getInterface())) {
     /* Use real time data */
     HostTimeseriesPoint pt(this);
     
