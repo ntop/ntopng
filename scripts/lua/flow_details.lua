@@ -1090,7 +1090,11 @@ else
    end
 
    if(flow["protos.http.last_url"] ~= nil) then
-      print("<tr><th width=30% rowspan=4>"..i18n("http").."</th>")
+      local rowspan = 2
+      if(not isEmptyString(flow["protos.http.last_method"])) then rowspan = rowspan + 1 end
+      if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then rowspan = rowspan + 1 end
+
+      print("<tr><th width=30% rowspan="..rowspan..">"..i18n("http").."</th>")
       if(not isEmptyString(flow["protos.http.last_method"])) then
         print("<th>"..i18n("flow_details.http_method").."</th><td>"..(flow["protos.http.last_method"] or '').."</td>")
         print("</tr>")
