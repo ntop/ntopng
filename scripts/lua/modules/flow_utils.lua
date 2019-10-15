@@ -1734,9 +1734,14 @@ end
 
 function getFlowsTableTitle()
     local status_type
-    
     if _GET["flow_status"] then
-      status_type = flow_consts.getStatusTitle(_GET["flow_status"])
+      local flow_status_id = tonumber(_GET["flow_status"])
+
+      if(flow_status_id ~= nil) then
+         status_type = flow_consts.getStatusTitle(_GET["flow_status"])
+      else
+         status_type = _GET["flow_status"]
+      end
     end
 
     local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or status_type or "")
