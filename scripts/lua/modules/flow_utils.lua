@@ -1497,7 +1497,8 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local status_stats = flowstats["status"]
        local first = true
-       for t,s in ipairs(flow_consts.flow_status_types) do
+       for _, s in ipairs(flow_consts.flow_status_types) do
+          local t = s.status_id
           if t then
              if status_stats[t] and status_stats[t].count > 0 then
                if first then
@@ -1735,12 +1736,7 @@ function getFlowsTableTitle()
     local status_type
     
     if _GET["flow_status"] then
-      local flow_status_id = tonumber(_GET["flow_status"])
-      if flow_status_id and flow_consts.flow_status_types[flow_status_id] then
-        status_type = i18n(flow_consts.flow_status_types[flow_status_id].i18n_title)
-      else
-        status_type = _GET["flow_status"]
-      end
+      status_type = flow_consts.getStatusTitle(_GET["flow_status"])
     end
 
     local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or status_type or "")

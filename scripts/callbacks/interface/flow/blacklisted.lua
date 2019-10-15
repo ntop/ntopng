@@ -24,7 +24,7 @@ local script = {
 
 function script.hooks.protocolDetected(params)
    if flow.isBlacklisted() then
-      flow.addStatus(flow_consts.status_blacklisted)
+      flow.addStatus(flow_consts.flow_status_types.status_blacklisted.status_id)
    end
 end
 

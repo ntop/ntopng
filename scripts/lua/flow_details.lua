@@ -858,7 +858,7 @@ else
       if(flow["protos.ssl.server_certificate"] ~= nil) then
 	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
 
-	 if(flow["flow.status"] == flow_consts.status_ssl_certificate_mismatch) then
+	 if(flow["flow.status"] == flow_consts.flow_status_types.status_ssl_certificate_mismatch.status_id) then
 	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
@@ -975,7 +975,7 @@ else
 
             if(alert_json ~= nil) and (alert_json["status_info"] ~= nil)then
                alerted_status = tonumber(res[1].flow_status)
-               message = getFlowStatus(alerted_status, alert_json["status_info"])
+               message = flow_consts.getStatusDescription(alerted_status, alert_json["status_info"])
             end
          end
       end
@@ -986,7 +986,7 @@ else
    
    local additional_status = flow["status_map"]
 
-   additional_status = ntop.bitmapClear(additional_status, flow_consts.status_normal)
+   additional_status = ntop.bitmapClear(additional_status, flow_consts.flow_status_types.status_normal.status_id)
 
    if(alerted_status ~= nil) then
       additional_status = ntop.bitmapClear(additional_status, alerted_status)
@@ -996,9 +996,10 @@ else
       local status_icon = "<i class=\"fa fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
 
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
-      for id, t in pairs(flow_consts.flow_status_types) do
+      for _, t in pairs(flow_consts.flow_status_types) do
+	 local id = t.status_id
          if ntop.bitmapIsSet(additional_status, id) then
-            print(getFlowStatus(id, flow2statusinfo(flow)).."<br />")
+            print(flow_consts.getStatusDescription(id, flow2statusinfo(flow)).."<br />")
          end
       end
       print("</td></tr>\n")

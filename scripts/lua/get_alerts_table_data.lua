@@ -13,13 +13,10 @@ local format_utils = require "format_utils"
 local json = require "dkjson"
 local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
-local user_scripts = require "user_scripts"
 
 sendHTTPHeader('application/json')
 
 local status          = _GET["status"]
-
-user_scripts.loadCustomPrefs()
 
 local engaged = false
 if status == "engaged" then

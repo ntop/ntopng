@@ -4,6 +4,7 @@
 
 require "lua_utils"
 local json = require "dkjson"
+local alert_consts = require "alert_consts"
 
 local syslog = {}
 
@@ -40,7 +41,7 @@ function syslog.dequeueAlerts(queue)
 
 	 -- Most recent notifications first
 	 for _, notif in pairsByValues(notifications, notification_timestamp_rev) do
-	    local syslog_severity = alertLevelToSyslogLevel(severity)
+	    local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
 
 	    local msg
 

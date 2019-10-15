@@ -809,6 +809,11 @@ end
 -- Keep ID in sync with AlertType
 -- NOTE: flow alerts are formatted based on their status. See flow_consts.flow_status_types.
 alert_consts.alert_types = {
+  none = {
+    alert_id = -1,
+    i18n_title = "None",
+    icon = "fa-question",
+  },
   tcp_syn_flood = {
     alert_id = 0,
     i18n_title = "alerts_dashboard.tcp_syn_flood",
@@ -1073,15 +1078,8 @@ alert_consts.alert_types = {
 
 -- ##############################################
 
--- @brief Override alert type information
-function alert_consts.overrideType(atype, overrides)
-   for k, v in pairs(overrides) do
-      if(atype[k] == nil) then
-         traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown alert type field: " .. k)
-      else
-         atype[k] = v
-      end
-   end
+function alert_consts.alertLevelToSyslogLevel(v)
+  return alert_consts.alert_severities[v].syslog_severity
 end
 
 -- ##############################################

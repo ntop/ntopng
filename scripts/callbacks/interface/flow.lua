@@ -45,8 +45,6 @@ end
 function setup()
    if do_trace then print("flow.lua:setup() called\n") end
 
-   user_scripts.loadCustomPrefs()
-
    available_modules = user_scripts.load(user_scripts.script_types.flow, interface.getId(), "flow", nil, nil, do_benchmark)
 
    -- Reorganize the modules to optimize lookup by L4 protocol
@@ -137,14 +135,16 @@ end
 -- and possibly triggers an alert
 -- @params status the flow status bitmap
 local function checkFlowStatus(status)
-   local alerted_status = flow_consts.flow_status_types[flow_consts.status_normal]
+   local alerted_status = flow_consts.flow_status_types.status_normal
    local alerted_status_id = nil
 
    if(status == 0) then
       return
    end
 
-   for status_id, info in pairs(flow_consts.flow_status_types) do
+   for _, info in pairs(flow_consts.flow_status_types) do
+      local status_id = info.status_id
+
       if((info.prio > alerted_status.prio) and ntop.bitmapIsSet(status, status_id)) then
          -- found a status with an higher priority
          alerted_status = info

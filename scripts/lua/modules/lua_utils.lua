@@ -13,8 +13,6 @@ require "ntop_utils"
 locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
-local alert_consts = require "alert_consts"
-local flow_consts = require "flow_consts"
 local page_utils = require("page_utils")
 
 -- ##############################################
@@ -629,10 +627,6 @@ function noHtml(s)
       :gsub("^%s*(.-)%s*$", "%1")
 
    return unescape(cleaned)
-end
-
-function alertLevelToSyslogLevel(v)
-  return alert_consts.alert_severities[v].syslog_severity
 end
 
 function areAlertsEnabled()
@@ -2420,60 +2414,7 @@ end
 
 -- ###############################################
 
-function formatSuspiciousDeviceProtocolAlert(flowstatus_info)
-   local msg, devtype
-
-   if not flowstatus_info then
-      return i18n("alerts_dashboard.suspicious_device_protocol")
-   end
-
-   local discover = require("discover_utils")
-   local forbidden_proto = flowstatus_info["devproto_forbidden_id"] or 0
-
-   if (flowstatus_info["devproto_forbidden_peer"] == "cli") then
-      msg = "flow_details.suspicious_client_device_protocol"
-      devtype = flowstatus_info["cli.devtype"]
-   else
-      msg = "flow_details.suspicious_server_device_protocol"
-      devtype = flowstatus_info["srv.devtype"]
-   end
-
-   local label = discover.devtype2string(devtype)
-   return i18n(msg, {proto=interface.getnDPIProtoName(forbidden_proto), devtype=label,
-      url=getDeviceProtocolPoliciesUrl("device_type="..
-      devtype.."&l7proto="..forbidden_proto)})
-end
-
--- ###############################################
-
-function formatIDSFlowAlert(flowstatus_info)
-   if not flowstatus_info then
-      return i18n("alerts_dashboard.ids_alert")
-   end
-
-   local signature = (flowstatus_info.external_alert and flowstatus_info.external_alert.signature)
-   local category = (flowstatus_info.external_alert and flowstatus_info.external_alert.category)
-   local severity = (flowstatus_info.external_alert and flowstatus_info.external_alert.severity)
-   local signature_info = (signature and signature:split(" "));
-   local maker = (signature_info and table.remove(signature_info, 1))
-   local scope = (signature_info and table.remove(signature_info, 1))
-   local msg = (signature_info and table.concat(signature_info, " "))
-   if maker and alert_consts.ids_rule_maker[maker] then
-     maker = alert_consts.ids_rule_maker[maker]
-   end
-   local res = i18n("flow_details.ids_alert", { scope=scope, msg=msg, severity=severity, maker=maker } )
-   return res
-end
-
--- ###############################################
-
-function formatExternalFlowAlert(flowstatus_info)
-   return formatIDSFlowAlert(flowstatus_info)
-end
-
--- ###############################################
-
-function formatElephantFlowAlert(flowstatus_info, local2remote)
+function formatElephantFlowStatus(status, flowstatus_info, local2remote)
    local threshold = ""
    local res = ""
 
@@ -2505,144 +2446,6 @@ function formatElephantFlowAlert(flowstatus_info, local2remote)
 end
 
 -- ###############################################
-
-function formatLongLivedFlowAlert(flowstatus_info)
-   local threshold = ""
-   local res = i18n("flow_details.longlived_flow")
-
-   if not flowstatus_info then
-      return res
-   end
-
-   if flowstatus_info["longlived.threshold"] then
-      threshold = flowstatus_info["longlived.threshold"]
-   end
-
-   res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
-
-   if threshold ~= "" then
-      res = string.format("%s [%s]", res, i18n("flow_details.longlived_exceeded", {amount = secondsToTime(threshold)}))
-   end
-
-   return res
-end
-
--- ###############################################
-
-function formatMaliciousSignature(flowstatus_info)
-  local res = i18n("alerts_dashboard.malicious_signature_detected")
-  local cli_signature = flowstatus_info.cli_ja3_signature or
-    (flowstatus_info.ja3_signature --[[ for compatibility with existing alerts ]])
-  local srv_signature = flowstatus_info.srv_ja3_signature
-
-  if not flowstatus_info then
-    return res
-  end
-
-  if(cli_signature ~= nil) then
-    res = i18n("flow_details.malicious_ja3_signature", {
-      signature = cli_signature,
-      url = "https://sslbl.abuse.ch/ja3-fingerprints/" .. cli_signature,
-      icon = " <i class=\"fa fa-external-link\"></i>",
-      cli_or_srv = i18n("client"),
-    })
-  elseif(srv_signature ~= nil) then
-    res = i18n("flow_details.malicious_ja3_signature", {
-      signature = srv_signature,
-      url = "https://sslbl.abuse.ch/ja3-fingerprints/" .. srv_signature,
-      icon = " <i class=\"fa fa-external-link\"></i>",
-      cli_or_srv = i18n("server"),
-    })
-  end
-
-  return res
-end
-
--- ###############################################
-
-function formatBlacklistedFlow(status, flowstatus_info, alert)
-   local who = {}
-
-   if not flowstatus_info then
-      return i18n("flow_details.blacklisted_flow")
-   end
-
-   if flowstatus_info["blacklisted.cli"] --[[ old format --]] or flowstatus_info["cli.blacklisted"] --[[ new format --]] then
-      who[#who + 1] = i18n("client")
-   end
-
-   if flowstatus_info["blacklisted.srv"] --[[ old format --]] or flowstatus_info["srv.blacklisted"] --[[ new format --]] then
-      who[#who + 1] = i18n("server")
-   end
-
-   -- if either the client or the server is blacklisted
-   -- then also the category is blacklisted so there's no need
-   -- to check it.
-   -- Domain is basically the union of DNS names, SSL CNs and HTTP hosts.
-   if #who == 0 and flowstatus_info["blacklisted.cat"] then
-      who[#who + 1] = i18n("domain")
-   end
-
-   if #who == 0 then
-      return i18n("flow_details.blacklisted_flow")
-   end
-
-   local res = i18n("flow_details.blacklisted_flow_detailed", {who = table.concat(who, ", ")})
-
-   return res
-end
-
--- ###############################################
-
-function formatSSLCertificateMismatch(status, flowstatus_info, alert)
-   if not flowstatus_info then
-      return i18n("flow_details.ssl_certificate_mismatch")
-   end
-
-   local crts = {}
-   if not isEmptyString(flowstatus_info["ssl_crt.cli"]) then
-      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.ssl_client_certificate"), flowstatus_info["ssl_crt.cli"])
-   end
-
-   if not isEmptyString(flowstatus_info["ssl_crt.srv"]) then
-      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.ssl_server_certificate"), flowstatus_info["ssl_crt.srv"])
-   end
-
-   return string.format("%s %s", i18n("flow_details.ssl_certificate_mismatch"), table.concat(crts, " "))
-end
-
--- ###############################################
-
--- TODO put description formatter into flow_consts.flow_status_types
-function getFlowStatus(status, flowstatus_info, alert, no_icon)
-   local res = i18n("flow_details.unknown_status",{status=status})
-
-   -- NOTE: flowstatus_info can be nil
-   if(status == flow_consts.status_ssl_certificate_mismatch) then 
-     res = formatSSLCertificateMismatch(status, flowstatus_info, alert)
-   elseif(status == flow_consts.status_blacklisted) then 
-     res = formatBlacklistedFlow(status, flowstatus_info, alert)
-   elseif(status == flow_consts.status_device_protocol_not_allowed) then 
-     res = formatSuspiciousDeviceProtocolAlert(flowstatus_info)
-   elseif(status == flow_consts.status_elephant_local_to_remote) then 
-     res = formatElephantFlowAlert(flowstatus_info, true --[[ local 2 remote --]])
-   elseif(status == flow_consts.status_elephant_remote_to_local) then 
-     res = formatElephantFlowAlert(flowstatus_info, false --[[ remote 2 local --]])
-   elseif(status == flow_consts.status_longlived) then 
-     res = formatLongLivedFlowAlert(flowstatus_info)
-   elseif(status == flow_consts.status_external_alert) then
-     res = formatExternalFlowAlert(flowstatus_info)
-   elseif(status == flow_consts.status_tcp_severe_connection_issues) then 
-     res = i18n("flow_details.tcp_severe_connection_issues")
-   elseif(status == flow_consts.status_malicious_signature) then res = formatMaliciousSignature(flowstatus_info)
-   elseif(status == flow_consts.status_normal) then 
-     res = i18n(flow_consts.flow_status_types[flow_consts.status_normal].i18n_title)
-   elseif(flow_consts.flow_status_types[status] ~= nil) then 
-     res = i18n(flow_consts.flow_status_types[status].i18n_title) or flow_consts.flow_status_types[status].i18n_title
-   end
-
-   return res
-end
 
 -- prints purged information for hosts / flows
 function purgedErrorString()

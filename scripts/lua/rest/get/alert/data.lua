@@ -9,7 +9,6 @@ require "lua_utils"
 require "alert_utils"
 require "flow_utils"
 
-local user_scripts = require "user_scripts"
 local format_utils = require "format_utils"
 local json = require "dkjson"
 
@@ -17,8 +16,6 @@ sendHTTPHeader('application/json')
 
 local ifid = _GET["ifid"]
 local status = _GET["status"]
-
-user_scripts.loadCustomPrefs()
 
 local if_name = nil
 if not isEmptyString(ifid) then

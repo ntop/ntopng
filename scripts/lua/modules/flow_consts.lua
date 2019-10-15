@@ -6,40 +6,7 @@
 local flow_consts = {}
 local locales_utils = require "locales_utils"
 local format_utils  = require "format_utils"
-local ac = require "alert_consts"
-
--- Keep in sync with C
--- Update Utils::flowStatus2AlertType / FlowStatus enum
--- Utils::flowStatus2str determines the actual alert_type to set
-
-flow_consts.status_normal = 0
-flow_consts.status_slow_tcp_connection = 1
-flow_consts.status_slow_application_header = 2
-flow_consts.status_slow_data_exchange = 3
-flow_consts.status_low_goodput = 4
-flow_consts.status_suspicious_tcp_syn_probing = 5
-flow_consts.status_tcp_connection_issues = 6
-flow_consts.status_suspicious_tcp_probing = 7
-flow_consts.status_flow_when_interface_alerted = 8
-flow_consts.status_tcp_connection_refused = 9
-flow_consts.status_ssl_certificate_mismatch = 10
-flow_consts.status_dns_invalid_query = 11
-flow_consts.status_remote_to_remote = 12
-flow_consts.status_blacklisted = 13
-flow_consts.status_blocked = 14
-flow_consts.status_web_mining_detected = 15
-flow_consts.status_device_protocol_not_allowed = 16
-flow_consts.status_elephant_local_to_remote = 17
-flow_consts.status_elephant_remote_to_local = 18
-flow_consts.status_longlived = 19
-flow_consts.status_not_purged = 20
-flow_consts.status_external_alert = 21
-flow_consts.status_tcp_severe_connection_issues = 22
-flow_consts.status_ssl_unsafe_ciphers = 23
-flow_consts.status_data_exfiltration = 24
-flow_consts.status_ssl_old_protocol_version = 25
-flow_consts.status_potentially_dangerous = 26
-flow_consts.status_malicious_signature = 27
+local os_utils = require("os_utils")
 
 -- Custom User Status
 flow_consts.custom_status_1 = 59
@@ -50,67 +17,80 @@ flow_consts.custom_status_5 = 63
 
 -- ################################################################################
 
--- relevance: is used to calculate a score
--- prio: when a flow has multiple status set, the most important status is the one with highest priority
--- alert_type: the alert type associated to this status
--- severity: the alert severity associated to this status
--- i18n_title: a localization string for the status
-flow_consts.flow_status_types = {
-   [flow_consts.status_normal]                       = { relevance =   0, prio =   0, severity = ac.alert_severities.info,  alert_type = nil, i18n_title = "flow_details.normal" },
-   [flow_consts.status_slow_tcp_connection]          = { relevance =  10, prio = 200, severity = ac.alert_severities.error, alert_type = ac.alert_types.alert_connection_issues, i18n_title = "flow_details.slow_tcp_connection" },
-   [flow_consts.status_slow_application_header]      = { relevance =  10, prio = 210, severity = ac.alert_severities.error, alert_type = ac.alert_types.alert_connection_issues, i18n_title = "flow_details.slow_application_header" },
-   [flow_consts.status_slow_data_exchange]           = { relevance =  10, prio = 220, severity = ac.alert_severities.error, alert_type = ac.alert_types.alert_connection_issues, i18n_title = "flow_details.slow_data_exchange" },
-   [flow_consts.status_low_goodput]                  = { relevance =  10, prio = 230, severity = ac.alert_severities.error, alert_type = ac.alert_types.alert_connection_issues, i18n_title = "flow_details.low_goodput" },
-   [flow_consts.status_suspicious_tcp_syn_probing]   = { relevance =  30, prio = 290, severity = ac.alert_severities.error, alert_type = ac.alert_types.suspicious_activity, i18n_title = "flow_details.suspicious_tcp_syn_probing" },
-   [flow_consts.status_tcp_connection_issues]        = { relevance =  10, prio = 205, severity = ac.alert_severities.error, alert_type = ac.alert_types.alert_connection_issues, i18n_title = "flow_details.tcp_connection_issues" },
-   [flow_consts.status_suspicious_tcp_probing]       = { relevance =  30, prio = 280, severity = ac.alert_severities.error, alert_type = ac.alert_types.suspicious_activity, i18n_title = "flow_details.suspicious_tcp_probing" },
-   [flow_consts.status_flow_when_interface_alerted]  = { relevance =  10, prio =  10, severity = ac.alert_severities.error, alert_type = ac.alert_types.flow_misbehaviour, i18n_title = "flow_details.flow_emitted" },
-   [flow_consts.status_tcp_connection_refused]       = { relevance =  10, prio = 340, severity = ac.alert_severities.error, alert_type = ac.alert_types.suspicious_activity, i18n_title = "flow_details.tcp_connection_refused" },
-   [flow_consts.status_ssl_certificate_mismatch]     = { relevance =  50, prio = 360, severity = ac.alert_severities.error, alert_type = ac.alert_types.potentially_dangerous_protocol, i18n_title = "flow_details.ssl_certificate_mismatch" },
-   [flow_consts.status_dns_invalid_query]            = { relevance =  30, prio = 400, severity = ac.alert_severities.error, alert_type = ac.alert_types.suspicious_activity, i18n_title = "flow_details.dns_invalid_query" },
-   [flow_consts.status_remote_to_remote]             = { relevance =  50, prio = 190, severity = ac.alert_severities.error, alert_type = ac.alert_types.remote_to_remote, i18n_title = "flow_details.remote_to_remote" },
-   [flow_consts.status_blacklisted]                  = { relevance = 100, prio = 700, severity = ac.alert_severities.error, alert_type = ac.alert_types.flow_blacklisted, i18n_title = "flow_details.blacklisted_flow" },
-   [flow_consts.status_blocked]                      = { relevance =  50, prio = 150, severity = ac.alert_severities.info,  alert_type = ac.alert_types.flow_blocked, i18n_title = "flow_details.flow_blocked_by_bridge" },
-   [flow_consts.status_web_mining_detected]          = { relevance =  50, prio = 350, severity = ac.alert_severities.error, alert_type = ac.alert_types.web_mining, i18n_title = "flow_details.web_mining_detected" },
-   [flow_consts.status_device_protocol_not_allowed]  = { relevance =  80, prio = 600, severity = ac.alert_severities.error, alert_type = ac.alert_types.alert_device_protocol_not_allowed, i18n_title = "flow_details.suspicious_device_protocol" },
-   [flow_consts.status_elephant_local_to_remote]     = { relevance =  20, prio = 430, severity = ac.alert_severities.error, alert_type = ac.alert_types.flow_misbehaviour, i18n_title = "flow_details.elephant_flow_l2r" },
-   [flow_consts.status_elephant_remote_to_local]     = { relevance =  20, prio = 431, severity = ac.alert_severities.error, alert_type = ac.alert_types.flow_misbehaviour, i18n_title = "flow_details.elephant_flow_r2l" },
-   [flow_consts.status_longlived]                    = { relevance =  20, prio = 440, severity = ac.alert_severities.error, alert_type = ac.alert_types.flow_misbehaviour, i18n_title = "flow_details.longlived_flow" },
-   [flow_consts.status_not_purged]                   = { relevance =   0, prio =  50, severity = ac.alert_severities.error, alert_type = ac.alert_types.alert_connection_issues, i18n_title = "flow_details.not_purged" },
-   [flow_consts.status_external_alert]               = { relevance =   0, prio = 680, severity = ac.alert_severities.error, alert_type = ac.alert_types.external_alert, i18n_title = "alerts_dashboard.external_alert" },
-   [flow_consts.status_tcp_severe_connection_issues] = { relevance =  20, prio = 270, severity = ac.alert_severities.error, alert_type = ac.alert_types.alert_connection_issues, i18n_title = "flow_details.tcp_severe_connection_issues" },
-   [flow_consts.status_ssl_unsafe_ciphers]           = { relevance =  50, prio = 390, severity = ac.alert_severities.error, alert_type = ac.alert_types.potentially_dangerous_protocol, i18n_title = "flow_details.ssl_unsafe_ciphers" },
-   [flow_consts.status_data_exfiltration]            = { relevance =  30, prio = 640, severity = ac.alert_severities.error, alert_type = ac.alert_types.flow_misbehaviour, i18n_title = "flow_details.data_exfiltration" },
-   [flow_consts.status_ssl_old_protocol_version]     = { relevance =  30, prio = 470, severity = ac.alert_severities.error, alert_type = ac.alert_types.potentially_dangerous_protocol, i18n_title = "flow_details.ssl_old_protocol_version" },
-   [flow_consts.status_potentially_dangerous]        = { relevance =  20, prio = 670, severity = ac.alert_severities.error, alert_type = ac.alert_types.potentially_dangerous_protocol, i18n_title = "flow_details.potentially_dangerous_protocol" },
-   [flow_consts.status_malicious_signature]          = { relevance =  80, prio = 690, severity = ac.alert_severities.warning, alert_type = ac.alert_types.malicious_signature, i18n_title = "alerts_dashboard.malicious_signature_detected" },
+-- Each entry must contain the following information
+--  relevance: is used to calculate a score
+--  prio: when a flow has multiple status set, the most important status is the one with highest priority
+--  alert_type: the alert type associated to this status
+--   severity: the alert severity associated to this status
+--  i18n_title: a localization string for the status
+--  i18n_description (optional): a localization string / function for the description
+flow_consts.flow_status_types = {}
+local status_by_id = {}
 
-   -- Custom User Status
-   [flow_consts.custom_status_1]                     = { relevance =  50, prio = 500, severity = ac.alert_severities.error, alert_type = ac.alert_types.custom_1, i18n_title = "Custom Status 1" },
-   [flow_consts.custom_status_2]                     = { relevance =  50, prio = 501, severity = ac.alert_severities.error, alert_type = ac.alert_types.custom_2, i18n_title = "Custom Status 2" },
-   [flow_consts.custom_status_3]                     = { relevance =  50, prio = 502, severity = ac.alert_severities.error, alert_type = ac.alert_types.custom_3, i18n_title = "Custom Status 3" },
-   [flow_consts.custom_status_4]                     = { relevance =  50, prio = 503, severity = ac.alert_severities.error, alert_type = ac.alert_types.custom_4, i18n_title = "Custom Status 4" },
-   [flow_consts.custom_status_5]                     = { relevance =  50, prio = 504, severity = ac.alert_severities.error, alert_type = ac.alert_types.custom_5, i18n_title = "Custom Status 5" },
-}
+local function loadStatusDefs()
+    local dirs = ntop.getDirs()
+    local defs_dir = os_utils.fixPath(dirs.installdir .. "/scripts/callbacks/status_defs")
+    package.path = defs_dir .. "/?.lua;" .. package.path
+    local required_fields = {"status_id", "relevance", "prio", "severity", "alert_type", "i18n_title"}
+
+    for fname in pairs(ntop.readdir(defs_dir)) do
+        if ends(fname, ".lua") then
+            local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+            local def_script = require(mod_fname)
+
+            -- Check the required fields
+            for _, k in pairs(required_fields) do
+                if(def_script[k] == nil) then
+                    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in status_defs/%s", k, fname))
+                    goto next_script
+                end
+            end
+
+            local def_id = tonumber(def_script.status_id)
+
+            if(status_by_id[def_id] ~= nil) then
+                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("status_defs/%s: status ID %d redefined, skipping", fname, def_id))
+                goto next_script
+            end
+
+            -- Success
+            flow_consts.flow_status_types[mod_fname] = def_script
+            status_by_id[def_id] = def_script
+        end
+
+        ::next_script::
+    end
+end
 
 -- ################################################################################
 
--- @brief Override status information
-function flow_consts.overrideStatus(status_id, overrides)
-   local status = flow_consts.flow_status_types[status_id]
+function flow_consts.getStatusDescription(status_id, flowstatus_info)
+    local status_def = status_by_id[tonumber(status_id)]
 
-   if(status == nil) then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown flow status: " .. status_id)
-      return
-   end
+    if(status_def == nil) then
+        return(i18n("flow_details.unknown_status",{status=status}))
+    end
 
-   for k, v in pairs(overrides) do
-      if(status[k] == nil) then
-         traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown flow status field: " .. k)
-      else
-         status[k] = v
-      end
-   end
+    if(type(status_def.i18n_description) == "function") then
+        -- formatter function
+        return(status_def.i18n_description(status_id, flowstatus_info))
+    elseif(status_def.i18n_description ~= nil) then
+        return(i18n(status_def.i18n_description) or status_def.i18n_description)
+    else
+        return(i18n(status_def.i18n_title) or status_def.i18n_title)
+    end
+end
+
+-- ################################################################################
+
+function flow_consts.getStatusTitle(status_id)
+    local status_def = status_by_id[tonumber(status_id)]
+
+    if(status_def == nil) then
+        return(i18n("flow_details.unknown_status",{status=status}))
+    end
+
+    return(i18n(status_def.i18n_title))
 end
 
 -- ################################################################################
@@ -349,7 +329,6 @@ flow_consts.flow_fields_description = {
     ["DNS_NUM_ANSWERS"] = i18n("flow_fields_description.dns_num_answers"),
     ["DNS_TTL_ANSWER"] = i18n("flow_fields_description.dns_ttl_answer"),
     ["DNS_RESPONSE"] = i18n("flow_fields_description.dns_response"),
-    ["DNS_TX_ID"] = i18n("flow_fields_description.dns_tx_id"),
 
     -- FTP Protocol
     ["FTP_LOGIN"] = i18n("flow_fields_description.ftp_login"),
@@ -426,14 +405,12 @@ flow_consts.flow_fields_description = {
 
     -- HTTP Protocol
     ["HTTP_URL"] = i18n("flow_fields_description.http_url"),
-    ["HTTP_LENGTH"] = i18n("flow_fields_description.http_length"),
     ["HTTP_METHOD"] = i18n("flow_fields_description.http_method"),
     ["HTTP_RET_CODE"] = i18n("flow_fields_description.http_ret_code"),
     ["HTTP_REFERER"] = i18n("flow_fields_description.http_referer"),
     ["HTTP_UA"] = i18n("flow_fields_description.http_ua"),
     ["HTTP_MIME"] = i18n("flow_fields_description.http_mime"),
     ["HTTP_HOST"] = i18n("flow_fields_description.http_host"),
-    ["HTTP_PROTOCOL"] = i18n("flow_fields_description.http_protocol"),
     ["HTTP_SITE"] = i18n("flow_fields_description.http_site"),
     ["HTTP_X_FORWARDED_FOR"] = i18n("flow_fields_description.http_x_forwarded_for"),
     ["HTTP_VIA"] = i18n("flow_fields_description.http_via"),
@@ -578,17 +555,6 @@ flow_consts.flow_fields_description = {
     ["SSDP_SERVER"] = i18n("flow_fields_description.ssdp_server"),
     ["SSDP_TYPE"] = i18n("flow_fields_description.ssdp_type"),
     ["SSDP_METHOD"] = i18n("flow_fields_description.ssdp_method"),
-
-    -- SSL/TLS
-    ["TLS_VERSION"] = i18n("flow_fields_description.tls_version"),
-    ["TLS_SESSION_RESUMED"] = i18n("flow_fields_description.tls_session_resumed"),
-
-    -- Suricata
-    ["SURICATA_FLOW_ID"] = i18n("flow_fields_description.suricata_flow_id"),
-    ["SURICATA_APP_PROTO"] = i18n("flow_fields_description.suricata_app_proto"),
-
-    -- Misc
-    ["COMMUNITY_ID"] = i18n("flow_fields_description.community_id"),
 }
 
 -- ################################################################################
@@ -1058,5 +1024,8 @@ flow_consts.mobile_country_code = {
 }
 
 -- ################################################################################
+
+-- Load definitions now
+loadStatusDefs()
 
 return flow_consts

@@ -92,7 +92,7 @@ for entity_id, values in pairsByKeys(entitites) do
     local disabled_alerts = alerts_api.getEntityAlertsDisabled(ifid, entity_id, entity_value)
 
     for _, alert in pairs(alert_consts.alert_types) do
-      if ntop.bitmapIsSet(disabled_alerts, alert.alert_id) then
+      if((alert.alert_id > 0) and ntop.bitmapIsSet(disabled_alerts, alert.alert_id)) then
         totalRows = totalRows + 1
         local idx = totalRows
 

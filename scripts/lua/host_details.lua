@@ -704,16 +704,18 @@ end
 
    if debug_score then
       print("<tr><th>"..i18n("details.anomalous_flows_reasons").."</th><td nowrap><span id=anomalous_flows_status_map_as_client>")
-      for id, t in ipairs(flow_consts.flow_status_types) do
+      for _, t in pairs(flow_consts.flow_status_types) do
+         local id = t.status_id
          if ntop.bitmapIsSet(host["anomalous_flows_status_map.as_client"], id) then
-            print(getFlowStatus(id).."<br />")
+            print(flow_consts.getStatusDescription(id).."<br />")
          end
       end
       print("</span></td>\n")
       print("<td  width='35%'><span id=anomalous_flows_status_map_as_server>")
-      for id, t in ipairs(flow_consts.flow_status_types) do
+      for _, t in pairs(flow_consts.flow_status_types) do
+         local id = t.status_id
          if ntop.bitmapIsSet(host["anomalous_flows_status_map.as_server"], id) then
-            print(getFlowStatus(id).."<br />")
+            print(flow_consts.getStatusDescription(id).."<br />")
          end
       end
       print("</span></td></tr>\n")

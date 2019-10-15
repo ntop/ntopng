@@ -688,7 +688,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
 
       if active_flow and active_flow["seen.first"] < tonumber(record["alert_tstamp"]) then
 	 return string.format("%s [%s: <A HREF='%s/lua/flow_details.lua?flow_key=%u'><span class='label label-info'>Info</span></A> %s]",
-			      getFlowStatus(tonumber(record["flow_status"]), status_info),
+			      flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info),
 			      i18n("flow"), ntop.getHttpPrefix(), active_flow["ntopng.key"],
 			      getFlowLabel(active_flow, true, true))
       end
@@ -729,7 +729,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       local msg = ""
 
       if not isEmptyString(record["flow_status"]) then
-         msg = msg..getFlowStatus(tonumber(record["flow_status"]), status_info).." "
+         msg = msg..flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info).." "
       end
 
       if not isEmptyString(flow) then
@@ -957,8 +957,10 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
            <input id="status_trigger_alert" name="disabled_status" type="hidden" />
            <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
 
-      for status_id, status in pairsByKeys(flow_consts.flow_status_types, asc) do
-        if(status_id == flow_consts.status_normal) then
+      for _, status in pairsByKeys(flow_consts.flow_status_types, asc) do
+        local status_id = status.status_id
+
+        if(status_id == flow_consts.flow_status_types.status_normal.status_id) then
           goto continue
         end
 
