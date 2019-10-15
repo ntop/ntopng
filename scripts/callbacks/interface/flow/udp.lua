@@ -27,17 +27,27 @@ local script = {
 -- #################################################################
 
 -- NOTE: what if at some point the flow receives a packet? We need to cancel the status bit
-function script.hooks.protocolDetected(params)
+function script.hooks.flowEnd(params)
    local packets = flow.getPackets()
 
    if(packets["packets.rcvd"] == 0) then
-      local server = flow.getServerIp()
+      local proto = flow.getProtocols()
 
-      -- Now check if the recipient isn't a broadcast/multicast address
-      if(not(server["srv.broadmulticast"])) then
-	 flow.triggerStatus(flow_consts.flow_status_types.status_udp_unidirectional.status_id)
+      if(proto["proto.l4"] == "UDP") then
+	 local server = flow.getServerIp()
+	 
+	 -- Now check if the recipient isn't a broadcast/multicast address
+	 if(not(server["srv.broadmulticast"])) then
+	    flow.triggerStatus(flow_consts.flow_status_types.status_udp_unidirectional.status_id)
+	 end
       end
    end
+end
+
+-- #################################################################
+
+function script.hooks.periodicUpdate(params)
+   script.hooks.flowEnd(params)
 end
 
 -- #################################################################
