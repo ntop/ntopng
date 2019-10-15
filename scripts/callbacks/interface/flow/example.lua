@@ -26,7 +26,8 @@ end
 function script.hooks.protocolDetected(params)
    if(true --[[ some condition]]) then
       -- NOTE: the status must be manually defined in scripts/callbacks/status_defs/custom_status_1.lua
-      flow.addStatus(flow_consts.flow_status_types.custom_status_1.status_id)
+      -- See scripts/callbacks/status_defs/custom_status_1.lua.example for details
+      flow.triggerStatus(flow_consts.custom_status_1, "My custom status info")
    end
 end
 

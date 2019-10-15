@@ -95,6 +95,12 @@ end
 
 -- ################################################################################
 
+function flow_consts.getStatusInfo(status_id)
+    return(status_by_id[tonumber(status_id)])
+end
+
+-- ################################################################################
+
 -- IMPORTANT: keep it in sync with ParserInterface::ParserInterface()
 
 flow_consts.flow_fields_description = {

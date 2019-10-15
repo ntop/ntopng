@@ -27,6 +27,10 @@ local do_trace = false             -- Trace lua calls
 local available_modules = nil
 local benchmarks = {}
 
+-- Keeps information about the current predominant status
+local predominant_status = nil
+local predominant_status_msg = nil
+
 -- #################################################################
 
 local function addL4Callaback(l4_proto, hook_name, script_key, callback)
@@ -102,6 +106,10 @@ local function call_modules(l4_proto, mod_fn)
    local hooks = available_modules.l4_hooks[l4_proto]
    local rv = false
 
+   -- Reset predominant status information
+   predominant_status = nil
+   predominant_status_msg = nil
+
    if(hooks ~= nil) then
       hooks = hooks[mod_fn]
    end
@@ -126,40 +134,34 @@ local function call_modules(l4_proto, mod_fn)
       rv = true
    end
 
+   if(predominant_status ~= nil) then
+      if do_trace then
+         traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("flow.triggerAlert(type=%s, severity=%s)",
+            alertTypeRaw(predominant_status.alert_type.alert_id), alertSeverityRaw(predominant_status.severity.severity_id)))
+      end
+
+      flow.triggerAlert(predominant_status.status_id, predominant_status.alert_type.alert_id, predominant_status.severity.severity_id, predominant_status_msg)
+   end
+
    return(rv)
 end
 
 -- #################################################################
 
--- @brief This function determines the most critical problem of the flow
--- and possibly triggers an alert
--- @params status the flow status bitmap
-local function checkFlowStatus(status)
-   local alerted_status = flow_consts.flow_status_types.status_normal
-   local alerted_status_id = nil
+-- @brief This provides an API that flow user_scripts can call in order to
+-- set a flow status bit. The status_json of the predominant status is
+-- saved for later use.
+function flow.triggerStatus(status_id, status_json)
+   local new_status = flow_consts.getStatusInfo(status_id)
 
-   if(status == 0) then
-      return
+   if((predominant_status == nil) or (new_status.prio > predominant_status.prio)) then
+      -- The new status as an higher priority
+      predominant_status = new_status
+      predominant_status_msg = status_json
    end
 
-   for _, info in pairs(flow_consts.flow_status_types) do
-      local status_id = info.status_id
-
-      if((info.prio > alerted_status.prio) and ntop.bitmapIsSet(status, status_id)) then
-         -- found a status with an higher priority
-         alerted_status = info
-         alerted_status_id = status_id
-      end
-   end
-
-   if(alerted_status_id ~= nil) then
-      if do_trace then
-         print(string.format("flow.triggerAlert(type=%s, severity=%s)\n",
-            alertTypeRaw(alerted_status.alert_type.alert_id), alertSeverityRaw(alerted_status.alert_severity.severity_id)))
-      end
-
-      flow.triggerAlert(alerted_status_id, alerted_status.alert_type.alert_id, alerted_status.severity.severity_id, "This is a custom alert")
-   end
+   -- Set the status bit in the flow status bitmap
+   flow.addStatus(status_id)
 end
 
 -- #################################################################
@@ -167,23 +169,13 @@ end
 -- Given an L4 protocol, we must call both the hooks registered for that protocol and
 -- the hooks registered for any L4 protocol (id 255)
 function protocolDetected(l4_proto)
-   local initial_status = flow.getStatus()
-
-   if call_modules(l4_proto, "protocolDetected") then
-      local new_status = flow.getStatus()
-
-      if(new_status ~= initial_status) then
-         -- The flow status has changed, possibly generate the alert
-         checkFlowStatus(new_status)
-      end
-   end
+   call_modules(l4_proto, "protocolDetected")
 end
 
 -- #################################################################
 
 function statusChanged(l4_proto)
    call_modules(l4_proto, "statusChanged")
-   checkFlowStatus(flow.getStatus())
 end
 
 -- #################################################################

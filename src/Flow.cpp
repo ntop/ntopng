@@ -390,7 +390,10 @@ void Flow::dumpFlowAlert() {
       if(is_from_lua) {
         iface->getAlertsManager()->storeFlowAlert(this, alert_type, alert_level, tmp_alert_json);
 
-        if(tmp_alert_json) free(tmp_alert_json);
+        if(tmp_alert_json) {
+          free(tmp_alert_json);
+          tmp_alert_json = NULL;
+        }
       } else
         iface->getAlertsManager()->storeFlowAlert(this);
 
@@ -4660,5 +4663,5 @@ void Flow::triggerAlert(AlertType atype, AlertLevel severity, const char*alert_j
 
   tmp_alert_json = alert_json ? strdup(alert_json) : NULL;
   alert_level = severity;
-  alert_type = atype; /* set this as the last thing as "a notification" to avoid concurrency issues */
+  alert_type = atype; /* set this as the last thing to avoid concurrency issues */
 }

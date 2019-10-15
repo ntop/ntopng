@@ -8609,8 +8609,8 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   severity = (AlertLevel)lua_tonumber(vm, 3);
 
-  if(lua_type(vm, 3) == LUA_TSTRING)
-    status_info = lua_tostring(vm, 3);
+  if(lua_type(vm, 4) == LUA_TSTRING)
+    status_info = lua_tostring(vm, 4);
 
   f->setAlertedStatus(status);
   f->triggerAlert(atype, severity, status_info);

@@ -674,8 +674,8 @@ local function formatRawFlow(record, flow_json, skip_add_links)
 
    local decoded = json.decode(flow_json)
 
-   if type(decoded["status_info"]) == "string" then
-      -- This is for backward compatibility
+   if(type(decoded["status_info"]) == "string") and (decoded["status_info"][1] == "{") then
+      -- status_info may contain a JSON string or a plain message
       decoded["status_info"] = json.decode(decoded["status_info"])
    end
 
