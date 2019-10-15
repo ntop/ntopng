@@ -822,6 +822,8 @@ local lang = {
     ["score_description"] = "Evaluate the flow and compute its score",
     ["suspicious_countries"] = "Suspicious Countries",
     ["suspicious_countries_description"] = "Trigger an alert when at least one among the client and server is from a suspicious country",
+    ["udp_unidirectional"] = "Unidirectional UDP Flow",
+    ["udp_unidirectional_description"] = "Trigger an alert when a unidirectional UDP flow is detected",
   },
   ["flow_details"] = {
     ["acceptable_label"] = "Acceptable",
@@ -968,6 +970,7 @@ local lang = {
     ["tcp_packet_analysis"] = "TCP Packet Analysis",
     ["tcp_severe_connection_issues"] = "Severe TCP Connection Issues (Retransmission, OOO, Lost)",
     ["throughput_trend"] = "Throughput Trend",
+    ["udp_unidirectional"] = "Unidirectional UDP Traffic",
     ["unknown_status"] = "Unknown status (%{status})",
     ["url"] = "URL",
     ["user_name"] = "User Name",

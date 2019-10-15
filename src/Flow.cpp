@@ -2801,7 +2801,6 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 
 const char* Flow::getFlowInfo() {
   if(!isMaskedFlow()) {
-
     if(isDNS() && protos.dns.last_query)
       return protos.dns.last_query;
 
@@ -2822,9 +2821,9 @@ const char* Flow::getFlowInfo() {
 	return protos.ssh.server_signature;
       else if(protos.ssh.client_signature)
 	return protos.ssh.client_signature;
-
     }
   }
+  
   return (char*)"";
 }
 
@@ -4357,6 +4356,8 @@ void Flow::lua_get_dir_iat(lua_State* vm, bool cli2srv) const {
 
 void Flow::lua_get_packets(lua_State* vm) const {  
   lua_push_uint64_table_entry(vm, "packets", stats.cli2srv_packets + stats.srv2cli_packets);
+  lua_push_uint64_table_entry(vm, "packets.sent", stats.cli2srv_packets);
+  lua_push_uint64_table_entry(vm, "packets.rcvd", stats.srv2cli_packets);
   lua_push_uint64_table_entry(vm, "packets.last",
 			      get_current_packets_cli2srv() + get_current_packets_srv2cli());
 }
@@ -4393,6 +4394,8 @@ void Flow::lua_get_ip(lua_State *vm, bool client) const {
 
   if(get_vlan_id())
     lua_push_uint64_table_entry(vm, client ? "cli.vlan" : "srv.vlan", get_vlan_id());
+
+  lua_push_bool_table_entry(vm, client ? "cli.broadmulticast" : "srv.broadmulticast", h_ip->isBroadMulticastAddress());
 }
 
 /* ***************************************************** */

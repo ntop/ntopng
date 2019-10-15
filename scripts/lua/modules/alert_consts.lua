@@ -1046,6 +1046,10 @@ alert_consts.alert_types = {
     alert_id = 48,
     i18n_title = "alerts_dashboard.malicious_signature_detected",
     icon = "fa-ban",
+  }, udp_unidirectional = {
+    alert_id = 49,
+    i18n_title = "alerts_dashboard.udp_unidirectional",
+    icon = "fa-exclamation",
   },
 
   -- Alert IDs reserved for custom users scripts
