@@ -7476,7 +7476,9 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
 
   host->housekeepAlerts(acle->getPeriodicity() /* periodicity */);
 
-  return(false); /* false = keep on walking */
+  /* Stop as soon as a shutdown is in progress or the process
+     could hang for to long. */
+  return ntop->getGlobals()->isShutdownRequested();
 }
 
 /* *************************************** */
