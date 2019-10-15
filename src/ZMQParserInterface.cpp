@@ -1037,7 +1037,6 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
     case json_type_object:
       /* This is handled by parseNProbeAgentField or addAdditionalField */
       break;
-	
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON type %u not supported\n", type);
       break;

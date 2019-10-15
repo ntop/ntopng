@@ -52,7 +52,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
     if(zflow->process_info_set || 
        zflow->container_info_set || 
        zflow->tcp_info_set ||
-       zflow->external_alert) {
+       zflow->external_alert ||
+       zflow->getAdditionalFieldsJSON()) {
       deliverFlowToCompanions(zflow);
     }
 

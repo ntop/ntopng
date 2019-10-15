@@ -45,9 +45,13 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
 
 ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf) {
 
-  /* Currently we avoid additional fields in the copy constructor */
-  additional_fields_json = NULL; 
+  /* Currently we avoid TLV additional fields in the copy constructor */
   additional_fields_tlv = NULL; 
+
+  if (pf.additional_fields_json != NULL)
+    additional_fields_json = Utils::cloneJSONSimple(pf.additional_fields_json);
+  else
+    additional_fields_json = NULL; 
 
   if(pf.http_url)  http_url = strdup(pf.http_url); else http_url = NULL;
   if(pf.http_site) http_site = strdup(pf.http_site); else http_site = NULL;

@@ -4092,3 +4092,43 @@ u_int64_t Utils::bitmapClear(u_int64_t bitmap, u_int8_t v) {
   
   return(bitmap);
 }
+
+/* ****************************************************** */
+
+json_object *Utils::cloneJSONSimple(json_object *src) {
+  struct json_object_iterator obj_it = json_object_iter_begin(src);
+  struct json_object_iterator obj_itEnd = json_object_iter_end(src);
+  json_object *obj = json_object_new_object();
+
+  if (obj == NULL)
+    return NULL;
+
+  while(!json_object_iter_equal(&obj_it, &obj_itEnd)) {
+    const char *key   = json_object_iter_peek_name(&obj_it);
+    json_object *v    = json_object_iter_peek_value(&obj_it);
+    enum json_type type = json_object_get_type(v);
+
+    if(key != NULL && v != NULL)
+    switch(type) {
+    case json_type_int:
+      json_object_object_add(obj, key, json_object_new_int64(json_object_get_int64(v)));
+      break;
+    case json_type_double:
+      json_object_object_add(obj, key, json_object_new_double(json_object_get_double(v)));
+      break;
+    case json_type_string:
+      json_object_object_add(obj, key, json_object_new_string(json_object_get_string(v)));
+      break;
+    case json_type_boolean:
+      json_object_object_add(obj, key, json_object_new_boolean(json_object_get_boolean(v)));
+      break;
+    case json_type_object: /* not supported */
+    default:
+      break;
+    }
+
+    json_object_iter_next(&obj_it);
+  }
+
+  return obj;
+}

@@ -116,6 +116,7 @@ class Utils {
   static int numberOfSetBits(u_int32_t i);
   static void initRedis(Redis **r, const char *redis_host, const char *redis_password,
 			u_int16_t redis_port, u_int8_t _redis_db_id, bool giveup_on_failure);
+  static json_object *cloneJSONSimple(json_object *src);
 
   /* ScriptPeriodicity */
   static const char* periodicityToScriptName(ScriptPeriodicity p);

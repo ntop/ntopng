@@ -2428,12 +2428,20 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 	if(new_flow)
 	  flow->updateSeen();
 
+        if(dequeued->getAdditionalFieldsJSON()) {
+          flow->setJSONInfo(dequeued->getAdditionalFieldsJSON());
+        }
+
         if(dequeued->external_alert) {
           /* Flow from SyslogParserInterface (Suricata) */
           enum json_tokener_error jerr = json_tokener_success;
           json_object *o = json_tokener_parse_verbose(dequeued->external_alert, &jerr);
           if(o) flow->setExternalAlert(o, dequeued->external_alert_severity);
-        } else {
+        }
+
+        if(dequeued->process_info_set || 
+           dequeued->container_info_set || 
+           dequeued->tcp_info_set) {
           /* Flow from ZMQParserInterface (nProbe Agent) */
 	  flow->setParsedeBPFInfo(dequeued, src2dst_direction);
         }
