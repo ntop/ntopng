@@ -11,6 +11,6 @@ return {
   relevance = 50,
   prio = 190,
   alert_severity = alert_consts.alert_severities.info,
-  alert_type = alert_consts.alert_types.suspicious_activity,
+  alert_type = alert_consts.alert_types.alert_suspicious_activity,
   i18n_title = "flow_details.udp_unidirectional"
 }

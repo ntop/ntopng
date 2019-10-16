@@ -2673,31 +2673,31 @@ local function processStoreAlertFromQueue(alert)
 
   interface.select(tostring(alert.ifid))
 
-  if(alert.alert_type == alertType("ip_outsite_dhcp_range")) then
+  if(alert.alert_type == alertType("alert_ip_outsite_dhcp_range")) then
     local router_info = {host = alert.router_ip, vlan = alert.vlan_id}
     entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
     type_info = alerts_api.ipOutsideDHCPRangeType(router_info, alert.mac_address, alert.client_mac, alert.sender_mac)
-  elseif(alert.alert_type == alertType("slow_periodic_activity")) then
+  elseif(alert.alert_type == alertType("alert_slow_periodic_activity")) then
     entity_info = alerts_api.periodicActivityEntity(alert.path)
     type_info = alerts_api.slowPeriodicActivityType(alert.duration_ms, alert.max_duration_ms)
-  elseif(alert.alert_type == alertType("mac_ip_association_change")) then
+  elseif(alert.alert_type == alertType("alert_mac_ip_association_change")) then
     local name = getSavedDeviceName(alert.new_mac)
     entity_info = alerts_api.macEntity(alert.new_mac)
     type_info = alerts_api.macIpAssociationChangeType(name, alert.ip, alert.old_mac, alert.new_mac)
-  elseif(alert.alert_type == alertType("login_failed")) then
+  elseif(alert.alert_type == alertType("alert_login_failed")) then
     entity_info = alerts_api.userEntity(alert.user)
     type_info = alerts_api.loginFailedType()
-  elseif(alert.alert_type == alertType("broadcast_domain_too_large")) then
+  elseif(alert.alert_type == alertType("alert_broadcast_domain_too_large")) then
     entity_info = alerts_api.macEntity(alert.src_mac)
     type_info = alerts_api.broadcastDomainTooLargeType(alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
-  elseif(alert.alert_type == alertType("remote_to_remote")) then
+  elseif(alert.alert_type == alertType("alert_remote_to_remote")) then
     local host_info = {host = alert.host, vlan = alert.vlan}
     entity_info = alerts_api.hostAlertEntity(alert.host, alert.vlan)
     type_info = alerts_api.remoteToRemoteType(host_info, alert.mac_address)
   elseif((alert.alert_type == alertType("alert_user_activity")) and (alert.scope == "login")) then
     entity_info = alerts_api.userEntity(alert.user)
     type_info = alerts_api.userActivityType("login", nil, nil, nil, "authorized")
-  elseif(alert.alert_type == alertType("nfq_flushed")) then
+  elseif(alert.alert_type == alertType("alert_nfq_flushed")) then
     entity_info = alerts_api.interfaceAlertEntity(alert.ifid)
     type_info = alerts_api.nfqFlushedType(getInterfaceName(alert.ifid), alert.pct, alert.tot, alert.dropped)
   else
@@ -2842,7 +2842,7 @@ local function notify_ntopng_status(started)
 
    obj = {
       entity_type = alertEntity("process"), entity_value=entity_value,
-      type = alertType("process_notification"),
+      type = alertType("alert_process_notification"),
       severity = severity,
       message = msg,
       when = os.time() }

@@ -11,6 +11,6 @@ return {
   relevance = 50,
   prio = 390,
   alert_severity = alert_consts.alert_severities.error,
-  alert_type = alert_consts.alert_types.potentially_dangerous_protocol,
+  alert_type = alert_consts.alert_types.alert_potentially_dangerous_protocol,
   i18n_title = "flow_details.ssl_unsafe_ciphers",
 }

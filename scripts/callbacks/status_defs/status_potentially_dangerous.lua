@@ -11,6 +11,6 @@ return {
   relevance = 20,
   prio = 670,
   alert_severity = alert_consts.alert_severities.error,
-  alert_type = alert_consts.alert_types.potentially_dangerous_protocol,
+  alert_type = alert_consts.alert_types.alert_potentially_dangerous_protocol,
   i18n_title = "flow_details.potentially_dangerous_protocol"
 }

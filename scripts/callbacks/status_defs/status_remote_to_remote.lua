@@ -11,6 +11,6 @@ return {
   relevance = 50,
   prio = 190,
   alert_severity = alert_consts.alert_severities.error,
-  alert_type = alert_consts.alert_types.remote_to_remote,
+  alert_type = alert_consts.alert_types.alert_remote_to_remote,
   i18n_title = "flow_details.remote_to_remote",
 }

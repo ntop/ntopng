@@ -27,7 +27,7 @@ function script.dequeueAlerts(queue)
     tprint(alert)
 
     if (alert.action == "engage") then
-      if (alertTypeRaw(alert.type) == "threshold_cross") and
+      if (alertTypeRaw(alert.type) == "alert_threshold_cross") and
             (alert.alert_key == "min_active_local_hosts") then
 
         -- Run a custom bash script

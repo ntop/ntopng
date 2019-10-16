@@ -145,7 +145,7 @@ for _key,_value in ipairs(alerts) do
    if status ~= "historical-flows" then
      local bitmap = getEntityAlertDisabledBitmap(_value["alert_entity"], _value["alert_entity_val"])
 
-     record["column_entity_formatted"] = alert_consts.formatAlertEntity(ifid, alertEntityRaw(_value["alert_entity"]), _value["alert_entity_val"])
+     record["column_entity_formatted"] = formatAlertEntity(ifid, alertEntityRaw(_value["alert_entity"]), _value["alert_entity_val"])
      record["column_alert_disabled"] = ntop.bitmapIsSet(bitmap, tonumber(_value["alert_type"]))
    end
 

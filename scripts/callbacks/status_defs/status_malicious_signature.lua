@@ -42,7 +42,7 @@ return {
   relevance = 80,
   prio = 690,
   alert_severity = alert_consts.alert_severities.warning,
-  alert_type = alert_consts.alert_types.malicious_signature,
+  alert_type = alert_consts.alert_types.alert_malicious_signature,
   i18n_title = "alerts_dashboard.malicious_signature_detected",
   i18n_description = formatMaliciousSignature
 }

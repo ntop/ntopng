@@ -11,6 +11,6 @@ return {
   relevance = 30,
   prio = 640,
   alert_severity = alert_consts.alert_severities.error,
-  alert_type = alert_consts.alert_types.flow_misbehaviour,
+  alert_type = alert_consts.alert_types.alert_flow_misbehaviour,
   i18n_title = "flow_details.data_exfiltration"
 }

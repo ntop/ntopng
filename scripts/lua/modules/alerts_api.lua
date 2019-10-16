@@ -504,7 +504,7 @@ end
 
 function alerts_api.thresholdCrossType(granularity, metric, value, operator, threshold)
   return({
-    alert_type = alert_consts.alert_types.threshold_cross,
+    alert_type = alert_consts.alert_types.alert_threshold_cross,
     alert_subtype = string.format("%s_%s", granularity, metric),
     alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_severity = alert_consts.alert_severities.error,
@@ -519,7 +519,7 @@ end
 
 function alerts_api.synFloodType(granularity, metric, value, operator, threshold)
   return({
-    alert_type = alert_consts.alert_types.tcp_syn_flood,
+    alert_type = alert_consts.alert_types.alert_tcp_syn_flood,
     alert_subtype = metric,
     alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_severity = alert_consts.alert_severities.error,
@@ -534,7 +534,7 @@ end
 
 function alerts_api.flowFloodType(granularity, metric, value, operator, threshold)
   return({
-    alert_type = alert_consts.alert_types.flows_flood,
+    alert_type = alert_consts.alert_types.alert_flows_flood,
     alert_subtype = metric,
     alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_severity = alert_consts.alert_severities.error,
@@ -549,7 +549,7 @@ end
 
 function alerts_api.pingIssuesType(value, threshold, ip)
   return({
-    alert_type = alert_consts.alert_types.ping_issues,
+    alert_type = alert_consts.alert_types.alert_ping_issues,
     alert_severity = alert_consts.alert_severities.warning,
     alert_granularity = alert_consts.alerts_granularities.min,
     alert_type_params = {
@@ -575,7 +575,7 @@ end
 
 function alerts_api.loginFailedType()
   return({
-    alert_type = alert_consts.alert_types.login_failed,
+    alert_type = alert_consts.alert_types.alert_login_failed,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {},
   })
@@ -585,7 +585,7 @@ end
 
 function alerts_api.processNotificationType(event_type, severity, msg_details)
   return({
-    alert_type = alert_consts.alert_types.process_notification,
+    alert_type = alert_consts.alert_types.alert_process_notification,
     alert_severity = alert_consts.alert_severities[alertSeverityRaw(severity)],
     alert_type_params = {
       msg_details = msg_details,
@@ -598,7 +598,7 @@ end
 
 function alerts_api.listDownloadFailedType(list_name, last_error)
   return({
-    alert_type = alert_consts.alert_types.list_download_failed,
+    alert_type = alert_consts.alert_types.alert_list_download_failed,
     alert_severity = alert_consts.alert_severities.error,
     alert_type_params = {
       name=list_name, err=last_error
@@ -610,7 +610,7 @@ end
 
 function alerts_api.influxdbDroppedPointsType(influxdb_url)
   return({
-    alert_type = alert_consts.alert_types.influxdb_export_failure,
+    alert_type = alert_consts.alert_types.alert_influxdb_export_failure,
     alert_severity = alert_consts.alert_severities.error,
     alert_granularity = alert_consts.alerts_granularities.min,
     alert_type_params = {
@@ -623,7 +623,7 @@ end
 
 function alerts_api.newDeviceType(device_name)
   return({
-    alert_type = alert_consts.alert_types.new_device,
+    alert_type = alert_consts.alert_types.alert_new_device,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       device = device_name,
@@ -635,7 +635,7 @@ end
 
 function alerts_api.deviceHasConnectedType(device_name)
   return({
-    alert_type = alert_consts.alert_types.device_connection,
+    alert_type = alert_consts.alert_types.alert_device_connection,
     alert_severity = alert_consts.alert_severities.info,
     alert_type_params = {
       device = device_name,
@@ -647,7 +647,7 @@ end
 
 function alerts_api.deviceHasDisconnectedType(device_name)
   return({
-    alert_type = alert_consts.alert_types.device_disconnection,
+    alert_type = alert_consts.alert_types.alert_device_disconnection,
     alert_severity = alert_consts.alert_severities.info,
     alert_type_params = {
       device = device_name,
@@ -661,7 +661,7 @@ function alerts_api.poolQuotaExceededType(pool, proto, subtype, value, quota)
   local host_pools_utils = require("host_pools_utils")
 
   return({
-    alert_type = alert_consts.alert_types.quota_exceeded,
+    alert_type = alert_consts.alert_types.alert_quota_exceeded,
     alert_subtype = subtype,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
@@ -677,7 +677,7 @@ function alerts_api.poolConnectionType(pool)
   local host_pools_utils = require("host_pools_utils")
 
   return({
-    alert_type = alert_consts.alert_types.host_pool_connection,
+    alert_type = alert_consts.alert_types.alert_host_pool_connection,
     alert_severity = alert_consts.alert_severities.info,
     alert_type_params = {
       pool = host_pools_utils.getPoolName(interface.getId(), pool),
@@ -691,7 +691,7 @@ function alerts_api.poolDisconnectionType(pool)
   local host_pools_utils = require("host_pools_utils")
 
   return({
-    alert_type = alert_consts.alert_types.host_pool_disconnection,
+    alert_type = alert_consts.alert_types.alert_host_pool_disconnection,
     alert_severity = alert_consts.alert_severities.info,
     alert_type_params = {
       pool = host_pools_utils.getPoolName(interface.getId(), pool),
@@ -703,7 +703,7 @@ end
 
 function alerts_api.macIpAssociationChangeType(device, ip, old_mac, new_mac)
   return({
-    alert_type = alert_consts.alert_types.mac_ip_association_change,
+    alert_type = alert_consts.alert_types.alert_mac_ip_association_change,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       device = device, ip = ip,
@@ -716,7 +716,7 @@ end
 
 function alerts_api.broadcastDomainTooLargeType(src_mac, dst_mac, vlan, spa, tpa)
   return({
-    alert_type = alert_consts.alert_types.broadcast_domain_too_large,
+    alert_type = alert_consts.alert_types.alert_broadcast_domain_too_large,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       src_mac = src_mac, dst_mac = dst_mac,
@@ -729,7 +729,7 @@ end
 
 function alerts_api.nfqFlushedType(ifname, pct, tot, dropped)
   return({
-    alert_type = alert_consts.alert_types.nfq_flushed,
+    alert_type = alert_consts.alert_types.alert_nfq_flushed,
     alert_severity = alert_consts.alert_severities.error,
     alert_type_params = {
       ifname = ifname, pct = pct, tot = tot, dropped = dropped,
@@ -741,7 +741,7 @@ end
 
 function alerts_api.remoteToRemoteType(host_info, mac)
   return({
-    alert_type = alert_consts.alert_types.remote_to_remote,
+    alert_type = alert_consts.alert_types.alert_remote_to_remote,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       host = getResolvedAddress(host_info),
@@ -754,7 +754,7 @@ end
 
 function alerts_api.slowPeriodicActivityType(duration_ms, max_duration_ms)
   return({
-    alert_type = alert_consts.alert_types.slow_periodic_activity,
+    alert_type = alert_consts.alert_types.alert_slow_periodic_activity,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       duration_ms = duration_ms,
@@ -767,7 +767,7 @@ end
 
 function alerts_api.ipOutsideDHCPRangeType(router_info, mac, client_mac, sender_mac)
   return({
-    alert_type = alert_consts.alert_types.ip_outsite_dhcp_range,
+    alert_type = alert_consts.alert_types.alert_ip_outsite_dhcp_range,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       router_info = hostinfo2hostkey(router_info),
@@ -781,7 +781,7 @@ end
 
 function alerts_api.snmpInterfaceStatusChangeType(device, interface, interface_name, status)
   return({
-    alert_type = alert_consts.alert_types.port_status_change,
+    alert_type = alert_consts.alert_types.alert_port_status_change,
     alert_severity = alert_consts.alert_severities.info,
     alert_type_params = {
       device = device, interface = interface,
@@ -794,7 +794,7 @@ end
 
 function alerts_api.snmpInterfaceDuplexStatusChangeType(device, interface, interface_name, status)
   return({
-    alert_type = alert_consts.alert_types.port_duplexstatus_change,
+    alert_type = alert_consts.alert_types.alert_port_duplexstatus_change,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       device = device, interface = interface,
@@ -807,7 +807,7 @@ end
 
 function alerts_api.snmpInterfaceErrorsType(device, interface, interface_name)
   return({
-    alert_type = alert_consts.alert_types.port_errors,
+    alert_type = alert_consts.alert_types.alert_port_errors,
     alert_severity = alert_consts.alert_severities.info,
     alert_type_params = {
       device = device, interface = interface,
@@ -820,7 +820,7 @@ end
 
 function alerts_api.snmpPortLoadThresholdExceededType(device, interface, interface_name, interface_load, in_direction)
   return({
-    alert_type = alert_consts.alert_types.port_load_threshold_exceeded,
+    alert_type = alert_consts.alert_types.alert_port_load_threshold_exceeded,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       device = device, interface = interface,
@@ -834,7 +834,7 @@ end
 
 function alerts_api.misconfiguredAppType(subtype)
   return({
-    alert_type = alert_consts.alert_types.misconfigured_app,
+    alert_type = alert_consts.alert_types.alert_misconfigured_app,
     alert_subtype = subtype,
     alert_severity = alert_consts.alert_severities.error,
     alert_granularity = alert_consts.alerts_granularities.min,
@@ -846,7 +846,7 @@ end
 
 function alerts_api.tooManyDropsType(drops, drop_perc, threshold)
   return({
-    alert_type = alert_consts.alert_types.too_many_drops,
+    alert_type = alert_consts.alert_types.alert_too_many_drops,
     alert_severity = alert_consts.alert_severities.error,
     alert_granularity = alert_consts.alerts_granularities.min,
     alert_type_params = {
@@ -859,7 +859,7 @@ end
 
 function alerts_api.slowStatsUpdateType()
   return({
-    alert_type = alert_consts.alert_types.slow_stats_update,
+    alert_type = alert_consts.alert_types.alert_slow_stats_update,
     alert_severity = alert_consts.alert_severities.warning,
     alert_granularity = alert_consts.alerts_granularities.min,
     alert_type_params = {},
@@ -870,7 +870,7 @@ end
 
 function alerts_api.requestReplyRatioType(key, requests, replies, granularity)
   return({
-    alert_type = alert_consts.alert_types.request_reply_ratio,
+    alert_type = alert_consts.alert_types.alert_request_reply_ratio,
     alert_subtype = key,
     alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_severity = alert_consts.alert_severities.warning,
@@ -884,7 +884,7 @@ end
 
 function alerts_api.anomalousTCPFlagsType(num_syn, num_rst, ratio, is_sent, granularity)
   return({
-    alert_type = alert_consts.alert_types.anomalous_tcp_flags,
+    alert_type = alert_consts.alert_types.alert_anomalous_tcp_flags,
     alert_subtype = ternary(is_sent, "sent", "rcvd"),
     alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_severity = alert_consts.alert_severities.warning,
@@ -901,7 +901,7 @@ end
 
 function alerts_api.misbehavingFlowsRatioType(misbehaving_flows, total_flows, ratio, is_sent, granularity)
   return({
-    alert_type = alert_consts.alert_types.misbehaving_flows_ratio,
+    alert_type = alert_consts.alert_types.alert_misbehaving_flows_ratio,
     alert_subtype = ternary(is_sent, "sent", "rcvd"),
     alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_severity = alert_consts.alert_severities.warning,
@@ -918,7 +918,7 @@ end
 
 function alerts_api.ghostNetworkType(network, granularity)
   return({
-    alert_type = alert_consts.alert_types.ghost_network,
+    alert_type = alert_consts.alert_types.alert_ghost_network,
     alert_subtype = network,
     alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_severity = alert_consts.alert_severities.warning,

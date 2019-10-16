@@ -11,6 +11,6 @@ return {
   relevance = 30,
   prio = 290,
   alert_severity = alert_consts.alert_severities.error,
-  alert_type = alert_consts.alert_types.suspicious_activity,
+  alert_type = alert_consts.alert_types.alert_suspicious_activity,
   i18n_title = "flow_details.suspicious_tcp_syn_probing",
 }

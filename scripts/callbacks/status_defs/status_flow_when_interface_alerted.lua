@@ -11,6 +11,6 @@ return {
   relevance = 10,
   prio = 10,
   alert_severity = alert_consts.alert_severities.error,
-  alert_type = alert_consts.alert_types.flow_misbehaviour,
+  alert_type = alert_consts.alert_types.alert_flow_misbehaviour,
   i18n_title = "flow_details.flow_emitted"
 }
