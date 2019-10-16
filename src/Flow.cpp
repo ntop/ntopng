@@ -4206,6 +4206,11 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv) {
   Bitmap status_map;
   u_int32_t periodic_update_freq;
+
+  if(flow_lua_call != flow_lua_call_idle
+     && ntop->getGlobals()->isShutdownRequested())
+    return true; /* Only flow_lua_call_idle go through during a shutdown */
+  
   bool already_called = performed_lua_calls[flow_lua_call] ? true : false;
   
   switch(flow_lua_call) {
