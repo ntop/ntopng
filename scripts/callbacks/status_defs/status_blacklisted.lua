@@ -44,7 +44,7 @@ return {
   status_id = 13,
   relevance = 100,
   prio = 700,
-  severity = alert_consts.alert_severities.error,
+  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.flow_blacklisted,
   i18n_title = "flow_details.blacklisted_flow",
   i18n_description = formatBlacklistedFlow

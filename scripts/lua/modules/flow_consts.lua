@@ -21,17 +21,17 @@ flow_consts.custom_status_5 = 63
 --  relevance: is used to calculate a score
 --  prio: when a flow has multiple status set, the most important status is the one with highest priority
 --  alert_type: the alert type associated to this status
---   severity: the alert severity associated to this status
+--  alert_severity: the alert severity associated to this status
 --  i18n_title: a localization string for the status
 --  i18n_description (optional): a localization string / function for the description
-flow_consts.flow_status_types = {}
+flow_consts.status_types = {}
 local status_by_id = {}
 
 local function loadStatusDefs()
     local dirs = ntop.getDirs()
     local defs_dir = os_utils.fixPath(dirs.installdir .. "/scripts/callbacks/status_defs")
     package.path = defs_dir .. "/?.lua;" .. package.path
-    local required_fields = {"status_id", "relevance", "prio", "severity", "alert_type", "i18n_title"}
+    local required_fields = {"status_id", "relevance", "prio", "alert_severity", "alert_type", "i18n_title"}
 
     for fname in pairs(ntop.readdir(defs_dir)) do
         if ends(fname, ".lua") then
@@ -54,7 +54,7 @@ local function loadStatusDefs()
             end
 
             -- Success
-            flow_consts.flow_status_types[mod_fname] = def_script
+            flow_consts.status_types[mod_fname] = def_script
             status_by_id[def_id] = def_script
         end
 

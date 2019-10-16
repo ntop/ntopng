@@ -38,7 +38,7 @@ function script.hooks.flowEnd(params)
 	 
 	 -- Now check if the recipient isn't a broadcast/multicast address
 	 if(not(server["srv.broadmulticast"])) then
-	    flow.triggerStatus(flow_consts.flow_status_types.status_udp_unidirectional.status_id)
+	    flow.triggerStatus(flow_consts.status_types.status_udp_unidirectional.status_id)
 	 end
       end
    end

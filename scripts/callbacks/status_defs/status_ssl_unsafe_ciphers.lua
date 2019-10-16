@@ -10,7 +10,7 @@ return {
   status_id = 23,
   relevance = 50,
   prio = 390,
-  severity = alert_consts.alert_severities.error,
+  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.potentially_dangerous_protocol,
   i18n_title = "flow_details.ssl_unsafe_ciphers",
 }

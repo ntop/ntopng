@@ -13,7 +13,7 @@ local function formatIDS(status, flowstatus_info)
 
    local signature = (flowstatus_info.external_alert and flowstatus_info.external_alert.signature)
    local category = (flowstatus_info.external_alert and flowstatus_info.external_alert.category)
-   local severity = (flowstatus_info.external_alert and flowstatus_info.external_alert.severity)
+   local alert_severity = (flowstatus_info.external_alert and flowstatus_info.external_alert.severity)
    local signature_info = (signature and signature:split(" "));
    local maker = (signature_info and table.remove(signature_info, 1))
    local scope = (signature_info and table.remove(signature_info, 1))
@@ -31,7 +31,7 @@ return {
   status_id = 21,
   relevance = 0,
   prio = 680,
-  severity = alert_consts.alert_severities.error,
+  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.external_alert,
   i18n_title = "alerts_dashboard.external_alert",
   i18n_description = formatIDS

@@ -33,7 +33,7 @@ return {
   status_id = 19,
   relevance = 20,
   prio = 440,
-  severity = alert_consts.alert_severities.error,
+  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.flow_misbehaviour,
   i18n_title = "flow_details.longlived_flow",
   i18n_description = formatLongLivedFlow

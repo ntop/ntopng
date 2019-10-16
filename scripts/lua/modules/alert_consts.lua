@@ -807,7 +807,7 @@ end
 -- ##############################################
 
 -- Keep ID in sync with AlertType
--- NOTE: flow alerts are formatted based on their status. See flow_consts.flow_status_types.
+-- NOTE: flow alerts are formatted based on their status. See flow_consts.status_types.
 alert_consts.alert_types = {
   none = {
     alert_id = -1,
@@ -1088,7 +1088,7 @@ end
 
 -- ##############################################
 
--- See flow_consts.flow_status_types in flow_consts for flow alerts
+-- See flow_consts.status_types in flow_consts for flow alerts
 -- See Utils::flowStatus2AlertType to determine the alert_type for flow alerts
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

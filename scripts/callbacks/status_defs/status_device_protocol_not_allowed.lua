@@ -36,7 +36,7 @@ return {
   status_id = 16,
   relevance = 80,
   prio = 600,
-  severity = alert_consts.alert_severities.error,
+  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_device_protocol_not_allowed,
   i18n_title = "flow_details.suspicious_device_protocol",
   i18n_description = formatSuspiciousDeviceProtocol

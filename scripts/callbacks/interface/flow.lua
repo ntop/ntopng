@@ -137,10 +137,10 @@ local function call_modules(l4_proto, mod_fn)
    if(predominant_status ~= nil) then
       if do_trace then
          traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("flow.triggerAlert(type=%s, severity=%s)",
-            alertTypeRaw(predominant_status.alert_type.alert_id), alertSeverityRaw(predominant_status.severity.severity_id)))
+            alertTypeRaw(predominant_status.alert_type.alert_id), alertSeverityRaw(predominant_status.alert_severity.severity_id)))
       end
 
-      flow.triggerAlert(predominant_status.status_id, predominant_status.alert_type.alert_id, predominant_status.severity.severity_id, predominant_status_msg)
+      flow.triggerAlert(predominant_status.status_id, predominant_status.alert_type.alert_id, predominant_status.alert_severity.severity_id, predominant_status_msg)
    end
 
    return(rv)

@@ -957,10 +957,10 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
            <input id="status_trigger_alert" name="disabled_status" type="hidden" />
            <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
 
-      for _, status in pairsByKeys(flow_consts.flow_status_types, asc) do
+      for _, status in pairsByKeys(flow_consts.status_types, asc) do
         local status_id = status.status_id
 
-        if(status_id == flow_consts.flow_status_types.status_normal.status_id) then
+        if(status_id == flow_consts.status_types.status_normal.status_id) then
           goto continue
         end
 

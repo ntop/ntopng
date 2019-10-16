@@ -10,7 +10,7 @@ return {
   status_id = 11,
   relevance = 30,
   prio = 400,
-  severity = alert_consts.alert_severities.error,
+  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.suspicious_activity,
   i18n_title = "flow_details.dns_invalid_query"
 }

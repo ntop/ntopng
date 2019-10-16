@@ -29,7 +29,7 @@ return {
   status_id = 10,
   relevance = 50,
   prio = 360,
-  severity = alert_consts.alert_severities.error,
+  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.potentially_dangerous_protocol,
   i18n_title = "flow_details.ssl_certificate_mismatch",
   i18n_description = formatSSLCertificateMismatch
