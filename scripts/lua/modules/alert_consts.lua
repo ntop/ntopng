@@ -156,11 +156,17 @@ local function loadAlertsDefs()
 
          -- Success
          alert_consts.alert_types[mod_fname] = def_script
-         alerts_by_id[def_id] = def_script
+         alerts_by_id[def_id] = mod_fname
       end
 
       ::next_script::
    end
+end
+
+-- ##############################################
+
+function alert_consts.getAlertType(alert_id)
+    return(alerts_by_id[tonumber(alert_id)])
 end
 
 -- ##############################################

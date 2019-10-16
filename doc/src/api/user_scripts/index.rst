@@ -38,6 +38,7 @@ current flow and prints it into the console.
 
 .. toctree::
 
+    definitions.rst
     common_structure.rst
     flow_hooks.rst
     traffic_element_hooks.rst

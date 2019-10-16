@@ -26,6 +26,7 @@ flow_consts.custom_status_5 = 63
 --  i18n_description (optional): a localization string / function for the description
 flow_consts.status_types = {}
 local status_by_id = {}
+local status_key_by_id = {}
 
 local function loadStatusDefs()
     local dirs = ntop.getDirs()
@@ -56,6 +57,7 @@ local function loadStatusDefs()
             -- Success
             flow_consts.status_types[mod_fname] = def_script
             status_by_id[def_id] = def_script
+            status_key_by_id[def_id] = mod_fname
         end
 
         ::next_script::
@@ -97,6 +99,12 @@ end
 
 function flow_consts.getStatusInfo(status_id)
     return(status_by_id[tonumber(status_id)])
+end
+
+-- ################################################################################
+
+function flow_consts.getStatusType(status_id)
+    return(status_key_by_id[tonumber(status_id)])
 end
 
 -- ################################################################################
