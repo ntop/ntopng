@@ -1031,7 +1031,7 @@ else
 
       local width  = 1024
       local height = 200
-      local url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key
+      local url = ntop.getHttpPrefix().."/lua/get_flow_process_tree.lua?flow_key="..flow_key.."&flow_hash_id="..flow_hash_id
       epbf_utils.draw_flow_processes_graph(width, height, url)
 
       print('</th></tr>\n')
