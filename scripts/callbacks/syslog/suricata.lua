@@ -77,6 +77,17 @@ end
 
 -- #################################################################
 
+local function parseFileInfoMetadata(event_fileinfo, flow)
+   -- Additional fields
+   flow.FILE_NAME = event_fileinfo.filename
+   flow.FILE_SIZE = event_fileinfo.size
+   flow.FILE_STATE = event_fileinfo.state
+   flow.FILE_GAPS = event_fileinfo.gaps
+   flow.FILE_STORED = event_fileinfo.stored
+end
+
+-- #################################################################
+
 local function parseDNSMetadata(event_dns, flow)
 
    if event_dns.type == "query" then
@@ -92,14 +103,39 @@ end
 -- #################################################################
 
 local function parseTLSMetadata(event_tls, flow)
-
    flow.ssl_server_name = event_tls.sni
    -- flow.ja3c_hash = event_tls.ja3
    -- flow.ja3s_hash = event_tls.ja3s
 
    -- Additional fields
    flow.TLS_VERSION = event_tls.version
+   flow.TLS_CERTIFICATE_DN = event_tls.issuerdn
+   flow.TLS_CERTIFICATE_SUBJECT = event_tls.subject
+   flow.TLS_NOT_BEFORE = event_tls.notbefore
+   flow.TLS_NOT_AFTER = event_tls.notafter
+   flow.TLS_FINGERPRINT = event_tls.fingerprint
+   flow.TLS_SERIAL = event_tls.serial
    flow.TLS_SESSION_RESUMED = event_tls.session_resumed
+end
+
+-- #################################################################
+
+local function parseStats(event_stats)
+   local ifid = interface.getId()
+   local external_stats = {}
+
+   external_stats.capture_packets = event_stats.capture.kernel_packets
+   external_stats.capture_drops = event_stats.capture.kernel_drops
+
+   external_stats.signatures_loaded = 0
+   external_stats.signatures_failed = 0
+   for _, engine in ipairs(event_stats.detect.engines) do
+     external_stats.signatures_loaded = external_stats.signatures_loaded + engine.rules_loaded
+     external_stats.signatures_failed = external_stats.signatures_failed + engine.rules_failed
+   end
+
+   local external_json_stats = json.encode(external_stats)
+   ntop.setCache(getRedisIfacePrefix(ifid)..'.external_stats', external_json_stats)
 end
 
 -- #################################################################
@@ -110,6 +146,7 @@ function syslog_module.hooks.handleEvent(message)
    if event == nil then
       return
    end
+
 
    local flow = {}
    parseFiveTuple(event, flow)
@@ -137,11 +174,21 @@ function syslog_module.hooks.handleEvent(message)
    elseif event.event_type == "http" then
       parseHTTPMetadata(event.http, flow)
 
+   elseif event.event_type == "fileinfo" then
+      if event.app_proto == "http" then
+         parseHTTPMetadata(event.http, flow)
+      end
+      parseFileInfoMetadata(event.fileinfo, flow)
+
    elseif event.event_type == "dns" then
       parseDNSMetadata(event.dns, flow) 
 
    elseif event.event_type == "tls" then
       parseTLSMetadata(event.tls, flow) 
+
+   elseif event.event_type == "stats" then
+      parseStats(event.stats)
+      flow = nil
 
    else
       -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Unsupported Suricata event '"..event.event_type.."'")

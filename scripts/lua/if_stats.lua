@@ -690,6 +690,22 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th nowrap>"..i18n("http_page.traffic_sent")..ternary(txrx_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(ifstats.eth.egress.bytes).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
       print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(txrx_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fa fa-area-chart fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
    end
+  
+   if not interface.isPacketInterface() then 
+      local external_json_stats = ntop.getCache(getRedisIfacePrefix(ifid)..".external_stats")
+      if not isEmptyString(external_json_stats) then
+         local external_stats = json.decode(external_json_stats)
+         if external_stats ~= nil then
+            print("<tr><th colspan=7 nowrap>"..i18n("external_stats.title").."</th></tr>\n")
+            for key, value in pairsByKeys(external_stats, asc) do
+               print("<tr>")
+               print("<th nowrap>"..ternary(i18n("external_stats."..key), i18n("external_stats."..key), key).."</th>")
+               print("<td colspan=4>"..ternary(type(value) == "number", formatValue(value), value).."</td>")
+               print("</tr>")
+            end
+         end
+      end
+   end
 
    if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
       local dump_to = "MySQL"
