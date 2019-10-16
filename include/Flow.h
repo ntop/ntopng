@@ -440,7 +440,9 @@ class Flow : public GenericHashEntry {
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
-  
+  void lua_get_min_info(lua_State* vm);
+
+  void lua_get_unicast_info(lua_State* vm) const;
   void lua_get_status(lua_State* vm) const;
   void lua_get_protocols(lua_State* vm) const;
   void lua_get_bytes(lua_State* vm) const;

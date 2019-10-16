@@ -33,10 +33,8 @@ placed under the `/usr/share/ntopng/user_scripts/flows` directory:
 
   return(script)
 
-The example above uses `flow.getInfo()` to extract all the information for the
-current flow. While this is very pratical, it is an expensive operation so scripts
-operating in large networks should instead call specific methods which are documented
-below.
+The example above uses `flow.getInfo()` to extract minimal information for the
+current flow and prints it into the console.
 
 .. toctree::
 

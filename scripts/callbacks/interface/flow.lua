@@ -120,7 +120,7 @@ local function call_modules(l4_proto, mod_fn)
    end
 
    -- TODO too expensive, remove
-   local info = flow.getInfo()
+   local info = flow.getFullInfo()
 
    local params = {
       -- Flow specific information
@@ -161,7 +161,7 @@ function flow.triggerStatus(status_id, status_json)
    end
 
    -- Set the status bit in the flow status bitmap
-   flow.addStatus(status_id)
+   flow.setStatus(status_id)
 end
 
 -- #################################################################

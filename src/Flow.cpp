@@ -4427,6 +4427,44 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
 
 /* ***************************************************** */
 
+/* Get minimal flow information.
+ * NOTE: this is intended to be called only from flow user scripts
+ * via flow.getInfo(). mask_host/allowed networks are not honored.
+ */
+void Flow::lua_get_min_info(lua_State *vm) {
+  const IpAddress *cli_ip = get_cli_ip_addr();
+  const IpAddress *srv_ip = get_srv_ip_addr();
+  char buf[32];
+
+  lua_newtable(vm);
+
+  if(cli_ip) lua_push_str_table_entry(vm, "cli.ip", cli_ip->print(buf, sizeof(buf)));
+  if(srv_ip) lua_push_str_table_entry(vm, "srv.ip", srv_ip->print(buf, sizeof(buf)));
+  lua_push_int32_table_entry(vm, "cli.port", get_cli_port());
+  lua_push_int32_table_entry(vm, "srv.port", get_srv_port());
+  lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
+  lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
+  lua_push_uint64_table_entry(vm, "cli2srv.bytes", stats.cli2srv_bytes);
+  lua_push_uint64_table_entry(vm, "srv2cli.bytes", stats.srv2cli_bytes);
+  lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.srv2cli_packets);
+  lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.srv2cli_packets);
+}
+
+/* ***************************************************** */
+
+void Flow::lua_get_unicast_info(lua_State* vm) const {
+  const IpAddress *cli_ip = get_cli_ip_addr();
+  const IpAddress *srv_ip = get_srv_ip_addr();
+
+  lua_newtable(vm);
+
+  if(cli_ip) lua_push_bool_table_entry(vm, "cli.broadmulticast", cli_ip->isBroadMulticastAddress());
+  if(srv_ip) lua_push_bool_table_entry(vm, "srv.broadmulticast", srv_ip->isBroadMulticastAddress());
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_ssl_info(lua_State *vm) const {
   if(isSSL()) {
     lua_push_int32_table_entry(vm, "protos.ssl_version", protos.ssl.ssl_version);

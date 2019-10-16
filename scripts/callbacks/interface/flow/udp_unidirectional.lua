@@ -12,7 +12,8 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
-   key = "udp",
+   key = "udp_unidirectional",
+   l4_proto = "udp",
 
    -- NOTE: hooks defined below
    hooks = {},
@@ -27,27 +28,17 @@ local script = {
 -- #################################################################
 
 -- NOTE: what if at some point the flow receives a packet? We need to cancel the status bit
-function script.hooks.flowEnd(params)
-   local packets = flow.getPackets()
+function script.hooks.all(params)
+   local info = flow.getInfo()
 
-   if(packets["packets.rcvd"] == 0) then
-      local proto = flow.getProtocols()
+   if(info["packets.rcvd"] == 0) then
+      local info = flow.getUnicastInfo()
 
-      if(proto["proto.l4"] == "UDP") then
-	 local server = flow.getServerIp()
-	 
-	 -- Now check if the recipient isn't a broadcast/multicast address
-	 if(not(server["srv.broadmulticast"])) then
-	    flow.triggerStatus(flow_consts.status_types.status_udp_unidirectional.status_id)
-	 end
+      -- Now check if the recipient isn't a broadcast/multicast address
+      if(not(info["srv.broadmulticast"])) then
+	 flow.setStatus(flow_consts.status_types.status_udp_unidirectional.status_id)
       end
    end
-end
-
--- #################################################################
-
-function script.hooks.periodicUpdate(params)
-   script.hooks.flowEnd(params)
 end
 
 -- #################################################################
