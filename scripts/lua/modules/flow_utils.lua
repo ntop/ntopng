@@ -49,6 +49,7 @@ function getFlowsFilter()
    local category    = _GET["category"]
    local network_id  = _GET["network"]
    local traffic_profile = _GET["traffic_profile"]
+   local traffic_type = _GET["traffic_type"]
    local flowhosts_type = _GET["flowhosts_type"]
    local ipversion    = _GET["version"]
    local l4proto      = _GET["l4proto"]
