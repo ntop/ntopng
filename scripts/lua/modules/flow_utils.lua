@@ -1356,7 +1356,7 @@ function printBlockFlowJs()
   print[[
   var block_flow_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-  function block_flow(flow_key) {
+  function block_flow(flow_key, flow_hash_id) {
     var url = "]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/block_flow.lua";
     $.ajax({
       type: 'GET',
@@ -1364,17 +1364,19 @@ function printBlockFlowJs()
       cache: false,
       data: {
         csrf: block_flow_csrf,
-        flow_key: flow_key
+        flow_key: flow_key,
+        flow_hash_id: flow_hash_id,
       },
       success: function(content) {
         var data = jQuery.parseJSON(content);
+        var row_id = flow_key + "_" + flow_hash_id;
         block_flow_csrf = data.csrf;
         if (data.status == "BLOCKED") {
-          $('#'+flow_key+'_info').find('.block-badge')
+          $('#'+row_id+'_info').find('.block-badge')
             .removeClass('label-default')
             .addClass('label-danger')
             .attr('title', ']] print(i18n("flow_details.flow_traffic_is_dropped")) print[[');
-          $('#'+flow_key+'_application, #'+flow_key+'_l4, #'+flow_key+'_client, #'+flow_key+'_server')
+          $('#'+row_id+'_application, #'+row_id+'_l4, #'+row_id+'_client, #'+row_id+'_server')
             .css("text-decoration", "line-through");
         }
       },
