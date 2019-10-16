@@ -1,5 +1,3 @@
-
-
 // ---------------- Automatic table update code ------------------------
 // Use the flow_rows_option object in order to simplify the option setting from lua script.
 
@@ -8,42 +6,47 @@ flow_rows_option["type"] = "flow";
 flow_rows_option["vlan"] = false;
 flow_rows_option["process"] = false;
 
+function flow_table_rowID(flow_key, flow_hash_id) {
+  return flow_key + "_" + flow_hash_id;
+}
+
 function flow_table_setID (row) {
-  var index = 0;
+  var index = 3;
   var flow_key = row.find("td").eq(0).text();
+  var flow_hash_id = row.find("td").eq(1).text();
+  var row_id = flow_table_rowID(flow_key, flow_hash_id);
   var type = flow_rows_option["type"];
   
   // Set the row index to the flow key
   row.attr('id', flow_key);
+  row.attr('flow_key', flow_key);
+  row.attr('flow_hash_id', flow_hash_id);
 
   // flows_stats_top
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_key");
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_info");
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_application");
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_l4");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_application");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_l4");
   if (((type == 'flow') || (type == 'host')) 
-      && (flow_rows_option["vlan"])) row.find("td").eq(index++).attr('id', flow_key+"_vlan");
+      && (flow_rows_option["vlan"])) row.find("td").eq(index++).attr('id', row_id + "_vlan");
   if (((type == 'flow') || (type == 'host'))
       && (flow_rows_option["process"])) {
-    row.find("td").eq(index++).attr('id', flow_key+"_cli_process");
-    row.find("td").eq(index++).attr('id', flow_key+"_srv_process");
+    row.find("td").eq(index++).attr('id', row_id + "_cli_process");
+    row.find("td").eq(index++).attr('id', row_id + "_srv_process");
   }
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_client");
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_server");
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_duration");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_client");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_server");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_duration");
   // flows_stats_bottom
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_breakdown");
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_throughput");
-  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', flow_key+"_bytes");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_breakdown");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_throughput");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_bytes");
   
-  //console.log(row);
   return row;
-
 }
 
 
-function row_update(flow_key) {
-   var url = "@HTTP_PREFIX@/lua/get_flow_data.lua?flow_key="+flow_key;
+function row_update(flow_key, flow_hash_id) {
+   var url = "@HTTP_PREFIX@/lua/get_flow_data.lua?flow_key=" + flow_key + "&flow_hash_id=" + flow_hash_id;
+   var row_id = flow_table_rowID(flow_key, flow_hash_id);
 
   $.ajax({
     type: 'GET',
@@ -53,10 +56,10 @@ function row_update(flow_key) {
       var data = jQuery.parseJSON(content);
       // console.log(url);
       // console.log(data);
-      $("#"+flow_key+'_duration').html(data.column_duration);
-      $("#"+flow_key+'_breakdown').html(data.column_breakdown);
-      $("#"+flow_key+'_throughput').html(data.column_thpt);
-      $("#"+flow_key+'_bytes').html(data.column_bytes);
+      $("#"+ row_id +'_duration').html(data.column_duration);
+      $("#"+ row_id +'_breakdown').html(data.column_breakdown);
+      $("#"+ row_id +'_throughput').html(data.column_thpt);
+      $("#"+ row_id +'_bytes').html(data.column_bytes);
 
     },
     error: function(content) {
@@ -73,10 +76,9 @@ function flow_table_update () {
   // var perPage = $dt.options.perPage;
   var rows = $dt.rows;
 
-  for (var row in rows){
-    var flow_key = rows[row][0].id;
-    row_update(flow_key);
-  }
+  $(rows).each(function(i, row){
+      row_update(row.attr("flow_key"), row.attr("flow_hash_id"));
+  });
 }
 
 // Refresh Interval (10 sec)

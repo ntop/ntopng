@@ -63,7 +63,7 @@ class ViewInterface : public NetworkInterface {
   virtual bool hasSeenVlanTaggedPackets() const;
 
   virtual u_int32_t getFlowsHashSize();
-  virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
+  virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
   				IpAddress *src_ip,  IpAddress *dst_ip,
   				u_int16_t src_port, u_int16_t dst_port,

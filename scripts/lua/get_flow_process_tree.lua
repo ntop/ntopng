@@ -11,14 +11,8 @@ local json = require "dkjson"
 sendHTTPHeader('text/json')
 
 local flow_key = _GET["flow_key"]
-local flow
+local flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), 0 --[[ TODO --]])
 local tree = {}
-
-if(flow_key == nil) then
-   flow = nil
-else
-   flow = interface.findFlowByKey(tonumber(flow_key))
-end
 
 local function format_proc(name, pid)
    return string.format("%s [pid: %u]", name, pid)

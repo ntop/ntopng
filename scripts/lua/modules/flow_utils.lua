@@ -966,7 +966,8 @@ function getSIPTableRows(info)
      local rtp_flow_key  = interface.getFlowKey(sip_rtp_src_address_ip or "", tonumber(sip_rtp_src_port) or 0,
 						sip_rtp_dst_address_ip or "", tonumber(sip_rtp_dst_port) or 0,
 						17 --[[ UDP --]])
-     if tonumber(rtp_flow_key) ~= nil and interface.findFlowByKey(tonumber(rtp_flow_key)) ~= nil then
+     -- TODO: fix
+     if tonumber(rtp_flow_key) ~= nil and interface.findFlowByKeyAndHashId(tonumber(rtp_flow_key), 0) ~= nil then
 	string_table = string_table..'&nbsp;'
 	string_table = string_table.."<A HREF=\""..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..rtp_flow_key
 	string_table = string_table.."&label="..sip_rtp_src_address_ip..":"..sip_rtp_src_port

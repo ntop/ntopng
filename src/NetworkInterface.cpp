@@ -5615,14 +5615,13 @@ Country* NetworkInterface::getCountry(const char *country_name, bool create_if_n
 
 /* **************************************************** */
 
-Flow* NetworkInterface::findFlowByKey(u_int32_t key,
-				      AddressTree *allowed_hosts) {
+Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts) {
   Flow *f = NULL;
 
   if(!flows_hash)
     return NULL;
 
-  f = (Flow*)(flows_hash->findByKey(key));
+  f = flows_hash->findByKeyAndHashId(key, hash_id);
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
 

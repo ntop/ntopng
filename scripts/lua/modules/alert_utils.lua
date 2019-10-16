@@ -682,14 +682,14 @@ local function formatRawFlow(record, flow_json, skip_add_links)
    local status_info = alert2statusinfo(decoded)
 
    -- active flow lookup
-   if not interface.isView() and status_info and status_info["ntopng.key"] and record["alert_tstamp"] then
+   if not interface.isView() and status_info and status_info["ntopng.key"] and status_info["hash_entry_id"] and record["alert_tstamp"] then
       -- attempt a lookup on the active flows
-      local active_flow = interface.findFlowByKey(status_info["ntopng.key"])
+      local active_flow = interface.findFlowByKeyAndHashId(status_info["ntopng.key"], status_info["hash_entry_id"])
 
       if active_flow and active_flow["seen.first"] < tonumber(record["alert_tstamp"]) then
-	 return string.format("%s [%s: <A HREF='%s/lua/flow_details.lua?flow_key=%u'><span class='label label-info'>Info</span></A> %s]",
+	 return string.format("%s [%s: <A HREF='%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u'><span class='label label-info'>Info</span></A> %s]",
 			      flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info),
-			      i18n("flow"), ntop.getHttpPrefix(), active_flow["ntopng.key"],
+			      i18n("flow"), ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"],
 			      getFlowLabel(active_flow, true, true))
       end
    end

@@ -27,14 +27,21 @@
 class FlowHash : public GenericHash {
  public:
   FlowHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
-  
+
   Flow* find(IpAddress *src_ip, IpAddress *dst_ip,
-	     u_int16_t src_port, u_int16_t dst_port, 
+	     u_int16_t src_port, u_int16_t dst_port,
 	     u_int16_t vlanId, u_int8_t protocol,
 	     const ICMPinfo * const icmp_info,
 	     bool *src2dst_direction,
 	     bool is_inline_call);
- 
+  /**
+   * @brief Find an entry by key value and hash entry id.
+   *
+   * @param key Key value of the flow
+   * @param hash_id The unique identifier of the flow in the hash table
+   * @return Pointer of entry that matches with the key parameter, NULL if there isn't entry with the key parameter or if the hash is empty.
+   */
+  Flow* findByKeyAndHashId(u_int32_t key, u_int hash_id);
 };
 
 #endif /* _FLOW_HASH_H_ */

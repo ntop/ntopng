@@ -424,7 +424,7 @@ class NetworkInterface : public AlertableEntity {
   void findFlowHosts(u_int16_t vlan_id,
 		     Mac *src_mac, IpAddress *_src_ip, Host **src,
 		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
-  virtual Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
+  virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
   virtual Flow* findFlowByTuple(u_int16_t vlan_id,
 				IpAddress *src_ip,  IpAddress *dst_ip,
 				u_int16_t src_port, u_int16_t dst_port,

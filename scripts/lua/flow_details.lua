@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -557,14 +557,10 @@ print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-dange
 
 throughput_type = getThroughputType()
 
-flow_key = _GET["flow_key"]
+local flow_key = _GET["flow_key"]
+local flow_hash_id = _GET["flow_hash_id"]
 
-interface.select(ifname)
-if(flow_key == nil) then
-   flow = nil
-else
-   flow = interface.findFlowByKey(tonumber(flow_key))
-end
+flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_id))
 
 local ifid = interface.name2id(ifname)
 local label = getFlowLabel(flow)
@@ -1237,9 +1233,12 @@ function update () {
 		    url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/flow_stats.lua',
-		    data: { ifid: "]] print(tostring(ifid)) print [[", flow_key: "]] print(flow_key) print [[" },
+		    data: { ifid: "]] print(tostring(ifid)) print [[", ]]
+print [[flow_key: "]] print(string.format("%u", flow_key)) print [[", ]]
+print [[flow_hash_id: "]] print(string.format("%u", flow_hash_id)) print [[", ]]
+print[[ },
 		    success: function(content) {
-                        if(content == "{}") {
+			if(content == "{}") {
    ]]
 
 -- If the flow is already idle, another error message is already shown

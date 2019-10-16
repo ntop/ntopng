@@ -221,11 +221,11 @@ u_int32_t ViewInterface::getFlowsHashSize() {
 
 /* **************************************************** */
 
-Flow* ViewInterface::findFlowByKey(u_int32_t key, AddressTree *allowed_hosts) {
+Flow* ViewInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts) {
   Flow *f = NULL;
 
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-    if((f = (Flow*)viewed_interfaces[s]->findFlowByKey(key, allowed_hosts)))
+    if((f = (Flow*)viewed_interfaces[s]->findFlowByKeyAndHashId(key, hash_id, allowed_hosts)))
       break;
   }
 

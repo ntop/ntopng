@@ -619,11 +619,13 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
     if(srv_ip_addr)
       srv_ip = srv_ip_addr->print(srv_ip_buf, sizeof(srv_ip_buf));
 
+    json_object *status_info = f->flow2statusinfojson();
+
     if((alert_json_obj = json_object_new_object()) == NULL)
       return(-1);
 
     json_object_object_add(alert_json_obj, "info", json_object_new_string(info ? info : (char*)""));
-    json_object_object_add(alert_json_obj, "status_info", json_object_new_string(status_info ? status_info : (char*)""));
+    json_object_object_add(alert_json_obj, "status_info", status_info ? status_info : json_object_new_object());
     alert_json = json_object_to_json_string(alert_json_obj);
 
     m.lock(__FILE__, __LINE__);

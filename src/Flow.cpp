@@ -186,6 +186,7 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   /* Reset the initial state */
+  hash_entry_id = 0;
   set_hash_entry_state_allocated();
 
   switch(protocol) {
@@ -1959,6 +1960,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   // this is used to dynamicall update entries in the GUI
   lua_push_uint64_table_entry(vm, "ntopng.key", key()); // Key
+  lua_push_uint64_table_entry(vm, "hash_entry_id", get_hash_entry_id());
 }
 
 /* *************************************** */
@@ -2017,6 +2019,18 @@ void Flow::set_acknowledge_to_purge() {
      to purge. */
   if(iface->isViewed())
     purge_acknowledged_mark = true;
+};
+
+/* *************************************** */
+
+void Flow::set_hash_entry_id(u_int assigned_hash_entry_id) {
+  hash_entry_id = assigned_hash_entry_id;
+};
+
+/* *************************************** */
+
+u_int Flow::get_hash_entry_id() const {
+  return hash_entry_id;
 };
 
 /* *************************************** */
@@ -2131,6 +2145,7 @@ json_object* Flow::flow2statusinfojson() {
   json_object_object_add(obj, "cli.devtype", json_object_new_int((cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown));
   json_object_object_add(obj, "srv.devtype", json_object_new_int((srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown));
   json_object_object_add(obj, "ntopng.key", json_object_new_int64(key()));
+  json_object_object_add(obj, "hash_entry_id", json_object_new_int64(get_hash_entry_id()));
 
   if(cli_host && ((proto_status = cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true /* client */)) != device_proto_allowed)) {
     json_object_object_add(obj, "devproto_forbidden_peer", json_object_new_string("cli"));

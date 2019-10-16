@@ -26,6 +26,7 @@
 GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
 			 u_int _max_hash_size, const char *_name) {
   num_hashes = _num_hashes, max_hash_size = _max_hash_size, current_size = 0;
+  last_entry_id = 0;
   purge_step = max_val(num_hashes / PURGE_FRACTION, 1);
   name = strdup(_name ? _name : "???");
 
@@ -79,6 +80,7 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
     if(do_lock)
       locks[hash]->wrlock(__FILE__, __LINE__);
 
+    h->set_hash_entry_id(last_entry_id++);
     h->set_next(table[hash]);
     table[hash] = h;
     current_size++;
@@ -258,26 +260,4 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 #endif
 
   return(num_purged);
-}
-
-/* ************************************ */
-
-GenericHashEntry* GenericHash::findByKey(u_int32_t key) {
-  u_int32_t hash = key % num_hashes;
-  GenericHashEntry *head = table[hash];
-
-  if(head == NULL) return(NULL);
-
-  locks[hash]->rdlock(__FILE__, __LINE__);
-
-  while(head) {
-    if(!head->idle() && head->key() == key)
-      break;
-    else
-      head = head->next();
-  }
-
-  locks[hash]->unlock(__FILE__, __LINE__);
-
-  return(head);
 }

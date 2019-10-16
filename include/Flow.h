@@ -61,6 +61,7 @@ class Flow : public GenericHashEntry {
   AlertType alert_type;
   AlertLevel alert_level;
   char *tmp_alert_json;
+  u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table*/
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
      before the flow can actually be deleted from memory. This guarantees the view has
@@ -432,6 +433,8 @@ class Flow : public GenericHashEntry {
   virtual void set_to_purge(time_t t);
   bool is_acknowledged_to_purge() const;
   void set_acknowledge_to_purge();
+  void  set_hash_entry_id(u_int assigned_hash_entry_id);
+  u_int get_hash_entry_id() const;
 
   char* print(char *buf, u_int buf_len) const;
   void update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_flows_stats_user_data);

@@ -102,10 +102,11 @@ function getFlowsInfo()
 
 --! @memberof interface
 --! @brief Get the flow peers information identified by key of network interface.
---! @details For more information please read the @ref ntop_get_interface_find_flow_by_key documentation.
+--! @details For more information please read the @ref ntop_get_interface_find_flow_by_key_and_hash_id documentation.
 --! @tparam number key The flow key.
+--! @tparam number hash_id The flow id in the flows hash table.
 --! @return An hashtable containing the flow information identified by the key parameter of network interface if it exists.
-function findFlowByKey(key)
+function findFlowByKeyAndHashId(key, hash_id)
 
 --! @memberof interface
 --! @brief Get the host identified by key of network interface.

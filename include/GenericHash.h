@@ -45,6 +45,7 @@ class GenericHash {
   RwLock **locks;
   NetworkInterface *iface; /**< Pointer of network interface for this generic hash.*/
   u_int last_purged_hash; /**< Index of last purged hash.*/
+  u_int last_entry_id; /**< An uniue identifier assigned to each entry in the hash table */
   u_int purge_step;
 
  public:
@@ -119,14 +120,6 @@ class GenericHash {
    * @return Pointer of network interface instance.
    */
   inline NetworkInterface* getInterface() { return(iface); };
-  /**
-   * @brief Find an entry by key value.
-   *
-   * @param key Key value to be found in the hash.
-   * @return Pointer of entry that matches with the key parameter, NULL if there isn't entry with the key parameter or if the hash is empty.
-   */
-  GenericHashEntry* findByKey(u_int32_t key);
-
   /**
    * @brief Check whether the hash has empty space
    *

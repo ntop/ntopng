@@ -2,7 +2,7 @@
 -- (C) 2013-18 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -12,15 +12,11 @@ sendHTTPContentTypeHeader('text/html')
 local debug = debug_flow_data
 
 
-flow_key = _GET["flow_key"]
-if(flow_key == nil) then
-   flow = nil
-else
-   interface.select(ifname)
-   flow = interface.findFlowByKey(tonumber(flow_key))
-end
+local flow_key = _GET["flow_key"]
+local flow_hash_id = _GET["flow_hash_id"]
+local flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_id))
 
-throughput_type = getThroughputType()
+local throughput_type = getThroughputType()
 
 if(flow == nil) then
    print('{}')

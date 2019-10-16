@@ -75,3 +75,25 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 
   return(head);
 }
+
+/* ************************************ */
+
+Flow* FlowHash::findByKeyAndHashId(u_int32_t key, u_int hash_id) {
+  u_int32_t hash = key % num_hashes;
+  Flow *head = (Flow*)table[hash];
+
+  if(head == NULL) return(NULL);
+
+  locks[hash]->rdlock(__FILE__, __LINE__);
+
+  while(head) {
+    if(!head->idle() && head->get_hash_entry_id() == hash_id)
+      break;
+    else
+      head = (Flow*)head->next();
+  }
+
+  locks[hash]->unlock(__FILE__, __LINE__);
+
+  return((Flow*)head);
+}

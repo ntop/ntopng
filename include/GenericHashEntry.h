@@ -133,6 +133,12 @@ class GenericHashEntry {
    */
   inline GenericHashEntry* next()    { return(hash_next); };
   /**
+   * @brief Set and id to uniquely identify this
+   * hash entry into the hash table (class GenericHash)
+   * it belongs to.
+   */
+  virtual void set_hash_entry_id(u_int hash_entry_id) { };
+  /**
    * @brief Set the next hash entry.
    * @details Inline method.
    * 

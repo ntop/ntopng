@@ -205,12 +205,13 @@ print(" ],\n")
 print[[
    columns: [
       {
-         title: "]] print(i18n("key")) print[[",
+         title: "",
          field: "key",
          hidden: true,
-         css: {
-              textAlign: 'center'
-         }
+      }, {
+         title: "",
+         field: "hash_id",
+         hidden: true,
       }, {
          title: "",
          field: "column_key",

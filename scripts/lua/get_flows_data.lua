@@ -160,8 +160,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    local column_key = "<A HREF='"
-      ..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="
-      ..value["ntopng.key"]
+      ..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..value["ntopng.key"].."&flow_hash_id="..value["hash_entry_id"]
       .."'><span class='label label-info'>Info</span></A>"
    if(have_nedge) then
       if (value["verdict.pass"]) then
@@ -171,7 +170,8 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       end
    end
    record["column_key"] = column_key
-   record["key"] = value["ntopng.key"]
+   record["key"] = string.format("%u", value["ntopng.key"])
+   record["hash_id"] = string.format("%u", value["hash_entry_id"])
 
    local column_client = src_key
    local info = interface.getHostInfo(value["cli.ip"], value["cli.vlan"])
