@@ -255,7 +255,8 @@ class Flow : public GenericHashEntry {
   ~Flow();
 
   inline Bitmap getStatusBitmap()               { return(status_map);           }
-  inline void addStatus(FlowStatus status)      { status_map.setBit(status);    }
+  inline void setStatus(FlowStatus status)      { status_map.setBit(status);    }
+  inline void clearStatus(FlowStatus status)    { status_map.clearBit(status);  }
   FlowStatus getFlowStatus(Bitmap *status_map) const;
   void triggerAlert(AlertType atype, AlertLevel severity, const char*alert_json);
   inline void setAlertedStatus(FlowStatus status)      { alerted_status = status; };

@@ -2,10 +2,14 @@
 --! @return the flow status bitmap
 function flow.getStatus()
 
---! @brief Sets a bit into the flow status
+--! @brief Set a bit into the flow status
 --! @param status_bit the status bit to set, see flow_consts.lua
 --! @note This is used to indicate that the Flow has a possible problem.
 function flow.setStatus(status_bit)
+
+--! @brief Clear a bit into the flow status
+--! @param status_bit the status bit to clear, see flow_consts.lua
+function flow.clearStatus(status_bit)
 
 --! @brief Sets a bit into the flow status and possibly trigger an alert
 --! @param status_bit the flow status bit to set

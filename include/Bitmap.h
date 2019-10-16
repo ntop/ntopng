@@ -33,6 +33,7 @@ public:
 
   inline void reset()               { bitmap = 0; }
   inline void setBit(u_int8_t id)   { bitmap = Utils::bitmapSet(bitmap, id);  }
+  inline void clearBit(u_int8_t id) { bitmap = Utils::bitmapClear(bitmap, id);}
   inline bool issetBit(u_int8_t id) { return(Utils::bitmapIsSet(bitmap, id)); }
   inline void bitmapOr(Bitmap b)    { bitmap |= b.bitmap;                     }
   inline u_int64_t get()            { return(bitmap);                         }

@@ -8625,7 +8625,25 @@ static int ntop_flow_set_status(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   new_status = (FlowStatus)lua_tonumber(vm, 1);
 
-  f->addStatus(new_status);
+  f->setStatus(new_status);
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_flow_clear_status(lua_State* vm) {
+  FlowStatus new_status;
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  new_status = (FlowStatus)lua_tonumber(vm, 1);
+
+  f->clearStatus(new_status);
   lua_pushnil(vm);
 
   return(CONST_LUA_OK);
@@ -10234,6 +10252,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getStatus",                ntop_flow_get_status                 },
   { "isBlacklisted",            ntop_flow_is_blacklisted             },
   { "setStatus",                ntop_flow_set_status                 },
+  { "clearStatus",              ntop_flow_clear_status               },
   { "getInfo",                  ntop_flow_get_info                   },
   { "getFullInfo",              ntop_flow_get_full_info              },
   { "getUnicastInfo",           ntop_flow_get_unicast_info           },
