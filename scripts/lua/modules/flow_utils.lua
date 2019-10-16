@@ -301,6 +301,15 @@ function handleCustomFlowField(key, value, snmpdevice)
   end
 
   -- Unformatted value
+
+  if (type(value) == "boolean") then
+    if (value) then 
+      value = i18n("yes") 
+    else 
+      value = i18n("no") 
+    end
+  end
+
   return value
 end
 
