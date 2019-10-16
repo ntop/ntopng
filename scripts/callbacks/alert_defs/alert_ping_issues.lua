@@ -2,6 +2,8 @@
 -- (C) 2019 - ntop.org
 --
 
+local format_utils = require("format_utils")
+
 local function pingIssuesFormatter(ifid, alert, info)
    local msg
    -- example of an ip label:

@@ -2,6 +2,8 @@
 -- (C) 2019 - ntop.org
 --
 
+local format_utils = require("format_utils")
+
 local function userActivityFormatter(ifid, alert, info)
   local decoded = info
   local user = alert.alert_entity_val
