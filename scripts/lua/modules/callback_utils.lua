@@ -154,15 +154,15 @@ end
 
 -- Iterates each active host on the ifname interface for RRD creation.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachLocalRRDHost(ifname, deadline, with_ts, callback)
+function callback_utils.foreachLocalRRDHost(ifname, deadline, with_ts, with_one_way_traffic_hosts, callback)
    interface.select(ifname)
 
    local iterator
 
    if with_ts then
-      iterator = callback_utils.getLocalHostsTsIterator()
+      iterator = callback_utils.getLocalHostsTsIterator(nil --[[ show_details --]], nil --[[ maxHits --]], nil --[[ anomalousOnly --]], with_one_way_traffic_hosts)
    else
-      iterator = callback_utils.getLocalHostsIterator(false --[[no details]])
+      iterator = callback_utils.getLocalHostsIterator(false --[[ show_details --]], nil --[[ maxHits --]], nil --[[ anomalousOnly --]], with_one_way_traffic_hosts)
    end
 
    for hostname, host_ts in iterator do

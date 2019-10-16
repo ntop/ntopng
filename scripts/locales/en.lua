@@ -1940,6 +1940,7 @@ local lang = {
     ["hide_from_top_networks_descr"] = "e.g. %{example}",
     ["interface_network_discovery"] = "Periodic Interface Network Discovery",
     ["interface_rrd_creation"] = "Create Interface Timeseries",
+    ["interface_one_way_hosts_rrd_creation"] = "Create One-Way Traffic Hosts Timeseries",
     ["interface_speed"] = "Interface Speed (Mbit/s)",
     ["interface_speed_popup_msg"] = "Specify the maximum interface speed",
     ["interface_top_talkers_creation"] = "Create Interface Top Talkers",

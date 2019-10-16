@@ -882,6 +882,9 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
   if(lua_type(vm, 2) == LUA_TBOOLEAN) show_details   = lua_toboolean(vm, 2) ? true : false;
   if(lua_type(vm, 3) == LUA_TNUMBER)  maxHits        = (u_int32_t)lua_tonumber(vm, 3);
   if(lua_type(vm, 4) == LUA_TBOOLEAN) anomalousOnly  = lua_toboolean(vm, 4);
+  /* If parameter 5 is true, the caller wants to iterate all hosts, including those with unidirectional traffic.
+     If parameter 5 is false, then the caller only wants host withs bidirectional traffic */
+  if(lua_type(vm, 5) == LUA_TBOOLEAN) traffic_type_filter = lua_toboolean(vm, 5) ? traffic_type_all : traffic_type_bidirectional;
 
   if((!ntop_interface)
      || ntop_interface->getActiveHostsList(vm,

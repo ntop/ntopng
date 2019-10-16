@@ -1365,7 +1365,7 @@ elseif(page == "config") then
    print[[
    <form id="iface_config" lass="form-inline" method="post">
    <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-   <table class="table table-bordered table-striped">]]
+   <table id="iface_config_table" class="table table-bordered table-striped">]]
 
    if ((not is_pcap_dump) and
        (ifstats.name ~= nil) and
@@ -1500,8 +1500,43 @@ elseif(page == "config") then
    print [[<tr>
          <th>]] print(i18n("if_stats_config.interface_rrd_creation")) print[[</th>
          <td>
-            <input name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
+            <input id="interface_rrd_creation" name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
          </td>
+      </tr>
+
+      <script type="text/javascript">
+        $("#interface_rrd_creation").change(function(){
+          var self = this;
+          $("#iface_config_table tr.rrd_creation").toggle(self.checked); 
+        }).change();
+     </script>
+]]
+
+   -- Skip timeseries for hosts with unidirectional traffic
+   local interface_one_way_hosts_rrd_creation = true
+   local interface_one_way_hosts_rrd_creation_checked = "checked"
+
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      if _POST["interface_one_way_hosts_rrd_creation"] ~= "1" then
+	 interface_one_way_hosts_rrd_creation = false
+	 interface_one_way_hosts_rrd_creation_checked = ""
+      end
+
+      ntop.setPref("ntopng.prefs.ifid_"..ifId..".interface_one_way_hosts_rrd_creation", tostring(interface_one_way_hosts_rrd_creation))
+   else
+      interface_one_way_hosts_rrd_creation = ntop.getPref("ntopng.prefs.ifid_"..ifId..".interface_one_way_hosts_rrd_creation")
+
+      if interface_one_way_hosts_rrd_creation == "false" then
+	 interface_one_way_hosts_rrd_creation = false
+	 interface_one_way_hosts_rrd_creation_checked = ""
+      end
+   end
+
+   print [[<tr class="rrd_creation" ]] if not interface_rrd_creation then print("style='display:none;'") end print[[>
+	 <th>]] print(i18n("if_stats_config.interface_one_way_hosts_rrd_creation")) print[[</th>
+	 <td>
+	    <input name="interface_one_way_hosts_rrd_creation" type="checkbox" value="1" ]] print(interface_one_way_hosts_rrd_creation_checked) print[[>
+	 </td>
       </tr>]]
 
    -- per-interface Top-Talkers generation
