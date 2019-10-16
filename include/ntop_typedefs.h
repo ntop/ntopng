@@ -100,9 +100,9 @@ typedef enum {
 } TcpFlowStateFilter;
 
 typedef enum {
-  traffic_type_all,
-  traffic_type_one_way,
-  traffic_type_bidirectional,
+  traffic_type_all = 0,
+  traffic_type_one_way = 1,
+  traffic_type_bidirectional = 2,
 } TrafficType;
 
 /* keep in sync with Utils::policySource */

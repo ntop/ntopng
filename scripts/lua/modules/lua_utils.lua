@@ -391,8 +391,12 @@ function printTrafficTypeFilterDropdown(base_url, page_params)
    -- now forthe one-way
    traffic_type_params["traffic_type"] = "one_way"
    print[[
-         <li>\
+         <li]] if traffic_type == "one_way" then print(' class="active"') end print[[>\
            <a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_one_way")) print[[</a></li>\]]
+   traffic_type_params["traffic_type"] = "bidirectional"
+   print[[
+         <li]] if traffic_type == "bidirectional" then print(' class="active"') end print[[>\
+           <a href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_two_ways")) print[[</a></li>\]]
    print[[
       </ul>]]
 end

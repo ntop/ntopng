@@ -343,7 +343,8 @@ end
 local function validateBroadcastUnicast(mode)
    local modes = {"unicast", "broadcast_multicast",
 		  "one_way",
-		  "one_way_unicast", "one_way_broadcast_multicast"}
+		  "one_way_unicast", "one_way_broadcast_multicast",
+		  "bidirectional"}
 
    return validateChoice(modes, mode)
 end

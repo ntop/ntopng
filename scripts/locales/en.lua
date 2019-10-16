@@ -1758,6 +1758,7 @@ local lang = {
     ["source_id"] = "Source Id",
     ["traffic_type_all"] = "All Hosts",
     ["traffic_type_one_way"] = "One-Way Traffic",
+    ["traffic_type_two_ways"] = "Bidirectional Traffic",
     ["user"] = "User %{pool_name}",
     ["user_title"] = "for User %{poolname}",
     ["vlan_title"] = "VLAN %{vlan}",

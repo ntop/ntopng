@@ -139,7 +139,12 @@ if (_GET["page"] ~= "historical") then
    local traffic_type_title
    if not isEmptyString(traffic_type) then
       page_params["traffic_type"] = traffic_type
-      traffic_type_title = i18n("hosts_stats.traffic_type_one_way")
+
+      if traffic_type == "one_way" then
+	 traffic_type_title = i18n("hosts_stats.traffic_type_one_way")
+      elseif traffic_type == "bidirectional" then
+	 traffic_type_title = i18n("hosts_stats.traffic_type_two_ways")
+      end
    else
       traffic_type_title = ""
    end
