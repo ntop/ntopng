@@ -17,6 +17,13 @@ flow_consts.custom_status_5 = 63
 
 -- ################################################################################
 
+function flow_consts.getDefinititionsDir()
+    local dirs = ntop.getDirs()
+    return(os_utils.fixPath(dirs.installdir .. "/scripts/callbacks/status_defs"))
+end
+
+-- ################################################################################
+
 -- Each entry must contain the following information
 --  relevance: is used to calculate a score
 --  prio: when a flow has multiple status set, the most important status is the one with highest priority
@@ -29,8 +36,7 @@ local status_by_id = {}
 local status_key_by_id = {}
 
 local function loadStatusDefs()
-    local dirs = ntop.getDirs()
-    local defs_dir = os_utils.fixPath(dirs.installdir .. "/scripts/callbacks/status_defs")
+    local defs_dir = flow_consts.getDefinititionsDir()
     package.path = defs_dir .. "/?.lua;" .. package.path
     local required_fields = {"status_id", "relevance", "prio", "alert_severity", "alert_type", "i18n_title"}
 

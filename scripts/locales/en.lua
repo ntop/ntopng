@@ -211,6 +211,7 @@ local lang = {
     ["cpu_load"] = "CPU load",
     ["data_directory"] = "Data",
     ["datadir_warning"] = "Data directory migration notice",
+    ["defs_directories"] = "Definitions Directories",
     ["dhcp_range_missing_warning"] = "The <a href='%{url}'>%{name}</a> preference is ineffective. Please configure the <a href='%{dhcp_url}'>DHCP range</a> appropriately.",
     ["directories"] = "Directories",
     ["flow_callbacks_directory"] = "Flow",

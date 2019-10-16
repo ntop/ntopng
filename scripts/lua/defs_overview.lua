@@ -14,7 +14,8 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print[[<div class="row">
+print[[<hr>
+<div class="row">
 <div class="col col-md-4 col-md-offset-1">
 <table class="table table-bordered table-condensed">
 <tr><th class='text-center'>Alert ID</th><th>Alert Key</th></tr>]]

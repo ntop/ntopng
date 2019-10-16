@@ -124,13 +124,19 @@ end
 
 -- ##############################################
 
+function alert_consts.getDefinititionsDir()
+   return(os_utils.fixPath(dirs.installdir .. "/scripts/callbacks/alert_defs"))
+end
+
+-- ##############################################
+
 -- NOTE: flow alerts are formatted based on their status. See flow_consts.status_types.
 alert_consts.alert_types = {}
 local alerts_by_id = {}
 
 local function loadAlertsDefs()
    local dirs = ntop.getDirs()
-   local defs_dir = os_utils.fixPath(dirs.installdir .. "/scripts/callbacks/alert_defs")
+   local defs_dir = alert_consts.getDefinititionsDir()
    package.path = defs_dir .. "/?.lua;" .. package.path
    local required_fields = {"alert_id", "i18n_title", "icon"}
 
