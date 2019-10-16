@@ -244,6 +244,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   reloadHideFromTop(false);
   updateTrafficMirrored();
+  updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
   updateLbdIdentifier();
 }
@@ -256,12 +257,13 @@ void NetworkInterface::init() {
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
     has_seen_dhcp_addresses = false,
-    has_seen_containers = false, has_seen_pods = false;
+    has_seen_containers = false, has_seen_pods = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, customIftype = NULL, is_dynamic_interface = false,
-    is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false;
-  numSubInterfaces = 0, flowHashing = NULL,
+    running = false, customIftype = NULL, 
+    is_dynamic_interface = false, show_dynamic_interface_traffic = false,
+    is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
+    numSubInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
@@ -521,6 +523,25 @@ void NetworkInterface::updateTrafficMirrored() {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating mirrored traffic [ifid: %i][rsp: %s][actual_value: %d]", get_id(), rsp, is_mirrored ? 1 : 0);
 
   is_traffic_mirrored = is_mirrored;
+}
+
+/* **************************************************** */
+
+void NetworkInterface::updateDynIfaceTrafficPolicy() {
+  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
+  bool show_traffic = CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC;
+
+  if(!ntop->getRedis()) return;
+
+  snprintf(key, sizeof(key), CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS, get_id());
+  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
+    if(rsp[0] == '1')
+      show_traffic = true;
+    else if(rsp[0] == '0')
+      show_traffic = false;
+  }
+
+  show_dynamic_interface_traffic = show_traffic;
 }
 
 /* **************************************************** */
@@ -1175,7 +1196,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 						       h, packet, ndpiProtocol,
 						       srcHost, dstHost, hostFlow);
      
-        if(processed) { 
+        if(processed && !showDynamicInterfaceTraffic()) { 
           incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
 	           NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 	           0,
@@ -1204,12 +1225,14 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				      h, packet, ndpiProtocol,
 				      srcHost, dstHost, hostFlow);
 
-          incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
-	           NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	           0,
-	           len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+          if (!showDynamicInterfaceTraffic()) {
+            incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
+	             NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
+	             0,
+	             len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
-          return(ret);
+            return(ret);
+          }
         }
       }
     }

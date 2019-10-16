@@ -1576,7 +1576,7 @@ elseif(page == "config") then
       </tr>]]
    end
 
-   -- per-interface Network Discovery
+   -- Mirrored Traffic
    if not ntop.isnEdge() and interface.isPacketInterface() then
       local is_mirrored_traffic = false
       local is_mirrored_traffic_checked = ""
@@ -1760,6 +1760,37 @@ elseif(page == "config") then
            </ul></small>
 	 </td>
        </tr>]]
+
+      -- Show dynamic traffic in the master interface
+      local show_dyn_iface_traffic = false
+      local show_dyn_iface_traffic_checked = ""
+      local show_dyn_iface_traffic_pref = string.format("ntopng.prefs.ifid_%d.show_dynamic_interface_traffic", ifId)
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+	 if _POST["show_dyn_iface_traffic"] == "1" then
+	    show_dyn_iface_traffic = true
+	    show_dyn_iface_traffic_checked = "checked"
+	 end
+
+	 ntop.setPref(show_dyn_iface_traffic_pref,
+		      ternary(show_dyn_iface_traffic == true, '1', '0'))
+	 interface.updateDynIfaceTrafficPolicy()
+      else
+	 show_dyn_iface_traffic = ternary(ntop.getPref(show_dyn_iface_traffic_pref) == '1', true, false)
+
+	 if show_dyn_iface_traffic then
+	    show_dyn_iface_traffic_checked = "checked"
+	 end
+      end
+
+      print [[<tr>
+	 <th>]] print(i18n("if_stats_config.show_dyn_iface_traffic")) print[[</th>
+	 <td>
+           <input type="checkbox" name="show_dyn_iface_traffic" value="1" ]] print(show_dyn_iface_traffic_checked) print[[>
+           <br><br><small><p><b>]] print(i18n("notes")) print [[</b><ul><li>]] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print [[</li></ul></p></small>
+	 </td>
+      </tr>]]
+
    end
 
       print[[

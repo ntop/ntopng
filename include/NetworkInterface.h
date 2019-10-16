@@ -125,7 +125,9 @@ class NetworkInterface : public AlertableEntity {
   string ip_addresses;
   AddressTree interface_networks;
   int id;
-  bool bridge_interface, is_dynamic_interface, is_traffic_mirrored, is_loopback;
+  bool bridge_interface;
+  bool is_dynamic_interface, show_dynamic_interface_traffic;
+  bool is_traffic_mirrored, is_loopback;
   bool reload_custom_categories, reload_hosts_blacklist;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
@@ -413,7 +415,9 @@ class NetworkInterface : public AlertableEntity {
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
   bool isRunning() const;
   inline bool isTrafficMirrored()  { return is_traffic_mirrored; };
+  inline bool showDynamicInterfaceTraffic() { return show_dynamic_interface_traffic; };
   void  updateTrafficMirrored();
+  void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();
   bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);

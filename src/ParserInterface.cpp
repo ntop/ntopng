@@ -64,7 +64,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
       if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
         bool processed = sub_interfaces->processFlow(zflow);
      
-        if(processed) 
+        if(processed && !showDynamicInterfaceTraffic()) 
           return;
       }
 #endif
@@ -110,7 +110,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
         vPIface->processFlow(zflow);
       }
 
-      return;
+      if (!showDynamicInterfaceTraffic())
+        return;
     }
   }
 
