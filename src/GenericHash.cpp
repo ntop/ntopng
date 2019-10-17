@@ -218,7 +218,8 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	  continue;
 
 	case hash_entry_state_allocated:
-	  /* TCP flows with 3WH not yet completed fall here */
+	  /* TCP flows with 3WH not yet completed (or collected with no TCP flags) fall here */
+          head->housekeep(now);
 	  if(force_idle) head->set_hash_entry_state_idle();
 	  break;
 
