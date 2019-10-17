@@ -56,6 +56,7 @@ function checkAlerts(granularity)
    end
 
    local info = network.getNetworkStats()
+   local cur_alerts = network.getAlerts(granularity)
    local network_key = info and info.network_key
    if not network_key then return end
 
@@ -83,6 +84,7 @@ function checkAlerts(granularity)
               granularity = granularity,
               alert_entity = entity_info,
               entity_info = info,
+	      cur_alerts = cur_alerts,
               alert_config = config,
               user_script = check,
            })

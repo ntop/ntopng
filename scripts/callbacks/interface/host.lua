@@ -60,6 +60,7 @@ function checkAlerts(granularity)
   end
 
   local info = host.getFullInfo()
+  local cur_alerts = host.getAlerts(granularity)
   local host_key   = hostinfo2hostkey({ip = info.ip, vlan = info.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
   local config_alerts = ternary(info["localhost"], config_alerts_local, config_alerts_remote)
   local host_config = config_alerts[host_key] or {}
@@ -86,6 +87,7 @@ function checkAlerts(granularity)
            granularity = granularity,
            alert_entity = entity_info,
            entity_info = info,
+	   cur_alerts = cur_alerts,
            alert_config = config,
            user_script = check,
         })

@@ -56,6 +56,7 @@ function checkAlerts(granularity)
    end
 
    local info = interface.getStats()
+   local cur_alerts = interface.getAlerts(granularity)
    local ifid = interface.getId()
    local interface_key   = "iface_"..ifid
    local interface_config = config_alerts[interface_key] or {}
@@ -84,6 +85,7 @@ function checkAlerts(granularity)
               granularity = granularity,
               alert_entity = entity_info,
               entity_info = info,
+	      cur_alerts = cur_alerts,
               alert_config = config,
               user_script = check,
            })
