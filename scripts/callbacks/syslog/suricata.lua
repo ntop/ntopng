@@ -123,7 +123,7 @@ local function parseStats(event_stats)
    local ifid = interface.getId()
    local external_stats = {}
 
-   external_stats.capture_packets = event_stats.capture.kernel_packets
+   external_stats.capture_packets = (event_stats.capture.kernel_packets - event_stats.capture.kernel_drops)
    external_stats.capture_drops = event_stats.capture.kernel_drops
 
    external_stats.signatures_loaded = 0
@@ -145,7 +145,6 @@ function syslog_module.hooks.handleEvent(message)
    if event == nil then
       return
    end
-
 
    local flow = {}
    parseFiveTuple(event, flow)
