@@ -2657,11 +2657,16 @@ static bool flow_update_hosts_stats(GenericHashEntry *node,
 				    void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   update_stats_user_data_t *update_flows_stats_user_data = (update_stats_user_data_t*)user_data;
-
   struct timeval *tv = update_flows_stats_user_data->tv;
-  bool dump_alert = (((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) || flow->getInterface()->read_from_pcap_dump()) ? true : false;
+  bool dump_alert;
 
-  flow->update_hosts_stats(dump_alert, update_flows_stats_user_data);
+  flow->call_state_scripts(update_flows_stats_user_data);  
+  flow->update_hosts_stats(update_flows_stats_user_data);
+
+  /* NOTE: the line below nees to be optimized as it is very inefficient in the current state */
+  dump_alert = (((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) || flow->getInterface()->read_from_pcap_dump()) ? true : false;
+  flow->periodic_dump_check(dump_alert, tv);
+  
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -2781,13 +2786,15 @@ void NetworkInterface::periodicStatsUpdate() {
   ethStats.updateStats(&tv);
   ndpiStats->updateStats(&tv);
 
-  if(!isView() && flows_hash) { /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+  /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+  if((!isView()) && flows_hash) {
     update_stats_user_data_t update_flows_stats_user_data;
 
     update_flows_stats_user_data.acle = NULL /* Lazy instantiation */,
       update_flows_stats_user_data.tv = &tv;
 
     begin_slot = 0;
+
     walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, &update_flows_stats_user_data, true);
 
     if(update_flows_stats_user_data.acle)

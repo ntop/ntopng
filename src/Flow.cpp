@@ -71,7 +71,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli_ebpf = srv_ebpf = NULL;
   json_info = NULL, tlv_info = NULL, cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
-    check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
+    host_server_name = NULL, diff_num_http_requests = 0,
     bt_hash = NULL;
 
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
@@ -518,29 +518,6 @@ void Flow::processDetectedProtocol() {
 				 ndpiFlow->protos.stun_ssl.ssl.client_certificate,
 				 ndpiFlow->protos.stun_ssl.ssl.server_certificate);
 #endif
-
-    if((protos.ssl.certificate == NULL)
-       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] != '\0')) {
-      protos.ssl.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
-
-      if(protos.ssl.certificate && (strncmp(protos.ssl.certificate, "www.", 4) == 0)) {
-	if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_TOR))
-	  check_tor = true;
-      }
-    }
-
-    if(check_tor) {
-      char rsp[256];
-
-      if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
-	if(rsp[0] == '\0') /* Cached failed resolution */
-	  ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_TOR;
-
-	check_tor = false; /* This is a valid host */
-      } else {
-	ntop->getRedis()->pushHostToResolve(protos.ssl.certificate, false, true /* Fake to resolve it ASAP */);
-      }
-    }
 
     if(protos.ssl.certificate
        && cli_host
@@ -1118,7 +1095,7 @@ void Flow::incFlowDroppedCounters() {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_flows_stats_user_data) {
+void Flow::update_hosts_stats(update_stats_user_data_t *update_flows_stats_user_data) {
   struct timeval *tv = update_flows_stats_user_data->tv;
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
@@ -1184,69 +1161,11 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
     update_flow_port_stats = false;
   }
 
-  switch(get_state()) {
-  case hash_entry_state_allocated:
-  case hash_entry_state_flow_notyetdetected:
-    /* Nothing to do here */
-    break;
-    
-  case hash_entry_state_ready_to_be_purged:
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid state detected");
-    break;
-      
-  case hash_entry_state_flow_protocoldetected:
-    performLuaCall(flow_lua_call_protocol_detected, tv, &update_flows_stats_user_data->acle);
-    set_hash_entry_state_active();
-    break;
-
-  case hash_entry_state_active:
-    performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
-    /* Don't change state: purgeIdle() will do */
-    break;
-    
-  case hash_entry_state_idle:
-    if(iface->isViewed()) {
-      /* Must acknowledge so the overlying 'view' interface can actually set 
-         the flow state as ready to be purged once it has processed the flow for the last
-         time */
-      if(is_acknowledged_to_purge())
-	return; /* Already acknowledged, nothing else to do */
-      set_acknowledge_to_purge();
-    } else {
-      /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
-      set_hash_entry_state_ready_to_be_purged();
-    }
-
-    postFlowSetIdle(tv->tv_sec);
-    performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
-    set_hash_entry_state_ready_to_be_purged(); /* Move to the next state */
-    break;
-  }
-
-  /* TODO: this function needs some cleanup */
-  performLuaCall(flow_lua_call_flow_status_changed, tv, &update_flows_stats_user_data->acle);
-
   /* For pcap-dump interface, the lua method idle is executed when there are no
      more packets left in the pcap file. There's no risk to call this twice
      as flows never for idle for pcap dump interfaces. */
   if(iface->read_from_pcap_dump() && iface->read_from_pcap_dump_done())
     performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
-
-  if(check_tor && (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_TLS)) {
-    char rsp[256];
-
-    if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
-      if(rsp[0] == '\0') /* Cached failed resolution */
-	ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_TOR;
-
-      check_tor = false; /* This is a valid host */
-    } else {
-      if((tv->tv_sec - last_seen) > 30) {
-	/* We give up */
-	check_tor = false; /* This is a valid host */
-      }
-    }
-  }
 
   stats_protocol = getStatsProtocol();
 
@@ -1436,20 +1355,7 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
 
   if(last_update_time.tv_sec > 0) {
     float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
-    //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000;
 
-#if 0
-    /* Actually, the refresh interval is controlled with ntop->getPrefs()->get_housekeeping_frequency()
-       so there is no need to set an a-priori minimum check interval */
-    if((iface->getIfType() == interface_type_ZMQ)
-       && (tdiff_msec < 5000)) {
-      /* With ZMQ (if collecting sFlow) we might compute inaccurate
-	 throughput when haveing one flow with a single sample so
-	 we spread the traffic across at least 5 secs
-      */
-      ;
-    } else
-#endif
     if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
       // bps
       u_int64_t diff_bytes_cli2srv = cli2srv_last_bytes - prev_cli2srv_last_bytes;
@@ -1585,12 +1491,64 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
 
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
+}
 
+/* *************************************** */
+
+void Flow::call_state_scripts(update_stats_user_data_t *update_flows_stats_user_data) {
+  struct timeval *tv = update_flows_stats_user_data->tv;
+  
+  switch(get_state()) {
+  case hash_entry_state_allocated:
+  case hash_entry_state_flow_notyetdetected:
+    /* Nothing to do here */
+    break;
+    
+  case hash_entry_state_ready_to_be_purged:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid state detected");
+    break;
+      
+  case hash_entry_state_flow_protocoldetected:
+    performLuaCall(flow_lua_call_protocol_detected, tv, &update_flows_stats_user_data->acle);
+    set_hash_entry_state_active();
+    break;
+
+  case hash_entry_state_active:
+    performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
+    /* Don't change state: purgeIdle() will do */
+    break;
+    
+  case hash_entry_state_idle:
+    if(iface->isViewed()) {
+      /* Must acknowledge so the overlying 'view' interface can actually set 
+         the flow state as ready to be purged once it has processed the flow for the last
+         time */
+      if(is_acknowledged_to_purge())
+	return; /* Already acknowledged, nothing else to do */
+      set_acknowledge_to_purge();
+    } else {
+      /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
+      set_hash_entry_state_ready_to_be_purged();
+    }
+
+    postFlowSetIdle(tv->tv_sec);
+    performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
+    set_hash_entry_state_ready_to_be_purged(); /* Move to the next state */
+    break;
+  }
+
+  /* TODO: this function needs some cleanup */
+  performLuaCall(flow_lua_call_flow_status_changed, tv, &update_flows_stats_user_data->acle);
+}
+
+/* *************************************** */
+
+void Flow::periodic_dump_check(bool dump_alert, const struct timeval *tv) {
   if(dump_alert) {
     /* NOTE: this can be very time consuming */
     dumpFlowAlert();
   }
-
+  
   /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
      ViewInterface dump their flows in another thread, not this one. */
   if(!iface->isView() && !iface->isViewed()) 
@@ -1600,8 +1558,8 @@ void Flow::update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_
 /* *************************************** */
 
 void Flow::update_pools_stats(const struct timeval *tv,
-				u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
-				u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) {
+			      u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
+			      u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) {
   if(!diff_sent_bytes && !diff_rcvd_bytes)
     return; /* Nothing to update */
 

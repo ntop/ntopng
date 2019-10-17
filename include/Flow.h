@@ -61,7 +61,7 @@ class Flow : public GenericHashEntry {
   AlertType alert_type;
   AlertLevel alert_level;
   char *tmp_alert_json;
-  u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table*/
+  u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
      before the flow can actually be deleted from memory. This guarantees the view has
@@ -70,7 +70,7 @@ class Flow : public GenericHashEntry {
 
   bool detection_completed, protocol_processed, fully_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
-    check_tor, l7_protocol_guessed, flow_dropped_counts_increased,
+    l7_protocol_guessed, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
     quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
     is_alerted;
@@ -437,7 +437,10 @@ class Flow : public GenericHashEntry {
   u_int get_hash_entry_id() const;
 
   char* print(char *buf, u_int buf_len) const;
-  void update_hosts_stats(bool dump_alert, update_stats_user_data_t *update_flows_stats_user_data);
+  void update_hosts_stats(update_stats_user_data_t *update_flows_stats_user_data);
+  void call_state_scripts(update_stats_user_data_t *update_flows_stats_user_data);
+  void periodic_dump_check(bool dump_alert, const struct timeval *tv);
+    
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port,
 		       Host *srv, u_int16_t srv_port,
