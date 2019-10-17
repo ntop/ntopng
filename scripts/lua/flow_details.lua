@@ -12,6 +12,7 @@ local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local NfConfig = nil
 local flow_consts = require "flow_consts"
+require "flow_utils"
 
 local debug_score = (ntop.getPref("ntopng.prefs.beta_score") == "1")
 
@@ -642,7 +643,7 @@ else
       print("<td><b> <A HREF=https://en.wikipedia.org/wiki/Virtual_routing_and_forwarding>VRF</A> Id</b> "..flow.vrfId.."</td>")
    end
    print("</tr>\n")
-   
+
    if(ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
       local host_pools_utils = require("host_pools_utils")
       print("<tr><th width=30% rowspan=2>"..i18n("flow_details.flow_shapers").."</th>")
@@ -685,39 +686,43 @@ else
       end
 
       local status_info = flow2statusinfo(flow)
+      local forbidden_proto = flow["proto.ndpi_id"]
+      local forbidden_peer = nil
 
       if status_info then
-         local cli_mac = flow["cli.mac"] and interface.getMacInfo(flow["cli.mac"])
-         local srv_mac = flow["srv.mac"] and interface.getMacInfo(flow["srv.mac"])
-         local cli_show = (cli_mac and cli_mac.location == "lan" and flow["cli.pool_id"] == 0)
-         local srv_show = (srv_mac and srv_mac.location == "lan" and flow["srv.pool_id"] == 0)
-         local num_rows = 0
+	 forbidden_proto = status_info["devproto_forbidden_id"] or forbidden_proto
+	 forbidden_peer = status_info["devproto_forbidden_peer"]
+      end
 
-         if cli_show then
-           num_rows = num_rows + 1
-         end
-         if srv_show then
-           num_rows = num_rows + 1
-         end
+      local cli_mac = flow["cli.mac"] and interface.getMacInfo(flow["cli.mac"])
+      local srv_mac = flow["srv.mac"] and interface.getMacInfo(flow["srv.mac"])
+      local cli_show = (cli_mac and cli_mac.location == "lan" and flow["cli.pool_id"] == 0)
+      local srv_show = (srv_mac and srv_mac.location == "lan" and flow["srv.pool_id"] == 0)
+      local num_rows = 0
 
-         if num_rows > 0 then
-           print("<tr><th width=30% rowspan=".. num_rows ..">"..i18n("device_protocols.device_protocol_policy").."</th>")
-	   local proto = status_info["devproto_forbidden_id"] or flow["proto.ndpi_id"]
+      if cli_show then
+	num_rows = num_rows + 1
+      end
+      if srv_show then
+	num_rows = num_rows + 1
+      end
 
-           if cli_show then
-             print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(status_info["cli.devtype"]), proto=interface.getnDPIProtoName(proto)}).."</td>")
-             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["cli.devtype"]) .."&l7proto=".. proto .."\">")
-             print(i18n(ternary(status_info["devproto_forbidden_peer"] ~= "cli", "allowed", "forbidden")))
-             print("</a></td></tr><tr>")
-           end
+      if num_rows > 0 then
+	print("<tr><th width=30% rowspan=".. num_rows ..">"..i18n("device_protocols.device_protocol_policy").."</th>")
 
-           if srv_show then
-             print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(status_info["srv.devtype"]), proto=interface.getnDPIProtoName(proto)}).."</td>")
-             print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. status_info["srv.devtype"]) .."&l7proto=".. proto .."\">")
-             print(i18n(ternary(status_info["devproto_forbidden_peer"] ~= "srv", "allowed", "forbidden")))
-             print("</a></td></tr><tr>")
-           end
-         end
+	if cli_show then
+	  print("<td>"..i18n("device_protocols.devtype_as_proto_client", {devtype=discover.devtype2string(flow["cli.devtype"]), proto=interface.getnDPIProtoName(forbidden_proto)}).."</td>")
+	  print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. flow["cli.devtype"]) .."&l7proto=".. forbidden_proto .."\">")
+	  print(i18n(ternary(forbidden_peer ~= "cli", "allowed", "forbidden")))
+	  print("</a></td></tr><tr>")
+	end
+
+	if srv_show then
+	  print("<td>"..i18n("device_protocols.devtype_as_proto_server", {devtype=discover.devtype2string(flow["srv.devtype"]), proto=interface.getnDPIProtoName(forbidden_proto)}).."</td>")
+	  print("<td><a href=\"".. getDeviceProtocolPoliciesUrl("device_type=" .. flow["srv.devtype"]) .."&l7proto=".. forbidden_proto .."\">")
+	  print(i18n(ternary(forbidden_peer ~= "srv", "allowed", "forbidden")))
+	  print("</a></td></tr><tr>")
+	end
       end
    end
 
@@ -854,7 +859,7 @@ else
       if(flow["protos.ssl.server_certificate"] ~= nil) then
 	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
 
-	 if(flow["flow.status"] == flow_consts.status_types.status_ssl_certificate_mismatch.status_id) then
+	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_ssl_certificate_mismatch.status_id)) then
 	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
@@ -971,7 +976,7 @@ else
 
             if(alert_json ~= nil) and (alert_json["status_info"] ~= nil)then
                alerted_status = tonumber(res[1].flow_status)
-               message = flow_consts.getStatusDescription(alerted_status, alert_json["status_info"])
+               message = flow_consts.getStatusDescription(alerted_status, flow2statusinfo(flow))
             end
          end
       end

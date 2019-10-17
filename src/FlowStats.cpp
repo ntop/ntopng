@@ -34,8 +34,14 @@ FlowStats::~FlowStats() {
 
 /* *************************************** */
 
-void FlowStats::incStats(FlowStatus status, u_int8_t l4_protocol) {
-  counters[status]++;
+void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol) {
+  int i;
+
+  for(i = 0; i < BITMAP_NUM_BITS; i++) {
+    if(status_bitmap.issetBit(i))
+      counters[i]++;
+  }
+
   protocols[l4_protocol]++;
 }
 
@@ -44,7 +50,7 @@ void FlowStats::incStats(FlowStatus status, u_int8_t l4_protocol) {
 void FlowStats::lua(lua_State* vm) {
   lua_newtable(vm);
 
-  for(int i = 0; i < num_flow_status; i++) {
+  for(int i = 0; i < BITMAP_NUM_BITS; i++) {
     if(unlikely(counters[i] > 0)) {
       lua_newtable(vm);
 

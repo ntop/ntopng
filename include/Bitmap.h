@@ -26,19 +26,19 @@
 
 class Bitmap {
 private:
-  u_int64_t bitmap;
+  u_int64_t bitmap; /* Sync with BITMAP_NUM_BITS */
 
 public:
   Bitmap() { reset(); }
 
-  inline void reset()               { bitmap = 0; }
-  inline void setBit(u_int8_t id)   { bitmap = Utils::bitmapSet(bitmap, id);  }
-  inline void clearBit(u_int8_t id) { bitmap = Utils::bitmapClear(bitmap, id);}
-  inline bool issetBit(u_int8_t id) { return(Utils::bitmapIsSet(bitmap, id)); }
-  inline void bitmapOr(Bitmap b)    { bitmap |= b.bitmap;                     }
-  inline u_int64_t get()            { return(bitmap);                         }
-  inline void set(Bitmap *b)        { bitmap = b->bitmap;                     }
-  inline bool equal(Bitmap *b)      { return((bitmap == b->bitmap) ? true : false); }
+  inline void reset()                       { bitmap = 0; }
+  inline void setBit(u_int8_t id)           { bitmap = Utils::bitmapSet(bitmap, id);  }
+  inline void clearBit(u_int8_t id)         { bitmap = Utils::bitmapClear(bitmap, id);}
+  inline bool issetBit(u_int8_t id) const   { return(Utils::bitmapIsSet(bitmap, id)); }
+  inline void bitmapOr(Bitmap b)            { bitmap |= b.bitmap;                     }
+  inline u_int64_t get() const              { return(bitmap);                         }
+  inline void set(Bitmap *b)                { bitmap = b->bitmap;                     }
+  inline bool equal(Bitmap *b) const        { return((bitmap == b->bitmap) ? true : false); }
 };
 
 #endif /* _BITMAP_H_ */

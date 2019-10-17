@@ -13,11 +13,11 @@ local function formatBlacklistedFlow(status, flowstatus_info)
       return i18n("flow_details.blacklisted_flow")
    end
 
-   if flowstatus_info["blacklisted.cli"] --[[ old format --]] or flowstatus_info["cli.blacklisted"] --[[ new format --]] then
+   if flowstatus_info["blacklisted.cli"] then
       who[#who + 1] = i18n("client")
    end
 
-   if flowstatus_info["blacklisted.srv"] --[[ old format --]] or flowstatus_info["srv.blacklisted"] --[[ new format --]] then
+   if flowstatus_info["blacklisted.srv"] then
       who[#who + 1] = i18n("server")
    end
 

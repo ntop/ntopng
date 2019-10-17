@@ -3,12 +3,11 @@
 --
 
 local flow_consts = require("flow_consts")
-local user_scripts = require("user_scripts")
 
 -- #################################################################
 
 local script = {
-   key = "blacklisted",
+   key = "not_purged",
 
    -- NOTE: hooks defined below
    hooks = {},
@@ -16,9 +15,9 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(params)
-   if flow.isBlacklisted() then
-      flow.triggerStatus(flow_consts.status_types.status_blacklisted.status_id, flow.getBlacklistedInfo())
+function script.hooks.periodicUpdate(params)
+   if flow.isNotPurged() then
+      flow.triggerStatus(flow_consts.status_types.status_not_purged.status_id)
    end
 end
 

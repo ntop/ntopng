@@ -23,9 +23,10 @@ local mud_utils = {}
 
 -- @brief Possibly extract fingerprint information for host/peers
 -- @return a table {fp_id, host_fp, peer_fp} where fp_id is one of {"", "JA3", "HASSH"}
-local function getFingerprints(info, is_client)
-   local ja3_cli_hash = info["protos.ssl.ja3.client_hash"]
-   local ja3_srv_hash = info["protos.ssl.ja3.server_hash"]
+local function getFingerprints(is_client)
+   local ssl_info = flow.getSSLInfo()
+   local ja3_cli_hash = ssl_info["protos.ssl.ja3.client_hash"]
+   local ja3_srv_hash = ssl_info["protos.ssl.ja3.server_hash"]
 
    if(ja3_cli_hash or ja3_srv_hash) then
       if(is_client) then
@@ -35,8 +36,9 @@ local function getFingerprints(info, is_client)
       end
    end
 
-   local hassh_cli_hash = info["protos.ssh.hassh.client_hash"]
-   local hassh_srv_hash = info["protos.ssh.hassh.server_hash"]
+   local ssh_info = flow.getSSHInfo()
+   local hassh_cli_hash = ssh_info["protos.ssh.hassh.client_hash"]
+   local hassh_srv_hash = ssh_info["protos.ssh.hassh.server_hash"]
 
    if(hassh_cli_hash or hassh_srv_hash) then
       if(is_client) then
@@ -51,7 +53,7 @@ end
 
 -- ###########################################
 
-local function local_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
+local function local_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac, mud_info)
    return(string.format("%s|%s|%u", info["proto.l4"], peer_key, info["srv.port"]))
 end
 
@@ -67,9 +69,9 @@ end
 
 -- ###########################################
 
-local function remote_minimal_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
+local function remote_minimal_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac, mud_info)
    local l7proto = interface.getnDPIProtoName(info["proto.ndpi_id"])
-   local fingerprints = getFingerprints(info, is_client)
+   local fingerprints = getFingerprints(is_client)
 
    return(string.format("%s|%s|%s|%s", info["proto.l4"], l7proto,
       fingerprints[1], fingerprints[2]))
@@ -88,15 +90,15 @@ end
 
 -- ###########################################
 
-local function remote_full_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
+local function remote_full_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac, mud_info)
    local l7proto = interface.getnDPIProtoName(info["proto.ndpi_id"])
-   local fingerprints = getFingerprints(info, is_client)
+   local fingerprints = getFingerprints(is_client)
 
    if(not peer_key_is_mac) then
       local is_symbolic = false
 
       if(is_client) then
-         local peer_name = info["host_server_name"] or info["protos.dns.last_query"]
+         local peer_name = mud_info["host_server_name"] or mud_info["protos.dns.last_query"]
 
          if not isEmptyString(peer_name) then
             peer_key = peer_name
@@ -169,10 +171,11 @@ end
 
 -- ###########################################
 
-local function handleHostMUD(ifid, info, is_local_connection, is_general_purpose, is_client)
-   local l4proto = info["proto.l4"]
+local function handleHostMUD(ifid, flow_info, mud_info, is_general_purpose, is_client)
+   local l4proto = flow_info["proto.l4"]
    local mud_type
-   local peer_key_is_mac = false
+   local peer_key_is_mac
+   local is_local_connection = mud_info["is_local"]
    local host_ip, peer_ip, peer_port, peer_key
 
    -- Only support TCP and UDP
@@ -189,22 +192,22 @@ local function handleHostMUD(ifid, info, is_local_connection, is_general_purpose
    end
 
    if is_client then
-      host_ip = info["cli.ip"]
-      peer_ip = info["srv.ip"]
-      peer_port = info["srv.port"]
-      peer_key_is_mac = flow.serializeServerByMac()
-      peer_key = ternary(peer_key_is_mac, info["srv.mac"], info["srv.ip"])
+      host_ip = flow_info["cli.ip"]
+      peer_ip = flow_info["srv.ip"]
+      peer_port = flow_info["srv.port"]
+      peer_key_is_mac = mud_info["srv.serialize_by_mac"]
+      peer_key = ternary(peer_key_is_mac, mud_info["srv.mac"], flow_info["srv.ip"])
    else
-      host_ip = info["srv.ip"]
-      peer_ip = info["cli.ip"]
-      peer_port = info["cli.port"]
-      peer_key_is_mac = flow.serializeClientByMac()
-      peer_key = ternary(peer_key_is_mac, info["cli.mac"], info["cli.ip"])
+      host_ip = flow_info["srv.ip"]
+      peer_ip = flow_info["cli.ip"]
+      peer_port = flow_info["cli.port"]
+      peer_key_is_mac = mud_info["cli.serialize_by_mac"]
+      peer_key = ternary(peer_key_is_mac, mud_info["cli.mac"], flow_info["cli.ip"])
    end
 
    local is_ipv6 = (not isIPv4(host_ip))
    local mud_key = getMudRedisKey(mud_type, ifid, host_ip, is_client, is_ipv6)
-   local conn_key = mud_type.encode(info, peer_key, peer_port, is_client, peer_key_is_mac)
+   local conn_key = mud_type.encode(flow_info, peer_key, peer_port, is_client, peer_key_is_mac, mud_info)
 
    -- Register the connection
    -- TODO handle alerts
@@ -214,19 +217,19 @@ end
 -- ###########################################
 
 -- @brief Possibly generate MUD entries for the flow hosts
--- @param info flow information as returned by Flow::lua
+-- @param flow_info minimal flow information as returned by flow.getInfo()
 -- @notes This function is called with a LuaC flow context set
-function mud_utils.handleFlow(info)
+function mud_utils.handleFlow(flow_info)
    local ifid = interface.getId()
-   local cli_recording = flow.getClientMUDPref()
-   local srv_recording = flow.getServerMUDPref()
-   local is_local_connection = flow.isLocal()
+   local mud_info = flow.getMUDInfo()
+   local cli_recording = mud_info["cli.mud_recording"]
+   local srv_recording = mud_info["srv.mud_recording"]
 
    if(cli_recording ~= "disabled") then
-      handleHostMUD(ifid, info, is_local_connection, (cli_recording == "general_purpose"), true --[[client]])
+      handleHostMUD(ifid, flow_info, mud_info, (cli_recording == "general_purpose"), true --[[client]])
    end
    if(srv_recording ~= "disabled") then
-      handleHostMUD(ifid, info, is_local_connection, (srv_recording == "general_purpose"), false --[[server]])
+      handleHostMUD(ifid, flow_info, mud_info, (srv_recording == "general_purpose"), false --[[server]])
    end
 end
 

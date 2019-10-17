@@ -34,6 +34,8 @@ end
 flow_consts.status_types = {}
 local status_by_id = {}
 local status_key_by_id = {}
+local status_by_prio = {}
+local max_prio = 0
 
 local function loadStatusDefs()
     local defs_dir = flow_consts.getDefinititionsDir()
@@ -60,10 +62,17 @@ local function loadStatusDefs()
                 goto next_script
             end
 
+            if(status_by_prio[def_script.prio] ~= nil) then
+                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("status_defs/%s: status priority must be unique, skipping", fname))
+                goto next_script
+            end
+
             -- Success
             flow_consts.status_types[mod_fname] = def_script
             status_by_id[def_id] = def_script
             status_key_by_id[def_id] = mod_fname
+            max_prio = math.max(max_prio, def_script.prio)
+            status_by_prio[def_script.prio] = def_script
         end
 
         ::next_script::
@@ -111,6 +120,27 @@ end
 
 function flow_consts.getStatusType(status_id)
     return(status_key_by_id[tonumber(status_id)])
+end
+
+-- ################################################################################
+
+-- @brief Calculate the predominant status from a status bitmap
+function flow_consts.getPredominantStatus(status_bitmap)
+    local normal_status = flow_consts.status_types.status_normal
+
+    if(status_bitmap == normal_status.status_id) then
+        -- Simple case: normal status
+        return(normal_status)
+    end
+
+    -- Look for predominant status in descending order to speed up search
+    for i = max_prio,0,-1 do
+        local status = status_by_prio[i]
+
+        if(status and ntop.bitmapIsSet(status_bitmap, status.status_id)) then
+            return(status)
+        end
+    end
 end
 
 -- ################################################################################

@@ -39,19 +39,13 @@ Prefs::Prefs(Ntop *_ntop) {
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   enable_access_log = false, enable_sql_log = false, flow_aggregation_enabled = false;
   enable_flow_device_port_rrd_creation = false;
-  enable_ip_reassignment_alerts = false, reproduce_at_original_speed = false;
+  reproduce_at_original_speed = false;
+  enable_ip_reassignment_alerts = false;
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
   enable_active_local_hosts_cache = false,
     enable_tiny_flows_export = true, enable_aggregated_flows_export_limit = false,
-    enable_probing_alerts = true, enable_ssl_alerts = true, enable_dns_alerts = true,
-    enable_mining_alerts = CONST_DEFAULT_ALERT_MINING_ENABLED,
-    enable_remote_to_remote_alerts = true,
-    enable_dropped_flows_alerts = true, enable_device_protocols_alerts = false,
-    enable_potentially_dangerous_protocols_alerts = false,
-    enable_syslog_alerts = false, enable_captive_portal = false, mac_based_captive_portal = false,
-    enabled_malware_alerts = true, enabled_external_alerts = true,
-    enable_elephant_flows_alerts = false, enable_longlived_flows_alerts = true,
-    enable_arp_matrix_generation = false, enable_exfiltration_alerts = true,
+    enable_captive_portal = false, mac_based_captive_portal = false,
+    enable_arp_matrix_generation = false,
     enable_informative_captive_portal = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
     use_ports_to_determine_src_and_dst = false;
@@ -559,29 +553,9 @@ void Prefs::reloadPrefsFromRedis() {
     max_num_flow_alerts = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS, ALERTS_MANAGER_MAX_FLOW_ALERTS),
 
     enable_flow_device_port_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, false),
-    enable_ip_reassignment_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT, false),
     disable_alerts        = getDefaultBoolPrefsValue(CONST_ALERT_DISABLED_PREFS, false),
-    enable_probing_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING, CONST_DEFAULT_ALERT_PROBING_ENABLED),
-    enable_ssl_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SSL, CONST_DEFAULT_ALERT_SSL_ENABLED),
-    enable_dns_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DNS, CONST_DEFAULT_ALERT_DNS_ENABLED),
-    enable_mining_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_MINING, CONST_DEFAULT_ALERT_MINING_ENABLED),
-    enable_remote_to_remote_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_REMOTE_TO_REMOTE,
-							       CONST_DEFAULT_ALERT_REMOTE_TO_REMOTE_ENABLED),
-    enable_dropped_flows_alerts     = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DROPPED_FLOWS,
-							       CONST_DEFAULT_ALERT_DROPPED_FLOWS_ENABLED),
-    enable_device_protocols_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DEVICE_PROTOCOLS,
-							       CONST_DEFAULT_ALERT_DEVICE_PROTOCOLS_ENABLED),
-    enable_potentially_dangerous_protocols_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DANGEROUS_PROTOCOLS,
-							       CONST_DEFAULT_ALERT_DANGEROUS_PROTOCOLS_ENABLED),
-    enable_elephant_flows_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_ELEPHANT_FLOWS,
-							     CONST_DEFAULT_ALERT_ELEPHANT_FLOWS_ENABLED),
-    enable_longlived_flows_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_LONGLIVED_FLOWS,
-							      CONST_DEFAULT_ALERT_LONGLIVED_FLOWS_ENABLED),
-    enable_exfiltration_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_DATA_EXFILTRATION,
-							      CONST_DEFAULT_ALERT_DATA_EXFILTRATION_ENABLED),
-    enable_syslog_alerts  = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG, CONST_DEFAULT_ALERT_SYSLOG_ENABLED),
-    enabled_malware_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_MALWARE_ALERTS, CONST_DEFAULT_MALWARE_ALERTS_ENABLED),
-    enabled_external_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_EXTERNAL_ALERTS, CONST_DEFAULT_EXTERNAL_ALERTS_ENABLED),
+
+    enable_ip_reassignment_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT, false),
 
     enable_arp_matrix_generation = getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
 
@@ -595,12 +569,6 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
     max_num_aggregated_flows_per_export = getDefaultPrefsValue(CONST_MAX_NUM_AGGR_FLOWS_PER_EXPORT,
 							       FLOW_AGGREGATION_MAX_AGGREGATES),
-    elephant_flow_local_to_remote_bytes = getDefaultPrefsValue(CONST_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES,
-							       CONST_DEFAULT_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES),
-    elephant_flow_remote_to_local_bytes = getDefaultPrefsValue(CONST_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES,
-							       CONST_DEFAULT_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES),
-    longlived_flow_duration = getDefaultPrefsValue(CONST_LONGLIVED_FLOW_DURATION,
-						   CONST_DEFAULT_LONGLIVED_FLOW_DURATION),
     max_extracted_pcap_bytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_BYTES,
                                                      CONST_DEFAULT_MAX_EXTR_PCAP_BYTES); 
 
@@ -1684,16 +1652,12 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);
 
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
-  lua_push_bool_table_entry(vm, "are_longlived_flows_alerts_enabled", enable_longlived_flows_alerts);
   lua_push_bool_table_entry(vm, "is_arp_matrix_generation_enabled", is_arp_matrix_generation_enabled());
   lua_push_bool_table_entry(vm, "is_users_login_enabled", enable_users_login);
 
   lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_uint64_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
   lua_push_uint64_table_entry(vm, "max_num_aggregated_flows_per_export", max_num_aggregated_flows_per_export);
-  lua_push_uint64_table_entry(vm, "elephant_flow_local_to_remote_bytes", elephant_flow_local_to_remote_bytes);
-  lua_push_uint64_table_entry(vm, "elephant_flow_remote_to_local_bytes", elephant_flow_remote_to_local_bytes);
-  lua_push_uint64_table_entry(vm, "longlived_flow_duration", longlived_flow_duration);
 
   lua_push_uint64_table_entry(vm, "max_extracted_pcap_bytes", max_extracted_pcap_bytes);
 
@@ -1836,35 +1800,6 @@ time_t Prefs::pro_edition_demo_ends_at() {
     0
 #endif
     ;
-}
-
-/* *************************************** */
-
-bool Prefs::in_longlived_whitelist(const Flow * f) const {
-  return f->get_protocol_category() == NDPI_PROTOCOL_CATEGORY_DATABASE;
-}
-
-/* *************************************** */
-
-bool Prefs::in_elephant_whitelist(const Flow * f) const {
-  return false;
-}
-
-/* *************************************** */
-
-bool Prefs::is_longlived_flow(const Flow * f) const {
-  bool ret = !in_longlived_whitelist(f)
-    && f->get_duration() > get_longlived_flow_duration()
-    && f->get_srv_ip_addr()->isNonEmptyUnicastAddress();
-
-  return ret;
-}
-
-/* *************************************** */
-
-bool Prefs::is_elephant_flow(const Flow * f) const {
-  /* TODO */
-  return false;
 }
 
 /* *************************************** */

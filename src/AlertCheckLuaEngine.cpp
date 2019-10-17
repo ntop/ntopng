@@ -112,7 +112,7 @@ bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
 #endif
 
   if(lua_pcall(L, num_args, num_results, 0)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure[%s] [%s]", script_path, lua_tostring(L, -1));
     return(false);
   }
 

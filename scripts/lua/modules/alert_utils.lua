@@ -84,6 +84,8 @@ function alertTypeLabel(v, nohtml)
         return(string.format('<i class="fa %s"></i> %s', type_info.icon, title))
       end
    end
+
+   return(i18n("unknown"))
 end
 
 function alertType(v)
@@ -632,6 +634,7 @@ end
 
 -- #################################
 
+-- Return more information for the flow alert description
 local function getFlowStatusInfo(record, status_info)
    local res = ""
 
@@ -674,12 +677,13 @@ local function formatRawFlow(record, flow_json, skip_add_links)
 
    local decoded = json.decode(flow_json)
 
-   if(type(decoded["status_info"]) == "string") and (decoded["status_info"][1] == "{") then
+   if((type(decoded["status_info"]) == "string") and
+         (string.sub(decoded["status_info"], 1, 1) == "{")) then
       -- status_info may contain a JSON string or a plain message
       decoded["status_info"] = json.decode(decoded["status_info"])
    end
 
-   local status_info = alert2statusinfo(decoded)
+   local status_info = decoded.status_info
 
    -- active flow lookup
    if not interface.isView() and status_info and status_info["ntopng.key"] and status_info["hash_entry_id"] and record["alert_tstamp"] then

@@ -2391,33 +2391,6 @@ end
 
 -- ###############################################
 
--- NOTE: "flowstatus_info" is a lua table in a common format used
--- to dump accurate flow alert information. See flow2statusinfo and alert2statusinfo
--- below.
-
--- Uses a flow returned by interface.getFlowsInfo() to create a flowstatus_info.
--- NOTE: Keep consistent with alert2statusinfo
-function flow2statusinfo(flow)
-   if flow["status_info"] then
-      local json = require("dkjson")
-      local res = json.decode(flow["status_info"])
-
-      return res
-   end
-
-   return nil
-end
-
--- Uses an alert json to create a flowstatus_info.
--- NOTE: Keep consistent with flow2statusinfo
-function alert2statusinfo(flow_json)
-   local res = table.clone(flow_json.status_info)
-
-   return res
-end
-
--- ###############################################
-
 function formatElephantFlowStatus(status, flowstatus_info, local2remote)
    local threshold = ""
    local res = ""
