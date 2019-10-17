@@ -1461,6 +1461,16 @@ end
 
 -- #################################
 
+function optimizeAlerts()
+   if(not areAlertsEnabled()) then
+      return
+   end
+
+   interface.optimizeAlerts()
+end
+
+-- #################################
+
 function housekeepingAlertsMakeRoom(ifId)
    local prefs = ntop.getPrefs()
    local max_num_alerts_per_entity = prefs.max_num_alerts_per_entity

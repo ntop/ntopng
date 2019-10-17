@@ -40,8 +40,8 @@ class StoreManager {
   StoreManager(int interface_id);
   virtual ~StoreManager();
 
-  NetworkInterface* getNetworkInterface();
-  
+  NetworkInterface* getNetworkInterface(); 
+  int optimizeStore();
 };
 
 #endif /* _STORE_MANAGER_H_ */

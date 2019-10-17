@@ -955,6 +955,7 @@ function getSIPTableRows(info)
        end
        show_rtp_stream = 1
      end
+
      if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
 	--string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
 	--string_table_5 = ":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")

@@ -9394,6 +9394,21 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_optimize_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  AlertsManager *am;
+
+  if(!iface || !(am = iface->getAlertsManager()))
+    return(CONST_LUA_ERROR);
+
+  if(am->optimizeStore());
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_query_alerts_raw(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
@@ -10169,6 +10184,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "stopRunningCapture",     ntop_stop_running_capture               },
 
   /* Alerts */
+  { "optimizeAlerts",         ntop_interface_optimize_alerts },
   { "refreshSuppressedAlertsPrefs",     ntop_refresh_suppressed_alerts_prefs },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },

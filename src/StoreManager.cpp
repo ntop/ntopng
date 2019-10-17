@@ -81,3 +81,38 @@ int StoreManager::exec_query(char *db_query,
 
   return 0;
 }
+
+/* **************************************************** */
+/*
+  Reclaims unused disk space and defragments tables and indices.
+  Should be called as disk space and defragmentation are not run
+  automatically by sqlite.
+*/
+int StoreManager::optimizeStore() {
+  char query[STORE_MANAGER_MAX_QUERY];
+  int step;
+  bool rc = false;
+  sqlite3_stmt *stmt = NULL;
+
+  m.lock(__FILE__, __LINE__);
+
+  snprintf(query, sizeof(query), "VACUUM");
+
+  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+    goto out;
+  }
+
+  if((step = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(step == SQLITE_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+    else
+      rc = true;
+  }
+
+out:
+  if(stmt) sqlite3_finalize(stmt);
+  m.unlock(__FILE__, __LINE__);
+
+  return(rc);
+}

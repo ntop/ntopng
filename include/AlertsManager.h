@@ -26,7 +26,7 @@
 
 class Flow;
 
-class AlertsManager : protected StoreManager {
+class AlertsManager : public StoreManager {
  private:
   char queue_name[CONST_MAX_LEN_REDIS_KEY];
   bool store_opened, store_initialized;
@@ -57,7 +57,6 @@ class AlertsManager : protected StoreManager {
       AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
       const char *alert_json, bool *new_alert, u_int64_t *rowid,
       bool ignore_disabled = false, bool check_maximum = true);
-
   bool hasAlerts();
 
   /*
