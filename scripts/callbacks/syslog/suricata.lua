@@ -104,18 +104,17 @@ end
 
 local function parseTLSMetadata(event_tls, flow)
    flow.ssl_server_name = event_tls.sni
-   -- flow.ja3c_hash = event_tls.ja3
-   -- flow.ja3s_hash = event_tls.ja3s
+   flow.ja3c_hash = event_tls.ja3.hash
+   flow.ja3s_hash = event_tls.ja3s.hash
 
    -- Additional fields
    flow.TLS_VERSION = event_tls.version
-   flow.TLS_CERTIFICATE_DN = event_tls.issuerdn
-   flow.TLS_CERTIFICATE_SUBJECT = event_tls.subject
-   flow.TLS_NOT_BEFORE = event_tls.notbefore
-   flow.TLS_NOT_AFTER = event_tls.notafter
-   flow.TLS_FINGERPRINT = event_tls.fingerprint
-   flow.TLS_SERIAL = event_tls.serial
-   flow.TLS_SESSION_RESUMED = event_tls.session_resumed
+   flow.TLS_CERT_NOT_BEFORE = event_tls.notbefore
+   flow.TLS_CERT_AFTER = event_tls.notafter
+   flow.TLS_CERT_SHA1 = event_tls.fingerprint
+   flow.TLS_CERT_SUBJECT = event_tls.subject
+   flow.TLS_CERT_DN = event_tls.issuerdn
+   flow.TLS_CERT_SN = event_tls.serial
 end
 
 -- #################################################################

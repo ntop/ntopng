@@ -349,6 +349,7 @@ flow_consts.flow_fields_description = {
     ["DNS_NUM_ANSWERS"] = i18n("flow_fields_description.dns_num_answers"),
     ["DNS_TTL_ANSWER"] = i18n("flow_fields_description.dns_ttl_answer"),
     ["DNS_RESPONSE"] = i18n("flow_fields_description.dns_response"),
+    ["DNS_TX_ID"] = i18n("flow_fields_description.dns_tx_id"),
 
     -- FTP Protocol
     ["FTP_LOGIN"] = i18n("flow_fields_description.ftp_login"),
@@ -434,6 +435,8 @@ flow_consts.flow_fields_description = {
     ["HTTP_SITE"] = i18n("flow_fields_description.http_site"),
     ["HTTP_X_FORWARDED_FOR"] = i18n("flow_fields_description.http_x_forwarded_for"),
     ["HTTP_VIA"] = i18n("flow_fields_description.http_via"),
+    ["HTTP_PROTOCOL"] = i18n("flow_fields_description.http_protocol"),
+    ["HTTP_LENGTH"] = i18n("flow_fields_description.http_length"),
 
     -- IMAP Protocol
     ["IMAP_LOGIN"] = i18n("flow_fields_description.imap_login"),
@@ -575,6 +578,29 @@ flow_consts.flow_fields_description = {
     ["SSDP_SERVER"] = i18n("flow_fields_description.ssdp_server"),
     ["SSDP_TYPE"] = i18n("flow_fields_description.ssdp_type"),
     ["SSDP_METHOD"] = i18n("flow_fields_description.ssdp_method"),
+
+    -- TLS Protocol
+    ["TLS_VERSION"] = i18n("flow_fields_description.tls_version"),
+    ["TLS_CERT_NOT_BEFORE"] = i18n("flow_fields_description.tls_cert_not_before"),
+    ["TLS_CERT_AFTER"] = i18n("flow_fields_description.tls_cert_after"),
+    ["TLS_CERT_SHA1"] = i18n("flow_fields_description.tls_cert_sha1"),
+    ["TLS_CERT_DN"] = i18n("flow_fields_description.tls_cert_dn"),
+    ["TLS_CERT_SN"] = i18n("flow_fields_description.tls_cert_sn"),
+    ["TLS_CERT_SUBJECT"] = i18n("flow_fields_description.tls_cert_subject"),
+
+    -- File Info
+    ["FILE_NAME"] = i18n("flow_fields_description.file_name"),
+    ["FILE_SIZE"] = i18n("flow_fields_description.file_size"),
+    ["FILE_STATE"] = i18n("flow_fields_description.file_state"),
+    ["FILE_GAPS"] = i18n("flow_fields_description.file_gaps"),
+    ["FILE_STORED"] = i18n("flow_fields_description.file_stored"),
+
+    -- Suricata
+    ["SURICATA_FLOW_ID"] = i18n("flow_fields_description.suricata_flow_id"),
+    ["SURICATA_APP_PROTO"] = i18n("flow_fields_description.suricata_app_proto"),
+
+    -- Misc
+    ["COMMUNITY_ID"] = i18n("flow_fields_description.community_id"),
 }
 
 -- ################################################################################
