@@ -37,9 +37,9 @@ local function request_reply_ratio(params)
 
     -- 10: some meaningful value
     if((requests + replies > 10) and (ratio < tonumber(params.alert_config.edge))) then
-      alerts_api.trigger(params.alert_entity, req_repl_type)
+      alerts_api.trigger(params.alert_entity, req_repl_type, nil, params.cur_alerts)
     else
-      alerts_api.release(params.alert_entity, req_repl_type)
+      alerts_api.release(params.alert_entity, req_repl_type, nil, params.cur_alerts)
     end
   end
 end

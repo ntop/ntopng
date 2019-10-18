@@ -29,15 +29,15 @@ local function check_tcp_flags(params)
   local rst_rcvd_info = alerts_api.anomalousTCPFlagsType(syn_flags_sent, rst_flags_rcvd, rst_rcvd_ratio, false, params.granularity)
 
   if(rst_sent_ratio > rst_ratio_threshold) then
-    alerts_api.trigger(params.alert_entity, rst_sent_info)
+    alerts_api.trigger(params.alert_entity, rst_sent_info, nil, params.cur_alerts)
   else
-    alerts_api.release(params.alert_entity, rst_sent_info)
+    alerts_api.release(params.alert_entity, rst_sent_info, nil, params.cur_alerts)
   end
 
   if(rst_rcvd_ratio > rst_ratio_threshold) then
-    alerts_api.trigger(params.alert_entity, rst_rcvd_info)
+    alerts_api.trigger(params.alert_entity, rst_rcvd_info, nil, params.cur_alerts)
   else
-    alerts_api.release(params.alert_entity, rst_rcvd_info)
+    alerts_api.release(params.alert_entity, rst_rcvd_info, nil, params.cur_alerts)
   end
 end
 
@@ -60,15 +60,15 @@ local function check_misbehaving_flows_ratio(params)
   local bad_srv_info = alerts_api.misbehavingFlowsRatioType(srv_bad_flows, srv_flows, bad_srv_ratio, false, params.granularity)
 
   if(bad_cli_ratio > bad_ratio_threshold) then
-    alerts_api.trigger(params.alert_entity, bad_cli_info)
+    alerts_api.trigger(params.alert_entity, bad_cli_info, nil, params.cur_alerts)
   else
-    alerts_api.release(params.alert_entity, bad_cli_info)
+    alerts_api.release(params.alert_entity, bad_cli_info, nil, params.cur_alerts)
   end
 
   if(bad_srv_ratio > bad_ratio_threshold) then
-    alerts_api.trigger(params.alert_entity, bad_srv_info)
+    alerts_api.trigger(params.alert_entity, bad_srv_info, nil, params.cur_alerts)
   else
-    alerts_api.release(params.alert_entity, bad_srv_info)
+    alerts_api.release(params.alert_entity, bad_srv_info, nil, params.cur_alerts)
   end
 end
 

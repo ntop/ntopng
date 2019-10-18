@@ -16,9 +16,9 @@ local function check_ghost_networks(params)
       local ghost_network_type = alerts_api.ghostNetworkType(domain, params.granularity)
 
       if(delta_hits > 0) then
-        alerts_api.trigger(params.alert_entity, ghost_network_type)
+        alerts_api.trigger(params.alert_entity, ghost_network_type, nil, params.cur_alerts)
       else
-        alerts_api.release(params.alert_entity, ghost_network_type)
+        alerts_api.release(params.alert_entity, ghost_network_type, nil, params.cur_alerts)
       end
     end
   end
