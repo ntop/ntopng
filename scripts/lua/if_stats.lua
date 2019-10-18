@@ -696,7 +696,12 @@ if((page == "overview") or (page == nil)) then
       if not isEmptyString(external_json_stats) then
          local external_stats = json.decode(external_json_stats)
          if external_stats ~= nil then
-            print("<tr><th colspan=7 nowrap>"..i18n("external_stats.title").."</th></tr>\n")
+            local external_stats_title = i18n("external_stats.title")
+            if external_stats.i18n_title then
+              external_stats_title = i18n(external_stats.i18n_title)
+              external_stats.i18n_title = nil
+            end
+            print("<tr><th colspan=7 nowrap>"..external_stats_title.."</th></tr>\n")
             for key, value in pairsByKeys(external_stats, asc) do
                print("<tr>")
                print("<th nowrap>"..ternary(i18n("external_stats."..key), i18n("external_stats."..key), key).."</th>")

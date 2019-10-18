@@ -134,6 +134,8 @@ local function parseStats(event_stats)
      external_stats.signatures_failed = external_stats.signatures_failed + engine.rules_failed
    end
 
+   external_stats.i18n_title = "external_stats.suricata_statistics"
+
    local external_json_stats = json.encode(external_stats)
    ntop.setCache(getRedisIfacePrefix(ifid)..'.external_stats', external_json_stats)
 end
