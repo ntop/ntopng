@@ -40,7 +40,7 @@ end
 
 local function benchmark_end()
    if do_benchmark then
-      script_benchmark_tot_clock = os.clock() - script_benchmark_begin_time
+      script_benchmark_tot_clock = script_benchmark_tot_clock + os.clock() - script_benchmark_begin_time
       script_benchmark_tot_calls = script_benchmark_tot_calls + 1
    end
 end
