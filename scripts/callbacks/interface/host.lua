@@ -15,10 +15,35 @@ local do_benchmark = true          -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
 
+-- DEBUG: benchmarks local to the execution of this script
+-- Will be removed once all the host.<method> calls will be performed
+-- inside the custom scripts
+local do_script_benchmark = false
+local script_benchmark_begin_time
+local script_benchmark_tot_clock = 0
+local script_benchmark_tot_calls = 0
+
 local config_alerts_local = nil
 local config_alerts_remote = nil
 local available_modules = nil
 local ifid = nil
+
+-- #################################################################
+
+local function benchmark_begin()
+   if do_benchmark then
+      script_benchmark_begin_time = os.clock()
+   end
+end
+
+-- #################################################################
+
+local function benchmark_end()
+   if do_benchmark then
+      script_benchmark_tot_clock = os.clock() - script_benchmark_begin_time
+      script_benchmark_tot_calls = script_benchmark_tot_calls + 1
+   end
+end
 
 -- #################################################################
 
@@ -41,6 +66,13 @@ end
 function teardown(str_granularity)
    if(do_trace) then print("alert.lua:teardown("..str_granularity..") called\n") end
 
+   if do_script_benchmark and script_benchmark_tot_calls > 0 then
+      traceError(TRACE_NORMAL,TRACE_CONSOLE, string.format("[tot_elapsed: %.4f][tot_num_calls: %u][avg time per call: %.4f]",
+      							   script_benchmark_tot_clock,
+							   script_benchmark_tot_calls,
+							   script_benchmark_tot_clock / script_benchmark_tot_calls))
+   end
+
    user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
 end
 
@@ -59,8 +91,10 @@ function checkAlerts(granularity)
      releaseAlerts(granularity)
   end
 
+  benchmark_begin()
   local info = host.getFullInfo()
   local cur_alerts = host.getAlerts(granularity)
+  benchmark_end()
   local host_key   = hostinfo2hostkey({ip = info.ip, vlan = info.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
   local config_alerts = ternary(info["localhost"], config_alerts_local, config_alerts_remote)
   local host_config = config_alerts[host_key] or {}
