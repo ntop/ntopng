@@ -2740,7 +2740,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	is not a good news as we might have protocol detected
 	when 3WH is not yet completed.
        */
-      if(get_state() != hash_entry_state_flow_protocoldetected)
+      if(get_state() == hash_entry_state_allocated)
 	set_hash_entry_state_flow_notyetdetected();
     }
   }
