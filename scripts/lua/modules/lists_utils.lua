@@ -31,7 +31,19 @@ local is_nedge = ntop.isnEdge()
 --    [hosts] 127.0.0.1   1.2.3.4
 --
 local BUILTIN_LISTS = {
-  ["Emerging Threats"] = {
+  ["ntop IP Malware Meltdown"] = {
+    url = "http://blacklists.ntop.org/blacklist-ip.list",
+    category = CUSTOM_CATEGORY_MALWARE,
+    format = "ip",
+    enabled = true,
+    update_interval = DEFAULT_UPDATE_INTERVAL,
+  }, ["ntop Host Malware Meltdown"] = {
+    url = "http://blacklists.ntop.org/blacklist-hostnames.list",
+    category = CUSTOM_CATEGORY_MALWARE,
+    format = "host",
+    enabled = true,
+    update_interval = DEFAULT_UPDATE_INTERVAL,
+  }, ["Emerging Threats"] = {
     url = "https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt",
     category = CUSTOM_CATEGORY_MALWARE,
     format = "ip",
