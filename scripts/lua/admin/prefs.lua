@@ -25,7 +25,7 @@ local influxdb = require("influxdb")
 local alert_endpoints = require("alert_endpoints_utils")
 local nindex_utils = nil
 
-local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}>?$]]
+local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,6}>?$]]
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
