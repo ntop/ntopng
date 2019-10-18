@@ -470,13 +470,17 @@ void Ntop::start() {
 
     usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
 
-    if(usec_diff < nap)
+    if(usec_diff < nap) {
       nap -= usec_diff;
 
-    ntop->getTrace()->traceEvent(TRACE_DEBUG,
-				 "Sleeping %i microsecods before doing the chores.",
-				 nap);
-    _usleep(nap);
+#if 0
+      ntop->getTrace()->traceEvent(TRACE_DEBUG,
+				   "Sleeping %i microsecods before doing the chores.",
+				   nap);
+#endif
+
+      _usleep(nap);
+    }
   }
 }
 

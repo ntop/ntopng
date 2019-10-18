@@ -2896,7 +2896,7 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
 
   if((!read_from_pcap_dump()) &&
-      (time(NULL) - tv.tv_sec) > ntop->getPrefs()->get_housekeeping_frequency())
+     (time(NULL) - tv.tv_sec) > periodicStatsUpdateFrequency())
     slow_stats_update = true;
   else
     slow_stats_update = false;
