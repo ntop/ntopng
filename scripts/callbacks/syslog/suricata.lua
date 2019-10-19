@@ -13,10 +13,15 @@ local syslog_module = {
   hooks = {},
 }
 
+local external_stats_key = getRedisIfacePrefix(interface.getId())..'.external_stats'
+
 -- #################################################################
 
 -- The function below ia called once (#pragma once)
 function syslog_module.setup()
+   -- Cleanup old stats, if any
+   ntop.delCache(external_stats_key)
+
    return true
 end
 
@@ -121,7 +126,6 @@ end
 -- #################################################################
 
 local function parseStats(event_stats)
-   local ifid = interface.getId()
    local external_stats = {}
 
    external_stats.capture_packets = (event_stats.capture.kernel_packets - event_stats.capture.kernel_drops)
@@ -137,7 +141,7 @@ local function parseStats(event_stats)
    external_stats.i18n_title = "external_stats.suricata_statistics"
 
    local external_json_stats = json.encode(external_stats)
-   ntop.setCache(getRedisIfacePrefix(ifid)..'.external_stats', external_json_stats)
+   ntop.setCache(external_stats_key, external_json_stats)
 end
 
 -- #################################################################
