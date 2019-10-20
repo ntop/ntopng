@@ -32,13 +32,13 @@ local is_nedge = ntop.isnEdge()
 --
 local BUILTIN_LISTS = {
    ["ntop IP Malware Meltdown"] = {
-      url = "http://blacklists.ntop.org/blacklist-ip.list",
+      url = "http://blacklists.ntop.org/blacklist-ip.txt",
       category = CUSTOM_CATEGORY_MALWARE,
       format = "ip",
       enabled = false,
       update_interval = DEFAULT_UPDATE_INTERVAL,
    }, ["ntop Host Malware Meltdown"] = {
-      url = "http://blacklists.ntop.org/blacklist-hostnames.list",
+      url = "http://blacklists.ntop.org/blacklist-hostnames.txt",
       category = CUSTOM_CATEGORY_MALWARE,
       format = "host",
       enabled = false,
