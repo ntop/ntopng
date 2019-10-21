@@ -435,6 +435,18 @@ else
     fi
 fi
 
+RPM_SIGN_CMD="rpm --addsign"
+if test -f "/etc/centos-release"; then
+  CENTOS_RELEASE=`cat /etc/centos-release | cut -d ' ' -f 3|cut -d '.' -f 1`
+  if test $CENTOS_RELEASE = "release"; then
+    CENTOS_RELEASE=`cat /etc/centos-release | cut -d ' ' -f 4|cut -d '.' -f 1`
+  fi
+
+  if test "$CENTOS_RELEASE" -ne 8; then
+    RPM_SIGN_CMD="./packages/rpm-sign.exp"
+  fi
+fi
+
 CENTOS_N2N_DEP=""
 CFLAGS="-Wall $CFLAGS"
 OS=""
@@ -663,6 +675,7 @@ AC_SUBST(SERVICE_WANTS)
 AC_SUBST(SERVICE_ALIAS)
 AC_SUBST(APP)
 AC_SUBST(CENTOS_N2N_DEP)
+AC_SUBST(RPM_SIGN_CMD)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
