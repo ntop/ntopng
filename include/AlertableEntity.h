@@ -91,7 +91,6 @@ public:
 
   void refreshSuppressedAlert();
   void luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p);
-  void getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now);
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, ScriptPeriodicity p, AlertType type_filter,
 		 AlertLevel severity_filter, u_int *idx);

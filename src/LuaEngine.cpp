@@ -9152,24 +9152,6 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_host_get_expired_alerts(lua_State* vm) {
-  ScriptPeriodicity periodicity;
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  Host *h = c ? c->host : NULL;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 1)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
-
-  if(!h) return(CONST_LUA_PARAM_ERROR);
-
-  lua_newtable(vm);
-  h->getExpiredAlerts(periodicity, vm, time(NULL));
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_network_get_cached_alert_value(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
@@ -9218,24 +9200,6 @@ static int ntop_network_set_cached_alert_value(lua_State* vm) {
     return(CONST_LUA_PARAM_ERROR);
 
   ns->setAlertCacheValue(std::string(key), std::string(value), periodicity);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_network_get_expired_alerts(lua_State* vm) {
-  ScriptPeriodicity periodicity;
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  NetworkStats *ns = c ? c->network : NULL;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 1)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
-
-  if(!ns) return(CONST_LUA_PARAM_ERROR);
-
-  lua_newtable(vm);
-  ns->getExpiredAlerts(periodicity, vm, time(NULL));
 
   return(CONST_LUA_OK);
 }
@@ -9462,23 +9426,6 @@ static int ntop_interface_release_external_alert(lua_State* vm) {
 
   /* End of critical section */
   iface->unlockExternalAlertable(alertable);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_get_expired_alerts(lua_State* vm) {
-  ScriptPeriodicity periodicity;
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 1)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
-
-  if(!c->iface) return(CONST_LUA_PARAM_ERROR);
-
-  lua_newtable(vm);
-  c->iface->getExpiredAlerts(periodicity, vm, time(NULL));
 
   return(CONST_LUA_OK);
 }
@@ -10367,7 +10314,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "releaseTriggeredAlert",  ntop_interface_release_triggered_alert  },
   { "triggerExternalAlert",   ntop_interface_store_external_alert     },
   { "releaseExternalAlert",   ntop_interface_release_external_alert   },
-  { "getExpiredAlerts",       ntop_interface_get_expired_alerts       },
   { "checkContext",           ntop_interface_check_context            },
   { "refreshAlerts",          ntop_interface_refresh_alerts           },
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
@@ -10413,7 +10359,6 @@ static const luaL_Reg ntop_host_reg[] = {
   { "setCachedAlertValue",    ntop_host_set_cached_alert_value  },
   { "storeTriggeredAlert",    ntop_host_store_triggered_alert   },
   { "releaseTriggeredAlert",  ntop_host_release_triggered_alert },
-  { "getExpiredAlerts",       ntop_host_get_expired_alerts      },
   { "getAlerts",              ntop_host_get_alerts              },
   { "checkContext",           ntop_host_check_context           },
   { "hasAlertsSuppressed",    ntop_host_has_alerts_suppressed   },
@@ -10442,7 +10387,6 @@ static const luaL_Reg ntop_network_reg[] = {
   { "setCachedAlertValue",      ntop_network_set_cached_alert_value  },
   { "storeTriggeredAlert",      ntop_network_store_triggered_alert   },
   { "releaseTriggeredAlert",    ntop_network_release_triggered_alert },
-  { "getExpiredAlerts",         ntop_network_get_expired_alerts      },
   { "getAlerts",                ntop_network_get_alerts              },
   { "checkContext",             ntop_network_check_context           },
   { "hasAlertsSuppressed",      ntop_network_has_alerts_suppressed   },

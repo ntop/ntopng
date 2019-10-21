@@ -48,37 +48,6 @@ AlertableEntity::~AlertableEntity() {
 
 /* ****************************************** */
 
-/* Relase the expired alerts and push them into the Lua table */
-void AlertableEntity::getExpiredAlerts(ScriptPeriodicity p, lua_State* vm, time_t now) {
-  std::map<std::string, Alert>::iterator it;
-  int seconds = Utils::periodicityToSeconds(p);
-  u_int idx = 0;
-
-  for(it = triggered_alerts[(u_int)p].begin(); it != triggered_alerts[(u_int)p].end();) {
-    Alert *alert = &it->second;
-
-    if((now - alert->last_update) > seconds) {
-      if(alert->is_disabled) {
-        /* The alert is disabled, remove it now.
-         * NOTE: do not increment again iterator after this assignment. */
-        triggered_alerts[(u_int)p].erase(it++), force_shadow_refresh = true;	
-      } else {
-        lua_newtable(vm);
-
-        luaAlert(vm, alert, p);
-
-        lua_pushinteger(vm, ++idx);
-        lua_insert(vm, -2);
-        lua_settable(vm, -3);
-        ++it;
-      }
-    } else
-      ++it;
-  }
-}
-
-/* ****************************************** */
-
 void AlertableEntity::luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p) {
   /* NOTE: must conform to the AlertsManager format */
   lua_push_int32_table_entry(vm,  "alert_type", alert->alert_type);
