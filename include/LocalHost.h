@@ -62,7 +62,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual NetworkStats* getNetworkStats(int16_t networkId) {
     return(iface->getNetworkStats(networkId));
   };
-  virtual u_int32_t getActiveHTTPHosts()             { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
+  virtual u_int32_t getActiveHTTPHosts()       const { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
   virtual HostStats* allocateStats()                 { return(new LocalHostStats(this));               };
 
   virtual bool dropAllTraffic() const { return(drop_all_host_traffic); };
@@ -75,10 +75,11 @@ class LocalHost : public Host, public SerializableElement {
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { stats->incNumDNSQueriesRcvd(query_type); };
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { stats->incNumDNSResponsesSent(ret_code); };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { stats->incNumDNSResponsesRcvd(ret_code); };
-  virtual void luaDNS(lua_State *vm) const                { stats->luaDNS(vm,false); };
+  virtual void luaHTTP(lua_State *vm)              const  { stats->luaHTTP(vm);      };
+  virtual void luaDNS(lua_State *vm)               const  { stats->luaDNS(vm,false); };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  { stats->luaICMP(vm,isV4,verbose); };
   virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
-  virtual HTTPstats* getHTTPstats()                       { return(stats->getHTTPstats());  };
+  virtual HTTPstats* getHTTPstats()                const  { return(stats->getHTTPstats());       };
   virtual void luaTCP(lua_State *vm) const                { stats->lua(vm,false,details_normal); };
   virtual u_int16_t getNumActiveContactsAsClient() const  { return stats->getNumActiveContactsAsClient(); };
   virtual u_int16_t getNumActiveContactsAsServer() const  { return stats->getNumActiveContactsAsServer(); };

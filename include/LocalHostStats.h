@@ -40,9 +40,9 @@ class LocalHostStats: public HostStats {
   LocalHostStats(Host *_host);
   virtual ~LocalHostStats();
 
-  inline DnsStats* getDNSStats() const    { return(dns);  }
-  inline HTTPstats* getHTTPStats() const  { return(http); }
-  inline ICMPstats* getICMPStats() const  { return(icmp); }
+  inline DnsStats* getDNSStats()    const  { return(dns);  }
+  HTTPstats* getHTTPStats()         const  { return(http); }
+  inline ICMPstats* getICMPStats()  const  { return(icmp); }
 
   virtual void incStats(time_t when, u_int8_t l4_proto,
 			u_int ndpi_proto, ndpi_protocol_category_t ndpi_category,
@@ -63,6 +63,7 @@ class LocalHostStats: public HostStats {
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
   virtual void luaDNS(lua_State *vm, bool verbose) const  { if(dns) dns->lua(vm,verbose); }
+  virtual void luaHTTP(lua_State *vm) const  { if(http) http->lua(vm); }
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { if (icmp) icmp->lua(isV4, vm, verbose); }
   virtual void incrVisitedWebSite(char *hostname);
   virtual void tsLua(lua_State* vm);

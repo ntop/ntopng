@@ -28,7 +28,9 @@ local script = {
 -- #################################################################
 
 function script.get_threshold_value(granularity, info)
-  return(info["hits.syn_flood_victim"] or 0)
+  local sf = host.getSynFlood()
+
+  return(sf["hits.syn_flood_victim"] or 0)
 end
 
 -- #################################################################

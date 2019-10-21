@@ -72,13 +72,13 @@ public:
     alert_cache[(u_int)p][key] = value;
   }
 
-  u_int getNumTriggeredAlerts(ScriptPeriodicity p);
-  inline u_int getNumTriggeredAlerts() { return(num_triggered_alerts); }
+  u_int getNumTriggeredAlerts(ScriptPeriodicity p) const;
+  inline u_int getNumTriggeredAlerts() const { return(num_triggered_alerts); }
   
   inline void setEntityValue(const char *ent_val) { entity_val = ent_val; refreshSuppressedAlert(); }
-  inline std::string getEntityValue()             { return(entity_val); }
-  inline AlertEntity getEntityType()              { return(entity_type); }
-  inline bool hasAlertsSuppressed()               { return(suppressed_alerts); }
+  inline std::string getEntityValue()       const { return(entity_val); }
+  inline AlertEntity getEntityType()        const { return(entity_type); }
+  inline bool hasAlertsSuppressed()         const { return(suppressed_alerts); }
 
   bool triggerAlert(lua_State* vm, std::string key,
 		    ScriptPeriodicity p, time_t now,

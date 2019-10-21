@@ -90,6 +90,8 @@ class GenericTrafficElement {
   inline u_int64_t getNumBytes()        const { return(sent.getNumBytes()+rcvd.getNumBytes()); };
   inline u_int64_t getNumBytesSent()    const { return(sent.getNumBytes());                    };
   inline u_int64_t getNumBytesRcvd()    const { return(rcvd.getNumBytes());                    };
+  inline u_int64_t getNumPktsSent()     const { return(sent.getNumPkts());                     };
+  inline u_int64_t getNumPktsRcvd()     const { return(rcvd.getNumPkts());                     };
 
   inline float getBytesThpt()           const { return(bytes_thpt.getThpt());                  };
   inline float getPacketsThpt()         const { return(pkts_thpt.getThpt());                   };

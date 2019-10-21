@@ -6227,7 +6227,7 @@ bool NetworkInterface::isHiddenFromTop(Host *host) {
 
   if(!vlan_addrtree) return false;
 
-  return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->getVlanId())));
+  return(host->get_ip()->findAddress(vlan_addrtree->getAddressTree(host->get_vlan_id())));
 }
 
 /* **************************************** */

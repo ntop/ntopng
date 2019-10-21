@@ -92,15 +92,17 @@ function checkAlerts(granularity)
   end
 
   benchmark_begin()
-  local info = host.getFullInfo()
+  local host_ip = host.getIp()
   local cur_alerts = host.getAlerts(granularity)
+  local is_localhost = host.getLocalhostInfo()["localhost"]
   benchmark_end()
-  local host_key   = hostinfo2hostkey({ip = info.ip, vlan = info.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
-  local config_alerts = ternary(info["localhost"], config_alerts_local, config_alerts_remote)
+
+  local host_key   = hostinfo2hostkey({ip = host_ip.ip, vlan = host_ip.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
+  local config_alerts = ternary(is_localhost, config_alerts_local, config_alerts_remote)
   local host_config = config_alerts[host_key] or {}
-  local global_config = ternary(info["localhost"], config_alerts["local_hosts"], config_alerts["remote_hosts"]) or {}
+  local global_config = ternary(is_localhost, config_alerts["local_hosts"], config_alerts["remote_hosts"]) or {}
   local has_configuration = (table.len(host_config) or table.len(global_config))
-  local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
+  local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
 
   if has_configuration then
     for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
@@ -120,7 +122,7 @@ function checkAlerts(granularity)
         hook_fn({
            granularity = granularity,
            alert_entity = entity_info,
-           entity_info = info,
+           entity_info = host_ip,
 	   cur_alerts = cur_alerts,
            alert_config = config,
            user_script = check,
@@ -135,8 +137,8 @@ end
 -- #################################################################
 
 function releaseAlerts(granularity)
-  local info = host.getFullInfo()
-  local entity_info = alerts_api.hostAlertEntity(info.ip, info.vlan)
+  local host_ip = host.getIp()
+  local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
 
   alerts_api.releaseEntityAlerts(entity_info, host.getAlerts(granularity))
 end

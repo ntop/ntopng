@@ -8402,6 +8402,177 @@ static int ntop_interface_refresh_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static Host* ntop_host_get_context_host(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+
+  return c->host;
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_ip(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_ip(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_localhost_info(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_localhost_info(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_application_bytes(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+  u_int app_id;
+
+  lua_newtable(vm);
+
+  if(h && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
+    app_id = lua_tonumber(vm, 1);
+    h->lua_get_app_bytes(vm, app_id);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_category_bytes(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+  ndpi_protocol_category_t cat_id;
+
+  lua_newtable(vm);
+
+  if(h && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
+    cat_id = (ndpi_protocol_category_t)lua_tonumber(vm, 1);
+    h->lua_get_cat_bytes(vm, cat_id);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_bytes(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_bytes(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_packets(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_packets(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_num_total_flows(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_num_total_flows(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_time(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_time(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_syn_flood(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_syn_flood(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_flow_flood(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_flow_flood(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_dns_info(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->luaDNS(vm);
+
+  return(CONST_LUA_OK);
+}
+
+
+/* ****************************************** */
+
+static int ntop_host_get_http_info(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->luaHTTP(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static Flow* ntop_flow_get_context_flow(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
 
@@ -10246,7 +10417,20 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getAlerts",              ntop_host_get_alerts              },
   { "checkContext",           ntop_host_check_context           },
   { "hasAlertsSuppressed",    ntop_host_has_alerts_suppressed   },
-  
+
+  { "getIp",                  ntop_host_get_ip                  },
+  { "getLocalhostInfo",       ntop_host_get_localhost_info      },
+  { "getApplicationBytes",    ntop_host_get_application_bytes   },
+  { "getCategoryBytes",       ntop_host_get_category_bytes      },
+  { "getBytes",               ntop_host_get_bytes               },
+  { "getPackets",             ntop_host_get_packets             },
+  { "getNumFlows",            ntop_host_get_num_total_flows     },
+  { "getTime",                ntop_host_get_time                },
+  { "getSynFlood",            ntop_host_get_syn_flood           },
+  { "getFlowFlood",           ntop_host_get_flow_flood          },
+  { "getDNSInfo",             ntop_host_get_dns_info            },
+  { "getHTTPInfo",            ntop_host_get_http_info           },
+
   { NULL,                     NULL }
 };
 

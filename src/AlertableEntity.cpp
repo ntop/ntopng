@@ -274,7 +274,7 @@ void AlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity periodicity_fil
    as this method is called by the GUI while triggered_alerts[] might be manipulated
    by periodic scrits, it uses rx_triggered_alerts instead of triggered_alerts
 */
-u_int AlertableEntity::getNumTriggeredAlerts(ScriptPeriodicity p) {
+u_int AlertableEntity::getNumTriggeredAlerts(ScriptPeriodicity p) const {
   std::map<std::string, Alert>::iterator it;
   u_int ctr = 0;
   std::map<std::string, Alert> *rx_copy = rx_triggered_alerts[p];

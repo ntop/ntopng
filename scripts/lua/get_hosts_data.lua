@@ -233,8 +233,8 @@ for _key, _value in pairsByKeys(vals, funct) do
       ternary((have_nedge and drop_traffic), "style='text-decoration: line-through'", "")..
       ">".. stripVlan(key) .." </A>"
 
-   if((value.operatingSystem ~= 0) and (value["os"] == "")) then
-      column_ip = column_ip .. " ".. discover.getOsIcon(value.operatingSystem)
+   if((value.os ~= 0) and (value["os"] == "")) then
+      column_ip = column_ip .. " ".. discover.getOsIcon(value.os)
    end
 
    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then

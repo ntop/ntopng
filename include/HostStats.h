@@ -67,6 +67,7 @@ class HostStats: public TimeseriesStats {
   inline void incnDPIFlows(u_int16_t l7_protocol)   { if(ndpiStats) ndpiStats->incFlowsStats(l7_protocol); };
   inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };
   inline u_int32_t getTotalNumFlowsAsServer() const { return(total_num_flows_as_server);  };
+  inline u_int32_t getTotalActivityTime()     const { return(total_activity_time);        };
   virtual void deserialize(json_object *obj)        {}
   virtual void incNumFlows(bool as_client, Host *peer) { if(as_client) total_num_flows_as_client++; else total_num_flows_as_server++; } ;
   virtual void decNumFlows(bool as_client, Host *peer) {};
@@ -99,11 +100,12 @@ class HostStats: public TimeseriesStats {
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) {}
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) {}
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) {}
+  virtual void luaHTTP(lua_State *vm) const {}
   virtual void luaDNS(lua_State *vm, bool verbose) const  {}
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  {}
   virtual void incrVisitedWebSite(char *hostname) {}
   virtual void tsLua(lua_State* vm) {}
-  virtual HTTPstats* getHTTPstats() { return(NULL); }
+  virtual HTTPstats* getHTTPstats() const { return(NULL); }
 };
 
 #endif

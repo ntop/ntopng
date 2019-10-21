@@ -96,7 +96,7 @@ public:
     return buf;
   }
 
-  void const lua(lua_State *vm, const char *table_key) {
+  void const lua(lua_State *vm, const char *table_key) const {
 #ifdef MONITOREDMETRIC_DEBUG
     char buf[128];
     printf("Lua anomaly [%s] %s", table_key, print(buf, sizeof(buf)));

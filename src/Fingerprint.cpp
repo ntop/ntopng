@@ -50,7 +50,7 @@ void Fingerprint::lua(const char *key, lua_State* vm) {
 
   m.lock(__FILE__, __LINE__);  
 
-  for(std::map<std::string, FingerprintStats>::iterator it = fp.begin(); it != fp.end(); ++it) {
+  for(std::map<std::string, FingerprintStats>::const_iterator it = fp.begin(); it != fp.end(); ++it) {
     lua_newtable(vm);
     
     lua_push_str_table_entry(vm, "app_name", it->second.app_name.c_str());

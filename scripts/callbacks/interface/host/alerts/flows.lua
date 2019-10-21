@@ -24,7 +24,9 @@ local script = {
 -- #################################################################
 
 function script.get_threshold_value(granularity, info)
-  return alerts_api.host_delta_val(script.key, granularity, info["total_flows.as_client"] + info["total_flows.as_server"])
+  local nf = host.getNumFlows()
+
+  return alerts_api.host_delta_val(script.key, granularity, nf["total_flows.as_client"] + nf["total_flows.as_server"])
 end
 
 -- #################################################################

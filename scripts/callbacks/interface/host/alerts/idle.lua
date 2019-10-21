@@ -24,7 +24,7 @@ local script = {
 -- #################################################################
 
 function script.get_threshold_value(granularity, info)
-  return alerts_api.host_delta_val(script.key, granularity, os.time() - info["seen.last"])
+  return alerts_api.host_delta_val(script.key, granularity, os.time() - host.getTime()["seen.last"])
 end
 
 -- #################################################################

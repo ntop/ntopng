@@ -10,19 +10,20 @@ local script
 -- #################################################################
 
 local function request_reply_ratio(params)
-  local info = params.entity_info
+  local dns_info = host.getDNSInfo()
+  local http_info = host.getHTTPInfo()
 
   -- {requests, replies}
   local to_check = {}
 
-  if(info["dns"] ~= nil) then
-    to_check["dns_sent"] = {info["dns"]["sent"]["num_queries"], (info["dns"]["rcvd"]["num_replies_ok"] + info["dns"]["rcvd"]["num_replies_error"])}
-    to_check["dns_rcvd"] = {info["dns"]["rcvd"]["num_queries"], (info["dns"]["sent"]["num_replies_ok"] + info["dns"]["sent"]["num_replies_error"])}
+  if(dns_info["dns"] ~= nil) then
+    to_check["dns_sent"] = {dns_info["dns"]["sent"]["num_queries"], (dns_info["dns"]["rcvd"]["num_replies_ok"] + dns_info["dns"]["rcvd"]["num_replies_error"])}
+    to_check["dns_rcvd"] = {dns_info["dns"]["rcvd"]["num_queries"], (dns_info["dns"]["sent"]["num_replies_ok"] + dns_info["dns"]["sent"]["num_replies_error"])}
   end
 
-  if(info["http"] ~= nil) then
-    to_check["http_sent"] = {info["http"]["sender"]["query"]["total"], info["http"]["receiver"]["response"]["total"]}
-    to_check["http_rcvd"] = {info["http"]["receiver"]["query"]["total"], info["http"]["sender"]["response"]["total"]}
+  if(http_info["http"] ~= nil) then
+    to_check["http_sent"] = {http_info["http"]["sender"]["query"]["total"], http_info["http"]["receiver"]["response"]["total"]}
+    to_check["http_rcvd"] = {http_info["http"]["receiver"]["query"]["total"], http_info["http"]["sender"]["response"]["total"]}
   end
 
   for key, values in pairs(to_check) do

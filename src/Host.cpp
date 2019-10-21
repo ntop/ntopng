@@ -281,7 +281,7 @@ void Host::set_mac(Mac *_mac) {
 
 /* *************************************** */
 
-bool Host::hasAnomalies() {
+bool Host::hasAnomalies() const {
   time_t now = time(0);
 
   return num_active_flows_as_client.is_anomalous(now)
@@ -291,7 +291,7 @@ bool Host::hasAnomalies() {
 
 /* *************************************** */
 
-void Host::luaAnomalies(lua_State* vm) {
+void Host::lua_get_anomalies(lua_State* vm) const {
   if(!vm)
     return;
 
@@ -328,7 +328,7 @@ void Host::luaStrTableEntryLocked(lua_State * const vm, const char * const entry
 
 /* *************************************** */
 
-void Host::luaNames(lua_State * const vm, char * const buf, ssize_t buf_size) {
+void Host::lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_size) {
   Mac * cur_mac = getMac();
 
   lua_newtable(vm);
@@ -352,60 +352,93 @@ void Host::luaNames(lua_State * const vm, char * const buf, ssize_t buf_size) {
   lua_settable(vm, -3);
 }
 
-/* *************************************** */
+/* ***************************************************** */
 
-void Host::lua(lua_State* vm, AddressTree *ptree,
-	       bool host_details, bool verbose,
-	       bool returnHost, bool asListElement) {
-  char buf[64], buf_id[64], *host_id = buf_id;
-  char ip_buf[64], *ipaddr = NULL;
-  bool mask_host = Utils::maskHost(isLocalHost());
-  Mac *cur_mac = mac; /* Cache macs as they can be swapped/updated */
+void Host::lua_get_ip(lua_State *vm) const {
+  char ip_buf[64];
 
-  if((ptree && (!match(ptree))) || mask_host)
-    return;
+  lua_push_str_table_entry(vm, "ip", ip.print(ip_buf, sizeof(ip_buf)));
+  lua_push_uint64_table_entry(vm, "vlan", get_vlan_id());
+}
 
-#if 0
-  if(1) {
-    char buf[64];
+/* ***************************************************** */
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "********* %s is %s %s [%p]",
-				 ip.print(buf, sizeof(buf)),
-				 isLocalHost()  ? "local" : "remote",
-				 isSystemHost() ? "systemHost" : "", this);
-  }
-#endif
-
-  lua_newtable(vm);
-
-  lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
-  lua_push_uint64_table_entry(vm, "ipkey", ip.key());
-  lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
+void Host::lua_get_localhost_info(lua_State *vm) const {
   lua_push_bool_table_entry(vm, "localhost", isLocalHost());
-  lua_push_uint64_table_entry(vm, "vlan", vlan_id);
-  lua_push_int32_table_entry(vm, "score", alert_score != CONST_NO_SCORE_SET ? alert_score : -1);
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_mac(lua_State *vm) const {
+  char buf[64];
+  /* Cache macs as they can be swapped/updated */
+  Mac *cur_mac = getMac();
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(cur_mac ? cur_mac->get_mac() : NULL, buf, sizeof(buf)));
   lua_push_uint64_table_entry(vm, "devtype", isBroadcastDomainHost() && cur_mac ? cur_mac->getDeviceType() : device_unknown);
-  lua_push_uint64_table_entry(vm, "operatingSystem", getOS());
+}
 
+/* ***************************************************** */
+
+void Host::lua_get_bytes(lua_State *vm) const {
+  lua_push_uint64_table_entry(vm, "bytes.sent", getNumBytesSent());
+  lua_push_uint64_table_entry(vm, "bytes.rcvd", getNumBytesRcvd());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_app_bytes(lua_State *vm, u_int app_id) const {
+  lua_push_uint64_table_entry(vm, "bytes", get_ndpi_stats()->getProtoBytes(app_id));
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_cat_bytes(lua_State *vm, ndpi_protocol_category_t category_id) const {
+  lua_push_uint64_table_entry(vm, "bytes", get_ndpi_stats()->getCategoryBytes(category_id));
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_packets(lua_State *vm) const {
+  lua_push_uint64_table_entry(vm, "packets.sent", getNumPktsSent());
+  lua_push_uint64_table_entry(vm, "packets.rcvd", getNumPktsRcvd());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_as(lua_State *vm) const {
+  const char *asn_n = get_asname();
+
+  lua_push_uint64_table_entry(vm, "asn", get_asn());
+  lua_push_str_table_entry(vm, "asname", asn_n ? asn_n : (char*)"");
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_host_pool(lua_State *vm) const {
+  lua_push_uint64_table_entry(vm, "host_pool_id", get_host_pool());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_score(lua_State *vm) const {
+  lua_push_int32_table_entry(vm, "score", alert_score != CONST_NO_SCORE_SET ? alert_score : -1);
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_os(lua_State *vm) {
+  char buf[64];
+
+  lua_push_int32_table_entry(vm, "os", getOS());
+  lua_push_str_table_entry(vm, "os_detail", getOSDetail(buf, sizeof(buf)));
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_min_info(lua_State *vm) const {
+  lua_push_bool_table_entry(vm, "localhost", isLocalHost());
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
-  lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
-
-  lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "min", getNumTriggeredAlerts(minute_script));
-  lua_push_uint64_table_entry(vm, "5mins", getNumTriggeredAlerts(five_minute_script));
-  lua_push_uint64_table_entry(vm, "hour", getNumTriggeredAlerts(hour_script));
-  lua_push_uint64_table_entry(vm, "day", getNumTriggeredAlerts(day_script));
-    lua_pushstring(vm, "num_triggered_alerts");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
-  lua_push_uint64_table_entry(vm, "num_alerts", triggerAlerts() ? getNumTriggeredAlerts() : 0);
-  lua_push_uint64_table_entry(vm, "active_alerted_flows", triggerAlerts() ? getNumAlertedFlows() : 0);
-
-  lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
-
   lua_push_bool_table_entry(vm, "systemhost", isSystemHost());
   lua_push_bool_table_entry(vm, "broadcast_domain_host", isBroadcastDomainHost());
   lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
@@ -413,14 +446,96 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "is_multicast", ip.isMulticastAddress());
   lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
-  lua_push_uint64_table_entry(vm, "asn", asn);
-  lua_push_uint64_table_entry(vm, "host_pool_id", host_pool_id);
-  lua_push_str_table_entry(vm, "asname", asname ? asname : (char*)"");
-  lua_push_int32_table_entry(vm, "os", getOS());
-  lua_push_str_table_entry(vm, "os_detail", getOSDetail(buf, sizeof(buf)));
+#ifdef NTOPNG_PRO
+  lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
+  lua_push_bool_table_entry(vm, "has_blocking_shaper", has_blocking_shaper);
+#endif
 
-  stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose,host_details));
+  lua_push_bool_table_entry(vm, "drop_all_host_traffic", dropAllTraffic());
+}
 
+/* ***************************************************** */
+
+void Host::lua_get_low_goodput(lua_State *vm) const {
+  lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows.get());
+  lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows.get());
+  lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client.anomaly_index", low_goodput_client_flows.getAnomalyIndex());
+  lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server.anomaly_index", low_goodput_server_flows.getAnomalyIndex());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_geoloc(lua_State *vm) {
+  char *continent = NULL, *country_name = NULL, *city = NULL;
+  float latitude = 0, longitude = 0;
+
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
+  lua_push_str_table_entry(vm,   "continent", continent ? continent : (char*)"");
+  lua_push_str_table_entry(vm,   "country", country_name ? country_name  : (char*)"");
+  lua_push_float_table_entry(vm, "latitude", latitude);
+  lua_push_float_table_entry(vm, "longitude", longitude);
+  lua_push_str_table_entry(vm,   "city", city ? city : (char*)"");
+  ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_syn_flood(lua_State *vm) const {
+  u_int16_t hits;
+
+  if((hits = syn_flood_victim_alert->hits()))
+    lua_push_uint64_table_entry(vm, "hits.syn_flood_victim", hits);
+  if((hits = syn_flood_attacker_alert->hits()))
+    lua_push_uint64_table_entry(vm, "hits.syn_flood_attacker", hits);
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_flow_flood(lua_State *vm) const {
+  u_int16_t hits;
+
+  if((hits = flow_flood_victim_alert->hits()))
+    lua_push_uint64_table_entry(vm, "hits.flow_flood_victim", hits);
+  if((hits = flow_flood_attacker_alert->hits()))
+    lua_push_uint64_table_entry(vm, "hits.flow_flood_attacker", hits);
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_time(lua_State* vm) const {
+  lua_push_uint64_table_entry(vm, "seen.first", get_first_seen());
+  lua_push_uint64_table_entry(vm, "seen.last", get_last_seen());
+  lua_push_uint64_table_entry(vm, "duration", get_duration());
+  lua_push_uint64_table_entry(vm, "total_activity_time", stats->getTotalActivityTime());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_num_alerts(lua_State* vm) const {
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "min", getNumTriggeredAlerts(minute_script));
+  lua_push_uint64_table_entry(vm, "5mins", getNumTriggeredAlerts(five_minute_script));
+  lua_push_uint64_table_entry(vm, "hour", getNumTriggeredAlerts(hour_script));
+  lua_push_uint64_table_entry(vm, "day", getNumTriggeredAlerts(day_script));
+  lua_pushstring(vm, "num_triggered_alerts");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_push_uint64_table_entry(vm, "num_alerts", triggerAlerts() ? getNumTriggeredAlerts() : 0);
+  lua_push_uint64_table_entry(vm, "active_alerted_flows", triggerAlerts() ? getNumAlertedFlows() : 0);
+  lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_num_total_flows(lua_State* vm) const {
+  lua_push_uint64_table_entry(vm, "total_flows.as_client", getTotalNumFlowsAsClient());
+  lua_push_uint64_table_entry(vm, "total_flows.as_server", getTotalNumFlowsAsServer());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "active_flows.as_client", getNumOutgoingFlows());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
   lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
@@ -431,21 +546,71 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_num_contacts(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "contacts.as_client", getNumActiveContactsAsClient());
   lua_push_uint64_table_entry(vm, "contacts.as_server", getNumActiveContactsAsServer());
-  lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_num_http_hosts(lua_State* vm) const {
+  lua_push_uint64_table_entry(vm, "active_http_hosts", getActiveHTTPHosts());
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_fingerprints(lua_State* vm) {
+  fingerprints.ja3.lua("ja3_fingerprint", vm);
+  fingerprints.hassh.lua("hassh_fingerprint", vm);
+}
+
+/* ***************************************************** */
+
+void Host::lua(lua_State* vm, AddressTree *ptree,
+	       bool host_details, bool verbose,
+	       bool returnHost, bool asListElement) {
+  char buf[64], buf_id[64], *host_id = buf_id;
+  char ip_buf[64], *ipaddr = NULL;
+  bool mask_host = Utils::maskHost(isLocalHost());
+
+
+  if((ptree && (!match(ptree))) || mask_host)
+    return;
+
+  lua_newtable(vm);
+
+  lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
+  lua_push_uint64_table_entry(vm, "vlan", vlan_id);
+  lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
+
+  lua_push_uint64_table_entry(vm, "ipkey", ip.key());
+  lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
+
+  lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
+
+  lua_get_min_info(vm);
+  lua_get_mac(vm);
+
+  lua_get_num_alerts(vm);
+  lua_get_score(vm);
+
+  lua_get_as(vm);
+  lua_get_os(vm);
+  lua_get_host_pool(vm);
+
+  stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose,host_details));
+
+  lua_get_num_flows(vm);
+  lua_get_num_contacts(vm);
+  lua_get_num_http_hosts(vm);
 
   luaDNS(vm);
   luaTCP(vm);
   luaICMP(vm, get_ip()->isIPv4(), false);
-
-#ifdef NTOPNG_PRO
-  lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
-  lua_push_bool_table_entry(vm, "has_blocking_shaper", has_blocking_shaper);
-#endif
-
-  lua_push_bool_table_entry(vm, "drop_all_host_traffic", dropAllTraffic());
-  lua_push_uint64_table_entry(vm, "active_http_hosts", getActiveHTTPHosts());
 
   if(host_details) {
     /*
@@ -462,53 +627,29 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   }
 
   if(host_details) {
-    char *continent = NULL, *country_name = NULL, *city = NULL;
-    float latitude = 0, longitude = 0;
-    u_int16_t hits;
-
     /* ifid is useful for example for view interfaces to detemine
        the actual, original interface the host is associated to. */
     lua_push_uint64_table_entry(vm, "ifid", iface->get_id());
     if(!mask_host)
       luaStrTableEntryLocked(vm, "info", mdns_info); /* locked to protect against data-reset changes */
 
-    luaNames(vm, buf, sizeof(buf));
+    lua_get_names(vm, buf, sizeof(buf));
 
-    ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
-    lua_push_str_table_entry(vm,   "continent", continent ? continent : (char*)"");
-    lua_push_str_table_entry(vm,   "country", country_name ? country_name  : (char*)"");
-    lua_push_float_table_entry(vm, "latitude", latitude);
-    lua_push_float_table_entry(vm, "longitude", longitude);
-    lua_push_str_table_entry(vm,   "city", city ? city : (char*)"");
-    ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
+    lua_get_geoloc(vm);
+    lua_get_low_goodput(vm);
 
-    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows.get());
-    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows.get());
-    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client.anomaly_index", low_goodput_client_flows.getAnomalyIndex());
-    lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server.anomaly_index", low_goodput_server_flows.getAnomalyIndex());
-
-    if((hits = syn_flood_victim_alert->hits()))
-      lua_push_uint64_table_entry(vm, "hits.syn_flood_victim", hits);
-    if((hits = syn_flood_attacker_alert->hits()))
-      lua_push_uint64_table_entry(vm, "hits.syn_flood_attacker", hits);
-    if((hits = flow_flood_victim_alert->hits()))
-      lua_push_uint64_table_entry(vm, "hits.flow_flood_victim", hits);
-    if((hits = flow_flood_attacker_alert->hits()))
-      lua_push_uint64_table_entry(vm, "hits.flow_flood_attacker", hits);
+    lua_get_syn_flood(vm);
+    lua_get_flow_flood(vm);
   }
 
-  lua_push_uint64_table_entry(vm, "seen.first", first_seen);
-  lua_push_uint64_table_entry(vm, "seen.last", last_seen);
-  lua_push_uint64_table_entry(vm, "duration", get_duration());
+  lua_get_time(vm);
+
   lua_push_bool_table_entry(vm, "has_dropbox_shares", dropbox_namespaces.size() > 0 ? true : false);
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
-
-  fingerprints.ja3.lua("ja3_fingerprint", vm);
-  fingerprints.hassh.lua("hassh_fingerprint", vm);
+  lua_get_fingerprints(vm);
 
   if(verbose) {
-    if(hasAnomalies()) luaAnomalies(vm);
+    if(hasAnomalies()) lua_get_anomalies(vm);
   }
 
   if(!returnHost)

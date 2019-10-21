@@ -24,7 +24,9 @@ local script = {
 -- #################################################################
 
 function script.get_threshold_value(granularity, info)
-  return alerts_api.host_delta_val(script.key, granularity, info["bytes.sent"] + info["bytes.rcvd"])
+  local host_bytes = host.getBytes()
+
+  return alerts_api.host_delta_val(script.key, granularity, host_bytes["bytes.sent"] + host_bytes["bytes.rcvd"])
 end
 
 -- #################################################################

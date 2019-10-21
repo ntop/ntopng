@@ -18,13 +18,17 @@ local script = {
     i18n_description = "alerts_thresholds_config.alert_dns_description",
     i18n_field_unit = user_scripts.field_units.bytes,
     input_builder = user_scripts.threshold_cross_input_builder,
+  },
+
+  env = {
+     dns_app_id = interface.getnDPIProtoId("DNS")
   }
 }
 
 -- #################################################################
 
 function script.get_threshold_value(granularity, info)
-  return alerts_api.host_delta_val(script.key, granularity, alerts_api.application_bytes(info, "DNS"))
+  return alerts_api.host_delta_val(script.key, granularity, host.getApplicationBytes(script.env.dns_app_id)["bytes"])
 end
 
 -- #################################################################

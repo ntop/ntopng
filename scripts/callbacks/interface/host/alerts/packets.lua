@@ -24,7 +24,9 @@ local script = {
 -- #################################################################
 
 function script.get_threshold_value(granularity, info)
-  return alerts_api.host_delta_val(script.key, granularity, info["packets.sent"] + info["packets.rcvd"])
+  local num_packets = host.getPackets()
+
+  return alerts_api.host_delta_val(script.key, granularity, num_packets["packets.sent"] + num_packets["packets.rcvd"])
 end
 
 -- #################################################################
