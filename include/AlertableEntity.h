@@ -41,13 +41,15 @@ protected:
     - it can be called by the alert engine
   */
   std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
-  std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS],
-  /* Read-only and shadow copy of the triggered alerts (that as usually empty/NULL) */
-    *rx_triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS], *shadow_rx_triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
+  std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
+  RwLock *locks[MAX_NUM_PERIODIC_SCRIPTS];
   u_int num_triggered_alerts;
-  bool force_shadow_refresh;
   bool suppressed_alerts;
 
+  RwLock* getLock(ScriptPeriodicity p);
+  void rdLock(ScriptPeriodicity p, const char *filename, int line);
+  void wrLock(ScriptPeriodicity p, const char *filename, int line);
+  void unlock(ScriptPeriodicity p, const char *filename, int line);
   void syncReadonlyTriggeredAlerts();
   void updateNumTriggeredAlerts();
   void getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
@@ -90,17 +92,14 @@ public:
 		    ScriptPeriodicity p, time_t now);
 
   void refreshSuppressedAlert();
-  void luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p);
+  void luaAlert(lua_State* vm, const Alert *alert, ScriptPeriodicity p) const;
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, ScriptPeriodicity p, AlertType type_filter,
 		 AlertLevel severity_filter, u_int *idx);
 
   /* This must be called once per script and updates what the user see on the gui. */
   inline void refreshAlerts() {
-    if(force_shadow_refresh) {
-      syncReadonlyTriggeredAlerts();
-      force_shadow_refresh = false;
-    }
+    syncReadonlyTriggeredAlerts();
   }
 };
 

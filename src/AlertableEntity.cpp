@@ -25,10 +25,10 @@
 
 AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
   alert_iface = iface;
-  entity_type = entity, num_triggered_alerts = 0, force_shadow_refresh = false;
+  entity_type = entity, num_triggered_alerts = 0;
 
-  for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
-    rx_triggered_alerts[i] = NULL, shadow_rx_triggered_alerts[i] = NULL;
+  for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++)
+    locks[i] = NULL;
 
   suppressed_alerts = false;
   refreshSuppressedAlert();
@@ -37,18 +37,55 @@ AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
 /* ****************************************** */
 
 AlertableEntity::~AlertableEntity() {
-  for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++) {
-    if(rx_triggered_alerts[i])
-      delete rx_triggered_alerts[i];
-
-    if(shadow_rx_triggered_alerts[i])
-      delete shadow_rx_triggered_alerts[i];
+  for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++) {
+    if(locks[i])
+      delete locks[i];
   }
 }
 
 /* ****************************************** */
 
-void AlertableEntity::luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p) {
+RwLock* AlertableEntity::getLock(ScriptPeriodicity p) {
+  try {
+    if(locks[(u_int)p] || (locks[(u_int)p] = new RwLock()))
+      return locks[(u_int)p];
+  } catch(std::bad_alloc& ba) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Memory allocation error");
+  }
+
+  return NULL;
+}
+
+/* ****************************************** */
+
+void AlertableEntity::rdLock(ScriptPeriodicity p, const char *filename, int line) {
+  RwLock *rwl;
+
+  if((rwl = getLock(p)))
+    rwl->rdlock(filename, line);
+}
+
+/* ****************************************** */
+
+void AlertableEntity::wrLock(ScriptPeriodicity p, const char *filename, int line) {
+  RwLock *rwl;
+
+  if((rwl = getLock(p)))
+    rwl->wrlock(filename, line);
+}
+
+/* ****************************************** */
+
+void AlertableEntity::unlock(ScriptPeriodicity p, const char *filename, int line) {
+  RwLock *rwl;
+
+  if((rwl = getLock(p)))
+    rwl->unlock(filename, line);
+}
+
+/* ****************************************** */
+
+void AlertableEntity::luaAlert(lua_State* vm, const Alert *alert, ScriptPeriodicity p) const {
   /* NOTE: must conform to the AlertsManager format */
   lua_push_int32_table_entry(vm,  "alert_type", alert->alert_type);
   lua_push_str_table_entry(vm,    "alert_subtype", alert->alert_subtype.c_str());
@@ -63,7 +100,9 @@ void AlertableEntity::luaAlert(lua_State* vm, Alert *alert, ScriptPeriodicity p)
 
 /* ****************************************** */
 
-/* Return true if the element was inserted, false if already present */
+/* Return true if the element was inserted, false if already present.
+   NOTE: given a ScriptPeriodicity p, only one thread at time can perform
+   a triggerAlert. */
 bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
 				   ScriptPeriodicity p, time_t now,
 				   AlertLevel alert_severity, AlertType alert_type,
@@ -71,47 +110,35 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
 				   const char *alert_json,
 				   bool alert_disabled) {
   bool rv = false;
-  std::map<std::string, Alert>::iterator it = triggered_alerts[(u_int)p].find(key);
-  
+  std::map<std::string, Alert>::iterator it;
+
   if(entity_val.empty()) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "setEntityValue() not called or empty entity_val");
-  } else if(it != triggered_alerts[(u_int)p].end()) {
-    it->second.last_update = now;
+  } else {
+    wrLock(p, __FILE__, __LINE__);
 
-    if(it->second.is_disabled && !alert_disabled) {
-      /* Alert was not accounted but now enabled, so increase count */
-      it->second.is_disabled = false;
+    it = triggered_alerts[(u_int)p].find(key);
+
+    if(it == triggered_alerts[(u_int)p].end()) {
+      Alert alert;
+
+      alert.alert_tstamp_start = alert.last_update = now;
+      alert.alert_severity = alert_severity;
+      alert.alert_type = alert_type;
+      alert.alert_subtype = alert_subtype;
+      alert.alert_json = alert_json;
+
       alert_iface->incNumAlertsEngaged(p);
-      force_shadow_refresh = true;
-    } else if(!it->second.is_disabled && alert_disabled) {
-      /* Alert was accounted but is now disabled, so decresase count */
-      it->second.is_disabled = true;
-      alert_iface->decNumAlertsEngaged(p);
-      force_shadow_refresh = true;
+
+      triggered_alerts[(u_int)p][key] = alert;
+
+      lua_newtable(vm);
+      luaAlert(vm, &alert, p);
+
+      rv = true; /* Actually inserted */
     }
 
-    /* already present */
-  } else {
-    Alert alert;
-
-    alert.alert_tstamp_start = alert.last_update = now;
-    alert.alert_severity = alert_severity;
-    alert.alert_type = alert_type;
-    alert.alert_subtype = alert_subtype;
-    alert.alert_json = alert_json;
-
-    /* NOTE: keeping track of disabled alerts state is necessary to
-     * correctly increment disabled alerts counters */
-    alert.is_disabled = alert_disabled;
-
-    if(!alert_disabled)
-      alert_iface->incNumAlertsEngaged(p);
-
-    triggered_alerts[(u_int)p][key] = alert;
-    force_shadow_refresh = true, rv = true; /* inserted */
-
-    lua_newtable(vm);
-    luaAlert(vm, &alert, p);
+    unlock(p, __FILE__, __LINE__);
   }
 
   if(!rv)
@@ -124,30 +151,35 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
 
 bool AlertableEntity::releaseAlert(lua_State* vm,
 				   std::string key, ScriptPeriodicity p, time_t now) {
-  std::map<std::string, Alert>::iterator it = triggered_alerts[(u_int)p].find(key);
+  std::map<std::string, Alert>::iterator it;
   bool rv = false;
-  
-  if(it == triggered_alerts[(u_int)p].end()) {
-    lua_pushnil(vm);
-    return(rv);
+
+  if(triggered_alerts[(u_int)p].size() > 0) {
+    wrLock(p, __FILE__, __LINE__);
+
+    it = triggered_alerts[(u_int)p].find(key);
+
+    if(it != triggered_alerts[(u_int)p].end()) {
+      /* Set the release time */
+      it->second.last_update = now;
+
+      /* Found, push the alert */
+      lua_newtable(vm);
+      luaAlert(vm, &it->second, p);
+
+      alert_iface->decNumAlertsEngaged(p);
+
+      triggered_alerts[(u_int)p].erase(it);
+
+      rv = true; /* Actually released */
+    }
+
+    unlock(p, __FILE__, __LINE__);
   }
 
-  if(!it->second.is_disabled) {
-    /* Set the release time */
-    it->second.last_update = now;
-
-    /* Found, push the alert */
-    lua_newtable(vm);
-    luaAlert(vm, &it->second, p);
-
-    alert_iface->decNumAlertsEngaged(p);
-    rv = true;
-  } else
+  if(!rv)
     lua_pushnil(vm);
 
-  triggered_alerts[(u_int)p].erase(it);
-  force_shadow_refresh = true;
-  
   return(rv);
 }
 
@@ -166,19 +198,22 @@ void AlertableEntity::updateNumTriggeredAlerts() {
 /* ****************************************** */
 
 void AlertableEntity::countAlerts(grouped_alerts_counters *counters) {
-  int p;
-  std::map<std::string, Alert>::iterator it;
+  std::map<std::string, Alert>::const_iterator it;
 
-  for(p = 0; p<MAX_NUM_PERIODIC_SCRIPTS; p++) {
-    if(rx_triggered_alerts[p] != NULL) {
-      for(it = rx_triggered_alerts[p]->begin(); it != rx_triggered_alerts[p]->end(); ++it) {
-	Alert *alert = &it->second;
+  for(int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++) {
+    ScriptPeriodicity p = (ScriptPeriodicity)i;
+
+    if(triggered_alerts[p].size() > 0) {
+      rdLock(p, __FILE__, __LINE__);
+
+      for(it = triggered_alerts[p].begin(); it != triggered_alerts[p].end(); ++it) {
+	const Alert *alert = &it->second;
 	
-	if(!alert->is_disabled) {
-	  counters->severities[alert->alert_severity]++;
-	  counters->types[alert->alert_type]++;
-	}
+	counters->severities[alert->alert_severity]++;
+	counters->types[alert->alert_type]++;
       }
+
+      unlock(p, __FILE__, __LINE__);
     }
   }
 }
@@ -187,42 +222,33 @@ void AlertableEntity::countAlerts(grouped_alerts_counters *counters) {
 
 void AlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
 				AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
-  std::map<std::string, Alert>::iterator it;
-  std::map<std::string, Alert> *rx_copy = rx_triggered_alerts[p];
+  std::map<std::string, Alert>::const_iterator it;
 
-  /* NOTE
-     Use rx_copy and not rx_triggered_alerts[p] as it might change overtime
-     due to syncReadonlyTriggeredAlerts()
-  */
+  if(triggered_alerts[p].size() > 0) {
+    rdLock(p, __FILE__, __LINE__);
 
-  if(rx_copy != NULL) {
-    for(it = rx_copy->begin(); it != rx_copy->end(); ++it) {
-      Alert *alert = &it->second;
+    for(it = triggered_alerts[p].begin(); it != triggered_alerts[p].end(); ++it) {
+      const Alert *alert = &it->second;
 
-      if(!alert->is_disabled) {
-        if(((type_filter == alert_none)
-            || (type_filter == alert->alert_type))
-           && ((severity_filter == alert_level_none)
-         || (severity_filter == alert->alert_severity))) {
-          lua_newtable(vm);
-          luaAlert(vm, alert, (ScriptPeriodicity)p);
+      if(((type_filter == alert_none)
+	  || (type_filter == alert->alert_type))
+	 && ((severity_filter == alert_level_none)
+	     || (severity_filter == alert->alert_severity))) {
+	lua_newtable(vm);
+	luaAlert(vm, alert, (ScriptPeriodicity)p);
 
-          lua_pushinteger(vm, ++(*idx));
-          lua_insert(vm, -2);
-          lua_settable(vm, -3);
-        }
+	lua_pushinteger(vm, ++(*idx));
+	lua_insert(vm, -2);
+	lua_settable(vm, -3);
       }
     }
+
+    unlock(p, __FILE__, __LINE__);
   }
 }
 
 /* ****************************************** */
 
-/*
-  IMPORTANT
-   as this method is called by the GUI/periodic scripts while triggered_alerts[] might be manipulated
-   by periodic scrits, it uses rx_triggered_alerts instead of triggered_alerts
-*/
 void AlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity periodicity_filter,
 				AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
   if(periodicity_filter != no_periodicity) {
@@ -231,61 +257,20 @@ void AlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity periodicity_fil
   } else {
     int p;
 
-    for(p = 0; p<MAX_NUM_PERIODIC_SCRIPTS; p++)
+    for(p = 0; p < MAX_NUM_PERIODIC_SCRIPTS; p++)
       getPeriodicityAlerts(vm, (ScriptPeriodicity)p, type_filter, severity_filter, idx);
   }
 }
 
 /* ****************************************** */
 
-/*
-  IMPORTANT
-   as this method is called by the GUI while triggered_alerts[] might be manipulated
-   by periodic scrits, it uses rx_triggered_alerts instead of triggered_alerts
-*/
 u_int AlertableEntity::getNumTriggeredAlerts(ScriptPeriodicity p) const {
-  std::map<std::string, Alert>::iterator it;
-  u_int ctr = 0;
-  std::map<std::string, Alert> *rx_copy = rx_triggered_alerts[p];
-  
-  /* NOTE
-     Use rx_copy and not rx_triggered_alerts[p] as it might change overtime
-     due to syncReadonlyTriggeredAlerts()
-  */
-  if(rx_copy != NULL) {    
-    for(it = rx_copy->begin(); it != rx_copy->end(); ++it) {
-      if(!it->second.is_disabled)
-	ctr++;
-    }
-  }
-  
-  return(ctr);
+  return triggered_alerts[p].size();
 }
 
 /* ****************************************** */
 
 void AlertableEntity::syncReadonlyTriggeredAlerts() {
-  for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++) {
-    std::map<std::string, Alert> *cpy;
-    std::map<std::string, Alert>::iterator it;
-    
-    try {
-      cpy = new std::map<std::string, Alert>();
-      
-      if(shadow_rx_triggered_alerts[i] != NULL)
-	delete shadow_rx_triggered_alerts[i];
-      
-      shadow_rx_triggered_alerts[i] = rx_triggered_alerts[i];
-      
-      for(it = triggered_alerts[i].begin(); it != triggered_alerts[i].end(); ++it)
-	(*cpy)[it->first] = Alert(it->second);
-      
-      rx_triggered_alerts[i] = cpy;
-    } catch(std::bad_alloc& ba) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Memory allocation error");  
-    }
-  }
-
   updateNumTriggeredAlerts();
 }
 
