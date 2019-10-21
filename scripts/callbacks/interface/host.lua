@@ -131,7 +131,12 @@ function checkAlerts(granularity)
     end
   end
 
-  alerts_api.releaseEntityAlerts(entity_info, host.getExpiredAlerts(granularity2id(granularity)))
+  -- cur_alerts now contains unprocessed triggered alerts, that is,
+  -- those alerts triggered but then disabled or unconfigured (e.g., when
+  -- the user removes a threshold from the gui)
+  if #cur_alerts > 0 then
+     alerts_api.releaseEntityAlerts(entity_info, cur_alerts)
+  end
 end
 
 -- #################################################################

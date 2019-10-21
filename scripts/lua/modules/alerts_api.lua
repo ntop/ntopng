@@ -298,11 +298,18 @@ local function already_triggered(candidate_alert, cur_alerts)
    local candidate_granularity = candidate_alert.alert_granularity.granularity_seconds
    local candidate_alert_subtype = candidate_alert.alert_subtype
 
-   for _, cur_alert in pairs(cur_alerts) do
+   for i = #cur_alerts, 1, -1 do
+      local cur_alert = cur_alerts[i]
+
       if candidate_severity == cur_alert.alert_severity
 	 and candidate_type == cur_alert.alert_type
 	 and candidate_granularity == cur_alert.alert_granularity
-	 and candidate_alert_subtype == cur_alert.alert_subtype then
+         and candidate_alert_subtype == cur_alert.alert_subtype then
+	    -- Remove from cur_alerts, this will save cycles for
+	    -- subsequent calls of this method.
+	    -- Using .remove is OK here as there won't unnecessarily move memory multiple times:
+	    -- we return immeediately
+	    table.remove(cur_alerts, i)
 	    return true
       end
    end
