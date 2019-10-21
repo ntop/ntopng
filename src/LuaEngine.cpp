@@ -9519,7 +9519,7 @@ static int ntop_interface_optimize_alerts(lua_State* vm) {
   if(!iface || !(am = iface->getAlertsManager()))
     return(CONST_LUA_ERROR);
 
-  if(am->optimizeStore());
+  if(am->optimizeStore())
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);

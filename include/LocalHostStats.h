@@ -69,7 +69,7 @@ class LocalHostStats: public HostStats {
   virtual void tsLua(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
-  virtual HTTPstats* getHTTPstats() { return(http); };
+  virtual HTTPstats* getHTTPstats() const { return(http); };
   virtual u_int16_t getNumActiveContactsAsClient() { return contacts_as_cli.size(); }
   virtual u_int16_t getNumActiveContactsAsServer() { return contacts_as_srv.size(); }
 };
