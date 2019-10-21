@@ -188,11 +188,15 @@ end
 
 function tolongint(what)
    if(what == nil) then
-      return(0)
+      return("0")
    elseif(what ~= what) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Trying to convert NaN to integer")
       traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
-      return(0)
+      return("0")
+   elseif(what == math.huge) then
+     traceError(TRACE_ERROR, TRACE_CONSOLE, "Trying to convert inf to integer")
+     traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
+     return("0")
    else
       return(string.format("%u", math.floor(what)))
    end
