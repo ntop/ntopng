@@ -49,14 +49,15 @@ function checkAlerts(granularity)
       return
    end
 
+   local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
    local suppressed_alerts = interface.hasAlertsSuppressed()
 
    if suppressed_alerts then
-      releaseAlerts(granularity)
+      releaseAlerts(granularity_id)
    end
 
    local info = interface.getStats()
-   local cur_alerts = interface.getAlerts(granularity)
+   local cur_alerts = interface.getAlerts(granularity_id)
    local ifid = interface.getId()
    local interface_key   = "iface_"..ifid
    local interface_config = config_alerts[interface_key] or {}

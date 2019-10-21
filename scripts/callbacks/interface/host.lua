@@ -85,15 +85,16 @@ function checkAlerts(granularity)
     return
   end
 
+  local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
   local suppressed_alerts = host.hasAlertsSuppressed()
 
   if suppressed_alerts then
-     releaseAlerts(granularity)
+     releaseAlerts(granularity_id)
   end
 
   benchmark_begin()
   local host_ip = host.getIp()
-  local cur_alerts = host.getAlerts(granularity)
+  local cur_alerts = host.getAlerts(granularity_id)
   local is_localhost = host.getLocalhostInfo()["localhost"]
   benchmark_end()
 

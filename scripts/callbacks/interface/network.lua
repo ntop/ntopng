@@ -49,14 +49,15 @@ function checkAlerts(granularity)
       return
    end
 
+   local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
    local suppressed_alerts = network.hasAlertsSuppressed()
 
    if suppressed_alerts then
-      releaseAlerts(granularity)
+      releaseAlerts(granularity_id)
    end
 
    local info = network.getNetworkStats()
-   local cur_alerts = network.getAlerts(granularity)
+   local cur_alerts = network.getAlerts(granularity_id)
    local network_key = info and info.network_key
    if not network_key then return end
 
