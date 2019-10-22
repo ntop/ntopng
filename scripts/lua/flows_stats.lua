@@ -259,23 +259,6 @@ print[[
          field: "column_server",
          sortable: true,
       }, {
-]]
-
---if ifstats.has_seen_ebpf_events then
-if false then
-  print[[
-         title: "]] print(i18n("sflows_stats.client_process")) print[[",
-         field: "column_client_process",
-         sortable: false,
-      }, {
-         title: "]] print(i18n("sflows_stats.server_process")) print[[",
-         field: "column_server_process",
-         sortable: false,
-      }, {
-]]
-end
-
-print[[
          title: "]] print(i18n("duration")) print[[",
          field: "column_duration",
          sortable: true,

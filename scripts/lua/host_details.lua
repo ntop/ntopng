@@ -1655,36 +1655,38 @@ if(preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 
-print [[
-	        columns: [
-           {
-        title: "Key",
+print[[
+   columns: [
+      {
+         title: "",
          field: "key",
-         hidden: true
-         },
-			     {
-			     title: "",
-				 field: "column_key",
-	 	             css: {
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-                             title: "]] print(i18n("application")) print[[",
-				 field: "column_ndpi",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "]] print(i18n("protocol")) print[[",
-				 field: "column_proto_l4",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			     }
-				 },]]
+         hidden: true,
+      }, {
+         title: "",
+         field: "hash_id",
+         hidden: true,
+      }, {
+         title: "",
+         field: "column_key",
+         css: {
+            textAlign: 'center'
+         }
+      }, {
+         title: "]] print(i18n("application")) print[[",
+         field: "column_ndpi",
+         sortable: true,
+         css: {
+            textAlign: 'center'
+         }
+      }, {
+         title: "]] print(i18n("protocol")) print[[",
+         field: "column_proto_l4",
+         sortable: true,
+         css: {
+            textAlign: 'center'
+         }
+      },
+]]
 
 if(show_vlan) then
    print('{ title: "'..i18n("vlan")..'",\n')
@@ -1699,59 +1701,59 @@ if(show_vlan) then
 ]]
 end
 print [[
-			     {
-			     title: "]] print(i18n("client")) print[[",
-				 field: "column_client",
-				 sortable: true,
-				 },
-			     {
-			     title: "]] print(i18n("server")) print[[",
-				 field: "column_server",
-				 sortable: true,
-				 },
-			     {
+                             {
+                             title: "]] print(i18n("client")) print[[",
+                                 field: "column_client",
+                                 sortable: true,
+                                 },
+                             {
+                             title: "]] print(i18n("server")) print[[",
+                                 field: "column_server",
+                                 sortable: true,
+                                 },
+                             {
                              title: "]] print(i18n("duration")) print[[",
-				 field: "column_duration",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			       }
-			       },
-			     {
+                                 field: "column_duration",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'center'
+                               }
+                               },
+                             {
                              title: "]] print(i18n("breakdown")) print[[",
-				 field: "column_breakdown",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			       }
-			       },
-			     {
-			     title: "]] print(i18n("flows_page.actual_throughput")) print[[",
-				 field: "column_thpt",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
-			     }
-				 },
-			     {
+                                 field: "column_breakdown",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'center'
+                               }
+                               },
+                             {
+                             title: "]] print(i18n("flows_page.actual_throughput")) print[[",
+                                 field: "column_thpt",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'right'
+                             }
+                                 },
+                             {
                              title: "]] print(i18n("flows_page.total_bytes")) print[[",
-				 field: "column_bytes",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
-			     }
+                                 field: "column_bytes",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'right'
+                             }
 
-				 }
-			     ,{
+                                 }
+                             ,{
                              title: "]] print(i18n("info")) print[[",
-				 field: "column_info",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'left'
-			     }
-				 }
-			     ]
-	       });
+                                 field: "column_info",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'left'
+                             }
+                                 }
+                             ]
+               });
 ]]
 
 if(have_nedge) then
