@@ -19,7 +19,7 @@ local code_2_version = {
 -- #################################################################
 
 local function formatStatus(status, flowstatus_info)
-  local msg = i18n("flow_details.ssl_unsafe_ciphers")
+  local msg = i18n("flow_details.ssl_old_protocol_version")
 
   if(flowstatus_info and flowstatus_info.ssl_version) then
     local ver_str = code_2_version[flowstatus_info.ssl_version]
