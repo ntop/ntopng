@@ -66,19 +66,6 @@ if _GET["ifid"] then
 end
 
 local ifid = interface.getId()
-local entity_counters = {}
-
-local function getEntityAlertCounters(entity, entity_val)
-  if((entity_counters[entity] ~= nil) and (entity_counters[entity][entity_val] ~= nil)) then
-    return entity_counters[entity][entity_val]
-  end
-
-  local counters = alerts_api.getEntityDisabledAlertsCounters(ifid, entity, entity_val)
-  entity_counters[entity] = entity_counters[entity] or {}
-  entity_counters[entity][entity_val] = counters
-
-  return(counters)
-end
 
 -- ##############################################
 
@@ -101,13 +88,10 @@ for entity_id, values in pairsByKeys(entitites) do
           entity_id = entity_id,
           entity_value = entity_value,
           alert = alert,
-          count = getEntityAlertCounters(entity_id, entity_value)[alert.alert_id] or 0
         }
 
         if sortColumn == "column_type" then
           sort_to_key[idx] = alert.alert_id
-        elseif sortColumn == "column_count" then
-          sort_to_key[idx] = data[idx].count
         else -- default
           sort_to_key[idx] = data[idx].entity_formatted
         end
@@ -132,7 +116,6 @@ for key in pairsByValues(sort_to_key, sOrder) do
     res[#res + 1] = {
       column_entity_formatted = firstToUpper(formatAlertEntity(ifid, alertEntityRaw(item.entity_id), item.entity_value)),
       column_type = alertTypeLabel(item.alert.alert_id),
-      column_count = item.count,
       column_entity_id = item.entity_id,
       column_entity_val = item.entity_value,
       column_type_id = item.alert.alert_id,

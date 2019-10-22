@@ -86,8 +86,7 @@ public:
 		    ScriptPeriodicity p, time_t now,
 		    AlertLevel alert_severity, AlertType alert_type,
 		    const char *alert_subtype,
-		    const char *alert_json,
-		    bool alert_disabled);
+		    const char *alert_json);
   bool releaseAlert(lua_State* vm, std::string key,
 		    ScriptPeriodicity p, time_t now);
 

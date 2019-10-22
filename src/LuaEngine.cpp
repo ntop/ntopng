@@ -9265,7 +9265,7 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable,
   AlertLevel alert_severity;
   AlertType alert_type;
   Host *host;
-  bool triggered, alert_disabled;
+  bool triggered;
 
   if(!alertable || !c->iface) return(CONST_LUA_PARAM_ERROR);
 
@@ -9287,13 +9287,10 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable,
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((alert_json = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_disabled = lua_toboolean(vm, idx++);
-
   triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
-    alert_severity, alert_type, alert_subtype, alert_json, alert_disabled);
+    alert_severity, alert_type, alert_subtype, alert_json);
 
-  if(triggered && !alert_disabled && (host = dynamic_cast<Host*>(alertable)))
+  if(triggered && (host = dynamic_cast<Host*>(alertable)))
     host->incTotalAlerts(alert_type);
 
   return(CONST_LUA_OK);

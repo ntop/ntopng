@@ -1557,21 +1557,13 @@ local function printDisabledAlerts(ifid)
           whiteSpace: 'nowrap',
 	    }
 	 },{
-	    title: "]]print(i18n("show_alerts.num_ignored_alerts"))print[[",
-	    field: "column_count",
-            sortable: true,
-	    css: {
-	       textAlign: 'center',
-          whiteSpace: 'nowrap',
-	    }
-	 },{
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
 	    css: {
 	       textAlign: 'center',
 	    }
 	 }], tableCallback: function() {
         datatableForEachRow("#table-disabled-alerts", function(row_id) {
-           datatableAddActionButtonCallback.bind(this)(4, "prepareToggleAlertsDialog('table-disabled-alerts',"+ row_id +"); $('#enable_alert_type').modal('show');", "]] print(i18n("show_alerts.enable_alerts")) print[[");
+           datatableAddActionButtonCallback.bind(this)(3, "prepareToggleAlertsDialog('table-disabled-alerts',"+ row_id +"); $('#enable_alert_type').modal('show');", "]] print(i18n("show_alerts.enable_alerts")) print[[");
         })
        }
   });

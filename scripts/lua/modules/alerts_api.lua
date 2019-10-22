@@ -50,65 +50,6 @@ end
 
 -- ##############################################
 
-local function getEntityDisabledAlertsCountersKey(ifid, entity, entity_val)
-  return(string.format("ntopng.cache.alerts.ifid_%d.%d_%s", ifid, entity, entity_val))
-end
-
-local function incDisabledAlertsCount(ifid, granularity_id, entity, entity_val, alert_type)
-  local key = getEntityDisabledAlertsCountersKey(ifid, entity, entity_val)
-
-  -- NOTE: using separate keys based on granularity to avoid concurrency issues
-  counter_key = string.format("%d_%d", granularity_id, alert_type)
-
-  local val = tonumber(ntop.getHashCache(key, counter_key)) or 0
-  val = val + 1
-  ntop.setHashCache(key, counter_key, string.format("%d", val))
-  return(val)
-end
-
--- ##############################################
-
-local function deleteEntityDisabledAlertsCountersKey(ifid, entity, entity_val, target_type)
-  local key = getEntityDisabledAlertsCountersKey(ifid, entity, entity_val)
-  local entity_counters = ntop.getHashAllCache(key) or {}
-
-  for what, counter in pairs(entity_counters) do
-    local parts = string.split(what, "_")
-
-    if((parts) and (#parts == 2)) then
-      local alert_type = tonumber(parts[2])
-
-      if(alert_type == target_type) then
-        ntop.delHashCache(key, what)
-      end
-    end
-  end
-end
-
--- ##############################################
-
-function alerts_api.getEntityDisabledAlertsCounters(ifid, entity, entity_val)
-  local key = getEntityDisabledAlertsCountersKey(ifid, entity, entity_val)
-  local entity_counters = ntop.getHashAllCache(key) or {}
-  local by_alert_type = {}
-
-  for what, counter in pairs(entity_counters) do
-    local parts = string.split(what, "_")
-
-    if((parts) and (#parts == 2)) then
-      local granularity_id = tonumber(parts[1])
-      local alert_type = tonumber(parts[2])
-
-      by_alert_type[alert_type] = by_alert_type[alert_type] or 0
-      by_alert_type[alert_type] = by_alert_type[alert_type] + counter
-    end
-  end
-
-  return(by_alert_type)
-end
-
--- ##############################################
-
 local function get_alert_triggered_key(type_info)
   return(string.format("%d@%s", type_info.alert_type.alert_id, type_info.alert_subtype or ""))
 end
@@ -207,7 +148,6 @@ function alerts_api.store(entity_info, type_info, when)
   end
 
   if alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id) then
-    incDisabledAlertsCount(ifid, granularity_id, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
     return(false)
   end
 
@@ -328,12 +268,20 @@ end
 --! @note The actual trigger is performed asynchronously
 --! @note false is also returned if an existing alert is found and refreshed
 function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
+  local ifid = interface.getId()
+  local is_disabled = alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
+
+  -- Check if the alerts has been disabled and, in case return, before checking already_triggered,
+  -- so that the alert will be automatically released during the next check.
+  if is_disabled then
+     return(true)
+  end
+
   if already_triggered(type_info, cur_alerts) == true then
      return(true)
   end
 
   when = when or os.time()
-  local ifid = interface.getId()
 
   if(not areAlertsEnabled()) then
     return(false)
@@ -348,14 +296,13 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
   local subtype = type_info.alert_subtype or ""
   local alert_json = json.encode(type_info.alert_type_params)
-  local is_disabled = alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
   local triggered
   local alert_key_name = get_alert_triggered_key(type_info)
 
   local params = {
     alert_key_name, granularity_id,
     type_info.alert_severity.severity_id, type_info.alert_type.alert_id,
-    subtype, alert_json, is_disabled
+    subtype, alert_json,
   }
 
   if(entity_info.alert_entity.entity_id == alertEntity("host")) then
@@ -374,12 +321,6 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   if(triggered == nil) then
     if(do_trace) then print("[Don't Trigger alert (already triggered?) @ "..granularity_sec.."] "..
         entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
-    return(false)
-  elseif(is_disabled) then
-    if(do_trace) then print("[COUNT Disabled alert @ "..granularity_sec.."] "..
-        entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
-
-    incDisabledAlertsCount(ifid, granularity_id, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
     return(false)
   else
     if(do_trace) then print("[TRIGGER alert @ "..granularity_sec.."] "..
@@ -1158,7 +1099,6 @@ local function toggleEntityAlert(ifid, entity, entity_val, alert_type, disable)
     bitmap = ntop.bitmapSet(bitmap, alert_type)
   else
     bitmap = ntop.bitmapClear(bitmap, alert_type)
-    deleteEntityDisabledAlertsCountersKey(ifid, entity, entity_val, alert_type)
   end
 
   alerts_api.setEntityAlertsDisabled(ifid, entity, entity_val, bitmap)
