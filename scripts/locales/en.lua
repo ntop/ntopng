@@ -324,7 +324,6 @@ local lang = {
     ["host_pool_connection"] = "Host Pool Connection",
     ["host_pool_disconnection"] = "Host Pool Disconnection",
     ["icmp_anomaly"] = "ICMP Anomaly",
-    ["ids_alert"] = "IDS Alert",
     ["inactivity"] = "Inactivity",
     ["influxdb_dropped_points"] = "InfluxDB Dropped Points",
     ["influxdb_export_failure"] = "InfluxDB Export Failure",
