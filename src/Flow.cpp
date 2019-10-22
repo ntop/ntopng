@@ -532,6 +532,11 @@ void Flow::processFullyDissectedProtocol() {
       protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
     }
 
+    if((protos.ssl.certificate == NULL)
+       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] != '\0')) {
+      protos.ssl.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
+    }
+
     if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
       protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
       updateCliJA3();
