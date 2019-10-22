@@ -117,7 +117,7 @@ typedef enum {
 
 /* Status are handled in Lua (alert_consts.lua) */
 typedef uint8_t AlertType;
-#define alert_none -1
+#define alert_none ((uint8_t)-1)
 
 typedef enum {
   alert_level_none = -1,
