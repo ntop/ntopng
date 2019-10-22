@@ -8,7 +8,7 @@ ntopng identifies alerts and flows status by a 64 bit ID. ID definitions are loc
 
 The directories contains Lua scripts in a well defined format, which is described below.
 When implementing new alerts, the first thing to do is to define a new alert type, picking
-an unused ID. The available and used IDs can be easily visualized by vising the `/lua/defs_overview.lua` page.
+an unused ID. The available and used IDs can be easily visualized by visiting the `/lua/defs_overview.lua` page.
 
 Alert Definition
 ----------------

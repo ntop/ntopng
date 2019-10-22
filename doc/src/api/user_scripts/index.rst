@@ -36,6 +36,8 @@ placed under the `/usr/share/ntopng/user_scripts/flows` directory:
 The example above uses `flow.getInfo()` to extract minimal information for the
 current flow and prints it into the console.
 
+A list of the currently available user scripts can be visualized by visiting the `/lua/user_scripts_overview.lua` page.
+
 .. toctree::
 
     definitions.rst

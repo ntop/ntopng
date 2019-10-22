@@ -324,6 +324,7 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
             -- Augument with additional attributes
             user_script.enabled = user_scripts.isEnabled(ifid, subdir, user_script.key)
             user_script.is_alert = is_alert_path
+            user_script.path = os_utils.fixPath(checks_dir .. "/" .. fname)
 
             if(alerts_disabled and user_script.is_alert) then
                goto next_module
