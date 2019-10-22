@@ -250,8 +250,9 @@ end
 -- @params hook_filter if non nil, only load the user scripts for the specified hook
 -- @params ignore_disabled if true, also returns disabled user scripts
 -- @param do_benchmark if true, computes benchmarks for every hook
+-- @param return_all if true, returns all the scripts, even those with filters not matching the current configuration
 -- @return {modules = key->user_script, hooks = user_script->function}
-function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabled, do_benchmark)
+function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabled, do_benchmark, return_all)
    local rv = {modules = {}, hooks = {}}
    local is_nedge = ntop.isnEdge()
    local alerts_disabled = (not areAlertsEnabled())
@@ -307,11 +308,12 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                goto next_module
             end
 
-            if(user_script.packet_interface_only and (not interface.isPacketInterface())) then
+            if((not return_all) and user_script.packet_interface_only and (not interface.isPacketInterface())) then
                traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for non packet interface", user_script.key))
+               goto next_module
             end
 
-            if((user_script.nedge_exclude and is_nedge) or (user_script.nedge_only and (not is_nedge))) then
+            if((not return_all) and ((user_script.nedge_exclude and is_nedge) or (user_script.nedge_only and (not is_nedge)))) then
                goto next_module
             end
 
@@ -326,11 +328,11 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
             user_script.is_alert = is_alert_path
             user_script.path = os_utils.fixPath(checks_dir .. "/" .. fname)
 
-            if(alerts_disabled and user_script.is_alert) then
+            if((not return_all) and alerts_disabled and user_script.is_alert) then
                goto next_module
             end
 
-            if((not user_script.enabled) and (not ignore_disabled)) then
+            if((not return_all) and (not user_script.enabled) and (not ignore_disabled)) then
                traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping disabled module '%s'", user_script.key))
                goto next_module
             end
@@ -348,7 +350,7 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                setup_ok = user_script.setup()
             end
 
-            if(not setup_ok) then
+            if((not return_all) and (not setup_ok)) then
                traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' as setup() returned %s", user_script.key, setup_ok))
                goto next_module
             end

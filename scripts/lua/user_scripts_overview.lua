@@ -37,10 +37,13 @@ local function printUserScripts(title, scripts)
     hooks = table.concat(hooks, ", ")
 
     -- Filters
+    if(script.is_alert) then filters[#filters + 1] = "alerts" end
     if(script.l4_proto) then filters[#filters + 1] = "l4_proto=" .. script.l4_proto end
     if(script.l7_proto) then filters[#filters + 1] = "l7_proto=" .. script.l7_proto end
     if(script.packet_interface_only) then filters[#filters + 1] = "packet_interface" end
     if(script.local_only) then filters[#filters + 1] = "local_only" end
+    if(script.nedge_only) then filters[#filters + 1] = "nedge=true" end
+    if(script.nedge_exclude) then filters[#filters + 1] = "nedge=false" end
     filters = table.concat(filters, ", ")
 
     -- Availability
@@ -65,6 +68,7 @@ end
 -- #######################################################
 
 local ignore_disabled = true
+local return_all = true
 
 print[[<form class="form-inline" style="width:12em">
 <select id="filter_select" name="edition" class="form-control">
@@ -80,13 +84,13 @@ print[[<form class="form-inline" style="width:12em">
   });
 </script>]]
 
-printUserScripts("Interface Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "interface", nil, ignore_disabled))
+printUserScripts("Interface Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "interface", nil, ignore_disabled, nil, return_all))
 print("<br>")
-printUserScripts("Host Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "host", nil, ignore_disabled))
+printUserScripts("Host Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "host", nil, ignore_disabled, nil, return_all))
 print("<br>")
-printUserScripts("Network Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "network", nil, ignore_disabled))
+printUserScripts("Network Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "network", nil, ignore_disabled, nil, return_all))
 print("<br>")
-printUserScripts("Flow Scripts", user_scripts.load(user_scripts.script_types.flow, ifid, "flow", nil, ignore_disabled))
+printUserScripts("Flow Scripts", user_scripts.load(user_scripts.script_types.flow, ifid, "flow", nil, ignore_disabled, nil, return_all))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
