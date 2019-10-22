@@ -46,6 +46,10 @@ local function printUserScripts(title, scripts)
     if(script.nedge_exclude) then filters[#filters + 1] = "nedge=false" end
     filters = table.concat(filters, ", ")
 
+    if(name == "my_custom_script") then
+      goto skip
+    end
+
     -- Availability
     if(string.find(script.path, "/enterprise/")) then
       available = "Enterprise"

@@ -1530,7 +1530,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local status_stats = flowstats["status"]
        local first = true
-       for _, s in pairs(flow_consts.status_types) do
+       for _, s in pairsByKeys(flow_consts.status_types) do
           local t = s.status_id
 
           if(t > 0) then

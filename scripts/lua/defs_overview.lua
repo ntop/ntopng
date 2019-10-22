@@ -34,13 +34,16 @@ print[[</table>
 </div>
 <div class="col col-md-offset-1 col-md-4">
 <table class="table table-bordered table-condensed">
-<tr><th class='text-center'>Status ID</th><th>Status Key</th></tr>]]
+<tr><th class='text-center'>Status ID</th><th>Status Key</th><th class='text-center'>Priority</th></tr>]]
 
 for status_id=id_start,id_end do
   local status_key = flow_consts.getStatusType(status_id) or "-"
+  local status_info = flow_consts.status_types[status_key]
+  local priority = status_info and status_info.prio or "-"
 
   print[[<tr><td class='text-center'>]] print(string.format("%d", status_id)) print[[</td>]]
-  print[[<td>]] print(status_key) print[[</td></tr>]]
+  print[[<td>]] print(status_key) print[[</td>]]
+  print[[<td class='text-center'>]] print(string.format("%s", priority)) print[[</td></tr>]]
 end
 
 print[[</table>

@@ -62,6 +62,8 @@ local prefs = ntop.getPrefs()
 local ifstats = interface.getStats()
 
 local flows_filter = getFlowsFilter()
+
+flows_filter.statusFilter = nil -- remove the filter, otherwise no menu entries will be shown
 local flowstats = interface.getActiveFlowsStats(host, flows_filter)
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
