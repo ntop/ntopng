@@ -925,13 +925,9 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
       <table class="table table-bordered table-striped">
 	 ]]
 
-      if(host["bytes.sent"] > 0) then
-	 print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
-      end
-      if(host["bytes.rcvd"] > 0) then
-	 print('<tr><th class="text-left">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
-      end
-      hostinfo2json(host_info)
+      print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
+      print('<tr><th class="text-left">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
+
       print [[
       </table>
 
