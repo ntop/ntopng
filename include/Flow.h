@@ -407,7 +407,7 @@ class Flow : public GenericHashEntry {
   inline ndpi_serializer* get_tlv_info()	    const  { return(tlv_info);                       };
   inline void setICMPPayloadSize(u_int16_t size)     { if(isICMP()) protos.icmp.max_icmp_payload_size = max(protos.icmp.max_icmp_payload_size, size); };
   inline u_int16_t getICMPPayloadSize()             const { return(isICMP() ? protos.icmp.max_icmp_payload_size : 0); };
-  inline ICMPinfo* getICMPInfo()                     { return(icmp_info); }
+  inline ICMPinfo* getICMPInfo()                    const { return(isICMP() ? icmp_info : NULL); }
   inline ndpi_protocol_breed_t get_protocol_breed() const {
     return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
   };
