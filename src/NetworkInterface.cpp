@@ -2462,7 +2462,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
           /* Flow from SyslogParserInterface (Suricata) */
           enum json_tokener_error jerr = json_tokener_success;
           json_object *o = json_tokener_parse_verbose(dequeued->external_alert, &jerr);
-          if(o) flow->setExternalAlert(o, dequeued->external_alert_severity);
+          if(o) flow->setExternalAlert(o);
         }
 
         if(dequeued->process_info_set || 

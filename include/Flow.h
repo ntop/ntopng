@@ -112,7 +112,6 @@ class Flow : public GenericHashEntry {
   u_int32_t marker;
 #endif
   char *external_alert;
-  u_int8_t external_alert_severity;
   bool trigger_scheduled_periodic_update, trigger_immediate_periodic_update;
  
   union {
@@ -526,7 +525,7 @@ class Flow : public GenericHashEntry {
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
 
-  void setExternalAlert(json_object *a, u_int8_t severity);
+  void setExternalAlert(json_object *a);
   void luaRetrieveExternalAlert(lua_State *vm);
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)

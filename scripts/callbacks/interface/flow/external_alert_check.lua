@@ -3,6 +3,7 @@
 --
 
 local flow_consts = require("flow_consts")
+local json = require ("dkjson")
 
 -- #################################################################
 
@@ -23,11 +24,14 @@ end
 -- #################################################################
 
 function script.hooks.periodicUpdate(params)
-  local ext_info = flow.retrieveExternalAlertInfo()
+  local ext_alert_info = flow.retrieveExternalAlertInfo()
 
-  if(ext_info ~= nil) then
+  if ext_alert_info ~= nil then
     -- NOTE: the same info will *not* be returned in the next periodicUpdate
-    flow.triggerStatus(flow_consts.status_types.status_external_alert.status_id, ext_info.info, ext_info.severity --[[ specify a custom severity ]])
+    local info = json.decode(ext_alert_info)
+    if info ~= nil then
+      flow.triggerStatus(flow_consts.status_types.status_external_alert.status_id, ext_alert_info, info.severity_id --[[ specify a custom severity ]])
+    end
   end
 end
 

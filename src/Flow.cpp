@@ -87,7 +87,6 @@ Flow::Flow(NetworkInterface *_iface,
     ndpi_init_data_analysis(&stats.srv2cli_bytes_stats, 0);
   
   external_alert = NULL;
-  external_alert_severity = 255;
   trigger_scheduled_periodic_update = trigger_immediate_periodic_update = false;
 
   memset(&last_db_dump, 0, sizeof(last_db_dump));
@@ -4443,12 +4442,11 @@ void Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 
 /* *************************************** */
 
-void Flow::setExternalAlert(json_object *a, u_int8_t severity) {
+void Flow::setExternalAlert(json_object *a) {
   if(!external_alert) {
     /* In order to avoid concurrency issues with the getter, at most
      * 1 pending external alert is supported. */
     external_alert = strdup(json_object_to_json_string(a));
-    external_alert_severity = severity;
 
     /* Manually trigger a periodic update to process the alert */
     trigger_immediate_periodic_update = true;
@@ -4461,9 +4459,7 @@ void Flow::setExternalAlert(json_object *a, u_int8_t severity) {
 
 void Flow::luaRetrieveExternalAlert(lua_State *vm) {
   if(external_alert) {
-    lua_newtable(vm);
-    lua_push_str_table_entry(vm, "info", external_alert);
-    lua_push_int32_table_entry(vm, "severity", external_alert_severity);
+    lua_pushstring(vm, external_alert);
 
     /* Must delte the data to avoid returning it in the next call */
     free(external_alert);

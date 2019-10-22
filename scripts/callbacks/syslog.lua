@@ -13,7 +13,7 @@ local syslog_modules = nil
 
 -- The function below ia called once (#pragma once)
 function setup()
-   syslog_modules = user_scripts.load(user_scripts.script_types.syslog, getSystemInterfaceId(), ".")
+   syslog_modules = user_scripts.load(user_scripts.script_types.syslog, interface.getId(), ".")
 end
 
 -- #################################################################

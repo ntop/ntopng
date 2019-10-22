@@ -370,7 +370,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->external_alert) {
     enum json_tokener_error jerr = json_tokener_success;
     json_object *o = json_tokener_parse_verbose(zflow->external_alert, &jerr);
-    if(o) flow->setExternalAlert(o, zflow->external_alert_severity);
+    if(o) flow->setExternalAlert(o);
   }
 
   // NOTE: fill the category only after the server name is set

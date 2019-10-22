@@ -62,7 +62,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   application = &tmp[1];
 
 #ifdef SYSLOG_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[SYSLOG] Application: %s Message: %s",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Application: %s Message: %s",
     application, content);
 #endif
 

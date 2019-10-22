@@ -11,9 +11,14 @@ local function formatIDS(status, flowstatus_info)
       return i18n("alerts_dashboard.ids_alert")
    end
 
-   local signature = (flowstatus_info.external_alert and flowstatus_info.external_alert.signature)
-   local category = (flowstatus_info.external_alert and flowstatus_info.external_alert.category)
-   local alert_severity = (flowstatus_info.external_alert and flowstatus_info.external_alert.severity)
+   -- Available fields:
+   -- flowstatus_info.source
+   -- flowstatus_info.severity_id
+   -- flowstatus_info.alert (alert metadata)
+
+   local alert = flowstatus_info.alert
+   local signature = (alert and alert.signature)
+   local category = (alert and alert.category)
    local signature_info = (signature and signature:split(" "));
    local maker = (signature_info and table.remove(signature_info, 1))
    local scope = (signature_info and table.remove(signature_info, 1))
@@ -21,7 +26,7 @@ local function formatIDS(status, flowstatus_info)
    if maker and alert_consts.ids_rule_maker[maker] then
      maker = alert_consts.ids_rule_maker[maker]
    end
-   local res = i18n("flow_details.ids_alert", { scope=scope, msg=msg, severity=severity, maker=maker } )
+   local res = i18n("flow_details.ids_alert", { scope=scope, msg=msg, maker=maker })
    return res
 end
 
