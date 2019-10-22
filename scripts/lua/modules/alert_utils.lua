@@ -2180,7 +2180,7 @@ $('#buttonOpenDeleteModal').on('click', function() {
    cur_alert_num_req = $.ajax({
       type: 'GET',
       ]] print("url: '"..ntop.getHttpPrefix().."/lua/get_num_alerts.lua'") print[[,
-       data: $.extend(getTabSpecificParams(), {ifid: ]] print(_GET["ifid"] or "null") print[[}),
+       data: $.extend(getTabSpecificParams(), {ifid: ]] print(string.format("%d", ifid)) print[[}),
        complete: function() {
          $("#alerts-summary-wait").hide();
        }, error: function() {

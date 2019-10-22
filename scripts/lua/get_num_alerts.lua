@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "alert_utils"
 
-if _GET["ifid"] ~= nil then
+if not isEmptyString(_GET["ifid"]) then
    interface.select(_GET["ifid"])
 end
 
