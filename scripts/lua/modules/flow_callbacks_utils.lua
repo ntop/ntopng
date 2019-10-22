@@ -106,7 +106,7 @@ local function print_callbacks_config_tbody_expert_view(descr)
    local has_modules = false
 
    for _, user_script in pairsByKeys(descr.modules, asc) do
-      if user_script.gui then
+      if true --[[user_script.gui]] then
          if not has_modules then
             has_modules = true
          end
@@ -116,12 +116,26 @@ local function print_callbacks_config_tbody_expert_view(descr)
             rowspan = table.len(user_script.benchmark)
          end
 
+         local title
+         local description
 
-         print("<tr><td rowspan="..rowspan.."><b>".. i18n(user_script.gui.i18n_title) .."</b><br>")
-         print("<small>"..i18n(user_script.gui.i18n_description)..".</small>\n")
+         if(user_script.gui) then
+            title = i18n(user_script.gui.i18n_title) or user_script.gui.i18n_title
+            description = i18n(user_script.gui.i18n_description) or user_script.gui.i18n_description
+         else
+            title = user_script.key
+            description = ""
+         end
+
+         print("<tr><td rowspan="..rowspan.."><b>".. title .."</b><br>")
+         print("<small>"..description..".</small>\n")
 
          print("</td><td rowspan="..rowspan..">")
-         print(user_script.gui.input_builder(user_script))
+         if(user_script.gui and user_script.gui.input_builder) then
+            print(user_script.gui.input_builder(user_script))
+         else
+            print('<a href="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=alerts"><i class="fa fa-flask fa-lg"></i></a>')
+         end
          print("</td>")
 
          print("<td>")
