@@ -153,7 +153,7 @@ bool AlertableEntity::releaseAlert(lua_State* vm,
   std::map<std::string, Alert>::iterator it;
   bool rv = false;
 
-  if(triggered_alerts[(u_int)p].size() > 0) {
+  if(!triggered_alerts[(u_int)p].empty()) {
     wrLock(p, __FILE__, __LINE__);
 
     it = triggered_alerts[(u_int)p].find(key);
@@ -202,7 +202,7 @@ void AlertableEntity::countAlerts(grouped_alerts_counters *counters) {
   for(int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++) {
     ScriptPeriodicity p = (ScriptPeriodicity)i;
 
-    if(triggered_alerts[p].size() > 0) {
+    if(!triggered_alerts[p].empty()) {
       rdLock(p, __FILE__, __LINE__);
 
       for(it = triggered_alerts[p].begin(); it != triggered_alerts[p].end(); ++it) {
@@ -223,7 +223,7 @@ void AlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
 				AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
   std::map<std::string, Alert>::const_iterator it;
 
-  if(triggered_alerts[p].size() > 0) {
+  if(!triggered_alerts[p].empty()) {
     rdLock(p, __FILE__, __LINE__);
 
     for(it = triggered_alerts[p].begin(); it != triggered_alerts[p].end(); ++it) {
