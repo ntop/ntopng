@@ -15,8 +15,8 @@ local flow_callbacks_utils = {}
 local function print_callbacks_config_tbody_simple_view(descr)
    print[[<tbody>]]
    print[[<tr>]]
-   print[[<th width=30%>]] print(i18n("flow_callbacks.callback")) print[[</th>]]
-   print[[<th>]] print(i18n("flow_callbacks.callback_config")) print[[</th>]]
+   print[[<th width=40%>]] print(i18n("flow_callbacks.callback")) print[[</th>]]
+   print[[<th width="20%">]] print(i18n("flow_callbacks.callback_config")) print[[</th>]]
    print[[<th style="text-align: center;" width=20%>]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th>]]
    print[[</tr>]]
 
@@ -54,16 +54,32 @@ local function print_callbacks_config_tbody_simple_view(descr)
          print("</td>")
 
          if user_script.benchmark and table.len(user_script.benchmark) > 0 then
+	    local worst_case_benchmark
             local max_duration
+	    local num_calls
+	    local avg_speed
+	    local fmt
 
             for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark, asc) do
-               -- Just show the maximum duration among all available functions
+               -- Just show the maximum (worst-case) duration among all available functions
                if not max_duration or max_duration < mod_benchmark["tot_elapsed"] then
                   max_duration = mod_benchmark["tot_elapsed"]
+		  num_calls = mod_benchmark["tot_num_calls"]
+		  avg_speed = mod_benchmark["avg_speed"]
                end
             end
 
-            print(string.format("<td align='center'>%s</td>", format_utils.secondsToTime(max_duration)))
+	    if num_calls > 1 then
+	       fmt = i18n("flow_callbacks.callback_function_duration_fmt_long",
+			  {num_calls = format_utils.formatValue(num_calls),
+			   time = format_utils.secondsToTime(max_duration),
+			   speed = format_utils.formatValue(round(avg_speed, 0))})
+	    else
+	       fmt = i18n("flow_callbacks.callback_function_duration_fmt_short",
+			  {time = format_utils.secondsToTime(max_duration)})
+	    end
+
+            print(string.format("<td align='center'>%s</td>", fmt))
 
          else
             print("<td></td>")

@@ -1255,7 +1255,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
        <form method="post">
        <br>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-       <tr><th>]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=30%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
+       <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
       print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
@@ -1313,7 +1313,15 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    local hook = ternary(user_script.benchmark[tab], tab, "all")
 
 	    if user_script.benchmark[hook]["tot_elapsed"] then
-	       print(string.format(format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"])))
+	       if user_script.benchmark[hook]["tot_num_calls"] > 1 then
+		  print(i18n("flow_callbacks.callback_function_duration_fmt_long",
+			     {num_calls = format_utils.formatValue(user_script.benchmark[hook]["tot_num_calls"]),
+			      time = format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"]),
+			      speed = format_utils.formatValue(round(user_script.benchmark[hook]["avg_speed"], 0))}))
+	       else
+		  print(i18n("flow_callbacks.callback_function_duration_fmt_short",
+			     {time = format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"])}))
+	       end
 	    end
 	 end
 
