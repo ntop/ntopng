@@ -29,10 +29,10 @@ AlertsQueue::AlertsQueue(NetworkInterface *_iface) {
 
 /* **************************************************** */
 
-void AlertsQueue::pushAlertJson(AlertType atype, json_object *alert) {
+void AlertsQueue::pushAlertJson(const char *atype, json_object *alert) {
   /* These are mandatory fields, present in all the pushed alerts */
   json_object_object_add(alert, "ifid", json_object_new_int(iface->get_id()));
-  json_object_object_add(alert, "alert_type", json_object_new_int(atype));
+  json_object_object_add(alert, "alert_type", json_object_new_string(atype));
   json_object_object_add(alert, "alert_tstamp", json_object_new_int64(time(NULL)));
 
   ntop->getRedis()->rpush(CONST_ALERT_STORE_QUEUE, (char *)json_object_to_json_string(alert), 0 /* No trim */);
@@ -65,7 +65,7 @@ void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
     json_object_object_add(jobject, "router_ip", json_object_new_string(router_ip_s));
     json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
 
-    pushAlertJson(misconfigured_dhcp_range, jobject);
+    pushAlertJson("misconfigured_dhcp_range", jobject);
     json_object_put(jobject);
   }
 }
@@ -84,7 +84,7 @@ void AlertsQueue::pushSlowPeriodicActivity(u_long msec_diff,
     json_object_object_add(jobject, "max_duration_ms", json_object_new_int64(max_duration_ms));
     json_object_object_add(jobject, "path", json_object_new_string(activity_path));
 
-    pushAlertJson(slow_periodic_activity, jobject);
+    pushAlertJson("slow_periodic_activity", jobject);
     json_object_put(jobject);
   }
 }
@@ -111,7 +111,7 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_m
     json_object_object_add(jobject, "old_mac", json_object_new_string(oldmac_s));
     json_object_object_add(jobject, "new_mac", json_object_new_string(newmac_s));
 
-    pushAlertJson(alert_mac_ip_association_change, jobject);
+    pushAlertJson("mac_ip_association_change", jobject);
     json_object_put(jobject);
   }
 }
@@ -140,7 +140,7 @@ void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, cons
     json_object_object_add(jobject, "spa", json_object_new_string(spa_s));
     json_object_object_add(jobject, "tpa", json_object_new_string(tpa_s));
 
-    pushAlertJson(alert_broadcast_domain_too_large, jobject);
+    pushAlertJson("broadcast_domain_too_large", jobject);
     json_object_put(jobject);
   }
 }
@@ -160,7 +160,7 @@ void AlertsQueue::pushRemoteToRemoteAlert(Host *host) {
     json_object_object_add(jobject, "vlan", json_object_new_int(host->get_vlan_id()));
     json_object_object_add(jobject, "mac_address", json_object_new_string(host->getMac() ? host->getMac()->print(macbuf, sizeof(macbuf)) : ""));
 
-    pushAlertJson(alert_remote_to_remote, jobject);
+    pushAlertJson("remote_to_remote", jobject);
     json_object_put(jobject);
   }
 }
@@ -177,7 +177,7 @@ void AlertsQueue::pushLoginTrace(const char*user, bool authorized) {
     json_object_object_add(jobject, "scope", json_object_new_string("login"));
     json_object_object_add(jobject, "user", json_object_new_string(user));
 
-    pushAlertJson(authorized ? alert_user_activity : login_failed, jobject);
+    pushAlertJson(authorized ? "user_activity" : "login_failed", jobject);
     json_object_put(jobject);
   }
 }
@@ -195,7 +195,7 @@ void AlertsQueue::pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queu
     json_object_object_add(jobject, "pct",     json_object_new_int(queue_len_pct));
     json_object_object_add(jobject, "dropped", json_object_new_int(queue_dropped));
 
-    pushAlertJson(alert_nfq_flushed, jobject);
+    pushAlertJson("nfq_flushed", jobject);
     json_object_put(jobject);
   }
 }

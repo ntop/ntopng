@@ -184,7 +184,6 @@ end
 -- ##############################################
 
 -- See flow_consts.status_types in flow_consts for flow alerts
--- See Utils::flowStatus2AlertType to determine the alert_type for flow alerts
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity
 alert_consts.alert_entities = {

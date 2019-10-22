@@ -115,49 +115,9 @@ typedef enum {
   policy_source_schedule = 5,
 } L7PolicySource_t;
 
-/* TODO remove (AlertsQueue still needs it) */
-typedef enum {
-  alert_none = -1,
-  alert_syn_flood = 0,
-  alert_flow_flood,
-  alert_threshold_exceeded,
-  alert_suspicious_activity,
-  alert_connection_issues,
-  alert_flow_misbehaviour,
-  alert_remote_to_remote,
-  alert_flow_blacklisted,
-  alert_flow_blocked,
-  alert_mac_ip_association_change = 17,
-  alert_flow_web_mining = 21,
-  alert_nfq_flushed = 22,
-  alert_device_protocol_not_allowed = 24,
-  alert_user_activity = 25,
-  alert_influxdb_export_failure = 26,
-  alert_port_errors = 27,
-  alert_broadcast_domain_too_large = 34,
-  alert_external = 35,
-  misconfigured_dhcp_range = 36,
-  slow_periodic_activity = 40,
-  login_failed = 42,
-  alert_potentially_dangerous_protocol = 43,
-  alert_malicious_signature = 48,
-
-  /* Custom user alerts */
-  alert_custom_1 = 59,
-  alert_custom_2 = 60,
-  alert_custom_3 = 61,
-  alert_custom_4 = 62,
-  alert_custom_5 = 63,
-
-  /* 
-     IMPORTANT IMPORTANT IMPORTANT
-     If # status >= 64 then extend Utils.h and Lua bitmap functions to handle it
-  */
-} AlertType; /*
-	       NOTE:
-	       keep it in sync with alert_type_keys
-	       in ntopng/scripts/lua/modules/lua_utils.lua
-	     */
+/* Status are handled in Lua (alert_consts.lua) */
+typedef uint8_t AlertType;
+#define alert_none -1
 
 typedef enum {
   alert_level_none = -1,

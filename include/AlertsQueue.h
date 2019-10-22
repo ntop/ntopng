@@ -24,11 +24,13 @@
 
 class NetworkInterface;
 
+/* This class provides a way to send asynchronous alerts from C to Lua.
+ * Alerts are processed by Lua in processStoreAlertFromQueue. */
 class AlertsQueue {
  private:
   NetworkInterface *iface;
 
-  void pushAlertJson(AlertType atype, json_object *alert);
+  void pushAlertJson(const char *atype, json_object *alert);
 
  public:
   AlertsQueue(NetworkInterface *iface);
