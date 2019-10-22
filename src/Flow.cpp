@@ -3861,17 +3861,17 @@ bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *t
     }
 
     if(trigger_scheduled_periodic_update) {
-      /* The update was scheduled as somthing changed in the flow. */
+      /* The update was scheduled as something changed in the flow. */
       periodic_update_freq = 30;
     } else
       periodic_update_freq = iface->getFlowMaxIdle() * 5; /* 5 times the max flow idleness */
 
     if(already_called)
       /* Don't re-call it before the maximum flow lifetime */
-      return(performed_lua_calls[flow_lua_call] + periodic_update_freq > tv->tv_sec);
+      return((performed_lua_calls[flow_lua_call] + periodic_update_freq) > tv->tv_sec);
     else
       /* Call the first time only after periodic_update_freq seconds have elapsed */
-      return(get_duration() < periodic_update_freq);
+      return((get_first_seen() + periodic_update_freq) > tv->tv_sec);
   default:
     break;
   }
