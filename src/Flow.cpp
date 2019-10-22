@@ -4085,6 +4085,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_int32_table_entry(vm, "duration", get_duration());
   lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
   lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "proto.ndpi_app", ndpi_get_proto_name(iface->get_ndpi_struct(), ndpiDetectedProtocol.app_protocol));
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
   lua_push_uint64_table_entry(vm, "cli2srv.bytes", stats.cli2srv_bytes);
   lua_push_uint64_table_entry(vm, "srv2cli.bytes", stats.srv2cli_bytes);

@@ -9,10 +9,10 @@
 --
 -- <General Purpose Host>
 --  - Local: <l4_proto, peer_key, srv_port>
---  - Remote: <l4_proto, l7_proto, fp_type, host_fp>
+--  - Remote: <l4_proto, l7_proto, fingerprint_type, host_fingerprint>
 -- <Special Purpose Host>
 --  - Local: <l4_proto, peer_key, srv_port>
---  - Remote: <l4_proto, l7_proto, fp_type, host_fp, peer_fp, peer_key>
+--  - Remote: <l4_proto, l7_proto, fingerprint_type, host_fingerprint, peer_fingerprint, peer_key>
 --
 -- Items marked with the NTOP_MUD comment are part of the ntop MUD proposal
 --
@@ -70,7 +70,7 @@ end
 -- ###########################################
 
 local function remote_minimal_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac, mud_info)
-   local l7proto = interface.getnDPIProtoName(info["proto.ndpi_id"])
+   local l7proto = info["proto.ndpi_app"]
    local fingerprints = getFingerprints(is_client)
 
    return(string.format("%s|%s|%s|%s", info["proto.l4"], l7proto,
@@ -91,7 +91,7 @@ end
 -- ###########################################
 
 local function remote_full_mud_encode(info, peer_key, peer_port, is_client, peer_key_is_mac, mud_info)
-   local l7proto = interface.getnDPIProtoName(info["proto.ndpi_id"])
+   local l7proto = info["proto.ndpi_app"]
    local fingerprints = getFingerprints(is_client)
 
    if(not peer_key_is_mac) then

@@ -8922,7 +8922,7 @@ static int ntop_flow_get_mud_info(lua_State* vm) {
   lua_newtable(vm);
 
   cli_host = f->get_cli_host();
-  srv_host = f->get_cli_host();
+  srv_host = f->get_srv_host();
 
   if(!cli_host || !srv_host)
     return(CONST_LUA_OK);
