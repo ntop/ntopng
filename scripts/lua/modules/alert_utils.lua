@@ -2686,9 +2686,11 @@ local function processStoreAlertFromQueue(alert)
     entity_info = alerts_api.periodicActivityEntity(alert.path)
     type_info = alerts_api.slowPeriodicActivityType(alert.duration_ms, alert.max_duration_ms)
   elseif(alert.alert_type == "mac_ip_association_change") then
-    local name = getSavedDeviceName(alert.new_mac)
-    entity_info = alerts_api.macEntity(alert.new_mac)
-    type_info = alerts_api.macIpAssociationChangeType(name, alert.ip, alert.old_mac, alert.new_mac)
+    if(ntop.getPref("ntopng.prefs.ip_reassignment_alerts") == "1") then
+      local name = getSavedDeviceName(alert.new_mac)
+      entity_info = alerts_api.macEntity(alert.new_mac)
+      type_info = alerts_api.macIpAssociationChangeType(name, alert.ip, alert.old_mac, alert.new_mac)
+    end
   elseif(alert.alert_type == "login_failed") then
     entity_info = alerts_api.userEntity(alert.user)
     type_info = alerts_api.loginFailedType()
@@ -2696,9 +2698,11 @@ local function processStoreAlertFromQueue(alert)
     entity_info = alerts_api.macEntity(alert.src_mac)
     type_info = alerts_api.broadcastDomainTooLargeType(alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
   elseif(alert.alert_type == "remote_to_remote") then
-    local host_info = {host = alert.host, vlan = alert.vlan}
-    entity_info = alerts_api.hostAlertEntity(alert.host, alert.vlan)
-    type_info = alerts_api.remoteToRemoteType(host_info, alert.mac_address)
+    if(ntop.getPref("ntopng.prefs.remote_to_remote_alerts") == "1") then
+      local host_info = {host = alert.host, vlan = alert.vlan}
+      entity_info = alerts_api.hostAlertEntity(alert.host, alert.vlan)
+      type_info = alerts_api.remoteToRemoteType(host_info, alert.mac_address)
+    end
   elseif((alert.alert_type == "user_activity") and (alert.scope == "login")) then
     entity_info = alerts_api.userEntity(alert.user)
     type_info = alerts_api.userActivityType("login", nil, nil, nil, "authorized")
