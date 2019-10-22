@@ -2678,7 +2678,7 @@ local function processStoreAlertFromQueue(alert)
 
   interface.select(tostring(alert.ifid))
 
-  if(alert.alert_type == "ip_outsite_dhcp_range") then
+  if(alert.alert_type == "misconfigured_dhcp_range") then
     local router_info = {host = alert.router_ip, vlan = alert.vlan_id}
     entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
     type_info = alerts_api.ipOutsideDHCPRangeType(router_info, alert.mac_address, alert.client_mac, alert.sender_mac)
