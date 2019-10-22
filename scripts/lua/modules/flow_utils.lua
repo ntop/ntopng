@@ -11,6 +11,7 @@ require "graph_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require("format_utils")
 local flow_consts = require "flow_consts"
+local json = require("dkjson")
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -32,6 +33,24 @@ function formatInterfaceId(id, idx, snmpdevice)
 	 return(id)
       end
    end
+end
+
+-- #######################
+
+-- Extracts the information serialized into status_info from the flow
+-- user scripts
+function flow2statusinfo(flow)
+   local status_info = flow["status_info"]
+
+   if(status_info and (string.sub(status_info, 1, 1) == "{")) then
+      local res = json.decode(status_info)
+
+      if(res ~= nil) then
+         return(res)
+      end
+   end
+
+   return(status_info)
 end
 
 -- #######################

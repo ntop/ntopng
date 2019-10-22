@@ -106,9 +106,6 @@ class Utils {
   static u_int32_t timeval2usec(const struct timeval *tv);
   static void xor_encdec(u_char *data, int data_len, u_char *key);
   static bool isPrintableChar(u_char c);
-  static AlertLevel flowStatus2AlertLevel(FlowStatus s, u_int8_t ext_severity);
-  static AlertType flowStatus2AlertType(FlowStatus s);
-  static bool dumpFlowStatus(FlowStatus s);
   static char* formatMac(const u_int8_t * const mac, char *buf, u_int buf_len);
   static void  parseMac(u_int8_t *mac, const char *symMac);
   static u_int32_t macHash(const u_int8_t * const mac);

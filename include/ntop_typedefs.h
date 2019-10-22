@@ -115,7 +115,7 @@ typedef enum {
   policy_source_schedule = 5,
 } L7PolicySource_t;
 
-/* keep in sync with alert_consts.alert_types in alert_const.lua */
+/* TODO remove (AlertsQueue still needs it) */
 typedef enum {
   alert_none = -1,
   alert_syn_flood = 0,
@@ -341,54 +341,9 @@ struct string_list {
   struct string_list *prev, *next;
 };
 
-/*
-  Remember to update
-  - Utils.cpp        Utils::flowStatus2str()
-  - flow_consts.lua  flow_consts.flow_status_types
- */
-typedef enum {
-  status_normal = 0,
-  status_slow_tcp_connection /* 1 */,
-  status_slow_application_header /* 2 */,
-  status_slow_data_exchange /* 3 */,
-  status_low_goodput /* 4 */,
-  status_suspicious_tcp_syn_probing /* 5 */,
-  status_tcp_connection_issues /* 6 - i.e. too many retransmission, ooo... or similar */,
-  status_suspicious_tcp_probing /* 7 */,
-  status_flow_when_interface_alerted /* 8 */,
-  status_tcp_connection_refused /* 9 */,
-  status_ssl_certificate_mismatch /* 10 */,
-  status_dns_invalid_query /* 11 */,
-  status_remote_to_remote /* 12 */,
-  status_blacklisted /* 13 */,
-  status_blocked /* 14 */,
-  status_web_mining_detected /* 15 */,
-  status_device_protocol_not_allowed /* 16 */,
-  status_elephant_local_to_remote, /* 17 */
-  status_elephant_remote_to_local, /* 18 */
-  status_longlived, /* 19 */
-  status_not_purged, /* 20 */
-  status_external_alert /* 21 */,
-  status_tcp_severe_connection_issues /* 22 - higher severity than status_tcp_connection_issues */,
-  status_ssl_unsafe_ciphers /* 23 */,
-  status_data_exfiltration /* 24 */,
-  status_ssl_old_protocol_version /* 25 */,
-  status_potentially_dangerous /* 26 */,
-  status_malicious_signature /* 27 */,
-  num_flow_status,
-  /* 
-     IMPORTANT IMPORTANT IMPORTANT
-     If # status >= 32 then change to 64 bit disabled_flow_status in Host.h 
-     If # status >= 64 then change FlowStatusMap
-  */
-
-  /* Custom user alerts */
-  status_custom_1 = 59,
-  status_custom_2 = 60,
-  status_custom_3 = 61,
-  status_custom_4 = 62,
-  status_custom_5 = 63,
-} FlowStatus;
+/* Status are handled in Lua (flow_consts.lua) */
+typedef uint8_t FlowStatus;
+#define status_normal 0
 
 typedef enum {
   flow_lua_call_protocol_detected = 0,

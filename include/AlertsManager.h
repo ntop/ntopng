@@ -50,24 +50,13 @@ class AlertsManager : public StoreManager {
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager();
 
-  /*
-    ========== Generic alerts API =========
-   */
   int storeAlert(time_t tstart, time_t tend, int granularity, AlertType alert_type, const char *subtype,
       AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
       const char *alert_json, bool *new_alert, u_int64_t *rowid,
       bool ignore_disabled = false, bool check_maximum = true);
   bool hasAlerts();
+  int storeFlowAlert(Flow *f, FlowStatus status, AlertType alert_type, AlertLevel alert_severity, const char *status_info);
 
-  /*
-    ========== FLOW alerts API =========
-   */
-  int storeFlowAlert(Flow *f);
-  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *status_info);
-
-  /*
-    ========== raw API ======
-  */
   inline int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, bool ignore_disabled) {
     return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_TABLE_NAME, ignore_disabled);
   };

@@ -54,13 +54,24 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t alert_score;
-  Bitmap status_map, last_notified_status_map;
   time_t performed_lua_calls[FLOW_LUA_CALL_MAX_VAL];
   struct ndpi_flow_struct *ndpiFlow;
-  FlowStatus alerted_status;
+
+  /* Flow alert generation follows the following steps:
+   *
+   * 1. lua calls Flow::triggerAlert() and pending alert information is
+   *    stored in this structure
+   * 2. Flow is scanned periodically and, if hasPendingAlert() is true,
+   *    the alert is stored into the database and is_alerted is set to true
+   */
+  Bitmap status_map;              /* The bitmap of the possible problems on the flow */
+  FlowStatus alerted_status;      /* This is the status which has triggered the alert */
+  FlowStatus predominant_status;  /* This is the most important status currently set in the status_map */
   AlertType alert_type;
   AlertLevel alert_level;
-  char *tmp_alert_json;
+  char *alert_status_info;        /* Alert specific status info */
+  bool is_alerted;
+
   u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
 
   /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
@@ -72,8 +83,7 @@ class Flow : public GenericHashEntry {
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
     good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
-    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
-    is_alerted;
+    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
@@ -101,8 +111,9 @@ class Flow : public GenericHashEntry {
   u_int32_t last_conntrack_update; 
   u_int32_t marker;
 #endif
-  json_object *external_alert;
+  char *external_alert;
   u_int8_t external_alert_severity;
+  bool trigger_scheduled_periodic_update, trigger_immediate_periodic_update;
  
   union {
     struct {
@@ -115,7 +126,7 @@ class Flow : public GenericHashEntry {
       char *last_query;
       u_int16_t last_query_type;
       u_int16_t last_return_code;
-      bool invalid_query;
+      bool invalid_chars_in_query;
     } dns;
 
     struct {
@@ -145,7 +156,7 @@ class Flow : public GenericHashEntry {
     struct {
       u_int8_t icmp_type, icmp_code;
       u_int16_t icmp_echo_id;
-      bool has_long_icmp_payload;
+      u_int16_t max_icmp_payload_size;
     } icmp;
   } protos;
 
@@ -245,6 +256,7 @@ class Flow : public GenericHashEntry {
   bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
   bool isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv);
   void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle);
+  inline bool hasPendingAlert() const         { return((alert_type != alert_none) && (!is_alerted)); }
 
  public:
   Flow(NetworkInterface *_iface,
@@ -255,19 +267,19 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  inline Bitmap getStatusBitmap()               { return(status_map);           }
+  inline Bitmap getStatusBitmap()     const     { return(status_map);           }
   inline void setStatus(FlowStatus status)      { status_map.setBit(status);    }
   inline void clearStatus(FlowStatus status)    { status_map.clearBit(status);  }
-  FlowStatus getFlowStatus(Bitmap *status_map) const;
-  void triggerAlert(AlertType atype, AlertLevel severity, const char*alert_json);
-  inline void setAlertedStatus(FlowStatus status)      { alerted_status = status; };
+  void triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json);
+  inline void setPredominantStatus(FlowStatus status) { predominant_status = status; }
+  inline FlowStatus getPredominantStatus() const      { return(predominant_status); }
+  inline const char* getStatusInfo() const      { return(alert_status_info);    }
 
   bool isBlacklistedFlow() const;
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
   static const ndpi_protocol ndpiUnknownProtocol;
   bool isTiny() const;
-  bool isLongLived() const;
   inline bool isSSL()  const { return(isProto(NDPI_PROTOCOL_TLS));  }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
@@ -281,7 +293,6 @@ class Flow : public GenericHashEntry {
   char* serialize(bool es_json = false);
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);
-  json_object* flow2statusinfojson();
   inline u_int8_t getTcpFlags()        const { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   inline u_int8_t getTcpFlagsCli2Srv() const { return(src2dst_tcp_flags);                      };
   inline u_int8_t getTcpFlagsSrv2Cli() const { return(dst2src_tcp_flags);                      };
@@ -394,8 +405,9 @@ class Flow : public GenericHashEntry {
   inline const IpAddress* get_srv_ip_addr() const { return(srv_ip_addr); };
   inline json_object* get_json_info()	    const  { return(json_info);                       };
   inline ndpi_serializer* get_tlv_info()	    const  { return(tlv_info);                       };
-  inline bool has_long_icmp_payload()    const  { return(protos.icmp.has_long_icmp_payload); };
-  inline void set_long_icmp_payload()           { protos.icmp.has_long_icmp_payload = true;  };
+  inline void setICMPPayloadSize(u_int16_t size)     { if(isICMP()) protos.icmp.max_icmp_payload_size = max(protos.icmp.max_icmp_payload_size, size); };
+  inline u_int16_t getICMPPayloadSize()             const { return(isICMP() ? protos.icmp.max_icmp_payload_size : 0); };
+  inline ICMPinfo* getICMPInfo()                     { return(icmp_info); }
   inline ndpi_protocol_breed_t get_protocol_breed() const {
     return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
   };
@@ -448,6 +460,11 @@ class Flow : public GenericHashEntry {
 		       u_int16_t protocol);
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   void lua_get_min_info(lua_State* vm);
+  void lua_get_tcp_packet_issues(lua_State* vm);
+  void lua_duration_info(lua_State* vm);
+  void lua_device_protocol_allowed_info(lua_State *vm);
+  void lua_get_icmp_info(lua_State *vm) const;
+  void lua_get_tcp_stats(lua_State *vm) const;
 
   void lua_get_unicast_info(lua_State* vm) const;
   void lua_get_status(lua_State* vm) const;
@@ -464,7 +481,6 @@ class Flow : public GenericHashEntry {
   void lua_get_ssh_info(lua_State *vm) const;
   void lua_get_http_info(lua_State *vm) const;
   void lua_get_dns_info(lua_State *vm) const;
-  void lua_get_icmp_info(lua_State *vm) const;
   void lua_get_tcp_info(lua_State *vm) const;
   void lua_get_port(lua_State *vm, bool client) const;
   void lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_city) const;
@@ -510,12 +526,8 @@ class Flow : public GenericHashEntry {
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
 
-  inline void setExternalAlert(json_object *a, u_int8_t severity) { 
-    if (external_alert) json_object_put(external_alert); 
-    external_alert = a; external_alert_severity = severity; };
-  inline json_object *getExternalAlert()     const { return external_alert; };
-  inline u_int8_t getExternalAlertSeverity() const { return external_alert_severity; };
-  int storeFlowAlert(AlertType alert_type, AlertLevel alert_severity, const char *status_info);
+  void setExternalAlert(json_object *a, u_int8_t severity);
+  void luaRetrieveExternalAlert(lua_State *vm);
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
@@ -537,9 +549,8 @@ class Flow : public GenericHashEntry {
 						 && ((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN))); }
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); }
-  bool isFlowAlerted() const;
-  void setFlowAlerted();
-  void setFlowAlertId(int64_t rowid);
+  inline bool isFlowAlerted() const         { return(is_alerted); };
+  inline void setFlowAlertId(int64_t rowid) { alert_rowid = rowid; };
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
@@ -615,6 +626,13 @@ class Flow : public GenericHashEntry {
   inline const TcpInfo* getServerTcpInfo() const {
     return srv_ebpf && srv_ebpf->tcp_info_set ? &srv_ebpf->tcp_info : NULL;
   }
+
+  inline bool isNotPurged() {
+    return(getInterface()->isPacketInterface() && getInterface()->is_purge_idle_interface()
+     && !idle() && isIdle(10 * getInterface()->getFlowMaxIdle()));
+  }
+
+  inline u_int16_t getSSLVersion()  { return(isSSL() ? (protos.ssl.ssl_version) : 0); }
 };
 
 #endif /* _FLOW_H_ */

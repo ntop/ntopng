@@ -28,14 +28,14 @@
 
 class FlowStats {
  private:
-  u_int32_t counters[num_flow_status];
+  u_int32_t counters[BITMAP_NUM_BITS];
   u_int32_t protocols[0x100];
 
  public:
   FlowStats();
   ~FlowStats();
 
-  void incStats(FlowStatus status, u_int8_t l4_protocol);
+  void incStats(Bitmap status_bitmap, u_int8_t l4_protocol);
 
   void lua(lua_State* vm);
 

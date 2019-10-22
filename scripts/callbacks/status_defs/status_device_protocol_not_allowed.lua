@@ -9,7 +9,7 @@ local alert_consts = require("alert_consts")
 local function formatSuspiciousDeviceProtocol(status, flowstatus_info)
    local msg, devtype
 
-   if not flowstatus_info then
+   if ((not flowstatus_info) or (flowstatus_info == "")) then
       return i18n("alerts_dashboard.suspicious_device_protocol")
    end
 

@@ -1472,12 +1472,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	else
 	  icmp_v6.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
 
-	/* https://www.boiteaklou.fr/Data-exfiltration-with-PING-ICMP-NDH16.html */
-	if((((icmp_type == ICMP_ECHO) || (icmp_type == ICMP_ECHOREPLY)) && /* ICMPv4 ECHO */
-	      (trusted_l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V4_PAYLOAD_LENGTH)) ||
-	   (((icmp_type == 128) || (icmp_type == 129)) && /* ICMPv6 ECHO */
-	      (trusted_l4_packet_len > CONST_MAX_ACCEPTABLE_ICMP_V6_PAYLOAD_LENGTH)))
-	  flow->set_long_icmp_payload();
+	flow->setICMPPayloadSize(trusted_l4_packet_len);
       }
       break;
     }
@@ -3516,7 +3511,6 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   bool filtered_flows;
 #endif
   FlowStatus status;
-  Bitmap status_map;
 
   if(f && (!f->idle())) {
     if(retriever->host) {
@@ -3681,7 +3675,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	   || ((server_policy == location_remote_only) && (f->get_srv_host()->isLocalHost()))))
       return(false);
 
-    status = f->getFlowStatus(&status_map);
+    status = f->getPredominantStatus();
 
     if(retriever->pag
        && retriever->pag->misbehavingFlows(&misbehaving_flows)
