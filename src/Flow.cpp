@@ -1484,7 +1484,6 @@ void Flow::call_state_scripts(update_stats_user_data_t *update_flows_stats_user_
 
     postFlowSetIdle(tv->tv_sec);
     performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
-    set_hash_entry_state_ready_to_be_purged(); /* Move to the next state */
     break;
   }
 }
