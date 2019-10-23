@@ -181,10 +181,21 @@ local function saveListsMetadataToRedis(lists)
    local metadata = {}
 
    for list_name, list in pairs(lists or {}) do
-      local meta = table.clone(list)
-      meta.status = nil
+      local default_prefs = BUILTIN_LISTS[list_name]
+      local meta = {}
+      local has_custom_pref = false
 
-      metadata[list_name] = meta
+      -- Only save the preferences that differ from the default configuration
+      for key, val in pairs(list) do
+         if((key ~= "status") and (default_prefs[key] ~= val)) then
+            meta[key] = val
+            has_custom_pref = true
+         end
+      end
+
+      if(has_custom_pref) then
+         metadata[list_name] = meta
+      end
    end
 
    ntop.setPref(METADATA_KEY, json.encode(metadata))
