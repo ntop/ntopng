@@ -1263,7 +1263,7 @@ function printInMemory()
     field = "toggle_local_host_cache_enabled",
     default = "1",
     pref = "is_local_host_cache_enabled",
-    to_switch = {"local_host_cache_duration"},
+    to_switch = {"local_host_cache_duration","row_toggle_active_local_host_cache_enabled","active_local_host_cache_interval"},
   })
 
   local showLocalHostCacheInterval = false
