@@ -34,13 +34,15 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : G
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Autonomous System %u", asn);
 #endif
 
-  deserializeFromRedis();
+  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
+    deserializeFromRedis();
 }
 
 /* *************************************** */
 
 AutonomousSystem::~AutonomousSystem() {
-  serializeToRedis();
+  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
+    serializeToRedis();
 
   if(asname) free(asname);
   /* TODO: decide if it is useful to dump AS stats to redis */
