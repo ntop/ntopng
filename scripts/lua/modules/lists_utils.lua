@@ -19,9 +19,14 @@ local CUSTOM_CATEGORY_ADVERTISEMENT = 101
 local DEFAULT_UPDATE_INTERVAL = 86400
 local MAX_LIST_ERRORS = 3
 
--- This limits the amount of rules that can be loaded from a single file
-local MAX_RULES_PER_FILE = 50000
-local MAX_TOTAL_RULES = 200000
+-- IP addresses have very litte impact on memory/load time.
+-- 150k IP addresses rules can be loaded in 2 seconds
+local MAX_TOTAL_IP_RULES = 1000000
+-- Domain rules are the most expensive.
+-- On average they take ~7.5 KB/domain. 40k rules are loaded in about 7 seconds.
+local MAX_TOTAL_DOMAIN_RULES = 90000
+-- JA3 rules use hash tables, so they are fast to load
+local MAX_TOTAL_JA3_RULES = 200000
 
 local is_nedge = ntop.isnEdge()
 
@@ -44,7 +49,7 @@ local BUILTIN_LISTS = {
    }, ["ntop Host Malware Meltdown"] = {
       url = "http://blacklists.ntop.org/blacklist-hostnames.txt",
       category = CUSTOM_CATEGORY_MALWARE,
-      format = "host",
+      format = "hosts",
       enabled = false,
       update_interval = DEFAULT_UPDATE_INTERVAL,
    }, ["Emerging Threats"] = {
@@ -386,12 +391,13 @@ end
 
 -- ##############################################
 
+--@return nil on parse error, "domain" if the loaded item is an host, "ip" otherwise
 local function loadListItem(host, category, user_custom_categories)
    category = tonumber(category)
 
    -- Checking for "whitelisted hosts" (Format: !<host>)
    if string.sub(host, 1, 1) == "!" then
-      return false
+      return nil
    end
 
    if category ~= nil then
@@ -401,20 +407,20 @@ local function loadListItem(host, category, user_custom_categories)
       if user_custom_categories[category] ~= nil then
 	 local hosts_map = swapKeysValues(user_custom_categories[category])
 	 if hosts_map["!"..host] ~= nil then
-	    return false
+	    return nil
 	 end
       end
 
       if isIPv4(host) or isIPv4Network(host) then
 	 ntop.loadCustomCategoryIp(host, category)
-	 return true
+	 return "ip"
       else
 	 ntop.loadCustomCategoryHost(host, category)
-	 return true
+	 return "domain"
       end
    end
 
-   return false
+   return nil
 end
 
 -- ##############################################
@@ -457,10 +463,11 @@ end
 -- ##############################################
 
 -- Loads hosts from a list file on disk
-local function loadFromListFile(list_name, list, user_custom_categories, max_rules)
+local function loadFromListFile(list_name, list, user_custom_categories, stats)
    local list_fname = getListCacheFile(list_name)
-   local num_lines = 0
    local f = io.open(list_fname, "r")
+   local num_rules = 0
+   local limit_exceeded = false
 
    if f == nil then
       if list.status.num_hosts > 0 then
@@ -468,7 +475,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, max_rul
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
       end
 
-      return 0
+      return(false)
    end
 
    traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Loading list '%s'...", list_fname))
@@ -487,32 +494,37 @@ local function loadFromListFile(list_name, list, user_custom_categories, max_rul
 	 elseif list.format == "ja3_suricata_csv" then
 	    -- handled differently
 	    if handle_ja3_suricata_csv_line(trimmed) then
-	       num_lines = num_lines + 1
+	       stats.num_ja3 = stats.num_ja3 + 1
+	       num_rules = num_rules + 1
 	    end
 	    host = nil
 	 end
 
 	 if host then
-	    if loadListItem(host, list.category, user_custom_categories) then
-	       num_lines = num_lines + 1
+	    local rv = loadListItem(host, list.category, user_custom_categories)
+
+	    if(rv == "domain") then
+	       stats.num_hosts = stats.num_hosts + 1
+	       num_rules = num_rules + 1
+	    elseif(rv == "ip") then
+	       stats.num_ips = stats.num_ips + 1
+	       num_rules = num_rules + 1
 	    end
 	 end
 
-	 if(num_lines >= max_rules) then
-	    -- error is logged in the caller
-	    break
-	 end
-
-	 if(num_lines >= MAX_RULES_PER_FILE) then
-	    traceError(TRACE_WARNING, TRACE_CONSOLE,
-	       string.format("Too many rules defined in list '%s' (max %d). Some rules will be skipped.", list_fname, MAX_RULES_PER_FILE))
+	 if((stats.num_ips >= MAX_TOTAL_IP_RULES) or
+	       (stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) or
+	       (stats.num_ja3 >= MAX_TOTAL_JA3_RULES)) then
+	    limit_exceeded = true
 	    break
 	 end
       end
    end
 
+   list.status.num_hosts = num_rules
    f:close()
-   return num_lines
+
+   return(limit_exceeded)
 end
 
 -- ##############################################
@@ -521,23 +533,35 @@ end
 local function reloadListsNow()
    local user_custom_categories = categories_utils.getAllCustomCategoryHosts()
    local lists = lists_utils.getCategoryLists()
-   local start_t = os.time()
-   local cur_rules = 0
+   local stats = {num_hosts = 0, num_ips = 0, num_ja3 = 0, begin = os.time(), duration = 0}
+   local limit_reached_error = nil
 
    -- Load hosts from cached URL lists
    for list_name, list in pairsByKeys(lists) do
       if list.enabled then
-	 local new_hosts = loadFromListFile(list_name, list, user_custom_categories, (MAX_TOTAL_RULES - cur_rules))
-
-	 if(new_hosts > 0) then
-	    list.status.num_hosts = new_hosts
-	    cur_rules = cur_rules + new_hosts
-
-	    if(cur_rules >= MAX_TOTAL_RULES) then
-	       traceError(TRACE_WARNING, TRACE_CONSOLE,
-		  string.format("Too many rules loaded (max %d). Some rules will be skipped.", MAX_TOTAL_RULES))
-	       break
+	 if((not limit_reached_error) and loadFromListFile(list_name, list, user_custom_categories, stats)) then
+	    -- A limit was exceeded
+	    if(stats.num_ips >= MAX_TOTAL_IP_RULES) then
+	       limit_reached_error = i18n("category_lists.too_many_ips_loaded", {limit = MAX_TOTAL_IP_RULES}) ..
+		  ". " .. i18n("category_lists.disable_some_list")
+	    elseif(stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) then
+	       limit_reached_error = i18n("category_lists.too_many_hosts_loaded", {limit = MAX_TOTAL_DOMAIN_RULES}) ..
+		  ". " .. i18n("category_lists.disable_some_list")
+	    elseif(stats.num_ja3 >= MAX_TOTAL_JA3_RULES) then
+	       limit_reached_error = i18n("category_lists.too_many_ja3_loaded", {limit = MAX_TOTAL_JA3_RULES}) ..
+		  ". " .. i18n("category_lists.disable_some_list")
+	    else
+	       -- should never happen
+	       limit_reached_error = "reloadListsNow: unknown error"
 	    end
+
+	    -- Continue to iterate to also set the error on the next lists
+	    traceError(TRACE_WARNING, TRACE_CONSOLE, limit_reached_error)
+	 end
+
+	 if(limit_reached_error) then
+	    -- Set the invalid status to show it into the gui
+	    list.status.last_error = limit_reached_error
 	 end
       end
    end
@@ -555,8 +579,13 @@ local function reloadListsNow()
       end
    end
 
-   local end_t = os.time()
-   traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Lists (%u hosts) loaded in %d seconds", cur_rules, (end_t - start_t)))
+   stats.duration = (os.time() - stats.begin)
+
+   traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Lists (%u hosts, %u IPs, %u JA3) loaded in %d seconds",
+      stats.num_hosts, stats.num_ips, stats.num_ja3, stats.duration))
+
+   -- Save the stats
+   ntop.setCache("ntopng.cache.category_lists.load_stats", json.encode(stats))
 
    -- Reload into memory
    ntop.reloadCustomCategories()

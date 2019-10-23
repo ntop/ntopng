@@ -1844,10 +1844,12 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_reloadCustomCategories(lua_State* vm) {
-  int i, j, max_wait = 20;
+  int i, j, max_wait = 20 /* time limit is: 20 * 500e3 = 10 seconds */;
+  int num_seconds;
+  int wait_step = 500e3; /* 500 ms */
   NetworkInterface *iface;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Starting category lists reload");
 
   for(i = 0; i<ntop->get_num_interfaces(); i++) {
     if((iface = ntop->getInterface(i)) != NULL) {
@@ -1857,17 +1859,25 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
         /* Can reload directly as the PCAP interface is not running */
         iface->reloadCustomCategories();
       } else
-        _usleep(5e4);
+        _usleep(50e3); /* 50 ms */
 
       for(j = 0; j < max_wait && iface->customCategoriesReloadRequested(); j++) {
 	/* Make sure the interface has reloaded the categories */
-	_usleep(5e5);
+	_usleep(wait_step);
       }
 
+      num_seconds = (1.f * j * wait_step) / 1e6;
+
       if((j == max_wait) && !(iface->read_from_pcap_dump()))
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface didn't reload custom categories on time [iface: %s]", iface->get_name());
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Interface %s didn't reload category lists in %u seconds",
+	  iface->get_name(), num_seconds);
+      else
+        ntop->getTrace()->traceEvent(TRACE_DEBUG, "Interface %s reloaded category lists in %u seconds",
+	  iface->get_name(), num_seconds);
     }
   }
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists reload done");
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);

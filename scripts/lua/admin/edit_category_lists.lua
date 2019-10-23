@@ -11,6 +11,8 @@ local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
 local page_utils = require("page_utils")
+local json = require("dkjson")
+local format_utils = require("format_utils")
 sendHTTPContentTypeHeader('text/html')
 
 if not haveAdminPrivileges() then
@@ -132,8 +134,24 @@ print[[
 print[[<hr><h2>]] print(i18n("category_lists.category_lists")) print[[</h2>]]
 
 print[[
-<div id="table-edit-lists-form"></div>
+<div id="table-edit-lists-form"></div>]]
 
+local stats = ntop.getCache("ntopng.cache.category_lists.load_stats")
+if(stats) then
+  stats = json.decode(stats)
+
+  if(stats) then
+    print(i18n("category_lists.loading_stats", {
+      when = format_utils.formatPastEpochShort(stats.begin),
+      num_hosts = stats.num_hosts,
+      num_ips = stats.num_ips,
+      num_ja3 = stats.num_ja3,
+      duration = secondsToTime(stats.duration),
+    }))
+  end
+end
+
+print[[
 <script>
   var url_update = "]] print(getPageUrl(ntop.getHttpPrefix()..[[/lua/admin/get_category_lists.lua]], page_params)) print[[";
 
