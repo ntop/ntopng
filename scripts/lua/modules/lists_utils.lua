@@ -19,6 +19,10 @@ local CUSTOM_CATEGORY_ADVERTISEMENT = 101
 local DEFAULT_UPDATE_INTERVAL = 86400
 local MAX_LIST_ERRORS = 3
 
+-- This limits the amount of rules that can be loaded from a single file
+local MAX_RULES_PER_FILE = 50000
+local MAX_TOTAL_RULES = 200000
+
 local is_nedge = ntop.isnEdge()
 
 -- supported formats: ip, domain, hosts
@@ -453,7 +457,7 @@ end
 -- ##############################################
 
 -- Loads hosts from a list file on disk
-local function loadFromListFile(list_name, list, user_custom_categories)
+local function loadFromListFile(list_name, list, user_custom_categories, max_rules)
    local list_fname = getListCacheFile(list_name)
    local num_lines = 0
    local f = io.open(list_fname, "r")
@@ -493,6 +497,17 @@ local function loadFromListFile(list_name, list, user_custom_categories)
 	       num_lines = num_lines + 1
 	    end
 	 end
+
+	 if(max_rules >= max_rules) then
+	    -- error is logged in the caller
+	    break
+	 end
+
+	 if(num_lines >= MAX_RULES_PER_FILE) then
+	    traceError(TRACE_WARNING, TRACE_CONSOLE,
+	       string.format("Too many rules defined in list '%s' (max %d). Some rules will be skipped.", list_fname, MAX_RULES_PER_FILE))
+	    break
+	 end
       end
    end
 
@@ -507,14 +522,22 @@ local function reloadListsNow()
    local user_custom_categories = categories_utils.getAllCustomCategoryHosts()
    local lists = lists_utils.getCategoryLists()
    local start_t = os.time()
+   local cur_rules = 0
 
    -- Load hosts from cached URL lists
    for list_name, list in pairsByKeys(lists) do
       if list.enabled then
-	 local new_hosts = loadFromListFile(list_name, list, user_custom_categories)
+	 local new_hosts = loadFromListFile(list_name, list, user_custom_categories, (MAX_TOTAL_RULES - cur_rules))
 
-	 if new_hosts > 0 then
+	 if(new_hosts > 0) then
 	    list.status.num_hosts = new_hosts
+	    cur_rules = cur_rules + new_hosts
+
+	    if(cur_rules >= MAX_TOTAL_RULES) then
+	       traceError(TRACE_WARNING, TRACE_CONSOLE,
+		  string.format("Too many rules loaded (max %d). Some rules will be skipped.", MAX_TOTAL_RULES))
+	       break
+	    end
 	 end
       end
    end
