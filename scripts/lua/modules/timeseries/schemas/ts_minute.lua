@@ -9,7 +9,7 @@ local schema
 -- HASH_TABLES SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("hash_table:states", {step = 60, rrd_fname="ht_states"})
+schema = ts_utils.newSchema("hash_table:states", {step = 60, rrd_fname="ht_states", metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("hash_table")
 schema:addMetric("num_idle")
