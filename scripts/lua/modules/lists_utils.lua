@@ -498,7 +498,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, max_rul
 	    end
 	 end
 
-	 if(max_rules >= max_rules) then
+	 if(num_lines >= max_rules) then
 	    -- error is logged in the caller
 	    break
 	 end
@@ -556,7 +556,7 @@ local function reloadListsNow()
    end
 
    local end_t = os.time()
-   traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Lists loaded in %d seconds", (end_t - start_t)))
+   traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Lists (%u hosts) loaded in %d seconds", cur_rules, (end_t - start_t)))
 
    -- Reload into memory
    ntop.reloadCustomCategories()
