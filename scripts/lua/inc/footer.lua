@@ -11,7 +11,6 @@ print [[
    ]]
 
 local template = require "template_utils"
-local system_scripts = require("system_scripts_utils")
 
 local have_nedge = ntop.isnEdge()
 info = ntop.getInfo(true)

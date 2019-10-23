@@ -5,7 +5,6 @@
 local pragma_once = 1
 local http_lint = {}
 local json = require "dkjson"
-local alert_consts = require "alert_consts"
 local tracker = require "tracker"
 
 -- #################################################################

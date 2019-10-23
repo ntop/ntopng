@@ -153,30 +153,6 @@ function sec2granularity(seconds)
   end
 end
 
--- ##############################################
-
-function alertEntityRaw(entity_id)
-  entity_id = tonumber(entity_id)
-
-  for key, entity_info in pairs(alert_consts.alert_entities) do
-    if(entity_info.entity_id == entity_id) then
-      return(key)
-    end
-  end
-end
-
-function alertEntity(v)
-   return(alert_consts.alert_entities[v].entity_id)
-end
-
-function alertEntityLabel(v, nothml)
-  local entity_id = alertEntityRaw(v)
-
-  if(entity_id) then
-    return(alert_consts.alert_entities[entity_id].label)
-  end
-end
-
 -- ##############################################################################
 
 function getInterfacePacketDropPercAlertKey(ifname)
@@ -267,7 +243,7 @@ function performAlertsQuery(statement, what, opts, force_query, group_by)
 
    if (not isEmptyString(opts.entity)) and (not isEmptyString(opts.entity_val)) then
       if(what == "historical-flows") then
-         if(tonumber(opts.entity) ~= alertEntity("host")) then
+         if(tonumber(opts.entity) ~= alert_consts.alertEntity("host")) then
            return({})
          else
            -- need to handle differently for flows table
@@ -615,7 +591,7 @@ function checkDeleteStoredAlerts()
 
    if(_POST["action"] == "release_alert") then
       local entity_info = {
-         alert_entity = alert_consts.alert_entities[alertEntityRaw(_POST["entity"])],
+         alert_entity = alert_consts.alert_entities[alert_consts.alertEntityRaw(_POST["entity"])],
          alert_entity_val = _POST["entity_val"],
       }
 
@@ -906,7 +882,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
         ntop.delHashCache(get_alerts_suppressed_hash_name(ifid), entity_value)
       end
 
-      interface.refreshSuppressedAlertsPrefs(alertEntity(entity_type), entity_value)
+      interface.refreshSuppressedAlertsPrefs(alert_consts.alertEntity(entity_type), entity_value)
 
       if(entity_type == "host") then
          local bitmap = 0
@@ -1414,7 +1390,7 @@ function printAlertTables(entity_type, alert_source, page_name, page_params, alt
 
    if(show_entity) then
       -- these fields will be used to perform queries
-      _GET["entity"] = alertEntity(show_entity)
+      _GET["entity"] = alert_consts.alertEntity(show_entity)
       _GET["entity_val"] = alert_source
    end
 
@@ -1716,7 +1692,7 @@ function getActiveTabId() {
 function updateDeleteLabel(tabid) {
    var label = $("#purgeBtnLabel");
    var prefix = "]]
-      if not isEmptyString(_GET["entity"]) then print(alertEntityLabel(_GET["entity"], true).." ") end
+      if not isEmptyString(_GET["entity"]) then print(alert_consts.alertEntityLabel(_GET["entity"], true).." ") end
       print [[";
    var val = "";
 
@@ -1914,7 +1890,7 @@ function toggleAlert(disable) {
 	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries))
 	 elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	    if entity == "host" then
-	       title = title .. " - " .. firstToUpper(formatAlertEntity(getInterfaceId(ifname), entity, _GET["entity_val"], nil))
+	       title = title .. " - " .. firstToUpper(alert_consts.formatAlertEntity(getInterfaceId(ifname), entity, _GET["entity_val"], nil))
 	    end
 	 end
 
@@ -2603,7 +2579,7 @@ end
 function formatAlertMessage(ifid, alert)
   local msg
 
-  if(alert.alert_entity == alertEntity("flow") or (alert.alert_entity == nil)) then
+  if(alert.alert_entity == alert_consts.alertEntity("flow") or (alert.alert_entity == nil)) then
     msg = formatRawFlow(alert, alert["alert_json"])
   else
     msg = alert["alert_json"]
@@ -2649,7 +2625,7 @@ function formatAlertNotification(notif, options)
 
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
-      msg = msg.."["..alertEntityLabel(notif.alert_entity).."]"
+      msg = msg.."["..alert_consts.alertEntityLabel(notif.alert_entity).."]"
 
       if notif.alert_entity ~= "flow" then
 	 local ev = notif.alert_entity_val
@@ -2858,7 +2834,7 @@ local function notify_ntopng_status(started)
    local entity_value = "ntopng"
 
    obj = {
-      entity_type = alertEntity("process"), entity_value=entity_value,
+      entity_type = alert_consts.alertEntity("process"), entity_value=entity_value,
       type = alertType("alert_process_notification"),
       severity = severity,
       message = msg,

@@ -16,6 +16,7 @@ sendHTTPHeader('application/json')
 local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
 local remote_assistance = require("remote_assistance")
+local alert_consts = require("alert_consts")
 
 local function userHasRestrictions()
    local allowed_nets = ntop.getPref("ntopng.user." .. (_SESSION["user"] or "") .. ".allowed_nets")
@@ -88,7 +89,7 @@ function dumpInterfaceStats(ifid)
          res["has_alerts"]         = ifstats["has_alerts"]
          res["ts_alerts"] = {}
 
-         if ts_utils.getDriverName() == "influxdb" and system_scripts.hasAlerts({entity = alertEntity("influx_db")}) then
+         if ts_utils.getDriverName() == "influxdb" and system_scripts.hasAlerts({entity = alert_consts.alertEntity("influx_db")}) then
             res["ts_alerts"]["influxdb"] = true
          end
       end

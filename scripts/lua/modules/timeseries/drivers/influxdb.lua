@@ -4,14 +4,11 @@
 
 local driver = {}
 
+-- NOTE: this script is required by second.lua, keep the imports minimal!
 local ts_common = require("ts_common")
-
 local json = require("dkjson")
 local os_utils = require("os_utils")
-local alerts_api = require("alerts_api")
-local data_retention_utils = require "data_retention_utils"
 require("ntop_utils")
-require "alert_utils"
 
 --
 -- Sample query:
@@ -77,6 +74,7 @@ end
 -- ##############################################
 
 local function getDatabaseRetentionDays()
+   local data_retention_utils = require "data_retention_utils"
    return data_retention_utils.getDataRetentionDays()
 end
 
@@ -886,6 +884,8 @@ function driver:_droppedExportablesAlert()
    local k = "ntopng.cache.influxdb_dropped_points_alert_triggered"
 
    if ntop.getCache(k) ~= "1" then
+      local alerts_api = require("alerts_api")
+
       alerts_api.store(
         alerts_api.influxdbEntity(self.url),
         alerts_api.influxdbDroppedPointsType(self.url)

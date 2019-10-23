@@ -11,6 +11,7 @@ require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local system_scripts = require("system_scripts_utils")
+local alert_consts = require("alert_consts")
 require("graph_utils")
 require("alert_utils")
 
@@ -214,8 +215,8 @@ elseif((page == "alerts") and isAdministrator()) then
 
    _GET["ifid"] = getSystemInterfaceId()
    _GET["entity_excludes"] = string.format("%u,%u,%u",
-      alertEntity("influx_db"), alertEntity("snmp_device"),
-      alertEntity("pinged_host"))
+      alert_consts.alertEntity("influx_db"), alert_consts.alertEntity("snmp_device"),
+      alert_consts.alertEntity("pinged_host"))
 
    drawAlerts()
 

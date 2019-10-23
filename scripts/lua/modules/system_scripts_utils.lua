@@ -10,7 +10,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. pa
 
 local os_utils = require("os_utils")
 local ts_utils = require("ts_utils_core")
-require "alert_utils"
 
 local system_scripts_dir = dirs.installdir .. "/scripts/callbacks/system"
 local task_to_periodicity = {
@@ -226,6 +225,9 @@ end
 -- ##############################################
 
 function system_scripts.hasAlerts(options)
+  -- Requring alert_utils here to optimize second.lua
+  require("alert_utils")
+
   local opts = table.merge(options, {ifid = getSystemInterfaceId()})
   local old_iface = iface
   local rv

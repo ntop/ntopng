@@ -3,7 +3,8 @@
 --
 
 local function formatFlowsFlood(ifid, alert, threshold_info)
-  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local alert_consts = require("alert_consts")
+  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
 
   if(alert.alert_subtype == "flow_flood_attacker") then
     return i18n("alert_messages.flow_flood_attacker", {

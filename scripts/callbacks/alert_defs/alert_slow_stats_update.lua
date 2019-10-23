@@ -3,7 +3,8 @@
 --
 
 local function formatSlowStatsUpdate(ifid, alert, threshold_info)
-  local entity = formatAlertEntity(ifid, alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local alert_consts = require("alert_consts")
+  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
 
   return(i18n("alert_messages.slow_stats_update", {
     iface = entity,

@@ -166,7 +166,7 @@ if(haveAdminPrivileges()) then
    for k, v in pairs(_POST) do
     if starts(k, "slack_ch_") then
       local alert_entity = tonumber(split(k, "slack_ch_")[2])
-      local alert_entity_raw = alertEntityRaw(alert_entity)
+      local alert_entity_raw = alert_consts.alertEntityRaw(alert_entity)
 
       if alert_entity_raw then
         -- map entity -> channel name
@@ -598,8 +598,8 @@ function printExternalAlertsReport()
     print('<tr id="slack_channels" style="' .. ternary(showSlackNotificationPrefs, "", "display:none;").. '"><td><strong>' .. i18n("prefs.slack_channel_names") .. '</strong><p><small>' .. i18n("prefs.slack_channel_names_descr") .. '</small></p></td><td><table class="table table-bordered table-condensed"><tr><th>'.. i18n("prefs.alert_entity") ..'</th><th>' .. i18n("prefs.slack_channel") ..'</th></tr>')
 
     for entity_type_raw, entity in pairsByKeys(alert_consts.alert_entities) do
-      local entity_type = alertEntity(entity_type_raw)
-      local label = alertEntityLabel(entity_type)
+      local entity_type = alert_consts.alertEntity(entity_type_raw)
+      local label = alert_consts.alertEntityLabel(entity_type)
       local channel = slack_utils.getChannelName(entity_type_raw)
 
       print('<tr><td>'.. label ..'</td><td><div class="form-group" style="margin:0"><input class="form-control input-sm" name="slack_ch_'.. entity_type ..'" pattern="[^\' \']*" value="'.. channel ..'"></div></td></tr>')

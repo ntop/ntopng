@@ -11,6 +11,7 @@ require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local system_scripts = require("system_scripts_utils")
+local alert_consts = require("alert_consts")
 require("graph_utils")
 require("alert_utils")
 
@@ -49,7 +50,7 @@ else
   print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
 end
 
-if(isAdministrator() and system_scripts.hasAlerts({entity = alertEntity("influx_db")})) then
+if(isAdministrator() and system_scripts.hasAlerts({entity = alert_consts.alertEntity("influx_db")})) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\">")
    else
@@ -186,7 +187,7 @@ elseif((page == "alerts") and isAdministrator()) then
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
-   _GET["entity"] = alertEntity("influx_db")
+   _GET["entity"] = alert_consts.alertEntity("influx_db")
 
    drawAlerts()
 

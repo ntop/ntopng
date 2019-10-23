@@ -3,6 +3,7 @@
 --
 
 local function formatDNSAnomaly(ifid, engine, entity_type, entity_value, entity_info, alert_key, alert_info)
+   alert_consts = require("alert_consts")
    -- tprint({ifid =ifid, engine = engine, entity_type = entity_type, entity_value = entity_value, entity_info = entity_info, alert_key = alert_key, alert_info = alert_info})
 
    if entity_info.anomalies ~= nil then
@@ -12,7 +13,7 @@ local function formatDNSAnomaly(ifid, engine, entity_type, entity_value, entity_
 	    local anomaly_info = entity_info.anomalies[v]
 
 	    local res =  string.format("%s has a DNS anomaly [%s][current=%u][anomaly_index=%u]",
-				       firstToUpper(formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
+				       firstToUpper(alert_consts.formatAlertEntity(ifid, entity_type, entity_value, entity_info)),
 				       v,
 				       anomaly_info.value,
 				       anomaly_info.anomaly_index)

@@ -167,7 +167,7 @@ function alerts_api.store(entity_info, type_info, when)
     alert_json = alert_json,
   }
 
-  if(entity_info.alert_entity.entity_id == alertEntity("host")) then
+  if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     -- NOTE: for engaged alerts this operation is performed during trigger in C
     interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_id)
   end
@@ -305,13 +305,13 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
     subtype, alert_json,
   }
 
-  if(entity_info.alert_entity.entity_id == alertEntity("host")) then
+  if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     host.checkContext(entity_info.alert_entity_val)
     triggered = host.storeTriggeredAlert(table.unpack(params))
-  elseif(entity_info.alert_entity.entity_id == alertEntity("interface")) then
+  elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
     interface.checkContext(entity_info.alert_entity_val)
     triggered = interface.storeTriggeredAlert(table.unpack(params))
-  elseif(entity_info.alert_entity.entity_id == alertEntity("network")) then
+  elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("network")) then
     network.checkContext(entity_info.alert_entity_val)
     triggered = network.storeTriggeredAlert(table.unpack(params))
   else
@@ -363,13 +363,13 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
     return(false)
   end
 
-  if(entity_info.alert_entity.entity_id == alertEntity("host")) then
+  if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     host.checkContext(entity_info.alert_entity_val)
     released = host.releaseTriggeredAlert(table.unpack(params))
-  elseif(entity_info.alert_entity.entity_id == alertEntity("interface")) then
+  elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
     interface.checkContext(entity_info.alert_entity_val)
     released = interface.releaseTriggeredAlert(table.unpack(params))
-  elseif(entity_info.alert_entity.entity_id == alertEntity("network")) then
+  elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("network")) then
     network.checkContext(entity_info.alert_entity_val)
     released = network.releaseTriggeredAlert(table.unpack(params))
   else
@@ -1073,7 +1073,7 @@ end
 
 function alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
   local bitmap = tonumber(ntop.getPref(getEntityDisabledAlertsBitmapKey(ifid, entity, entity_val))) or 0
-  -- traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("ifid: %d, entity: %s, val: %s -> bitmap=%x", ifid, alertEntityRaw(entity), entity_val, bitmap))
+  -- traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("ifid: %d, entity: %s, val: %s -> bitmap=%x", ifid, alert_consts.alertEntityRaw(entity), entity_val, bitmap))
   return(bitmap)
 end
 

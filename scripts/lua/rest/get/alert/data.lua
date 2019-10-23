@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "alert_utils"
 require "flow_utils"
-
+local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local json = require "dkjson"
 
@@ -44,7 +44,7 @@ for _key,_value in ipairs(alerts) do
    local alert_entity_val
 
    if _value["alert_entity"] ~= nil then
-      alert_entity    = alertEntityLabel(_value["alert_entity"], true)
+      alert_entity    = alert_consts.alertEntityLabel(_value["alert_entity"], true)
    else
       alert_entity = "flow" -- flow alerts page doesn't have an entity
    end

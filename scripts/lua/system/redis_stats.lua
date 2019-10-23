@@ -10,6 +10,7 @@ active_page = "system_stats"
 require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
+local alert_consts = require("alert_consts")
 local system_scripts = require("system_scripts_utils")
 require("graph_utils")
 require("alert_utils")
@@ -50,7 +51,7 @@ else
 end
 
 if isAdministrator()
--- and system_scripts.hasAlerts({entity = alertEntity("redis")}))
+-- and system_scripts.hasAlerts({entity = alert_consts.alertEntity("redis")}))
 then
    -- if(page == "alerts") then
    --    print("\n<li class=\"active\"><a href=\"#\">")
@@ -140,7 +141,7 @@ elseif((page == "alerts") and isAdministrator()) then
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
-   -- _GET["entity"] = alertEntity("redis")
+   -- _GET["entity"] = alert_consts.alertEntity("redis")
 
    drawAlerts()
 

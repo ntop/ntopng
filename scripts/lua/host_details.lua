@@ -27,6 +27,7 @@ local template = require "template_utils"
 local mud_utils = require "mud_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
+local alert_consts = require "alert_consts"
 
 local info = ntop.getInfo()
 
@@ -140,7 +141,7 @@ if(host == nil) and (not only_historical) then
       if page == "alerts" then
 	 print('<script>window.location.href = "')
 	 print(ntop.getHttpPrefix())
-	 print('/lua/show_alerts.lua?entity='..alertEntity("host")..'&entity_val=')
+	 print('/lua/show_alerts.lua?entity='..alert_consts.alertEntity("host")..'&entity_val=')
 	 print(hostkey)
 	 print('";</script>')
       else

@@ -10,6 +10,7 @@ active_page = "system_stats"
 require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
+local alert_consts = require("alert_consts")
 local system_scripts = require("system_scripts_utils")
 local rtt_utils = require("rtt_utils")
 local template = require("template_utils")
@@ -63,7 +64,7 @@ if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterf
   end
 end
 
-if(isAdministrator() and system_scripts.hasAlerts({entity = alertEntity("pinged_host")})) then
+if(isAdministrator() and system_scripts.hasAlerts({entity = alert_consts.alertEntity("pinged_host")})) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\">")
    else
@@ -411,7 +412,7 @@ elseif((page == "alerts") and isAdministrator()) then
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
-   _GET["entity"] = alertEntity("pinged_host")
+   _GET["entity"] = alert_consts.alertEntity("pinged_host")
    _GET["entity_val"] = _GET["rtt_host"]
 
    drawAlerts()
