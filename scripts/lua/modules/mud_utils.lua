@@ -171,6 +171,12 @@ end
 
 -- ###########################################
 
+local function getHasMudRecordedKey(ifid, host_key)
+   return(string.format("ntopng.mud.ifid_%d.has_recorded_data._%s_", ifid, host_key))
+end
+
+-- ###########################################
+
 local function handleHostMUD(ifid, flow_info, mud_info, is_general_purpose, is_client)
    local l4proto = flow_info["proto.l4"]
    local mud_type
@@ -212,6 +218,7 @@ local function handleHostMUD(ifid, flow_info, mud_info, is_general_purpose, is_c
    -- Register the connection
    -- TODO handle alerts
    ntop.setMembersCache(mud_key, conn_key)
+   ntop.setCache(getHasMudRecordedKey(ifid, host_ip), "1")
 end
 
 -- ###########################################
@@ -479,16 +486,8 @@ end
 
 -- ###########################################
 
-function mud_utils.isMUDRecordingEnabled(ifid)
-  local pattern = getHostMUDRecordingKey(ifid, "*")
-  return(table.len(ntop.getKeysCache(pattern)) > 0)
-end
-
--- ###########################################
-
 function mud_utils.hasRecordedMUD(ifid, host_key)
-   local pattern = string.format("ntopng.mud.ifid_%d.*._%s_*", ifid, host_key)
-   return(table.len(ntop.getKeysCache(pattern)) > 0)
+   return(ntop.getCache(getHasMudRecordedKey(ifid, host_key)) == "1")
 end
 
 -- ###########################################

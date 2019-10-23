@@ -22,12 +22,6 @@ local script = {
 
 -- #################################################################
 
-function script.setup()
-  return(mud_utils.isMUDRecordingEnabled(interface.getId()))
-end
-
--- #################################################################
-
 function script.hooks.protocolDetected(params)
   mud_utils.handleFlow(params.flow_info)
 end
