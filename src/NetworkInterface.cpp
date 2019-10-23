@@ -5412,7 +5412,11 @@ void NetworkInterface::lua(lua_State *vm) {
 void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
   GenericHash *gh[] = {flows_hash, hosts_hash, macs_hash,
 		       vlans_hash, ases_hash, countries_hash,
-		       arp_hash_matrix, aggregated_flows_hash};
+		       arp_hash_matrix
+#ifdef NTOPNG_PRO
+		       ,aggregated_flows_hash
+#endif
+  };
 
   lua_newtable(vm);
 
