@@ -421,7 +421,7 @@ void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow
 
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Aggregated Flows hash table [num items: %i]",
-				   aggregated_flows_hash->getCurrentSize());
+				   aggregated_flows_hash->getNumEntries());
 #endif
     }
 #endif
@@ -770,13 +770,13 @@ void NetworkInterface::dumpAggregatedFlows(const struct timeval *tv) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Aggregated flows exported. "
 				   "Aggregated flows hash cleared. [num_items: %i]",
-				   aggregated_flows_hash->getCurrentSize());
+				   aggregated_flows_hash->getNumEntries());
 #endif
     } else
 #ifdef AGGREGATED_FLOW_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "[last aggregation: %u][flow aggregation duration: %i][num_items: %u]",
-				   lastFlowAggregation, FLOW_AGGREGATION_DURATION, aggregated_flows_hash->getCurrentSize());
+				   lastFlowAggregation, FLOW_AGGREGATION_DURATION, aggregated_flows_hash->getNumEntries());
 #endif
     ;
   }
@@ -5017,7 +5017,7 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
-				 ifname, id, flows_hash->getCurrentSize());
+				 ifname, id, flows_hash->getNumEntries());
 #endif
     n = (flows_hash ? flows_hash->purgeIdle(force_idle) : 0);
 
@@ -5103,7 +5103,7 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans(bool force_idle) {
 #if 0
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Purging idle hosts [ifname: %s] [ifid: %i] [current size: %i]",
-				   ifname, id, hosts_hash->getCurrentSize());
+				   ifname, id, hosts_hash->getNumEntries());
 #endif
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
@@ -5405,6 +5405,21 @@ void NetworkInterface::lua(lua_State *vm) {
   if(custom_app_stats)
     custom_app_stats->lua(vm);
 #endif
+}
+
+/* *************************************** */
+
+void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
+  GenericHash *gh[] = {flows_hash, hosts_hash, macs_hash,
+		       vlans_hash, ases_hash, countries_hash,
+		       arp_hash_matrix, aggregated_flows_hash};
+
+  lua_newtable(vm);
+
+  for (u_int i = 0; i < sizeof(gh) / sizeof(gh[0]); i++) {
+    if(gh[i])
+      gh[i]->lua(vm);
+  }
 }
 
 /* **************************************************** */

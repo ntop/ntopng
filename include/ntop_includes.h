@@ -262,6 +262,7 @@ using namespace std;
 #include "MySQLDB.h"
 #endif
 #include "InterfaceStatsHash.h"
+#include "GenericHash.h"
 #include "GenericHashEntry.h"
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #include "nindex_api.h"
@@ -293,7 +294,6 @@ using namespace std;
 #include "PF_RINGInterface.h"
 #endif
 #include "FlowAlertCounter.h"
-#include "GenericHash.h"
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"
 #include "HTTPstats.h"

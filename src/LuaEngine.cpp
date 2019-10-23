@@ -5831,6 +5831,19 @@ void lua_push_float_table_entry(lua_State *L, const char *key, float value) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_hash_tables_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface)
+    ntop_interface->lua_hash_tables_stats(vm);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool get_direction_stats = false;
@@ -10286,6 +10299,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "hasEBPF",                  ntop_interface_has_ebpf  },
   { "hasHighResTs",             ntop_interface_has_high_res_ts },
   { "getStats",                 ntop_get_interface_stats },
+  { "getHashTablesStats",       ntop_get_interface_hash_tables_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
   { "getInterfaceTimeseries",   ntop_get_interface_timeseries },
   { "resetCounters",            ntop_interface_reset_counters },

@@ -31,6 +31,8 @@ local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
 
+tprint(interface.getHashTablesStats())
+
 local have_nedge = ntop.isnEdge()
 
 if ntop.isPro() then

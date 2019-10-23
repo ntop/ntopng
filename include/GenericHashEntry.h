@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+class Generichash;
+
 /** @class GenericHashEntry
  *  @brief Base hash entry class.
  *  @details Defined the base hash entry class for ntopng.
@@ -81,6 +83,7 @@ class GenericHashEntry {
  private:
   GenericHashEntry *hash_next; /**< Pointer of next hash entry.*/
   HashEntryState hash_entry_state;
+  GenericHash *hash_table;
   /**
    * @brief Set one of the states of the hash entry in its lifecycle.
    *
@@ -132,6 +135,11 @@ class GenericHashEntry {
    * @return Return the next hash entry.
    */
   inline GenericHashEntry* next()    { return(hash_next); };
+  /**
+   * @brief Set a pointer to the hash table this entry
+   * hash been added to
+   */
+  void set_hash_table(GenericHash *gh) { hash_table = gh; };
   /**
    * @brief Set and id to uniquely identify this
    * hash entry into the hash table (class GenericHash)

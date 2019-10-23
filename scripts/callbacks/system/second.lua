@@ -26,7 +26,6 @@ end
 
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.." ifid: "..ifstats.id.."\n") end
-
    -- Traffic stats
    -- We check for ifstats.stats.bytes to start writing only when there's data. This
    -- prevents artificial and wrong peaks especially during the startup of ntopng.

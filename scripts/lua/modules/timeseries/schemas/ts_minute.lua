@@ -6,6 +6,16 @@ local ts_utils = require "ts_utils_core"
 local schema
 
 -------------------------------------------------------
+-- HASH_TABLES SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("hash_table:states", {step = 60, rrd_fname="ht_states"})
+schema:addTag("ifid")
+schema:addTag("hash_table")
+schema:addMetric("num_idle")
+schema:addMetric("num_ready_to_be_purged")
+
+-------------------------------------------------------
 -- PROFILES SCHEMAS
 -------------------------------------------------------
 

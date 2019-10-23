@@ -149,6 +149,27 @@ end
 
 -- ########################################################
 
+function ts_dump.update_hash_tables_stats(when, ifstats, verbose)
+   local hash_tables_stats = interface.getHashTablesStats()
+
+   for ht_name, ht_stats in pairs(hash_tables_stats) do
+      local num_idle = 0
+      local num_ready_to_be_purged = 0
+
+      if ht_stats["hash_entry_states"] and ht_stats["hash_entry_states"]["hash_entry_state_idle"] then
+	 num_idle = ht_stats["hash_entry_states"]["hash_entry_state_idle"]
+      end
+
+      if ht_stats["hash_entry_states"] and ht_stats["hash_entry_states"]["hash_entry_state_ready_to_be_purged"] then
+	 num_ready_to_be_purged = ht_stats["hash_entry_states"]["hash_entry_state_ready_to_be_purged"]
+      end
+
+      ts_utils.append("hash_table:states", {ifid = ifstats.id, hash_table = ht_name, num_idle = num_idle, num_ready_to_be_purged = num_ready_to_be_purged}, when, verbose)
+   end
+end
+
+-- ########################################################
+
 function ts_dump.containers_update_stats(when, ifstats, verbose)
   local containers_stats = interface.getContainersStats()
 
@@ -257,6 +278,9 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
        ts_custom.iface_update_stats(instant, _ifname, iface_point, verbose)
     end
   end
+
+  -- Save internal hash tables states every minute
+  ts_dump.update_hash_tables_stats(when, ifstats, verbose)
 
   -- Save Profile stats every minute
   if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version

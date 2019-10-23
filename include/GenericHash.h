@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+class GenericHashEntry;
+
 /** @defgroup MonitoringData Monitoring Data
  * This is the group that contains all classes and datastructures that handle monitoring data.
  */
@@ -47,8 +49,14 @@ class GenericHash {
   u_int last_purged_hash; /**< Index of last purged hash.*/
   u_int last_entry_id; /**< An uniue identifier assigned to each entry in the hash table */
   u_int purge_step;
+  struct {
+    u_int64_t num_idle_transitions;
+    u_int64_t num_ready_to_be_purged_transitions;
+    u_int64_t num_purged;
+  } entry_state_transition_counters;
 
  public:
+
   /**
    * @brief A Constructor
    * @details Creating a new GenericHash.
@@ -66,6 +74,7 @@ class GenericHash {
    * @brief A Destructor
    */
   virtual ~GenericHash();
+
   /**
    * @brief Get number of entries.
    * @details Inline method.
@@ -73,6 +82,16 @@ class GenericHash {
    * @return Current size of hash.
    */
   inline u_int32_t getNumEntries() { return(current_size); };
+
+  /**
+   * @brief Tell this GenericHash about a state transition of
+   * one of the entry it contains. GenericHash will use this
+   * information to count total state transitions.
+   *
+   * @param s The new state of the transition
+   */
+  void notify_transition(HashEntryState s);
+
   /**
    * @brief Add new entry to generic hash.
    * @details If current_size < max_hash_size, this method calculate a new hash key for the new entry, add it and update the current_size value.
@@ -84,6 +103,7 @@ class GenericHash {
    *
    */
   bool add(GenericHashEntry *h, bool do_lock);
+
   /**
    * @brief generic walker for the hash.
    * @details This method uses the walker function to compare each elements of the hash with the user data.
@@ -120,13 +140,24 @@ class GenericHash {
    * @return Pointer of network interface instance.
    */
   inline NetworkInterface* getInterface() { return(iface); };
+
   /**
    * @brief Check whether the hash has empty space
    *
    * @return true if there is space left, or false if the hash is full
    */
   inline bool hasEmptyRoom() { return((current_size < max_hash_size) ? true : false); };
-  inline u_int32_t getCurrentSize() { return current_size;}
+
+  /**
+   * @brief Populates a lua table with hash table stats, including
+   * the state transitions
+   *
+   * @param vm A lua VM
+   *
+   * @return Current size of hash.
+   */
+  void lua(lua_State* vm);
+
 };
 
 #endif /* _GENERIC_HASH_H_ */
