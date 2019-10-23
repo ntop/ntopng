@@ -81,24 +81,24 @@ end
 
 -- ##############################################
 
-local function getCheckModuleConfHash(ifid, subdir, module_key)
-   return string.format("ntopng.prefs.user_scripts.conf.%s.ifid_%d.%s", subdir, ifid, module_key)
+local function getUserScriptDisabledKey(ifid, subdir, module_key)
+   return string.format("ntopng.prefs.user_scripts.conf.%s.ifid_%d.%s.disabled", subdir, ifid, module_key)
 end
 
 -- ##############################################
 
 -- @brief Enables a user script
 function user_scripts.enableModule(ifid, subdir, module_key)
-   local hkey = getCheckModuleConfHash(ifid, subdir, module_key)
-   ntop.delHashCache(hkey, "disabled")
+   local key = getUserScriptDisabledKey(ifid, subdir, module_key)
+   ntop.delCache(key)
 end
 
 -- ##############################################
 
 -- @brief Disables a user script
 function user_scripts.disableModule(ifid, subdir, module_key)
-   local hkey = getCheckModuleConfHash(ifid, subdir, module_key)
-   ntop.setHashCache(hkey, "disabled", "1")
+   local key = getUserScriptDisabledKey(ifid, subdir, module_key)
+   ntop.setPref(key, "1")
 end
 
 -- ##############################################
@@ -107,8 +107,8 @@ end
 -- @return true if disabled, false otherwise
 -- @notes Modules are neabled by default. The user can manually turn them off.
 function user_scripts.isEnabled(ifid, subdir, module_key)
-   local hkey = getCheckModuleConfHash(ifid, subdir, module_key)
-   return(ntop.getHashCache(hkey, "disabled") ~= "1")
+   local key = getUserScriptDisabledKey(ifid, subdir, module_key)
+   return(ntop.getPref(key) ~= "1")
 end
 
 -- ##############################################

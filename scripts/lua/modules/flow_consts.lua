@@ -38,6 +38,12 @@ local status_by_prio = {}
 local max_prio = 0
 
 local function loadStatusDefs()
+    if(false) then
+      if(string.find(debug.traceback(), "second.lua")) then
+         traceError(TRACE_WARNING, TRACE_CONSOLE, "second.lua is loading flow_consts.lua. This will slow it down!")
+      end
+    end
+
     local defs_dir = flow_consts.getDefinititionsDir()
     package.path = defs_dir .. "/?.lua;" .. package.path
     local required_fields = {"status_id", "relevance", "prio", "alert_severity", "alert_type", "i18n_title"}
