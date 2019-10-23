@@ -3411,6 +3411,12 @@ local lang = {
     ["no_traffic_observed_message"] = "No traffic has been observed for the specified host",
     ["rcvd"] = "Rcvd",
   },
+  ["internals"] = {
+     ["hash_table"] = "Hash Table",
+     ["hash_entries"] = "Hash Entries",
+     ["state_idle"] = "Entries in State Idle",
+     ["state_ready_to_be_purged"] = "Entries in State Ready to Be Purged",
+  },
   ["traffic_profiles"] = {
     ["advanced_filter_examples"] = "Advanced Filters Examples",
     ["all_profiles"] = "All Profiles",

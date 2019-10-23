@@ -1099,6 +1099,7 @@ local known_parameters = {
    ["alertstats_type"]         = validateAlertStatsType,        -- A mode for alerts stats queries
    ["flowhosts_type"]          = validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
    ["status"]                  = validateAlertStatus,           -- An alert type to filter
+   ["hash_table"]              = validateSingleWord,            -- An internal ntopng hash_table
    ["profile"]                 = http_lint.validateTrafficProfile,        -- Traffic Profile name
    ["delete_profile"]          = http_lint.validateTrafficProfile,        -- A Traffic Profile to delete
    ["alert_type"]              = validateNumber,                -- An alert type enum

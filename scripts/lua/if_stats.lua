@@ -31,8 +31,6 @@ local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
 
-tprint(interface.getHashTablesStats())
-
 local have_nedge = ntop.isnEdge()
 
 if ntop.isPro() then
@@ -352,6 +350,12 @@ if(isAdministrator()) then
    else
       print("\n<li><a href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
    end
+end
+
+if(false and page == "internals") then
+   print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>\n")
+else
+   print("\n<li><a href=\""..url.."&page=internals\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>")
 end
 
 if(isAdministrator() and ntop.isEnterprise() and not ifstats.isDynamic) and isEmptyString(ntop.getCache(disaggregation_criterion_key)) then
@@ -1832,6 +1836,26 @@ elseif(page == "callbacks") then
    drawAlertSourceSettings("interface", ifname_clean,
       i18n("show_alerts.iface_delete_config_btn", {iface=if_name}), "show_alerts.iface_delete_config_confirm",
       "if_stats.lua", {ifid=ifid}, if_name, "interface")
+
+elseif(page == "internals") then
+   local hash_tables_stats = interface.getHashTablesStats()
+
+   print("<table class=\"table table-striped table-bordered\">\n")
+   print("<tr><th width=15%>" .. i18n("internals.hash_table") .. "</th><th width=5% style='text-align:center;'>" .. i18n("chart") .. "</th><th style='text-align:center;'>" .. i18n("internals.state_idle") .. "</th><th style='text-align:center;'>" .. i18n("internals.state_ready_to_be_purged") .. "</th></tr>\n")
+
+   for ht_name, ht_stats in pairsByKeys(hash_tables_stats, asc) do
+     local statschart_icon = ''
+
+     if ts_utils.exists("hash_table:states", {ifid = ifid, hash_table = ht_name}) then
+	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/hash_table_details.lua?hash_table='..ht_name..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+     end
+
+     print("<tr><th>"..ht_name.."</th><td align=center>"..statschart_icon.."</td><td align=center>"..format_utils.formatValue(ht_stats["hash_entry_states"]["hash_entry_state_idle"] or "0").."</td><td align=center>"..format_utils.formatValue(ht_stats["hash_entry_states"]["hash_entry_state_ready_to_be_purged"] or "0").."</td></tr>\n")
+   end
+
+print [[
+   </table>
+]]
 
 elseif(page == "snmp_bind") then
    if ((not hasSnmpDevices(ifstats.id)) or (not is_packet_interface)) then
