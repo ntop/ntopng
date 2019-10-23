@@ -70,8 +70,7 @@ end
 
 local has_pcap_dump_interface = false
 
--- Remove the json dumps previously needed for alerts generation
-for _, ifname in pairs(interface.getIfNames()) do
+local function cleanupIfname(ifname)
    interface.select(ifname)
    local ifid = getInterfaceId(ifname)
 
@@ -96,6 +95,12 @@ for _, ifname in pairs(interface.getIfNames()) do
    local export_dir = os_utils.fixPath(dirs.workingdir .. "/".. ifid .."/ts_export")
    ntop.rmdir(export_dir)
 end
+
+-- Remove the json dumps previously needed for alerts generation
+for _, ifname in pairs(interface.getIfNames()) do
+   cleanupIfname(ifname)
+end
+cleanupIfname(getSystemInterfaceName())
 
 -- Also flush the export queue
 ntop.delCache("ntopng.influx_file_queue")
