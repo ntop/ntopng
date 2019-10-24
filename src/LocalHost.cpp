@@ -60,11 +60,10 @@ void LocalHost::set_hash_entry_state_idle() {
   }
 
   iface->decNumHosts(true /* A local host */);
-
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->decNumHosts();
 
-  Host::set_hash_entry_state_idle();
+  GenericHashEntry::set_hash_entry_state_idle();
 }
 
 /* *************************************** */

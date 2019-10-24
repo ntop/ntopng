@@ -34,7 +34,7 @@ class RemoteHost : public Host {
   RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   virtual ~RemoteHost();
 
-  virtual void set_hash_entry_state_idle();
+  void set_hash_entry_state_idle();
   virtual bool setRemoteToRemoteAlerts();
   virtual int16_t get_local_network_id() const { return(-1);                };
   virtual bool isLocalHost()  const            { return(false);             };
