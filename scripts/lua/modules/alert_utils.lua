@@ -1051,6 +1051,8 @@ end
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
    options = options or {}
    local tab = _GET["tab"] or "min"
+   local ts_utils = require("ts_utils")
+   local ifid = interface.getId()
 
    local function printTab(tab, content, sel_tab)
       if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
@@ -1231,11 +1233,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
        <form method="post">
        <br>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-       <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
+       <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th class="text-center" width=5%>]] print(i18n("chart")) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
       print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-      for _, user_script in pairsByKeys(available_modules.modules, asc) do
+      for mod_k, user_script in pairsByKeys(available_modules.modules, asc) do
         local key = user_script.key
         local gui_conf = user_script.gui
    local show_input = true
@@ -1263,6 +1265,12 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
          print("<tr><td><b>".. i18n(gui_conf.i18n_title) .."</b><br>")
          print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
+
+         print("<td class='text-center'>")
+         if(ts_utils.exists("user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type})) then
+            print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
+               mod_k..'&subdir='..entity_type..'"><i class="fa fa-area-chart fa-lg"></i></a>')
+         end
 
          for _, prefix in pairs({"", "global_"}) do
             if user_script.gui.input_builder then

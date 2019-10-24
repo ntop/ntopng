@@ -2078,6 +2078,8 @@ local lang = {
   ["internals"] = {
     ["hash_entries"] = "Hash Entries",
     ["hash_table"] = "Hash Table",
+    ["num_calls"] = "Num Calls",
+    ["script_duration"] = "Run Duration",
     ["state_idle"] = "Entries in State Idle",
     ["state_ready_to_be_purged"] = "Entries in State Ready to Be Purged",
   },

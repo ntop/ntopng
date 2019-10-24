@@ -190,10 +190,30 @@ end
 
 -- ##############################################
 
-local function user_scripts_benchmarks_key(subdir, mod_k, hook)
-   local ifid = interface.getId()
-
+local function user_scripts_benchmarks_key(ifid, subdir, mod_k, hook)
    return string.format("ntopng.cache.ifid_%d.user_scripts_benchmarks.subdir_%s.mod_%s.hook_%s", ifid, subdir, mod_k, hook)
+end
+
+-- ##############################################
+
+local function getAccumulatedStatsKey(ifid, subdir, mod_k)
+   -- NOTE: do not differentiate by hook
+   return string.format("ntopng.cache.ifid_%d.user_scripts_benchmarks.accumulated.subdir_%s.mod_%s", ifid, subdir, mod_k)
+end
+
+-- ##############################################
+
+function user_scripts.getAccumulatedStats(ifid, subdir, mod_k)
+   local accumulated_key = getAccumulatedStatsKey(ifid, subdir, mod_k)
+   local cur_val = ntop.getCache(accumulated_key)
+
+   if(cur_val) then
+      -- Start a fresh accumulator
+      ntop.delCache(accumulated_key)
+      return(json.decode(cur_val))
+   end
+
+   return(nil)
 end
 
 -- ##############################################
@@ -201,12 +221,22 @@ end
 -- @brief Save benchmarks results and possibly print them to stdout
 --
 -- @param to_stdout dump results also to stdout
-function user_scripts.benchmark_dump(to_stdout)
+function user_scripts.benchmark_dump(ifid, to_stdout)
    for subdir, modules in pairs(benchmarks) do
       for mod_k, hooks in pairs(modules) do
+	 local accumulated_key = getAccumulatedStatsKey(ifid, subdir, mod_k)
+	 local acc_val = ntop.getCache(accumulated_key)
+	 if(not isEmptyString(acc_val)) then
+	    acc_val = json.decode(acc_val)
+	 end
+
+	 if(isEmptyString(acc_val)) then
+	    acc_val = {tot_num_calls = 0, tot_elapsed = 0}
+	 end
+
 	 for hook, hook_benchmark in pairs(hooks) do
 	    if hook_benchmark["tot_num_calls"] > 0 then
-	       local k = user_scripts_benchmarks_key(subdir, mod_k, hook)
+	       local k = user_scripts_benchmarks_key(ifid, subdir, mod_k, hook)
 	       ntop.setCache(k, json.encode(hook_benchmark), 3600 --[[ 1 hour --]])
 
 	       if to_stdout then
@@ -215,7 +245,15 @@ function user_scripts.benchmark_dump(to_stdout)
 					   subdir, hook, mod_k, hook_benchmark["tot_elapsed"], hook_benchmark["tot_num_calls"],
 					   hook_benchmark["tot_elapsed"] / hook_benchmark["tot_num_calls"]))
 	       end
+
+	       acc_val.tot_elapsed = math.max(hook_benchmark.tot_elapsed, acc_val.tot_elapsed)
+	       acc_val.tot_num_calls = hook_benchmark.tot_num_calls + acc_val.tot_num_calls
 	    end
+	 end
+
+	 -- Save accumulated stats
+	 if(acc_val.tot_num_calls > 0) then
+	    ntop.setCache(accumulated_key, json.encode(acc_val), 3600 --[[ 1 hour --]])
 	 end
       end
    end
@@ -227,8 +265,8 @@ end
 --
 -- @param subdir the modules subdir
 -- @param mod_k the key of the user script
-local function benchmark_load(subdir, mod_k, hook)
-   local k = user_scripts_benchmarks_key(subdir, mod_k, hook)
+local function benchmark_load(ifid, subdir, mod_k, hook)
+   local k = user_scripts_benchmarks_key(ifid, subdir, mod_k, hook)
    local res = ntop.getCache(k)
 
    if res and res ~= "" then
@@ -365,7 +403,7 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                if(hook == "all") then
                   -- Register for all the hooks
                   for _, hook in pairs(script_type.hooks) do
-		     user_script["benchmark"][hook] = benchmark_load(subdir, user_script.key, hook)
+		     user_script["benchmark"][hook] = benchmark_load(ifid, subdir, user_script.key, hook)
 
 		     if do_benchmark then
 			rv.hooks[hook][user_script.key] = benchmark_init(subdir, user_script.key, hook, hook_fn)
@@ -379,7 +417,7 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                elseif(rv.hooks[hook] == nil) then
                   traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, user_script.key))
                else
-		  user_script["benchmark"][hook] = benchmark_load(subdir, user_script.key, hook)
+		  user_script["benchmark"][hook] = benchmark_load(ifid, subdir, user_script.key, hook)
 
 		  if do_benchmark then
 		     rv.hooks[hook][user_script.key] = benchmark_init(subdir, user_script.key, hook, hook_fn)
@@ -529,7 +567,8 @@ function user_scripts.teardown(available_modules, do_benchmark, do_print_benchma
    end
 
    if do_benchmark then
-      user_scripts.benchmark_dump(do_print_benchmark)
+      local ifid = interface.getId()
+      user_scripts.benchmark_dump(ifid, do_print_benchmark)
    end
 end
 

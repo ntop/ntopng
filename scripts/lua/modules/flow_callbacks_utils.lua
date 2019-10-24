@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local alerts_api = require "alerts_api"
 local format_utils = require "format_utils"
 local user_scripts = require "user_scripts"
+local ts_utils = require("ts_utils")
 
 local flow_callbacks_utils = {}
 
@@ -17,6 +18,7 @@ local function print_callbacks_config_tbody_simple_view(descr)
    print[[<tr>]]
    print[[<th width=40%>]] print(i18n("flow_callbacks.callback")) print[[</th>]]
    print[[<th width="20%">]] print(i18n("flow_callbacks.callback_config")) print[[</th>]]
+   print[[<th style="text-align: center;" width="5%">]] print(i18n("chart")) print[[</th>]]
    print[[<th style="text-align: center;" width=20%>]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th>]]
    print[[</tr>]]
 
@@ -24,8 +26,9 @@ local function print_callbacks_config_tbody_simple_view(descr)
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    local has_modules = false
+   local ifid = interface.getId()
 
-   for _, user_script in pairsByKeys(descr.modules, asc) do
+   for mod_k, user_script in pairsByKeys(descr.modules, asc) do
       if true --[[user_script.gui]] then
          if not has_modules then
             has_modules = true
@@ -79,7 +82,13 @@ local function print_callbacks_config_tbody_simple_view(descr)
 			  {time = format_utils.secondsToTime(max_duration)})
 	    end
 
-            print(string.format("<td align='center'>%s</td>", fmt))
+	    print("<td class='text-center'>")
+
+	    if(ts_utils.exists("user_script:duration", {ifid=ifid, user_script=mod_k, subdir="flow"})) then
+	       print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..mod_k..'&subdir=flow"><i class="fa fa-area-chart fa-lg" data-original-title="" title=""></i></a>')
+	    end
+
+            print(string.format("</td><td align='center'>%s</td>", fmt))
 
          else
             print("<td></td>")
@@ -103,13 +112,14 @@ end
 local function print_callbacks_config_tbody_expert_view(descr)
    print[[<tbody>]]
    print[[<tr>]]
-   print[[<th colspan=2></th>]]
+   print[[<th colspan=3></th>]]
    print[[<th colspan=4  style="text-align: center;">]] print(i18n("flow_callbacks.callback_latest_run")) print[[</th>]]
    print[[</tr>]]
 
    print[[<tr>]]
    print[[<th width=30%>]] print(i18n("flow_callbacks.callback")) print[[</th>]]
    print[[<th>]] print(i18n("flow_callbacks.callback_config")) print[[</th>]]
+   print[[<th style="text-align: center;" width="5%">]] print(i18n("chart")) print[[</th>]]
    print[[<th>]] print(i18n("flow_callbacks.callback_function")) print[[</th>]]
    print[[<th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_duration")) print[[</th>]]
    print[[<th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_num_flows")) print[[</th>]]
@@ -120,8 +130,9 @@ local function print_callbacks_config_tbody_expert_view(descr)
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    local has_modules = false
+   local ifid = interface.getId()
 
-   for _, user_script in pairsByKeys(descr.modules, asc) do
+   for mod_k, user_script in pairsByKeys(descr.modules, asc) do
       if true --[[user_script.gui]] then
          if not has_modules then
             has_modules = true
@@ -154,7 +165,12 @@ local function print_callbacks_config_tbody_expert_view(descr)
          end
          print("</td>")
 
-         print("<td>")
+         print("<td class='text-center' rowspan=".. rowspan ..">")
+	 if(ts_utils.exists("user_script:duration", {ifid=ifid, user_script=mod_k, subdir="flow"})) then
+	    print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..
+	       '&user_script='..mod_k..'&subdir=flow"><i class="fa fa-area-chart fa-lg"></i></a>')
+	 end
+         print("</td><td>")
 
          local num = 1
          if user_script.benchmark and table.len(user_script.benchmark) > 0 then
@@ -190,7 +206,7 @@ local function print_callbacks_config_tbody_expert_view(descr)
    end
 
    if not has_modules then
-      print("<tr><td colspan=6><i>"..i18n("flow_callbacks.no_callbacks_defined")..".</i></td></tr>")
+      print("<tr><td colspan=7><i>"..i18n("flow_callbacks.no_callbacks_defined")..".</i></td></tr>")
    end
 
    print[[</tbody>]]

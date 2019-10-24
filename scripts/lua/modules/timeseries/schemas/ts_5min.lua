@@ -9,6 +9,22 @@ local schema
 -- NOTE: when rrd_fname is empty, the last tag value is used as file name
 
 -------------------------------------------------------
+-- USER SCRIPTS SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("user_script:duration", {step = 300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("user_script")
+schema:addTag("subdir")
+schema:addMetric("num_ms")
+
+schema = ts_utils.newSchema("user_script:num_calls", {step = 300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("user_script")
+schema:addTag("subdir")
+schema:addMetric("num_calls")
+
+-------------------------------------------------------
 -- L3 DEVICES SCHEMAS
 -------------------------------------------------------
 
