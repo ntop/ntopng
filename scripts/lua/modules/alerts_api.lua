@@ -555,6 +555,21 @@ end
 
 -- ##############################################
 
+function alerts_api.synScanType(granularity, metric, value, operator, threshold)
+  return({
+    alert_type = alert_consts.alert_types.alert_tcp_syn_scan,
+    alert_subtype = metric,
+    alert_granularity = alert_consts.alerts_granularities[granularity],
+    alert_severity = alert_consts.alert_severities.error,
+    alert_type_params = {
+      value = value,
+      threshold = threshold,
+    }
+  })
+end
+
+-- ##############################################
+
 function alerts_api.flowFloodType(granularity, metric, value, operator, threshold)
   return({
     alert_type = alert_consts.alert_types.alert_flows_flood,

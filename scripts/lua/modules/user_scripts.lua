@@ -23,6 +23,7 @@ user_scripts.field_units = {
   syn_sec = "field_units.syn_sec",
   flow_sec = "field_units.flow_sec",
   percentage = "field_units.percentage",
+  syn_min = "field_units.syn_min",
 }
 
 local CALLBACKS_DIR = dirs.installdir .. "/scripts/callbacks"

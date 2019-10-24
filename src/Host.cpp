@@ -93,11 +93,21 @@ Host::~Host() {
 
 /* *************************************** */
 
-void Host::updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
+void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
   if(triggerAlerts())
     counter->inc(when, this);
+
+  if(syn_sent)
+    syn_last_min++;
+}
+
+/* *************************************** */
+
+void Host::update3WHSCompletedAlertsCounter(time_t when, bool synack_sent) {
+  if(!synack_sent)
+    twhs_completed_last_min++;
 }
 
 /* *************************************** */
@@ -109,6 +119,7 @@ void Host::housekeepAlerts(ScriptPeriodicity p) {
       flow_flood_victim_alert->reset_hits(),
       syn_flood_attacker_alert->reset_hits(),
       syn_flood_victim_alert->reset_hits();
+      syn_last_min = twhs_completed_last_min = 0;
     break;
   default:
     break;
@@ -182,6 +193,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   syn_flood_victim_alert    = new AlertCounter();
   flow_flood_attacker_alert = new AlertCounter();
   flow_flood_victim_alert = new AlertCounter();
+  syn_last_min = twhs_completed_last_min = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
   disabled_flow_status = 0;
@@ -498,6 +510,17 @@ void Host::lua_get_flow_flood(lua_State *vm) const {
     lua_push_uint64_table_entry(vm, "hits.flow_flood_victim", hits);
   if((hits = flow_flood_attacker_alert->hits()))
     lua_push_uint64_table_entry(vm, "hits.flow_flood_attacker", hits);
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_syn_scan(lua_State *vm) const {
+  u_int32_t hits = 0;
+
+  if (syn_last_min > twhs_completed_last_min)
+    hits = syn_last_min - twhs_completed_last_min;
+
+  lua_push_uint64_table_entry(vm, "hits.syn_scan", hits);
 }
 
 /* ***************************************************** */

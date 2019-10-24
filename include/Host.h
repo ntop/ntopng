@@ -58,6 +58,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
+  u_int32_t syn_last_min, twhs_completed_last_min; /* syn scan counters (attacker) */
   std::vector<u_int32_t> dropbox_namespaces;
   MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
     low_goodput_client_flows, low_goodput_server_flows;  
@@ -238,6 +239,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_time(lua_State* vm)          const;
   void lua_get_syn_flood(lua_State* vm)     const;
   void lua_get_flow_flood(lua_State*vm)     const;
+  void lua_get_syn_scan(lua_State* vm)      const;
   void lua_get_anomalies(lua_State* vm)     const;
   void lua_get_num_alerts(lua_State* vm)    const;
   void lua_get_num_total_flows(lua_State* vm) const;
@@ -265,7 +267,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void updateHostTrafficPolicy(char *key) {};
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
-  void updateSynAlertsCounter(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
+  void updateSynAlertsCounter(time_t when, bool syn_sent);
+  void update3WHSCompletedAlertsCounter(time_t when, bool synack_sent);
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
