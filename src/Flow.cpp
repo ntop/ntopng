@@ -246,10 +246,10 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
+  if(!cli_host && cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
     delete cli_ip_addr;
 
-  if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
+  if(!srv_host && srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
 
   if(last_partial)         free(last_partial);
