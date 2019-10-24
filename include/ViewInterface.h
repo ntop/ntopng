@@ -69,12 +69,6 @@ class ViewInterface : public NetworkInterface {
   				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,
 				AddressTree *allowed_hosts) const;
-  virtual bool walker(u_int32_t *begin_slot, bool walk_all,
-		      WalkerType wtype,		      
-		      bool (*walker)(GenericHashEntry *h,
-				     void *user_data, bool *entryMatched),
-		      void *user_data,
-		      bool walk_idle = false /* Should never walk idle unless in ViewInterface::flowPollLoop */);
 };
 
 #endif /* _VIEW_INTERFACE_H_ */

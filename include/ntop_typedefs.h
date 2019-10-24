@@ -421,7 +421,6 @@ typedef enum {
   hash_entry_state_flow_protocoldetected, /* Flow only */
   hash_entry_state_active,
   hash_entry_state_idle,
-  hash_entry_state_ready_to_be_purged
 } HashEntryState;
 
 typedef enum {

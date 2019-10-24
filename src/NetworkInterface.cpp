@@ -874,8 +874,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 			      bool walk_all,
 			      WalkerType wtype,
 			      bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
-			      void *user_data,
-			      bool walk_idle) {
+			      void *user_data) {
   bool ret = false;
 
   if(id == SYSTEM_INTERFACE_ID)
@@ -883,27 +882,27 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 
   switch(wtype) {
   case walker_hosts:
-    ret = hosts_hash ? hosts_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
+    ret = hosts_hash ? hosts_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_flows:
-    ret = flows_hash ? flows_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
+    ret = flows_hash ? flows_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_macs:
-    ret = macs_hash ? macs_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
+    ret = macs_hash ? macs_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_ases:
-    ret = ases_hash ? ases_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
+    ret = ases_hash ? ases_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_countries:
-    ret = countries_hash ? countries_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
+    ret = countries_hash ? countries_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_vlans:
-    ret = vlans_hash ? vlans_hash->walk(begin_slot, walk_all, walker, user_data, walk_idle) : false;
+    ret = vlans_hash ? vlans_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
   }
 
@@ -2705,8 +2704,6 @@ static bool update_generic_element_stats(GenericHashEntry *node, void *user_data
       ntop->getTrace()->traceEvent(TRACE_ERROR,
         "Inconsistent state: GenericHashEntry<%p> state=hash_entry_state_idle but idle()=false", node);
     }
-
-    node->set_hash_entry_state_ready_to_be_purged();
   }
 
   if((elem = dynamic_cast<GenericTrafficElement*>(node))) {
@@ -2751,8 +2748,6 @@ u_int32_t NetworkInterface::getFlowMaxIdle() {
 
 void NetworkInterface::periodicStatsUpdate() {
   struct timeval tv;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   struct timeval tdebug, tdebug_init;
 #endif
@@ -2788,9 +2783,7 @@ void NetworkInterface::periodicStatsUpdate() {
     update_flows_stats_user_data.acle = NULL /* Lazy instantiation */,
       update_flows_stats_user_data.tv = &tv;
 
-    begin_slot = 0;
-
-    walker(&begin_slot, walk_all, walker_flows, flow_update_hosts_stats, &update_flows_stats_user_data, true);
+    flows_hash->walkIdle(flow_update_hosts_stats, &update_flows_stats_user_data);
 
     if(update_flows_stats_user_data.acle)
       delete update_flows_stats_user_data.acle;
@@ -2816,8 +2809,7 @@ void NetworkInterface::periodicStatsUpdate() {
     update_hosts_stats_user_data.acle = NULL /* Lazy instantiation */,
       update_hosts_stats_user_data.tv = &tv;
 
-    begin_slot = 0;
-    walker(&begin_slot, walk_all, walker_hosts, update_hosts_stats, &update_hosts_stats_user_data, true);
+    hosts_hash->walkIdle(update_hosts_stats, &update_hosts_stats_user_data);
 
     if(update_hosts_stats_user_data.acle)
       delete update_hosts_stats_user_data.acle;
@@ -2828,25 +2820,17 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
 #endif
 
-  if(ases_hash) {
-    begin_slot = 0;
-    walker(&begin_slot, walk_all, walker_ases, update_generic_element_stats, (void*)&tv, true);
-  }
+  if(ases_hash)
+    ases_hash->walkIdle(update_generic_element_stats, (void*)&tv);
 
-  if(countries_hash) {
-    begin_slot = 0;
-    walker(&begin_slot, walk_all, walker_countries, update_generic_element_stats, (void*)&tv, true);
-  }
+  if(countries_hash)
+    countries_hash->walkIdle(update_generic_element_stats, (void*)&tv);
 
-  if(vlans_hash && hasSeenVlanTaggedPackets()) {
-    begin_slot = 0;
-    walker(&begin_slot, walk_all, walker_vlans, update_generic_element_stats, (void*)&tv, true);
-  }
+  if(vlans_hash && hasSeenVlanTaggedPackets())
+    vlans_hash->walkIdle(update_generic_element_stats, (void*)&tv);
 
-  if(macs_hash) {
-    begin_slot = 0;
-    walker(&begin_slot, walk_all, walker_macs, update_macs_stats, (void*)&tv, true);
-  }
+  if(macs_hash)
+    macs_hash->walkIdle(update_macs_stats, (void*)&tv);
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "asn/macs/vlan->walk took %d seconds", time(NULL) - tdebug.tv_sec);

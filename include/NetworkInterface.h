@@ -294,8 +294,7 @@ class NetworkInterface : public AlertableEntity {
 		      bool walk_all,
 		      WalkerType wtype,
 		      bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched),
-		      void *user_data,
-		      bool walk_idle = false /* Should never walk idle unless in ViewInterface::flowPollLoop */);
+		      void *user_data);
 
   void checkDisaggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };

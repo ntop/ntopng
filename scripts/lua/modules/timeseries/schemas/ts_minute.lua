@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2019 - ntop.org
 --
 
 local ts_utils = require "ts_utils_core"
@@ -9,11 +9,10 @@ local schema
 -- HASH_TABLES SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("hash_table:states", {step = 60, rrd_fname="ht_states", metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("ht:states", {step = 60, rrd_fname="ht_states", metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("hash_table")
 schema:addMetric("num_idle")
-schema:addMetric("num_ready_to_be_purged")
 
 -------------------------------------------------------
 -- PROFILES SCHEMAS

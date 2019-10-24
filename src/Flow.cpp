@@ -1454,10 +1454,6 @@ void Flow::call_state_scripts(update_stats_user_data_t *update_flows_stats_user_
   case hash_entry_state_flow_notyetdetected:
     /* Nothing to do here */
     break;
-    
-  case hash_entry_state_ready_to_be_purged:
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid state detected");
-    break;
       
   case hash_entry_state_flow_protocoldetected:
     performLuaCall(flow_lua_call_protocol_detected, tv, &update_flows_stats_user_data->acle);
@@ -1477,9 +1473,6 @@ void Flow::call_state_scripts(update_stats_user_data_t *update_flows_stats_user_
       if(is_acknowledged_to_purge())
 	return; /* Already acknowledged, nothing else to do */
       set_acknowledge_to_purge();
-    } else {
-      /* Marked as ready to be purged, will be purged by NetworkInterface::purgeIdleFlows */
-      set_hash_entry_state_ready_to_be_purged();
     }
 
     postFlowSetIdle(tv->tv_sec);

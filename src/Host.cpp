@@ -1258,8 +1258,6 @@ void Host::updateStats(update_stats_user_data_t *update_hosts_stats_user_data) {
       /* During shutdown it is acceptable to have a getUses() > 0 as all the hosts are forced as idle */
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u [%s]", getUses(), get_ip()->print(buf, sizeof(buf)));
     
-    set_hash_entry_state_ready_to_be_purged();
-
     if(getNumTriggeredAlerts()
        && (update_hosts_stats_user_data->acle
 	   || (update_hosts_stats_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface)))

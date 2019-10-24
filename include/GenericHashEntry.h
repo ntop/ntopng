@@ -84,6 +84,7 @@ class GenericHashEntry {
   GenericHashEntry *hash_next; /**< Pointer of next hash entry.*/
   HashEntryState hash_entry_state;
   GenericHash *hash_table;
+
   /**
    * @brief Set one of the states of the hash entry in its lifecycle.
    *
@@ -99,6 +100,7 @@ class GenericHashEntry {
   bool isIdle(u_int max_idleness) const;
 
  public:
+
   /**
     * @brief A Constructor
     * @details Creating a new GenericHashEntry.
@@ -107,6 +109,7 @@ class GenericHashEntry {
     * @return A new Instance of GenericHashEntry.
     */
   GenericHashEntry(NetworkInterface *_iface);
+
   /**
    * @brief A destructor.
    * @details Virtual method.
@@ -114,6 +117,7 @@ class GenericHashEntry {
    * @return Delete the instance.
    */
   virtual ~GenericHashEntry();
+
   /**
    * @brief Get the first seen time.
    * @details Inline method.
@@ -121,6 +125,7 @@ class GenericHashEntry {
    * @return Time of first seen.
    */
   inline time_t get_first_seen() const { return(first_seen); };
+
   /**
    * @brief Get the last seen time.
    * @details Inline method.
@@ -128,6 +133,7 @@ class GenericHashEntry {
    * @return Time of last seen.
    */
   inline time_t get_last_seen()  const { return(last_seen); };
+
   /**
    * @brief Get the next hash entry.
    * @details Inline method.
@@ -135,17 +141,20 @@ class GenericHashEntry {
    * @return Return the next hash entry.
    */
   inline GenericHashEntry* next()    { return(hash_next); };
+
   /**
    * @brief Set a pointer to the hash table this entry
    * hash been added to
    */
   void set_hash_table(GenericHash *gh) { hash_table = gh; };
+
   /**
    * @brief Set and id to uniquely identify this
    * hash entry into the hash table (class GenericHash)
    * it belongs to.
    */
   virtual void set_hash_entry_id(u_int hash_entry_id) { };
+
   /**
    * @brief Set the next hash entry.
    * @details Inline method.
@@ -153,6 +162,7 @@ class GenericHashEntry {
    * @param n Hash entry to set as next hash entry.
    */
   inline void set_next(GenericHashEntry *n) { hash_next = n;           };
+
   /**
    * @brief Set the hash entry state to idle. Must be called inline
    * with packets/flows processing.
@@ -160,15 +170,6 @@ class GenericHashEntry {
    */
   virtual void set_hash_entry_state_idle() {
     set_state(hash_entry_state_idle);
-  };
-  /**
-   * @brief Set the hash entry state to ready to be purged. Must be called NON-inline
-   * with packets/flows processing.
-   * @details Inline method.
-   * 
-   */
-  inline void set_hash_entry_state_ready_to_be_purged() {
-    set_state(hash_entry_state_ready_to_be_purged);
   };
 
   /**

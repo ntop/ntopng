@@ -78,32 +78,6 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 
 /* **************************************************** */
 
-bool ViewInterface::walker(u_int32_t *begin_slot,
-			   bool walk_all,
-			   WalkerType wtype,
-			   bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
-			   void *user_data,
-			   bool walk_idle) {
-  bool ret = false;
-  u_int32_t flows_begin_slot = 0; /* Always from the beginning, all flows */
-
-  switch(wtype) {
-  case walker_flows:
-    for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-      flows_begin_slot = 0; /* Always visit all the flows starting from slot 0 */
-      ret |= viewed_interfaces[s]->walker(&flows_begin_slot, true /* walk_all == true */, wtype, walker, user_data, walk_idle);
-    }
-    break;
-  default:
-    ret = NetworkInterface::walker(begin_slot, walk_all, wtype, walker, user_data, walk_idle);
-    break;
-  }
-
-  return ret;
-}
-
-/* **************************************************** */
-
 u_int64_t ViewInterface::getNumPackets() {  
   u_int64_t tot = 0;
 
@@ -279,7 +253,7 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
   if(acked_to_purge) {
     /* We can set the 'ready to be purged' state on behalf of the underlying viewed interface.
        It is safe as this view is in sync with the viewed interfaces by mean of acked_to_purge */
-    f->set_hash_entry_state_ready_to_be_purged();
+    /* TODO: FIXX */ // f->set_hash_entry_state_ready_to_be_purged();
   }
 
   f->dumpFlow(tv, iface);
@@ -353,15 +327,19 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 /* **************************************************** */
 
 void ViewInterface::viewedFlowsWalker() {
-  u_int32_t begin_slot;
+  FlowHash *cur_flows_hash;
   viewed_flows_walker_user_data_t viewed_flows_walker_user_data;
 
   viewed_flows_walker_user_data.tv.tv_sec = time(NULL),
     viewed_flows_walker_user_data.tv.tv_usec = 0,
     viewed_flows_walker_user_data.iface = this;      
 
-  begin_slot = 0; /* Always visit all flows starting from the first slot */
-  walker(&begin_slot, true /* walk all the flows */, walker_flows, viewed_flows_walker, &viewed_flows_walker_user_data, true /* visit also idle flows (required to acknowledge the purge) */);
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    cur_flows_hash = viewed_interfaces[s]->get_flows_hash();
+
+    if(cur_flows_hash)
+      cur_flows_hash->walkIdle(viewed_flows_walker, &viewed_flows_walker_user_data);
+  }
 
 #ifdef NTOPNG_PRO
   dumpAggregatedFlows(&viewed_flows_walker_user_data.tv);

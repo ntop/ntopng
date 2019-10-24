@@ -39,21 +39,24 @@ class GenericHashEntry;
  */
 class GenericHash {
  protected:
-  GenericHashEntry **table; /**< Entry table. It is used for maintain an update history.*/
+  GenericHashEntry **table; /**< Entry table. It is used for maintain an update history */
   char *name;
-  u_int32_t num_hashes; /**< Number of hash.*/
-  u_int32_t current_size; /**< Current size of hash (including idle or ready-to-purge elements).*/
-  u_int32_t max_hash_size; /**< Max size of hash.*/
+  u_int32_t num_hashes; /**< Number of hash */
+  u_int32_t current_size; /**< Current size of hash (including idle or ready-to-purge elements) */
+  u_int32_t max_hash_size; /**< Max size of hash */
   RwLock **locks;
-  NetworkInterface *iface; /**< Pointer of network interface for this generic hash.*/
-  u_int last_purged_hash; /**< Index of last purged hash.*/
+  NetworkInterface *iface; /**< Pointer of network interface for this generic hash */
+  u_int last_purged_hash; /**< Index of last purged hash */
   u_int last_entry_id; /**< An uniue identifier assigned to each entry in the hash table */
   u_int purge_step;
   struct {
     u_int64_t num_idle_transitions;
-    u_int64_t num_ready_to_be_purged_transitions;
     u_int64_t num_purged;
   } entry_state_transition_counters;
+
+  vector<GenericHashEntry*> *idle_entries; /**< Vector used by the offline thread in charge of deleting hash table entries */
+  vector<GenericHashEntry*> *purge_idle_idle_entries; /**< Vector prepared by the purgeIdle and periodically swapped to idle_entries */
+  vector<GenericHashEntry*> *purge_idle_idle_entries_shadow; /**< Vector prepared by the purgeIdle and periodically swapped to purge_idle_idle_entries */
 
  public:
 
@@ -112,10 +115,19 @@ class GenericHash {
    * @param walk_all true = walk all hash, false, walk only one (non NULL) slot
    * @param walker A pointer to the comparison function.
    * @param user_data Value to be compared with the values of hash.
-   * @param walk_idle Allows idle entries to be walked. WARNING: Should never be used unless in ViewInterface::flowPollLoop
    */
   bool walk(u_int32_t *begin_slot, bool walk_all,
-	    bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data, bool walk_idle = false);
+	    bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data);
+
+  /**
+   * @brief Hash table walker used only by an offline thread in charge of deleting idle entries
+   * @details This method walks the hash table and the idle_entries vector to perform cleanup operations
+   *          on idle entries, before calling the destructor on them
+   *
+   * @param walker A pointer to the comparison function.
+   * @param user_data Value to be compared with the values of hash.
+   */
+  void walkIdle(bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data);
 
   /**
    * @brief Purge idle hash entries.
