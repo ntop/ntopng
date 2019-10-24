@@ -155,11 +155,6 @@ NetworkInterface::NetworkInterface(const char *name,
   if(ntop->getCustomnDPIProtos() != NULL)
     ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
-  /* The DNS reply must be dissected to properly generate requests vs replies ratio
-   * and update the DnsStats. */
-  ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_dns_dont_dissect_response,  0);
-  ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
-  
   memset(d_port, 0, sizeof(d_port));
   ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			  0, no_master, no_master, (char*)"Operating System",
