@@ -88,14 +88,18 @@ void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
     counter->inc(when, this);
 
   if(syn_sent)
-    syn_last_min++;
+    syn_sent_last_min++;
+  else
+    syn_recvd_last_min++;
 }
 
 /* *************************************** */
 
 void Host::update3WHSCompletedAlertsCounter(time_t when, bool synack_sent) {
-  if(!synack_sent)
-    twhs_completed_last_min++;
+  if(synack_sent)
+    synack_sent_last_min++;
+  else
+    synack_recvd_last_min++;
 }
 
 /* *************************************** */
@@ -107,7 +111,8 @@ void Host::housekeepAlerts(ScriptPeriodicity p) {
       flow_flood_victim_alert->reset_hits(),
       syn_flood_attacker_alert->reset_hits(),
       syn_flood_victim_alert->reset_hits();
-      syn_last_min = twhs_completed_last_min = 0;
+      syn_sent_last_min = synack_recvd_last_min = 0;
+      syn_recvd_last_min = synack_sent_last_min = 0;
     break;
   default:
     break;
@@ -181,7 +186,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   syn_flood_victim_alert    = new AlertCounter();
   flow_flood_attacker_alert = new AlertCounter();
   flow_flood_victim_alert = new AlertCounter();
-  syn_last_min = twhs_completed_last_min = 0;
+  syn_sent_last_min = synack_recvd_last_min = 0;
+  syn_recvd_last_min = synack_sent_last_min = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
   disabled_flow_status = 0;
@@ -514,12 +520,19 @@ void Host::lua_get_flow_flood(lua_State *vm) const {
 /* ***************************************************** */
 
 void Host::lua_get_syn_scan(lua_State *vm) const {
-  u_int32_t hits = 0;
+  u_int32_t hits;
 
-  if (syn_last_min > twhs_completed_last_min)
-    hits = syn_last_min - twhs_completed_last_min;
+  hits = 0;
+  if (syn_sent_last_min > synack_recvd_last_min)
+    hits = syn_sent_last_min - synack_recvd_last_min;
+  if(hits)
+    lua_push_uint64_table_entry(vm, "hits.syn_scan_attacker", hits);
 
-  lua_push_uint64_table_entry(vm, "hits.syn_scan", hits);
+  hits = 0;
+  if (syn_recvd_last_min > synack_sent_last_min)
+    hits = syn_recvd_last_min - synack_sent_last_min;
+  if(hits)
+    lua_push_uint64_table_entry(vm, "hits.syn_scan_victim", hits);
 }
 
 /* ***************************************************** */
@@ -662,6 +675,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
     lua_get_syn_flood(vm);
     lua_get_flow_flood(vm);
+    lua_get_syn_scan(vm);
   }
 
   lua_get_time(vm);

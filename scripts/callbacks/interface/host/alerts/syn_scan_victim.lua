@@ -6,17 +6,17 @@ local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
 local script = {
-  key = "syn_scan",
+  key = "syn_scan_victim",
   threshold_type_builder = alerts_api.synScanType,
-  default_value = "syn_scan;gt;30",
+  default_value = "syn_scan_victim;gt;30",
 
   hooks = {
     min = alerts_api.threshold_check_function,
   },
 
   gui = {
-    i18n_title = "entity_thresholds.syn_scan_title",
-    i18n_description = "entity_thresholds.syn_scan_description",
+    i18n_title = "entity_thresholds.syn_scan_victim_title",
+    i18n_description = "entity_thresholds.syn_scan_victim_description",
     i18n_field_unit = user_scripts.field_units.syn_min,
     input_builder = user_scripts.threshold_cross_input_builder,
     field_max = 65535,
@@ -29,7 +29,7 @@ local script = {
 
 function script.get_threshold_value(granularity, info)
   local sf = host.getSynScan()
-  return(sf["hits.syn_scan"] or 0)
+  return(sf["hits.syn_scan_victim"] or 0)
 end
 
 -- #################################################################

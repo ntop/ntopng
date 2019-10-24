@@ -2513,9 +2513,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   if(flags == TH_SYN) {
     if(cli_host) cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
     if(srv_host) srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
-
-    if(cli_network_stats) cli_network_stats->updateSynAlertsCounter(when->tv_sec, true);
-    if(srv_network_stats) srv_network_stats->updateSynAlertsCounter(when->tv_sec, false);
+    if(cli_network_stats) cli_network_stats->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
+    if(srv_network_stats) srv_network_stats->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
   }
 
   if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
@@ -2540,17 +2539,16 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
       if((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
 	memcpy(&synAckTime, when, sizeof(struct timeval));
 	timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
-
 	/* Sanity check */
 	if(serverNwLatency.tv_sec > 5)
 	  memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 	else if(srv_host)
 	  srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
-
       }
       if(cli_host) cli_host->update3WHSCompletedAlertsCounter(when->tv_sec, src2dst_direction);
       if(srv_host) srv_host->update3WHSCompletedAlertsCounter(when->tv_sec, !src2dst_direction);
-
+      if(cli_network_stats) cli_network_stats->update3WHSCompletedAlertsCounter(when->tv_sec, src2dst_direction);
+      if(srv_network_stats) srv_network_stats->update3WHSCompletedAlertsCounter(when->tv_sec, !src2dst_direction);
     } else if(flags == TH_ACK) {
       if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
 	memcpy(&ackTime, when, sizeof(struct timeval));

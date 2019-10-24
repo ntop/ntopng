@@ -58,7 +58,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
-  u_int32_t syn_last_min, twhs_completed_last_min; /* syn scan counters (attacker) */
+  u_int32_t syn_sent_last_min, synack_recvd_last_min; /* syn scan counters (attacker) */
+  u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
   std::vector<u_int32_t> dropbox_namespaces;
   MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
     low_goodput_client_flows, low_goodput_server_flows;  

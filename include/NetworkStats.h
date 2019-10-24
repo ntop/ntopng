@@ -34,6 +34,7 @@ class NetworkStats : public AlertableEntity, public GenericTrafficElement {
   TcpPacketStats tcp_packet_stats_ingress, tcp_packet_stats_egress, tcp_packet_stats_inner;
   AlertCounter syn_flood_victim_alert;
   AlertCounter flow_flood_victim_alert;
+  u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
 
   static inline void incTcp(TcpPacketStats *tps, u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
     if(ooo_pkts)        tps->incOOO(ooo_pkts);
@@ -91,6 +92,7 @@ class NetworkStats : public AlertableEntity, public GenericTrafficElement {
   void housekeepAlerts(ScriptPeriodicity p);
 
   void updateSynAlertsCounter(time_t when, bool syn_sent);
+  void update3WHSCompletedAlertsCounter(time_t when, bool synack_sent);
   void incNumFlows(time_t t, bool as_client);
 };
 

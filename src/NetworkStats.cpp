@@ -26,6 +26,7 @@
 NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : AlertableEntity(iface, alert_entity_network), GenericTrafficElement() {
   network_id = _network_id;
   numHosts = 0;
+  syn_recvd_last_min = synack_sent_last_min = 0;
 
   setEntityValue(ntop->getLocalNetworkName(network_id));
 }
@@ -61,6 +62,12 @@ void NetworkStats::lua(lua_State* vm) {
   if((hits = flow_flood_victim_alert.hits()))
     lua_push_uint64_table_entry(vm, "hits.flow_flood_victim", hits);
 
+  hits = 0;
+  if (syn_recvd_last_min > synack_sent_last_min)
+    hits = syn_recvd_last_min - synack_sent_last_min;
+  if(hits)
+    lua_push_uint64_table_entry(vm, "hits.syn_scan_victim", hits);
+  
   GenericTrafficElement::lua(vm, true);
 }
 
@@ -92,6 +99,7 @@ void NetworkStats::housekeepAlerts(ScriptPeriodicity p) {
   case minute_script:
       flow_flood_victim_alert.reset_hits(),
       syn_flood_victim_alert.reset_hits();
+      syn_recvd_last_min = synack_sent_last_min = 0;
     break;
   default:
     break;
@@ -101,8 +109,17 @@ void NetworkStats::housekeepAlerts(ScriptPeriodicity p) {
 /* *************************************** */
 
 void NetworkStats::updateSynAlertsCounter(time_t when, bool syn_sent) {
-  if(!syn_sent)
+  if(!syn_sent) {
     syn_flood_victim_alert.inc(when, this);
+    syn_recvd_last_min++;
+  }
+}
+
+/* *************************************** */
+
+void NetworkStats::update3WHSCompletedAlertsCounter(time_t when, bool synack_sent) {
+  if(synack_sent)
+    synack_sent_last_min++;
 }
 
 /* *************************************** */
