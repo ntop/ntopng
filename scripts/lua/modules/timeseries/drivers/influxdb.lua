@@ -108,7 +108,7 @@ end
 
 local function inc_failed_exports()
    ntop.setCache(INFLUX_FLAG_FAILING_EXPORTS, "true", INFLUX_FLAGS_TIMEOUT)
-   ntop.incrCache(INFLUX_FLAG_FAILING_EXPORTS, 1)
+   ntop.incrCache(INFLUX_KEY_FAILED_EXPORTS, 1)
 end
 
 -- ##############################################
