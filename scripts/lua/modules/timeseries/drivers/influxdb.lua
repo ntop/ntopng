@@ -20,9 +20,10 @@ require("ntop_utils")
 -- Export problems occur if the export queue length is >= INFLUX_MAX_EXPORT_QUEUE_LEN_HIGH.
 -- Then, the problems are considered fixed once the queue length goes <= INFLUX_MAX_EXPORT_QUEUE_LEN_LOW.
 -- NOTE: these values are multiplied by the number of interfaces
-local INFLUX_MAX_EXPORT_QUEUE_LEN_LOW = 20
-local INFLUX_MAX_EXPORT_QUEUE_LEN_HIGH = 30
-local INFLUX_MAX_EXPORT_QUEUE_TRIM_LEN = 50 -- This edge should never be crossed. If it does, queue is manually trimmed
+-- NOTE: a single file can be as big as 4MB.
+local INFLUX_MAX_EXPORT_QUEUE_LEN_LOW = 10
+local INFLUX_MAX_EXPORT_QUEUE_LEN_HIGH = 20
+local INFLUX_MAX_EXPORT_QUEUE_TRIM_LEN = 30 -- This edge should never be crossed. If it does, queue is manually trimmed
 
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"

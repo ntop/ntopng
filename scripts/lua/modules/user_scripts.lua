@@ -211,7 +211,7 @@ function user_scripts.benchmark_dump(to_stdout)
 
 	       if to_stdout then
 		  traceError(TRACE_NORMAL,TRACE_CONSOLE,
-			     string.format("[%s] %s() [check: %s][elapsed: %.4f][num: %u][speed: %.4f]\n",
+			     string.format("[%s] %s() [script: %s][elapsed: %.4f][num: %u][speed: %.4f]\n",
 					   subdir, hook, mod_k, hook_benchmark["tot_elapsed"], hook_benchmark["tot_num_calls"],
 					   hook_benchmark["tot_elapsed"] / hook_benchmark["tot_num_calls"]))
 	       end
@@ -522,9 +522,9 @@ end
 
 -- @brief Teardown function, to be called at the end of the VM
 function user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
-   for _, check in pairs(available_modules.modules) do
-      if check.teardown then
-         check.teardown()
+   for _, script in pairs(available_modules.modules) do
+      if script.teardown then
+         script.teardown()
       end
    end
 

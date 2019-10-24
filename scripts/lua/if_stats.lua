@@ -352,7 +352,7 @@ if(isAdministrator()) then
    end
 end
 
-if(false and page == "internals") then
+if(page == "internals") then
    print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>\n")
 else
    print("\n<li><a href=\""..url.."&page=internals\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>")
