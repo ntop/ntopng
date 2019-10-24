@@ -102,7 +102,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
 
   virtual ~Host();
-
+  virtual void set_hash_entry_state_idle();
   virtual bool isLocalHost()  const = 0;
   virtual bool isSystemHost() const = 0;
   inline  bool isBroadcastDomainHost() const { return(is_in_broadcast_domain); };

@@ -246,21 +246,10 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-#ifdef ALERTED_FLOWS_DEBUG
-  if(iface_alert_inc && !iface_alert_dec) {
-    char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[MISMATCH][inc but not dec][alerted: %u] %s",
-				 isFlowAlerted() ? 1 : 0, print(buf, sizeof(buf)));
-  }
-#endif
-  if(cli_host)
-    cli_host->decUses();
-  else if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
+  if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
     delete cli_ip_addr;
 
-  if(srv_host)
-    srv_host->decUses();
-  else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
+  if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
 
   if(last_partial)         free(last_partial);
@@ -1944,11 +1933,15 @@ u_int Flow::get_hash_entry_id() const {
 /* *************************************** */
 
 void Flow::set_hash_entry_state_idle() {
-  if(cli_host)
+  if(cli_host) {
+    cli_host->decUses();
     cli_host->decNumFlows(last_seen, true, srv_host);
+  }
 
-  if(srv_host)
+  if(srv_host) {
+    srv_host->decUses();
     srv_host->decNumFlows(last_seen, false, cli_host);
+  }
 
   iface->decNumFlows();
 

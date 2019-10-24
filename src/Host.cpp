@@ -53,12 +53,6 @@ Host::~Host() {
      && (!iface->isView() || !ntop->getGlobals()->isShutdownRequested()))
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", getUses());
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
-
-  if(mac)           mac->decUses();
-  if(as)            as->decUses();
-  if(country)       country->decUses();
-  if(vlan)          vlan->decUses();
 #ifdef NTOPNG_PRO
   if(host_traffic_shapers) {
     for(int i = 0; i < NUM_TRAFFIC_SHAPERS; i++) {
@@ -68,7 +62,6 @@ Host::~Host() {
 
     free(host_traffic_shapers);
   }
-
 #endif
 
   freeHostData();
@@ -83,12 +76,7 @@ Host::~Host() {
   if(stats)              delete stats;
   if(stats_shadow)       delete stats_shadow;
 
-  /*
-    Pool counters are updated both in and outside the datapath.
-    So decPoolNumHosts must stay in the destructor to preserve counters
-    consistency (no thread outside the datapath will change the last pool id)
-  */
-  iface->decPoolNumHosts(get_host_pool(), true /* Host is deleted inline */);
+  iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
 }
 
 /* *************************************** */
@@ -233,6 +221,17 @@ char* Host::get_hostkey(char *buf, u_int buf_len, bool force_vlan) {
 
   buf[buf_len-1] = '\0';
   return buf;
+}
+
+/* *************************************** */
+
+void Host::set_hash_entry_state_idle() {
+  if(mac)     mac->decUses();
+  if(as)      as->decUses();
+  if(country) country->decUses();
+  if(vlan)    vlan->decUses();
+
+  GenericHashEntry::set_hash_entry_state_idle();
 }
 
 /* *************************************** */

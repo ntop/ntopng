@@ -122,7 +122,7 @@ void Mac::set_hash_entry_state_idle() {
 			       iface->getHostPools()->getNumPoolL2Devices(get_host_pool()));
 #endif
 
-  iface->decPoolNumL2Devices(get_host_pool(), true /* Mac is deleted inline */);
+  iface->decPoolNumL2Devices(get_host_pool(), true /* Inline */);
 
 #ifdef HOST_POOLS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL,

@@ -35,9 +35,16 @@ Vlan::Vlan(NetworkInterface *_iface, u_int16_t _vlan_id) : GenericHashEntry(_ifa
 
 /* *************************************** */
 
-Vlan::~Vlan() {
-  serializeToRedis();
+void Vlan::set_hash_entry_state_idle() {
+  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
+    serializeToRedis();
 
+  GenericHashEntry::set_hash_entry_state_idle();
+}
+
+/* *************************************** */
+
+Vlan::~Vlan() {
   /* TODO: decide if it is useful to dump AS stats to redis */
 #ifdef VLAN_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted vlan %u", vlan_id);
