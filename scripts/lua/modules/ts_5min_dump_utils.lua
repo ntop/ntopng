@@ -418,10 +418,10 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, v
   if is_rrd_creation_enabled and config.host_rrd_creation ~= "0" then
      local is_one_way_hosts_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_one_way_hosts_rrd_creation") ~= "false")
 
-     local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, is_rrd_creation_enabled, is_one_way_hosts_rrd_creation_enabled, function (hostname, host_ts)
+     local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, true --[[ timeseries ]], is_one_way_hosts_rrd_creation_enabled, function (hostname, host_ts)
       local host_key = host_ts.tskey
 
-      if(is_rrd_creation_enabled and (dumped_hosts[host_key] == nil)) then
+      if(dumped_hosts[host_key] == nil) then
         local min_host_instant = min_instant
 
         if(host_ts.initial_point ~= nil) then

@@ -1230,19 +1230,27 @@ int Redis::ltrim(const char *queue_name, int start_idx, int end_idx) {
 
 /* ******************************************* */
 
-u_int Redis::incr(const char *key) {
+int Redis::incr(const char *key, int amount) {
   redisReply *reply;
-  u_int num = 0;
+  int num = 0;
 
   l->lock(__FILE__, __LINE__);
   num_requests++;
-  reply = (redisReply*)redisCommand(redis, "INCR %s", key);
+  reply = (redisReply*)redisCommand(redis, "INCRBY %s %d", key, amount);
   if(!reply) reconnectRedis(true);
   if(reply) {
     if(reply->type == REDIS_REPLY_ERROR)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-    else
-      num = (u_int)reply->integer;
+    else {
+      num = (int)reply->integer;
+
+      if(isCacheable(key)) {
+        char value[64];
+
+        snprintf(value, sizeof(value), "%d", num);
+        addToCache(key, value, 0);
+      }
+    }
   }
   l->unlock(__FILE__, __LINE__);
   if(reply) freeReplyObject(reply);

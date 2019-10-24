@@ -7624,6 +7624,7 @@ static int ntop_get_redis(lua_State* vm) {
 static int ntop_incr_redis(lua_State* vm) {
   char *key;
   u_int rsp;
+  int amount = 1;
   Redis *redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -7631,7 +7632,10 @@ static int ntop_incr_redis(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  rsp = redis->incr(key);
+  if(lua_type(vm, 2) == LUA_TNUMBER)
+    amount = lua_tonumber(vm, 2);
+
+  rsp = redis->incr(key, amount);
 
   lua_pushinteger(vm, rsp);
 

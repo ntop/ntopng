@@ -3,7 +3,6 @@
 --
 
 local ts_utils = require("ts_utils_core")
-local alerts = require("alerts_api")
 
 local MAX_INFLUX_EXPORT_QUEUE_LEN = 30
 
@@ -119,18 +118,16 @@ end
 -- ##############################################
 
 function probe.getExportStats()
-  local points_exported = 0
-  local points_dropped = 0
-  local exports = 0
+  local points_exported
+  local points_dropped
+  local exports
   local ifnames = interface.getIfNames()
 
   local influxdb = ts_utils.getQueryDriver()
 
-  for ifid, ifname in pairs(ifnames) do
-     points_exported = points_exported + influxdb:get_exported_points(ifid)
-     points_dropped = points_dropped + influxdb:get_dropped_points(ifid)
-     exports = exports + influxdb:get_exports(ifid)
-  end
+  points_exported = influxdb:get_exported_points()
+  points_dropped = influxdb:get_dropped_points()
+  exports = influxdb:get_exports()
 
   local res = {
      health = influxdb:get_health(),
