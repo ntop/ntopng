@@ -948,6 +948,12 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
     *new_flow = true;
 
+    if(!flows_hash->hasEmptyRoom()) {
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many flows");
+      has_too_many_flows = true;
+      return(NULL);
+    }
+
     try {
       PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
       ret = new Flow(this, vlan_id, l4_proto,
@@ -971,6 +977,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     if(flows_hash->add(ret, false /* Don't lock, we're inline with the purgeIdle */)) {
       *src2dst_direction = true;
     } else {
+      /* Note: this should never happen as we are checking hasEmptyRoom() */
       delete ret;
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many flows");
       has_too_many_flows = true;
@@ -3254,6 +3261,11 @@ bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
   int16_t local_network_id;
   IpAddress ipa;
 
+  if(!hosts_hash->hasEmptyRoom()) {
+    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
+    return(false);
+  }
+
   ipa.set(host_ip);
 
   if(ipa.isLocalHost(&local_network_id))
@@ -3264,6 +3276,7 @@ bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
   if(!h) return(false);
 
   if(!hosts_hash->add(h, false /* don't lock, we are in startup.lua */)) {
+    /* Note: this should never happen as we are checking hasEmptyRoom() */
     //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
     delete h;
     return(false);
@@ -5451,10 +5464,15 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool create_if_not_present, bool
   ret = macs_hash->get(_mac, isInlineCall);
 
   if((ret == NULL) && create_if_not_present) {
+
+    if(!macs_hash->hasEmptyRoom())
+      return(NULL);
+
     try {
       if((ret = new Mac(this, _mac)) != NULL) {
 	if(!macs_hash->add(ret,
 			   !isInlineCall /* Lock only if not inline, if inline there's no need to lock as also the purgeIdle is done inline*/)) {
+          /* Note: this should never happen as we are checking hasEmptyRoom() */
 	  delete ret;
 	  return(NULL);
 	}
@@ -5487,12 +5505,17 @@ ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t 
   ret = arp_hash_matrix->get(_src_mac, _src_ip, _dst_ip, src2dst);
 
   if(ret == NULL) {
+
+    if (!arp_hash_matrix->hasEmptyRoom())
+      return(NULL);
+
     try{
       if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip)) != NULL)
 
         if(!arp_hash_matrix->add(ret, false /* No need to lock, we're inline with the purgeIdle */)){
+          /* Note: this should never happen as we are checking hasEmptyRoom() */
           delete ret;
-          ret = NULL;
+          return(NULL);
         }
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
@@ -5529,10 +5552,16 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool create_if_not_present, bo
   ret = vlans_hash->get(vlanId, isInlineCall);
 
   if((ret == NULL) && create_if_not_present) {
+    
+    if(!vlans_hash->hasEmptyRoom())
+      return(NULL);
+
     try {
+
       if((ret = new Vlan(this, vlanId)) != NULL) {
 	if(!vlans_hash->add(ret,
 			    !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
+          /* Note: this should never happen as we are checking hasEmptyRoom() */
 	  delete ret;
 	  return(NULL);
 	}
@@ -5563,11 +5592,16 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool create_if_not_pre
   ret = ases_hash->get(ipa, is_inline_call, create_if_not_present);
 
   if((ret == NULL) && create_if_not_present) {
+
+    if(!ases_hash->hasEmptyRoom())
+      return(NULL);
+
     try {
       if((ret = new AutonomousSystem(this, ipa)) != NULL) {
 	ret->incUses();
 	if(!ases_hash->add(ret,
 			   !is_inline_call /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
+          /* Note: this should never happen as we are checking hasEmptyRoom() */
 	  delete ret;
 	  return(NULL);
 	}
@@ -5598,9 +5632,14 @@ Country* NetworkInterface::getCountry(const char *country_name, bool create_if_n
   ret = countries_hash->get(country_name, is_inline_call);
 
   if((ret == NULL) && create_if_not_present) {
+
+    if(!countries_hash->hasEmptyRoom())
+      return(NULL);
+
     try {
       if((ret = new Country(this, country_name)) != NULL) {
 	if(!countries_hash->add(ret, !is_inline_call /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
+          /* Note: this should never happen as we are checking hasEmptyRoom() */
 	  delete ret;
 	  return(NULL);
 	}
