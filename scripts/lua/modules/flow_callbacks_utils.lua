@@ -29,7 +29,6 @@ local function print_callbacks_config_table(descr, expert_view)
    print[[<th style="text-align: center;">]] print(i18n("flow_callbacks.last_calls_per_sec")) print[[</th>]]
    print[[</tr>]]
 
-   print[[<form id="flow-callbacks-config" class="form-inline" method="post">]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    for mod_k, user_script in pairsByKeys(descr.modules, asc) do
@@ -47,7 +46,7 @@ local function print_callbacks_config_table(descr, expert_view)
 	 description = ""
       end
 
-      if(expert_view) then
+      if(expert_view and (num_hooks > 0)) then
 	 rowspan = string.format(' rowspan="%d"', num_hooks)
       end
 
@@ -71,39 +70,47 @@ local function print_callbacks_config_table(descr, expert_view)
       print("</td>")
 
       if(expert_view) then
-	 local ctr = 0
+	 if(num_hooks > 0) then
+	    local ctr = 0
 
-	 for mod_fn, mod_benchmark in pairsByKeys(hooks_benchmarks, asc) do
-	    print("<td>".. mod_fn .."</td>")
-	    print("<td align='center'>".. format_utils.secondsToTime(mod_benchmark["tot_elapsed"]) .."</td>")
-	    print("<td align='center'>".. format_utils.formatValue(mod_benchmark["tot_num_calls"]) .."</td>")
-	    print("<td align='center'>".. format_utils.formatValue(round(mod_benchmark["avg_speed"], 0)) .."</td>")
+	    for mod_fn, mod_benchmark in pairsByKeys(hooks_benchmarks, asc) do
+	       print("<td>".. mod_fn .."</td>")
+	       print("<td align='center'>".. format_utils.secondsToTime(mod_benchmark["tot_elapsed"]) .."</td>")
+	       print("<td align='center'>".. format_utils.formatValue(mod_benchmark["tot_num_calls"]) .."</td>")
+	       print("<td align='center'>".. format_utils.formatValue(round(mod_benchmark["avg_speed"], 0)) .."</td>")
 
-	    ctr = ctr + 1
+	       ctr = ctr + 1
 
-	    if(ctr ~= num_hooks) then
-	       print("</tr><tr>")
+	       if(ctr ~= num_hooks) then
+		  print("</tr><tr>")
+	       end
 	    end
+	 else
+	    print("<td></td><td></td><td></td><td></td>")
 	 end
       else
-	 -- Accumulate the stats for each hook
-	 local total_duration = 0
-	 local num_calls = 0
-	 local sum_avg_speed = 0
-	 local count_avg_speed = 0
+	 if(num_hooks > 0) then
+	    -- Accumulate the stats for each hook
+	    local total_duration = 0
+	    local num_calls = 0
+	    local sum_avg_speed = 0
+	    local count_avg_speed = 0
 
-	 for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark or {}, asc) do
-	    total_duration = total_duration + mod_benchmark["tot_elapsed"]
-	    num_calls = num_calls + mod_benchmark["tot_num_calls"]
-	    sum_avg_speed = sum_avg_speed + mod_benchmark["avg_speed"]
-	    count_avg_speed = count_avg_speed + 1
+	    for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark or {}, asc) do
+	       total_duration = total_duration + mod_benchmark["tot_elapsed"]
+	       num_calls = num_calls + mod_benchmark["tot_num_calls"]
+	       sum_avg_speed = sum_avg_speed + mod_benchmark["avg_speed"]
+	       count_avg_speed = count_avg_speed + 1
+	    end
+
+	    local avg_speed = (sum_avg_speed / count_avg_speed)
+
+	    print("<td align='center'>".. format_utils.secondsToTime(total_duration) .."</td>")
+	    print("<td align='center'>".. format_utils.formatValue(num_calls) .."</td>")
+	    print("<td align='center'>".. format_utils.formatValue(round(avg_speed, 0)) .."</td>")
+	 else
+	    print("<td></td><td></td><td></td>")
 	 end
-
-	 local avg_speed = (sum_avg_speed / count_avg_speed)
-
-	 print("<td align='center'>".. format_utils.secondsToTime(total_duration) .."</td>")
-	 print("<td align='center'>".. format_utils.formatValue(num_calls) .."</td>")
-	 print("<td align='center'>".. format_utils.formatValue(round(avg_speed, 0)) .."</td>")
       end
    end
 
@@ -144,14 +151,14 @@ function flow_callbacks_utils.print_callbacks_config()
       end
    end
 
+   print[[<form id="flow-callbacks-config" class="form-inline" method="post">]]
    print_callbacks_config_table(descr, show_advanced_prefs)
-
    print[[<input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("true") else print("false") end print[["/>]]
    print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" type="submit">]] print(i18n("save_configuration")) print[[</button>]]
    print[[</form>]]
    print[[
 
-<form>
+<form data-ays-ignore="true">
   <input type=hidden name="page" value="callbacks" />
   <input type=hidden name="tab" value="flows" />
   <input type=hidden name="ifid" value="]] print(string.format("%d", ifid)) print[[" />
