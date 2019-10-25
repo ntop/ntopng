@@ -1854,7 +1854,7 @@ elseif(page == "internals") then
 	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/hash_table_details.lua?hash_table='..ht_name..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
      end
 
-     print("<tr><th>"..ht_name.."</th><td align=center>"..statschart_icon.."</td>")
+     print("<tr><th>"..i18n("hash_table."..ht_name).."</th><td align=center>"..statschart_icon.."</td>")
      print("<td align=center>"..format_utils.formatValue(ht_stats["hash_entry_states"]["hash_entry_state_active"] or "0").."</td>")
      print("<td align=center>"..format_utils.formatValue(ht_stats["hash_entry_states"]["hash_entry_state_idle"] or "0").."</td>")
      print("</tr>\n")

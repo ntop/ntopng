@@ -1700,6 +1700,15 @@ local lang = {
       ["sent"] = "sent",
     },
   },
+  ["hash_table"] = {
+    ["AggregatedFlowHash"] = "Aggregated Flows",
+    ["AutonomousSystemHash"] = "Autonomous Systems",
+    ["CountriesHash"] = "Countries",
+    ["FlowHash"] = "Flows",
+    ["HostHash"] = "Hosts",
+    ["MacHash"] = "MACs",
+    ["VlanHash"] = "VLANs",
+  },
   ["host_config"] = {
     ["drop_all_host_traffic"] = "Drop All Host Traffic",
     ["hide_from_top"] = "Hide From Top Talkers",
