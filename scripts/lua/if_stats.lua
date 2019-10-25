@@ -1850,7 +1850,7 @@ elseif(page == "internals") then
    for ht_name, ht_stats in pairsByKeys(hash_tables_stats, asc) do
      local statschart_icon = ''
 
-     if ts_utils.exists("ht:states", {ifid = ifid, hash_table = ht_name}) then
+     if ts_utils.exists("ht:state", {ifid = ifid, hash_table = ht_name}) then
 	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/hash_table_details.lua?hash_table='..ht_name..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
      end
 

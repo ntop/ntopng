@@ -154,12 +154,18 @@ function ts_dump.update_hash_tables_stats(when, ifstats, verbose)
 
    for ht_name, ht_stats in pairs(hash_tables_stats) do
       local num_idle = 0
+      local num_active = 0
 
-      if ht_stats["hash_entry_states"] and ht_stats["hash_entry_states"]["hash_entry_state_idle"] then
-	 num_idle = ht_stats["hash_entry_states"]["hash_entry_state_idle"]
+      if ht_stats["hash_entry_states"] then
+         if ht_stats["hash_entry_states"]["hash_entry_state_idle"] then
+	   num_idle = ht_stats["hash_entry_states"]["hash_entry_state_idle"]
+         end
+         if ht_stats["hash_entry_states"]["hash_entry_state_active"] then
+	   num_active = ht_stats["hash_entry_states"]["hash_entry_state_active"]
+         end
       end
 
-      ts_utils.append("ht:states", {ifid = ifstats.id, hash_table = ht_name, num_idle = num_idle}, when, verbose)
+      ts_utils.append("ht:state", {ifid = ifstats.id, hash_table = ht_name, num_idle = num_idle, num_active = num_active}, when, verbose)
    end
 end
 

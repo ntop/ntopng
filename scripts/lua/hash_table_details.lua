@@ -33,7 +33,7 @@ if(hash_table == nil) then
    return
 end
 
-if(not ts_utils.exists("ht:states", {ifid = ifId, hash_table = hash_table})) then
+if(not ts_utils.exists("ht:state", {ifid = ifId, hash_table = hash_table})) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for hash table "..hash_table.."</div>")
    return
 end
@@ -56,7 +56,7 @@ print [[
 </div>
 ]]
 
-local schema = _GET["ts_schema"] or "ht:states"
+local schema = _GET["ts_schema"] or "ht:state"
 local selected_epoch = _GET["epoch"] or ""
 local url = ntop.getHttpPrefix()..'/lua/hash_table_details.lua?ifid='..ifId..'&hash_table='..hash_table..'&page=historical'
 
@@ -67,7 +67,7 @@ local tags = {
 
 drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    timeseries = {
-      {schema = "ht:states", label = i18n("internals.hash_entries")},
+      {schema = "ht:state", label = i18n("internals.hash_entries")},
    }
 })
 
