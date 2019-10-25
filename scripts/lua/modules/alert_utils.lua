@@ -1241,7 +1241,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
        <br>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
        <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th class="text-center" width=5%>]] print(i18n("chart")) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
-      print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th></tr>]]
+      print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_latest_run")) print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
       for mod_k, user_script in pairsByKeys(available_modules.modules, asc) do
