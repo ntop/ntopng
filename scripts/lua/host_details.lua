@@ -463,10 +463,12 @@ if(isAdministrator()) then
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
-   if(page == "callbacks") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
-   else
-      print("\n<li><a href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+   if not interface.isPcapDumpInterface() then
+      if(page == "callbacks") then
+         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
+      else
+         print("\n<li><a href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+      end
    end
 end
 

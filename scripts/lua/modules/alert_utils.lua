@@ -1054,37 +1054,44 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
    local ts_utils = require("ts_utils")
    local ifid = interface.getId()
 
-   local function printTab(tab, content, sel_tab)
-      if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
-      print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=callbacks&tab="..tab)
-      for param, value in pairs(page_params) do
-         print("&"..param.."="..value)
+   if interface.isPcapDumpInterface() then
+      if entity_type == "interface" then
+         tab = "flows"
+      else
+         return
       end
-      print("\">"..content.."</a></li>\n")
-   end
-
-   print('<ul class="nav nav-tabs">')
-
-   for k, granularity in pairsByField(alert_consts.alerts_granularities, "granularity_id", asc) do
-      local l = i18n(granularity.i18n_title)
-      local resolution = granularity.granularity_seconds
-
-      if (not options.remote_host) or resolution <= 60 then
-	 --~ l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
-	 printTab(k, l, tab)
+   else
+      local function printTab(tab, content, sel_tab)
+         if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
+         print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=callbacks&tab="..tab)
+         for param, value in pairs(page_params) do
+            print("&"..param.."="..value)
+         end
+         print("\">"..content.."</a></li>\n")
       end
-   end
 
-   if(entity_type == "interface") then
-      local l = i18n("flows")
-      printTab("flows", l, tab)
-   end
+      print('<ul class="nav nav-tabs">')
 
-   if tab ~= "flows" then
-      local granularity_label = alertEngineLabel(alertEngine(tab))
+      for k, granularity in pairsByField(alert_consts.alerts_granularities, "granularity_id", asc) do
+         local l = i18n(granularity.i18n_title)
+         local resolution = granularity.granularity_seconds
 
-      print(
-	 template.gen("modal_confirm_dialog.html", {
+         if (not options.remote_host) or resolution <= 60 then
+	    --~ l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
+	    printTab(k, l, tab)
+         end
+      end
+
+      if(entity_type == "interface") then
+         local l = i18n("flows")
+         printTab("flows", l, tab)
+      end
+
+      if tab ~= "flows" then
+         local granularity_label = alertEngineLabel(alertEngine(tab))
+
+         print(
+	    template.gen("modal_confirm_dialog.html", {
 			 dialog={
 			    id      = "deleteAlertSourceSettings",
 			    action  = "deleteAlertSourceSettings()",
@@ -1092,11 +1099,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 			    message = i18n(delete_confirm_msg, {granularity=granularity_label}) .. " <span style='white-space: nowrap;'>" .. ternary(alt_name ~= nil, alt_name, alert_source).."</span>?",
 			    confirm = i18n("delete")
 			 }
-	 })
-      )
+            })
+         )
 
-      print(
-	 template.gen("modal_confirm_dialog.html", {
+         print(
+	    template.gen("modal_confirm_dialog.html", {
 			 dialog={
 			    id      = "deleteGlobalAlertConfig",
 			    action  = "deleteGlobalAlertConfig()",
@@ -1104,11 +1111,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 			    message = i18n("show_alerts.delete_config_message", {conf = entity_type, granularity=granularity_label}).."?",
 			    confirm = i18n("delete")
 			 }
-	 })
-      )
-   end
-
-   print('</ul>')
+	    })
+         )
+      end
+      print('</ul>')
+   end -- !isPcapDumpInterface
 
    local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, not options.remote_host)
 

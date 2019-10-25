@@ -3867,16 +3867,12 @@ static int ntop_interface_is_bridge_interface(lua_State* vm) {
 // ***API***
 static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  const char *interface_type;
   bool rv = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop_interface
-     || ((interface_type = ntop_interface->get_type()) == NULL))
-    rv = false;
-  else
-    rv = (strcmp(interface_type, CONST_INTERFACE_TYPE_PCAP_DUMP) == 0);
+  if(ntop_interface && ntop_interface->getIfType() == interface_type_PCAP_DUMP)
+    rv = true;
 
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
