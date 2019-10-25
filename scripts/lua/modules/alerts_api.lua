@@ -895,6 +895,19 @@ end
 
 -- ##############################################
 
+function alerts_api.slowPurgeType(idle, idle_perc, threshold)
+  return({
+    alert_type = alert_consts.alert_types.alert_slow_purge,
+    alert_severity = alert_consts.alert_severities.warning,
+    alert_granularity = alert_consts.alerts_granularities.min,
+    alert_type_params = {
+      idle = idle, idle_perc = idle_perc, edge = threshold,
+    },
+  })
+end
+
+-- ##############################################
+
 function alerts_api.slowStatsUpdateType()
   return({
     alert_type = alert_consts.alert_types.alert_slow_stats_update,
