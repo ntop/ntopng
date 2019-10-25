@@ -2649,20 +2649,27 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
 /* **************************************************** */
 
+static bool perform_quick_update(const struct timeval *tv, GenericHashEntry *ghe) {
+  /* NOTE: the line below nees to be optimized as it is very inefficient in the current state */
+  return (((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) || ghe->getInterface()->read_from_pcap_dump()) ? true : false;
+}
+
+/* **************************************************** */
+
 static bool flow_update_hosts_stats(GenericHashEntry *node,
 				    void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
-  update_stats_user_data_t *update_flows_stats_user_data = (update_stats_user_data_t*)user_data;
-  struct timeval *tv = update_flows_stats_user_data->tv;
-  bool dump_alert;
+  update_stats_user_data_t *update_stats_user_data = (update_stats_user_data_t*)user_data;
+  struct timeval *tv = update_stats_user_data->tv;
+  bool quick_update = perform_quick_update(tv, node);
 
-  flow->call_state_scripts(update_flows_stats_user_data);  
-  flow->update_hosts_stats(update_flows_stats_user_data);
+  flow->periodic_dump_check(!quick_update, tv);
 
-  /* NOTE: the line below nees to be optimized as it is very inefficient in the current state */
-  dump_alert = (((time(NULL) - tv->tv_sec) < ntop->getPrefs()->get_housekeeping_frequency()) || flow->getInterface()->read_from_pcap_dump()) ? true : false;
-  flow->periodic_dump_check(dump_alert, tv);
-  
+  flow->periodic_hash_entry_state_update(user_data, quick_update);
+
+  if(!update_stats_user_data->hash_entry_state_update_only)
+    flow->update_hosts_stats(update_stats_user_data);
+
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -2673,10 +2680,16 @@ static bool flow_update_hosts_stats(GenericHashEntry *node,
 /* NOTE: host is not a GenericTrafficElement */
 static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Host *host = (Host*)node;
-  update_stats_user_data_t *update_hosts_stats_user_data = (update_stats_user_data_t*)user_data;
+  update_stats_user_data_t *update_stats_user_data = (update_stats_user_data_t*)user_data;
+  struct timeval *tv = update_stats_user_data->tv;
+  bool quick_update = perform_quick_update(tv, node);
 
+  host->periodic_hash_entry_state_update(user_data, quick_update);
   host->checkReloadPrefs();
-  host->updateStats(update_hosts_stats_user_data);
+
+  if(!update_stats_user_data->hash_entry_state_update_only)
+    host->updateStats(update_stats_user_data);
+
   *matched = true;
 
   return(false); /* false = keep on walking */
@@ -2687,9 +2700,14 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *ma
 /* NOTE: mac is not a GenericTrafficElement */
 static bool update_macs_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   Mac *mac = (Mac*)node;
-  struct timeval *tv = (struct timeval*)user_data;
+  update_stats_user_data_t *update_stats_user_data = (update_stats_user_data_t*)user_data;
+  struct timeval *tv = update_stats_user_data->tv;
 
-  mac->updateStats(tv);
+  mac->periodic_hash_entry_state_update(user_data, false);
+
+  if(!update_stats_user_data->hash_entry_state_update_only)
+    mac->updateStats(tv);
+
   *matched = true;
  
   return(false); /* false = keep on walking */
@@ -2699,21 +2717,19 @@ static bool update_macs_stats(GenericHashEntry *node, void *user_data, bool *mat
 
 static bool update_generic_element_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   GenericTrafficElement *elem;
+  update_stats_user_data_t *update_stats_user_data = (update_stats_user_data_t*)user_data;
+  struct timeval *tv = update_stats_user_data->tv;
 
-  if(node->get_state() == hash_entry_state_idle) {
-    if(!node->idle() && !ntop->getGlobals()->isShutdown()) {
-      /* This should never happen */
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-        "Inconsistent state: GenericHashEntry<%p> state=hash_entry_state_idle but idle()=false", node);
-    }
+  node->periodic_hash_entry_state_update(user_data, false);
+
+  if(!update_stats_user_data->hash_entry_state_update_only) {
+    if((elem = dynamic_cast<GenericTrafficElement*>(node))) {
+
+      elem->updateStats(tv);
+      *matched = true;
+    } else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "update_generic_element_stats on non GenericTrafficElement");
   }
-
-  if((elem = dynamic_cast<GenericTrafficElement*>(node))) {
-    struct timeval *tv = (struct timeval*)user_data;
-    elem->updateStats(tv);
-    *matched = true;
-  } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "update_generic_element_stats on non GenericTrafficElement");
 
   return(false); /* false = keep on walking */
 }
@@ -2753,22 +2769,82 @@ void NetworkInterface::periodicStatsUpdate() {
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   struct timeval tdebug, tdebug_init;
 #endif
+  update_stats_user_data_t update_stats_user_data;
+
+  bool periodic_stats_update;
 
   if(!read_from_pcap_dump() || reproducePcapOriginalSpeed())
     gettimeofday(&tv, NULL);
   else
     tv.tv_sec = last_pkt_rcvd, tv.tv_usec = 0;
 
-  if(!checkPeriodicStatsUpdateTime(&tv))
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  gettimeofday(&tdebug, NULL);
+  memcpy(&tdebug_init, &tdebug, sizeof(tdebug_init));
+#endif
+
+  /* Check if it is time to also do a periodic stats update or if 
+     only a quick walk on the hash tables to increase purge speedup 
+     is necessary */
+  periodic_stats_update = checkPeriodicStatsUpdateTime(&tv);
+
+  update_stats_user_data.acle = NULL,
+    update_stats_user_data.hash_entry_state_update_only = !periodic_stats_update;
+    update_stats_user_data.tv = &tv;
+
+  /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+  if((!isView()) && flows_hash) {
+    flows_hash->walkIdle(flow_update_hosts_stats, &update_stats_user_data);
+
+    if(update_stats_user_data.acle) {
+      /* Lazy instantiation */
+      delete update_stats_user_data.acle;
+      update_stats_user_data.acle = NULL;
+    }
+  }
+
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "flows_hash->walk took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
+#endif
+
+  if(hosts_hash) { 
+    hosts_hash->walkIdle(update_hosts_stats, &update_stats_user_data);
+
+    if(update_stats_user_data.acle) {
+      /* Lazy instantiation */
+      delete update_stats_user_data.acle;
+      update_stats_user_data.acle = NULL;
+    }
+  }
+
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "hosts_hash->walk took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
+#endif
+
+  if(ases_hash)
+    ases_hash->walkIdle(update_generic_element_stats, &update_stats_user_data);
+
+  if(countries_hash)
+    countries_hash->walkIdle(update_generic_element_stats, &update_stats_user_data);
+
+  if(vlans_hash && hasSeenVlanTaggedPackets())
+    vlans_hash->walkIdle(update_generic_element_stats, &update_stats_user_data);
+
+  if(macs_hash)
+    macs_hash->walkIdle(update_macs_stats, &update_stats_user_data);
+
+#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "asn/macs/vlan->walk took %d seconds", time(NULL) - tdebug.tv_sec);
+  gettimeofday(&tdebug, NULL);
+#endif
+    
+  if(!periodic_stats_update)
     return; /* Not yet the time to perform an update */
 
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->checkPoolsStatsReset();
-#endif
-
-#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
-  gettimeofday(&tdebug, NULL);
-  memcpy(&tdebug_init, &tdebug, sizeof(tdebug_init));
 #endif
 
   updatePacketsStats();
@@ -2778,25 +2854,7 @@ void NetworkInterface::periodicStatsUpdate() {
   ethStats.updateStats(&tv);
   ndpiStats->updateStats(&tv);
 
-  /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-  if((!isView()) && flows_hash) {
-    update_stats_user_data_t update_flows_stats_user_data;
-
-    update_flows_stats_user_data.acle = NULL /* Lazy instantiation */,
-      update_flows_stats_user_data.tv = &tv;
-
-    flows_hash->walkIdle(flow_update_hosts_stats, &update_flows_stats_user_data);
-
-    if(update_flows_stats_user_data.acle)
-      delete update_flows_stats_user_data.acle;
-  }
-
   topItemsCommit(&tv);
-
-#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "flows_hash->walk took %d seconds", time(NULL) - tdebug.tv_sec);
-  gettimeofday(&tdebug, NULL);
-#endif
 
 #ifdef NTOPNG_PRO
   if(!isView() && !isViewed())
@@ -2804,40 +2862,6 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
 
   checkReloadHostsBroadcastDomain();
-
-  if(hosts_hash) {
-    update_stats_user_data_t update_hosts_stats_user_data;
-
-    update_hosts_stats_user_data.acle = NULL /* Lazy instantiation */,
-      update_hosts_stats_user_data.tv = &tv;
-
-    hosts_hash->walkIdle(update_hosts_stats, &update_hosts_stats_user_data);
-
-    if(update_hosts_stats_user_data.acle)
-      delete update_hosts_stats_user_data.acle;
-  }
-
-#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "hosts_hash->walk took %d seconds", time(NULL) - tdebug.tv_sec);
-  gettimeofday(&tdebug, NULL);
-#endif
-
-  if(ases_hash)
-    ases_hash->walkIdle(update_generic_element_stats, (void*)&tv);
-
-  if(countries_hash)
-    countries_hash->walkIdle(update_generic_element_stats, (void*)&tv);
-
-  if(vlans_hash && hasSeenVlanTaggedPackets())
-    vlans_hash->walkIdle(update_generic_element_stats, (void*)&tv);
-
-  if(macs_hash)
-    macs_hash->walkIdle(update_macs_stats, (void*)&tv);
-
-#ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "asn/macs/vlan->walk took %d seconds", time(NULL) - tdebug.tv_sec);
-  gettimeofday(&tdebug, NULL);
-#endif
 
   if(ntop->getGlobals()->isShutdownRequested())
     return;

@@ -99,6 +99,18 @@ bool GenericHashEntry::is_hash_entry_state_idle_transition_possible() const {
 
 /* ***************************************** */
 
+void GenericHashEntry::periodic_hash_entry_state_update(void *user_data, bool quick)  {
+  if(get_state() == hash_entry_state_idle) {
+    if(!idle() && !ntop->getGlobals()->isShutdown()) {
+      /* This should never happen */
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Inconsistent state: GenericHashEntry<%p> state=hash_entry_state_idle but idle()=false", this);
+    }
+  }
+}
+
+/* ***************************************** */
+
 bool GenericHashEntry::idle() const {
   return(get_state() > hash_entry_state_active);
 };

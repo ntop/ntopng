@@ -441,6 +441,7 @@ class Flow : public GenericHashEntry {
   /* Methods to handle the flow in-memory lifecycle */
   void set_hash_entry_state_idle();
   bool is_hash_entry_state_idle_transition_ready() const;
+  void periodic_hash_entry_state_update(void *user_data, bool quick);
   virtual void set_to_purge(time_t t);
   bool is_acknowledged_to_purge() const;
   void set_acknowledge_to_purge();
@@ -449,7 +450,6 @@ class Flow : public GenericHashEntry {
 
   char* print(char *buf, u_int buf_len) const;
   void update_hosts_stats(update_stats_user_data_t *update_flows_stats_user_data);
-  void call_state_scripts(update_stats_user_data_t *update_flows_stats_user_data);
   void periodic_dump_check(bool dump_alert, const struct timeval *tv);
     
   u_int32_t key();

@@ -58,6 +58,7 @@ class AlertCheckLuaEngine;
 typedef struct {
   AlertCheckLuaEngine *acle;
   struct timeval *tv;
+  bool hash_entry_state_update_only;
 } update_stats_user_data_t;
 
 /* Keep in sync with alert_consts.alerts_granularities and Utils */

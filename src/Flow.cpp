@@ -1446,43 +1446,6 @@ void Flow::update_hosts_stats(update_stats_user_data_t *update_flows_stats_user_
 
 /* *************************************** */
 
-void Flow::call_state_scripts(update_stats_user_data_t *update_flows_stats_user_data) {
-  struct timeval *tv = update_flows_stats_user_data->tv;
-
-  switch(get_state()) {
-  case hash_entry_state_allocated:
-  case hash_entry_state_flow_notyetdetected:
-    /* Nothing to do here */
-    break;
-      
-  case hash_entry_state_flow_protocoldetected:
-    performLuaCall(flow_lua_call_protocol_detected, tv, &update_flows_stats_user_data->acle);
-    set_hash_entry_state_active();
-    break;
-
-  case hash_entry_state_active:
-    performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
-    /* Don't change state: purgeIdle() will do */
-    break;
-    
-  case hash_entry_state_idle:
-    if(iface->isViewed()) {
-      /* Must acknowledge so the overlying 'view' interface can actually set 
-         the flow state as ready to be purged once it has processed the flow for the last
-         time */
-      if(is_acknowledged_to_purge())
-	return; /* Already acknowledged, nothing else to do */
-      set_acknowledge_to_purge();
-    }
-
-    postFlowSetIdle(tv->tv_sec);
-    performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
-    break;
-  }
-}
-
-/* *************************************** */
-
 void Flow::periodic_dump_check(bool dump_alert, const struct timeval *tv) {
   if(dump_alert) {
     /* NOTE: this can be very time consuming */
@@ -1991,6 +1954,46 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
   }
 
   return(isIdle(iface->getFlowMaxIdle()));
+}
+
+/* *************************************** */
+
+void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
+  update_stats_user_data_t *update_flows_stats_user_data = (update_stats_user_data_t*)user_data;
+  struct timeval *tv = update_flows_stats_user_data->tv;
+
+  switch(get_state()) {
+  case hash_entry_state_allocated:
+  case hash_entry_state_flow_notyetdetected:
+    /* Nothing to do here */
+    break;
+
+  case hash_entry_state_flow_protocoldetected:
+    if(!quick) performLuaCall(flow_lua_call_protocol_detected, tv, &update_flows_stats_user_data->acle);
+    set_hash_entry_state_active();
+    break;
+
+  case hash_entry_state_active:
+    if(!quick) performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
+    /* Don't change state: purgeIdle() will do */
+    break;
+
+  case hash_entry_state_idle:
+    if(iface->isViewed()) {
+      /* Must acknowledge so the overlying 'view' interface can actually set
+	 the flow state as ready to be purged once it has processed the flow for the last
+	 time */
+      if(is_acknowledged_to_purge())
+	return; /* Already acknowledged, nothing else to do */
+      set_acknowledge_to_purge();
+    }
+
+    postFlowSetIdle(tv->tv_sec);
+    if(!quick) performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
+    break;
+  }
+
+  GenericHashEntry::periodic_hash_entry_state_update(user_data, quick);
 }
 
 /* *************************************** */

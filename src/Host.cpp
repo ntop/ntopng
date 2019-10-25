@@ -804,6 +804,34 @@ bool Host::is_hash_entry_state_idle_transition_ready() const {
   return(isIdle(ntop->getPrefs()->get_host_max_idle(isLocalHost())));
 };
 
+/* ***************************************** */
+
+void Host::periodic_hash_entry_state_update(void *user_data, bool quick) {
+  char buf[64];
+  update_stats_user_data_t *update_hosts_stats_user_data = (update_stats_user_data_t*)user_data;
+
+  if(get_state() == hash_entry_state_idle) {
+    if(getUses() > 0 && !ntop->getGlobals()->isShutdownRequested())
+      /* During shutdown it is acceptable to have a getUses() > 0 as all the hosts are forced as idle */
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u [%s]", getUses(), get_ip()->print(buf, sizeof(buf)));
+    
+    if(getNumTriggeredAlerts()
+       && (update_hosts_stats_user_data->acle
+	   || (update_hosts_stats_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface)))
+       ) {
+      AlertCheckLuaEngine *acle = update_hosts_stats_user_data->acle;
+      lua_State *L = acle->getState();
+      acle->setHost(this);
+
+      lua_getglobal(L, ALERT_ENTITY_CALLBACK_RELEASE_ALERTS); /* Called function */
+
+      acle->pcall(0 /* 0 arguments */, 0 /* 0 results */);
+    }
+  }
+
+  GenericHashEntry::periodic_hash_entry_state_update(user_data, quick);
+};
+
 /* *************************************** */
 
 void Host::incStats(u_int32_t when, u_int8_t l4_proto,
@@ -1286,28 +1314,8 @@ bool Host::statsResetRequested() {
 /* *************************************** */
 
 void Host::updateStats(update_stats_user_data_t *update_hosts_stats_user_data) {
-  char buf[64];
   struct timeval *tv = update_hosts_stats_user_data->tv;
   Mac *cur_mac = getMac();
-
-  if(get_state() == hash_entry_state_idle) {
-    if(getUses() > 0 && !ntop->getGlobals()->isShutdownRequested())
-      /* During shutdown it is acceptable to have a getUses() > 0 as all the hosts are forced as idle */
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u [%s]", getUses(), get_ip()->print(buf, sizeof(buf)));
-    
-    if(getNumTriggeredAlerts()
-       && (update_hosts_stats_user_data->acle
-	   || (update_hosts_stats_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface)))
-       ) {
-      AlertCheckLuaEngine *acle = update_hosts_stats_user_data->acle;
-      lua_State *L = acle->getState();
-      acle->setHost(this);
-
-      lua_getglobal(L, ALERT_ENTITY_CALLBACK_RELEASE_ALERTS); /* Called function */
-
-      acle->pcall(0 /* 0 arguments */, 0 /* 0 results */);
-    }
-  }
 
   checkDataReset();
   checkStatsReset();

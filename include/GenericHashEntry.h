@@ -216,6 +216,14 @@ class GenericHashEntry {
    * 
    */
   bool is_hash_entry_state_idle_transition_possible() const;
+  /**
+   * @brief Function in charge of hash entry offline state updates
+   *
+   * @param user_date A pointer to user submitted data potentially necessary for the update
+   * @param quick Only perform minimal operations to ensure FSM advancements
+   * 
+   */
+  virtual void periodic_hash_entry_state_update(void *user_data, bool quick);
   HashEntryState get_state() const;
   void updateSeen();
   void updateSeen(time_t _last_seen);
