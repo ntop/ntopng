@@ -24,7 +24,8 @@
 /* ***************************************** */
 
 GenericHashEntry::GenericHashEntry(NetworkInterface *_iface) {
-  hash_next = NULL, iface = _iface, first_seen = last_seen = 0, num_uses = 0;
+  hash_next = NULL, iface = _iface, first_seen = last_seen = 0;
+  num_inc_uses = num_dec_uses = 0;
   hash_table = NULL;
 
   hash_entry_state = hash_entry_state_active; /* Default for all but Flow */
