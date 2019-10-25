@@ -1835,6 +1835,10 @@ end
 
 
 function isPausedInterface(current_ifname)
+   if(not isEmptyString(_POST["toggle_local"])) then
+      return(_POST["toggle_local"] == "0")
+   end
+
   state = ntop.getCache("ntopng.prefs."..current_ifname.."_not_idle")
   if(state == "0") then return true else return false end
 end
