@@ -2651,7 +2651,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
 static bool perform_quick_update(const struct timeval *tv, GenericHashEntry *ghe) {
   /* NOTE: the line below nees to be optimized as it is very inefficient in the current state */
-  return !(time(NULL) - tv->tv_sec + 2 < ntop->getPrefs()->get_housekeeping_frequency() || ghe->getInterface()->read_from_pcap_dump());
+  return !(time(NULL) - tv->tv_sec + 3 < ntop->getPrefs()->get_housekeeping_frequency() || ghe->getInterface()->read_from_pcap_dump());
 }
 
 /* **************************************************** */
