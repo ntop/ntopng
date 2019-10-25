@@ -122,6 +122,17 @@ void ThreadedActivity::activityBody() {
 /* ******************************************* */
 
 void ThreadedActivity::run() {
+  bool pcap_dump_only = true;
+
+  for(int i = 0; i < ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface = ntop->getInterface(i);
+    if(iface && iface->getIfType() != interface_type_PCAP_DUMP)
+      pcap_dump_only = false;
+  }
+  /* Don't schedule periodic activities it we are processing pcap files only. */
+  if (pcap_dump_only)
+    return;
+
   if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0)
     thread_started = true;
 }
