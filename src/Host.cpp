@@ -88,7 +88,7 @@ Host::~Host() {
     So decPoolNumHosts must stay in the destructor to preserve counters
     consistency (no thread outside the datapath will change the last pool id)
   */
-  iface->decPoolNumHosts(get_host_pool(), true /* Host is deleted inline */);
+  iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
 }
 
 /* *************************************** */
