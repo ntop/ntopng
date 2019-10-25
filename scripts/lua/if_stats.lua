@@ -1841,7 +1841,11 @@ elseif(page == "internals") then
    local hash_tables_stats = interface.getHashTablesStats()
 
    print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=15%>" .. i18n("internals.hash_table") .. "</th><th width=5% style='text-align:center;'>" .. i18n("chart") .. "</th><th style='text-align:center;'>" .. i18n("internals.state_idle") .. "</th><th style='text-align:center;'>" .. i18n("internals.state_ready_to_be_purged") .. "</th></tr>\n")
+   print("<tr><th width=15%>" .. i18n("internals.hash_table") .. "</th>")
+   print("<th width=5% style='text-align:center;'>" .. i18n("chart") .. "</th>")
+   print("<th style='text-align:center;'>" .. i18n("internals.state_active") .. "</th>")
+   print("<th style='text-align:center;'>" .. i18n("internals.state_idle") .. "</th>")
+   print("</tr>\n")
 
    for ht_name, ht_stats in pairsByKeys(hash_tables_stats, asc) do
      local statschart_icon = ''
@@ -1850,7 +1854,10 @@ elseif(page == "internals") then
 	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/hash_table_details.lua?hash_table='..ht_name..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
      end
 
-     print("<tr><th>"..ht_name.."</th><td align=center>"..statschart_icon.."</td><td align=center>"..format_utils.formatValue(ht_stats["hash_entry_states"]["hash_entry_state_idle"] or "0").."</td><td align=center>"..format_utils.formatValue(ht_stats["hash_entry_states"]["hash_entry_state_ready_to_be_purged"] or "0").."</td></tr>\n")
+     print("<tr><th>"..ht_name.."</th><td align=center>"..statschart_icon.."</td>")
+     print("<td align=center>"..format_utils.formatValue(ht_stats["hash_entry_states"]["hash_entry_state_active"] or "0").."</td>")
+     print("<td align=center>"..format_utils.formatValue(ht_stats["hash_entry_states"]["hash_entry_state_idle"] or "0").."</td>")
+     print("</tr>\n")
    end
 
 print [[

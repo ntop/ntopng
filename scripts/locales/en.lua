@@ -2081,8 +2081,8 @@ local lang = {
     ["hash_table"] = "Hash Table",
     ["num_calls"] = "Num Calls",
     ["script_duration"] = "Run Duration",
-    ["state_idle"] = "Entries in State Idle",
-    ["state_ready_to_be_purged"] = "Entries in State Ready to Be Purged",
+    ["state_active"] = "Entries in Active State",
+    ["state_idle"] = "Entries in Idle State",
   },
   ["live_capture"] = {
     ["active_live_captures"] = "Live Captures",

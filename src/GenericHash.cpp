@@ -380,6 +380,8 @@ void GenericHash::lua(lua_State *vm) {
   else
     lua_push_uint64_table_entry(vm, "hash_entry_state_idle", (u_int64_t)delta);
 
+  lua_push_uint64_table_entry(vm, "hash_entry_state_active", (u_int64_t)getNumEntries());
+
   lua_pushstring(vm, "hash_entry_states");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
