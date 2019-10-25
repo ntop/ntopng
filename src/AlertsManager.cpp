@@ -370,6 +370,13 @@ bool AlertsManager::notifyFlowAlert(u_int64_t rowid) {
 
 int AlertsManager::storeFlowAlert(Flow *f, FlowStatus status, AlertType alert_type,
 	  AlertLevel alert_severity, const char *status_info) {
+#if 1
+  char rsp[16];
+
+  if((!ntop->getRedis()->get((char*)NTOPNG_PREFS_PREFIX".do_not_store_alerts", rsp, sizeof(rsp))) && (rsp[0] != '\0'))
+    return 0;
+#endif
+
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     const char *alert_json;
     char cli_ip_buf[64], srv_ip_buf[64];
