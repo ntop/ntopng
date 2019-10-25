@@ -116,14 +116,6 @@ local function printDeviceProtocolsPage()
    end
    print[[</h2>]]
 
-   if not is_nedge then
-      local device_protocols_alerts = ntop.getPref("ntopng.prefs.device_protocols_alerts")
-
-      if not ntop.getPrefs().are_alerts_enabled or device_protocols_alerts ~= "1" then
-	 print('<div class="alert alert-info alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('device_protocols.alerts_disabled_msg', {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=alerts"})..'</div>')
-      end
-   end
-
    print[[<table style="width:100%; margin-bottom: 20px;"><tbody>
      <tr>
        <td style="white-space:nowrap; padding-right:1em;">]]

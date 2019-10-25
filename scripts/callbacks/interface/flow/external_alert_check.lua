@@ -4,6 +4,7 @@
 
 local flow_consts = require("flow_consts")
 local json = require ("dkjson")
+local user_scripts = require ("user_scripts")
 
 -- #################################################################
 
@@ -14,17 +15,11 @@ local script = {
   hooks = {},
 
   gui = {
-      i18n_title = "flow_callbacks_config.ext_alert",
-      i18n_description = "flow_callbacks_config.ext_alert_description",
+    i18n_title = "flow_callbacks_config.ext_alert",
+    i18n_description = "flow_callbacks_config.ext_alert_description",
+    input_builder = user_scripts.flow_checkbox_input_builder,
   }
 }
-
--- #################################################################
-
-function script.setup()
-  local enabled = (ntop.getPref("ntopng.prefs.external_alerts") == "1")
-  return(enabled)
-end
 
 -- #################################################################
 

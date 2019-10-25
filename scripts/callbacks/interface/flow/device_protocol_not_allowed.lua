@@ -3,6 +3,7 @@
 --
 
 local flow_consts = require("flow_consts")
+local user_scripts = require("user_scripts")
 
 -- #################################################################
 
@@ -14,16 +15,12 @@ local script = {
 
   gui = {
     i18n_title = "flow_callbacks_config.dev_proto_not_allowed",
-    i18n_description = i18n("flow_callbacks_config.dev_proto_not_allowed_description", {url = ntop.getHttpPrefix() .. "/lua/admin/edit_device_protocols.lua"}),
+    i18n_description = i18n(
+      ternary(ntop.isnEdge(), "flow_callbacks_config.dev_proto_not_allowed_nedge_description", "flow_callbacks_config.dev_proto_not_allowed_description"),
+      {url = getDeviceProtocolPoliciesUrl()}),
+    input_builder = user_scripts.flow_checkbox_input_builder,
   }
 }
-
--- #################################################################
-
-function script.setup()
-  local enabled = (ntop.getPref("ntopng.prefs.device_protocols_alerts") == "1")
-  return(enabled)
-end
 
 -- #################################################################
 
