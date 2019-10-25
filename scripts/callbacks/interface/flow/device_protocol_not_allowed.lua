@@ -11,6 +11,11 @@ local script = {
 
   -- NOTE: hooks defined below
   hooks = {},
+
+  gui = {
+    i18n_title = "flow_callbacks_config.dev_proto_not_allowed",
+    i18n_description = i18n("flow_callbacks_config.dev_proto_not_allowed_description", {url = ntop.getHttpPrefix() .. "/lua/admin/edit_device_protocols.lua"}),
+  }
 }
 
 -- #################################################################

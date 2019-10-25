@@ -11,14 +11,12 @@ local script = {
 
   -- NOTE: hooks defined below
   hooks = {},
+
+  gui = {
+      i18n_title = "flow_callbacks_config.remote_to_remote",
+      i18n_description = "flow_callbacks_config.remote_to_remote_description",
+  }
 }
-
--- #################################################################
-
-function script.setup()
-  local enabled = (ntop.getPref("ntopng.prefs.remote_to_remote_alerts") == "1")
-  return(enabled)
-end
 
 -- #################################################################
 

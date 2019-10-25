@@ -12,6 +12,11 @@ local script = {
 
    -- NOTE: hooks defined below
    hooks = {},
+
+   gui = {
+      i18n_title = "My Custom script",
+      i18n_description = "Trigger an alert when something bad happens",
+   }
 }
 
 -- #################################################################

@@ -12,6 +12,11 @@ local script = {
 
   -- NOTE: hooks defined below
   hooks = {},
+
+  gui = {
+      i18n_title = "flow_callbacks_config.ext_alert",
+      i18n_description = "flow_callbacks_config.ext_alert_description",
+  }
 }
 
 -- #################################################################

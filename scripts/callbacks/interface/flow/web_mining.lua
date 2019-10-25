@@ -11,6 +11,11 @@ local script = {
 
   -- NOTE: hooks defined below
   hooks = {},
+
+  gui = {
+    i18n_title = "flow_callbacks_config.web_mining",
+    i18n_description = "flow_callbacks_config.web_mining_description",
+  }
 }
 
 -- #################################################################
