@@ -87,15 +87,6 @@ class GenericHash {
   inline u_int32_t getNumEntries() { return(current_size); };
 
   /**
-   * @brief Tell this GenericHash about a state transition of
-   * one of the entry it contains. GenericHash will use this
-   * information to count total state transitions.
-   *
-   * @param s The new state of the transition
-   */
-  void notify_transition(HashEntryState s);
-
-  /**
    * @brief Add new entry to generic hash.
    * @details If current_size < max_hash_size, this method calculate a new hash key for the new entry, add it and update the current_size value.
    *

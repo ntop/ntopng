@@ -68,12 +68,8 @@ void GenericHashEntry::set_state(HashEntryState s) {
      && (!iface || iface->isRunning()))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: invalid state transition %d -> %d",
 				 hash_entry_state, s);
-  else {
+  else
     hash_entry_state = s;
-
-    if(hash_table)
-      hash_table->notify_transition(s);
-  }
 };
 
 /* ***************************************** */

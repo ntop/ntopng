@@ -93,18 +93,6 @@ void GenericHash::cleanup() {
 
 /* ************************************ */
 
-void GenericHash::notify_transition(HashEntryState s) {
-  switch(s) {
-  case hash_entry_state_idle:
-    entry_state_transition_counters.num_idle_transitions++;
-    break;
-  default:
-    break;
-  }
-}
-
-/* ************************************ */
-
 bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
   if(hasEmptyRoom()) {
     u_int32_t hash = (h->key() % num_hashes);
@@ -331,6 +319,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	    else
 	      prev->set_next(next);
 
+	    entry_state_transition_counters.num_idle_transitions++;
 	    num_idled++, current_size--;
 	    head = next;
 	    continue;
@@ -376,7 +365,7 @@ void GenericHash::lua(lua_State *vm) {
 
   delta = entry_state_transition_counters.num_idle_transitions - entry_state_transition_counters.num_purged;
   if(delta < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [iface: %s][%s][hash_entry_state_idle: %i]", iface ? iface->get_name(): "", name, delta);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [iface: %s][%s][hash_entry_state_idle: %i][num_idle_transitions: %u][num_purged: %u]", iface ? iface->get_name(): "", name, delta, entry_state_transition_counters.num_idle_transitions, entry_state_transition_counters.num_purged);
   else
     lua_push_uint64_table_entry(vm, "hash_entry_state_idle", (u_int64_t)delta);
 
