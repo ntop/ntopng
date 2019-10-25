@@ -11,214 +11,112 @@ local ts_utils = require("ts_utils")
 
 local flow_callbacks_utils = {}
 
+local ifid = interface.getId()
+
 -- ##############################################
 
-local function print_callbacks_config_tbody_simple_view(descr)
-   print[[<tbody>]]
+local function print_callbacks_config_table(descr, expert_view)
+   print[[<table id="callbacks_config_table" class="table table-bordered table-striped">]]
    print[[<tr>]]
    print[[<th width=40%>]] print(i18n("flow_callbacks.callback")) print[[</th>]]
+   print[[<th style="text-align: center;" width="5%">]] print(i18n("chart")) print[[</th>]]
    print[[<th width="20%">]] print(i18n("flow_callbacks.callback_config")) print[[</th>]]
-   print[[<th style="text-align: center;" width="5%">]] print(i18n("chart")) print[[</th>]]
-   print[[<th style="text-align: center;" width=20%>]] print(i18n("flow_callbacks.callback_function_duration_simple_view")) print[[</th>]]
+   if(expert_view) then
+      print[[<th>]] print(i18n("flow_callbacks.callback_function")) print[[</th>]]
+   end
+   print[[<th style="text-align: center;">]] print(i18n("flow_callbacks.last_duration")) print[[</th>]]
+   print[[<th style="text-align: center;">]] print(i18n("flow_callbacks.last_num_calls")) print[[</th>]]
+   print[[<th style="text-align: center;">]] print(i18n("flow_callbacks.last_calls_per_sec")) print[[</th>]]
    print[[</tr>]]
 
    print[[<form id="flow-callbacks-config" class="form-inline" method="post">]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-   local has_modules = false
-   local ifid = interface.getId()
-
    for mod_k, user_script in pairsByKeys(descr.modules, asc) do
-      if true --[[user_script.gui]] then
-         if not has_modules then
-            has_modules = true
-         end
+      local hooks_benchmarks = user_script.benchmark or {}
+      local num_hooks = table.len(hooks_benchmarks)
+      local title
+      local description
+      local rowspan = ""
 
-         local title
-         local description
-
-         if(user_script.gui) then
-            title = i18n(user_script.gui.i18n_title) or user_script.gui.i18n_title
-            description = i18n(user_script.gui.i18n_description) or user_script.gui.i18n_description
-         else
-            title = user_script.key
-            description = ""
-         end
-
-         print("<tr><td><b>".. title .."</b><br>")
-         print("<small>"..description..".</small>\n")
-
-         print("</td><td>")
-         if(user_script.gui and user_script.gui.input_builder) then
-            print(user_script.gui.input_builder(user_script))
-         else
-            print('<a href="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=alerts"><i class="fa fa-flask fa-lg"></i></a>')
-         end
-         print("</td>")
-
-         if user_script.benchmark and table.len(user_script.benchmark) > 0 then
-	    local worst_case_benchmark
-            local max_duration
-	    local num_calls
-	    local avg_speed
-	    local fmt
-
-            for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark, asc) do
-               -- Just show the maximum (worst-case) duration among all available functions
-               if not max_duration or max_duration < mod_benchmark["tot_elapsed"] then
-                  max_duration = mod_benchmark["tot_elapsed"]
-		  num_calls = mod_benchmark["tot_num_calls"]
-		  avg_speed = mod_benchmark["avg_speed"]
-               end
-            end
-
-	    if num_calls > 1 then
-	       fmt = i18n("flow_callbacks.callback_function_duration_fmt_long",
-			  {num_calls = format_utils.formatValue(num_calls),
-			   time = format_utils.secondsToTime(max_duration),
-			   speed = format_utils.formatValue(round(avg_speed, 0))})
-	    else
-	       fmt = i18n("flow_callbacks.callback_function_duration_fmt_short",
-			  {time = format_utils.secondsToTime(max_duration)})
-	    end
-
-	    print("<td class='text-center'>")
-
-	    if(ts_utils.exists("user_script:duration", {ifid=ifid, user_script=mod_k, subdir="flow"})) then
-	       print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..mod_k..'&subdir=flow"><i class="fa fa-area-chart fa-lg" data-original-title="" title=""></i></a>')
-	    end
-
-            print(string.format("</td><td align='center'>%s</td>", fmt))
-
-         else
-            print("<td></td>")
-         end
-
-         print("</tr>")
+      if(user_script.gui) then
+	 title = i18n(user_script.gui.i18n_title) or user_script.gui.i18n_title
+	 description = i18n(user_script.gui.i18n_description) or user_script.gui.i18n_description
+      else
+	 title = user_script.key
+	 description = ""
       end
-   end
 
-   if not has_modules then
-      print("<tr><td colspan=3><i>"..i18n("flow_callbacks.no_callbacks_defined")..".</i></td></tr>")
-   end
+      if(expert_view) then
+	 rowspan = string.format(' rowspan="%d"', num_hooks)
+      end
 
-   print[[</tbody>]]
+      print("<tr><td ".. rowspan .."><b>".. title .."</b><br>")
+      print("<small>"..description..".</small></td>")
 
-   return has_modules
-end
+      print("<td ".. rowspan .." class='text-center'>")
 
--- #################################
+      if(ts_utils.exists("user_script:duration", {ifid=ifid, user_script=mod_k, subdir="flow"})) then
+	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..mod_k..'&subdir=flow"><i class="fa fa-area-chart fa-lg" data-original-title="" title=""></i></a>')
+      end
 
-local function print_callbacks_config_tbody_expert_view(descr)
-   print[[<tbody>]]
-   print[[<tr>]]
-   print[[<th colspan=3></th>]]
-   print[[<th colspan=4  style="text-align: center;">]] print(i18n("flow_callbacks.callback_latest_run")) print[[</th>]]
-   print[[</tr>]]
+      print("</td>")
 
-   print[[<tr>]]
-   print[[<th width=30%>]] print(i18n("flow_callbacks.callback")) print[[</th>]]
-   print[[<th>]] print(i18n("flow_callbacks.callback_config")) print[[</th>]]
-   print[[<th style="text-align: center;" width="5%">]] print(i18n("chart")) print[[</th>]]
-   print[[<th>]] print(i18n("flow_callbacks.callback_function")) print[[</th>]]
-   print[[<th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_duration")) print[[</th>]]
-   print[[<th style="text-align: center;">]] print(i18n("flow_callbacks.callback_function_num_flows")) print[[</th>]]
-   print[[<th style="text-align: right;">]] print(i18n("flow_callbacks.callback_function_throughput")) print[[</th>]]
-   print[[</tr>]]
+      print("<td ".. rowspan ..">")
+      if(user_script.gui and user_script.gui.input_builder) then
+	 print(user_script.gui.input_builder(user_script))
+      else
+	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=alerts"><i class="fa fa-flask fa-lg"></i></a>')
+      end
+      print("</td>")
 
-   print[[<form id="flow-callbacks-config" class="form-inline" method="post">]]
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      if(expert_view) then
+	 local ctr = 0
 
-   local has_modules = false
-   local ifid = interface.getId()
+	 for mod_fn, mod_benchmark in pairsByKeys(hooks_benchmarks, asc) do
+	    print("<td>".. mod_fn .."</td>")
+	    print("<td align='center'>".. format_utils.secondsToTime(mod_benchmark["tot_elapsed"]) .."</td>")
+	    print("<td align='center'>".. format_utils.formatValue(mod_benchmark["tot_num_calls"]) .."</td>")
+	    print("<td align='center'>".. format_utils.formatValue(round(mod_benchmark["avg_speed"], 0)) .."</td>")
 
-   for mod_k, user_script in pairsByKeys(descr.modules, asc) do
-      if true --[[user_script.gui]] then
-         if not has_modules then
-            has_modules = true
-         end
+	    ctr = ctr + 1
 
-         local rowspan = 1
-         if user_script.benchmark and table.len(user_script.benchmark) > 0 then
-            rowspan = table.len(user_script.benchmark)
-         end
-
-         local title
-         local description
-
-         if(user_script.gui) then
-            title = i18n(user_script.gui.i18n_title) or user_script.gui.i18n_title
-            description = i18n(user_script.gui.i18n_description) or user_script.gui.i18n_description
-         else
-            title = user_script.key
-            description = ""
-         end
-
-         print("<tr><td rowspan="..rowspan.."><b>".. title .."</b><br>")
-         print("<small>"..description..".</small>\n")
-
-         print("</td><td rowspan="..rowspan..">")
-         if(user_script.gui and user_script.gui.input_builder) then
-            print(user_script.gui.input_builder(user_script))
-         else
-            print('<a href="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=alerts"><i class="fa fa-flask fa-lg"></i></a>')
-         end
-         print("</td>")
-
-         print("<td class='text-center' rowspan=".. rowspan ..">")
-	 if(ts_utils.exists("user_script:duration", {ifid=ifid, user_script=mod_k, subdir="flow"})) then
-	    print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..
-	       '&user_script='..mod_k..'&subdir=flow"><i class="fa fa-area-chart fa-lg"></i></a>')
+	    if(ctr ~= num_hooks) then
+	       print("</tr><tr>")
+	    end
 	 end
-         print("</td><td>")
+      else
+	 -- Accumulate the stats for each hook
+	 local total_duration = 0
+	 local num_calls = 0
+	 local sum_avg_speed = 0
+	 local count_avg_speed = 0
 
-         local num = 1
-         if user_script.benchmark and table.len(user_script.benchmark) > 0 then
-            for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark, asc) do
-               local avg_fps = mod_benchmark["tot_num_calls"] / mod_benchmark["tot_elapsed"]
+	 for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark or {}, asc) do
+	    total_duration = total_duration + mod_benchmark["tot_elapsed"]
+	    num_calls = num_calls + mod_benchmark["tot_num_calls"]
+	    sum_avg_speed = sum_avg_speed + mod_benchmark["avg_speed"]
+	    count_avg_speed = count_avg_speed + 1
+	 end
 
-               if avg_fps ~= avg_fps or not avg_fps or avg_fps < 0.01 then
-                  avg_fps = "< 0.01"
-               else
-                  avg_fps = format_utils.formatValue(format_utils.round(avg_fps, 0))
-               end
+	 local avg_speed = (sum_avg_speed / count_avg_speed)
 
-               local trtd, slash_tdtr = "<tr><td>", "</td></tr>"
-               if num == 1 then
-                  trtd = ''
-               end
-
-               print(string.format("%s %s </td><td align='center'>%s</td><td align='center'>%s</td><td align='right'>%s %s<br>%s",
-                                   trtd,
-                                   mod_fn,
-                                   format_utils.secondsToTime(mod_benchmark["tot_elapsed"]),
-                                   format_utils.formatValue(mod_benchmark["tot_num_calls"]),
-                                   avg_fps,
-                                   i18n("flow_callbacks.callback_elapsed_time_avg"),
-                                   slash_tdtr))
-
-               num = num + 1
-            end
-         else
-            print("</td><td></td><td></td><td></td></tr>")
-         end
+	 print("<td align='center'>".. format_utils.secondsToTime(total_duration) .."</td>")
+	 print("<td align='center'>".. format_utils.formatValue(num_calls) .."</td>")
+	 print("<td align='center'>".. format_utils.formatValue(round(avg_speed, 0)) .."</td>")
       end
    end
 
-   if not has_modules then
-      print("<tr><td colspan=7><i>"..i18n("flow_callbacks.no_callbacks_defined")..".</i></td></tr>")
-   end
-
-   print[[</tbody>]]
-
-   return has_modules
+   print("</tr>")
+   print[[</table>]]
 end
 
 -- #################################
 
 function flow_callbacks_utils.print_callbacks_config()
    local show_advanced_prefs = false
-   if _POST and _POST["show_advanced_prefs"] and _POST["show_advanced_prefs"] == "true" then
+
+   if(_GET["show_advanced_prefs"] == "1") then
       show_advanced_prefs = true
    end
 
@@ -227,9 +125,7 @@ function flow_callbacks_utils.print_callbacks_config()
 
    print [[
 
-<br>
-<table id="callbacks_config_table" class="table table-bordered table-striped" style="clear: both">
-<thead></thead>]]
+<br>]]
 
    if table.len(_POST) > 0 then
       for mod_key, user_script in pairs(descr.modules) do
@@ -248,27 +144,18 @@ function flow_callbacks_utils.print_callbacks_config()
       end
    end
 
-   local has_modules
+   print_callbacks_config_table(descr, show_advanced_prefs)
 
-   if show_advanced_prefs then
-      has_modules = print_callbacks_config_tbody_expert_view(descr)
-   else
-      has_modules = print_callbacks_config_tbody_simple_view(descr)
-   end
-
-   print[[</table>]]
-
-   if has_modules then
-      print[[<input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("true") else print("false") end print[["/>]]
-      print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" type="submit">]] print(i18n("save_configuration")) print[[</button>]]
-   end
-
+   print[[<input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("true") else print("false") end print[["/>]]
+   print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" type="submit">]] print(i18n("save_configuration")) print[[</button>]]
    print[[</form>]]
    print[[
 
-<form method="post">
-  <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  <input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
+<form>
+  <input type=hidden name="page" value="callbacks" />
+  <input type=hidden name="tab" value="flows" />
+  <input type=hidden name="ifid" value="]] print(string.format("%d", ifid)) print[[" />
+  <input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("0") else print("1") end print[["/>
 
   <div class="btn-group btn-toggle">
 ]]
@@ -284,8 +171,8 @@ function flow_callbacks_utils.print_callbacks_config()
       cls_off = cls_off..' btn-primary active'
    end
 
-   print('<button type="button" class="'..cls_on..'" onclick="this.form.submit();">'..i18n("prefs.expert_view")..'</button>')
-   print('<button type="button" class="'..cls_off..'" onclick="this.form.submit();">'..i18n("prefs.simple_view")..'</button>')
+   print('<button type="submit" class="'..cls_on..'">'..i18n("prefs.expert_view")..'</button>')
+   print('<button type="submit" class="'..cls_off..'">'..i18n("prefs.simple_view")..'</button>')
 
    print[[
   </div>
