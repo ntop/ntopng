@@ -40,6 +40,8 @@ class Country : public GenericHashEntry, public GenericTrafficElement, public Se
   Country(NetworkInterface *_iface, const char *country);
   ~Country();
 
+  void set_hash_entry_state_idle();
+
   inline u_int16_t getNumHosts()               { return getUses();            }
   inline u_int32_t key()                       { return Utils::stringHash(country_name); }
   inline char* get_country_name()              { return country_name; }

@@ -801,7 +801,15 @@ const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
 /* ***************************************** */
 
 bool Host::is_hash_entry_state_idle_transition_ready() const {
-  return(isIdle(ntop->getPrefs()->get_host_max_idle(isLocalHost())));
+  bool res = isIdle(ntop->getPrefs()->get_host_max_idle(isLocalHost()));
+
+#if DEBUG_HOST_IDLE_TRANSITION
+  char buf[64];
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Idle check [%s][local: %u][get_host_max_idle: %u][last seen: %u][ready: %u]",
+			       ip.print(buf, sizeof(buf)), isLocalHost(), ntop->getPrefs()->get_host_max_idle(isLocalHost()), last_seen, res ? 1 : 0);
+#endif
+
+  return res;
 };
 
 /* ***************************************** */

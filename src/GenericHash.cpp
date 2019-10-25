@@ -276,8 +276,8 @@ u_int GenericHash::purgeIdle(bool force_idle) {
   }
 
 #if WALK_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u][force_idle: %u]",
-			       name, iface->get_name(), last_purged_hash, visit_fraction, force_idle ? 1 : 0);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u][size: %u][force_idle: %u]",
+			       name, iface->get_name(), last_purged_hash, visit_fraction, getNumEntries(), force_idle ? 1 : 0);
 #endif
 
   for(u_int j = 0; j < visit_fraction; j++) {

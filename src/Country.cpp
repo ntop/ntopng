@@ -33,13 +33,16 @@ Country::Country(NetworkInterface *_iface, const char *country) : GenericHashEnt
   if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
     deserializeFromRedis();
 }
+/* *************************************** */
+
+void Country::set_hash_entry_state_idle() {
+  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
+    serializeToRedis();
+}
 
 /* *************************************** */
 
 Country::~Country() {
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    serializeToRedis();
-
 #ifdef COUNTRY_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Country %s", country_name);
 #endif

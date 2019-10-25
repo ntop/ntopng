@@ -45,6 +45,8 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, 
   AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa);
   ~AutonomousSystem();
 
+  void set_hash_entry_state_idle();
+
   inline u_int16_t getNumHosts()               { return getUses();            }
   inline u_int32_t key()                       { return(asn);                 }
   inline u_int32_t get_asn()                   { return(asn);                 }
