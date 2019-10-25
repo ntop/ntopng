@@ -255,7 +255,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
 */
 
 u_int GenericHash::purgeIdle(bool force_idle) {
-  u_int i, num_idled, buckets_checked = 0;
+  u_int i, num_idled = 0, buckets_checked = 0;
   time_t now = time(NULL);
   /* Visit all entries when force_idle is true */
   u_int visit_fraction = !force_idle ? purge_step : num_hashes;
