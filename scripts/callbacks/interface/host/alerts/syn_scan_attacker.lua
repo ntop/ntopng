@@ -8,7 +8,7 @@ local user_scripts = require("user_scripts")
 local script = {
   key = "syn_scan_attacker",
   threshold_type_builder = alerts_api.synScanType,
-  default_value = "syn_scan_attacker;gt;30",
+  default_value = "syn_scan_attacker;gt;50",
 
   hooks = {
     min = alerts_api.threshold_check_function,
