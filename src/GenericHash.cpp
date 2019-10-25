@@ -376,7 +376,7 @@ void GenericHash::lua(lua_State *vm) {
 
   delta = entry_state_transition_counters.num_idle_transitions - entry_state_transition_counters.num_purged;
   if(delta < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [%s][hash_entry_state_idle: %i]", name, delta);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [iface: %s][%s][hash_entry_state_idle: %i]", iface ? iface->get_name(): "", name, delta);
   else
     lua_push_uint64_table_entry(vm, "hash_entry_state_idle", (u_int64_t)delta);
 
