@@ -55,8 +55,7 @@ class GenericHash {
   } entry_state_transition_counters;
 
   vector<GenericHashEntry*> *idle_entries; /**< Vector used by the offline thread in charge of deleting hash table entries */
-  vector<GenericHashEntry*> *purge_idle_idle_entries; /**< Vector prepared by the purgeIdle and periodically swapped to idle_entries */
-  vector<GenericHashEntry*> *purge_idle_idle_entries_shadow; /**< Vector prepared by the purgeIdle and periodically swapped to purge_idle_idle_entries */
+  vector<GenericHashEntry*> *idle_entries_shadow; /**< Vector prepared by the purgeIdle and periodically swapped to idle_entries */
 
  public:
 

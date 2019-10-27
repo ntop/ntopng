@@ -32,7 +32,7 @@ GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
   memset(&entry_state_transition_counters, 0, sizeof(entry_state_transition_counters));
 
   iface = _iface;
-  idle_entries = purge_idle_idle_entries = purge_idle_idle_entries_shadow = NULL;
+  idle_entries = idle_entries_shadow = NULL;
 
   table = new GenericHashEntry*[num_hashes];
   for(u_int i = 0; i < num_hashes; i++)
@@ -59,7 +59,7 @@ GenericHash::~GenericHash() {
 /* ************************************ */
 
 void GenericHash::cleanup() {
-  vector<GenericHashEntry*> **ghvs[] = {&idle_entries, &purge_idle_idle_entries, &purge_idle_idle_entries_shadow};
+  vector<GenericHashEntry*> **ghvs[] = {&idle_entries, &idle_entries_shadow};
 
   for(u_int i = 0; i < sizeof(ghvs) / sizeof(ghvs[0]); i++) {
     if(*ghvs[i]) {
@@ -249,14 +249,9 @@ u_int GenericHash::purgeIdle(bool force_idle) {
   u_int visit_fraction = !force_idle ? purge_step : num_hashes;
 
   if(!idle_entries) {
-    idle_entries = purge_idle_idle_entries;
-    purge_idle_idle_entries = NULL;
-  }
-
-  if(!purge_idle_idle_entries) {
-    purge_idle_idle_entries = purge_idle_idle_entries_shadow;
+    idle_entries = idle_entries_shadow;
     try {
-      purge_idle_idle_entries_shadow = new vector<GenericHashEntry*>;
+      idle_entries_shadow = new vector<GenericHashEntry*>;
     } catch(std::bad_alloc& ba) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Memory allocation error");
       return 0;
@@ -312,7 +307,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 		 && head->is_hash_entry_state_idle_transition_ready())) {
 	  set_hash_entry_idle_and_detach:
 	    head->set_hash_entry_state_idle();
-	    purge_idle_idle_entries_shadow->push_back(head);
+	    idle_entries_shadow->push_back(head);
 
 	    if(!prev)
 	      table[i] = next;
