@@ -2878,7 +2878,7 @@ static void generic_periodic_hash_entry_state_update(GenericHashEntry *node, voi
 
 void NetworkInterface::periodicHTStateUpdate(time_t deadline) {
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "updating hash tables [%s]", get_name());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
 #endif
   struct timeval tv;
   periodic_ht_state_update_user_data_t periodic_ht_state_update_user_data;
@@ -2910,6 +2910,9 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline) {
       }
     }
   }
+
+  if(time(NULL) > deadline)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Deadline exceeded [%s][%s]", __FUNCTION__, get_name());
 }
 
 /* **************************************************** */
