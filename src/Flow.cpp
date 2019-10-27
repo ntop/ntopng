@@ -97,8 +97,6 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
 
-  iface->incNumFlows();
-
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
     cli_host->incUses();
@@ -1912,8 +1910,6 @@ void Flow::set_hash_entry_state_idle() {
 
   if(srv_host)
     srv_host->decNumFlows(last_seen, false, cli_host);
-
-  iface->decNumFlows();
 
   if(isFlowAlerted()) {
     iface->decNumAlertedFlows(this);

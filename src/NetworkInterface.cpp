@@ -267,7 +267,7 @@ void NetworkInterface::init() {
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = false,
     slow_stats_update = false, flow_dump_disabled = false,
-    numL2Devices = 0, numFlows = 0, numHosts = 0, numLocalHosts = 0,
+    numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     arp_requests = arp_replies = 0,
     has_mac_addresses = false,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
@@ -5063,7 +5063,7 @@ u_int32_t NetworkInterface::getNumPacketDrops() {
 /* **************************************************** */
 
 u_int NetworkInterface::getNumFlows() {
-  return(numFlows);
+  return(flows_hash ? flows_hash->getNumEntries() : 0);
 };
 
 /* **************************************************** */
