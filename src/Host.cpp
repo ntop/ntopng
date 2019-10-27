@@ -816,7 +816,7 @@ bool Host::is_hash_entry_state_idle_transition_ready() const {
 
 void Host::periodic_hash_entry_state_update(void *user_data, bool quick) {
   char buf[64];
-  update_stats_user_data_t *update_hosts_stats_user_data = (update_stats_user_data_t*)user_data;
+  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
 
   if(get_state() == hash_entry_state_idle) {
     if(getUses() > 0 && !ntop->getGlobals()->isShutdownRequested())
@@ -824,10 +824,10 @@ void Host::periodic_hash_entry_state_update(void *user_data, bool quick) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u [%s]", getUses(), get_ip()->print(buf, sizeof(buf)));
     
     if(getNumTriggeredAlerts()
-       && (update_hosts_stats_user_data->acle
-	   || (update_hosts_stats_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface)))
+       && (periodic_ht_state_update_user_data->acle
+	   || (periodic_ht_state_update_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface)))
        ) {
-      AlertCheckLuaEngine *acle = update_hosts_stats_user_data->acle;
+      AlertCheckLuaEngine *acle = periodic_ht_state_update_user_data->acle;
       lua_State *L = acle->getState();
       acle->setHost(this);
 
@@ -1321,8 +1321,8 @@ bool Host::statsResetRequested() {
 
 /* *************************************** */
 
-void Host::updateStats(update_stats_user_data_t *update_hosts_stats_user_data) {
-  struct timeval *tv = update_hosts_stats_user_data->tv;
+void Host::updateStats(periodic_stats_update_user_data_t *periodic_stats_update_user_data) {
+  struct timeval *tv = periodic_stats_update_user_data->tv;
   Mac *cur_mac = getMac();
 
   checkDataReset();

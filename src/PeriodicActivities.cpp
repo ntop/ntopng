@@ -97,16 +97,17 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     num_threads = MAX_THREAD_POOL_SIZE;
   
   static activity_descr ad[] = {
-    { SECOND_SCRIPT_PATH,       1,     false, 1           },
-    { MINUTE_SCRIPT_PATH,       60,    false, num_threads },
-    { FIVE_MINUTES_SCRIPT_PATH, 300,   false, num_threads },
-    { HOURLY_SCRIPT_PATH,       3600,  false, num_threads },
-    { DAILY_SCRIPT_PATH,        86400, true,  1           },
-    { HOUSEKEEPING_SCRIPT_PATH, 3,     false, 1           },
-    { DISCOVER_SCRIPT_PATH,     5,     false, 1           },
-    { TIMESERIES_SCRIPT_PATH,   5,     false, 1           },
+    { SECOND_SCRIPT_PATH,             1, false, 1           },
+    { HT_STATE_UPDATE_SCRIPT_PATH,    5, false, num_threads },
+    { MINUTE_SCRIPT_PATH,            60, false, num_threads },
+    { FIVE_MINUTES_SCRIPT_PATH,     300, false, num_threads },
+    { HOURLY_SCRIPT_PATH,          3600, false, num_threads },
+    { DAILY_SCRIPT_PATH,          86400, true,  num_threads },
+    { HOUSEKEEPING_SCRIPT_PATH,       3, false, 1           },
+    { DISCOVER_SCRIPT_PATH,           5, false, 1           },
+    { TIMESERIES_SCRIPT_PATH,         5, false, 1           },
 #ifdef HAVE_NEDGE
-    { PINGER_SCRIPT_PATH,       5,     false, 1           },
+    { PINGER_SCRIPT_PATH,             5, false, 1           },
 #endif
     { NULL, 0, false}
   };

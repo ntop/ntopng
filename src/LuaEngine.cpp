@@ -5850,6 +5850,22 @@ static int ntop_get_interface_hash_tables_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_periodic_ht_state_update(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  time_t deadline;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK || !ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  deadline = (time_t)lua_tonumber(vm, 1);
+  ntop_interface->periodicHTStateUpdate(deadline);
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool get_direction_stats = false;
@@ -10322,7 +10338,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "hasEBPF",                  ntop_interface_has_ebpf  },
   { "hasHighResTs",             ntop_interface_has_high_res_ts },
   { "getStats",                 ntop_get_interface_stats },
-  { "getHashTablesStats",       ntop_get_interface_hash_tables_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
   { "getInterfaceTimeseries",   ntop_get_interface_timeseries },
   { "resetCounters",            ntop_interface_reset_counters },
@@ -10330,6 +10345,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "deleteHostData",           ntop_interface_delete_host_data },
   { "resetMacStats",            ntop_interface_reset_mac_stats },
   { "deleteMacData",            ntop_interface_delete_mac_data },
+
+  /* Functions related to the management of the internal hash tables */
+  { "getHashTablesStats",       ntop_get_interface_hash_tables_stats },
+  { "periodicHTStateUpdate",    ntop_periodic_ht_state_update        },
 
 #ifndef HAVE_NEDGE
   { "processFlow",              ntop_process_flow },

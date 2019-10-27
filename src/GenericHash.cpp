@@ -116,8 +116,7 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 /* ************************************ */
 
-void GenericHash::walkIdle(bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data) {
-  bool matched = false;
+void GenericHash::walkIdle(void (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
   vector<GenericHashEntry*> *cur_idle = NULL;
 
   if(idle_entries) {
@@ -128,7 +127,7 @@ void GenericHash::walkIdle(bool (*walker)(GenericHashEntry *h, void *user_data, 
   if(cur_idle) {
     if(!cur_idle->empty()) {
       for(vector<GenericHashEntry*>::const_iterator it = cur_idle->begin(); it != cur_idle->end(); ++it) {
-	walker(*it, user_data, &matched);
+	walker(*it, user_data);
 	delete *it;
 	entry_state_transition_counters.num_purged++;
       }
@@ -151,7 +150,7 @@ void GenericHash::walkIdle(bool (*walker)(GenericHashEntry *h, void *user_data, 
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unexpected idle state found [%u]", head->get_state());
 
 	if(!head->idle())
-	  walker(head, user_data, &matched);
+	  walker(head, user_data);
 
 	head = next;
       } /* while */

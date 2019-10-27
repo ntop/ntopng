@@ -43,8 +43,8 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (bool *) calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(bool));
 
-  if(periodicity > MIN_TIME_SPAWN_THREAD_POOL) {
-    pool = new ThreadPool(thread_pool_size);
+  if(thread_pool_size > 1) {
+    pool = new (std::nothrow) ThreadPool(thread_pool_size);
 
     if(pool == NULL) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of resources");
@@ -113,7 +113,7 @@ bool ThreadedActivity::isInterfaceTaskRunning(NetworkInterface *iface) {
 void ThreadedActivity::activityBody() {
   if(periodicity == 0)       /* The script is not periodic */
     aperiodicActivityBody();
-  else if(periodicity <= MIN_TIME_SPAWN_THREAD_POOL) /* Accurate time computation with micro-second-accurate sleep */
+  else if(!pool) /* Accurate time computation with micro-second-accurate sleep */
     uSecDiffPeriodicActivityBody();
   else
     periodicActivityBody();
@@ -162,7 +162,7 @@ void ThreadedActivity::runScript() {
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   LuaEngine *l;
-  u_long max_duration_ms = periodicity * 1e3;
+  u_long max_duration_ms =periodicity * 1e3;
   u_long msec_diff;
   struct timeval begin, end;
 
@@ -194,9 +194,11 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
 
   msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
 
-  ntop->getTrace()->traceEvent(TRACE_INFO,
-    "[PeriodicActivity] %s: completed in %u/%u ms [%s]", path, msec_diff, max_duration_ms,
-    (((max_duration_ms > 0) && (msec_diff > max_duration_ms)) ? "SLOW" : "OK"));
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "[PeriodicActivity][%s][%s]: completed in %u/%u ms [%s]", iface->get_name(), path, msec_diff, max_duration_ms,
+			       (((max_duration_ms > 0) && (msec_diff > max_duration_ms)) ? "SLOW" : "OK"));
+#endif
 
   if((max_duration_ms > 0) &&
       (msec_diff > 2*max_duration_ms) &&
@@ -326,9 +328,11 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
 	 && !isInterfaceTaskRunning(iface)) {
         pool->queueJob(this, script_path, iface);
         setInterfaceTaskRunning(iface, true);
+
 #ifdef THREAD_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued interface job %s", script_path);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued interface job %s [%s]", script_path, iface->get_name());
 #endif
+
       }
     }
   }

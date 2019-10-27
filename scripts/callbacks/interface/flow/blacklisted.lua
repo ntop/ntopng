@@ -23,9 +23,17 @@ local script = {
 -- #################################################################
 
 function script.hooks.protocolDetected(params)
+--   tprint("begin...")
+
+   local a = 0
+   -- for i=1,800000000 do
+   --    a = a + 1
+   -- end
+
    if flow.isBlacklisted() then
       flow.triggerStatus(flow_consts.status_types.status_blacklisted.status_id, flow.getBlacklistedInfo())
    end
+--   tprint("...done")
 end
 
 -- #################################################################

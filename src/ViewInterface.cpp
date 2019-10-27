@@ -241,7 +241,7 @@ typedef struct {
 
 /* **************************************************** */
 
-static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *matched) {
+static void viewed_flows_walker(GenericHashEntry *flow, void *user_data) {
   viewed_flows_walker_user_data_t *viewed_flows_walker_user_data = (viewed_flows_walker_user_data_t*)user_data;
   ViewInterface *iface = viewed_flows_walker_user_data->iface;
   const struct timeval *tv = &viewed_flows_walker_user_data->tv;
@@ -320,8 +320,6 @@ static bool viewed_flows_walker(GenericHashEntry *flow, void *user_data, bool *m
 			   partials.tcp_stats_d2s.pktLost, partials.tcp_stats_d2s.pktKeepAlive);
     }
   }
-
-  return false; /* Move on to the next flow, keep walking */
 }
 
 /* **************************************************** */

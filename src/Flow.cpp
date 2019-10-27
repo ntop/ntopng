@@ -1039,8 +1039,8 @@ void Flow::incFlowDroppedCounters() {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(update_stats_user_data_t *update_flows_stats_user_data) {
-  struct timeval *tv = update_flows_stats_user_data->tv;
+void Flow::update_hosts_stats(periodic_stats_update_user_data_t *periodic_stats_update_user_data) {
+  struct timeval *tv = periodic_stats_update_user_data->tv;
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
@@ -1104,12 +1104,6 @@ void Flow::update_hosts_stats(update_stats_user_data_t *update_flows_stats_user_
 
     update_flow_port_stats = false;
   }
-
-  /* For pcap-dump interface, the lua method idle is executed when there are no
-     more packets left in the pcap file. There's no risk to call this twice
-     as flows never for idle for pcap dump interfaces. */
-  if(iface->read_from_pcap_dump() && iface->read_from_pcap_dump_done())
-    performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
 
   stats_protocol = getStatsProtocol();
 
@@ -1955,8 +1949,16 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 /* *************************************** */
 
 void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
-  update_stats_user_data_t *update_flows_stats_user_data = (update_stats_user_data_t*)user_data;
-  struct timeval *tv = update_flows_stats_user_data->tv;
+  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
+  struct timeval *tv = periodic_ht_state_update_user_data->tv;
+
+#if 0
+  char buf[256];
+
+  if(quick) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deadline approaching, quick update [%s][%s]", getInterface()->get_name(), print(buf, sizeof(buf)));
+  }
+#endif
 
   switch(get_state()) {
   case hash_entry_state_allocated:
@@ -1965,12 +1967,12 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
     break;
 
   case hash_entry_state_flow_protocoldetected:
-    if(!quick) performLuaCall(flow_lua_call_protocol_detected, tv, &update_flows_stats_user_data->acle);
+    if(!quick) performLuaCall(flow_lua_call_protocol_detected, tv, &periodic_ht_state_update_user_data->acle);
     set_hash_entry_state_active();
     break;
 
   case hash_entry_state_active:
-    if(!quick) performLuaCall(flow_lua_call_periodic_update, tv, &update_flows_stats_user_data->acle);
+    if(!quick) performLuaCall(flow_lua_call_periodic_update, tv, &periodic_ht_state_update_user_data->acle);
     /* Don't change state: purgeIdle() will do */
     break;
 
@@ -1985,7 +1987,7 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
     }
 
     postFlowSetIdle(tv->tv_sec);
-    if(!quick) performLuaCall(flow_lua_call_idle, tv, &update_flows_stats_user_data->acle);
+    if(!quick) performLuaCall(flow_lua_call_idle, tv, &periodic_ht_state_update_user_data->acle);
     break;
   }
 

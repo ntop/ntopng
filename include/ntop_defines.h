@@ -843,18 +843,19 @@
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"
 #define BOOT_SCRIPT_PATH           "boot.lua" /* Executed as root before networking is setup */
-#define SHUTDOWN_SCRIPT_PATH       "shutdown.lua"
-#define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
-#define DISCOVER_SCRIPT_PATH       "discover.lua"
-#define TIMESERIES_SCRIPT_PATH     "timeseries.lua"
-#define UPGRADE_SCRIPT_PATH        "upgrade.lua"
-#define PINGER_SCRIPT_PATH         "pinger.lua"
-#define SECOND_SCRIPT_PATH         "second.lua"
-#define MINUTE_SCRIPT_PATH         "minute.lua"
-#define THIRTY_SECONDS_SCRIPT_PATH "30sec.lua"
-#define FIVE_MINUTES_SCRIPT_PATH   "5min.lua"
-#define HOURLY_SCRIPT_PATH         "hourly.lua"
-#define DAILY_SCRIPT_PATH          "daily.lua"
+#define SHUTDOWN_SCRIPT_PATH         "shutdown.lua"
+#define HOUSEKEEPING_SCRIPT_PATH     "housekeeping.lua"
+#define DISCOVER_SCRIPT_PATH         "discover.lua"
+#define TIMESERIES_SCRIPT_PATH       "timeseries.lua"
+#define UPGRADE_SCRIPT_PATH          "upgrade.lua"
+#define PINGER_SCRIPT_PATH           "pinger.lua"
+#define SECOND_SCRIPT_PATH           "second.lua"
+#define MINUTE_SCRIPT_PATH           "minute.lua"
+#define HT_STATE_UPDATE_SCRIPT_PATH  "ht_state_update.lua"
+#define THIRTY_SECONDS_SCRIPT_PATH   "30sec.lua"
+#define FIVE_MINUTES_SCRIPT_PATH     "5min.lua"
+#define HOURLY_SCRIPT_PATH           "hourly.lua"
+#define DAILY_SCRIPT_PATH            "daily.lua"
 
 #define SYSLOG_SCRIPT_PATH         "callbacks/syslog.lua"
 #define SYSLOG_SCRIPTS_PATH        "callbacks/syslog"
@@ -1017,7 +1018,6 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_THREAD_POOL_SIZE         5
 #endif
 
-#define MIN_TIME_SPAWN_THREAD_POOL        10 /* sec */
 #define DONT_NOT_EXPIRE_BEFORE_SEC        15 /* sec */
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
 #define MAX_NUM_PCAP_CAPTURES             4

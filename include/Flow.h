@@ -449,7 +449,7 @@ class Flow : public GenericHashEntry {
   u_int get_hash_entry_id() const;
 
   char* print(char *buf, u_int buf_len) const;
-  void update_hosts_stats(update_stats_user_data_t *update_flows_stats_user_data);
+  void update_hosts_stats(periodic_stats_update_user_data_t *periodic_stats_update_user_data);
   void periodic_dump_check(bool dump_alert, const struct timeval *tv);
     
   u_int32_t key();
