@@ -3839,38 +3839,45 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 /* ***************************************************** */
 
 bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv) {
-  u_int32_t periodic_update_freq;
+  time_t latest_call;
+  bool res;
 
   if(flow_lua_call != flow_lua_call_idle
      && ntop->getGlobals()->isShutdownRequested())
     return true; /* Only flow_lua_call_idle go through during a shutdown */
-  
-  bool already_called = performed_lua_calls[flow_lua_call] ? true : false;
-  
+
   switch(flow_lua_call) {
   case flow_lua_call_periodic_update:
     if(trigger_immediate_periodic_update) {
-      /* periodic update was forced */
-      return(false);
+      /* Periodic update was forced */
+      return false;
     }
 
-    if(trigger_scheduled_periodic_update) {
-      /* The update was scheduled as something changed in the flow. */
-      periodic_update_freq = 30;
-    } else
-      periodic_update_freq = iface->getFlowMaxIdle() * 5; /* 5 times the max flow idleness */
+    if(!trigger_scheduled_periodic_update)
+      return true; /* Nothing to do, no changes in flow traffic */
 
-    if(already_called)
-      /* Don't re-call it before the maximum flow lifetime */
-      return((performed_lua_calls[flow_lua_call] + periodic_update_freq) > tv->tv_sec);
-    else
-      /* Call the first time only after periodic_update_freq seconds have elapsed */
-      return((get_first_seen() + periodic_update_freq) > tv->tv_sec);
+    latest_call = !performed_lua_calls[flow_lua_call] ? get_first_seen() : performed_lua_calls[flow_lua_call];
+    res = latest_call + 30 /* at least every 30 seconds */ > tv->tv_sec;
+
+#if 0
+      char buf[256];
+
+      if(!res) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Time to recall [%s][latest_call: %u][performed_lua_calls[flow_lua_call]: %u][tv->tv_sec: %u]",
+				     print(buf, sizeof(buf)),
+				     latest_call,
+				     performed_lua_calls[flow_lua_call],
+				     tv->tv_sec
+				     );
+      }
+#endif
+
+      return res;
   default:
     break;
   }
 
-  return(already_called);
+  return performed_lua_calls[flow_lua_call];
 }
 
 /* ***************************************************** */
