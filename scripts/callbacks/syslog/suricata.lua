@@ -176,9 +176,6 @@ function syslog_module.hooks.handleEvent(message)
 
       if event.flow ~= nil then
          parseFlowMetadata(event.flow, flow)
-         if flow.last_switched_iso8601 == nil then
-            flow.last_switched_iso8601 = event.timestamp
-         end
          parseAlertMetadata(event.alert, flow)
       else
          flow = nil
@@ -212,6 +209,15 @@ function syslog_module.hooks.handleEvent(message)
    end
 
    if flow ~= nil then
+      -- If first/last ts is not available, use the event timestamp as last resort
+      if flow.first_switched_iso8601 == nil then
+         flow.first_switched_iso8601 = event.timestamp
+      end
+      if flow.last_switched_iso8601 == nil then
+         flow.last_switched_iso8601 = event.timestamp
+      end
+
+      -- Processing flow or alert
       interface.processFlow(flow)
    end
 end 
