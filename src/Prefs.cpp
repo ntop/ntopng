@@ -84,7 +84,10 @@ Prefs::Prefs(Ntop *_ntop) {
   https_binding_address2 = NULL;
   enable_client_x509_auth = false;
   lan_interface = NULL;
-  cpu_affinity = NULL;
+  cpu_affinity = other_cpu_affinity = NULL;
+#ifdef HAVE_LIBCAP
+  CPU_ZERO(&other_cpu_affinity_mask);
+#endif
   redis_host = strdup("127.0.0.1");
   redis_password = NULL;
   redis_port = 6379;
@@ -164,6 +167,7 @@ Prefs::~Prefs() {
   if(pid_path)         free(pid_path);
   if(packet_filter)    free(packet_filter);
   if(cpu_affinity)     free(cpu_affinity);
+  if(other_cpu_affinity) free(other_cpu_affinity);
   if(es_type)          free(es_type);
   if(es_index)         free(es_index);
   if(es_url)           free(es_url);
@@ -284,9 +288,11 @@ void usage() {
 #ifdef __linux__
 	 "                                    | -r /var/run/redis/redis.sock\n"
 	 "                                    | -r /var/run/redis/redis.sock@2\n"
-	 "[--core-affinity|-g] <cpu core ids> | Bind the capture/processing threads to\n"
+	 "[--core-affinity|-g] <ids>          | Bind the capture/processing threads to\n"
 	 "                                    | specific CPU cores (specified as a comma-\n"
-	 "                                    | separated list)\n"
+	 "                                    | separated list of core id)\n"
+	 "[--other-core-affinity|-y] <ids>    | Bind service threads to specific CPU cores\n"
+	 "                                    | (specified as a comma-separated list of core id)\n"
 #endif
 	 "[--user|-U] <sys user>              | Run ntopng with the specified user\n"
 	 "                                    | instead of %s\n"
@@ -663,26 +669,29 @@ void Prefs::loadInstanceNameDefaults() {
 static const struct option long_options[] = {
 #ifndef WIN32
   { "data-dir",                          required_argument, NULL, 'd' },
-  { "install-dir",                       required_argument, NULL, 't' },
 #endif
   { "daemon",                            no_argument,       NULL, 'e' },
   { "core-affinity",                     required_argument, NULL, 'g' },
   { "help",                              no_argument,       NULL, 'h' },
   { "interface",                         required_argument, NULL, 'i' },
+  { "traffic-filtering",                 required_argument, NULL, 'k' },
+  { "disable-login",                     required_argument, NULL, 'l' },
   { "local-networks",                    required_argument, NULL, 'm' },
 #ifndef HAVE_NEDGE
   { "dns-mode",                          required_argument, NULL, 'n' },
 #endif
-  { "traffic-filtering",                 required_argument, NULL, 'k' },
-  { "disable-login",                     required_argument, NULL, 'l' },
   { "ndpi-protocols",                    required_argument, NULL, 'p' },
   { "disable-autologout",                no_argument,       NULL, 'q' },
   { "redis",                             required_argument, NULL, 'r' },
   { "dont-change-user",                  no_argument,       NULL, 's' },
+#ifndef WIN32
+  { "install-dir",                       required_argument, NULL, 't' },
+#endif
   { "no-promisc",                        no_argument,       NULL, 'u' },
   { "verbose",                           required_argument, NULL, 'v' },
-  { "max-num-hosts",                     required_argument, NULL, 'x' },
   { "http-port",                         required_argument, NULL, 'w' },
+  { "max-num-hosts",                     required_argument, NULL, 'x' },
+  { "other-core-affinity",               required_argument, NULL, 'y' },
   { "packet-filter",                     required_argument, NULL, 'B' },
   { "dump-hosts",                        required_argument, NULL, 'D' },
   { "dump-flows",                        required_argument, NULL, 'F' },
@@ -690,14 +699,14 @@ static const struct option long_options[] = {
   { "pid",                               required_argument, NULL, 'G' },
 #endif
   { "export-flows",                      required_argument, NULL, 'I' },
+  { "instance-name",                     required_argument, NULL, 'N' },
   { "capture-direction",                 required_argument, NULL, 'Q' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
   { "user",                              required_argument, NULL, 'U' },
   { "version",                           no_argument,       NULL, 'V' },
-  { "max-num-flows",                     required_argument, NULL, 'X' },
   { "https-port",                        required_argument, NULL, 'W' },
+  { "max-num-flows",                     required_argument, NULL, 'X' },
   { "http-prefix",                       required_argument, NULL, 'Z' },
-  { "instance-name",                     required_argument, NULL, 'N' },
   { "httpdocs-dir",                      required_argument, NULL, '1' },
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
@@ -1112,8 +1121,16 @@ int Prefs::setOption(int optkey, char *optarg) {
 				   optarg);
     }
     break;
+
   case 'x':
     max_num_hosts = max_val(atoi(optarg), 1024);
+    break;
+
+  case 'y':
+    other_cpu_affinity = strdup(optarg);
+#ifdef HAVE_LIBCAP
+    Utils::setAffinityMask(optarg, &other_cpu_affinity_mask);
+#endif
     break;
 
   case 'v':
@@ -1443,7 +1460,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 #else
 	  argc, argv,
 #endif
-			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:4:5:l:uv:A:B:CD:E:F:N:G:I:O:Q:S:TU:X:W:VZ:",
+			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:uv:A:B:CD:E:F:N:G:I:O:Q:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
@@ -1679,6 +1696,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "ndpi_proto_file", ndpi_proto_path ? ndpi_proto_path : (char*)"");
 
   lua_push_str_table_entry(vm, "cpu_affinity", cpu_affinity ? cpu_affinity : (char*)"");
+  lua_push_str_table_entry(vm, "other_cpu_affinity", other_cpu_affinity ? other_cpu_affinity : (char*)"");
   lua_push_str_table_entry(vm, "user", change_user ? user : (char*)"");
 
   lua_push_str_table_entry(vm, "capture_direction", Utils::captureDirection2Str(captureDirection)); 

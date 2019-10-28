@@ -109,7 +109,10 @@ class Prefs {
   char *redis_host;
   char *redis_password;
   char *pid_path;
-  char *cpu_affinity;
+  char *cpu_affinity, *other_cpu_affinity;
+#ifdef HAVE_LIBCAP
+  cpu_set_t other_cpu_affinity_mask;
+#endif
   u_int8_t redis_db_id;
   int redis_port;
   int dns_mode;
@@ -217,6 +220,10 @@ class Prefs {
   inline bool  do_ignore_macs()                         { return(ignore_macs);                      };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);            };
+  inline char* get_other_cpu_affinity()                 { return(other_cpu_affinity);            };
+#ifdef HAVE_LIBCAP
+  inline cpu_set_t* get_other_cpu_affinity_mask()       { return(&other_cpu_affinity_mask); };
+#endif
   inline u_int get_http_port()                          { return(http_port);               };
   inline u_int get_https_port()                         { return(https_port);              };
   inline bool  is_client_x509_auth_enabled()            { return(enable_client_x509_auth); };

@@ -133,8 +133,12 @@ void ThreadedActivity::run() {
   if (pcap_dump_only)
     return;
 
-  if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0)
+  if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
     thread_started = true;
+#ifdef HAVE_LIBCAP
+    Utils::setThreadAffinityWithMask(pthreadLoop, ntop->getPrefs()->get_other_cpu_affinity_mask());
+#endif
+  }
 }
 
 /* ******************************************* */

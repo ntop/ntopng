@@ -289,6 +289,52 @@ bool Utils::isIPAddress(char *ip) {
 
 /* ****************************************************** */
 
+int Utils::setAffinityMask(char *cores_list, cpu_set_t *mask) {
+  int ret = 0;
+#ifdef HAVE_LIBCAP
+  char *core_id_s, *tmp = NULL;
+  u_int num_cores = ntop->getNumCPUs();
+
+  CPU_ZERO(mask);
+
+  if (cores_list == NULL)
+    return 0;
+
+  if (num_cores <= 1) 
+    return 0;
+
+  core_id_s = strtok_r(cores_list, ",", &tmp);
+
+  while (core_id_s) {
+    long core_id = atoi(core_id_s);
+    u_long core = core_id % num_cores;
+
+    CPU_SET(core, mask);
+
+    core_id_s = strtok_r(NULL, ",", &tmp);
+  }
+#endif
+
+  return ret;
+}
+
+/* ****************************************************** */
+
+int Utils::setThreadAffinityWithMask(pthread_t thread, cpu_set_t *mask) {
+  int ret = -1;
+
+  if (mask == NULL || CPU_COUNT(mask) == 0)
+    return(0);
+
+#ifdef HAVE_LIBCAP
+  ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), mask);
+#endif
+
+  return ret;
+}
+
+/* ****************************************************** */
+
 int Utils::setThreadAffinity(pthread_t thread, int core_id) {
   if(core_id < 0)
     return(0);
@@ -302,10 +348,10 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
     if(num_cores > 1) {
       CPU_ZERO(&cpu_set);
       CPU_SET(core, &cpu_set);
-      ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpu_set);
+      ret = setThreadAffinityWithMask(thread, &cpu_set);
     }
-
 #endif
+
     return ret;
   }
 }

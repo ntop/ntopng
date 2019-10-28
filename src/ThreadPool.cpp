@@ -43,8 +43,13 @@ ThreadPool::ThreadPool(u_int8_t _pool_size) {
   if((threadsState = (pthread_t*)malloc(sizeof(pthread_t)*pool_size)) == NULL)
     throw("Not enough memory");
   
-  for(int i=0; i<pool_size; i++)
-    pthread_create(&threadsState[i], NULL, doRun, (void*)this);
+  for(int i=0; i<pool_size; i++) {
+    if (pthread_create(&threadsState[i], NULL, doRun, (void*)this) == 0) {
+#ifdef HAVE_LIBCAP
+      Utils::setThreadAffinityWithMask(threadsState[i], ntop->getPrefs()->get_other_cpu_affinity_mask());
+#endif
+    }
+  }
 }
 
 /* **************************************************** */
