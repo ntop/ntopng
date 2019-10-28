@@ -630,6 +630,7 @@ flow_consts.flow_fields_description = {
     ["FILE_STATE"] = i18n("flow_fields_description.file_state"),
     ["FILE_GAPS"] = i18n("flow_fields_description.file_gaps"),
     ["FILE_STORED"] = i18n("flow_fields_description.file_stored"),
+    ["FILE_ID"] = i18n("flow_fields_description.file_id"),
 
     -- Suricata
     ["SURICATA_FLOW_ID"] = i18n("flow_fields_description.suricata_flow_id"),

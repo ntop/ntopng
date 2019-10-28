@@ -100,6 +100,7 @@ local function parseFileInfoMetadata(event_fileinfo, flow)
    flow.FILE_STATE = event_fileinfo.state
    flow.FILE_GAPS = event_fileinfo.gaps
    flow.FILE_STORED = event_fileinfo.stored
+   flow.FILE_ID = event_fileinfo.file_id
 end
 
 -- #################################################################

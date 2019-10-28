@@ -1153,6 +1153,7 @@ local lang = {
     ["exporter_ipv4_address"] = "Flow exporter IPv4 Address",
     ["exporter_ipv6_address"] = "Flow exporter IPv6 Address",
     ["file_gaps"] = "File Gaps",
+    ["file_id"] = "File ID",
     ["file_name"] = "File Name",
     ["file_size"] = "File Size",
     ["file_state"] = "File State",
