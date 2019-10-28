@@ -67,7 +67,12 @@ local tags = {
 
 drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    timeseries = {
-      {schema = "periodic_script:duration_ms", label = i18n("internals.duration"),},
+      {
+         schema = "custom:periodic_script:duration_ms",
+         label = i18n("internals.duration"),
+         metrics_labels = { i18n("graphs.max_ms"), i18n("graphs.last_ms") },
+         value_formatter = { "fmillis", "fmillis" },
+      },
    }
 })
 
