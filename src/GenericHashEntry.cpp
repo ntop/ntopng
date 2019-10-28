@@ -107,6 +107,11 @@ void GenericHashEntry::periodic_hash_entry_state_update(void *user_data, bool qu
 
 /* ***************************************** */
 
+void GenericHashEntry::periodic_stats_update(void *user_data, bool quick)  {
+}
+
+/* ***************************************** */
+
 bool GenericHashEntry::idle() const {
   return(get_state() > hash_entry_state_active);
 };

@@ -1039,7 +1039,8 @@ void Flow::incFlowDroppedCounters() {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(periodic_stats_update_user_data_t *periodic_stats_update_user_data) {
+void Flow::periodic_stats_update(void *user_data, bool quick) {
+  periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*) user_data;
   struct timeval *tv = periodic_stats_update_user_data->tv;
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
@@ -1051,6 +1052,8 @@ void Flow::update_hosts_stats(periodic_stats_update_user_data_t *periodic_stats_
   int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
   Vlan *vl;
   NetworkStats *cli_network_stats;
+
+  periodic_dump_check(!quick, tv);
 
   if(update_flow_port_stats) {
     bool dump_flow = false;
@@ -1434,6 +1437,8 @@ void Flow::update_hosts_stats(periodic_stats_update_user_data_t *periodic_stats_
 
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
+
+  GenericHashEntry::periodic_stats_update(user_data, quick);
 }
 
 /* *************************************** */

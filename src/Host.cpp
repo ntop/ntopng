@@ -842,6 +842,42 @@ void Host::periodic_hash_entry_state_update(void *user_data, bool quick) {
 
 /* *************************************** */
 
+void Host::periodic_stats_update(void *user_data, bool quick) {
+  periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*) user_data;
+  struct timeval *tv = periodic_stats_update_user_data->tv;
+  Mac *cur_mac = getMac();
+
+  checkReloadPrefs();
+  checkDataReset();
+  checkStatsReset();
+  checkBroadcastDomain();
+
+  /* OS detection */
+  if((os == os_unknown) && cur_mac && cur_mac->getFingerprint())
+    os = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType());
+
+  num_active_flows_as_client.computeAnomalyIndex(tv->tv_sec),
+    num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec),
+    low_goodput_client_flows.computeAnomalyIndex(tv->tv_sec),
+    low_goodput_server_flows.computeAnomalyIndex(tv->tv_sec);
+
+  stats->updateStats(tv);
+
+#ifdef MONITOREDGAUGE_DEBUG
+  char buf[64], buf2[128];
+
+  if(num_active_flows_as_client.is_anomalous(tv->tv_sec))
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_client] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_client.print(buf2, sizeof(buf2)));
+
+  if(num_active_flows_as_server.is_anomalous(tv->tv_sec))
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
+#endif
+
+  GenericHashEntry::periodic_stats_update(user_data, quick);
+}
+
+/* *************************************** */
+
 void Host::incStats(u_int32_t when, u_int8_t l4_proto,
 		    u_int ndpi_proto, ndpi_protocol_category_t ndpi_category,
 		    custom_app_t custom_app,
@@ -1317,38 +1353,6 @@ DeviceProtoStatus Host::getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool
 
 bool Host::statsResetRequested() {
   return(stats_reset_requested || (last_stats_reset < ntop->getLastStatsReset()));
-}
-
-/* *************************************** */
-
-void Host::updateStats(periodic_stats_update_user_data_t *periodic_stats_update_user_data) {
-  struct timeval *tv = periodic_stats_update_user_data->tv;
-  Mac *cur_mac = getMac();
-
-  checkDataReset();
-  checkStatsReset();
-  checkBroadcastDomain();
-
-  /* OS detection */
-  if((os == os_unknown) && cur_mac && cur_mac->getFingerprint())
-    os = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType());
-
-  num_active_flows_as_client.computeAnomalyIndex(tv->tv_sec),
-    num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec),
-    low_goodput_client_flows.computeAnomalyIndex(tv->tv_sec),
-    low_goodput_server_flows.computeAnomalyIndex(tv->tv_sec);
-
-  stats->updateStats(tv);
-
-#ifdef MONITOREDGAUGE_DEBUG
-  char buf[64], buf2[128];
-
-  if(num_active_flows_as_client.is_anomalous(tv->tv_sec))
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_client] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_client.print(buf2, sizeof(buf2)));
-
-  if(num_active_flows_as_server.is_anomalous(tv->tv_sec))
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
-#endif
 }
 
 /* *************************************** */

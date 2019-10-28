@@ -246,6 +246,7 @@ class Flow : public GenericHashEntry {
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
+  void periodic_dump_check(bool dump_alert, const struct timeval *tv);
   bool triggerAlerts() const;
   void dumpFlowAlert();
   void updateCliJA3();
@@ -442,15 +443,14 @@ class Flow : public GenericHashEntry {
   void set_hash_entry_state_idle();
   bool is_hash_entry_state_idle_transition_ready() const;
   void periodic_hash_entry_state_update(void *user_data, bool quick);
-  virtual void set_to_purge(time_t t);
+  void periodic_stats_update(void *user_data, bool quick);
+  void set_to_purge(time_t t);
   bool is_acknowledged_to_purge() const;
   void set_acknowledge_to_purge();
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;
 
   char* print(char *buf, u_int buf_len) const;
-  void update_hosts_stats(periodic_stats_update_user_data_t *periodic_stats_update_user_data);
-  void periodic_dump_check(bool dump_alert, const struct timeval *tv);
     
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port,

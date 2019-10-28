@@ -2656,30 +2656,12 @@ static bool perform_quick_update(const struct timeval *tv, GenericHashEntry *ghe
 
 /* **************************************************** */
 
-static bool flow_update_hosts_stats(GenericHashEntry *node,
-				    void *user_data, bool *matched) {
-  Flow *flow = (Flow*)node;
+static bool host_flow_update_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*)user_data;
   struct timeval *tv = periodic_stats_update_user_data->tv;
   bool quick_update = perform_quick_update(tv, node);
 
-  flow->periodic_dump_check(!quick_update, tv);
-  flow->update_hosts_stats(periodic_stats_update_user_data);
-
-  *matched = true;
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-/* NOTE: host is not a GenericTrafficElement */
-static bool update_hosts_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  Host *host = (Host*)node;
-  periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*)user_data;
-
-  host->checkReloadPrefs();
-  host->updateStats(periodic_stats_update_user_data);
+  node->periodic_stats_update(periodic_stats_update_user_data, quick_update);
 
   *matched = true;
 
@@ -2762,11 +2744,11 @@ void NetworkInterface::periodicStatsUpdate() {
 
   /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
   if((!isView()) && flows_hash)
-    walker(&begin_slot, true, walker_flows, flow_update_hosts_stats, &periodic_stats_update_user_data);
+    walker(&begin_slot, true, walker_flows, host_flow_update_stats, &periodic_stats_update_user_data);
 
   if(hosts_hash) {
     begin_slot = 0;
-    walker(&begin_slot, true, walker_hosts, update_hosts_stats, &periodic_stats_update_user_data);
+    walker(&begin_slot, true, walker_hosts, host_flow_update_stats, &periodic_stats_update_user_data);
   }
 
   if(ases_hash) {

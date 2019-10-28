@@ -224,6 +224,14 @@ class GenericHashEntry {
    * 
    */
   virtual void periodic_hash_entry_state_update(void *user_data, bool quick);
+  /**
+   * @brief Function in charge of updating periodic entry stats (e.g., its throughput or L7 traffic)
+   *
+   * @param user_date A pointer to user submitted data potentially necessary for the update
+   * @param quick Only perform minimal operations
+   * 
+   */
+  virtual void periodic_stats_update(void *user_data, bool quick);
   HashEntryState get_state() const;
   void updateSeen();
   void updateSeen(time_t _last_seen);

@@ -222,6 +222,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   bool is_hash_entry_state_idle_transition_ready() const;
   void periodic_hash_entry_state_update(void *user_data, bool quick);
+  void periodic_stats_update(void *user_data, bool quick);
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {};
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
