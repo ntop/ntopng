@@ -24,6 +24,10 @@ local function formatSuspiciousDeviceProtocol(status, flowstatus_info)
       devtype = flowstatus_info["srv.devtype"]
    end
 
+   if(devtype == nil) then
+      return i18n("alerts_dashboard.suspicious_device_protocol")
+   end
+
    local label = discover.devtype2string(devtype)
    return i18n(msg, {proto=interface.getnDPIProtoName(forbidden_proto), devtype=label,
       url=getDeviceProtocolPoliciesUrl("device_type="..
