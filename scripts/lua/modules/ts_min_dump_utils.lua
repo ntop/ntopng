@@ -171,6 +171,28 @@ end
 
 -- ########################################################
 
+function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
+   local periodic_scripts_stats = interface.getPeriodicActivitiesStats()
+
+   for ps_name, ps_stats in pairs(periodic_scripts_stats) do
+      local num_ms_max = 0
+      local num_ms_last = 0
+
+      if ps_stats["duration"] then
+         if ps_stats["duration"]["max_duration_ms"] then
+	   num_ms_max = ps_stats["duration"]["max_duration_ms"]
+         end
+         if ps_stats["duration"]["last_duration_ms"] then
+	   num_ms_last = ps_stats["duration"]["last_duration_ms"]
+         end
+      end
+
+      ts_utils.append("periodic_script:duration_ms", {ifid = ifstats.id, periodic_script = ps_name, num_ms_max = num_ms_max, num_ms_last = num_ms_last}, when, verbose)
+   end
+end
+
+-- ########################################################
+
 function ts_dump.containers_update_stats(when, ifstats, verbose)
   local containers_stats = interface.getContainersStats()
 
@@ -282,6 +304,9 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
   -- Save internal hash tables states every minute
   ts_dump.update_hash_tables_stats(when, ifstats, verbose)
+
+  -- Save duration of periodic scripts
+  ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 
   -- Save Profile stats every minute
   if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version

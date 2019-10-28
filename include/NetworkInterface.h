@@ -459,6 +459,7 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t getFlowMaxIdle();
   virtual void lua(lua_State* vm);
   void lua_hash_tables_stats(lua_State* vm);
+  void lua_periodic_activities_stats(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void processAllActiveFlows();

@@ -1100,6 +1100,7 @@ local known_parameters = {
    ["flowhosts_type"]          = validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
    ["status"]                  = validateAlertStatus,           -- An alert type to filter
    ["hash_table"]              = validateSingleWord,            -- An internal ntopng hash_table
+   ["periodic_script"]         = validateSingleWord,            -- A script under callbacks/interface executed by ntopng
    ["user_script"]             = validateSingleWord,            -- A user script key
    ["subdir"]                  = validateSingleWord,            -- A user script subdir
    ["profile"]                 = http_lint.validateTrafficProfile,        -- Traffic Profile name

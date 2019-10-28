@@ -5415,6 +5415,7 @@ void NetworkInterface::lua(lua_State *vm) {
 /* *************************************** */
 
 void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
+  /* Hash tables stats */
   GenericHash *gh[] = {flows_hash, hosts_hash, macs_hash,
 		       vlans_hash, ases_hash, countries_hash,
 		       arp_hash_matrix
@@ -5429,6 +5430,15 @@ void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
     if(gh[i])
       gh[i]->lua(vm);
   }
+}
+
+/* *************************************** */
+
+void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
+  lua_newtable(vm);
+
+  /* Periodic activities stats */
+  ntop->lua_periodic_activities_stats(this, vm);
 }
 
 /* **************************************************** */

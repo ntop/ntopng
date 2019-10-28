@@ -6,6 +6,16 @@ local ts_utils = require "ts_utils_core"
 local schema
 
 -------------------------------------------------------
+-- PERIODIC_SCRIPTS SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("periodic_script:duration_ms", {step = 60, rrd_fname="ps_duration_ms", metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("periodic_script")
+schema:addMetric("num_ms_max")
+schema:addMetric("num_ms_last")
+
+-------------------------------------------------------
 -- HASH_TABLES SCHEMAS
 -------------------------------------------------------
 

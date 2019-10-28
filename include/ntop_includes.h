@@ -362,6 +362,7 @@ using namespace std;
 #include "AggregatedFlow.h"
 #include "AggregatedFlowHash.h"
 #endif
+#include "ThreadedActivityStats.h"
 #include "ThreadedActivity.h"
 #include "ThreadPool.h"
 #include "PeriodicActivities.h"

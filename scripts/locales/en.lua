@@ -2130,10 +2130,16 @@ local lang = {
   ["internals"] = {
     ["hash_entries"] = "Hash Entries",
     ["hash_table"] = "Hash Table",
+    ["hash_tables"] = "Hash Tables",
     ["num_calls"] = "Num Calls",
     ["script_duration"] = "Run Duration",
     ["state_active"] = "Entries in Active State",
     ["state_idle"] = "Entries in Idle State",
+    ["periodic_activity"] = "Periodic Activity",
+    ["periodic_activities"] = "Periodic Activities",
+    ["duration"] = "Duration",
+    ["max_duration_ms"] = "Max Duration",
+    ["last_duration_ms"] = "Last Duration",
   },
   ["live_capture"] = {
     ["active_live_captures"] = "Live Captures",

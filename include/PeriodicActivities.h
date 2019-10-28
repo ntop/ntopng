@@ -35,6 +35,8 @@ class PeriodicActivities {
 
   void startPeriodicActivitiesLoop();
   void sendShutdownSignal();
+
+  void lua(NetworkInterface *iface, lua_State *vm);
 };
 
 #endif /* _PERIODIC_ACTIVITIES_H_ */

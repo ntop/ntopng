@@ -38,6 +38,7 @@ class ThreadedActivity {
   bool *interfaceTasksRunning;
   Mutex m;
   ThreadPool *pool;
+  ThreadedActivityStats **threaded_activity_stats;
 
   void periodicActivityBody();
   void aperiodicActivityBody();
@@ -45,6 +46,7 @@ class ThreadedActivity {
   void schedulePeriodicActivity(ThreadPool *pool);
   void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
   bool isInterfaceTaskRunning(NetworkInterface *iface);
+  void updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration);
   
  public:
   ThreadedActivity(const char* _path,
@@ -62,6 +64,8 @@ class ThreadedActivity {
   bool isTerminating();
 
   void run();
+
+  void lua(NetworkInterface *iface, lua_State *vm);
 };
 
 #endif /* _THREADED_ACTIVITY_H_ */

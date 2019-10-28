@@ -42,6 +42,8 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (bool *) calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(bool));
+  threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_DEFINED_INTERFACES]();
+    
 
   if(thread_pool_size > 1) {
     pool = new (std::nothrow) ThreadPool(thread_pool_size);
@@ -62,6 +64,16 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 
 ThreadedActivity::~ThreadedActivity() {
   void *res;
+  map<int, ThreadedActivityStats*>::const_iterator it;
+
+  if(threaded_activity_stats) {
+    for(u_int i = 0; i < MAX_NUM_DEFINED_INTERFACES; i++) {
+      if(threaded_activity_stats[i])
+	delete threaded_activity_stats[i];
+    }
+
+    delete[] threaded_activity_stats;
+  }
 
   shutdown();
 
@@ -143,6 +155,27 @@ void ThreadedActivity::run() {
 
 /* ******************************************* */
 
+void ThreadedActivity::updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration) {
+  ThreadedActivityStats *ta = NULL;
+
+  if(iface && iface->get_id() >= 0) {
+    if(!threaded_activity_stats[iface->get_id()]) {
+      try {
+	ta = new ThreadedActivityStats(this);
+      } catch(std::bad_alloc& ba) {
+	return;
+      }
+      threaded_activity_stats[iface->get_id()] = ta;
+    } else
+      ta = threaded_activity_stats[iface->get_id()];
+
+    if(ta)
+      ta->updateStats(latest_duration);
+  }
+}
+
+/* ******************************************* */
+
 /* Run a one-shot script / accurate (e.g. second) periodic script */
 void ThreadedActivity::runScript() {
 #ifdef WIN32
@@ -166,7 +199,7 @@ void ThreadedActivity::runScript() {
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   LuaEngine *l;
-  u_long max_duration_ms =periodicity * 1e3;
+  u_long max_duration_ms = periodicity * 1e3;
   u_long msec_diff;
   struct timeval begin, end;
 
@@ -197,6 +230,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   gettimeofday(&end, NULL);
 
   msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
+  updateThreadedActivityStats(iface, msec_diff);
 
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -339,5 +373,19 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
 
       }
     }
+  }
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
+  if(iface && iface->get_id() >= 0 && threaded_activity_stats[iface->get_id()]) {
+    lua_newtable(vm);
+
+    threaded_activity_stats[iface->get_id()]->lua(vm);
+
+    lua_pushstring(vm, path ? path : "");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 }

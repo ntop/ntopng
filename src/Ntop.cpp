@@ -804,6 +804,13 @@ void Ntop::setCustomnDPIProtos(char *path) {
 
 /* ******************************************* */
 
+void Ntop::lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm) {
+  if(pa)
+    pa->lua(iface, vm);
+}
+
+/* ******************************************* */
+
 void Ntop::getUsers(lua_State* vm) {
   char **usernames;
   char *username, *holder;

@@ -51,6 +51,14 @@ PeriodicActivities::~PeriodicActivities() {
 
 /* ******************************************* */
 
+void PeriodicActivities::lua(NetworkInterface *iface, lua_State *vm) {
+  for(int i = 0; i < num_activities; i++) {
+    activities[i]->lua(iface, vm);
+  }
+}
+
+/* ******************************************* */
+
 void PeriodicActivities::sendShutdownSignal() {
   for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
     if(activities[i])
