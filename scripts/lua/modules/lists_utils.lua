@@ -313,11 +313,15 @@ end
 -- ##############################################
 
 -- Check if the lists require an update
--- Returns true after all the lists are processed, false otherwise
+-- Returns a table:
+--  in_progress: true if the update is still in progress and checkListsUpdate should be called again
+--  needs_reload: if in_progress is false, then needs_reload indicates if some lists were updated and a reload is needed
 local function checkListsUpdate(timeout)
    local lists = lists_utils.getCategoryLists()
    local begin_time = os.time()
    local now = begin_time
+   local needs_reload = (ntop.getCache("ntopng.cache.category_lists.needs_reload") == "1")
+   local all_processed = true
 
    initListCacheDir()
 
@@ -336,6 +340,7 @@ local function checkListsUpdate(timeout)
 	    os.rename(temp_fname, list_file)
 	    list.status.last_error = false
 	    list.status.num_errors = 0
+	    needs_reload = true
 	 else
 	    -- failure
 	    local respcode = 0
@@ -373,6 +378,7 @@ local function checkListsUpdate(timeout)
 
 	 if now-begin_time >= timeout then
 	    -- took too long, will resume on next housekeeping execution
+	    all_processed = false
 	    break
 	 end
       end
@@ -381,11 +387,24 @@ local function checkListsUpdate(timeout)
    -- update lists state
    saveListsStatusToRedis(lists)
 
-   if now-begin_time >= timeout then
+   if(not all_processed) then
       -- Still in progress, do not mark as finished yet
-      return false
+      if(needs_reload) then
+	 -- cache this for the next invocation of checkListsUpdate as
+	 -- we are still in progress
+	 ntop.setCache("ntopng.cache.category_lists.needs_reload", "1")
+      end
+
+      return {
+	 in_progress = true
+      }
    else
-      return true
+      ntop.delCache("ntopng.cache.category_lists.needs_reload")
+
+      return {
+	 in_progress = false,
+	 needs_reload = needs_reload,
+      }
    end
 end
 
@@ -608,14 +627,18 @@ end
 
 -- This is run in housekeeping.lua
 function lists_utils.checkReloadLists()
-   local reload_now = (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")
+   local forced_reload = (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")
+   local reload_now = false
 
-   if ntop.getCache("ntopng.cache.download_lists_utils") == "1" then
-      if checkListsUpdate(60 --[[ timeout ]]) then
+   if(ntop.getCache("ntopng.cache.download_lists_utils") == "1") then
+      local rv = checkListsUpdate(60 --[[ timeout ]])
+
+      if(not rv.in_progress) then
 	 ntop.delCache("ntopng.cache.download_lists_utils")
-	 -- lists where possibly updated, reload
-	 reload_now = true
+	 reload_now = forced_reload or rv.needs_reload
       end
+   else
+      reload_now = forced_reload
    end
 
    if reload_now then
