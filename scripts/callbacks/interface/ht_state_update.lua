@@ -5,7 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
 -- Keep it in sync with HT_STATE_UPDATE_SCRIPT_PATH periodicity in PeriodicActivities.cpp
 -- that is, with the frequency of execution of this script.
 local HT_STATE_UPDATE_FREQ = 5 

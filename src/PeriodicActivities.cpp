@@ -99,6 +99,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   static activity_descr ad[] = {
     { SECOND_SCRIPT_PATH,             1, false, 1           },
     { HT_STATE_UPDATE_SCRIPT_PATH,    5, false, num_threads },
+    { STATS_UPDATE_SCRIPT_PATH,       5, false, num_threads },
     { MINUTE_SCRIPT_PATH,            60, false, num_threads },
     { FIVE_MINUTES_SCRIPT_PATH,     300, false, num_threads },
     { HOURLY_SCRIPT_PATH,          3600, false, num_threads },

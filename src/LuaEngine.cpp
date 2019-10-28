@@ -5866,6 +5866,20 @@ static int ntop_periodic_ht_state_update(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_periodic_stats_update(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->periodicStatsUpdate();
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool get_direction_stats = false;
@@ -10349,6 +10363,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Functions related to the management of the internal hash tables */
   { "getHashTablesStats",       ntop_get_interface_hash_tables_stats },
   { "periodicHTStateUpdate",    ntop_periodic_ht_state_update        },
+
+  /* Function for the periodic update of hash tables stats (e.g., throughputs) */
+  { "periodicStatsUpdate",      ntop_periodic_stats_update           },
 
 #ifndef HAVE_NEDGE
   { "processFlow",              ntop_process_flow },

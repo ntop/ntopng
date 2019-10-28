@@ -2729,6 +2729,9 @@ u_int32_t NetworkInterface::getFlowMaxIdle() {
 /* **************************************************** */
 
 void NetworkInterface::periodicStatsUpdate() {
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
+#endif
   u_int32_t begin_slot = 0;
   periodic_stats_update_user_data_t periodic_stats_update_user_data;
   struct timeval tv;
@@ -5430,16 +5433,6 @@ void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
 /* **************************************************** */
 
 void NetworkInterface::runHousekeepingTasks() {
-  /* NOTE NOTE NOTE
-
-     This task runs asynchronously with respect to ntopng
-     so if you need to allocate memory you must LOCK
-
-     Example HTTPStats::updateHTTPHostRequest() is called
-     by both this function and the main thread
-  */
-
-  periodicStatsUpdate();
 }
 
 /* **************************************************** */
