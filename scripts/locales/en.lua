@@ -819,6 +819,7 @@ local lang = {
     ["callback_enabled"] = "Enabled",
     ["callback_function"] = "Hook",
     ["callback_function_duration"] = "Duration",
+    ["callback_function_duration_fmt_long"] = "%{num_calls} Calls in %{time} [%{speed} Calls/sec]",
     ["callback_function_duration_fmt_short"] = "%{time}",
     ["callback_function_num_flows"] = "Flows",
     ["callback_function_throughput"] = "Processing Speed",
