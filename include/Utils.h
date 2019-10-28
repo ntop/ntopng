@@ -92,6 +92,7 @@ class Utils {
   static bool progressCanContinue(ProgressState *progressState);
   static char* urlEncode(const char *url);
   static ticks getticks();
+  static ticks gettickspersec();
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
   static u_int64_t macaddr_int(const u_int8_t *mac);

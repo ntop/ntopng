@@ -24,10 +24,8 @@
 /* ****************************************** */
 
 AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *iface) : LuaEngine() {
-#ifdef LUA_PROFILING
   num_calls = 0;
-  gettimeofday(&t_begin, NULL);
-#endif
+  total_ticks = 0;
   const char *lua_file = NULL;
 
   p = script_periodicity;
@@ -74,12 +72,10 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
 /* ****************************************** */
 
 AlertCheckLuaEngine::~AlertCheckLuaEngine() {
-#ifdef LUA_PROFILING
-  gettimeofday(&t_end, NULL);
+#if 0
+  float elapsed_time = (float)total_ticks / Utils::gettickspersec();
 
-  float diff = Utils::msTimevalDiff(&t_end, &t_begin) / 1000;
-
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "[elapsed time: %.2f sec][num calls: %u][calls/sec: %.2f]", diff, num_calls, num_calls / diff);
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "[elapsed time: %.4f sec][num calls: %u][calls/sec: %.4f][%s][clocks/sec: %llu]", elapsed_time, num_calls, num_calls / elapsed_time, script_path, Utils::gettickspersec());
 #endif
 
   if(script_path[0] != '\0') {
@@ -89,6 +85,29 @@ AlertCheckLuaEngine::~AlertCheckLuaEngine() {
       lua_pushstring(L, Utils::periodicityToScriptName(p)); /* push 1st argument */
       pcall(1 /* 1 argument */, 0);
     }
+  }
+}
+
+/* ****************************************** */
+
+void AlertCheckLuaEngine::lua_stats(const char *key, lua_State *vm) {
+  if(vm) {
+    lua_newtable(vm);
+
+    lua_newtable(vm);
+
+    float elapsed_time = (float)total_ticks / Utils::gettickspersec();
+
+    lua_push_uint64_table_entry(vm, "num_calls", (u_int64_t)num_calls);
+    lua_push_float_table_entry(vm, "tot_duration_ms", elapsed_time * 1000);
+
+    lua_pushstring(vm, "stats");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
+    lua_pushstring(vm, key);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 }
 
@@ -107,14 +126,16 @@ const char * AlertCheckLuaEngine::getGranularity() const {
 /* ****************************************** */
 
 bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
-#ifdef LUA_PROFILING
-  num_calls++;
-#endif
+  ticks t_begin;
 
+  t_begin = Utils::getticks();
   if(lua_pcall(L, num_args, num_results, 0)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure[%s] [%s]", script_path, lua_tostring(L, -1));
     return(false);
   }
+
+  num_calls++;
+  total_ticks += Utils::getticks()  - t_begin;
 
   /*
     Refresh entity (if necessary): this guarantees that we do at most one

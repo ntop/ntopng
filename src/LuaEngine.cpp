@@ -5871,8 +5871,7 @@ static int ntop_periodic_ht_state_update(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   deadline = (time_t)lua_tonumber(vm, 1);
-  ntop_interface->periodicHTStateUpdate(deadline);
-  lua_pushnil(vm);
+  ntop_interface->periodicHTStateUpdate(deadline, vm);
 
   return(CONST_LUA_OK);
 }

@@ -2089,6 +2089,26 @@ ticks Utils::getticks() {
 
 /* **************************************** */
 
+ticks Utils::gettickspersec() {
+#if !(defined(__arm__) || defined(__mips__))
+  ticks tick_start, tick_delta;
+
+  /* computing usleep delay */
+  tick_start = Utils::getticks();
+  usleep(1);
+  tick_delta = Utils::getticks() - tick_start;
+
+  /* computing CPU freq */
+  tick_start = Utils::getticks();
+  usleep(1001);
+  return (Utils::getticks() - tick_start - tick_delta) * 1000 /*kHz -> Hz*/;
+#else
+  return CLOCKS_PER_SEC;
+#endif
+}
+
+/* **************************************** */
+
 static bool scan_dir(const char * dir_name,
 		     list<pair<struct dirent *, char * > > *dirlist,
 		     unsigned long *total) {

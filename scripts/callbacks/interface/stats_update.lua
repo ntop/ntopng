@@ -1,5 +1,5 @@
 --
--- (C) 2013 - ntop.org
+-- (C) 2019 - ntop.org
 --
 
 local dirs = ntop.getDirs()

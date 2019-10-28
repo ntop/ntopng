@@ -2862,7 +2862,7 @@ static void generic_periodic_hash_entry_state_update(GenericHashEntry *node, voi
 
 /* **************************************************** */
 
-void NetworkInterface::periodicHTStateUpdate(time_t deadline) {
+void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
 #endif
@@ -2886,11 +2886,15 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline) {
     periodic_ht_state_update_user_data.deadline = deadline,
     periodic_ht_state_update_user_data.tv = &tv;
 
+  if(vm)
+    lua_newtable(vm);
+
   for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
     if(ghs[i]) {
       ghs[i]->walkIdle(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
 
       if(periodic_ht_state_update_user_data.acle) {
+	periodic_ht_state_update_user_data.acle->lua_stats(ghs[i]->getName(), vm);
 	delete periodic_ht_state_update_user_data.acle;
 	periodic_ht_state_update_user_data.acle = NULL;
       }

@@ -19,6 +19,18 @@ ts_schema.supported_steps = {
       period = 3600,      -- assume 1 hour periodicity
     }
   },
+  ["5"] = {
+    retention = {
+      -- aggregation_dp: number of raw points to aggregate
+      -- retention_dp: number of aggregated dp to store
+      {aggregation_dp = 1, retention_dp = 86400},   -- 1 second resolution: keep for 1 day
+      {aggregation_dp = 12, retention_dp = 43200},  -- 1 minute resolution: keep for 1 month
+      {aggregation_dp = 720, retention_dp = 2400}, -- 1 hour resolution: keep for 100 days
+    }, hwpredict = {
+      row_count = 86400,  -- keep 1 day prediction
+      period = 3600,      -- assume 1 hour periodicity
+    }
+  },
   ["60"] = {
     retention = {
       {aggregation_dp = 1, retention_dp = 1440},    -- 1 minute resolution: keep for 1 day

@@ -144,6 +144,14 @@ class GenericHash {
   inline NetworkInterface* getInterface() { return(iface); };
 
   /**
+   * @brief Return the name associated with the hash.
+   * @details Inline method.
+   *
+   * @return Pointer to the name
+   */
+  inline const char* getName() const { return name; };
+
+  /**
    * @brief Check whether the hash has empty space
    *
    * @return true if there is space left, or false if the hash is full
