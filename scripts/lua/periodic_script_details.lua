@@ -56,7 +56,7 @@ print [[
 </div>
 ]]
 
-local schema = _GET["ts_schema"] or "periodic_script:duration_ms"
+local schema = _GET["ts_schema"] or "custom:periodic_script:duration_ms"
 local selected_epoch = _GET["epoch"] or ""
 local url = ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?ifid='..ifId..'&periodic_script='..periodic_script..'&page=historical'
 

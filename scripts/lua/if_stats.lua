@@ -1863,7 +1863,7 @@ elseif(page == "internals") then
 
    local periodic_activities_stats = interface.getPeriodicActivitiesStats()
 
-   if table.len(periodic_activities_stats) > 0 then
+   if((table.len(periodic_activities_stats) > 0) and (ntop.isPro())) then
       print("<tr><th colspan=4>" .. i18n("internals.periodic_activities") .. "</th>")
       print("<tr><th width=15%>" .. i18n("internals.periodic_activity") .. "</th>")
       print("<th width=5% style='text-align:center;'>" .. i18n("chart") .. "</th>")
