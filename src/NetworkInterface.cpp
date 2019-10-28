@@ -2485,8 +2485,9 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 
 void NetworkInterface::reloadCustomCategories() {
   if(customCategoriesReloadRequested()) {
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to reload categories [iface: %s]", get_name());
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories [iface: %s]", get_name());
     ndpi_enable_loaded_categories(ndpi_struct);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Reload custom categories completed [iface: %s]", get_name());
 
     reload_custom_categories = false;
     reload_hosts_blacklist = true;
