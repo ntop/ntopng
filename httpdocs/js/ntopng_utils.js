@@ -361,7 +361,7 @@ function scaleValue(val, sizes, scale) {
   } else if (i >= sizes.length)
     i = sizes.length - 1;
 
-  return [val / Math.pow(scale, i), sizes[i]];
+  return [Math.round((val / Math.pow(scale, i)) * 10) / 10, sizes[i]];
 }
 
 function formatValue(val) {
@@ -395,8 +395,7 @@ function fmillis(value) {
 
   if(value == 0) return '0 ms';
   if((value > 0) && (value < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' ms');
-  var x = Math.round(value * 10) / 10;
-  var res = scaleValue(x, ["ms", "s"], 1000);
+  var res = scaleValue(value, ["ms", "s"], 1000);
 
   return res[0] + " " + res[1];
 }
