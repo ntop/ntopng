@@ -42,12 +42,9 @@ NetworkInterface::NetworkInterface() : AlertableEntity(this, alert_entity_interf
 
 NetworkInterface::NetworkInterface(const char *name,
 				   const char *custom_interface_type) : AlertableEntity(this, alert_entity_interface) {
-  NDPI_PROTOCOL_BITMASK all;
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-  ndpi_port_range d_port[MAX_DEFAULT_PORTS];
-  u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
 
   init();
   customIftype = custom_interface_type, tsExporter = NULL;
@@ -146,23 +143,8 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 
   // init global detection structure
-  ndpi_struct = ndpi_init_detection_module();
-  if(ndpi_struct == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
-    exit(-1);
-  }
-
-  if(ntop->getCustomnDPIProtos() != NULL)
-    ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
-
-  memset(d_port, 0, sizeof(d_port));
-  ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
-			  0, no_master, no_master, (char*)"Operating System",
-			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
-
-  // enable all protocols
-  NDPI_BITMASK_SET_ALL(all);
-  ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
+  ndpi_struct_shadow = NULL;
+  ndpi_struct = initnDPIStruct();
 
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
@@ -279,7 +261,6 @@ void NetworkInterface::init() {
   macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
   countries_hash = NULL, arp_hash_matrix = NULL;
 
-  reload_custom_categories = reload_hosts_blacklist = false;
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
 
@@ -339,11 +320,64 @@ void NetworkInterface::init() {
 
 /* **************************************************** */
 
+struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
+  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module();
+  u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
+  ndpi_port_range d_port[MAX_DEFAULT_PORTS];
+  NDPI_PROTOCOL_BITMASK all;
+
+  if(ndpi_s == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
+    exit(-1);
+  }
+
+  if(ntop->getCustomnDPIProtos() != NULL)
+    ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
+
+  memset(d_port, 0, sizeof(d_port));
+  ndpi_set_proto_defaults(ndpi_s, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
+			  0, no_master, no_master, (char*)"Operating System",
+			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
+
+  // enable all protocols
+  NDPI_BITMASK_SET_ALL(all);
+  ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
+
+  return(ndpi_s);
+}
+
+/* **************************************************** */
+
 #ifdef NTOPNG_PRO
 
 void NetworkInterface::initL7Policer() {
   /* Instantiate the policer */
   policer = new L7Policer(this);
+}
+
+/* **************************************** */
+
+void NetworkInterface::cleanShadownDPI() {
+  if(ndpi_struct_shadow) {
+    ndpi_exit_detection_module(ndpi_struct_shadow);
+    ndpi_struct_shadow = NULL;
+  }
+}
+
+/* **************************************** */
+
+/* Operations are performed in the followin order:
+ *
+ * 1. startCustomCategoriesReload()
+ * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
+ * 3. reloadCustomCategories()
+ * 4. cleanShadownDPI()
+ */
+void NetworkInterface::startCustomCategoriesReload() {
+  cleanShadownDPI();
+
+  /* No need to dedicate another variable for the reload, we can use the shadow itself */
+  ndpi_struct_shadow = initnDPIStruct();
 }
 
 /* **************************************** */
@@ -672,6 +706,11 @@ NetworkInterface::~NetworkInterface() {
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
     ndpi_struct = NULL;
+  }
+
+  if(ndpi_struct_shadow) {
+    ndpi_exit_detection_module(ndpi_struct_shadow);
+    ndpi_struct_shadow = NULL;
   }
 
   delete frequentProtocols;
@@ -1806,7 +1845,6 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
 
   pollQueuedeCompanionEvents();
-  reloadCustomCategories();
   bcast_domains->inlineReloadBroadcastDomains();
 
   /* Netfilter interfaces don't report MAC addresses on packets */
@@ -2484,13 +2522,21 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 /* **************************************************** */
 
 void NetworkInterface::reloadCustomCategories() {
-  if(customCategoriesReloadRequested()) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories [iface: %s]", get_name());
-    ndpi_enable_loaded_categories(ndpi_struct);
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Reload custom categories completed [iface: %s]", get_name());
+  if(ndpi_struct_shadow) {
+    struct ndpi_detection_module_struct *old_struct;
 
-    reload_custom_categories = false;
-    reload_hosts_blacklist = true;
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories [iface: %s]", get_name());
+
+    /* The new categories were loaded on the current ndpi_struct_shadow */
+    ndpi_enable_loaded_categories(ndpi_struct_shadow);
+
+    old_struct = ndpi_struct;
+    ndpi_struct = ndpi_struct_shadow;
+    ndpi_struct_shadow = old_struct;
+
+    /* Need to update the existing hosts */
+    reloadHostsBlacklist();
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Reload custom categories completed [iface: %s]", get_name());
   }
 }
 
@@ -5014,7 +5060,6 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   pollQueuedeCompanionEvents();
-  reloadCustomCategories();
   bcast_domains->inlineReloadBroadcastDomains();
 
   if(!purge_idle_flows_hosts) return(0);
@@ -7476,15 +7521,15 @@ bool NetworkInterface::enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_l
 /* *************************************** */
 
 void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
-  if(what)
-    ndpi_load_ip_category(ndpi_struct, what, id);
+  if(what && ndpi_struct_shadow)
+    ndpi_load_ip_category(ndpi_struct_shadow, what, id);
 }
 
 /* *************************************** */
 
 void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
-  if(what)
-    ndpi_load_hostname_category(ndpi_struct, what, id);
+  if(what && ndpi_struct_shadow)
+    ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
 }
 
 /* *************************************** */

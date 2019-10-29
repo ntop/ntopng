@@ -618,6 +618,7 @@
 #endif
 #define CONST_RUNTIME_PREFS_HOSTMASK  NTOPNG_PREFS_PREFIX".host_mask"
 #define CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID      NTOPNG_PREFS_PREFIX".auto_assigned_pool_id"
+#define MIN_NDPI_RELOAD_INTERVAL                       10 /* sec, needed to avoid freeing the shadow pointer too early */
 
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
 #define CONST_MAX_ES_MSG_QUEUE_LEN    8192

@@ -555,6 +555,14 @@ local function reloadListsNow()
    local stats = {num_hosts = 0, num_ips = 0, num_ja3 = 0, begin = os.time(), duration = 0}
    local limit_reached_error = nil
 
+   if(not ntop.startCustomCategoriesReload()) then
+      -- Too early, need to retry later
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("custom categories: too early reload"))
+      return(false)
+   end
+
+   traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("custom categories: reloading now"))
+
    -- Load hosts from cached URL lists
    for list_name, list in pairsByKeys(lists) do
       if list.enabled then
@@ -609,6 +617,7 @@ local function reloadListsNow()
    -- Reload into memory
    ntop.reloadCustomCategories()
    ntop.reloadJA3Hashes()
+   return(true)
 end
 
 -- ##############################################
@@ -642,12 +651,17 @@ function lists_utils.checkReloadLists()
    end
 
    if reload_now then
-      reloadListsNow()
-      ntop.delCache("ntopng.cache.reload_lists_utils")
+      if reloadListsNow() then
+	 -- success
+	 ntop.delCache("ntopng.cache.reload_lists_utils")
+      else
+	 -- Remember to load the lists next time
+	 ntop.setCache("ntopng.cache.reload_lists_utils", "1")
+      end
+   else
+      -- Possibly clean up old nDPI memory
+      ntop.cleanOldCategories()
    end
-
-   -- Possibly reload hosts blacklist status
-   ntop.checkReloadHostBlacklist()
 end
 
 -- ##############################################

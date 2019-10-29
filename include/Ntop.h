@@ -66,7 +66,8 @@ class Ntop {
   void *trackers_automa;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
-  time_t last_stats_reset;
+  time_t last_stats_reset, last_ndpi_reload;
+  bool ndpi_cleanup_needed;
   int udp_socket;
   NtopPro *pro;
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
@@ -429,6 +430,10 @@ class Ntop {
   DeviceProtoStatus getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
   void refreshCpuLoad();
   bool getCpuLoad(float *out);
+  inline bool canSafelyReloadnDPI(time_t now)             { return((now - last_ndpi_reload) >= MIN_NDPI_RELOAD_INTERVAL); }
+  inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
+  inline bool needsnDPICleanup(time_t now)                { return(ndpi_cleanup_needed && canSafelyReloadnDPI(now)); }
+  inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }

@@ -69,6 +69,7 @@ Ntop::Ntop(char *appName) {
   cpu_load = 0;
   malicious_ja3 = malicious_ja3_shadow = NULL;
   new_malicious_ja3 = new std::set<std::string>();
+  last_ndpi_reload = 0;
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {

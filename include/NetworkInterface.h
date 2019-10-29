@@ -128,7 +128,6 @@ class NetworkInterface : public AlertableEntity {
   bool bridge_interface;
   bool is_dynamic_interface, show_dynamic_interface_traffic;
   bool is_traffic_mirrored, is_loopback;
-  bool reload_custom_categories, reload_hosts_blacklist;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #ifndef HAVE_NEDGE
@@ -197,7 +196,7 @@ class NetworkInterface : public AlertableEntity {
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers;
-  struct ndpi_detection_module_struct *ndpi_struct;
+  struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
@@ -661,11 +660,10 @@ class NetworkInterface : public AlertableEntity {
   void reloadHideFromTop(bool refreshHosts=true);
   void updateLbdIdentifier();
   inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
-  inline void requestReloadCustomCategories()       { reload_custom_categories = true; }
-  inline bool customCategoriesReloadRequested()     { return reload_custom_categories; }
+  void startCustomCategoriesReload();
+  void cleanShadownDPI();
   void checkReloadHostsBroadcastDomain();
   inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }
-  inline void checkHostsBlacklistReload()           { if(reload_hosts_blacklist) { reloadHostsBlacklist(); reload_hosts_blacklist = false; } }
   void reloadHostsBlacklist();
   void checkHostsAlerts(ScriptPeriodicity p);
   void checkNetworksAlerts(ScriptPeriodicity p);
@@ -761,6 +759,7 @@ class NetworkInterface : public AlertableEntity {
   void reloadDhcpRanges();
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
   inline bool isFlowDumpDisabled()           { return(flow_dump_disabled); }
+  inline struct ndpi_detection_module_struct* initnDPIStruct();
   bool isInDhcpRange(IpAddress *ip);
   void getPodsStats(lua_State* vm);
   void getContainersStats(lua_State* vm, const char *pod_filter);

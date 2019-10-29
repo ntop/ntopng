@@ -1795,6 +1795,47 @@ static int ntop_is_windows(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_startCustomCategoriesReload(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop->canSafelyReloadnDPI(time(NULL))) {
+    lua_pushboolean(vm, false /* too early */);
+    return(CONST_LUA_OK);
+  }
+
+  for(int i=0; i<ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+
+    if((iface = ntop->getInterface(i)) != NULL)
+      iface->startCustomCategoriesReload();
+  }
+
+  lua_pushboolean(vm, true /* can now start reloading */);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_cleanOldCategories(lua_State* vm) {
+  if(ntop->needsnDPICleanup(time(NULL))) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists: cleanup");
+
+    for(int i=0; i<ntop->get_num_interfaces(); i++) {
+      NetworkInterface *iface;
+
+      if((iface = ntop->getInterface(i)) != NULL)
+	iface->cleanShadownDPI();
+    }
+
+    ntop->setnDPICleanupNeeded(false);
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_loadCustomCategoryIp(lua_State* vm) {
   char *net;
   ndpi_protocol_category_t catid;
@@ -1843,60 +1884,23 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 
 /* ****************************************** */
 
+/* NOTE: ntop.startCustomCategoriesReload() must be called before this */
 static int ntop_reloadCustomCategories(lua_State* vm) {
-  int i, j, max_wait = 20 /* time limit is: 20 * 500e3 = 10 seconds */;
-  int num_seconds;
-  int wait_step = 500e3; /* 500 ms */
+  int i;
   NetworkInterface *iface;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Starting category lists reload");
 
   for(i = 0; i<ntop->get_num_interfaces(); i++) {
-    if((iface = ntop->getInterface(i)) != NULL) {
-      iface->requestReloadCustomCategories();
-
-      if(iface->read_from_pcap_dump() && !iface->isRunning()) {
-        /* Can reload directly as the PCAP interface is not running */
-        iface->reloadCustomCategories();
-      } else
-        _usleep(50e3); /* 50 ms */
-
-      for(j = 0; j < max_wait && iface->customCategoriesReloadRequested(); j++) {
-	/* Make sure the interface has reloaded the categories */
-	_usleep(wait_step);
-      }
-
-      num_seconds = (1.f * j * wait_step) / 1e6;
-
-      if((j == max_wait) && !(iface->read_from_pcap_dump()))
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Interface %s didn't reload category lists in %u seconds",
-	  iface->get_name(), num_seconds);
-      else
-        ntop->getTrace()->traceEvent(TRACE_DEBUG, "Interface %s reloaded category lists in %u seconds",
-	  iface->get_name(), num_seconds);
-    }
+    if((iface = ntop->getInterface(i)) != NULL)
+      iface->reloadCustomCategories();
   }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists reload done");
+  ntop->setLastInterfacenDPIReload(time(NULL));
+  ntop->setnDPICleanupNeeded(true);
 
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_check_reload_hosts_blacklist(lua_State* vm) {
-  NetworkInterface *iface;
-  int i;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  for(i = 0; i<ntop->get_num_interfaces(); i++) {
-    if((iface = ntop->getInterface(i)) != NULL)
-      iface->checkHostsBlacklistReload();
-  }
-
-  lua_pushnil(vm);
+  lua_pushboolean(vm, true /* reload performed */);
   return(CONST_LUA_OK);
 }
 
@@ -10903,12 +10907,12 @@ static const luaL_Reg ntop_reg[] = {
   { "hasGeoIP",         ntop_has_geoip },
   { "isWindows",        ntop_is_windows },
 
-  /* Custom Categories */
-  { "loadCustomCategoryIp",   ntop_loadCustomCategoryIp },
-  { "loadCustomCategoryHost", ntop_loadCustomCategoryHost },
-  { "reloadCustomCategories", ntop_reloadCustomCategories },
-  { "checkReloadHostBlacklist", ntop_check_reload_hosts_blacklist },
-  { "matchCustomCategory",    ntop_match_custom_category },
+  /* Custom Categories - only inteded to be called from housekeeping.lua */
+  { "startCustomCategoriesReload", ntop_startCustomCategoriesReload },
+  { "cleanOldCategories",          ntop_cleanOldCategories          },
+  { "loadCustomCategoryIp",        ntop_loadCustomCategoryIp        },
+  { "loadCustomCategoryHost",      ntop_loadCustomCategoryHost      },
+  { "reloadCustomCategories",      ntop_reloadCustomCategories      },
 
   /* Privileges */
   { "gainWriteCapabilities",   ntop_gainWriteCapabilities },
@@ -10923,6 +10927,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isShutdown",           ntop_is_shutdown          },
   { "listInterfaces",       ntop_list_interfaces      },
   { "ipCmp",                ntop_ip_cmp               },
+  { "matchCustomCategory",    ntop_match_custom_category },
 
   /* JA3 */
   { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
