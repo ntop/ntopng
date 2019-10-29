@@ -289,6 +289,8 @@ bool Utils::isIPAddress(char *ip) {
 
 /* ****************************************************** */
 
+#ifdef __linux__
+
 int Utils::setAffinityMask(char *cores_list, cpu_set_t *mask) {
   int ret = 0;
 #ifdef HAVE_LIBCAP
@@ -317,9 +319,11 @@ int Utils::setAffinityMask(char *cores_list, cpu_set_t *mask) {
 
   return ret;
 }
+#endif
 
 /* ****************************************************** */
 
+#ifdef __linux__
 int Utils::setThreadAffinityWithMask(pthread_t thread, cpu_set_t *mask) {
   int ret = -1;
 
@@ -330,12 +334,14 @@ int Utils::setThreadAffinityWithMask(pthread_t thread, cpu_set_t *mask) {
   ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), mask);
 #endif
 
-  return ret;
+  return(ret);
 }
+#endif
 
 /* ****************************************************** */
 
 int Utils::setThreadAffinity(pthread_t thread, int core_id) {
+#ifdef __linux__
   if(core_id < 0)
     return(0);
   else {
@@ -352,8 +358,11 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
     }
 #endif
 
-    return ret;
+    return(ret);
   }
+#else
+  return(0);
+#endif  
 }
 
 /* ****************************************************** */
