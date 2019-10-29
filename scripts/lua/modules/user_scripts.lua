@@ -246,7 +246,7 @@ function user_scripts.benchmark_dump(ifid, to_stdout)
 					   hook_benchmark["tot_elapsed"] / hook_benchmark["tot_num_calls"]))
 	       end
 
-	       acc_val.tot_elapsed = math.max(hook_benchmark.tot_elapsed, acc_val.tot_elapsed)
+	       acc_val.tot_elapsed = acc_val.tot_elapsed + hook_benchmark.tot_elapsed
 	       acc_val.tot_num_calls = hook_benchmark.tot_num_calls + acc_val.tot_num_calls
 	    end
 	 end

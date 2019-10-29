@@ -76,6 +76,11 @@ if tags.ifid then
   interface.select(tags.ifid)
 end
 
+if(ts_schema == "top:user_script:duration") then
+  -- NOTE: Temporary fix for top user scripts page
+  tags.user_script = nil
+end
+
 sendHTTPHeader('application/json')
 
 local function performQuery(tstart, tend, keep_total, additional_options)

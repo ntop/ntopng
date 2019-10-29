@@ -40,6 +40,8 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
       return serie.tags.ifname;
     else if(serie.tags.profile)
         return serie.tags.profile;
+    else if(serie.tags.user_script)
+      return serie.tags.user_script;
   } else if(data_label != "bytes") { // single series
     if(serie.tags.protocol)
       return serie.tags.protocol + " (" + new_label + ")";
@@ -109,7 +111,7 @@ function getValueFormatter(schema, metric_type, series, custom_formatter, stats)
     else if(label.contains("flows")) {
       var as_counter = ((metric_type === "counter") && (schema !== "custom:memory_vs_flows_hosts"));
       return [as_counter ? fflows : formatValue, formatFlows, as_counter ? fflows : formatFlows];
-    } else if(label.contains("millis")) {
+    } else if(label.contains("millis") || label.contains("_ms")) {
       return [fmillis, fmillis];
     } else if(label.contains("alerts") && (metric_type === "counter")) {
       return [falerts, falerts];

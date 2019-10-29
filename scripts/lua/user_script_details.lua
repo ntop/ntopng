@@ -66,6 +66,8 @@ local tags = {
 }
 
 drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+   top_user_script = "top:user_script:duration",
+
    timeseries = {
       {schema = "user_script:duration", label = i18n("internals.script_duration"), value_formatter = {"fmillis"}},
       {schema = "user_script:num_calls", label = i18n("internals.num_calls")},
