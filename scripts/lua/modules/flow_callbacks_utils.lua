@@ -31,6 +31,11 @@ local function print_callbacks_config_table(descr, expert_view)
 
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
+   local accumulated_stats = {
+      tot_elapsed = 0,
+      tot_num_calls = 0,
+   }
+
    for mod_k, user_script in pairsByKeys(descr.modules, asc) do
       local hooks_benchmarks = user_script.benchmark or {}
       local num_hooks = table.len(hooks_benchmarks)
@@ -93,17 +98,13 @@ local function print_callbacks_config_table(descr, expert_view)
 	    -- Accumulate the stats for each hook
 	    local total_duration = 0
 	    local num_calls = 0
-	    local sum_avg_speed = 0
-	    local count_avg_speed = 0
 
 	    for mod_fn, mod_benchmark in pairsByKeys(user_script.benchmark or {}, asc) do
 	       total_duration = total_duration + mod_benchmark["tot_elapsed"]
 	       num_calls = num_calls + mod_benchmark["tot_num_calls"]
-	       sum_avg_speed = sum_avg_speed + mod_benchmark["avg_speed"]
-	       count_avg_speed = count_avg_speed + 1
 	    end
 
-	    local avg_speed = (sum_avg_speed / count_avg_speed)
+	    local avg_speed = (num_calls / total_duration)
 
 	    print("<td align='center'>".. format_utils.secondsToTime(total_duration) .."</td>")
 	    print("<td align='center'>".. format_utils.formatValue(num_calls) .."</td>")
@@ -112,7 +113,28 @@ local function print_callbacks_config_table(descr, expert_view)
 	    print("<td></td><td></td><td></td>")
 	 end
       end
+
+      -- Calculate accumulate stats
+      for _, mod_benchmark in pairs(user_script.benchmark or {}) do
+	 accumulated_stats.tot_elapsed = accumulated_stats.tot_elapsed + mod_benchmark["tot_elapsed"]
+	 accumulated_stats.tot_num_calls = accumulated_stats.tot_num_calls + mod_benchmark["tot_num_calls"]
+      end
    end
+
+   local avg_speed = (accumulated_stats.tot_num_calls / accumulated_stats.tot_elapsed)
+
+   -- Print total stats
+   print("</tr><tr><td><b>" .. i18n("total") .. "</b></td><td><td>")
+   if(expert_view) then
+      print("<td></td>")
+   end
+   print("<td class='text-center'>")
+   print(format_utils.secondsToTime(accumulated_stats.tot_elapsed))
+   print("</td><td class='text-center'>")
+   print(format_utils.formatValue(accumulated_stats.tot_num_calls))
+   print("</td><td class='text-center'>")
+   print(format_utils.formatValue(round(avg_speed, 0)))
+   print("</td></tr>")
 
    print("</tr>")
    print[[</table>]]
