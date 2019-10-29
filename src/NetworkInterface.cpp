@@ -264,7 +264,9 @@ void NetworkInterface::init() {
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
 
+#ifdef NTOPNG_PRO
   aggregated_flows_dump_updates = aggregated_flows_dump_max_updates = 0;
+#endif
 
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
