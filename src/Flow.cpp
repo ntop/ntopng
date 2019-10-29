@@ -1716,8 +1716,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_settable(vm, -3);
     }
 
-    lua_push_int32_table_entry(vm, "cli.devtype", cli_host->getMac() ? cli_host->getMac()->getDeviceType() : device_unknown);
-    lua_push_int32_table_entry(vm, "srv.devtype", srv_host->getMac() ? srv_host->getMac()->getDeviceType() : device_unknown);
+    lua_push_int32_table_entry(vm, "cli.devtype", (cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown);
+    lua_push_int32_table_entry(vm, "srv.devtype", (srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown);
 
     lua_push_bool_table_entry(vm, "flow_goodput.low", isLowGoodput());
 
