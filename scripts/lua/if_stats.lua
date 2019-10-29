@@ -1833,9 +1833,11 @@ elseif(page == "callbacks") then
       return
    end
 
+   local alias = getHumanReadableInterfaceName(if_name)
+
    drawAlertSourceSettings("interface", ifname_clean,
-      i18n("show_alerts.iface_delete_config_btn", {iface=if_name}), "show_alerts.iface_delete_config_confirm",
-      "if_stats.lua", {ifid=ifid}, if_name, "interface")
+      i18n("show_alerts.iface_delete_config_btn", {iface=alias}), "show_alerts.iface_delete_config_confirm",
+      "if_stats.lua", {ifid=ifid}, alias, "interface")
 
 elseif(page == "internals") then
    local hash_tables_stats = interface.getHashTablesStats()

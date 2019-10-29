@@ -64,7 +64,7 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
    elseif entity_type == "interface" then
       value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..
         "&page=historical&epoch_begin="..epoch_begin .."&epoch_end=".. epoch_end ..
-        "'>"..getInterfaceName(ifid).."</a>"
+        "'>"..getHumanReadableInterfaceName(getInterfaceName(ifid)).."</a>"
    elseif entity_type == "network" then
       value = getLocalNetworkAlias(hostkey2hostinfo(entity_value)["host"])
 
