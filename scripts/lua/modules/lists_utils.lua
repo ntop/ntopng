@@ -234,9 +234,11 @@ function lists_utils.editList(list_name, metadata_override)
    local lists = lists_utils.getCategoryLists()
    local list = lists[list_name]
 
-   if not list then
+   if(not list) then
       return false
    end
+
+   local was_triggered = (list.enabled ~= metadata_override.enabled)
 
    list = table.merge(list, metadata_override)
    lists[list_name] = list
@@ -245,6 +247,11 @@ function lists_utils.editList(list_name, metadata_override)
 
    -- Trigger a reload, for example for disabled lists
    lists_utils.downloadLists()
+
+   if(was_triggered) then
+      -- Must reload the lists as a list was enabled/disabaled
+      lists_utils.reloadLists()
+   end
 end
 
 -- ##############################################
@@ -606,6 +613,11 @@ local function reloadListsNow()
       end
    end
 
+   -- Reload into memory
+   ntop.reloadCustomCategories()
+   ntop.reloadJA3Hashes()
+
+   -- Calculate stats
    stats.duration = (os.time() - stats.begin)
 
    traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Lists (%u hosts, %u IPs, %u JA3) loaded in %d seconds",
@@ -614,9 +626,6 @@ local function reloadListsNow()
    -- Save the stats
    ntop.setCache("ntopng.cache.category_lists.load_stats", json.encode(stats))
 
-   -- Reload into memory
-   ntop.reloadCustomCategories()
-   ntop.reloadJA3Hashes()
    return(true)
 end
 
