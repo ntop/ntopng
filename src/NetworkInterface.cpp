@@ -6880,7 +6880,6 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 							 ntop->getPrefs()->get_max_num_flows());
 
 	  ntop->getPrefs()->enable_flow_aggregation();
-	  lastFlowAggregation = 0;
 	} else
 	  aggregated_flows_hash = NULL;
 #endif

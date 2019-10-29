@@ -161,7 +161,6 @@ class NetworkInterface : public AlertableEntity {
   TimeseriesExporter *tsExporter;
   TimeseriesRing *ts_ring;
 
-  time_t lastFlowAggregation;
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
   ThroughputStats bytes_thpt, pkts_thpt;
