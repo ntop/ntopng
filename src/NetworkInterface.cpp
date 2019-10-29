@@ -264,6 +264,8 @@ void NetworkInterface::init() {
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
 
+  aggregated_flows_dump_updates = aggregated_flows_dump_max_updates = 0;
+
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
@@ -383,78 +385,8 @@ void NetworkInterface::initL7Policer() {
 /* **************************************** */
 
 void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow) {
-  if(flow && aggregated_flows_hash) {
-    AggregatedFlow *aggregatedFlow = aggregated_flows_hash->find(flow);
-
-    if(aggregatedFlow == NULL) {
-      if(!aggregated_flows_hash->hasEmptyRoom()) {
-	/* There is no more room in the hash table */
-      } else if((!ntop->getPrefs()->is_aggregated_flows_export_limit_enabled())
-		|| (aggregated_flows_hash->getNumEntries() < ntop->getPrefs()->get_max_num_aggregated_flows_per_export())) {
-#ifdef AGGREGATED_FLOW_DEBUG
-	char buf[256];
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "AggregatedFlow not found [%s]. Creating it.",
-				     flow->print(buf, sizeof(buf)));
-#endif
-
-	try {
-	  aggregatedFlow = new AggregatedFlow(this, flow);
-
-	  if(aggregated_flows_hash->add(aggregatedFlow,
-					false /* No need to lock, aggregated_flows_hash->cleanup() is sequential wrt to this */) == false) {
-	    /* Too many flows, should never happen */
-	    delete aggregatedFlow;
-	    return;
-	  } else {
-#ifdef AGGREGATED_FLOW_DEBUG
-	    char buf[256];
-
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-					 "New AggregatedFlow successfully created and added "
-					 "to the hash table [%s]",
-					 aggregatedFlow->print(buf, sizeof(buf)));
-#endif
-	  }
-	} catch(std::bad_alloc& ba) {
-	  return; /* Not enough memory */
-	}
-      } else {
-	/* The maximum number of aggregates has been reached. Add here the logic to handle
-	   this case. For example, make the maximum number adaptive depending on the number of hosts,
-	   or keep only the top-X aggregates. */
-
-#ifdef AGGREGATED_FLOW_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Maximum reached [maximum: %d]", ntop->getPrefs()->get_max_num_aggregated_flows_per_export());
-#endif
-      }
-    }
-
-#ifdef NTOPNG_PRO
-    if(aggregatedFlow) {
-      aggregatedFlow->sumFlowStats(flow,
-				   /* lastFlowAggregation will be decremented by one after the current periodic
-				      flows walk (this method is called in the periodic flows walk)
-
-				      Therefore, we can check lastFlowAggregation minus one to determine whether
-				      a cleanup of the aggregated flows hash table is going to be performed
-				      after this walk on the (normal, non-aggregated) flows table.
-				   */
-				   ((getIfType() == interface_type_DUMMY) || dumpAggregatedFlowsReady(tv)));
-
-#ifdef AGGREGATED_FLOW_DEBUG
-      char buf[256];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Stats updated for AggregatedFlow [%s]",
-				   aggregatedFlow->print(buf, sizeof(buf)));
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Aggregated Flows hash table [num items: %i]",
-				   aggregated_flows_hash->getNumEntries());
-#endif
-    }
-#endif
-  }
+  if(flow && aggregated_flows_hash)
+    aggregated_flows_hash->aggregatePartialFlow(tv, flow);
 }
 
 #endif
@@ -789,34 +721,39 @@ void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool i
 /* **************************************************** */
 
 void NetworkInterface::dumpAggregatedFlows(const struct timeval *tv) {
-  if(aggregated_flows_hash) {
-    if(lastFlowAggregation == 0)
-      lastFlowAggregation = tv->tv_sec;
-    else if(getIfType() == interface_type_DUMMY || dumpAggregatedFlowsReady(tv)) {
-      /* Start over */
-      aggregated_flows_hash->cleanup();
-      lastFlowAggregation = tv->tv_sec;
+  aggregated_flows_dump_updates = 0;  /* Reset */
+
+  if(aggregated_flows_hash)
+    aggregated_flows_hash->cleanup();
 
 #ifdef AGGREGATED_FLOW_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Aggregated flows exported. "
-				   "Aggregated flows hash cleared. [num_items: %i]",
-				   aggregated_flows_hash->getNumEntries());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Aggregated flows exported. "
+			       "Aggregated flows hash cleared. [num_items: %i]",
+			       aggregated_flows_hash->getNumEntries());
 #endif
-    } else
-#ifdef AGGREGATED_FLOW_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "[last aggregation: %u][flow aggregation duration: %i][num_items: %u]",
-				   lastFlowAggregation, FLOW_AGGREGATION_DURATION, aggregated_flows_hash->getNumEntries());
-#endif
-    ;
-  }
 }
 
 /* **************************************************** */
 
-bool NetworkInterface::dumpAggregatedFlowsReady(const struct timeval *tv) const {
-  return lastFlowAggregation > 0 && lastFlowAggregation + FLOW_AGGREGATION_DURATION < tv->tv_sec;
+void NetworkInterface::inc_aggregated_flows_dump_updates() {
+  /* Given a periodicStatsUpdateFrequency(), that is, the number of seconds between consecutive
+     calls to NetworkInterface::periodicStatsUpdate and the FLOW_AGGREGATION_DURATION, we
+     can compute the number of times NetworkInterface::periodicStatsUpdate has to be called before
+     aggregated flows can actually be dumped.
+     Need to re-evaluate as the update frequency can change. */
+  aggregated_flows_dump_max_updates = FLOW_AGGREGATION_DURATION / periodicStatsUpdateFrequency();
+
+  /* Every time a NetworkInterface::periodicStatsUpdate is called, this
+     method should be called to keep track of the number of updates necessary
+     before actually dumping aggregated flows to database. */
+  aggregated_flows_dump_updates++;
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::is_aggregated_flows_dump_ready() const {
+  return aggregated_flows_dump_updates >= aggregated_flows_dump_max_updates;
 }
 
 /* **************************************************** */
@@ -2760,7 +2697,7 @@ bool NetworkInterface::checkPeriodicStatsUpdateTime(const struct timeval *tv) {
 
 /* **************************************************** */
 
-u_int32_t NetworkInterface::periodicStatsUpdateFrequency() {
+u_int32_t NetworkInterface::periodicStatsUpdateFrequency() const {
   return ntop->getPrefs()->get_housekeeping_frequency();
 }
 
@@ -2777,7 +2714,7 @@ void NetworkInterface::periodicStatsUpdate() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
 
-  u_int32_t begin_slot = 0;
+  u_int32_t begin_slot;
   periodic_stats_update_user_data_t periodic_stats_update_user_data;
   struct timeval tv;
   if(!read_from_pcap_dump() || reproducePcapOriginalSpeed())
@@ -2790,9 +2727,15 @@ void NetworkInterface::periodicStatsUpdate() {
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
 
+#ifdef NTOPNG_PRO
+  inc_aggregated_flows_dump_updates();
+#endif
+
   /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-  if((!isView()) && flows_hash)
+  if((!isView()) && flows_hash) {
+    begin_slot = 0;
     walker(&begin_slot, true, walker_flows, host_flow_update_stats, &periodic_stats_update_user_data);
+  }
 
   if(hosts_hash) {
     begin_slot = 0;
@@ -2833,8 +2776,11 @@ void NetworkInterface::periodicStatsUpdate() {
   topItemsCommit(&tv);
 
 #ifdef NTOPNG_PRO
-  if(!isView() && !isViewed())
-    dumpAggregatedFlows(&tv);
+  if(!isView() && !isViewed()) {
+    if(is_aggregated_flows_dump_ready()) {
+      dumpAggregatedFlows(&tv);
+    }
+  }
 #endif
 
   checkReloadHostsBroadcastDomain();

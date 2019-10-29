@@ -137,6 +137,8 @@ class NetworkInterface : public AlertableEntity {
   CustomAppStats *custom_app_stats;
   FlowInterfacesStats *flow_interfaces_stats;
   AggregatedFlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
+  u_int32_t aggregated_flows_dump_updates;
+  u_int32_t aggregated_flows_dump_max_updates;
 #endif
   EthStats ethStats;
   std::map<u_int32_t, u_int64_t> ip_mac; /* IP (network byte order) <-> MAC association [2 bytes are unused] */
@@ -357,7 +359,9 @@ class NetworkInterface : public AlertableEntity {
 #ifdef NTOPNG_PRO
   void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
   void dumpAggregatedFlows(const struct timeval *tv);
-  bool dumpAggregatedFlowsReady(const struct timeval *tv) const;
+  bool is_aggregated_flows_dump_ready() const;
+  void inc_aggregated_flows_dump_updates();
+  bool check_aggregated_flows_dump_ready(const struct timeval *tv) const;
   void flushFlowDump();
 #endif
   void checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
@@ -452,7 +456,7 @@ class NetworkInterface : public AlertableEntity {
 		     Host **srcHost, Host **dstHost, Flow **flow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Paginator *p);
-  virtual u_int32_t periodicStatsUpdateFrequency();
+  virtual u_int32_t periodicStatsUpdateFrequency() const;
   void periodicStatsUpdate();
   void periodicHTStateUpdate(time_t deadline, lua_State* vm);
   virtual u_int32_t getFlowMaxIdle();
