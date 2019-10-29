@@ -2733,6 +2733,7 @@ void NetworkInterface::periodicStatsUpdate() {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
+
   u_int32_t begin_slot = 0;
   periodic_stats_update_user_data_t periodic_stats_update_user_data;
   struct timeval tv;
@@ -5156,10 +5157,12 @@ static void guess_all_ndpi_protocols_walker(Flow *flow, NetworkInterface *iface)
 static bool process_all_active_flows_walker(GenericHashEntry *node, void *user_data, bool *matched) {
   Flow *flow = (Flow*)node;
   NetworkInterface *iface = (NetworkInterface*)user_data;
+  struct timeval tv;
+  tv.tv_sec = time(NULL), tv.tv_usec = 0;
 
   guess_all_ndpi_protocols_walker(flow, iface);
 
-  flow->postFlowSetIdle(time(NULL));
+  flow->postFlowSetIdle(&tv, false);
 
   return(false /* keep walking */);
 }

@@ -605,7 +605,7 @@ class Flow : public GenericHashEntry {
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
   void housekeep(time_t t);
-  void postFlowSetIdle(time_t t);
+  void postFlowSetIdle(const struct timeval *tv, bool quick);
   void setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction);
   inline const ContainerInfo* getClientContainerInfo() const {
     return cli_ebpf && cli_ebpf->container_info_set ? &cli_ebpf->container_info : NULL;

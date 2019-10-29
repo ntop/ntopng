@@ -963,7 +963,7 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper) {
 	return(rc);
       }
     } else {
-      /* flows idle, i.e., ready to be purged, are always dumped */
+      /* Flow idle, i.e., ready to be purged, are always dumped */
     }
 
     if(!update_partial_traffic_stats_db_dump())
@@ -1991,7 +1991,7 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
       set_acknowledge_to_purge();
     }
 
-    postFlowSetIdle(tv->tv_sec);
+    postFlowSetIdle(tv, quick);
     if(!quick) performLuaCall(flow_lua_call_idle, tv, &periodic_ht_state_update_user_data->acle);
     break;
   }
@@ -3691,12 +3691,12 @@ void Flow::updateHASSH(bool as_client) {
 /* ***************************************************** */
 
 /* Called when a flow is set_idle */
-void Flow::postFlowSetIdle(time_t t) {
-  /* not called from the datapath for flows, so it is only
-     safe to touch low goodput uses */
+void Flow::postFlowSetIdle(const struct timeval *tv, bool quick) {
+  periodic_dump_check(!quick, tv);
+
   if(good_low_flow_detected) {
-    if(cli_host) cli_host->decLowGoodputFlows(t, true);
-    if(srv_host) srv_host->decLowGoodputFlows(t, false);
+    if(cli_host) cli_host->decLowGoodputFlows(tv->tv_sec, true);
+    if(srv_host) srv_host->decLowGoodputFlows(tv->tv_sec, false);
   }
 
   if(status_map.get() != status_normal) {
