@@ -348,15 +348,6 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
 
 /* **************************************************** */
 
-#ifdef NTOPNG_PRO
-
-void NetworkInterface::initL7Policer() {
-  /* Instantiate the policer */
-  policer = new L7Policer(this);
-}
-
-/* **************************************** */
-
 void NetworkInterface::cleanShadownDPI() {
   if(ndpi_struct_shadow) {
     ndpi_exit_detection_module(ndpi_struct_shadow);
@@ -364,7 +355,7 @@ void NetworkInterface::cleanShadownDPI() {
   }
 }
 
-/* **************************************** */
+/* **************************************************** */
 
 /* Operations are performed in the followin order:
  *
@@ -378,6 +369,15 @@ void NetworkInterface::startCustomCategoriesReload() {
 
   /* No need to dedicate another variable for the reload, we can use the shadow itself */
   ndpi_struct_shadow = initnDPIStruct();
+}
+
+/* **************************************************** */
+
+#ifdef NTOPNG_PRO
+
+void NetworkInterface::initL7Policer() {
+  /* Instantiate the policer */
+  policer = new L7Policer(this);
 }
 
 /* **************************************** */
@@ -708,10 +708,7 @@ NetworkInterface::~NetworkInterface() {
     ndpi_struct = NULL;
   }
 
-  if(ndpi_struct_shadow) {
-    ndpi_exit_detection_module(ndpi_struct_shadow);
-    ndpi_struct_shadow = NULL;
-  }
+  cleanShadownDPI();
 
   delete frequentProtocols;
   delete frequentMacs;
