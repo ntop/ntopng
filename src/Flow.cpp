@@ -1451,8 +1451,7 @@ void Flow::periodic_dump_check(bool dump_alert, const struct timeval *tv) {
   
   /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
      ViewInterface dump their flows in another thread, not this one. */
-  if(!iface->isView() && !iface->isViewed()) 
-    dumpFlow(tv, iface);
+  dumpFlow(tv, iface->isViewed() ? iface->viewedBy() : iface);
 }
 
 /* *************************************** */
