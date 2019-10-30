@@ -43,8 +43,8 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   exclude_viewed_interfaces = _exclude_viewed_interfaces;
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
-  interfaceTasksRunning = (bool *) calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(bool));
-  threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_DEFINED_INTERFACES]();
+  interfaceTasksRunning = (bool *) calloc(MAX_NUM_INTERFACE_IDS, sizeof(bool));
+  threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_INTERFACE_IDS]();
     
 
   if(thread_pool_size > 1) {
@@ -69,7 +69,7 @@ ThreadedActivity::~ThreadedActivity() {
   map<int, ThreadedActivityStats*>::const_iterator it;
 
   if(threaded_activity_stats) {
-    for(u_int i = 0; i < MAX_NUM_DEFINED_INTERFACES; i++) {
+    for(u_int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
       if(threaded_activity_stats[i])
 	delete threaded_activity_stats[i];
     }
@@ -107,7 +107,7 @@ bool ThreadedActivity::isTerminating() {
 void ThreadedActivity::setInterfaceTaskRunning(NetworkInterface *iface, bool running) {
   const int iface_id = iface->get_id();
 
-  if((iface_id >= 0) && (iface_id < MAX_NUM_DEFINED_INTERFACES))
+  if((iface_id >= 0) && (iface_id < MAX_NUM_INTERFACE_IDS))
     interfaceTasksRunning[iface_id] = running;
 }
 
@@ -116,7 +116,7 @@ void ThreadedActivity::setInterfaceTaskRunning(NetworkInterface *iface, bool run
 bool ThreadedActivity::isInterfaceTaskRunning(NetworkInterface *iface) {
   const int iface_id = iface->get_id();
 
-  if((iface_id >= 0) && (iface_id < MAX_NUM_DEFINED_INTERFACES))
+  if((iface_id >= 0) && (iface_id < MAX_NUM_INTERFACE_IDS))
     return interfaceTasksRunning[iface_id];
 
   return false;
