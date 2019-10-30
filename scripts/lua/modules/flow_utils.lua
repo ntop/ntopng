@@ -1796,7 +1796,7 @@ function getFlowsTableTitle()
    else
       active_msg = i18n("flows_page.active_flows", {filter=filter_msg})
    end
-   tprint("HE")
+
    if(_GET["network_name"] ~= nil) then
       active_msg = active_msg .. i18n("network", {network=_GET["network_name"]})
    end
