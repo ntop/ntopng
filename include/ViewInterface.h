@@ -29,7 +29,6 @@ class ViewInterface : public NetworkInterface {
   bool is_packet_interface;
   u_int8_t num_viewed_interfaces;
   NetworkInterface *viewed_interfaces[MAX_NUM_VIEW_INTERFACES];
-  void viewedFlowsWalker();
 
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
@@ -37,7 +36,14 @@ class ViewInterface : public NetworkInterface {
 
  public:
   ViewInterface(const char *_endpoint);
-
+  virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm);
+  bool walker(u_int32_t *begin_slot,
+	      bool walk_all,
+	      WalkerType wtype,
+	      bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
+	      void *user_data);
+  void viewed_flows_walker(Flow *f, void *user_data);
+  static void generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data);
   virtual InterfaceType getIfType() const { return interface_type_VIEW;           };
   inline const char* get_type()           { return CONST_INTERFACE_TYPE_VIEW;     };
   virtual bool is_ndpi_enabled()    const { return false;                         };

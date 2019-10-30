@@ -35,10 +35,12 @@ static void* startActivity(void* ptr)  {
 ThreadedActivity::ThreadedActivity(const char* _path,
 				   u_int32_t _periodicity_seconds,
 				   bool _align_to_localtime,
+				   bool _exclude_viewed_interfaces,
 				   u_int8_t thread_pool_size) {
   terminating = false;
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
+  exclude_viewed_interfaces = _exclude_viewed_interfaces;
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (bool *) calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(bool));
@@ -205,6 +207,11 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
 
   if(!iface) iface = ntop->getSystemInterface();
   if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating()) return;
+
+  if(iface->isViewed() && exclude_viewed_interfaces) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Skipping viewed [%s]", iface->get_name());
+    return;
+  }
 
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);

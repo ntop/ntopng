@@ -56,6 +56,7 @@ typedef enum {
 /* Struct used to pass parameters when walking hosts and flows periodically to update their stats */
 class AlertCheckLuaEngine;
 typedef struct {
+  NetworkInterface *iface;
   AlertCheckLuaEngine *acle;
   struct timeval *tv;
   time_t deadline;

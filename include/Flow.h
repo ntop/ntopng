@@ -74,11 +74,6 @@ class Flow : public GenericHashEntry {
 
   u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
 
-  /* When the interface isViewed(), the corresponding view needs to acknowledge the purge
-     before the flow can actually be deleted from memory. This guarantees the view has
-     seen the flow until it has become idle. */
-  bool purge_acknowledged_mark;
-
   bool detection_completed, protocol_processed, fully_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
@@ -444,9 +439,6 @@ class Flow : public GenericHashEntry {
   bool is_hash_entry_state_idle_transition_ready() const;
   void periodic_hash_entry_state_update(void *user_data, bool quick);
   void periodic_stats_update(void *user_data, bool quick);
-  void set_to_purge(time_t t);
-  bool is_acknowledged_to_purge() const;
-  void set_acknowledge_to_purge();
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;
 

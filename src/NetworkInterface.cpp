@@ -2838,18 +2838,22 @@ void NetworkInterface::periodicStatsUpdate() {
 
 /* **************************************************** */
 
-static bool quick_periodic_ht_state_update(time_t deadline, GenericHashEntry *ghe) {
+bool NetworkInterface::quick_periodic_ht_state_update(time_t deadline, GenericHashEntry *ghe) {
   /* TODO: optimize time(NULL) */
   return time(NULL) + 2 >= deadline;
 }
 
 /* **************************************************** */
 
-static void generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
+void NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
+  NetworkInterface *iface = periodic_ht_state_update_user_data->iface;
   bool quick_update = quick_periodic_ht_state_update(periodic_ht_state_update_user_data->deadline, node);
 
   node->periodic_hash_entry_state_update(user_data, quick_update);
+
+  if(iface->isViewed())
+    iface->viewedBy()->generic_periodic_hash_entry_state_update(node, user_data);
 }
 
 /* **************************************************** */
@@ -2875,6 +2879,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
     tv.tv_sec = last_pkt_rcvd, tv.tv_usec = 0;
 
   periodic_ht_state_update_user_data.acle = NULL,
+    periodic_ht_state_update_user_data.iface = this,
     periodic_ht_state_update_user_data.deadline = deadline,
     periodic_ht_state_update_user_data.tv = &tv;
 

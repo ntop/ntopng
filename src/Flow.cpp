@@ -54,7 +54,7 @@ Flow::Flow(NetworkInterface *_iface,
   predominant_status = status_normal;
 
   alert_rowid = -1;
-  purge_acknowledged_mark = detection_completed = update_flow_port_stats = false;
+  detection_completed = update_flow_port_stats = false;
   fully_processed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -1859,38 +1859,6 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 
 /* *************************************** */
 
-void Flow::set_to_purge(time_t t) {
-  /* The actual set_to_purge is done only when
-     the flow has been acknowledged (in the case of views).
-     Othewise this call is just ignored. */
-  if(is_acknowledged_to_purge())
-    ;
-};
-
-/* *************************************** */
-
-bool Flow::is_acknowledged_to_purge() const {
-  /* This ensures that, in case of view interfaces, the flow
-     has been acknowledged before being purged. In case the interface
-     has no corresponding view, i.e, when !iface->isViewed(), this
-     function is just a short circuit as there is no need to wait for
-     an acknowledge. In case there is a view interface, we must wait
-     until the view sets the acknowledge. */
-  return !iface->isViewed() || purge_acknowledged_mark;
-};
-
-/* *************************************** */
-
-void Flow::set_acknowledge_to_purge() {
-  /* If there is a view interface on top of this interface
-     then such view can acknowledge a flow when it is ready
-     to purge. */
-  if(iface->isViewed())
-    purge_acknowledged_mark = true;
-};
-
-/* *************************************** */
-
 void Flow::set_hash_entry_id(u_int assigned_hash_entry_id) {
   hash_entry_id = assigned_hash_entry_id;
 };
@@ -1982,15 +1950,6 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
     break;
 
   case hash_entry_state_idle:
-    if(iface->isViewed()) {
-      /* Must acknowledge so the overlying 'view' interface can actually set
-	 the flow state as ready to be purged once it has processed the flow for the last
-	 time */
-      if(is_acknowledged_to_purge())
-	return; /* Already acknowledged, nothing else to do */
-      set_acknowledge_to_purge();
-    }
-
     postFlowSetIdle(tv, quick);
     if(!quick) performLuaCall(flow_lua_call_idle, tv, &periodic_ht_state_update_user_data->acle);
     break;

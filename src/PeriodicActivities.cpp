@@ -25,6 +25,7 @@ typedef struct _activity_descr {
   const char *path;
   u_int32_t periodicity;
   bool align_to_localtime;
+  bool exclude_viewed_interfaces;
   u_int8_t thread_pool_size;
 } activity_descr;
 
@@ -105,18 +106,18 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     num_threads = MAX_THREAD_POOL_SIZE;
   
   static activity_descr ad[] = {
-    { SECOND_SCRIPT_PATH,             1, false, 1           },
-    { HT_STATE_UPDATE_SCRIPT_PATH,    5, false, num_threads },
-    { STATS_UPDATE_SCRIPT_PATH,       5, false, num_threads },
-    { MINUTE_SCRIPT_PATH,            60, false, num_threads },
-    { FIVE_MINUTES_SCRIPT_PATH,     300, false, num_threads },
-    { HOURLY_SCRIPT_PATH,          3600, false, num_threads },
-    { DAILY_SCRIPT_PATH,          86400, true,  num_threads },
-    { HOUSEKEEPING_SCRIPT_PATH,       3, false, 1           },
-    { DISCOVER_SCRIPT_PATH,           5, false, 1           },
-    { TIMESERIES_SCRIPT_PATH,         5, false, 1           },
+    { SECOND_SCRIPT_PATH,             1, false, false, 1           },
+    { HT_STATE_UPDATE_SCRIPT_PATH,    5, false, true,  num_threads },
+    { STATS_UPDATE_SCRIPT_PATH,       5, false, false, num_threads },
+    { MINUTE_SCRIPT_PATH,            60, false, false, num_threads },
+    { FIVE_MINUTES_SCRIPT_PATH,     300, false, false, num_threads },
+    { HOURLY_SCRIPT_PATH,          3600, false, false, num_threads },
+    { DAILY_SCRIPT_PATH,          86400, true,  false, num_threads },
+    { HOUSEKEEPING_SCRIPT_PATH,       3, false, false, 1           },
+    { DISCOVER_SCRIPT_PATH,           5, false, false, 1           },
+    { TIMESERIES_SCRIPT_PATH,         5, false, false, 1           },
 #ifdef HAVE_NEDGE
-    { PINGER_SCRIPT_PATH,             5, false, 1           },
+    { PINGER_SCRIPT_PATH,             5, false, false, 1           },
 #endif
     { NULL, 0, false}
   };
@@ -129,6 +130,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     ThreadedActivity *ta = new ThreadedActivity(d->path,
 						d->periodicity,
 						d->align_to_localtime,
+						d->exclude_viewed_interfaces,
 						d->thread_pool_size);
     if(ta) {
       activities[num_activities++] = ta;

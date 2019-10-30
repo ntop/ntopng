@@ -33,6 +33,7 @@ class ThreadedActivity {
   char *path;
   u_int32_t periodicity;
   bool align_to_localtime;
+  bool exclude_viewed_interfaces;
   bool thread_started;
   bool systemTaskRunning;
   bool *interfaceTasksRunning;
@@ -52,6 +53,7 @@ class ThreadedActivity {
   ThreadedActivity(const char* _path,
 		   u_int32_t _periodicity_seconds = 0,
 		   bool _align_to_localtime = false,
+		   bool _exclude_viewed_interfaces = false,
 		   u_int8_t thread_pool_size = 1);
   ~ThreadedActivity();
 
