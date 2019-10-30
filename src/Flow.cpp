@@ -844,8 +844,6 @@ char* Flow::print(char *buf, u_int buf_len) const {
   char buf1[32], buf2[32], buf3[32], buf4[32], pbuf[32], tcp_buf[64];
   buf[0] = '\0';
 
-  if((cli_host == NULL) || (srv_host == NULL)) return(buf);
-
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
   char shapers[64];
 
