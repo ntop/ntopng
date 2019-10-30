@@ -18,9 +18,19 @@ schema:addTag("user_script")
 schema:addTag("subdir")
 schema:addMetric("num_ms")
 
+schema = ts_utils.newSchema("user_script:total_duration", {step = 300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("subdir")
+schema:addMetric("num_ms")
+
 schema = ts_utils.newSchema("user_script:num_calls", {step = 300, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("user_script")
+schema:addTag("subdir")
+schema:addMetric("num_calls")
+
+schema = ts_utils.newSchema("user_script:total_num_calls", {step = 300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
 schema:addTag("subdir")
 schema:addMetric("num_calls")
 

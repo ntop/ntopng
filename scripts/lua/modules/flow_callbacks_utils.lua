@@ -15,6 +15,14 @@ local ifid = interface.getId()
 
 -- ##############################################
 
+local function printStatsCols(total_stats, cur_elapsed, cur_num_calls, cur_avg_speed)
+   print("<td align='center'>".. format_utils.secondsToTime(cur_elapsed) .." (" .. string.format("%.1f", cur_elapsed * 100 / total_stats.tot_elapsed) .. "%)</td>")
+   print("<td align='center'>".. format_utils.formatValue(cur_num_calls) .." (" .. string.format("%.1f", cur_num_calls * 100 / total_stats.tot_num_calls) .. "%)</td>")
+   print("<td align='center'>".. format_utils.formatValue(round(cur_avg_speed, 0)) .."</td>")
+end
+
+-- ##############################################
+
 local function print_callbacks_config_table(descr, expert_view)
    print[[<table id="callbacks_config_table" class="table table-bordered table-striped">]]
    print[[<tr>]]
@@ -31,10 +39,21 @@ local function print_callbacks_config_table(descr, expert_view)
 
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-   local accumulated_stats = {
+   local total_stats = {
       tot_elapsed = 0,
       tot_num_calls = 0,
    }
+
+   -- A user module link is currently required for the total
+   local total_user_module = nil
+
+   for mod_k, user_script in pairsByKeys(descr.modules, asc) do
+      -- Calculate the total stats
+      for _, mod_benchmark in pairs(user_script.benchmark or {}) do
+	 total_stats.tot_elapsed = total_stats.tot_elapsed + mod_benchmark["tot_elapsed"]
+	 total_stats.tot_num_calls = total_stats.tot_num_calls + mod_benchmark["tot_num_calls"]
+      end
+   end
 
    for mod_k, user_script in pairsByKeys(descr.modules, asc) do
       local hooks_benchmarks = user_script.benchmark or {}
@@ -42,6 +61,10 @@ local function print_callbacks_config_table(descr, expert_view)
       local title
       local description
       local rowspan = ""
+
+      if(not total_user_module) then
+	 total_user_module = mod_k
+      end
 
       if(user_script.gui) then
 	 title = i18n(user_script.gui.i18n_title) or user_script.gui.i18n_title
@@ -80,10 +103,8 @@ local function print_callbacks_config_table(descr, expert_view)
 
 	    for mod_fn, mod_benchmark in pairsByKeys(hooks_benchmarks, asc) do
 	       print("<td>".. mod_fn .."</td>")
-	       print("<td align='center'>".. format_utils.secondsToTime(mod_benchmark["tot_elapsed"]) .."</td>")
-	       print("<td align='center'>".. format_utils.formatValue(mod_benchmark["tot_num_calls"]) .."</td>")
-	       print("<td align='center'>".. format_utils.formatValue(round(mod_benchmark["avg_speed"], 0)) .."</td>")
 
+	       printStatsCols(total_stats, mod_benchmark["tot_elapsed"], mod_benchmark["tot_num_calls"], mod_benchmark["avg_speed"])
 	       ctr = ctr + 1
 
 	       if(ctr ~= num_hooks) then
@@ -106,34 +127,30 @@ local function print_callbacks_config_table(descr, expert_view)
 
 	    local avg_speed = (num_calls / total_duration)
 
-	    print("<td align='center'>".. format_utils.secondsToTime(total_duration) .."</td>")
-	    print("<td align='center'>".. format_utils.formatValue(num_calls) .."</td>")
-	    print("<td align='center'>".. format_utils.formatValue(round(avg_speed, 0)) .."</td>")
+	    printStatsCols(total_stats, total_duration, num_calls, avg_speed)
 	 else
 	    print("<td></td><td></td><td></td>")
 	 end
       end
-
-      -- Calculate accumulate stats
-      for _, mod_benchmark in pairs(user_script.benchmark or {}) do
-	 accumulated_stats.tot_elapsed = accumulated_stats.tot_elapsed + mod_benchmark["tot_elapsed"]
-	 accumulated_stats.tot_num_calls = accumulated_stats.tot_num_calls + mod_benchmark["tot_num_calls"]
-      end
    end
 
-   local avg_speed = (accumulated_stats.tot_num_calls / accumulated_stats.tot_elapsed)
+   local avg_speed = (total_stats.tot_num_calls / total_stats.tot_elapsed)
 
    -- Print total stats
-   print("</tr><tr><td><b>" .. i18n("total") .. "</b></td><td><td>")
+   print("</tr><tr><td><b>" .. i18n("total") .. "</b></td><td class='text-center'>")
+   if(ts_utils.exists("user_script:total_duration", {ifid=ifid, subdir="flow"})) then
+      print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&subdir=flow&user_script='.. total_user_module ..'&ts_schema=user_script:total_duration"><i class="fa fa-area-chart fa-lg"></i></a>')
+   end
+   print("<td>")
    if(expert_view) then
       print("<td></td>")
    end
    print("<td class='text-center'>")
-   print(format_utils.secondsToTime(accumulated_stats.tot_elapsed))
+   print(format_utils.secondsToTime(total_stats.tot_elapsed))
    print("</td><td class='text-center'>")
-   print(format_utils.formatValue(accumulated_stats.tot_num_calls))
+   print(format_utils.formatValue(total_stats.tot_num_calls))
    print("</td><td class='text-center'>")
-   print(format_utils.formatValue(round(avg_speed, 0)))
+   --~ print(format_utils.formatValue(round(avg_speed, 0)))
    print("</td></tr>")
 
    print("</tr>")

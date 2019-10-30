@@ -384,14 +384,22 @@ function ts_dump.update_user_scripts_stats(when, ifstats, verbose)
   }
 
   for subdir, rv in pairs(all_scripts) do
+    local total = {tot_elapsed = 0, tot_num_calls = 0}
+
     for modkey, modinfo in pairs(rv.modules) do
       local stats = user_scripts.getAccumulatedStats(ifid, subdir, modkey)
 
       if(stats) then
         ts_utils.append("user_script:duration", {ifid = ifstats.id, user_script = modkey, subdir = subdir, num_ms = stats.tot_elapsed * 1000}, when, verbose)
         ts_utils.append("user_script:num_calls", {ifid = ifstats.id, user_script = modkey, subdir = subdir, num_calls = stats.tot_num_calls}, when, verbose)
+
+        total.tot_elapsed = total.tot_elapsed + stats.tot_elapsed
+        total.tot_num_calls = total.tot_num_calls + stats.tot_num_calls
       end
     end
+
+    ts_utils.append("user_script:total_duration", {ifid = ifstats.id, subdir = subdir, num_ms = total.tot_elapsed * 1000}, when, verbose)
+    ts_utils.append("user_script:total_num_calls", {ifid = ifstats.id, subdir = subdir, num_calls = total.tot_num_calls}, when, verbose)
   end
 end
 
