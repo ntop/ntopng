@@ -2203,6 +2203,24 @@ static int ntop_gettimemsec(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_getticks(lua_State* vm) {
+  lua_pushnumber(vm, Utils::getticks());
+  return(CONST_LUA_OK);
+}
+
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_gettickspersec(lua_State* vm) {
+  lua_pushnumber(vm, Utils::gettickspersec());
+  return(CONST_LUA_OK);
+}
+
 /**
  * @brief Refreshes the timezone after a change
  *
@@ -10815,9 +10833,13 @@ static const luaL_Reg ntop_reg[] = {
   { "deleteOldRRDs",     ntop_delete_old_rrd_files },
 
   /* Time */
-  { "gettimemsec",      ntop_gettimemsec },
-  { "tzset",            ntop_tzset },
-  { "roundTime",        ntop_round_time },
+  { "gettimemsec",      ntop_gettimemsec      },
+  { "tzset",            ntop_tzset            },
+  { "roundTime",        ntop_round_time       },
+
+  /* Ticks */
+  { "getticks",         ntop_getticks         },
+  { "gettickspersec",   ntop_gettickspersec   },
 
   /* UDP */
   { "send_udp_data",    ntop_send_udp_data },

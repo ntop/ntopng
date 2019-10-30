@@ -142,9 +142,9 @@ end
 -- @return function(...) wrapper ready to be called for the execution of hook_fn
 local function benchmark_hook_fn(subdir, mod_k, hook, hook_fn)
    return function(...)
-      local start  = os.clock()
+      local start  = ntop.getticks()
       local result = {hook_fn(...)}
-      local finish = os.clock()
+      local finish = ntop.getticks()
       local elapsed = finish - start
 
       -- Update benchmark results by addin a function call and the elapsed time of this call
@@ -236,6 +236,9 @@ function user_scripts.benchmark_dump(ifid, to_stdout)
 
 	 for hook, hook_benchmark in pairs(hooks) do
 	    if hook_benchmark["tot_num_calls"] > 0 then
+	       -- Convert ticks to seconds
+	       hook_benchmark["tot_elapsed"] = hook_benchmark["tot_elapsed"] / ntop.gettickspersec()
+
 	       local k = user_scripts_benchmarks_key(ifid, subdir, mod_k, hook)
 	       ntop.setCache(k, json.encode(hook_benchmark), 3600 --[[ 1 hour --]])
 
