@@ -1053,8 +1053,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
   Vlan *vl;
   NetworkStats *cli_network_stats;
 
-  periodic_dump_check(!quick, tv);
-
   if(update_flow_port_stats) {
     bool dump_flow = false;
 
@@ -1443,12 +1441,10 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 
 /* *************************************** */
 
-void Flow::periodic_dump_check(bool dump_alert, const struct timeval *tv) {
-  if(dump_alert) {
-    /* NOTE: this can be very time consuming */
-    dumpFlowAlert();
-  }
-  
+void Flow::periodic_dump_check(const struct timeval *tv) {
+  /* NOTE: this can be very time consuming */
+  dumpFlowAlert();
+
   /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
      ViewInterface dump their flows in another thread, not this one. */
   dumpFlow(tv, iface->isViewed() ? iface->viewedBy() : iface);
@@ -1944,13 +1940,19 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
     break;
 
   case hash_entry_state_active:
-    if(!quick) performLuaCall(flow_lua_call_periodic_update, tv, &periodic_ht_state_update_user_data->acle);
+    if(!quick) {
+      periodic_dump_check(tv);
+      performLuaCall(flow_lua_call_periodic_update, tv, &periodic_ht_state_update_user_data->acle);
+    }
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
     postFlowSetIdle(tv, quick);
-    if(!quick) performLuaCall(flow_lua_call_idle, tv, &periodic_ht_state_update_user_data->acle);
+    if(!quick) {
+      periodic_dump_check(tv);
+      performLuaCall(flow_lua_call_idle, tv, &periodic_ht_state_update_user_data->acle);
+    }
     break;
   }
 
@@ -3650,8 +3652,6 @@ void Flow::updateHASSH(bool as_client) {
 
 /* Called when a flow is set_idle */
 void Flow::postFlowSetIdle(const struct timeval *tv, bool quick) {
-  periodic_dump_check(!quick, tv);
-
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(tv->tv_sec, true);
     if(srv_host) srv_host->decLowGoodputFlows(tv->tv_sec, false);

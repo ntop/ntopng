@@ -241,7 +241,7 @@ class Flow : public GenericHashEntry {
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
-  void periodic_dump_check(bool dump_alert, const struct timeval *tv);
+  void periodic_dump_check(const struct timeval *tv);
   bool triggerAlerts() const;
   void dumpFlowAlert();
   void updateCliJA3();
