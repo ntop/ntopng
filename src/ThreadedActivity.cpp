@@ -207,11 +207,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
 
   if(!iface) iface = ntop->getSystemInterface();
   if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating()) return;
-
-  if(iface->isViewed() && exclude_viewed_interfaces) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Skipping viewed [%s]", iface->get_name());
-    return;
-  }
+  if(iface->isViewed() && exclude_viewed_interfaces) return;
 
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);

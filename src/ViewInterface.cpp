@@ -344,6 +344,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 void ViewInterface::flowPollLoop() {
   while(!ntop->getGlobals()->isShutdownRequested()) {
     while(idle()) sleep(1);
+    /* Nothing to do, everything is done in ViewInterface::generic_periodic_hash_entry_state_update */
     usleep(1000000);
   }
 }
@@ -352,12 +353,18 @@ void ViewInterface::flowPollLoop() {
 
 void ViewInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
+  /* The user data contains the pointer to the original underlying viewed interface which has called us.
+     So in order to reterieve `this` pointer, it suffices to access iface method viewedBy() */
   ViewInterface *this_view = periodic_ht_state_update_user_data->iface->viewedBy();
 
+  /* Trigger the walker only for flows - it's that walker which triggers the creation of hosts
+     and other hash table entries. */
   if(Flow *flow = dynamic_cast<Flow*>(node)) {
     this_view->viewed_flows_walker(flow, user_data);
   }
 
+  /* purgeIdle must be called here as this is the only point where the update of the hash tables
+     is sequential with the purging of the same. */
   this_view->purgeIdle(time(NULL));
 }
 

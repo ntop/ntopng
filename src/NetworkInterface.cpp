@@ -2852,12 +2852,18 @@ void NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry
 
   node->periodic_hash_entry_state_update(user_data, quick_update);
 
+  /* If this is a viewed interface, it is necessary to also call this method
+     for the overlying view interface to make sure its counters (e.g., hosts, ases, vlans)
+     are properly updated. There's no need to lock or syncronize ad it is the view which
+     triggers this call for every viewed interface sequentially. */
   if(iface->isViewed())
     iface->viewedBy()->generic_periodic_hash_entry_state_update(node, user_data);
 }
 
 /* **************************************************** */
 
+/* For viewed interfaces, this method is executed by the ViewInterface for each
+   of its underlying viewed interfaces. */
 void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
