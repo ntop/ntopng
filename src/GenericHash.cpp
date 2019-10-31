@@ -342,8 +342,23 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 
 /* ************************************ */
 
+int32_t GenericHash::getNumIdleEntries() const {
+  return entry_state_transition_counters.num_idle_transitions - entry_state_transition_counters.num_purged;
+};
+
+/* ************************************ */
+
+bool GenericHash::hasEmptyRoom() {
+  /* Allow the total number of entries (that is, active and those idle but still not yet purged)
+     to be 30% more than the maximum hash table size specified. This prevents memory from growing
+     indefinitely when for example the purging is slow. */
+  return getNumEntries() + getNumIdleEntries() <= max_hash_size * 1.3;
+};
+
+/* ************************************ */
+
 void GenericHash::lua(lua_State *vm) {
-  int64_t delta;
+  int64_t num_idle;
 
   lua_newtable(vm);
 
@@ -357,11 +372,11 @@ void GenericHash::lua(lua_State *vm) {
 			       entry_state_transition_counters.num_purged);
 #endif
 
-  delta = entry_state_transition_counters.num_idle_transitions - entry_state_transition_counters.num_purged;
-  if(delta < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [iface: %s][%s][hash_entry_state_idle: %i][num_idle_transitions: %u][num_purged: %u]", iface ? iface->get_name(): "", name, delta, entry_state_transition_counters.num_idle_transitions, entry_state_transition_counters.num_purged);
+  num_idle = getNumIdleEntries();
+  if(num_idle < 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [iface: %s][%s][hash_entry_state_idle: %i][num_idle_transitions: %u][num_purged: %u]", iface ? iface->get_name(): "", name, num_idle, entry_state_transition_counters.num_idle_transitions, entry_state_transition_counters.num_purged);
   else
-    lua_push_uint64_table_entry(vm, "hash_entry_state_idle", (u_int64_t)delta);
+    lua_push_uint64_table_entry(vm, "hash_entry_state_idle", (u_int64_t)num_idle);
 
   lua_push_uint64_table_entry(vm, "hash_entry_state_active", (u_int64_t)getNumEntries());
 

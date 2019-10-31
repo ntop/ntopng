@@ -86,6 +86,14 @@ class GenericHash {
   inline u_int32_t getNumEntries() { return(current_size); };
 
   /**
+   * @brief Get number of idle entries, that is, entries no longer in the hash table but still to be purged.
+   * @details Inline method.
+   *
+   * @return The number of idle entries.
+   */
+  int32_t getNumIdleEntries() const;
+
+  /**
    * @brief Add new entry to generic hash.
    * @details If current_size < max_hash_size, this method calculate a new hash key for the new entry, add it and update the current_size value.
    *
@@ -156,7 +164,7 @@ class GenericHash {
    *
    * @return true if there is space left, or false if the hash is full
    */
-  inline bool hasEmptyRoom() { return((current_size < max_hash_size) ? true : false); };
+  bool hasEmptyRoom();
 
   /**
    * @brief Populates a lua table with hash table stats, including
