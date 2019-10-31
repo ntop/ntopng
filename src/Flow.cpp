@@ -1050,6 +1050,8 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
   int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
   Vlan *vl;
   NetworkStats *cli_network_stats;
+  Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
+  Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
 
   if(update_flow_port_stats) {
     bool dump_flow = false;
@@ -1138,30 +1140,30 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     if(diff_sent_bytes || diff_rcvd_bytes) {
       /* Update L2 Device stats */
 
-      if(srv_host->get_mac()) {
+      if(srv_mac) {
 #ifdef HAVE_NEDGE
-        srv_host->getMac()->incSentStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
-        srv_host->getMac()->incRcvdStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
+        srv_mac->incSentStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
+        srv_mac->incRcvdStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
-	  srv_host->getMac()->incnDPIStats(tv->tv_sec, get_protocol_category(),
-					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+	  srv_mac->incnDPIStats(tv->tv_sec, get_protocol_category(),
+				diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+				diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 
         }
       }
 
-      if(cli_host->getMac()) {
+      if(cli_mac) {
 #ifdef HAVE_NEDGE
-        cli_host->getMac()->incSentStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
-        cli_host->getMac()->incRcvdStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
+        cli_mac->incSentStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
+        cli_mac->incRcvdStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
-          cli_host->getMac()->incnDPIStats(tv->tv_sec, get_protocol_category(),
-					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+          cli_mac->incnDPIStats(tv->tv_sec, get_protocol_category(),
+				diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+				diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
         }
       }
 
@@ -1321,10 +1323,11 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 	if(cli_host->get_host_pool() != srv_host->get_host_pool())
 	  iface->topProtocolsAdd(srv_host->get_host_pool(), stats_protocol, diff_bytes);
 
-	if(cli_host->get_mac() && srv_host->getMac()) {
-	  iface->topMacsAdd(cli_host->getMac(), stats_protocol, diff_bytes);
-	  iface->topMacsAdd(srv_host->getMac(), stats_protocol, diff_bytes);
-	}
+	if(cli_mac)
+	  iface->topMacsAdd(cli_mac, stats_protocol, diff_bytes);
+
+	if(srv_mac)
+	  iface->topMacsAdd(srv_mac, stats_protocol, diff_bytes);
       }
 
       /* Just to be safe */
@@ -1494,7 +1497,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
     /* Server host */
     if(srv_host
 #ifdef HAVE_NEDGE
-      && srv_host->getMac() && (srv_host->getMac()->locate() == located_on_lan_interface)
+      && srv_mac && (srv_host->getMac()->locate() == located_on_lan_interface)
 #endif
     ) {
       srv_host_pool_id = srv_host->get_host_pool();
