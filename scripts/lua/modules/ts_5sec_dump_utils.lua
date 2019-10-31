@@ -20,7 +20,8 @@ function ts_dump.iface_update_periodic_ht_state_update_stats(when, ifid, periodi
 	 end
       end
 
-     ts_utils.append("ht:lua_calls", {ifid = ifid, hash_table = ht_name, num_ms = num_ms, num_calls = num_calls}, when, verbose)
+     ts_utils.append("ht:duration", {ifid = ifid, hash_table = ht_name, num_ms = num_ms}, when, verbose)
+     ts_utils.append("ht:num_calls", {ifid = ifid, hash_table = ht_name, num_calls = num_calls}, when, verbose)
    end
 end
 
