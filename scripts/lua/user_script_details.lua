@@ -20,6 +20,7 @@ local subdir     = _GET["subdir"]
 
 local ifstats = interface.getStats()
 local ifId = ifstats.id
+local schema_prefix = ternary(subdir == "flow", "flow_user_script", "elem_user_script")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -32,7 +33,7 @@ if((user_script == nil) or (subdir == nil)) then
    return
 end
 
-if(not ts_utils.exists("user_script:duration", {ifid = ifId, user_script = user_script, subdir = subdir})) then
+if(not ts_utils.exists(schema_prefix .. ":duration", {ifid = ifId, user_script = user_script, subdir = subdir})) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for user script "..user_script.."</div>")
    return
 end
@@ -55,7 +56,7 @@ print [[
 </div>
 ]]
 
-local schema = _GET["ts_schema"] or "custom:user_script:vs_total"
+local schema = _GET["ts_schema"] or "custom:".. schema_prefix ..":vs_total"
 local selected_epoch = _GET["epoch"] or ""
 local url = ntop.getHttpPrefix()..'/lua/user_script_details.lua?ifid='..ifId..'&user_script='..user_script..'&page=historical&subdir='..subdir
 
@@ -66,13 +67,12 @@ local tags = {
 }
 
 drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-   top_user_script = "top:user_script:duration",
+   top_user_script = "top:".. schema_prefix ..":duration",
 
    timeseries = {
-      --~ {schema = "user_script:total_duration", label = i18n("internals.total_duration", {subdir = firstToUpper(subdir)}), metrics_labels = {i18n("duration")}},
-      {schema = "user_script:num_calls", label = i18n("internals.total_num_calls", {subdir = firstToUpper(subdir)}), metrics_labels = {i18n("graphs.num_calls")}},
+      {schema = "custom:" .. schema_prefix .. ":total_stats", label = i18n("internals.total_stats", {subdir = firstToUpper(subdir)}), metrics_labels = {i18n("duration")}},
       {
-         schema = "custom:user_script:vs_total",
+         schema = "custom:".. schema_prefix ..":vs_total",
          label = i18n("internals.script_stats", {script = user_script}),
          value_formatter = {"fmillis"},
          value_formatter2 = {"fint"},

@@ -1239,7 +1239,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
        <form method="post">
        <br>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-       <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th class="text-center" width=5%>]] print(i18n("chart")) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
+       <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th>]]
+      if(tab == "min") then
+         print[[<th class="text-center" width=5%>]] print(i18n("chart")) print[[</th>]]
+      end
+      print[[<th width=20%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
       print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_latest_run")) print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
@@ -1272,10 +1276,12 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          print("<tr><td><b>".. i18n(gui_conf.i18n_title) .."</b><br>")
          print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
 
-         print("<td class='text-center'>")
-         if(ts_utils.exists("user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type})) then
-            print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
-               mod_k..'&subdir='..entity_type..'"><i class="fa fa-area-chart fa-lg"></i></a>')
+         if(tab == "min") then
+            print("<td class='text-center'>")
+            if ts_utils.exists("elem_user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type}) then
+               print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
+                  mod_k..'&subdir='..entity_type..'"><i class="fa fa-area-chart fa-lg"></i></a>')
+            end
          end
 
          for _, prefix in pairs({"", "global_"}) do

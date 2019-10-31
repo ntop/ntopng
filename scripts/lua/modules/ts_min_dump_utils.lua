@@ -237,6 +237,19 @@ end
 
 -- ########################################################
 
+function ts_dump.update_user_scripts_stats(when, ifid, verbose)
+  -- NOTE: flow scripts are monitored in 5sec.lua
+  local all_scripts = {
+    host = user_scripts.script_types.traffic_element,
+    interface = user_scripts.script_types.traffic_element,
+    network = user_scripts.script_types.traffic_element,
+  }
+
+  user_scripts.ts_dump(when, ifid, verbose, "elem_user_script", all_scripts)
+end
+
+-- ########################################################
+
 local function dumpTopTalkers(_ifname, ifstats, verbose)
   -- Dump topTalkers every minute
    local talkers = top_talkers_utils.makeTopJson(_ifname)
@@ -304,6 +317,9 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
   -- Save internal hash tables states every minute
   ts_dump.update_hash_tables_stats(when, ifstats, verbose)
+
+  -- Save the traffic elements user scripts stats
+  ts_dump.update_user_scripts_stats(when, ifstats.id, verbose)
 
   -- Save duration of periodic scripts
   ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)

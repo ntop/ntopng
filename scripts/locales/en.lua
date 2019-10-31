@@ -2150,6 +2150,7 @@ local lang = {
     ["state_idle"] = "Entries in Idle State",
     ["total_duration"] = "Total %{subdir} Scripts Duration",
     ["total_num_calls"] = "Total %{subdir} Scripts Num Calls",
+    ["total_stats"] = "Total %{subdir} Scripts Stats",
   },
   ["live_capture"] = {
     ["active_live_captures"] = "Live Captures",

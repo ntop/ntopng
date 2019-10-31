@@ -27,31 +27,12 @@ end
 -- ########################################################
 
 function ts_dump.update_user_scripts_stats(when, ifid, verbose)
+  -- NOTE: interface/host/network scripts are monitored in minute.lua
   local all_scripts = {
-    flow = user_scripts.listScripts(user_scripts.script_types.flow, "flow"),
-    host = user_scripts.listScripts(user_scripts.script_types.traffic_element, "host"),
-    interface = user_scripts.listScripts(user_scripts.script_types.traffic_element, "interface"),
-    network = user_scripts.listScripts(user_scripts.script_types.traffic_element, "network"),
-    syslog = user_scripts.listScripts(user_scripts.script_types.syslog, "syslog"),
+    flow = user_scripts.script_types.flow,
   }
 
-  for subdir, rv in pairs(all_scripts) do
-    local total = {tot_elapsed = 0, tot_num_calls = 0}
-
-    for _, modkey in pairs(rv) do
-      local stats = user_scripts.getAccumulatedStats(ifid, subdir, modkey)
-
-      if(stats) then
-        ts_utils.append("user_script:duration", {ifid = ifid, user_script = modkey, subdir = subdir, num_ms = stats.tot_elapsed * 1000}, when, verbose)
-	ts_utils.append("user_script:num_calls", {ifid = ifid, user_script = modkey, subdir = subdir, num_calls = stats.tot_num_calls}, when, verbose)
-
-        total.tot_elapsed = total.tot_elapsed + stats.tot_elapsed
-        total.tot_num_calls = total.tot_num_calls + stats.tot_num_calls
-      end
-    end
-
-    ts_utils.append("user_script:total_stats", {ifid = ifid, subdir = subdir, num_ms = total.tot_elapsed * 1000, num_calls = total.tot_num_calls}, when, verbose)
-  end
+  user_scripts.ts_dump(when, ifid, verbose, "flow_user_script", all_scripts)
 end
 
 -- ########################################################
