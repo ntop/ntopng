@@ -53,7 +53,6 @@ Flow::Flow(NetworkInterface *_iface,
   alerted_status = status_normal;
   predominant_status = status_normal;
 
-  alert_rowid = -1;
   detection_completed = update_flow_port_stats = false;
   fully_processed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
@@ -341,7 +340,7 @@ void Flow::dumpFlowAlert() {
 
     /* Dump alert */
     is_alerted = true;
-    iface->getAlertsManager()->storeFlowAlert(this, alerted_status, alert_type, alert_level, alert_status_info);
+    iface->getAlertsManager()->enqueueFlowAlert(this, alerted_status, alert_type, alert_level, alert_status_info);
 
     if(!idle()) {
       /* If idle() and not alerted, the interface
@@ -3851,12 +3850,9 @@ void Flow::lua_get_status(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "flow.status", getPredominantStatus());
   lua_push_uint64_table_entry(vm, "status_map", status_map.get());
 
-  if(is_alerted)
+  if(is_alerted) {
+    lua_push_bool_table_entry(vm, "flow.alerted", true);
     lua_push_uint64_table_entry(vm, "alerted_status", alerted_status);
-
-  if(isFlowAlerted()) {
-    lua_push_bool_table_entry(vm, "flow.alerted", isFlowAlerted());
-    lua_push_uint64_table_entry(vm, "flow.alert_rowid", alert_rowid);
   }
 }
 

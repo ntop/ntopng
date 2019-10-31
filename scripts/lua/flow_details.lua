@@ -963,24 +963,10 @@ else
    local alerted_status = nil
 
    if flow["flow.alerted"] then
-      local message = nil
+      alerted_status = flow["alerted_status"]
+      local message = flow_consts.getStatusDescription(alerted_status, flow2statusinfo(flow))
 
       print("<tr><th width=30%><i class='fa fa-warning' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
-
-      if(flow["flow.alert_rowid"] ~= nil) then
-         -- Try to fetch the alert
-         local res = performAlertsQuery("SELECT *", "historical-flows", {row_id = flow["flow.alert_rowid"]})
-
-         if((res ~= nil) and (#res == 1)) then
-            local alert_json = json.decode(res[1]["alert_json"])
-
-            if(alert_json ~= nil) and (alert_json["status_info"] ~= nil)then
-               alerted_status = tonumber(res[1].flow_status)
-               message = flow_consts.getStatusDescription(alerted_status, flow2statusinfo(flow))
-            end
-         end
-      end
-
       print(message)
       print("</td></tr>\n")
    end

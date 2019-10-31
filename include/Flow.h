@@ -83,7 +83,6 @@ class Flow : public GenericHashEntry {
   bool iface_alert_inc, iface_alert_dec;
 #endif
   u_int16_t diff_num_http_requests;
-  int64_t alert_rowid;
 #ifdef NTOPNG_PRO
   bool counted_in_aggregated_flow, status_counted_in_aggregated_flow;
   bool ingress2egress_direction;
@@ -541,7 +540,6 @@ class Flow : public GenericHashEntry {
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); }
   inline bool isFlowAlerted() const         { return(is_alerted); };
-  inline void setFlowAlertId(int64_t rowid) { alert_rowid = rowid; };
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {

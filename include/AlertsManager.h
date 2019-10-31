@@ -35,8 +35,6 @@ class AlertsManager : public StoreManager {
   /* methods used for alerts that have a timespan */
   void markForMakeRoom(bool on_flows);
 
-  bool notifyFlowAlert(u_int64_t rowid);
-
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
   int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
 
@@ -50,12 +48,29 @@ class AlertsManager : public StoreManager {
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager();
 
-  int storeAlert(time_t tstart, time_t tend, int granularity, AlertType alert_type, const char *subtype,
-      AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
+  int storeAlert(time_t tstart, time_t tend, int granularity, 
+      AlertType alert_type, const char *subtype,
+      AlertLevel alert_severity, AlertEntity alert_entity, 
+      const char *alert_entity_value,
       const char *alert_json, bool *new_alert, u_int64_t *rowid,
       bool ignore_disabled = false, bool check_maximum = true);
+
+  int storeFlowAlert(time_t tstamp, AlertType alert_type, 
+      AlertLevel alert_severity, FlowStatus status, const char *alert_json,
+      u_int16_t vlan_id,              u_int8_t protocol,
+      u_int16_t ndpi_master_protocol, u_int16_t ndpi_app_protocol, 
+      const char *cli_ip,             const char *srv_ip,
+      const char *cli_country,        const char *srv_country,
+      const char *cli_os,             const char *srv_os,
+      u_int32_t   cli_asn,            u_int32_t   srv_asn,
+      bool        cli_is_localhost,   bool        srv_is_localhost,
+      bool        cli_is_blacklisted, bool        srv_is_blacklisted,
+      u_int64_t   cli2srv_bytes,      u_int64_t   srv2cli_bytes,
+      u_int64_t   cli2srv_packets,    u_int64_t   srv2cli_packets,
+      u_int64_t *rowid);
+
   bool hasAlerts();
-  int storeFlowAlert(Flow *f, FlowStatus status, AlertType alert_type, AlertLevel alert_severity, const char *status_info);
+  int enqueueFlowAlert(Flow *f, FlowStatus status, AlertType alert_type, AlertLevel alert_severity, const char *status_info);
 
   inline int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, bool ignore_disabled) {
     return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_TABLE_NAME, ignore_disabled);

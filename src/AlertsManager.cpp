@@ -331,252 +331,280 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
 /* **************************************************** */
 
-/* NOTE: notifications should be handled by Lua. However, since Flow alerts
- * are generated internally, this function is necessary to handle them.
- * In order to avoid duplicating the same alerts fields in json, the rowid
- * is returned. Lua can then extract the JSON data by using the rowid.
- */
-bool AlertsManager::notifyFlowAlert(u_int64_t rowid) {
-  bool rv = false;
+int AlertsManager::storeFlowAlert(time_t tstamp, AlertType alert_type, 
+    AlertLevel alert_severity, FlowStatus status,
+    const char *alert_json, u_int16_t vlan_id, u_int8_t protocol,
+    u_int16_t ndpi_master_protocol, u_int16_t ndpi_app_protocol, 
+    const char *cli_ip,             const char *srv_ip,
+    const char *cli_country,        const char *srv_country,
+    const char *cli_os,             const char *srv_os,
+    u_int32_t   cli_asn,            u_int32_t   srv_asn,
+    bool        cli_is_localhost,   bool        srv_is_localhost,
+    bool        cli_is_blacklisted, bool        srv_is_blacklisted,
+    u_int64_t   cli2srv_bytes,      u_int64_t srv2cli_bytes,
+    u_int64_t   cli2srv_packets,    u_int64_t srv2cli_packets,
+    u_int64_t *rowid) {
+  char query[STORE_MANAGER_MAX_QUERY];
+  sqlite3_stmt *stmt = NULL, *stmt2 = NULL, *stmt3 = NULL;
+  int64_t rc = 0;
+  u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
+  u_int64_t cur_cli2srv_bytes, cur_srv2cli_bytes, cur_cli2srv_packets, cur_srv2cli_packets = 0;
 
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
-    json_object *notif = json_object_new_object();
+  *rowid = 0;
 
-    if(notif) {
-      const char *json_alert;
+  if(ntop->getPrefs()->are_alerts_disabled())
+    return 0;
 
-      json_object_object_add(notif, "ifid", json_object_new_int(ifid));
-      json_object_object_add(notif, "action", json_object_new_string(ALERT_ACTION_STORE));
-      json_object_object_add(notif, "table_name", json_object_new_string(ALERTS_MANAGER_FLOWS_TABLE_NAME));
-      json_object_object_add(notif, "rowid", json_object_new_int64(rowid));
-      json_alert = json_object_to_json_string(notif);
+  if(!store_initialized || !store_opened)
+    return -1;
 
-      if(ntop->getRedis()->rpush(ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME,
-          (char*)json_alert, ALERTS_MANAGER_MAX_ENTITY_ALERTS) < 0) {
-        ntop->getTrace()->traceEvent(TRACE_WARNING,
-          "An error occurred when pushing alert %s to redis list %s.",
-            json_alert, ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME);
-      } else
-        rv = true;
+  markForMakeRoom(true);
 
-      json_object_put(notif);
+  m.lock(__FILE__, __LINE__);
+
+  /* Check if this alert already exists ...*/
+  snprintf(query, sizeof(query),
+	   "SELECT rowid, alert_counter, cli2srv_bytes, srv2cli_bytes, cli2srv_packets, srv2cli_packets "
+	   "FROM %s "
+	   "WHERE alert_type = ? AND alert_severity = ? "
+	   "AND vlan_id = ? AND proto = ? AND l7_master_proto = ? AND l7_proto = ? "
+	   "AND flow_status = ? AND cli_addr = ? AND srv_addr = ? "
+	   "AND alert_tstamp >= ? "
+	   "LIMIT 1; ",
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME);
+
+  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
+     || sqlite3_bind_int(stmt,    1, static_cast<int>(alert_type))
+     || sqlite3_bind_int(stmt,    2, static_cast<int>(alert_severity))
+     || sqlite3_bind_int(stmt,    3, vlan_id)
+     || sqlite3_bind_int(stmt,    4, protocol)
+     || sqlite3_bind_int(stmt,    5, ndpi_master_protocol)
+     || sqlite3_bind_int(stmt,    6, ndpi_app_protocol)
+     || sqlite3_bind_int(stmt,    7, (int)status)
+     || sqlite3_bind_text(stmt,   8, cli_ip, -1, SQLITE_STATIC)
+     || sqlite3_bind_text(stmt,   9, srv_ip, -1, SQLITE_STATIC)
+     || sqlite3_bind_int64(stmt, 10, static_cast<long int>(tstamp) - ALERTS_MANAGER_MAX_AGGR_SECS)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+    rc = -1;
+    goto out;
+  }
+
+  /* Try and read the rowid (if the record exists) */
+  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(rc == SQLITE_ROW) {
+      cur_rowid = sqlite3_column_int(stmt, 0);
+      cur_counter = sqlite3_column_int(stmt, 1);
+      cur_cli2srv_bytes = sqlite3_column_int(stmt, 2);
+      cur_srv2cli_bytes = sqlite3_column_int(stmt, 3);
+      cur_cli2srv_packets = sqlite3_column_int(stmt, 4);
+      cur_srv2cli_packets = sqlite3_column_int(stmt, 5);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u]\n", sqlite3_column_text(stmt, 0), cur_rowid, cur_counter);
+    } else if(rc == SQLITE_ERROR) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+      rc = -1;
+      goto out;
     }
   }
 
-  return(rv);
+  if(cur_rowid != (u_int64_t)-1) { /* Already existing record found */
+    snprintf(query, sizeof(query),
+	     "UPDATE %s "
+	     "SET alert_counter = ?, alert_tstamp_end = ?, cli2srv_bytes = ?, srv2cli_bytes = ?, cli2srv_packets = ?, srv2cli_packets = ? "
+	     "WHERE rowid = ? ",
+	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
+
+    if(sqlite3_prepare_v2(db, query, -1, &stmt2, 0)
+       || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(cur_counter + 1))
+       || sqlite3_bind_int64(stmt2, 2, static_cast<long int>(tstamp))
+       || sqlite3_bind_int64(stmt2, 3, cur_cli2srv_bytes + cli2srv_bytes)
+       || sqlite3_bind_int64(stmt2, 4, cur_srv2cli_bytes + srv2cli_bytes)
+       || sqlite3_bind_int64(stmt2, 5, cur_cli2srv_packets + cli2srv_packets)
+       || sqlite3_bind_int64(stmt2, 6, cur_srv2cli_packets + srv2cli_packets)
+       || sqlite3_bind_int64(stmt2, 7, static_cast<long int>(cur_rowid))) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+      rc = -1;
+      goto out;
+    }
+
+    while((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
+      if(rc == SQLITE_ERROR) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+        rc = -1;
+        goto out;
+      }
+    }
+
+  } else { /* no exising record found */
+    /* This alert is being engaged */
+    snprintf(query, sizeof(query),
+	     "INSERT INTO %s "
+	     "(alert_tstamp, alert_type, alert_severity, alert_json, "
+	     "vlan_id, proto, l7_master_proto, l7_proto, "
+	     "cli_country, srv_country, cli_os, srv_os, cli_asn, srv_asn, "
+	     "cli_addr, srv_addr, "
+	     "cli2srv_bytes, srv2cli_bytes, "
+	     "cli2srv_packets, srv2cli_packets, "
+	     "cli_blacklisted, srv_blacklisted, "
+	     "cli_localhost, srv_localhost, flow_status) "
+	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
+
+    if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare the statement for %s", query);
+      rc = -1;
+      goto out;
+    }
+
+    if(sqlite3_bind_int64(stmt3,     1, static_cast<long int>(tstamp))
+       || sqlite3_bind_int(stmt3,    2, (int)(alert_type))
+       || sqlite3_bind_int(stmt3,    3, (int)(alert_severity))
+       || sqlite3_bind_text(stmt3,   4, alert_json, -1, SQLITE_STATIC)
+       || sqlite3_bind_int(stmt3,    5, vlan_id)
+       || sqlite3_bind_int(stmt3,    6, protocol)
+       || sqlite3_bind_int(stmt3,    7, ndpi_master_protocol)
+       || sqlite3_bind_int(stmt3,    8, ndpi_app_protocol)
+       || sqlite3_bind_text(stmt3,   9, cli_country, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt3,  10, srv_country, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt3,  11, cli_os, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt3,  12, srv_os, -1, SQLITE_STATIC)
+       || sqlite3_bind_int(stmt3,   13, cli_asn)
+       || sqlite3_bind_int(stmt3,   14, srv_asn)
+       || sqlite3_bind_text(stmt3,  15, cli_ip, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt3,  16, srv_ip, -1, SQLITE_STATIC)
+       || sqlite3_bind_int64(stmt3, 17, cli2srv_bytes)
+       || sqlite3_bind_int64(stmt3, 18, srv2cli_bytes)
+       || sqlite3_bind_int64(stmt3, 19, cli2srv_packets)
+       || sqlite3_bind_int64(stmt3, 20, srv2cli_packets)
+       || sqlite3_bind_int(stmt3,   21, cli_is_blacklisted ? 1 : 0)
+       || sqlite3_bind_int(stmt3,   22, srv_is_blacklisted ? 1 : 0)
+       || sqlite3_bind_int(stmt3,   23, cli_is_localhost ? 1 : 0)
+       || sqlite3_bind_int(stmt3,   24, srv_is_localhost ? 1 : 0)
+       || sqlite3_bind_int(stmt3,   25, (int) status)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
+      rc = -1;
+      goto out;
+    }
+
+    while((rc = sqlite3_step(stmt3)) != SQLITE_DONE) {
+      if(rc == SQLITE_ERROR) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step [%s][%s]",
+                                     query, sqlite3_errmsg(db));
+        rc = -1;
+        goto out;
+      }
+    }
+
+    cur_rowid = sqlite3_last_insert_rowid(db);
+  }
+
+  rc = 0;
+out:
+
+  if(stmt) sqlite3_finalize(stmt);
+  if(stmt2) sqlite3_finalize(stmt2);
+  if(stmt3) sqlite3_finalize(stmt3);
+  m.unlock(__FILE__, __LINE__);
+
+  if((rc == 0) && (cur_rowid != (u_int64_t)-1))
+    *rowid = cur_rowid;
+
+  iface->setHasAlerts(true);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
+
+  return rc;
 }
 
 /* **************************************************** */
 
-int AlertsManager::storeFlowAlert(Flow *f, FlowStatus status, AlertType alert_type,
-	  AlertLevel alert_severity, const char *status_info) {
-#if 1
-  char rsp[16];
+/* TODO this should be moved to Lua and trigger Flow alerts from there directly */
+int AlertsManager::enqueueFlowAlert(Flow *f, FlowStatus status, AlertType alert_type,
+    AlertLevel alert_severity, const char *status_info) {
+  json_object *alert_obj, *alert_json_obj, *cli_obj, *srv_obj, *cli2srv_obj, *srv2cli_obj;
+  char queue_key[CONST_MAX_LEN_REDIS_KEY];
+  time_t now = time(NULL);
+  const char *alert_json;
+  char cli_ip_buf[64], srv_ip_buf[64];
+  Host *cli, *srv;
+  const IpAddress *cli_ip_addr, *srv_ip_addr;
+  char *cli_ip = NULL, *srv_ip = NULL;
+  char cb[64], cb1[64], cli_os[64], srv_os[64];
+  const char *info;
+  int rc = 0;
 
-  if((!ntop->getRedis()->get((char*)NTOPNG_PREFS_PREFIX".do_not_store_alerts", rsp, sizeof(rsp))) && (rsp[0] != '\0'))
-    return 0;
-#endif
-
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
-    const char *alert_json;
-    char cli_ip_buf[64], srv_ip_buf[64];
-    char query[STORE_MANAGER_MAX_QUERY];
-    sqlite3_stmt *stmt = NULL, *stmt2 = NULL, *stmt3 = NULL;
-    int rc = 0;
-    Host *cli, *srv;
-    const IpAddress *cli_ip_addr, *srv_ip_addr;
-    char *cli_ip = NULL, *srv_ip = NULL;
-    char cb[64], cb1[64], cli_os[64], srv_os[64];
-    time_t now = time(NULL);
-    const char *info;
-    json_object *alert_json_obj;
-    u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
-    u_int64_t cur_cli2srv_bytes, cur_srv2cli_bytes, cur_cli2srv_packets, cur_srv2cli_packets = 0;
+  if (ntop->getPrefs()->are_alerts_disabled() || !f)
+    return -1;
  
-    if(!store_initialized || !store_opened || !f)
-      return(-1);
+  markForMakeRoom(true);
+  info = f->getFlowInfo();
 
-    markForMakeRoom(true);
+  cli = f->get_cli_host(), srv = f->get_srv_host();
+  cli_ip_addr = f->get_cli_ip_addr(), srv_ip_addr = f->get_srv_ip_addr();
 
-    info = f->getFlowInfo();
+  if(cli_ip_addr)
+    cli_ip = cli_ip_addr->print(cli_ip_buf, sizeof(cli_ip_buf));
+  if(srv_ip_addr)
+    srv_ip = srv_ip_addr->print(srv_ip_buf, sizeof(srv_ip_buf));
 
-    cli = f->get_cli_host(), srv = f->get_srv_host();
-    cli_ip_addr = f->get_cli_ip_addr(), srv_ip_addr = f->get_srv_ip_addr();
+  if((alert_obj = json_object_new_object()) == NULL)      return(-1);
+  if((alert_json_obj = json_object_new_object()) == NULL) return(-1);
+  if((cli_obj = json_object_new_object()) == NULL)        return(-1);
+  if((srv_obj = json_object_new_object()) == NULL)        return(-1);
+  if((cli2srv_obj = json_object_new_object()) == NULL)    return(-1);
+  if((srv2cli_obj = json_object_new_object()) == NULL)    return(-1);
 
-    if(cli_ip_addr)
-      cli_ip = cli_ip_addr->print(cli_ip_buf, sizeof(cli_ip_buf));
-    if(srv_ip_addr)
-      srv_ip = srv_ip_addr->print(srv_ip_buf, sizeof(srv_ip_buf));
+  json_object_object_add(alert_obj, "tstamp", json_object_new_int(now));
+  json_object_object_add(alert_obj, "alert_type", json_object_new_int((int) alert_type));
+  json_object_object_add(alert_obj, "alert_severity", json_object_new_int((int) alert_severity));
+  json_object_object_add(alert_obj, "status", json_object_new_int((int) status));
 
-    if((alert_json_obj = json_object_new_object()) == NULL)
-      return(-1);
+  json_object_object_add(alert_json_obj, "info", json_object_new_string(info ? info : (char*)""));
+  json_object_object_add(alert_json_obj, "status_info", json_object_new_string(status_info ? status_info : (char*)""));
+  json_object_object_add(alert_obj, "alert_json", alert_json_obj);
 
-    json_object_object_add(alert_json_obj, "info", json_object_new_string(info ? info : (char*)""));
-    json_object_object_add(alert_json_obj, "status_info", json_object_new_string(status_info ? status_info : (char*)""));
-    alert_json = json_object_to_json_string(alert_json_obj);
+  json_object_object_add(alert_obj, "vlan_id", json_object_new_int(f->get_vlan_id()));
+  json_object_object_add(alert_obj, "protocol", json_object_new_int(f->get_protocol()));
+  json_object_object_add(alert_obj, "master_protocol", json_object_new_int(f->get_detected_protocol().master_protocol));
+  json_object_object_add(alert_obj, "app_protocol", json_object_new_int(f->get_detected_protocol().app_protocol));
 
-    m.lock(__FILE__, __LINE__);
+  json_object_object_add(cli_obj, "ip", json_object_new_string(cli_ip));
+  json_object_object_add(cli_obj, "country", json_object_new_string(cli ? cli->get_country(cb, sizeof(cb)) : ""));
+  json_object_object_add(cli_obj, "os", json_object_new_string(cli ? cli->getOSDetail(cli_os, sizeof(cli_os)) : ""));
+  json_object_object_add(cli_obj, "asn", json_object_new_int(cli ? cli->get_asn() : 0));
+  json_object_object_add(cli_obj, "is_localhost", json_object_new_boolean((cli && cli->isLocalHost()) ? true : false));
+  json_object_object_add(cli_obj, "is_blacklisted", json_object_new_boolean((cli && cli->isBlacklisted()) ? true : false));
+  json_object_object_add(alert_obj, "cli", cli_obj);
 
-    /* Check if this alert already exists ...*/
-    snprintf(query, sizeof(query),
-	     "SELECT rowid, alert_counter, cli2srv_bytes, srv2cli_bytes, cli2srv_packets, srv2cli_packets "
-	     "FROM %s "
-	     "WHERE alert_type = ? AND alert_severity = ? "
-	     "AND vlan_id = ? AND proto = ? AND l7_master_proto = ? AND l7_proto = ? "
-	     "AND flow_status = ? AND cli_addr = ? AND srv_addr = ? "
-	     "AND alert_tstamp >= ? "
-	     "LIMIT 1; ",
-	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
+  json_object_object_add(srv_obj, "ip", json_object_new_string(srv_ip));
+  json_object_object_add(srv_obj, "country", json_object_new_string(srv ? srv->get_country(cb1, sizeof(cb1)) : ""));
+  json_object_object_add(srv_obj, "os", json_object_new_string(srv ? srv->getOSDetail(srv_os, sizeof(srv_os)) : ""));
+  json_object_object_add(srv_obj, "asn", json_object_new_int(srv ? srv->get_asn() : 0));
+  json_object_object_add(srv_obj, "is_localhost", json_object_new_boolean((srv && srv->isLocalHost()) ? true : false));
+  json_object_object_add(srv_obj, "is_blacklisted", json_object_new_boolean((srv && srv->isBlacklisted()) ? true : false));
+  json_object_object_add(alert_obj, "srv", srv_obj);
 
-    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int(stmt,    1, static_cast<int>(alert_type))
-       || sqlite3_bind_int(stmt,    2, static_cast<int>(alert_severity))
-       || sqlite3_bind_int(stmt,    3, f->get_vlan_id())
-       || sqlite3_bind_int(stmt,    4, f->get_protocol())
-       || sqlite3_bind_int(stmt,    5, f->get_detected_protocol().master_protocol)
-       || sqlite3_bind_int(stmt,    6, f->get_detected_protocol().app_protocol)
-       || sqlite3_bind_int(stmt,    7, (int)status)
-       || sqlite3_bind_text(stmt,   8, cli_ip, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt,   9, srv_ip, -1, SQLITE_STATIC)
-       || sqlite3_bind_int64(stmt, 10, static_cast<long int>(now) - ALERTS_MANAGER_MAX_AGGR_SECS)) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = 5;
-      goto out;
-    }
+  json_object_object_add(cli2srv_obj, "bytes", json_object_new_int64(f->get_bytes_cli2srv()));
+  json_object_object_add(cli2srv_obj, "packets", json_object_new_int64(f->get_packets_cli2srv()));
+  json_object_object_add(alert_obj, "cli2srv", cli2srv_obj);
 
-    /* Try and read the rowid (if the record exists) */
-    while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-      if(rc == SQLITE_ROW) {
-	cur_rowid = sqlite3_column_int(stmt, 0),
-	  cur_counter = sqlite3_column_int(stmt, 1),
-	  cur_cli2srv_bytes = sqlite3_column_int(stmt, 2),
-	  cur_srv2cli_bytes = sqlite3_column_int(stmt, 3),
-	  cur_cli2srv_packets = sqlite3_column_int(stmt, 4),
-	  cur_srv2cli_packets = sqlite3_column_int(stmt, 5);
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u]\n", sqlite3_column_text(stmt, 0), cur_rowid, cur_counter);
-      } else if(rc == SQLITE_ERROR) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-	rc = 6;
-	goto out;
-      }
-    }
+  json_object_object_add(srv2cli_obj, "bytes", json_object_new_int64(f->get_bytes_srv2cli()));
+  json_object_object_add(srv2cli_obj, "packets", json_object_new_int64(f->get_packets_srv2cli()));
+  json_object_object_add(alert_obj, "srv2cli", srv2cli_obj);
 
-    if(cur_rowid != (u_int64_t)-1) { /* Already existing record found */
-      snprintf(query, sizeof(query),
-	       "UPDATE %s "
-	       "SET alert_counter = ?, alert_tstamp_end = ?, cli2srv_bytes = ?, srv2cli_bytes = ?, cli2srv_packets = ?, srv2cli_packets = ? "
-	       "WHERE rowid = ? ",
-	       ALERTS_MANAGER_FLOWS_TABLE_NAME);
+  snprintf(queue_key, sizeof(queue_key), CONST_FLOW_ALERT_EVENT_QUEUE, ifid);
 
-      if(sqlite3_prepare_v2(db, query, -1, &stmt2, 0)
-	 || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(cur_counter + 1))
-	 || sqlite3_bind_int64(stmt2, 2, static_cast<long int>(now))
-	 || sqlite3_bind_int64(stmt2, 3, cur_cli2srv_bytes + f->get_bytes_cli2srv())
-	 || sqlite3_bind_int64(stmt2, 4, cur_srv2cli_bytes + f->get_bytes_srv2cli())
-	 || sqlite3_bind_int64(stmt2, 5, cur_cli2srv_packets + f->get_packets_cli2srv())
-	 || sqlite3_bind_int64(stmt2, 6, cur_srv2cli_packets + f->get_packets_srv2cli())
-	 || sqlite3_bind_int64(stmt2, 7, static_cast<long int>(cur_rowid))) {
-	ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-	rc = 5;
-	goto out;
-      }
+  alert_json = json_object_to_json_string(alert_obj);
 
-      while((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
-	if(rc == SQLITE_ERROR) {
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-	  rc = 4;
-	  goto out;
-	}
-      }
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
 
-    } else { /* no exising record found */
-      /* This alert is being engaged */
-      snprintf(query, sizeof(query),
-	       "INSERT INTO %s "
-	       "(alert_tstamp, alert_type, alert_severity, alert_json, "
-	       "vlan_id, proto, l7_master_proto, l7_proto, "
-	       "cli_country, srv_country, cli_os, srv_os, cli_asn, srv_asn, "
-	       "cli_addr, srv_addr, "
-	       "cli2srv_bytes, srv2cli_bytes, "
-	       "cli2srv_packets, srv2cli_packets, "
-	       "cli_blacklisted, srv_blacklisted, "
-	       "cli_localhost, srv_localhost, flow_status) "
-	       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
-	       ALERTS_MANAGER_FLOWS_TABLE_NAME);
+  ntop->getRedis()->rpush(queue_key, (char *) alert_json, 0 /* No trim */);
 
-      if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare the statement for %s", query);
-	rc = 3;
-	goto out;
-      }
+  if(cli) cli->incTotalAlerts(alert_type);
+  if(srv) srv->incTotalAlerts(alert_type);
 
-      if(sqlite3_bind_int64(stmt3,     1, static_cast<long int>(now))
-	 || sqlite3_bind_int(stmt3,    2, (int)(alert_type))
-	 || sqlite3_bind_int(stmt3,    3, (int)(alert_severity))
-	 || sqlite3_bind_text(stmt3,   4, alert_json, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int(stmt3,    5, f->get_vlan_id())
-	 || sqlite3_bind_int(stmt3,    6, f->get_protocol())
-	 || sqlite3_bind_int(stmt3,    7, f->get_detected_protocol().master_protocol)
-	 || sqlite3_bind_int(stmt3,    8, f->get_detected_protocol().app_protocol)
-	 || sqlite3_bind_text(stmt3,   9, cli ? cli->get_country(cb, sizeof(cb)) : NULL, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt3,  10, srv ? srv->get_country(cb1, sizeof(cb1)) : NULL, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt3,  11, cli ? cli->getOSDetail(cli_os, sizeof(cli_os)) : NULL, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt3,  12, srv ? srv->getOSDetail(srv_os, sizeof(srv_os)) : NULL, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int(stmt3,   13, cli ? cli->get_asn() : 0)
-	 || sqlite3_bind_int(stmt3,   14, srv ? srv->get_asn() : 0)
-	 || sqlite3_bind_text(stmt3,  15, cli_ip, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt3,  16, srv_ip, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int64(stmt3, 17, f->get_bytes_cli2srv())
-	 || sqlite3_bind_int64(stmt3, 18, f->get_bytes_srv2cli())
-	 || sqlite3_bind_int64(stmt3, 19, f->get_packets_cli2srv())
-	 || sqlite3_bind_int64(stmt3, 20, f->get_packets_srv2cli())
-	 || sqlite3_bind_int(stmt3,   21, (cli && cli->isBlacklisted()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt3,   22, (srv && srv->isBlacklisted()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt3,   23, (cli && cli->isLocalHost()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt3,   24, (srv && srv->isLocalHost()) ? 1 : 0)
-	 || sqlite3_bind_int(stmt3,   25, (int) status)
-	 ) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
-	rc = 2;
-	goto out;
-      }
+  json_object_put(alert_obj);
 
-      while((rc = sqlite3_step(stmt3)) != SQLITE_DONE) {
-        if(rc == SQLITE_ERROR) {
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step [%s][%s]",
-                     query, sqlite3_errmsg(db));
-          rc = 1;
-          goto out;
-        }
-      }
-
-      cur_rowid = sqlite3_last_insert_rowid(db);
-    }
-
-    rc = 0;
-  out:
-
-    if(stmt) sqlite3_finalize(stmt);
-    if(stmt2) sqlite3_finalize(stmt2);
-    if(stmt3) sqlite3_finalize(stmt3);
-    m.unlock(__FILE__, __LINE__);
-
-    if((rc == 0) && (cur_rowid != (u_int64_t)-1)) {
-      f->setFlowAlertId(cur_rowid);
-      notifyFlowAlert(cur_rowid);
-    }
-
-    if(cli) cli->incTotalAlerts(alert_type);
-    if(srv) srv->incTotalAlerts(alert_type);
-
-    iface->setHasAlerts(true);
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
-    json_object_put(alert_json_obj);
-
-    return rc;
-  } else
-    return(-1);
+  return rc;
 }
 
 /* ******************************************* */
