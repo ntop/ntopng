@@ -1497,7 +1497,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
     /* Server host */
     if(srv_host
 #ifdef HAVE_NEDGE
-      && srv_mac && (srv_host->getMac()->locate() == located_on_lan_interface)
+       && srv_host->getMac()  && (srv_host->getMac()->locate() == located_on_lan_interface)
 #endif
     ) {
       srv_host_pool_id = srv_host->get_host_pool();
