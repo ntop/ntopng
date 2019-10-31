@@ -25,7 +25,12 @@
 
 GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
 			 u_int _max_hash_size, const char *_name) {
-  num_hashes = _num_hashes, max_hash_size = _max_hash_size, current_size = 0;
+  num_hashes = _num_hashes;
+  current_size = 0;
+  /* Allow the total number of entries (that is, active and those idle but still not yet purged)
+     to be 30% more than the maximum hash table size specified. This prevents memory from growing
+     indefinitely when for example the purging is slow. */
+  max_hash_size = _max_hash_size * 1.3;
   last_entry_id = 0;
   purge_step = max_val(num_hashes / PURGE_FRACTION, 1);
   name = strdup(_name ? _name : "???");
@@ -349,10 +354,7 @@ int32_t GenericHash::getNumIdleEntries() const {
 /* ************************************ */
 
 bool GenericHash::hasEmptyRoom() {
-  /* Allow the total number of entries (that is, active and those idle but still not yet purged)
-     to be 30% more than the maximum hash table size specified. This prevents memory from growing
-     indefinitely when for example the purging is slow. */
-  return getNumEntries() + getNumIdleEntries() <= max_hash_size * 1.3;
+  return getNumEntries() + getNumIdleEntries() <= max_hash_size;
 };
 
 /* ************************************ */
