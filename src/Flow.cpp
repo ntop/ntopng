@@ -1443,7 +1443,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 /* *************************************** */
 
 void Flow::periodic_dump_check(const struct timeval *tv) {
-  return; /* Temporarily disables flows and alerts dump */
   /* NOTE: this can be very time consuming */
   dumpFlowAlert();
 
