@@ -76,9 +76,7 @@ if tags.ifid then
   interface.select(tags.ifid)
 end
 
-if((ts_schema == "top:user_script:duration") or
-    (ts_schema == "user_script:total_duration") or
-    (ts_schema == "user_script:total_num_calls")) then
+if(ts_schema == "top:user_script:duration") then
   -- NOTE: Temporary fix for top user scripts page
   tags.user_script = nil
 end

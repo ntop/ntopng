@@ -20,7 +20,6 @@ local flow_consts = require "flow_consts"
 local user_scripts = require "user_scripts"
 
 local store_alerts_queue = "ntopng.push_alerts_queue"
-local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
 local shaper_utils = nil
 
 if(ntop.isnEdge()) then

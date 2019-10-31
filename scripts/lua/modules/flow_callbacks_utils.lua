@@ -138,7 +138,7 @@ local function print_callbacks_config_table(descr, expert_view)
 
    -- Print total stats
    print("</tr><tr><td><b>" .. i18n("total") .. "</b></td><td class='text-center'>")
-   if(ts_utils.exists("user_script:total_duration", {ifid=ifid, subdir="flow"})) then
+   if(ts_utils.exists("user_script:total_stats", {ifid=ifid, subdir="flow"})) then
       print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&subdir=flow&user_script='.. total_user_module ..'&ts_schema=user_script:total_duration"><i class="fa fa-area-chart fa-lg"></i></a>')
    end
    print("<td>")

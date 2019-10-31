@@ -55,7 +55,7 @@ print [[
 </div>
 ]]
 
-local schema = _GET["ts_schema"] or "custom:user_script:total_duration"
+local schema = _GET["ts_schema"] or "custom:user_script:vs_total"
 local selected_epoch = _GET["epoch"] or ""
 local url = ntop.getHttpPrefix()..'/lua/user_script_details.lua?ifid='..ifId..'&user_script='..user_script..'&page=historical&subdir='..subdir
 
@@ -69,18 +69,19 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_user_script = "top:user_script:duration",
 
    timeseries = {
-      {schema = "user_script:total_duration", label = i18n("internals.total_duration", {subdir = firstToUpper(subdir)}), metrics_labels = {i18n("duration")}},
-      {schema = "user_script:total_num_calls", label = i18n("internals.total_num_calls", {subdir = firstToUpper(subdir)})},
+      --~ {schema = "user_script:total_duration", label = i18n("internals.total_duration", {subdir = firstToUpper(subdir)}), metrics_labels = {i18n("duration")}},
+      {schema = "user_script:num_calls", label = i18n("internals.total_num_calls", {subdir = firstToUpper(subdir)}), metrics_labels = {i18n("graphs.num_calls")}},
       {
-         schema = "custom:user_script:total_duration",
-         label = i18n("internals.script_duration", {script = user_script}),
+         schema = "custom:user_script:vs_total",
+         label = i18n("internals.script_stats", {script = user_script}),
          value_formatter = {"fmillis"},
-         metrics_labels = {user_script, i18n("internals.total_duration", {subdir = firstToUpper(subdir)})},
-      }, {
-         schema = "custom:user_script:num_calls",
-         label = i18n("internals.num_calls", {script = user_script}),
-         metrics_labels = {user_script, i18n("internals.total_num_calls", {subdir = firstToUpper(subdir)})},
-      },
+         value_formatter2 = {"fint"},
+         metrics_labels = {
+            i18n("internals.script_duration", {script = user_script}),
+            i18n("internals.total_duration", {subdir = firstToUpper(subdir)}),
+            i18n("internals.script_num_calls", {script = user_script}),
+         },
+      }
    }
 })
 

@@ -380,13 +380,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
     return(Utils::bitmapIsSet(disabled_flow_status, v));
   }
 
-  inline void toggleDisabledFlowAlertType(u_int32_t v, bool disable_alert) {
-    if(disable_alert)
-      disabled_flow_status = Utils::bitmapSet(disabled_flow_status, v);
-    else
-      disabled_flow_status = Utils::bitmapClear(disabled_flow_status, v);
-  }
-
   inline void setOS(OperatingSystem _os) {
     Mac *mac = getMac();
     if(!mac || (mac->getDeviceType() != device_networking))

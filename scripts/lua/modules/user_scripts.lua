@@ -285,6 +285,48 @@ end
 
 -- ##############################################
 
+local function getScriptsDirectories(script_type, subdir)
+   local check_dirs = {
+      user_scripts.getSubdirectoryPath(script_type, subdir),
+      user_scripts.getSubdirectoryPath(script_type, subdir) .. "/alerts",
+   }
+
+   if ntop.isPro() then
+      check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]])
+      check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]]) .. "/alerts"
+
+      if ntop.isEnterprise() then
+         check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]]) .. "/enterprise"
+      end
+   end
+
+   return(check_dirs)
+end
+
+-- ##############################################
+
+-- @brief Lists available user scripts.
+-- @params script_type one of user_scripts.script_types
+-- @params subdir the modules subdir
+-- @return a list of available module names
+function user_scripts.listScripts(script_type, subdir)
+   local check_dirs = getScriptsDirectories(script_type, subdir)
+   local rv = {}
+
+   for _, checks_dir in pairs(check_dirs) do
+      for fname in pairs(ntop.readdir(checks_dir)) do
+         if string.ends(fname, ".lua") then
+            local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+            rv[#rv + 1] = mod_fname
+         end
+      end
+   end
+
+   return rv
+end
+
+-- ##############################################
+
 -- @brief Load the user scripts.
 -- @params script_type one of user_scripts.script_types
 -- @params ifid the interface ID
@@ -304,23 +346,11 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
       interface.select(ifid) -- required for interface.isPacketInterface() below
    end
 
-   local check_dirs = {
-      user_scripts.getSubdirectoryPath(script_type, subdir),
-      user_scripts.getSubdirectoryPath(script_type, subdir) .. "/alerts",
-   }
-
-   if ntop.isPro() then
-      check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]])
-      check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]]) .. "/alerts"
-
-      if ntop.isEnterprise() then
-         check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]]) .. "/enterprise"
-      end
-   end
-
    for _, hook in pairs(script_type.hooks) do
       rv.hooks[hook] = {}
    end
+
+   local check_dirs = getScriptsDirectories(script_type, subdir)
 
    for _, checks_dir in pairs(check_dirs) do
       package.path = checks_dir .. "/?.lua;" .. package.path
@@ -328,7 +358,7 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
       local is_alert_path = string.ends(checks_dir, "alerts")
 
       for fname in pairs(ntop.readdir(checks_dir)) do
-         if ends(fname, ".lua") then
+         if string.ends(fname, ".lua") then
             local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
             local user_script = require(mod_fname)
             local setup_ok = true
@@ -342,6 +372,12 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
 
             if(user_script.key == nil) then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'key' in user script '%s'", mod_fname))
+               goto next_module
+            end
+
+            -- TODO remove key
+            if(user_script.key ~= mod_fname) then
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Module '%s' must correspond to script name '%s'", user_script.key, mod_fname))
                goto next_module
             end
 
