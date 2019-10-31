@@ -12,7 +12,6 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
-   key = "udp_unidirectional",
    l4_proto = "udp",
 
    -- NOTE: hooks defined below

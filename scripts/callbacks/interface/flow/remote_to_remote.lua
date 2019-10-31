@@ -8,8 +8,6 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
-  key = "remote_to_remote",
-
   -- NOTE: hooks defined below
   hooks = {},
 

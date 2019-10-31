@@ -6,7 +6,6 @@ local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
 local script = {
-  key = "syn_flood_victim",
   threshold_type_builder = alerts_api.synFloodType,
 
   hooks = {

@@ -26,7 +26,6 @@ end
 -- #################################################################
 
 script = {
-  key = "too_many_drops",
   default_value = "too_many_drops;gt;5", -- 5%
 
   hooks = {

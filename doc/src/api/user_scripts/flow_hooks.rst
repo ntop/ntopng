@@ -37,7 +37,6 @@ To make sure ntopng will execute it, `suspicious_countries.lua` must be placed u
   -- #################################################################
 
   local script = {
-     key = "suspicious_countries",
      hooks = {},
 
      gui = {

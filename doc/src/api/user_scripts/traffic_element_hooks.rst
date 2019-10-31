@@ -34,7 +34,6 @@ every minute and send it to a remote server:
   local hosts_list
 
   local script = {
-    key = "dump_active_hosts_list",
     hooks = {},
   }
 

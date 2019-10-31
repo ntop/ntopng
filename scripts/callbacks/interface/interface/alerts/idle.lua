@@ -6,8 +6,6 @@ local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
 local script = {
-  key = "idle",
-
   hooks = {
     all = alerts_api.threshold_check_function
   },

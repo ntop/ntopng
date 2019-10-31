@@ -9,8 +9,6 @@ local user_scripts = require ("user_scripts")
 -- #################################################################
 
 local script = {
-  key = "external_alert_check",
-
   -- NOTE: hooks defined below
   hooks = {},
 

@@ -375,16 +375,8 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                goto next_module
             end
 
-            if(user_script.key == nil) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'key' in user script '%s'", mod_fname))
-               goto next_module
-            end
-
-            -- TODO remove key
-            if(user_script.key ~= mod_fname) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Module '%s' must correspond to script name '%s'", user_script.key, mod_fname))
-               goto next_module
-            end
+	    -- Key is an alias for the module name
+	    user_script.key = mod_fname
 
             if(rv.modules[user_script.key]) then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", user_script.key))

@@ -15,8 +15,6 @@ Here is for example the host `syn_flood_victim.lua` script:
   -- #################################################################
 
   local script = {
-    key = "syn_flood_victim",
-
     -- Specify an altenative alert type (the default is alerts_api.thresholdCrossType)
     threshold_type_builder = alerts_api.synFloodType,
     default_value = "syn_flood_victim;gt;50",

@@ -27,7 +27,6 @@ end
 -- #################################################################
 
 script = {
-  key = "ghost_networks",
   always_enabled = true,
 
   hooks = {
