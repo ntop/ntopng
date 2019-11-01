@@ -33,12 +33,14 @@ static void* startActivity(void* ptr)  {
 /* ******************************************* */
 
 ThreadedActivity::ThreadedActivity(const char* _path,
+				   bool _high_priority,
 				   u_int32_t _periodicity_seconds,
 				   bool _align_to_localtime,
 				   bool _exclude_viewed_interfaces,
 				   u_int8_t thread_pool_size) {
   terminating = false;
   periodicity = _periodicity_seconds;
+  high_priority = _high_priority;
   align_to_localtime = _align_to_localtime;
   exclude_viewed_interfaces = _exclude_viewed_interfaces;
   thread_started = false, systemTaskRunning = false;
@@ -346,7 +348,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
 	     ntop->get_callbacks_dir(), path);
     
     if(stat(script_path, &buf) == 0) {
-      pool->queueJob(this, script_path, NULL);
+      pool->queueJob(this, high_priority, script_path, NULL);
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
@@ -367,7 +369,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
 	    and calculate stats assuming live traffic. */
 	 && iface->getIfType() != interface_type_PCAP_DUMP
 	 && !isInterfaceTaskRunning(iface)) {
-        pool->queueJob(this, script_path, iface);
+        pool->queueJob(this, high_priority, script_path, iface);
         setInterfaceTaskRunning(iface, true);
 
 #ifdef THREAD_DEBUG

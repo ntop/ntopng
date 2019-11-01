@@ -32,6 +32,7 @@ class ThreadedActivity {
   pthread_t pthreadLoop;
   char *path;
   u_int32_t periodicity;
+  bool high_priority;
   bool align_to_localtime;
   bool exclude_viewed_interfaces;
   bool thread_started;
@@ -51,6 +52,7 @@ class ThreadedActivity {
   
  public:
   ThreadedActivity(const char* _path,
+		   bool high_priority = false,
 		   u_int32_t _periodicity_seconds = 0,
 		   bool _align_to_localtime = false,
 		   bool _exclude_viewed_interfaces = false,

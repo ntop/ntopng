@@ -89,8 +89,8 @@ void ThreadPool::run() {
     q = dequeueJob(true);
 
 #ifdef THREAD_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Dequeued job [%u][terminating=%d]",
-				 pthread_self(), isTerminating());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Dequeued job [%u][terminating=%d][%s][%s]",
+				 pthread_self(), isTerminating(), q->script_path, q->iface->get_name());
 #endif
     
     if((q == NULL) || isTerminating()) {
@@ -109,7 +109,8 @@ void ThreadPool::run() {
 
 /* **************************************************** */
 
-bool ThreadPool::queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface) {
+bool ThreadPool::queueJob(ThreadedActivity *j, bool high_priority,
+			  char *path, NetworkInterface *iface) {
   QueuedThreadData *q;
   
   if(isTerminating())
@@ -122,8 +123,11 @@ bool ThreadPool::queueJob(ThreadedActivity *j, char *path, NetworkInterface *ifa
     return(false);
   }
 
-  m->lock(__FILE__, __LINE__);  
-  threads.push(q);
+  m->lock(__FILE__, __LINE__);
+  if(high_priority)
+    high_priority_threads.push(q);
+  else
+    standard_priority_threads.push(q);
   queue_len++;
   pthread_cond_signal(&condvar);
   m->unlock(__FILE__, __LINE__);
@@ -145,8 +149,14 @@ QueuedThreadData* ThreadPool::dequeueJob(bool waitIfEmpty) {
   if((queue_len == 0) || isTerminating()) {
     q = NULL;
   } else {
-    q = threads.front();
-    threads.pop();
+    if(high_priority_threads.size() > 0) {
+      q = high_priority_threads.front();
+      high_priority_threads.pop();
+    } else {
+      q = standard_priority_threads.front();
+      standard_priority_threads.pop();
+    }
+    
     queue_len--;
   }
 

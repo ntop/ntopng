@@ -45,7 +45,7 @@ class ThreadPool {
   pthread_cond_t condvar;
   Mutex *m;
   pthread_t *threadsState;
-  std::queue <QueuedThreadData*> threads;
+  std::queue <QueuedThreadData*> high_priority_threads, standard_priority_threads;
 
   QueuedThreadData* dequeueJob(bool waitIfEmpty);
   
@@ -57,7 +57,7 @@ class ThreadPool {
   inline bool isTerminating() { return terminating; };
 
   void run();
-  bool queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface);
+  bool queueJob(ThreadedActivity *j, bool _high_priority, char *path, NetworkInterface *iface);
 };
 
 

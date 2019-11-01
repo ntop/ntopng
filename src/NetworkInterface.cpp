@@ -2874,15 +2874,15 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
   struct timeval tv;
   periodic_ht_state_update_user_data_t periodic_ht_state_update_user_data;
   GenericHash *ghs[] = {
-    !isView() ? flows_hash : NULL, /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-    hosts_hash,
-    ases_hash,
-    countries_hash,
-    hasSeenVlanTaggedPackets() ? vlans_hash : NULL,
-    macs_hash
+			!isView() ? flows_hash : NULL, /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+			hosts_hash,
+			ases_hash,
+			countries_hash,
+			hasSeenVlanTaggedPackets() ? vlans_hash : NULL,
+			macs_hash
   };
   time_t update_end;
-
+  
   periodicUpdateInitTime(&tv);
   periodic_ht_state_update_user_data.acle = NULL,
     periodic_ht_state_update_user_data.iface = this,
