@@ -233,7 +233,7 @@ void NetworkInterface::init() {
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
-    has_seen_dhcp_addresses = false,
+    has_seen_dhcp_addresses = false, packet_processing_completed = false;
     has_seen_containers = false, has_seen_pods = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,

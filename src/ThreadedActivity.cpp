@@ -124,16 +124,18 @@ void ThreadedActivity::activityBody() {
 /* ******************************************* */
 
 void ThreadedActivity::run() {
-  bool pcap_dump_only = true;
+  bool run_script = false;
 
   for(int i = 0; i < ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface = ntop->getInterface(i);
-    if(iface && iface->getIfType() != interface_type_PCAP_DUMP)
-      pcap_dump_only = false;
+
+    if(iface->isProcessingPackets()) {
+       run_script = true;
+       break;
+    }
   }
-  /* Don't schedule periodic activities it we are processing pcap files only. */
-  if (pcap_dump_only)
-    return;
+
+  if(!run_script) return;
 
   if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
     thread_started = true;
@@ -350,10 +352,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
       NetworkInterface *iface = ntop->getInterface(i);
 
       if(iface
-	 /* Don't schedule periodic activities for Interfaces associated to pcap files.
-	    There's no need to run them as they will create files
-	    and calculate stats assuming live traffic. */
-	 && iface->getIfType() != interface_type_PCAP_DUMP
+	 && iface->isProcessingPackets()
 	 && !isInterfaceTaskRunning(iface)) {
         pool->queueJob(this, script_path, iface);
         setInterfaceTaskRunning(iface, true);

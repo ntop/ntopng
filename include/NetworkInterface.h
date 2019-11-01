@@ -181,8 +181,7 @@ class NetworkInterface : public AlertableEntity {
   CountriesHash *countries_hash;
 
   /* ARP Matrix Hash */
-  ArpStatsHashMatrix *arp_hash_matrix;/**<Hash used to store ARP pkts counters related to pkt_src and pkt_dst */
-
+  ArpStatsHashMatrix *arp_hash_matrix; /** Hash used to store ARP pkts counters related to pkt_src and pkt_dst */
 
   /* Vlans */
   VlanHash *vlans_hash; /**< Hash used to store Vlans information. */
@@ -200,7 +199,7 @@ class NetworkInterface : public AlertableEntity {
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
-  bool running, is_idle;
+  bool running, is_idle, packet_processing_completed;
   NetworkStats **networkStats;
   InterfaceStatsHash *interfaceStats;
   dhcp_range* dhcp_ranges, *dhcp_ranges_shadow;
@@ -800,6 +799,8 @@ class NetworkInterface : public AlertableEntity {
   virtual bool reproducePcapOriginalSpeed() const         { return(false); }
   u_int32_t getNumEngagedAlerts();
   void releaseAllEngagedAlerts();
+  inline bool isProcessingPackets() { return(!packet_processing_completed); }
+  inline void processingCompleted() { packet_processing_completed = true;   }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
