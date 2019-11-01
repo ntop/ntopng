@@ -29,7 +29,8 @@ class QueuedThreadData {
   ThreadedActivity *j;
   char *script_path;
   NetworkInterface *iface;
-
+  bool high_priority;
+  
   QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface) {
     j = _j, script_path = strdup(_path), iface = _iface;
   }
@@ -39,25 +40,24 @@ class QueuedThreadData {
 	
 class ThreadPool {
  private:
-  bool terminating;
+  bool terminating, high_priority;
   u_int8_t pool_size;
-  u_int16_t queue_len;
   pthread_cond_t condvar;
   Mutex *m;
   pthread_t *threadsState;
-  std::queue <QueuedThreadData*> high_priority_threads, standard_priority_threads;
+  std::queue <QueuedThreadData*> threads;
 
   QueuedThreadData* dequeueJob(bool waitIfEmpty);
   
  public:
-  ThreadPool(u_int8_t _pool_size);
+  ThreadPool(bool _high_priority, u_int8_t _pool_size);
   virtual ~ThreadPool();
 
   void shutdown();
   inline bool isTerminating() { return terminating; };
 
   void run();
-  bool queueJob(ThreadedActivity *j, bool _high_priority, char *path, NetworkInterface *iface);
+  bool queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface);
 };
 
 

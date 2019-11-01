@@ -28,7 +28,8 @@ class PeriodicActivities {
  private:
   ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
   u_int16_t num_activities;
-
+  ThreadPool *high_priority_pool, *standard_priority_pool, *no_priority_pool;
+  
  public:
   PeriodicActivities();
   ~PeriodicActivities();

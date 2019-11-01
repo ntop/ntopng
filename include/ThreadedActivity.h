@@ -32,7 +32,6 @@ class ThreadedActivity {
   pthread_t pthreadLoop;
   char *path;
   u_int32_t periodicity;
-  bool high_priority;
   bool align_to_localtime;
   bool exclude_viewed_interfaces;
   bool thread_started;
@@ -51,12 +50,11 @@ class ThreadedActivity {
   void updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration);
   
  public:
-  ThreadedActivity(const char* _path,
-		   bool high_priority = false,
+  ThreadedActivity(const char* _path,		   
 		   u_int32_t _periodicity_seconds = 0,
 		   bool _align_to_localtime = false,
 		   bool _exclude_viewed_interfaces = false,
-		   u_int8_t thread_pool_size = 1);
+		   ThreadPool* _pool = NULL);
   ~ThreadedActivity();
 
   const char *activityPath() { return path; };

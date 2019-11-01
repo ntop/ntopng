@@ -34,17 +34,18 @@ static void* doRun(void* ptr)  {
 
 /* **************************************************** */
 
-ThreadPool::ThreadPool(u_int8_t _pool_size) {
-  pool_size = _pool_size, queue_len = 0;
+ThreadPool::ThreadPool(bool _high_priority, u_int8_t _pool_size) {
+  pool_size = _pool_size;
   m = new Mutex();
   pthread_cond_init(&condvar, NULL);
   terminating = false;
+  high_priority = _high_priority; /* Not used yet */
   
   if((threadsState = (pthread_t*)malloc(sizeof(pthread_t)*pool_size)) == NULL)
     throw("Not enough memory");
   
   for(int i=0; i<pool_size; i++) {
-    if (pthread_create(&threadsState[i], NULL, doRun, (void*)this) == 0) {
+    if(pthread_create(&threadsState[i], NULL, doRun, (void*)this) == 0) {
 #ifdef HAVE_LIBCAP
       Utils::setThreadAffinityWithMask(threadsState[i], ntop->getPrefs()->get_other_cpu_affinity_mask());
 #endif
@@ -109,7 +110,7 @@ void ThreadPool::run() {
 
 /* **************************************************** */
 
-bool ThreadPool::queueJob(ThreadedActivity *j, bool high_priority,
+bool ThreadPool::queueJob(ThreadedActivity *j,
 			  char *path, NetworkInterface *iface) {
   QueuedThreadData *q;
   
@@ -124,11 +125,7 @@ bool ThreadPool::queueJob(ThreadedActivity *j, bool high_priority,
   }
 
   m->lock(__FILE__, __LINE__);
-  if(high_priority)
-    high_priority_threads.push(q);
-  else
-    standard_priority_threads.push(q);
-  queue_len++;
+  threads.push(q);
   pthread_cond_signal(&condvar);
   m->unlock(__FILE__, __LINE__);
 
@@ -142,22 +139,15 @@ QueuedThreadData* ThreadPool::dequeueJob(bool waitIfEmpty) {
 
   m->lock(__FILE__, __LINE__);
   if(waitIfEmpty) {
-    while((queue_len == 0) && (!isTerminating()))
+    while(threads.empty() && (!isTerminating()))
       m->cond_wait(&condvar);
   }
   
-  if((queue_len == 0) || isTerminating()) {
+  if(threads.empty() || isTerminating()) {
     q = NULL;
   } else {
-    if(high_priority_threads.size() > 0) {
-      q = high_priority_threads.front();
-      high_priority_threads.pop();
-    } else {
-      q = standard_priority_threads.front();
-      standard_priority_threads.pop();
-    }
-    
-    queue_len--;
+    q = threads.front();
+    threads.pop();
   }
 
   m->unlock(__FILE__, __LINE__);
