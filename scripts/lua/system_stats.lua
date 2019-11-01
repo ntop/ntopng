@@ -83,14 +83,14 @@ if(page == "overview") then
    local system_rowspan = 1
    local system_host_stats = ntop.systemHostStat()
 
-   if system_host_stats["cpu_load_percentage"] ~= nil then  system_rowspan = system_rowspan + 1 end
+   if system_host_stats["cpu_load"] ~= nil then  system_rowspan = system_rowspan + 1 end
    if system_host_stats["mem_total"] ~= nil then system_rowspan = system_rowspan + 1 end
 
    if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       print("<tr><th rowspan="..system_rowspan.." width=5%>"..i18n("about.system").."</th></tr>\n")
    end
 
-   if system_host_stats["cpu_load_percentage"] ~= nil then
+   if system_host_stats["cpu_load"] ~= nil then
       print("<tr><th nowrap>"..i18n("about.cpu_load").."</th><td><span id='cpu-load-pct'>...</span></td></tr>\n")
    end
    if system_host_stats["mem_total"] ~= nil then
@@ -205,8 +205,8 @@ elseif(page == "historical") then
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = table.merge({
-         {schema="system:cpu_load",            label=i18n("about.cpu_load")},
-         {schema="process:memory",             label=i18n("graphs.process_memory")},
+	    {schema="system:cpu_load",            label=i18n("about.cpu_load"), value_formatter = {"ffloat"}},
+	    {schema="process:memory",             label=i18n("graphs.process_memory")},
       }, system_schemas)
    })
 elseif((page == "alerts") and isAdministrator()) then

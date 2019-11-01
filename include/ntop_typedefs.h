@@ -669,8 +669,7 @@ typedef struct dhcp_range {
 } dhcp_range;
 
 typedef struct cpu_load_stats {
-  uint64_t active;
-  uint64_t idle;
+  float load;
 } cpu_load_stats;
 
 typedef struct grouped_alerts_counters {

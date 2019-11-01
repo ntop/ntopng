@@ -2283,23 +2283,18 @@ void Ntop::resetStats() {
 
 void Ntop::refreshCpuLoad() {
   cpu_load_stats old_stats = cpu_stats;
-  Utils::getCpuLoad(&cpu_stats);
 
-  if(old_stats.active > 0) {
-    float active = cpu_stats.active - old_stats.active;
-    float idle = cpu_stats.idle - old_stats.idle;
-    cpu_load = active * 100 / (active + idle);
-  }
+  if(Utils::getCpuLoad(&cpu_stats))
+    cpu_load = cpu_stats.load;
+  else
+    cpu_load = 0;
 }
 
 /* ******************************************* */
 
 bool Ntop::getCpuLoad(float *out) {
-  if(cpu_stats.active > 0) {
-    *out = cpu_load;
-    return(true);
-  } else
-    return(false);
+  *out = cpu_load;
+  return(true);
 }
 
 /* ******************************************* */

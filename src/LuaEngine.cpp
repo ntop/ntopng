@@ -6623,7 +6623,7 @@ static int ntop_system_host_stat(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
-  if(ntop->getCpuLoad(&cpu_load)) lua_push_float_table_entry(vm, "cpu_load_percentage", cpu_load);
+  if(ntop->getCpuLoad(&cpu_load)) lua_push_float_table_entry(vm, "cpu_load", cpu_load);
   Utils::luaMeminfo(vm);
 
   return(CONST_LUA_OK);
