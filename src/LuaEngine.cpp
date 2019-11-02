@@ -1803,6 +1803,8 @@ static int ntop_startCustomCategoriesReload(lua_State* vm) {
     return(CONST_LUA_OK);
   }
 
+  ntop->setLastInterfacenDPIReload(time(NULL));
+  
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
@@ -1897,7 +1899,6 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
   }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists reload done");
-  ntop->setLastInterfacenDPIReload(time(NULL));
   ntop->setnDPICleanupNeeded(true);
 
   lua_pushboolean(vm, true /* reload performed */);

@@ -70,6 +70,9 @@ typedef struct {
  *
  */
 class NetworkInterface : public AlertableEntity {
+ private:
+  bool ndpiReloadInProgress;
+  
  protected:
   char *ifname, *ifDescription;
   bpf_u_int32 ipv4_network_mask, ipv4_network;

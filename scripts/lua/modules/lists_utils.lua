@@ -659,11 +659,15 @@ function lists_utils.checkReloadLists()
       reload_now = forced_reload
    end
 
+   -- print("[DEBUG]  Checking reload [") if(reload_now) then print("reload now") else print("don't reload") end print("] !!!!\n")
+   
    if reload_now then
       if reloadListsNow() then
+	 -- print("[DEBUG]  Success !!!!\n")
 	 -- success
 	 ntop.delCache("ntopng.cache.reload_lists_utils")
       else
+	 -- print("[DEBUG]  ERROR !!!!\n")
 	 -- Remember to load the lists next time
 	 ntop.setCache("ntopng.cache.reload_lists_utils", "1")
       end

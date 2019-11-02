@@ -2282,8 +2282,6 @@ void Ntop::resetStats() {
 /* ******************************************* */
 
 void Ntop::refreshCpuLoad() {
-  cpu_load_stats old_stats = cpu_stats;
-
   if(Utils::getCpuLoad(&cpu_stats))
     cpu_load = cpu_stats.load;
   else
