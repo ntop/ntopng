@@ -174,6 +174,8 @@ end
 
 -- ##############################################
 
+-- @brief save the lists stats and other status to redis.
+-- @note see saveListsMetadataToRedis for user preferences information
 local function saveListsStatusToRedis(lists)
    local status = {}
 
@@ -186,6 +188,8 @@ end
 
 -- ##############################################
 
+-- @brief save the lists user preferences to redis.
+-- @note see saveListsStatusToRedis for the list status
 local function saveListsMetadataToRedis(lists)
    local metadata = {}
 
@@ -639,6 +643,21 @@ end
 -- This is necessary to avoid concurrency issues
 function lists_utils.downloadLists()
    ntop.setCache("ntopng.cache.download_lists_utils", "1")
+end
+
+-- ##############################################
+
+-- @brief Clears the lists download errors
+function lists_utils.clearErrors()
+   local lists = lists_utils.getCategoryLists()
+
+   for _, list in pairs(lists) do
+      if(list.status ~= nil) then
+	 list.status.num_errors = 0
+      end
+   end
+
+   saveListsStatusToRedis(lists)
 end
 
 -- ##############################################

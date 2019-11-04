@@ -136,6 +136,7 @@ companion_interface_utils.initCompanions()
 initCustomnDPIProtoCategories()
 
 -- housekeeping will do the actual reload...
+lists_utils.clearErrors()
 lists_utils.downloadLists()
 lists_utils.reloadLists()
 

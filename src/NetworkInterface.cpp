@@ -353,7 +353,7 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
 /* **************************************************** */
 
 void NetworkInterface::cleanShadownDPI() {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
   
   if(ndpi_struct_shadow && !ndpiReloadInProgress) {
     ndpi_exit_detection_module(ndpi_struct_shadow);
@@ -371,7 +371,7 @@ void NetworkInterface::cleanShadownDPI() {
  * 4. cleanShadownDPI()
  */
 bool NetworkInterface::startCustomCategoriesReload() {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload on %s [%p][%s]", get_name(), ndpi_struct_shadow, ndpiReloadInProgress ? "IN PROGRESS" : "");
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Started nDPI reload on %s [%p][%s]", get_name(), ndpi_struct_shadow, ndpiReloadInProgress ? "IN PROGRESS" : "");
 
   if(ndpiReloadInProgress) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
@@ -383,7 +383,7 @@ bool NetworkInterface::startCustomCategoriesReload() {
 
   /* No need to dedicate another variable for the reload, we can use the shadow itself */
   ndpi_struct_shadow = initnDPIStruct();
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload is now ready on %s [%p]",
+  ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI reload is now ready on %s [%p]",
 			       get_name(), ndpi_struct_shadow);
   return(true);
 }
@@ -2471,7 +2471,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 /* **************************************************** */
 
 void NetworkInterface::reloadCustomCategories() {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
 
   if(!ndpiReloadInProgress) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
@@ -2481,7 +2481,7 @@ void NetworkInterface::reloadCustomCategories() {
   if(ndpi_struct_shadow) {
     struct ndpi_detection_module_struct *old_struct;
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to reload custom categories [iface: %s]", get_name());
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories [iface: %s]", get_name());
     
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
@@ -2492,7 +2492,7 @@ void NetworkInterface::reloadCustomCategories() {
 
     /* Need to update the existing hosts */
     reloadHostsBlacklist();
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reload custom categories completed [iface: %s]", get_name());
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Reload custom categories completed [iface: %s]", get_name());
 
     ndpiReloadInProgress = false;
   }
