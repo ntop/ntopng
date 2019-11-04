@@ -672,9 +672,6 @@
 #define CONST_IS_TINY_FLOW_EXPORT_ENABLED          NTOPNG_PREFS_PREFIX".tiny_flows_export_enabled"
 #define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW        NTOPNG_PREFS_PREFIX".max_num_packets_per_tiny_flow"
 #define CONST_MAX_NUM_BYTES_PER_TINY_FLOW          NTOPNG_PREFS_PREFIX".max_num_bytes_per_tiny_flow"
-#define CONST_ELEPHANT_FLOW_LOCAL_TO_REMOTE_BYTES  NTOPNG_PREFS_PREFIX".elephant_flow_local_to_remote_bytes"
-#define CONST_ELEPHANT_FLOW_REMOTE_TO_LOCAL_BYTES  NTOPNG_PREFS_PREFIX".elephant_flow_remote_to_local_bytes"
-#define CONST_LONGLIVED_FLOW_DURATION              NTOPNG_PREFS_PREFIX".longlived_flow_duration"
 
 /* Exponentially Weighted Moving Average alpha config. */
 #define CONST_EWMA_ALPHA_PERCENT            NTOPNG_PREFS_PREFIX".ewma_alpha_percent"

@@ -339,19 +339,19 @@ function printAlerts()
   })
 
   prefsInputFieldPrefs(subpage_active.entries["longlived_flow_duration"].title, 
-     subpage_active.entries["longlived_flow_duration"].description,
-    "ntopng.prefs.", "longlived_flow_duration", prefs.longlived_flow_duration, 
-    "number", showElements, nil, nil, {min=1, max=60*60*24*7, tformat="mhd"})
+		       subpage_active.entries["longlived_flow_duration"].description,
+		       "ntopng.prefs.", "longlived_flow_duration", 12 * 60 * 60 --[[ 12 hours --]],
+		       "number", showElements, nil, nil, {min=1, max=60*60*24*7, tformat="mhd"})
 
   prefsInputFieldPrefs(subpage_active.entries["elephant_flow_local_to_remote_bytes"].title, 
-     subpage_active.entries["elephant_flow_local_to_remote_bytes"].description,
-    "ntopng.prefs.", "elephant_flow_local_to_remote_bytes", prefs.elephant_flow_local_to_remote_bytes, 
-    "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
+		       subpage_active.entries["elephant_flow_local_to_remote_bytes"].description,
+		       "ntopng.prefs.", "elephant_flow_local_to_remote_bytes", 1024 * 1024 * 1024 --[[ 1 GB --]],
+		       "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
 
   prefsInputFieldPrefs(subpage_active.entries["elephant_flow_remote_to_local_bytes"].title, 
-     subpage_active.entries["elephant_flow_remote_to_local_bytes"].description,
-    "ntopng.prefs.", "elephant_flow_remote_to_local_bytes", prefs.elephant_flow_remote_to_local_bytes, 
-    "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
+		       subpage_active.entries["elephant_flow_remote_to_local_bytes"].description,
+		       "ntopng.prefs.", "elephant_flow_remote_to_local_bytes",  1024 * 1024 * 1024 --[[ 1 GB --]],
+		       "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
 
   print('<tr id="row_alerts_informative_header" ')
   if (showElements == false) then print(' style="display:none;"') end
