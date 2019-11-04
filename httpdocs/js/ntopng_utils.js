@@ -208,7 +208,7 @@ function ffloat(value) {
     if(typeof(value) === "undefined")
       return "-";
 
-    var x = Math.round(value * 10) / 10.;
+    var x = Math.round(value * 100) / 100.;
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 

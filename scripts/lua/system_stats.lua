@@ -205,7 +205,7 @@ elseif(page == "historical") then
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = table.merge({
-	    {schema="system:cpu_load",            label=i18n("about.cpu_load"), value_formatter = {"ffloat"}},
+	    {schema="system:cpu_load",            label=i18n("about.cpu_load"), metrics_labels = {i18n("about.cpu_load")}, value_formatter = {"ffloat"}},
 	    {schema="process:memory",             label=i18n("graphs.process_memory")},
       }, system_schemas)
    })
