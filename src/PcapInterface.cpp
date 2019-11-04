@@ -343,7 +343,7 @@ static void* packetPollLoop(void* ptr) {
 
 
   /* Stay active for some more time to make sure scripts are working */
-  sleep(30);
+  if(iface->read_from_pcap_dump()) sleep(30);
   iface->processingCompleted();
   
 #ifdef HAVE_TEST_MODE
