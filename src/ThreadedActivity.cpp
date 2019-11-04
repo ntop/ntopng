@@ -340,6 +340,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
+      systemTaskRunning = true;
     }
   }
   

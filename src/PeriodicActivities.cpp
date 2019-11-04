@@ -115,17 +115,17 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   
   static activity_descr ad[] = {
 				{ SECOND_SCRIPT_PATH,             1, standard_priority_pool, false, false },
-				{ HT_STATE_UPDATE_SCRIPT_PATH,    5, high_priority_pool, false, true },
-				{ STATS_UPDATE_SCRIPT_PATH,       5, high_priority_pool, false, false },
-				{ MINUTE_SCRIPT_PATH,            60, no_priority_pool, false, false },
-				{ FIVE_MINUTES_SCRIPT_PATH,     300, no_priority_pool, false, false },
-				{ HOURLY_SCRIPT_PATH,          3600, no_priority_pool, false, false },
-				{ DAILY_SCRIPT_PATH,          86400, no_priority_pool, true,  false },
-				{ HOUSEKEEPING_SCRIPT_PATH,       3, standard_priority_pool,  false, false },
-				{ DISCOVER_SCRIPT_PATH,           5, no_priority_pool, false, false },
+				{ HT_STATE_UPDATE_SCRIPT_PATH,    5, high_priority_pool,     false, true },
+				{ STATS_UPDATE_SCRIPT_PATH,       5, high_priority_pool,     false, false },
+				{ MINUTE_SCRIPT_PATH,            60, no_priority_pool,       false, false },
+				{ FIVE_MINUTES_SCRIPT_PATH,     300, no_priority_pool,       false, false },
+				{ HOURLY_SCRIPT_PATH,          3600, no_priority_pool,       false, false },
+				{ DAILY_SCRIPT_PATH,          86400, no_priority_pool,       true,  false },
+				{ HOUSEKEEPING_SCRIPT_PATH,       3, standard_priority_pool, false, false },
+				{ DISCOVER_SCRIPT_PATH,           5, no_priority_pool,       false, false },
 				{ TIMESERIES_SCRIPT_PATH,         5, standard_priority_pool, false, false },
 #ifdef HAVE_NEDGE
-				{ PINGER_SCRIPT_PATH,             5, no_priority_pool, false, false },
+				{ PINGER_SCRIPT_PATH,             5, no_priority_pool,       false, false },
 #endif
 				{ NULL, 0, NULL, false, false }
   };
