@@ -218,6 +218,7 @@ function rrd_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config
       rrd_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
     end
 
+    tprint(config.host_ndpi_timeseries_creation)
     if(config.host_ndpi_timeseries_creation == "per_protocol" or config.host_ndpi_timeseries_creation == "both") then
       rrd_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose)
     end
