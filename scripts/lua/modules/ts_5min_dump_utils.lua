@@ -372,39 +372,6 @@ end
 
 -- ########################################################
 
-function ts_dump.update_user_scripts_stats(when, ifstats, verbose)
-  local ifid = ifstats.id
-
-  local all_scripts = {
-    flow = user_scripts.load(user_scripts.script_types.flow, ifid, "flow"),
-    host = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "host"),
-    interface = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "interface"),
-    network = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "network"),
-    syslog = user_scripts.load(user_scripts.script_types.syslog, ifid, "syslog"),
-  }
-
-  for subdir, rv in pairs(all_scripts) do
-    local total = {tot_elapsed = 0, tot_num_calls = 0}
-
-    for modkey, modinfo in pairs(rv.modules) do
-      local stats = user_scripts.getAccumulatedStats(ifid, subdir, modkey)
-
-      if(stats) then
-        ts_utils.append("user_script:duration", {ifid = ifstats.id, user_script = modkey, subdir = subdir, num_ms = stats.tot_elapsed * 1000}, when, verbose)
-        ts_utils.append("user_script:num_calls", {ifid = ifstats.id, user_script = modkey, subdir = subdir, num_calls = stats.tot_num_calls}, when, verbose)
-
-        total.tot_elapsed = total.tot_elapsed + stats.tot_elapsed
-        total.tot_num_calls = total.tot_num_calls + stats.tot_num_calls
-      end
-    end
-
-    ts_utils.append("user_script:total_duration", {ifid = ifstats.id, subdir = subdir, num_ms = total.tot_elapsed * 1000}, when, verbose)
-    ts_utils.append("user_script:total_num_calls", {ifid = ifstats.id, subdir = subdir, num_calls = total.tot_num_calls}, when, verbose)
-  end
-end
-
--- ########################################################
-
 function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
   -- Crunch additional stats for local hosts only
   if config.host_rrd_creation ~= "0" then
@@ -497,8 +464,6 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, v
   end
 
   --tprint("Dump of ".. num_processed_hosts .. " hosts: completed in " .. (os.time() - dump_tstart) .. " seconds")
-
-  ts_dump.update_user_scripts_stats(when, ifstats, verbose)
 
   if is_rrd_creation_enabled then
     if config.l2_device_rrd_creation ~= "0" then

@@ -15,9 +15,6 @@ placed under the `/usr/share/ntopng/user_scripts/flows` directory:
   -- #################################################################
 
   local script = {
-    -- A unique key for the script
-    key = "flow_logger",
-
     -- Hooks are defined below
     hooks = {},
   }

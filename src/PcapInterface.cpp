@@ -337,10 +337,15 @@ static void* packetPollLoop(void* ptr) {
     iface->guessAllBroadcastDomainHosts();
     iface->set_read_from_pcap_dump_done();
   }
-
+  
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_name());
 
+
+  /* Stay active for some more time to make sure scripts are working */
+  if(iface->read_from_pcap_dump()) sleep(30);
+  iface->processingCompleted();
+  
 #ifdef HAVE_TEST_MODE
   char test_path[MAX_PATH];
   const char * test_script_path = ntop->getPrefs()->get_test_script_path();

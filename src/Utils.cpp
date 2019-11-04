@@ -3165,16 +3165,14 @@ bool Utils::maskHost(bool isLocalIP) {
 
 bool Utils::getCpuLoad(cpu_load_stats *out) {
 #if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
-  long unsigned int user, nice, system, idle, iowait, irq, softirq;
+  float load;
   FILE *fp;
 
-  if((fp = fopen("/proc/stat", "r"))) {
-    fscanf(fp,"%*s %lu %lu %lu %lu %lu %lu %lu",
-     &user, &nice, &system, &idle, &iowait, &irq, &softirq);
+  if((fp = fopen("/proc/loadavg", "r"))) {
+    fscanf(fp,"%f", &load);
     fclose(fp);
 
-    out->active = user + nice + system + iowait + irq + softirq;
-    out->idle = idle;
+    out->load = load;
 
     return(true);
   }

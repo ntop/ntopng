@@ -930,7 +930,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       chart.yAxis1_formatter = value_formatter;
 
       var second_axis_series = series.filter(function(d) { return(d.axis == 2); });
-      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series, visualization.value_formatter, data.statistics);
+      var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series, visualization.value_formatter2 || visualization.value_formatter, data.statistics);
       var value_formatter2 = formatter2[0];
       chart.yAxis2.tickFormat(value_formatter2);
       chart.yAxis2_formatter = value_formatter2;

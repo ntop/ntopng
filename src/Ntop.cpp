@@ -2282,24 +2282,17 @@ void Ntop::resetStats() {
 /* ******************************************* */
 
 void Ntop::refreshCpuLoad() {
-  cpu_load_stats old_stats = cpu_stats;
-  Utils::getCpuLoad(&cpu_stats);
-
-  if(old_stats.active > 0) {
-    float active = cpu_stats.active - old_stats.active;
-    float idle = cpu_stats.idle - old_stats.idle;
-    cpu_load = active * 100 / (active + idle);
-  }
+  if(Utils::getCpuLoad(&cpu_stats))
+    cpu_load = cpu_stats.load;
+  else
+    cpu_load = 0;
 }
 
 /* ******************************************* */
 
 bool Ntop::getCpuLoad(float *out) {
-  if(cpu_stats.active > 0) {
-    *out = cpu_load;
-    return(true);
-  } else
-    return(false);
+  *out = cpu_load;
+  return(true);
 }
 
 /* ******************************************* */
@@ -2323,4 +2316,13 @@ void Ntop::reloadJA3Hashes() {
   malicious_ja3_shadow = malicious_ja3;
   malicious_ja3 = new_malicious_ja3;
   new_malicious_ja3 = new std::set<std::string>();
+}
+
+/* ******************************************* */
+
+/* This ensures that a network interface is not still using the old ndpi struct
+ * (stored in ndpi_struct_shadow) while a reload is in progress.
+ */
+bool Ntop::canSafelyReloadnDPI(time_t now) {
+  return((now - last_ndpi_reload) >= MIN_NDPI_RELOAD_INTERVAL);
 }

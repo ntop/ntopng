@@ -38,7 +38,6 @@ end
 -- #################################################################
 
 local script = {
-  key = "slow_purge",
   default_value = "slow_purge;gt;50", -- 50%
 
   hooks = {

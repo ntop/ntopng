@@ -10,7 +10,6 @@ Here is the skeleton for a generic user script:
   -- #################################################################
 
   local script = {
-    key = "a_unique_key",
     hooks = {},
 
     -- other script attributes ...
@@ -29,7 +28,6 @@ Here is the skeleton for a generic user script:
 
 A user script must expose the following attributes:
 
-  - `key`: a unique key for the script
   - `hooks`: a map `hook_name -> callback` which defines on which events
     the callback should be invoked. The scripts must register at least one
     hook. The list of available hooks depends on the script type, check out

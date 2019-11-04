@@ -8,8 +8,6 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
-   key = "mud",
-
    -- NOTE: hooks defined below
    hooks = {},
 

@@ -53,7 +53,6 @@ Flow::Flow(NetworkInterface *_iface,
   alerted_status = status_normal;
   predominant_status = status_normal;
 
-  alert_rowid = -1;
   detection_completed = update_flow_port_stats = false;
   fully_processed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
@@ -304,29 +303,7 @@ Flow::~Flow() {
 
 /* *************************************** */
 
-bool Flow::triggerAlerts() const {
-  /* If a flow involves at least a local endpoint,
-     then that endpoint may have disabled alerts.
-     When there's a local endpoint with alerts disabled,
-     we do not generate flow alerts having it as an endpoint as one
-     wants to explicitly silence them */
-
-  bool cli_trigger_alerts, srv_trigger_alerts;
-
-  /* client is either remote, or has alerts enabled... */
-  cli_trigger_alerts = !cli_host || !cli_host->isLocalHost() || cli_host->triggerAlerts();
-  /* server is either remote, or has alerts enabled.. */
-  srv_trigger_alerts = !srv_host || !srv_host->isLocalHost() || srv_host->triggerAlerts();
-
-  return cli_trigger_alerts && srv_trigger_alerts;
-}
-
-/* *************************************** */
-
 void Flow::dumpFlowAlert() {
-  if(!triggerAlerts())
-    return;
-
   if(hasPendingAlert()) {
     if(cli_host && srv_host) {
       bool cli_thresh, srv_thresh;
@@ -341,7 +318,7 @@ void Flow::dumpFlowAlert() {
 
     /* Dump alert */
     is_alerted = true;
-    iface->getAlertsManager()->storeFlowAlert(this, alerted_status, alert_type, alert_level, alert_status_info);
+    iface->getAlertsManager()->enqueueFlowAlert(this, alerted_status, alert_type, alert_level, alert_status_info);
 
     if(!idle()) {
       /* If idle() and not alerted, the interface
@@ -844,8 +821,6 @@ char* Flow::print(char *buf, u_int buf_len) const {
   char buf1[32], buf2[32], buf3[32], buf4[32], pbuf[32], tcp_buf[64];
   buf[0] = '\0';
 
-  if((cli_host == NULL) || (srv_host == NULL)) return(buf);
-
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
   char shapers[64];
 
@@ -1052,6 +1027,8 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
   int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
   Vlan *vl;
   NetworkStats *cli_network_stats;
+  Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
+  Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
 
   if(update_flow_port_stats) {
     bool dump_flow = false;
@@ -1140,30 +1117,30 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     if(diff_sent_bytes || diff_rcvd_bytes) {
       /* Update L2 Device stats */
 
-      if(srv_host->get_mac()) {
+      if(srv_mac) {
 #ifdef HAVE_NEDGE
-        srv_host->getMac()->incSentStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
-        srv_host->getMac()->incRcvdStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
+        srv_mac->incSentStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
+        srv_mac->incRcvdStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
-	  srv_host->getMac()->incnDPIStats(tv->tv_sec, get_protocol_category(),
-					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+	  srv_mac->incnDPIStats(tv->tv_sec, get_protocol_category(),
+				diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+				diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
 
         }
       }
 
-      if(cli_host->getMac()) {
+      if(cli_mac) {
 #ifdef HAVE_NEDGE
-        cli_host->getMac()->incSentStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
-        cli_host->getMac()->incRcvdStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
+        cli_mac->incSentStats(tv->tv_sec, diff_sent_packets, diff_sent_bytes);
+        cli_mac->incRcvdStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
 #endif
 
         if(ntop->getPrefs()->areMacNdpiStatsEnabled()) {
-          cli_host->getMac()->incnDPIStats(tv->tv_sec, get_protocol_category(),
-					   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-					   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+          cli_mac->incnDPIStats(tv->tv_sec, get_protocol_category(),
+				diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+				diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
         }
       }
 
@@ -1323,10 +1300,11 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 	if(cli_host->get_host_pool() != srv_host->get_host_pool())
 	  iface->topProtocolsAdd(srv_host->get_host_pool(), stats_protocol, diff_bytes);
 
-	if(cli_host->get_mac() && srv_host->getMac()) {
-	  iface->topMacsAdd(cli_host->getMac(), stats_protocol, diff_bytes);
-	  iface->topMacsAdd(srv_host->getMac(), stats_protocol, diff_bytes);
-	}
+	if(cli_mac)
+	  iface->topMacsAdd(cli_mac, stats_protocol, diff_bytes);
+
+	if(srv_mac)
+	  iface->topMacsAdd(srv_mac, stats_protocol, diff_bytes);
       }
 
       /* Just to be safe */
@@ -1496,7 +1474,7 @@ void Flow::update_pools_stats(const struct timeval *tv,
     /* Server host */
     if(srv_host
 #ifdef HAVE_NEDGE
-      && srv_host->getMac() && (srv_host->getMac()->locate() == located_on_lan_interface)
+       && srv_host->getMac()  && (srv_host->getMac()->locate() == located_on_lan_interface)
 #endif
     ) {
       srv_host_pool_id = srv_host->get_host_pool();
@@ -3850,12 +3828,9 @@ void Flow::lua_get_status(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "flow.status", getPredominantStatus());
   lua_push_uint64_table_entry(vm, "status_map", status_map.get());
 
-  if(is_alerted)
+  if(is_alerted) {
+    lua_push_bool_table_entry(vm, "flow.alerted", true);
     lua_push_uint64_table_entry(vm, "alerted_status", alerted_status);
-
-  if(isFlowAlerted()) {
-    lua_push_bool_table_entry(vm, "flow.alerted", isFlowAlerted());
-    lua_push_uint64_table_entry(vm, "flow.alert_rowid", alert_rowid);
   }
 }
 
@@ -4390,23 +4365,19 @@ bool Flow::hasDissectedTooManyPackets() {
 
 /* ***************************************************** */
 
-void Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json) {
+bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json) {
   if(isFlowAlerted() || hasPendingAlert()) {
     /* Triggering multiple alerts is not supported */
-    return;
-  }
-
-  if(cli_host && srv_host) {
-    if(cli_host->isDisabledFlowAlertType(status) || srv_host->isDisabledFlowAlertType(status)) {
-      /* TODO: eventually increment a counter of untriggered alerts */
-      return;
-    }
+    return(false);
   }
 
   alert_status_info = alert_json ? strdup(alert_json) : NULL;
   alerted_status = status;
   alert_level = severity;
   alert_type = atype; /* set this as the last thing to avoid concurrency issues */
+
+  /* Success */
+  return(true);
 }
 
 /* *************************************** */

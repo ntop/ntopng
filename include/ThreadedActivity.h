@@ -50,11 +50,11 @@ class ThreadedActivity {
   void updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration);
   
  public:
-  ThreadedActivity(const char* _path,
+  ThreadedActivity(const char* _path,		   
 		   u_int32_t _periodicity_seconds = 0,
 		   bool _align_to_localtime = false,
 		   bool _exclude_viewed_interfaces = false,
-		   u_int8_t thread_pool_size = 1);
+		   ThreadPool* _pool = NULL);
   ~ThreadedActivity();
 
   const char *activityPath() { return path; };

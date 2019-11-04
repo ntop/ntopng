@@ -36,26 +36,16 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 				   u_int32_t _periodicity_seconds,
 				   bool _align_to_localtime,
 				   bool _exclude_viewed_interfaces,
-				   u_int8_t thread_pool_size) {
+				   ThreadPool *_pool) {
   terminating = false;
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
   exclude_viewed_interfaces = _exclude_viewed_interfaces;
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
-  interfaceTasksRunning = (bool *) calloc(MAX_NUM_DEFINED_INTERFACES, sizeof(bool));
-  threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_DEFINED_INTERFACES]();
-    
-
-  if(thread_pool_size > 1) {
-    pool = new (std::nothrow) ThreadPool(thread_pool_size);
-
-    if(pool == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of resources");
-      throw -1;
-    }
-  } else
-    pool = NULL;
+  interfaceTasksRunning = (bool *) calloc(MAX_NUM_INTERFACE_IDS, sizeof(bool));
+  threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_INTERFACE_IDS]();
+  pool = _pool;
   
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Creating ThreadedActivity '%s'", this, path);
@@ -69,7 +59,7 @@ ThreadedActivity::~ThreadedActivity() {
   map<int, ThreadedActivityStats*>::const_iterator it;
 
   if(threaded_activity_stats) {
-    for(u_int i = 0; i < MAX_NUM_DEFINED_INTERFACES; i++) {
+    for(u_int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
       if(threaded_activity_stats[i])
 	delete threaded_activity_stats[i];
     }
@@ -78,8 +68,6 @@ ThreadedActivity::~ThreadedActivity() {
   }
 
   shutdown();
-
-  if(pool) delete pool;
 
   if(interfaceTasksRunning)
     free(interfaceTasksRunning);
@@ -107,7 +95,7 @@ bool ThreadedActivity::isTerminating() {
 void ThreadedActivity::setInterfaceTaskRunning(NetworkInterface *iface, bool running) {
   const int iface_id = iface->get_id();
 
-  if((iface_id >= 0) && (iface_id < MAX_NUM_DEFINED_INTERFACES))
+  if((iface_id >= 0) && (iface_id < MAX_NUM_INTERFACE_IDS))
     interfaceTasksRunning[iface_id] = running;
 }
 
@@ -116,7 +104,7 @@ void ThreadedActivity::setInterfaceTaskRunning(NetworkInterface *iface, bool run
 bool ThreadedActivity::isInterfaceTaskRunning(NetworkInterface *iface) {
   const int iface_id = iface->get_id();
 
-  if((iface_id >= 0) && (iface_id < MAX_NUM_DEFINED_INTERFACES))
+  if((iface_id >= 0) && (iface_id < MAX_NUM_INTERFACE_IDS))
     return interfaceTasksRunning[iface_id];
 
   return false;
@@ -127,7 +115,7 @@ bool ThreadedActivity::isInterfaceTaskRunning(NetworkInterface *iface) {
 void ThreadedActivity::activityBody() {
   if(periodicity == 0)       /* The script is not periodic */
     aperiodicActivityBody();
-  else if(!pool) /* Accurate time computation with micro-second-accurate sleep */
+  else if(periodicity == 1) /* Accurate time computation with micro-second-accurate sleep */
     uSecDiffPeriodicActivityBody();
   else
     periodicActivityBody();
@@ -136,16 +124,18 @@ void ThreadedActivity::activityBody() {
 /* ******************************************* */
 
 void ThreadedActivity::run() {
-  bool pcap_dump_only = true;
+  bool run_script = false;
 
   for(int i = 0; i < ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface = ntop->getInterface(i);
-    if(iface && iface->getIfType() != interface_type_PCAP_DUMP)
-      pcap_dump_only = false;
+
+    if(iface->isProcessingPackets()) {
+       run_script = true;
+       break;
+    }
   }
-  /* Don't schedule periodic activities it we are processing pcap files only. */
-  if (pcap_dump_only)
-    return;
+
+  if(!run_script) return;
 
   if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
     thread_started = true;
@@ -346,6 +336,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
 	     ntop->get_callbacks_dir(), path);
     
     if(stat(script_path, &buf) == 0) {
+      systemTaskRunning = true;
       pool->queueJob(this, script_path, NULL);
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
@@ -362,10 +353,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
       NetworkInterface *iface = ntop->getInterface(i);
 
       if(iface
-	 /* Don't schedule periodic activities for Interfaces associated to pcap files.
-	    There's no need to run them as they will create files
-	    and calculate stats assuming live traffic. */
-	 && iface->getIfType() != interface_type_PCAP_DUMP
+	 && iface->isProcessingPackets()
 	 && !isInterfaceTaskRunning(iface)) {
         pool->queueJob(this, script_path, iface);
         setInterfaceTaskRunning(iface, true);

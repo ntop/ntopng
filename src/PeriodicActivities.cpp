@@ -24,9 +24,9 @@
 typedef struct _activity_descr {
   const char *path;
   u_int32_t periodicity;
-  bool align_to_localtime;
+  ThreadPool *pool;
+  bool align_to_localtime;  
   bool exclude_viewed_interfaces;
-  u_int8_t thread_pool_size;
 } activity_descr;
 
 /* ******************************************* */
@@ -48,6 +48,10 @@ PeriodicActivities::~PeriodicActivities() {
       num_activities--;
     }
   }
+
+  delete high_priority_pool;
+  delete standard_priority_pool;
+  delete no_priority_pool;
 }
 
 /* ******************************************* */
@@ -76,7 +80,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
 #endif
   ThreadedActivity *startup_activity;
-  static u_int8_t num_threads = DEFAULT_THREAD_POOL_SIZE;
+  u_int8_t num_threads = DEFAULT_THREAD_POOL_SIZE;
     
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
 
@@ -104,22 +108,26 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 
   if(num_threads > MAX_THREAD_POOL_SIZE)
     num_threads = MAX_THREAD_POOL_SIZE;
+
+  high_priority_pool     = new ThreadPool(true,  ntop->get_num_interfaces());
+  standard_priority_pool = new ThreadPool(false, ntop->get_num_interfaces());
+  no_priority_pool       = new ThreadPool(false, num_threads);
   
   static activity_descr ad[] = {
-    { SECOND_SCRIPT_PATH,             1, false, false, 1           },
-    { HT_STATE_UPDATE_SCRIPT_PATH,    5, false, true,  num_threads },
-    { STATS_UPDATE_SCRIPT_PATH,       5, false, false, num_threads },
-    { MINUTE_SCRIPT_PATH,            60, false, false, num_threads },
-    { FIVE_MINUTES_SCRIPT_PATH,     300, false, false, num_threads },
-    { HOURLY_SCRIPT_PATH,          3600, false, false, num_threads },
-    { DAILY_SCRIPT_PATH,          86400, true,  false, num_threads },
-    { HOUSEKEEPING_SCRIPT_PATH,       3, false, false, 1           },
-    { DISCOVER_SCRIPT_PATH,           5, false, false, 1           },
-    { TIMESERIES_SCRIPT_PATH,         5, false, false, 1           },
+				{ SECOND_SCRIPT_PATH,             1, standard_priority_pool, false, false },
+				{ HT_STATE_UPDATE_SCRIPT_PATH,    5, high_priority_pool,     false, true },
+				{ STATS_UPDATE_SCRIPT_PATH,       5, high_priority_pool,     false, false },
+				{ MINUTE_SCRIPT_PATH,            60, no_priority_pool,       false, false },
+				{ FIVE_MINUTES_SCRIPT_PATH,     300, no_priority_pool,       false, false },
+				{ HOURLY_SCRIPT_PATH,          3600, no_priority_pool,       false, false },
+				{ DAILY_SCRIPT_PATH,          86400, no_priority_pool,       true,  false },
+				{ HOUSEKEEPING_SCRIPT_PATH,       3, standard_priority_pool, false, false },
+				{ DISCOVER_SCRIPT_PATH,           5, no_priority_pool,       false, false },
+				{ TIMESERIES_SCRIPT_PATH,         5, standard_priority_pool, false, false },
 #ifdef HAVE_NEDGE
-    { PINGER_SCRIPT_PATH,             5, false, false, 1           },
+				{ PINGER_SCRIPT_PATH,             5, no_priority_pool,       false, false },
 #endif
-    { NULL, 0, false}
+				{ NULL, 0, NULL, false, false }
   };
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Each periodic activity script will use %u threads", num_threads);
@@ -131,7 +139,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 						d->periodicity,
 						d->align_to_localtime,
 						d->exclude_viewed_interfaces,
-						d->thread_pool_size);
+						d->pool);
     if(ta) {
       activities[num_activities++] = ta;
       ta->run();

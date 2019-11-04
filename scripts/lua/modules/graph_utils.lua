@@ -267,10 +267,13 @@ end
 -- ########################################################
 
 local function getEntryStep(schema_name)
+   if(starts(schema_name, "custom:") and (getCustomSchemaStep ~= nil)) then
+      return(getCustomSchemaStep(schema_name))
+   end
+
    if(starts(schema_name, "top:")) then
       schema_name = split(schema_name, "top:")[2]
    end
-   -- TODO handle custom schemas?
 
    local schema_obj = ts_utils.getSchema(schema_name)
 

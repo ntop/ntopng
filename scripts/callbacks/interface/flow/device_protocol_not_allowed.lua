@@ -8,8 +8,6 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
-  key = "device_protocol_not_allowed",
-
   -- NOTE: hooks defined below
   hooks = {},
 

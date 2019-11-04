@@ -174,6 +174,8 @@ end
 
 -- ##############################################
 
+-- @brief save the lists stats and other status to redis.
+-- @note see saveListsMetadataToRedis for user preferences information
 local function saveListsStatusToRedis(lists)
    local status = {}
 
@@ -186,6 +188,8 @@ end
 
 -- ##############################################
 
+-- @brief save the lists user preferences to redis.
+-- @note see saveListsStatusToRedis for the list status
 local function saveListsMetadataToRedis(lists)
    local metadata = {}
 
@@ -643,6 +647,21 @@ end
 
 -- ##############################################
 
+-- @brief Clears the lists download errors
+function lists_utils.clearErrors()
+   local lists = lists_utils.getCategoryLists()
+
+   for _, list in pairs(lists) do
+      if(list.status ~= nil) then
+	 list.status.num_errors = 0
+      end
+   end
+
+   saveListsStatusToRedis(lists)
+end
+
+-- ##############################################
+
 -- This is run in housekeeping.lua
 function lists_utils.checkReloadLists()
    local forced_reload = (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")
@@ -659,11 +678,15 @@ function lists_utils.checkReloadLists()
       reload_now = forced_reload
    end
 
+   -- print("[DEBUG]  Checking reload [") if(reload_now) then print("reload now") else print("don't reload") end print("] !!!!\n")
+   
    if reload_now then
       if reloadListsNow() then
+	 -- print("[DEBUG]  Success !!!!\n")
 	 -- success
 	 ntop.delCache("ntopng.cache.reload_lists_utils")
       else
+	 -- print("[DEBUG]  ERROR !!!!\n")
 	 -- Remember to load the lists next time
 	 ntop.setCache("ntopng.cache.reload_lists_utils", "1")
       end

@@ -20,7 +20,6 @@ local flow_consts = require "flow_consts"
 local user_scripts = require "user_scripts"
 
 local store_alerts_queue = "ntopng.push_alerts_queue"
-local inactive_hosts_hash_key = "ntopng.prefs.alerts.ifid_%d.inactive_hosts_alerts"
 local shaper_utils = nil
 
 if(ntop.isnEdge()) then
@@ -861,11 +860,9 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
    local ifid = interface.getId()
    local trigger_alerts_checked
    local cur_bitmap
-   local host_bitmap_key
 
    if(entity_type == "host") then
-      host_bitmap_key = string.format("ntopng.prefs.alerts.ifid_%d.disabled_status.host_%s", ifid, entity_value)
-      cur_bitmap = tonumber(ntop.getPref(host_bitmap_key)) or 0
+      cur_bitmap = alerts_api.getHostDisabledStatusBitmap(ifid, entity_value)
    end
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
@@ -896,9 +893,8 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
          end
 
          if(bitmap ~= cur_bitmap) then
-           ntop.setPref(host_bitmap_key, string.format("%u", bitmap))
+           alerts_api.setHostDisabledStatusBitmap(ifid, entity_value, bitmap)
            cur_bitmap = bitmap
-           interface.reloadHostDisableFlowAlertTypes(entity_value)
          end
       end
    else
@@ -1240,7 +1236,11 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
        <form method="post">
        <br>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-       <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th><th class="text-center" width=5%>]] print(i18n("chart")) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
+       <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th>]]
+      if(tab == "min") then
+         print[[<th class="text-center" width=5%>]] print(i18n("chart")) print[[</th>]]
+      end
+      print[[<th width=20%>]] print(i18n("alerts_thresholds_config.thresholds_single_source", {source=firstToUpper(entity_type),alt_name=ternary(alt_name ~= nil, alt_name, alert_source)})) print[[</th><th width=20%>]] print(i18n("alerts_thresholds_config.common_thresholds_local_sources", {source=label}))
       print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_latest_run")) print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
@@ -1273,10 +1273,12 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          print("<tr><td><b>".. i18n(gui_conf.i18n_title) .."</b><br>")
          print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
 
-         print("<td class='text-center'>")
-         if(ts_utils.exists("user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type})) then
-            print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
-               mod_k..'&subdir='..entity_type..'"><i class="fa fa-area-chart fa-lg"></i></a>')
+         if(tab == "min") then
+            print("<td class='text-center'>")
+            if ts_utils.exists("elem_user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type}) then
+               print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
+                  mod_k..'&subdir='..entity_type..'"><i class="fa fa-area-chart fa-lg"></i></a>')
+            end
          end
 
          for _, prefix in pairs({"", "global_"}) do
@@ -2804,9 +2806,10 @@ function processAlertNotifications(now, periodic_frequency, force_export)
         message.table_name = nil
         message = table.merge(message, res[1])
 
-	-- silly but necessary due to the AlertsManager::notifyFlowAlert
-	message.alert_entity = alert_consts.alert_entities.flow.entity_id -- silly but necessary due to the AlertsManager::notifyFlowAlert
+	-- Silly but necessary due to the notifyFlowAlert
+	message.alert_entity = alert_consts.alert_entities.flow.entity_id
 	message.alert_entity_val = "flow" 
+
         json_message = json.encode(message)
       end
 

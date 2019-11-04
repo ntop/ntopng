@@ -16,6 +16,7 @@ local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")
 local json = require("dkjson")
+local alerts_api = require("alerts_api")
 
 if ntop.isPro() then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -34,6 +35,7 @@ local alerted_status_msg
 local alerted_custom_severity
 local predominant_status
 local recalculate_predominant_status
+local hosts_disabled_status
 
 -- Save them as they are overridden
 local c_flow_set_status = flow.setStatus
@@ -57,7 +59,12 @@ end
 function setup()
    if do_trace then print("flow.lua:setup() called\n") end
 
-   available_modules = user_scripts.load(user_scripts.script_types.flow, interface.getId(), "flow", nil, nil, do_benchmark)
+   local ifid = interface.getId()
+
+   -- Load the disabled hosts status
+   hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
+
+   available_modules = user_scripts.load(user_scripts.script_types.flow, ifid, "flow", nil, nil, do_benchmark)
 
    -- Reorganize the modules to optimize lookup by L4 protocol
    -- E.g. l4_hooks = {tcp -> {periodicUpdate -> {check_tcp_retr}}, other -> {protocolDetected -> {mud, score}}}
@@ -119,6 +126,48 @@ local function augumentFlowStatusInfo(flow_info, flow_status)
       -- NOTE: this information is parsed by getFlowStatusInfo()
       flow_status["icmp"] = flow.getICMPStatusInfo()
    end
+end
+
+-- #################################################################
+
+local function triggerFlowAlert(info)
+   local cli_key = hostinfo2hostkey(hostkey2hostinfo(info["cli.ip"]), nil, true --[[ force VLAN]])
+   local srv_key = hostinfo2hostkey(hostkey2hostinfo(info["srv.ip"]), nil, true --[[ force VLAN]])
+   local cli_disabled_status = hosts_disabled_status[cli_key] or 0
+   local srv_disabled_status = hosts_disabled_status[srv_key] or 0
+   local status_id = alerted_status.status_id
+
+   -- Ensure that this status was not disabled by the user on the client/server
+   if(((cli_disabled_status ~= 0) and (ntop.bitmapIsSet(cli_disabled_status, status_id))) or
+      ((srv_disabled_status ~= 0) and (ntop.bitmapIsSet(srv_disabled_status, status_id)))) then
+
+      if do_trace then
+         traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format(
+            "Not triggering flow alert for status %u [cli_bitmap: %s/%d][srv_bitmap: %s/%d]",
+            status_id, cli_key, cli_disabled_status, srv_key, srv_disabled_status))
+      end
+
+      return(false)
+   end
+
+   if do_trace then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("flow.triggerAlert(type=%s, severity=%s)",
+         alertTypeRaw(alerted_status.alert_type.alert_id), alertSeverityRaw(alerted_status.alert_severity.severity_id)))
+   end
+
+   -- The message can be either a table or a localized string message.
+   -- When using tables the status can possibly be augumented with augumentFlowStatusInfo
+   alerted_status_msg = alerted_status_msg or {}
+
+   if(type(alerted_status_msg) == "table") then
+      augumentFlowStatusInfo(info, alerted_status_msg)
+
+      -- Need to convert to JSON
+      alerted_status_msg = json.encode(alerted_status_msg)
+   end
+
+   return(flow.triggerAlert(status_id, alerted_status.alert_type.alert_id,
+      alerted_custom_severity or alerted_status.alert_severity.severity_id, alerted_status_msg))
 end
 
 -- #################################################################
@@ -199,24 +248,7 @@ local function call_modules(l4_proto, mod_fn)
    end
 
    if(alerted_status ~= nil) then
-      if do_trace then
-         traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("flow.triggerAlert(type=%s, severity=%s)",
-            alertTypeRaw(alerted_status.alert_type.alert_id), alertSeverityRaw(alerted_status.alert_severity.severity_id)))
-      end
-
-      -- The message can be either a table or a localized string message.
-      -- When using tables the status can possibly be augumented with augumentFlowStatusInfo
-      alerted_status_msg = alerted_status_msg or {}
-
-      if(type(alerted_status_msg) == "table") then
-         augumentFlowStatusInfo(info, alerted_status_msg)
-
-         -- Need to convert to JSON
-         alerted_status_msg = json.encode(alerted_status_msg)
-      end
-
-      flow.triggerAlert(alerted_status.status_id, alerted_status.alert_type.alert_id,
-         alerted_custom_severity or alerted_status.alert_severity.severity_id, alerted_status_msg)
+      triggerFlowAlert(info)
    end
 
    return(rv)

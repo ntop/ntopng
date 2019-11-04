@@ -34,6 +34,12 @@ end
 
 -- ##############################################
 
+local function getFlowAlertEventQueue(ifid)
+  return string.format("ntopng.cache.ifid_%d.flow_alerts_events_queue", ifid)
+end
+
+-- ##############################################
+
 -- Returns a string which identifies an alert
 function alerts_api.getAlertId(alert)
   return(string.format("%s_%s_%s_%s_%s", alert.alert_type,
@@ -76,6 +82,25 @@ end
 
 -- ##############################################
 
+local function pushAlertNotification(ifid, action, alert)
+  alert.ifid = ifid
+  alert.action = action
+  ntop.rpushCache("ntopng.alerts.notifications_queue", json.encode(alert))
+end
+
+-- ##############################################
+
+local function pushFlowAlertNotification(ifid, rowid)
+  local alert = {}
+
+  alert.table_name = "flows_alerts"
+  alert.rowid = rowid
+
+  pushAlertNotification(ifid, "store", alert)
+end
+
+-- ##############################################
+
 -- Performs the alert store asynchronously.
 -- This is necessary both to avoid paying the database io cost inside
 -- the other scripts and as a necessity to avoid a deadlock on the
@@ -90,6 +115,9 @@ function alerts_api.checkPendingStoreAlerts(deadline)
 
   for ifid, _ in pairs(ifnames) do
     interface.select(ifid)
+
+    -- Dequeue Alerts
+
     local queue = getAlertEventQueue(ifid)
 
     while(true) do
@@ -113,17 +141,49 @@ function alerts_api.checkPendingStoreAlerts(deadline)
         return(false)
       end
     end
+
+    -- Dequeue Flow Alerts
+
+    queue = getFlowAlertEventQueue(ifid)
+
+    while(true) do
+      local alert_json = ntop.lpopCache(queue)
+
+      if(not alert_json) then
+        break
+      end
+
+      local alert = json.decode(alert_json)
+
+      if(alert) then
+        local ret = interface.storeFlowAlert(
+          alert.tstamp, alert.alert_type, 
+          alert.alert_severity, alert.status, 
+          json.encode(alert.alert_json),
+          alert.vlan_id, alert.protocol,
+          alert.master_protocol, alert.app_protocol,
+          alert.cli.ip,             alert.srv.ip,
+          alert.cli.country,        alert.srv.country,
+          alert.cli.os,             alert.srv.os,
+          alert.cli.asn,            alert.srv.asn,
+          alert.cli.is_localhost,   alert.srv.is_localhost,
+          alert.cli.is_blacklisted, alert.srv.is_blacklisted,
+          alert.cli2srv.bytes, alert.cli2srv.packets,
+          alert.srv2cli.bytes, alert.srv2cli.packets)
+
+        if ret and ret.rowid and ret.rowid > 0 then
+          pushFlowAlertNotification(ifid, ret.rowid)
+        end
+      end
+
+      if(os.time() > deadline) then
+        return(false)
+      end
+    end
+
   end
 
   return(true)
-end
-
--- ##############################################
-
-local function pushAlertNotification(ifid, action, alert)
-  alert.ifid = ifid
-  alert.action = action
-  ntop.rpushCache("ntopng.alerts.notifications_queue", json.encode(alert))
 end
 
 -- ##############################################
@@ -175,14 +235,6 @@ function alerts_api.store(entity_info, type_info, when)
   enqueueStoreAlert(ifid, alert_to_store)
   pushAlertNotification(ifid, "store", alert_to_store)
   return(true)
-end
-
--- ##############################################
-
-function alerts_api.storeFlowAlert(alert_type, alert_severity, flow_info)
-   if flow then
-      -- flow.storeAlert(alert_type.alert_id, alert_severity.severity_id, json.encode(flow_info))
-   end
 end
 
 -- ##############################################
@@ -1115,6 +1167,46 @@ function alerts_api.setEntityAlertsDisabled(ifid, entity, entity_val, bitmap)
   else
     ntop.setPref(key, string.format("%u", bitmap))
   end
+end
+
+-- ##############################################
+
+local function getHostDisabledStatusBitmapHash(ifid)
+  return(string.format("ntopng.prefs.alerts.ifid_%d.disabled_status", ifid))
+end
+
+-- ##############################################
+
+function alerts_api.getHostDisabledStatusBitmap(ifid, hostkey)
+  local hash = getHostDisabledStatusBitmapHash(ifid)
+
+  return(tonumber(ntop.getHashCache(hash, hostkey)) or 0)
+end
+
+-- ##############################################
+
+function alerts_api.setHostDisabledStatusBitmap(ifid, hostkey, bitmap)
+  local hash = getHostDisabledStatusBitmapHash(ifid)
+
+  if(bitmap == 0) then
+    -- No status disabled
+    ntop.delHashCache(hash, hostkey)
+  else
+    ntop.setHashCache(hash, hostkey, string.format("%u", bitmap))
+  end
+end
+
+-- ##############################################
+
+function alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
+  local hash = getHostDisabledStatusBitmapHash(ifid)
+  local rv = ntop.getHashAllCache(hash) or {}
+
+  for k, v in pairs(rv) do
+    rv[k] = tonumber(v)
+  end
+
+  return(rv)
 end
 
 -- ##############################################

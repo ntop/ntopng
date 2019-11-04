@@ -48,7 +48,6 @@ end
 -- #################################################################
 
 script = {
-  key = "request_reply_ratio",
   local_only = true,
   nedge_exclude = true,
 

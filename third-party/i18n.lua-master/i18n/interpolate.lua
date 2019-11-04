@@ -30,6 +30,7 @@ local function interpolate(pattern, variables)
   result = interpolateValue(result, variables)
   result = interpolateField(result, variables)
   result = string.format(result, unpack(variables))
+
   return result
 end
 

@@ -69,9 +69,9 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    timeseries = {
       {schema = "ht:state",
        label = i18n("internals.hash_entries")},
-      {schema = "ht:lua_calls",
+      {schema = "custom:ht:lua_calls",
        label = i18n("internals.lua"),
-       metrics_labels = { i18n("graphs.tot_ms"), i18n("graphs.num_calls") },
+       metrics_labels = { i18n("duration"), i18n("graphs.num_calls") },
       },
    }
 })

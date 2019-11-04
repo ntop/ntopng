@@ -1767,75 +1767,75 @@ end
 -- #######################
 
 function getFlowsTableTitle()
-    local status_type
-    if _GET["flow_status"] then
+   local status_type
+   if _GET["flow_status"] then
       local flow_status_id = tonumber(_GET["flow_status"])
 
       if(flow_status_id ~= nil) then
-         status_type = flow_consts.getStatusTitle(_GET["flow_status"])
+	 status_type = flow_consts.getStatusTitle(_GET["flow_status"])
       else
-         status_type = _GET["flow_status"]
+	 status_type = _GET["flow_status"]
       end
-    end
+   end
 
-    local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or status_type or "")
-    local active_msg
-    local filter_msg = ""
+   local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or status_type or "")
+   local active_msg = ""
+   local filter_msg = ""
 
-    if not isEmptyString(filter) then
+   if not isEmptyString(filter) then
       filter_msg = i18n("flows_page."..filter)
       if isEmptyString(filter_msg) then
-        filter_msg = firstToUpper(filter)
+	 filter_msg = firstToUpper(filter)
       end
-    end
+   end
 
-    if not interface.isPacketInterface() then
-       active_msg = i18n("flows_page.recently_active_flows", {filter=filter_msg})
-    elseif interface.isPcapDumpInterface() then
-       active_msg = i18n("flows_page.flows", {filter=filter_msg})
-    else
-       active_msg = i18n("flows_page.active_flows", {filter=filter_msg})
-    end
+   if not interface.isPacketInterface() then
+      active_msg = i18n("flows_page.recently_active_flows", {filter=filter_msg})
+   elseif interface.isPcapDumpInterface() then
+      active_msg = i18n("flows_page.flows", {filter=filter_msg})
+   else
+      active_msg = i18n("flows_page.active_flows", {filter=filter_msg})
+   end
 
-    if(_GET["network_name"] ~= nil) then
-       active_msg = active_msg .. i18n("network", {network=_GET["network_name"]})
-    end
+   if(_GET["network_name"] ~= nil) then
+      active_msg = active_msg .. i18n("network", {network=_GET["network_name"]})
+   end
 
-    if(_GET["inIfIdx"] ~= nil) then
-       active_msg = active_msg .. " ["..i18n("flows_page.inIfIdx").." ".._GET["inIfIdx"].."]"
-    end
+   if(_GET["inIfIdx"] ~= nil) then
+      active_msg = active_msg .. " ["..i18n("flows_page.inIfIdx").." ".._GET["inIfIdx"].."]"
+   end
 
-    if(_GET["outIfIdx"] ~= nil) then
-       active_msg = active_msg .. " ["..i18n("flows_page.outIfIdx").." ".._GET["outIfIdx"].."]"
-    end
+   if(_GET["outIfIdx"] ~= nil) then
+      active_msg = active_msg .. " ["..i18n("flows_page.outIfIdx").." ".._GET["outIfIdx"].."]"
+   end
 
-    if(_GET["deviceIP"] ~= nil) then
-       active_msg = active_msg .. " ["..i18n("flows_page.device_ip").." ".._GET["deviceIP"].."]"
-    end
+   if(_GET["deviceIP"] ~= nil) then
+      active_msg = active_msg .. " ["..i18n("flows_page.device_ip").." ".._GET["deviceIP"].."]"
+   end
 
-    if(_GET["container"] ~= nil) then
-       active_msg = active_msg .. " ["..i18n("containers_stats.container").." ".. format_utils.formatContainerFromId(_GET["container"]).."]"
-    end
+   if(_GET["container"] ~= nil) then
+      active_msg = active_msg .. " ["..i18n("containers_stats.container").." ".. format_utils.formatContainerFromId(_GET["container"]).."]"
+   end
 
-    if(_GET["pod"] ~= nil) then
-       active_msg = active_msg .. " ["..i18n("containers_stats.pod").." ".. shortenString(_GET["pod"]) .."]"
-    end
+   if(_GET["pod"] ~= nil) then
+      active_msg = active_msg .. " ["..i18n("containers_stats.pod").." ".. shortenString(_GET["pod"]) .."]"
+   end
 
-    if((_GET["icmp_type"] ~= nil) and (_GET["icmp_cod"] ~= nil)) then
-       local is_v4 = true
-       if(_GET["version"] ~= nil) then
-         is_v4 = (_GET["version"] == "4")
-       end
-       local icmp_label = get_icmp_label(_GET["icmp_type"], _GET["icmp_cod"], is_v4)
+   if((_GET["icmp_type"] ~= nil) and (_GET["icmp_cod"] ~= nil)) then
+      local is_v4 = true
+      if(_GET["version"] ~= nil) then
+	 is_v4 = (_GET["version"] == "4")
+      end
+      local icmp_label = get_icmp_label(_GET["icmp_type"], _GET["icmp_cod"], is_v4)
 
-       active_msg = active_msg .. " ["..icmp_label.."]"
-    end
+      active_msg = active_msg .. " ["..icmp_label.."]"
+   end
 
-    if(_GET["tcp_flow_state"] ~= nil) then
-       active_msg = active_msg .. " ["..tcp_flow_state_utils.state2i18n(_GET["tcp_flow_state"]).."]"
-    end
+   if(_GET["tcp_flow_state"] ~= nil) then
+      active_msg = active_msg .. " ["..tcp_flow_state_utils.state2i18n(_GET["tcp_flow_state"]).."]"
+   end
 
-    return active_msg
+   return active_msg
 end
 
 -- #######################

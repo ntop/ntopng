@@ -229,11 +229,11 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  ifname = NULL,
+  ifname = NULL, ndpiReloadInProgress = false,
     bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
-    has_seen_dhcp_addresses = false,
+    has_seen_dhcp_addresses = false, packet_processing_completed = false;
     has_seen_containers = false, has_seen_pods = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
@@ -353,7 +353,9 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
 /* **************************************************** */
 
 void NetworkInterface::cleanShadownDPI() {
-  if(ndpi_struct_shadow) {
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
+  
+  if(ndpi_struct_shadow && !ndpiReloadInProgress) {
     ndpi_exit_detection_module(ndpi_struct_shadow);
     ndpi_struct_shadow = NULL;
   }
@@ -368,11 +370,22 @@ void NetworkInterface::cleanShadownDPI() {
  * 3. reloadCustomCategories()
  * 4. cleanShadownDPI()
  */
-void NetworkInterface::startCustomCategoriesReload() {
+bool NetworkInterface::startCustomCategoriesReload() {
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Started nDPI reload on %s [%p][%s]", get_name(), ndpi_struct_shadow, ndpiReloadInProgress ? "IN PROGRESS" : "");
+
+  if(ndpiReloadInProgress) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
+    return(false);
+  }
+
   cleanShadownDPI();
+  ndpiReloadInProgress = true;
 
   /* No need to dedicate another variable for the reload, we can use the shadow itself */
   ndpi_struct_shadow = initnDPIStruct();
+  ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI reload is now ready on %s [%p]",
+			       get_name(), ndpi_struct_shadow);
+  return(true);
 }
 
 /* **************************************************** */
@@ -2458,11 +2471,18 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 /* **************************************************** */
 
 void NetworkInterface::reloadCustomCategories() {
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
+
+  if(!ndpiReloadInProgress) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
+    return;
+  }
+  
   if(ndpi_struct_shadow) {
     struct ndpi_detection_module_struct *old_struct;
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories [iface: %s]", get_name());
-
+    
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
 
@@ -2473,6 +2493,8 @@ void NetworkInterface::reloadCustomCategories() {
     /* Need to update the existing hosts */
     reloadHostsBlacklist();
     ntop->getTrace()->traceEvent(TRACE_INFO, "Reload custom categories completed [iface: %s]", get_name());
+
+    ndpiReloadInProgress = false;
   }
 }
 
@@ -2705,6 +2727,15 @@ u_int32_t NetworkInterface::periodicStatsUpdateFrequency() const {
 
 /* **************************************************** */
 
+void NetworkInterface::periodicUpdateInitTime(struct timeval *tv) const {
+  if(!read_from_pcap_dump() || reproducePcapOriginalSpeed())
+    gettimeofday(tv, NULL);
+  else
+    tv->tv_sec = last_pkt_rcvd, tv->tv_usec = 0;
+}
+
+/* **************************************************** */
+
 u_int32_t NetworkInterface::getFlowMaxIdle() {
   return ntop->getPrefs()->get_pkt_ifaces_flow_max_idle();
 }
@@ -2719,11 +2750,8 @@ void NetworkInterface::periodicStatsUpdate() {
   u_int32_t begin_slot;
   periodic_stats_update_user_data_t periodic_stats_update_user_data;
   struct timeval tv;
-  if(!read_from_pcap_dump() || reproducePcapOriginalSpeed())
-    gettimeofday(&tv, NULL);
-  else
-    tv.tv_sec = last_pkt_rcvd, tv.tv_usec = 0;
 
+  periodicUpdateInitTime(&tv);
   periodic_stats_update_user_data.tv = &tv;
     
   if(!checkPeriodicStatsUpdateTime(&tv))
@@ -2778,11 +2806,8 @@ void NetworkInterface::periodicStatsUpdate() {
   topItemsCommit(&tv);
 
 #ifdef NTOPNG_PRO
-  if(!isView() && !isViewed()) {
-    if(is_aggregated_flows_dump_ready()) {
-      dumpAggregatedFlows(&tv);
-    }
-  }
+  if(is_aggregated_flows_dump_ready()) 
+    dumpAggregatedFlows(&tv);
 #endif
 
   checkReloadHostsBroadcastDomain();
@@ -2871,19 +2896,16 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
   struct timeval tv;
   periodic_ht_state_update_user_data_t periodic_ht_state_update_user_data;
   GenericHash *ghs[] = {
-    !isView() ? flows_hash : NULL, /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-    hosts_hash,
-    ases_hash,
-    countries_hash,
-    hasSeenVlanTaggedPackets() ? vlans_hash : NULL,
-    macs_hash
+			!isView() ? flows_hash : NULL, /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+			hosts_hash,
+			ases_hash,
+			countries_hash,
+			hasSeenVlanTaggedPackets() ? vlans_hash : NULL,
+			macs_hash
   };
-
-  if(!read_from_pcap_dump() || reproducePcapOriginalSpeed())
-    gettimeofday(&tv, NULL);
-  else
-    tv.tv_sec = last_pkt_rcvd, tv.tv_usec = 0;
-
+  time_t update_end;
+  
+  periodicUpdateInitTime(&tv);
   periodic_ht_state_update_user_data.acle = NULL,
     periodic_ht_state_update_user_data.iface = this,
     periodic_ht_state_update_user_data.deadline = deadline,
@@ -2904,8 +2926,14 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
     }
   }
 
-  if(time(NULL) > deadline)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Deadline exceeded [%s][%s]", __FUNCTION__, get_name());
+  if((update_end = time(NULL)) > deadline) {
+    char date_buf[32];
+    struct tm deadline_tm;
+
+    strftime(date_buf, sizeof(date_buf), "%H:%M:%S", localtime_r(&deadline, &deadline_tm));
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Deadline exceeded [%s][%s][expected: %s][off by: %u secs]",
+				 __FUNCTION__, get_name(), date_buf, update_end - deadline);
+  }
 }
 
 /* **************************************************** */
@@ -6857,60 +6885,58 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
   if(isFlowDumpDisabled())
     return(false);
 
-  if(!isViewed()) { /* Flow dump is handled by the view interface in case of 'viewed' interfaces */
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-    if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
-      if(num_dump_interfaces >= NINDEX_MAX_NUM_INTERFACES) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR,
-				     "nIndex cannot be enabled for %s.", get_name());
-	ntop->getTrace()->traceEvent(TRACE_ERROR,
-				     "The maximum number of interfaces that can be used with nIndex is %d.",
-				     NINDEX_MAX_NUM_INTERFACES);
-	ntop->getTrace()->traceEvent(TRACE_ERROR,
-				     "Interface will continue to work without nIndex support.");
-      } else {
-	db = new NIndexFlowDB(this);
-	goto enable_aggregation;
-      }
+  if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
+    if(num_dump_interfaces >= NINDEX_MAX_NUM_INTERFACES) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "nIndex cannot be enabled for %s.", get_name());
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "The maximum number of interfaces that can be used with nIndex is %d.",
+				   NINDEX_MAX_NUM_INTERFACES);
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Interface will continue to work without nIndex support.");
+    } else {
+      db = new NIndexFlowDB(this);
+      goto enable_aggregation;
     }
+  }
 #endif
 
-    if(db == NULL) {
-	if(ntop->getPrefs()->do_dump_flows_on_mysql()
-	     || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+  if(db == NULL) {
+    if(ntop->getPrefs()->do_dump_flows_on_mysql()
+       || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef NTOPNG_PRO
-	if(ntop->getPrefs()->is_enterprise_edition()
-	   && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+      if(ntop->getPrefs()->is_enterprise_edition()
+	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef HAVE_MYSQL
-	  db = new BatchedMySQLDB(this);
+	db = new BatchedMySQLDB(this);
 #endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-	enable_aggregation:
+      enable_aggregation:
 #endif
-	  aggregated_flows_hash = new AggregatedFlowHash(this,
-							 max_val(4096, ntop->getPrefs()->get_max_num_flows()/4) /* num buckets */,
-							 ntop->getPrefs()->get_max_num_flows());
+	aggregated_flows_hash = new AggregatedFlowHash(this,
+						       max_val(4096, ntop->getPrefs()->get_max_num_flows()/4) /* num buckets */,
+						       ntop->getPrefs()->get_max_num_flows());
 
-	  ntop->getPrefs()->enable_flow_aggregation();
-	} else
-	  aggregated_flows_hash = NULL;
+	ntop->getPrefs()->enable_flow_aggregation();
+      } else
+	aggregated_flows_hash = NULL;
 #endif
 
 #ifdef HAVE_MYSQL
-	if(db == NULL)
-	  db = new (std::nothrow) MySQLDB(this);
+      if(db == NULL)
+	db = new (std::nothrow) MySQLDB(this);
 #endif
 
-	if(!db) throw "Not enough memory";
-      }
-#ifndef HAVE_NEDGE
-	else if(ntop->getPrefs()->do_dump_flows_on_es())
-	  db = new ElasticSearch(this);
-	else if(ntop->getPrefs()->do_dump_flows_on_ls())
-	  db = new Logstash(this);
-#endif
+      if(!db) throw "Not enough memory";
     }
+#ifndef HAVE_NEDGE
+    else if(ntop->getPrefs()->do_dump_flows_on_es())
+      db = new ElasticSearch(this);
+    else if(ntop->getPrefs()->do_dump_flows_on_ls())
+      db = new Logstash(this);
+#endif
   }
 
   return(db != NULL);
@@ -7476,6 +7502,8 @@ bool NetworkInterface::enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_l
 /* *************************************** */
 
 void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
+  
   if(what && ndpi_struct_shadow)
     ndpi_load_ip_category(ndpi_struct_shadow, what, id);
 }
@@ -7483,6 +7511,8 @@ void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t i
 /* *************************************** */
 
 void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
+  
   if(what && ndpi_struct_shadow)
     ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
 }

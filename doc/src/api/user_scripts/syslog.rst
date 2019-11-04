@@ -36,7 +36,6 @@ exported to syslog in Eve JSON format.
    local json = require ("dkjson")
    
    local syslog_module = {
-      key = "suricata",
       hooks = {},
    }
    
