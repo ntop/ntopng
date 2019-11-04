@@ -336,11 +336,11 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
 	     ntop->get_callbacks_dir(), path);
     
     if(stat(script_path, &buf) == 0) {
+      systemTaskRunning = true;
       pool->queueJob(this, script_path, NULL);
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
-      systemTaskRunning = true;
     }
   }
   
