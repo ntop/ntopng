@@ -47,19 +47,23 @@ case "$1" in
 
 	*)
 	if [ "$1" = "upgrade" ]; then promt_license_expired; fi
-        echo "Stopping @APP@ services..."
+	echo "Stopping @APP@ services..."
 	if hash systemctl 2>/dev/null; then
-                if hash deb-systemd-invoke 2>/dev/null; then
-                       deb-systemd-invoke stop ntopng
-                       deb-systemd-invoke disable ntopng > /dev/null
-                else
-                       systemctl stop ntopng
-                       systemctl disable ntopng > /dev/null
-                fi
-                systemctl stop 'ntopng@*' --all
-                systemctl disable 'ntopng@*' --all > /dev/null
-		systemctl daemon-reload
-		systemctl reset-failed
+	    if hash deb-systemd-invoke 2>/dev/null; then
+		deb-systemd-invoke stop ntopng
+		deb-systemd-invoke disable ntopng
+		deb-systemd-invoke stop 'ntopng@*'
+		#disable doesn't want the star after the @, it takes it automatically
+		deb-systemd-invoke disable 'ntopng@'
+	    else
+		systemctl stop ntopng
+		systemctl disable ntopng
+		systemctl stop 'ntopng@*' --all
+		#disable doesn't want the star after the @, it takes it automatically
+		systemctl disable 'ntopng@' --all
+	    fi
+	    systemctl daemon-reload
+	    systemctl reset-failed
 	elif [ -f /etc/init.d/ntopng ]; then
 		/etc/init.d/ntopng stop
 	fi
