@@ -860,11 +860,9 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
    local ifid = interface.getId()
    local trigger_alerts_checked
    local cur_bitmap
-   local host_bitmap_key
 
    if(entity_type == "host") then
-      host_bitmap_key = string.format("ntopng.prefs.alerts.ifid_%d.disabled_status.host_%s", ifid, entity_value)
-      cur_bitmap = tonumber(ntop.getPref(host_bitmap_key)) or 0
+      cur_bitmap = alerts_api.getHostDisabledStatusBitmap(ifid, entity_value)
    end
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
@@ -895,9 +893,8 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
          end
 
          if(bitmap ~= cur_bitmap) then
-           ntop.setPref(host_bitmap_key, string.format("%u", bitmap))
+           alerts_api.setHostDisabledStatusBitmap(ifid, entity_value, bitmap)
            cur_bitmap = bitmap
-           interface.reloadHostDisableFlowAlertTypes(entity_value)
          end
       end
    else

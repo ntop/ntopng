@@ -40,7 +40,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   time_t last_stats_reset;
   u_int16_t alert_score;
   u_int32_t active_alerted_flows;
-  u_int32_t disabled_flow_status;
   Bitmap anomalous_flows_as_client_status, anomalous_flows_as_server_status;
  
   /* Host data: update Host::deleteHostData when adding new fields */
@@ -360,7 +359,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
 			   u_int16_t port, u_int16_t l7_proto,
 			   const char *info, time_t when) { ; }
   virtual void luaPortsDump(lua_State* vm) { lua_pushnil(vm); }    
-  void refreshDisableFlowAlertTypes();
 
   void setPrefsChanged()                   { prefs_loaded = false;  }
   virtual void reloadPrefs()               {}
@@ -375,10 +373,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void setScore(u_int16_t score)    { alert_score = score; };
   inline u_int16_t getScore()              { return(alert_score); };
   inline bool hasScore()                   { return(alert_score != CONST_NO_SCORE_SET); };
-  
-  inline bool isDisabledFlowAlertType(u_int32_t v) {
-    return(Utils::bitmapIsSet(disabled_flow_status, v));
-  }
 
   inline void setOS(OperatingSystem _os) {
     Mac *mac = getMac();

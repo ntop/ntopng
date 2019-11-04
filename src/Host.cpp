@@ -202,9 +202,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   syn_recvd_last_min = synack_sent_last_min = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
-  disabled_flow_status = 0;
-  refreshDisableFlowAlertTypes();
-  
   if(init_all) {
     char country_name[64];
     
@@ -1507,21 +1504,4 @@ void Host::dumpDropbox(lua_State *vm) {
   lua_pushstring(vm, printMask(ip_buf, sizeof(ip_buf)));
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-}
-
-/* **************************************************** */
-
-void Host::refreshDisableFlowAlertTypes() {
-  char keybuf[128], buf[128], rsp[32];
-
-  if(ntop->getPrefs()->are_alerts_disabled())
-    return;
-
-  snprintf(buf, sizeof(buf), CONST_HOST_REFRESH_DISABLED_FLOW_ALERT_TYPES,
-    iface->get_id(), get_hostkey(keybuf, sizeof(keybuf), true));
-
-  if(!ntop->getRedis()->get(buf, rsp, sizeof(rsp)) && (rsp[0] != '\0'))
-    disabled_flow_status = atol(rsp);
-  else
-    disabled_flow_status = 0;
 }

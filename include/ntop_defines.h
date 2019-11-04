@@ -536,7 +536,6 @@
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     NTOPNG_PREFS_PREFIX".iface_%d.hide_from_top"
 #define CONST_IFACE_COMPANIONS_SET          NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion_of"
 #define CONST_IFACE_DYN_IFACE_MODE_PREFS    NTOPNG_PREFS_PREFIX".dynamic_sub_interfaces.ifid_%d.mode"
-#define CONST_HOST_REFRESH_DISABLED_FLOW_ALERT_TYPES NTOPNG_PREFS_PREFIX".alerts.ifid_%d.disabled_status.host_%s"
 #define CONST_REMOTE_HOST_IDLE_PREFS        NTOPNG_PREFS_PREFIX".non_local_host_max_idle"
 #define CONST_FLOW_MAX_IDLE_PREFS           NTOPNG_PREFS_PREFIX".flow_max_idle"
 #define CONST_INTF_RRD_RAW_DAYS             NTOPNG_PREFS_PREFIX".intf_rrd_raw_days"

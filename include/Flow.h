@@ -241,7 +241,6 @@ class Flow : public GenericHashEntry {
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
   void periodic_dump_check(const struct timeval *tv);
-  bool triggerAlerts() const;
   void dumpFlowAlert();
   void updateCliJA3();
   void updateSrvJA3();
@@ -264,7 +263,7 @@ class Flow : public GenericHashEntry {
   inline Bitmap getStatusBitmap()     const     { return(status_map);           }
   inline void setStatus(FlowStatus status)      { status_map.setBit(status);    }
   inline void clearStatus(FlowStatus status)    { status_map.clearBit(status);  }
-  void triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json);
+  bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json);
   inline void setPredominantStatus(FlowStatus status) { predominant_status = status; }
   inline FlowStatus getPredominantStatus() const      { return(predominant_status); }
   inline const char* getStatusInfo() const      { return(alert_status_info);    }

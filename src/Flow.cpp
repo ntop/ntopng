@@ -303,29 +303,7 @@ Flow::~Flow() {
 
 /* *************************************** */
 
-bool Flow::triggerAlerts() const {
-  /* If a flow involves at least a local endpoint,
-     then that endpoint may have disabled alerts.
-     When there's a local endpoint with alerts disabled,
-     we do not generate flow alerts having it as an endpoint as one
-     wants to explicitly silence them */
-
-  bool cli_trigger_alerts, srv_trigger_alerts;
-
-  /* client is either remote, or has alerts enabled... */
-  cli_trigger_alerts = !cli_host || !cli_host->isLocalHost() || cli_host->triggerAlerts();
-  /* server is either remote, or has alerts enabled.. */
-  srv_trigger_alerts = !srv_host || !srv_host->isLocalHost() || srv_host->triggerAlerts();
-
-  return cli_trigger_alerts && srv_trigger_alerts;
-}
-
-/* *************************************** */
-
 void Flow::dumpFlowAlert() {
-  if(!triggerAlerts())
-    return;
-
   if(hasPendingAlert()) {
     if(cli_host && srv_host) {
       bool cli_thresh, srv_thresh;
@@ -4387,23 +4365,19 @@ bool Flow::hasDissectedTooManyPackets() {
 
 /* ***************************************************** */
 
-void Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json) {
+bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json) {
   if(isFlowAlerted() || hasPendingAlert()) {
     /* Triggering multiple alerts is not supported */
-    return;
-  }
-
-  if(cli_host && srv_host) {
-    if(cli_host->isDisabledFlowAlertType(status) || srv_host->isDisabledFlowAlertType(status)) {
-      /* TODO: eventually increment a counter of untriggered alerts */
-      return;
-    }
+    return(false);
   }
 
   alert_status_info = alert_json ? strdup(alert_json) : NULL;
   alerted_status = status;
   alert_level = severity;
   alert_type = atype; /* set this as the last thing to avoid concurrency issues */
+
+  /* Success */
+  return(true);
 }
 
 /* *************************************** */

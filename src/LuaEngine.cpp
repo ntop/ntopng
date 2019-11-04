@@ -4209,27 +4209,6 @@ static int ntop_reload_dhcp_ranges(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_host_disabled_flow_alert_types(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char buf[64], *host_ip;
-  Host *host;
-  u_int16_t vlan_id;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop_interface) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  if((host = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */)))
-    host->refreshDisableFlowAlertTypes();
-
-  lua_pushboolean(vm, (host != NULL));
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_reload_host_prefs(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64], *host_ip;
@@ -9281,8 +9260,7 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   if(lua_type(vm, 4) == LUA_TSTRING)
     status_info = lua_tostring(vm, 4);
 
-  f->triggerAlert(status, atype, severity, status_info);
-  lua_pushnil(vm);
+  lua_pushboolean(vm, f->triggerAlert(status, atype, severity, status_info));
 
   return(CONST_LUA_OK);
 }
@@ -10598,7 +10576,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
-  { "reloadHostDisableFlowAlertTypes",  ntop_reload_host_disabled_flow_alert_types },
   { "reloadHostPrefs",                  ntop_reload_host_prefs },
   { "setHostOperatingSystem",           ntop_set_host_operating_system },
 

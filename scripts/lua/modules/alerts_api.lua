@@ -1171,6 +1171,46 @@ end
 
 -- ##############################################
 
+local function getHostDisabledStatusBitmapHash(ifid)
+  return(string.format("ntopng.prefs.alerts.ifid_%d.disabled_status", ifid))
+end
+
+-- ##############################################
+
+function alerts_api.getHostDisabledStatusBitmap(ifid, hostkey)
+  local hash = getHostDisabledStatusBitmapHash(ifid)
+
+  return(tonumber(ntop.getHashCache(hash, hostkey)) or 0)
+end
+
+-- ##############################################
+
+function alerts_api.setHostDisabledStatusBitmap(ifid, hostkey, bitmap)
+  local hash = getHostDisabledStatusBitmapHash(ifid)
+
+  if(bitmap == 0) then
+    -- No status disabled
+    ntop.delHashCache(hash, hostkey)
+  else
+    ntop.setHashCache(hash, hostkey, string.format("%u", bitmap))
+  end
+end
+
+-- ##############################################
+
+function alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
+  local hash = getHostDisabledStatusBitmapHash(ifid)
+  local rv = ntop.getHashAllCache(hash) or {}
+
+  for k, v in pairs(rv) do
+    rv[k] = tonumber(v)
+  end
+
+  return(rv)
+end
+
+-- ##############################################
+
 local function toggleEntityAlert(ifid, entity, entity_val, alert_type, disable)
   alert_type = tonumber(alert_type)
   bitmap = alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
