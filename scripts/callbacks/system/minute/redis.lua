@@ -3,7 +3,6 @@
 --
 
 local ts_utils = require("ts_utils_core")
-local alerts = require("alerts_api")
 
 local probe = {
    name = "Redis",

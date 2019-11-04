@@ -2321,6 +2321,15 @@ static int ntop_zmq_connect(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_get_redis_stats(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->getRedis()->lua(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_delete_redis_key(lua_State* vm) {
   char *key;
 
@@ -10737,6 +10746,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getCache",          ntop_get_redis },
   { "setCache",          ntop_set_redis },
   { "incrCache",         ntop_incr_redis },
+  { "getCacheStats",     ntop_get_redis_stats },
   { "delCache",          ntop_delete_redis_key },
   { "flushCache",        ntop_flush_redis },
   { "listIndexCache",    ntop_list_index_redis },

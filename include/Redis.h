@@ -34,7 +34,14 @@ class Redis {
 #ifdef __linux__
   bool is_socket_connection;
 #endif
-  u_int32_t num_requests, num_reconnections, num_redis_version;
+  struct {
+    u_int32_t num_expire, num_get, num_ttl, num_del,
+      num_hget, num_hset, num_hdel, num_set,
+      num_keys, num_hkeys, num_other,
+      num_hgetall, num_trim;
+    u_int32_t num_reconnections;
+  } stats;
+  u_int32_t num_redis_version;
   u_int16_t redis_port;
   u_int8_t redis_db_id;
   pthread_t esThreadLoop;

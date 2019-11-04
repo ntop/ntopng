@@ -9,6 +9,7 @@ require "lua_utils"
 require "graph_utils"
 require "flow_utils"
 require "historical_utils"
+
 sendHTTPContentTypeHeader('text/html')
 
 interface.select(ifname)

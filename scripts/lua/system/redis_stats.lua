@@ -44,6 +44,12 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
+if((page == "stats") or (page == nil)) then
+   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>\n")
+else
+   print("<li><a href=\""..url.."&page=stats\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>")
+end
+
 if(page == "historical") then
    print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
 else
@@ -126,7 +132,43 @@ refreshRedisStats();
  </script>
  ]]
    print("</table>\n")
+elseif(page == "stats") then
 
+   print [[
+     <table id="if_stats_redis" class="table table-bordered table-striped tablesorter">
+       <thead>
+         <tr>
+           <th>]] print(i18n("please_wait_page.command")) print[[</th>
+           <th>]] print(i18n("total")) print[[</th>
+         </tr>
+       </thead>
+       <tbody id="if_stats_redis_tbody"></tbody>
+     </table>
+
+<script type='text/javascript'>
+
+function update_redis_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/get_redis_stats.lua',
+    data: { },
+    success: function(content) {
+      if(content) {
+         $('#if_stats_redis_tbody').html(content);
+         // Let the TableSorter plugin know that we updated the table
+         $('#if_stats_redis_tbody').trigger("update");
+      }
+    }
+  });
+}
+update_redis_table();
+setInterval(update_redis_table, 5000);
+
+</script>
+ ]]
+   
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "redis:memory"
    local selected_epoch = _GET["epoch"] or ""

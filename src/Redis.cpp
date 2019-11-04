@@ -40,7 +40,8 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
   is_socket_connection = false;
 #endif
 
-  num_requests = num_reconnections = 0;
+  memset(&stats, 0, sizeof(stats));
+
   redis = NULL, operational = false;
   initializationCompleted = false;
   reconnectRedis(giveup_on_failure);
@@ -97,7 +98,7 @@ void Redis::reconnectRedis(bool giveup_on_failure) {
     }
 
     if(redis_password) {
-      num_requests++;
+      stats.num_other++;
       reply = (redisReply*)redisCommand(redis, "AUTH %s", redis_password);
       if(reply && (reply->type == REDIS_REPLY_ERROR)) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -108,7 +109,7 @@ void Redis::reconnectRedis(bool giveup_on_failure) {
     }
 
     if(reply) freeReplyObject(reply);
-    num_requests++;
+    stats.num_other++;
     reply = (redisReply*)redisCommand(redis, "PING");
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
@@ -117,7 +118,7 @@ void Redis::reconnectRedis(bool giveup_on_failure) {
     }
 
     if(reply) freeReplyObject(reply);
-    num_requests++;
+    stats.num_other++;
     reply = (redisReply*)redisCommand(redis, "SELECT %u", redis_db_id);
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
@@ -158,7 +159,7 @@ void Redis::reconnectRedis(bool giveup_on_failure) {
 				 "Successfully connected to redis %s@%u",
 				 redis_host, redis_db_id);
 
-  num_reconnections++;
+  stats.num_reconnections++;
   operational = true;
 }
 
@@ -175,7 +176,7 @@ int Redis::expire(char *key, u_int expire_secs) {
     return(0);
   }
 
-  num_requests++;
+  stats.num_expire++;
   reply = (redisReply*)redisCommand(redis, "EXPIRE %s %u", key, expire_secs);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -237,7 +238,7 @@ int Redis::info(char *rsp, u_int rsp_len) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "INFO");
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -261,7 +262,7 @@ u_int Redis::dbsize() {
 
   l->lock(__FILE__, __LINE__);
 
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "DBSIZE");
 
   if(!reply) reconnectRedis(true);
@@ -340,7 +341,7 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
 #endif
   }
 
-  num_requests++;
+  stats.num_get++;
   reply = (redisReply*)redisCommand(redis, "GET %s", key);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -356,7 +357,7 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
     u_int expire_sec = 0;
 
     if(reply) freeReplyObject(reply);
-    num_requests++;
+    stats.num_ttl++;
     reply = (redisReply*)redisCommand(redis, "TTL %s", key);
     if(!reply) reconnectRedis(true);
     if(reply && (reply->type != REDIS_REPLY_INTEGER))
@@ -397,7 +398,7 @@ int Redis::del(char *key){
 
   stringCache.erase(key);
 
-  num_requests++;
+  stats.num_del++;
   reply = (redisReply*)redisCommand(redis, "DEL %s", key);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR)){
@@ -422,7 +423,7 @@ int Redis::hashGet(const char * const key, const char * const field, char * cons
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_hget++;
   reply = (redisReply*)redisCommand(redis, "HGET %s %s", key, field);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -445,7 +446,7 @@ int Redis::hashSet(const char * const key, const char * const field, const char 
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_hset++;
   reply = (redisReply*)redisCommand(redis, "HSET %s %s %s", key, field, value);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -465,7 +466,7 @@ int Redis::hashDel(const char * const key, const char * const field) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_hdel++;
   reply = (redisReply*)redisCommand(redis, "HDEL %s %s", key, field);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -500,7 +501,7 @@ int Redis::set(const char * const key, const char * const value, u_int expire_se
   if(isCacheable(key))
     addToCache(key, value, expire_secs);
 
-  num_requests++;
+  stats.num_set++;
   reply = (redisReply*)redisCommand(redis, "SET %s %s", key, value);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -508,7 +509,7 @@ int Redis::set(const char * const key, const char * const value, u_int expire_se
   if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
 
   if((rc == 0) && (expire_secs != 0)) {
-    num_requests++;
+    stats.num_expire++;
     reply = (redisReply*)redisCommand(redis, "EXPIRE %s %u", key, expire_secs);
     if(!reply) reconnectRedis(true);
     if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -531,7 +532,7 @@ int Redis::keys(const char *pattern, char ***keys_p) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_keys++;
   reply = (redisReply*)redisCommand(redis, "KEYS %s", pattern);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -560,7 +561,7 @@ int Redis::hashKeys(const char *pattern, char ***keys_p) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_hkeys++;
   reply = (redisReply*)redisCommand(redis, "HKEYS %s", pattern);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -594,7 +595,7 @@ int Redis::hashGetAll(const char *key, char ***keys_p, char ***values_p) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_hgetall++;
   reply = (redisReply*)redisCommand(redis, "HGETALL %s", key);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -664,7 +665,7 @@ int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
       Add only if the address has not been resolved yet
     */
 
-    num_requests++;
+    stats.num_get++;
     reply = (redisReply*)redisCommand(redis, "GET %s", key);
     if(!reply) reconnectRedis(true);
 
@@ -750,7 +751,7 @@ int Redis::flushDb() {
 
   l->lock(__FILE__, __LINE__);
 
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "FLUSHDB");
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -823,7 +824,7 @@ char* Redis::getRedisVersion() {
   int a, b, c;
   
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "INFO");
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -883,7 +884,7 @@ int Redis::smembers(lua_State* vm, char *setName) {
   lua_newtable(vm);
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "SMEMBERS %s", setName);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -915,7 +916,7 @@ int Redis::smembers(const char *set_name, char ***members) {
   redisReply *reply = NULL;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "SMEMBERS %s", set_name);
 
   if(!reply) reconnectRedis(true);
@@ -963,13 +964,13 @@ int Redis::rpush(const char * const queue_name, const char * const msg, u_int qu
 /* ******************************************* */
 
 int Redis::msg_push(const char * const cmd, const char * const queue_name, const char * const msg,
-          u_int queue_trim_size, bool trace_errors, bool head_trim) {
+		    u_int queue_trim_size, bool trace_errors, bool head_trim) {
   redisReply *reply;
   int rc = 0;
 
   l->lock(__FILE__, __LINE__, trace_errors);
   /* Put the latest messages on top so old messages (if any) will be discarded */
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "%s %s %s", cmd,  queue_name, msg);
 
   if(!reply) reconnectRedis(true);
@@ -982,7 +983,7 @@ int Redis::msg_push(const char * const cmd, const char * const queue_name, const
     freeReplyObject(reply);
 
     if(queue_trim_size > 0) {
-      num_requests++;
+      stats.num_trim++;
       if(head_trim)
         reply = (redisReply*)redisCommand(redis, "LTRIM %s 0 %u", queue_name, queue_trim_size - 1);
       else
@@ -1011,7 +1012,7 @@ u_int Redis::len(const char * const key) {
 
   l->lock(__FILE__, __LINE__);
 
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "STRLEN %s", key);
 
   if(!reply) reconnectRedis(true);
@@ -1037,7 +1038,7 @@ u_int Redis::hstrlen(const char * const key, const char * const value) {
 
   l->lock(__FILE__, __LINE__);
 
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "HSTRLEN %s %s", key, value);
 
   if(!reply) reconnectRedis(true);
@@ -1063,7 +1064,7 @@ u_int Redis::llen(const char *queue_name) {
   u_int num = 0;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "LLEN %s", queue_name);
   if(!reply) reconnectRedis(true);
   if(reply) {
@@ -1084,7 +1085,7 @@ int Redis::lset(const char *queue_name, u_int32_t idx, const char *value) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "LSET %s %u %s", queue_name, idx, value);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -1103,7 +1104,7 @@ int Redis::lrem(const char *queue_name, const char *value) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "LREM %s 0 %s", queue_name, value);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -1123,7 +1124,7 @@ int Redis::lrpop(const char *queue_name, char *buf, u_int buf_len, bool lpop) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "%sPOP %s", lpop ? "L" : "R", queue_name);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -1159,7 +1160,7 @@ int Redis::lindex(const char *queue_name, int idx, char *buf, u_int buf_len) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "LINDEX %s %d", queue_name, idx);
 
   if(!reply) reconnectRedis(true);
@@ -1186,7 +1187,7 @@ int Redis::lrange(const char *list_name, char ***elements, int start_offset, int
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "LRANGE %s %i %i", list_name, start_offset, end_offset);
 
   if(!reply) reconnectRedis(true);
@@ -1215,7 +1216,7 @@ int Redis::ltrim(const char *queue_name, int start_idx, int end_idx) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
 
   reply = (redisReply*)redisCommand(redis, "LTRIM %s %d %d", queue_name, start_idx, end_idx);
   if(!reply) reconnectRedis(true);
@@ -1235,7 +1236,7 @@ int Redis::incr(const char *key, int amount) {
   int num = 0;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "INCRBY %s %d", key, amount);
   if(!reply) reconnectRedis(true);
   if(reply) {
@@ -1263,12 +1264,20 @@ int Redis::incr(const char *key, int amount) {
 void Redis::lua(lua_State *vm) {
   lua_newtable(vm);
 
-  lua_push_uint64_table_entry(vm, "num_requests", num_requests);
-  lua_push_uint64_table_entry(vm, "num_reconnections", num_reconnections);
-
-  lua_pushstring(vm, "redis");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  lua_push_uint64_table_entry(vm, "num_expire", stats.num_expire);
+  lua_push_uint64_table_entry(vm, "num_get", stats.num_get);
+  lua_push_uint64_table_entry(vm, "num_ttl", stats.num_ttl);
+  lua_push_uint64_table_entry(vm, "num_del", stats.num_del);
+  lua_push_uint64_table_entry(vm, "num_hget", stats.num_hget);
+  lua_push_uint64_table_entry(vm, "num_hset", stats.num_hset);
+  lua_push_uint64_table_entry(vm, "num_hdel", stats.num_hdel);
+  lua_push_uint64_table_entry(vm, "num_set", stats.num_set);
+  lua_push_uint64_table_entry(vm, "num_expire", stats.num_expire);
+  lua_push_uint64_table_entry(vm, "num_keys", stats.num_keys);
+  lua_push_uint64_table_entry(vm, "num_hkeys", stats.num_hkeys);
+  lua_push_uint64_table_entry(vm, "num_hgetall", stats.num_hgetall);
+  lua_push_uint64_table_entry(vm, "num_trim", stats.num_trim);
+  lua_push_uint64_table_entry(vm, "num_reconnections", stats.num_reconnections);
 }
 
 /* **************************************** */
@@ -1322,7 +1331,7 @@ char* Redis::dump(char *key) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_other++;
   reply = (redisReply*)redisCommand(redis, "DUMP %s", key);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -1355,7 +1364,7 @@ int Redis::restore(char *key, char *buf) {
   hex2bin(buf, buf_bin);
 
   l->lock(__FILE__, __LINE__);
-  num_requests++;
+  stats.num_del++;
 
   /* Delete the key first */
   reply = (redisReply*)redisCommand(redis, "DEL %s", key);
