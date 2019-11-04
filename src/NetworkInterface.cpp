@@ -355,7 +355,7 @@ struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
 void NetworkInterface::cleanShadownDPI() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
   
-  if(ndpi_struct_shadow) {
+  if(ndpi_struct_shadow && !ndpiReloadInProgress) {
     ndpi_exit_detection_module(ndpi_struct_shadow);
     ndpi_struct_shadow = NULL;
   }
@@ -370,21 +370,22 @@ void NetworkInterface::cleanShadownDPI() {
  * 3. reloadCustomCategories()
  * 4. cleanShadownDPI()
  */
-void NetworkInterface::startCustomCategoriesReload() {
+bool NetworkInterface::startCustomCategoriesReload() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload on %s [%p][%s]", get_name(), ndpi_struct_shadow, ndpiReloadInProgress ? "IN PROGRESS" : "");
 
   if(ndpiReloadInProgress) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
-    return;
-  } else
-    ndpiReloadInProgress = true;
-  
+    return(false);
+  }
+
   cleanShadownDPI();
+  ndpiReloadInProgress = true;
 
   /* No need to dedicate another variable for the reload, we can use the shadow itself */
   ndpi_struct_shadow = initnDPIStruct();
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Completed nDPI reload on %s [%p]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload is now ready on %s [%p]",
 			       get_name(), ndpi_struct_shadow);
+  return(true);
 }
 
 /* **************************************************** */

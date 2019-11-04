@@ -2317,3 +2317,12 @@ void Ntop::reloadJA3Hashes() {
   malicious_ja3 = new_malicious_ja3;
   new_malicious_ja3 = new std::set<std::string>();
 }
+
+/* ******************************************* */
+
+/* This ensures that a network interface is not still using the old ndpi struct
+ * (stored in ndpi_struct_shadow) while a reload is in progress.
+ */
+bool Ntop::canSafelyReloadnDPI(time_t now) {
+  return((now - last_ndpi_reload) >= MIN_NDPI_RELOAD_INTERVAL);
+}

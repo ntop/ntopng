@@ -668,7 +668,7 @@ class NetworkInterface : public AlertableEntity {
   void reloadHideFromTop(bool refreshHosts=true);
   void updateLbdIdentifier();
   inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
-  void startCustomCategoriesReload();
+  bool startCustomCategoriesReload();
   void cleanShadownDPI();
   void checkReloadHostsBroadcastDomain();
   inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }

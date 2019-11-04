@@ -1803,13 +1803,16 @@ static int ntop_startCustomCategoriesReload(lua_State* vm) {
     return(CONST_LUA_OK);
   }
 
-  ntop->setLastInterfacenDPIReload(time(NULL));
-  
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
-    if((iface = ntop->getInterface(i)) != NULL)
-      iface->startCustomCategoriesReload();
+    if((iface = ntop->getInterface(i)) != NULL) {
+      if(!iface->startCustomCategoriesReload()) {
+	/* startCustomCategoriesReload, abort */
+	lua_pushboolean(vm, false);
+	return(CONST_LUA_OK);
+      }
+    }
   }
 
   lua_pushboolean(vm, true /* can now start reloading */);
@@ -1899,6 +1902,7 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
   }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists reload done");
+  ntop->setLastInterfacenDPIReload(time(NULL));
   ntop->setnDPICleanupNeeded(true);
 
   lua_pushboolean(vm, true /* reload performed */);
