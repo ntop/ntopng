@@ -829,6 +829,8 @@ local lang = {
     ["last_duration"] = "Last Duration",
     ["last_num_calls"] = "Last Num Calls",
     ["no_callbacks_defined"] = "No callbacks found",
+    ["no_callbacks_available"] = "No callbacks available.",
+    ["no_callbacks_available_disabled_alerts"] = "No callbacks available. Callbacks require alerts to be enabled from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Preferences</a>",
     ["note_add_custom_scripts"] = "%{product} looks for custom scripts in these <a href=\"%{url}\"> <i class=\"fa fa-folder\"></i> directories</a>.",
     ["note_create_custom_scripts"] = "Documentation to create custom scripts for the execution of callbacks is available at the following <a href=\"%{url}\">link</a> <i class=\"fa fa-external-link\"></i>.",
     ["note_flow_application_detected"] = "\"Application Detected\" callbacks are executed right after the detection of the application. This occurs within the first 12 packets of a flow for packet interfaces or immediately after a flow has been received for ZMQ interfaces.",

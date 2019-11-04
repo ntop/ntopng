@@ -1127,6 +1127,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
       -- Needed to handle the defaults
       local available_modules = user_scripts.load(user_scripts.script_types.traffic_element, interface.getId(), entity_type, nil, true --[[ ignore disabled ]])
+      local no_modules_available = table.len(available_modules.modules) == 0
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          if _POST["to_delete"] == "local" then
@@ -1244,86 +1245,96 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print[[</th><th style="text-align: center;">]] print(i18n("flow_callbacks.callback_latest_run")) print[[</th></tr>]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-      for mod_k, user_script in pairsByKeys(available_modules.modules, asc) do
-        local key = user_script.key
-        local gui_conf = user_script.gui
-   local show_input = true
+      if no_modules_available then
+	 if areAlertsEnabled() then
+	    print[[<tr><td colspan=5>]] print(i18n("flow_callbacks.no_callbacks_available")) print[[.</td></tr>]]
+	 else
+	    print[[<tr><td colspan=5>]] print(i18n("flow_callbacks.no_callbacks_available_disabled_alerts", {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=alerts"})) print[[.</td></tr>]]
+	 end
+      else
+	 for mod_k, user_script in pairsByKeys(available_modules.modules, asc) do
+	    local key = user_script.key
+	    local gui_conf = user_script.gui
+	    local show_input = true
 
-   if user_script.granularity then
-      -- check if the check is performed and thus has to
-      -- be configured at this granularity
-      show_input = false
+	    if user_script.granularity then
+	       -- check if the check is performed and thus has to
+	       -- be configured at this granularity
+	       show_input = false
 
-      for _, gran in pairs(user_script.granularity) do
-         if gran == tab then
-       show_input = true
-       break
-         end
-      end
-   end
-
-   if(user_script.local_only and options.remote_host) then
-    show_input = false
-   end
-
-        if not gui_conf or not show_input then
-          goto next_module
-        end
-
-         print("<tr><td><b>".. i18n(gui_conf.i18n_title) .."</b><br>")
-         print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
-
-         if(tab == "min") then
-            print("<td class='text-center'>")
-            if ts_utils.exists("elem_user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type}) then
-               print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
-                  mod_k..'&subdir='..entity_type..'"><i class="fa fa-area-chart fa-lg"></i></a>')
-            end
-         end
-
-         for _, prefix in pairs({"", "global_"}) do
-            if user_script.gui.input_builder then
-              local k = prefix..key
-              local value = vals[k]
-
-              if(user_script.gui.input_builder ~= user_scripts.threshold_cross_input_builder) then
-                -- Temporary fix to handle non-thresholds
-                k = "value_" .. k
-
-                if(value ~= nil) then
-                  value = tonumber(value.edge)
-                end
-              end
-
-              print("</td><td>")
-
-              print(user_script.gui.input_builder(user_script.gui or {}, k, value))
-            end
-         end
-	 print("</td><td align='center'>\n")
-
-	 if user_script.benchmark and (user_script.benchmark[tab] or user_script.benchmark["all"]) then
-	    local hook = ternary(user_script.benchmark[tab], tab, "all")
-
-	    if user_script.benchmark[hook]["tot_elapsed"] then
-	       if user_script.benchmark[hook]["tot_num_calls"] > 1 then
-		  print(i18n("flow_callbacks.callback_function_duration_fmt_long",
-			     {num_calls = format_utils.formatValue(user_script.benchmark[hook]["tot_num_calls"]),
-			      time = format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"]),
-			      speed = format_utils.formatValue(round(user_script.benchmark[hook]["avg_speed"], 0))}))
-	       else
-		  print(i18n("flow_callbacks.callback_function_duration_fmt_short",
-			     {time = format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"])}))
+	       for _, gran in pairs(user_script.granularity) do
+		  if gran == tab then
+		     show_input = true
+		     break
+		  end
 	       end
 	    end
-	 end
 
-         print("</td></tr>\n")
-         ::next_module::
+	    if(user_script.local_only and options.remote_host) then
+	       show_input = false
+	    end
+
+	    if not gui_conf or not show_input then
+	       goto next_module
+	    end
+
+	    print("<tr><td><b>".. i18n(gui_conf.i18n_title) .."</b><br>")
+	    print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
+
+	    if(tab == "min") then
+	       print("<td class='text-center'>")
+	       if ts_utils.exists("elem_user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type}) then
+		  print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
+			   mod_k..'&subdir='..entity_type..'"><i class="fa fa-area-chart fa-lg"></i></a>')
+	       end
+	    end
+
+	    for _, prefix in pairs({"", "global_"}) do
+	       if user_script.gui.input_builder then
+		  local k = prefix..key
+		  local value = vals[k]
+
+		  if(user_script.gui.input_builder ~= user_scripts.threshold_cross_input_builder) then
+		     -- Temporary fix to handle non-thresholds
+		     k = "value_" .. k
+
+		     if(value ~= nil) then
+			value = tonumber(value.edge)
+		     end
+		  end
+
+		  print("</td><td>")
+
+		  print(user_script.gui.input_builder(user_script.gui or {}, k, value))
+	       end
+	    end
+	    print("</td><td align='center'>\n")
+
+	    if user_script.benchmark and (user_script.benchmark[tab] or user_script.benchmark["all"]) then
+	       local hook = ternary(user_script.benchmark[tab], tab, "all")
+
+	       if user_script.benchmark[hook]["tot_elapsed"] then
+		  if user_script.benchmark[hook]["tot_num_calls"] > 1 then
+		     print(i18n("flow_callbacks.callback_function_duration_fmt_long",
+				{num_calls = format_utils.formatValue(user_script.benchmark[hook]["tot_num_calls"]),
+				 time = format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"]),
+				 speed = format_utils.formatValue(round(user_script.benchmark[hook]["avg_speed"], 0))}))
+		  else
+		     print(i18n("flow_callbacks.callback_function_duration_fmt_short",
+				{time = format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"])}))
+		  end
+	       end
+	    end
+
+	    print("</td></tr>\n")
+	    ::next_module::
+	 end
       end
 
-      print [[
-      </tbody> </table>
+      print [[</tbody> </table>]]
+
+      if not no_modules_available then
+	 print[[
       <input type="hidden" name="SaveAlerts" value="">
 
       <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
@@ -1332,6 +1343,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       <button class="btn btn-default" onclick="$('#deleteGlobalAlertConfig').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("show_alerts.delete_config_btn",{conf=firstToUpper(entity_type)})) print[[</button>
       <button class="btn btn-default" onclick="$('#deleteAlertSourceSettings').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(delete_button_msg) print[[</button>
       ]]
+      end
 
       print("<div style='margin-top:4em;'><b>" .. i18n("alerts_thresholds_config.notes") .. ":</b><ul>")
 
