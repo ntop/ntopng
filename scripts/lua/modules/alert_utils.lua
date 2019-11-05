@@ -2777,29 +2777,11 @@ function processAlertNotifications(now, periodic_frequency, force_export)
 
       interface.select(str_ifid)
 
-      if((message.rowid ~= nil) and (message.table_name ~= nil)) then
-        -- A rowid has been passed instead of actual notification information,
-        -- retrieve the alert from sqlite
-        local res = performAlertsQuery("SELECT *", luaTableName(message.table_name), {row_id = message.rowid})
-
-        if((res == nil) or (#res ~= 1)) then
-          if not interface.isPcapDumpInterface() then
-            traceError(TRACE_WARNING, TRACE_CONSOLE,
-              string.format("Could not retrieve alert information [ifid=%s][table=%s][rowid=%s]",
-              message.ifid, message.table_name, message.rowid))
-          end
-
-          goto continue
-        end
-
-        -- Build the actual alert notification
-        message.rowid = nil
-        message.table_name = nil
-        message = table.merge(message, res[1])
-
+      if message.is_flow_alert then
 	-- Silly but necessary due to the notifyFlowAlert
 	message.alert_entity = alert_consts.alert_entities.flow.entity_id
 	message.alert_entity_val = "flow" 
+        message.action = nil
 
         json_message = json.encode(message)
       end

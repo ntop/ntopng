@@ -6,6 +6,8 @@ local alert_endpoints = {}
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
 
+local alert_consts = require("alert_consts")
+
 --
 -- Generic alerts extenral report
 --
@@ -15,8 +17,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" 
 --  - module severity is defined with the getAlertNotificationModuleSeverityKey key
 --  - A [module] name must have a corresponding modules/[module]_utils.lua script
 --
-
-local MAX_NUM_PER_MODULE_QUEUED_ALERTS = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS on the AlertsManager
 
 -- ##############################################
 
@@ -128,7 +128,7 @@ function alert_endpoints.dispatchNotification(message, json_message)
 
    for _, m in ipairs(modules) do
       if tonumber(message.alert_severity) >= alertSeverity(m.severity) then
-         ntop.rpushCache(m.export_queue, json_message, MAX_NUM_PER_MODULE_QUEUED_ALERTS)
+         ntop.rpushCache(m.export_queue, json_message, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE)
       end
    end
 end

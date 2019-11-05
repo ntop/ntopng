@@ -130,6 +130,58 @@ end
 
 -- #################################################################
 
+local function enqueueFlowAlert(flow_info, status, alert_type, alert_severity, status_info)
+  local now = os.time()
+
+  if ntop.getPrefs().are_alerts_enabled == false then
+    return false
+  end
+
+  local alert = {}
+ 
+  alert.is_flow_alert = true
+  alert.alert_tstamp = now
+  alert.flow_status = status
+  alert.alert_type = alert_type
+  alert.alert_severity = alert_severity
+
+  local alert_json_info = {}
+  alert_json_info.status_info = status_info
+  alert_json_info.info = flow_info['info']
+  alert.alert_json = json.encode(alert_json_info)
+
+  alert.vlan_id = flow_info['vlan']
+  alert.proto = flow_info['proto.l4_id']
+  alert.l7_master_proto = flow_info['proto.master_ndpi_id']
+  alert.l7_proto = flow_info['proto.ndpi_id']
+
+  alert.cli_addr = flow_info['cli.ip']
+  alert.cli_country = flow_info['cli.country']
+  alert.cli_os = flow_info['cli.os']
+  alert.cli_asn = flow_info['cli.asn']
+  alert.cli_localhost = flow_info['cli.localhost']
+  alert.cli_blacklisted = flow_info['cli.blacklisted']
+
+  alert.srv_addr = flow_info['srv.ip']
+  alert.srv_country = flow_info['srv.country']
+  alert.srv_os = flow_info['srv.os']
+  alert.srv_asn = flow_info['srv.asn']
+  alert.srv_localhost = flow_info['srv.localhost']
+  alert.srv_blacklisted = flow_info['srv.blacklisted']
+
+  alert.cli2srv_bytes = flow_info['cli2srv.bytes']
+  alert.cli2srv_packets = flow_info['cli2srv.packets']
+
+  alert.srv2cli_bytes = flow_info['srv2cli.bytes']
+  alert.srv2cli_packets = flow_info['srv2cli.packets']
+
+  alerts_api.storeFlow(alert) 
+
+  return true
+end
+
+-- #################################################################
+
 local function triggerFlowAlert(info)
    local cli_key = hostinfo2hostkey(hostkey2hostinfo(info["cli.ip"]), nil, true --[[ force VLAN]])
    local srv_key = hostinfo2hostkey(hostkey2hostinfo(info["srv.ip"]), nil, true --[[ force VLAN]])
@@ -166,12 +218,17 @@ local function triggerFlowAlert(info)
       alerted_status_msg = json.encode(alerted_status_msg)
    end
 
-   -- flow.triggerAlert sets the flow alert in memory 
-   -- and calls enqueueStoreFlowAlert()
    local triggered = flow.triggerAlert(status_id, 
       alerted_status.alert_type.alert_id,
       alerted_custom_severity or alerted_status.alert_severity.severity_id, 
       alerted_status_msg)
+
+   if triggered then
+      enqueueFlowAlert(info, status_id, 
+        alerted_status.alert_type.alert_id,
+        alerted_custom_severity or alerted_status.alert_severity.severity_id,
+        alerted_status_msg)
+   end
 
    return triggered
 end
@@ -254,6 +311,7 @@ local function call_modules(l4_proto, mod_fn)
    end
 
    if(alerted_status ~= nil) then
+      info = flow.getFullInfo()
       triggerFlowAlert(info)
    end
 

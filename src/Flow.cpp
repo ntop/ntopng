@@ -3994,8 +3994,6 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_int32_table_entry(vm, "srv.port", get_srv_port());
   lua_push_bool_table_entry(vm, "cli.localhost", cli_host ? cli_host->isLocalHost() : false);
   lua_push_bool_table_entry(vm, "srv.localhost", srv_host ? srv_host->isLocalHost() : false);
-  lua_push_bool_table_entry(vm, "cli.blacklisted", cli_host ? cli_host->isBlacklisted() : false);
-  lua_push_bool_table_entry(vm, "srv.blacklisted", srv_host ? srv_host->isBlacklisted() : false);
   lua_push_int32_table_entry(vm, "duration", get_duration());
   lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
   lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
@@ -4357,9 +4355,7 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
       return(false);
   }
 
-  /* Dump alert */
   is_alerted = true;
-  iface->getAlertsManager()->enqueueStoreFlowAlert(this, status, atype, severity, alert_json);
 
   if(!idle()) {
     /* If idle() and not alerted, the interface
@@ -4372,10 +4368,17 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 #endif
   }
 
-  if(cli_host) cli_host->incNumAlertedFlows();
-  if(srv_host) srv_host->incNumAlertedFlows();
+  if(cli_host) {
+    cli_host->incNumAlertedFlows();
+    cli_host->incTotalAlerts(alert_type);
+  }
 
-  /* Success */
+  if(srv_host) {
+    srv_host->incNumAlertedFlows();
+    srv_host->incTotalAlerts(alert_type);
+  }
+
+  /* Success - alert is dumped/notified from lua */
   return(true);
 }
 
