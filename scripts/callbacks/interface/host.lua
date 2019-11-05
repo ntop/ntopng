@@ -27,6 +27,7 @@ local config_alerts_local = nil
 local config_alerts_remote = nil
 local available_modules = nil
 local ifid = nil
+local host_entity = alert_consts.alert_entities.host.entity_id
 
 -- #################################################################
 
@@ -85,20 +86,20 @@ function checkAlerts(granularity)
     return
   end
 
+  local host_ip = host.getIp()
+  local host_key   = hostinfo2hostkey({ip = host_ip.ip, vlan = host_ip.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
   local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
-  local suppressed_alerts = host.hasAlertsSuppressed()
+  local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, host_entity, host_key)
 
   if suppressed_alerts then
      releaseAlerts(granularity_id)
   end
 
   benchmark_begin()
-  local host_ip = host.getIp()
   local cur_alerts = host.getAlerts(granularity_id)
   local is_localhost = host.getLocalhostInfo()["localhost"]
   benchmark_end()
 
-  local host_key   = hostinfo2hostkey({ip = host_ip.ip, vlan = host_ip.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
   local config_alerts = ternary(is_localhost, config_alerts_local, config_alerts_remote)
   local host_config = config_alerts[host_key] or {}
   local global_config = ternary(is_localhost, config_alerts["local_hosts"], config_alerts["remote_hosts"]) or {}

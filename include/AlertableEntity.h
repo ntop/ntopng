@@ -44,7 +44,6 @@ protected:
   std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
   RwLock *locks[MAX_NUM_PERIODIC_SCRIPTS];
   u_int num_triggered_alerts;
-  bool suppressed_alerts;
 
   RwLock* getLock(ScriptPeriodicity p);
   void rdLock(ScriptPeriodicity p, const char *filename, int line);
@@ -77,10 +76,9 @@ public:
   u_int getNumTriggeredAlerts(ScriptPeriodicity p) const;
   inline u_int getNumTriggeredAlerts() const { return(num_triggered_alerts); }
   
-  inline void setEntityValue(const char *ent_val) { entity_val = ent_val; refreshSuppressedAlert(); }
+  inline void setEntityValue(const char *ent_val) { entity_val = ent_val; }
   inline std::string getEntityValue()       const { return(entity_val); }
   inline AlertEntity getEntityType()        const { return(entity_type); }
-  inline bool hasAlertsSuppressed()         const { return(suppressed_alerts); }
 
   bool triggerAlert(lua_State* vm, std::string key,
 		    ScriptPeriodicity p, time_t now,
@@ -90,7 +88,6 @@ public:
   bool releaseAlert(lua_State* vm, std::string key,
 		    ScriptPeriodicity p, time_t now);
 
-  void refreshSuppressedAlert();
   void luaAlert(lua_State* vm, const Alert *alert, ScriptPeriodicity p) const;
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, ScriptPeriodicity p, AlertType type_filter,

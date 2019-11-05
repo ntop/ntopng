@@ -29,9 +29,6 @@ AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
 
   for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++)
     locks[i] = NULL;
-
-  suppressed_alerts = false;
-  refreshSuppressedAlert();
 }
 
 /* ****************************************** */
@@ -271,21 +268,4 @@ u_int AlertableEntity::getNumTriggeredAlerts(ScriptPeriodicity p) const {
 
 void AlertableEntity::syncReadonlyTriggeredAlerts() {
   updateNumTriggeredAlerts();
-}
-
-/* ****************************************** */
-
-void AlertableEntity::refreshSuppressedAlert() {
-  if(!entity_val.empty()) {
-    if(!ntop->getPrefs()->are_alerts_disabled()) {
-      char rsp[64], rkey[128];
-      snprintf(rkey, sizeof(rkey), CONST_SUPPRESSED_ALERT_PREFS, alert_iface->get_id());
-
-      if(ntop->getRedis()->hashGet(rkey, entity_val.c_str(), rsp, sizeof(rsp)) == 0)
-        suppressed_alerts = ((strcmp(rsp, "false") == 0) ? 1 : 0);
-      else
-        suppressed_alerts = false;
-    } else
-      suppressed_alerts = true;
-  }
 }

@@ -3385,6 +3385,17 @@ end
 
 -- ###########################################
 
+-- @brief Deletes all the cache/prefs keys matching the pattern
+function deleteCachePattern(pattern)
+   local keys = ntop.getKeysCache(pattern)
+
+   for key in pairs(keys or {}) do
+      ntop.delCache(key)
+   end
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

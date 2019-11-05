@@ -18,6 +18,7 @@ local do_trace = false             -- Trace lua calls
 local config_alerts = nil
 local ifid = nil
 local available_modules = nil
+local interface_entity = alert_consts.alert_entities.interface.entity_id
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -50,7 +51,8 @@ function checkAlerts(granularity)
    end
 
    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
-   local suppressed_alerts = interface.hasAlertsSuppressed()
+   local interface_key   = "iface_"..ifid
+   local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, interface_entity, interface_key)
 
    if suppressed_alerts then
       releaseAlerts(granularity_id)
@@ -58,8 +60,6 @@ function checkAlerts(granularity)
 
    local info = interface.getStats()
    local cur_alerts = interface.getAlerts(granularity_id)
-   local ifid = interface.getId()
-   local interface_key   = "iface_"..ifid
    local interface_config = config_alerts[interface_key] or {}
    local global_config = config_alerts["interfaces"] or {}
    local has_configuration = (table.len(interface_config) or table.len(global_config))

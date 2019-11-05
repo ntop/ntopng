@@ -204,13 +204,6 @@ function get_make_room_keys(ifId)
 	   entities="ntopng.cache.alerts.ifid_"..ifId..".make_room_closed_alerts"}
 end
 
--- =====================================================
-
-function get_alerts_suppressed_hash_name(ifid)
-   local hash_name = "ntopng.prefs.alerts.ifid_"..ifid
-   return hash_name
-end
-
 -- #################################
 
 -- This function maps the SQLite table names to the conventional table
@@ -871,6 +864,8 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
       cur_bitmap = alerts_api.getHostDisabledStatusBitmap(ifid, entity_value)
    end
 
+   local entity_type_id = alert_consts.alertEntity(entity_type)
+
    if _SERVER["REQUEST_METHOD"] == "POST" then
       if _POST["trigger_alerts"] ~= "1" then
          trigger_alerts = false
@@ -878,14 +873,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
          trigger_alerts = true
       end
 
-      if(not trigger_alerts) then
-        ntop.setHashCache(get_alerts_suppressed_hash_name(ifid), entity_value, tostring(trigger_alerts))
-      else
-        -- Delete the entry to save space
-        ntop.delHashCache(get_alerts_suppressed_hash_name(ifid), entity_value)
-      end
-
-      interface.refreshSuppressedAlertsPrefs(alert_consts.alertEntity(entity_type), entity_value)
+      alerts_api.setSuppressedAlerts(ifid, entity_type_id, entity_value, (not trigger_alerts))
 
       if(entity_type == "host") then
          local bitmap = 0
@@ -904,7 +892,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
          end
       end
    else
-      trigger_alerts = toboolean(ntop.getHashCache(get_alerts_suppressed_hash_name(ifid), entity_value))
+      trigger_alerts = (not alerts_api.hasSuppressedAlerts(ifid, entity_type_id, entity_value))
    end
 
    if trigger_alerts == false then
@@ -2526,14 +2514,6 @@ end
 
 -- #################################
 
-local function deleteCachePattern(pattern)
-   local keys = ntop.getKeysCache(pattern)
-
-   for key in pairs(keys or {}) do
-      ntop.delCache(key)
-   end
-end
-
 function disableAlertsGeneration()
    if not haveAdminPrivileges() then
       return
@@ -2563,7 +2543,6 @@ function flushAlertsData()
 
    callback_utils.foreachInterface(ifnames, nil, function(ifname, ifstats)
 				      if(verbose) then io.write("[Alerts] Processing interface "..ifname.."...\n") end
-				      interface.refreshSuppressedAlertsPrefs()
 
 				      if(verbose) then io.write("[Alerts] Flushing SQLite configuration...\n") end
 				      performAlertsQuery("DELETE", "engaged", {}, force_query)
@@ -2576,15 +2555,11 @@ function flushAlertsData()
    deleteCachePattern("ntopng.alerts.*")
    deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", true))
    deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", false))
-   ntop.delCache(get_alerts_suppressed_hash_name("*"))
+   alerts_api.purgeAlertsPrefs()
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 
    if(verbose) then io.write("[Alerts] Enabling alerts generation...\n") end
    ntop.setAlertsTemporaryDisabled(false);
-
-   callback_utils.foreachInterface(ifnames, nil, function(_ifname, ifstats)
-      interface.refreshSuppressedAlertsPrefs()
-   end)
 
    ntop.setPref("ntopng.prefs.disable_alerts_generation", generation_toggle_backup)
    refreshAlerts(interface.getId())

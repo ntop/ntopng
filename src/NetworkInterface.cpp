@@ -6754,16 +6754,6 @@ bool NetworkInterface::getVLANInfo(lua_State* vm, u_int16_t vlan_id) {
 
 /* **************************************** */
 
-static void refresh_suppressed_alert_prefs_callback(AlertableEntity *alertable, void *user_data) {
-  alertable->refreshSuppressedAlert();
-}
-
-void NetworkInterface::refreshSuppressedAlertsPrefs(AlertEntity entity_type, const char *entity_value) {
-  walkAlertables(entity_type, entity_value, NULL, refresh_suppressed_alert_prefs_callback, NULL);
-}
-
-/* **************************************** */
-
 int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
 					      char *host_ip, u_int16_t host_vlan) {
   Host *h;

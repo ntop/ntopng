@@ -1150,7 +1150,11 @@ end
 -- ##############################################
 
 local function getEntityDisabledAlertsBitmapHash(ifid, entity_type)
-  return string.format("ntopng.prefs.alerts.ifid_%d.disabled_alerts.entity_%u", ifid, entity_type)
+  -- NOTE: should be able to accept strings for alerts_api.purgeAlertsPrefs
+  if(type(ifid) == "number") then ifid = string.format("%d", ifid) end
+  if(type(entity_type) == "number") then entity_type = string.format("%u", entity_type) end
+
+  return string.format("ntopng.prefs.alerts.ifid_%s.disabled_alerts.entity_%s", ifid, entity_type)
 end
 
 -- ##############################################
@@ -1171,9 +1175,12 @@ end
 
 -- ##############################################
 
+-- A cache variable to know if there are configured disabled alerts
 local function getInterfaceHasDisabledAlertsKey(ifid)
-  -- A cache variable to know if there are configured disabled alerts
-  return(string.format("ntopng.cache.alerts.ifid_%d.has_disabled_alerts", ifid))
+  -- NOTE: should be able to accept strings for alerts_api.purgeAlertsPrefs
+  if(type(ifid) == "number") then ifid = string.format("%d", ifid) end
+
+  return(string.format("ntopng.cache.alerts.ifid_%s.has_disabled_alerts", ifid))
 end
 
 -- ##############################################
@@ -1285,7 +1292,10 @@ end
 -- ##############################################
 
 local function getHostDisabledStatusBitmapHash(ifid)
-  return(string.format("ntopng.prefs.alerts.ifid_%d.disabled_status", ifid))
+  -- NOTE: should be able to accept strings for alerts_api.purgeAlertsPrefs
+  if(type(ifid) == "number") then ifid = string.format("%d", ifid) end
+
+  return(string.format("ntopng.prefs.alerts.ifid_%s.disabled_status", ifid))
 end
 
 -- ##############################################
@@ -1323,6 +1333,73 @@ function alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
   end
 
   return(rv)
+end
+
+-- ##############################################
+-- SUPPRESSED ALERTS API
+-- ##############################################
+
+local function getSuppressedSetKey(ifid, entity_type)
+  -- NOTE: should be able to accept strings for alerts_api.purgeAlertsPrefs
+  if(type(ifid) == "number") then ifid = string.format("%d", ifid) end
+  if(type(entity_type) == "number") then entity_type = string.format("%u", entity_type) end
+
+  return(string.format("ntopng.prefs.alerts.ifid_%s.suppressed_alerts.entity_%s", ifid, entity_type))
+end
+
+-- @brief Get the suppressed alertable entities given the entity_type
+function alerts_api.getSuppressedEntityAlerts(ifid, entity_type)
+  local setk = getSuppressedSetKey(ifid, entity_type)
+  local suppressed_entities = ntop.getMembersCache(setk) or {}
+  local ret = {}
+
+  for _, v in pairs(suppressed_entities) do
+    ret[v] = true
+  end
+
+  return(ret)
+end
+
+-- ##############################################
+
+-- @brief Enable/disable suppressed alerts on the given alertable entity
+function alerts_api.setSuppressedAlerts(ifid, entity_type, entity_value, suppressed)
+  local setk = getSuppressedSetKey(ifid, entity_type)
+
+  if(suppressed) then
+    ntop.setMembersCache(setk, entity_value)
+  else
+    ntop.delMembersCache(setk, entity_value)
+  end
+end
+
+-- ##############################################
+
+-- A cache is used to reduce Redis accesses
+local cache_suppressed_by_entity_type = {}
+
+-- @brief Check if the given entity has suppressed alerts
+function alerts_api.hasSuppressedAlerts(ifid, entity_type, entity_value)
+  local entities_suppressed = cache_suppressed_by_entity_type[entity_type]
+
+  if(entities_suppressed == nil) then
+    -- Local from redis
+    entities_suppressed = alerts_api.getSuppressedEntityAlerts(ifid, entity_type)
+    cache_suppressed_by_entity_type[entity_type] = entities_suppressed
+  end
+
+  return(entities_suppressed[entity_value] ~= nil)
+end
+
+-- ##############################################
+
+-- @brief Purge all the alerts prefs set by this module
+function alerts_api.purgeAlertsPrefs()
+  -- Purge all the alerts prefs on all the interfaces
+  deleteCachePattern(getEntityDisabledAlertsBitmapHash("*", "*"))
+  deleteCachePattern(getSuppressedSetKey("*", "*"))
+  deleteCachePattern(getInterfaceHasDisabledAlertsKey("*"))
+  deleteCachePattern(getHostDisabledStatusBitmapHash("*"))
 end
 
 -- ##############################################

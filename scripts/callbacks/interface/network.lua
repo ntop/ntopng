@@ -18,6 +18,7 @@ local do_trace = false             -- Trace lua calls
 local config_alerts = nil
 local available_modules = nil
 local ifid = nil
+local network_entity = alert_consts.alert_entities.network.entity_id
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -49,17 +50,18 @@ function checkAlerts(granularity)
       return
    end
 
+   local info = network.getNetworkStats()
+   local network_key = info and info.network_key
+   if not network_key then return end
+
    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
-   local suppressed_alerts = network.hasAlertsSuppressed()
+   local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, network_entity, network_key)
 
    if suppressed_alerts then
       releaseAlerts(granularity_id)
    end
 
-   local info = network.getNetworkStats()
    local cur_alerts = network.getAlerts(granularity_id)
-   local network_key = info and info.network_key
-   if not network_key then return end
 
    local network_config = config_alerts[network_key] or {}
    local global_config = config_alerts["local_networks"] or {}

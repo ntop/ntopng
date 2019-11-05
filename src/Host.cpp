@@ -96,8 +96,7 @@ Host::~Host() {
 void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
-  if(triggerAlerts())
-    counter->inc(when, this);
+  counter->inc(when, this);
 
   if(syn_sent)
     syn_sent_last_min++;
@@ -554,8 +553,8 @@ void Host::lua_get_num_alerts(lua_State* vm) const {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  lua_push_uint64_table_entry(vm, "num_alerts", triggerAlerts() ? getNumTriggeredAlerts() : 0);
-  lua_push_uint64_table_entry(vm, "active_alerted_flows", triggerAlerts() ? getNumAlertedFlows() : 0);
+  lua_push_uint64_table_entry(vm, "num_alerts", getNumTriggeredAlerts());
+  lua_push_uint64_table_entry(vm, "active_alerted_flows", getNumAlertedFlows());
   lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
 }
 
@@ -919,7 +918,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
 
     /* Generic Host */
-    json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumTriggeredAlerts() : 0));
+    json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumTriggeredAlerts()));
   }
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
@@ -1000,9 +999,7 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer) {
     num_active_flows_as_server.inc(1);
   }
 
-  if(triggerAlerts())
-    counter->inc(t, this);
-
+  counter->inc(t, this);
   stats->incNumFlows(as_client, peer);
 }
 

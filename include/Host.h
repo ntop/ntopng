@@ -341,7 +341,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void checkDataReset();
   void checkBroadcastDomain();
   bool hasAnomalies() const;
-  bool triggerAlerts()                             const { return(!hasAlertsSuppressed());    };
   void housekeepAlerts(ScriptPeriodicity p);
   inline u_int getNumDropboxPeers()                      { return(dropbox_namespaces.size()); };
   virtual void inlineSetOSDetail(const char *detail) { }

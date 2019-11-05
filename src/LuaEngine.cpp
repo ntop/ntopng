@@ -3810,26 +3810,6 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_refresh_suppressed_alerts_prefs(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  AlertEntity entity_type = alert_entity_none;
-  const char *entity_value = NULL;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) == LUA_TNUMBER) entity_type = (AlertEntity) lua_tointeger(vm, 1);
-  if(lua_type(vm, 2) == LUA_TSTRING) entity_value = lua_tostring(vm, 2);
-
-  ntop_interface->refreshSuppressedAlertsPrefs(entity_type, entity_value);
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 // *** API ***
 static int ntop_get_interface_endpoint(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -8493,26 +8473,6 @@ static int ntop_network_get_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_has_alerts_suppressed(lua_State* vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  lua_pushboolean(vm, c->iface->hasAlertsSuppressed());
-  return(CONST_LUA_OK);
-}
-
-static int ntop_host_has_alerts_suppressed(lua_State* vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  lua_pushboolean(vm, c->host->hasAlertsSuppressed());
-  return(CONST_LUA_OK);
-}
-
-static int ntop_network_has_alerts_suppressed(lua_State* vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  lua_pushboolean(vm, c->network->hasAlertsSuppressed());
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_network_check_context(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *entity_val;
@@ -10690,7 +10650,6 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Alerts */
   { "optimizeAlerts",         ntop_interface_optimize_alerts },
-  { "refreshSuppressedAlertsPrefs",     ntop_refresh_suppressed_alerts_prefs },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },
   { "storeAlert",             ntop_interface_store_alert              },
@@ -10710,7 +10669,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getAlerts",              ntop_interface_get_alerts               },
   { "releaseEngagedAlerts",   ntop_interface_release_engaged_alerts   },
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },
-  { "hasAlertsSuppressed",    ntop_interface_has_alerts_suppressed    },
 
   /* Interface Alerts */
   { "checkInterfaceAlertsMin",    ntop_check_interface_alerts_min     },
@@ -10749,7 +10707,6 @@ static const luaL_Reg ntop_host_reg[] = {
   { "releaseTriggeredAlert",  ntop_host_release_triggered_alert },
   { "getAlerts",              ntop_host_get_alerts              },
   { "checkContext",           ntop_host_check_context           },
-  { "hasAlertsSuppressed",    ntop_host_has_alerts_suppressed   },
 
   { "getIp",                  ntop_host_get_ip                  },
   { "getLocalhostInfo",       ntop_host_get_localhost_info      },
@@ -10778,7 +10735,6 @@ static const luaL_Reg ntop_network_reg[] = {
   { "releaseTriggeredAlert",    ntop_network_release_triggered_alert },
   { "getAlerts",                ntop_network_get_alerts              },
   { "checkContext",             ntop_network_check_context           },
-  { "hasAlertsSuppressed",      ntop_network_has_alerts_suppressed   },
   
   { NULL,                     NULL }
 };

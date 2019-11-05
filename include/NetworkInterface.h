@@ -661,7 +661,6 @@ class NetworkInterface : public AlertableEntity {
   inline void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
   };
-  void refreshSuppressedAlertsPrefs(AlertEntity entity_type, const char *entity_value);
   int updateHostTrafficPolicy(AddressTree* allowed_networks, char *host_ip, u_int16_t host_vlan);
 
   virtual void reloadCompanions() {};
