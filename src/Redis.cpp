@@ -786,7 +786,7 @@ int Redis::getAddress(char *numeric_ip, char *rsp,
   } else {
     /* We need to extend expire */
 
-    expire(numeric_ip, DNS_CACHE_DURATION /* expire */);
+    expire(key, DNS_CACHE_DURATION /* expire */);
   }
 
   return(rc);
