@@ -1492,7 +1492,7 @@ function housekeepingAlertsMakeRoom(ifId)
       ntop.delCache(k["entities"])
       local res = interface.queryAlertsRaw(
 					   "SELECT alert_entity, alert_entity_val, count(*) count",
-					   "GROUP BY alert_entity, alert_entity_val HAVING COUNT >= "..max_num_alerts_per_entity)
+					   "GROUP BY alert_entity, alert_entity_val HAVING COUNT >= "..max_num_alerts_per_entity) or {}
 
       for _, e in pairs(res) do
 	 local to_keep = (max_num_alerts_per_entity * 0.8) -- deletes 20% more alerts than the maximum number
@@ -1508,7 +1508,7 @@ function housekeepingAlertsMakeRoom(ifId)
 
    if ntop.getCache(k["flows"]) == "1" then
       ntop.delCache(k["flows"])
-      local res = interface.queryFlowAlertsRaw("SELECT count(*) count", "WHERE 1=1")
+      local res = interface.queryFlowAlertsRaw("SELECT count(*) count", "WHERE 1=1") or {}
       local count = tonumber(res[1].count)
       if count ~= nil and count >= max_num_flow_alerts then
 	 local to_keep = (max_num_flow_alerts * 0.8)
