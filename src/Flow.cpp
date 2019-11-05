@@ -3801,6 +3801,7 @@ void Flow::lua_get_status(lua_State* vm) const {
 void Flow::lua_get_protocols(lua_State* vm) const {
   char buf[64];
 
+  lua_push_uint64_table_entry(vm, "proto.l4_id", get_protocol());
   lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
 
   if(((stats.cli2srv_packets + stats.srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
@@ -3815,6 +3816,7 @@ void Flow::lua_get_protocols(lua_State* vm) const {
     lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
   lua_push_uint64_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
+  lua_push_uint64_table_entry(vm, "proto.master_ndpi_id", ndpiDetectedProtocol.master_protocol);
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
@@ -3954,14 +3956,18 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
     mask_host = Utils::maskHost(h->isLocalHost());
 
     if(!mask_host) {
+      char cb[64], os[64];
       lua_push_str_table_entry(vm, client ? "cli.host" : "srv.host", h->get_visual_name(buf, sizeof(buf)));
       lua_push_uint64_table_entry(vm, client ? "cli.source_id" : "srv.source_id", 0 /* was never set by src->getSourceId()*/ );
       lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
-
+      lua_push_bool_table_entry(vm, client ? "cli.localhost" : "srv.localhost", h->isLocalHost());
       lua_push_bool_table_entry(vm, client ? "cli.systemhost" : "srv.systemhost", h->isSystemHost());
       lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted", h->isBlacklisted());
       lua_push_int32_table_entry(vm, client ? "cli.network_id" : "srv.network_id", h->get_local_network_id());
       lua_push_uint64_table_entry(vm, client ? "cli.pool_id" : "srv.pool_id", h->get_host_pool());
+      lua_push_uint64_table_entry(vm, client ? "cli.asn" : "srv.asn", h->get_asn());
+      lua_push_str_table_entry(vm, client ? "cli.country" : "srv.country", h->get_country(cb, sizeof(cb)));
+      lua_push_str_table_entry(vm, client ? "cli.os" : "srv.os", h->getOSDetail(os, sizeof(os)));
     }
   }
 
@@ -3988,6 +3994,8 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_int32_table_entry(vm, "srv.port", get_srv_port());
   lua_push_bool_table_entry(vm, "cli.localhost", cli_host ? cli_host->isLocalHost() : false);
   lua_push_bool_table_entry(vm, "srv.localhost", srv_host ? srv_host->isLocalHost() : false);
+  lua_push_bool_table_entry(vm, "cli.blacklisted", cli_host ? cli_host->isBlacklisted() : false);
+  lua_push_bool_table_entry(vm, "srv.blacklisted", srv_host ? srv_host->isBlacklisted() : false);
   lua_push_int32_table_entry(vm, "duration", get_duration());
   lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
   lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
@@ -4327,7 +4335,7 @@ bool Flow::hasDissectedTooManyPackets() {
 
 /* ***************************************************** */
 
-bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json) {
+bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char *alert_json) {
   
   /* Triggering multiple alerts is not supported */
   if(isFlowAlerted())
@@ -4351,7 +4359,7 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 
   /* Dump alert */
   is_alerted = true;
-  iface->getAlertsManager()->enqueueStoreFlowAlert(this, alerted_status, alert_type, alert_level, alert_status_info);
+  iface->getAlertsManager()->enqueueStoreFlowAlert(this, status, atype, severity, alert_json);
 
   if(!idle()) {
     /* If idle() and not alerted, the interface
