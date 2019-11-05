@@ -70,7 +70,7 @@ class AlertsManager : public StoreManager {
       u_int64_t *rowid);
 
   bool hasAlerts();
-  int enqueueFlowAlert(Flow *f, FlowStatus status, AlertType alert_type, AlertLevel alert_severity, const char *status_info);
+  int enqueueStoreFlowAlert(Flow *f, FlowStatus status, AlertType alert_type, AlertLevel alert_severity, const char *status_info);
 
   inline int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, bool ignore_disabled) {
     return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_TABLE_NAME, ignore_disabled);

@@ -57,13 +57,6 @@ class Flow : public GenericHashEntry {
   time_t performed_lua_calls[FLOW_LUA_CALL_MAX_VAL];
   struct ndpi_flow_struct *ndpiFlow;
 
-  /* Flow alert generation follows the following steps:
-   *
-   * 1. lua calls Flow::triggerAlert() and pending alert information is
-   *    stored in this structure
-   * 2. Flow is scanned periodically and, if hasPendingAlert() is true,
-   *    the alert is stored into the database and is_alerted is set to true
-   */
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
   FlowStatus alerted_status;      /* This is the status which has triggered the alert */
   FlowStatus predominant_status;  /* This is the most important status currently set in the status_map */
@@ -241,7 +234,6 @@ class Flow : public GenericHashEntry {
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
   void periodic_dump_check(const struct timeval *tv);
-  void dumpFlowAlert();
   void updateCliJA3();
   void updateSrvJA3();
   void updateHASSH(bool as_client);
@@ -249,7 +241,6 @@ class Flow : public GenericHashEntry {
   bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
   bool isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv);
   void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle);
-  inline bool hasPendingAlert() const         { return((alert_type != alert_none) && (!is_alerted)); }
 
  public:
   Flow(NetworkInterface *_iface,

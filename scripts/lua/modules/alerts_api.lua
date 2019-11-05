@@ -172,6 +172,8 @@ function alerts_api.checkPendingStoreAlerts(deadline)
           alert.srv2cli.bytes, alert.srv2cli.packets)
 
         if ret and ret.rowid and ret.rowid > 0 then
+          -- pushFlowAlertNotification should be probably moved earlier to 
+          -- flow.lua:triggerFlowAlert for consistency with the host alerts
           pushFlowAlertNotification(ifid, ret.rowid)
         end
       end

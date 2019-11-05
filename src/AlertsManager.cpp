@@ -517,8 +517,7 @@ out:
 
 /* **************************************************** */
 
-/* TODO this should be moved to Lua and trigger Flow alerts from there directly */
-int AlertsManager::enqueueFlowAlert(Flow *f, FlowStatus status, AlertType alert_type,
+int AlertsManager::enqueueStoreFlowAlert(Flow *f, FlowStatus status, AlertType alert_type,
     AlertLevel alert_severity, const char *status_info) {
   json_object *alert_obj, *alert_json_obj, *cli_obj, *srv_obj, *cli2srv_obj, *srv2cli_obj;
   char queue_key[CONST_MAX_LEN_REDIS_KEY];

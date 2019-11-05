@@ -166,8 +166,14 @@ local function triggerFlowAlert(info)
       alerted_status_msg = json.encode(alerted_status_msg)
    end
 
-   return(flow.triggerAlert(status_id, alerted_status.alert_type.alert_id,
-      alerted_custom_severity or alerted_status.alert_severity.severity_id, alerted_status_msg))
+   -- flow.triggerAlert sets the flow alert in memory 
+   -- and calls enqueueStoreFlowAlert()
+   local triggered = flow.triggerAlert(status_id, 
+      alerted_status.alert_type.alert_id,
+      alerted_custom_severity or alerted_status.alert_severity.severity_id, 
+      alerted_status_msg)
+
+   return triggered
 end
 
 -- #################################################################

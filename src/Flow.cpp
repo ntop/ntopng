@@ -303,41 +303,6 @@ Flow::~Flow() {
 
 /* *************************************** */
 
-void Flow::dumpFlowAlert() {
-  if(hasPendingAlert()) {
-    if(cli_host && srv_host) {
-      bool cli_thresh, srv_thresh;
-      time_t when = time(0);
-
-      /* Check per-host thresholds */
-      cli_thresh = cli_host->incFlowAlertHits(when);
-      srv_thresh = srv_host->incFlowAlertHits(when);
-      if((cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump())
-	return;
-    }
-
-    /* Dump alert */
-    is_alerted = true;
-    iface->getAlertsManager()->enqueueFlowAlert(this, alerted_status, alert_type, alert_level, alert_status_info);
-
-    if(!idle()) {
-      /* If idle() and not alerted, the interface
-	 counter for active alerted flows is not incremented as
-	 it means the purgeIdle() has traversed this flow and marked 
-	 it as state_idle before it was alerted */
-      iface->incNumAlertedFlows(this);
-#ifdef ALERTED_FLOWS_DEBUG
-      iface_alert_inc = true;
-#endif
-    }
-
-    if(cli_host) cli_host->incNumAlertedFlows();
-    if(srv_host) srv_host->incNumAlertedFlows();
-  }
-}
-
-/* *************************************** */
-
 u_int16_t Flow::getStatsProtocol() const {
   u_int16_t stats_protocol;
 
@@ -1420,9 +1385,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 /* *************************************** */
 
 void Flow::periodic_dump_check(const struct timeval *tv) {
-  /* NOTE: this can be very time consuming */
-  dumpFlowAlert();
-
   /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
      ViewInterface dump their flows in another thread, not this one. */
   dumpFlow(tv, iface->isViewed() ? iface->viewedBy() : iface);
@@ -4366,15 +4328,44 @@ bool Flow::hasDissectedTooManyPackets() {
 /* ***************************************************** */
 
 bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json) {
-  if(isFlowAlerted() || hasPendingAlert()) {
-    /* Triggering multiple alerts is not supported */
+  
+  /* Triggering multiple alerts is not supported */
+  if(isFlowAlerted())
     return(false);
-  }
 
   alert_status_info = alert_json ? strdup(alert_json) : NULL;
   alerted_status = status;
   alert_level = severity;
   alert_type = atype; /* set this as the last thing to avoid concurrency issues */
+
+  if(cli_host && srv_host) {
+    bool cli_thresh, srv_thresh;
+    time_t when = time(0);
+
+    /* Check per-host thresholds */
+    cli_thresh = cli_host->incFlowAlertHits(when);
+    srv_thresh = srv_host->incFlowAlertHits(when);
+    if((cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump())
+      return(false);
+  }
+
+  /* Dump alert */
+  is_alerted = true;
+  iface->getAlertsManager()->enqueueStoreFlowAlert(this, alerted_status, alert_type, alert_level, alert_status_info);
+
+  if(!idle()) {
+    /* If idle() and not alerted, the interface
+     * counter for active alerted flows is not incremented as
+     * it means the purgeIdle() has traversed this flow and marked 
+     * it as state_idle before it was alerted */
+    iface->incNumAlertedFlows(this);
+#ifdef ALERTED_FLOWS_DEBUG
+    iface_alert_inc = true;
+#endif
+  }
+
+  if(cli_host) cli_host->incNumAlertedFlows();
+  if(srv_host) srv_host->incNumAlertedFlows();
 
   /* Success */
   return(true);
