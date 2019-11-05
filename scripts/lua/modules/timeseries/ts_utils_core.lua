@@ -853,6 +853,8 @@ function ts_utils.getPossiblyChangedSchemas()
     "monitored_host:rtt",
     "system:cpu_load",
     "process:memory",
+    "redis:keys",
+    "redis:memory",
   }
 end
 

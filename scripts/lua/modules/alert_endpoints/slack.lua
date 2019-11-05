@@ -76,7 +76,7 @@ function slack.dequeueAlerts(queue)
     for severity, notifications in pairs(by_severity) do
       local messages = {}
       entity_type = alert_consts.alertEntityRaw(entity_type)
-      severity = alert_consts.alertSeverityRaw(severity)
+      severity = alertSeverityRaw(severity)
 
       -- Most recent notifications first
       for _, notif in pairsByValues(notifications, notification_timestamp_rev) do
