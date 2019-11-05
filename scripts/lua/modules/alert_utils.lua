@@ -2310,10 +2310,18 @@ function check_macs_alerts(ifid)
    local active_devices_set = getActiveDevicesHashKey(ifid)
    local seen_devices_hash = getFirstSeenDevicesHashKey(ifid)
    local seen_devices = ntop.getHashAllCache(seen_devices_hash) or {}
+   local max_active_devices_cardinality = 16384
    local prev_active_devices = swapKeysValues(ntop.getMembersCache(active_devices_set) or {})
    local alert_new_devices_enabled = ntop.getPref("ntopng.prefs.alerts.device_first_seen_alert") == "1"
    local alert_device_connection_enabled = ntop.getPref("ntopng.prefs.alerts.device_connection_alert") == "1"
    local new_active_devices = {}
+   local num_devices = table.len(seen_devices)
+
+   if(num_devices >= max_active_devices_cardinality) then
+      traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Too many active devices, discarding %u devices", num_devices))
+      ntop.delCache(active_devices_set)
+      prev_active_devices = {}
+   end
 
    callback_utils.foreachDevice(getInterfaceName(ifid), nil, function(devicename, devicestats, devicebase)
 				   -- note: location is always lan when capturing from a local interface

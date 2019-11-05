@@ -601,14 +601,6 @@ end
 
 -- ##############################################
 
-function table.len(T)
-  local count = 0
-  for _ in pairs(T) do count = count + 1 end
-  return count
-end
-
--- ##############################################
-
 function noHtml(s)
    if s == nil then return nil end
 
@@ -1786,6 +1778,7 @@ function get_version_update_msg(info, latest_version)
   end
 end
 
+-- NOTE: on index based tables using #table is much more performant
 function table.len(table)
  local count = 0
 
