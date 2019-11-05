@@ -34,7 +34,7 @@ local function getEntityAlertDisabledBitmap(entity, entity_val)
     return entities_bitmaps[entity][entity_val]
   end
 
-  local bitmap = alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
+  local bitmap = alerts_api.getEntityAlertsDisabledBitmap(ifid, entity, entity_val)
   entities_bitmaps[entity] = entities_bitmaps[entity] or {}
   entities_bitmaps[entity][entity_val] = bitmap
 

@@ -541,18 +541,24 @@ end
 -- #################################
 
 local function checkDisableAlerts()
+  local ifid = interface.getId()
+
   if(_POST["action"] == "disable_alert") then
     local entity = _POST["entity"]
     local entity_val = _POST["entity_val"]
     local alert_type = _POST["alert_type"]
+    local disabled_alerts = alerts_api.getEntityAlertsDisabledBitmap(ifid, entity, entity_val)
 
-    alerts_api.disableEntityAlert(interface.getId(), entity, entity_val, alert_type)
+    disabled_alerts = ntop.bitmapSet(disabled_alerts, tonumber(alert_type))
+    alerts_api.setEntityAlertsDisabledBitmap(ifid, entity, entity_val, disabled_alerts)
   elseif(_POST["action"] == "enable_alert") then
     local entity = _POST["entity"]
     local entity_val = _POST["entity_val"]
     local alert_type = _POST["alert_type"]
+    local disabled_alerts = alerts_api.getEntityAlertsDisabledBitmap(ifid, entity, entity_val)
 
-    alerts_api.enableEntityAlert(interface.getId(), entity, entity_val, alert_type)
+    disabled_alerts = ntop.bitmapClear(disabled_alerts, tonumber(alert_type))
+    alerts_api.setEntityAlertsDisabledBitmap(ifid, entity, entity_val, disabled_alerts)
   end
 end
 
@@ -1547,8 +1553,6 @@ end
 -- #################################
 
 local function printDisabledAlerts(ifid)
-  local entitites = alerts_api.listEntitiesWithAlertsDisabled(ifid)
-
   print[[
   <script>
   $("#table-disabled-alerts").datatable({

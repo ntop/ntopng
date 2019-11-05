@@ -69,15 +69,15 @@ local ifid = interface.getId()
 
 -- ##############################################
 
-local entitites = alerts_api.listEntitiesWithAlertsDisabled(ifid)
+local entitites = alerts_api.getAllEntitiesDisabledAlerts(ifid)
 local data = {}
 local sort_to_key = {}
 local totalRows = 0
 
-for entity_id, values in pairsByKeys(entitites) do
-  for entity_value in pairsByKeys(values) do
-    local disabled_alerts = alerts_api.getEntityAlertsDisabled(ifid, entity_id, entity_value)
+for entity_key, disabled_entities in pairsByKeys(entitites) do
+  local entity_id = alert_consts.alertEntity(entity_key)
 
+  for entity_value, disabled_alerts in pairsByKeys(disabled_entities) do
     for _, alert in pairs(alert_consts.alert_types) do
       if((alert.alert_id > 0) and ntop.bitmapIsSet(disabled_alerts, alert.alert_id)) then
         totalRows = totalRows + 1

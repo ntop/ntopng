@@ -1146,31 +1146,142 @@ function alerts_api.category_bytes(info, category_name)
 end
 
 -- ##############################################
+-- ENTITY DISABLED ALERTS API
+-- ##############################################
 
-local function getEntityDisabledAlertsBitmapKey(ifid, entity, entity_val)
-  return string.format("ntopng.prefs.alerts.ifid_%d.disabled_alerts.__%s__%s", ifid, entity, entity_val)
+local function getEntityDisabledAlertsBitmapHash(ifid, entity_type)
+  return string.format("ntopng.prefs.alerts.ifid_%d.disabled_alerts.entity_%u", ifid, entity_type)
 end
 
 -- ##############################################
 
-function alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
-  local bitmap = tonumber(ntop.getPref(getEntityDisabledAlertsBitmapKey(ifid, entity, entity_val))) or 0
-  -- traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("ifid: %d, entity: %s, val: %s -> bitmap=%x", ifid, alert_consts.alertEntityRaw(entity), entity_val, bitmap))
-  return(bitmap)
+-- @brief Get a table containing the disabled alert bitmaps of the alertable entities
+-- for the given entity_type
+-- @return {entity_key -> disabled_alerts_bitmap}
+function alerts_api.getEntityTypeDisabledAlertsBitmap(ifid, entity_type)
+  local hash = getEntityDisabledAlertsBitmapHash(ifid, entity_type)
+  local rv = ntop.getHashAllCache(hash) or {}
+
+  for k, v in pairs(rv) do
+    rv[k] = tonumber(v)
+  end
+
+  return(rv)
 end
 
 -- ##############################################
 
-function alerts_api.setEntityAlertsDisabled(ifid, entity, entity_val, bitmap)
-  local key = getEntityDisabledAlertsBitmapKey(ifid, entity, entity_val)
+local function getInterfaceHasDisabledAlertsKey(ifid)
+  -- A cache variable to know if there are configured disabled alerts
+  return(string.format("ntopng.cache.alerts.ifid_%d.has_disabled_alerts", ifid))
+end
+
+-- ##############################################
+
+-- @brief Set the disabled alerts bitmap for the given alertable entity
+function alerts_api.setEntityAlertsDisabledBitmap(ifid, entity_type, entity_val, bitmap)
+  local hash = getEntityDisabledAlertsBitmapHash(ifid, entity_type)
 
   if(bitmap == 0) then
-    ntop.delCache(key)
+    -- No status disabled
+    ntop.delHashCache(hash, entity_val)
   else
-    ntop.setPref(key, string.format("%u", bitmap))
+    ntop.setHashCache(hash, entity_val, string.format("%u", bitmap))
   end
+
+  -- Invalidate the disabled alerts cache
+  ntop.delCache(getInterfaceHasDisabledAlertsKey(ifid))
 end
 
+-- ##############################################
+
+-- @brief Get the disabled alert bitmap for the given entity
+function alerts_api.getEntityAlertsDisabledBitmap(ifid, entity_type, entity_val)
+  local hash = getEntityDisabledAlertsBitmapHash(ifid, entity_type)
+
+  return(tonumber(ntop.getHashCache(hash, entity_val)) or 0)
+end
+
+-- ##############################################
+
+-- A cache is used to reduce Redis accesses
+local cache_disabled_by_entity_type = {}
+
+-- @brief Check if the alert_type is disabled for the given entity
+function alerts_api.isEntityAlertDisabled(ifid, entity_type, entity_val, alert_id)
+  local entities_disabled = cache_disabled_by_entity_type[entity_type]
+
+  if(entities_disabled == nil) then
+    -- Local from redis
+    entities_disabled = alerts_api.getEntityTypeDisabledAlertsBitmap(ifid, entity_type)
+    cache_disabled_by_entity_type[entity_type] = entities_disabled
+  end
+
+  local bitmap = entities_disabled[entity_val]
+
+  if((bitmap ~= nil) and ntop.bitmapIsSet(bitmap, alert_id)) then
+    return(true)
+  end
+
+  return(false)
+end
+
+-- ##############################################
+
+-- @brief Check if there are any entities with disabled alerts configured
+function alerts_api.hasEntitiesWithAlertsDisabled(ifid)
+  local has_disabled_cache_key = getInterfaceHasDisabledAlertsKey(ifid)
+  local cached_val = ntop.getCache(has_disabled_cache_key) or ""
+
+  if(cached_val ~= "") then
+    return(cached_val == "1")
+  end
+
+  -- Slow search
+  local available_entities = alert_consts.alert_entities
+  local found = false
+
+  for _, entity in pairs(available_entities) do
+    local keys = ntop.getKeysCache(getEntityDisabledAlertsBitmapHash(ifid, entity.entity_id))
+
+    if(not table.empty(keys)) then
+      found = true
+      break
+    end
+  end
+
+  ntop.setCache(has_disabled_cache_key, ternary(found, "1", "0"), 3600 --[[ 1h ]])
+  return(found)
+end
+
+-- ##############################################
+
+-- @brief Get all the disabled alerts by entity
+-- @return {entity_type -> {entity_val1 -> bitmap, entity_val2 -> bitmap, ...}, ...}
+function alerts_api.getAllEntitiesDisabledAlerts(ifid)
+  local available_entities = alert_consts.alert_entities
+  local res = {}
+
+  for entity_key, entity in pairs(available_entities) do
+    local hash = getEntityDisabledAlertsBitmapHash(ifid, entity.entity_id)
+    local entities_bitmaps = ntop.getHashAllCache(hash) or {}
+    local is_empty = true
+
+    for k, v in pairs(entities_bitmaps) do
+      entities_bitmaps[k] = tonumber(v)
+      is_empty = false
+    end
+
+    if(not is_empty) then
+      res[entity_key] = entities_bitmaps
+    end
+  end
+
+  return(res)
+end
+
+-- ##############################################
+-- HOST DISABLED FLOW STATUS API
 -- ##############################################
 
 local function getHostDisabledStatusBitmapHash(ifid)
@@ -1179,6 +1290,7 @@ end
 
 -- ##############################################
 
+-- @brief Get the bitmap of disabled flow status for an host
 function alerts_api.getHostDisabledStatusBitmap(ifid, hostkey)
   local hash = getHostDisabledStatusBitmapHash(ifid)
 
@@ -1187,6 +1299,7 @@ end
 
 -- ##############################################
 
+-- @brief Set the bitmap of disabled flow status for an host
 function alerts_api.setHostDisabledStatusBitmap(ifid, hostkey, bitmap)
   local hash = getHostDisabledStatusBitmapHash(ifid)
 
@@ -1200,6 +1313,7 @@ end
 
 -- ##############################################
 
+-- @brief Get all the hosts disabled flow status bitmaps
 function alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
   local hash = getHostDisabledStatusBitmapHash(ifid)
   local rv = ntop.getHashAllCache(hash) or {}
@@ -1209,68 +1323,6 @@ function alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
   end
 
   return(rv)
-end
-
--- ##############################################
-
-local function toggleEntityAlert(ifid, entity, entity_val, alert_type, disable)
-  alert_type = tonumber(alert_type)
-  bitmap = alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
-
-  if(disable) then
-    bitmap = ntop.bitmapSet(bitmap, alert_type)
-  else
-    bitmap = ntop.bitmapClear(bitmap, alert_type)
-  end
-
-  alerts_api.setEntityAlertsDisabled(ifid, entity, entity_val, bitmap)
-  return(bitmap)
-end
-
--- ##############################################
-
-function alerts_api.disableEntityAlert(ifid, entity, entity_val, alert_type)
-  return(toggleEntityAlert(ifid, entity, entity_val, alert_type, true))
-end
-
--- ##############################################
-
-function alerts_api.enableEntityAlert(ifid, entity, entity_val, alert_type)
-  return(toggleEntityAlert(ifid, entity, entity_val, alert_type, false))
-end
-
--- ##############################################
-
-function alerts_api.isEntityAlertDisabled(ifid, entity, entity_val, alert_type)
-  local bitmap = alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
-  return(ntop.bitmapIsSet(bitmap, tonumber(alert_type)))
-end
-
--- ##############################################
-
-function alerts_api.hasEntitiesWithAlertsDisabled(ifid)
-  return(table.len(ntop.getKeysCache(getEntityDisabledAlertsBitmapKey(ifid, "*", "*"))) > 0)
-end
-
--- ##############################################
-
-function alerts_api.listEntitiesWithAlertsDisabled(ifid)
-  local keys = ntop.getKeysCache(getEntityDisabledAlertsBitmapKey(ifid, "*", "*")) or {}
-  local res = {}
-
-  for key in pairs(keys) do
-    local parts = string.split(key, "__")
-
-    if((parts) and (#parts == 3)) then
-      local entity = tonumber(parts[2])
-      local entity_val = parts[3]
-
-      res[entity] = res[entity] or {}
-      res[entity][entity_val] = true
-    end
-  end
-
-  return(res)
 end
 
 -- ##############################################
