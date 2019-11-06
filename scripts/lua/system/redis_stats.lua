@@ -139,7 +139,8 @@ elseif(page == "stats") then
        <thead>
          <tr>
            <th>]] print(i18n("please_wait_page.command")) print[[</th>
-           <th>]] print(i18n("total")) print[[</th>
+           <th width=5% class="text-center">]] print(i18n("chart")) print[[</th>
+           <th class="text-right">]] print(i18n("system_stats.redis.tot_calls")) print[[</th>
          </tr>
        </thead>
        <tbody id="if_stats_redis_tbody"></tbody>
@@ -172,10 +173,11 @@ setInterval(update_redis_table, 5000);
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "redis:memory"
    local selected_epoch = _GET["epoch"] or ""
-   local tags = {ifid = getSystemInterfaceId()}
+   local tags = {ifid = getSystemInterfaceId(), command = _GET["redis_command"]}
    url = url.."&page=historical"
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
+       top_redis_hits = "top:redis:hits",
 		 timeseries = system_schemas,
    })
 elseif((page == "alerts") and isAdministrator()) then

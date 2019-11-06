@@ -298,7 +298,7 @@ local graph_menu_entries = {}
 --      the entry will be shown but will be grayed out (disabled state)
 --    - If timeseries exist for the entry in the visualized interval, the
 --      entry will be shown and will be clickable
-function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending)
+function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending, extra_params)
    local url = getPageUrl(base_url, params)
    local step = nil
 
@@ -321,6 +321,7 @@ function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator
       separator_label = separator_label,
       pending = pending, -- true for batched operations
       step = step,
+      extra_params = extra_params,
    }
 
    graph_menu_entries[#graph_menu_entries + 1] = entry
@@ -345,12 +346,14 @@ end
 
 function graphMenuGetActive(schema, params)
    -- These tags are used to determine the active timeseries entry
-   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, exporter_ifname=1, l4proto=1}
+   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, exporter_ifname=1, l4proto=1, command=1}
 
    for _, entry in pairs(graph_menu_entries) do
+      local extra_params = entry.extra_params or {}
+
       if entry.schema == schema and entry.params then
 	 for k, v in pairs(params) do
-	    if match_tags[k] and tostring(entry.params[k]) ~= tostring(v) then
+	    if (match_tags[k] or extra_params[k]) and tostring(entry.params[k]) ~= tostring(v) then
 	       goto continue
 	    end
 	 end
@@ -514,7 +517,7 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
          local v = serie.label
          local exists = false
          local entry_tags = tags
-         local entry_params = params
+         local entry_params = table.merge(params, serie.extra_params)
          local entry_baseurl = base_url
          local override_link = nil
 
@@ -577,7 +580,7 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
 
          if exists then
             local entry = populateGraphMenuEntry(v, entry_baseurl, table.merge(entry_params, {ts_schema=k}), nil,
-               needs_separator, separator_label, #batch_ids --[[ pending ]], nil)
+               needs_separator, separator_label, #batch_ids --[[ pending ]], serie.extra_params)
 
             if entry then
                for _, batch_id in pairs(batch_ids) do

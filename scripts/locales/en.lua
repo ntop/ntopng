@@ -828,9 +828,9 @@ local lang = {
     ["last_calls_per_sec"] = "Last Calls/sec",
     ["last_duration"] = "Last Duration",
     ["last_num_calls"] = "Last Num Calls",
-    ["no_callbacks_defined"] = "No callbacks found",
     ["no_callbacks_available"] = "No callbacks available.",
     ["no_callbacks_available_disabled_alerts"] = "No callbacks available. Callbacks require alerts to be enabled from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Preferences</a>",
+    ["no_callbacks_defined"] = "No callbacks found",
     ["note_add_custom_scripts"] = "%{product} looks for custom scripts in these <a href=\"%{url}\"> <i class=\"fa fa-folder\"></i> directories</a>.",
     ["note_create_custom_scripts"] = "Documentation to create custom scripts for the execution of callbacks is available at the following <a href=\"%{url}\">link</a> <i class=\"fa fa-external-link\"></i>.",
     ["note_flow_application_detected"] = "\"Application Detected\" callbacks are executed right after the detection of the application. This occurs within the first 12 packets of a flow for packet interfaces or immediately after a flow has been received for ZMQ interfaces.",
@@ -3446,6 +3446,8 @@ local lang = {
     ["value"] = "Value",
     ["write_througput"] = "Write Througput",
     ["redis"] = {
+      ["command_hits"] = "%{cmd} Calls",
+      ["commands"] = "Commands",
       ["redis_health_green"] = "OK",
       ["redis_health_green_descr"] = "Redis is working OK.",
       ["redis_health_red"] = "Persistence Issues",
@@ -3454,6 +3456,8 @@ local lang = {
       ["short_desc_redis_health"] = "Current Redis health.",
       ["short_desc_redis_keys"] = "Total keys in the Redis database.",
       ["short_desc_redis_ram_memory"] = "Total memory Redis has obtained from the operating system.",
+      ["top_redis_commands"] = "Top Commands Calls",
+      ["tot_calls"] = "Total Calls",
     },
   },
   ["telemetry_page"] = {

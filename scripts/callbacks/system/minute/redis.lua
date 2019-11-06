@@ -33,15 +33,36 @@ function probe.loadSchemas(ts_utils)
    })
    schema:addTag("ifid")
    schema:addMetric("num_keys")
+
+   -- Cache
+   schema = ts_utils.newSchema("redis:hits", {metrics_type = ts_utils.metrics.gauge})
+   schema:addTag("ifid")
+   schema:addTag("command")
+   schema:addMetric("num_calls")
 end
 
 -- ##############################################
 
 function probe.getTimeseriesMenu(ts_utils)
-   return {
+   local menu = {
       {schema = "redis:memory", label = i18n("about.ram_memory")},
       {schema = "redis:keys", label = i18n("system_stats.redis.redis_keys")},
+      {separator=1, label=i18n("system_stats.redis.commands")},
    }
+
+   -- Populate individual commands timeseries
+   local series = ts_utils.listSeries("redis:hits", {ifid = getSystemInterfaceId()}, 0)
+
+   for _, serie in pairsByField(series, "command", asc) do
+      menu[#menu + 1] = {
+	 schema = "redis:hits",
+	 label = i18n("system_stats.redis.command_hits", {cmd = string.upper(string.sub(serie.command, 5))}),
+	 extra_params = {redis_command = serie.command},
+	 metrics_labels = {i18n("graphs.num_calls")},
+      }
+   end
+
+   return(menu)
 end
 
 -- ##############################################
@@ -114,9 +135,30 @@ end
 function probe.runTask(when, ts_utils)
    local ifid = getSystemInterfaceId()
    local stats = probe.getStats()
+   local hits_key = "ntopng.cache.redis.stats"
+   local json = require("dkjson")
+   local old_hits_stats = ntop.getCache(hits_key)
+   local hits_stats = ntop.getCacheStats()
+
+   if(not isEmptyString(old_hits_stats)) then
+      old_hits_stats = json.decode(old_hits_stats) or {}
+   else
+      old_hits_stats = {}
+   end
 
    ts_utils.append("redis:memory", {ifid = ifid, resident_bytes = stats["memory"]}, when)
    ts_utils.append("redis:keys", {ifid = ifid, num_keys = stats["dbsize"]}, when)
+
+   for key, val in pairs(hits_stats) do
+      if(old_hits_stats[key] ~= nil) then
+	 local delta = math.max(val - old_hits_stats[key], 0)
+
+	 -- Dump the delta value as a gauge
+	 ts_utils.append("redis:hits", {ifid = ifid, command = key, num_calls = delta}, when)
+      end
+   end
+
+   ntop.setCache(hits_key, json.encode(hits_stats))
 end
 
 -- ##############################################

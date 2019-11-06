@@ -205,10 +205,11 @@ function system_scripts.getAdditionalTimeseries(module_filter)
         if(probe.getTimeseriesMenu ~= nil) then
           local menu = probe.getTimeseriesMenu(ts_utils) or {}
 
+          --[[
           table.insert(menu, 1, {
             separator = 1,
             label = probe.name or probe_name,
-          })
+          })]]
 
           additional_ts = table.merge(additional_ts, menu)
         end

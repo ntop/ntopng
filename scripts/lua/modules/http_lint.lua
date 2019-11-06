@@ -1504,6 +1504,7 @@ local known_parameters = {
    ["rtt_host"]                = validateSingleWord,
    ["rtt_max"]                 = validateEmptyOr(validateNumber),
    ["disabled_status"]         = validateListOfTypeInline(validateNumber),
+   ["redis_command"]           = validateSingleWord,
 
    -- Containers
    ["pod"]                     = validateSingleWord,
