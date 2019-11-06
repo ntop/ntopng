@@ -41,6 +41,22 @@ PeriodicActivities::PeriodicActivities() {
 /* ******************************************* */
 
 PeriodicActivities::~PeriodicActivities() {
+  /* Important: destroy the ThreadedActivities only *after* ensuring that both its pthreadLoop
+   * thread and the possibly running activity into the ThreadPool::run thread
+   * have been terminated. */
+  for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
+    /* This will terminate the pthreadLoop of the activities */
+    if(activities[i])
+      activities[i]->terminateEnqueueLoop();
+  }
+
+  /* This will terminate any possibly running activities into the ThreadPool::run */
+  delete high_priority_pool;
+  delete standard_priority_pool;
+  delete no_priority_pool;
+
+  /* Now it's safe to delete the activities as no other thread is executing
+   * their code. */
   for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
     if(activities[i]) {
       delete activities[i];
@@ -48,10 +64,6 @@ PeriodicActivities::~PeriodicActivities() {
       num_activities--;
     }
   }
-
-  delete high_priority_pool;
-  delete standard_priority_pool;
-  delete no_priority_pool;
 }
 
 /* ******************************************* */

@@ -63,6 +63,7 @@ class ThreadedActivity {
   void runScript(char *script_path, NetworkInterface *iface);
 
   inline void shutdown()      { terminating = true; };
+  void terminateEnqueueLoop();
   bool isTerminating();
 
   void run();

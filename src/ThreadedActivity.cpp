@@ -55,8 +55,11 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 /* ******************************************* */
 
 ThreadedActivity::~ThreadedActivity() {
-  void *res;
   map<int, ThreadedActivityStats*>::const_iterator it;
+
+  /* NOTE: terminateEnqueueLoop should have already been called by the PeriodicActivities
+   * destructor. */
+  terminateEnqueueLoop();
 
   if(threaded_activity_stats) {
     for(u_int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
@@ -67,19 +70,30 @@ ThreadedActivity::~ThreadedActivity() {
     delete[] threaded_activity_stats;
   }
 
-  shutdown();
-
   if(interfaceTasksRunning)
     free(interfaceTasksRunning);
 
+  if(path) free(path);
+}
+
+/* ******************************************* */
+
+/* Stop the possibly running pthreadLoop, so that new activities
+ * won't be enqueued. */
+void ThreadedActivity::terminateEnqueueLoop() {
+  void *res;
+
+  shutdown();
+
   if(thread_started) {
     pthread_join(pthreadLoop, &res);
+
 #ifdef THREAD_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Joined thread %s", path);
 #endif
-  }
 
-  if(path) free(path);
+    thread_started = false;
+  }
 }
 
 /* ******************************************* */
@@ -112,6 +126,8 @@ bool ThreadedActivity::isInterfaceTaskRunning(NetworkInterface *iface) {
 
 /* ******************************************* */
 
+/* NOTE: this runs into a separate thread, launched by PeriodicActivities
+ * after creation. */
 void ThreadedActivity::activityBody() {
   if(periodicity == 0)       /* The script is not periodic */
     aperiodicActivityBody();
@@ -321,6 +337,11 @@ void ThreadedActivity::periodicActivityBody() {
 
 /* ******************************************* */
 
+/* This function enqueues the periodic activity job into the ThreadPool.
+ * The ThreadPool, running into another thread, will dequeue the job and call
+ * ThreadedActivity::runScript. The variables systemTaskRunning and interfaceTasksRunning
+ * are used to ensure that only a single instance of the job is running for a given
+ * NetworkInterface. */
 void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
   /* Schedule per system / interface */
   char script_path[MAX_PATH];
