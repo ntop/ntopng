@@ -8177,22 +8177,6 @@ static int ntop_interface_store_alert(lua_State* vm) {
 static int ntop_interface_store_flow_alert(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   AlertsManager *am;
-  time_t tstamp;
-  AlertType alert_type;
-  AlertLevel alert_severity;
-  FlowStatus status;
-  const char *alert_json;
-  u_int16_t vlan_id;
-  u_int8_t protocol;
-  u_int16_t ndpi_master_protocol, ndpi_app_protocol;
-  const char *cli_ip, *srv_ip;
-  const char *cli_country, *srv_country;
-  const char *cli_os, *srv_os;
-  u_int32_t cli_asn, srv_asn;
-  bool cli_is_localhost, srv_is_localhost;
-  bool cli_is_blacklisted, srv_is_blacklisted;
-  u_int64_t cli2srv_bytes, srv2cli_bytes;
-  u_int64_t cli2srv_packets, srv2cli_packets;
   u_int64_t rowid = 0;
   int ret;
 
@@ -8202,86 +8186,10 @@ static int ntop_interface_store_flow_alert(lua_State* vm) {
      || ((am = ntop_interface->getAlertsManager()) == NULL))
     return(CONST_LUA_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  tstamp = (time_t)lua_tonumber(vm, 1);
+  if(lua_type(vm, 1) != LUA_TTABLE) 
+    return(CONST_LUA_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_type = (AlertType)((int)lua_tonumber(vm, 2));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)((int)lua_tonumber(vm, 3));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  status = (FlowStatus)((int)lua_tonumber(vm, 4));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_json = (char*)lua_tostring(vm, 5);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  vlan_id = (u_int16_t)((int)lua_tonumber(vm, 6));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  protocol = (u_int8_t)((int)lua_tonumber(vm, 7));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 8, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  ndpi_master_protocol = (u_int16_t)((int)lua_tonumber(vm, 8));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 9, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  ndpi_app_protocol = (u_int16_t)((int)lua_tonumber(vm, 9));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 10, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli_ip = (char*)lua_tostring(vm, 10);
-  
-  if(ntop_lua_check(vm, __FUNCTION__, 11, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv_ip = (char*)lua_tostring(vm, 11);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 12, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli_country = (char*)lua_tostring(vm, 12);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 13, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv_country = (char*)lua_tostring(vm, 13);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 14, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli_os = (char*)lua_tostring(vm, 14);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 15, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv_os = (char*)lua_tostring(vm, 15);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 16, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli_asn = (u_int32_t)((int)lua_tonumber(vm, 16));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 17, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv_asn = (u_int32_t)((int)lua_tonumber(vm, 17));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 18, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli_is_localhost = (bool)((int)lua_toboolean(vm, 18));
-  
-  if(ntop_lua_check(vm, __FUNCTION__, 19, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv_is_localhost = (bool)((int)lua_toboolean(vm, 19));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 20, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli_is_blacklisted = (bool)((int)lua_toboolean(vm, 20));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 21, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv_is_blacklisted = (bool)((int)lua_toboolean(vm, 21));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 22, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli2srv_bytes = (u_int64_t)((int)lua_tonumber(vm, 22));
-  
-  if(ntop_lua_check(vm, __FUNCTION__, 23, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv2cli_bytes = (u_int64_t)((int)lua_tonumber(vm, 23));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 24, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli2srv_packets = (u_int64_t)((int)lua_tonumber(vm, 24));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 25, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv2cli_packets = (u_int64_t)((int)lua_tonumber(vm, 25));
-
-  ret = am->storeFlowAlert(tstamp, alert_type, alert_severity, status, alert_json, vlan_id, 
-      protocol, ndpi_master_protocol, ndpi_app_protocol, 
-      cli_ip, srv_ip, cli_country, srv_country, cli_os, srv_os, cli_asn, srv_asn,
-      cli_is_localhost, srv_is_localhost, cli_is_blacklisted, srv_is_blacklisted,
-      cli2srv_bytes, srv2cli_bytes, cli2srv_packets, srv2cli_packets, &rowid);
+  ret = am->storeFlowAlert(vm, 1,  &rowid);
 
   if(ret == 0) {
     lua_newtable(vm);

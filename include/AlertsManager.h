@@ -55,19 +55,7 @@ class AlertsManager : public StoreManager {
       const char *alert_json, bool *new_alert, u_int64_t *rowid,
       bool ignore_disabled = false, bool check_maximum = true);
 
-  int storeFlowAlert(time_t tstamp, AlertType alert_type, 
-      AlertLevel alert_severity, FlowStatus status, const char *alert_json,
-      u_int16_t vlan_id,              u_int8_t protocol,
-      u_int16_t ndpi_master_protocol, u_int16_t ndpi_app_protocol, 
-      const char *cli_ip,             const char *srv_ip,
-      const char *cli_country,        const char *srv_country,
-      const char *cli_os,             const char *srv_os,
-      u_int32_t   cli_asn,            u_int32_t   srv_asn,
-      bool        cli_is_localhost,   bool        srv_is_localhost,
-      bool        cli_is_blacklisted, bool        srv_is_blacklisted,
-      u_int64_t   cli2srv_bytes,      u_int64_t   srv2cli_bytes,
-      u_int64_t   cli2srv_packets,    u_int64_t   srv2cli_packets,
-      u_int64_t *rowid);
+  int storeFlowAlert(lua_State *L, int index, u_int64_t *rowid);
 
   bool hasAlerts();
 
