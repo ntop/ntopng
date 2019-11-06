@@ -143,9 +143,11 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 
   // init global detection structure
+#ifdef MULTIPLE_NDPI
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
-
+#endif
+  
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       bridge_interface = false;
@@ -229,8 +231,11 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  ifname = NULL, ndpiReloadInProgress = false,
-    bridge_lan_interface_id = bridge_wan_interface_id = 0, ndpi_struct = NULL,
+  ifname = NULL;
+#ifdef MULTIPLE_NDPI
+  ndpiReloadInProgress = false, ndpi_struct = NULL;
+#endif
+  bridge_lan_interface_id = bridge_wan_interface_id = 0;
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
     has_seen_dhcp_addresses = false, packet_processing_completed = false;
@@ -324,6 +329,7 @@ void NetworkInterface::init() {
 
 /* **************************************************** */
 
+#ifdef MULTIPLE_NDPI
 struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module();
   u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
@@ -371,7 +377,8 @@ void NetworkInterface::cleanShadownDPI() {
  * 4. cleanShadownDPI()
  */
 bool NetworkInterface::startCustomCategoriesReload() {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload on %s [%p][%s]", get_name(), ndpi_struct_shadow, ndpiReloadInProgress ? "IN PROGRESS" : "");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload on '%s' %s",
+			       get_name(), ndpiReloadInProgress ? "[IN PROGRESS]" : "");
 
   if(ndpiReloadInProgress) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
@@ -383,10 +390,11 @@ bool NetworkInterface::startCustomCategoriesReload() {
 
   /* No need to dedicate another variable for the reload, we can use the shadow itself */
   ndpi_struct_shadow = initnDPIStruct();
-  ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI reload is now ready on %s [%p]",
-			       get_name(), ndpi_struct_shadow);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload completed on '%s'", get_name());
   return(true);
 }
+
+#endif /* MULTIPLE_NDPI */
 
 /* **************************************************** */
 
@@ -650,13 +658,15 @@ NetworkInterface::~NetworkInterface() {
     flowHashing = NULL;
   }
 
+#ifdef MULTIPLE_NDPI
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
     ndpi_struct = NULL;
   }
 
   cleanShadownDPI();
-
+#endif
+  
   delete frequentProtocols;
   delete frequentMacs;
 
@@ -1497,9 +1507,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if(flow->hasDissectedTooManyPackets()) {
 	u_int8_t proto_guessed;
 	
-	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow, 1, &proto_guessed), false);
+	flow->setDetectedProtocol(ndpi_detection_giveup(get_ndpi_struct(), ndpi_flow, 1, &proto_guessed), false);
       } else {
-	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
+	flow->setDetectedProtocol(ndpi_detection_process_packet(get_ndpi_struct(), ndpi_flow,
 								ip, trusted_ip_len, (u_int32_t)packet_time,
 								cli, srv), false);
       }
@@ -2470,6 +2480,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 
 /* **************************************************** */
 
+#ifdef MULTIPLE_NDPI
 void NetworkInterface::reloadCustomCategories() {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
 
@@ -2497,6 +2508,7 @@ void NetworkInterface::reloadCustomCategories() {
     ndpiReloadInProgress = false;
   }
 }
+#endif
 
 /* **************************************************** */
 
@@ -5163,7 +5175,7 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans(bool force_idle) {
 /* *************************************** */
 
 void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
-  ndpi_set_proto_category(ndpi_struct, protoId, protoCategory);
+  ndpi_set_proto_category(get_ndpi_struct(), protoId, protoCategory);
 }
 
 /* *************************************** */
@@ -5216,8 +5228,8 @@ void NetworkInterface::guessAllBroadcastDomainHosts() {
 
 void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical) {
   int i;
-  u_int num_supported_protocols = ndpi_get_ndpi_num_supported_protocols(ndpi_struct);
-  ndpi_proto_defaults_t* proto_defaults = ndpi_get_proto_defaults(ndpi_struct);
+  u_int num_supported_protocols = ndpi_get_ndpi_num_supported_protocols(get_ndpi_struct());
+  ndpi_proto_defaults_t* proto_defaults = ndpi_get_proto_defaults(get_ndpi_struct());
 
   lua_newtable(vm);
 
@@ -5299,8 +5311,8 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
   u_int32_t *num_flows;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
-  u_int num_supported_protocols = ndpi_get_ndpi_num_supported_protocols(ndpi_struct);
-  ndpi_proto_defaults_t* proto_defaults = ndpi_get_proto_defaults(ndpi_struct);
+  u_int num_supported_protocols = ndpi_get_ndpi_num_supported_protocols(get_ndpi_struct());
+  ndpi_proto_defaults_t* proto_defaults = ndpi_get_proto_defaults(get_ndpi_struct());
 
   num_flows = (u_int32_t*)calloc(num_supported_protocols, sizeof(u_int32_t));
 
@@ -7491,24 +7503,6 @@ bool NetworkInterface::enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_l
 
 /* *************************************** */
 
-void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-  
-  if(what && ndpi_struct_shadow)
-    ndpi_load_ip_category(ndpi_struct_shadow, what, id);
-}
-
-/* *************************************** */
-
-void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-  
-  if(what && ndpi_struct_shadow)
-    ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
-}
-
-/* *************************************** */
-
 void NetworkInterface::incNumAlertedFlows(Flow *f) {
   num_active_alerted_flows++;
 
@@ -7903,3 +7897,11 @@ void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
 
   external_alerts_lock.unlock(__FILE__, __LINE__);
 }
+
+/* *************************************** */
+
+#ifndef MULTIPLE_NDPI
+struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
+  return(ntop->get_ndpi_struct());
+};
+#endif

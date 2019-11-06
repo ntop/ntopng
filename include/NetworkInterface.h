@@ -70,8 +70,10 @@ typedef struct {
  *
  */
 class NetworkInterface : public AlertableEntity {
- private:
+#ifdef MULTIPLE_NDPI
+private:
   bool ndpiReloadInProgress;
+#endif
   
  protected:
   char *ifname, *ifDescription;
@@ -199,7 +201,9 @@ class NetworkInterface : public AlertableEntity {
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers;
+#ifdef MULTIPLE_NDPI
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
+#endif
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle, packet_processing_completed;
@@ -324,18 +328,18 @@ class NetworkInterface : public AlertableEntity {
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
   virtual bool is_ndpi_enabled() const         { return(true);          }
-  inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
+  inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(get_ndpi_struct())); };
   inline time_t getTimeLastPktRcvdRemote()     { return(last_pkt_rcvd_remote); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd ? last_pkt_rcvd : last_pkt_rcvd_remote); };
   inline void  setTimeLastPktRcvd(time_t t)    { if(t > last_pkt_rcvd) last_pkt_rcvd = t; };
-  inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(ndpi_struct, proto)); };
-  inline const char* get_ndpi_category_name(ndpi_protocol_category_t category) { return(ndpi_category_get_name(ndpi_struct, category)); };
+  inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
+  inline const char* get_ndpi_category_name(ndpi_protocol_category_t category) { return(ndpi_category_get_name(get_ndpi_struct(), category)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
-  inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
-  inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
-  inline int   get_ndpi_category_id(char *cat) { return(ndpi_get_category_id(ndpi_struct, cat));     };
+  inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(get_ndpi_struct(), id));   };
+  inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(get_ndpi_struct(), proto));   };
+  inline int   get_ndpi_category_id(char *cat) { return(ndpi_get_category_id(get_ndpi_struct(), cat));     };
   inline char* get_ndpi_proto_breed_name(u_int id) {
-    return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
+    return(ndpi_get_proto_breed_name(get_ndpi_struct(), ndpi_get_proto_breed(get_ndpi_struct(), id))); };
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name() const                { return(ifname);                                       };
@@ -354,7 +358,11 @@ class NetworkInterface : public AlertableEntity {
   inline void setSeenPods()                    { has_seen_pods = true; }
   inline bool hasSeenContainers() const        { return(has_seen_containers); }
   inline void setSeenContainers()              { has_seen_containers = true; }
+#ifdef MULTIPLE_NDPI
   inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
+#else
+  struct ndpi_detection_module_struct* get_ndpi_struct() const;
+#endif
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
@@ -667,8 +675,10 @@ class NetworkInterface : public AlertableEntity {
   void reloadHideFromTop(bool refreshHosts=true);
   void updateLbdIdentifier();
   inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
+#ifdef MULTIPLE_NDPI
   bool startCustomCategoriesReload();
   void cleanShadownDPI();
+#endif
   void checkReloadHostsBroadcastDomain();
   inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }
   void reloadHostsBlacklist();
@@ -778,9 +788,10 @@ class NetworkInterface : public AlertableEntity {
   inline void profiling_section_exit(int id) { PROFILING_SECTION_EXIT(id); };
 #endif
 
+#ifdef reloadJA3Hashes
   void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
-
+#endif
   void incNumAlertedFlows(Flow *f);
   void decNumAlertedFlows(Flow *f);
   virtual u_int64_t getNumActiveAlertedFlows()      const;
@@ -803,7 +814,9 @@ class NetworkInterface : public AlertableEntity {
   void releaseAllEngagedAlerts();
   inline bool isProcessingPackets() { return(!packet_processing_completed); }
   inline void processingCompleted() { packet_processing_completed = true;   }
+#ifdef MULTIPLE_NDPI
   inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

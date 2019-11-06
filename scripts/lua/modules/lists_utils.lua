@@ -681,6 +681,8 @@ function lists_utils.checkReloadLists()
    -- print("[DEBUG]  Checking reload [") if(reload_now) then print("reload now") else print("don't reload") end print("] !!!!\n")
    
    if reload_now then
+      -- print("[DEBUG] **** Reloading ****\n")
+      
       if reloadListsNow() then
 	 -- print("[DEBUG]  Success !!!!\n")
 	 -- success
@@ -690,6 +692,8 @@ function lists_utils.checkReloadLists()
 	 -- Remember to load the lists next time
 	 ntop.setCache("ntopng.cache.reload_lists_utils", "1")
       end
+
+      -- print("[DEBUG] **** Reloading is over ****\n")
    else
       -- Possibly clean up old nDPI memory
       ntop.cleanOldCategories()

@@ -790,7 +790,7 @@ static int ntop_get_ndpi_protocol_category(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   proto = (u_int)lua_tonumber(vm, 1);
 
-  if(ntop_interface) {
+  if(ntop_interface) {   /* FIX */
     ndpi_protocol_category_t category = ntop_interface->get_ndpi_proto_category(proto);
 
     lua_newtable(vm);
@@ -817,6 +817,7 @@ static int ntop_set_ndpi_protocol_category(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   category = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
 
+  /* FIX */
   if(ntop_interface)
     ntop_interface->setnDPIProtocolCategory(proto, category);
 
@@ -1798,12 +1799,21 @@ static int ntop_is_windows(lua_State* vm) {
 static int ntop_startCustomCategoriesReload(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+#ifndef MULTIPLE_NDPI
+  if(ntop->isnDPIReloadInProgress() || (!ntop->startCustomCategoriesReload())) {
+    /* startCustomCategoriesReload, abort */
+    lua_pushboolean(vm, false);
+    return(CONST_LUA_OK);
+  }
+#else
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
     if((iface = ntop->getInterface(i)) != NULL) {
-      lua_pushboolean(vm, false /* too early */);
-      return(CONST_LUA_OK);
+      if(iface->isnDPIReloadInProgress()) {
+	lua_pushboolean(vm, false /* too early */);
+	return(CONST_LUA_OK);
+      }
     }
   }
 
@@ -1818,7 +1828,8 @@ static int ntop_startCustomCategoriesReload(lua_State* vm) {
       }
     }
   }
-
+#endif
+  
   lua_pushboolean(vm, true /* can now start reloading */);
   return(CONST_LUA_OK);
 }
@@ -1831,6 +1842,7 @@ static int ntop_cleanOldCategories(lua_State* vm) {
     
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists: cleanup");
 
+#ifdef MULTIPLE_NDPI
     for(int i=0; i<ntop->get_num_interfaces(); i++) {
       NetworkInterface *iface;
       
@@ -1841,7 +1853,13 @@ static int ntop_cleanOldCategories(lua_State* vm) {
 	  iface->cleanShadownDPI();
       }
     }
-
+#else
+    if(!ntop->isnDPIReloadInProgress())
+      ntop->cleanShadownDPI();
+    else
+      we_are_good = false;
+#endif
+    
     if(we_are_good)
       ntop->setnDPICleanupNeeded(false);
   }
@@ -1863,13 +1881,17 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
 
+#ifdef MULTIPLE_NDPI
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
 
     if((iface = ntop->getInterface(i)) != NULL)
       iface->nDPILoadIPCategory(net, catid);
   }
-
+#else
+  ntop->nDPILoadIPCategory(net, catid);
+#endif
+  
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -1887,13 +1909,17 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
 
+#ifdef MULTIPLE_NDPI
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface;
     
     if((iface = ntop->getInterface(i)) != NULL)
       iface->nDPILoadHostnameCategory(host, catid);
   }
-
+#else
+  ntop->nDPILoadHostnameCategory(host, catid);  
+#endif
+  
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -1902,16 +1928,21 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 
 /* NOTE: ntop.startCustomCategoriesReload() must be called before this */
 static int ntop_reloadCustomCategories(lua_State* vm) {
-  int i;
+#ifdef MULTIPLE_NDPI
   NetworkInterface *iface;
-
+#endif
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Starting category lists reload");
 
-  for(i = 0; i<ntop->get_num_interfaces(); i++) {
+#ifdef MULTIPLE_NDPI
+  for(u_int i = 0; i<ntop->get_num_interfaces(); i++) {
     if((iface = ntop->getInterface(i)) != NULL)
       iface->reloadCustomCategories();
   }
-
+#else
+  ntop->reloadCustomCategories();
+#endif
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists reload done");
   ntop->setLastInterfacenDPIReload(time(NULL));
   ntop->setnDPICleanupNeeded(true);

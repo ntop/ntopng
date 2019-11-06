@@ -71,6 +71,11 @@ Ntop::Ntop(char *appName) {
   new_malicious_ja3 = new std::set<std::string>();
   last_ndpi_reload = 0;
 
+#ifndef MULTIPLE_NDPI
+  ndpi_struct_shadow = NULL;
+  ndpi_struct = initnDPIStruct();
+#endif
+
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
     strncpy(working_dir, "C:\\Windows\\Temp\\ntopng", sizeof(working_dir)); // Fallback: it should never happen
@@ -213,6 +218,15 @@ Ntop::~Ntop() {
     }
   }
 #endif
+#endif
+
+#ifndef MULTIPLE_NDPI
+  if(ndpi_struct) {
+    ndpi_exit_detection_module(ndpi_struct);
+    ndpi_struct = NULL;
+  }
+
+  cleanShadownDPI();
 #endif
 
   if(new_malicious_ja3) delete new_malicious_ja3;
@@ -2319,4 +2333,122 @@ void Ntop::reloadJA3Hashes() {
 }
 
 /* ******************************************* */
+
+#ifndef MULTIPLE_NDPI
+struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
+  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module();
+  u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
+  ndpi_port_range d_port[MAX_DEFAULT_PORTS];
+  NDPI_PROTOCOL_BITMASK all;
+
+  if(ndpi_s == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
+    exit(-1);
+  }
+
+  if(getCustomnDPIProtos() != NULL)
+    ndpi_load_protocols_file(ndpi_s, getCustomnDPIProtos());
+
+  memset(d_port, 0, sizeof(d_port));
+  ndpi_set_proto_defaults(ndpi_s, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
+			  0, no_master, no_master, (char*)"Operating System",
+			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
+
+  // enable all protocols
+  NDPI_BITMASK_SET_ALL(all);
+  ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
+
+  return(ndpi_s);
+}
+
+/* **************************************************** */
+
+void Ntop::cleanShadownDPI() {
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
+  
+  if(ndpi_struct_shadow && !ndpiReloadInProgress) {
+    ndpi_exit_detection_module(ndpi_struct_shadow);
+    ndpi_struct_shadow = NULL;
+  }
+}
+
+/* **************************************************** */
+
+/* Operations are performed in the followin order:
+ *
+ * 1. startCustomCategoriesReload()
+ * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
+ * 3. reloadCustomCategories()
+ * 4. cleanShadownDPI()
+ */
+bool Ntop::startCustomCategoriesReload() {
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload %s",
+			       ndpiReloadInProgress ? "[IN PROGRESS]" : "");
+
+  if(ndpiReloadInProgress) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
+    return(false);
+  }
+
+  ndpiReloadInProgress = true;
+  cleanShadownDPI();
+
+  /* No need to dedicate another variable for the reload, we can use the shadow itself */
+  ndpi_struct_shadow = initnDPIStruct();
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload completed");
+  return(true);
+}
+
+/* **************************************************** */
+
+void Ntop::reloadCustomCategories() {
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
+
+  if(!ndpiReloadInProgress) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
+    return;
+  }
+  
+  if(ndpi_struct_shadow) {
+    struct ndpi_detection_module_struct *old_struct;
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories");
+    
+    /* The new categories were loaded on the current ndpi_struct_shadow */
+    ndpi_enable_loaded_categories(ndpi_struct_shadow);
+
+    old_struct = ndpi_struct;
+    ndpi_struct = ndpi_struct_shadow;
+    ndpi_struct_shadow = old_struct;
+
+    /* Need to update the existing hosts */
+    for(u_int i = 0; i<get_num_interfaces(); i++) {
+      if(getInterface(i))
+	getInterface(i)->reloadHostsBlacklist();
+    }
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Reload custom categories completed");
+
+    ndpiReloadInProgress = false;
+  }
+}
+
+/* *************************************** */
+
+void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
+  
+  if(what && ndpi_struct_shadow)
+    ndpi_load_ip_category(ndpi_struct_shadow, what, id);
+}
+
+/* *************************************** */
+
+void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
+  
+  if(what && ndpi_struct_shadow)
+    ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
+}
+
+#endif /* MULTIPLE_NDPI */
 
