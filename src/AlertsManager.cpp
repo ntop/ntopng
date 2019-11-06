@@ -331,19 +331,23 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
 /* **************************************************** */
 
-int AlertsManager::storeFlowAlert(time_t tstamp, AlertType alert_type, 
-    AlertLevel alert_severity, FlowStatus status,
-    const char *alert_json, u_int16_t vlan_id, u_int8_t protocol,
-    u_int16_t ndpi_master_protocol, u_int16_t ndpi_app_protocol, 
-    const char *cli_ip,             const char *srv_ip,
-    const char *cli_country,        const char *srv_country,
-    const char *cli_os,             const char *srv_os,
-    u_int32_t   cli_asn,            u_int32_t   srv_asn,
-    bool        cli_is_localhost,   bool        srv_is_localhost,
-    bool        cli_is_blacklisted, bool        srv_is_blacklisted,
-    u_int64_t   cli2srv_bytes,      u_int64_t srv2cli_bytes,
-    u_int64_t   cli2srv_packets,    u_int64_t srv2cli_packets,
-    u_int64_t *rowid) {
+int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
+  time_t tstamp = 0;
+  AlertType alert_type = 0;
+  AlertLevel alert_severity = alert_level_none;
+  FlowStatus status = 0;
+  const char *alert_json = "";
+  u_int16_t vlan_id = 0;
+  u_int8_t protocol = 0;
+  u_int16_t ndpi_master_protocol = 0, ndpi_app_protocol = 0;
+  const char *cli_ip = "", *srv_ip = "";
+  const char *cli_country = "", *srv_country = "";
+  const char *cli_os = "", *srv_os = "";
+  u_int32_t   cli_asn = 0, srv_asn = 0;
+  bool cli_is_localhost = false, srv_is_localhost = false;
+  bool cli_is_blacklisted = false, srv_is_blacklisted = false;
+  u_int64_t cli2srv_bytes = 0, srv2cli_bytes = 0;
+  u_int64_t cli2srv_packets = 0, srv2cli_packets = 0;
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL, *stmt2 = NULL, *stmt3 = NULL;
   int64_t rc = 0;
@@ -359,6 +363,89 @@ int AlertsManager::storeFlowAlert(time_t tstamp, AlertType alert_type,
     return -1;
 
   markForMakeRoom(true);
+
+  /* Read alert fields from Lua */
+
+  lua_pushnil(L);
+
+  while(lua_next(L, index) != 0) {
+      const char *key = lua_tostring(L, -2);
+      int t = lua_type(L, -1);
+
+      switch(t) {
+      case LUA_TSTRING:
+        if(!strcmp(key, "alert_json"))
+          alert_json = lua_tostring(L, -1);
+        else if(!strcmp(key, "cli_addr"))
+          cli_ip = lua_tostring(L, -1);
+        else if(!strcmp(key, "srv_addr"))
+          srv_ip = lua_tostring(L, -1);
+        else if(!strcmp(key, "cli_country"))
+          cli_country = lua_tostring(L, -1);
+        else if(!strcmp(key, "srv_country"))
+          srv_country = lua_tostring(L, -1);
+        else if(!strcmp(key, "cli_os"))
+          cli_os = lua_tostring(L, -1);
+        else if(!strcmp(key, "srv_os"))
+          srv_os = lua_tostring(L, -1);
+	break;
+
+      case LUA_TNUMBER:
+        if(!strcmp(key, "alert_tstamp"))
+          tstamp = lua_tonumber(L, -1);
+        else if(!strcmp(key, "alert_type"))
+          alert_type = lua_tonumber(L, -1);
+        else if(!strcmp(key, "alert_severity"))
+           alert_severity = (AlertLevel) lua_tonumber(L, -1);
+        else if(!strcmp(key, "flow_status"))
+          status = lua_tonumber(L, -1);
+        else if(!strcmp(key, "vlan_id"))
+          vlan_id = lua_tonumber(L, -1);
+        else if(!strcmp(key, "proto"))
+          protocol = lua_tonumber(L, -1);
+        else if(!strcmp(key, "l7_master_proto"))
+          ndpi_master_protocol = lua_tonumber(L, -1);
+        else if(!strcmp(key, "l7_proto"))
+          ndpi_app_protocol = lua_tonumber(L, -1);
+        else if(!strcmp(key, "cli_asn"))
+          cli_asn = lua_tonumber(L, -1);
+        else if(!strcmp(key, "srv_asn"))
+          srv_asn = lua_tonumber(L, -1);
+        else if(!strcmp(key, "cli2srv_bytes"))
+          cli2srv_bytes = lua_tonumber(L, -1);
+        else if(!strcmp(key, "cli2srv_packets"))
+          cli2srv_packets = lua_tonumber(L, -1);
+        else if(!strcmp(key, "srv2cli_bytes"))
+          srv2cli_bytes = lua_tonumber(L, -1);
+        else if(!strcmp(key, "srv2cli_packets"))
+          srv2cli_packets = lua_tonumber(L, -1);
+	break;
+
+      case LUA_TBOOLEAN:
+        if(!strcmp(key, "cli_localhost"))
+          cli_is_localhost = lua_toboolean(L, -1);
+        else if(!strcmp(key, "srv_localhost"))
+          srv_is_localhost = lua_toboolean(L, -1);
+        else if(!strcmp(key, "cli_blacklisted"))
+          cli_is_blacklisted = lua_toboolean(L, -1);
+        else if(!strcmp(key, "srv_blacklisted"))
+          srv_is_blacklisted = lua_toboolean(L, -1);
+	break;
+
+      default:
+	break;
+      }
+
+    lua_pop(L, 1);
+  }
+
+  /* Safety check */
+  if (!tstamp) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "storeFlowAlert: some mandatory parameter is missing");
+    return -1;
+  }
+
+  /* Store to DB*/
 
   m.lock(__FILE__, __LINE__);
 

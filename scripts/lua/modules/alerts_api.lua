@@ -168,20 +168,7 @@ function alerts_api.checkPendingStoreAlerts(deadline)
       local alert = json.decode(alert_json)
 
       if(alert) then
-        interface.storeFlowAlert(
-          alert.alert_tstamp, alert.alert_type, 
-          alert.alert_severity, alert.flow_status, 
-          alert.alert_json,
-          alert.vlan_id,         alert.proto,
-          alert.l7_master_proto, alert.l7_proto,
-          alert.cli_addr,        alert.srv_addr,
-          alert.cli_country,     alert.srv_country,
-          alert.cli_os,          alert.srv_os,
-          alert.cli_asn,         alert.srv_asn,
-          alert.cli_localhost,   alert.srv_localhost,
-          alert.cli_blacklisted, alert.srv_blacklisted,
-          alert.cli2srv_bytes,   alert.cli2srv_packets,
-          alert.srv2cli_bytes,   alert.srv2cli_packets)
+        interface.storeFlowAlert(alert)
       end
 
       if(os.time() > deadline) then
