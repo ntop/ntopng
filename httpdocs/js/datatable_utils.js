@@ -185,7 +185,13 @@ function datatableGetColumnIndex(table, column_key) {
    return(index);
 }
 
-function datatableRefreshRows(table, column_id) {
+/* Helper function for refreshable datatables rows.
+ *
+ * table: the datatable div jquery object
+ * column_id: the field key used to indentify the rows
+ * first_load: if true, the existing datatable data will be processed.
+  */
+function datatableRefreshRows(table, column_id, first_load) {
   var $dt = table.data("datatable");
   var rows = $dt.resultset.data;
   var ids = [];
@@ -207,30 +213,52 @@ function datatableRefreshRows(table, column_id) {
       "custom_hosts": ids.join(",")
    };
 
-   $.ajax({
-      type: 'GET',
-      url: url,
-      data: params,
-      cache: false,
-      success: function(result) {
-         for(var row in result.data) {
-            var data = result.data[row];
-            var data_id = data[column_id];
+   var _process_result = function(result) {
+      for(var row in result.data) {
+         var data = result.data[row];
+         var data_id = data[column_id];
 
-            if(data_id && id_to_row[data_id]) {
-               var row_idx = id_to_row[data_id];
-               var row_html = $dt.rows[row_idx];
-               var row_tds = $("td", row_html);
+         if(data_id && id_to_row[data_id]) {
+            var row_idx = id_to_row[data_id];
+            var row_html = $dt.rows[row_idx];
+            var row_tds = $("td", row_html);
 
-               for(var key in data) {
-                  var col_idx = datatableGetColumnIndex(table, key);
-                  var cell = row_tds[col_idx];
+            for(var key in data) {
+               var col_idx = datatableGetColumnIndex(table, key);
+               var cell = row_tds[col_idx];
+               var $cell = $(cell);
+               var old_val = $cell.data("trend-cur-val") || $(cell).html();
+               var new_val = data[key];
+               var arrows = "";
 
-                  $(cell).html((data[key] != 0) ? data[key] : "");
+               /* Automatically add up/down trend arrows as long as the original data is a number */
+               if(!isNaN(old_val) && !isNaN(new_val)) {
+                  /* This is a number */
+                  if(!first_load)
+                     arrows = " " + drawTrend(parseInt(new_val), parseInt(old_val));
+
+                  /* Rember that this is a number for future invocations */
+                  $cell.data("trend-cur-val", new_val);
+
+                  new_val = addCommas(new_val);
                }
+
+               $(cell).html((new_val != 0) ? (new_val + arrows) : "");
             }
          }
       }
-   });
-  }
+   };
+
+   if(first_load)
+      _process_result($dt.resultset);
+   else {
+      $.ajax({
+         type: 'GET',
+         url: url,
+         data: params,
+         cache: false,
+         success: _process_result,
+      });
+   }
+ }
 }

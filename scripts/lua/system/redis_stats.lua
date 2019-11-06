@@ -135,37 +135,50 @@ refreshRedisStats();
 elseif(page == "stats") then
 
    print [[
-     <table id="if_stats_redis" class="table table-bordered table-striped tablesorter">
-       <thead>
-         <tr>
-           <th>]] print(i18n("please_wait_page.command")) print[[</th>
-           <th width=5% class="text-center">]] print(i18n("chart")) print[[</th>
-           <th class="text-right">]] print(i18n("system_stats.redis.tot_calls")) print[[</th>
-         </tr>
-       </thead>
-       <tbody id="if_stats_redis_tbody"></tbody>
-     </table>
-
+<div id="table-redis-stats"></div>
 <script type='text/javascript'>
 
-function update_redis_table() {
-  $.ajax({
-    type: 'GET',
-    url: ']]
-   print (ntop.getHttpPrefix())
-   print [[/lua/get_redis_stats.lua',
-    data: { },
-    success: function(content) {
-      if(content) {
-         $('#if_stats_redis_tbody').html(content);
-         // Let the TableSorter plugin know that we updated the table
-         $('#if_stats_redis_tbody').trigger("update");
-      }
-    }
-  });
-}
-update_redis_table();
-setInterval(update_redis_table, 5000);
+$("#table-redis-stats").datatable({
+   title: "",
+   perPage: 100,
+   hidePerPage: true,
+   url: "]] print(ntop.getHttpPrefix()) print[[/lua/get_redis_stats.lua",
+   columns: [
+     {
+       field: "column_key",
+       hidden: true,
+       css: {
+         width: '15%',
+       }
+     }, {
+       field: "column_command",
+       sortable: true,
+       title: "]] print(i18n("please_wait_page.command")) print[[",
+       css: {
+         width: '15%',
+       }
+     }, {
+       title: "]] print(i18n("chart")) print[[",
+       field: "column_chart",
+       sortable: false,
+       css: {
+         textAlign: 'center',
+         width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("system_stats.redis.tot_calls")) print[[",
+       field: "column_hits",
+       sortable: true,
+       css: {
+         textAlign: 'right'
+       }
+     }
+   ], tableCallback: function() {
+      datatableRefreshRows($("#table-redis-stats"), "column_key", true /* don't reload */);
+   }
+});
+
+window.setInterval(function() { datatableRefreshRows($("#table-redis-stats"), "column_key"); }, 10000);
 
 </script>
  ]]
