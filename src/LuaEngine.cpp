@@ -1798,9 +1798,13 @@ static int ntop_is_windows(lua_State* vm) {
 static int ntop_startCustomCategoriesReload(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop->canSafelyReloadnDPI(time(NULL))) {
-    lua_pushboolean(vm, false /* too early */);
-    return(CONST_LUA_OK);
+  for(int i=0; i<ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+
+    if((iface = ntop->getInterface(i)) != NULL) {
+      lua_pushboolean(vm, false /* too early */);
+      return(CONST_LUA_OK);
+    }
   }
 
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
@@ -1822,17 +1826,24 @@ static int ntop_startCustomCategoriesReload(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_cleanOldCategories(lua_State* vm) {
-  if(ntop->needsnDPICleanup(time(NULL))) {
+  if(ntop->needsnDPICleanup()) {
+    bool we_are_good = true;
+    
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists: cleanup");
 
     for(int i=0; i<ntop->get_num_interfaces(); i++) {
       NetworkInterface *iface;
-
-      if((iface = ntop->getInterface(i)) != NULL)
-	iface->cleanShadownDPI();
+      
+      if((iface = ntop->getInterface(i)) != NULL) {
+	if(iface->isnDPIReloadInProgress())
+	  we_are_good = false;
+	else
+	  iface->cleanShadownDPI();
+      }
     }
 
-    ntop->setnDPICleanupNeeded(false);
+    if(we_are_good)
+      ntop->setnDPICleanupNeeded(false);
   }
 
   lua_pushnil(vm);

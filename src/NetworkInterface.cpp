@@ -371,15 +371,15 @@ void NetworkInterface::cleanShadownDPI() {
  * 4. cleanShadownDPI()
  */
 bool NetworkInterface::startCustomCategoriesReload() {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Started nDPI reload on %s [%p][%s]", get_name(), ndpi_struct_shadow, ndpiReloadInProgress ? "IN PROGRESS" : "");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload on %s [%p][%s]", get_name(), ndpi_struct_shadow, ndpiReloadInProgress ? "IN PROGRESS" : "");
 
   if(ndpiReloadInProgress) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
     return(false);
   }
 
-  cleanShadownDPI();
   ndpiReloadInProgress = true;
+  cleanShadownDPI();
 
   /* No need to dedicate another variable for the reload, we can use the shadow itself */
   ndpi_struct_shadow = initnDPIStruct();

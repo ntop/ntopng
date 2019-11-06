@@ -803,6 +803,7 @@ class NetworkInterface : public AlertableEntity {
   void releaseAllEngagedAlerts();
   inline bool isProcessingPackets() { return(!packet_processing_completed); }
   inline void processingCompleted() { packet_processing_completed = true;   }
+  inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

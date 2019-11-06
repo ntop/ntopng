@@ -430,9 +430,8 @@ class Ntop {
   DeviceProtoStatus getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
   void refreshCpuLoad();
   bool getCpuLoad(float *out);
-  bool canSafelyReloadnDPI(time_t now);
   inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
-  inline bool needsnDPICleanup(time_t now)                { return(ndpi_cleanup_needed && canSafelyReloadnDPI(now)); }
+  inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
 
   void sendNetworkInterfacesTermination();
