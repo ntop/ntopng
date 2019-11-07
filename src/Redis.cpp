@@ -977,7 +977,7 @@ int Redis::msg_push(const char * const cmd, const char * const queue_name, const
 
   l->lock(__FILE__, __LINE__, trace_errors);
   /* Put the latest messages on top so old messages (if any) will be discarded */
-  stats.num_other++;
+  stats.num_lpush++;
   reply = (redisReply*)redisCommand(redis, "%s %s %s", cmd,  queue_name, msg);
 
   if(!reply) reconnectRedis(true);
@@ -1296,6 +1296,8 @@ void Redis::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "num_hgetall", stats.num_hgetall);
   lua_push_uint64_table_entry(vm, "num_trim", stats.num_trim);
   lua_push_uint64_table_entry(vm, "num_reconnections", stats.num_reconnections);
+  lua_push_uint64_table_entry(vm, "num_lpush", stats.num_lpush);
+  lua_push_uint64_table_entry(vm, "num_other", stats.num_other);
 }
 
 /* **************************************** */
