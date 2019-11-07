@@ -687,11 +687,17 @@ int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 
   if(!found) {
     /* Add to the list of addresses to resolve */
-
+    struct timeval begin, end;
+    
+    gettimeofday(&begin, NULL);
     if(localHost)
       rc = rpush(ns_list, hostname, MAX_NUM_QUEUED_ADDRS);
     else
       rc = lpush(ns_list, hostname, MAX_NUM_QUEUED_ADDRS);
+
+    gettimeofday(&end, NULL);
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "l/rpush took %.2f ms", Utils::msTimevalDiff(&end, &begin));      
   } else
     reply = 0;
 
