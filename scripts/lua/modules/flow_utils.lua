@@ -254,13 +254,14 @@ end
 -- #######################
 
 function handleCustomFlowField(key, value, snmpdevice)
-   if((key == 'TCP_FLAGS') or (key == '6')) then
+   if key == 'TCP_FLAGS' then
       return(formatTcpFlags(value))
-   elseif((key == 'INPUT_SNMP') or (key == '10')) then
+   elseif key == 'INPUT_SNMP' then
       return(formatInterfaceId(value, "inIfIdx", snmpdevice))
-   elseif((key == 'OUTPUT_SNMP') or (key == '14')) then
+   elseif key == 'OUTPUT_SNMP' then
       return(formatInterfaceId(value, "outIfIdx", snmpdevice))
-   elseif((key == 'EXPORTER_IPV4_ADDRESS') or (key == 'NPROBE_IPV4_ADDRESS') or (key == '130') or (key == '57943')) then
+   elseif key == 'EXPORTER_IPV4_ADDRESS' or 
+          key == 'NPROBE_IPV4_ADDRESS' then
       local res = getResolvedAddress(hostkey2hostinfo(value))
 
       local ret = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..value.."\">"
@@ -272,7 +273,7 @@ function handleCustomFlowField(key, value, snmpdevice)
       end
 
       return(ret .. "</A>")
-   elseif((key == 'FLOW_USER_NAME') or (key == '57593')) then
+   elseif key == 'FLOW_USER_NAME' then
       elems = string.split(value, ';')
 
       if((elems ~= nil) and (#elems == 6)) then
@@ -295,41 +296,58 @@ function handleCustomFlowField(key, value, snmpdevice)
 	  r = r .. "<th>"..i18n("ip_address").."</th><td>".. ntop.inet_ntoa(elems[6]).."</td></tr>"
 	  r = r .. "</table>"
 	  return(r)
-
-   else
-     return(value)
+      else
+         return(value)
+      end
+   elseif key == 'SIP_TRYING_TIME' or 
+          key == 'SIP_RINGING_TIME' or 
+          key == 'SIP_INVITE_TIME' or 
+          key == 'SIP_INVITE_OK_TIME' or 
+          key == 'SIP_INVITE_FAILURE_TIME' or 
+          key == 'SIP_BYE_TIME' or 
+          key == 'SIP_BYE_OK_TIME' or 
+          key == 'SIP_CANCEL_TIME' or 
+          key == 'SIP_CANCEL_OK_TIME' then
+      if(value ~= '0') then
+         return(formatEpoch(value))
+      else
+         return "0"
+      end
+   elseif key == 'RTP_IN_JITTER' or 
+          key == 'RTP_OUT_JITTER' then
+      if(value ~= nil and value ~= '0') then
+         return(value/1000)
+      else
+         return 0
+      end
+   elseif key == 'RTP_IN_MAX_DELTA' or 
+          key == 'RTP_OUT_MAX_DELTA' or 
+          key == 'RTP_MOS' or 
+          key == 'RTP_R_FACTOR' or 
+          key == 'RTP_IN_MOS' or 
+          key == 'RTP_OUT_MOS' or 
+          key == 'RTP_IN_R_FACTOR' or
+          key == 'RTP_OUT_R_FACTOR' or
+          key == 'RTP_IN_TRANSIT' or 
+          key == 'RTP_OUT_TRANSIT' then
+      if(value ~= nil and value ~= '0') then
+         return(value/100)
+      else
+         return 0
+      end
    end
-  elseif((rtemplate[tonumber(key)] == 'SIP_TRYING_TIME') or (rtemplate[tonumber(key)] == 'SIP_RINGING_TIME') or (rtemplate[tonumber(key)] == 'SIP_INVITE_TIME') or (rtemplate[tonumber(key)] == 'SIP_INVITE_OK_TIME') or (rtemplate[tonumber(key)] == 'SIP_INVITE_FAILURE_TIME') or (rtemplate[tonumber(key)] == 'SIP_BYE_TIME') or (rtemplate[tonumber(key)] == 'SIP_BYE_OK_TIME') or (rtemplate[tonumber(key)] == 'SIP_CANCEL_TIME') or (rtemplate[tonumber(key)] == 'SIP_CANCEL_OK_TIME')) then
-    if(value ~= '0') then
-      return(formatEpoch(value))
-    else
-      return "0"
-    end
-  elseif((rtemplate[tonumber(key)] == 'RTP_IN_JITTER') or (rtemplate[tonumber(key)] == 'RTP_OUT_JITTER')) then
-    if(value ~= nil and value ~= '0') then
-      return(value/1000)
-    else
-      return 0
-    end
-   elseif((rtemplate[tonumber(key)] == 'RTP_IN_MAX_DELTA') or (rtemplate[tonumber(key)] == 'RTP_OUT_MAX_DELTA') or (rtemplate[tonumber(key)] == 'RTP_MOS') or (rtemplate[tonumber(key)] == 'RTP_R_FACTOR') or (rtemplate[tonumber(key)] == 'RTP_IN_MOS') or (rtemplate[tonumber(key)] == 'RTP_OUT_MOS') or (rtemplate[tonumber(key)] == 'RTP_IN_R_FACTOR') or (rtemplate[tonumber(key)] == 'RTP_OUT_R_FACTOR') or (rtemplate[tonumber(key)] == 'RTP_IN_TRANSIT') or (rtemplate[tonumber(key)] == 'RTP_OUT_TRANSIT')) then
-    if(value ~= nil and value ~= '0') then
-      return(value/100)
-    else
-      return 0
-    end
-  end
 
-  -- Unformatted value
+   -- Unformatted value
 
-  if (type(value) == "boolean") then
-    if (value) then 
-      value = i18n("yes") 
-    else 
-      value = i18n("no") 
-    end
-  end
+   if (type(value) == "boolean") then
+      if (value) then 
+         value = i18n("yes") 
+      else 
+         value = i18n("no") 
+      end
+   end
 
-  return value
+   return value
 end
 
 
@@ -728,11 +746,41 @@ end
 
 -- #######################
 
+function fieldIDToFieldName(id)
+  local id_num
+  local name
+  local pen_id = string.split(id, "%.")
+
+  if pen_id then
+    id_num = tonumber(pen_id[2])
+  else
+    id_num = tonumber(id)
+  end
+
+  if id_num then
+    name = rtemplate[id_num]
+  else
+    name = id
+  end
+
+  return name
+end
+
+-- #######################
+
 function isFieldProtocol(protocol, field)
-   if((field ~= nil) and (protocol ~= nil)) then
-      if(starts(field, protocol)) then
-	 return true
-      end
+   if not field or not protocol then 
+      return false 
+   end
+
+   local key_name = fieldIDToFieldName(field)
+
+   if not key_name then 
+      return false 
+   end
+
+   if starts(key_name, protocol) then
+      return true
    end
       
    return false
@@ -759,6 +807,23 @@ end
 
 -- #######################
 
+function isFlowValueDefined(info, field)
+   if(info[field] ~= nil) then
+      return true
+   else
+      for key,value in pairs(info) do
+         local key_name = fieldIDToFieldName(key)
+	 if(key_name == field) then
+            return true
+	 end
+      end
+   end
+
+   return false
+end
+
+-- #######################
+
 function getFlowValue(info, field)
    local return_value = "0"
    local value_original = "0"
@@ -768,8 +833,9 @@ function getFlowValue(info, field)
       value_original = info[field]
    else
       for key,value in pairs(info) do
-	 if(rtemplate[tonumber(key)] == field) then
-	    return_value = handleCustomFlowField(key, value)
+         local key_name = fieldIDToFieldName(key)
+	 if(key_name == field) then
+	    return_value = handleCustomFlowField(key_name, value)
 	    value_original = value
 	 end
       end
@@ -802,7 +868,7 @@ function isThereProtocol(protocol, info)
    local found = 0
    
    for key,value in pairs(info) do
-      if(isFieldProtocol(protocol, key)) then	
+      if isFieldProtocol(protocol, key) then
 	 found = 1
 	 break
       end
@@ -1014,7 +1080,7 @@ function getSIPTableRows(info)
         string_table = string_table.."<tr id=\"cbf_reason_cause_tr\" style=\"display: none;\"><th width=33%> "..i18n("flow_details.cancel_bye_failure_reason_cause").." </th><td colspan=2><div id=reason_cause>"
      end
      string_table = string_table.."</div></td></tr>\n"
-     if(info["SIP_C_IP"]  ~= nil) then
+     if isFlowValueDefined(info, "SIP_C_IP") then
        string_table = string_table.."<tr id=\"sip_c_ip_tr\" style=\"display: table-row;\"><th width=33%> "..i18n("flow_details.c_ip_addresses").." </th><td colspan=2><div id=c_ip>" .. getFlowValue(info, "SIP_C_IP") .. "</div></td></tr>\n"
      end
 
@@ -1037,7 +1103,7 @@ function getRTPTableRows(info)
    if(rtp_found == 1) then
       -- SSRC
       string_table = string_table.."<tr><th colspan=3 class=\"info\" >"..i18n("flow_details.rtp_protocol_information").."</th></tr>\n"
-      if(info["RTP_SSRC"] ~= nil) then
+      if isFlowValueDefined(info, "RTP_SSRC") then
 	 sync_source_var = getFlowValue(info, "RTP_SSRC")
 	 if((sync_source_var == nil) or (sync_source_var == "")) then
 	    sync_source_hide = "style=\"display: none;\""
@@ -1048,7 +1114,7 @@ function getRTPTableRows(info)
       end
       
       -- ROUND-TRIP-TIME
-      if(info["RTP_RTT"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_RTT") then	 
 	 local rtp_rtt_var = getFlowValue(info, "RTP_RTT")
 	 if((rtp_rtt_var == nil) or (rtp_rtt_var == "")) then
 	    rtp_rtt_hide = "style=\"display: none;\""
@@ -1063,7 +1129,7 @@ function getRTPTableRows(info)
       end
 
       -- RTP-IN-TRASIT
-      if(info["RTP_IN_TRANSIT"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_IN_TRANSIT") then	 
 	 local rtp_in_transit = getFlowValue(info, "RTP_IN_TRANSIT")/100
 	 local rtp_out_transit = getFlowValue(info, "RTP_OUT_TRANSIT")/100
 	 if(((rtp_in_transit == nil) or (rtp_in_transit == "")) and ((rtp_out_transit == nil) or (rtp_out_transit == ""))) then
@@ -1076,7 +1142,7 @@ function getRTPTableRows(info)
       end
       
       -- TONES
-      if(info["RTP_DTMF_TONES"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_DTMF_TONES") then	 
 	 local rtp_dtmf_var = getFlowValue(info, "RTP_DTMF_TONES")
 	 if((rtp_dtmf_var == nil) or (rtp_dtmf_var == "")) then
 	    rtp_dtmf_hide = "style=\"display: none;\""
@@ -1087,7 +1153,7 @@ function getRTPTableRows(info)
       end
 	 
       -- FIRST REQUEST
-      if(info["RTP_FIRST_SEQ"] ~= nil) then         
+      if isFlowValueDefined(info, "RTP_FIRST_SEQ") then         
 	 local first_flow_sequence_var = getFlowValue(info, "RTP_FIRST_SEQ")
 	 local last_flow_sequence_var = getFlowValue(info, "RTP_FIRST_SEQ")
 	 if(((first_flow_sequence_var == nil) or (first_flow_sequence_var == "")) and ((last_flow_sequence_var == nil) or (last_flow_sequence_var == ""))) then
@@ -1099,7 +1165,7 @@ function getRTPTableRows(info)
       end
       
       -- CALL-ID
-      if(info["RTP_SIP_CALL_ID"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_SIP_CALL_ID") then	 
 	 local sip_call_id_var = getFlowValue(info, "RTP_SIP_CALL_ID")
 	 if((sip_call_id_var == nil) or (sip_call_id_var == "")) then
 	    sip_call_id_hide = "style=\"display: none;\""
@@ -1112,7 +1178,7 @@ function getRTPTableRows(info)
       -- TWO-WAY CALL-QUALITY INDICATORS
       string_table = string_table.."<tr><th>"..i18n("flow_details.call_quality_indicators").."</th><th>"..i18n("flow_details.forward").."</th><th>"..i18n("flow_details.reverse").."</th></tr>"
       -- JITTER
-      if(info["RTP_IN_JITTER"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_IN_JITTER") then	 
 	 local rtp_in_jitter = getFlowValue(info, "RTP_IN_JITTER")/100
 	 local rtp_out_jitter = getFlowValue(info, "RTP_OUT_JITTER")/100
 	 if(((rtp_in_jitter == nil) or (rtp_in_jitter == "")) and ((rtp_out_jitter == nil) or (rtp_out_jitter == ""))) then
@@ -1134,7 +1200,7 @@ function getRTPTableRows(info)
       end
       
       -- PACKET LOSS
-      if(info["RTP_IN_PKT_LOST"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_IN_PKT_LOST") then	 
 	 local rtp_in_pkt_lost = getFlowValue(info, "RTP_IN_PKT_LOST")
 	 local rtp_out_pkt_lost = getFlowValue(info, "RTP_OUT_PKT_LOST")
 	 if(((rtp_in_pkt_lost == nil) or (rtp_in_pkt_lost == "")) and ((rtp_out_pkt_lost == nil) or (rtp_out_pkt_lost == ""))) then
@@ -1156,7 +1222,7 @@ function getRTPTableRows(info)
       end
       
       -- PACKET DROPS
-      if(info["RTP_IN_PKT_DROP"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_IN_PKT_DROP") then	 
 	 local rtp_in_pkt_drop = getFlowValue(info, "RTP_IN_PKT_DROP")
 	 local rtp_out_pkt_drop = getFlowValue(info, "RTP_OUT_PKT_DROP")
 	 if(((rtp_in_pkt_drop == nil) or (rtp_in_pkt_drop == "")) and ((rtp_out_pkt_drop == nil) or (rtp_out_pkt_drop == ""))) then
@@ -1177,7 +1243,7 @@ function getRTPTableRows(info)
       end
       
       -- MAXIMUM DELTA BETWEEN CONSECUTIVE PACKETS
-      if(info["RTP_IN_MAX_DELTA"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_IN_MAX_DELTA") then	 
 	 local rtp_in_max_delta = getFlowValue(info, "RTP_IN_MAX_DELTA")
 	 local rtp_out_max_delta = getFlowValue(info, "RTP_OUT_MAX_DELTA")
 	 if(((rtp_in_max_delta == nil) or (rtp_in_max_delta == "")) and ((rtp_out_max_delta == nil) or (rtp_out_max_delta == ""))) then
@@ -1197,7 +1263,7 @@ function getRTPTableRows(info)
       end
       
       -- PAYLOAD TYPE
-      if(info["RTP_IN_PAYLOAD_TYPE"] ~= nil) then	 
+      if isFlowValueDefined(info, "RTP_IN_PAYLOAD_TYPE") then	 
 	 local rtp_payload_in_var  = formatRtpPayloadType(getFlowValue(info, "RTP_IN_PAYLOAD_TYPE"))
 	 local rtp_payload_out_var = formatRtpPayloadType(getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE"))
 	 if(((rtp_payload_in_var == nil) or (rtp_payload_in_var == "")) and ((rtp_payload_out_var == nil) or (rtp_payload_out_var == ""))) then
@@ -1209,7 +1275,7 @@ function getRTPTableRows(info)
       end
 
       -- MOS
-      if(info["RTP_IN_MOS"] ~= nil) then		 
+      if isFlowValueDefined(info, "RTP_IN_MOS") then		 
 	 local rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")/100
 	 local rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")/100
 
@@ -1232,7 +1298,7 @@ function getRTPTableRows(info)
       end
       
       -- R_FACTOR
-      if(info["RTP_IN_R_FACTOR"] ~= nil) then
+      if isFlowValueDefined(info, "RTP_IN_R_FACTOR") then
 	 local rtp_in_r_factor = getFlowValue(info, "RTP_IN_R_FACTOR")/100
 	 local rtp_out_r_factor = getFlowValue(info, "RTP_OUT_R_FACTOR")/100
 	 
