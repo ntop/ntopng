@@ -185,80 +185,129 @@ function datatableGetColumnIndex(table, column_key) {
    return(index);
 }
 
-/* Helper function for refreshable datatables rows.
+/*
+ * Helper function to add refreshable datatables rows.
  *
  * table: the datatable div jquery object
  * column_id: the field key used to indentify the rows
- * first_load: if true, the existing datatable data will be processed.
-  */
-function datatableRefreshRows(table, column_id, first_load) {
+ * refresh_interval: milliseconds refresh interval for this table
+ * trend_columns: (optional) a map <field -> formatter_fn> which indicates the numeric columns
+ * which should be shown with up/down arrows upon refresh.
+ *
+ * Returns true on success, false otherwise.
+ *
+ * Example usage:
+ *   $("#table-redis-stats").datatable({
+ *     ...
+ *     tableCallback: function() {
+ *       // The table rows will be identified by the "column_key",
+ *       // refreshed every 5 seconds, with up/down arrows on the "column_chart"
+ *       datatableInitRefreshRows($("#table-redis-stats"), "column_key", 5000, {"column_chart": addCommas});
+ *     }
+ *   });
+ */
+function datatableInitRefreshRows(table, column_id, refresh_interval, trend_columns) {
   var $dt = table.data("datatable");
   var rows = $dt.resultset.data;
+  var old_timer = table.data("dt-rr-timer");
+  var old_req = table.data("dt-rr-ajax");
+
+  if(old_timer) {
+    // Remove the previously set timer to avoid double scheduling
+    clearInterval(old_timer);
+    table.removeData("dt-rr-timer");
+  }
+
+  if(old_req) {
+    // Abort the previous request if any
+    old_req.abort();
+    table.removeData("dt-rr-ajax");
+  }
+
   var ids = [];
   var id_to_row = {};
 
   for(var row in rows) {
-      var data = rows[row];
+    var data = rows[row];
 
-      if(data[column_id]) {
-         var data_id = data[column_id];
-         id_to_row[data_id] = row;
-         ids.push(data_id);
+    if(data[column_id]) {
+      var data_id = data[column_id];
+      id_to_row[data_id] = row;
+      ids.push(data_id);
     }
   }
 
-  if(ids) {
-   var url = $dt.options.url;
-   var params = {
-      "custom_hosts": ids.join(",")
-   };
+  if(!ids)
+    return(false);
 
-   var _process_result = function(result) {
-      for(var row in result.data) {
-         var data = result.data[row];
-         var data_id = data[column_id];
+  // These parameters will be passed to the refresh endpoint
+  // the custom_hosts parameter will be passed in the AJAX request and
+  // will contain the IDs to refresh. It should be used by the receiving
+  // Lua script as a filter
+  var params = {
+    "custom_hosts": ids.join(",")
+  };
+  var url = $dt.options.url;
+  var first_load = true;
 
-         if(data_id && id_to_row[data_id]) {
-            var row_idx = id_to_row[data_id];
-            var row_html = $dt.rows[row_idx];
-            var row_tds = $("td", row_html);
+  var _process_result = function(result) {
+    for(var row in result.data) {
+       var data = result.data[row];
+       var data_id = data[column_id];
 
-            for(var key in data) {
-               var col_idx = datatableGetColumnIndex(table, key);
-               var cell = row_tds[col_idx];
-               var $cell = $(cell);
-               var old_val = $cell.data("trend-cur-val") || $(cell).html();
-               var new_val = data[key];
-               var arrows = "";
+       if(data_id && id_to_row[data_id]) {
+          var row_idx = id_to_row[data_id];
+          var row_html = $dt.rows[row_idx];
+          var row_tds = $("td", row_html);
 
-               /* Automatically add up/down trend arrows as long as the original data is a number */
-               if(!isNaN(old_val) && !isNaN(new_val)) {
-                  /* This is a number */
-                  if(!first_load)
-                     arrows = " " + drawTrend(parseInt(new_val), parseInt(old_val));
+          for(var key in data) {
+             var col_idx = datatableGetColumnIndex(table, key);
+             var cell = row_tds[col_idx];
+             var $cell = $(cell);
+             var old_val = $cell.data("dt-rr-cur-val") || $(cell).html();
+             var trend_value_formatter = trend_columns[key];
+             var new_val = data[key];
+             var arrows = "";
 
-                  /* Rember that this is a number for future invocations */
-                  $cell.data("trend-cur-val", new_val);
+             if(trend_value_formatter) {
+              if(!first_load)
+                arrows = " " + drawTrend(parseInt(new_val), parseInt(old_val));
 
-                  new_val = addCommas(new_val);
-               }
+              // This value will be neede in the next refresh
+              $cell.data("dt-rr-cur-val", new_val);
 
-               $(cell).html((new_val != 0) ? (new_val + arrows) : "");
+              new_val = trend_value_formatter(new_val);
             }
-         }
-      }
-   };
 
-   if(first_load)
-      _process_result($dt.resultset);
-   else {
-      $.ajax({
-         type: 'GET',
-         url: url,
-         data: params,
-         cache: false,
-         success: _process_result,
-      });
-   }
- }
+             $(cell).html((new_val != 0) ? (new_val + arrows) : "");
+          }
+       }
+    }
+
+    first_load = false;
+    table.removeData("dt-rr-ajax");
+ };
+
+  // Save the timer into "dt-rr-timer" to be able to stop it if
+  // datatableInitRefreshRows is called again
+  table.data("dt-rr-timer", setInterval(function() {
+    // Double check that a request is not pending
+    var old_req = table.data("dt-rr-ajax");
+
+    if(old_req)
+      return;
+
+    // Save the ajax request to possibly abort it if
+    // datatableInitRefreshRows is called again
+    table.data("dt-rr-ajax", $.ajax({
+       type: 'GET',
+       url: url,
+       data: params,
+       cache: false,
+       success: _process_result,
+    }));
+  }, refresh_interval));
+
+  // First update
+  _process_result($dt.resultset);
 }

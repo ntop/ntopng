@@ -55,10 +55,10 @@ print [[
 dofile(dirs.installdir .. "/scripts/lua/inc/container_columns.lua")
 
 print[[
-      ]
+      ], tableCallback: function() {
+        datatableInitRefreshRows($("#table-containers"), "column_key", 10000);
+      }
     });
-
-    window.setInterval(function() { datatableRefreshRows($("#table-containers"), "column_key"); }, 10000);
   </script>
 ]]
 

@@ -18,7 +18,7 @@ local currentPage  = _GET["currentPage"]
 local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
-local cont_filter_s = _GET["custom_hosts"]
+local cmd_ids_filter = _GET["custom_hosts"]
 
 local sortPrefs = "redis_commands_data"
 
@@ -60,11 +60,19 @@ local to_skip = (currentPage-1) * perPage
 
 -- ################################################
 
+if(cmd_ids_filter) then
+  cmd_ids_filter = swapKeysValues(string.split(cmd_ids_filter, ",") or {cmd_ids_filter})
+end
+
 local commands_stats = ntop.getCacheStats() or {}
 local totalRows = 0
 local sort_to_key = {}
 
 for command, hits in pairs(commands_stats) do
+  if(cmd_ids_filter and (cmd_ids_filter[command] == nil)) then
+    goto continue
+  end
+
   if(sortColumn == "column_command") then
     sort_to_key[command] = command
   else
@@ -72,6 +80,7 @@ for command, hits in pairs(commands_stats) do
   end
 
   totalRows = totalRows + 1
+  ::continue::
 end
 
 -- ################################################

@@ -53,13 +53,15 @@ function probe.getTimeseriesMenu(ts_utils)
    -- Populate individual commands timeseries
    local series = ts_utils.listSeries("redis:hits", {ifid = getSystemInterfaceId()}, 0)
 
-   for _, serie in pairsByField(series, "command", asc) do
-      menu[#menu + 1] = {
-	 schema = "redis:hits",
-	 label = i18n("system_stats.redis.command_hits", {cmd = string.upper(string.sub(serie.command, 5))}),
-	 extra_params = {redis_command = serie.command},
-	 metrics_labels = {i18n("graphs.num_calls")},
-      }
+   if(series) then
+      for _, serie in pairsByField(series, "command", asc) do
+	 menu[#menu + 1] = {
+	    schema = "redis:hits",
+	    label = i18n("system_stats.redis.command_hits", {cmd = string.upper(string.sub(serie.command, 5))}),
+	    extra_params = {redis_command = serie.command},
+	    metrics_labels = {i18n("graphs.num_calls")},
+	 }
+      end
    end
 
    return(menu)

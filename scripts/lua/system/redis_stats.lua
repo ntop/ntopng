@@ -174,12 +174,9 @@ $("#table-redis-stats").datatable({
        }
      }
    ], tableCallback: function() {
-      datatableRefreshRows($("#table-redis-stats"), "column_key", true /* don't reload */);
+      datatableInitRefreshRows($("#table-redis-stats"), "column_key", 5000, {"column_hits": addCommas});
    }
 });
-
-window.setInterval(function() { datatableRefreshRows($("#table-redis-stats"), "column_key"); }, 10000);
-
 </script>
  ]]
    
