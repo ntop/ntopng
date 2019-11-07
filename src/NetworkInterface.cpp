@@ -146,6 +146,7 @@ NetworkInterface::NetworkInterface(const char *name,
 #ifdef MULTIPLE_NDPI
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
+  ndpi_finalize_initalization(ndpi_struct);
 #endif
   
   if(id >= 0) {
@@ -2496,7 +2497,8 @@ void NetworkInterface::reloadCustomCategories() {
     
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
-
+    ndpi_finalize_initalization(ndpi_struct_shadow);
+    
     old_struct = ndpi_struct;
     ndpi_struct = ndpi_struct_shadow;
     ndpi_struct_shadow = old_struct;

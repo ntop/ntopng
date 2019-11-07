@@ -74,6 +74,7 @@ Ntop::Ntop(char *appName) {
 #ifndef MULTIPLE_NDPI
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
+  ndpi_finalize_initalization(ndpi_struct);
 #endif
 
 #ifdef WIN32
@@ -2413,7 +2414,8 @@ void Ntop::reloadCustomCategories() {
     
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
-
+    ndpi_finalize_initalization(ndpi_struct_shadow);
+    
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI finalizing reload...");
     
     old_struct = ndpi_struct;
