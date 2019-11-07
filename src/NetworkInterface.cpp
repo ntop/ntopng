@@ -7900,7 +7900,25 @@ void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
 
 /* *************************************** */
 
-#ifndef MULTIPLE_NDPI
+#ifdef MULTIPLE_NDPI
+
+void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
+
+  if(what && ndpi_struct_shadow)
+    ndpi_load_ip_category(ndpi_struct_shadow, what, id);
+}
+
+/* *************************************** */
+
+void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
+
+  if(what && ndpi_struct_shadow)
+    ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
+}
+
+#else
 struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
   return(ntop->get_ndpi_struct());
 };

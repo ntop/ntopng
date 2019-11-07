@@ -1051,4 +1051,6 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define PROFILING_SUB_SECTION_EXIT(f, i)
 #endif
 
+#define MULTIPLE_NDPI 1
+
 #endif /* _NTOP_DEFINES_H_ */

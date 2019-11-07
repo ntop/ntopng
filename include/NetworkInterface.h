@@ -788,7 +788,7 @@ private:
   inline void profiling_section_exit(int id) { PROFILING_SECTION_EXIT(id); };
 #endif
 
-#ifdef reloadJA3Hashes
+#ifdef MULTIPLE_NDPI
   void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
 #endif
