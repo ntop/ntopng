@@ -687,17 +687,10 @@ int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 
   if(!found) {
     /* Add to the list of addresses to resolve */
-    struct timeval begin, end;
-    
-    gettimeofday(&begin, NULL);
     if(localHost)
       rc = rpush(ns_list, hostname, MAX_NUM_QUEUED_ADDRS);
     else
       rc = lpush(ns_list, hostname, MAX_NUM_QUEUED_ADDRS);
-
-    gettimeofday(&end, NULL);
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "l/rpush took %.2f ms", Utils::msTimevalDiff(&end, &begin));      
   } else
     reply = 0;
 
@@ -974,6 +967,14 @@ int Redis::msg_push(const char * const cmd, const char * const queue_name, const
   redisReply *reply;
   int rc = 0;
 
+#ifdef MEASURE_RPUSH
+  struct timeval begin, end;
+  char theDate[32];
+  struct tm result;
+
+  gettimeofday(&begin, NULL);
+#endif
+
   l->lock(__FILE__, __LINE__, trace_errors);
   /* Put the latest messages on top so old messages (if any) will be discarded */
   stats.num_other++;
@@ -985,6 +986,17 @@ int Redis::msg_push(const char * const cmd, const char * const queue_name, const
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = -1;
     else
       rc = reply->integer;
+
+#ifdef MEASURE_RPUSH
+    {
+      time_t theTime = time(NULL);
+      gettimeofday(&end, NULL);
+
+      /* IMPORTANT: do not call traceEvent here otherwise it will call rpush again in a loop! */
+      strftime(theDate, sizeof(theDate), "%d/%b/%Y %H:%M:%S", localtime_r(&theTime, &result));
+      printf("%s %s took %.2f ms\n", theDate, cmd, Utils::msTimevalDiff(&end, &begin));
+    }
+#endif
 
     freeReplyObject(reply);
 
