@@ -91,7 +91,10 @@ class Ntop {
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
   bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
-
+#ifndef MULTIPLE_NDPI
+  void cleanShadownDPI();
+#endif
+  
  public:
   /**
    * @brief A Constructor
@@ -451,13 +454,11 @@ class Ntop {
   struct ndpi_detection_module_struct* initnDPIStruct();    
   inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
   bool startCustomCategoriesReload();
-  void cleanShadownDPI();
   void checkReloadHostsBroadcastDomain();
   inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }  
   void reloadCustomCategories();
   void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
-
 #endif
 };
 

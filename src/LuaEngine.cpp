@@ -1837,12 +1837,12 @@ static int ntop_startCustomCategoriesReload(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_cleanOldCategories(lua_State* vm) {
+#ifdef MULTIPLE_NDPI
   if(ntop->needsnDPICleanup()) {
     bool we_are_good = true;
     
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists: cleanup");
-
-#ifdef MULTIPLE_NDPI
+    
     for(int i=0; i<ntop->get_num_interfaces(); i++) {
       NetworkInterface *iface;
       
@@ -1853,17 +1853,12 @@ static int ntop_cleanOldCategories(lua_State* vm) {
 	  iface->cleanShadownDPI();
       }
     }
-#else
-    if(!ntop->isnDPIReloadInProgress())
-      ntop->cleanShadownDPI();
-    else
-      we_are_good = false;
-#endif
     
     if(we_are_good)
       ntop->setnDPICleanupNeeded(false);
   }
-
+#endif
+  
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
