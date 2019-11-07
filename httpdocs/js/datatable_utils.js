@@ -201,8 +201,8 @@ function datatableGetColumnIndex(table, column_key) {
  *     ...
  *     tableCallback: function() {
  *       // The table rows will be identified by the "column_key",
- *       // refreshed every 5 seconds, with up/down arrows on the "column_chart"
- *       datatableInitRefreshRows($("#table-redis-stats"), "column_key", 5000, {"column_chart": addCommas});
+ *       // refreshed every 5 seconds, with up/down arrows on the "column_hits"
+ *       datatableInitRefreshRows($("#table-redis-stats"), "column_key", 5000, {"column_hits": addCommas});
  *     }
  *   });
  */
@@ -211,6 +211,7 @@ function datatableInitRefreshRows(table, column_id, refresh_interval, trend_colu
   var rows = $dt.resultset.data;
   var old_timer = table.data("dt-rr-timer");
   var old_req = table.data("dt-rr-ajax");
+  trend_columns = trend_columns || {};
 
   if(old_timer) {
     // Remove the previously set timer to avoid double scheduling
