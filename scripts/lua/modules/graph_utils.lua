@@ -12,6 +12,7 @@ local os_utils = require "os_utils"
 local have_nedge = ntop.isnEdge()
 
 local ts_utils = require("ts_utils")
+local ts_common = require("ts_common")
 
 -- Keep global, need to be accessed from nv_graph_utils
 schemas_graph_options = {}
@@ -58,6 +59,37 @@ local graph_colors = {
    '#17becf',
    '#9edae5'
 }
+
+-- ########################################################
+
+-- @brief Ensure that the provided series have the same number of points. This is a
+-- requirement for the charts.
+-- @param series a list of series to fix. The format of each serie is the one
+-- returned by ts_utils.query
+-- @note the series are modified in place
+function normalizeSeriesPoints(series)
+  local max_count = 0
+  local min_step = math.huge
+
+  for _, serie in pairs(series) do
+    max_count = math.max(max_count, #serie.series[1].data)
+    min_step = math.min(min_step, serie.step)
+  end
+
+  if max_count > 0 then
+    for _, serie in pairs(series) do
+      local count = #serie.series[1].data
+
+      if count ~= max_count then
+        for _, serie in pairs(serie.series) do
+          serie.data = ts_common.upsampleSerie(serie.data, max_count)
+          serie.step = min_step
+          serie.count = max_count
+        end
+      end
+    end
+  end
+end
 
 -- ########################################################
 
