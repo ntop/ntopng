@@ -70,11 +70,13 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema = "ht:state",
        label = i18n("internals.hash_entries")},
       {schema = "custom:ht:lua_calls",
-       label = i18n("internals.lua"),
+       label = i18n("internals.num_calls_vs_duration"),
        metrics_labels = { i18n("duration"), i18n("graphs.num_calls") },
       }, {
-         schema = "ht:num_missed_calls",
-         label = i18n("internals.num_missed_calls"),
+         schema = "custom:ht:lua_calls_vs_missed",
+         label = i18n("internals.lua_calls_vs_missed"),
+         metrics_labels = { i18n("internals.missed_idle"), i18n("internals.missed_proto_detected"),
+            i18n("internals.missed_periodic_update"), i18n("internals.successful_calls") },
       },
    }
 })
