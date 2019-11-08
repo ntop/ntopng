@@ -64,8 +64,8 @@ end
 -- @param ref_limit the maximum queue size
 -- @param inc_drops true if alert drops should be incremented
 local function enqueueAlertEvent(queue, event, ref_limit, inc_drops)
-  local num_pending = ntop.llenCache(queue)
   local queue_rating_key = string.format("%s.rating", queue)
+  local queue_len_key = string.format("%s.len", queue)
   local cur_status = ntop.getCache(queue_rating_key)
   local rv
 
@@ -73,6 +73,14 @@ local function enqueueAlertEvent(queue, event, ref_limit, inc_drops)
   local low_value = math.ceil(ref_limit / 3)
   local high_value = math.ceil(ref_limit / 2)
   local trim_limit = ref_limit
+
+  -- NOTE: using a cached value to avoid calling llenCache every time
+  local num_pending = tonumber(ntop.getCache(queue_len_key))
+
+  if(num_pending == nil) then
+    num_pending = ntop.llenCache(queue)
+    ntop.setCache(queue_len_key, string.format("%d", num_pending), 2 --[[ recheck every 2 seconds ]])
+  end
 
   -- The rpush is only performed in "normal" status
   if isEmptyString(cur_status) then
@@ -106,6 +114,9 @@ local function enqueueAlertEvent(queue, event, ref_limit, inc_drops)
     if(inc_drops) then
       interface.incNumDroppedAlerts(num_drop)
     end
+
+    -- Recalculate num_pending on next round
+    ntop.delCache(queue_len_key)
   end
 
   if(cur_status == "full") then
