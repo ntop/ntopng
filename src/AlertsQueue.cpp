@@ -35,7 +35,7 @@ void AlertsQueue::pushAlertJson(const char *atype, json_object *alert) {
   json_object_object_add(alert, "alert_type", json_object_new_string(atype));
   json_object_object_add(alert, "alert_tstamp", json_object_new_int64(time(NULL)));
 
-  ntop->getRedis()->rpush(CONST_ALERT_STORE_QUEUE, (char *)json_object_to_json_string(alert), 0 /* No trim */);
+  ntop->getRedis()->rpush(CONST_ALERT_STORE_QUEUE, (char *)json_object_to_json_string(alert), 1024 /* Trim */);
 }
 
 /* **************************************************** */
