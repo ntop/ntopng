@@ -950,6 +950,7 @@ int Redis::smembers(const char *set_name, char ***members) {
 
 /*  Add at the top of queue */
 int Redis::lpush(const char * const queue_name, const char * const msg, u_int queue_trim_size, bool trace_errors) {
+  stats.num_lpush_rpush++;
   return(msg_push("LPUSH", queue_name, msg, queue_trim_size, trace_errors));
 }
 
@@ -957,6 +958,7 @@ int Redis::lpush(const char * const queue_name, const char * const msg, u_int qu
 
 /* Add at the bottom of the queue */
 int Redis::rpush(const char * const queue_name, const char * const msg, u_int queue_trim_size) {
+  stats.num_lpush_rpush++;
   return(msg_push("RPUSH", queue_name, msg, queue_trim_size, true, false));
 }
 
@@ -977,7 +979,6 @@ int Redis::msg_push(const char * const cmd, const char * const queue_name, const
 
   l->lock(__FILE__, __LINE__, trace_errors);
   /* Put the latest messages on top so old messages (if any) will be discarded */
-  stats.num_lpush++;
   reply = (redisReply*)redisCommand(redis, "%s %s %s", cmd,  queue_name, msg);
 
   if(!reply) reconnectRedis(true);
@@ -1142,7 +1143,7 @@ int Redis::lrpop(const char *queue_name, char *buf, u_int buf_len, bool lpop) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  stats.num_other++;
+  stats.num_lpop_rpop++;
   reply = (redisReply*)redisCommand(redis, "%sPOP %s", lpop ? "L" : "R", queue_name);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
@@ -1296,7 +1297,8 @@ void Redis::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "num_hgetall", stats.num_hgetall);
   lua_push_uint64_table_entry(vm, "num_trim", stats.num_trim);
   lua_push_uint64_table_entry(vm, "num_reconnections", stats.num_reconnections);
-  lua_push_uint64_table_entry(vm, "num_lpush", stats.num_lpush);
+  lua_push_uint64_table_entry(vm, "num_lpush_rpush", stats.num_lpush_rpush);
+  lua_push_uint64_table_entry(vm, "num_lpop_rpop", stats.num_lpop_rpop);
   lua_push_uint64_table_entry(vm, "num_other", stats.num_other);
 }
 

@@ -72,7 +72,7 @@ for command, hits in pairs(commands_stats) do
   if(cmd_ids_filter and (cmd_ids_filter[command] == nil)) then
     goto continue
   end
-
+ 
   if(sortColumn == "column_command") then
     sort_to_key[command] = command
   else
