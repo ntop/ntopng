@@ -562,6 +562,7 @@ class Flow : public GenericHashEntry {
 
   inline void setScore(u_int16_t score)    { alert_score = score; };
   inline u_int16_t getScore()              { return(alert_score); };
+  inline bool isTwhOver()                  { return(twh_over); };
 
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }
