@@ -1083,7 +1083,7 @@ u_int Redis::llen(const char *queue_name) {
   u_int num = 0;
 
   l->lock(__FILE__, __LINE__);
-  stats.num_other++;
+  stats.num_llen++;
   reply = (redisReply*)redisCommand(redis, "LLEN %s", queue_name);
   if(!reply) reconnectRedis(true);
   if(reply) {
@@ -1299,6 +1299,7 @@ void Redis::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "num_reconnections", stats.num_reconnections);
   lua_push_uint64_table_entry(vm, "num_lpush_rpush", stats.num_lpush_rpush);
   lua_push_uint64_table_entry(vm, "num_lpop_rpop", stats.num_lpop_rpop);
+  lua_push_uint64_table_entry(vm, "num_llen", stats.num_llen);
   lua_push_uint64_table_entry(vm, "num_other", stats.num_other);
 }
 

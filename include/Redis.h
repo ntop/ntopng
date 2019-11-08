@@ -37,7 +37,7 @@ class Redis {
   struct {
     u_int32_t num_expire, num_get, num_ttl, num_del,
       num_hget, num_hset, num_hdel, num_set,
-      num_keys, num_hkeys, num_other,
+      num_keys, num_hkeys, num_llen, num_other,
       num_hgetall, num_trim, num_lpush_rpush, num_lpop_rpop;
     u_int32_t num_reconnections;
   } stats;
