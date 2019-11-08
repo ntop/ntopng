@@ -72,6 +72,9 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema = "custom:ht:lua_calls",
        label = i18n("internals.lua"),
        metrics_labels = { i18n("duration"), i18n("graphs.num_calls") },
+      }, {
+         schema = "ht:num_missed_calls",
+         label = i18n("internals.num_missed_calls"),
       },
    }
 })

@@ -240,7 +240,7 @@ class Flow : public GenericHashEntry {
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
   bool isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv);
-  void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine **acle);
+  void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine *acle);
 
  public:
   Flow(NetworkInterface *_iface,

@@ -2143,6 +2143,7 @@ local lang = {
     ["lua"] = "Lua",
     ["max_duration_ms"] = "Max Duration",
     ["num_calls"] = "%{script} Num Calls",
+    ["num_missed_calls"] = "Num Missed Calls",
     ["periodic_activities"] = "Periodic Activities",
     ["periodic_activity"] = "Periodic Activity",
     ["script_duration"] = "%{script} Duration",

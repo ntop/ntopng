@@ -29,6 +29,10 @@ class AlertCheckLuaEngine : public LuaEngine {
   u_int num_calls;
   ticks total_ticks;
 
+  u_int32_t num_missed_proto_detected;
+  u_int32_t num_missed_periodic_update;
+  u_int32_t num_missed_idle;
+
  public:
   AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *iface);
   virtual ~AlertCheckLuaEngine();
@@ -37,6 +41,10 @@ class AlertCheckLuaEngine : public LuaEngine {
 
   ScriptPeriodicity getPeriodicity() const;
   const char * getGranularity() const;
+
+  inline void incNumMissedProtoDetected()     { num_missed_proto_detected++;  }
+  inline void incNumMissedPeriodicUpdate()    { num_missed_periodic_update++; }
+  inline void incNumMissedIdle()              { num_missed_idle++;            }
 
   void lua_stats(const char * key, lua_State *vm);
 };
