@@ -694,9 +694,6 @@ function lists_utils.checkReloadLists()
       end
 
       -- print("[DEBUG] **** Reloading is over ****\n")
-   else
-      -- Possibly clean up old nDPI memory
-      ntop.cleanOldCategories()
    end
 end
 

@@ -38,9 +38,7 @@ class NtopPro;
  */
 class Ntop {
  private:
-#ifndef MULTIPLE_NDPI
   bool ndpiReloadInProgress;
-#endif
   AddressTree local_interface_addresses;
   char epoch_buf[11];
   char working_dir[MAX_PATH]; /**< Working directory. */
@@ -55,9 +53,7 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
-#ifndef MULTIPLE_NDPI
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
-#endif
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   Logstash *logstash; /**< Pointer of Logstash. */
@@ -91,9 +87,7 @@ class Ntop {
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
   bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
-#ifndef MULTIPLE_NDPI
   void cleanShadownDPI();
-#endif
   
  public:
   /**
@@ -450,7 +444,6 @@ class Ntop {
   inline void loadMaliciousJA3Hash(std::string md5_hash)     { new_malicious_ja3->insert(md5_hash); }
   bool isMaliciousJA3Hash(std::string md5_hash);
   void reloadJA3Hashes();
-#ifndef MULTIPLE_NDPI
   struct ndpi_detection_module_struct* initnDPIStruct();    
   inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
   bool startCustomCategoriesReload();
@@ -459,7 +452,6 @@ class Ntop {
   void reloadCustomCategories();
   void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
-#endif
 };
 
 extern Ntop *ntop;

@@ -70,12 +70,9 @@ Ntop::Ntop(char *appName) {
   malicious_ja3 = malicious_ja3_shadow = NULL;
   new_malicious_ja3 = new std::set<std::string>();
   last_ndpi_reload = 0;
-
-#ifndef MULTIPLE_NDPI
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
   ndpi_finalize_initalization(ndpi_struct);
-#endif
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
@@ -221,14 +218,12 @@ Ntop::~Ntop() {
 #endif
 #endif
 
-#ifndef MULTIPLE_NDPI
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
     ndpi_struct = NULL;
   }
 
   cleanShadownDPI();
-#endif
 
   if(new_malicious_ja3) delete new_malicious_ja3;
   if(malicious_ja3) delete malicious_ja3;
@@ -2335,7 +2330,6 @@ void Ntop::reloadJA3Hashes() {
 
 /* ******************************************* */
 
-#ifndef MULTIPLE_NDPI
 struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module();
   u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
@@ -2450,6 +2444,4 @@ void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
   if(what && ndpi_struct_shadow)
     ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
 }
-
-#endif /* MULTIPLE_NDPI */
 

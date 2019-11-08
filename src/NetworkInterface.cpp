@@ -142,13 +142,6 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  // init global detection structure
-#ifdef MULTIPLE_NDPI
-  ndpi_struct_shadow = NULL;
-  ndpi_struct = initnDPIStruct();
-  ndpi_finalize_initalization(ndpi_struct);
-#endif
-  
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       bridge_interface = false;
@@ -232,11 +225,7 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  ifname = NULL;
-#ifdef MULTIPLE_NDPI
-  ndpiReloadInProgress = false, ndpi_struct = NULL;
-#endif
-  bridge_lan_interface_id = bridge_wan_interface_id = 0;
+  ifname = NULL, bridge_lan_interface_id = bridge_wan_interface_id = 0;
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
     has_seen_dhcp_addresses = false, packet_processing_completed = false;
@@ -327,75 +316,6 @@ void NetworkInterface::init() {
 
   PROFILING_INIT();
 }
-
-/* **************************************************** */
-
-#ifdef MULTIPLE_NDPI
-struct ndpi_detection_module_struct* NetworkInterface::initnDPIStruct() {
-  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module();
-  u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
-  ndpi_port_range d_port[MAX_DEFAULT_PORTS];
-  NDPI_PROTOCOL_BITMASK all;
-
-  if(ndpi_s == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
-    exit(-1);
-  }
-
-  if(ntop->getCustomnDPIProtos() != NULL)
-    ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
-
-  memset(d_port, 0, sizeof(d_port));
-  ndpi_set_proto_defaults(ndpi_s, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
-			  0, no_master, no_master, (char*)"Operating System",
-			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
-
-  // enable all protocols
-  NDPI_BITMASK_SET_ALL(all);
-  ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
-
-  return(ndpi_s);
-}
-
-/* **************************************************** */
-
-void NetworkInterface::cleanShadownDPI() {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
-  
-  if(ndpi_struct_shadow && !ndpiReloadInProgress) {
-    ndpi_exit_detection_module(ndpi_struct_shadow);
-    ndpi_struct_shadow = NULL;
-  }
-}
-
-/* **************************************************** */
-
-/* Operations are performed in the followin order:
- *
- * 1. startCustomCategoriesReload()
- * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
- * 3. reloadCustomCategories()
- * 4. cleanShadownDPI()
- */
-bool NetworkInterface::startCustomCategoriesReload() {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload on '%s' %s",
-			       get_name(), ndpiReloadInProgress ? "[IN PROGRESS]" : "");
-
-  if(ndpiReloadInProgress) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
-    return(false);
-  }
-
-  ndpiReloadInProgress = true;
-  cleanShadownDPI();
-
-  /* No need to dedicate another variable for the reload, we can use the shadow itself */
-  ndpi_struct_shadow = initnDPIStruct();
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload completed on '%s'", get_name());
-  return(true);
-}
-
-#endif /* MULTIPLE_NDPI */
 
 /* **************************************************** */
 
@@ -659,15 +579,6 @@ NetworkInterface::~NetworkInterface() {
     flowHashing = NULL;
   }
 
-#ifdef MULTIPLE_NDPI
-  if(ndpi_struct) {
-    ndpi_exit_detection_module(ndpi_struct);
-    ndpi_struct = NULL;
-  }
-
-  cleanShadownDPI();
-#endif
-  
   delete frequentProtocols;
   delete frequentMacs;
 
@@ -2478,39 +2389,6 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
     return;
   }
 }
-
-/* **************************************************** */
-
-#ifdef MULTIPLE_NDPI
-void NetworkInterface::reloadCustomCategories() {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
-
-  if(!ndpiReloadInProgress) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
-    return;
-  }
-  
-  if(ndpi_struct_shadow) {
-    struct ndpi_detection_module_struct *old_struct;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories [iface: %s]", get_name());
-    
-    /* The new categories were loaded on the current ndpi_struct_shadow */
-    ndpi_enable_loaded_categories(ndpi_struct_shadow);
-    ndpi_finalize_initalization(ndpi_struct_shadow);
-    
-    old_struct = ndpi_struct;
-    ndpi_struct = ndpi_struct_shadow;
-    ndpi_struct_shadow = old_struct;
-
-    /* Need to update the existing hosts */
-    reloadHostsBlacklist();
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Reload custom categories completed [iface: %s]", get_name());
-
-    ndpiReloadInProgress = false;
-  }
-}
-#endif
 
 /* **************************************************** */
 
@@ -7902,26 +7780,6 @@ void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
 
 /* *************************************** */
 
-#ifdef MULTIPLE_NDPI
-
-void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-
-  if(what && ndpi_struct_shadow)
-    ndpi_load_ip_category(ndpi_struct_shadow, what, id);
-}
-
-/* *************************************** */
-
-void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-
-  if(what && ndpi_struct_shadow)
-    ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
-}
-
-#else
 struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
   return(ntop->get_ndpi_struct());
 };
-#endif

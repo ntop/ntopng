@@ -70,11 +70,6 @@ typedef struct {
  *
  */
 class NetworkInterface : public AlertableEntity {
-#ifdef MULTIPLE_NDPI
-private:
-  bool ndpiReloadInProgress;
-#endif
-  
  protected:
   char *ifname, *ifDescription;
   bpf_u_int32 ipv4_network_mask, ipv4_network;
@@ -201,9 +196,6 @@ private:
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers;
-#ifdef MULTIPLE_NDPI
-  struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
-#endif
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle, packet_processing_completed;
@@ -358,11 +350,7 @@ private:
   inline void setSeenPods()                    { has_seen_pods = true; }
   inline bool hasSeenContainers() const        { return(has_seen_containers); }
   inline void setSeenContainers()              { has_seen_containers = true; }
-#ifdef MULTIPLE_NDPI
-  inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
-#else
   struct ndpi_detection_module_struct* get_ndpi_struct() const;
-#endif
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
@@ -675,10 +663,7 @@ private:
   void reloadHideFromTop(bool refreshHosts=true);
   void updateLbdIdentifier();
   inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
-#ifdef MULTIPLE_NDPI
-  bool startCustomCategoriesReload();
-  void cleanShadownDPI();
-#endif
+
   void checkReloadHostsBroadcastDomain();
   inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }
   void reloadHostsBlacklist();
@@ -788,10 +773,6 @@ private:
   inline void profiling_section_exit(int id) { PROFILING_SECTION_EXIT(id); };
 #endif
 
-#ifdef MULTIPLE_NDPI
-  void nDPILoadIPCategory(char *category, ndpi_protocol_category_t id);
-  void nDPILoadHostnameCategory(char *category, ndpi_protocol_category_t id);
-#endif
   void incNumAlertedFlows(Flow *f);
   void decNumAlertedFlows(Flow *f);
   virtual u_int64_t getNumActiveAlertedFlows()      const;
@@ -814,9 +795,6 @@ private:
   void releaseAllEngagedAlerts();
   inline bool isProcessingPackets() { return(!packet_processing_completed); }
   inline void processingCompleted() { packet_processing_completed = true;   }
-#ifdef MULTIPLE_NDPI
-  inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }
-#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
