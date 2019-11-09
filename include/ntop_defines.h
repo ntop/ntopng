@@ -56,7 +56,6 @@
 #define IPPROTO_ICMPV6          58 /* ICMPv6 */
 #endif
 
-
 /* should be defined in linux/if_ether.h */
 #ifndef ETH_P_ERSPAN2
 #define ETH_P_ERSPAN2           0x22EB  /* ERSPAN version 2 (type III) */
@@ -159,7 +158,7 @@
 #endif
 
 #define MAX_INTERFACE_NAME_LEN    512
-
+#define NUM_HOSTS_RESOLVED_BITS   2 << 19 /* ~1 million */
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
 #define HOST_PURGE_FREQUENCY      2 /* sec */

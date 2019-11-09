@@ -69,11 +69,15 @@ Ntop::Ntop(char *appName) {
   cpu_load = 0;
   malicious_ja3 = malicious_ja3_shadow = NULL;
   new_malicious_ja3 = new std::set<std::string>();
+
+  /* nDPI handling */
   last_ndpi_reload = 0;
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
   ndpi_finalize_initalization(ndpi_struct);
 
+  resolvedHostsBloom = new Bloom(NUM_HOSTS_RESOLVED_BITS);
+  
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
     strncpy(working_dir, "C:\\Windows\\Temp\\ntopng", sizeof(working_dir)); // Fallback: it should never happen
@@ -208,16 +212,8 @@ Ntop::~Ntop() {
 #endif
 #endif
 
-#ifdef HAVE_NINDEX
-#if 0
-  if(ntop->getPro()->is_nindex_in_use()) {
-    for(int i=0; i<NUM_NSERIES; i++) {
-      if(nseries[i]) delete nseries[i];
-    }
-  }
-#endif
-#endif
-
+  if(resolvedHostsBloom) delete resolvedHostsBloom;
+  
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
     ndpi_struct = NULL;

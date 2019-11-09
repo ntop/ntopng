@@ -39,6 +39,7 @@ class NtopPro;
 class Ntop {
  private:
   bool ndpiReloadInProgress;
+  Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
   char epoch_buf[11];
   char working_dir[MAX_PATH]; /**< Working directory. */
@@ -332,13 +333,14 @@ class Ntop {
    *
    * @return The path of installed directory.
    */
-  inline char* get_install_dir()                     { return(install_dir);      };
+  inline char* get_install_dir()                     { return(install_dir);         };
   inline void  set_install_dir(char *id)             { snprintf(install_dir, MAX_PATH, "%s", id); };
 
-  inline NtopGlobals*      getGlobals()              { return(globals); };
+  inline Bloom*            getResolutionBloom()      { return(resolvedHostsBloom);  };
+  inline NtopGlobals*      getGlobals()              { return(globals);             };
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
-  inline TimelineExtract*  getTimelineExtract()      { return(extract); };
+  inline TimelineExtract*  getTimelineExtract()      { return(extract);             };
 #ifndef HAVE_NEDGE
   inline ExportInterface*  get_export_interface()    { return(export_interface);    };
 #endif

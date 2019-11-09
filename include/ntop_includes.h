@@ -172,6 +172,8 @@ using namespace std;
 #include "ntop_defines.h"
 #include "Mutex.h"
 #include "RwLock.h"
+#include "Bitmask.h"
+#include "Bloom.h"
 #include "MonitoredMetric.h"
 #include "MonitoredCounter.h"
 #include "MonitoredGauge.h"

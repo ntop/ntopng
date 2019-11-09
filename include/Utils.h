@@ -197,6 +197,7 @@ class Utils {
 
   static OperatingSystem getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype);
   static DeviceType getDeviceTypeFromOsDetail(const char *os_detail);
+  static u_int32_t pow2(u_int32_t v);
 };
 
 #endif /* _UTILS_H_ */

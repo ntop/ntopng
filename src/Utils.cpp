@@ -4071,3 +4071,21 @@ json_object *Utils::cloneJSONSimple(json_object *src) {
 
   return obj;
 }
+
+/* ****************************************************** */
+
+/**
+ * Computes the next power of 2.
+ * @param v The number to round up.
+ * @return The next power of 2.
+ */
+u_int32_t Utils::pow2(u_int32_t v) {
+  v--;
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  v++;
+  return v;
+}

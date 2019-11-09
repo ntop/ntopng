@@ -773,18 +773,33 @@ int Redis::getAddress(char *numeric_ip, char *rsp,
 		      u_int rsp_len, bool queue_if_not_found) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   int rc;
-
+  bool already_in_bloom;
+  
   rsp[0] = '\0';
   snprintf(key, sizeof(key), "%s.%s", DNS_CACHE, numeric_ip);
 
-  rc = get(key, rsp, rsp_len);
-
+  stats.num_get_address++;
+  
+  if(!ntop->getResolutionBloom()->issetBit(numeric_ip)) {
+    already_in_bloom = false, stats.num_saved_lookups++, rc = -1; /* No way to find it */
+#ifdef CACHE_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Saved %s lookup", numeric_ip);
+#endif
+  } else
+    already_in_bloom = true, rc = get(key, rsp, rsp_len);
+  
   if(rc != 0) {
-    if(queue_if_not_found)
+    if(queue_if_not_found) {
+      if(already_in_bloom)
+	ntop->getResolutionBloom()->unsetBit(numeric_ip); /* Expired key ? */
+      
       pushHostToResolve(numeric_ip, true, false);
+    }
   } else {
     /* We need to extend expire */
-
+    if(!already_in_bloom)
+      ntop->getResolutionBloom()->setBit(numeric_ip); /* Previously cached ? */
+    
     expire(key, DNS_CACHE_DURATION /* expire */);
   }
 
@@ -797,6 +812,7 @@ int Redis::setResolvedAddress(char *numeric_ip, char *symbolic_ip) {
   char key[CONST_MAX_LEN_REDIS_KEY], numeric[256], *w, *h;
   int rc = 0;
 
+  stats.num_set_resolved_address++;
 #if 0
   if(strcmp(symbolic_ip, "broadcasthost") == 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "********");
@@ -808,6 +824,7 @@ int Redis::setResolvedAddress(char *numeric_ip, char *symbolic_ip) {
 
   while(h != NULL) {
     snprintf(key, sizeof(key), "%s.%s", DNS_CACHE, h);
+    ntop->getResolutionBloom()->setBit(h);
     rc = set(key, symbolic_ip, DNS_CACHE_DURATION);
     h = strtok_r(NULL, ";", &w);
   }
@@ -1031,7 +1048,7 @@ u_int Redis::len(const char * const key) {
 
   l->lock(__FILE__, __LINE__);
 
-  stats.num_other++;
+  stats.num_strlen++;
   reply = (redisReply*)redisCommand(redis, "STRLEN %s", key);
 
   if(!reply) reconnectRedis(true);
@@ -1300,7 +1317,13 @@ void Redis::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "num_lpush_rpush", stats.num_lpush_rpush);
   lua_push_uint64_table_entry(vm, "num_lpop_rpop", stats.num_lpop_rpop);
   lua_push_uint64_table_entry(vm, "num_llen", stats.num_llen);
+  lua_push_uint64_table_entry(vm, "num_strlen", stats.num_strlen);
   lua_push_uint64_table_entry(vm, "num_other", stats.num_other);
+
+  /* Address resolution */
+  lua_push_uint64_table_entry(vm, "num_resolver_saved_lookups", stats.num_saved_lookups);
+  lua_push_uint64_table_entry(vm, "num_resolver_get_address",   stats.num_get_address);
+  lua_push_uint64_table_entry(vm, "num_resolver_set_address",   stats.num_set_resolved_address);  
 }
 
 /* **************************************** */
