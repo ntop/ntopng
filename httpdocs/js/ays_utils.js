@@ -1,4 +1,4 @@
-/* 2016 - ntop.org
+/* 2016-19 - ntop.org
  * 
  * Utility functions for the are-you-sure jquery library.
  */

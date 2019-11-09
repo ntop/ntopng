@@ -1,4 +1,4 @@
-// 2016 - ntop.org
+// 2016-19 - ntop.org
 
 function datatableRemoveEmptyRow(table) {
   $("tbody tr.emptyRow", $(table)).remove();
