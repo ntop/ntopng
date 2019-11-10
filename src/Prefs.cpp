@@ -200,7 +200,7 @@ Prefs::~Prefs() {
 void nDPIusage() {
   printf("\nnDPI detected protocols:\n");
 
-  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module();
+  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(ndpi_no_prefs);
   ndpi_dump_protocols(ndpi_struct);
 
   exit(0);
