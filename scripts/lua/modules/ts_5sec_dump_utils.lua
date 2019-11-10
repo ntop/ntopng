@@ -10,14 +10,21 @@ function ts_dump.iface_update_periodic_ht_state_update_stats(when, ifid, periodi
    for ht_name, ht_stats in pairs(periodic_ht_state_update_stats) do
       local num_calls = 0
       local num_ms = 0
+      local stats = ht_stats["stats"]
 
-      if ht_stats["stats"] then
-	 if ht_stats["stats"]["num_calls"] then
-	    num_calls = ht_stats["stats"]["num_calls"]
+      if stats then
+	 if stats["num_calls"] then
+	    num_calls = stats["num_calls"]
 	 end
-	 if ht_stats["stats"]["tot_duration_ms"] then
-	    num_ms = ht_stats["stats"]["tot_duration_ms"]
+	 if stats["tot_duration_ms"] then
+	    num_ms = stats["tot_duration_ms"]
 	 end
+
+	 ts_utils.append("ht:num_missed_calls", {ifid = ifid, hash_table = ht_name,
+	    idle = stats.num_missed_idle,
+	    proto_detected = stats.num_missed_proto_detected,
+	    periodic_update = stats.num_missed_periodic_update,
+	}, when, verbose)
       end
 
      ts_utils.append("ht:duration", {ifid = ifid, hash_table = ht_name, num_ms = num_ms}, when, verbose)

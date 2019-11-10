@@ -60,6 +60,7 @@ typedef struct {
   AlertCheckLuaEngine *acle;
   struct timeval *tv;
   time_t deadline;
+  bool quick_update;
 } periodic_ht_state_update_user_data_t;
 
 typedef struct {

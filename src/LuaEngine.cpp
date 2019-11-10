@@ -8899,6 +8899,39 @@ static int ntop_flow_get_duration_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_first_seen(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_first_seen());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_last_seen(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_last_seen());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_is_twh_over(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, f->isTwhOver());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_proto_breed_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -10636,6 +10669,9 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "isPassVerdict",            ntop_flow_is_pass_verdict            },
 #endif
   { "getDurationInfo",          ntop_flow_get_duration_info          },
+  { "getFirstSeen",             ntop_flow_get_first_seen             },
+  { "getLastSeen",              ntop_flow_get_last_seen              },
+  { "isTwhOver",                ntop_flow_is_twh_over                },
   { "getProtocolBreedInfo",     ntop_flow_get_proto_breed_info       },
   { "retrieveExternalAlertInfo", ntop_flow_retrieve_external_alert_info },
   { "getDeviceProtoAllowedInfo", ntop_flow_get_device_proto_allowed_info},
