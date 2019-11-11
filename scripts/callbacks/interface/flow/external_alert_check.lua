@@ -21,7 +21,7 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.periodicUpdate(params)
+function script.hooks.periodicUpdate(now)
   local ext_alert_info = flow.retrieveExternalAlertInfo()
 
   if ext_alert_info ~= nil then

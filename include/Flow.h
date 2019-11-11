@@ -508,6 +508,8 @@ class Flow : public GenericHashEntry {
 
   void setExternalAlert(json_object *a);
   void luaRetrieveExternalAlert(lua_State *vm);
+  u_int32_t getSrvTcpIssues();
+  u_int32_t getCliTcpIssues();
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }

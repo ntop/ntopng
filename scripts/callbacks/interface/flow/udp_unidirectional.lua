@@ -26,14 +26,10 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.all(params)
-   local info = params.flow_info
-
-   if(info["packets.rcvd"] == 0) then
-      local info = flow.getUnicastInfo()
-
+function script.hooks.all(now)
+   if(flow.getPacketsRcvd() == 0) then
       -- Now check if the recipient isn't a broadcast/multicast address
-      if(not(info["srv.broadmulticast"])) then
+      if(flow.isServerUnicast()) then
          flow.setStatus(flow_consts.status_types.status_udp_unidirectional.status_id)
       end
    else

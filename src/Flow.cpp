@@ -4031,6 +4031,16 @@ void Flow::lua_get_tcp_packet_issues(lua_State *vm) {
 
 /* ***************************************************** */
 
+u_int32_t Flow::getCliTcpIssues() {
+  return(stats.tcp_stats_s2d.pktRetr + stats.tcp_stats_s2d.pktOOO + stats.tcp_stats_s2d.pktLost);
+}
+
+u_int32_t Flow::getSrvTcpIssues() {
+  return(stats.tcp_stats_d2s.pktRetr + stats.tcp_stats_d2s.pktOOO + stats.tcp_stats_d2s.pktLost);
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_tcp_stats(lua_State *vm) const {
   lua_newtable(vm);
 

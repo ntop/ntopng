@@ -177,7 +177,8 @@ end
 
 -- ###########################################
 
-local function handleHostMUD(ifid, flow_info, mud_info, is_general_purpose, is_client)
+local function handleHostMUD(ifid, mud_info, is_general_purpose, is_client)
+   local flow_info = flow.getInfo() -- TODO remove
    local l4proto = flow_info["proto.l4"]
    local mud_type
    local peer_key_is_mac
@@ -226,17 +227,17 @@ end
 -- @brief Possibly generate MUD entries for the flow hosts
 -- @param flow_info minimal flow information as returned by flow.getInfo()
 -- @notes This function is called with a LuaC flow context set
-function mud_utils.handleFlow(flow_info)
+function mud_utils.handleFlow()
    local ifid = interface.getId()
    local mud_info = flow.getMUDInfo()
    local cli_recording = mud_info["cli.mud_recording"]
    local srv_recording = mud_info["srv.mud_recording"]
 
    if(cli_recording ~= "disabled") then
-      handleHostMUD(ifid, flow_info, mud_info, (cli_recording == "general_purpose"), true --[[client]])
+      handleHostMUD(ifid, mud_info, (cli_recording == "general_purpose"), true --[[client]])
    end
    if(srv_recording ~= "disabled") then
-      handleHostMUD(ifid, flow_info, mud_info, (srv_recording == "general_purpose"), false --[[server]])
+      handleHostMUD(ifid, mud_info, (srv_recording == "general_purpose"), false --[[server]])
    end
 end
 

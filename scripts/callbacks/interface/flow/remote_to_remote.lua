@@ -20,15 +20,9 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(params)
-  local info = params.flow_info
-
-  if((not info["cli.localhost"]) and (not info["srv.localhost"])) then
-    local unicast_info = flow.getUnicastInfo()
-
-    if((not unicast_info["cli.broadmulticast"]) and (not unicast_info["srv.broadmulticast"])) then
-      flow.triggerStatus(flow_consts.status_types.status_remote_to_remote.status_id)
-    end
+function script.hooks.protocolDetected(now)
+  if(flow.isRemoteToRemote() and flow.isUnicast()) then
+    flow.triggerStatus(flow_consts.status_types.status_remote_to_remote.status_id)
   end
 end
 

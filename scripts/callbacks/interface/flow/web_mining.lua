@@ -20,10 +20,8 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(params)
-  local info = params.flow_info
-
-  if(info["proto.ndpi_cat"] == "Mining") then
+function script.hooks.protocolDetected(now)
+  if(flow.getnDPICategoryName() == "Mining") then
     flow.triggerStatus(flow_consts.status_types.status_web_mining_detected.status_id)
   end
 end

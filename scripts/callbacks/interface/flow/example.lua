@@ -26,7 +26,7 @@ end
 
 -- #################################################################
 
-function script.hooks.protocolDetected(params)
+function script.hooks.protocolDetected(now)
    if(true --[[ some condition]]) then
       -- NOTE: the status must be manually defined in scripts/callbacks/status_defs/custom_status_1.lua
       -- See scripts/callbacks/status_defs/custom_status_1.lua.example for details

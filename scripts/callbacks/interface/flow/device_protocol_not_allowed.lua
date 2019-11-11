@@ -22,7 +22,7 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(params)
+function script.hooks.protocolDetected(now)
   local proto_info = flow.getDeviceProtoAllowedInfo()
 
   if((not proto_info["cli.allowed"]) or (not proto_info["srv.allowed"])) then
