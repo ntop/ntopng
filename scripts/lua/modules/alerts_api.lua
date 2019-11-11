@@ -148,7 +148,7 @@ local function enqueueAlertEvent(queue, event, ref_limit, inc_drops)
 
   -- Update rating cache
   rating_status_cache[queue_rating_key] = cur_status
-  -- NOTE: do not update the queue_len_cache here, it will be rechecked every 2 seconds
+  -- NOTE: do not update the queue_len_cache here, it will be periodically rechecked
 
   return(rv)
 end

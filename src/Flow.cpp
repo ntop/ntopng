@@ -4007,7 +4007,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
   lua_push_uint64_table_entry(vm, "cli2srv.bytes", stats.cli2srv_bytes);
   lua_push_uint64_table_entry(vm, "srv2cli.bytes", stats.srv2cli_bytes);
-  lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.srv2cli_packets);
+  lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.cli2srv_packets);
   lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.srv2cli_packets);
 }
 
