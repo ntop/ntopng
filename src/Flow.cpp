@@ -1875,44 +1875,30 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
     break;
 
   case hash_entry_state_flow_protocoldetected:
-    if(!isLuaCallPerformed(flow_lua_call_protocol_detected, tv)) {
-      if(!periodic_ht_state_update_user_data->acle)
-	periodic_ht_state_update_user_data->acle = new AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, iface);
+    if(!quick)
+      performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data);
+    else
+      periodic_ht_state_update_user_data->acle->incNumMissedProtoDetected();
 
-      if(!quick)
-	performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data->acle);
-      else
-	periodic_ht_state_update_user_data->acle->incNumMissedProtoDetected();
-    }
     set_hash_entry_state_active();
     break;
 
   case hash_entry_state_active:
-    if(!isLuaCallPerformed(flow_lua_call_periodic_update, tv)) {
-      if(!periodic_ht_state_update_user_data->acle)
-	periodic_ht_state_update_user_data->acle = new AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, iface);
-
-      if(!quick) {
-	periodic_dump_check(tv); /* NOTE: this call can take a long time! */
-	performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data->acle);
-      } else
-	periodic_ht_state_update_user_data->acle->incNumMissedPeriodicUpdate();
-    }
+    if(!quick) {
+      periodic_dump_check(tv); /* NOTE: this call can take a long time! */
+      performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data);
+    } else
+      periodic_ht_state_update_user_data->acle->incNumMissedPeriodicUpdate();
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
     postFlowSetIdle(tv, quick);
-    if(!isLuaCallPerformed(flow_lua_call_idle, tv)) {
-      if(!periodic_ht_state_update_user_data->acle)
-	periodic_ht_state_update_user_data->acle = new AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, iface);
-
-      if(!quick) {
-	periodic_dump_check(tv); /* NOTE: this call can take a long time! */
-	performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data->acle);
-      } else
-	periodic_ht_state_update_user_data->acle->incNumMissedIdle();
-    }
+    if(!quick) {
+      periodic_dump_check(tv); /* NOTE: this call can take a long time! */
+      performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data);
+    } else
+      periodic_ht_state_update_user_data->acle->incNumMissedIdle();
     break;
   }
 
@@ -4265,11 +4251,19 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 
 /* ***************************************************** */
 
-void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, AlertCheckLuaEngine *acle) {
+void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
   const char *lua_call_fn_name = NULL;
   Bitmap prev_status = status_map;
   std::map<FlowLuaCall, struct timeval>::iterator it;
 
+  if(isLuaCallPerformed(flow_lua_call, tv))
+     return; /* Already called */
+
+  if(!periodic_ht_state_update_user_data->acle
+     && !(periodic_ht_state_update_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, getInterface())))
+    return; /* Cannot allocate memory */
+
+  AlertCheckLuaEngine *acle = periodic_ht_state_update_user_data->acle;
   lua_State *L = acle->getState();
   acle->setFlow(this);
 
@@ -4316,7 +4310,7 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, A
 	&& (prev_status.get() != status_map.get())) {
       if(!isLuaCallPerformed(flow_lua_call_flow_status_changed, tv)) {
 	/* The status has changed, call the status change script */
-	performLuaCall(flow_lua_call_flow_status_changed, tv, acle);
+	performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data);
       }
 
       /* Update the hosts status */
