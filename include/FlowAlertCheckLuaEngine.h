@@ -19,27 +19,22 @@
  *
  */
 
-#ifndef _ALERT_CHECK_LUA_ENGINE_H_
-#define _ALERT_CHECK_LUA_ENGINE_H_
+#ifndef _FLOW_ALERT_CHECK_LUA_ENGINE_H_
+#define _FLOW_ALERT_CHECK_LUA_ENGINE_H_
 
-class AlertCheckLuaEngine : public LuaEngine {
+class FlowAlertCheckLuaEngine : public AlertCheckLuaEngine {
  private:
-  ScriptPeriodicity p;
-  char script_path[MAX_PATH];
-  u_int num_calls;
-  ticks total_ticks;
-  virtual void lua_stats_skipped(lua_State *vm) const {};
+  u_int32_t num_skipped_proto_detected;
+  u_int32_t num_skipped_periodic_update;
+  u_int32_t num_skipped_idle;
+
+  virtual void lua_stats_skipped(lua_State *vm) const;
 
  public:
-  AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *iface);
-  virtual ~AlertCheckLuaEngine();
+  FlowAlertCheckLuaEngine(NetworkInterface *iface);
+  virtual ~FlowAlertCheckLuaEngine();
 
-  bool pcall(int num_args, int num_results);
-
-  ScriptPeriodicity getPeriodicity() const;
-  const char * getGranularity() const;
-
-  void lua_stats(const char * key, lua_State *vm);
+  void incSkippedPcalls(FlowLuaCall flow_lua_call);
 };
 
 #endif

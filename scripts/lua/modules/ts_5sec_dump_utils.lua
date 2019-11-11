@@ -20,11 +20,13 @@ function ts_dump.iface_update_periodic_ht_state_update_stats(when, ifid, periodi
 	    num_ms = stats["tot_duration_ms"]
 	 end
 
-	 ts_utils.append("ht:num_missed_calls", {ifid = ifid, hash_table = ht_name,
-	    idle = stats.num_missed_idle,
-	    proto_detected = stats.num_missed_proto_detected,
-	    periodic_update = stats.num_missed_periodic_update,
-	}, when, verbose)
+	 if stats.num_skipped_idle ~= nil then
+	    ts_utils.append("ht:num_skipped_calls", {ifid = ifid, hash_table = ht_name,
+						     idle = stats.num_skipped_idle,
+						     proto_detected = stats.num_skipped_proto_detected,
+						     periodic_update = stats.num_skipped_periodic_update,
+						    }, when, verbose)
+	 end
       end
 
      ts_utils.append("ht:duration", {ifid = ifid, hash_table = ht_name, num_ms = num_ms}, when, verbose)

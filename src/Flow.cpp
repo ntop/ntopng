@@ -1875,30 +1875,22 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
     break;
 
   case hash_entry_state_flow_protocoldetected:
-    if(!quick)
-      performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data);
-    else
-      periodic_ht_state_update_user_data->acle->incNumMissedProtoDetected();
-
+    performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data, quick);
     set_hash_entry_state_active();
     break;
 
   case hash_entry_state_active:
-    if(!quick) {
+    performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data, quick);
+    if(!quick)
       periodic_dump_check(tv); /* NOTE: this call can take a long time! */
-      performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data);
-    } else
-      periodic_ht_state_update_user_data->acle->incNumMissedPeriodicUpdate();
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
     postFlowSetIdle(tv, quick);
-    if(!quick) {
+    performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data, quick);
+    if(!quick)
       periodic_dump_check(tv); /* NOTE: this call can take a long time! */
-      performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data);
-    } else
-      periodic_ht_state_update_user_data->acle->incNumMissedIdle();
     break;
   }
 
@@ -4261,7 +4253,7 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 
 /* ***************************************************** */
 
-void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
+void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick) {
   const char *lua_call_fn_name = NULL;
   Bitmap prev_status = status_map;
   std::map<FlowLuaCall, struct timeval>::iterator it;
@@ -4270,10 +4262,16 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
      return; /* Already called */
 
   if(!periodic_ht_state_update_user_data->acle
-     && !(periodic_ht_state_update_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, getInterface())))
+     && !(periodic_ht_state_update_user_data->acle = new (std::nothrow) FlowAlertCheckLuaEngine(getInterface())))
     return; /* Cannot allocate memory */
 
-  AlertCheckLuaEngine *acle = periodic_ht_state_update_user_data->acle;
+  FlowAlertCheckLuaEngine *acle = (FlowAlertCheckLuaEngine*)periodic_ht_state_update_user_data->acle;
+
+  if(quick) {
+    acle->incSkippedPcalls(flow_lua_call);
+    return; /* Need to return as there's no time to do the actual call */
+  }
+
   lua_State *L = acle->getState();
   acle->setFlow(this);
 
@@ -4320,7 +4318,7 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
 	&& (prev_status.get() != status_map.get())) {
       if(!isLuaCallPerformed(flow_lua_call_flow_status_changed, tv)) {
 	/* The status has changed, call the status change script */
-	performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data);
+	performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data, quick);
       }
 
       /* Update the hosts status */

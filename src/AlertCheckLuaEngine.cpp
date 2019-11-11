@@ -28,8 +28,6 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
   total_ticks = 0;
   const char *lua_file = NULL;
 
-  num_missed_idle = num_missed_periodic_update = num_missed_proto_detected = 0;
-
   p = script_periodicity;
 
   switch(alert_entity) {
@@ -103,9 +101,7 @@ void AlertCheckLuaEngine::lua_stats(const char *key, lua_State *vm) {
     lua_push_uint64_table_entry(vm, "num_calls", (u_int64_t)num_calls);
     lua_push_float_table_entry(vm, "tot_duration_ms", elapsed_time * 1000);
 
-    lua_push_uint64_table_entry(vm, "num_missed_idle", num_missed_idle);
-    lua_push_uint64_table_entry(vm, "num_missed_periodic_update", num_missed_periodic_update);
-    lua_push_uint64_table_entry(vm, "num_missed_proto_detected", num_missed_proto_detected);
+    lua_stats_skipped(vm);
 
     lua_pushstring(vm, "stats");
     lua_insert(vm, -2);

@@ -19,7 +19,7 @@ schema:addTag("ifid")
 schema:addTag("hash_table")
 schema:addMetric("num_calls")
 
-schema = ts_utils.newSchema("ht:num_missed_calls", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("ht:num_skipped_calls", {step = 5, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("hash_table")
 schema:addMetric("idle")

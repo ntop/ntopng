@@ -286,6 +286,7 @@ using namespace std;
 #include "NetworkInterfaceTsPoint.h"
 #include "LuaEngine.h"
 #include "AlertCheckLuaEngine.h"
+#include "FlowAlertCheckLuaEngine.h"
 #include "SyslogLuaEngine.h"
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
