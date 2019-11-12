@@ -146,4 +146,107 @@ bool ParsedeBPF::isServerInfo() const {
 
 void ParsedeBPF::print() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[event_type: %s]", Utils::eBPFEvent2EventStr(event_type));
- }
+}
+
+/* *************************************** */
+
+void ParsedeBPF::getJSONObject(json_object *my_object, bool client) const {
+  const ProcessInfo * proc;
+  const ContainerInfo * cont;
+  const TcpInfo * tcp;
+  json_object *proc_object = json_object_new_object(),
+    *cont_object = json_object_new_object(),
+    *tcp_object = json_object_new_object();
+
+  if(proc_object && process_info_set && (proc = &process_info) && proc->pid > 0) {
+    json_object_object_add(proc_object, "PID", json_object_new_int64(proc->pid));
+    json_object_object_add(proc_object, "NAME", json_object_new_string(proc->process_name));
+    json_object_object_add(proc_object, "UID", json_object_new_int64(proc->uid));
+    json_object_object_add(proc_object, "GID", json_object_new_int64(proc->gid));
+    json_object_object_add(proc_object, "ACTUAL_MEMORY", json_object_new_int64(proc->actual_memory));
+    json_object_object_add(proc_object, "PEAK_MEMORY", json_object_new_int64(proc->peak_memory));
+    json_object_object_add(proc_object, "USER_NAME", json_object_new_string(proc->uid_name));
+
+    if(proc->father_pid > 0) {
+      json_object_object_add(proc_object, "FATHER_PID", json_object_new_int64(proc->father_pid));
+      json_object_object_add(proc_object, "FATHER_NAME", json_object_new_string(proc->father_process_name));
+      json_object_object_add(proc_object, "FATHER_UID", json_object_new_int64(proc->father_uid));
+      json_object_object_add(proc_object, "FATHER_GID", json_object_new_int64(proc->father_gid));
+      json_object_object_add(proc_object, "FATHER_USER_NAME", json_object_new_string(proc->father_uid_name));
+    }
+
+    json_object_object_add(my_object, client ? "CLIENT_PROCESS" : "SERVER_PROCESS", proc_object);
+  }
+
+  if(cont_object && container_info_set && (cont = &container_info)) {
+    if(cont->id) json_object_object_add(cont_object, "ID", json_object_new_string(cont->id));
+
+    if(cont->data_type == container_info_data_type_k8s) {
+      if(cont->name)         json_object_object_add(cont_object, "K8S_NAME", json_object_new_string(cont->name));
+      if(cont->data.k8s.pod) json_object_object_add(cont_object, "K8S_POD", json_object_new_string(cont->data.k8s.pod));
+      if(cont->data.k8s.ns)  json_object_object_add(cont_object, "K8S_NS", json_object_new_string(cont->data.k8s.ns));
+    } else if(cont->data_type == container_info_data_type_docker) {
+      if(cont->name) json_object_object_add(cont_object, "DOCKER_NAME", json_object_new_string(cont->name));
+    }
+
+    json_object_object_add(my_object, client ? "CLIENT_CONTAINER" : "SERVER_CONTAINER", cont_object);
+  }
+
+  if(tcp_object && tcp_info_set && (tcp = &tcp_info)) {
+    json_object_object_add(tcp_object, "RTT", json_object_new_double(tcp->rtt));
+    json_object_object_add(tcp_object, "RTT_VAR", json_object_new_double(tcp->rtt_var));
+
+    json_object_object_add(my_object, client ? "CLIENT_TCP_INFO" : "SERVER_TCP_INFO", tcp_object);
+  }
+}
+
+/* *************************************** */
+
+void ParsedeBPF::lua(lua_State *vm, bool client) const{
+  const ProcessInfo * proc;
+  const ContainerInfo * cont;
+  const TcpInfo * tcp;
+
+  if(process_info_set && (proc = &process_info) && proc->pid > 0) {
+    lua_newtable(vm);
+
+    lua_push_uint64_table_entry(vm, "pid", proc->pid);
+    lua_push_str_table_entry(vm, "name", proc->process_name);
+    lua_push_uint64_table_entry(vm, "uid", proc->uid);
+    lua_push_uint64_table_entry(vm, "gid", proc->gid);
+    lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
+    lua_push_uint64_table_entry(vm, "peak_memory", proc->peak_memory);
+    lua_push_str_table_entry(vm, "user_name", proc->uid_name);
+
+    if(proc->father_pid > 0) {
+      lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
+      lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
+      lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
+      lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
+      lua_push_str_table_entry(vm, "father_user_name", proc->father_uid_name);
+    }
+
+    lua_pushstring(vm, client ? "client_process" : "server_process");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  if(container_info_set && (cont = &container_info)) {
+    Utils::containerInfoLua(vm, cont);
+
+    lua_pushstring(vm, client ? "client_container" : "server_container");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  if(tcp_info_set && (tcp = &tcp_info)) {
+    lua_newtable(vm);
+
+    lua_push_float_table_entry(vm, "rtt", tcp->rtt);
+    lua_push_float_table_entry(vm, "rtt_var", tcp->rtt_var);
+
+    lua_pushstring(vm, client ? "client_tcp_info" : "server_tcp_info");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+}

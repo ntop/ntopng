@@ -46,7 +46,8 @@ class ParsedeBPF {
   bool update(const ParsedeBPF * const pe);
   bool isServerInfo() const;
   void print();
-
+  void getJSONObject(json_object *my_object, bool client) const;
+  void lua(lua_State *vm, bool client) const;
 };
 
 #endif /* _PARSED_EBPF_H_ */

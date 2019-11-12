@@ -1509,61 +1509,6 @@ bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 
 /* *************************************** */
 
-void Flow::processLua(lua_State* vm, const ParsedeBPF * const pe, bool client) {
-  const ProcessInfo * proc;
-  const ContainerInfo * cont;
-  const TcpInfo * tcp;
-
-  if(!pe) return;
-
-  if(pe->process_info_set && (proc = &pe->process_info) && proc->pid > 0) {
-    lua_newtable(vm);
-
-    lua_push_uint64_table_entry(vm, "pid", proc->pid);
-    lua_push_str_table_entry(vm, "name", proc->process_name);
-    lua_push_uint64_table_entry(vm, "uid", proc->uid);
-    lua_push_uint64_table_entry(vm, "gid", proc->gid);
-    lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
-    lua_push_uint64_table_entry(vm, "peak_memory", proc->peak_memory);
-    lua_push_str_table_entry(vm, "user_name", proc->uid_name);
-
-    if(proc->father_pid > 0) {
-      lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
-      lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
-      lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
-      lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
-      lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
-      lua_push_uint64_table_entry(vm, "peak_memory", proc->peak_memory);
-      lua_push_str_table_entry(vm, "father_user_name", proc->father_uid_name);
-    }
-
-    lua_pushstring(vm, client ? "client_process" : "server_process");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-
-  if(pe->container_info_set && (cont = &pe->container_info)) {
-    Utils::containerInfoLua(vm, cont);
-
-    lua_pushstring(vm, client ? "client_container" : "server_container");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-
-  if(pe->tcp_info_set && (tcp = &pe->tcp_info)) {
-    lua_newtable(vm);
-
-    lua_push_float_table_entry(vm, "rtt", tcp->rtt);
-    lua_push_float_table_entry(vm, "rtt_var", tcp->rtt_var);
-
-    lua_pushstring(vm, client ? "client_tcp_info" : "server_tcp_info");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-}
-
-/* *************************************** */
-
 const char* Flow::cipher_weakness2str(ndpi_cipher_weakness w) const {
   switch(w) {
   case ndpi_cipher_safe:
@@ -1736,8 +1681,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if (!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
-    if(cli_ebpf) processLua(vm, cli_ebpf, true);
-    if(srv_ebpf) processLua(vm, srv_ebpf, false);
+    if(cli_ebpf) cli_ebpf->lua(vm, true);
+    if(srv_ebpf) srv_ebpf->lua(vm, false);
 
     lua_get_throughput(vm);
 
@@ -1978,10 +1923,11 @@ json_object* Flow::flow2json() {
     /* json_object_object_add(my_object, "@version", json_object_new_int(1)); */
 
     // MAC addresses are set only when dumping to ES to optimize space consumption
-    if(cli_host)
+    if(cli_host && cli_host->getMac() && !cli_host->getMac()->isNull())
       json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(Utils::formatMac(cli_host ? cli_host->get_mac() : NULL, buf, sizeof(buf))));
-    if(srv_host)
+
+    if(srv_host && srv_host->getMac() && !srv_host->getMac()->isNull())
       json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
   }
@@ -2123,6 +2069,9 @@ json_object* Flow::flow2json() {
     json_object_object_add(my_object, "verdict.pass",
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
 #endif
+
+  if(cli_ebpf) cli_ebpf->getJSONObject(my_object, true);
+  if(srv_ebpf) srv_ebpf->getJSONObject(my_object, false);
 
   return(my_object);
 }
