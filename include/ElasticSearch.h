@@ -33,8 +33,9 @@ class ElasticSearch : public DB {
   bool reportDrops;
 
   char *es_template_push_url, *es_version_query_url;
-  char *es_version;
+  char es_version[2];
   const char * const get_es_version();
+  const char * const get_es_template();
 
  public:
   ElasticSearch(NetworkInterface *_iface);

@@ -38,7 +38,7 @@ static void* esLoop(void* ptr) {
 ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
   char *es_url, *es_host;
 
-  es_version = NULL;
+  snprintf(es_version, sizeof(es_version), "%c", '0');
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
@@ -72,7 +72,6 @@ ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
 /* **************************************** */
 
 ElasticSearch::~ElasticSearch() {
-  if(es_version) free(es_version);
   if(es_template_push_url) free(es_template_push_url);
   if(es_version_query_url) free(es_version_query_url);
 }
@@ -258,14 +257,9 @@ const char * const ElasticSearch::get_es_version() {
 	if(json_object_object_get_ex(o, "version", &obj)
 	   && json_object_object_get_ex(obj, "number", &obj2)) {
 	  const char *ver = json_object_get_string(obj2);
-	  size_t size = min(strlen(ver) + 1, (size_t)64);
 
-	  if(es_version) free(es_version);
-	  if((es_version = (char*)malloc(size))) {
-	    strncpy(es_version, ver, size-1);
-	    es_version[size - 1] = '\0';
-	    version_inited = true;
-	  }
+	  snprintf(es_version, sizeof(es_version), "%c", ver && ver[0] ? ver[0] : '0');
+	  version_inited = true;
 	}
       } else {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to query ES to get its version");
@@ -281,6 +275,23 @@ const char * const ElasticSearch::get_es_version() {
 /* **************************************** */
 
 /* Send ntopng index template to Elastic Search */
+const char * const ElasticSearch::get_es_template() {
+  const char *v = get_es_version();
+  int vers = atoi(v ? v : "0");
+
+  switch(vers) {
+  case 6:
+    return NTOP_ES6_TEMPLATE;
+  case 7:
+    return NTOP_ES7_TEMPLATE;
+  default:
+    return NTOP_ES_TEMPLATE;
+  }
+}
+
+/* **************************************** */
+
+/* Send ntopng index template to Elastic Search */
 void ElasticSearch::pushEStemplate() {
   char *postbuf = NULL;
   char template_path[MAX_PATH];
@@ -289,9 +300,7 @@ void ElasticSearch::pushEStemplate() {
   u_int16_t length = 0;
   HTTPTranferStats stats;
 
-  snprintf(template_path, sizeof(template_path), "%s/misc/%s",
-	   ntop->get_docs_dir(),
-	   atleast_version_6() ? NTOP_ES6_TEMPLATE : NTOP_ES_TEMPLATE);
+  snprintf(template_path, sizeof(template_path), "%s/misc/%s", ntop->get_docs_dir(), get_es_template());
   ntop->fixPath(template_path);
 
   template_file.open(template_path);   // open input file
