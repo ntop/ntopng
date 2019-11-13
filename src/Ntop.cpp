@@ -820,9 +820,9 @@ void Ntop::lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm)
 
 void Ntop::getUsers(lua_State* vm) {
   char **usernames;
-  char *username, *holder;
+  char *username;
   char *key, *val;
-  int rc, i;
+  int rc, i, len;
 
   lua_newtable(vm);
 
@@ -838,9 +838,12 @@ void Ntop::getUsers(lua_State* vm) {
 
   for(i = 0; i < rc; i++) {
     if(usernames[i] == NULL) continue; /* safety check */
-    if(strtok_r(usernames[i], ".", &holder) == NULL) continue;
-    if(strtok_r(NULL, ".", &holder) == NULL) continue;
-    if((username = strtok_r(NULL, ".", &holder)) == NULL) continue;
+    if((username = strchr(usernames[i], '.')) == NULL) continue;
+    if((username = strchr(username+1, '.')) == NULL) continue;
+    len = strlen(++username);
+
+    if(len < sizeof(".password")) continue;
+    username[len - sizeof(".password") + 1] = '\0';
 
     lua_newtable(vm);
 

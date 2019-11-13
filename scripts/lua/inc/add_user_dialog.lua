@@ -178,6 +178,10 @@ print[[
   resetAddUserForm();
 
   frmadduser.submit(function () {
+    /* Avoid submitting an invalid form */
+    if(!$("#form_add_user")[0].checkValidity())
+      return(false);
+
     if(!isValidPassword($("#password_input").val())) {
       add_user_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers.");
       return(false);

@@ -3691,6 +3691,7 @@ local lang = {
     ["client_policy"] = "Device As Client",
     ["confirm_delete_user"] = "Do you really want to delete user \"%{user}\"?",
     ["delete_user"] = "Delete User",
+    ["delete_user_error"] = "Could not delete the user. Please check out the program log for more details.",
     ["devices"] = "Devices",
     ["edit"] = "Edit",
     ["edit_global_policies"] = "Edit Default Policies",

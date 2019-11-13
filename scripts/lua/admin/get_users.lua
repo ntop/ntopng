@@ -80,6 +80,7 @@ local num = 0
 for _key, _value in pairsByValues(vals, funct) do
    local key = _key
    local value = users_list[_key]
+   local js_key = _key:gsub("%.", "\\\\\\\\.")
 
    if(to_skip > 0) then
       to_skip = to_skip-1
@@ -109,10 +110,10 @@ else
 end
 
 	 print ("  \"column_group\"     : \"" .. group_label .. "\", ")
-	 print ("  \"column_edit\"      : \"<a href='#password_dialog' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. key.."\\\"));'><span class='label label-info'>" .. i18n("manage_users.manage") .. "</span></a> ")
+	 print ("  \"column_edit\"      : \"<a href='#password_dialog' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><span class='label label-info'>" .. i18n("manage_users.manage") .. "</span></a> ")
 
   if(key ~= "admin") then
-	    print ("<a href='#delete_user_dialog' role='button' class='add-on' data-toggle='modal' id='delete_btn_" .. key .. "'><span class='label label-danger'>" .. i18n("delete") .. "</span></a><script> $('#delete_btn_" .. key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
+	    print ("<a href='#delete_user_dialog' role='button' class='add-on' data-toggle='modal' id='delete_btn_" .. key .. "'><span class='label label-danger'>" .. i18n("delete") .. "</span></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
 	 end
 	 print ("\"}")
 	 num = num + 1

@@ -44,6 +44,8 @@ print [[
         } else {
           delete_user_alert.error(response.message);
         }
+      }, error: function (data) {
+        delete_user_alert.error("]] print(i18n("users.delete_user_error")) print[[");
       }
     });
     return false;
