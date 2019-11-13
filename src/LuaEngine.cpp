@@ -8932,12 +8932,12 @@ static int ntop_flow_get_duration(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_is_twh_over(lua_State* vm) {
+static int ntop_flow_is_twh_ok(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushboolean(vm, f->isTwhOver());
+  lua_pushboolean(vm, f->isTwhOK());
   return(CONST_LUA_OK);
 }
 
@@ -10852,7 +10852,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getFirstSeen",             ntop_flow_get_first_seen             },
   { "getLastSeen",              ntop_flow_get_last_seen              },
   { "getDuration",              ntop_flow_get_duration               },
-  { "isTwhOver",                ntop_flow_is_twh_over                },
+  { "isTwhOK",                  ntop_flow_is_twh_ok                  },
   { "getPacketsSent",           ntop_flow_get_packets_sent           },
   { "getPacketsRcvd",           ntop_flow_get_packets_rcvd           },
   { "getBytesSent",             ntop_flow_get_bytes_sent             },
