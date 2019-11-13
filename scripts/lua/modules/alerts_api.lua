@@ -25,18 +25,6 @@ local known_alerts = {}
 
 -- ##############################################
 
-local function getAlertEventQueue(ifid)
-  return string.format("ntopng.cache.ifid_%d.alerts_events_queue", ifid)
-end
-
--- ##############################################
-
-local function getFlowAlertEventQueue(ifid)
-  return string.format("ntopng.cache.ifid_%d.flow_alerts_events_queue", ifid)
-end
-
--- ##############################################
-
 -- Returns a string which identifies an alert
 function alerts_api.getAlertId(alert)
   return(string.format("%s_%s_%s_%s_%s", alert.alert_type,
@@ -59,132 +47,6 @@ end
 
 -- ##############################################
 
--- Rating status cache to avoid too many redis lookups
--- Format: k -> rating_status
-local rating_status_cache = {}
-
--- Rating len cache to avoid too many redis lookups
--- Format: k -> {when->cache_when, length->queue_length}
--- when is used to recheck the cache periodically
-local rating_len_cache = {}
-
--- @brief Implements a simple queue rating algorithmn to limit rpush operations.
--- @param queue the queue name
--- @param ref_limit the maximum queue size
--- @param inc_drops true if alert drops should be incremented
-local function enqueueAlertEvent(queue, event, ref_limit, inc_drops)
-  local queue_rating_key = string.format("%s.rating", queue)
-  local queue_len_key = string.format("%s.len", queue)
-  local cur_status = rating_status_cache[queue_rating_key] or ntop.getCache(queue_rating_key)
-  local now = os.time()
-  local rv
-
-  -- Queue rating limits
-  local low_value = math.ceil(ref_limit / 3)
-  local high_value = math.ceil(ref_limit / 2)
-  local trim_limit = ref_limit
-
-  -- NOTE: using a cached value to avoid calling llenCache every time
-  local len_info = rating_len_cache[queue_len_key]
-  local num_pending
-
-  -- Recheck the length every second
-  if((len_info ~= nil) and ((now - len_info.when) < 1)) then
-    num_pending = len_info.length
-  else
-    -- Resync from redis
-    num_pending = ntop.llenCache(queue)
-    rating_len_cache[queue_len_key] = {when = now, length = num_pending}
-  end
-
-  -- The rpush is only performed in "normal" status
-  if isEmptyString(cur_status) then
-    cur_status = "normal"
-  end
-
-  -- Status transitions:
-  --  num_pending >= high_value -> "full"
-  --  num_pending <= low_value -> "normal"
-  if((num_pending >= high_value) and (cur_status ~= "full")) then
-    -- Limit reached, inhibit subsequent push
-    cur_status = "full"
-    ntop.setCache(queue_rating_key, cur_status)
-  elseif((num_pending <= low_value) and (cur_status ~= "normal")) then
-    -- The problem was solved, can now push
-    cur_status = "normal"
-    ntop.setCache(queue_rating_key, cur_status)
-  end
-
-  if(num_pending > trim_limit) then
-    -- In normal conditions, this should not happen as the "high_value"
-    -- should have already limited the insertions
-    local new_size = math.ceil(trim_limit / 2)
-    local num_drop = num_pending - new_size
-
-    traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Event queue [%s] too long: dropping %u alerts", queue, num_drop))
-
-    -- Drop the oldest alerts (from of the queue)
-    ntop.ltrimCache(queue, num_drop, num_pending)
-
-    if(inc_drops) then
-      interface.incNumDroppedAlerts(num_drop)
-    end
-
-    -- Recalculate num_pending on next round
-    rating_len_cache[queue_len_key] = nil
-  end
-
-  if(cur_status == "full") then
-    if(inc_drops) then
-      interface.incNumDroppedAlerts(1)
-    end
-
-    rv = false
-  else
-    -- Success
-    ntop.rpushCache(queue, event)
-    rv = true
-  end
-
-  -- Update rating cache
-  rating_status_cache[queue_rating_key] = cur_status
-  -- NOTE: do not update the queue_len_cache here, it will be periodically rechecked
-
-  return(rv)
-end
-
--- ##############################################
-
--- Enqueue a store alert action on the DB to be performed asynchronously
-local function enqueueStoreAlert(ifid, alert)
-  return(enqueueAlertEvent(getAlertEventQueue(ifid), json.encode(alert),
-    alert_consts.MAX_NUM_QUEUED_ALERTS_PER_INTERFACE, true))
-end
-
--- Enqueue a store flow alert action on the DB to be performed asynchronously
-local function enqueueStoreFlowAlert(ifid, alert_json)
-  return(enqueueAlertEvent(getFlowAlertEventQueue(ifid), alert_json,
-    alert_consts.MAX_NUM_QUEUED_ALERTS_PER_INTERFACE, true))
-end
-
--- ##############################################
-
-local function pushAlertJSONNotification(alert_json)
-  return(enqueueAlertEvent("ntopng.alerts.notifications_queue", alert_json,
-    alert_consts.MAX_NUM_QUEUED_ALERTS_NOTIFICATIONS, false --[[just a notification, don't count drops]]))
-end
-
--- ##############################################
-
-local function pushAlertNotification(ifid, action, alert)
-  alert.ifid = ifid
-  alert.action = action
-
-  pushAlertJSONNotification(json.encode(alert))
-end
-
--- ##############################################
-
 -- Performs the alert store asynchronously.
 -- This is necessary both to avoid paying the database io cost inside
 -- the other scripts and as a necessity to avoid a deadlock on the
@@ -194,78 +56,36 @@ function alerts_api.checkPendingStoreAlerts(deadline)
     return(false)
   end
 
-  local ifnames = interface.getIfNames()
-  ifnames[getSystemInterfaceId()] = getSystemInterfaceName()
+  -- SQLite Alerts
+  while(true) do
+    local alert_json = ntop.popSqliteAlert()
 
-  for ifid, _ in pairs(ifnames) do
-    interface.select(ifid)
+    if(not alert_json) then
+      break
+    end
 
-    -- Dequeue Alerts
+    local alert = json.decode(alert_json)
 
-    local queue = getAlertEventQueue(ifid)
+    if(alert) then
+      interface.select(string.format("%d", alert.ifid))
 
-    while(true) do
-      local alert_json = ntop.lpopCache(queue)
-
-      if(not alert_json) then
-        break
-      end
-
-      local alert = json.decode(alert_json)
-
-      if(alert) then
+      if(alert.is_flow_alert) then
+        interface.storeFlowAlert(alert)
+      else
         interface.storeAlert(
           alert.alert_tstamp, alert.alert_tstamp_end, alert.alert_granularity,
           alert.alert_type, alert.alert_subtype, alert.alert_severity,
           alert.alert_entity, alert.alert_entity_val,
           alert.alert_json)
       end
-
-      if(os.time() > deadline) then
-        return(false)
-      end
     end
 
-    -- Dequeue Flow Alerts
-
-    queue = getFlowAlertEventQueue(ifid)
-
-    while(true) do
-      local alert_json = ntop.lpopCache(queue)
-
-      if(not alert_json) then
-        break
-      end
-
-      local alert = json.decode(alert_json)
-
-      if(alert) then
-        interface.storeFlowAlert(alert)
-      end
-
-      if(os.time() > deadline) then
-        return(false)
-      end
+    if(os.time() > deadline) then
+      return(false)
     end
-
   end
 
   return(true)
-end
-
--- ##############################################
-
---! @brief Stores a flow alert into the alerts database
-function alerts_api.storeFlow(alert)
-  local ifid = interface.getId()
-
-  alert.ifid = ifid
-  alert.action = "store"
-
-  local alert_json = json.encode(alert)
-
-  enqueueStoreFlowAlert(ifid, alert_json)
-  pushAlertJSONNotification(alert_json)
 end
 
 -- ##############################################
@@ -298,6 +118,8 @@ function alerts_api.store(entity_info, type_info, when)
 
   -- NOTE: keep in sync with SQLite alert format in AlertsManager.cpp
   local alert_to_store = {
+    ifid = ifid,
+    action = "store",
     alert_type = type_info.alert_type.alert_id,
     alert_subtype = subtype,
     alert_granularity = granularity_sec,
@@ -314,8 +136,10 @@ function alerts_api.store(entity_info, type_info, when)
     interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_id)
   end
 
-  enqueueStoreAlert(ifid, alert_to_store)
-  pushAlertNotification(ifid, "store", alert_to_store)
+  local alert_json = json.encode(alert_to_store)
+  ntop.pushSqliteAlert(alert_json)
+  ntop.pushAlertNotification(alert_json)
+
   return(true)
 end
 
@@ -461,7 +285,12 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
         entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
   end
 
-  pushAlertNotification(ifid, "engage", triggered)
+  triggered.ifid = ifid
+  triggered.action = "engage"
+
+  local alert_json = json.encode(triggered)
+  ntop.pushAlertNotification(alert_json)
+
   return(true)
 end
 
@@ -519,8 +348,13 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
         entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
   end
 
-  enqueueStoreAlert(ifid, released)
-  pushAlertNotification(ifid, "release", released)
+  released.ifid = ifid
+  released.action = "release"
+
+  local alert_json = json.encode(released)
+  ntop.pushSqliteAlert(alert_json)
+  ntop.pushAlertNotification(alert_json)
+
   return(true)
 end
 

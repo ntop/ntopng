@@ -35,6 +35,8 @@ PeriodicActivities::PeriodicActivities() {
   for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++)
     activities[i] = NULL;
 
+  high_priority_pool = standard_priority_pool = no_priority_pool = NULL;
+
   num_activities = 0;
 }
 
@@ -51,9 +53,9 @@ PeriodicActivities::~PeriodicActivities() {
   }
 
   /* This will terminate any possibly running activities into the ThreadPool::run */
-  delete high_priority_pool;
-  delete standard_priority_pool;
-  delete no_priority_pool;
+  if(high_priority_pool)      delete high_priority_pool;
+  if(standard_priority_pool)  delete standard_priority_pool;
+  if(no_priority_pool)        delete no_priority_pool;
 
   /* Now it's safe to delete the activities as no other thread is executing
    * their code. */

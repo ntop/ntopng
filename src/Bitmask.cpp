@@ -52,7 +52,7 @@ Bitmask::Bitmask(u_int32_t num_tot_elems) {
  * Destructor. 
  */
 Bitmask::~Bitmask() {
-  if(bits) delete(bits);
+  if(bits) free(bits);
 }
 
 /* ********************************************************** */

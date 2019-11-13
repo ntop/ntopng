@@ -138,6 +138,7 @@ all: default
 
 OBJECTS = $(patsubst src/%.cpp, src/%.o, $(wildcard src/*.cpp)) @PRO_OBJECTS@
 HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
+OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 
 %.o: %.c $(HEADERS) Makefile
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
@@ -149,6 +150,11 @@ HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
 
 $(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
 	$(GPP) $(OBJECTS) -Wall $(NLIBS) -o $@
+
+test_fifo_queue: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
+	rm src/FifoStringsQueue.o
+	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_FIFO_QUEUE -DDEBUG_FIFO_QUEUE" src/FifoStringsQueue.o
+	$(GPP) $(OBJECTS_NO_MAIN) -Wall $(NLIBS) -o $@
 
 $(LUA_LIB):
 	cd $(LUA_HOME); @GMAKE@ $(LUA_PLATFORM)

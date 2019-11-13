@@ -648,7 +648,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       time_bounds = {getAlertTimeBounds(record)}
    end
 
-   local decoded = json.decode(flow_json)
+   local decoded = json.decode(flow_json) or {}
 
    if((type(decoded["status_info"]) == "string") and
          (string.sub(decoded["status_info"], 1, 1) == "{")) then
@@ -2600,7 +2600,9 @@ function formatAlertMessage(ifid, alert)
   else
     msg = alert["alert_json"]
 
-    if(string.sub(msg, 1, 1) == "{") then
+    if isEmptyString(msg) then
+      msg = {}
+    elseif(string.sub(msg, 1, 1) == "{") then
       msg = json.decode(msg)
     end
 
@@ -2761,7 +2763,7 @@ function processAlertNotifications(now, periodic_frequency, force_export)
 
    -- Get new alerts
    while(true) do
-      local json_message = ntop.lpopCache("ntopng.alerts.notifications_queue")
+      local json_message = ntop.popAlertNotification()
 
       if((json_message == nil) or (json_message == "")) then
          break

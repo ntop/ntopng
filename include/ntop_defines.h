@@ -503,6 +503,8 @@
 #define CONST_INFLUXDB_MAX_DUMP_SIZE       4194304 /* 4 MB */
 #define CONST_ALERT_STORE_QUEUE            "ntopng.push_alerts_queue"
 #define CONST_FLOW_ALERT_EVENT_QUEUE       "ntopng.cache.ifid_%d.flow_alerts_events_queue"
+#define SQLITE_ALERTS_QUEUE_SIZE           512
+#define ALERTS_NOTIFICATIONS_QUEUE_SIZE    4096
 #define CONST_REMOTE_TO_REMOTE_MAX_QUEUE   32
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
 #define CONST_SQL_BATCH_SIZE               32

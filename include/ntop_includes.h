@@ -280,6 +280,7 @@ using namespace std;
 #include "TimeseriesExporter.h"
 #include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
+#include "FifoStringsQueue.h"
 #include "SPSCQueue.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"

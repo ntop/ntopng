@@ -78,7 +78,8 @@ class Ntop {
   float cpu_load;
   bool is_started;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
-  
+  FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue;
+
 #ifdef NTOPNG_PRO
 #ifndef WIN32
   NagiosManager *nagios_manager;
@@ -438,6 +439,8 @@ class Ntop {
   inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
   inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
+  inline FifoStringsQueue* getSqliteAlertsQueue()         { return(sqlite_alerts_queue);         }
+  inline FifoStringsQueue* getAlertsNotificationsQueue()  { return(alerts_notifications_queue);  }
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }

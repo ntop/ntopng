@@ -2078,6 +2078,62 @@ json_object* Flow::flow2json() {
 
 /* *************************************** */
 
+/* Create a JSON in the alerts format
+ * Using the nDPI json serializer instead of jsonc for faster speed (~2.5x) */
+void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
+  ndpi_serializer json_info;
+  u_int32_t buflen;
+  const char *info;
+  char buf[64];
+
+  ndpi_init_serializer(&json_info, ndpi_serialization_format_json);
+
+  /* AlertsManager::storeFlowAlert requires a string */
+  info = getFlowInfo();
+  ndpi_serialize_string_string(&json_info, "info", info ? info : "");
+  ndpi_serialize_string_string(&json_info, "status_info", alert_status_info ? alert_status_info : "");
+  ndpi_serialize_string_string(s, "alert_json", ndpi_serializer_get_buffer(&json_info, &buflen));
+  ndpi_term_serializer(&json_info);
+
+  ndpi_serialize_string_int32(s, "ifid", iface->get_id());
+  ndpi_serialize_string_string(s, "action", "store");
+
+  ndpi_serialize_string_boolean(s, "is_flow_alert", true);
+  ndpi_serialize_string_int64(s, "alert_tstamp", now);
+  ndpi_serialize_string_int64(s, "flow_status", alerted_status);
+  ndpi_serialize_string_int32(s, "alert_type", alert_type);
+  ndpi_serialize_string_int32(s, "alert_severity", alert_level);
+
+  ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
+  ndpi_serialize_string_int32(s, "proto", protocol);
+  ndpi_serialize_string_int32(s, "l7_master_proto", ndpiDetectedProtocol.master_protocol);
+  ndpi_serialize_string_int32(s, "l7_proto", ndpiDetectedProtocol.app_protocol);
+
+  ndpi_serialize_string_int64(s, "cli2srv_bytes", get_bytes_cli2srv());
+  ndpi_serialize_string_int64(s, "cli2srv_packets", get_packets_cli2srv());
+  ndpi_serialize_string_int64(s, "srv2cli_bytes", get_bytes_srv2cli());
+  ndpi_serialize_string_int64(s, "srv2cli_packets", get_packets_srv2cli());
+
+  if(cli_host) {
+    ndpi_serialize_string_string(s, "cli_addr", cli_host->get_ip()->print(buf, sizeof(buf)));
+    ndpi_serialize_string_string(s, "cli_country", cli_host->get_country(buf, sizeof(buf)));
+    ndpi_serialize_string_string(s, "cli_os", cli_host->getOSDetail(buf, sizeof(buf)));
+    ndpi_serialize_string_int32(s, "cli_asn", cli_host->get_asn());
+    ndpi_serialize_string_boolean(s, "cli_localhost", cli_host->isLocalHost());
+    ndpi_serialize_string_boolean(s, "cli_blacklisted", cli_host->isBlacklisted());
+  }
+  if(srv_host) {
+    ndpi_serialize_string_string(s, "srv_addr", srv_host->get_ip()->print(buf, sizeof(buf)));
+    ndpi_serialize_string_string(s, "srv_country", srv_host->get_country(buf, sizeof(buf)));
+    ndpi_serialize_string_string(s, "srv_os", srv_host->getOSDetail(buf, sizeof(buf)));
+    ndpi_serialize_string_int32(s, "srv_asn", srv_host->get_asn());
+    ndpi_serialize_string_boolean(s, "srv_localhost", srv_host->isLocalHost());
+    ndpi_serialize_string_boolean(s, "srv_blacklisted", srv_host->isBlacklisted());
+  }
+}
+
+/* *************************************** */
+
 #ifdef HAVE_NEDGE
 
 bool Flow::isNetfilterIdleFlow() const {
