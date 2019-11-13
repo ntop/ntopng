@@ -2762,7 +2762,7 @@ bool NetworkInterface::quick_periodic_ht_state_update(time_t deadline, GenericHa
 
 /* **************************************************** */
 
-void NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
+bool NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   NetworkInterface *iface = periodic_ht_state_update_user_data->iface;
   bool quick_update = quick_periodic_ht_state_update(periodic_ht_state_update_user_data->deadline, node);
@@ -2771,10 +2771,12 @@ void NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry
 
   /* If this is a viewed interface, it is necessary to also call this method
      for the overlying view interface to make sure its counters (e.g., hosts, ases, vlans)
-     are properly updated. There's no need to lock or syncronize ad it is the view which
+     are properly updated. There's no need to lock or syncronize as it is the view which
      triggers this call for every viewed interface sequentially. */
   if(iface->isViewed())
     iface->viewedBy()->generic_periodic_hash_entry_state_update(node, user_data);
+
+  return quick_update;
 }
 
 /* **************************************************** */

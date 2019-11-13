@@ -49,6 +49,7 @@ class GenericHash {
   u_int last_purged_hash; /**< Index of last purged hash */
   u_int last_entry_id; /**< An uniue identifier assigned to each entry in the hash table */
   u_int purge_step;
+  u_int walk_idle_start_hash_id; /**< The id of the hash bucket from which to start walkIdle hash table walk */
   struct {
     u_int64_t num_idle_transitions;
     u_int64_t num_purged;
@@ -125,7 +126,7 @@ class GenericHash {
    * @param walker A pointer to the comparison function.
    * @param user_data Value to be compared with the values of hash.
    */
-  void walkIdle(void (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+  void walkIdle(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
 
   /**
    * @brief Purge idle hash entries.

@@ -33,6 +33,7 @@ GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
   max_hash_size = _max_hash_size * 1.3;
   last_entry_id = 0;
   purge_step = max_val(num_hashes / PURGE_FRACTION, 1);
+  walk_idle_start_hash_id = 0;
   name = strdup(_name ? _name : "???");
   memset(&entry_state_transition_counters, 0, sizeof(entry_state_transition_counters));
 
@@ -121,8 +122,10 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 /* ************************************ */
 
-void GenericHash::walkIdle(void (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
+void GenericHash::walkIdle(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
   vector<GenericHashEntry*> *cur_idle = NULL;
+  u_int new_walk_idle_start_hash_id = 0;
+  bool update_walk_idle_start_hash_id;
 
   if(idle_entries) {
     cur_idle = idle_entries;
@@ -141,8 +144,20 @@ void GenericHash::walkIdle(void (*walker)(GenericHashEntry *h, void *user_data),
     delete cur_idle;
   }
 
-  for(u_int hash_id = 0; hash_id < num_hashes; hash_id++) {
-    if(table[hash_id] != NULL) {
+  /*
+    To implement fairness, the walkIdle starts from walk_idle_start_hash_id and not from zero.
+    walk_idle_start_hash_id is updated on the basis of the return value of the walker function.
+    walk_idle_start_hash_id is updated the FIRST time the walker function returns true.
+    The walker function is supposed to start returning true when it's deadline is approaching, that
+    is, when there's no more time left to fully perform all the necessary walker operations and only
+    a limited, strictly necessary set of operations is performed.
+    So basically walkIdle always visit all hash table entries but, as it starts from walk_idle_start_hash_id,
+    it guarantees that all entries get an equal chance to have their walker operations fully performed.
+  */
+  u_int hash_id = walk_idle_start_hash_id;
+
+  do {
+    if(table[hash_id]) {
       GenericHashEntry *head;
 
       locks[hash_id]->rdlock(__FILE__, __LINE__);
@@ -154,15 +169,24 @@ void GenericHash::walkIdle(void (*walker)(GenericHashEntry *h, void *user_data),
 	if(head->get_state() >= hash_entry_state_idle)
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unexpected idle state found [%u]", head->get_state());
 
-	if(!head->idle())
-	  walker(head, user_data);
+	if(!head->idle()) {
+	  update_walk_idle_start_hash_id = walker(head, user_data);
+
+	  /* Check if it is time to update the new start hash id */
+	  if(update_walk_idle_start_hash_id && new_walk_idle_start_hash_id == 0)
+	    new_walk_idle_start_hash_id = hash_id;
+	}
 
 	head = next;
       } /* while */
 
       locks[hash_id]->unlock(__FILE__, __LINE__);
     }
-  }
+
+    hash_id = hash_id == num_hashes - 1 ? 0 /* Start over */ : hash_id + 1;
+  } while(hash_id != walk_idle_start_hash_id);
+
+  walk_idle_start_hash_id = new_walk_idle_start_hash_id;
 }
 
 /* ************************************ */
