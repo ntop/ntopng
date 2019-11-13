@@ -8937,7 +8937,18 @@ static int ntop_flow_is_twh_ok(lua_State* vm) {
 
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushboolean(vm, f->isTwhOK());
+  lua_pushboolean(vm, f->isThreeWayHandshakeOK());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_is_bidirectional(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, f->isBidirectional());
   return(CONST_LUA_OK);
 }
 
@@ -10853,6 +10864,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getLastSeen",              ntop_flow_get_last_seen              },
   { "getDuration",              ntop_flow_get_duration               },
   { "isTwhOK",                  ntop_flow_is_twh_ok                  },
+  { "isBidirectional",          ntop_flow_is_bidirectional           },
   { "getPacketsSent",           ntop_flow_get_packets_sent           },
   { "getPacketsRcvd",           ntop_flow_get_packets_rcvd           },
   { "getBytesSent",             ntop_flow_get_bytes_sent             },

@@ -8,6 +8,8 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
+  bidirectional = true,
+
   -- NOTE: hooks defined below
   hooks = {},
 

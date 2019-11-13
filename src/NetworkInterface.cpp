@@ -3639,8 +3639,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->unidirectionalTraffic(&unidirectional)
-       && ((unidirectional && (f->get_packets() > 0) && (f->get_packets_cli2srv() > 0) && (f->get_packets_srv2cli() > 0))
-	   || (!unidirectional && (f->get_packets() > 0) && ((f->get_packets_cli2srv() == 0) || (f->get_packets_srv2cli() == 0)))))
+       && ((unidirectional && !f->isOneWay())
+	   || (!unidirectional && f->isBidirectional())))
       return(false);
 
     /* Unicast: at least one between client and server is unicast address */

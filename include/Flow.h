@@ -345,6 +345,8 @@ class Flow : public GenericHashEntry {
 		    u_int in_fragments, u_int out_fragments, time_t last_seen);
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
+  inline bool isOneWay()                 const { return(get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli())); };
+  inline bool isBidirectional()          const { return(get_packets_cli2srv() && get_packets_cli2srv());                      };
   inline void* get_cli_id()              const { return(cli_id);                          };
   inline void* get_srv_id()              const { return(srv_id);                          };
   inline u_int32_t get_cli_ipv4()        const { return(cli_host->get_ip()->get_ipv4());  };
@@ -563,7 +565,6 @@ class Flow : public GenericHashEntry {
 
   inline void setScore(u_int16_t score)    { alert_score = score; };
   inline u_int16_t getScore()              { return(alert_score); };
-  inline bool isTwhOK()                    { return(twh_ok);      };
 
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }

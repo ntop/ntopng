@@ -300,6 +300,15 @@ local function call_modules(l4_proto, mod_fn)
          end
       end
 
+      -- Check if the scripts want bidirectional or one_way traffic
+      if (script.bidirectional and not flow.isBidirectional()) or (script.one_way and flow.isBidirectional()) then
+	 if do_trace then
+	    print(string.format("%s() [check: %s]: skipping flow not matching requested directionality \n", mod_fn, mod_key))
+	 end
+
+	 goto continue
+      end
+
       if do_trace then
 	 print(string.format("%s() [check: %s]: %s\n", mod_fn, mod_key, shortFlowLabel(info)))
       end

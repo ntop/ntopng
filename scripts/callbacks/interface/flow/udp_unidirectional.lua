@@ -13,6 +13,7 @@ local user_scripts = require("user_scripts")
 
 local script = {
    l4_proto = "udp",
+   one_way = true,
 
    -- NOTE: hooks defined below
    hooks = {},
