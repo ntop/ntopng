@@ -77,7 +77,7 @@ local sort_to_key = {}
 
 for k, htstats in pairs(ifaces_ht_stats) do
    local stats = htstats.stats
-   tprint(hash_table)
+
    if hash_table then
       if htstats.ht ~= hash_table then
 	 goto continue
