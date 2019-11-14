@@ -24,7 +24,7 @@ local script = {
 
 function script.hooks.protocolDetected(now)
   if(flow.isRemoteToRemote() and flow.isUnicast()) then
-    flow.triggerStatus(flow_consts.status_types.status_remote_to_remote.status_id)
+    flow.setStatus(flow_consts.status_types.status_remote_to_remote.status_id)
   end
 end
 
