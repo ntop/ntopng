@@ -4,13 +4,12 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 active_page = "system_interfaces_stats"
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local ts_utils = require("ts_utils")
-require("graph_utils")
 
 if not isAllowedSystemInterface() then
    return
@@ -23,6 +22,7 @@ page_utils.print_header(i18n("system_interfaces_status"))
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
+
 local url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua"
 local info = ntop.getInfo()
 
@@ -37,7 +37,13 @@ print("<li><a href=\"#\">" .. i18n("system_interfaces_status") .. "</a></li>\n")
 if((page == "overview") or (page == nil)) then
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
 else
-   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
+   print("<li><a href=\""..url.."?page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
+end
+
+if(page == "internals") then
+   print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>\n")
+else
+   print("\n<li><a href=\""..url.."?page=internals\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>")
 end
 
 print [[
@@ -52,7 +58,6 @@ print [[
 
 if(page == "overview") then
    print[[
-
 <div id="table-system-interfaces-stats"></div>
 <script type='text/javascript'>
 
@@ -168,7 +173,71 @@ $("#table-system-interfaces-stats").datatable({
 </script>
  ]]
 
-elseif(page == "historical") then
+elseif(page == "internals") then
+   print[[
+<div id="table-system-interfaces-stats"></div>
+<script type='text/javascript'>
+
+$("#table-system-interfaces-stats").datatable({
+   title: "]] print(i18n("internals.hash_tables")) print[[",]]
+
+   local preference = tablePreferences("rows_number",_GET["perPage"])
+   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
+
+   print[[
+   showPagination: true,
+   buttons: [],
+   url: "]] print(ntop.getHttpPrefix()) print[[/lua/get_internals_hash_tables_stats.lua?iffilter=all",
+   columns: [
+     {
+       field: "column_key",
+       hidden: true,
+     }, {
+       field: "column_ifid",
+       hidden: true,
+     }, {
+       title: "]] print(i18n("interface")) print[[",
+       field: "column_name",
+       sortable: true,
+       css: {
+         textAlign: 'left',
+         width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("internals.hash_table")) print[[",
+       field: "column_hash_table_name",
+       sortable: true,
+       css: {
+         textAlign: 'left',
+         width: '10%',
+       }
+     }, {
+       title: "]] print(i18n("internals.state_active")) print[[",
+       field: "column_active_entries",
+       sortable: true,
+       css: {
+         textAlign: 'right',
+         width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("internals.state_idle")) print[[",
+       field: "column_idle_entries",
+       sortable: true,
+       css: {
+         textAlign: 'right',
+         width: '5%',
+       }
+     }
+   ], tableCallback: function() {
+      datatableInitRefreshRows($("#table-system-interfaces-stats"),
+                               "column_key", 5000,
+                               {"column_active_entries": addCommas,
+                                "column_idle_entries": addCommas});
+   },
+});
+</script>
+ ]]
+
 end
 
 -- #######################################################
