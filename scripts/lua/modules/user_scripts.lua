@@ -326,6 +326,20 @@ end
 
 -- ##############################################
 
+function user_scripts.getLastBenchmark(ifid, subdir)
+   local scripts_benchmarks = ntop.getCache(user_scripts_benchmarks_key(ifid, subdir))
+
+   if(not isEmptyString(scripts_benchmarks)) then
+      scripts_benchmarks = json.decode(scripts_benchmarks)
+   else
+      scripts_benchmarks = nil
+   end
+
+   return(scripts_benchmarks)
+end
+
+-- ##############################################
+
 -- @brief Load the user scripts.
 -- @params script_type one of user_scripts.script_types
 -- @params ifid the interface ID
@@ -350,12 +364,6 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
    end
 
    local check_dirs = getScriptsDirectories(script_type, subdir)
-   local scripts_benchmarks = ntop.getCache(user_scripts_benchmarks_key(ifid, subdir))
-
-   if(not isEmptyString(scripts_benchmarks)) then
-      scripts_benchmarks = json.decode(scripts_benchmarks)
-   end
-   scripts_benchmarks = scripts_benchmarks or {}
 
    for _, checks_dir in pairs(check_dirs) do
       package.path = checks_dir .. "/?.lua;" .. package.path
@@ -429,8 +437,6 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' as setup() returned %s", user_script.key, setup_ok))
                goto next_module
             end
-
-	    user_script["benchmark"] = scripts_benchmarks[mod_fname]
 
             -- Populate hooks fast lookup table
             for hook, hook_fn in pairs(user_script.hooks) do

@@ -1245,6 +1245,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    print[[<tr><td colspan=5>]] print(i18n("flow_callbacks.no_callbacks_available_disabled_alerts", {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=alerts"})) print[[.</td></tr>]]
 	 end
       else
+	 local benchmarks = user_scripts.getLastBenchmark(ifid, entity_type)
+
 	 for mod_k, user_script in pairsByKeys(available_modules.modules, asc) do
 	    local key = user_script.key
 	    local gui_conf = user_script.gui
@@ -1303,18 +1305,20 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    end
 	    print("</td><td align='center'>\n")
 
-	    if user_script.benchmark and (user_script.benchmark[tab] or user_script.benchmark["all"]) then
-	       local hook = ternary(user_script.benchmark[tab], tab, "all")
+	    local script_benchmark = benchmarks[mod_k]
 
-	       if user_script.benchmark[hook]["tot_elapsed"] then
-		  if user_script.benchmark[hook]["tot_num_calls"] > 1 then
+	    if script_benchmark and (script_benchmark[tab] or script_benchmark["all"]) then
+	       local hook = ternary(script_benchmark[tab], tab, "all")
+
+	       if script_benchmark[hook]["tot_elapsed"] then
+		  if script_benchmark[hook]["tot_num_calls"] > 1 then
 		     print(i18n("flow_callbacks.callback_function_duration_fmt_long",
-				{num_calls = format_utils.formatValue(user_script.benchmark[hook]["tot_num_calls"]),
-				 time = format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"]),
-				 speed = format_utils.formatValue(round(user_script.benchmark[hook]["avg_speed"], 0))}))
+				{num_calls = format_utils.formatValue(script_benchmark[hook]["tot_num_calls"]),
+				 time = format_utils.secondsToTime(script_benchmark[hook]["tot_elapsed"]),
+				 speed = format_utils.formatValue(round(script_benchmark[hook]["avg_speed"], 0))}))
 		  else
 		     print(i18n("flow_callbacks.callback_function_duration_fmt_short",
-				{time = format_utils.secondsToTime(user_script.benchmark[hook]["tot_elapsed"])}))
+				{time = format_utils.secondsToTime(script_benchmark[hook]["tot_elapsed"])}))
 		  end
 	       end
 	    end
