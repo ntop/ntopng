@@ -10,6 +10,7 @@ active_page = "system_interfaces_stats"
 
 require "lua_utils"
 local page_utils = require("page_utils")
+local internals_utils = require "internals_utils"
 
 if not isAllowedSystemInterface() then
    return
@@ -174,70 +175,8 @@ $("#table-system-interfaces-stats").datatable({
  ]]
 
 elseif(page == "internals") then
-   print[[
-<div id="table-system-interfaces-stats"></div>
-<script type='text/javascript'>
-
-$("#table-system-interfaces-stats").datatable({
-   title: "]] print(i18n("internals.hash_tables")) print[[",]]
-
-   local preference = tablePreferences("rows_number",_GET["perPage"])
-   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
-
-   print[[
-   showPagination: true,
-   buttons: [],
-   url: "]] print(ntop.getHttpPrefix()) print[[/lua/get_internals_hash_tables_stats.lua?iffilter=all",
-   columns: [
-     {
-       field: "column_key",
-       hidden: true,
-     }, {
-       field: "column_ifid",
-       hidden: true,
-     }, {
-       title: "]] print(i18n("interface")) print[[",
-       field: "column_name",
-       sortable: true,
-       css: {
-         textAlign: 'left',
-         width: '5%',
-       }
-     }, {
-       title: "]] print(i18n("internals.hash_table")) print[[",
-       field: "column_hash_table_name",
-       sortable: true,
-       css: {
-         textAlign: 'left',
-         width: '10%',
-       }
-     }, {
-       title: "]] print(i18n("internals.state_active")) print[[",
-       field: "column_active_entries",
-       sortable: true,
-       css: {
-         textAlign: 'right',
-         width: '5%',
-       }
-     }, {
-       title: "]] print(i18n("internals.state_idle")) print[[",
-       field: "column_idle_entries",
-       sortable: true,
-       css: {
-         textAlign: 'right',
-         width: '5%',
-       }
-     }
-   ], tableCallback: function() {
-      datatableInitRefreshRows($("#table-system-interfaces-stats"),
-                               "column_key", 5000,
-                               {"column_active_entries": addCommas,
-                                "column_idle_entries": addCommas});
-   },
-});
-</script>
- ]]
-
+   local base_url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?page=internals"
+   internals_utils.printHashTablesTable(base_url)
 end
 
 -- #######################################################

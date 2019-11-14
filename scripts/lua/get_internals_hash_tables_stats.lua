@@ -14,6 +14,7 @@ sendHTTPContentTypeHeader('application/json')
 -- ################################################
 
 local iffilter         = _GET["iffilter"]
+local hash_table       = _GET["hash_table"]
 local currentPage      = _GET["currentPage"]
 local perPage          = _GET["perPage"]
 local sortColumn       = _GET["sortColumn"]
@@ -76,6 +77,12 @@ local sort_to_key = {}
 
 for k, htstats in pairs(ifaces_ht_stats) do
    local stats = htstats.stats
+   tprint(hash_table)
+   if hash_table then
+      if htstats.ht ~= hash_table then
+	 goto continue
+      end
+   end
 
    if(sortColumn == "column_idle_entries") then
       sort_to_key[k] = stats.hash_entry_states.hash_entry_state_idle
@@ -90,6 +97,8 @@ for k, htstats in pairs(ifaces_ht_stats) do
    end
 
    totalRows = totalRows + 1
+
+   ::continue::
 end
 
 -- ################################################

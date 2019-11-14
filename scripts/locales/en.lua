@@ -2145,6 +2145,7 @@ local lang = {
     ["hash_entries"] = "Hash Entries",
     ["hash_table"] = "Hash Table",
     ["hash_tables"] = "Hash Tables",
+    ["all_hash_tables"] = "All Hash Tables",
     ["last_duration_ms"] = "Last Duration",
     ["lua"] = "Lua",
     ["lua_calls_vs_missed"] = "Lua Calls vs Missed",
