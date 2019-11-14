@@ -123,6 +123,7 @@ function format_utils.formatValue(amount)
 	 break
       end
    end
+
    return formatted
 end
 

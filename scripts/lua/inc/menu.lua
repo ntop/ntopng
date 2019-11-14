@@ -431,7 +431,7 @@ end -- num_ifaces > 0
 if isAllowedSystemInterface() then
    local system_scripts = require("system_scripts_utils")
 
-   if active_page == "system_stats" then
+   if active_page == "system_stats" or active_page == "system_interfaces_stats" then
      print [[ <li class="dropdown active"> ]]
    else
      print [[ <li class="dropdown"> ]]
@@ -448,6 +448,7 @@ if isAllowedSystemInterface() then
    end
 
    print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
 
    local system_menu_entries = system_scripts.getSystemMenuEntries()
 

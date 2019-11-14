@@ -344,7 +344,7 @@ print [[/lua/system/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifn
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=local\">";
 
-                  msg += "<span title=\"]] print(i18n("alerts_thresholds_config.active_local_hosts")) print[[\" class=\"label label-success\">";
+                  msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"label label-success\">";
                   msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 
                   checkMigrationMessage(rsp);

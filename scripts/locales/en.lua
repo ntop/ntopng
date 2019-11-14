@@ -145,6 +145,7 @@ local lang = {
   ["received"] = "Received",
   ["refresh"] = "Refresh",
   ["remote_hosts"] = "Remote Hosts",
+  ["local_hosts"] = "Local Hosts",
   ["remote_networks"] = "Remote Networks",
   ["remove"] = "Remove",
   ["reset"] = "Reset",
@@ -171,6 +172,7 @@ local lang = {
   ["summary"] = "Summary",
   ["system"] = "System",
   ["system_status"] = "System Status",
+  ["system_interfaces_status"] = "Interfaces Status",
   ["talkers"] = "Talkers",
   ["tcp_flags"] = "TCP Flags",
   ["tcp_stats"] = "TCP Statistics",
@@ -245,6 +247,10 @@ local lang = {
     ["uptime"] = "Uptime",
     ["version"] = "Version",
     ["you_have_too_many_flows"] = "You have too many hosts/flows for your %{product} configuration and this will lead to packet drops and high CPU load. Please restart %{product} increasing -x and -X",
+  },
+  ["system_interfaces_stats"] = {
+     ["local_hosts"] = "Local Hosts",
+     ["remote_hosts"] = "Remote Hosts",
   },
   ["activities_page"] = {
     ["host_activity"] = "Host Activity",
