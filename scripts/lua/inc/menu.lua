@@ -448,7 +448,10 @@ if isAllowedSystemInterface() then
    end
 
    print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
-   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
+
+   if num_ifaces > 1 then
+      print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
+   end
 
    local system_menu_entries = system_scripts.getSystemMenuEntries()
 
