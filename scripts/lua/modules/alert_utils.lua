@@ -19,7 +19,6 @@ local alert_endpoints = require "alert_endpoints_utils"
 local flow_consts = require "flow_consts"
 local user_scripts = require "user_scripts"
 
-local store_alerts_queue = "ntopng.push_alerts_queue"
 local shaper_utils = nil
 
 if(ntop.isnEdge()) then
@@ -2728,8 +2727,7 @@ function checkStoreAlertsFromC(deadline)
   end
 
   while(os.time() <= deadline) do
-    -- TODO add max_length check and alert
-    local message = ntop.lpopCache(store_alerts_queue)
+    local message = ntop.popInternalAlerts()
 
     if((message == nil) or (message == "")) then
       break

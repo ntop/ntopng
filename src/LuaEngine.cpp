@@ -9474,6 +9474,20 @@ static int ntop_pop_alert_notification(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_pop_internal_alerts(lua_State* vm) {
+  char *internal_alerts = ntop->getInternalAlertsQueue()->dequeue();
+
+  if(internal_alerts) {
+    lua_pushstring(vm, internal_alerts);
+    free(internal_alerts);
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_flow_is_blacklisted(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
@@ -11307,6 +11321,7 @@ static const luaL_Reg ntop_reg[] = {
   { "popSqliteAlert",        ntop_pop_sqlite_alert            },
   { "pushAlertNotification", ntop_push_alert_notification     },
   { "popAlertNotification",  ntop_pop_alert_notification      },
+  { "popInternalAlerts",     ntop_pop_internal_alerts         },
 
   /* nEdge */
 #ifdef HAVE_NEDGE
