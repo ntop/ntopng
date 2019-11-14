@@ -19,8 +19,8 @@ local now = os.time()
 local periodicity = 3
 local deadline = now + periodicity
 
+checkStoreAlertsFromC(deadline-1)
 alerts_api.checkPendingStoreAlerts(deadline)
-checkStoreAlertsFromC(deadline)
 lists_utils.checkReloadLists()
 
 if recording_utils.isAvailable() then
