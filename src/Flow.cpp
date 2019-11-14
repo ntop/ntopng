@@ -57,6 +57,7 @@ Flow::Flow(NetworkInterface *_iface,
   fully_processed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
+  periodic_update_ctr = 0;
 
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
@@ -86,7 +87,7 @@ Flow::Flow(NetworkInterface *_iface,
     ndpi_init_data_analysis(&stats.srv2cli_bytes_stats, 0);
   
   external_alert = NULL;
-  trigger_scheduled_periodic_update = trigger_immediate_periodic_update = false;
+  trigger_immediate_periodic_update = false;
 
   memset(&last_db_dump, 0, sizeof(last_db_dump));
   memset(&protos, 0, sizeof(protos));
@@ -1061,11 +1062,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
   prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes,
     prev_srv2cli_last_packets = srv2cli_last_packets;
-
-  if(diff_sent_packets || diff_rcvd_packets) {
-    /* New packets have been exchanged, the lua update callback needs be called */
-    trigger_scheduled_periodic_update = true;
-  }
 
   cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes,
     cli2srv_last_goodput_bytes = sent_goodput_bytes;
@@ -3759,9 +3755,6 @@ bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *t
       return false;
     }
 
-    if(!trigger_scheduled_periodic_update)
-      return true; /* Nothing to do, no changes in flow traffic */
-
     latest_call = !performed_lua_calls[flow_lua_call] ? get_first_seen() : performed_lua_calls[flow_lua_call];
     res = latest_call + 30 /* at least every 30 seconds */ > tv->tv_sec;
 
@@ -4262,6 +4255,7 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
   const char *lua_call_fn_name = NULL;
   Bitmap prev_status = status_map;
   std::map<FlowLuaCall, struct timeval>::iterator it;
+  int num_args = 1;
 
   if(isLuaCallPerformed(flow_lua_call, tv))
      return; /* Already called */
@@ -4288,7 +4282,6 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
     lua_call_fn_name = FLOW_LUA_CALL_FLOW_STATUS_CHANGE_FN_NAME;
     break;
   case flow_lua_call_periodic_update:
-    trigger_scheduled_periodic_update = false;
     trigger_immediate_periodic_update = false;
     lua_call_fn_name = FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME;
     break;
@@ -4312,7 +4305,15 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
     /* Call the function */
     lua_getglobal(L, lua_call_fn_name); /* Called function */
     lua_pushinteger(L, protocol);  /* pass the L4 protocol as first argument, needed for optimized L4 filter */
-    acle->pcall(1 /* 1 arguments */, 0 /* 0 results */);
+
+    if(flow_lua_call == flow_lua_call_periodic_update) {
+      /* pass the periodic_update counter as the second argument,
+       * needed to determine which periodic scripts to call. */
+      lua_pushinteger(L, periodic_update_ctr++);
+      num_args++;
+    }
+
+    acle->pcall(num_args, 0 /* 0 results */);
 #endif
 
     /* Mark it as called */

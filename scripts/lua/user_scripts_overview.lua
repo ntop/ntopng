@@ -32,6 +32,10 @@ local function printUserScripts(title, scripts)
 
     -- Hooks
     for hook in pairsByKeys(script.hooks) do
+      if((hook == "periodicUpdate") and (script.periodic_update_seconds ~= nil)) then
+        hook = string.format("%s (%us)", hook, script.periodic_update_seconds)
+      end
+
       hooks[#hooks + 1] = hook
     end
     hooks = table.concat(hooks, ", ")
@@ -41,6 +45,7 @@ local function printUserScripts(title, scripts)
     if(script.l4_proto) then filters[#filters + 1] = "l4_proto=" .. script.l4_proto end
     if(script.l7_proto) then filters[#filters + 1] = "l7_proto=" .. script.l7_proto end
     if(script.packet_interface_only) then filters[#filters + 1] = "packet_interface" end
+    if(script.three_way_handshake_ok) then filters[#filters + 1] = "3wh_completed" end
     if(script.local_only) then filters[#filters + 1] = "local_only" end
     if(script.nedge_only) then filters[#filters + 1] = "nedge=true" end
     if(script.nedge_exclude) then filters[#filters + 1] = "nedge=false" end

@@ -181,7 +181,7 @@ end
 -- @param l4_proto the L4 protocol of the flow
 -- @param mod_fn the callback to call
 -- @return true if some module was called, false otherwise
-local function call_modules(l4_proto, mod_fn)
+local function call_modules(l4_proto, mod_fn, update_ctr)
    if not(available_modules) then
       return
    end
@@ -219,11 +219,24 @@ local function call_modules(l4_proto, mod_fn)
    for mod_key, hook_fn in pairs(hooks) do
       local script = all_modules[mod_key]
 
+      if(mod_fn == "periodicUpdate") then
+	 -- Check if the script should be invoked
+	 if((update_ctr % script.periodic_update_divisor) ~= 0) then
+	    if do_trace then
+	       print(string.format("%s() [check: %s]: skipping periodicUpdate [ctr: %s, divisor: %s, frequency: %s]\n",
+		  mod_fn, mod_key, update_ctr, script.periodic_update_divisor, script.periodic_update_seconds))
+	    end
+
+	    goto continue
+	 end
+      end
+
       if(script.l7_proto ~= nil) then
          -- Check if the L7 protocol correspond
          if(not flow.matchesL7(script.l7_proto)) then
             if do_trace then
-	       print(string.format("%s() [check: %s]: skipping flow with proto=%s [wants: %s]\n", mod_fn, mod_key, flow_proto, script.l7_proto)) end
+	       print(string.format("%s() [check: %s]: skipping flow with proto=%s [wants: %s]\n", mod_fn, mod_key, flow_proto, script.l7_proto))
+	    end
 
             goto continue
          end
@@ -350,6 +363,6 @@ end
 
 -- #################################################################
 
-function periodicUpdate(l4_proto)
-   call_modules(l4_proto, "periodicUpdate")
+function periodicUpdate(l4_proto, update_ctr)
+   call_modules(l4_proto, "periodicUpdate", update_ctr)
 end

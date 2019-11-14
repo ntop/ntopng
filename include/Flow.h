@@ -99,7 +99,8 @@ class Flow : public GenericHashEntry {
   u_int32_t marker;
 #endif
   char *external_alert;
-  bool trigger_scheduled_periodic_update, trigger_immediate_periodic_update;
+  bool trigger_immediate_periodic_update; /* needed to process external alerts */
+  u_int32_t periodic_update_ctr;
  
   union {
     struct {
