@@ -28,6 +28,7 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
 						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
 //#define DEBUG_DISCOVERY
 //#define DEBUG_UA
+//#define DEBUG_USER_SCRIPTS
 
 /* *************************************** */
 
@@ -88,6 +89,7 @@ Flow::Flow(NetworkInterface *_iface,
   
   external_alert = NULL;
   trigger_immediate_periodic_update = false;
+  pending_periodic_update = pending_protocol_detected = false;
 
   memset(&last_db_dump, 0, sizeof(last_db_dump));
   memset(&protos, 0, sizeof(protos));
@@ -1821,7 +1823,15 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
     break;
 
   case hash_entry_state_active:
-    performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data, quick);
+    if(pending_protocol_detected && !quick) {
+      /* There is a pending protocol detected call, call it */
+      performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data, quick);
+#ifdef DEBUG_USER_SCRIPTS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Performing pending protocolDetected call[%s]", getInterface()->get_name());
+#endif
+    } else
+      performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data, quick);
+
     if(!quick)
       periodic_dump_check(tv); /* NOTE: this call can take a long time! */
     /* Don't change state: purgeIdle() will do */
@@ -3749,8 +3759,12 @@ bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *t
     return true; /* Only flow_lua_call_idle go through during a shutdown */
 
   switch(flow_lua_call) {
+  case flow_lua_call_protocol_detected:
+    if(pending_protocol_detected)
+      return true;
+    break;
   case flow_lua_call_periodic_update:
-    if(trigger_immediate_periodic_update) {
+    if(trigger_immediate_periodic_update || pending_periodic_update) {
       /* Periodic update was forced */
       return false;
     }
@@ -4266,8 +4280,42 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
 
   FlowAlertCheckLuaEngine *acle = (FlowAlertCheckLuaEngine*)periodic_ht_state_update_user_data->acle;
 
+  if(flow_lua_call == flow_lua_call_idle) {
+    /* Any pending callbacks will be dropped as this is the end of the flow */
+    if(pending_protocol_detected) {
+#ifdef DEBUG_USER_SCRIPTS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dropping pending protocolDetected call[%s]", getInterface()->get_name());
+#endif
+      acle->incSkippedPcalls(flow_lua_call_protocol_detected);
+    }
+    if(pending_periodic_update) {
+#ifdef DEBUG_USER_SCRIPTS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dropping pending periodicUpdate call[%s]", getInterface()->get_name());
+#endif
+      acle->incSkippedPcalls(flow_lua_call_periodic_update);
+    }
+  }
+
   if(quick) {
-    acle->incSkippedPcalls(flow_lua_call);
+    switch(flow_lua_call) {
+    case flow_lua_call_protocol_detected:
+      /* Will retry on next round */
+#ifdef DEBUG_USER_SCRIPTS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pending protocolDetected set[%s]", getInterface()->get_name());
+#endif
+      pending_protocol_detected = true;
+      break;
+    case flow_lua_call_periodic_update:
+      /* Will retry on next round */
+#ifdef DEBUG_USER_SCRIPTS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pending periodicUpdate set[%s]", getInterface()->get_name());
+#endif
+      pending_periodic_update = true;
+      break;
+    default:
+      acle->incSkippedPcalls(flow_lua_call);
+    }
+
     return; /* Need to return as there's no time to do the actual call */
   }
 
@@ -4276,12 +4324,14 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
 
   switch(flow_lua_call) {
   case flow_lua_call_protocol_detected:
+    pending_protocol_detected = false;
     lua_call_fn_name = FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME;
     break;
   case flow_lua_call_flow_status_changed:
     lua_call_fn_name = FLOW_LUA_CALL_FLOW_STATUS_CHANGE_FN_NAME;
     break;
   case flow_lua_call_periodic_update:
+    pending_periodic_update = false;
     trigger_immediate_periodic_update = false;
     lua_call_fn_name = FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME;
     break;

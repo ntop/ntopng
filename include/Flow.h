@@ -100,6 +100,7 @@ class Flow : public GenericHashEntry {
 #endif
   char *external_alert;
   bool trigger_immediate_periodic_update; /* needed to process external alerts */
+  bool pending_periodic_update, pending_protocol_detected;
   u_int32_t periodic_update_ctr;
  
   union {
