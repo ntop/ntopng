@@ -496,7 +496,9 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
 
    -- Fill the missing points at the end
   while((tend - next_t) >= 0) do
-    if(next_t > last_ts) then
+    -- NOTE: fill_series is required for composed charts. In such case,
+    -- not filling the serie would result into an incorrect upsampling
+    if((not options.fill_series) and (next_t > last_ts)) then
       -- skip values exceeding the last point
       break
     end
