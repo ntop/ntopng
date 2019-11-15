@@ -13,14 +13,14 @@ sendHTTPContentTypeHeader('application/json')
 
 -- ################################################
 
-local iffilter         = _GET["iffilter"]
-local hash_table       = _GET["hash_table"]
-local currentPage      = _GET["currentPage"]
-local perPage          = _GET["perPage"]
-local sortColumn       = _GET["sortColumn"]
-local sortOrder        = _GET["sortOrder"]
+local iffilter           = _GET["iffilter"]
+local periodic_script  = _GET["periodic_script"]
+local currentPage        = _GET["currentPage"]
+local perPage            = _GET["perPage"]
+local sortColumn         = _GET["sortColumn"]
+local sortOrder          = _GET["sortOrder"]
 
-local sortPrefs = "internals_hash_tables_data"
+local sortPrefs = "internals_periodic_activites_data"
 
 -- ################################################
 
@@ -60,40 +60,40 @@ local to_skip = (currentPage-1) * perPage
 
 -- ################################################
 
-local ifaces_ht_stats = {}
+local ifaces_scripts_stats = {}
 
 for _, iface in pairs(interface.getIfNames()) do
    interface.select(iface)
-   local ht_stats = interface.getHashTablesStats()
+   local scripts_stats = interface.getPeriodicActivitiesStats()
 
    -- Flatten out the nested tables
-   for ht, stats in pairs(ht_stats) do
-      ifaces_ht_stats[iface.."_"..ht] = {iface = iface, ifid = getInterfaceId(iface), ht = ht, stats = stats}
+   for script, stats in pairs(scripts_stats) do
+      ifaces_scripts_stats[iface.."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
    end
 end
 
 local totalRows = 0
 local sort_to_key = {}
 
-for k, htstats in pairs(ifaces_ht_stats) do
-   local stats = htstats.stats
+for k, script_stats in pairs(ifaces_scripts_stats) do
+   local stats = script_stats.stats
 
-   if hash_table then
-      if htstats.ht ~= hash_table then
+   if periodic_script then
+      if script_stats.script ~= periodic_script then
 	 goto continue
       end
    end
 
-   if(sortColumn == "column_idle_entries") then
-      sort_to_key[k] = stats.hash_entry_states.hash_entry_state_idle
-   elseif(sortColumn == "column_active_entries") then
-      sort_to_key[k] = stats.hash_entry_states.hash_entry_state_active
-   elseif(sortColumn == "column_hash_table_name") then
-      sort_to_key[k] = i18n("hash_table."..htstats.ht)
+   if(sortColumn == "column_max_duration") then
+      sort_to_key[k] = script_stats.stats.duration.max_duration_ms
+   elseif(sortColumn == "column_last_duration") then
+      sort_to_key[k] = script_stats.stats.duration.last_duration_ms
+   elseif(sortColumn == "column_periodic_activity_name") then
+      sort_to_key[k] = script_stats.script
    elseif(sortColumn == "column_name") then
-      sort_to_key[k] = getInterfaceName(htstats.ifid)
+      sort_to_key[k] = getInterfaceName(script_stats.ifid)
    else
-      sort_to_key[k] = htstats.ifid
+      sort_to_key[k] = script_stats.ifid
    end
 
    totalRows = totalRows + 1
@@ -113,16 +113,17 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
    if i >= to_skip then
       local record = {}
-      local htstats = ifaces_ht_stats[key]
-      local active_entries = htstats.stats.hash_entry_states.hash_entry_state_active
-      local idle_entries = htstats.stats.hash_entry_states.hash_entry_state_idle
+      local script_stats = ifaces_scripts_stats[key]
+
+      local max_duration = script_stats.stats.duration.max_duration_ms
+      local last_duration = script_stats.stats.duration.last_duration_ms
 
       record["column_key"] = key
-      record["column_ifid"] = string.format("%i", htstats.ifid)
-      record["column_active_entries"] = ternary(active_entries > 0, format_utils.formatValue(active_entries), '')
-      record["column_idle_entries"] = ternary(idle_entries > 0, format_utils.formatValue(idle_entries), '')
-      record["column_name"] = getInterfaceName(htstats.ifid)
-      record["column_hash_table_name"] = i18n("hash_table."..htstats.ht)
+      record["column_ifid"] = string.format("%i", script_stats.ifid)
+      record["column_max_duration"] = ternary(max_duration > 0, format_utils.formatMillis(max_duration), '')
+      record["column_last_duration"] = ternary(last_duration > 0, format_utils.formatMillis(last_duration), '')
+      record["column_name"] = getInterfaceName(script_stats.ifid)
+      record["column_periodic_activity_name"] = script_stats.script
 
       res[#res + 1] = record
    end

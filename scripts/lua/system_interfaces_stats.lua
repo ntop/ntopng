@@ -175,8 +175,9 @@ $("#table-system-interfaces-stats").datatable({
  ]]
 
 elseif(page == "internals") then
-   local base_url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?page=internals"
-   internals_utils.printHashTablesTable(base_url)
+   internals_utils.printInternals()
+   -- local base_url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?page=internals"
+   -- internals_utils.printHashTablesTable(base_url)
 end
 
 -- #######################################################

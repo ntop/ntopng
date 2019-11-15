@@ -2138,6 +2138,7 @@ local lang = {
   },
   ["internals"] = {
     ["all_hash_tables"] = "All Hash Tables",
+    ["all_periodic_activities"] = "All Periodic Activities",
     ["duration"] = "Duration",
     ["hash_entries"] = "Hash Entries",
     ["hash_table"] = "Hash Table",
