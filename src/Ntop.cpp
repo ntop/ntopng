@@ -831,7 +831,8 @@ void Ntop::getUsers(lua_State* vm) {
   char **usernames;
   char *username;
   char *key, *val;
-  int rc, i, len;
+  int rc, i;
+  size_t len;
 
   lua_newtable(vm);
 
