@@ -28,6 +28,9 @@ class FlowAlertCheckLuaEngine : public AlertCheckLuaEngine {
   u_int32_t num_skipped_periodic_update;
   u_int32_t num_skipped_idle;
 
+  u_int32_t num_pending_proto_detected;
+  u_int32_t num_pending_periodic_update;
+
   virtual void lua_stats_skipped(lua_State *vm) const;
 
  public:
@@ -35,6 +38,8 @@ class FlowAlertCheckLuaEngine : public AlertCheckLuaEngine {
   virtual ~FlowAlertCheckLuaEngine();
 
   void incSkippedPcalls(FlowLuaCall flow_lua_call);
+  inline void incPendingProtoDetected()   { num_pending_proto_detected++; }
+  inline void incPendingPeriodicUpdate()  { num_pending_periodic_update++; }
 };
 
 #endif

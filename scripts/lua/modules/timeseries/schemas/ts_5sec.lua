@@ -26,6 +26,12 @@ schema:addMetric("idle")
 schema:addMetric("proto_detected")
 schema:addMetric("periodic_update")
 
+schema = ts_utils.newSchema("ht:num_pending_calls", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("hash_table")
+schema:addMetric("proto_detected")
+schema:addMetric("periodic_update")
+
 -------------------------------------------------------
 -- FLOW USER SCRIPTS SCHEMAS
 -------------------------------------------------------

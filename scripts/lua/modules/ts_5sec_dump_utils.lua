@@ -26,6 +26,11 @@ function ts_dump.iface_update_periodic_ht_state_update_stats(when, ifid, periodi
 						     proto_detected = stats.num_skipped_proto_detected,
 						     periodic_update = stats.num_skipped_periodic_update,
 						    }, when, verbose)
+
+	    ts_utils.append("ht:num_pending_calls", {ifid = ifid, hash_table = ht_name,
+						     proto_detected = stats.num_pending_proto_detected,
+						     periodic_update = stats.num_pending_periodic_update,
+						    }, when, verbose)
 	 end
       end
 

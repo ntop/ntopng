@@ -76,7 +76,8 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
          schema = "custom:ht:lua_calls_vs_missed",
          label = i18n("internals.lua_calls_vs_missed"),
          metrics_labels = { i18n("internals.missed_idle"), i18n("internals.missed_proto_detected"),
-            i18n("internals.missed_periodic_update"), i18n("internals.successful_calls") },
+            i18n("internals.missed_periodic_update"), i18n("internals.pending_proto_detected"),
+            i18n("internals.pending_periodic_update"), i18n("internals.successful_calls") },
       },
    }
 })
