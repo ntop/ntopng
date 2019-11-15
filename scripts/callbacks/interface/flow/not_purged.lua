@@ -10,7 +10,7 @@ local user_scripts = require("user_scripts")
 local script = {
    -- NOTE: hooks defined below
    hooks = {},
-   periodic_update_seconds = 300,
+   periodic_update_seconds = 600,
 
    gui = {
       i18n_title = "flow_callbacks_config.not_purged",

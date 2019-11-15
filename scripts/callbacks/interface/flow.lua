@@ -25,6 +25,7 @@ end
 local do_benchmark = true          -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
+local calculate_stats = false
 
 local available_modules = nil
 local benchmarks = {}
@@ -40,6 +41,14 @@ local hosts_disabled_status
 -- Save them as they are overridden
 local c_flow_set_status = flow.setStatus
 local c_flow_clear_status = flow.clearStatus
+
+local stats = {
+   num_invocations = 0, 	-- Total number of invocations of this module
+   num_complete_scripts = 0,	-- Number of invoked scripts on flows with THW completed
+   num_partial_scripts = 0,	-- Number of invoked scripts on flows with THW not-completed
+   num_try_alerts = 0,  	-- Number of calls to triggerFlowAlert
+   partial_scripts = {},	-- List of scripts invoked on flow with THW not-completed
+}
 
 -- #################################################################
 
@@ -109,6 +118,10 @@ function teardown()
 
    if(available_modules ~= nil) then
       user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
+   end
+
+   if(calculate_stats) then
+      tprint(stats)
    end
 end
 
@@ -182,6 +195,10 @@ end
 -- @param mod_fn the callback to call
 -- @return true if some module was called, false otherwise
 local function call_modules(l4_proto, mod_fn, update_ctr)
+   if calculate_stats then
+      stats.num_invocations = stats.num_invocations + 1
+   end
+
    if not(available_modules) then
       return
    end
@@ -216,6 +233,9 @@ local function call_modules(l4_proto, mod_fn, update_ctr)
       info = flow.getInfo()
    end
 
+   local twh_in_progress = ((l4_proto == 6 --[[TCP]]) and (not flow.isTwhOK()))
+   local bidirectional = flow.isBidirectional()
+
    for mod_key, hook_fn in pairs(hooks) do
       local script = all_modules[mod_key]
 
@@ -231,36 +251,45 @@ local function call_modules(l4_proto, mod_fn, update_ctr)
 	 end
       end
 
-      if(script.l7_proto ~= nil) then
-         -- Check if the L7 protocol correspond
-         if(not flow.matchesL7(script.l7_proto)) then
-            if do_trace then
-	       print(string.format("%s() [check: %s]: skipping flow with proto=%s [wants: %s]\n", mod_fn, mod_key, flow_proto, script.l7_proto))
-	    end
-
-            goto continue
-         end
-      end
-
       -- Check if the script requires the flow to have successfully completed the three-way handshake
-      if script.three_way_handshake_ok then
-         -- Check if the script wants the three way handshake completed
-         if not flow.isTwhOK() then
-            if do_trace then
-	       print(string.format("%s() [check: %s]: skipping flow with incomplete three way handshake\n", mod_fn, mod_key))
-	    end
+      if(script.three_way_handshake_ok and twh_in_progress) then
+	 -- Check if the script wants the three way handshake completed
+	 if do_trace then
+	    print(string.format("%s() [check: %s]: skipping flow with incomplete three way handshake\n", mod_fn, mod_key))
+	 end
 
-            goto continue
-         end
+	 goto continue
       end
 
       -- Check if the scripts want bidirectional or one_way traffic
-      if (script.bidirectional and not flow.isBidirectional()) or (script.one_way and flow.isBidirectional()) then
+      if((script.bidirectional and not bidirectional) or (script.one_way and bidirectional)) then
 	 if do_trace then
 	    print(string.format("%s() [check: %s]: skipping flow not matching requested directionality \n", mod_fn, mod_key))
 	 end
 
 	 goto continue
+      end
+
+      local script_l7 = script.l7_proto_id
+
+      if(script_l7 ~= nil) then
+         -- Check if the L7 protocol corresponds
+         if(not flow.matchesL7(script_l7)) then
+            if do_trace then
+	       print(string.format("%s() [check: %s]: skipping flow with proto=%s [wants: %s]\n", mod_fn, mod_key, flow_proto, tprint(script_l7)))
+	    end
+
+            goto continue
+         end
+      end
+
+      if calculate_stats then
+	 if twh_in_progress then
+	    stats.num_partial_scripts = stats.num_partial_scripts + 1
+	    stats.partial_scripts[mod_key] = 1
+	 else
+	    stats.num_complete_scripts = stats.num_complete_scripts + 1
+	 end
       end
 
       if do_trace then
@@ -288,6 +317,10 @@ local function call_modules(l4_proto, mod_fn, update_ctr)
 
    if((alerted_status ~= nil) and flow.canTriggerAlert()) then
       triggerFlowAlert(now, l4_proto)
+
+      if calculate_stats then
+	 stats.num_try_alerts = stats.num_try_alerts + 1
+      end
    end
 
    return(rv)

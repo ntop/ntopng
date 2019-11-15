@@ -9134,19 +9134,14 @@ static int ntop_flow_matches_l7(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   ndpi_protocol l7proto;
   struct ndpi_detection_module_struct *ndpi_struct;
-  const char *master, *app, *filter;
+  int filter;
 
   if(!f) return(CONST_LUA_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  filter = lua_tostring(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  filter = lua_tonumber(vm, 1);
 
-  l7proto = f->get_detected_protocol();
-  ndpi_struct = ntop->get_ndpi_struct();
-  master = ndpi_get_proto_name(ndpi_struct, l7proto.master_protocol);
-  app = ndpi_get_proto_name(ndpi_struct, l7proto.app_protocol);
-
-  lua_pushboolean(vm, !strcmp(master, filter) || !strcmp(app, filter));
+  lua_pushboolean(vm, f->isProto(filter));
   return(CONST_LUA_OK);
 }
 

@@ -401,10 +401,18 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
             end
 
             if(table.empty(user_script.hooks)) then
-               traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s'", user_script.key))
-               -- This guarantees that the "hooks" field is always available
-               user_script.hooks = {}
+               traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s', skipping", user_script.key))
+               goto next_module
             end
+
+	    if(user_script.l7_proto ~= nil) then
+	       user_script.l7_proto_id = interface.getnDPIProtoId(user_script.l7_proto)
+
+	       if(user_script.l7_proto_id == -1) then
+		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown L7 protocol filter '%s' in user script '%s', skipping", user_script.l7_proto, user_script.key))
+		  goto next_module
+	       end
+	    end
 
             -- Augument with additional attributes
             user_script.enabled = user_scripts.isEnabled(ifid, subdir, user_script.key)
