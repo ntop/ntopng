@@ -4017,24 +4017,6 @@ void Flow::lua_get_min_info(lua_State *vm) {
 
 /* ***************************************************** */
 
-void Flow::lua_get_tcp_packet_issues(lua_State *vm) {
-  bool isIdle = idle();
-  bool lowGoodput = isLowGoodput();
-
-  lua_newtable(vm);
-
-  if(isIdle && lowGoodput) {
-    lua_push_bool_table_entry(vm, "has_slow_data_exchange", true);
-  } else if(!isIdle && lowGoodput) {
-    if(isTCPReset() && !hasTCP3WHSCompleted())
-      lua_push_bool_table_entry(vm, "is_connection_refused", true);
-    else
-      lua_push_bool_table_entry(vm, "has_low_goodput", true);
-  }
-}
-
-/* ***************************************************** */
-
 u_int32_t Flow::getCliTcpIssues() {
   return(stats.tcp_stats_s2d.pktRetr + stats.tcp_stats_s2d.pktOOO + stats.tcp_stats_s2d.pktLost);
 }

@@ -23,9 +23,9 @@ local script = {
 -- #################################################################
 
 function script.hooks.protocolDetected(now)
-  local proto_info = flow.getDeviceProtoAllowedInfo()
+  if(flow.isDeviceProtocolNotAllowed()) then
+    local proto_info = flow.getDeviceProtoAllowedInfo()
 
-  if((not proto_info["cli.allowed"]) or (not proto_info["srv.allowed"])) then
     local alert_info = {
       ["cli.devtype"] = proto_info["cli.devtype"],
       ["srv.devtype"] = proto_info["srv.devtype"],

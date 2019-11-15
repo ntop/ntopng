@@ -8821,17 +8821,6 @@ static int ntop_flow_get_tls_version(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_get_tcp_packet_issues(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  f->lua_get_tcp_packet_issues(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_flow_get_tcp_stats(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -8878,17 +8867,6 @@ static int ntop_flow_is_pass_verdict(lua_State* vm) {
 }
 
 #endif
-
-/* ****************************************** */
-
-static int ntop_flow_get_duration_info(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  f->lua_duration_info(vm);
-  return(CONST_LUA_OK);
-}
 
 /* ****************************************** */
 
@@ -9033,6 +9011,146 @@ static int ntop_flow_can_trigger_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_is_dp_not_allowed(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, !f->isDeviceAllowedProtocol());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_is_connection_refused(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, (f->isTCPReset() && !f->hasTCP3WHSCompleted()));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_has_slow_data_exchange(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, (f->idle() && f->isLowGoodput()));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_has_low_goodput(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, (!f->idle() && f->isLowGoodput() &&
+    !f->isTCPReset() && f->hasTCP3WHSCompleted()));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_ssl_cipher_class(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+  const char *rv;
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  rv = f->getServerCipherClass();
+
+  if(rv)
+    lua_pushstring(vm, rv);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_icmp_type(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->getICMPType());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_max_seen_icmp_size(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->getICMPPayloadSize());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_dns_query_invalid_chars(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, f->hasInvalidDNSQueryChars());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_dns_query(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, f->getDNSQuery());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_proto_breed(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, f->get_protocol_breed_name());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_has_malicious_tls_sign(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, f->hasMaliciousSignature());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_check_tls_certificate(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, f->shouldCheckTLSCertificate());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_is_client_unicast(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -9162,19 +9280,6 @@ static int ntop_flow_get_srv_tcp_issues(lua_State* vm) {
   if(!f) return(CONST_LUA_ERROR);
 
   lua_pushinteger(vm, f->getSrvTcpIssues());
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_get_proto_breed_info(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_newtable(vm);
-  lua_push_str_table_entry(vm, "proto.ndpi_breed", f->get_protocol_breed_name());
-
   return(CONST_LUA_OK);
 }
 
@@ -9493,54 +9598,6 @@ static int ntop_flow_is_blacklisted(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_get_protocols(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  lua_newtable(vm);
-
-  if(f) f->lua_get_protocols(vm);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int ntop_flow_get_bytes(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  lua_newtable(vm);
-
-  if(f) f->lua_get_bytes(vm);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_dir_traffic(lua_State* vm, bool cli2srv) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  lua_newtable(vm);
-
-  if(f) f->lua_get_dir_traffic(vm, cli2srv);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_cli2srv_traffic(lua_State* vm) {
-  return ntop_flow_get_dir_traffic(vm, true /* Client to Server */);
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_srv2cli_traffic(lua_State* vm) {
-  return ntop_flow_get_dir_traffic(vm,  false /* Server to Client */);
-}
-
-/* ****************************************** */
-
 static int  ntop_flow_get_dir_iat(lua_State* vm, bool cli2srv) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -9561,30 +9618,6 @@ static int  ntop_flow_get_cli2srv_iat(lua_State* vm) {
 
 static int  ntop_flow_get_srv2cli_iat(lua_State* vm) {
   return ntop_flow_get_dir_iat(vm,  false /* Server to Client */);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_get_packets(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  lua_newtable(vm);
-
-  if(f) f->lua_get_packets(vm);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int ntop_flow_get_time(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  lua_newtable(vm);
-
-  if(f) f->lua_get_time(vm);
-
-  return CONST_LUA_OK;
 }
 
 /* ****************************************** */
@@ -9645,54 +9678,6 @@ static int ntop_flow_get_icmp_info(lua_State* vm) {
   if(f) f->lua_get_icmp_info(vm);
 
   return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_port(lua_State* vm, bool client) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  lua_newtable(vm);
-
-  if(f) f->lua_get_port(vm, client);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_cli_port(lua_State* vm) {
-  return ntop_flow_get_port(vm, true /* Client */);
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_srv_port(lua_State* vm) {
-  return ntop_flow_get_port(vm,  false /* Server */);
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_geoloc(lua_State* vm, bool client) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  lua_newtable(vm);
-
-  if(f) f->lua_get_geoloc(vm, client, true /* Coordinates */, true  /* Country and City */);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_cli_geoloc(lua_State* vm) {
-  return ntop_flow_get_geoloc(vm, true /* Client */);
-}
-
-/* ****************************************** */
-
-static int  ntop_flow_get_srv_geoloc(lua_State* vm) {
-  return ntop_flow_get_geoloc(vm,  false /* Server */);
 }
 
 /* ****************************************** */
@@ -11027,6 +11012,18 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getClientTCPIssues",       ntop_flow_get_cli_tcp_issues         },
   { "getServerTCPIssues",       ntop_flow_get_srv_tcp_issues         },
   { "canTriggerAlert",          ntop_flow_can_trigger_alert          },
+  { "isDeviceProtocolNotAllowed", ntop_flow_is_dp_not_allowed        },
+  { "isConnectionRefused",      ntop_flow_is_connection_refused      },
+  { "hasSlowDataExchange",      ntop_flow_has_slow_data_exchange     },
+  { "hasLowGoodput",            ntop_flow_has_low_goodput            },
+  { "getServerCipherClass",     ntop_flow_get_ssl_cipher_class       },
+  { "getICMPType",              ntop_flow_get_icmp_type              },
+  { "getMaxSeenIcmpPayloadSize", ntop_flow_get_max_seen_icmp_size    },
+  { "dnsQueryHasInvalidChars",  ntop_flow_dns_query_invalid_chars    },
+  { "getDnsQuery",              ntop_flow_get_dns_query              },
+  { "getProtoBreed",            ntop_flow_get_proto_breed            },
+  { "hasMaliciousTlsSignature", ntop_flow_has_malicious_tls_sign     },
+  { "shouldCheckTlsCertificate", ntop_flow_check_tls_certificate     },
 
   /* TODO document */
   { "isLocal",                  ntop_flow_is_local                   },
@@ -11038,33 +11035,20 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getMUDInfo",               ntop_flow_get_mud_info               },
   { "isNotPurged",              ntop_flow_is_not_purged              },
   { "getTLSVersion",            ntop_flow_get_tls_version            },
-  { "getTCPPacketIssues",       ntop_flow_get_tcp_packet_issues      },
   { "getTCPStats",              ntop_flow_get_tcp_stats              },
   { "getBlacklistedInfo",       ntop_flow_get_blacklisted_info       },
 #ifdef HAVE_NEDGE
   { "isPassVerdict",            ntop_flow_is_pass_verdict            },
 #endif
-  { "getDurationInfo",          ntop_flow_get_duration_info          },
-  { "getProtocolBreedInfo",     ntop_flow_get_proto_breed_info       },
   { "retrieveExternalAlertInfo", ntop_flow_retrieve_external_alert_info },
   { "getDeviceProtoAllowedInfo", ntop_flow_get_device_proto_allowed_info},
-  { "getProtocols",             ntop_flow_get_protocols              },
-  { "getBytes",                 ntop_flow_get_bytes                  },
-  { "getClient2ServerTraffic",  ntop_flow_get_cli2srv_traffic        },
-  { "getServer2ClientTraffic",  ntop_flow_get_srv2cli_traffic        },
   { "getClient2ServerIAT",      ntop_flow_get_cli2srv_iat            },
   { "getServer2ClientIAT",      ntop_flow_get_srv2cli_iat            },
-  { "getPackets",               ntop_flow_get_packets                },
-  { "getTime",                  ntop_flow_get_time                   },
   { "getTLSInfo",               ntop_flow_get_tls_info               },
   { "getSSHInfo",               ntop_flow_get_ssh_info               },
   { "getHTTPInfo",              ntop_flow_get_http_info              },
   { "getDNSInfo",               ntop_flow_get_dns_info               },
   { "getICMPInfo",              ntop_flow_get_icmp_info              },
-  { "getClientPort",            ntop_flow_get_cli_port               },
-  { "getServerPort",            ntop_flow_get_srv_port               },
-  { "getClientGeolocation",     ntop_flow_get_cli_geoloc             },
-  { "getServerGeolocation",     ntop_flow_get_srv_geoloc             },
 
   { NULL,                     NULL }
 };

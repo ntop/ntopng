@@ -219,14 +219,8 @@ class Flow : public GenericHashEntry {
   void allocDPIMemory();
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
-  bool isLowGoodput() const;
   static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when, bool update_iat);
   bool isReadyToBeMarkedAsIdle();
-  inline bool isDeviceAllowedProtocol() const {
-      return(!cli_host || !srv_host ||
-        ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
-         (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
-  }
   char* printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const;
   void update_pools_stats(const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
@@ -271,10 +265,17 @@ class Flow : public GenericHashEntry {
   inline bool isDHCP() const { return(isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
+  bool isLowGoodput() const;
+  inline bool isDeviceAllowedProtocol() const {
+      return(!cli_host || !srv_host ||
+        ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
+         (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
+  }
   inline bool isMaskedFlow() {
     return(!get_cli_host() || Utils::maskHost(get_cli_host()->isLocalHost())
 	   || !get_srv_host() || Utils::maskHost(get_srv_host()->isLocalHost()));
   };
+  inline const char* getServerCipherClass()  const { return(isTLS() ? cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher) : NULL); }
   char* serialize(bool es_json = false);
   void flow2alertJson(ndpi_serializer *serializer, time_t now);
   json_object* flow2json();
@@ -444,7 +445,6 @@ class Flow : public GenericHashEntry {
 		       u_int16_t protocol);
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   void lua_get_min_info(lua_State* vm);
-  void lua_get_tcp_packet_issues(lua_State* vm);
   void lua_duration_info(lua_State* vm);
   void lua_device_protocol_allowed_info(lua_State *vm);
   void lua_get_icmp_info(lua_State *vm) const;
@@ -495,6 +495,11 @@ class Flow : public GenericHashEntry {
   inline void getICMP(u_int8_t *_icmp_type, u_int8_t *_icmp_code, u_int16_t *_icmp_echo_id) {
     *_icmp_type = protos.icmp.icmp_type, *_icmp_code = protos.icmp.icmp_code, *_icmp_echo_id = protos.icmp.icmp_echo_id;
   }
+  inline u_int8_t getICMPType()     { return(isICMP() ? protos.icmp.icmp_type : 0); }
+  inline bool hasInvalidDNSQueryChars() { return(isDNS() && protos.dns.invalid_chars_in_query); }
+  inline bool hasMaliciousSignature() { return(has_malicious_cli_signature || has_malicious_srv_signature); }
+  inline bool shouldCheckTLSCertificate() { return(isTLS() && !protos.tls.subject_alt_name_match
+              && protos.tls.server_certificate && protos.tls.certificate); }
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = v; } }
   inline void  setDNSQueryType(u_int16_t t) { if(isDNS()) { protos.dns.last_query_type = t; } }

@@ -21,7 +21,7 @@ local script = {
 -- #################################################################
 
 function script.hooks.protocolDetected(now)
-  mud_utils.handleFlow()
+  mud_utils.handleFlow(now)
 end
 
 -- #################################################################

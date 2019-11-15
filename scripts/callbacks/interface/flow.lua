@@ -234,7 +234,6 @@ local function call_modules(l4_proto, mod_fn, update_ctr)
    end
 
    local twh_in_progress = ((l4_proto == 6 --[[TCP]]) and (not flow.isTwhOK()))
-   local bidirectional = flow.isBidirectional()
 
    for mod_key, hook_fn in pairs(hooks) do
       local script = all_modules[mod_key]
@@ -256,15 +255,6 @@ local function call_modules(l4_proto, mod_fn, update_ctr)
 	 -- Check if the script wants the three way handshake completed
 	 if do_trace then
 	    print(string.format("%s() [check: %s]: skipping flow with incomplete three way handshake\n", mod_fn, mod_key))
-	 end
-
-	 goto continue
-      end
-
-      -- Check if the scripts want bidirectional or one_way traffic
-      if((script.bidirectional and not bidirectional) or (script.one_way and bidirectional)) then
-	 if do_trace then
-	    print(string.format("%s() [check: %s]: skipping flow not matching requested directionality \n", mod_fn, mod_key))
 	 end
 
 	 goto continue
