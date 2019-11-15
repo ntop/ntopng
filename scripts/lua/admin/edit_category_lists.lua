@@ -24,9 +24,17 @@ active_page = "admin"
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local currentPage = _POST["currentPage"]
+if(currentPage == nil) then
+   currentPage = 1
+else
+   currentPage = tonumber(currentPage)
+end
+
 local base_url = ntop.getHttpPrefix() .. "/lua/admin/edit_category_lists.lua"
 local page_params = {
   category = _GET["category"],
+  currentPage = currentPage,
 }
 
 local lists = lists_utils.getCategoryLists()
@@ -58,6 +66,7 @@ end
 print[[
   <form id="list-update-form" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+    <input type="hidden" name="currentPage" value="]] print(currentPage) print  [[" />
     <input type="hidden" name="action" value="update" />
     <input id="list_to_update" type="hidden" name="list_name" />
   </form>
@@ -76,6 +85,7 @@ print[[
           <div class="container-fluid">
             <form id="edit-list-form" method="post" data-toggle="validator">
               <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+              <input type="hidden" name="currentPage" value="]] print(currentPage) print  [[" />
               <input type="hidden" name="action" value="edit" />
 
               <div class="row form-group has-feedback">
@@ -157,6 +167,7 @@ print[[
 
   $("#table-edit-lists-form").datatable({
     url: url_update,
+    currentPage: ]] print(currentPage) print [[,
     class: "table table-striped table-bordered",
     title:"",
     buttons: []]
@@ -229,6 +240,12 @@ print[[],
         datatableAddActionButtonCallback.bind(row)(actions_td_idx, "$('#list_to_update').val('" + list_name + "'); $('#list-update-form').submit()", "]] print(i18n('category_lists.update_now')) print[[");
 
       return row;
+     }, tableCallback: function() {
+       var currentPage = this.resultset.currentPage;
+       var form = $("#list-update-form");
+       form.find("[name='currentPage']").val(currentPage);
+       var form = $("#edit-list-form");
+       form.find("[name='currentPage']").val(currentPage);
      }
   });
 
