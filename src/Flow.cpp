@@ -4283,16 +4283,24 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
   if(flow_lua_call == flow_lua_call_idle) {
     /* Any pending callbacks will be dropped as this is the end of the flow */
     if(pending_protocol_detected) {
+      if(!quick)
+	performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data, quick);
+      else {
 #ifdef DEBUG_USER_SCRIPTS
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dropping pending protocolDetected call[%s]", getInterface()->get_name());
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dropping pending protocolDetected call[%s]", getInterface()->get_name());
 #endif
-      acle->incSkippedPcalls(flow_lua_call_protocol_detected);
+	acle->incSkippedPcalls(flow_lua_call_protocol_detected);
+      }
     }
     if(pending_periodic_update) {
+      if(!quick)
+	performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data, quick);
+      else {
 #ifdef DEBUG_USER_SCRIPTS
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dropping pending periodicUpdate call[%s]", getInterface()->get_name());
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dropping pending periodicUpdate call[%s]", getInterface()->get_name());
 #endif
-      acle->incSkippedPcalls(flow_lua_call_periodic_update);
+	acle->incSkippedPcalls(flow_lua_call_periodic_update);
+      }
     }
   }
 
