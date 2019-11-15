@@ -1354,6 +1354,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
       print("<li>" .. i18n("alerts_thresholds_config.note_create_custom_scripts", {url = "https://github.com/ntop/ntopng/blob/dev/doc/README.alerts.md"}) .. "</li>")
       print("<li>" .. i18n("flow_callbacks.note_add_custom_scripts", {url = ntop.getHttpPrefix().."/lua/directories.lua", product=ntop.getInfo()["product"]}) .. "</li>")
+      print("<li>" .. i18n("flow_callbacks.note_scripts_list", {url = ntop.getHttpPrefix().."/lua/user_scripts_overview.lua", product=ntop.getInfo()["product"]}) .. "</li>")
 
       print("</ul></div>")
 
