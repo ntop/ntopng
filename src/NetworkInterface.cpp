@@ -3626,7 +3626,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     /* Flow Status filter */
     if(retriever->pag
        && retriever->pag->flowStatusFilter(&flow_status_filter)
-       && status != flow_status_filter)
+       && !f->getStatusBitmap().issetBit(flow_status_filter))
       return(false);
 
 #ifdef HAVE_NEDGE
