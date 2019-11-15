@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
+local ts_utils = require "ts_utils"
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -63,6 +64,10 @@ local to_skip = (currentPage-1) * perPage
 local ifaces_scripts_stats = {}
 
 for _, iface in pairs(interface.getIfNames()) do
+   if iffilter and iffilter ~= tostring(getInterfaceId(iface)) then
+      goto continue
+   end
+
    interface.select(iface)
    local scripts_stats = interface.getPeriodicActivitiesStats()
 
@@ -70,6 +75,8 @@ for _, iface in pairs(interface.getIfNames()) do
    for script, stats in pairs(scripts_stats) do
       ifaces_scripts_stats[iface.."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
    end
+
+   ::continue::
 end
 
 local totalRows = 0
@@ -124,6 +131,12 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_last_duration"] = ternary(last_duration > 0, format_utils.formatMillis(last_duration), '')
       record["column_name"] = getInterfaceName(script_stats.ifid)
       record["column_periodic_activity_name"] = script_stats.script
+
+      if iffilter then
+	 if ts_utils.exists("periodic_script:duration_ms", {ifid = iffilter, periodic_script = script_stats.script}) then
+	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+	 end
+      end
 
       res[#res + 1] = record
    end

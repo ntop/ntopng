@@ -33,8 +33,8 @@ end
 
 -- ###########################################
 
-function internals_utils.printHashTablesTable(base_url)
-   local page_params = {hash_table = _GET["hash_table"], tab = _GET["tab"]}
+function internals_utils.printHashTablesTable(base_url, ifid)
+   local page_params = {hash_table = _GET["hash_table"], tab = _GET["tab"], iffilter = ifid}
 
    print[[
 <div id="table-system-interfaces-stats"></div>
@@ -56,7 +56,7 @@ $("#table-system-interfaces-stats").datatable({
    print[[</div>']]
 
    print[[ ],
-   url: "]] print(getPageUrl(ntop.getHttpPrefix().."/lua/get_internals_hash_tables_stats.lua?iffilter=all", page_params)) print[[",
+   url: "]] print(getPageUrl(ntop.getHttpPrefix().."/lua/get_internals_hash_tables_stats.lua", page_params)) print[[",
    columns: [
      {
        field: "column_key",
@@ -67,6 +67,7 @@ $("#table-system-interfaces-stats").datatable({
      }, {
        title: "]] print(i18n("interface")) print[[",
        field: "column_name",
+       hidden: ]] if ifid then print('true') else print('false') end print[[,
        sortable: true,
        css: {
 	 textAlign: 'left',
@@ -79,6 +80,15 @@ $("#table-system-interfaces-stats").datatable({
        css: {
 	 textAlign: 'left',
 	 width: '10%',
+       }
+     }, {
+       title: "]] print(i18n("chart")) print[[",
+       field: "column_chart",
+       hidden: ]] if not ifid then print('true') else print('false') end print[[,
+       sortable: false,
+       css: {
+	 textAlign: 'center',
+	 width: '1%',
        }
      }, {
        title: "]] print(i18n("internals.state_active")) print[[",
@@ -134,8 +144,8 @@ end
 
 -- ###########################################
 
-function internals_utils.printPeriodicActivitiesTable(base_url)
-   local page_params = {periodic_script = _GET["periodic_script"], tab = _GET["tab"]}
+function internals_utils.printPeriodicActivitiesTable(base_url, ifid)
+   local page_params = {periodic_script = _GET["periodic_script"], tab = _GET["tab"], iffilter = ifid}
 
    print[[
 <div id="table-internals-periodic-activities"></div>
@@ -157,7 +167,7 @@ $("#table-internals-periodic-activities").datatable({
    print[[</div>']]
 
    print[[ ],
-   url: "]] print(getPageUrl(ntop.getHttpPrefix().."/lua/get_internals_periodic_activities_stats.lua?iffilter=all", page_params)) print[[",
+   url: "]] print(getPageUrl(ntop.getHttpPrefix().."/lua/get_internals_periodic_activities_stats.lua", page_params)) print[[",
    columns: [
      {
        field: "column_key",
@@ -168,6 +178,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("interface")) print[[",
        field: "column_name",
+       hidden: ]] if ifid then print('true') else print('false') end print[[,
        sortable: true,
        css: {
 	 textAlign: 'left',
@@ -180,6 +191,15 @@ $("#table-internals-periodic-activities").datatable({
        css: {
 	 textAlign: 'left',
 	 width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("chart")) print[[",
+       field: "column_chart",
+       hidden: ]] if not ifid then print('true') else print('false') end print[[,
+       sortable: false,
+       css: {
+	 textAlign: 'center',
+	 width: '1%',
        }
      }, {
        title: "]] print(i18n("internals.max_duration_ms")) print[[",
@@ -222,25 +242,25 @@ end
 
 -- ###########################################
 
-function internals_utils.printInternals()
+function internals_utils.printInternals(ifid)
    local tab = _GET["tab"] or "hash_tables"
 
    print[[
 <ul class="nav nav-tabs" role="tablist">
   <li ]] if tab == "hash_tables" then print[[class="active"]] end print[[>
-    <a href="]] print(ntop.getHttpPrefix().."/lua/system_interfaces_stats.lua?page=internals&tab=hash_tables") print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>
+    <a href="?page=internals&tab=hash_tables") print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>
   <li ]] if tab == "periodic_activities" then print[[class="active"]] end print[[>
-    <a href="]] print(ntop.getHttpPrefix().."/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities") print[[">]] print(i18n("internals.periodic_activities")) print[[</a>
+    <a href="?page=internals&tab=periodic_activities") print[[">]] print(i18n("internals.periodic_activities")) print[[</a>
   </li>
 </ul>
 
 <div class="tab-content clearfix">]]
-   local base_url = "/lua/system_interfaces_stats.lua?page=internals"
+   local base_url = "?page=internals"
 
    if tab == "hash_tables" then
-      internals_utils.printHashTablesTable(base_url.."&tab=hash_tables")
+      internals_utils.printHashTablesTable(base_url.."&tab=hash_tables", ifid)
    elseif tab == "periodic_activities" then
-      internals_utils.printPeriodicActivitiesTable(base_url.."&tab=periodic_activities")
+      internals_utils.printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid)
    end
    print[[</div>]]
 end
