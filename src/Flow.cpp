@@ -44,7 +44,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_last_packets = 0, cli2srv_last_bytes = 0,
     srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, good_low_flow_detected = false,
-    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true,
+    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_tls_hs = true,
     flow_dropped_counts_increased = false, vrfId = 0;
     alert_score = CONST_NO_SCORE_SET;
 
@@ -218,8 +218,8 @@ Flow::Flow(NetworkInterface *_iface,
     break;
   }
 
-  protos.ssl.dissect_certificate = true,
-    protos.ssl.subject_alt_name_match = false;
+  protos.tls.dissect_certificate = true,
+    protos.tls.subject_alt_name_match = false;
 }
 
 /* *************************************** */
@@ -289,11 +289,11 @@ Flow::~Flow() {
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
     if(protos.ssh.hassh.client_hash) free(protos.ssh.hassh.client_hash);
     if(protos.ssh.hassh.server_hash) free(protos.ssh.hassh.server_hash);
-  } else if(isSSL()) {
-    if(protos.ssl.certificate)         free(protos.ssl.certificate);
-    if(protos.ssl.server_certificate)  free(protos.ssl.server_certificate);
-    if(protos.ssl.ja3.client_hash)     free(protos.ssl.ja3.client_hash);
-    if(protos.ssl.ja3.server_hash)     free(protos.ssl.ja3.server_hash);
+  } else if(isTLS()) {
+    if(protos.tls.certificate)         free(protos.tls.certificate);
+    if(protos.tls.server_certificate)  free(protos.tls.server_certificate);
+    if(protos.tls.ja3.client_hash)     free(protos.tls.ja3.client_hash);
+    if(protos.tls.ja3.server_hash)     free(protos.tls.ja3.server_hash);
   }
 
   if(bt_hash)                free(bt_hash);
@@ -403,10 +403,10 @@ void Flow::processDetectedProtocol() {
 				 ndpiFlow->protos.stun_ssl.ssl.server_certificate);
 #endif
 
-    if(protos.ssl.certificate
+    if(protos.tls.certificate
        && cli_host
        && cli_host->isLocalHost())
-      cli_host->incrVisitedWebSite(protos.ssl.certificate);
+      cli_host->incrVisitedWebSite(protos.tls.certificate);
 
     protocol_processed = true;
     break;
@@ -468,27 +468,27 @@ void Flow::processFullyDissectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_TLS:
-    protos.ssl.ssl_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
+    protos.tls.tls_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
 
-    if((protos.ssl.server_certificate == NULL)
+    if((protos.tls.server_certificate == NULL)
        && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
-      protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
+      protos.tls.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
     }
 
-    if((protos.ssl.certificate == NULL)
+    if((protos.tls.certificate == NULL)
        && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] != '\0')) {
-      protos.ssl.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
+      protos.tls.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
     }
 
-    if((protos.ssl.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
-      protos.ssl.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
+    if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
+      protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
       updateCliJA3();
     }
 
-    if((protos.ssl.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
-      protos.ssl.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
-      protos.ssl.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
-      protos.ssl.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
+    if((protos.tls.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
+      protos.tls.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
+      protos.tls.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
+      protos.tls.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
       updateSrvJA3();
     }
     break;
@@ -861,9 +861,9 @@ char* Flow::print(char *buf, u_int buf_len) const {
 	   (long long unsigned) stats.cli2srv_bytes, (long long unsigned) stats.srv2cli_bytes,
 	   printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
 	   printTCPflags(dst2src_tcp_flags, buf4, sizeof(buf4)),
-	   (isSSL() && protos.ssl.certificate) ? "[" : "",
-	   (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : "",
-	   (isSSL() && protos.ssl.certificate) ? "]" : ""
+	   (isTLS() && protos.tls.certificate) ? "[" : "",
+	   (isTLS() && protos.tls.certificate) ? protos.tls.certificate : "",
+	   (isTLS() && protos.tls.certificate) ? "]" : ""
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   , shapers
 #endif
@@ -1652,8 +1652,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(isSSH())
 	lua_get_ssh_info(vm);
 
-      if(isSSL())
-	lua_get_ssl_info(vm);
+      if(isTLS())
+	lua_get_tls_info(vm);
     }
 
     if(get_json_info()) {
@@ -2067,8 +2067,8 @@ json_object* Flow::flow2json() {
   if(bt_hash)
     json_object_object_add(my_object, "BITTORRENT_HASH", json_object_new_string(bt_hash));
 
-  if(isSSL() && protos.ssl.certificate)
-    json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.ssl.certificate));
+  if(isTLS() && protos.tls.certificate)
+    json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.tls.certificate));
 
 #ifdef HAVE_NEDGE
   if(iface && iface->is_bridge_interface())
@@ -2282,7 +2282,7 @@ bool Flow::isBlacklistedFlow() const {
 
 /* *************************************** */
 
-bool Flow::isSSLProto() {
+bool Flow::isTLSProto() {
   u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   return(
@@ -2538,8 +2538,8 @@ const char* Flow::getFlowInfo() {
     else if(isHTTP() && protos.http.last_url)
       return protos.http.last_url;
 
-    else if(isSSL() && protos.ssl.certificate)
-      return protos.ssl.certificate;
+    else if(isTLS() && protos.tls.certificate)
+      return protos.tls.certificate;
 
     else if(bt_hash)
       return bt_hash;
@@ -3563,22 +3563,22 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 /* ***************************************************** */
 
 void Flow::updateCliJA3() {
-  if(cli_host && isSSL() && protos.ssl.ja3.client_hash) {
-    cli_host->getJA3Fingerprint()->update(protos.ssl.ja3.client_hash,
+  if(cli_host && isTLS() && protos.tls.ja3.client_hash) {
+    cli_host->getJA3Fingerprint()->update(protos.tls.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
 
-    has_malicious_cli_signature |= ntop->isMaliciousJA3Hash(protos.ssl.ja3.client_hash);
+    has_malicious_cli_signature |= ntop->isMaliciousJA3Hash(protos.tls.ja3.client_hash);
   }
 }
 
 /* ***************************************************** */
 
 void Flow::updateSrvJA3() {
-  if(srv_host && isSSL() && protos.ssl.ja3.server_hash) {
-    srv_host->getJA3Fingerprint()->update(protos.ssl.ja3.server_hash,
+  if(srv_host && isTLS() && protos.tls.ja3.server_hash) {
+    srv_host->getJA3Fingerprint()->update(protos.tls.ja3.server_hash,
 					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL);
 
-    has_malicious_srv_signature |= ntop->isMaliciousJA3Hash(protos.ssl.ja3.server_hash);
+    has_malicious_srv_signature |= ntop->isMaliciousJA3Hash(protos.tls.ja3.server_hash);
   }
 }
 
@@ -3649,9 +3649,9 @@ void Flow::fillZmqFlowCategory() {
 
 /* ***************************************************** */
 
-void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
-  if(protos.ssl.dissect_certificate) {
-    u_int16_t _payload_len = payload_len + protos.ssl.certificate_leftover;
+void Flow::dissectTLS(char *payload, u_int16_t payload_len) {
+  if(protos.tls.dissect_certificate) {
+    u_int16_t _payload_len = payload_len + protos.tls.certificate_leftover;
     u_char *_payload       = (u_char*)malloc(_payload_len);
     bool find_initial_pattern = true;
 
@@ -3660,10 +3660,10 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
     else {
       int i = 0;
 
-      if(protos.ssl.certificate_leftover > 0) {
-	memcpy(_payload, protos.ssl.certificate_buf_leftover, (i = protos.ssl.certificate_leftover));
-	free(protos.ssl.certificate_buf_leftover);
-	protos.ssl.certificate_buf_leftover = NULL, protos.ssl.certificate_leftover = 0;
+      if(protos.tls.certificate_leftover > 0) {
+	memcpy(_payload, protos.tls.certificate_buf_leftover, (i = protos.tls.certificate_leftover));
+	free(protos.tls.certificate_buf_leftover);
+	protos.tls.certificate_buf_leftover = NULL, protos.tls.certificate_leftover = 0;
 	find_initial_pattern = false;
       }
 
@@ -3671,7 +3671,7 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
     }
 
     if(_payload_len > 4) {
-      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4 && protos.ssl.dissect_certificate; i++) {
+      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4 && protos.tls.dissect_certificate; i++) {
 
 	/* Look for the Subject Alternative Name Extension with OID 55 1D 11 */
 	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
@@ -3696,7 +3696,7 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		i += 2;
 
 		if(!isalpha(_payload[i]) && _payload[i] != '*') {
-		  protos.ssl.dissect_certificate = false;
+		  protos.tls.dissect_certificate = false;
 		  break;
 		}
 		else {
@@ -3706,17 +3706,17 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 		  buf[len] = '\0';
 
 #if 0
-		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][ssl cert: %s]", buf, len, sizeof(buf), getSSLCertificate());
+		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][tls cert: %s]", buf, len, sizeof(buf), getTLSCertificate());
 #endif
 
 		  /*
 		    CNs are NOT case sensitive as per RFC 5280
 		  */
-		  if (protos.ssl.certificate
-		      && ((buf[0] != '*' && !strncasecmp(protos.ssl.certificate, buf, sizeof(buf)))
-			  || (buf[0] == '*' && strcasestr(protos.ssl.certificate, &buf[1])))) {
-		    protos.ssl.subject_alt_name_match = true;
-		    protos.ssl.dissect_certificate = false;
+		  if (protos.tls.certificate
+		      && ((buf[0] != '*' && !strncasecmp(protos.tls.certificate, buf, sizeof(buf)))
+			  || (buf[0] == '*' && strcasestr(protos.tls.certificate, &buf[1])))) {
+		    protos.tls.subject_alt_name_match = true;
+		    protos.tls.dissect_certificate = false;
 		    break;
 		  }
 
@@ -3726,17 +3726,17 @@ void Flow::dissectSSL(char *payload, u_int16_t payload_len) {
 #if 0
 		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len - i, len);
 #endif
-		protos.ssl.certificate_leftover = _payload_len - i;
+		protos.tls.certificate_leftover = _payload_len - i;
 
-		if((protos.ssl.certificate_buf_leftover = (char*)malloc(protos.ssl.certificate_leftover)) != NULL)
-		  memcpy(protos.ssl.certificate_buf_leftover, &_payload[i], protos.ssl.certificate_leftover);
+		if((protos.tls.certificate_buf_leftover = (char*)malloc(protos.tls.certificate_leftover)) != NULL)
+		  memcpy(protos.tls.certificate_buf_leftover, &_payload[i], protos.tls.certificate_leftover);
 		else
-		  protos.ssl.certificate_leftover = 0;
+		  protos.tls.certificate_leftover = 0;
 
 		break;
 	      }
 	    } else {
-	      protos.ssl.dissect_certificate = false;
+	      protos.tls.dissect_certificate = false;
 	      break;
 	    }
 	  } /* while */
@@ -4108,33 +4108,33 @@ void Flow::lua_get_unicast_info(lua_State* vm) const {
 
 /* ***************************************************** */
 
-void Flow::lua_get_ssl_info(lua_State *vm) const {
-  if(isSSL()) {
-    lua_push_bool_table_entry(vm, "protos.ssl.subject_alt_name_match", protos.ssl.subject_alt_name_match);
-    lua_push_int32_table_entry(vm, "protos.ssl_version", protos.ssl.ssl_version);
+void Flow::lua_get_tls_info(lua_State *vm) const {
+  if(isTLS()) {
+    lua_push_bool_table_entry(vm, "protos.tls.subject_alt_name_match", protos.tls.subject_alt_name_match);
+    lua_push_int32_table_entry(vm, "protos.tls_version", protos.tls.tls_version);
 
-    if(protos.ssl.certificate)
-      lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
+    if(protos.tls.certificate)
+      lua_push_str_table_entry(vm, "protos.tls.certificate", protos.tls.certificate);
 
-    if(protos.ssl.server_certificate)
-      lua_push_str_table_entry(vm, "protos.ssl.server_certificate", protos.ssl.server_certificate);
+    if(protos.tls.server_certificate)
+      lua_push_str_table_entry(vm, "protos.tls.server_certificate", protos.tls.server_certificate);
 
-    if(protos.ssl.ja3.client_hash) {
-      lua_push_str_table_entry(vm, "protos.ssl.ja3.client_hash", protos.ssl.ja3.client_hash);
+    if(protos.tls.ja3.client_hash) {
+      lua_push_str_table_entry(vm, "protos.tls.ja3.client_hash", protos.tls.ja3.client_hash);
 
       if(has_malicious_cli_signature)
-	lua_push_bool_table_entry(vm, "protos.ssl.ja3.client_malicious", true);
+	lua_push_bool_table_entry(vm, "protos.tls.ja3.client_malicious", true);
     }
 
-    if(protos.ssl.ja3.server_hash) {
-      lua_push_str_table_entry(vm, "protos.ssl.ja3.server_hash", protos.ssl.ja3.server_hash);
-      lua_push_str_table_entry(vm, "protos.ssl.ja3.server_unsafe_cipher",
-			       cipher_weakness2str(protos.ssl.ja3.server_unsafe_cipher));
-      lua_push_int32_table_entry(vm, "protos.ssl.ja3.server_cipher",
-				 protos.ssl.ja3.server_cipher);
+    if(protos.tls.ja3.server_hash) {
+      lua_push_str_table_entry(vm, "protos.tls.ja3.server_hash", protos.tls.ja3.server_hash);
+      lua_push_str_table_entry(vm, "protos.tls.ja3.server_unsafe_cipher",
+			       cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher));
+      lua_push_int32_table_entry(vm, "protos.tls.ja3.server_cipher",
+				 protos.tls.ja3.server_cipher);
 
       if(has_malicious_srv_signature)
-	lua_push_bool_table_entry(vm, "protos.ssl.ja3.server_malicious", true);
+	lua_push_bool_table_entry(vm, "protos.tls.ja3.server_malicious", true);
     }
   }
 }

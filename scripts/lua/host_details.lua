@@ -313,11 +313,11 @@ else
 end
 
 if(host["ja3_fingerprint"] ~= nil) then
-   if(page == "ssl") then
-   print("<li class=\"active\"><a href=\"#\">"..i18n("ssl").."</a></li>\n")
+   if(page == "tls") then
+   print("<li class=\"active\"><a href=\"#\">"..i18n("tls").."</a></li>\n")
    else
       if(table.len(host["ja3_fingerprint"]) > 0) then
-        print("<li><a href=\""..url.."&page=ssl\">"..i18n("ssl").."</a></li>")
+        print("<li><a href=\""..url.."&page=tls\">"..i18n("tls").."</a></li>")
       end
    end
 end
@@ -1405,7 +1405,7 @@ print [[
 </small>
 ]]
       end
-elseif(page == "ssl") then
+elseif(page == "tls") then
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
      <thead><tr><th>]] print('<A HREF="https://github.com/salesforce/ja3" target="_blank">'..i18n("ja3_fingerprint")..'</A>') print[[</th>]]

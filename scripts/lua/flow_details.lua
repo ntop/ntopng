@@ -37,7 +37,7 @@ local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
 
-local ssl_cipher_suites = {
+local tls_cipher_suites = {
    TLS_NULL_WITH_NULL_NULL=0x000000,
    TLS_RSA_WITH_NULL_MD5=0x000001,
    TLS_RSA_WITH_NULL_SHA=0x000002,
@@ -296,7 +296,7 @@ local ssl_cipher_suites = {
    SSL2_RC4_64_WITH_MD5=0x080080,
 }
 
-function sslVersion2Str(v)
+function tlsVersion2Str(v)
    if(v == 768) then
       return("SSL v3")
    elseif(v == 769) then
@@ -308,14 +308,14 @@ function sslVersion2Str(v)
    elseif(v == 772) then
       return("TLS v1.3");
    else
-      return("SSL "..flow["protos.ssl_version"])
+      return("SSL "..flow["protos.tls_version"])
    end
 end
 
 local function cipher2str(c)
    if(c == nil) then return end
    
-   for s,v in pairs(ssl_cipher_suites) do
+   for s,v in pairs(tls_cipher_suites) do
       if(v == c) then
 	 return('<A HREF="https://ciphersuite.info/cs/'..s..'">'..s..'</A>')
       end
@@ -617,14 +617,14 @@ else
    print(getCategoryLabel(flow["proto.ndpi_cat"]))
    print("</A>) ".. formatBreed(flow["proto.ndpi_breed"]))
    if(flow["verdict.pass"] == false) then print("</strike>") end
-   historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.ssl.certificate"])
+   historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.tls.certificate"])
 
-   if((flow["protos.ssl_version"] ~= nil)
-      and (flow["protos.ssl_version"] ~= 0)) then
-      print(" [ "..sslVersion2Str(flow["protos.ssl_version"]).." ]")
-      if(tonumber(flow["protos.ssl_version"]) < 771) then
+   if((flow["protos.tls_version"] ~= nil)
+      and (flow["protos.tls_version"] ~= 0)) then
+      print(" [ "..tlsVersion2Str(flow["protos.tls_version"]).." ]")
+      if(tonumber(flow["protos.tls_version"]) < 771) then
 	 print(' <i class="fa fa-warning" aria-hidden=true style="color: orange;"></i> ')
-	 print(i18n("flow_details.ssl_old_protocol_version"))
+	 print(i18n("flow_details.tls_old_protocol_version"))
       end
    end
 
@@ -847,19 +847,19 @@ else
        end
     end
 
-   if(flow["protos.ssl.certificate"] ~= nil) then
-      print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> "..i18n("flow_details.ssl_certificate").."</th><td>")
-      print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.ssl.certificate"].."\">"..flow["protos.ssl.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
-      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.ssl.certificate"], flow["category"])) end
-      historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.ssl.certificate"])
-      printAddCustomHostRule(flow["protos.ssl.certificate"])
+   if(flow["protos.tls.certificate"] ~= nil) then
+      print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
+      print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.tls.certificate"].."\">"..flow["protos.tls.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
+      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.certificate"], flow["category"])) end
+      historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.tls.certificate"])
+      printAddCustomHostRule(flow["protos.tls.certificate"])
       print("</td>")
 
       print("<td>")
-      if(flow["protos.ssl.server_certificate"] ~= nil) then
-	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.ssl.server_certificate"].."\">"..flow["protos.ssl.server_certificate"].."</A>")
+      if(flow["protos.tls.server_certificate"] ~= nil) then
+	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.tls.server_certificate"].."\">"..flow["protos.tls.server_certificate"].."</A>")
 
-	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_ssl_certificate_mismatch.status_id)) then
+	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_tls_certificate_mismatch.status_id)) then
 	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
@@ -867,18 +867,18 @@ else
       print("</tr>\n")
    end
 
-   if((flow["protos.ssl.ja3.client_hash"] ~= nil) or (flow["protos.ssl.ja3.server_hash"] ~= nil)) then
+   if((flow["protos.tls.ja3.client_hash"] ~= nil) or (flow["protos.tls.ja3.server_hash"] ~= nil)) then
       print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
-      if(flow["protos.ssl.ja3.client_malicious"]) then
+      if(flow["protos.tls.ja3.client_malicious"]) then
         print('<i class="fa fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
       end
-      ja3url(flow["protos.ssl.ja3.client_hash"], nil)
+      ja3url(flow["protos.tls.ja3.client_hash"], nil)
       print("</td><td>")
-      if(flow["protos.ssl.ja3.server_malicious"]) then
+      if(flow["protos.tls.ja3.server_malicious"]) then
         print('<i class="fa fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
       end
-      ja3url(flow["protos.ssl.ja3.server_hash"], flow["protos.ssl.ja3.server_unsafe_cipher"])
-      --print(cipher2str(flow["protos.ssl.ja3.server_cipher"]))
+      ja3url(flow["protos.tls.ja3.server_hash"], flow["protos.tls.ja3.server_unsafe_cipher"])
+      --print(cipher2str(flow["protos.tls.ja3.server_cipher"]))
       print("</td></tr>")
    end
 

@@ -940,16 +940,16 @@
 
 #define BITMAP_NUM_BITS               64
 
-#define SSL_HANDSHAKE_PACKET          0x16
-#define SSL_PAYLOAD_PACKET            0x17
-#define SSL_CLIENT_HELLO              0x01
-#define SSL_SERVER_HELLO              0x02
-#define SSL_CLIENT_KEY_EXCHANGE       0x10
-#define SSL_SERVER_CHANGE_CIPHER_SPEC 0x14
-#define SSL_NEW_SESSION_TICKET        0x04
+#define TLS_HANDSHAKE_PACKET          0x16
+#define TLS_PAYLOAD_PACKET            0x17
+#define TLS_CLIENT_HELLO              0x01
+#define TLS_SERVER_HELLO              0x02
+#define TLS_CLIENT_KEY_EXCHANGE       0x10
+#define TLS_SERVER_CHANGE_CIPHER_SPEC 0x14
+#define TLS_NEW_SESSION_TICKET        0x04
 
-#define SSL_MAX_HANDSHAKE_PCKS          15
-#define SSL_MIN_PACKET_SIZE             10
+#define TLS_MAX_HANDSHAKE_PCKS          15
+#define TLS_MIN_PACKET_SIZE             10
 
 #define HTTP_MAX_CONTENT_TYPE_LENGTH    63
 #define HTTP_MAX_HEADER_LINES           20

@@ -70,7 +70,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, fully_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
-    good_low_flow_detected, good_ssl_hs, update_flow_port_stats,
+    good_low_flow_detected, good_tls_hs, update_flow_port_stats,
     quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
@@ -126,7 +126,7 @@ class Flow : public GenericHashEntry {
     } ssh;
 
     struct {
-      u_int16_t ssl_version;
+      u_int16_t tls_version;
       char *certificate, *server_certificate;
       /* Certificate dissection */
       char *certificate_buf_leftover;
@@ -139,7 +139,7 @@ class Flow : public GenericHashEntry {
 	u_int16_t server_cipher;
 	ndpi_cipher_weakness server_unsafe_cipher;
       } ja3;
-    } ssl;
+    } tls;
 
     struct {
       u_int8_t icmp_type, icmp_code;
@@ -265,7 +265,7 @@ class Flow : public GenericHashEntry {
   inline bool isProto(u_int16_t p) const { return(((ndpiDetectedProtocol.master_protocol == p)
 						   || (ndpiDetectedProtocol.app_protocol == p))
 						  ? true : false); }
-  inline bool isSSL()  const { return(isProto(NDPI_PROTOCOL_TLS));  }
+  inline bool isTLS()  const { return(isProto(NDPI_PROTOCOL_TLS));  }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isDHCP() const { return(isProto(NDPI_PROTOCOL_DHCP)); }
@@ -301,7 +301,7 @@ class Flow : public GenericHashEntry {
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
   const char* getFlowInfo();
   inline char* getFlowServerInfo() {
-    return (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : host_server_name;
+    return (isTLS() && protos.tls.certificate) ? protos.tls.certificate : host_server_name;
   }
   inline char* getBitTorrentHash() { return(bt_hash);          };
   inline void  setBTHash(char *h)  { if(!h) return; if(bt_hash) free(bt_hash); bt_hash = h; }
@@ -461,7 +461,7 @@ class Flow : public GenericHashEntry {
   void lua_get_time(lua_State* vm) const;
   void lua_get_ip(lua_State *vm, bool client) const;
   void lua_get_info(lua_State *vm, bool client) const;
-  void lua_get_ssl_info(lua_State *vm) const;
+  void lua_get_tls_info(lua_State *vm) const;
   void lua_get_ssh_info(lua_State *vm) const;
   void lua_get_http_info(lua_State *vm) const;
   void lua_get_dns_info(lua_State *vm) const;
@@ -478,7 +478,7 @@ class Flow : public GenericHashEntry {
   bool dumpFlow(const struct timeval *tv, NetworkInterface *dumper);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
-  void dissectSSL(char *payload, u_int16_t payload_len);
+  void dissectTLS(char *payload, u_int16_t payload_len);
   void dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
@@ -507,8 +507,8 @@ class Flow : public GenericHashEntry {
   inline void  setHTTPMethod(char *v)  { if(isHTTP()) { if(protos.http.last_method) free(protos.http.last_method);  protos.http.last_method = v; } }
   inline void  setHTTPRetCode(u_int16_t c) { if(isHTTP()) { protos.http.last_return_code = c; } }
   inline char* getHTTPContentType() { return(isHTTP() ? protos.http.last_content_type : (char*)"");   }
-  inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
-  bool isSSLProto();
+  inline char* getTLSCertificate()  { return(isTLS() ? protos.tls.certificate : (char*)""); }
+  bool isTLSProto();
 
   void setExternalAlert(json_object *a);
   void luaRetrieveExternalAlert(lua_State *vm);
@@ -617,7 +617,7 @@ class Flow : public GenericHashEntry {
      && !idle() && isIdle(10 * getInterface()->getFlowMaxIdle()));
   }
 
-  inline u_int16_t getSSLVersion()  { return(isSSL() ? (protos.ssl.ssl_version) : 0); }
+  inline u_int16_t getTLSVersion()  { return(isTLS() ? (protos.tls.tls_version) : 0); }
 };
 
 #endif /* _FLOW_H_ */

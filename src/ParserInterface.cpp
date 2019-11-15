@@ -344,9 +344,9 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
   flow->setHTTPRetCode(zflow->http_ret_code);
 
-  if(zflow->ssl_server_name) {
-    flow->setServerName(zflow->ssl_server_name);
-    zflow->ssl_server_name = NULL;
+  if(zflow->tls_server_name) {
+    flow->setServerName(zflow->tls_server_name);
+    zflow->tls_server_name = NULL;
   }
 
   if(zflow->bittorrent_hash) {

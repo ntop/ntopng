@@ -1625,7 +1625,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     case NDPI_PROTOCOL_TLS:
       if(trusted_payload_len > 0)
-	flow->dissectSSL((char *)payload, trusted_payload_len);
+	flow->dissectTLS((char *)payload, trusted_payload_len);
       break;
     }
 

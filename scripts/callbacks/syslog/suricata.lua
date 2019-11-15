@@ -120,7 +120,7 @@ end
 -- #################################################################
 
 local function parseTLSMetadata(event_tls, flow)
-   flow.ssl_server_name = event_tls.sni
+   flow.tls_server_name = event_tls.sni
 
    if event_tls.ja3  ~= nil then flow.ja3c_hash = event_tls.ja3.hash  end
    if event_tls.ja3s ~= nil then flow.ja3s_hash = event_tls.ja3s.hash end

@@ -574,7 +574,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     break;
   case SSL_SERVER_NAME:
     if (value->string[0] && value->string[0] != '\n')
-      flow->ssl_server_name = strdup(value->string);
+      flow->tls_server_name = strdup(value->string);
     break;
   case JA3C_HASH:
     if (value->string[0])
@@ -585,10 +585,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->ja3s_hash = strdup(value->string);
     break;
   case SSL__CIPHER:
-    flow->ssl_cipher = value->uint_num;
+    flow->tls_cipher = value->uint_num;
     break;
   case SSL_UNSAFE_CIPHER:
-    flow->ssl_unsafe_cipher = value->uint_num;
+    flow->tls_unsafe_cipher = value->uint_num;
     break;
   case BITTORRENT_HASH:
     if (value->string[0] && value->string[0] != '\n')
@@ -764,8 +764,8 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
       return (strcmp(flow->http_site, value->string) == 0);
 
   case SSL_SERVER_NAME:
-    if (value->string && flow->ssl_server_name)
-      return (strcmp(flow->ssl_server_name, value->string) == 0);
+    if (value->string && flow->tls_server_name)
+      return (strcmp(flow->tls_server_name, value->string) == 0);
 
   case NPROBE_IPV4_ADDRESS:
     return (flow->deviceIP == ntohl(inet_addr(value->string)));

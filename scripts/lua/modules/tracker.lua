@@ -54,7 +54,7 @@ local function tracker_filter_pref(key)
   if k == "disable_alerts_generation" or
      k == "mining_alerts" or
      k == "probing_alerts" or
-     k == "ssl_alerts" or
+     k == "tls_alerts" or
      k == "dns_alerts" or
      k == "ip_reassignment_alerts" or
      k == "remote_to_remote_alerts" or

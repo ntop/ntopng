@@ -27,11 +27,11 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields_json = NULL;
   additional_fields_tlv = NULL;
   http_url = http_site = http_method = NULL;
-  dns_query = ssl_server_name = NULL;
+  dns_query = tls_server_name = NULL;
   ja3c_hash = ja3s_hash = NULL;
   external_alert = NULL;
 
-  ssl_cipher = ssl_unsafe_cipher = http_ret_code = 0;
+  tls_cipher = tls_unsafe_cipher = http_ret_code = 0;
   dns_query_type = dns_ret_code = 0;
  
   bittorrent_hash = NULL;
@@ -56,14 +56,14 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
   if(pf.http_site) http_site = strdup(pf.http_site); else http_site = NULL;
   if(pf.http_method) http_method = strdup(pf.http_method); else http_method = NULL;
   if(pf.dns_query) dns_query = strdup(pf.dns_query); else dns_query = NULL;
-  if(pf.ssl_server_name) ssl_server_name = strdup(pf.ssl_server_name); else ssl_server_name = NULL;
+  if(pf.tls_server_name) tls_server_name = strdup(pf.tls_server_name); else tls_server_name = NULL;
   if(pf.bittorrent_hash) bittorrent_hash = strdup(pf.bittorrent_hash); else bittorrent_hash = NULL;
   if(pf.ja3c_hash) ja3c_hash = strdup(pf.ja3c_hash); else ja3c_hash = NULL;
   if(pf.ja3s_hash) ja3s_hash = strdup(pf.ja3s_hash); else ja3s_hash = NULL;
   if(pf.external_alert) external_alert = strdup(pf.external_alert); else external_alert = NULL;
 
-  ssl_cipher = pf.ssl_cipher;
-  ssl_unsafe_cipher = pf.ssl_unsafe_cipher;
+  tls_cipher = pf.tls_cipher;
+  tls_unsafe_cipher = pf.tls_unsafe_cipher;
   http_ret_code = pf.http_ret_code;
   dns_query_type = pf.dns_query_type;
   dns_ret_code = pf.dns_ret_code;
@@ -96,9 +96,9 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
 	} else if(!strcmp(key, "http_url")) {
           if(http_url) free(http_url);
           http_url = strdup(lua_tostring(L, -1));
-	} else if(!strcmp(key, "ssl_server_name")) {
-          if(ssl_server_name) free(ssl_server_name);
-          ssl_server_name = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "tls_server_name")) {
+          if(tls_server_name) free(tls_server_name);
+          tls_server_name = strdup(lua_tostring(L, -1));
 	} else if(!strcmp(key, "dns_query")) {
           if(dns_query) free(dns_query);
           dns_query = strdup(lua_tostring(L, -1));
@@ -193,7 +193,7 @@ ParsedFlow::~ParsedFlow() {
   if(http_site) free(http_site);
   if(http_method) free(http_method);
   if(dns_query) free(dns_query);
-  if(ssl_server_name) free(ssl_server_name);
+  if(tls_server_name) free(tls_server_name);
   if(bittorrent_hash) free(bittorrent_hash);
   if(ja3c_hash) free(ja3c_hash);
   if(ja3s_hash) free(ja3s_hash);

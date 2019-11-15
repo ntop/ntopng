@@ -8810,12 +8810,12 @@ static int ntop_flow_is_not_purged(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_get_ssl_version(lua_State* vm) {
+static int ntop_flow_get_tls_version(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushinteger(vm, f->getSSLVersion());
+  lua_pushinteger(vm, f->getTLSVersion());
   return(CONST_LUA_OK);
 }
 
@@ -9132,8 +9132,6 @@ static int ntop_flow_get_ndpi_cat_name(lua_State* vm) {
 
 static int ntop_flow_matches_l7(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
-  ndpi_protocol l7proto;
-  struct ndpi_detection_module_struct *ndpi_struct;
   int filter;
 
   if(!f) return(CONST_LUA_ERROR);
@@ -9591,12 +9589,12 @@ static int ntop_flow_get_time(lua_State* vm) {
 
 /* ****************************************** */
 
-static int  ntop_flow_get_ssl_info(lua_State* vm) {
+static int  ntop_flow_get_tls_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
   lua_newtable(vm);
 
-  if(f) f->lua_get_ssl_info(vm);
+  if(f) f->lua_get_tls_info(vm);
 
   return CONST_LUA_OK;
 }
@@ -11039,7 +11037,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "setServerScore",           ntop_flow_set_server_score           },
   { "getMUDInfo",               ntop_flow_get_mud_info               },
   { "isNotPurged",              ntop_flow_is_not_purged              },
-  { "getSSLVersion",            ntop_flow_get_ssl_version            },
+  { "getTLSVersion",            ntop_flow_get_tls_version            },
   { "getTCPPacketIssues",       ntop_flow_get_tcp_packet_issues      },
   { "getTCPStats",              ntop_flow_get_tcp_stats              },
   { "getBlacklistedInfo",       ntop_flow_get_blacklisted_info       },
@@ -11058,7 +11056,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getServer2ClientIAT",      ntop_flow_get_srv2cli_iat            },
   { "getPackets",               ntop_flow_get_packets                },
   { "getTime",                  ntop_flow_get_time                   },
-  { "getSSLInfo",               ntop_flow_get_ssl_info               },
+  { "getTLSInfo",               ntop_flow_get_tls_info               },
   { "getSSHInfo",               ntop_flow_get_ssh_info               },
   { "getHTTPInfo",              ntop_flow_get_http_info              },
   { "getDNSInfo",               ntop_flow_get_dns_info               },

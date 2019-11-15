@@ -19,13 +19,13 @@ local code_2_version = {
 -- #################################################################
 
 local function formatStatus(status, flowstatus_info)
-  local msg = i18n("flow_details.ssl_old_protocol_version")
+  local msg = i18n("flow_details.tls_old_protocol_version")
 
-  if(flowstatus_info and flowstatus_info.ssl_version) then
-    local ver_str = code_2_version[flowstatus_info.ssl_version]
+  if(flowstatus_info and flowstatus_info.tls_version) then
+    local ver_str = code_2_version[flowstatus_info.tls_version]
 
     if(ver_str == nil) then
-      ver_str = string.format("%u", flowstatus_info.ssl_version)
+      ver_str = string.format("%u", flowstatus_info.tls_version)
     end
 
     msg = msg .. " (" .. ver_str .. ")"
@@ -42,6 +42,6 @@ return {
   prio = 470,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_potentially_dangerous_protocol,
-  i18n_title = "flow_details.ssl_old_protocol_version",
+  i18n_title = "flow_details.tls_old_protocol_version",
   i18n_description = formatStatus,
 }

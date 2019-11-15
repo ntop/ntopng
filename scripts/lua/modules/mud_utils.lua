@@ -24,9 +24,9 @@ local mud_utils = {}
 -- @brief Possibly extract fingerprint information for host/peers
 -- @return a table {fp_id, host_fp, peer_fp} where fp_id is one of {"", "JA3", "HASSH"}
 local function getFingerprints(is_client)
-   local ssl_info = flow.getSSLInfo()
-   local ja3_cli_hash = ssl_info["protos.ssl.ja3.client_hash"]
-   local ja3_srv_hash = ssl_info["protos.ssl.ja3.server_hash"]
+   local tls_info = flow.getTLSInfo()
+   local ja3_cli_hash = tls_info["protos.tls.ja3.client_hash"]
+   local ja3_srv_hash = tls_info["protos.tls.ja3.server_hash"]
 
    if(ja3_cli_hash or ja3_srv_hash) then
       if(is_client) then
