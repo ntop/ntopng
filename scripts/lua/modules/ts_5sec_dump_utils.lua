@@ -47,10 +47,9 @@ end
 
 -- ########################################################
 
-function ts_dump.run_5sec_dump(ifid, periodic_ht_state_update_stats)
+function ts_dump.run_5sec_dump(ifid, when, periodic_ht_state_update_stats)
    local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
       and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
-   local when = os.time()
 
    if not iface_rrd_creation_enabled then
       return

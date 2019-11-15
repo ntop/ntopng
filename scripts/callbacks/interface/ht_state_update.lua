@@ -12,13 +12,14 @@ local ts_dump = require "ts_5sec_dump_utils"
 
 -- Keep it in sync with HT_STATE_UPDATE_SCRIPT_PATH periodicity in PeriodicActivities.cpp
 -- that is, with the frequency of execution of this script.
-local HT_STATE_UPDATE_FREQ = 5 
+local HT_STATE_UPDATE_FREQ = 5
+local when = os.time()
 
 -- ########################################################
 
-local deadline = os.time() + HT_STATE_UPDATE_FREQ
+local deadline = when + HT_STATE_UPDATE_FREQ
 local periodic_ht_state_update_stats = interface.periodicHTStateUpdate(deadline)
-ts_dump.run_5sec_dump(interface.getId(), periodic_ht_state_update_stats)
+ts_dump.run_5sec_dump(interface.getId(), when, periodic_ht_state_update_stats)
 
 -- ########################################################
 
