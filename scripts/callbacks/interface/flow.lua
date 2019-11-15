@@ -192,9 +192,11 @@ end
 -- Function for the actual module execution. Iterates over available (and enabled)
 -- modules, calling them one after one.
 -- @param l4_proto the L4 protocol of the flow
+-- @param master_id the L7 master protocol of the flow
+-- @param app_id the L7 app protocol of the flow
 -- @param mod_fn the callback to call
 -- @return true if some module was called, false otherwise
-local function call_modules(l4_proto, mod_fn, update_ctr)
+local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    if calculate_stats then
       stats.num_invocations = stats.num_invocations + 1
    end
@@ -262,15 +264,12 @@ local function call_modules(l4_proto, mod_fn, update_ctr)
 
       local script_l7 = script.l7_proto_id
 
-      if(script_l7 ~= nil) then
-         -- Check if the L7 protocol corresponds
-         if(not flow.matchesL7(script_l7)) then
-            if do_trace then
-	       print(string.format("%s() [check: %s]: skipping flow with proto=%s [wants: %s]\n", mod_fn, mod_key, flow_proto, tprint(script_l7)))
-	    end
+      if((script_l7 ~= nil) and (master_id ~= script_l7) and (app_id ~= script_l7)) then
+	 if do_trace then
+	    print(string.format("%s() [check: %s]: skipping flow with proto=%s/%s [wants: %s]\n", mod_fn, mod_key, master_id, app_id, script_l7))
+	 end
 
-            goto continue
-         end
+	 goto continue
       end
 
       if calculate_stats then
@@ -368,24 +367,24 @@ end
 
 -- Given an L4 protocol, we must call both the hooks registered for that protocol and
 -- the hooks registered for any L4 protocol (id 255)
-function protocolDetected(l4_proto)
-   call_modules(l4_proto, "protocolDetected")
+function protocolDetected(l4_proto, master_id, app_id)
+   call_modules(l4_proto, master_id, app_id, "protocolDetected")
 end
 
 -- #################################################################
 
-function statusChanged(l4_proto)
-   call_modules(l4_proto, "statusChanged")
+function statusChanged(l4_proto, master_id, app_id)
+   call_modules(l4_proto, master_id, app_id, "statusChanged")
 end
 
 -- #################################################################
 
-function flowEnd(l4_proto)
-   call_modules(l4_proto, "flowEnd")
+function flowEnd(l4_proto, master_id, app_id)
+   call_modules(l4_proto, master_id, app_id, "flowEnd")
 end
 
 -- #################################################################
 
-function periodicUpdate(l4_proto, update_ctr)
-   call_modules(l4_proto, "periodicUpdate", update_ctr)
+function periodicUpdate(l4_proto, master_id, app_id, update_ctr)
+   call_modules(l4_proto, master_id, app_id, "periodicUpdate", update_ctr)
 end

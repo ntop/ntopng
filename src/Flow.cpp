@@ -4251,7 +4251,6 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
   const char *lua_call_fn_name = NULL;
   Bitmap prev_status = status_map;
   std::map<FlowLuaCall, struct timeval>::iterator it;
-  int num_args = 1;
 
   if(isLuaCallPerformed(flow_lua_call, tv))
      return; /* Already called */
@@ -4334,17 +4333,31 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
   }
 
   if(lua_call_fn_name) {
+    int num_args = 3;
+
 #ifdef LUA_PROFILING
-    for(int i = 0; i < 200000; i++) {
+    ticks t_begin = Utils::getticks();
+    ticks total_ticks;
+    int num_calls = 200000;
+
+    for(int i = 0; i < num_calls; i++) {
       /* Call the function */
       lua_getglobal(L, lua_call_fn_name); /* Called function */
-      acle->pcall(0 /* 0 arguments */, 0 /* 0 results */);
+      lua_pushinteger(L, protocol);
+      lua_pushinteger(L, ndpiDetectedProtocol.master_protocol);
+      lua_pushinteger(L, ndpiDetectedProtocol.app_protocol);
+      acle->pcall(3 /* 3 arguments */, 0 /* 0 results */);
     }
+
+    total_ticks = Utils::getticks()  - t_begin;
+    printf("%u calls executed in %f ms\n", num_calls, (total_ticks * 1000.f / Utils::gettickspersec()));
     return;
 #else
     /* Call the function */
     lua_getglobal(L, lua_call_fn_name); /* Called function */
-    lua_pushinteger(L, protocol);  /* pass the L4 protocol as first argument, needed for optimized L4 filter */
+    lua_pushinteger(L, protocol);
+    lua_pushinteger(L, ndpiDetectedProtocol.master_protocol);
+    lua_pushinteger(L, ndpiDetectedProtocol.app_protocol);
 
     if(flow_lua_call == flow_lua_call_periodic_update) {
       /* pass the periodic_update counter as the second argument,

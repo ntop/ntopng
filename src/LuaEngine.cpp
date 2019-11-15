@@ -9248,21 +9248,6 @@ static int ntop_flow_get_ndpi_cat_name(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_matches_l7(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-  int filter;
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  filter = lua_tonumber(vm, 1);
-
-  lua_pushboolean(vm, f->isProto(filter));
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_flow_get_cli_tcp_issues(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -11008,7 +10993,6 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "isLocalToRemote",          ntop_flow_is_local_to_remote         },
   { "isRemoteToLocal",          ntop_flow_is_remote_to_local         },
   { "getnDPICategoryName",      ntop_flow_get_ndpi_cat_name          },
-  { "matchesL7",                ntop_flow_matches_l7                 },
   { "getClientTCPIssues",       ntop_flow_get_cli_tcp_issues         },
   { "getServerTCPIssues",       ntop_flow_get_srv_tcp_issues         },
   { "canTriggerAlert",          ntop_flow_can_trigger_alert          },
