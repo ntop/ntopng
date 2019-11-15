@@ -853,7 +853,7 @@ function ts_utils.getPossiblyChangedSchemas()
     "influxdb:rtt",
     "monitored_host:rtt",
     "system:cpu_load",
-    "process:memory",
+    "process:resident_memory",
     "redis:keys",
     "redis:memory",
   }

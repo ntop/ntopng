@@ -25,10 +25,9 @@ local when = os.time()
 
 if((system_host_stats.mem_ntopng_resident ~= nil) and
       (system_host_stats.mem_ntopng_virtual ~= nil)) then
-   ts_utils.append("process:memory", {
+   ts_utils.append("process:resident_memory", {
       ifid = getSystemInterfaceId(),
       resident_bytes = system_host_stats.mem_ntopng_resident * 1024,
-      virtual_bytes = system_host_stats.mem_ntopng_virtual * 1024,
    }, when, verbose)
 end
 

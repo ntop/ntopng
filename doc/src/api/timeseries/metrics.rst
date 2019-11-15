@@ -2523,7 +2523,7 @@ Process Metrics
 ===============
 
 
-.. admonition:: process:memory
+.. admonition:: process:resident_memory
    
    Memory statistics for the ntopng process.
    
@@ -2544,8 +2544,6 @@ Process Metrics
    | Name                     | Description                                               |
    +==========================+===========================================================+
    | resident_bytes           | Resident memory (bytes).                                  |
-   +--------------------------+-----------------------------------------------------------+
-   | virtual_bytes            | Virtual memory (bytes).                                   |
    +--------------------------+-----------------------------------------------------------+
 
 

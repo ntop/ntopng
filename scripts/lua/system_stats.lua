@@ -44,7 +44,7 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
-if(ts_utils.exists("process:memory", {ifid=getSystemInterfaceId()})) then
+if(ts_utils.exists("process:resident_memory", {ifid=getSystemInterfaceId()})) then
    if(page == "historical") then
       print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    else
@@ -206,7 +206,7 @@ elseif(page == "historical") then
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = table.merge({
 	    {schema="system:cpu_load",            label=i18n("about.cpu_load"), metrics_labels = {i18n("about.cpu_load")}, value_formatter = {"ffloat"}},
-	    {schema="process:memory",             label=i18n("graphs.process_memory")},
+	    {schema="process:resident_memory",    label=i18n("graphs.process_memory")},
       }, system_schemas)
    })
 elseif((page == "alerts") and isAdministrator()) then
