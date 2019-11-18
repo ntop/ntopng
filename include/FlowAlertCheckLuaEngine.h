@@ -38,8 +38,7 @@ class FlowAlertCheckLuaEngine : public AlertCheckLuaEngine {
   virtual ~FlowAlertCheckLuaEngine();
 
   void incSkippedPcalls(FlowLuaCall flow_lua_call);
-  inline void incPendingProtoDetected()   { num_pending_proto_detected++; }
-  inline void incPendingPeriodicUpdate()  { num_pending_periodic_update++; }
+  void incPendingPcalls(FlowLuaCall flow_lua_call);
 };
 
 #endif
