@@ -317,7 +317,6 @@ typedef enum {
   flow_lua_call_flow_status_changed,
   flow_lua_call_periodic_update,
   flow_lua_call_idle,
-  FLOW_LUA_CALL_MAX_VAL /* Leave it as last element */
 } FlowLuaCall;
 
 typedef enum {
