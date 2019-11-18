@@ -9,7 +9,7 @@ local dirs = ntop.getDirs()
 
 -- ###########################################
 
-function internals_utils.printHashTablesDropdown(base_url, page_params)
+local function printHashTablesDropdown(base_url, page_params)
    local hash_table = _GET["hash_table"]
    local hash_table_filter
    if not isEmptyString(hash_table) then
@@ -33,7 +33,7 @@ end
 
 -- ###########################################
 
-function internals_utils.printHashTablesTable(base_url, ifid)
+local function printHashTablesTable(base_url, ifid)
    local page_params = {hash_table = _GET["hash_table"], tab = _GET["tab"], iffilter = ifid}
 
    print[[
@@ -52,7 +52,7 @@ $("#table-system-interfaces-stats").datatable({
 
    -- Ip version selector
    print[['<div class="btn-group pull-right">]]
-   internals_utils.printHashTablesDropdown(base_url, page_params)
+   printHashTablesDropdown(base_url, page_params)
    print[[</div>']]
 
    print[[ ],
@@ -106,6 +106,22 @@ $("#table-system-interfaces-stats").datatable({
 	 textAlign: 'right',
 	 width: '5%',
        }
+     }, {
+       title: "]] print(i18n("internals.hash_table_utilization")) print[[",
+       field: "column_hash_table_utilization",
+       sortable: true,
+       css: {
+	 textAlign: 'center',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("internals.state_idle_vs_active")) print[[",
+       field: "column_idle_vs_active",
+       sortable: true,
+       css: {
+	 textAlign: 'center',
+	 width: '5%',
+       }
      }
    ], tableCallback: function() {
       datatableInitRefreshRows($("#table-system-interfaces-stats"),
@@ -120,7 +136,7 @@ end
 
 -- ###########################################
 
-function internals_utils.printPeriodicactivityDropdown(base_url, page_params)
+local function printPeriodicactivityDropdown(base_url, page_params)
    local periodic_activity = _GET["periodic_script"]
    local periodic_activity_filter
    if not isEmptyString(periodic_activity) then
@@ -144,7 +160,7 @@ end
 
 -- ###########################################
 
-function internals_utils.printPeriodicActivitiesTable(base_url, ifid)
+local function printPeriodicActivitiesTable(base_url, ifid)
    local page_params = {periodic_script = _GET["periodic_script"], tab = _GET["tab"], iffilter = ifid}
 
    print[[
@@ -163,7 +179,7 @@ $("#table-internals-periodic-activities").datatable({
 
    -- Ip version selector
    print[['<div class="btn-group pull-right">]]
-   internals_utils.printPeriodicactivityDropdown(base_url, page_params)
+   printPeriodicactivityDropdown(base_url, page_params)
    print[[</div>']]
 
    print[[ ],
@@ -258,12 +274,57 @@ function internals_utils.printInternals(ifid)
    local base_url = "?page=internals"
 
    if tab == "hash_tables" then
-      internals_utils.printHashTablesTable(base_url.."&tab=hash_tables", ifid)
+      printHashTablesTable(base_url.."&tab=hash_tables", ifid)
    elseif tab == "periodic_activities" then
-      internals_utils.printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid)
+      printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid)
    end
    print[[</div>]]
 end
+
+-- ###########################################
+
+function internals_utils.getFillBar(fill_pct, warn_pct, danger_pct)
+   local bg
+
+   if fill_pct >= (danger_pct or 90) then
+      bg = "progress-bar-danger"
+   elseif fill_pct >= (warn_pct or 75) then
+      bg = "progress-bar-warning"
+   else
+      bg = "progress-bar-success"
+   end
+
+   local code = [[
+<div class="progress">
+  <div class="progress-bar ]]..bg..[[" role="progressbar" style="width: ]]..fill_pct..[[%;" aria-valuenow="]]..fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..fill_pct..[[%</div>
+</div>
+]]
+
+   return code
+end
+
+-- ###########################################
+
+function internals_utils.getDoubleFillBar(first_fill_pct, second_fill_pct, third_fill_pct)
+   local code = [[<div class="progress">]]
+
+   if first_fill_pct > 0 then
+      code = code..[[<div class="progress-bar" role="progressbar" style="width: ]]..first_fill_pct..[[%" aria-valuenow="]]..first_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("if_stats_overview.active")..[[</div>]]
+   end
+
+   if second_fill_pct > 0 then
+      code = code..[[<div class="progress-bar progress-bar-info" role="progressbar" style="width: ]]..second_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("flow_callbacks.idle")..[[</div>]]
+   end
+
+   if third_fill_pct > 0 then
+      code = code..[[<div class="progress-bar progress-bar-success" role="progressbar" style="width: ]]..third_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("free")..[[</div>]]
+   end
+
+   code = code..[[</div>]]
+
+   return code
+end
+
 
 -- ###########################################
 

@@ -107,8 +107,10 @@ class GenericHash {
   bool add(GenericHashEntry *h, bool do_lock);
 
   /**
-   * @brief generic walker for the hash.
-   * @details This method uses the walker function to compare each elements of the hash with the user data.
+   * @brief Generic hash table walker
+   * @details This method traverses all the non-idle entries of the hash table, calling
+   *          the walker function on each of them. Function idle() is called for each entry
+   *          to evaluate its state, determine if the entry is idle, and possibly call the walker.
    *
    * @param begin_slot begin hash slot. Use 0 to walk all slots
    * @param walk_all true = walk all hash, false, walk only one (non NULL) slot
@@ -119,14 +121,19 @@ class GenericHash {
 	    bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data);
 
   /**
-   * @brief Hash table walker used only by an offline thread in charge of deleting idle entries
-   * @details This method walks the hash table and the idle_entries vector to perform cleanup operations
-   *          on idle entries, before calling the destructor on them
+   * @brief Hash table walker used only by an offline thread in charge of performing entries state changes
+   * @details This method traverses all the entries of the hash table, including those that are idle
+   *          and have been previously placed in the idle_entries vector, calling the walker function
+   *          on each of them. Entries found in the idle_entries vector are deleted right after the call
+   *          of the walker function against them.
+   *          This method should only be called by an offline thread in charge of performing entries state changes (e.g., from
+   *          protocol detected to activ) and operations associated to entries state changes (e.g., the
+   *          call of a lua script against the entry).
    *
    * @param walker A pointer to the comparison function.
    * @param user_data Value to be compared with the values of hash.
    */
-  void walkIdle(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+  void walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
 
   /**
    * @brief Purge idle hash entries.

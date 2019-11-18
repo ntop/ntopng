@@ -2810,7 +2810,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
 
   for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
     if(ghs[i]) {
-      ghs[i]->walkIdle(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
+      ghs[i]->walkAllStates(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
 
       if(periodic_ht_state_update_user_data.acle) {
 	periodic_ht_state_update_user_data.acle->lua_stats(ghs[i]->getName(), vm);

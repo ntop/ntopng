@@ -122,7 +122,7 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 /* ************************************ */
 
-void GenericHash::walkIdle(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
+void GenericHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
   vector<GenericHashEntry*> *cur_idle = NULL;
   u_int new_walk_idle_start_hash_id = 0;
   bool update_walk_idle_start_hash_id;
@@ -400,6 +400,8 @@ void GenericHash::lua(lua_State *vm) {
   int64_t num_idle;
 
   lua_newtable(vm);
+
+  lua_push_uint64_table_entry(vm, "max_hash_size", (u_int64_t)max_hash_size);
 
   /* Hash Entry states */
   lua_newtable(vm);

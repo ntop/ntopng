@@ -921,7 +921,6 @@ function addGauge(name, url, maxValue, width, height)
   </div>
   ]]
   if(url ~= nil) then print('</A>\n') end
-
 end
 
 -- Compute the difference in seconds between local time and UTC.

@@ -197,6 +197,10 @@ function tolongint(what)
      traceError(TRACE_ERROR, TRACE_CONSOLE, "Trying to convert inf to integer")
      traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
      return("0")
+   elseif((what >= math.maxinteger) or (what <= math.mininteger)) then
+     traceError(TRACE_ERROR, TRACE_CONSOLE, "Number out of integers range: " .. what)
+     traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
+     return("0")
    else
       return(string.format("%u", math.floor(what)))
    end

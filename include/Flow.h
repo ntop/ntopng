@@ -54,7 +54,6 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t alert_score;
-  time_t performed_lua_calls[FLOW_LUA_CALL_MAX_VAL];
   struct ndpi_flow_struct *ndpiFlow;
 
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
@@ -100,7 +99,8 @@ class Flow : public GenericHashEntry {
 #endif
   char *external_alert;
   bool trigger_immediate_periodic_update; /* needed to process external alerts */
-  bool pending_periodic_update, pending_protocol_detected;
+  bool pending_lua_call_protocol_detected; /* Whether the protocol detected lua script has been called on this flow */
+  time_t next_lua_call_periodic_update; /* The time at which the periodic lua script on this flow shall be called */
   u_int32_t periodic_update_ctr;
  
   union {
@@ -231,8 +231,26 @@ class Flow : public GenericHashEntry {
   void updateHASSH(bool as_client);
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
-  bool isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv);
-  void performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick);
+  /**
+   * @brief Method to call a given lua script on the flow
+   * @details This method calls a lua script on the flow if there is time, that is, when quick is false. Otherwise
+   *          it keep track of skipped calls by opportunely increasing certain counters in the lua engine.
+   *
+   * @param flow_lua_call The time of the call that should be performed on the flow
+   * @param tv Pointer to a timeval struct indicating the current time at which the update is performed
+   * @param periodic_ht_state_update_user_data Pointer to a structure holding update-related data (including the lua engine)
+   * @param quick Whether lua calls should be performed in quick mode as there is no more time left to fully perform them
+   */  
+  bool performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick);
+  /**
+   * @brief Method to possibly call lua scripts on the flow
+   * @details This method evaluates the states of the flow and possibly calls lua functions on this flow.
+   *
+   * @param tv Pointer to a timeval struct indicating the current time at which the update is performed
+   * @param periodic_ht_state_update_user_data Pointer to a structure holding update-related data (including the lua engine)
+   * @param quick Whether lua calls should be performed in quick mode as there is no more time left to fully perform them
+   */
+  void performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick);
 
  public:
   Flow(NetworkInterface *_iface,

@@ -65,7 +65,6 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
-  memset(performed_lua_calls, 0, sizeof(performed_lua_calls));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
@@ -88,7 +87,8 @@ Flow::Flow(NetworkInterface *_iface,
   
   external_alert = NULL;
   trigger_immediate_periodic_update = false;
-  pending_periodic_update = pending_protocol_detected = false;
+  pending_lua_call_protocol_detected = false;
+  next_lua_call_periodic_update = 0;
 
   memset(&last_db_dump, 0, sizeof(last_db_dump));
   memset(&protos, 0, sizeof(protos));
@@ -1810,17 +1810,6 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
   }
 #endif
 
-  if(!quick) {
-    /* Perform possibly pending calls */
-    if(pending_protocol_detected)
-      performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data, quick);
-
-    if(pending_periodic_update)
-      performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data, quick);
-
-    /* NOTE: status_changed/idle can never be pending */
-  }
-
   switch(get_state()) {
   case hash_entry_state_allocated:
   case hash_entry_state_flow_notyetdetected:
@@ -1828,44 +1817,27 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
     break;
 
   case hash_entry_state_flow_protocoldetected:
-    performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data, quick);
+    pending_lua_call_protocol_detected = true;
     set_hash_entry_state_active();
     break;
 
   case hash_entry_state_active:
-    performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data, quick);
+    if(next_lua_call_periodic_update == 0) next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS;
     if(!quick)
-      periodic_dump_check(tv); /* NOTE: this call can take a long time! */
+      periodic_dump_check(tv); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
     postFlowSetIdle(tv, quick);
-    performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data, quick);
     if(!quick)
-      periodic_dump_check(tv); /* NOTE: this call can take a long time! */
+      periodic_dump_check(tv); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
     break;
   }
 
-  if(periodic_ht_state_update_user_data->acle) {
-    FlowAlertCheckLuaEngine *acle = (FlowAlertCheckLuaEngine*) periodic_ht_state_update_user_data->acle;
-
-    if(get_state() == hash_entry_state_idle) {
-      /* Pending callbacks after idle are definitely missed */
-      if(pending_protocol_detected)
-	acle->incSkippedPcalls(flow_lua_call_protocol_detected);
-
-      if(pending_periodic_update)
-	acle->incSkippedPcalls(flow_lua_call_periodic_update);
-    } else {
-      /* Account pending stats */
-      if(pending_protocol_detected)
-	acle->incPendingProtoDetected();
-
-      if(pending_periodic_update)
-	acle->incPendingPeriodicUpdate();
-    }
-  }
+  /* Now that the states in the finite state machine have been moved forward, it is time to check and 
+     possibly perform lua calls on the flow. */
+  performLuaCalls(tv, periodic_ht_state_update_user_data, quick);
 
   GenericHashEntry::periodic_hash_entry_state_update(user_data, quick);
 }
@@ -3772,51 +3744,6 @@ void Flow::dissectTLS(char *payload, u_int16_t payload_len) {
 
 /* ***************************************************** */
 
-bool Flow::isLuaCallPerformed(FlowLuaCall flow_lua_call, const struct timeval *tv) {
-  time_t latest_call;
-  bool res;
-
-  if(flow_lua_call != flow_lua_call_idle
-     && ntop->getGlobals()->isShutdownRequested())
-    return true; /* Only flow_lua_call_idle go through during a shutdown */
-
-  switch(flow_lua_call) {
-  case flow_lua_call_protocol_detected:
-    if(pending_protocol_detected)
-      return false;
-    break;
-  case flow_lua_call_periodic_update:
-    if(trigger_immediate_periodic_update || pending_periodic_update) {
-      /* Periodic update was forced */
-      return false;
-    }
-
-    latest_call = !performed_lua_calls[flow_lua_call] ? get_first_seen() : performed_lua_calls[flow_lua_call];
-    res = latest_call + 30 /* at least every 30 seconds */ > tv->tv_sec;
-
-#if 0
-      char buf[256];
-
-      if(!res) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Time to recall [%s][latest_call: %u][performed_lua_calls[flow_lua_call]: %u][tv->tv_sec: %u]",
-				     print(buf, sizeof(buf)),
-				     latest_call,
-				     performed_lua_calls[flow_lua_call],
-				     tv->tv_sec
-				     );
-      }
-#endif
-
-      return res;
-  default:
-    break;
-  }
-
-  return performed_lua_calls[flow_lua_call];
-}
-
-/* ***************************************************** */
-
 void Flow::lua_get_status(lua_State* vm) const {
   lua_push_bool_table_entry(vm, "flow.idle", idle());
   lua_push_uint64_table_entry(vm, "flow.status", getPredominantStatus());
@@ -4269,35 +4196,30 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 
 /* ***************************************************** */
 
-void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick) {
+bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick) {
   const char *lua_call_fn_name = NULL;
-  Bitmap prev_status = status_map;
-  std::map<FlowLuaCall, struct timeval>::iterator it;
 
-  if(isLuaCallPerformed(flow_lua_call, tv))
-     return; /* Already called */
+  if(flow_lua_call != flow_lua_call_idle
+     && ntop->getGlobals()->isShutdownRequested())
+    return false; /* Only flow_lua_call_idle go through during a shutdown */
 
   if(!periodic_ht_state_update_user_data->acle
      && !(periodic_ht_state_update_user_data->acle = new (std::nothrow) FlowAlertCheckLuaEngine(getInterface())))
-    return; /* Cannot allocate memory */
+    return false; /* Cannot allocate memory */
 
   FlowAlertCheckLuaEngine *acle = (FlowAlertCheckLuaEngine*)periodic_ht_state_update_user_data->acle;
 
   if(quick) {
-    switch(flow_lua_call) {
-    case flow_lua_call_protocol_detected:
-      /* Will retry on next round */
-      pending_protocol_detected = true;
-      break;
-    case flow_lua_call_periodic_update:
-      /* Will retry on next round */
-      pending_periodic_update = true;
+    switch(get_state()) {
+    case hash_entry_state_idle:
+      acle->incSkippedPcalls(flow_lua_call);
       break;
     default:
-      acle->incSkippedPcalls(flow_lua_call);
+      acle->incPendingPcalls(flow_lua_call);
+      break;
     }
 
-    return; /* Need to return as there's no time to do the actual call */
+    return false; /* Need to return as there's no time to do the actual call */
   }
 
   lua_State *L = acle->getState();
@@ -4305,77 +4227,77 @@ void Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
 
   switch(flow_lua_call) {
   case flow_lua_call_protocol_detected:
-    pending_protocol_detected = false;
     lua_call_fn_name = FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME;
     break;
   case flow_lua_call_flow_status_changed:
     lua_call_fn_name = FLOW_LUA_CALL_FLOW_STATUS_CHANGE_FN_NAME;
     break;
   case flow_lua_call_periodic_update:
-    pending_periodic_update = false;
-    trigger_immediate_periodic_update = false;
     lua_call_fn_name = FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME;
     break;
   case flow_lua_call_idle:
     lua_call_fn_name = FLOW_LUA_CALL_IDLE_FN_NAME;
     break;
   default:
-    lua_call_fn_name = NULL;
-    break;
+    return false;
   }
 
-  if(lua_call_fn_name) {
-    int num_args = 3;
+  int num_args = 3;
 
-#ifdef LUA_PROFILING
-    ticks t_begin = Utils::getticks();
-    ticks total_ticks;
-    int num_calls = 200000;
+  /* Call the function */
+  lua_getglobal(L, lua_call_fn_name); /* Called function */
+  lua_pushinteger(L, protocol);
+  lua_pushinteger(L, ndpiDetectedProtocol.master_protocol);
+  lua_pushinteger(L, ndpiDetectedProtocol.app_protocol);
 
-    for(int i = 0; i < num_calls; i++) {
-      /* Call the function */
-      lua_getglobal(L, lua_call_fn_name); /* Called function */
-      lua_pushinteger(L, protocol);
-      lua_pushinteger(L, ndpiDetectedProtocol.master_protocol);
-      lua_pushinteger(L, ndpiDetectedProtocol.app_protocol);
-      acle->pcall(3 /* 3 arguments */, 0 /* 0 results */);
-    }
+  if(flow_lua_call == flow_lua_call_periodic_update) {
+    /* pass the periodic_update counter as the second argument,
+     * needed to determine which periodic scripts to call. */
+    lua_pushinteger(L, periodic_update_ctr++);
+    num_args++;
+  }
 
-    total_ticks = Utils::getticks()  - t_begin;
-    printf("%u calls executed in %f ms\n", num_calls, (total_ticks * 1000.f / Utils::gettickspersec()));
-    return;
-#else
-    /* Call the function */
-    lua_getglobal(L, lua_call_fn_name); /* Called function */
-    lua_pushinteger(L, protocol);
-    lua_pushinteger(L, ndpiDetectedProtocol.master_protocol);
-    lua_pushinteger(L, ndpiDetectedProtocol.app_protocol);
+  acle->pcall(num_args, 0 /* 0 results */);
 
-    if(flow_lua_call == flow_lua_call_periodic_update) {
-      /* pass the periodic_update counter as the second argument,
-       * needed to determine which periodic scripts to call. */
-      lua_pushinteger(L, periodic_update_ctr++);
-      num_args++;
-    }
+  return true;
+}
 
-    acle->pcall(num_args, 0 /* 0 results */);
-#endif
 
-    /* Mark it as called */
-    performed_lua_calls[flow_lua_call] = tv->tv_sec;
+/* ***************************************************** */
 
-    /* Check if the status has changed */
-    if((flow_lua_call != flow_lua_call_flow_status_changed)
-	&& (prev_status.get() != status_map.get())) {
-      if(!isLuaCallPerformed(flow_lua_call_flow_status_changed, tv)) {
-	/* The status has changed, call the status change script */
-	performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data, quick);
-      }
+void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick) {
+  Bitmap prev_status = status_map;
+  HashEntryState cur_state = get_state();
 
-      /* Update the hosts status */
-      if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
-      if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
-    }
+  /* Check if it is time to call the protocol detected */
+  if(pending_lua_call_protocol_detected
+     && performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data, quick))
+    pending_lua_call_protocol_detected = false;
+
+  /* Check if it is time to call the periodic update. Need to make sure this is not called BEFORE
+     the protocol detected has been called */
+  if(cur_state >= hash_entry_state_active /* This check guarantees no periodic update is called before protocol detected */
+     && (trigger_immediate_periodic_update ||
+	 (next_lua_call_periodic_update > 0 /* 0 means not-yet-set */
+	  && next_lua_call_periodic_update <= tv->tv_sec))
+     && performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data, quick)) {
+    next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
+    if(trigger_immediate_periodic_update) trigger_immediate_periodic_update = false; /* Reset if necessary */
+  }
+
+  /* Check if it is time to call the idle. There is no need to change any boolean here to remember
+     the call has been performed: each flow in idle state is visited exactly once. */
+  if(cur_state == hash_entry_state_idle)
+    performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data, quick);
+
+  /* Regardless of the calls performed previously, if someone of them has changed the state of the flow,
+     thi extra status_changed lua function is executed. */
+  if(prev_status.get() != status_map.get()) {
+    performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data, quick);
+
+    /* Update the hosts status */
+    if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
+    if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
   }
 }
 
