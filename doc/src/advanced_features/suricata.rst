@@ -10,6 +10,10 @@ provided by Suricata.
 ntopng implements flows and alerts ingestion from Suricata using the *Eve 
 JSON* format through syslog. 
 
+.. warning::
+
+   This is a new feature available in ntopng since version 3.9.
+
 In order to configure Suricata to export flow metadata to ntopng, please install 
 Suricata according to the `Suricata Documentation <https://suricata.readthedocs.io/en/suricata-4.1.4/install.html>`_
 and configure it to use :code:`syslog` as EVE file type in the :code:`suricata.yaml`
