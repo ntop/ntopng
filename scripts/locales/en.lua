@@ -3371,6 +3371,7 @@ local lang = {
     ["snmp_port_monitor"] = "SNMP Port Monitor",
     ["snmp_printer"] = "Printer",
     ["snmp_timeseries_descr"] = "SNMP devices timeseries can be enabled from the <a href=\"%{url}\"><i class=\"fa fa-flask\"></i> Preferences</a>. Few minutes are necessary to see the first data points",
+    ["snmp_topology"] = "Topology",
     ["snmp_version"] = "SNMP Version",
     ["status_down"] = "Down",
     ["status_up"] = "Up",

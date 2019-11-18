@@ -1119,6 +1119,7 @@ local known_parameters = {
    ["num_minutes"]             = validateNumMinutes,            -- number of minutes
    ["zoom"]                    = validateZoom,                  -- a graph zoom specifier
    ["community"]               = validateSingleWord,            -- SNMP community
+   ["lldp_mode"]               = validateBool,                  -- LLDP mode
    ["default_snmp_community"]  = validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
    ["default_snmp_version"]    = validateSNMPversion,           -- Default SNMP protocol version
    ["snmp_version"]            = validateSNMPversion,           -- 0:v1 1:v2c
