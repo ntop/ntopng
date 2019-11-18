@@ -401,6 +401,8 @@ void GenericHash::lua(lua_State *vm) {
 
   lua_newtable(vm);
 
+  lua_push_uint64_table_entry(vm, "max_hash_size", (u_int64_t)max_hash_size);
+
   /* Hash Entry states */
   lua_newtable(vm);
 
