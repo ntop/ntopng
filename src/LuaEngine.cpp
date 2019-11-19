@@ -11412,7 +11412,7 @@ static int post_iterator(void *cls,
 /*
   Run a Lua script from within ntopng (no HTTP GUI)
 */
-int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_only) {
+int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_only, time_t deadline) {
   int rc = 0;
 
   if(!L) return(-1);
@@ -11424,6 +11424,13 @@ int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_
     if(iface) {
       /* Select the specified inteface */
       getLuaVMUservalue(L, iface) = iface;
+    }
+
+    /* An optional deadline can be passed to the script so actions
+       can be taken from lua to stop the execution of the dealine is approaching */
+    if(deadline) {
+      lua_pushinteger(L, deadline);
+      lua_setglobal(L, "deadline");
     }
 
 #ifdef NTOPNG_PRO

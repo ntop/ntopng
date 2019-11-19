@@ -30,9 +30,11 @@ class QueuedThreadData {
   char *script_path;
   NetworkInterface *iface;
   bool high_priority;
+  time_t deadline;
   
-  QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface) {
+  QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface, time_t _deadline) {
     j = _j, script_path = strdup(_path), iface = _iface;
+    deadline = _deadline;
   }
 
   ~QueuedThreadData() { if(script_path) free(script_path); }
@@ -57,7 +59,7 @@ class ThreadPool {
   inline bool isTerminating() { return terminating; };
 
   void run();
-  bool queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface);
+  bool queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface, time_t deadline);
 };
 
 

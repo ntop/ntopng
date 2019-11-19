@@ -98,7 +98,7 @@ void ThreadPool::run() {
       if(q) delete q;
       break;
     } else {
-      (q->j)->runScript(q->script_path, q->iface);
+      (q->j)->runScript(q->script_path, q->iface, q->deadline);
       delete q;
     }
   }
@@ -110,14 +110,13 @@ void ThreadPool::run() {
 
 /* **************************************************** */
 
-bool ThreadPool::queueJob(ThreadedActivity *j,
-			  char *path, NetworkInterface *iface) {
+bool ThreadPool::queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface, time_t deadline) {
   QueuedThreadData *q;
   
   if(isTerminating())
     return(false);
 
-  q = new QueuedThreadData(j, path, iface);
+  q = new QueuedThreadData(j, path, iface, deadline);
 
   if(!q) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create job");

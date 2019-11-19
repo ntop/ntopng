@@ -76,7 +76,7 @@ class LuaEngine {
    *
    * @return 0 if the script has been executed successfully.
    */
-  int run_script(char *script_path, NetworkInterface *iface, bool load_only = false);
+  int run_script(char *script_path, NetworkInterface *iface, bool load_only = false, time_t deadline = 0);
 
   /**
    * @brief Handling of request info of script.

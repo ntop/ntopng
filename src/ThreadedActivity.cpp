@@ -197,7 +197,7 @@ void ThreadedActivity::runScript() {
 	   ntop->get_callbacks_dir(), path);
 
   if(stat(script_path, &buf) == 0) {
-    runScript(script_path, NULL);
+    runScript(script_path, NULL, 0 /* No deadline */);
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
 }
@@ -205,7 +205,7 @@ void ThreadedActivity::runScript() {
 /* ******************************************* */
 
 /* Run a script - both periodic and one-shot scripts are called here */
-void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
+void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, time_t deadline) {
   LuaEngine *l;
   u_long max_duration_ms = periodicity * 1e3;
   u_long msec_diff;
@@ -235,7 +235,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface) {
   }
 
   gettimeofday(&begin, NULL);
-  l->run_script(script_path, iface);
+  l->run_script(script_path, iface, false /* Execute */, deadline);
   gettimeofday(&end, NULL);
 
   msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
@@ -323,10 +323,10 @@ void ThreadedActivity::periodicActivityBody() {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
-      schedulePeriodicActivity(pool);
-
       next_run = Utils::roundTime(now, periodicity,
 				  align_to_localtime ? ntop->get_time_offset() : 0);
+
+      schedulePeriodicActivity(pool, next_run /* next_run is now also the deadline of the current script */);
     }
 
     sleep(1);
@@ -342,7 +342,7 @@ void ThreadedActivity::periodicActivityBody() {
  * ThreadedActivity::runScript. The variables systemTaskRunning and interfaceTasksRunning
  * are used to ensure that only a single instance of the job is running for a given
  * NetworkInterface. */
-void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
+void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadline) {
   /* Schedule per system / interface */
   char script_path[MAX_PATH];
 #ifdef WIN32
@@ -358,7 +358,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
     
     if(stat(script_path, &buf) == 0) {
       systemTaskRunning = true;
-      pool->queueJob(this, script_path, NULL);
+      pool->queueJob(this, script_path, NULL, deadline);
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
@@ -376,7 +376,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool) {
       if(iface
 	 && iface->isProcessingPackets()
 	 && !isInterfaceTaskRunning(iface)) {
-        pool->queueJob(this, script_path, iface);
+        pool->queueJob(this, script_path, iface, deadline);
         setInterfaceTaskRunning(iface, true);
 
 #ifdef THREAD_DEBUG

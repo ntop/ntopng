@@ -44,7 +44,7 @@ class ThreadedActivity {
   void periodicActivityBody();
   void aperiodicActivityBody();
   void uSecDiffPeriodicActivityBody();
-  void schedulePeriodicActivity(ThreadPool *pool);
+  void schedulePeriodicActivity(ThreadPool *pool, time_t deadline);
   void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
   bool isInterfaceTaskRunning(NetworkInterface *iface);
   void updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration);
@@ -60,7 +60,7 @@ class ThreadedActivity {
   const char *activityPath() { return path; };
   void activityBody();
   void runScript();
-  void runScript(char *script_path, NetworkInterface *iface);
+  void runScript(char *script_path, NetworkInterface *iface, time_t deadline);
 
   inline void shutdown()      { terminating = true; };
   void terminateEnqueueLoop();
