@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
@@ -10,7 +10,7 @@ local callback_utils = require "callback_utils"
 local ifnames = interface.getIfNames()
 
 local periodic_discovery_condition = function(ifId)
-   return discover_utils.interfaceNetworkDiscoveryEnabled(ifId) 
+   return discover_utils.interfaceNetworkDiscoveryEnabled(ifId)
 end
 
 local oneshot_discovery_condition = function(ifId)
@@ -31,15 +31,15 @@ end
 -- periodic discovery enabled
 local discovery_enabled = (ntop.getPref("ntopng.prefs.is_periodic_network_discovery_enabled") == "1")
 if discovery_enabled then
-      local discovery_interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
-      if isEmptyString(discovery_interval) then discovery_interval = 15 * 60 --[[ 15 minutes --]] end
+   local discovery_interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
+   if isEmptyString(discovery_interval) then discovery_interval = 15 * 60 --[[ 15 minutes --]] end
 
-      local now = os.time()
-      local diff = now % tonumber(discovery_interval)
+   local now = os.time()
+   local diff = now % tonumber(discovery_interval)
 
-      if diff < 5 then
-	 callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
-      end
+   if diff < 5 then
+      callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
+   end
 end
 
 -- discovery requests performed by the user from the GUI

@@ -1130,6 +1130,10 @@ local function discovery2config(interface_name)
    local cached = ntop.getCache(getCachedDiscoveryKey(interface_name))
    local disc = json.decode(cached)
 
+   if isEmptyString(cached) or not disc then
+      return
+   end
+
    disc["devices"] = ntop.lrangeCache(getCachedDiscoveredDevicesKey(interface_name), 0, -1) or {}
    for i=1, #disc["devices"] do
       disc["devices"][i] = json.decode(disc["devices"][i])
