@@ -26,20 +26,6 @@ local sortPrefs = "internals_hash_tables_data"
 
 -- ################################################
 
-local function idle_vs_active_pct(htstats)
-   local active_entries = htstats.stats.hash_entry_states.hash_entry_state_active
-   local idle_entries = htstats.stats.hash_entry_states.hash_entry_state_idle
-
-   local idle_pct
-   if active_entries then
-      idle_pct = round(idle_entries / (active_entries + idle_entries) * 100, 0)
-   end
-
-   return idle_pct
-end
-
--- ################################################
-
 local function hash_table_utilization(htstats)
    local active_entries = htstats.stats.hash_entry_states.hash_entry_state_active
    local idle_entries = htstats.stats.hash_entry_states.hash_entry_state_idle
@@ -122,8 +108,6 @@ for k, htstats in pairs(ifaces_ht_stats) do
       sort_to_key[k] = stats.hash_entry_states.hash_entry_state_idle
    elseif(sortColumn == "column_active_entries") then
       sort_to_key[k] = stats.hash_entry_states.hash_entry_state_active
-   elseif(sortColumn == "column_idle_vs_active") then
-      sort_to_key[k] = idle_vs_active_pct(htstats) or 0
    elseif(sortColumn == "column_hash_table_utilization") then
       local utiliz = hash_table_utilization(htstats)
       sort_to_key[k] = -utiliz["free"]
@@ -155,7 +139,6 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
       local htstats = ifaces_ht_stats[key]
       local active_entries = htstats.stats.hash_entry_states.hash_entry_state_active
       local idle_entries = htstats.stats.hash_entry_states.hash_entry_state_idle
-      local idle_pct = idle_vs_active_pct(htstats)
 
       record["column_key"] = key
       record["column_ifid"] = string.format("%i", htstats.ifid)
@@ -169,12 +152,6 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
 	 if ts_utils.exists("ht:state", {ifid = iffilter, hash_table = htstats.ht}) then
 	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/hash_table_details.lua?hash_table='..htstats.ht..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
 	 end
-      end
-
-      -- record["column_idle_entries_pct"] = ternary(idle_pct and idle_pct > 0, format_utils.formatValue(idle_pct), '')
-      record["column_idle_vs_active"] = ''
-      if active_entries > 0 and idle_entries > 0 then
-	 record["column_idle_vs_active"] = internals_utils.getFillBar(idle_pct, 30, 90)
       end
 
       record["column_hash_table_utilization"] = ''

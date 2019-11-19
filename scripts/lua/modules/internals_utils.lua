@@ -114,14 +114,6 @@ $("#table-system-interfaces-stats").datatable({
 	 textAlign: 'center',
 	 width: '5%',
        }
-     }, {
-       title: "]] print(i18n("internals.state_idle_vs_active")) print[[",
-       field: "column_idle_vs_active",
-       sortable: true,
-       css: {
-	 textAlign: 'center',
-	 width: '5%',
-       }
      }
    ], tableCallback: function() {
       datatableInitRefreshRows($("#table-system-interfaces-stats"),

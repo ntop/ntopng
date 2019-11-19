@@ -2164,7 +2164,6 @@ local lang = {
     ["script_stats"] = "%{script} vs Total",
     ["state_active"] = "Entries in Active State",
     ["state_idle"] = "Entries in Idle State",
-    ["state_idle_vs_active"] = "Idle vs Active Entries",
     ["hash_table_utilization"] = "Hash Table Utilization",
     ["successful_calls"] = "Successful Calls",
     ["total_duration"] = "Total %{subdir} Scripts Duration",
