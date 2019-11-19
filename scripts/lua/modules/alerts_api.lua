@@ -841,6 +841,20 @@ end
 
 -- ##############################################
 
+function alerts_api.userScriptCallsDrops(subdir, drops)
+  return({
+    alert_type = alert_consts.alert_types.alert_user_script_calls_drops,
+    alert_severity = alert_consts.alert_severities.error,
+    alert_granularity = alert_consts.alerts_granularities.min,
+    alert_subtype = subdir,
+    alert_type_params = {
+      drops = drops,
+    },
+  })
+end
+
+-- ##############################################
+
 function alerts_api.slowPurgeType(idle, idle_perc, threshold)
   return({
     alert_type = alert_consts.alert_types.alert_slow_purge,

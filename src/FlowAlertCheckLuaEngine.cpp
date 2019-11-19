@@ -49,6 +49,8 @@ void FlowAlertCheckLuaEngine::incSkippedPcalls(FlowLuaCall flow_lua_call) {
   default:
     break;
   }
+
+  iface->incNumDroppedFlowScriptsCalls();
 }
 
 /* ****************************************** */

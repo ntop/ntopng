@@ -1147,6 +1147,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             value    = _POST["value_"..k]
             operator = _POST["op_"..k] or "gt"
             if value == "on" then value = "1" end
+            if value == "off" then value = "0" end
             value = tonumber(value)
 
             -- Handle global settings
@@ -1282,8 +1283,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       goto next_module
 	    end
 
-	    print("<tr><td><b>".. i18n(gui_conf.i18n_title) .."</b><br>")
-	    print("<small>"..i18n(gui_conf.i18n_description).."</small>\n")
+	    print("<tr><td><b>".. (i18n(gui_conf.i18n_title) or gui_conf.i18n_title) .."</b><br>")
+	    print("<small>".. (i18n(gui_conf.i18n_description) or gui_conf.i18n_description) .."</small>\n")
 
 	    if(tab == "min") then
 	       print("<td class='text-center'>")

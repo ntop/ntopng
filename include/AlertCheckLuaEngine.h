@@ -30,8 +30,11 @@ class AlertCheckLuaEngine : public LuaEngine {
   ticks total_ticks;
   virtual void lua_stats_skipped(lua_State *vm) const {};
 
+ protected:
+  NetworkInterface *iface;
+
  public:
-  AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *iface);
+  AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *_iface);
   virtual ~AlertCheckLuaEngine();
 
   bool pcall(int num_args, int num_results);

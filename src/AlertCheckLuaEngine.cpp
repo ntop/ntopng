@@ -23,10 +23,11 @@
 
 /* ****************************************** */
 
-AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *iface) : LuaEngine() {
+AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *_iface) : LuaEngine() {
   num_calls = 0;
   total_ticks = 0;
   const char *lua_file = NULL;
+  iface = _iface;
 
   p = script_periodicity;
 
