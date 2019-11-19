@@ -114,7 +114,7 @@ for k, htstats in pairs(ifaces_ht_stats) do
    elseif(sortColumn == "column_hash_table_name") then
       sort_to_key[k] = i18n("hash_table."..htstats.ht)
    elseif(sortColumn == "column_name") then
-      sort_to_key[k] = getInterfaceName(htstats.ifid)
+      sort_to_key[k] = getHumanReadableInterfaceName(getInterfaceName(htstats.ifid))
    else
       sort_to_key[k] = htstats.ifid
    end
@@ -145,7 +145,7 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
       record["column_active_entries"] = ternary(active_entries > 0, format_utils.formatValue(active_entries), '')
       record["column_idle_entries"] = ternary(idle_entries > 0, format_utils.formatValue(idle_entries), '')
 
-      record["column_name"] = getInterfaceName(htstats.ifid)
+      record["column_name"] = getHumanReadableInterfaceName(getInterfaceName(htstats.ifid))
       record["column_hash_table_name"] = i18n("hash_table."..htstats.ht)
 
       if iffilter then

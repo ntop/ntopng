@@ -88,7 +88,7 @@ for iface, ifstats in pairs(ifaces_stats) do
    elseif(sortColumn == "column_drops") then
       sort_to_key[iface] = ifstats.stats_since_reset.drops
    elseif(sortColumn == "column_name") then
-      sort_to_key[iface] = getInterfaceName(ifstats.id)
+      sort_to_key[iface] = getHumanReadableInterfaceName(getInterfaceName(ifstats.id))
    else
       sort_to_key[iface] = ifstats.id
    end
@@ -123,7 +123,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_traffic"] = ternary(ifstats.stats_since_reset.bytes > 0, format_utils.bytesToSize(ifstats.stats_since_reset.bytes), '')
       record["column_packets"] = ternary(ifstats.stats_since_reset.packets > 0, format_utils.formatPackets(ifstats.stats_since_reset.packets), '')
       record["column_drops"] = ternary(ifstats.stats_since_reset.drops > 0, format_utils.formatPackets(ifstats.stats_since_reset.drops), '')
-      record["column_name"] = getInterfaceName(ifstats.id)
+      record["column_name"] = getHumanReadableInterfaceName(getInterfaceName(ifstats.id))
 
       res[#res + 1] = record
    end
