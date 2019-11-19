@@ -187,6 +187,8 @@ end
 -- ###############################################
 
 function tolongint(what)
+   what = tonumber(what)
+
    if(what == nil) then
       return("0")
    elseif(type(what) ~= "number") then
