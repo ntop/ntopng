@@ -123,7 +123,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_traffic"] = ternary(ifstats.stats_since_reset.bytes > 0, format_utils.bytesToSize(ifstats.stats_since_reset.bytes), '')
       record["column_packets"] = ternary(ifstats.stats_since_reset.packets > 0, format_utils.formatPackets(ifstats.stats_since_reset.packets), '')
       record["column_drops"] = ternary(ifstats.stats_since_reset.drops > 0, format_utils.formatPackets(ifstats.stats_since_reset.drops), '')
-      record["column_name"] = getHumanReadableInterfaceName(getInterfaceName(ifstats.id))
+
+      record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i">%s</a>', ifstats.id, getHumanReadableInterfaceName(getInterfaceName(ifstats.id)))
 
       res[#res + 1] = record
    end

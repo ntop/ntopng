@@ -129,7 +129,9 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_ifid"] = string.format("%i", script_stats.ifid)
       record["column_max_duration"] = ternary(max_duration > 0, format_utils.formatMillis(max_duration), '')
       record["column_last_duration"] = ternary(last_duration > 0, format_utils.formatMillis(last_duration), '')
-      record["column_name"] = getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid))
+
+      record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))
+
       record["column_periodic_activity_name"] = script_stats.script
 
       if iffilter then

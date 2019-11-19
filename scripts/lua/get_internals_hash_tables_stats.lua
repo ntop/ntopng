@@ -145,7 +145,7 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
       record["column_active_entries"] = ternary(active_entries > 0, format_utils.formatValue(active_entries), '')
       record["column_idle_entries"] = ternary(idle_entries > 0, format_utils.formatValue(idle_entries), '')
 
-      record["column_name"] = getHumanReadableInterfaceName(getInterfaceName(htstats.ifid))
+      record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=hash_tables">%s</a>', htstats.ifid, getHumanReadableInterfaceName(getInterfaceName(htstats.ifid)))
       record["column_hash_table_name"] = i18n("hash_table."..htstats.ht)
 
       if iffilter then
