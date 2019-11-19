@@ -1149,11 +1149,6 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
             if value == "on" then value = "1" end
             value = tonumber(value)
 
-            if(value ~= nil) then
-               if(alerts ~= "") then alerts = alerts .. "," end
-               alerts = alerts .. k .. ";" .. operator .. ";" .. value
-            end
-
             -- Handle global settings
             local global_value = _POST["value_global_"..k]
             local global_operator = _POST["op_global_"..k] or "gt"
@@ -1175,6 +1170,20 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
                   if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
                   global_alerts = global_alerts..cur_value
                end
+            end
+
+	    -- Handle Entity Specific settings
+	    if(value == global_value) then
+	       -- Do not save global values
+	       value = nil
+	    elseif(value == nil) then
+	       -- save an empty value to differentiate it from the global default
+	       value = ""
+	    end
+
+            if(value ~= nil) then
+               if(alerts ~= "") then alerts = alerts .. "," end
+               alerts = alerts .. k .. ";" .. operator .. ";" .. value
             end
          end --END for k,_ in pairs(available_modules) do
 
@@ -1245,7 +1254,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    print[[<tr><td colspan=5>]] print(i18n("flow_callbacks.no_callbacks_available_disabled_alerts", {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=alerts"})) print[[.</td></tr>]]
 	 end
       else
-	 local benchmarks = user_scripts.getLastBenchmark(ifid, entity_type)
+	 local benchmarks = user_scripts.getLastBenchmark(ifid, entity_type) or {}
 
 	 for mod_k, user_script in pairsByKeys(available_modules.modules, asc) do
 	    local key = user_script.key
@@ -1288,6 +1297,12 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       if user_script.gui.input_builder then
 		  local k = prefix..key
 		  local value = vals[k]
+		  local is_global = (prefix == "global_")
+
+		  if((not is_global) and (value == nil)) then
+		     -- No value specified for the entity, use the global value if any
+		     value = vals["global_" .. k]
+		  end
 
 		  if(user_script.gui.input_builder ~= user_scripts.threshold_cross_input_builder) then
 		     -- Temporary fix to handle non-thresholds
