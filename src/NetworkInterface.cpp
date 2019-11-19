@@ -177,7 +177,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   loadScalingFactorPrefs();
 
-  statsManager = NULL, alertsManager = NULL;
+  statsManager = NULL, alertsManager = NULL, alertsQueue = NULL;
   ndpiStats = NULL;
 
   host_pools = new HostPools(this);
@@ -552,6 +552,7 @@ NetworkInterface::~NetworkInterface() {
   if(discovery)      delete discovery;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
+  if(alertsQueue)    delete alertsQueue;
   if(ndpiStats)      delete ndpiStats;
   if(networkStats) {
     u_int8_t numNetworks = ntop->getNumLocalNetworks();

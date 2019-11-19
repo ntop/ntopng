@@ -34,6 +34,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
     ifname = iface->get_name();
 
   mdns_vm = NULL;
+  has_bpf_filter = false;
   
 #if ! defined(__arm__)
   if((pd = pcap_open_live(ifname, 128 /* snaplen */, 0 /* no promisc */, 5, errbuf)) == NULL)
@@ -51,11 +52,12 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
 	throw("Unable to start network discovery");
       } else {
       const char* bpfFilter = "arp && arp[6:2] = 2";  // arp[x:y] - from byte 6 for 2 bytes (arp.opcode == 2 -> reply)
-      struct bpf_program fcode;
 
       /* Set ARP filter */
-      if(pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0)
+      if(pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0) {
 	pcap_setfilter(pd, &fcode);
+	has_bpf_filter = true;
+      }
     }
 
   if ((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) != -1) {
@@ -78,6 +80,8 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
 NetworkDiscovery::~NetworkDiscovery() {
   if(pd)             pcap_close(pd);
   if(udp_sock != -1) close(udp_sock);
+
+  if(has_bpf_filter) pcap_freecode(&fcode);
 }
 
 /* ******************************************* */

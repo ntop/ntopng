@@ -33,6 +33,8 @@ class NetworkDiscovery {
   pcap_t *pd;
   lua_State* mdns_vm;
   Mutex m;
+  struct bpf_program fcode;
+  bool has_bpf_filter;
     
   u_int32_t wrapsum(u_int32_t sum);
   u_int16_t in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t sum);
