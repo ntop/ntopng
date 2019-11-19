@@ -1,5 +1,5 @@
 --
--- (C) 2017-18 - ntop.org
+-- (C) 2017-19 - ntop.org
 --
 local json = require "dkjson"
 
@@ -225,6 +225,7 @@ local id2label = {
 discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
 discover.android_icon = '<i class="fa fa-android fa-lg" aria-hidden="true"></i>'
 discover.apple_icon = '<i class="fa fa-apple fa-lg" aria-hidden="true"></i>'
+discover.MAX_DISCOVERED_DEVICES = 8192
 
 -- ################################################################################
 
@@ -253,8 +254,14 @@ end
 
 -- ################################################################################
 
-function discover.getCachedDiscoveryKey(interface_name)
-   return "ntopng.cache.ifid_"..getInterfaceId(interface_name)..".device_discovery"
+local function getCachedDiscoveryKey(interface_name)
+   return "ntopng.cache.ifid_"..getInterfaceId(interface_name)..".device_discovery_status"
+end
+
+-- ################################################################################
+
+local function getCachedDiscoveredDevicesKey(interface_name)
+   return "ntopng.cache.ifid_"..getInterfaceId(interface_name)..".discovered_devices"
 end
 
 -- ################################################################################
@@ -1119,9 +1126,14 @@ end
 
 -- #############################################################################
 
-function discovery2config(interface_name)
-   local cached = ntop.getCache(discover.getCachedDiscoveryKey(interface_name))
+local function discovery2config(interface_name)
+   local cached = ntop.getCache(getCachedDiscoveryKey(interface_name))
    local disc = json.decode(cached)
+
+   disc["devices"] = ntop.lrangeCache(getCachedDiscoveredDevicesKey(interface_name), 0, -1) or {}
+   for i=1, #disc["devices"] do
+      disc["devices"][i] = json.decode(disc["devices"][i])
+   end
 
    if(disc and false) then
       for _,dev in pairs(disc.devices) do
@@ -1131,7 +1143,7 @@ function discovery2config(interface_name)
       end
    end
 
-   return(cached)
+   return disc
 end
 
 -- #############################################################################
@@ -1149,7 +1161,7 @@ function discover.discover2table(interface_name, recache)
 
    if recache ~= true then
       if not isEmptyString(cached) then
-	 return json.decode(cached) or {status = discoverStatus("ERROR", i18n("discover.error_unable_to_decode_json"))}
+	 return cached or {status = discoverStatus("ERROR", i18n("discover.error_unable_to_decode_json"))}
       else
 	 return {status = discoverStatus("NOCACHE", i18n("discover.error_no_discovery_cached"))}
       end
@@ -1285,6 +1297,7 @@ function discover.discover2table(interface_name, recache)
    -- Time to pack the results in a table...
    local status = discoverStatus("OK")
    local res = {}
+   local too_many_devices_discovered = false
 
    for mac, ip in pairsByValues(arp_mdns, asc) do
       if((string.find(mac, ":") == nil)
@@ -1363,14 +1376,31 @@ function discover.discover2table(interface_name, recache)
       end
 
       res[#res + 1] = entry
+      if #res >= discover.MAX_DISCOVERED_DEVICES then
+	 too_many_devices_discovered = true
+	 break
+      end
+
       ::continue::
    end
 
    setDiscoveryProgress("")
 
-   local response = {status = status, devices = res, ghost_found = ghost_found, discovery_timestamp = os.time()}
+   -- Cleanup old data
+   ntop.delCache(getCachedDiscoveryKey(interface_name))
+   ntop.delCache(getCachedDiscoveredDevicesKey(interface_name))
 
-   ntop.setCache(discover.getCachedDiscoveryKey(interface_name), json.encode(response))
+   -- Save the discovery status
+   local response = {status = status, ghost_found = ghost_found, discovery_timestamp = os.time(), too_many_devices_discovered = too_many_devices_discovered}
+   ntop.setCache(getCachedDiscoveryKey(interface_name), json.encode(response))
+
+   -- Save the actually discovered devices
+   local records_cache = getCachedDiscoveredDevicesKey(interface_name)
+
+   -- res is already trimmed at MAX_DISCOVERED_DEVICES, no need to check it
+   for i=1, #res do
+      ntop.lpushCache(records_cache, json.encode(res[i]))
+   end
 
    return response
 end

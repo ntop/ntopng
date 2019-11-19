@@ -234,8 +234,19 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print("<p>"..i18n("discover.network_discovery_datetime")..": "..formatEpoch(discovered["discovery_timestamp"]).."</p>")
 end
 
-if(discovered["ghost_found"]) then
-   print('<b>' .. i18n("notes") .. '</b> ' .. i18n("discover.ghost_icon_descr", {ghost_icon='<font color=red>'..discover.ghost_icon..'</font>'}) .. '.')
+if discovered["ghost_found"] or discovered["too_many_devices_discovered"] then
+   print('<b>' .. i18n("notes") .. '</b> ')
+   print('<ul>')
+
+   if discovered["ghost_found"] then
+      print('<li>' .. i18n("discover.ghost_icon_descr", {ghost_icon='<font color=red>'..discover.ghost_icon..'</font>'}) .. '.</li>')
+   end
+
+   if discovered["too_many_devices_discovered"] then
+      print('<li>' .. i18n("discover.too_many_devices_descr", {max_devices = discover.MAX_DISCOVERED_DEVICES}) .. '.</li>')
+   end
+
+   print('</ul>')
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

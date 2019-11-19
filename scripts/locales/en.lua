@@ -734,6 +734,7 @@ local lang = {
     ["error_no_discovery_cached"] = "No discovery data has been cached yet.",
     ["error_unable_to_decode_json"] = "Unable to decode cache JSON discovery data.",
     ["ghost_icon_descr"] = "The %{ghost_icon} icon highlights ghost hosts (i.e. they do not belong to the interface IP address network)",
+    ["too_many_devices_descr"] = "Too many devices discovered. Results have been trimmed at %{max_devices} devices",
     ["network_discovery"] = "Network Discovery",
     ["network_discovery_datetime"] = "Last Network Discovery",
     ["network_discovery_not_enabled"] = "Network discovery in progress",
