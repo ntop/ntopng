@@ -146,33 +146,12 @@ end
 -- ##############################################
 
 --! @brief Determine whether the alert has already been triggered
---! @param candidate_alert type_info of the aler which needs to be checked
+--! @param candidate_severity the candidate alert severity
+--! @param candidate_type the candidate alert type
+--! @param candidate_granularity the candidate alert granularity
+--! @param candidate_alert_subtype the candidate alert subtype
 --! @param cur_alerts a table of currently triggered alerts
 --! @return true on if the alert has already been triggered, false otherwise
---!
---! @note Example of candidate alert
---! candidate_alert table
---! candidate_alert.alert_granularity table
---! candidate_alert.alert_granularity.i18n_title string show_alerts.minute
---! candidate_alert.alert_granularity.granularity_id number 1
---! candidate_alert.alert_granularity.i18n_description string alerts_thresholds_config.every_minute
---! candidate_alert.alert_granularity.granularity_seconds number 60
---! candidate_alert.alert_severity table
---! candidate_alert.alert_severity.severity_id number 2
---! candidate_alert.alert_severity.syslog_severity number 3
---! candidate_alert.alert_severity.i18n_title string alerts_dashboard.error
---! candidate_alert.alert_severity.label string label-danger
---! candidate_alert.alert_type table
---! candidate_alert.alert_type.i18n_title string alerts_dashboard.threashold_cross
---! candidate_alert.alert_type.i18n_description function function: 0x7fd24070f570
---! candidate_alert.alert_type.alert_id number 2
---! candidate_alert.alert_type.icon string fa-arrow-circle-up
---! candidate_alert.alert_type_params table
---! candidate_alert.alert_type_params.value number 129277
---! candidate_alert.alert_type_params.threshold number 1
---! candidate_alert.alert_type_params.operator string gt
---! candidate_alert.alert_type_params.metric string bytes
---! candidate_alert.alert_subtype string min_bytes
 --!
 --! @note Example of cur_alerts
 --! cur_alerts table
@@ -186,16 +165,8 @@ end
 --! cur_alerts.1.alert_tstamp_end number 1571328097
 --! cur_alerts.1.alert_tstamp number 1571327460
 --! cur_alerts.1.alert_entity number 1
-local function already_triggered(candidate_alert, cur_alerts)
-   if not cur_alerts or not candidate_alert then
-      return nil
-   end
-
-   local candidate_severity = candidate_alert.alert_severity.severity_id
-   local candidate_type = candidate_alert.alert_type.alert_id
-   local candidate_granularity = candidate_alert.alert_granularity.granularity_seconds
-   local candidate_alert_subtype = candidate_alert.alert_subtype
-
+local function already_triggered(cur_alerts, candidate_severity, candidate_type,
+	candidate_granularity, candidate_alert_subtype)
    for i = #cur_alerts, 1, -1 do
       local cur_alert = cur_alerts[i]
 
@@ -207,6 +178,7 @@ local function already_triggered(candidate_alert, cur_alerts)
 	    -- subsequent calls of this method.
 	    -- Using .remove is OK here as there won't unnecessarily move memory multiple times:
 	    -- we return immeediately
+	    -- NOTE: see un-removed alerts will be released by releaseEntityAlerts in interface.lua
 	    table.remove(cur_alerts, i)
 	    return true
       end
@@ -235,12 +207,6 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
      return(true)
   end
 
-  if already_triggered(type_info, cur_alerts) == true then
-     return(true)
-  end
-
-  when = when or os.time()
-
   if(not areAlertsEnabled()) then
     return(false)
   end
@@ -250,9 +216,18 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
     return(false)
   end
 
+  -- Apply defaults
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
   local subtype = type_info.alert_subtype or ""
+
+  if(cur_alerts and already_triggered(cur_alerts, type_info.alert_severity.severity_id,
+	  type_info.alert_type.alert_id, granularity_sec, subtype) == true) then
+     return(true)
+  end
+
+  when = when or os.time()
+
   local alert_json = json.encode(type_info.alert_type_params)
   local triggered
   local alert_key_name = get_alert_triggered_key(type_info)
@@ -304,14 +279,17 @@ end
 --! @note The actual release is performed asynchronously
 --! @return true on success, false otherwise
 function alerts_api.release(entity_info, type_info, when, cur_alerts)
-  if already_triggered(type_info, cur_alerts) == false then
+  -- Apply defaults
+  local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
+  local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
+  local subtype = type_info.alert_subtype or ""
+
+  if(cur_alerts and (not already_triggered(cur_alerts, type_info.alert_severity.severity_id,
+	  type_info.alert_type.alert_id, granularity_sec, subtype))) then
      return(true)
   end
 
   when = when or os.time()
-  local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
-  local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
-  local subtype = type_info.alert_subtype or ""
   local alert_key_name = get_alert_triggered_key(type_info)
   local ifid = interface.getId()
   local params = {alert_key_name, granularity_id, when}
@@ -372,7 +350,7 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
       alert_severity = alert_consts.alert_severities[alertSeverityRaw(alert.alert_severity)],
       alert_subtype = alert.alert_subtype,
       alert_granularity = alert_consts.alerts_granularities[sec2granularity(alert.alert_granularity)],
-    })
+    }, nil, alerts)
   end
 end
 
