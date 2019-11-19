@@ -167,8 +167,7 @@ $("#table-system-interfaces-stats").datatable({
                                 "column_remote_hosts": addCommas,
                                 "column_local_hosts": addCommas,
                                 "column_alerted_flows": addCommas,
-                                "column_engaged_alerts": addCommas,
-                                "column_drops": addCommas});
+                                "column_engaged_alerts": addCommas});
    },
 });
 </script>

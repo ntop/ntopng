@@ -56,6 +56,30 @@ end
 local sOrder = ternary(sortOrder == "asc", asc_insensitive, rev_insensitive)
 local to_skip = (currentPage-1) * perPage
 
+-- ###########################################
+
+local function get_drops_pct(ifstats)
+   local drops_pct = 0
+
+   if ifstats.stats_since_reset.drops > 0 or ifstats.stats_since_reset.packets > 0 then
+      drops_pct = round(ifstats.stats_since_reset.drops / (ifstats.stats_since_reset.drops + ifstats.stats_since_reset.packets) * 100, 2)
+   end
+
+   return drops_pct
+end
+
+-- ###########################################
+
+local function drops_bar(fill_pct)
+   local code = [[
+<div class="progress">
+  <div class="progress-bar progress-bar-danger" role="progressbar" style="width: ]]..fill_pct..[[%;" aria-valuenow="]]..fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..fill_pct..[[%</div>
+</div>
+]]
+
+   return code
+end
+
 -- ################################################
 
 local ifaces_stats = {}
@@ -86,7 +110,7 @@ for iface, ifstats in pairs(ifaces_stats) do
    elseif(sortColumn == "column_packets") then
       sort_to_key[iface] = ifstats.stats_since_reset.packets
    elseif(sortColumn == "column_drops") then
-      sort_to_key[iface] = ifstats.stats_since_reset.drops
+      sort_to_key[iface] = get_drops_pct(ifstats)
    elseif(sortColumn == "column_name") then
       sort_to_key[iface] = getHumanReadableInterfaceName(getInterfaceName(ifstats.id))
    else
@@ -111,7 +135,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local record = {}
       local ifstats = ifaces_stats[key]
       local remote_hosts = ifstats.stats.hosts - ifstats.stats.local_hosts
-      local drops_pct = round(ifstats.stats_since_reset.drops / (ifstats.stats_since_reset.drops + ifstats.stats_since_reset.packets) * 100, 2)
+      local drops_pct = get_drops_pct(ifstats)
 
       record["column_ifid"] = string.format("%i", ifstats.id)
       record["column_engaged_alerts"] = ternary(ifstats.num_alerts_engaged > 0, format_utils.formatValue(ifstats.num_alerts_engaged), '')
@@ -122,7 +146,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_flows"] = ternary(ifstats.stats.flows > 0, format_utils.formatValue(ifstats.stats.flows), '')
       record["column_traffic"] = ternary(ifstats.stats_since_reset.bytes > 0, format_utils.bytesToSize(ifstats.stats_since_reset.bytes), '')
       record["column_packets"] = ternary(ifstats.stats_since_reset.packets > 0, format_utils.formatPackets(ifstats.stats_since_reset.packets), '')
-      record["column_drops"] = ternary(ifstats.stats_since_reset.drops > 0, format_utils.formatPackets(ifstats.stats_since_reset.drops), '')
+      record["column_drops"] = ternary(drops_pct > 0, drops_bar(drops_pct), '')
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i">%s</a>', ifstats.id, getHumanReadableInterfaceName(getInterfaceName(ifstats.id)))
 
