@@ -57,6 +57,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ZMQ socket");
 
     if(ntop->getPrefs()->get_zmq_encryption_key()) {
+#ifdef ZMQ_CURVE_SERVER
       const char *server_secret_key = ntop->getPrefs()->get_zmq_encryption_key();
 
       if(strlen(server_secret_key) != 40)
@@ -74,6 +75,9 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
         else
           ntop->getTrace()->traceEvent(TRACE_INFO, "ZMQ secret key set");
       }
+#else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable ZMQ CURVE encryption (not supported by this ZMQ version)");
+#endif
     }
 
     val = 8388608; /* 8M default: cat /proc/sys/net/core/rmem_max */
