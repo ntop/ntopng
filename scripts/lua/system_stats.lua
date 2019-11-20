@@ -15,6 +15,8 @@ local alert_consts = require("alert_consts")
 require("graph_utils")
 require("alert_utils")
 
+local ts_creation = system_scripts.timeseriesCreationEnabled()
+
 if not isAllowedSystemInterface() then
    return
 end
@@ -44,11 +46,13 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
-if(ts_utils.exists("process:resident_memory", {ifid=getSystemInterfaceId()})) then
-   if(page == "historical") then
-      print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-   else
-      print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+if ts_creation then
+   if(ts_utils.exists("process:resident_memory", {ifid=getSystemInterfaceId()})) then
+      if(page == "historical") then
+	 print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+      else
+	 print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+      end
    end
 end
 
@@ -197,7 +201,7 @@ if(page == "overview") then
    print("</code></td></tr>\n")
 
    print("</table>\n")
-elseif(page == "historical") then
+elseif(page == "historical" and ts_creation) then
    local schema = _GET["ts_schema"] or "system:cpu_load"
    local selected_epoch = _GET["epoch"] or ""
    local tags = {ifid = getSystemInterfaceId()}

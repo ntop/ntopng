@@ -17,6 +17,8 @@ local template = require("template_utils")
 require("graph_utils")
 require("alert_utils")
 
+local ts_creation = system_scripts.timeseriesCreationEnabled()
+
 if not isAllowedSystemInterface() then
    return
 end
@@ -175,6 +177,7 @@ if(page == "overview") then
         }, {
           title: "]] print(i18n("chart")) print[[",
           field: "column_chart",
+          hidden: ]] if not ts_creation then print("true") else print("false") end print[[,
           sortable: false,
           css: {
             textAlign: 'center',

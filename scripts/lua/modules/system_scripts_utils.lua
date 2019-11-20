@@ -22,6 +22,18 @@ local task_to_periodicity = {
 
 -- ##############################################
 
+function system_scripts.timeseriesCreationEnabled()
+   local system_probes_timeseries_enabled = true
+
+   if ntop.getPref("ntopng.prefs.system_probes_timeseries") == "0" then
+      system_probes_timeseries_enabled = false
+   end
+
+   return system_probes_timeseries_enabled
+end
+
+-- ##############################################
+
 function system_scripts.getSystemProbes(task)
   local base_dir = system_scripts_dir .. "/" .. task
   local probes = pairsByKeys(ntop.readdir(base_dir)) or {}
@@ -134,6 +146,7 @@ function system_scripts.runTask(task, when)
   local old_new_schema_fn = ts_utils.newSchema
   local periodicity = task_to_periodicity[task]
   local default_schema_options = { step = periodicity, is_system_schema = true }
+  local system_probes_timeseries_enabled = system_scripts.timeseriesCreationEnabled()
 
   if(task ~= "second") then
     -- Do not include this in the second script as it has a performance
@@ -163,7 +176,7 @@ function system_scripts.runTask(task, when)
         probe.loadSchemas(ts_utils)
       end
 
-      probe.runTask(when, ts_utils)
+      probe.runTask(when, ts_utils, system_probes_timeseries_enabled)
     end
   end
 

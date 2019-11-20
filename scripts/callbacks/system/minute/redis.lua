@@ -134,33 +134,37 @@ end
 
 -- ##############################################
 
-function probe.runTask(when, ts_utils)
-   local ifid = getSystemInterfaceId()
-   local stats = probe.getStats()
-   local hits_key = "ntopng.cache.redis.stats"
-   local json = require("dkjson")
-   local old_hits_stats = ntop.getCache(hits_key)
-   local hits_stats = ntop.getCacheStats()
+function probe.runTask(when, ts_utils, ts_creation)
+   if ts_creation then
+      local ifid = getSystemInterfaceId()
+      local stats = probe.getStats()
+      local hits_key = "ntopng.cache.redis.stats"
+      local json = require("dkjson")
+      local hits_stats = ntop.getCacheStats()
 
-   if(not isEmptyString(old_hits_stats)) then
-      old_hits_stats = json.decode(old_hits_stats) or {}
-   else
-      old_hits_stats = {}
-   end
 
-   ts_utils.append("redis:memory", {ifid = ifid, resident_bytes = stats["memory"]}, when)
-   ts_utils.append("redis:keys", {ifid = ifid, num_keys = stats["dbsize"]}, when)
+      local old_hits_stats = ntop.getCache(hits_key)
 
-   for key, val in pairs(hits_stats) do
-      if(old_hits_stats[key] ~= nil) then
-	 local delta = math.max(val - old_hits_stats[key], 0)
-
-	 -- Dump the delta value as a gauge
-	 ts_utils.append("redis:hits", {ifid = ifid, command = key, num_calls = delta}, when)
+      if(not isEmptyString(old_hits_stats)) then
+	 old_hits_stats = json.decode(old_hits_stats) or {}
+      else
+	 old_hits_stats = {}
       end
-   end
 
-   ntop.setCache(hits_key, json.encode(hits_stats))
+      ts_utils.append("redis:memory", {ifid = ifid, resident_bytes = stats["memory"]}, when)
+      ts_utils.append("redis:keys", {ifid = ifid, num_keys = stats["dbsize"]}, when)
+
+      for key, val in pairs(hits_stats) do
+	 if(old_hits_stats[key] ~= nil) then
+	    local delta = math.max(val - old_hits_stats[key], 0)
+
+	    -- Dump the delta value as a gauge
+	    ts_utils.append("redis:hits", {ifid = ifid, command = key, num_calls = delta}, when)
+	 end
+      end
+
+      ntop.setCache(hits_key, json.encode(hits_stats))
+   end
 end
 
 -- ##############################################

@@ -77,7 +77,7 @@ end
 
 -- ##############################################
 
-function probe.runTask(when, ts_utils)
+function probe.runTask(when, ts_utils, ts_creation)
   local hosts = rtt_utils.getHosts()
   local pinged_hosts = {}
   local max_latency = {}
@@ -145,7 +145,9 @@ function probe.runTask(when, ts_utils)
 	   print("[RTT] Reading response for host ".. host .."\n")
 	end
 
-	ts_utils.append("monitored_host:rtt", {ifid = getSystemInterfaceId(), host = key, millis_rtt = rtt}, when)
+	if ts_creation then
+	   ts_utils.append("monitored_host:rtt", {ifid = getSystemInterfaceId(), host = key, millis_rtt = rtt}, when)
+	end
 
 	rtt = tonumber(rtt)
 	rtt_utils.setLastRttUpdate(key, when, rtt, host)

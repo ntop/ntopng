@@ -3,18 +3,18 @@
 --
 
 local probe = {
-  name = "CPU",
-  descripton = "Monitors the CPU usage",
+   name = "CPU",
+   descripton = "Monitors the CPU usage",
 }
 
 -- ##############################################
 
-function probe.runTask(when, ts_utils)
-  local cpu_load = ntop.refreshCpuLoad()
+function probe.runTask(when, ts_utils, ts_creation)
+   local cpu_load = ntop.refreshCpuLoad()
 
-  if(cpu_load ~= nil) then
-    ts_utils.append("system:cpu_load", {ifid = getSystemInterfaceId(), load_percentage = cpu_load}, when)
-  end
+   if ts_creation and cpu_load then
+      ts_utils.append("system:cpu_load", {ifid = getSystemInterfaceId(), load_percentage = cpu_load}, when)
+   end
 end
 
 -- ##############################################

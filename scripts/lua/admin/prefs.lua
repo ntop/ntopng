@@ -1432,6 +1432,13 @@ function printStatsTimeseries()
 				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
 				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
 
+  print('<tr><th colspan=2 class="info">'..i18n('prefs.system_probes_timeseries')..'</th></tr>')
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_system_probes_timeseries",
+    default = "1",
+    pref = "system_probes_timeseries",
+  })
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 

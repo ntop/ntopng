@@ -33,7 +33,7 @@ end
 
 -- ###########################################
 
-local function printHashTablesTable(base_url, ifid)
+local function printHashTablesTable(base_url, ifid, ts_creation)
    local page_params = {hash_table = _GET["hash_table"], tab = _GET["tab"], iffilter = ifid}
 
    print[[
@@ -84,7 +84,7 @@ $("#table-system-interfaces-stats").datatable({
      }, {
        title: "]] print(i18n("chart")) print[[",
        field: "column_chart",
-       hidden: ]] if not ifid then print('true') else print('false') end print[[,
+       hidden: ]] if not ifid or not ts_creation then print('true') else print('false') end print[[,
        sortable: false,
        css: {
 	 textAlign: 'center',
@@ -152,7 +152,7 @@ end
 
 -- ###########################################
 
-local function printPeriodicActivitiesTable(base_url, ifid)
+local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
    local page_params = {periodic_script = _GET["periodic_script"], tab = _GET["tab"], iffilter = ifid}
 
    print[[
@@ -186,7 +186,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("interface")) print[[",
        field: "column_name",
-       hidden: ]] if ifid then print('true') else print('false') end print[[,
+       hidden: ]] if ifid and not ts_creation then print('true') else print('false') end print[[,
        sortable: true,
        css: {
 	 textAlign: 'left',
@@ -203,7 +203,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("chart")) print[[",
        field: "column_chart",
-       hidden: ]] if not ifid then print('true') else print('false') end print[[,
+       hidden: ]] if not ifid or not ts_creation then print('true') else print('false') end print[[,
        sortable: false,
        css: {
 	 textAlign: 'center',
@@ -252,6 +252,7 @@ end
 
 function internals_utils.printInternals(ifid)
    local tab = _GET["tab"] or "hash_tables"
+   local ts_creation = ntop.getPref("ntopng.prefs.ifid_"..(ifid or getSystemInterfaceId())..".interface_rrd_creation") ~= "false"
 
    print[[
 <ul class="nav nav-tabs" role="tablist">
@@ -266,9 +267,9 @@ function internals_utils.printInternals(ifid)
    local base_url = "?page=internals"
 
    if tab == "hash_tables" then
-      printHashTablesTable(base_url.."&tab=hash_tables", ifid)
+      printHashTablesTable(base_url.."&tab=hash_tables", ifid, ts_creation)
    elseif tab == "periodic_activities" then
-      printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid)
+      printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid, ts_creation)
    end
    print[[</div>]]
 end

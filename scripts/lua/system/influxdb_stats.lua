@@ -15,6 +15,8 @@ local alert_consts = require("alert_consts")
 require("graph_utils")
 require("alert_utils")
 
+local ts_creation = system_scripts.timeseriesCreationEnabled()
+
 if not isAllowedSystemInterface() or (ts_utils.getDriverName() ~= "influxdb") then
    return
 end
@@ -44,10 +46,12 @@ else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
-if(page == "historical") then
-  print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-else
-  print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+if ts_creation then
+   if(page == "historical") then
+      print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+   else
+      print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+   end
 end
 
 if(isAdministrator() and system_scripts.hasAlerts({entity = alert_consts.alertEntity("influx_db")})) then
@@ -78,22 +82,22 @@ if(page == "overview") then
 
     print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_health").."</small></td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-health\"></span></td></tr>\n")
 
-    local storage_chart_available = ts_utils.exists("influxdb:storage_size", tags)
+    local storage_chart_available = ts_creation and ts_utils.exists("influxdb:storage_size", tags)
     print("<tr><td nowrap width='30%'><b>".. i18n("traffic_recording.storage_utilization") .."</b> "..ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:storage_size'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.short_desc_influxdb_storage_utilization").."</small></td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
 
     -- No need to determine whether the chart exists for this as memory is always fetched straigth from influxdb
-    print("<tr><td nowrap><b>".. i18n("about.ram_memory") .."</b> <A HREF='"..url.."&page=historical&ts_schema=influxdb:memory_size'><i class='fa fa-area-chart fa-sm'></i></A>".."<br><small>"..i18n("system_stats.short_desc_influxdb_ram_memory").."</small></td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-memory\"></span></td></tr>\n")
+    print("<tr><td nowrap><b>".. i18n("about.ram_memory") .."</b> "..ternary(ts_creation, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:memory_size'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.short_desc_influxdb_ram_memory").."</small></td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-memory\"></span></td></tr>\n")
 
     if(probe ~= nil) then
        local stats = probe.getExportStats()
 
-       local exports_chart_available = ts_utils.exists("influxdb:exports", tags)
+       local exports_chart_available = ts_creation and ts_utils.exists("influxdb:exports", tags)
        print("<tr><td nowrap><b>".. i18n("system_stats.exports") .."</b> "..ternary(exports_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:exports'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.short_desc_influxdb_exports").."</small></td><td><span id=\"influxdb-exports\">".. formatValue(stats.exports) .."</span></td></tr>\n")
 
-       local exported_points_chart_available = ts_utils.exists("influxdb:exported_points", tags)
+       local exported_points_chart_available = ts_creation and ts_utils.exists("influxdb:exported_points", tags)
        print("<tr><td nowrap><b>".. i18n("system_stats.exported_points") .."</b> "..ternary(exported_points_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:exported_points'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.short_desc_influxdb_exported_points").."</small></td><td><span id=\"influxdb-exported-points\">".. formatValue(stats.points_exported) .."</span></td></tr>\n")
 
-       local dropped_points_chart_available = ts_utils.exists("influxdb:dropped_points", tags)
+       local dropped_points_chart_available = ts_creation and ts_utils.exists("influxdb:dropped_points", tags)
        print("<tr><td nowrap><b>".. i18n("system_stats.dropped_points") .."</b> "..ternary(dropped_points_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:dropped_points'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.short_desc_influxdb_dropped_points").."</small></td><td><span id=\"influxdb-dropped-points\">".. formatValue(stats.points_dropped) .."</span></td></tr>\n")
     end
 
@@ -172,7 +176,7 @@ refreshInfluxStats();
        print("<li>"..i18n("system_stats.influxdb_note_docs", {url = "https://www.ntop.org/guides/ntopng/basic_concepts/timeseries.html#influxdb-driver"}).."</li>")
        print("</ul>")
        
-elseif(page == "historical") then
+elseif(page == "historical" and ts_creation) then
    local schema = _GET["ts_schema"] or "influxdb:storage_size"
    local selected_epoch = _GET["epoch"] or ""
    local tags = {ifid = getSystemInterfaceId()}
