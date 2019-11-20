@@ -15,6 +15,7 @@ require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 require "discover_utils"
+require "mac_utils"
 
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
@@ -199,6 +200,12 @@ if((page == "overview") or (page == nil)) then
    end
 
    print("</td></tr>")
+
+   if mac_info["num_hosts"] > 0 then
+      print("<tr>")
+      print("<th>"..i18n("ip_address").."</th><td colspan=2>"..printMacHosts(mac).."</td>")
+      print("</tr>")
+   end
 
    if has_snmp_location then
       print_host_snmp_location(mac, url .. [[&page=snmp]])

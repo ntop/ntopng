@@ -2242,6 +2242,9 @@ local lang = {
     ["reset_mac_stats"] = "Reset Mac Stats",
     ["reset_mac_stats_note"] = "<b>NOTE</b>: historical charts for this mac address may have a gap after the reset.",
     ["reset_stats_in_progress"] = "Mac statistics will be reset within 5 seconds",
+    ["mac_host"] = "<a href='%{host_url}'>%{host_label}</a>",
+    ["and_one_more_host"] = "<a href='%{host_url}'>%{host_label}</a> and <a href='%{url}'>1 more host</a>",
+    ["and_n_more_hosts"] = "<a href='%{host_url}'>%{host_label}</a> and <a href='%{url}'>%{num} more hosts</a>",
   },
   ["mac_stats"] = {
     ["all_devices"] = "All",

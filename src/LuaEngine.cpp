@@ -1128,6 +1128,25 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_get_interface_mac_hosts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *mac = NULL;
+
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    mac = (char*)lua_tostring(vm, 1);
+
+  lua_newtable(vm);
+
+  if(ntop_interface)
+    ntop_interface->getActiveMacHosts(vm, mac);
+
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 // ***API***
@@ -10766,7 +10785,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
   { "getBatchedMacsInfo",               ntop_get_batched_interface_macs_info },
-  { "getMacInfo",                       ntop_get_interface_mac_info },
+  { "getMacInfo",                       ntop_get_interface_mac_info  },
+  { "getMacHosts",                      ntop_get_interface_mac_hosts },
   { "getMacManufacturers",              ntop_get_interface_macs_manufacturers },
   { "getTopMacsProtos",                 ntop_get_top_macs_protos },
   { "setMacDeviceType",                 ntop_set_mac_device_type },

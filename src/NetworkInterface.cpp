@@ -3081,6 +3081,7 @@ struct mac_find_info {
   u_int16_t vlan_id;
   Mac *m;
   DeviceType dtype;
+  lua_State *vm;
 };
 
 /* **************************************************** */
@@ -6437,6 +6438,43 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
   if(retriever.elems) free(retriever.elems);
 
   return(retriever.actNumEntries);
+}
+
+/* **************************************** */
+
+static bool find_mac_hosts(GenericHashEntry *h, void *user_data, bool *matched) {
+  struct mac_find_info *info = (struct mac_find_info*)user_data;
+  Host *host = (Host*)h;
+
+  if(host->getMac() == info->m)
+    host->lua(info->vm, NULL /* Already checked */, false, false, false, true);
+
+  return false; /* false = keep on walking */
+}
+
+/* **************************************** */
+
+bool NetworkInterface::getActiveMacHosts(lua_State* vm, const char *mac) {
+  struct mac_find_info info;
+  bool res = false;
+  u_int32_t begin_slot = 0;
+
+  if(!macs_hash)
+    return res;
+
+  memset(&info, 0, sizeof(info));
+  Utils::parseMac(info.mac, mac);
+  info.vm = vm;
+
+  info.m = macs_hash->get(info.mac, false /* Not an inline call */);
+
+  if(!info.m
+     || !info.m->getNumHosts() /* Avoid walking the hosts hash table when there are no hosts associated */)
+    return res;
+
+  walker(&begin_slot, true /* walk_all */, walker_hosts, find_mac_hosts, &info);
+
+  return res;
 }
 
 /* **************************************** */
