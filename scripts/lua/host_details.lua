@@ -1961,7 +1961,8 @@ elseif(page == "callbacks") then
 elseif(page == "alerts") then
    printAlertTables("host", hostkey,
       "host_details.lua", {ifid=ifId, host=hostkey},
-      host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"])})
+      host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
+         enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = host_name})})
 
 elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}

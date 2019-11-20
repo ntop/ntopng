@@ -49,6 +49,7 @@ are accepted:
   - `check` (deprecated): for custom schemas, defines the sub schemas to check in order to show
     the entry in the menu. It is deprecated in favour of the inline custom schema definitions (see below)
   - `step`: for custom schemas, defines the data `step` of the combined schemas
+  - `extra_series`: a list of extra series to show in the chart (see below)
 
 The order of definition if the `timeseries` field is the same as the order presented into the menu.
 A separator with an optional label can be added to the `timeseries` field to separate logical groups:
@@ -56,6 +57,32 @@ A separator with an optional label can be added to the `timeseries` field to sep
 ```
   {separator=1, label=i18n("tcp_flags")},
 ```
+
+Extra Series
+============
+
+By using the `extra_series` parameter it's possible to add series to the charts.
+Here is an example to add an horizontal dashed red line:
+
+```
+  ...
+  extra_series = {
+    label = i18n("internals.max_duration_ms"),
+    value = 1000,
+    type = "line",
+    color = "red",
+    class = "line-dashed",
+  },
+  ...
+```
+
+The supported parameters are:
+
+  - `label` (mandatory): the label for the serie
+  - `value` (mandatory): the serie constraint value
+  - `type`: defines the chart type ("area", "line", "bar")
+  - `color`: a color for the serie
+  - `class`: a css class for the serie (e.g. `line-dashed` for dashed lines)
 
 Custom Schemas
 ==============

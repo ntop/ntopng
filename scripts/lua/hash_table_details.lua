@@ -22,6 +22,8 @@ local hash_table     = _GET["hash_table"]
 local ifstats = interface.getStats()
 local ifId = ifstats.id
 
+active_page = "if_stats"
+
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header()
@@ -45,7 +47,7 @@ print [[
 <ul class="nav navbar-nav">
 ]]
 
-print("<li><a href=\"#\">Hash Table: "..hash_table.."</A> </li>")
+print("<li><a href=\"#\">".. i18n("internals.iface_hash_tables", {iface = getHumanReadableInterfaceName(getInterfaceName(ifId))}) .."</A> </li>")
 print("<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i>\n")
 
 print [[
@@ -58,7 +60,7 @@ print [[
 
 local schema = _GET["ts_schema"] or "ht:state"
 local selected_epoch = _GET["epoch"] or ""
-local url = ntop.getHttpPrefix()..'/lua/hash_table_details.lua?ifid='..ifId..'&hash_table='..hash_table..'&page=historical'
+local url = ntop.getHttpPrefix()..'/lua/hash_table_details.lua?ifid='..ifId..'&page=historical'
 
 local tags = {
    ifid = ifId,
@@ -67,18 +69,12 @@ local tags = {
 
 drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    timeseries = {
-      {schema = "ht:state",
-       label = i18n("internals.hash_entries")},
-      {schema = "custom:ht:lua_calls",
-       label = i18n("internals.num_calls_vs_duration"),
-       metrics_labels = { i18n("duration"), i18n("graphs.num_calls") },
-      }, {
-         schema = "custom:ht:lua_calls_vs_missed",
-         label = i18n("internals.lua_calls_vs_missed"),
-         metrics_labels = { i18n("internals.missed_idle"), i18n("internals.missed_proto_detected"),
-            i18n("internals.missed_periodic_update"), i18n("internals.pending_proto_detected"),
-            i18n("internals.pending_periodic_update"), i18n("internals.successful_calls") },
-      },
+      {schema = "ht:state", label = i18n("hash_table.CountriesHash"), extra_params = {hash_table = "CountriesHash"}},
+      {schema = "ht:state", label = i18n("hash_table.HostHash"), extra_params = {hash_table = "HostHash"}},
+      {schema = "ht:state", label = i18n("hash_table.MacHash"), extra_params = {hash_table = "MacHash"}},
+      {schema = "ht:state", label = i18n("hash_table.FlowHash"), extra_params = {hash_table = "FlowHash"}},
+      {schema = "ht:state", label = i18n("hash_table.AutonomousSystemHash"), extra_params = {hash_table = "AutonomousSystemHash"}},
+      {schema = "ht:state", label = i18n("hash_table.VlanHash"), extra_params = {hash_table = "VlanHash"}},
    }
 })
 

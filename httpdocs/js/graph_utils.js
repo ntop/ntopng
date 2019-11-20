@@ -849,6 +849,34 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         }
       }
 
+      /* Extra horizontal series */
+      if(visualization && visualization.extra_series) {
+        for(var i=0; i<visualization.extra_series.length; i++) {
+          var serie = visualization.extra_series[i];
+
+          if(!serie.label) {
+            console.warn("Missing extra_series label");
+            continue;
+          }
+
+          if(!serie.value) {
+            console.warn("Missing extra_series value");
+            continue;
+          }
+
+          res.push({
+            key: serie.label,
+            yAxis: serie.axis || 1,
+            values: arrayToNvSerie(upsampleSerie([serie.value], data.count), data.start, data.step),
+            type: serie.type || "line",
+            color: serie.color || "red",
+            classed: serie.class,
+            legend_key: serie.label,
+            disabled: isLegendDisabled(serie.label, false),
+          });
+        }
+      }
+
       if(!data.no_trend && has_full_data && (total_serie.length >= 3)) {
         // Smoothed serie
         /* num_smoothed_points determines the window size to use while computing rolling functions */

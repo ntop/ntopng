@@ -9,6 +9,18 @@ local dirs = ntop.getDirs()
 
 -- ###########################################
 
+internals_utils.periodic_scripts_durations = {
+   -- Script -> max_duration sec
+   ["stats_update.lua"] =        5,
+   ["ht_state_update.lua"] =     5,
+   ["minute.lua"] =             60,
+   ["5min.lua"] =              300,
+   ["hourly.lua"] =           3600,
+   ["daily.lua"] =           86400,
+}
+
+-- ###########################################
+
 local function printHashTablesDropdown(base_url, page_params)
    local hash_table = _GET["hash_table"]
    local hash_table_filter
@@ -186,7 +198,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("interface")) print[[",
        field: "column_name",
-       hidden: ]] if ifid and not ts_creation then print('true') else print('false') end print[[,
+       hidden: ]] if ifid then print('true') else print('false') end print[[,
        sortable: true,
        css: {
 	 textAlign: 'left',
@@ -210,8 +222,8 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '1%',
        }
      }, {
-       title: "]] print(i18n("internals.max_duration_ms")) print[[",
-       field: "column_max_duration",
+       title: "]] print(i18n("internals.time_usage")) print[[",
+       field: "column_time_perc",
        sortable: true,
        css: {
 	 textAlign: 'right',
@@ -229,8 +241,10 @@ $("#table-internals-periodic-activities").datatable({
    ], tableCallback: function() {
       datatableInitRefreshRows($("#table-internals-periodic-activities"),
 			       "column_key", 5000,
-			       {"column_max_duration": addCommas,
-				"column_last_duration": addCommas});
+			       {
+                  "column_last_duration": fmillis,
+                  "column_time_perc": function(v) {return(Math.round(v) + "%")},
+               });
    },
 });
 </script>
@@ -257,9 +271,9 @@ function internals_utils.printInternals(ifid)
    print[[
 <ul class="nav nav-tabs" role="tablist">
   <li ]] if tab == "hash_tables" then print[[class="active"]] end print[[>
-    <a href="?page=internals&tab=hash_tables") print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>
+    <a href="?page=internals&tab=hash_tables]] print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>
   <li ]] if tab == "periodic_activities" then print[[class="active"]] end print[[>
-    <a href="?page=internals&tab=periodic_activities") print[[">]] print(i18n("internals.periodic_activities")) print[[</a>
+    <a href="?page=internals&tab=periodic_activities"]] print[[">]] print(i18n("internals.periodic_activities")) print[[</a>
   </li>
 </ul>
 
@@ -302,15 +316,15 @@ function internals_utils.getDoubleFillBar(first_fill_pct, second_fill_pct, third
    local code = [[<div class="progress">]]
 
    if first_fill_pct > 0 then
-      code = code..[[<div class="progress-bar" role="progressbar" style="width: ]]..first_fill_pct..[[%" aria-valuenow="]]..first_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("if_stats_overview.active")..[[</div>]]
+      code = code..[[<div class="progress-bar" role="progressbar" title="]] ..i18n("if_stats_overview.active").. [[" style="width: ]]..first_fill_pct..[[%" aria-valuenow="]]..first_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("if_stats_overview.active")..[[</div>]]
    end
 
    if second_fill_pct > 0 then
-      code = code..[[<div class="progress-bar progress-bar-info" role="progressbar" style="width: ]]..second_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("flow_callbacks.idle")..[[</div>]]
+      code = code..[[<div class="progress-bar progress-bar-info" role="progressbar" title="]] ..i18n("flow_callbacks.idle").. [[" style="width: ]]..second_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("flow_callbacks.idle")..[[</div>]]
    end
 
    if third_fill_pct > 0 then
-      code = code..[[<div class="progress-bar progress-bar-success" role="progressbar" style="width: ]]..third_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("free")..[[</div>]]
+      code = code..[[<div class="progress-bar progress-bar-success" role="progressbar" title="]] ..i18n("free").. [[" style="width: ]]..third_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("free")..[[</div>]]
    end
 
    code = code..[[</div>]]

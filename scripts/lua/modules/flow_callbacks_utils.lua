@@ -108,7 +108,9 @@ local function print_callbacks_config_table(descr, expert_view)
 	    for mod_fn, mod_benchmark in pairsByKeys(hooks_benchmarks, asc) do
 	       print("<td>".. mod_fn .."</td>")
 
-	       printStatsCols(total_stats, mod_benchmark["tot_elapsed"], mod_benchmark["tot_num_calls"], mod_benchmark["avg_speed"])
+	       local avg_speed = (mod_benchmark["tot_num_calls"] / mod_benchmark["tot_elapsed"])
+
+	       printStatsCols(total_stats, mod_benchmark["tot_elapsed"], mod_benchmark["tot_num_calls"], avg_speed)
 	       ctr = ctr + 1
 
 	       if(ctr ~= num_hooks) then

@@ -176,7 +176,8 @@ elseif(page == "callbacks") then
 elseif(page == "alerts") then
 
     printAlertTables("network", network_name,
-      "network_details.lua", {network=network}, network_name, "network")
+      "network_details.lua", {network=network}, network_name, "network",
+      {enable_label = i18n("show_alerts.trigger_network_alert_descr", {network = network_name})})
 
 elseif page == "traffic_report" then
     dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")

@@ -901,6 +901,8 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
       trigger_alerts_checked = "checked"
    end
 
+  local enable_label = options.enable_label or i18n("show_alerts.trigger_alert_descr")
+
   print[[
    <br>
    <form id="alerts-config" class="form-inline" method="post">
@@ -911,7 +913,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
          <td>
                <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
                   <i class="fa fa-exclamation-triangle fa-lg"></i>
-                  ]] print(i18n("show_alerts.trigger_alert_descr")) print[[
+                  ]] print(enable_label) print[[
                </input>
          </td>
       </tr>]]

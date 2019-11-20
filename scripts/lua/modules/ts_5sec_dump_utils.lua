@@ -7,35 +7,27 @@ local ts_dump = {}
 -- ########################################################
 
 function ts_dump.iface_update_periodic_ht_state_update_stats(when, ifid, periodic_ht_state_update_stats)
-   for ht_name, ht_stats in pairs(periodic_ht_state_update_stats) do
+   local ht_name = "FlowHash"
+   local ht_stats = periodic_ht_state_update_stats[ht_name]
+
+   if(ht_stats and ht_stats["stats"]) then
       local num_calls = 0
       local num_ms = 0
       local stats = ht_stats["stats"]
 
-      if stats then
-	 if stats["num_calls"] then
-	    num_calls = stats["num_calls"]
-	 end
-	 if stats["tot_duration_ms"] then
-	    num_ms = stats["tot_duration_ms"]
-	 end
+      ts_utils.append("flow_script:skipped_calls", {ifid = ifid,
+	 idle = stats.num_skipped_idle,
+	 proto_detected = stats.num_skipped_proto_detected,
+	 periodic_update = stats.num_skipped_periodic_update
+      }, when, verbose)
 
-	 if stats.num_skipped_idle ~= nil then
-	    ts_utils.append("ht:num_skipped_calls", {ifid = ifid, hash_table = ht_name,
-						     idle = stats.num_skipped_idle,
-						     proto_detected = stats.num_skipped_proto_detected,
-						     periodic_update = stats.num_skipped_periodic_update,
-						    }, when, verbose)
+      ts_utils.append("flow_script:pending_calls", {ifid = ifid,
+	 proto_detected = stats.num_pending_proto_detected,
+	 periodic_update = stats.num_pending_periodic_update
+      }, when, verbose)
 
-	    ts_utils.append("ht:num_pending_calls", {ifid = ifid, hash_table = ht_name,
-						     proto_detected = stats.num_pending_proto_detected,
-						     periodic_update = stats.num_pending_periodic_update,
-						    }, when, verbose)
-	 end
-      end
-
-     ts_utils.append("ht:duration", {ifid = ifid, hash_table = ht_name, num_ms = num_ms}, when, verbose)
-     ts_utils.append("ht:num_calls", {ifid = ifid, hash_table = ht_name, num_calls = num_calls}, when, verbose)
+     ts_utils.append("flow_script:lua_duration", {ifid = ifid, num_ms = stats["tot_duration_ms"]}, when, verbose)
+     ts_utils.append("flow_script:successful_calls", {ifid = ifid, num_calls = stats["num_calls"]}, when, verbose)
    end
 end
 

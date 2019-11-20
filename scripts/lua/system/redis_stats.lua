@@ -88,14 +88,20 @@ if(page == "overview") then
    local tags = {ifid=getSystemInterfaceId()}
    print("<table class=\"table table-bordered table-striped\">\n")
 
-   print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_health").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-health\"></span></td></tr>\n")
+   print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_health").."</small></td><td></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-health\"></span></td></tr>\n")
 
    -- No need to determine whether the chart exists for this as memory is always fetched straigth from redis
    local storage_chart_available = ts_creation and ts_utils.exists("redis:memory", tags)
-   print("<tr><td nowrap width='30%'><b>".. i18n("about.ram_memory") .."</b> "..ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:memory'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.redis.short_desc_redis_ram_memory").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-memory\"></span></td></tr>\n")
+   print("<tr><td nowrap width='30%'><b>".. i18n("about.ram_memory") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_ram_memory").."</small></td>")
+   print("<td class='text-center' width=5%>")
+   print(ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:memory'><i class='fa fa-lg fa-area-chart'></i></A>", ""))
+   print("</td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-memory\"></span></td></tr>\n")
 
    local keys_chart_available = ts_creation and ts_utils.exists("redis:keys", tags)
-   print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.redis.redis_keys") .."</b> "..ternary(keys_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:keys'><i class='fa fa-area-chart fa-sm'></i></A>", "").."<br><small>"..i18n("system_stats.redis.short_desc_redis_keys").."</small></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-keys\"></span></td></tr>\n")
+   print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.redis.redis_keys") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_keys").."</small></td>")
+   print("<td class='text-center' width=5%>")
+   print(ternary(keys_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:keys'><i class='fa fa-area-chart fa-lg'></i></A>", ""))
+   print("</td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-keys\"></span></td></tr>\n")
 
    print[[<script>
 

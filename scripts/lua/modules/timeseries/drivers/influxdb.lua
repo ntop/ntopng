@@ -824,7 +824,9 @@ function driver:_exportErrorMsg(ret)
       local content = json.decode(ret.CONTENT)
 
       if((content ~= nil) and (content.error ~= nil)) then
-        err_msg = content.error
+        -- In case multiple lines are returned, only fetch the first one
+        local errors = string.split(content.error, "\n") or {content.error}
+        err_msg = errors[1] or content.error
 
         if string.find(err_msg, "max-values-per-tag limit exceeded", nil, true) ~= nil then
           suffix = ". " .. i18n("alert_messages.influxdb_partial_write")
@@ -863,17 +865,13 @@ function driver:_exportTsFile(exportable)
   local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?precision=s&db=" .. self.db, fname, delete_file_after_post, 30 --[[ timeout ]])
 
   if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
-    -- local msg = self:_exportErrorMsg(ret)
-
-    -- local influx_alert = alerts:newAlert({
-    --   entity = "influx_db",
-    --   type = "influxdb_export_failure",
-    --   severity = "warning",
-    -- })
-
-    -- influx_alert:trigger(self.url, msg)
+    local msg = self:_exportErrorMsg(ret)
+    ntop.setCache("ntopng.cache.influxdb.last_error", msg)
 
     rv = false
+  else
+    -- Clear last error
+    ntop.delCache("ntopng.cache.influxdb.last_error")
   end
 
   return rv

@@ -271,8 +271,11 @@ function datatableInitRefreshRows(table, column_id, refresh_interval, trend_colu
              var arrows = "";
 
              if(trend_value_formatter) {
+              if(parseFloat(new_val) != new_val)
+                console.warn("Invalid number: " + new_val);
+
               if(!first_load)
-                arrows = " " + drawTrend(parseInt(new_val), parseInt(old_val));
+                arrows = " " + drawTrend(parseFloat(new_val), parseFloat(old_val));
 
               // This value will be neede in the next refresh
               $cell.data("dt-rr-cur-val", new_val);

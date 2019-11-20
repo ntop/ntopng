@@ -14,9 +14,6 @@ local have_nedge = ntop.isnEdge()
 local ts_utils = require("ts_utils")
 local ts_common = require("ts_common")
 
--- Keep global, need to be accessed from nv_graph_utils
-schemas_graph_options = {}
-
 -- ########################################################
 
 if(ntop.isPro()) then
@@ -330,7 +327,7 @@ local graph_menu_entries = {}
 --      the entry will be shown but will be grayed out (disabled state)
 --    - If timeseries exist for the entry in the visualized interval, the
 --      entry will be shown and will be clickable
-function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending, extra_params)
+function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator, separator_label, pending, extra_params, serie)
    local url = getPageUrl(base_url, params)
    local step = nil
 
@@ -354,6 +351,7 @@ function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator
       pending = pending, -- true for batched operations
       step = step,
       extra_params = extra_params,
+      graph_options = serie,
    }
 
    graph_menu_entries[#graph_menu_entries + 1] = entry
@@ -558,8 +556,6 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
          -- in getBatchedListSeriesResult
          local batch_ids = {}
 
-         schemas_graph_options[k] = serie
-
          if starts(k, "custom:") then
             if not ntop.isPro() then
                goto continue
@@ -583,7 +579,7 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
                  exist_tags = getCustomSchemaTags(k, exist_tags, idx)
                end
 
-               local batch_id = ts_utils.batchListSeries(serie, exist_tags, query_start)
+               local batch_id = ts_utils.batchListSeries(serie, table.merge(exist_tags, serie.extra_params), query_start)
 
                if batch_id == nil then
                   exists = false
@@ -601,7 +597,7 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
             end
 
             -- only show if there has been an update within the specified time frame
-            local batch_id = ts_utils.batchListSeries(k, entry_tags, query_start)
+            local batch_id = ts_utils.batchListSeries(k, table.merge(entry_tags, serie.extra_params), query_start)
 
             if batch_id ~= nil then
                -- assume it exists for now, will verify in getBatchedListSeriesResult
@@ -612,7 +608,7 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
 
          if exists then
             local entry = populateGraphMenuEntry(v, entry_baseurl, table.merge(entry_params, {ts_schema=k}), nil,
-               needs_separator, separator_label, #batch_ids --[[ pending ]], serie.extra_params)
+               needs_separator, separator_label, #batch_ids --[[ pending ]], serie.extra_params, serie)
 
             if entry then
                for _, batch_id in pairs(batch_ids) do

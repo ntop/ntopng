@@ -1355,7 +1355,8 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
 elseif(page == "alerts") then
 
    printAlertTables("interface", ifname_clean,
-      "if_stats.lua", {ifid=ifid}, if_name, "interface")
+      "if_stats.lua", {ifid=ifid}, if_name, "interface",
+      {enable_label = i18n("show_alerts.trigger_iface_alert_descr", {iface = short_name})})
 
 elseif(page == "config") then
    if(not isAdministrator()) then

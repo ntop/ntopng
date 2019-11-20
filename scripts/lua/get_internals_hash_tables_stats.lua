@@ -140,13 +140,20 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
       local active_entries = htstats.stats.hash_entry_states.hash_entry_state_active
       local idle_entries = htstats.stats.hash_entry_states.hash_entry_state_idle
 
+      local warn = ""
+      local idle_perc = idle_entries * 100 / (idle_entries + active_entries + 1)
+
+      if(idle_perc >= 50) then
+         warn = "<i class=\"fa fa-warning fa-lg\" title=\"".. i18n("internals.high_idle_entries") .."\" style=\"color: #f0ad4e;\"></i> "
+      end
+
       record["column_key"] = key
       record["column_ifid"] = string.format("%i", htstats.ifid)
       record["column_active_entries"] = ternary(active_entries > 0, format_utils.formatValue(active_entries), '')
       record["column_idle_entries"] = ternary(idle_entries > 0, format_utils.formatValue(idle_entries), '')
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=hash_tables">%s</a>', htstats.ifid, getHumanReadableInterfaceName(getInterfaceName(htstats.ifid)))
-      record["column_hash_table_name"] = i18n("hash_table."..htstats.ht)
+      record["column_hash_table_name"] = warn .. i18n("hash_table."..htstats.ht)
 
       if iffilter then
 	 if ts_utils.exists("ht:state", {ifid = iffilter, hash_table = htstats.ht}) then

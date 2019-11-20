@@ -203,6 +203,7 @@ function format_utils.formatPastEpochShort(epoch)
    return format_utils.formatEpochShort(epoch, os.time(), epoch)
 end
 
+-- See also format_utils.msToTime
 function format_utils.formatMillis(x)
    if(x == 0) then return 0 end
    if(x < 0.1) then return "< 0.1 ms" end

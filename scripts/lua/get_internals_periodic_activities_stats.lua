@@ -9,6 +9,7 @@ require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
 local ts_utils = require "ts_utils"
+local internals_utils = require "internals_utils"
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -72,7 +73,14 @@ for _, iface in pairs(interface.getIfNames()) do
    local scripts_stats = interface.getPeriodicActivitiesStats()
 
    -- Flatten out the nested tables
-   for script, stats in pairs(scripts_stats) do
+   for script in pairs(internals_utils.periodic_scripts_durations) do
+      local stats = scripts_stats[script] or {
+	 duration = {
+	    max_duration_ms = 0,
+	    last_duration_ms = 0,
+	 }
+      }
+
       ifaces_scripts_stats[iface.."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
    end
 
@@ -91,8 +99,11 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       end
    end
 
-   if(sortColumn == "column_max_duration") then
-      sort_to_key[k] = script_stats.stats.duration.max_duration_ms
+   stats.duration.max_duration_ms = internals_utils.periodic_scripts_durations[script_stats.script] * 1000
+   stats.perc_duration = stats.duration.last_duration_ms * 100 / (stats.duration.max_duration_ms)
+
+   if(sortColumn == "column_time_perc") then
+      sort_to_key[k] = stats.perc_duration
    elseif(sortColumn == "column_last_duration") then
       sort_to_key[k] = script_stats.stats.duration.last_duration_ms
    elseif(sortColumn == "column_periodic_activity_name") then
@@ -100,7 +111,7 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
    elseif(sortColumn == "column_name") then
       sort_to_key[k] = getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid))
    else
-      sort_to_key[k] = script_stats.ifid
+      sort_to_key[k] = script_stats.script
    end
 
    totalRows = totalRows + 1
@@ -124,19 +135,24 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       local max_duration = script_stats.stats.duration.max_duration_ms
       local last_duration = script_stats.stats.duration.last_duration_ms
+      local warn = ""
+
+      if(last_duration > max_duration) then
+         warn = "<i class=\"fa fa-warning fa-lg\" title=\"".. i18n("internals.script_deadline_exceeded") .."\" style=\"color: #f0ad4e;\"></i> "
+      end
 
       record["column_key"] = key
       record["column_ifid"] = string.format("%i", script_stats.ifid)
-      record["column_max_duration"] = ternary(max_duration > 0, format_utils.formatMillis(max_duration), '')
-      record["column_last_duration"] = ternary(last_duration > 0, format_utils.formatMillis(last_duration), '')
+      record["column_time_perc"] = script_stats.stats.perc_duration
+      record["column_last_duration"] = last_duration
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))
 
-      record["column_periodic_activity_name"] = script_stats.script
+      record["column_periodic_activity_name"] = warn .. script_stats.script
 
       if iffilter then
-	 if ts_utils.exists("periodic_script:duration_ms", {ifid = iffilter, periodic_script = script_stats.script}) then
-	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+	 if ts_utils.exists("periodic_script:duration", {ifid = iffilter, periodic_script = script_stats.script}) then
+	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
 	 end
       end
 
