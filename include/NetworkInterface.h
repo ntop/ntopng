@@ -517,6 +517,10 @@ class NetworkInterface : public AlertableEntity {
 				bool sourceMacsOnly,
 				u_int32_t maxHits, u_int8_t devtype_filter,
 				u_int8_t location_filter);
+  int getActiveMacHosts(lua_State* vm,
+			bool sourceMacsOnly,
+			u_int8_t devtype_filter,
+			u_int8_t location_filter);
   int getActiveDeviceTypes(lua_State* vm,
 			   u_int8_t bridge_iface_idx,
 			   bool sourceMacsOnly,

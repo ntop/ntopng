@@ -3133,22 +3133,6 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matche
 
 /* **************************************************** */
 
-static bool find_mac_by_name(GenericHashEntry *h, void *user_data, bool *matched) {
-  struct mac_find_info *info = (struct mac_find_info*)user_data;
-  Mac *m = (Mac*)h;
-
-  if((info->m == NULL) && (!memcmp(info->mac, m->get_mac(), 6))) {
-    info->m = m;
-    *matched = true;
-
-    return(true); /* found */
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
 static bool find_as_by_asn(GenericHashEntry *he, void *user_data, bool *matched) {
   struct as_find_info *info = (struct as_find_info*)user_data;
   AutonomousSystem *as = (AutonomousSystem*)he;
@@ -6513,20 +6497,20 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 
 bool NetworkInterface::getMacInfo(lua_State* vm, char *mac) {
   struct mac_find_info info;
-  bool ret;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
+  bool ret = false;
+
+  if(!macs_hash)
+    return ret;
 
   memset(&info, 0, sizeof(info));
   Utils::parseMac(info.mac, mac);
 
-  walker(&begin_slot, walk_all,  walker_macs, find_mac_by_name, (void*)&info);
+  info.m = macs_hash->get(info.mac, false /* Not an inline call */);
 
   if(info.m) {
     info.m->lua(vm, true, false);
     ret = true;
-  } else
-    ret = false;
+  }
 
   return ret;
 }
@@ -6535,14 +6519,15 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac) {
 
 bool NetworkInterface::resetMacStats(lua_State* vm, char *mac, bool delete_data) {
   struct mac_find_info info;
-  bool ret;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
+  bool ret = false;
+
+  if(!macs_hash)
+    return ret;
 
   memset(&info, 0, sizeof(info));
   Utils::parseMac(info.mac, mac);
 
-  walker(&begin_slot, walk_all,  walker_macs, find_mac_by_name, (void*)&info);
+  info.m = macs_hash->get(info.mac, false /* Not an inline call */);
 
   if(info.m) {
     if(delete_data)
@@ -6550,8 +6535,7 @@ bool NetworkInterface::resetMacStats(lua_State* vm, char *mac, bool delete_data)
     else
       info.m->requestStatsReset();
     ret = true;
-  } else
-    ret = false;
+  }
 
   return ret;
 }
