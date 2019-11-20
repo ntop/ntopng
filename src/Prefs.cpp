@@ -69,10 +69,10 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
-  http_prefix = strdup(""), zmq_encryption_pwd = NULL;
+  http_prefix = strdup("");
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
-  categorization_key = NULL, zmq_encryption_pwd = NULL;
+  categorization_key = NULL, zmq_encryption_pwd = NULL, zmq_encryption_key = NULL;
   es_index = es_url = es_user = es_pwd = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
@@ -298,7 +298,8 @@ void usage() {
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
 	 "[--shutdown-when-done]              | Terminate after reading the pcap (debug only)\n"
-	 "[--zmq-encrypt-pwd <pwd>]           | Encrypt the ZMQ data using with <pwd>\n"
+         "[--zmq-encrypt-pwd <pwd>]           | Encrypt the ZMQ data using with <pwd>\n"
+	 //"[--zmq-encryption-key <key>]        | Encrypt ZMQ data using the provided CURVE secret key (40 characters)\n"
 	 "[--disable-autologout|-q]           | Disable web logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
 	 "                                    | 0 - Disable login only for localhost\n"
@@ -727,6 +728,7 @@ static const struct option long_options[] = {
 #ifdef HAVE_TEST_MODE
   { "test-script",                       required_argument, NULL, 218 },
 #endif
+  { "zmq-encryption-key",                required_argument, NULL, 219 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -745,6 +747,7 @@ static const int hidden_optkeys[] = {
   'F' /* flows export*/,
   'r' /* redis */,
   215 /* zmq encryption password */,
+  219 /* zmq encryption secret key */,
   0
 };
 
@@ -1364,6 +1367,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 217:
     ignore_vlans = true;
+    break;
+
+  case 219:
+    zmq_encryption_key = strdup(optarg);
     break;
 
 #ifdef NTOPNG_PRO

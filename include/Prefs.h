@@ -99,7 +99,7 @@ class Prefs {
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *prefs_dir, *pcap_dir, *export_endpoint;
   char *categorization_key;
-  char *zmq_encryption_pwd;
+  char *zmq_encryption_pwd, *zmq_encryption_key;
   char *http_prefix;
   char *instance_name;
   char *config_file_path, *ndpi_proto_path;
@@ -287,6 +287,7 @@ class Prefs {
   inline char* get_ls_port()		{ return(ls_port);		 };
   inline char* get_ls_proto()		{ return(ls_proto);		 };
   inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
+  inline char* get_zmq_encryption_key() { return(zmq_encryption_key);    };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
   inline char* get_lan_interface()      { return(lan_interface ? lan_interface : (char*)""); };
   inline void set_lan_interface(char *iface) { if(lan_interface) free(lan_interface); lan_interface = strdup(iface); };

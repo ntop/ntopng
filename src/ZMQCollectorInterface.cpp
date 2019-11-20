@@ -53,6 +53,29 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 
     subscriber[num_subscribers].socket = zmq_socket(context, ZMQ_SUB);
 
+    if(subscriber[num_subscribers].socket == NULL)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ZMQ socket");
+
+    if(ntop->getPrefs()->get_zmq_encryption_key()) {
+      const char *server_secret_key = ntop->getPrefs()->get_zmq_encryption_key();
+
+      if(strlen(server_secret_key) != 40)
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad ZMQ secret key len (%lu != 40)", strlen(server_secret_key));
+      else {
+        int val = 1;
+
+        if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_CURVE_SERVER, &val, sizeof(val)) != 0) 
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set ZMQ_CURVE_SERVER");
+        else
+          ntop->getTrace()->traceEvent(TRACE_INFO, "ZMQ curve encryption set");
+
+        if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_CURVE_SECRETKEY, server_secret_key, 41) != 0)
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set ZMQ_CURVE_SECRETKEY");
+        else
+          ntop->getTrace()->traceEvent(TRACE_INFO, "ZMQ secret key set");
+      }
+    }
+
     val = 8388608; /* 8M default: cat /proc/sys/net/core/rmem_max */
     if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_RCVBUF, &val, sizeof(val)) != 0)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enlarge ZMQ buffer size");

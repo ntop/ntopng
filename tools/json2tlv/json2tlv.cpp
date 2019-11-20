@@ -123,6 +123,7 @@ void print_help(char *bin) {
   cerr << "\n";
   cerr << "-i <file>       Input JSON file containing an array of records\n";
   cerr << "-z <endpoint>   ZMQ endpoint for delivering records\n";
+  cerr << "-e <pub key>    Encrypt data with the provided server public key\n";
   cerr << "-E <loops>      Encode <loops> times to check the performance\n";
   cerr << "-D <loops>      Decode <loops> times to check the performance\n";
   cerr << "-j              Generate JSON records instead of TLV records\n";
@@ -136,6 +137,7 @@ int main(int argc, char *argv[]) {
   char* zmq_endpoint = NULL;
   void *zmq_sock = NULL;
   void *zmq_context = NULL;
+  char *server_public_key = NULL;
   int enc_repeat = 1, dec_repeat = 1;
   int batch_size = 20;
   int verbose = 0;
@@ -149,10 +151,14 @@ int main(int argc, char *argv[]) {
   char c;
   int once = 0;
 
-  while ((c = getopt(argc, argv,"hi:jvz:E:D:")) != '?') {
+  while ((c = getopt(argc, argv,"e:hi:jvz:E:D:")) != '?') {
     if (c == (char) 255 || c == -1) break;
 
     switch(c) {
+      case 'e':
+        server_public_key = strdup(optarg);
+      break;
+
       case 'h':
         print_help(argv[0]);
         exit(0);
@@ -200,6 +206,44 @@ int main(int argc, char *argv[]) {
     if (zmq_sock == NULL) {
       printf("Unable to create ZMQ socket");
       exit(1);
+    }
+
+    if (server_public_key != NULL) {
+      char client_public_key[41];
+      char client_secret_key[41];
+
+      if (strlen(server_public_key)+1 != 41) {
+        printf("Bad server public key size (%lu != 40)\n", strlen(server_public_key));
+        exit(1);
+      }
+
+      rc = zmq_setsockopt(zmq_sock, ZMQ_CURVE_SERVERKEY, server_public_key, strlen(server_public_key)+1);
+
+      if (rc != 0) {
+        printf("Error setting ZMQ_CURVE_SERVERKEY = %s (%d)\n", server_public_key, errno);
+        exit(1);
+      }
+
+      rc = zmq_curve_keypair(client_public_key, client_secret_key);
+
+      if (rc != 0) {
+        printf("Error generating client key pair\n");
+        exit(1);
+      }
+
+      rc = zmq_setsockopt(zmq_sock, ZMQ_CURVE_PUBLICKEY, client_public_key, sizeof(client_public_key));
+
+      if (rc != 0) {
+        printf("Error setting ZMQ_CURVE_PUBLICKEY = %s\n", client_public_key);
+        exit(1);
+      }
+
+      rc = zmq_setsockopt(zmq_sock, ZMQ_CURVE_SECRETKEY, client_secret_key, sizeof(client_secret_key));
+
+      if (rc != 0) {
+        printf("Error setting ZMQ_CURVE_SECRETKEY = %s\n", client_secret_key);
+        exit(1);
+      }
     }
 
     if (zmq_endpoint[strlen(zmq_endpoint) - 1] == 'c') {
@@ -291,6 +335,35 @@ int main(int argc, char *argv[]) {
         struct zmq_msg_hdr msg_hdr;
         u_int32_t buffer_len;
         u_int8_t *buffer = (u_int8_t *) ndpi_serializer_get_buffer(&serializer[i], &buffer_len);
+
+#ifdef TEST_Z85_ENCODING
+        if (server_public_key && use_json_encoding) {
+          u_int32_t raw_buffer_len = ndpi_serializer_get_internal_buffer_size(&serializer[i]);
+          char *enc_buffer = (char *) malloc((buffer_len*2)+1);
+          char *enc;
+          u_int8_t *dec;
+
+          printf("Encoding '%s' (%u)\n", buffer, buffer_len);
+
+          enc = zmq_z85_encode(enc_buffer, (const u_int8_t *) buffer, raw_buffer_len);
+
+          if (enc != NULL)
+            printf("Encoded '%s'\n", enc);
+          else
+            printf("Encoding failure (%d)\n", errno);
+
+          memset(buffer, 0, buffer_len);
+          dec = zmq_z85_decode(buffer, enc);
+
+          if (dec != NULL)
+            printf("Decoded '%s'\n", (char *) dec);
+          else
+            printf("Decoding failure (%d)\n", errno);
+         
+          goto exit; /* Single buffer encoding test */
+        }
+#endif
+
         strncpy(msg_hdr.url, "flow", sizeof(msg_hdr.url));
         msg_hdr.version = (use_json_encoding ? 2 : 3);
         msg_hdr.size = htonl(buffer_len);
