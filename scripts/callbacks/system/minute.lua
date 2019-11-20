@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local prefs_dump_utils = require "prefs_dump_utils"
 
 require "lua_utils"
-local ts_utils = require("ts_utils_core")
 local system_scripts = require("system_scripts_utils")
 require("ts_minute")
 
@@ -20,15 +19,5 @@ if(prefs_changed == "true") then
    prefs_dump_utils.savePrefsToDisk()
 end
 
-local system_host_stats = ntop.systemHostStat()
 local when = os.time()
-
-if((system_host_stats.mem_ntopng_resident ~= nil) and
-      (system_host_stats.mem_ntopng_virtual ~= nil)) then
-   ts_utils.append("process:resident_memory", {
-      ifid = getSystemInterfaceId(),
-      resident_bytes = system_host_stats.mem_ntopng_resident * 1024,
-   }, when, verbose)
-end
-
 system_scripts.runTask("minute", when)
