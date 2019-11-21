@@ -20,7 +20,7 @@ struct zmq_msg_hdr {
 /* *************************************** */
 
 static pair<char *, size_t> get_corpus(string filename) {
-  ifstream is(filename, ios::binary);
+  ifstream is(filename.c_str(), ios::binary);
 
   if (is) {
     stringstream buffer;
@@ -123,7 +123,9 @@ void print_help(char *bin) {
   cerr << "\n";
   cerr << "-i <file>       Input JSON file containing an array of records\n";
   cerr << "-z <endpoint>   ZMQ endpoint for delivering records\n";
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,0,0)
   cerr << "-e <pub key>    Encrypt data with the provided server public key\n";
+#endif
   cerr << "-E <loops>      Encode <loops> times to check the performance\n";
   cerr << "-D <loops>      Decode <loops> times to check the performance\n";
   cerr << "-j              Generate JSON records instead of TLV records\n";
@@ -208,11 +210,25 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
 
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,0,0)
     if (server_public_key != NULL) {
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
       char client_public_key[41];
       char client_secret_key[41];
 
-      if (strlen(server_public_key)+1 != 41) {
+      rc = zmq_curve_keypair(client_public_key, client_secret_key);
+
+      if (rc != 0) {
+        printf("Error generating client key pair\n");
+        exit(1);
+      }
+#else
+      /* zmq_curve_keypair not available before 4.1 */
+      const char *client_public_key = "XXX";
+      const char *client_secret_key = "XXX";
+#endif
+
+      if (strlen(server_public_key) != 40) {
         printf("Bad server public key size (%lu != 40)\n", strlen(server_public_key));
         exit(1);
       }
@@ -224,27 +240,21 @@ int main(int argc, char *argv[]) {
         exit(1);
       }
 
-      rc = zmq_curve_keypair(client_public_key, client_secret_key);
-
-      if (rc != 0) {
-        printf("Error generating client key pair\n");
-        exit(1);
-      }
-
-      rc = zmq_setsockopt(zmq_sock, ZMQ_CURVE_PUBLICKEY, client_public_key, sizeof(client_public_key));
+      rc = zmq_setsockopt(zmq_sock, ZMQ_CURVE_PUBLICKEY, client_public_key, strlen(client_public_key)+1);
 
       if (rc != 0) {
         printf("Error setting ZMQ_CURVE_PUBLICKEY = %s\n", client_public_key);
         exit(1);
       }
 
-      rc = zmq_setsockopt(zmq_sock, ZMQ_CURVE_SECRETKEY, client_secret_key, sizeof(client_secret_key));
+      rc = zmq_setsockopt(zmq_sock, ZMQ_CURVE_SECRETKEY, client_secret_key, strlen(client_secret_key)+1);
 
       if (rc != 0) {
         printf("Error setting ZMQ_CURVE_SECRETKEY = %s\n", client_secret_key);
         exit(1);
       }
     }
+#endif
 
     if (zmq_endpoint[strlen(zmq_endpoint) - 1] == 'c') {
       /* Collector mode */
