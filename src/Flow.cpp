@@ -438,98 +438,106 @@ void Flow::processDetectedProtocol() {
  * including extra dissection information (e.g. the TLS certificate), is
  * available. */
 void Flow::processFullyDissectedProtocol() {
-  u_int16_t l7proto;
-
-  if((ndpiFlow == NULL) || (fully_processed))
+  if(fully_processed)
     return;
 
-  l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
+  if(ndpiFlow) {
+    u_int16_t l7proto;
 
-  switch(l7proto) {
+    l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
-  case NDPI_PROTOCOL_SSH:
-    if(protos.ssh.client_signature == NULL)
-      protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
-    if(protos.ssh.server_signature == NULL)
-      protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
+    switch(l7proto) {
 
-    if(protos.ssh.hassh.client_hash == NULL
-       && ndpiFlow->protos.ssh.hassh_client[0] != '\0') {
-      protos.ssh.hassh.client_hash = strdup(ndpiFlow->protos.ssh.hassh_client);
-      updateHASSH(true /* As client */);
-    }
+    case NDPI_PROTOCOL_SSH:
+      if(protos.ssh.client_signature == NULL)
+	protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
+      if(protos.ssh.server_signature == NULL)
+	protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
 
-    if(protos.ssh.hassh.server_hash == NULL
-       && ndpiFlow->protos.ssh.hassh_server[0] != '\0') {
-      protos.ssh.hassh.server_hash = strdup(ndpiFlow->protos.ssh.hassh_server);
-      updateHASSH(false /* As server */);
-    }
-    break;
+      if(protos.ssh.hassh.client_hash == NULL
+	 && ndpiFlow->protos.ssh.hassh_client[0] != '\0') {
+	protos.ssh.hassh.client_hash = strdup(ndpiFlow->protos.ssh.hassh_client);
+	updateHASSH(true /* As client */);
+      }
 
-  case NDPI_PROTOCOL_TLS:
-    protos.tls.tls_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
+      if(protos.ssh.hassh.server_hash == NULL
+	 && ndpiFlow->protos.ssh.hassh_server[0] != '\0') {
+	protos.ssh.hassh.server_hash = strdup(ndpiFlow->protos.ssh.hassh_server);
+	updateHASSH(false /* As server */);
+      }
+      break;
 
-    if((protos.tls.server_certificate == NULL)
-       && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
-      protos.tls.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
-    }
+    case NDPI_PROTOCOL_TLS:
+      protos.tls.tls_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
 
-    if((protos.tls.certificate == NULL)
-       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] != '\0')) {
-      protos.tls.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
-    }
+      if((protos.tls.server_certificate == NULL)
+	 && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
+	protos.tls.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
+      }
 
-    if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
-      protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
-      updateCliJA3();
-    }
+      if((protos.tls.certificate == NULL)
+	 && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] != '\0')) {
+	protos.tls.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
+      }
 
-    if((protos.tls.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
-      protos.tls.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
-      protos.tls.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
-      protos.tls.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
-      updateSrvJA3();
-    }
-    break;
+      if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
+	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
+	updateCliJA3();
+      }
 
-  case NDPI_PROTOCOL_DNS:
-    if(ntop->getPrefs()->decode_dns_responses()) {
+      if((protos.tls.ja3.server_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_server[0] != '\0')) {
+	protos.tls.ja3.server_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_server);
+	protos.tls.ja3.server_unsafe_cipher = ndpiFlow->protos.stun_ssl.ssl.server_unsafe_cipher;
+	protos.tls.ja3.server_cipher = ndpiFlow->protos.stun_ssl.ssl.server_cipher;
+	updateSrvJA3();
+      }
+      break;
 
-      if(ndpiFlow->host_server_name[0] != '\0') {
-	char delimiter = '@', *name = NULL;
-	char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
+    case NDPI_PROTOCOL_DNS:
+      if(ntop->getPrefs()->decode_dns_responses()) {
 
-	/* Consider only positive DNS replies */
-	if(at != NULL)
-	  name = &at[1], at[0] = '\0';
-	else if((!strstr((const char*)ndpiFlow->host_server_name, ".in-addr.arpa"))
-		&& (!strstr((const char*)ndpiFlow->host_server_name, ".ip6.arpa")))
-	  name = (char*)ndpiFlow->host_server_name;
+	if(ndpiFlow->host_server_name[0] != '\0') {
+	  char delimiter = '@', *name = NULL;
+	  char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
 
-	if(name) {
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);
-	  protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
+	  /* Consider only positive DNS replies */
+	  if(at != NULL)
+	    name = &at[1], at[0] = '\0';
+	  else if((!strstr((const char*)ndpiFlow->host_server_name, ".in-addr.arpa"))
+		  && (!strstr((const char*)ndpiFlow->host_server_name, ".ip6.arpa")))
+	    name = (char*)ndpiFlow->host_server_name;
 
-	  if(ndpiFlow->protos.dns.reply_code == 0) {
-	    if(ndpiFlow->protos.dns.num_answers > 0) {
-	      protocol_processed = true;
+	  if(name) {
+	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);
+	    protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
 
-	      if(at != NULL) {
-		// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
-		ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
+	    if(ndpiFlow->protos.dns.reply_code == 0) {
+	      if(ndpiFlow->protos.dns.num_answers > 0) {
+		protocol_processed = true;
+
+		if(at != NULL) {
+		  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
+		  ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
+		}
 	      }
 	    }
 	  }
 	}
       }
+      break;
     }
-    break;
-  };
-
-  fully_processed = true;
+  }
 
   /* Free the nDPI memory */
   freeDPIMemory();
+
+  fully_processed = true;
+
+  /*
+    We need to change state here as in Lua scripts we need to know
+    all metadata available
+  */
+  set_hash_entry_state_flow_protocoldetected();
 }
 
 /* *************************************** */
@@ -603,12 +611,6 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 
       /* Always called, not just for TCP or UDP */
       processFullyDissectedProtocol();
-
-      /*
-	We need to change state here as in Lua scripts we need to know
-	all metadata available
-      */
-      set_hash_entry_state_flow_protocoldetected();
     }
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
@@ -1595,8 +1597,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_int32_table_entry(vm, "cli.devtype", (cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown);
     lua_push_int32_table_entry(vm, "srv.devtype", (srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown);
-
-    lua_push_bool_table_entry(vm, "flow_goodput.low", isLowGoodput());
 
 #ifdef HAVE_NEDGE
     if(iface->is_bridge_interface())
