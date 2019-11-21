@@ -74,6 +74,7 @@ class Prefs {
   bool routing_mode_enabled, global_dns_forging_enabled;
   bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
   bool enable_arp_matrix_generation;
+  bool enable_zmq_encryption;
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
@@ -99,7 +100,8 @@ class Prefs {
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *prefs_dir, *pcap_dir, *export_endpoint;
   char *categorization_key;
-  char *zmq_encryption_pwd, *zmq_encryption_key;
+  char *zmq_encryption_pwd;
+  char *zmq_encryption_key;
   char *http_prefix;
   char *instance_name;
   char *config_file_path, *ndpi_proto_path;
@@ -288,6 +290,7 @@ class Prefs {
   inline char* get_ls_proto()		{ return(ls_proto);		 };
   inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
   inline char* get_zmq_encryption_key() { return(zmq_encryption_key);    };
+  inline bool  is_zmq_encryption_enabled() { return(enable_zmq_encryption); };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
   inline char* get_lan_interface()      { return(lan_interface ? lan_interface : (char*)""); };
   inline void set_lan_interface(char *iface) { if(lan_interface) free(lan_interface); lan_interface = strdup(iface); };

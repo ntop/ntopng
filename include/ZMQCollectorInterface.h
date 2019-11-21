@@ -45,6 +45,10 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   bool is_collector;
   u_int8_t num_subscribers;
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
+  char server_public_key[41];
+  char server_secret_key[41];
+
+  char *generateEncryptionKeys();
 
  public:
   ZMQCollectorInterface(const char *_endpoint);

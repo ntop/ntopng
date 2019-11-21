@@ -2123,6 +2123,7 @@ local lang = {
     ["traffic_breakdown"] = "Traffic Breakdown",
     ["traffic_statistics"] = "Traffic Statistics",
     ["zmq_avg_msg_flows"] = "Average Flows per Message",
+    ["zmq_encryption_public_key"] = "ZMQ Encryption Public Key",
     ["zmq_message_drops"] = "Dropped ZMQ Messages",
     ["zmq_message_rcvd"] = "Collected ZMQ Messages",
     ["zmq_rx_statistics"] = "ZMQ Statistics",

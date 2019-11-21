@@ -29,9 +29,11 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
   char *tmp, *e, *t;
   const char *topics[] = { "flow", "event", "counter", "template", "option", NULL };
 
-  memset(&recvStats, 0, sizeof(recvStats)),
-    memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
+  memset(&recvStats, 0, sizeof(recvStats));
+  memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
   num_subscribers = 0;
+  server_secret_key[0] = '\0';
+  server_public_key[0] = '\0';
 
   context = zmq_ctx_new();
 
@@ -56,27 +58,31 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
     if(subscriber[num_subscribers].socket == NULL)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ZMQ socket");
 
-    if(ntop->getPrefs()->get_zmq_encryption_key()) {
-#ifdef ZMQ_CURVE_SERVER
+    if(ntop->getPrefs()->is_zmq_encryption_enabled()) {
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
       const char *server_secret_key = ntop->getPrefs()->get_zmq_encryption_key();
 
-      if(strlen(server_secret_key) != 40)
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad ZMQ secret key len (%lu != 40)", strlen(server_secret_key));
-      else {
-        int val = 1;
+      if (server_secret_key == NULL)
+        server_secret_key = generateEncryptionKeys(); 
 
-        if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_CURVE_SERVER, &val, sizeof(val)) != 0) 
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set ZMQ_CURVE_SERVER");
-        else
-          ntop->getTrace()->traceEvent(TRACE_INFO, "ZMQ curve encryption set");
+      if (server_secret_key != NULL) {
+        if(strlen(server_secret_key) != 40)
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad ZMQ secret key len (%lu != 40)", strlen(server_secret_key));
+        else {
+          int val = 1;
 
-        if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_CURVE_SECRETKEY, server_secret_key, 41) != 0)
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set ZMQ_CURVE_SECRETKEY");
-        else
-          ntop->getTrace()->traceEvent(TRACE_INFO, "ZMQ secret key set");
+          if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_CURVE_SERVER, &val, sizeof(val)) != 0) 
+            ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set ZMQ_CURVE_SERVER");
+          else {
+            if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_CURVE_SECRETKEY, server_secret_key, 41) != 0)
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set ZMQ_CURVE_SECRETKEY");
+            else
+              ntop->getTrace()->traceEvent(TRACE_INFO, "ZMQ CURVE encryption enabled");
+          }
+        }
       }
 #else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable ZMQ CURVE encryption (not supported by this ZMQ version)");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
 #endif
     }
 
@@ -174,6 +180,44 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
   }
 
   zmq_ctx_destroy(context);
+}
+
+/* **************************************************** */
+
+char *ZMQCollectorInterface::generateEncryptionKeys() {
+  char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
+  char *public_key = NULL, *secret_key = NULL;
+  int rc = 0;
+
+  snprintf(public_key_path, sizeof(public_key_path), "%s/%d/key.pub", ntop->get_working_dir(), get_id());
+  snprintf(secret_key_path, sizeof(secret_key_path), "%s/%d/key.priv", ntop->get_working_dir(), get_id());
+  ntop->fixPath(public_key_path);
+  ntop->fixPath(secret_key_path);
+
+  if (Utils::file_read(public_key_path, &public_key) > 0 &&
+      Utils::file_read(secret_key_path, &secret_key) > 0) {
+    strncpy(server_public_key, public_key, sizeof(server_public_key));
+    strncpy(server_secret_key, secret_key, sizeof(server_secret_key));
+    server_public_key[sizeof(server_public_key)-1] = '\0';
+    server_secret_key[sizeof(server_secret_key)-1] = '\0';
+    rc = 0;
+  } else {
+    rc = zmq_curve_keypair(server_public_key, server_secret_key);
+    if (rc == 0) {
+      Utils::file_write(public_key_path, server_public_key, strlen(server_public_key));
+      Utils::file_write(secret_key_path, server_secret_key, strlen(server_secret_key));
+    }
+  }
+
+  if (public_key != NULL) free(public_key);
+  if (secret_key != NULL) free(secret_key);
+
+  if (rc != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to generate/read ZMQ encryption keys");
+    return NULL;
+  }
+
+  return server_secret_key;
 }
 
 /* **************************************************** */
@@ -456,6 +500,14 @@ void ZMQCollectorInterface::lua(lua_State* vm) {
   lua_pushstring(vm, "zmqRecvStats_since_reset");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  if(ntop->getPrefs()->is_zmq_encryption_enabled() && strlen(server_public_key) > 0) {
+    lua_newtable(vm);
+    lua_push_str_table_entry(vm, "public_key", server_public_key);
+    lua_pushstring(vm, "encryption");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 }
 
 /* **************************************************** */

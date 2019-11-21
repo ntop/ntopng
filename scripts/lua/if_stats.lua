@@ -582,6 +582,12 @@ if((page == "overview") or (page == nil)) then
    end
    print("</tr>")
 
+   if ifstats.encryption and ifstats.encryption.public_key then
+      print("<tr><th width=250>"..i18n("if_stats_overview.zmq_encryption_public_key").."</th><td colspan=6>")
+      print(ifstats.encryption.public_key)
+      print("</td></tr>\n")
+   end
+
    if is_physical_iface then
       print("<tr>")
       print("<th>"..i18n("mtu").."</th><td colspan=2  nowrap>"..ifstats.mtu.." "..i18n("bytes").."</td>\n")
