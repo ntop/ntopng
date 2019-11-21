@@ -60,8 +60,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   u_int32_t syn_sent_last_min, synack_recvd_last_min; /* syn scan counters (attacker) */
   u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
   std::vector<u_int32_t> dropbox_namespaces;
-  MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server,
-    low_goodput_client_flows, low_goodput_server_flows;  
+  MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server;
   u_int32_t asn;
   AutonomousSystem *as;
   Country *country;
@@ -73,7 +72,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
 
-  bool good_low_flow_detected;
   FlowAlertCounter *flow_alert_counter;
 #ifdef NTOPNG_PRO
   TrafficShaper **host_traffic_shapers;
@@ -248,7 +246,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_num_flows(lua_State* vm)     const;
   void lua_get_num_contacts(lua_State* vm)  const;
   void lua_get_num_http_hosts(lua_State*vm) const;
-  void lua_get_low_goodput(lua_State*vm)    const;
   void lua_get_os(lua_State* vm);
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);

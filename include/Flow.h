@@ -69,7 +69,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, fully_processed,
     cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
-    good_low_flow_detected, good_tls_hs, update_flow_port_stats,
+    good_tls_hs, update_flow_port_stats,
     quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
@@ -283,7 +283,6 @@ class Flow : public GenericHashEntry {
   inline bool isDHCP() const { return(isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
-  bool isLowGoodput() const;
   inline bool isDeviceAllowedProtocol() const {
       return(!cli_host || !srv_host ||
         ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&

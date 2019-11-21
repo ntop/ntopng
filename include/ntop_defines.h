@@ -870,8 +870,6 @@
 #define GRE_HEADER_SEQ_NUM       0x1000 /* 32 bit */
 
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
-#define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
-#define FLOW_GOODPUT_MIN_DURATION   60 /* 60 seconds */
 
 #define NTOP_USERNAME_MAXLEN        33 /* NOTE: do not change, is this bound to mg_md5 ? */
 #define NTOP_GROUP_MAXLEN           33

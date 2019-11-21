@@ -42,7 +42,7 @@ Flow::Flow(NetworkInterface *_iface,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_last_packets = 0, cli2srv_last_bytes = 0,
     srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, good_low_flow_detected = false,
+    cli_host = srv_host = NULL,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_tls_hs = true,
     flow_dropped_counts_increased = false, vrfId = 0;
     alert_score = CONST_NO_SCORE_SET;
@@ -1303,27 +1303,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 	bytes_thpt = bytes_msec, goodput_bytes_thpt = goodput_bytes_msec;
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
-
-	if(!idle() /* set_idle() deals with low goodput flows when they become idle */
-	   && iface->getIfType() != interface_type_ZMQ
-	   && protocol == IPPROTO_TCP
-	   && get_goodput_bytes() > 0
-	   && ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_SSH) {
-	  if(isLowGoodput()) {
-	    if(!good_low_flow_detected) {
-	      if(cli_host) cli_host->incLowGoodputFlows(tv->tv_sec, true);
-	      if(srv_host) srv_host->incLowGoodputFlows(tv->tv_sec, false);
-	      good_low_flow_detected = true;
-	    }
-	  } else {
-	    if(good_low_flow_detected) {
-	      /* back to normal */
-	      if(cli_host) cli_host->decLowGoodputFlows(tv->tv_sec, true);
-	      if(srv_host) srv_host->decLowGoodputFlows(tv->tv_sec, false);
-	      good_low_flow_detected = false;
-	    }
-	  }
-	}
 
 #ifdef NTOPNG_PRO
 	throughputTrend.update(bytes_thpt), goodputTrend.update(goodput_bytes_thpt);
@@ -3414,19 +3393,6 @@ void Flow::recheckQuota(const struct tm *now) {
 
 #endif
 
-/* *************************************** */
-
-bool Flow::isLowGoodput() const {
-  if(iface->getIfType() == interface_type_ZMQ
-     || iface->getIfType() == interface_type_NETFILTER
-     || iface->getIfType() == interface_type_SYSLOG
-     || protocol == IPPROTO_UDP)
-    return(false);
-  else
-    return((get_duration() >= FLOW_GOODPUT_MIN_DURATION
-	    && ((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
-}
-
 /* ***************************************************** */
 
 bool Flow::isTiny() const {
@@ -3595,11 +3561,6 @@ void Flow::updateHASSH(bool as_client) {
 
 /* Called when a flow is set_idle */
 void Flow::postFlowSetIdle(const struct timeval *tv, bool quick) {
-  if(good_low_flow_detected) {
-    if(cli_host) cli_host->decLowGoodputFlows(tv->tv_sec, true);
-    if(srv_host) srv_host->decLowGoodputFlows(tv->tv_sec, false);
-  }
-
   if(status_map.get() != status_normal) {
 #if 0
     char buf[256];

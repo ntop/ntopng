@@ -174,13 +174,11 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     vlan->incUses();
 
   num_resolve_attempts = 0, ssdpLocation = NULL;
-  low_goodput_client_flows.reset(), low_goodput_server_flows.reset();
   num_active_flows_as_client.reset(), num_active_flows_as_server.reset();
   alert_score = CONST_NO_SCORE_SET;
   active_alerted_flows = 0;
 
   flow_alert_counter = NULL;
-  good_low_flow_detected = false;
   nextResolveAttempt = 0, mdns_info = NULL;
   host_label_set = false;
   vlan_id = _vlanId % MAX_NUM_VLAN,
@@ -470,15 +468,6 @@ void Host::lua_get_min_info(lua_State *vm) const {
 
 /* ***************************************************** */
 
-void Host::lua_get_low_goodput(lua_State *vm) const {
-  lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows.get());
-  lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows.get());
-  lua_push_uint64_table_entry(vm, "low_goodput_flows.as_client.anomaly_index", low_goodput_client_flows.getAnomalyIndex());
-  lua_push_uint64_table_entry(vm, "low_goodput_flows.as_server.anomaly_index", low_goodput_server_flows.getAnomalyIndex());
-}
-
-/* ***************************************************** */
-
 void Host::lua_get_geoloc(lua_State *vm) {
   char *continent = NULL, *country_name = NULL, *city = NULL;
   float latitude = 0, longitude = 0;
@@ -668,7 +657,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_get_names(vm, buf, sizeof(buf));
 
     lua_get_geoloc(vm);
-    lua_get_low_goodput(vm);
 
     lua_get_syn_flood(vm);
     lua_get_flow_flood(vm);
@@ -853,9 +841,7 @@ void Host::periodic_stats_update(void *user_data, bool quick) {
     os = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType());
 
   num_active_flows_as_client.computeAnomalyIndex(tv->tv_sec),
-    num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec),
-    low_goodput_client_flows.computeAnomalyIndex(tv->tv_sec),
-    low_goodput_server_flows.computeAnomalyIndex(tv->tv_sec);
+    num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec);
 
   stats->updateStats(tv);
 
@@ -1135,49 +1121,6 @@ bool Host::incFlowAlertHits(time_t when) {
   }
 
   return false;
-}
-
-/* *************************************** */
-
-void Host::incLowGoodputFlows(time_t t, bool asClient) {
-  bool alert = false;
-
-  if(asClient) {
-    low_goodput_client_flows.inc(1);
-    if(low_goodput_client_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
-  } else {
-    low_goodput_server_flows.inc(1);
-    if(low_goodput_server_flows.get() > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
-  }
-
-  /* TODO: decide if an alert should be sent in a future version */
-  if(alert && (!good_low_flow_detected))
-    good_low_flow_detected = true;
-}
-
-/* *************************************** */
-
-void Host::decLowGoodputFlows(time_t t, bool asClient) {
-  bool alert = false;
-
-  if(asClient) {
-    low_goodput_client_flows.dec(1);
-
-    if(low_goodput_client_flows.is_anomalous(t)
-       || (low_goodput_client_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
-      alert = true;
-  } else {
-    low_goodput_server_flows.dec(1);
-
-    if(low_goodput_server_flows.is_anomalous(t)
-       || (low_goodput_server_flows.get() < HOST_LOW_GOODPUT_THRESHOLD))
-      alert = true;
-  }
-
-  if(alert && good_low_flow_detected) {
-    /* TODO: send end of alert  */
-    good_low_flow_detected = false;
-  }
 }
 
 /* *************************************** */

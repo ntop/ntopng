@@ -8988,6 +8988,29 @@ static int ntop_flow_get_bytes_rcvd(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_bytes(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_bytes());
+  return(CONST_LUA_OK);
+}
+
+
+/* ****************************************** */
+
+static int ntop_flow_get_goodput_bytes(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_goodput_bytes());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_client_key(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   Host *h;
@@ -9047,29 +9070,6 @@ static int ntop_flow_is_connection_refused(lua_State* vm) {
   if(!f) return(CONST_LUA_ERROR);
 
   lua_pushboolean(vm, (f->isTCPReset() && !f->hasTCP3WHSCompleted()));
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_has_slow_data_exchange(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, (f->idle() && f->isLowGoodput()));
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_has_low_goodput(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, (!f->idle() && f->isLowGoodput() &&
-    !f->isTCPReset() && f->hasTCP3WHSCompleted()));
   return(CONST_LUA_OK);
 }
 
@@ -11004,6 +11004,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getPacketsRcvd",           ntop_flow_get_packets_rcvd           },
   { "getBytesSent",             ntop_flow_get_bytes_sent             },
   { "getBytesRcvd",             ntop_flow_get_bytes_rcvd             },
+  { "getBytes",                 ntop_flow_get_bytes                  },
+  { "getGoodputBytes",          ntop_flow_get_goodput_bytes          },
   { "getClientKey",             ntop_flow_get_client_key             },
   { "getServerKey",             ntop_flow_get_server_key             },
   { "isClientUnicast",          ntop_flow_is_client_unicast          },
@@ -11018,8 +11020,6 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "canTriggerAlert",          ntop_flow_can_trigger_alert          },
   { "isDeviceProtocolNotAllowed", ntop_flow_is_dp_not_allowed        },
   { "isConnectionRefused",      ntop_flow_is_connection_refused      },
-  { "hasSlowDataExchange",      ntop_flow_has_slow_data_exchange     },
-  { "hasLowGoodput",            ntop_flow_has_low_goodput            },
   { "getServerCipherClass",     ntop_flow_get_ssl_cipher_class       },
   { "getICMPType",              ntop_flow_get_icmp_type              },
   { "getMaxSeenIcmpPayloadSize", ntop_flow_get_max_seen_icmp_size    },
