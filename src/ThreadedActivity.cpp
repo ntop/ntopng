@@ -374,9 +374,6 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
       NetworkInterface *iface = ntop->getInterface(i);
 
       if(iface
-	 /* Don't schedule periodic activities for Interfaces associated to pcap files.
-	    There's no need to run them as they will create files
-	    and calculate stats assuming live traffic. */
 	 && (iface->getIfType() != interface_type_PCAP_DUMP || !exclude_pcap_dump_interfaces)
 	 && !isInterfaceTaskRunning(iface)) {
         pool->queueJob(this, script_path, iface, deadline);
