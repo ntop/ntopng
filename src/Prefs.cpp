@@ -1379,6 +1379,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 220:
+    enable_zmq_encryption = true;
     zmq_encryption_key = strdup(optarg);
     break;
 

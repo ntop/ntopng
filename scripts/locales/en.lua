@@ -2124,6 +2124,7 @@ local lang = {
     ["traffic_statistics"] = "Traffic Statistics",
     ["zmq_avg_msg_flows"] = "Average Flows per Message",
     ["zmq_encryption_public_key"] = "ZMQ Encryption Public Key",
+    ["zmq_encryption_public_key_note"] = "If you are using nProbe as flows exporter, please add --zmq-encryption-key '%{key}' to the nProbe configuration.",
     ["zmq_message_drops"] = "Dropped ZMQ Messages",
     ["zmq_message_rcvd"] = "Collected ZMQ Messages",
     ["zmq_rx_statistics"] = "ZMQ Statistics",
