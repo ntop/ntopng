@@ -228,7 +228,7 @@ void NetworkInterface::init() {
   ifname = NULL, bridge_lan_interface_id = bridge_wan_interface_id = 0;
     inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
-    has_seen_dhcp_addresses = false, packet_processing_completed = false;
+    has_seen_dhcp_addresses = false,
     has_seen_containers = false, has_seen_pods = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
@@ -2800,8 +2800,11 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
 			macs_hash
   };
   time_t update_end;
-  
-  periodicUpdateInitTime(&tv);
+
+  /* Always use the current time to update the hash tables states, also when processing pcap dumps. This
+     is necessary as hash table states changes and periodic lua scripts call assume the time flows normally. */
+  gettimeofday(&tv, NULL);
+
   periodic_ht_state_update_user_data.acle = NULL,
     periodic_ht_state_update_user_data.iface = this,
     periodic_ht_state_update_user_data.deadline = deadline,

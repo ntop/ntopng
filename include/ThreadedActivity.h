@@ -34,6 +34,7 @@ class ThreadedActivity {
   u_int32_t periodicity;
   bool align_to_localtime;
   bool exclude_viewed_interfaces;
+  bool exclude_pcap_dump_interfaces;
   bool thread_started;
   bool systemTaskRunning;
   bool *interfaceTasksRunning;
@@ -54,6 +55,7 @@ class ThreadedActivity {
 		   u_int32_t _periodicity_seconds = 0,
 		   bool _align_to_localtime = false,
 		   bool _exclude_viewed_interfaces = false,
+		   bool _exclude_pcap_dump_interfaces = false,
 		   ThreadPool* _pool = NULL);
   ~ThreadedActivity();
 

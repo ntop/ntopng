@@ -36,11 +36,13 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 				   u_int32_t _periodicity_seconds,
 				   bool _align_to_localtime,
 				   bool _exclude_viewed_interfaces,
+				   bool _exclude_pcap_dump_interfaces,
 				   ThreadPool *_pool) {
   terminating = false;
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
   exclude_viewed_interfaces = _exclude_viewed_interfaces;
+  exclude_pcap_dump_interfaces = _exclude_pcap_dump_interfaces;
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (bool *) calloc(MAX_NUM_INTERFACE_IDS, sizeof(bool));
@@ -140,18 +142,16 @@ void ThreadedActivity::activityBody() {
 /* ******************************************* */
 
 void ThreadedActivity::run() {
-  bool run_script = false;
+  bool pcap_dump_only = true;
 
   for(int i = 0; i < ntop->get_num_interfaces(); i++) {
     NetworkInterface *iface = ntop->getInterface(i);
-
-    if(iface->isProcessingPackets()) {
-       run_script = true;
-       break;
-    }
+    if(iface && iface->getIfType() != interface_type_PCAP_DUMP)
+      pcap_dump_only = false;
   }
-
-  if(!run_script) return;
+  /* Don't schedule periodic activities it we are processing pcap files only. */
+  if (exclude_pcap_dump_interfaces && pcap_dump_only)
+    return;
 
   if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
     thread_started = true;
@@ -374,7 +374,10 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
       NetworkInterface *iface = ntop->getInterface(i);
 
       if(iface
-	 && iface->isProcessingPackets()
+	 /* Don't schedule periodic activities for Interfaces associated to pcap files.
+	    There's no need to run them as they will create files
+	    and calculate stats assuming live traffic. */
+	 && (iface->getIfType() != interface_type_PCAP_DUMP || !exclude_pcap_dump_interfaces)
 	 && !isInterfaceTaskRunning(iface)) {
         pool->queueJob(this, script_path, iface, deadline);
         setInterfaceTaskRunning(iface, true);
