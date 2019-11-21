@@ -48,7 +48,9 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   char server_public_key[41];
   char server_secret_key[41];
 
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
   char *generateEncryptionKeys();
+#endif
 
  public:
   ZMQCollectorInterface(const char *_endpoint);

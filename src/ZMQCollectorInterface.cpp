@@ -184,6 +184,7 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
 
 /* **************************************************** */
 
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
 char *ZMQCollectorInterface::generateEncryptionKeys() {
   char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
   char *public_key = NULL, *secret_key = NULL;
@@ -219,6 +220,7 @@ char *ZMQCollectorInterface::generateEncryptionKeys() {
 
   return server_secret_key;
 }
+#endif
 
 /* **************************************************** */
 
