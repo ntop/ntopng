@@ -9,6 +9,7 @@ local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")
 local page_utils = require("page_utils")
 
+active_page = "about"
 sendHTTPContentTypeHeader('text/html')
 page_utils.print_header()
 

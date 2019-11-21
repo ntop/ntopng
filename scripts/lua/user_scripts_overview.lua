@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local user_scripts = require("user_scripts")
 local page_utils = require("page_utils")
+active_page = "about"
 
 sendHTTPContentTypeHeader('text/html')
 page_utils.print_header()
