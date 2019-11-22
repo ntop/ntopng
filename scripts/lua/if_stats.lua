@@ -162,7 +162,7 @@ if (isAdministrator()) then
          net = trimSpace(net)
 
          if not isEmptyString(net) then
-            local address, prefix = splitNetworkPrefix(net)
+            local address, prefix, vlan = splitNetworkWithVLANPrefix(net)
 
             if isIPv6(address) and prefix == "128" then
                net = address
