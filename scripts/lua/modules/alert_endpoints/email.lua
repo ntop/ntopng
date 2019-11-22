@@ -32,6 +32,8 @@ function email.sendEmail(subject, message_body)
   local smtp_server = ntop.getPref("ntopng.prefs.alerts.smtp_server")
   local from_addr = ntop.getPref("ntopng.prefs.alerts.email_sender")
   local to_addr = ntop.getPref("ntopng.prefs.alerts.email_recipient")
+  local username = ntop.getPref("ntopng.prefs.alerts.smtp_username")
+  local password = ntop.getPref("ntopng.prefs.alerts.smtp_password")
 
   if isEmptyString(from_addr) or isEmptyString(to_addr) or isEmptyString(smtp_server) then
     return false
@@ -56,7 +58,7 @@ function email.sendEmail(subject, message_body)
   end
 
   local message = buildMessageHeader(os.time(), from_addr, to_addr, subject, message_body)
-  return ntop.sendMail(from, to, message, smtp_server)
+  return ntop.sendMail(from, to, message, smtp_server, username, password)
 end
 
 function email.dequeueAlerts(queue)

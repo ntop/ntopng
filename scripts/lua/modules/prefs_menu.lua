@@ -279,6 +279,14 @@ local menu_subpages = {
       title       = i18n("prefs.email_notification_server_title"),
       description = i18n("prefs.email_notification_server_description"),
     },
+    email_notification_username = {
+      title       = i18n("prefs.email_notification_username_title"),
+      description = i18n("prefs.email_notification_username_description"),
+    },
+    email_notification_password = {
+      title       = i18n("prefs.email_notification_password_title"),
+      description = i18n("prefs.email_notification_password_description"),
+    },
     toggle_slack_notification = {
       title       = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"}),
       description = i18n("prefs.toggle_slack_notification_description", {url="https://github.com/ntop/ntopng/blob/dev/doc/README.slack"}),

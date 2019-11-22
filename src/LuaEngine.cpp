@@ -5589,7 +5589,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
 
 #ifdef HAVE_CURL_SMTP
 static int ntop_send_mail(lua_State* vm) {
-  char *from, *to, *msg, *smtp_server;
+  char *from, *to, *msg, *smtp_server, *username = NULL, *password = NULL;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((from = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -5603,7 +5603,13 @@ static int ntop_send_mail(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((smtp_server = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  bool rv = Utils::sendMail(from, to, msg, smtp_server);
+  if(lua_type(vm, 5) == LUA_TSTRING) /* Optional */
+    username = (char*)lua_tostring(vm, 5);
+
+  if(lua_type(vm, 6) == LUA_TSTRING) /* Optional */
+    password = (char*)lua_tostring(vm, 6);
+
+  bool rv = Utils::sendMail(from, to, msg, smtp_server, username, password);
 
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);

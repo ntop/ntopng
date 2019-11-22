@@ -440,7 +440,7 @@ function printExternalAlertsReport()
      if ntop.sendMail then -- only if sendmail is defined, and thus, supported
 	print('<tr><th colspan="2" class="info">'..i18n("prefs.email_notification")..'</th></tr>')
 	
-	local elementToSwitch = {"row_email_notification_severity_preference", "email_sender", "email_recipient", "smtp_server", "alerts_test"}
+	local elementToSwitch = {"row_email_notification_severity_preference", "email_sender", "email_recipient", "smtp_server", "smtp_username", "smtp_password", "alerts_test"}
 
 	prefsToggleButton(subpage_active, {
 	      field = "toggle_email_notification",
@@ -463,7 +463,15 @@ function printExternalAlertsReport()
 
 	prefsInputFieldPrefs(subpage_active.entries["email_notification_server"].title, subpage_active.entries["email_notification_server"].description,
 			     "ntopng.prefs.alerts.", "smtp_server",
-			     "", nil, showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true, pattern="^(smtp://)?[a-zA-Z0-9-.]*(:[0-9]+)?$"})
+			     "", nil, showElements and showEmailNotificationPrefs, false, true, {attributes={spellcheck="false"}, required=true, pattern="^((smtp://)|(smtps://))?[a-zA-Z0-9-.]*(:[0-9]+)?$"})
+
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_username"].title, subpage_active.entries["email_notification_username"].description,
+			     "ntopng.prefs.alerts.", "smtp_username",
+			     "", nil, showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=false})
+
+	prefsInputFieldPrefs(subpage_active.entries["email_notification_password"].title, subpage_active.entries["email_notification_password"].description,
+			     "ntopng.prefs.alerts.", "smtp_password",
+			     "", "password", showElements and showEmailNotificationPrefs, false, nil, {attributes={spellcheck="false"}, required=false})
 
 	prefsInputFieldPrefs(subpage_active.entries["email_notification_sender"].title, subpage_active.entries["email_notification_sender"].description,
 			     "ntopng.prefs.alerts.", "email_sender",

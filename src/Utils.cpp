@@ -1276,7 +1276,7 @@ static int curl_debugfunc(CURL *handle, curl_infotype type, char *data,
       if(!end) break;
 
       *end = '\0';
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[CURL] %c %s", dir, msg);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CURL] %c %s", dir, msg);
       *end = '\n';
       msg = end+1;
     }
@@ -1607,7 +1607,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 
 /* **************************************** */
 
-bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
+bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server, char *username, char *password) {
 #ifdef HAVE_CURL_SMTP
   CURL *curl;
   CURLcode res;
@@ -1621,14 +1621,27 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
   curl = curl_easy_init();
 
   if(curl) {
-    recipients = curl_slist_append(recipients, to);
+
+    if (username != NULL && password != NULL) {
+      curl_easy_setopt(curl, CURLOPT_USERNAME, username);
+      curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
+    }
 
     curl_easy_setopt(curl, CURLOPT_URL, smtp_server);
+
+    if (strncmp(smtp_server, "smtps://", 8) == 0)
+      curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+    else /* Try using SSL */
+      curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from);
+
+    recipients = curl_slist_append(recipients, to);
     curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
 
-    /* Try using SSL */
-    curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, curl_smtp_payload_source);
+    curl_easy_setopt(curl, CURLOPT_READDATA, upload_ctx);
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 
     if(ntop->getTrace()->get_trace_level() >= TRACE_LEVEL_DEBUG) {
       /* Show verbose message trace */
@@ -1636,10 +1649,6 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server) {
       curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_debugfunc);
       curl_easy_setopt(curl, CURLOPT_DEBUGDATA, upload_ctx);
     }
-
-    curl_easy_setopt(curl, CURLOPT_READFUNCTION, curl_smtp_payload_source);
-    curl_easy_setopt(curl, CURLOPT_READDATA, upload_ctx);
-    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 
     res = curl_easy_perform(curl);
 
