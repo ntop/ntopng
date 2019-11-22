@@ -38,6 +38,9 @@ user_scripts.script_types = {
   }, traffic_element = {
     parent_dir = "interface",
     hooks = {"min", "5mins", "hour", "day"},
+  }, snmp_device = {
+    parent_dir = "system",
+    hooks = {"snmpDeviceInterface"},
   }, syslog = {
     parent_dir = "syslog",
     hooks = {"handleEvent"},
@@ -70,7 +73,7 @@ local benchmarks = {}
 function user_scripts.getSubdirectoryPath(script_type, subdir, is_pro)
   local prefix = ternary(is_pro, PRO_CALLBACKS_DIR, CALLBACKS_DIR)
   local path
-  
+
   if not isEmptyString(subdir) and subdir ~= "." then
     path = string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir)
   else
@@ -465,6 +468,7 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                elseif(rv.hooks[hook] == nil) then
                   traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, user_script.key))
                else
+
 		  if do_benchmark then
 		     rv.hooks[hook][user_script.key] = benchmark_init(subdir, user_script.key, hook, hook_fn)
 		  else

@@ -291,7 +291,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  id = (u_int32_t)lua_tonumber(vm, 1);
+  id = lua_tonumber(vm, 1);
 
   iface = ntop->getNetworkInterface(vm, id);
 
@@ -2566,6 +2566,17 @@ static int ntop_check_interface_alerts_min(lua_State* vm)  { return(ntop_check_i
 static int ntop_check_interface_alerts_5min(lua_State* vm) { return(ntop_check_interface_alerts(vm, five_minute_script)); }
 static int ntop_check_interface_alerts_hour(lua_State* vm) { return(ntop_check_interface_alerts(vm, hour_script));   }
 static int ntop_check_interface_alerts_day(lua_State* vm)  { return(ntop_check_interface_alerts(vm, day_script));    }
+
+/* ****************************************** */
+
+static int ntop_check_snmp_device_alerts(lua_State* vm, ScriptPeriodicity p) {
+  ntop->checkSNMPDeviceAlerts(p);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+static int ntop_check_snmp_device_alerts_5min(lua_State* vm)  { return(ntop_check_snmp_device_alerts(vm, five_minute_script)); }
 
 /* ****************************************** */
 
@@ -11320,6 +11331,9 @@ static const luaL_Reg ntop_reg[] = {
   { "setLanInterface",       ntop_set_lan_interface        },
   { "refreshDeviceProtocolsPoliciesConf", ntop_refresh_device_protocols_policies_pref },
 #endif
+
+  /* Alerts */
+  { "checkSNMPDeviceAlerts5Min", ntop_check_snmp_device_alerts_5min },
 
   { NULL,          NULL}
 };

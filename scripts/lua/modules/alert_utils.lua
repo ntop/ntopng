@@ -2873,39 +2873,6 @@ local function notify_ntopng_status(started)
   return(alerts_api.store(entity_info, type_info))
 end
 
-function notify_snmp_device_interface_status_change(snmp_host, snmp_interface)
-  local entity_info = alerts_api.snmpInterfaceEntity(snmp_host, snmp_interface["index"])
-  local type_info = alerts_api.snmpInterfaceStatusChangeType(snmp_host, snmp_interface["index"], snmp_interface["name"], snmp_interface["status"])
-
-  interface.select(getSystemInterfaceId())  
-  return(alerts_api.store(entity_info, type_info))
-end
-
-function notify_snmp_device_interface_duplexstatus_change(snmp_host, snmp_interface)
-  local entity_info = alerts_api.snmpInterfaceEntity(snmp_host, snmp_interface["index"])
-  local type_info = alerts_api.snmpInterfaceDuplexStatusChangeType(snmp_host, snmp_interface["index"], snmp_interface["name"], snmp_interface["duplexstatus"])
-
-  interface.select(getSystemInterfaceId())
-  return(alerts_api.store(entity_info, type_info))
-end
-
-function notify_snmp_device_interface_errors(snmp_host, snmp_interface)
-  local entity_info = alerts_api.snmpInterfaceEntity(snmp_host, snmp_interface["index"])
-  local type_info = alerts_api.snmpInterfaceErrorsType(snmp_host, snmp_interface["index"], snmp_interface["name"])
-
-  interface.select(getSystemInterfaceId())
-  return(alerts_api.store(entity_info, type_info))
-end
-
-function notify_snmp_device_interface_load_threshold_exceeded(snmp_host, snmp_interface, interface_load, in_direction)
-  local entity_info = alerts_api.snmpInterfaceEntity(snmp_host, snmp_interface["index"])
-  local type_info = alerts_api.snmpPortLoadThresholdExceededType(snmp_host, snmp_interface["index"], snmp_interface["name"],
-    interface_load, in_direction)
-
-  interface.select(getSystemInterfaceId())
-  return(alerts_api.store(entity_info, type_info))
-end
-
 function notify_ntopng_start()
    return(notify_ntopng_status(true))
 end

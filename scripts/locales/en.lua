@@ -381,7 +381,7 @@ local lang = {
     ["snmp_port_errors"] = "Interface Errors",
     ["snmp_port_errors_increased"] = "Discard/error counters increased on interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a>",
     ["snmp_port_load_threshold_exceeded"] = "Interface Load Threshold Exceeded",
-    ["snmp_port_load_threshold_exceeded_message"] = "%{direction} load is %{port_load}%% on interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a>",
+    ["snmp_port_load_threshold_exceeded_message"] = "Load threshold exceeded on interface <a href=\"%{port_url}\">%{port}</a> on SNMP device <a href=\"%{url}\">%{device}</a> [threshold: %{threshold}%%][IN load: %{in_load}%%][OUT load: %{out_load}%%]",
     ["snmp_port_status_change"] = "Interface Status Change",
     ["starting_on"] = "starting on",
     ["submit"] = "Update Dashboard",

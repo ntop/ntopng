@@ -818,6 +818,17 @@ void Ntop::setCustomnDPIProtos(char *path) {
   }
 }
 
+/* *************************************** */
+
+void Ntop::checkSNMPDeviceAlerts(ScriptPeriodicity p) {
+  AlertCheckLuaEngine acle(alert_entity_snmp_device, p, NULL);
+  lua_State *L = acle.getState();
+
+  lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
+  lua_pushstring(L, acle.getGranularity());              /* push 1st argument */
+  acle.pcall(1 /* num args */, 0);
+}
+
 /* ******************************************* */
 
 void Ntop::lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm) {
