@@ -24,6 +24,7 @@ local ts_utils = require("ts_utils")
 local influxdb = require("influxdb")
 local alert_endpoints = require("alert_endpoints_utils")
 local nindex_utils = nil
+local info = ntop.getInfo()
 
 local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,6}>?$]]
 
@@ -1442,8 +1443,6 @@ function printStatsTimeseries()
 
   print('<tr><th colspan=2 class="info">'..i18n('prefs.other_timeseries')..'</th></tr>')
 
-  local info = ntop.getInfo()
-
   if ntop.isPro() then
     prefsToggleButton(subpage_active, {
       field = "toggle_flow_rrds",
@@ -1495,6 +1494,10 @@ function printStatsTimeseries()
       default = "0",
       pref = "ndpi_flows_rrd_creation",
     })
+  end
+
+  if info["version.enterprise_edition"] then
+    prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {url="?tab=snmp"}))
   end
 
   print('</table>')
@@ -1563,51 +1566,56 @@ function printSnmp()
   print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">SNMP</th></tr>')
+  local disabled = not info["version.enterprise_edition"]
 
   prefsToggleButton(subpage_active, {
     field = "toggle_snmp_rrds",
     default = "0",
     pref = "snmp_devices_rrd_creation",
-    disabled = not info["version.enterprise_edition"],
+    disabled = disabled,
   })
 
   local t_labels = {"v1", "v2c"}
   local t_values = {"0", "1"}
 
   multipleTableButtonPrefs(subpage_active.entries["default_snmp_proto_version"].title, subpage_active.entries["default_snmp_proto_version"].description,
-			   t_labels, t_values, "0", "primary", "default_snmp_version", "ntopng.prefs.default_snmp_version")
+			   t_labels, t_values, "0", "primary", "default_snmp_version", "ntopng.prefs.default_snmp_version", disabled)
   
   prefsInputFieldPrefs(subpage_active.entries["default_snmp_community"].title, subpage_active.entries["default_snmp_community"].description,
 		       "ntopng.prefs.",
 		       "default_snmp_community",
-		       "public", false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=64}})
+		       "public", false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=64}, disabled=disabled})
 
   prefsToggleButton(subpage_active, {
     field = "toggle_snmp_alerts_port_status_change",
     default = "1",
     pref = "alerts.snmp_port_status_change",
-    disabled = not info["version.enterprise_edition"],
+    disabled = disabled,
   })
 
   prefsToggleButton(subpage_active, {
     field = "toggle_snmp_alerts_port_duplexstatus_change",
     default = "1",
     pref = "alerts.snmp_port_duplexstatus_change",
-    disabled = not info["version.enterprise_edition"],
+    disabled = disabled,
   })
 
   prefsToggleButton(subpage_active, {
     field = "toggle_snmp_alerts_port_errors",
     default = "1",
     pref = "alerts.snmp_port_errors",
-    disabled = not info["version.enterprise_edition"],
+    disabled = disabled,
   })
 
   prefsInputFieldPrefs(subpage_active.entries["snmp_port_load_threshold"].title, 
                        subpage_active.entries["snmp_port_load_threshold"].description,
                        "ntopng.prefs.alerts.", 
                        "snmp_port_load_threshold", 
-                       "100", "number", nil, false, nil, {min=0})
+                       "100", "number", nil, false, nil, {min=0, disabled=disabled})
+
+  if(disabled) then
+    prefsInformativeField(i18n("notes"), i18n("enterpriseOnly"))
+  end
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
