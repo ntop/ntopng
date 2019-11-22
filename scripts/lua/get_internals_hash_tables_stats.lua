@@ -165,7 +165,7 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
       if active_entries > 0 or idle_entries > 0 then
 	 local utiliz = hash_table_utilization(htstats)
 
-	 record["column_hash_table_utilization"] = internals_utils.getDoubleFillBar(utiliz["active_vs_max"], utiliz["idle_vs_max"], utiliz["free"])
+	 record["column_hash_table_utilization"] = internals_utils.getHashTablesFillBar(utiliz["active_vs_max"], utiliz["idle_vs_max"], utiliz["free"])
       end
 
       res[#res + 1] = record

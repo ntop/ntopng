@@ -226,8 +226,8 @@ $("#table-internals-periodic-activities").datatable({
        field: "column_time_perc",
        sortable: true,
        css: {
-	 textAlign: 'right',
-	 width: '10%',
+	 textAlign: 'center',
+	 width: '5%',
        }
      }, {
        title: "]] print(i18n("internals.last_duration_ms")) print[[",
@@ -243,7 +243,6 @@ $("#table-internals-periodic-activities").datatable({
 			       "column_key", 5000,
 			       {
                   "column_last_duration": fmillis,
-                  "column_time_perc": function(v) {return(Math.round(v) + "%")},
                });
    },
 });
@@ -290,29 +289,7 @@ end
 
 -- ###########################################
 
-function internals_utils.getFillBar(fill_pct, warn_pct, danger_pct)
-   local bg
-
-   if fill_pct >= (danger_pct or 90) then
-      bg = "progress-bar-danger"
-   elseif fill_pct >= (warn_pct or 75) then
-      bg = "progress-bar-warning"
-   else
-      bg = "progress-bar-success"
-   end
-
-   local code = [[
-<div class="progress">
-  <div class="progress-bar ]]..bg..[[" role="progressbar" style="width: ]]..fill_pct..[[%;" aria-valuenow="]]..fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..fill_pct..[[%</div>
-</div>
-]]
-
-   return code
-end
-
--- ###########################################
-
-function internals_utils.getDoubleFillBar(first_fill_pct, second_fill_pct, third_fill_pct)
+function internals_utils.getHashTablesFillBar(first_fill_pct, second_fill_pct, third_fill_pct)
    local code = [[<div class="progress">]]
 
    if first_fill_pct > 0 then
@@ -324,7 +301,26 @@ function internals_utils.getDoubleFillBar(first_fill_pct, second_fill_pct, third
    end
 
    if third_fill_pct > 0 then
-      code = code..[[<div class="progress-bar progress-bar-success" role="progressbar" title="]] ..i18n("free").. [[" style="width: ]]..third_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("free")..[[</div>]]
+      code = code..[[<div class="progress-bar progress-bar-success" role="progressbar" title="]] ..i18n("available").. [[" style="width: ]]..third_fill_pct..[[%" aria-valuenow="]]..third_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("available")..[[</div>]]
+   end
+
+   code = code..[[</div>]]
+
+   return code
+end
+
+
+-- ###########################################
+
+function internals_utils.getPeriodicActivitiesFillBar(busy_pct, available_pct)
+   local code = [[<div class="progress">]]
+
+   if busy_pct > 0 then
+      code = code..[[<div class="progress-bar" role="progressbar" title="]] ..i18n("busy").. [[" style="width: ]]..busy_pct..[[%" aria-valuenow="]]..busy_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("busy")..[[</div>]]
+   end
+
+   if available_pct > 0 then
+      code = code..[[<div class="progress-bar progress-bar-success" role="progressbar" title="]] ..i18n("available").. [[" style="width: ]]..available_pct..[[%" aria-valuenow="]]..available_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("available")..[[</div>]]
    end
 
    code = code..[[</div>]]
