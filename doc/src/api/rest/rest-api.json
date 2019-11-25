@@ -153,7 +153,7 @@
             "tags":[
                "Flows"
             ],
-            "summary":"Get flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, BYTES, SRC_TO_DST_BYTES, DST_TO_SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO.",
+            "summary":"Get flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO.",
             "description":"Executes a query to the flows database",
             "operationId":"get_flows_data",
             "produces":[
@@ -222,7 +222,7 @@
             "tags":[
                "Flows"
             ],
-            "summary":"Get flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, BYTES, SRC_TO_DST_BYTES, DST_TO_SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO",
+            "summary":"Get flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO",
             "description":"Executes a top-k query to the flows database",
             "operationId":"get_topk_data",
             "produces":[
