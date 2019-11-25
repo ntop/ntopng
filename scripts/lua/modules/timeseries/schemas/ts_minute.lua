@@ -212,6 +212,12 @@ schema:addMetric("packets")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:tcp_keep_alive", {step=60, rrd_fname="tcp_keepalive"})
+schema:addTag("ifid")
+schema:addMetric("packets")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("iface:tcp_syn", {step=60, rrd_fname="tcp_syn"})
 schema:addTag("ifid")
 schema:addMetric("packets")

@@ -130,6 +130,7 @@ function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
   ts_utils.append("iface:tcp_retransmissions", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
   ts_utils.append("iface:tcp_out_of_order", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
   ts_utils.append("iface:tcp_lost", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when, verbose)
+  ts_utils.append("iface:tcp_keep_alive", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.keep_alive}, when, verbose)
 end
 
 function ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
