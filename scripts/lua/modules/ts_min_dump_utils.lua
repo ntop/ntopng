@@ -294,7 +294,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
     end
 
     if((not ifstats.has_seen_ebpf_events) or (ifstats.type ~= "zmq")) then
-      -- TCP stats
+       -- TCP stats
       if config.tcp_retr_ooo_lost_rrd_creation == "1" then
         ts_dump.iface_update_tcp_stats(instant, iface_point, verbose)
       end

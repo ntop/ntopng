@@ -364,9 +364,10 @@ class NetworkInterface : public AlertableEntity {
 #endif
   void checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
   int dumpLocalHosts2redis(bool disable_purge);
-  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
-  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
-  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
+  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num);      };
+  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);       };
+  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num);      };
+  inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.incKeepAlive(num); };
   virtual void checkPointCounters(bool drops_only);
   bool registerSubInterface(NetworkInterface *sub_iface, u_int32_t criteria);
 

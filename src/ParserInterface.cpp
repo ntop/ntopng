@@ -270,11 +270,13 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
     Flow::incTcpBadStats(true,
 			 flow->getFlowTrafficStats(),
 			 flow->get_cli_host(), flow->get_srv_host(),
+			 this,
 			 zflow->tcp.ooo_in_pkts, zflow->tcp.retr_in_pkts,
 			 zflow->tcp.lost_in_pkts, 0 /* TODO: add keepalive */);
     Flow::incTcpBadStats(false,
 			 flow->getFlowTrafficStats(),
 			 flow->get_cli_host(), flow->get_srv_host(),
+			 this,
 			 zflow->tcp.ooo_out_pkts, zflow->tcp.retr_out_pkts,
 			 zflow->tcp.lost_out_pkts, 0 /* TODO: add keepalive */);
   }
