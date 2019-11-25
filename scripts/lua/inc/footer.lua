@@ -199,7 +199,7 @@ function checkMigrationMessage(data) {
     $("#move-rrd-to-influxdb").show();
 }
 
-$("#move-rrd-to-influxdb, #host-id-message-warning").on("close.bs.alert", function() {
+$("#move-rrd-to-influxdb, #host-id-message-warning, #influxdb-error-msg").on("close.bs.alert", function() {
   $.ajax({
       type: 'POST',
         url: ']]

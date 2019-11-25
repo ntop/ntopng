@@ -188,7 +188,7 @@ end
 
 -- ##############################################
 
-function system_scripts.getAdditionalTimeseries(module_filter)
+local function _getAdditionalTimeseries(module_filter, get_menu)
   local old_new_schema_fn = ts_utils.newSchema
   local additional_ts = {}
   local default_schema_options = nil
@@ -215,7 +215,7 @@ function system_scripts.getAdditionalTimeseries(module_filter)
             (module_filter == nil))) then
         probe.loadSchemas(ts_utils)
 
-        if(probe.getTimeseriesMenu ~= nil) then
+        if(get_menu and (probe.getTimeseriesMenu ~= nil)) then
           local menu = probe.getTimeseriesMenu(ts_utils) or {}
 
           --[[
@@ -234,6 +234,18 @@ function system_scripts.getAdditionalTimeseries(module_filter)
   ts_utils.newSchema = old_new_schema_fn
 
   return(additional_ts)
+end
+
+-- ##############################################
+
+function system_scripts.getAdditionalTimeseries(module_filter)
+  return(_getAdditionalTimeseries(module_filter, true))
+end
+
+-- ##############################################
+
+function system_scripts.loadSchemas()
+  _getAdditionalTimeseries(module_filter, false)
 end
 
 -- ##############################################

@@ -30,7 +30,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_stats.lua?ifid=" .. getInterfaceId(ifname)
 local info = ntop.getInfo()
-system_schemas = system_scripts.getAdditionalTimeseries("system")
+system_schemas = system_scripts.getTimeseriesMenu("system")
 
 print [[
   <nav class="navbar navbar-default" role="navigation">

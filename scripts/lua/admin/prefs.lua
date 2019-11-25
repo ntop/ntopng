@@ -143,8 +143,9 @@ if(haveAdminPrivileges()) then
          local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]),
             username, password, false --[[verbose]])
          if not ok then
-            message_info = message
-            message_severity = "alert-danger"
+            -- NOTE: already logged
+            --~ message_info = message
+            --~ message_severity = "alert-danger"
 
             -- reset driver to the old one
             _POST["timeseries_driver"] = nil
