@@ -2395,7 +2395,7 @@ void Ntop::cleanShadownDPI() {
  * 4. cleanShadownDPI()
  */
 bool Ntop::startCustomCategoriesReload() {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload %s",
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Started nDPI reload %s",
 			       ndpiReloadInProgress ? "[IN PROGRESS]" : "");
 
   if(ndpiReloadInProgress) {
