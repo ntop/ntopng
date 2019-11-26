@@ -647,7 +647,7 @@ int Utils::mkdir(const char *path, mode_t mode) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "mkdir(%s) failed [%d/%s]",
 				   path, errno, strerror(errno));
   } else {
-    if(chmod(path, CONST_DEFAULT_DIR_MODE) == -1) /* Ubuntu 18 */
+    if(chmod(path, mode) == -1) /* Ubuntu 18 */
       ntop->getTrace()->traceEvent(TRACE_WARNING, "chmod(%s) failed [%d/%s]",
 				   path, errno, strerror(errno));
   }
