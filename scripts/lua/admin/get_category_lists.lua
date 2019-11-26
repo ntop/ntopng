@@ -110,6 +110,8 @@ for list_name, list in pairs(lists) do
     sort_to_key[list_name] = list.status.num_hosts
   elseif sortColumn == "column_status" then
     sort_to_key[list_name] = list.status_label
+  elseif sortColumn == "column_update_interval_label" then
+    sort_to_key[list_name] = list.update_interval
   else
     -- default
     sort_to_key[list_name] = list_name
@@ -130,6 +132,12 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
   if (i >= to_skip) then
     local list = lists[key]
+    local update_interval_label = ''
+    if list.update_interval == 86400 then
+       update_interval_label = i18n("alerts_thresholds_config.daily")
+    elseif list.update_interval == 3600 then
+       update_interval_label = i18n("alerts_thresholds_config.hourly")
+    end
 
     res[#res + 1] = {
       column_name = list.name,
@@ -138,6 +146,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       column_url = list.url,
       column_enabled = list.enabled,
       column_update_interval = list.update_interval,
+      column_update_interval_label = update_interval_label,
       column_category = "cat_" .. list.category,
       column_category_name = list.category_name,
       column_num_hosts = list.status.num_hosts,
