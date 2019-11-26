@@ -348,6 +348,10 @@ local function influx_query_multi(base_url, query, username, password, options)
     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("influx_query[#%u][%ds]: %s", num_queries+1, tdiff, query))
   end
 
+  -- Log the query
+  local msg = os.date("%d/%b/%Y %H:%M:%S ") .. query
+  ntop.lpushCache("ntopng.trace.influxdb_queries", msg, 100 --[[ max queue elements ]])
+
   if not res then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid response for query: " .. full_url)
     return nil
