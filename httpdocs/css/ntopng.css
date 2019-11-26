@@ -464,4 +464,10 @@ tr.quotas > td {
   font-size: 16px;
 }
 
+
+/* Fix for fa-share blocked by adblock */
+.fa-topology-alt:before {
+  content: "\f1e0";
+}
+
 /* end of CSS for EBPF charts */
