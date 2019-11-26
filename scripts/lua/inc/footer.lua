@@ -184,6 +184,22 @@ if ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "1" then
   host_ts_mode = "none"
 end
 
+if ts_utils.getDriverName() == "influxdb" then
+  local msg = ntop.getCache("ntopng.cache.influxdb.last_error")
+
+  if not isEmptyString(msg) then
+    print[[
+$("#influxdb-error-msg-text").html("]] print(msg) print[[");
+$("#influxdb-error-msg").show();
+]]
+    -- Show the error message
+    --~ print('<br><div id="influxdb-error-msg" class="alert alert-danger" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+    --~ print(msg)
+    --~ print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+    --~ print('</div>')
+  end
+end
+
 -- Only show the message if the host protocol/category timeseries are enabled
 local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= "")) and
   (ts_utils.getDriverName() ~= "influxdb") and
@@ -199,7 +215,7 @@ function checkMigrationMessage(data) {
     $("#move-rrd-to-influxdb").show();
 }
 
-$("#move-rrd-to-influxdb, #host-id-message-warning").on("close.bs.alert", function() {
+$("#move-rrd-to-influxdb, #host-id-message-warning, #influxdb-error-msg").on("close.bs.alert", function() {
   $.ajax({
       type: 'POST',
         url: ']]

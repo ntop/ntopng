@@ -291,7 +291,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  id = (u_int32_t)lua_tonumber(vm, 1);
+  id = lua_tonumber(vm, 1);
 
   iface = ntop->getNetworkInterface(vm, id);
 
@@ -2566,6 +2566,17 @@ static int ntop_check_interface_alerts_min(lua_State* vm)  { return(ntop_check_i
 static int ntop_check_interface_alerts_5min(lua_State* vm) { return(ntop_check_interface_alerts(vm, five_minute_script)); }
 static int ntop_check_interface_alerts_hour(lua_State* vm) { return(ntop_check_interface_alerts(vm, hour_script));   }
 static int ntop_check_interface_alerts_day(lua_State* vm)  { return(ntop_check_interface_alerts(vm, day_script));    }
+
+/* ****************************************** */
+
+static int ntop_check_snmp_device_alerts(lua_State* vm, ScriptPeriodicity p) {
+  ntop->checkSNMPDeviceAlerts(p);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+static int ntop_check_snmp_device_alerts_5min(lua_State* vm)  { return(ntop_check_snmp_device_alerts(vm, five_minute_script)); }
 
 /* ****************************************** */
 
@@ -5589,7 +5600,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
 
 #ifdef HAVE_CURL_SMTP
 static int ntop_send_mail(lua_State* vm) {
-  char *from, *to, *msg, *smtp_server;
+  char *from, *to, *msg, *smtp_server, *username = NULL, *password = NULL;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((from = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -5603,7 +5614,13 @@ static int ntop_send_mail(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((smtp_server = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  bool rv = Utils::sendMail(from, to, msg, smtp_server);
+  if(lua_type(vm, 5) == LUA_TSTRING) /* Optional */
+    username = (char*)lua_tostring(vm, 5);
+
+  if(lua_type(vm, 6) == LUA_TSTRING) /* Optional */
+    password = (char*)lua_tostring(vm, 6);
+
+  bool rv = Utils::sendMail(from, to, msg, smtp_server, username, password);
 
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
@@ -11314,6 +11331,9 @@ static const luaL_Reg ntop_reg[] = {
   { "setLanInterface",       ntop_set_lan_interface        },
   { "refreshDeviceProtocolsPoliciesConf", ntop_refresh_device_protocols_policies_pref },
 #endif
+
+  /* Alerts */
+  { "checkSNMPDeviceAlerts5Min", ntop_check_snmp_device_alerts_5min },
 
   { NULL,          NULL}
 };

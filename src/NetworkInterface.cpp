@@ -1915,7 +1915,13 @@ decode_packet_eth:
 	    /* Unknown encapsulation */
 	  }
 	}
-
+      } else if(ntop->getGlobals()->decode_tunnels()
+		&& iph->protocol == IPPROTO_IPV6
+		&& h->caplen >= ip_offset + ip_len + sizeof(struct ndpi_ipv6hdr)) {
+	/* Detunnel 6in4 tunnel */
+	ip_offset += ip_len;
+	eth_type = ETHERTYPE_IPV6;
+	goto decode_packet_eth;
       } else if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_UDP)
 		&& ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */ ) == 0)) {
 	struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset+ip_len];

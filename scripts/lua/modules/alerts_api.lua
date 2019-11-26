@@ -763,55 +763,92 @@ end
 
 -- ##############################################
 
-function alerts_api.snmpInterfaceStatusChangeType(device, interface, interface_name, status)
-  return({
-    alert_type = alert_consts.alert_types.alert_port_status_change,
-    alert_severity = alert_consts.alert_severities.info,
-    alert_type_params = {
-      device = device, interface = interface,
-      interface_name = interface_name, status = status,
-    },
-  })
+function alerts_api.snmpInterfaceStatusChangeType(snmp_interface_info, device, interface, interface_name, status)
+   local snmp_interface_index  = snmp_interface_info["snmp_interface"]["index"]
+   local snmp_interface_name   = snmp_interface_info["snmp_interface"]["name"]
+   local snmp_interface_status = snmp_interface_info["if_status"]["status"]
+   local snmp_device_ip = snmp_interface_info["snmp_device_ip"]
+
+   local res = {
+      alert_type = alert_consts.alert_types.alert_port_status_change,
+      alert_severity = alert_consts.alert_severities.info,
+      alert_type_params = {
+	 device = snmp_device_ip,
+	 interface = snmp_interface_index,
+	 interface_name = snmp_interface_name,
+	 status = snmp_interface_status,
+      },
+   }
+
+   return res
 end
 
 -- ##############################################
 
-function alerts_api.snmpInterfaceDuplexStatusChangeType(device, interface, interface_name, status)
-  return({
-    alert_type = alert_consts.alert_types.alert_port_duplexstatus_change,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      device = device, interface = interface,
-      interface_name = interface_name, status = status,
-    },
-  })
+function alerts_api.snmpInterfaceDuplexStatusChangeType(snmp_interface_info)
+   local snmp_interface_index = snmp_interface_info["snmp_interface"]["index"]
+   local snmp_interface_name = snmp_interface_info["snmp_interface"]["name"]
+   local snmp_interface_duplexstatus = snmp_interface_info["if_status"]["duplexstatus"]
+   local snmp_device_ip = snmp_interface_info["snmp_device_ip"]
+
+   local res = {
+      alert_type = alert_consts.alert_types.alert_port_duplexstatus_change,
+      alert_severity = alert_consts.alert_severities.warning,
+      alert_type_params = {
+	 device = snmp_device_ip,
+	 interface = snmp_interface_index,
+	 interface_name = snmp_interface_name,
+	 status = snmp_interface_duplexstatus,
+      },
+   }
+
+   return res
 end
 
 -- ##############################################
 
-function alerts_api.snmpInterfaceErrorsType(device, interface, interface_name)
-  return({
-    alert_type = alert_consts.alert_types.alert_port_errors,
-    alert_severity = alert_consts.alert_severities.info,
-    alert_type_params = {
-      device = device, interface = interface,
-      interface_name = interface_name,
-    },
-  })
+function alerts_api.snmpInterfaceErrorsType(snmp_interface_info)
+   local snmp_interface_index = snmp_interface_info["snmp_interface"]["index"]
+   local snmp_interface_name = snmp_interface_info["snmp_interface"]["name"]
+   local snmp_device_ip = snmp_interface_info["snmp_device_ip"]
+
+   local res = {
+      alert_type = alert_consts.alert_types.alert_port_errors,
+      alert_severity = alert_consts.alert_severities.info,
+      alert_type_params = {
+	 device = snmp_device_ip,
+	 interface = snmp_interface_index,
+	 interface_name = snmp_interface_name,
+      },
+   }
+
+   return res
 end
 
 -- ##############################################
 
-function alerts_api.snmpPortLoadThresholdExceededType(device, interface, interface_name, interface_load, in_direction)
-  return({
-    alert_type = alert_consts.alert_types.alert_port_load_threshold_exceeded,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      device = device, interface = interface,
-      interface_name = interface_name,
-      interface_load = interface_load, in_direction = in_direction,
-    },
-  })
+function alerts_api.snmpPortLoadThresholdExceededType(snmp_interface_info)
+   local snmp_interface_index = snmp_interface_info["snmp_interface"]["index"]
+   local snmp_interface_name = snmp_interface_info["snmp_interface"]["name"]
+   local snmp_device_ip = snmp_interface_info["snmp_device_ip"]
+   local in_port_load = snmp_interface_info["in_port_load"]
+   local out_port_load = snmp_interface_info["out_port_load"]
+   local load_threshold = snmp_interface_info["load_threshold"]
+
+   local res = {
+      alert_type = alert_consts.alert_types.alert_port_load_threshold_exceeded,
+      alert_severity = alert_consts.alert_severities.warning,
+      alert_type_params = {
+	 device = snmp_device_ip,
+	 interface = snmp_interface_index,
+	 interface_name = snmp_interface_name,
+	 in_load = in_port_load,
+	 out_load = out_port_load,
+	 load_threshold = load_threshold,
+      },
+   }
+
+   return res
 end
 
 -- ##############################################
@@ -935,6 +972,21 @@ function alerts_api.ghostNetworkType(network, granularity)
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {},
   })
+end
+
+-- ##############################################
+
+-- TODO: comment
+function alerts_api.snmp_device_interface_check_function(params)
+  local check_res = params.user_script.snmp_device_interface_check(params.granularity, params.entity_info)
+
+  if check_res then
+     local type_builder = params.user_script.type_builder
+
+     local check_type = type_builder(params.entity_info)
+
+     return alerts_api.store(params.alert_entity, check_type)
+  end
 end
 
 -- ##############################################

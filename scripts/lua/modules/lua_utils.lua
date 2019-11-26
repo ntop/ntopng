@@ -1204,6 +1204,16 @@ end
 
 -- ##############################################
 
+function splitNetworkWithVLANPrefix(net_mask_vlan)
+   local vlan = tonumber(net_mask_vlan:match("@(.+)"))
+   local net_mask = net_mask_vlan:gsub("@.+","")
+   local prefix = tonumber(net_mask:match("/(.+)"))
+   local address = net_mask:gsub("/.+","")
+   return address, prefix, vlan
+end
+
+-- ##############################################
+
 function splitProtocol(proto_string)
   local parts = string.split(proto_string, "%.")
   local app_proto

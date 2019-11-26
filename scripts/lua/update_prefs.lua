@@ -23,6 +23,9 @@ if isAdministrator() then
   elseif _POST["action"] == "host-id-message-warning" then
     ntop.setPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifid), "1")
     res.success = true
+  elseif _POST["action"] == "influxdb-error-msg" then
+    ntop.delCache("ntopng.cache.influxdb.last_error")
+    res.success = true
   end
 end
 

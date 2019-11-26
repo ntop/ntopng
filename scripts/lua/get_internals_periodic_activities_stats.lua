@@ -26,6 +26,14 @@ local sortPrefs = "internals_periodic_activites_data"
 
 -- ################################################
 
+local function time_utilization(stats)
+   local busy = stats.duration.last_duration_ms / stats.duration.max_duration_ms * 100
+
+   return {busy = busy, available = 100 - busy}
+end
+
+-- ################################################
+
 if isEmptyString(sortColumn) or sortColumn == "column_" then
    sortColumn = getDefaultTableSort(sortPrefs)
 else
@@ -101,9 +109,10 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
 
    stats.duration.max_duration_ms = internals_utils.periodic_scripts_durations[script_stats.script] * 1000
    stats.perc_duration = stats.duration.last_duration_ms * 100 / (stats.duration.max_duration_ms)
-
+   
    if(sortColumn == "column_time_perc") then
-      sort_to_key[k] = stats.perc_duration
+      local utiliz = time_utilization(script_stats.stats)
+      sort_to_key[k] = -utiliz["available"]
    elseif(sortColumn == "column_last_duration") then
       sort_to_key[k] = script_stats.stats.duration.last_duration_ms
    elseif(sortColumn == "column_periodic_activity_name") then
@@ -144,6 +153,10 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_key"] = key
       record["column_ifid"] = string.format("%i", script_stats.ifid)
       record["column_time_perc"] = script_stats.stats.perc_duration
+
+      local utiliz = time_utilization(script_stats.stats)
+      record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
+      
       record["column_last_duration"] = last_duration
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))

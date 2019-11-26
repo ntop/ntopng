@@ -63,7 +63,7 @@ Ntop::Ntop(char *appName) {
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
-  is_started = false;
+  is_started = ndpiReloadInProgress = false;
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
@@ -816,6 +816,17 @@ void Ntop::setCustomnDPIProtos(char *path) {
     if(custom_ndpi_protos != NULL) free(custom_ndpi_protos);
     custom_ndpi_protos = strdup(path);
   }
+}
+
+/* *************************************** */
+
+void Ntop::checkSNMPDeviceAlerts(ScriptPeriodicity p) {
+  AlertCheckLuaEngine acle(alert_entity_snmp_device, p, NULL);
+  lua_State *L = acle.getState();
+
+  lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
+  lua_pushstring(L, acle.getGranularity());              /* push 1st argument */
+  acle.pcall(1 /* num args */, 0);
 }
 
 /* ******************************************* */
@@ -2384,7 +2395,7 @@ void Ntop::cleanShadownDPI() {
  * 4. cleanShadownDPI()
  */
 bool Ntop::startCustomCategoriesReload() {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started nDPI reload %s",
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Started nDPI reload %s",
 			       ndpiReloadInProgress ? "[IN PROGRESS]" : "");
 
   if(ndpiReloadInProgress) {
@@ -2419,7 +2430,7 @@ void Ntop::reloadCustomCategories() {
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
     ndpi_finalize_initalization(ndpi_struct_shadow);
     
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI finalizing reload...");
+    ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI finalizing reload...");
     
     old_struct = ndpi_struct;
     ndpi_struct = ndpi_struct_shadow;
@@ -2431,7 +2442,7 @@ void Ntop::reloadCustomCategories() {
 	getInterface(i)->reloadHostsBlacklist();
     }
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload completed");
+    ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI reload completed");
     ndpiReloadInProgress = false;
   }
 }

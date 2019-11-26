@@ -25,6 +25,9 @@ local INFLUX_MAX_EXPORT_QUEUE_LEN_LOW = 10
 local INFLUX_MAX_EXPORT_QUEUE_LEN_HIGH = 20
 local INFLUX_MAX_EXPORT_QUEUE_TRIM_LEN = 30 -- This edge should never be crossed. If it does, queue is manually trimmed
 
+-- When influxdb is not responding, inhibit some queries for some seconds
+local INFLUX_QUERY_INHIBIT_SEC = 60
+
 local INFLUX_QUERY_TIMEMOUT_SEC = 5
 local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
@@ -73,6 +76,7 @@ function driver:new(options)
     password = options.password or "",
     has_full_export_queue = isExportQueueFull(),
     cur_dropped_points = 0,
+    inhibit_queries = (ntop.getCache("ntopng.cache.influxdb.inhibit_queries") == "1"),
   }
 
   setmetatable(obj, self)
@@ -376,6 +380,8 @@ local function influx_query_multi(base_url, query, username, password, options)
   return jres
 end
 
+-- ##############################################
+
 local function influx_query(base_url, query, username, password, options)
   local jres = influx_query_multi(base_url, query, username, password, options)
 
@@ -389,6 +395,26 @@ local function influx_query(base_url, query, username, password, options)
   end
 
   return nil
+end
+
+-- ##############################################
+
+function driver:influx_query_timed(base_url, query, username, password, options)
+  if(self.inhibit_queries) then
+    return nil
+  end
+
+  local tstart = os.time()
+  local rv = influx_query(base_url, query, username, password, options)
+  local duration = os.time() - tstart
+
+  if(duration >= INFLUX_QUERY_TIMEMOUT_SEC) then
+    ntop.setCache("ntopng.cache.influxdb.last_error", i18n("graphs.influxdb_query_inhibited", {inhibit_seconds = INFLUX_QUERY_INHIBIT_SEC}))
+    ntop.setCache("ntopng.cache.influxdb.inhibit_queries", "1", INFLUX_QUERY_INHIBIT_SEC)
+    self.inhibit_queries = true
+  end
+
+  return rv
 end
 
 -- ##############################################
@@ -1156,7 +1182,7 @@ end
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
   local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, start_time)
   local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
+  local data = self:influx_query_timed(url .. "/query?db=".. self.db, query, self.username, self.password)
 
   return processListSeriesResult(data, schema, tags_filter, wildcard_tags)
 end
@@ -1174,7 +1200,7 @@ function driver:exists(schema, tags_filter, wildcard_tags)
 
   local query = makeListSeriesQuery(schema, tags_filter, wildcard_tags, 0)
   local url = self.url
-  local data = influx_query(url .. "/query?db=".. self.db, query, self.username, self.password)
+  local data = self:influx_query_timed(url .. "/query?db=".. self.db, query, self.username, self.password)
 
   return(not table.empty(processListSeriesResult(data, schema, tags_filter, wildcard_tags)))
 end

@@ -130,6 +130,7 @@ function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
   ts_utils.append("iface:tcp_retransmissions", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
   ts_utils.append("iface:tcp_out_of_order", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
   ts_utils.append("iface:tcp_lost", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when, verbose)
+  ts_utils.append("iface:tcp_keep_alive", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.keep_alive}, when, verbose)
 end
 
 function ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
@@ -294,7 +295,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
     end
 
     if((not ifstats.has_seen_ebpf_events) or (ifstats.type ~= "zmq")) then
-      -- TCP stats
+       -- TCP stats
       if config.tcp_retr_ooo_lost_rrd_creation == "1" then
         ts_dump.iface_update_tcp_stats(instant, iface_point, verbose)
       end

@@ -692,20 +692,23 @@ local function validateNetwork(i)
    if not string.find(i, "/") then
       return validateIpAddress(i)
    else
-      local parts = split(i, "/")
-      if #parts ~= 2 then
+      -- Mask
+      local ip_mask = split(i, "/")
+      if #ip_mask ~= 2 then
+         return false
+      end
+      local ip = ip_mask[1]
+      local mask = ip_mask[2]
+
+      if not validateNumber(mask) then
          return false
       end
 
-      if not validateNumber(parts[2]) then
-         return false
-      end
-
-      local prefix = tonumber(parts[2])
-
+      local prefix = tonumber(mask)
       if prefix >= 0 then
-         local is_ipv6 = isIPv6(parts[1])
-         local is_ipv4 = isIPv4(parts[1])
+         -- IP
+         local is_ipv6 = isIPv6(ip)
+         local is_ipv4 = isIPv4(ip)
 
          if is_ipv6 and prefix <= 128 then
             return true
@@ -718,8 +721,6 @@ local function validateNetwork(i)
    end
 end
 
--- #################################################################
-
 local function validateHost(p)
    local host = hostkey2hostinfo(p)
 
@@ -728,6 +729,29 @@ local function validateHost(p)
       return true
    else
       return validateNetwork(p)
+   end
+end
+
+local function validateNetworkWithVLAN(i)
+   if not string.find(i, "/") then
+      return validateHost(i)
+   else
+      -- VLAN
+      local net_vlan = split(i, "@")
+      local net = net_vlan[1]
+
+      if #net_vlan < 1 then
+         return false
+      end
+
+      if #net_vlan == 2 then
+         local vlan = net_vlan[2]
+         if not validateNumber(vlan) then
+            return false
+         end
+      end
+
+      return validateNetwork(net)
    end
 end
 
@@ -783,6 +807,10 @@ end
 
 local function validateNetworksList(l)
    return validateListOfType(l, validateNetwork)
+end
+
+local function validateNetworksWithVLANList(l)
+   return validateListOfType(l, validateNetworkWithVLAN)
 end
 
 local function validateACLNetworksList(l)
@@ -1088,7 +1116,7 @@ local known_parameters = {
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users
-   ["err_counters_since"]      = validateCounterSince,          -- Select actual or absolute counters
+   ["counters_since"]          = validateCounterSince,          -- Select actual or absolute counters
    ["err_counters_filter"]     = validateErrorsFilter,          -- Filter by errrrs, discards, both
    ["country"]                 = validateCountry,               -- Country code
    ["flow_key"]                = validateNumber,                -- The key of the flow
@@ -1283,6 +1311,8 @@ local known_parameters = {
    ["email_sender"]                                = validateSingleWord,
    ["email_recipient"]                             = validateSingleWord,
    ["smtp_server"]                                 = validateSingleWord,
+   ["smtp_username"]                               = validateEmptyOr(validateSingleWord),
+   ["smtp_password"]                               = validateEmptyOr(validatePassword),
    ["influx_dbname"]                               = validateSingleWord,
    ["influx_username"]                             = validateEmptyOr(validateSingleWord),
    ["influx_password"]                             = validateEmptyOr(validateSingleWord),
@@ -1469,7 +1499,7 @@ local known_parameters = {
    ["per_ip_slow_rate"]        = validateNumber,
    ["per_ip_slower_rate"]      = validateNumber,
    ["user_policy"]             = validateNumber,
-   ["hide_from_top"]           = validateNetworksList,
+   ["hide_from_top"]           = validateNetworksWithVLANList,
    ["top_hidden"]              = validateBool,
    ["packets_drops_perc"]      = validateEmptyOr(validateNumber),
    ["operating_system"]        = validateNumber,

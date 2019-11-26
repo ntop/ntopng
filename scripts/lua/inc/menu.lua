@@ -617,15 +617,10 @@ if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet
    end
 end
 
-if ts_utils.getDriverName() == "influxdb" then
-  local msg = ntop.getCache("ntopng.cache.influxdb.last_error")
-
-  if not isEmptyString(msg) then
-    print('<br><div id="influxdb-error-msg" class="alert alert-danger" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
-    print(msg)
-    print('</div>')
-  end
-end
+-- Hidden by default, will be shown by the footer if necessary
+print('<br><div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
+print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+print('</div>')
 
 -- Hidden by default, will be shown by the footer if necessary
 print('<br><div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')

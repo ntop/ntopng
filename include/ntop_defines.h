@@ -864,6 +864,11 @@
 #define IPPROTO_GRE 47
 #endif
 
+/* 6-in-4 Tunnels */
+#ifndef IPPROTO_IPV6
+#define IPPROTO_IPV6 41
+#endif
+
 #define GRE_HEADER_CHECKSUM      0x8000 /* 32 bit */
 #define GRE_HEADER_ROUTING       0x4000 /* 32 bit */
 #define GRE_HEADER_KEY           0x2000 /* 32 bit */

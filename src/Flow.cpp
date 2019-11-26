@@ -2550,6 +2550,7 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 void Flow::incTcpBadStats(bool src2dst_direction,
 			  FlowTrafficStats *fts,
 			  Host *cli, Host *srv,
+			  NetworkInterface *iface,
 			  u_int32_t ooo_pkts,
 			  u_int32_t retr_pkts,
 			  u_int32_t lost_pkts,
@@ -2560,12 +2561,19 @@ void Flow::incTcpBadStats(bool src2dst_direction,
 
   if(!ooo_pkts && !retr_pkts && !lost_pkts && !keep_alive_pkts)
     return;
-  
+
   int16_t cli_network_id = -1, srv_network_id = -1;
   u_int32_t cli_asn = (u_int32_t)-1, srv_asn = (u_int32_t)-1;
   AutonomousSystem *cli_as = NULL, *srv_as = NULL;
   NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
   bool cli_and_srv_in_same_subnet = false, cli_and_srv_in_same_as = false;
+
+  if(iface) {
+    if(retr_pkts)       iface->incRetransmittedPkts(retr_pkts);
+    if(lost_pkts)       iface->incLostPkts(lost_pkts);
+    if(ooo_pkts)        iface->incOOOPkts(ooo_pkts);
+    if(keep_alive_pkts) iface->incKeepAlivePkts(keep_alive_pkts);
+  }
 
   if(fts) {
     TCPPacketStats * cur_stats;
@@ -2738,7 +2746,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
   }
 
   if(cnt_keep_alive || cnt_lost || cnt_ooo || cnt_retx)
-    incTcpBadStats(src2dst_direction, getFlowTrafficStats(), get_cli_host(), get_srv_host(), cnt_ooo, cnt_retx, cnt_lost, cnt_keep_alive);
+    incTcpBadStats(src2dst_direction, getFlowTrafficStats(), get_cli_host(), get_srv_host(), getInterface(), cnt_ooo, cnt_retx, cnt_lost, cnt_keep_alive);
 }
 
 /* *************************************** */

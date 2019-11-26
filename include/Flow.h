@@ -330,6 +330,7 @@ class Flow : public GenericHashEntry {
   static void incTcpBadStats(bool src2dst_direction,
 			     FlowTrafficStats *fts,
 			     Host *cli, Host *srv,
+			     NetworkInterface *iface,
 			     u_int32_t ooo_pkts, u_int32_t retr_pkts,
 			     u_int32_t lost_pkts, u_int32_t keep_alive_pkts);
   
