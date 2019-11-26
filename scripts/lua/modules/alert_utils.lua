@@ -413,11 +413,11 @@ local function engagedAlertsQuery(params)
   local entity_type_filter = tonumber(params.entity)
   local entity_value_filter = params.entity_val
 
-  local perPage = tonumber(params.perPage)
-  local sortColumn = params.sortColumn
-  local sortOrder = params.sortOrder
+  local perPage = tonumber(params.perPage or 10)
+  local sortColumn = params.sortColumn or "column_"
+  local sortOrder = params.sortOrder or "desc"
   local sOrder = ternary(sortOrder == "desc", rev_insensitive, asc_insensitive)
-  local currentPage = tonumber(params.currentPage)
+  local currentPage = tonumber(params.currentPage or 1)
   local totalRows = 0
 
   --~ tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
