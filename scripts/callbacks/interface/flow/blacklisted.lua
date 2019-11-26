@@ -14,7 +14,6 @@ local script = {
    gui = {
       i18n_title = "flow_callbacks_config.blacklisted",
       i18n_description = "flow_callbacks_config.blacklisted_description",
-      input_builder = user_scripts.flow_checkbox_input_builder,
    }
 }
 

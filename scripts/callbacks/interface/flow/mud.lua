@@ -10,11 +10,11 @@ local user_scripts = require("user_scripts")
 local script = {
    -- NOTE: hooks defined below
    hooks = {},
+   default_enabled = false,
 
    gui = {
       i18n_title = "flow_callbacks_config.mud",
       i18n_description = "flow_callbacks_config.mud_description",
-      input_builder = user_scripts.flow_checkbox_input_builder,
    }
 }
 

@@ -94,13 +94,13 @@ print[[<form class="form-inline" style="width:12em">
   });
 </script>]]
 
-printUserScripts("Interface Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "interface", nil, ignore_disabled, nil, return_all))
+printUserScripts("Interface Scripts", user_scripts.load(ifid, user_scripts.script_types.traffic_element, "interface", {return_all = true}))
 print("<br>")
-printUserScripts("Host Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "host", nil, ignore_disabled, nil, return_all))
+printUserScripts("Host Scripts", user_scripts.load(ifid, user_scripts.script_types.traffic_element, "host", {return_all = true}))
 print("<br>")
-printUserScripts("Network Scripts", user_scripts.load(user_scripts.script_types.traffic_element, ifid, "network", nil, ignore_disabled, nil, return_all))
+printUserScripts("Network Scripts", user_scripts.load(ifid, user_scripts.script_types.traffic_element, "network", {return_all = true}))
 print("<br>")
-printUserScripts("Flow Scripts", user_scripts.load(user_scripts.script_types.flow, ifid, "flow", nil, ignore_disabled, nil, return_all))
+printUserScripts("Flow Scripts", user_scripts.load(ifid, user_scripts.script_types.flow, "flow", {return_all = true}))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 

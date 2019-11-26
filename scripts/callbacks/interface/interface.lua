@@ -15,7 +15,6 @@ local do_benchmark = true          -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
 
-local config_alerts = nil
 local ifid = nil
 local available_modules = nil
 local interface_entity = alert_consts.alert_entities.interface.entity_id
@@ -27,9 +26,10 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the check modules
-   available_modules = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "interface", str_granularity, nil, do_benchmark)
-
-   config_alerts = getInterfaceConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
+   available_modules = user_scripts.load(ifid, user_scripts.script_types.traffic_element, "interface", {
+      hook_filter = str_granularity,
+      do_benchmark = do_benchmark,
+   })
 end
 
 -- #################################################################
@@ -60,35 +60,23 @@ function checkAlerts(granularity)
 
    local info = interface.getStats()
    local cur_alerts = interface.getAlerts(granularity_id)
-   local interface_config = config_alerts[interface_key] or {}
-   local global_config = config_alerts["interfaces"] or {}
-   local has_configuration = (table.len(interface_config) or table.len(global_config))
    local entity_info = alerts_api.interfaceAlertEntity(ifid)
 
    if(do_trace) then print("checkInterfaceAlerts()\n") end
 
-   if(has_configuration) then
-      for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
-        local check = available_modules.modules[mod_key]
-        local config = interface_config[check.key] or global_config[check.key]
-        local do_call
+   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
+     local user_script = available_modules.modules[mod_key]
+     local conf = user_scripts.getConfiguration(user_script, granularity, interface_key)
 
-        if(check.is_alert) then
-          -- Alert modules are only called if there is a configuration defined or always_enabled is set
-          do_call = ((not suppressed_alerts) and (config or check.always_enabled))
-        else
-          -- always call non alert scripts. available_modules does not contain scripts disabled by the user
-          do_call = true
-        end
-
-        if(do_call) then
+     if(conf.enabled) then
+        if((not user_script.is_alert) or (not suppressed_alerts)) then
            hook_fn({
               granularity = granularity,
               alert_entity = entity_info,
               entity_info = info,
-	      cur_alerts = cur_alerts,
-              alert_config = config,
-              user_script = check,
+              cur_alerts = cur_alerts,
+              alert_config = conf.script_conf,
+              user_script = user_script,
            })
         end
       end

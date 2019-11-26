@@ -27,7 +27,7 @@ end
 -- #################################################################
 
 script = {
-  always_enabled = true,
+  default_enabled = true,
 
   hooks = {
     min = check_ghost_networks,

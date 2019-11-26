@@ -50,13 +50,16 @@ end
 script = {
   local_only = true,
   nedge_exclude = true,
+  default_enabled = true,
 
   hooks = {
-    all = request_reply_ratio
+    ["5mins"] = request_reply_ratio
   },
 
-  default_values = {
-    ["5mins"] = "request_reply_ratio;lt;50", -- 50%
+  default_value = {
+    -- "< 50%"
+    operator = "lt",
+    edge = 50,
   },
 
   gui = {
@@ -64,6 +67,7 @@ script = {
     i18n_description = "entity_thresholds.request_reply_ratio_description",
     i18n_field_unit = user_scripts.field_units.percentage,
     input_builder = user_scripts.threshold_cross_input_builder,
+    post_handler = user_scripts.threshold_cross_post_handler,
     field_max = 100,
     field_min = 1,
     field_operator = "lt";

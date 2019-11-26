@@ -23,8 +23,6 @@ local script_benchmark_begin_time
 local script_benchmark_tot_clock = 0
 local script_benchmark_tot_calls = 0
 
-local config_alerts_local = nil
-local config_alerts_remote = nil
 local available_modules = nil
 local ifid = nil
 local host_entity = alert_consts.alert_entities.host.entity_id
@@ -55,10 +53,10 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the threshold checking functions
-   available_modules = user_scripts.load(user_scripts.script_types.traffic_element, ifid, "host", str_granularity, nil, do_benchmark)
-
-   config_alerts_local = getLocalHostsConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
-   config_alerts_remote = getRemoteHostsConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
+   available_modules = user_scripts.load(ifid, user_scripts.script_types.traffic_element, "host", {
+      hook_filter = str_granularity,
+      do_benchmark = do_benchmark,
+   })
 end
 
 -- #################################################################
@@ -100,34 +98,21 @@ function checkAlerts(granularity)
   local is_localhost = host.getLocalhostInfo()["localhost"]
   benchmark_end()
 
-  local config_alerts = ternary(is_localhost, config_alerts_local, config_alerts_remote)
-  local host_config = config_alerts[host_key] or {}
-  local global_config = ternary(is_localhost, config_alerts["local_hosts"], config_alerts["remote_hosts"]) or {}
-  local has_configuration = (table.len(host_config) or table.len(global_config))
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
 
-  if has_configuration then
-    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
-      local check = available_modules.modules[mod_key]
-      local config = host_config[check.key] or global_config[check.key]
-      local do_call
+  for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
+    local user_script = available_modules.modules[mod_key]
+    local conf = user_scripts.getConfiguration(user_script, granularity, host_key, not is_localhost)
 
-      if(check.is_alert) then
-         -- Alert modules are only called if there is a configuration defined or always_enabled is set
-         do_call = ((not suppressed_alerts) and (config or check.always_enabled))
-      else
-         -- always call non alert scripts. available_modules does not contain scripts disabled by the user
-         do_call = true
-      end
-
-      if(do_call) then
+    if(conf.enabled) then
+      if((not user_script.is_alert) or (not suppressed_alerts)) then
         hook_fn({
            granularity = granularity,
            alert_entity = entity_info,
            entity_info = host_ip,
-	   cur_alerts = cur_alerts,
-           alert_config = config,
-           user_script = check,
+           cur_alerts = cur_alerts,
+           alert_config = conf.script_conf,
+           user_script = user_script,
         })
       end
     end

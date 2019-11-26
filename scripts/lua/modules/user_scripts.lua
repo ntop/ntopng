@@ -28,6 +28,8 @@ user_scripts.field_units = {
 
 local CALLBACKS_DIR = dirs.installdir .. "/scripts/callbacks"
 local PRO_CALLBACKS_DIR = dirs.installdir .. "/pro/scripts/callbacks"
+local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
+local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
@@ -85,51 +87,22 @@ end
 
 -- ##############################################
 
-local function getUserScriptDisabledKey(ifid, subdir, module_key)
-   return string.format("ntopng.prefs.user_scripts.conf.%s.ifid_%d.%s.disabled", subdir, ifid, module_key)
-end
-
--- ##############################################
-
--- @brief Enables a user script
-function user_scripts.enableModule(ifid, subdir, module_key)
-   local key = getUserScriptDisabledKey(ifid, subdir, module_key)
-   ntop.delCache(key)
-end
-
--- ##############################################
-
--- @brief Disables a user script
-function user_scripts.disableModule(ifid, subdir, module_key)
-   local key = getUserScriptDisabledKey(ifid, subdir, module_key)
-   ntop.setPref(key, "1")
-end
-
--- ##############################################
-
--- @brief Checks if a user script is enabled.
--- @return true if disabled, false otherwise
--- @notes Modules are neabled by default. The user can manually turn them off.
-function user_scripts.isEnabled(ifid, subdir, module_key)
-   local key = getUserScriptDisabledKey(ifid, subdir, module_key)
-   return(ntop.getPref(key) ~= "1")
-end
-
--- ##############################################
-
--- @brief Get the default configuration value for the given user script
+-- @brief Get the default configuration for the given user script
 -- and granularity.
 -- @param user_script a user_script returned by user_scripts.load
 -- @param granularity_str the target granularity
--- @return nil if there is not default value, the given value otherwise
-function user_scripts.getDefaultConfigValue(user_script, granularity_str)
+-- @return a table with the default configuration
+function user_scripts.getDefaultConfig(user_script, granularity_str)
+   local conf = {script_conf = {}, enabled = user_script.default_enabled}
+
   if((user_script.default_values ~= nil) and (user_script.default_values[granularity_str] ~= nil)) then
     -- granularity specific default
-    return(user_script.default_values[granularity_str])
+    conf.script_conf = user_script.default_values[granularity_str] or {}
+  else
+    conf.script_conf = user_script.default_value or {}
   end
 
-  -- global default
-  return(user_script.default_value)
+  return(conf)
 end
 
 -- ##############################################
@@ -343,20 +316,108 @@ end
 
 -- ##############################################
 
+local function getConfigurationKey(subdir)
+   -- NOTE: strings needed by user_scripts.deleteConfigurations
+   -- NOTE: The configuration must not be saved under a specific ifid, since we
+   -- allow global interfaces configurations
+   return(string.format("ntopng.prefs.user_scripts.conf.%s", subdir))
+end
+
+-- ##############################################
+
+-- Get the user scripts configuration
+-- @param subdir: the subdir
+-- @return a table
+-- {[hook] = {entity_value -> {enabled=true, script_conf = {a = 1}, }, ..., default -> {enabled=false, script_conf = {}, }}, ...}
+-- @note debug with: redis-cli get ntopng.prefs.user_scripts.conf.interface | python -m json.tool
+local function loadConfiguration(subdir)
+   local key = getConfigurationKey(subdir)
+   local value = ntop.getPref(key)
+
+   if(not isEmptyString(value)) then
+      value = json.decode(value) or {}
+   else
+      value = {}
+   end
+
+   return(value)
+end
+
+-- ##############################################
+
+-- Save the user scripts configuration.
+-- @param subdir: the subdir
+-- @param config: the configuration to save
+local function saveConfiguration(subdir, config)
+   local key = getConfigurationKey(subdir)
+
+   if(table.empty(config)) then
+      ntop.delCache(key)
+   else
+      local value = json.encode(config)
+      ntop.setPref(key, value)
+   end
+end
+
+-- ##############################################
+
+function user_scripts.deleteConfigurations()
+   deleteCachePattern(getConfigurationKey("*"))
+end
+
+-- ##############################################
+
+-- This needs to be called whenever the available_modules.conf changes
+-- It updates the single scripts config
+local function reload_scripts_config(available_modules)
+   local scripts_conf = available_modules.conf
+
+   for _, script in pairs(available_modules.modules) do
+      script.conf = scripts_conf[script.key] or {}
+   end
+end
+
+-- ##############################################
+
+local function delete_script_conf(scripts_conf, key, hook, conf_key)
+   if(scripts_conf[key] and scripts_conf[key][hook]) then
+      scripts_conf[key][hook][conf_key] = nil
+
+      -- Cleanup empty tables
+      if table.empty(scripts_conf[key][hook]) then
+	 scripts_conf[key][hook] = nil
+
+	 if table.empty(scripts_conf[key]) then
+	    scripts_conf[key] = nil
+	 end
+      end
+   end
+end
+
+-- ##############################################
+
 -- @brief Load the user scripts.
--- @params script_type one of user_scripts.script_types
--- @params ifid the interface ID
--- @params subdir the modules subdir
--- @params hook_filter if non nil, only load the user scripts for the specified hook
--- @params ignore_disabled if true, also returns disabled user scripts
--- @param do_benchmark if true, computes benchmarks for every hook
--- @param return_all if true, returns all the scripts, even those with filters not matching the current configuration
+-- @param ifid the interface ID
+-- @param script_type one of user_scripts.script_types
+-- @param subdir the modules subdir. *NOTE* this must be unique as it is used as a key.
+-- @param options an optional table with the following supported options:
+--  - hook_filter: if non nil, only load the user scripts for the specified hook
+--  - do_benchmark: if true, computes benchmarks for every hook
+--  - return_all: if true, returns all the scripts, even those with filters not matching the current configuration
+--    NOTE: this can only be applied if the script type has the "has_no_entity" flag set.
+--  - scripts_filter: a filter function(user_script) -> true, false. false will cause the script to be skipped.
 -- @return {modules = key->user_script, hooks = user_script->function}
-function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabled, do_benchmark, return_all)
-   local rv = {modules = {}, hooks = {}}
+function user_scripts.load(ifid, script_type, subdir, options)
+   local rv = {modules = {}, hooks = {}, conf = {}}
    local is_nedge = ntop.isnEdge()
    local alerts_disabled = (not areAlertsEnabled())
    local old_ifid = interface.getId()
+
+   options = options or {}
+   local hook_filter = options.hook_filter
+   local do_benchmark = options.do_benchmark
+   local return_all = options.return_all
+   local scripts_filter = options.scripts_filter
 
    if(old_ifid ~= ifid) then
       interface.select(ifid) -- required for interface.isPacketInterface() below
@@ -367,6 +428,7 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
    end
 
    local check_dirs = getScriptsDirectories(script_type, subdir)
+   rv.conf = loadConfiguration(subdir)
 
    for _, checks_dir in pairs(check_dirs) do
       package.path = checks_dir .. "/?.lua;" .. package.path
@@ -418,16 +480,11 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
 	    end
 
             -- Augument with additional attributes
-            user_script.enabled = user_scripts.isEnabled(ifid, subdir, user_script.key)
             user_script.is_alert = is_alert_path
             user_script.path = os_utils.fixPath(checks_dir .. "/" .. fname)
+	    user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
 
             if((not return_all) and alerts_disabled and user_script.is_alert) then
-               goto next_module
-            end
-
-            if((not return_all) and (not user_script.enabled) and (not ignore_disabled)) then
-               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping disabled module '%s'", user_script.key))
                goto next_module
             end
 
@@ -439,6 +496,30 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                end
             end
 
+	    -- Load the configuration
+	    user_script.conf = rv.conf[user_script.key] or {}
+
+	    -- TODO remove after gui migration
+	    if(user_script.gui and (user_script.gui.input_builder == nil)) then
+	       user_script.gui.input_builder = user_scripts.checkbox_input_builder
+	    end
+	    if(user_script.gui and user_script.gui.post_handler == nil) then
+	       user_script.gui.post_handler = user_scripts.checkbox_post_handler
+	    end
+	    -- end TODO
+
+	    if(user_script.gui and user_script.gui.input_builder and (not user_script.gui.post_handler)) then
+	       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' is missing the gui.post_handler", user_script.key))
+	    end
+
+	    if(scripts_filter ~= nil) then
+	       local script_ok = scripts_filter(user_script)
+
+	       if(not script_ok) then
+		  goto next_module
+	       end
+	    end
+
             -- If a setup function is available, call it
             if(user_script.setup ~= nil) then
                setup_ok = user_script.setup()
@@ -448,6 +529,8 @@ function user_scripts.load(script_type, ifid, subdir, hook_filter, ignore_disabl
                traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' as setup() returned %s", user_script.key, setup_ok))
                goto next_module
             end
+
+	    -- Checks passed, now load the script information
 
             -- Populate hooks fast lookup table
             for hook, hook_fn in pairs(user_script.hooks) do
@@ -511,6 +594,87 @@ end
 
 -- ##############################################
 
+-- Get the configuration to use for a specific entity
+-- @param user_script the user script, loaded with user_scripts.load
+-- @param (optional) hook the hook function
+-- @param (optional) entity_value the entity value
+-- @param (optional) is_remote_host, for hosts only, indicates if the entity is a remote host
+-- @return the script configuration as a table
+function user_scripts.getConfiguration(user_script, hook, entity_value, is_remote_host)
+   local rv = nil
+   hook = hook or NON_TRAFFIC_ELEMENT_CONF_KEY
+   entity_value = entity_value or NON_TRAFFIC_ELEMENT_ENTITY
+   local conf = user_script.conf[hook]
+
+   -- A configuration may not exist for the given hook
+   if(conf ~= nil) then
+      -- Search for this specific entity config
+      rv = conf[entity_value]
+   end
+
+   if(rv == nil) then
+      -- Search for a global/default configuration
+      rv = user_scripts.getGlobalConfiguration(user_script, hook, is_remote_host)
+   end
+
+   return(rv)
+end
+
+-- ##############################################
+
+local function get_global_conf_key(is_remote_host)
+  return(ternary(is_remote_host, "global_remote", "global"))
+end
+
+-- ##############################################
+
+-- Get the global configuration to use for a all the entities of this user_script
+-- @param user_script the user script, loaded with user_scripts.load
+-- @param hook the hook function
+-- @param is_remote_host, for hosts only, indicates if the entity is a remote host
+-- @return the script configuration as a table
+function user_scripts.getGlobalConfiguration(user_script, hook, is_remote_host)
+   local conf = user_script.conf[hook]
+   local rv = nil
+
+   if(conf ~= nil) then
+      rv = conf[get_global_conf_key(is_remote_host)]
+   end
+
+   if(rv == nil) then
+      -- No Specific/Global configuration found, try defaults
+      rv = user_scripts.getDefaultConfig(user_script, hook)
+   end
+
+   return(rv)
+end
+
+-- ##############################################
+
+-- Delete the configuration of a specific element (e.g. a specific host)
+function user_scripts.deleteSpecificConfiguration(subdir, available_modules, hook, entity_value)
+   hook = hook or NON_TRAFFIC_ELEMENT_CONF_KEY
+   entity_value = entity_value or NON_TRAFFIC_ELEMENT_ENTITY
+
+   local scripts_conf = available_modules.conf
+
+   for _, script in pairs(available_modules.modules) do
+      delete_script_conf(scripts_conf, script.key, hook, entity_value)
+   end
+
+   reload_scripts_config(available_modules)
+   saveConfiguration(subdir, scripts_conf)
+end
+
+-- ##############################################
+
+-- Delete the configuration for all the elements in subdir (e.g. all the hosts)
+function user_scripts.deleteGlobalConfiguration(subdir, available_modules, hook, remote_host)
+   return(user_scripts.deleteSpecificConfiguration(subdir, available_modules, hook, get_global_conf_key(remote_host)))
+end
+
+-- ##############################################
+
 function user_scripts.runPeriodicScripts(granularity)
    if(granularity == "min") then
       interface.checkInterfaceAlertsMin()
@@ -535,12 +699,13 @@ end
 
 -- ##############################################
 
-local function build_on_off_toggle(submit_field, active)
+function user_scripts.checkbox_input_builder(gui_conf, submit_field, active)
    local on_value = "on"
    local off_value = "off"
    local value
    local on_color = "success"
    local off_color = "danger"
+   submit_field = "enabled_" .. submit_field
 
    local on_active
    local off_active
@@ -588,21 +753,9 @@ function ]]..submit_field..[[_off_fn() {
 ]]
 end
 
--- ##############################################
-
-function user_scripts.checkbox_input_builder(gui_conf, input_id, value)
-   local built = build_on_off_toggle(input_id, value == 1)
-
-   return built
-end
-
--- ##############################################
-
-function user_scripts.flow_checkbox_input_builder(user_script)
-   local input_id = string.format("enabled_%s", user_script.key)
-   local built = build_on_off_toggle(input_id, user_script.enabled)
-
-   return built
+function user_scripts.checkbox_post_handler(submit_field)
+   -- TODO remove after implementing the new gui
+   return(nil)
 end
 
 -- ##############################################
@@ -624,6 +777,18 @@ function user_scripts.threshold_cross_input_builder(gui_conf, input_id, value)
   )
 end
 
+function user_scripts.threshold_cross_post_handler(input_id)
+  local input_op = _POST["op_" .. input_id]
+  local input_val = tonumber(_POST["value_" .. input_id])
+
+  if(input_val ~= nil) then
+    return {
+      operator = input_op,
+      edge = input_val,
+    }
+  end
+end
+
 -- ##############################################
 
 -- @brief Teardown function, to be called at the end of the VM
@@ -638,6 +803,85 @@ function user_scripts.teardown(available_modules, do_benchmark, do_print_benchma
       local ifid = interface.getId()
       user_scripts.benchmark_dump(ifid, do_print_benchmark)
    end
+end
+
+-- ##############################################
+
+function user_scripts.handlePOST(subdir, available_modules, hook, entity_value, remote_host)
+   if(table.empty(_POST)) then
+      return
+   end
+
+   hook = hook or NON_TRAFFIC_ELEMENT_CONF_KEY
+   entity_value = entity_value or NON_TRAFFIC_ELEMENT_ENTITY
+
+   local scripts_conf = available_modules.conf
+
+   for _, user_script in pairs(available_modules.modules) do
+      -- There are 3 different configurations:
+      --  - specific_config: the configuration specific of an host/interface/network
+      --  - global_config: the configuration specific for all the (local/remote) hosts, interfaces, networks
+      --  - default_config: the default configuration, specified by the user script
+      -- They follow the follwing priorities:
+      -- 	[lower] specific_config > global_config > default [upper]
+      --
+      -- Moreover:
+      --   - specific_config is only set if it differs from the global_config
+      --   - global_config is only set if it differs from the default_config
+      --
+
+      -- This is used to represent the previous config in order of priority in order
+      -- to determine if the current config differs from its default.
+      local upper_config = user_scripts.getDefaultConfig(user_script, hook)
+
+      -- NOTE: we must process the global_config before the specific_config
+      for _, prefix in ipairs({"global_", ""}) do
+	 local k = prefix .. user_script.key
+	 local is_global = (prefix == "global_")
+	 local enabled_k = "enabled_" .. k
+	 local is_enabled = _POST[enabled_k]
+	 local conf_key = ternary(is_global, get_global_conf_key(remote_host), entity_value)
+	 local script_conf = {}
+
+	 if(user_script.gui and (user_script.gui.post_handler ~= nil)) then
+	    script_conf = user_script.gui.post_handler(k) or {}
+	 end
+
+	 if(is_enabled == nil) then
+	    -- TODO remove this after changing the gui to support a separate on/off field
+	    -- For backward compatibility, an empty configuration means that the script is disabled
+
+	    if(user_script.gui and (user_script.gui.post_handler ~= nil) and (subdir ~= "flow")) then
+	       is_enabled = not table.empty(script_conf)
+	    else
+	       is_enabled = user_script.default_enabled
+	    end
+	 else
+	    is_enabled = (is_enabled == "on")
+	 end
+
+	 local cur_config = {
+	    enabled = is_enabled,
+	    script_conf = script_conf,
+	 }
+
+	 if(not table.compare(upper_config, cur_config)) then
+	    -- Configuration differs
+	    scripts_conf[user_script.key] = scripts_conf[user_script.key] or {}
+	    scripts_conf[user_script.key][hook] = scripts_conf[user_script.key][hook] or {}
+	    scripts_conf[user_script.key][hook][conf_key] = cur_config
+	 else
+	    -- Use the default
+	    delete_script_conf(scripts_conf, user_script.key, hook, conf_key)
+	 end
+
+	 -- Needed for specific_config vs global_config comparison
+	 upper_config = cur_config
+      end
+   end
+
+   reload_scripts_config(available_modules)
+   saveConfiguration(subdir, scripts_conf)
 end
 
 -- ##############################################

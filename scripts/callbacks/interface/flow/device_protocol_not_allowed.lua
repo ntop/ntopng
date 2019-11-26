@@ -16,7 +16,6 @@ local script = {
     i18n_description = i18n(
       ternary(ntop.isnEdge(), "flow_callbacks_config.dev_proto_not_allowed_nedge_description", "flow_callbacks_config.dev_proto_not_allowed_description"),
       {url = getDeviceProtocolPoliciesUrl()}),
-    input_builder = user_scripts.flow_checkbox_input_builder,
   }
 }
 

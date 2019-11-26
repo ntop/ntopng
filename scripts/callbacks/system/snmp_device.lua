@@ -30,9 +30,9 @@ function setup(str_granularity)
    local ifname = getInterfaceName(tostring(ifid))
 
    -- Load the threshold checking functions
-   available_modules = user_scripts.load(user_scripts.script_types.snmp_device, ifid, "snmp_device", nil --[[ load all hooks --]], nil, do_benchmark)
-
-   -- config_alerts = getNetworksConfiguredAlertThresholds(ifname, str_granularity, available_modules.modules)
+   available_modules = user_scripts.load(ifid, user_scripts.script_types.snmp_device, "snmp_device", {
+      do_benchmark = do_benchmark,
+   })
 end
 
 -- #################################################################

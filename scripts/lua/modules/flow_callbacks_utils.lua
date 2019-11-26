@@ -95,7 +95,13 @@ local function print_callbacks_config_table(descr, expert_view)
 
       print("<td ".. rowspan ..">")
       if(user_script.gui and user_script.gui.input_builder) then
-	 print(user_script.gui.input_builder(user_script))
+	 local conf = user_scripts.getConfiguration(user_script)
+	 local k = user_script.key
+
+	 -- TODO remove after implementing the new gui
+	 local value = ternary(user_script.gui.post_handler == user_scripts.checkbox_post_handler, conf.enabled, conf.script_conf)
+
+	 print(user_script.gui.input_builder(user_script.gui or {}, k, value))
       else
 	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=alerts"><i class="fa fa-flask fa-lg"></i></a>')
       end
@@ -173,27 +179,14 @@ function flow_callbacks_utils.print_callbacks_config()
    end
 
    local ifid = interface.getId()
-   local descr = user_scripts.load(user_scripts.script_types.flow, ifid, "flow", nil, true --[[ also return disabled ]])
+   local descr = user_scripts.load(ifid, user_scripts.script_types.flow, "flow")
 
    print [[
 
 <br>]]
 
    if table.len(_POST) > 0 then
-      for mod_key, user_script in pairs(descr.modules) do
-         local pref_key = "enabled_" .. mod_key
-         local val = _POST[pref_key]
-
-         if(val ~= nil) then
-            if(val == "on") then
-               user_scripts.enableModule(ifid, "flow", mod_key)
-               user_script.enabled = true
-            else
-               user_scripts.disableModule(ifid, "flow", mod_key)
-               user_script.enabled = false
-            end
-         end
-      end
+      user_scripts.handlePOST("flow", descr)
    end
 
    print[[<form id="flow-callbacks-config" class="form-inline" method="post">]]

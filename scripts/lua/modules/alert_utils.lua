@@ -26,6 +26,12 @@ if(ntop.isnEdge()) then
    shaper_utils = require("shaper_utils")
 end
 
+if ntop.isEnterprise() then
+   local dirs = ntop.getDirs()
+   package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+   require "enterprise_alert_utils"
+end
+
 -- ##############################################
 
 function alertSeverityRaw(severity_id)
@@ -152,51 +158,6 @@ function sec2granularity(seconds)
 end
 
 -- ##############################################################################
-
-function getInterfacePacketDropPercAlertKey(ifname)
-   return "ntopng.prefs.iface_" .. getInterfaceId(ifname) .. ".packet_drops_alert"
-end
-
--- ##############################################################################
-
-if ntop.isEnterprise() then
-   local dirs = ntop.getDirs()
-   package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
-   require "enterprise_alert_utils"
-end
-
-j = require("dkjson")
-require "persistence"
-
-function is_allowed_timespan(timespan)
-   return(alert_consts.alerts_granularities[timespan] ~= nil)
-end
-
-function get_alerts_hash_name(timespan, ifname, entity_type)
-   local ifid = getInterfaceId(ifname)
-   if not is_allowed_timespan(timespan) or tonumber(ifid) == nil then
-      return nil
-   end
-
-   return "ntopng.prefs.alerts_"..timespan..".".. entity_type ..".ifid_"..tostring(ifid)
-end
-
--- Get the hash key used for saving global settings
-local function get_global_alerts_hash_key(entity_type, local_hosts)
-   if entity_type == "host" then
-      if local_hosts then
-        return "local_hosts"
-      else
-        return "remote_hosts"
-      end
-   elseif entity_type == "interface" then
-      return "interfaces"
-   elseif entity_type == "network" then
-      return "local_networks"
-   else
-      return "*"
-   end
-end
 
 function get_make_room_keys(ifId)
    return {flows="ntopng.cache.alerts.ifid_"..ifId..".make_room_flow_alerts",
@@ -818,14 +779,6 @@ end
 
 -- #################################
 
-local function getGlobalAlertsConfigurationHash(granularity, entity_type, local_hosts)
-   return 'ntopng.prefs.alerts_global.'..granularity.."."..get_global_alerts_hash_key(entity_type, local_hosts)
-end
-
-local global_redis_thresholds_key = "thresholds"
-
--- #################################
-
 local function printProbesTab(entity_probes, entity_type, entity_value, page_name, page_params, alt_name, options)
    local system_scripts = require("system_scripts_utils")
 
@@ -983,67 +936,13 @@ end
 
 -- #################################
 
-local function thresholdStr2Val(threshold)
-  local parts = string.split(threshold, ";") or {threshold}
-
-  if(#parts >= 2) then
-    return {metric=parts[1], operator=parts[2], edge=parts[3] --[[can be nil]]}
-  end
-end
-
-local function getEntityConfiguredAlertThresholds(ifname, granularity, entity_type, local_hosts, available_modules)
-   local thresholds_key = get_alerts_hash_name(granularity, ifname, entity_type)
-   local thresholds_config = {}
-   local skip_defaults = {}
-   local res = {}
-
-   -- Handle the global configuration
-   local thresholds_str = ntop.getHashCache(getGlobalAlertsConfigurationHash(granularity, entity_type, local_hosts), global_redis_thresholds_key)
-   local global_key = get_global_alerts_hash_key(entity_type, local_hosts)
-
-   if not isEmptyString(thresholds_str) then
-     thresholds_config[global_key] = thresholds_str
-   end
-
-   -- Entity specific/global alerts
-   for entity_val, thresholds_str in pairs(table.merge(thresholds_config, ntop.getHashAllCache(thresholds_key) or {})) do
-      local thresholds = split(thresholds_str, ",")
-      res[entity_val] = {}
-
-      for _, threshold in pairs(thresholds) do
-        local val = thresholdStr2Val(threshold)
-
-        if(val) then
-          if(val.edge) then
-            res[entity_val][val.metric] = val
-          else
-            skip_defaults[val.metric] = true
-          end
-        end
-      end
-   end
-
-   res[global_key] = res[global_key] or {}
-
-   -- Add defaults
-   for modname, user_script in pairs(available_modules) do
-     local default_value = user_scripts.getDefaultConfigValue(user_script, granularity)
-
-     if((res[global_key][modname] == nil) and (default_value ~= nil) and (not skip_defaults[modname])) then
-       res[global_key][modname] = thresholdStr2Val(default_value)
-     end
-   end
-
-   return res
-end
-
--- #################################
-
 function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity, options)
    options = options or {}
    local tab = _GET["tab"] or "min"
    local ts_utils = require("ts_utils")
    local ifid = interface.getId()
+   local entity_value = alert_source
+   local subdir = entity_type
 
    if interface.isPcapDumpInterface() then
       if entity_type == "interface" then
@@ -1108,121 +1007,21 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       print('</ul>')
    end -- !isPcapDumpInterface
 
-   local global_redis_hash = getGlobalAlertsConfigurationHash(tab, entity_type, not options.remote_host)
-
    if((tab == "flows") and (entity_type == "interface")) then
       local flow_callbacks_utils = require "flow_callbacks_utils"
       flow_callbacks_utils.print_callbacks_config()
    else
-      -- Before doing anything we need to check if we need to save values
-      local vals = { }
-      local alerts = ""
-      local global_alerts = ""
-      local to_save = false
-
-      -- Needed to handle the defaults
-      local available_modules = user_scripts.load(user_scripts.script_types.traffic_element, interface.getId(), entity_type, nil, true --[[ ignore disabled ]])
+      local available_modules = user_scripts.load(interface.getId(), user_scripts.script_types.traffic_element, entity_type)
       local no_modules_available = table.len(available_modules.modules) == 0
 
       if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          if _POST["to_delete"] == "local" then
-            -- Delete threshold configuration
-            ntop.delHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source)
-            alerts = nil
-
-            -- Load the global settings normally
-            global_alerts = ntop.getHashCache(global_redis_hash, global_redis_thresholds_key)
+	    user_scripts.deleteSpecificConfiguration(subdir, available_modules, tab, entity_value)
          else
-            -- Only delete global configuration
-            ntop.delCache(global_redis_hash)
+	    user_scripts.deleteGlobalConfiguration(subdir, available_modules, tab, options.remote_host)
          end
-      end
-
-      if _POST["to_delete"] ~= "local" then
-    if not table.empty(_POST) then
-       to_save = true
-    end
-
-         -- TODO refactor this into the threshold cross checker
-         for _, user_script in pairs(available_modules.modules) do
-            k = user_script.key
-            value    = _POST["value_"..k]
-            operator = _POST["op_"..k] or "gt"
-            if value == "on" then value = "1" end
-            if value == "off" then value = "0" end
-            value = tonumber(value)
-
-            -- Handle global settings
-            local global_value = _POST["value_global_"..k]
-            local global_operator = _POST["op_global_"..k] or "gt"
-            if global_value == "on" then global_value = "1" end
-            global_value = tonumber(global_value)
-
-            local default_value = user_scripts.getDefaultConfigValue(available_modules.modules[k], tab)
-
-            if((global_value == nil) and (default_value ~= nil)) then
-               -- save an empty value to differentiate it from the default
-               global_value = ""
-            end
-
-            if(global_value ~= nil) then
-               local cur_value = k..";"..global_operator..";"..global_value
-
-               -- Do not save default values
-               if(cur_value ~= default_value) then
-                  if(global_alerts ~= "") then global_alerts = global_alerts .. "," end
-                  global_alerts = global_alerts..cur_value
-               end
-            end
-
-	    -- Handle Entity Specific settings
-	    if(value == global_value) then
-	       -- Do not save global values
-	       value = nil
-	    elseif(value == nil) then
-	       -- save an empty value to differentiate it from the global default
-	       value = ""
-	    end
-
-            if(value ~= nil) then
-               if(alerts ~= "") then alerts = alerts .. "," end
-               alerts = alerts .. k .. ";" .. operator .. ";" .. value
-            end
-         end --END for k,_ in pairs(available_modules) do
-
-         --print(alerts)
-
-         if(to_save and (_POST["to_delete"] == nil)) then
-            -- This specific entity alerts
-            if(alerts == "") then
-               ntop.delHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source)
-            else
-               ntop.setHashCache(get_alerts_hash_name(tab, ifname, entity_type), alert_source, alerts)
-            end
-
-            -- Global alerts
-            if(global_alerts ~= "") then
-               ntop.setHashCache(global_redis_hash, global_redis_thresholds_key, global_alerts)
-            else
-               ntop.delHashCache(global_redis_hash, global_redis_thresholds_key)
-            end
-         end
-      end -- END if _POST["to_delete"] ~= nil
-
-      -- Reuse getEntityConfiguredAlertThresholds instead of directly read from hash to handle defaults
-      local alert_config = getEntityConfiguredAlertThresholds(ifname, tab, entity_type, not options.remote_host, available_modules.modules) or {}
-      alerts = alert_config[alert_source]
-      global_alerts = alert_config[get_global_alerts_hash_key(entity_type, not options.remote_host)]
-
-      for _, al in pairs({
-       {prefix = "", config = alerts},
-       {prefix = "global_", config = global_alerts},
-      }) do
-    if al.config ~= nil then
-      for k, v in pairs(al.config) do
-        vals[(al.prefix)..k] = v
-      end
-    end
+      elseif(not table.empty(_POST)) then
+	 user_scripts.handlePOST(subdir, available_modules, tab, entity_value, options.remote_host)
       end
 
       local label
@@ -1299,26 +1098,23 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    for _, prefix in pairs({"", "global_"}) do
 	       if user_script.gui.input_builder then
 		  local k = prefix..key
-		  local value = vals[k]
 		  local is_global = (prefix == "global_")
-
-		  if((not is_global) and (value == nil)) then
-		     -- No value specified for the entity, use the global value if any
-		     value = vals["global_" .. k]
-		  end
-
-		  if(user_script.gui.input_builder ~= user_scripts.threshold_cross_input_builder) then
-		     -- Temporary fix to handle non-thresholds
-		     k = "value_" .. k
-
-		     if(value ~= nil) then
-			value = tonumber(value.edge)
-		     end
-		  end
+		  local conf
 
 		  print("</td><td>")
 
-		  print(user_script.gui.input_builder(user_script.gui or {}, k, value))
+		  if is_global then
+		     conf = user_scripts.getGlobalConfiguration(user_script, tab, options.remote_host)
+		  else
+		     conf = user_scripts.getConfiguration(user_script, tab, entity_value, options.remote_host)
+		  end
+
+		  if(conf ~= nil) then
+		     -- TODO remove after implementing the new gui
+		     local value = ternary(user_script.gui.post_handler == user_scripts.checkbox_post_handler, conf.enabled, conf.script_conf)
+
+		     print(user_script.gui.input_builder(user_script.gui or {}, k, value))
+		  end
 	       end
 	    end
 	    print("</td><td align='center'>\n")
@@ -2254,42 +2050,6 @@ end
 
 -- #################################
 
--- Get all the configured threasholds for the specified interface
--- NOTE: an additional "interfaces" key is added if there are globally
--- configured threasholds (threasholds active for all the interfaces)
-function getInterfaceConfiguredAlertThresholds(ifname, granularity, available_modules)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "interface", nil, available_modules))
-end
-
--- #################################
-
--- Get all the configured threasholds for local hosts on the specified interface
--- NOTE: an additional "local_hosts" key is added if there are globally
--- configured threasholds (threasholds active for all the hosts of the interface)
-function getLocalHostsConfiguredAlertThresholds(ifname, granularity, available_modules)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", true, available_modules))
-end
-
--- #################################
-
--- Get all the configured threasholds for remote hosts on the specified interface
--- NOTE: an additional "local_hosts" key is added if there are globally
--- configured threasholds (threasholds active for all the hosts of the interface)
-function getRemoteHostsConfiguredAlertThresholds(ifname, granularity, available_modules)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "host", false, available_modules))
-end
-
--- #################################
-
--- Get all the configured threasholds for networks on the specified interface
--- NOTE: an additional "local_networks" key is added if there are globally
--- configured threasholds (threasholds active for all the hosts of the interface)
-function getNetworksConfiguredAlertThresholds(ifname, granularity, available_modules)
-  return(getEntityConfiguredAlertThresholds(ifname, granularity, "network", nil, available_modules))
-end
-
--- #################################
-
 function newAlertsWorkingStatus(ifstats, granularity)
    local res = {
       granularity = granularity,
@@ -2583,8 +2343,7 @@ function flushAlertsData()
    if(verbose) then io.write("[Alerts] Flushing Redis configuration...\n") end
    deleteCachePattern("ntopng.prefs.*alert*")
    deleteCachePattern("ntopng.alerts.*")
-   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", true))
-   deleteCachePattern(getGlobalAlertsConfigurationHash("*", "*", false))
+   user_scripts.deleteConfigurations()
    alerts_api.purgeAlertsPrefs()
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 

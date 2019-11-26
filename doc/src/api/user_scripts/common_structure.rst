@@ -47,8 +47,7 @@ The following optional attributes can also be exposed:
   - `nedge_exclude`: if true, the script will not be executed in nEdge
   - `default_value`: the default value for the script configuration,
     in the form `<script_key>;<operator>;<value>` (e.g. `syn_flood_victim;gt;50`)
-  - `always_enabled` (traffic element alerts only): the alert module will be
-    called even if there is no configuration defined for it
+  - `default_enabled`: if false, the script will be disabled by default
 
 Futhermore, a script may define the following extra callbacks, which are only called once per script:
 

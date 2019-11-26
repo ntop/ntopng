@@ -31,8 +31,7 @@ end
 -- #################################################################
 
 script = {
-  default_value = "flow_calls_drops;eq;1",
-
+  default_enabled = true,
   hooks = {
     min = check_interface_drops,
   },
@@ -41,7 +40,6 @@ script = {
     i18n_title = "show_alerts.flow_user_scripts_drops_title",
     i18n_description = i18n("show_alerts.flow_user_scripts_drops_descr",
       {url=ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=callbacks&tab=flows"}),
-    input_builder = user_scripts.checkbox_input_builder,
   }
 }
 

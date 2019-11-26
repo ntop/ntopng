@@ -26,7 +26,12 @@ end
 -- #################################################################
 
 script = {
-  default_value = "too_many_drops;gt;5", -- 5%
+  default_enabled = true,
+  default_value = {
+    -- "> 5%"
+    operator = "gt",
+    edge = 5,
+  },
 
   hooks = {
     min = check_interface_drops,
@@ -37,6 +42,7 @@ script = {
     i18n_description = "show_alerts.interface_drops_threshold_descr",
     i18n_field_unit = user_scripts.field_units.percentage,
     input_builder = user_scripts.threshold_cross_input_builder,
+    post_handler = user_scripts.threshold_cross_post_handler,
     field_max = 99,
     field_min = 1,
     field_operator = "gt";

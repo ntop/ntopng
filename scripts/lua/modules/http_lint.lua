@@ -1537,6 +1537,8 @@ local known_parameters = {
    ["rtt_max"]                 = validateEmptyOr(validateNumber),
    ["disabled_status"]         = validateListOfTypeInline(validateNumber),
    ["redis_command"]           = validateSingleWord,
+   ["flow_calls_drops"]        = validateOnOff,
+   ["global_flow_calls_drops"] = validateOnOff,
 
    -- Containers
    ["pod"]                     = validateSingleWord,

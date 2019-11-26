@@ -7,6 +7,7 @@ local user_scripts = require("user_scripts")
 
 local script = {
   local_only = true,
+  default_enabled = false,
 
   hooks = {
     all = alerts_api.threshold_check_function
@@ -17,6 +18,7 @@ local script = {
     i18n_description = "alerts_thresholds_config.alert_dns_description",
     i18n_field_unit = user_scripts.field_units.bytes,
     input_builder = user_scripts.threshold_cross_input_builder,
+    post_handler = user_scripts.threshold_cross_post_handler,
   },
 
   env = {

@@ -20,7 +20,6 @@ local script = {
    gui = {
       i18n_title = "flow_callbacks_config.udp_unidirectional",
       i18n_description = "flow_callbacks_config.udp_unidirectional_description",
-      input_builder = user_scripts.flow_checkbox_input_builder,
    }
 }
 
