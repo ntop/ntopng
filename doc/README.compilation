@@ -41,7 +41,14 @@ On Centos8
 - Then list the streams which provide redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
 - yum install hiredis-devel
 
-On Fedora/CentOS 6-7
+On Fedora 30/31/32:
+- dnf install libtool m4
+- dnf install autoconf automake
+- dnf group install "Development Tools"
+- dnf install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mariadb-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect
+- dnf install redis
+
+On (Older) Fedora/CentOS 6-7
 - yum groupinstall "Development tools"
 - yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel readline-devel zeromq-devel json-c-devel
 
@@ -57,7 +64,9 @@ See README.FreeBSD
 On Windows you can download the redis server from
 - https://github.com/rgl/redis/downloads
 
-Note that you can use zmq 4.x in addition to 3.x (but not 2.x)
+Note that:
+- you can use zmq 4.x in addition to 3.x (but not 2.x)
+- make sure nobody owns /var/lib/ntopng
 
 Source Code Compilation
 -----------------------
@@ -76,9 +85,7 @@ Once you have installed all the prerequisites do
 Binary Packages
 ---------------
 - Debian/CentOS/Windows   http://packages.ntop.org
-- OSX
-			http://sourceforge.net/projects/ntop/files/ntopng/
-			Homebrew
-			# brew update
-			# brew install ntopng
+- OSX			  Homebrew
+			  # brew update
+			  # brew install ntopng
 
