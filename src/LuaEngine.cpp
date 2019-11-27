@@ -11602,6 +11602,34 @@ void LuaEngine::purifyHTTPParameter(char *param) {
 
 /* ****************************************** */
 
+bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
+    const char *user, const char *session) {
+  NetworkInterface *iface = NULL;
+  char iface_key[64], ifname_key[64];
+  char iface_id[16];
+
+  iface = ntop->getNetworkInterface(vm, atoi(ifid));
+
+  if (iface == NULL || strlen(session) == 0)
+    return false;
+
+  if (user != NULL and strlen(user) > 0) { // Login enabled
+    snprintf(iface_key, sizeof(iface_key), NTOPNG_PREFS_PREFIX ".%s.iface", user);
+    snprintf(ifname_key, sizeof(ifname_key), NTOPNG_PREFS_PREFIX ".%s.ifname", user);
+  } else { // Login disabled
+    snprintf(iface_key, sizeof(iface_key), NTOPNG_PREFS_PREFIX ".iface");
+    snprintf(ifname_key, sizeof(ifname_key), NTOPNG_PREFS_PREFIX ".ifname");
+  }
+
+  snprintf(iface_id, sizeof(iface_id), "%d", iface->get_id());
+  ntop->getRedis()->set(iface_key, iface_id, 0);
+  ntop->getRedis()->set(ifname_key, iface->get_name(), 0);
+
+  return true;
+}
+
+/* ****************************************** */
+
 void LuaEngine::setInterface(const char * user, char * const ifname,
 			     u_int16_t ifname_len, bool * const is_allowed) const {
   NetworkInterface *iface = NULL;
@@ -11615,7 +11643,7 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
 
   // check if the user is restricted to browse only a given interface
   if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
-     && !ntop->getRedis()->get(key, ifname, ifname_len)
+     && ntop->getRedis()->get(key, ifname, ifname_len) == 0
      && ifname[0] != '\0') {
     /* If here is only one allowed interface for the user.
        The interface must exists otherwise we hould have prevented the login */
@@ -11666,7 +11694,8 @@ bool LuaEngine::setParamsTable(lua_State* vm,
     while(tok != NULL) {
       char *_equal;
 
-      if(strncmp(tok, "csrf", strlen("csrf")) /* Do not put csrf into the params table */
+      if(strncmp(tok, "csrf", strlen("csrf")) != 0 /* Do not put csrf into the params table */
+         && strncmp(tok, "switch_interface", strlen("switch_interface")) != 0
 	 && (_equal = strchr(tok, '='))){
 	char *decoded_buf;
         int len;
@@ -11728,7 +11757,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 				     const char *user,
 				     const char *group, bool localuser) {
   NetworkInterface *iface = NULL;
-  char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
+  char key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool is_interface_allowed;
   AddressTree ptree;
   int rc, post_data_len;
@@ -11737,7 +11766,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char *post_data = NULL;
   char rsp[32];
   char csrf[64] = { '\0' };
+  char switch_interface[2] = { '\0' };
   char addr_buf[64];
+  char session_buf[64];
+  char ifid_buf[32];
   IpAddress client_addr;
 
   *attack_attempt = false;
@@ -11750,6 +11782,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   getLuaVMUservalue(L, conn) = conn;
 
   content_type = mg_get_header(conn, "Content-Type");
+  mg_get_cookie(conn, "session", session_buf, sizeof(session_buf));
 
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
@@ -11790,6 +11823,15 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	lua_push_str_table_entry(L, "payload", post_data);
 	lua_setglobal(L, "_POST");
       }
+
+      /* Check for interface switch requests */
+      mg_get_var(post_data, post_data_len, "switch_interface", switch_interface, sizeof(switch_interface));
+      if (strlen(switch_interface) > 0 && request_info->query_string) {
+        mg_get_var(request_info->query_string, strlen(request_info->query_string), "ifid", ifid_buf, sizeof(ifid_buf));
+        if (strlen(ifid_buf) > 0)
+          switchInterface(L, ifid_buf, user, session_buf);
+      }
+
     } else
       *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
 
@@ -11867,8 +11909,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   /* Put the _SESSION params into the environment */
   lua_newtable(L);
 
-  mg_get_cookie(conn, "session", buf, sizeof(buf));
-  lua_push_str_table_entry(L, "session", buf);
+  lua_push_str_table_entry(L, "session", session_buf);
   lua_push_str_table_entry(L, "user", (char*)user);
   lua_push_str_table_entry(L, "group", (char*)group);
   lua_push_bool_table_entry(L, "localuser", localuser);

@@ -104,7 +104,8 @@ class LuaEngine {
   static void luaRegisterInternalRegs(lua_State *L);
 
   inline lua_State* getState() const { return(L); }
-  
+ 
+  bool switchInterface(struct lua_State *vm, const char *ifid, const char *user, const char *session);
   void setInterface(const char * user, char * const ifname, u_int16_t ifname_len, bool * const is_allowed) const;
 };
 

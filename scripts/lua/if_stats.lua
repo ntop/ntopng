@@ -73,26 +73,6 @@ function inline_select_form(name, keys, values, curval)
    print[[</select>]]
 end
 
-if(_POST["switch_interface"] ~= nil) then
--- First switch interfaces so the new cookie will have effect
-ifname = interface.setActiveInterfaceId(tonumber(ifid))
-
---print("@"..ifname.."="..id.."@")
-if((ifname ~= nil) and (_SESSION["session"] ~= nil)) then
-   key = getRedisPrefix("ntopng.prefs") .. ".ifname"
-   ntop.setCache(key, ifname)
-
-   msg = "<div class=\"alert alert-success\">" .. i18n("if_stats_overview.iface_switch_active_msg", {interface=getHumanReadableInterfaceName(ifname), ifid=ifid}) .. "</div>"
-
-   ntop.setCache(getRedisPrefix("ntopng.prefs")..'.iface', ifid)
-else
-   msg = "<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("if_stats_overview.iface_switch_error_msg") .. "</div>"
-if(_SESSION["session"] == nil) then
-   msg = msg .."<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("if_stats_overview.iface_switch_empty_session_msg") .. "</div>"
-end
-end
-end
-
 -- parse interface names and possibly fall back to the selected interface:
 -- priority goes to the interface id
 if ifid ~= nil and ifid ~= "" then

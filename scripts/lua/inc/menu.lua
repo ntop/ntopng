@@ -320,16 +320,62 @@ if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
     </li>]]
 end
 
--- Interfaces
+-- Interface
 if(num_ifaces > 0) then
-if active_page == "if_stats" then
-  print [[ <li class="dropdown active"> ]]
+
+url = ntop.getHttpPrefix().."/lua/if_stats.lua"
+
+if(active_page == "if_stats") then
+   print('<li class="active"><a href="'..url..'">') print(i18n("interface")) print('</a></li>')
 else
-  print [[ <li class="dropdown"> ]]
+   print('<li><a href="'..url..'">') print(i18n("interface")) print('</a></li>')
 end
 
+-- System
+if isAllowedSystemInterface() then
+   local system_scripts = require("system_scripts_utils")
+
+   if active_page == "system_stats" or active_page == "system_interfaces_stats" then
+     print [[ <li class="dropdown active"> ]]
+   else
+     print [[ <li class="dropdown"> ]]
+   end
+
+   print [[
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]]
+   print(i18n("system")) print[[ <b class="caret"></b>
+	 </a>
+       <ul class="dropdown-menu">]]
+
+   if ntop.isEnterprise() then
+      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+   end
+
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
+
+   if num_ifaces > 1 then
+      print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
+   end
+
+   local system_menu_entries = system_scripts.getSystemMenuEntries()
+
+   if #system_menu_entries > 0 then
+      print('<li class="divider"></li>')
+      print('<li class="dropdown-header">') print(i18n("system_stats.probes")) print('</li>')
+
+      for _, entry in ipairs(system_scripts.getSystemMenuEntries()) do
+	 print[[<li><a href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
+      end
+   end
+
+   print[[</ul>]]
+end
+
+-- Interfaces Selector
+print [[ <li class="dropdown"> ]]
+
 print [[
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]] print(i18n("interfaces")) print[[ <b class="caret"></b>
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]] print(ifname) print[[ <b class="caret"></b>
       </a>
       <ul class="dropdown-menu">
 ]]
@@ -375,12 +421,18 @@ for round = 1, 2 do
       	 -- do nothing
       else
 	 v = ifnames[k]
+
+         local page_params = table.clone(_GET)
+         page_params.ifid = k
+         -- ntop.getHttpPrefix()
+         local url = getPageUrl("", page_params)
+
 	 print("      <li>")
 
 	 if(v == ifname) then
-	    print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..k.."\">")
+	    print("<a href=\""..url.."\">")
 	 else
-	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(tostring(k)) print[[">]]
+	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
 	    print[[<input name="switch_interface" type="hidden" value="1" />]]
 	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
 	    print[[</form>]]
@@ -430,45 +482,6 @@ print [[
     </li>
 ]]
 end -- num_ifaces > 0
-
-if isAllowedSystemInterface() then
-   local system_scripts = require("system_scripts_utils")
-
-   if active_page == "system_stats" or active_page == "system_interfaces_stats" then
-     print [[ <li class="dropdown active"> ]]
-   else
-     print [[ <li class="dropdown"> ]]
-   end
-
-   print [[
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">]]
-   print(i18n("system")) print[[ <b class="caret"></b>
-	 </a>
-       <ul class="dropdown-menu">]]
-
-   if ntop.isEnterprise() then
-      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
-   end
-
-   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
-
-   if num_ifaces > 1 then
-      print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
-   end
-
-   local system_menu_entries = system_scripts.getSystemMenuEntries()
-
-   if #system_menu_entries > 0 then
-      print('<li class="divider"></li>')
-      print('<li class="dropdown-header">') print(i18n("system_stats.probes")) print('</li>')
-
-      for _, entry in ipairs(system_scripts.getSystemMenuEntries()) do
-	 print[[<li><a href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
-      end
-   end
-
-   print[[</ul>]]
-end
 
 -- Admin
 if active_page == "admin" then
