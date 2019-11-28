@@ -66,8 +66,8 @@ local is_packet_interface = interface.isPacketInterface()
 ifId = ifs.id
 
 -- ##############################################
-
 -- Interfaces Selector
+
 print[[
 <li class="nav-item dropdown">
 </li>
@@ -177,6 +177,9 @@ print [[
     </li>
 ]]
 
+-- ##############################################
+-- Logout
+
 if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
 print [[
     <li class="nav-item dropdown">
@@ -198,6 +201,9 @@ end
 if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
+
+-- ##############################################
+-- Search
 
 print(
   template.gen("typeahead_input.html", {
@@ -234,6 +240,7 @@ print [[
 ]]
 
 -- ##############################################
+-- Dashboard
 
 if not is_pcap_dump then
    if(active_page == "dashboard") then
@@ -336,6 +343,7 @@ if ntop.getPrefs().are_alerts_enabled == true then
 end
 
 -- ##############################################
+-- Flows
 
 url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
@@ -346,6 +354,7 @@ else
 end
 
 -- ##############################################
+-- Hosts
 
 if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces, only for their view
    if active_page == "hosts" then
@@ -464,6 +473,7 @@ if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
     </li>]]
 end
 
+-- ##############################################
 -- Interface
 if(num_ifaces > 0) then
 
@@ -475,7 +485,9 @@ else
    print('<li><a href="'..url..'">') print(i18n("interface")) print('</a></li>')
 end
 
+-- ##############################################
 -- System
+
 if isAllowedSystemInterface() then
    local system_scripts = require("system_scripts_utils")
 
@@ -711,12 +723,17 @@ print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.log
    ]]
 end
 
--- Close Sidebar
+-- ##############################################
+-- End Of Sidebar
+
 print [[
           </ul>
         </nav>
         <div id="content">
 ]]
+
+-- ##############################################
+-- Content
 
 -- select the original interface back to prevent possible issues
 interface.select(ifname)
