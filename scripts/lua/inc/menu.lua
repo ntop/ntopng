@@ -249,33 +249,6 @@ print [[
           <ul class="nav nav-sidebar">
 ]]
 
-if active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories" then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
-end
-
-print [[
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-        <i class="fa fa-home fa-lg"></i> <b class="caret"></b>
-      </a>
-    <ul class="dropdown-menu">
-      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
-      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
-      <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li><a href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
-
-      <li class="divider"></li>
-      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fa fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
-      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fa fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
-      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fa fa-warning"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
-      <li><a href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li><a href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link"></i></a></li>
-
-</ul>
-]]
-
 -- ##############################################
 
 if not is_pcap_dump then
@@ -318,63 +291,6 @@ end
 
 print [[
     </ul>
-   ]]
-end
-
-
--- ##############################################
-
-if ntop.getPrefs().are_alerts_enabled == true then
-   local active = ""
-   local style = ""
-   local color = ""
-
-   -- if alert_cache["num_alerts_engaged"] > 0 then
-   -- color = 'style="color: #B94A48;"' -- bootstrap danger red
-   -- end
-
-   if not ifs["has_alerts"] and not alerts_api.hasEntitiesWithAlertsDisabled(ifId) then
-      style = ' style="display: none;"'
-   end
-
-   if active_page == "alerts" then
-      active = ' active'
-   end
-
-   -- local color = "#F0AD4E" -- bootstrap warning orange
-   print [[
-      <li class="dropdown]] print(active) print[[" id="alerts-id"]] print(style) print[[>
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-	 <i class="fa fa-warning fa-lg "]] print(color) print[["></i> <b class="caret"></b>
-      </a>
-    <ul class="dropdown-menu">
-      <li>
-        <a  href="]]
-   print(ntop.getHttpPrefix())
-   print [[/lua/show_alerts.lua">
-          <i class="fa fa-warning" id="alerts-menu-triangle"></i> ]] print(i18n("show_alerts.detected_alerts")) print[[
-        </a>
-      </li>
-]]
-   if ntop.isEnterprise() then
-      print[[
-      <li>
-        <a href="]]
-      print(ntop.getHttpPrefix())
-      print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i> ]] print(i18n("alerts_dashboard.alerts_dashboard")) print[[
-        </a>
-     </li>
-     <li class="divider"></li>
-     <li><a href="]] print(ntop.getHttpPrefix())
-      print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fa fa-history"></i> ]] print(i18n("flow_alerts_explorer.label")) print[[
-        </a>
-     </li>
-]]
-   end
-
-   print[[
-    </ul>
-  </li>
    ]]
 end
 
@@ -561,7 +477,66 @@ if isAllowedSystemInterface() then
    print[[</ul>]]
 end
 
+-- ##############################################
+-- Alerts
+
+if ntop.getPrefs().are_alerts_enabled == true then
+   local active = ""
+   local style = ""
+   local color = ""
+
+   -- if alert_cache["num_alerts_engaged"] > 0 then
+   -- color = 'style="color: #B94A48;"' -- bootstrap danger red
+   -- end
+
+   if not ifs["has_alerts"] and not alerts_api.hasEntitiesWithAlertsDisabled(ifId) then
+      style = ' style="display: none;"'
+   end
+
+   if active_page == "alerts" then
+      active = ' active'
+   end
+
+   -- local color = "#F0AD4E" -- bootstrap warning orange
+   print [[
+      <li class="dropdown]] print(active) print[[" id="alerts-id"]] print(style) print[[>
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+	 <i class="fa fa-warning fa-lg "]] print(color) print[["></i> <b class="caret"></b>
+      </a>
+    <ul class="dropdown-menu">
+      <li>
+        <a  href="]]
+   print(ntop.getHttpPrefix())
+   print [[/lua/show_alerts.lua">
+          <i class="fa fa-warning" id="alerts-menu-triangle"></i> ]] print(i18n("show_alerts.detected_alerts")) print[[
+        </a>
+      </li>
+]]
+   if ntop.isEnterprise() then
+      print[[
+      <li>
+        <a href="]]
+      print(ntop.getHttpPrefix())
+      print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i> ]] print(i18n("alerts_dashboard.alerts_dashboard")) print[[
+        </a>
+     </li>
+     <li class="divider"></li>
+     <li><a href="]] print(ntop.getHttpPrefix())
+      print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fa fa-history"></i> ]] print(i18n("flow_alerts_explorer.label")) print[[
+        </a>
+     </li>
+]]
+   end
+
+   print[[
+    </ul>
+  </li>
+   ]]
+end
+
+-- ##############################################
 -- Admin
+
 if active_page == "admin" then
   print [[ <li class="dropdown active"> ]]
 else
@@ -627,7 +602,36 @@ print[[
     </ul>
   </li>]]
 
+-- ##############################################
+-- Info
 
+if active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories" then
+  print [[ <li class="dropdown active"> ]]
+else
+  print [[ <li class="dropdown"> ]]
+end
+
+print [[
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+        <i class="fa fa-info-circle fa-lg"></i> <b class="caret"></b>
+      </a>
+    <ul class="dropdown-menu">
+      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
+      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
+      <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li><a href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
+
+      <li class="divider"></li>
+      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fa fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
+      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fa fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
+      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fa fa-warning"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
+      <li><a href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li><a href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link"></i></a></li>
+    </ul>
+]]
+
+-- Close Sidebar
 print [[
           </ul>
         </div>
