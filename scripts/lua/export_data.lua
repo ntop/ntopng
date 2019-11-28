@@ -42,16 +42,16 @@ print [[
 
        <div class="form-group form-inline">
          <div class="btn-group" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
-           <label class="btn btn-default active">
+           <label class="btn btn-secondary active">
              <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("export_data.all_hosts")) print[[
            </label>
-           <label class="btn btn-default">
+           <label class="btn btn-secondary">
              <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off" data-toggle=" toggle">]] print(i18n("export_data.local_hosts")) print[[
            </label>
-           <label class="btn btn-default">
+           <label class="btn btn-secondary">
              <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off" data-toggle=" toggle">]] print(i18n("export_data.remote_hosts")) print[[
            </label>
-           <label class="btn btn-default">
+           <label class="btn btn-secondary">
              <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle">]] print(i18n("export_data.single")) print[[
            </label>
          </div>
@@ -75,7 +75,7 @@ print [[
 
      <div class='col-md-2'>
        <div class="btn-group pull-right">
-         <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-default pull-right">
+         <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary pull-right">
        </div>
      </div>
    </div>

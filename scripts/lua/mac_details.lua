@@ -317,7 +317,7 @@ end
       <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
       <input name="action" type="hidden" value="reset_stats" />
    </form>
-   <button class="btn btn-default" onclick="$('#reset_mac_stats_dialog').modal('show')">]] print(i18n("mac_details.reset_mac_stats")) print[[</button>
+   <button class="btn btn-secondary" onclick="$('#reset_mac_stats_dialog').modal('show')">]] print(i18n("mac_details.reset_mac_stats")) print[[</button>
    </td></tr>]]
 
    print("</table>")

@@ -408,12 +408,12 @@ function toggleTableButton(label, comment, on_label, on_value, on_color , off_la
   -- Read it anyway to
   if(value == off_value) then
     rev_value  = on_value
-    on_active  = "btn-default"
+    on_active  = "btn-secondary"
     off_active = "btn-"..off_color.." active"
   else
     rev_value  = off_value
     on_active  = "btn-"..on_color.." active"
-    off_active = "btn-default"
+    off_active = "btn-secondary"
   end
 
   if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
@@ -461,12 +461,12 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
 
   -- Read it anyway to
   if(value == off_value) then
-    on_active  = "btn-default"
+    on_active  = "btn-secondary"
     off_active = "btn-"..off_color.." active"
   else
     value = on_value
     on_active  = "btn-"..on_color.." active"
-    off_active = "btn-default"
+    off_active = "btn-secondary"
   end
 
   local objRow = ""
@@ -490,7 +490,7 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
     classOn.removeAttribute("class");
     classOff.removeAttribute("class");
     classOn.setAttribute("class", "btn btn-sm btn-]]print(on_color) print[[ active");
-    classOff.setAttribute("class", "btn btn-sm btn-default");
+    classOff.setAttribute("class", "btn btn-sm btn-secondary");
 
     $("#]] print(submit_field) print [[_input").val("]] print(on_value) print[[").trigger('change');]]
     if elementToSwitch ~= nil then
@@ -515,7 +515,7 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
     var classOff = document.getElementById("]] print(submit_field) print [[_off_id");
     classOn.removeAttribute("class");
     classOff.removeAttribute("class");
-    classOn.setAttribute("class", "btn btn-sm btn-default");
+    classOn.setAttribute("class", "btn btn-sm btn-secondary");
     classOff.setAttribute("class", "btn btn-sm btn-]]print(off_color) print[[ active");
     $("#]] print(submit_field) print [[_input").val("]]print(off_value) print[[").trigger('change');]]
     if elementToSwitch ~= nil then
@@ -610,7 +610,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     print('<div class="btn-group" data-toggle="buttons-radio" data-toggle-name="'..submit_field..'">')
 
     for nameCount = 1, #array_labels do
-      local type_button = "btn-default"
+      local type_button = "btn-secondary"
       if(value == array_values[nameCount]) then
         local color
         if type(selected_color) == "table" then
@@ -644,7 +644,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         if(array_values[indexLabel] == array_values[nameCount]) then
           print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-]]print(color) print[[ active");]]
         else
-          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-default");]]
+          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-secondary");]]
         end
       end
 

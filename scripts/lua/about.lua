@@ -71,7 +71,7 @@ print[[</small>
 	 print(info["ntopng.license"])
 	 
 	 print [["></input>
-		  &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">]] print(i18n("about.save_licence")) print[[</button>	       
+		  &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-secondary btn-xs">]] print(i18n("about.save_licence")) print[[</button>	       
 		  </form>
           <script>
             function trimLicenceSpaces() {

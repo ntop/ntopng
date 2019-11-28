@@ -208,8 +208,7 @@ else
 
       print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-warning"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
 print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
+            <nav class="navbar navbar-light" role="navigation">
               <div class="navbar-collapse collapse">
 <ul class="nav navbar-nav">
 ]]
@@ -767,7 +766,7 @@ end
       <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
       <input name="action" type="hidden" value="reset_stats" />
    </form>
-   <button class="btn btn-default" onclick="$('#reset_host_stats_dialog').modal('show')">]] print(i18n("host_details.reset_host_stats")) print[[</button>
+   <button class="btn btn-secondary" onclick="$('#reset_host_stats_dialog').modal('show')">]] print(i18n("host_details.reset_host_stats")) print[[</button>
    </td></tr>]]
 
    local am_enabled = (ntop.getPrefs()).is_arp_matrix_generation_enabled
@@ -2083,7 +2082,7 @@ elseif (page == "config") then
          print('<input type="checkbox" name="drop_host_traffic" value="1" '..drop_traffic_checked..'"> '..i18n("host_config.drop_all_host_traffic")..'</input> &nbsp;')
       end
 
-      print[[<a class="btn btn-default btn-sm" href="]]
+      print[[<a class="btn btn-secondary btn-sm" href="]]
       print(ntop.getHttpPrefix())
 
       if not have_nedge then

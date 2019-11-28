@@ -46,7 +46,7 @@ print[[
     <label for="bpf_filter" class="sr-only">]] print(i18n("db_explorer.filter_bpf")) print[[</label>
     <input type="text" class="form-control" id="live-capture-bpf-filter" name="bpf_filter" placeholder="]] print(i18n("db_explorer.filter_bpf")) print[["></input>
   </div>
-  <button type="submit" class="btn btn-default mb-2" onclick="return live_capture_download_show_modal();">]] print(i18n("download_x", {what="pcap"})) print[[</button>
+  <button type="submit" class="btn btn-secondary mb-2" onclick="return live_capture_download_show_modal();">]] print(i18n("download_x", {what="pcap"})) print[[</button>
 </form>
 
 <script type='text/javascript'>

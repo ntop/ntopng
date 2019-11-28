@@ -714,10 +714,10 @@ function user_scripts.checkbox_input_builder(gui_conf, submit_field, active)
 
       value = on_value
       on_active  = "btn-"..on_color.." active"
-      off_active = "btn-default"
+      off_active = "btn-secondary"
    else
       value = off_value
-      on_active  = "btn-default"
+      on_active  = "btn-secondary"
       off_active = "btn-"..off_color.." active"
    end
 
@@ -736,7 +736,7 @@ function ]]..submit_field..[[_on_fn() {
   class_on.removeAttribute("class");
   class_off.removeAttribute("class");
   class_on.setAttribute("class", "btn btn-sm btn-]]..on_color..[[ active");
-  class_off.setAttribute("class", "btn btn-sm btn-default");
+  class_off.setAttribute("class", "btn btn-sm btn-secondary");
   $("#]]..submit_field..[[_input").val("]]..on_value..[[").trigger('change');
 }
 
@@ -745,7 +745,7 @@ function ]]..submit_field..[[_off_fn() {
   var class_off = document.getElementById("]]..submit_field..[[_off_id");
   class_on.removeAttribute("class");
   class_off.removeAttribute("class");
-  class_on.setAttribute("class", "btn btn-sm btn-default");
+  class_on.setAttribute("class", "btn btn-sm btn-secondary");
   class_off.setAttribute("class", "btn btn-sm btn-]]..off_color..[[ active");
   $("#]]..submit_field..[[_input").val("]]..off_value..[[").trigger('change');
 }

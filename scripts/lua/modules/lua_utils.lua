@@ -2892,7 +2892,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
 	  if selected == k then
 	     line[#line+1] = [[ btn-primary active]]
 	  else
-	     line[#line+1] = [[ btn-default]]
+	     line[#line+1] = [[ btn-secondary]]
 	  end
 	  line[#line+1] = [[ btn-sm"><input data-resol="]] .. k .. [[" value="]] .. truncate(v.value) .. [[" title="]] .. v.label .. [[" name="opt_resbt_]] .. k .. [[_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
 	  if selected == k then line[#line+1] = [[ checked="checked"]] end
@@ -2945,8 +2945,8 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
 
       function resol_selector_change_selection(selected) {
          selected.attr('checked', 'checked')
-          .closest("label").removeClass('btn-default').addClass('btn-primary')
-          .siblings().removeClass('active').removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
+          .closest("label").removeClass('btn-secondary').addClass('btn-primary')
+          .siblings().removeClass('active').removeClass('btn-primary').addClass('btn-secondary').find("input").removeAttr('checked');
 
         resol_selector_reset_input_range(selected);
       }

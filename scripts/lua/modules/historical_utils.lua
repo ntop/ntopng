@@ -324,9 +324,9 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 	 ]] print(i18n("db_explorer.download_flows")) print[[: ]]
 
 	  if(ipv4_enabled) then
-	     print [[ <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">]] print(i18n("ipv4")) print[[</a>&nbsp;]]
+	     print [[ <a class="btn btn-secondary btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">]] print(i18n("ipv4")) print[[</a>&nbsp;]]
 	  else
-             print [[<a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">]] print(i18n("ipv6")) print[[</a>]]
+             print [[<a class="btn btn-secondary btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">]] print(i18n("ipv6")) print[[</a>]]
 	end
 
 	print [[

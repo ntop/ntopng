@@ -817,9 +817,9 @@ if((page == "overview") or (page == nil)) then
 	 tot = tot + ifstats.stats.flow_export_count + ifstats.stats.flow_export_drops
       end
 
-      print('<button id="btn_reset_all" type="button" class="btn btn-default" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
+      print('<button id="btn_reset_all" type="button" class="btn btn-secondary" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
 
-      print('<button id="btn_reset_drops" type="button" class="btn btn-default" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
+      print('<button id="btn_reset_drops" type="button" class="btn btn-secondary" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
       print("</td>")
 
       print("</tr>\n")

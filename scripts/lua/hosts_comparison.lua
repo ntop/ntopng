@@ -92,7 +92,7 @@ if (page == "overview") then
 if(show_aggregation) then
    print [[
 <div class="btn-group">
-  <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
+  <button class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
   <ul class="dropdown-menu">
 ]]
 
@@ -110,7 +110,7 @@ print [[
 
 print('&nbsp;'..i18n("refresh")..':  <div class="btn-group">\n')
  print[[
- <button id="graph_refresh" class="btn btn-default btn-sm">
+ <button id="graph_refresh" class="btn btn-secondary btn-sm">
     <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print[[" class="glyphicon glyphicon-refresh"></i></button>
 ]]
 print [[
@@ -151,7 +151,7 @@ elseif(page == "traffic") then
 if(show_aggregation) then
    print [[
 <div class="btn-group">
-  <button id="aggregation_bubble_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
+  <button id="aggregation_bubble_displayed" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
   <ul class="dropdown-menu" id="aggregation_bubble">
     <li><a>]] print(i18n("application")) print[[</a></li>
     <li><a>]] print(i18n("protocol")) print[[</a></li>
@@ -164,7 +164,7 @@ if(show_aggregation) then
 
 print('&nbsp;'..i18n("refresh")..':  <div class="btn-group">\n')
  print[[
- <button id="graph_refresh" class="btn btn-default btn-sm">
+ <button id="graph_refresh" class="btn btn-secondary btn-sm">
     <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print[[" class="glyphicon glyphicon-refresh"></i></button>
 ]]
 print [[

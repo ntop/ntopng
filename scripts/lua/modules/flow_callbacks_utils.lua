@@ -210,9 +210,9 @@ function flow_callbacks_utils.print_callbacks_config()
 
    if show_advanced_prefs then
       cls_on  = cls_on..' btn-primary active'
-      cls_off = cls_off..' btn-default'
+      cls_off = cls_off..' btn-secondary'
    else
-      cls_on = cls_on..' btn-default'
+      cls_on = cls_on..' btn-secondary'
       cls_off = cls_off..' btn-primary active'
    end
 

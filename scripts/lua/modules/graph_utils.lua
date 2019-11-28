@@ -888,7 +888,7 @@ local page_params = {
 if(options.timeseries) then
    print [[
 <div class="btn-group">
-  <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
+  <button class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
   <ul class="dropdown-menu">
 ]]
 

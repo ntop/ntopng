@@ -195,16 +195,16 @@ print [[
     
            <div class="form-group form-inline">
              <div class="btn-group" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
-               <label class="btn btn-default active">
+               <label class="btn btn-secondary active">
                  <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("manage_data.all_hosts")) print[[
                </label>
-               <label class="btn btn-default">
+               <label class="btn btn-secondary">
                  <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.local_hosts")) print[[
                </label>
-               <label class="btn btn-default">
+               <label class="btn btn-secondary">
                  <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.remote_hosts")) print[[
                </label>
-               <label class="btn btn-default">
+               <label class="btn btn-secondary">
                  <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.single")) print[[
                </label>
              </div>
@@ -230,7 +230,7 @@ print [[
     
          <div class='col-md-2'>
            <div class="btn-group pull-right">
-             <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-default pull-right">
+             <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary pull-right">
            </div>
          </div>
        </div>
@@ -278,7 +278,7 @@ print [[
     
            <div class="form-group form-inline">
              <div class="btn-group invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
-               <label class="btn btn-default active">
+               <label class="btn btn-secondary active">
                  <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle" checked="checked">]] print(i18n("manage_data.single")) print[[
                </label>
              </div>
@@ -306,7 +306,7 @@ print [[
            </div>
          </div>
        </div>
-          <button class="btn btn-default" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
+          <button class="btn btn-secondary" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
         </form>
     
   </div>
@@ -319,14 +319,14 @@ print[[<div>]]
 
 print[[
 <form class="interface_data_form" method="POST">
-  <button class="btn btn-default" type="submit" onclick="$('#interface-name-to-delete').html(']] print(i18n("system")) print[['); delete_system_iface = true; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_system_interface_data")) print[[</button>
+  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(i18n("system")) print[['); delete_system_iface = true; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_system_interface_data")) print[[</button>
 </form>
 ]]
 
 if num_inactive_interfaces > 0 then
    print[[
         <form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
-          <button class="btn btn-default" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
+          <button class="btn btn-secondary" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
         </form>
 ]]
 end
@@ -334,7 +334,7 @@ end
 if (not ntop.isnEdge()) and (not delete_active_interface_requested) then
    print[[
 <form class="interface_data_form" method="POST">
-  <button class="btn btn-default" type="submit" onclick="$('#interface-name-to-delete').html(']] print(ifname) print[['); delete_system_iface = false; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
+  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(ifname) print[['); delete_system_iface = false; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
 </form>
 ]]
 end

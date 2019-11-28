@@ -111,7 +111,7 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
 print [[
 <div class="control-group" style="text-align: center;">
 &nbsp;]] print(i18n("index_page.refresh_frequency")) print[[: <div class="btn-group btn-small">
-  <button class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+  <button class="btn btn-secondary btn-xs dropdown-toggle" data-toggle="dropdown">
 ]]
 if (refresh ~= '0') then
   if (refresh == '60000') then
@@ -139,14 +139,14 @@ print [[
 if (refresh ~= '0') then
   print [[
           &nbsp;]] print(i18n("index_page.live_update")) print[[:  <div class="btn-group btn-group-xs" data-toggle="buttons-radio" data-toggle-name="topflow_graph_state">
-            <button id="topflow_graph_state_play" value="1" type="button" class="btn btn-default btn-xs active" data-toggle="button" ><i class="fa fa-play"></i></button>
-            <button id="topflow_graph_state_stop" value="0" type="button" class="btn btn-default btn-xs" data-toggle="button" ><i class="fa fa-stop"></i></button>
+            <button id="topflow_graph_state_play" value="1" type="button" class="btn btn-secondary btn-xs active" data-toggle="button" ><i class="fa fa-play"></i></button>
+            <button id="topflow_graph_state_stop" value="0" type="button" class="btn btn-secondary btn-xs" data-toggle="button" ><i class="fa fa-stop"></i></button>
           </div>
   ]]
 else
   print [[
          &nbsp;]] print(i18n("index_page.refresh")) print[[:  <div class="btn-group btn-small">
-          <button id="topflow_graph_refresh" class="btn btn-default btn-xs">
+          <button id="topflow_graph_refresh" class="btn btn-secondary btn-xs">
             <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print [[" class="glyphicon glyphicon-refresh"></i></button>
           </div>
   ]]
