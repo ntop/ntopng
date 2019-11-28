@@ -72,3 +72,40 @@ void Bitmask::print() {
 }
 
 /* ********************************************************** */
+
+void Bitmask::bitmask_set(u_int32_t n) {
+  u_int32_t idx = (n >> 5);
+
+  if(idx >= num_elems) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmask::bitmask_set(%u) out of range (%u >= %u)", n, idx, num_elems);
+    return;
+  }
+
+  bits[idx] |=  (1 << (n & 0x1F));
+}
+
+/* ********************************************************** */
+
+void Bitmask::bitmask_clr(u_int32_t n) {
+  u_int32_t idx = (n >> 5);
+
+  if(idx >= num_elems) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmask::bitmask_clr(%u) out of range (%u >= %u)", n, idx, num_elems);
+    return;
+  }
+
+  bits[idx] &= ~(1 << (n & 0x1F));
+}
+
+/* ********************************************************** */
+
+bool Bitmask::bitmask_isset(u_int32_t n) {
+  u_int32_t idx = (n >> 5);
+
+  if(idx >= num_elems) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: Bitmask::bitmask_isset(%u) out of range (%u >= %u)", n, idx, num_elems);
+    return(false);
+  }
+
+  return(((bits[idx] & (1 << (n & 0x1F)))) ? true : false);
+}

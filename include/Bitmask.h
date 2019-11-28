@@ -45,9 +45,9 @@ class Bitmask {
   u_int32_t num_elems; /**< The bitmask size in bytes */
   u_int32_t *bits; /**< The bitmask */
 
-  inline void bitmask_set(u_int32_t n)   { bits[n >> 5] |=  (1 << (n & 0x1F)); }
-  inline void bitmask_clr(u_int32_t n)   { bits[n >> 5] &= ~(1 << (n & 0x1F)); }
-  inline bool bitmask_isset(u_int32_t n) { return(((bits[n >> 5] & (1 << (n & 0x1F)))) ? true : false); }
+  void bitmask_set(u_int32_t n);
+  void bitmask_clr(u_int32_t n);
+  bool bitmask_isset(u_int32_t n);
 
  public:
   Bitmask(u_int32_t num_tot_elems);
