@@ -1,6 +1,6 @@
 
 JQUERY_BOOTSTRAP_MIN_JS=jquery_bootstrap.min.js
-JQUERY_BOOTSTRAP_MIN_JS_SRC=jquery.js jquery-ui.js bootstrap.js\
+JQUERY_BOOTSTRAP_MIN_JS_SRC=jquery.js jquery-ui.js \
 			    bootstrap-datatable.js bootstrap3-typeahead.js\
 			    d3.v3.js jquery.peity.js bootstrap-slider.js			    
 

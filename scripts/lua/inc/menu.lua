@@ -47,10 +47,15 @@ for k,v in pairs(iface_names) do
    num_ifaces = num_ifaces+1
 end
 
-
 print [[
-      <div class="masthead">
-        <ul class="nav nav-pills pull-right">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="]] print(ntop.getHttpPrefix() .. "/") print [[">]] addLogoSvg() print [[</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+  <div id="navbarSupportedContent" class="navbar-collapse collapse">
+    <ul class="navbar-nav mr-auto>"
    ]]
 
 
@@ -62,31 +67,170 @@ ifId = ifs.id
 
 -- ##############################################
 
-if active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories" then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
+-- Interfaces Selector
+print[[
+<li class="nav-item dropdown">
+</li>
+]]
+
+print [[
+      <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" role="button" id="navbarDropdown" data-toggle="dropdown" href="#" aria-haspopup="true" aria-expanded="false">]] print(ifname) print[[</a>
+      <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+]]
+
+local views = {}
+local drops = {}
+local recording = {}
+local packetinterfaces = {}
+local ifnames = {}
+local ifdescr = {}
+local ifHdescr = {}
+local ifCustom = {}
+local dynamic = {}
+
+for v,k in pairs(iface_names) do
+   interface.select(k)
+   local _ifstats = interface.getStats()
+   ifnames[_ifstats.id] = k
+   ifdescr[_ifstats.id] = _ifstats.description
+   --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
+   if(_ifstats.isView == true) then views[k] = true end
+   if(_ifstats.isDynamic == true) then dynamic[k] = true end
+   if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
+   if(interface.isPacketInterface()) then packetinterfaces[k] = true end
+   if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
+      drops[k] = true
+   end
+   ifHdescr[_ifstats.id] = getHumanReadableInterfaceName(_ifstats.description.."")
+   ifCustom[_ifstats.id] = _ifstats.customIftype
+end
+
+-- First round: only physical interfaces
+-- Second round: only virtual interfaces
+
+for round = 1, 2 do
+
+   for k,_ in pairsByValues(ifHdescr, asc) do
+      local descr
+      
+      if((round == 1) and (ifCustom[k] ~= nil)) then
+   	 -- do nothing
+      elseif((round == 2) and (ifCustom[k] == nil)) then
+      	 -- do nothing
+      else
+	 v = ifnames[k]
+
+         local page_params = table.clone(_GET)
+         page_params.ifid = k
+         -- ntop.getHttpPrefix()
+         local url = getPageUrl("", page_params)
+
+	 if(v == ifname) then
+	    print("<a class=\"dropdown-item\" href=\""..url.."\">")
+	 else
+	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
+	    print[[<input name="switch_interface" type="hidden" value="1" />]]
+	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+	    print[[</form>]]
+	    print[[<a class="dropdown-item" href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
+	 end
+
+	 if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
+	 if(isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
+
+	 descr = getHumanReadableInterfaceName(v.."")
+
+	 if(string.contains(descr, "{")) then -- Windows
+	    descr = ifdescr[k]      
+	 else
+	    if(v ~= ifdescr[k]) then
+	       descr = descr .. " (".. ifdescr[k] ..")"
+	    end
+	 end
+
+	 print(descr)
+
+	 if(views[v] == true) then
+	    print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
+	 end
+
+	 if(dynamic[v] == true) then
+	    print(' <i class="fa fa-code-fork" aria-hidden="true"></i> ')
+	 end
+
+	 if(drops[v] == true) then
+	    print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
+	 end
+
+	 if(recording[v] == true) then
+	    print(' <i class="fa fa-hdd-o" aria-hidden="true"></i> ')
+	 end
+
+	 print("</a>")
+      end
+   end
 end
 
 print [[
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-        <i class="fa fa-home fa-lg"></i> <b class="caret"></b>
-      </a>
-    <ul class="dropdown-menu">
-      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
-      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
-      <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li><a href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
+      </div>
+    </li>
+]]
 
-      <li class="divider"></li>
-      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fa fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
-      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fa fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
-      <li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fa fa-warning"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
-      <li><a href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li><a href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link"></i></a></li>
+if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
+print [[
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarLogout" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         <i class="fa fa-sm fa-sign-out"></i>
+      </a>
+    <div class="dropdown-menu" aria-labelledby="navbarLogout">]]
+
+print[[<a class="dropdown-item" href="]]
+print(ntop.getHttpPrefix())
+print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.logout_user_x", {user=_SESSION["user"]})) print [[</a></li>]]
+
+   print[[
+    </div>
+   </li>
+   ]]
+end
+
+if(not is_admin) then
+   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
+end
+
+print(
+  template.gen("typeahead_input.html", {
+    typeahead={
+      base_id     = "host_search",
+      action      = "", -- see makeFindHostBeforeSubmitCallback
+      json_key    = "ip",
+      query_field = "host",
+      class       = "navbar-form navbar-right typeahead-dropdown-right",
+      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
+      query_title = i18n("search_host"),
+      style       = "width:16em;",
+      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
+      max_items   = "'all'" --[[ let source script decide ]],
+    }
+  })
+)
 
 </ul>
+]]
+
+print [[
+        </div>
+      </div>
+    </nav>
+]]
+
+-- Sidebar
+
+print [[
+      <div class="wrapper">
+        <nav id="sidebar">
+          <ul class="nav nav-sidebar">
 ]]
 
 -- ##############################################
@@ -567,34 +711,12 @@ print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.log
    ]]
 end
 
-
-if(not is_admin) then
-   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
-end
-print("<li>")
-print(
-  template.gen("typeahead_input.html", {
-    typeahead={
-      base_id     = "host_search",
-      action      = "", -- see makeFindHostBeforeSubmitCallback
-      json_key    = "ip",
-      query_field = "host",
-      class       = "typeahead-dropdown-right",
-      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
-      query_title = i18n("search_host"),
-      style       = "width:16em;",
-      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
-      max_items   = "'all'" --[[ let source script decide ]],
-    }
-  })
-)
-print("</li>")
-
-print("</ul>\n<h3 class=\"muted\"><A href=\""..ntop.getHttpPrefix().."/\">")
-
-addLogoSvg()
-
-print("</A></h3>\n</div>\n")
+-- Close Sidebar
+print [[
+          </ul>
+        </nav>
+        <div id="content">
+]]
 
 -- select the original interface back to prevent possible issues
 interface.select(ifname)
