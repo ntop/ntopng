@@ -948,7 +948,7 @@ else
 
 	 if unreachable_flow then
 	    print(" ["..i18n("flow")..": ")
-	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."'><span class='label label-info'>Info</span></A>")
+	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."'><span class='badge badge-info'>Info</span></A>")
 	    print(" "..getFlowLabel(unreachable_flow, true, true))
 	    print("]")
 	 else
@@ -1119,7 +1119,7 @@ else
    end
 
    if(flow["profile"] ~= nil) then
-      print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">"..i18n("flow_details.profile_name").."</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
+      print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">"..i18n("flow_details.profile_name").."</A></th><td colspan=2><span class='badge badge-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
 
    if (flow["moreinfo.json"] ~= nil) then

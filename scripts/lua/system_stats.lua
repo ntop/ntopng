@@ -115,7 +115,7 @@ if(page == "overview") then
 
       local storage_items = {}
 
-      local classes = { "primary", "info", "warning", "success", "default" }
+      local classes = { "primary", "info", "warning", "success", "secondary" }
       local colors = { "blue", "salmon", "seagreen", "cyan", "green", "magenta", "orange", "red", "violet" }
 
       -- interfaces

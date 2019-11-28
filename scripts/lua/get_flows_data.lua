@@ -74,7 +74,7 @@ for key, value in ipairs(flows_stats) do
    flows_stats[key]["info"] = "<span title='"..alt_info.."'>"..info.."</span>"
 
    if(flows_stats[key]["profile"] ~= nil) then
-      flows_stats[key]["info"] = "<span class='label label-primary'>"..flows_stats[key]["profile"].."</span> "..info
+      flows_stats[key]["info"] = "<span class='badge badge-primary'>"..flows_stats[key]["profile"].."</span> "..info
    end
 end
 
@@ -161,12 +161,12 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    local column_key = "<A HREF='"
       ..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..value["ntopng.key"].."&flow_hash_id="..value["hash_entry_id"]
-      .."'><span class='label label-info'>Info</span></A>"
+      .."'><span class='badge badge-info'>Info</span></A>"
    if(have_nedge) then
       if (value["verdict.pass"]) then
-	 column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='label label-default block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..", "..value["hash_entry_id"]..");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
+	 column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='badge badge-secondary block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..", "..value["hash_entry_id"]..");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
       else
-	 column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='label label-danger block-badge'><i class='fa fa-ban' /></span>"
+	 column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='badge badge-danger block-badge'><i class='fa fa-ban' /></span>"
       end
    end
    record["column_key"] = column_key

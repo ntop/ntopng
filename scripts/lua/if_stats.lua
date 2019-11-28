@@ -491,7 +491,7 @@ if((page == "overview") or (page == nil)) then
 	    local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
 	    local span_class = ' '
 	    if num_full > 0 then
-	       span_class = 'class="label label-danger"'
+	       span_class = 'class="badge badge-danger"'
 	    end
 	    export_queue_full = "<b>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span>"
 	 end
@@ -500,7 +500,7 @@ if((page == "overview") or (page == nil)) then
 	    local num_full = tonumber(ifstats["zmq.drops.flow_collection_drops"])
 	    local span_class = ' '
 	    if num_full > 0 then
-	       span_class = 'class="label label-danger"'
+	       span_class = 'class="badge badge-danger"'
 	    end
 	    flow_collection_drops = "<b>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span>"
 	 end
@@ -509,7 +509,7 @@ if((page == "overview") or (page == nil)) then
 	    local num_full = tonumber(ifstats["zmq.drops.flow_collection_udp_socket_drops"])
 	    local span_class = ' '
 	    if num_full > 0 then
-	       span_class = 'class="label label-danger"'
+	       span_class = 'class="badge badge-danger"'
 	    end
 	    flow_collection_udp_socket_drops = "<b>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fa fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_flow_collection_udp_socket_drops>"..formatValue(ifstats["zmq.drops.flow_collection_udp_socket_drops"]).."</span>"
 	 end
@@ -652,7 +652,7 @@ if((page == "overview") or (page == nil)) then
       print("<td width=20% colspan=3><span id=if_drops>")
 
       if(ifstats.stats.drops > 0) then
-	 print('<span class="label label-danger">')
+	 print('<span class="badge badge-danger">')
       end
 
       print(formatValue(ifstats.stats.drops).. " " .. label)
@@ -748,7 +748,7 @@ if((page == "overview") or (page == nil)) then
 
 
       elseif(export_drops > 0) then
-	 span_danger = ' class="label label-danger"'
+	 span_danger = ' class="badge badge-danger"'
       end
       print("<td><span id=exported_flows_drops "..span_danger..">"..formatValue(export_drops).."</span>&nbsp;")
       print("<span id=exported_flows_drops_pct "..span_danger..">["
@@ -831,7 +831,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th nowrap>"..i18n("if_stats_overview.nf_queue_total").."</th>")
       local span_class = ''
       if st.nfq.queue_pct > 80 then
-	 span_class = "class='label label-danger'"
+	 span_class = "class='badge badge-danger'"
       end
       print("<td width=20%><span id=nfq_queue_total "..span_class..">"..string.format("%s [%s %%]", formatValue(st.nfq.queue_total), formatValue(st.nfq.queue_pct)).." </span> <span id=nfq_queue_total_trend></span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.nf_handle_packet_failed").."</th>")
@@ -2112,9 +2112,9 @@ if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
    
    print[[
         if(rsp.netfilter.nfq.queue_pct > 80) {
-          $('#nfq_queue_total').addClass("label label-danger");
+          $('#nfq_queue_total').addClass("badge badge-danger");
         } else {
-          $('#nfq_queue_total').removeClass("label label-danger");
+          $('#nfq_queue_total').removeClass("badge badge-danger");
         }
 	$('#nfq_queue_total').html(fint(rsp.netfilter.nfq.queue_total) + " [" + fint(rsp.netfilter.nfq.queue_pct) + " %]");
         $('#nfq_queue_total_trend').html(get_trend(last_nfq_queue_total, rsp.netfilter.nfq.queue_total));
@@ -2155,7 +2155,7 @@ print [[
         }
 
 	if(rsp.drops > 0) {
-          drops = '<span class="label label-danger">';
+          drops = '<span class="badge badge-danger">';
         }
 	drops = drops + addCommas(rsp.drops)+" ]]
 
@@ -2170,14 +2170,14 @@ print [[";
         $('#exported_flows_rate').html(Math.round(rsp.flow_export_rate * 100) / 100);
         if(rsp.flow_export_drops > 0) {
           $('#exported_flows_drops')
-            .addClass("label label-danger")
+            .addClass("badge badge-danger")
             .html(fint(rsp.flow_export_drops));
           if(rsp.flow_export_count > 0) {
             $('#exported_flows_drops_pct')
-              .addClass("label label-danger")
+              .addClass("badge badge-danger")
               .html("[" + Math.round(rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_count) * 100 * 1000) / 1000 + "%]");
           } else {
-            $('#exported_flows_drops_pct').addClass("label label-danger").html("[100%]");
+            $('#exported_flows_drops_pct').addClass("badge badge-danger").html("[100%]");
           }
         } else {
           $('#exported_flows_drops').removeClass().html("0");

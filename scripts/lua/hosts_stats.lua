@@ -544,11 +544,11 @@ if (_GET["page"] ~= "historical") then
         block_host_csrf = data.csrf;
         if (data.status == "BLOCKED") {
           $('#'+host_key+'_info').find('.block-badge')
-            .removeClass('label-default').addClass('label-danger');
+            .removeClass('badge-secondary').addClass('badge-danger');
           $('#'+host_key+'_ip').find('a').css("text-decoration", "line-through");
         } else if (data.status == "UNBLOCKED") {
           $('#'+host_key+'_info').find('.block-badge')
-            .removeClass('label-danger').addClass('label-default');
+            .removeClass('badge-danger').addClass('badge-secondary');
           $('#'+host_key+'_ip').find('a').css("text-decoration", "none");
         }
       },

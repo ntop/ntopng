@@ -342,13 +342,13 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local column_info = "<a href='"
       ..ntop.getHttpPrefix().."/lua/host_details.lua?page=flows&"..hostinfo2url(value).."'>"
-      .."<span class='label label-info'>"..i18n("flows").."</span>"
+      .."<span class='badge badge-info'>"..i18n("flows").."</span>"
       .."</a>"
 
    if have_nedge and (host ~= nil) and (host.localhost or host.systemhost) then
       column_info = column_info.." <span title='"..
 	 (ternary(drop_traffic, i18n("host_config.unblock_host_traffic"), i18n("host_config.drop_all_host_traffic")))..
-	 "' class='label label-"..(ternary(drop_traffic, "danger", "default")).." block-badge' "..
+	 "' class='badge badge-"..(ternary(drop_traffic, "danger", "secondary")).." block-badge' "..
 	 (ternary(isAdministrator(), "onclick='block_host(\""..symkey.."\", \""..hostinfo2url(value)..
 		     "\");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
    end
@@ -360,17 +360,17 @@ for _key, _value in pairsByKeys(vals, funct) do
    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
       local column_location = ""
       if value["localhost"] == true --[[or value["systemhost"] == true --]] then
-	 column_location = "<span class='label label-success'>"..i18n("hosts_stats.label_local_host").."</span>"
+	 column_location = "<span class='badge badge-success'>"..i18n("hosts_stats.label_local_host").."</span>"
       elseif value["is_multicast"] == true then
-	 column_location = "<span class='label label-default'>Multicast</span>"
+	 column_location = "<span class='badge badge-secondary'>Multicast</span>"
       elseif value["is_broadcast"] == true then
-	 column_location = "<span class='label label-default'>Broadcast</span>"
+	 column_location = "<span class='badge badge-secondary'>Broadcast</span>"
       else
-	 column_location = "<span class='label label-default'>"..i18n("hosts_stats.label_remote_host").."</span>"
+	 column_location = "<span class='badge badge-secondary'>"..i18n("hosts_stats.label_remote_host").."</span>"
       end
 
       if value["broadcast_domain_host"] then
-	 column_location = column_location.." <span class='label label-info'><i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
+	 column_location = column_location.." <span class='badge badge-info'><i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
       end
 
       record["column_location"] = column_location
