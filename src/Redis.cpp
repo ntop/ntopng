@@ -44,6 +44,8 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
 
   redis = NULL, operational = false;
   initializationCompleted = false;
+  localToResolve = new FifoStringsQueue(MAX_NUM_QUEUED_ADDRS);
+  remoteToResolve = new FifoStringsQueue(MAX_NUM_QUEUED_ADDRS);
   reconnectRedis(giveup_on_failure);
   numCached = 0;
   l = new Mutex();
@@ -62,6 +64,8 @@ Redis::~Redis() {
   if(redis_host)     free(redis_host);
   if(redis_password) free(redis_password);
   if(redis_version)  free(redis_version);
+  if(localToResolve)  delete(localToResolve);
+  if(remoteToResolve) delete(remoteToResolve);
 }
 
 /* **************************************** */
@@ -634,27 +638,18 @@ int Redis::hashGetAll(const char *key, char ***keys_p, char ***values_p) {
 /* **************************************** */
 
 int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existence, bool localHost) {
+  int rc = 0;
+  char key[CONST_MAX_LEN_REDIS_KEY];
+  bool found;
+  redisReply *reply;
+
   if(!ntop->getPrefs()->is_dns_resolution_enabled()) return(0);
   if(hostname == NULL) return(-1);
 
   if(!Utils::shouldResolveHost(hostname))
     return(-1);
 
-  return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existence, localHost));
-}
-
-/* **************************************** */
-
-int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
-		    bool dont_check_for_existence, bool localHost) {
-  int rc = 0;
-  char key[CONST_MAX_LEN_REDIS_KEY];
-  bool found;
-  redisReply *reply;
-
-  if(hostname == NULL) return(-1);
-
-  snprintf(key, sizeof(key), "%s.%s", ns_cache, hostname);
+  snprintf(key, sizeof(key), "%s.%s", DNS_CACHE, hostname);
 
   l->lock(__FILE__, __LINE__);
 
@@ -687,10 +682,9 @@ int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 
   if(!found) {
     /* Add to the list of addresses to resolve */
-    if(localHost)
-      rc = rpush(ns_list, hostname, MAX_NUM_QUEUED_ADDRS);
-    else
-      rc = lpush(ns_list, hostname, MAX_NUM_QUEUED_ADDRS);
+    FifoStringsQueue *q = localHost ? localToResolve : remoteToResolve;
+
+    q->enqueue(hostname);
   } else
     reply = 0;
 
@@ -700,13 +694,20 @@ int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 /* **************************************** */
 
 int Redis::popHostToResolve(char *hostname, u_int hostname_len) {
-  return(popHost(DNS_TO_RESOLVE, hostname, hostname_len));
-}
+  char *item = localToResolve->dequeue();
+  int rv = -1;
 
-/* **************************************** */
+  if(!item)
+    item = remoteToResolve->dequeue();
 
-int Redis::popHost(const char* ns_list, char *hostname, u_int hostname_len) {
-  return(lpop(ns_list, hostname, hostname_len));
+  if(item) {
+    strncpy(hostname, item, hostname_len);
+    hostname[hostname_len - 1] = '\0';
+    free(item);
+    rv = 0;
+  }
+
+  return(rv);
 }
 
 /* **************************************** */

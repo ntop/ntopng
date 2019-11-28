@@ -187,7 +187,6 @@
 #define DOMAIN_WHITELIST_CAT    "ntopng.domain.whitelist"
 #define DNS_CACHE               "ntopng.dns.cache"
 #define DHCP_CACHE              "ntopng.dhcp.%d.cache"
-#define DNS_TO_RESOLVE          "ntopng.dns.toresolve"
 #define NTOPNG_TRACE            "ntopng.trace"
 #define TRACES_PER_LOG_FILE_HIGH_WATERMARK 10000
 #define MAX_NUM_NTOPNG_LOG_FILES           5

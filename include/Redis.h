@@ -51,16 +51,14 @@ class Redis {
   bool operational;
   bool initializationCompleted;
   std::map<std::string, StringCache> stringCache;
+  FifoStringsQueue *localToResolve, *remoteToResolve;
   u_int numCached;
 
   char* getRedisVersion();
   void reconnectRedis(bool giveup_on_failure);
   int msg_push(const char * const cmd, const char * const queue_name, const char * const msg, u_int queue_trim_size,
 	       bool trace_errors = true, bool head_trim = true);
-  int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
-	       bool dont_check_for_existence, bool localHost);
   int lrpop(const char *queue_name, char *buf, u_int buf_len, bool lpop);
-  int popHost(const char* ns_list, char *hostname, u_int hostname_len);
   void addToCache(const char * const key, const char * const value, u_int expire_secs);
   bool isCacheable(const char * const key);
   bool expireCache(char *key, u_int expire_sec);
