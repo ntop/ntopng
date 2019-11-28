@@ -48,15 +48,24 @@ for k,v in pairs(iface_names) do
 end
 
 print [[
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="]] print(ntop.getHttpPrefix() .. "/") print [[">]] addLogoSvg() print [[</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+    <nav class="mnb navbar navbar-default navbar-fixed-top">
+      <div class="container-fluid">
 
-  <div id="navbarSupportedContent" class="navbar-collapse collapse">
-    <ul class="navbar-nav mr-auto>"
-   ]]
+        <!-- Sidebar Toggle Button -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <i class="ic fa fa-bars"></i>
+          </button>
+          <div style="padding: 15px 0;">
+            <a href="#" id="msbo"><i class="ic fa fa-bars"></i></a>
+          </div>
+        </div>
+
+        <!-- Top Menu -->
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+]]
 
 
 interface.select(ifname)
@@ -68,15 +77,10 @@ ifId = ifs.id
 -- ##############################################
 -- Interfaces Selector
 
-print[[
-<li class="nav-item dropdown">
-</li>
-]]
-
 print [[
-      <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" role="button" id="navbarDropdown" data-toggle="dropdown" href="#" aria-haspopup="true" aria-expanded="false">]] print(ifname) print[[</a>
-      <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+      <li class="dropdown">
+        <a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#" aria-haspopup="true" aria-expanded="false">]] print(ifname) print[[</a>
+        <ul class="dropdown-menu">
 ]]
 
 local views = {}
@@ -126,6 +130,7 @@ for round = 1, 2 do
          -- ntop.getHttpPrefix()
          local url = getPageUrl("", page_params)
 
+         print("<li>")
 	 if(v == ifname) then
 	    print("<a class=\"dropdown-item\" href=\""..url.."\">")
 	 else
@@ -168,12 +173,13 @@ for round = 1, 2 do
 	 end
 
 	 print("</a>")
+         print("</li>")
       end
    end
 end
 
 print [[
-      </div>
+      </ul>
     </li>
 ]]
 
@@ -182,20 +188,15 @@ print [[
 
 if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
 print [[
-    <li class="nav-item dropdown">
+    <li class="dropdown">
       <a class="nav-link dropdown-toggle" href="#" id="navbarLogout" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
          <i class="fa fa-sm fa-sign-out"></i>
       </a>
-    <div class="dropdown-menu" aria-labelledby="navbarLogout">]]
-
-print[[<a class="dropdown-item" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.logout_user_x", {user=_SESSION["user"]})) print [[</a></li>]]
-
-   print[[
-    </div>
-   </li>
-   ]]
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.logout_user_x", {user=_SESSION["user"]})) print [[</a></li>
+      </ul>
+    </li>
+]]
 end
 
 if(not is_admin) then
@@ -234,9 +235,20 @@ print [[
 -- Sidebar
 
 print [[
-      <div class="wrapper">
-        <nav id="sidebar">
-          <ul class="nav nav-sidebar">
+    <div class="msb" id="msb">
+      <nav class="navbar navbar-default" role="navigation">
+
+        <!-- Logo -->
+        <div class="navbar-header">
+          <div class="brand-wrapper">
+            <div class="brand-name-wrapper">
+              <a class="navbar-brand" href="]] print(ntop.getHttpPrefix() .. "/") print [[">]] addLogoSvg() print [[</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-menu-container">
+          <ul class="nav navbar-nav">
 ]]
 
 -- ##############################################
@@ -728,8 +740,19 @@ end
 
 print [[
           </ul>
-        </nav>
-        <div id="content">
+        </div>
+      </nav>
+    </div>
+
+    <script id="rendered-js">
+      (function () {
+        $('#msbo').on('click', function () {
+          $('body').toggleClass('msb-x');
+        });
+      })();
+    </script>
+
+    <div class="mcw" id="content">
 ]]
 
 -- ##############################################
