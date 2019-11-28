@@ -571,5 +571,10 @@ print[[
 
     </div> <!-- / header main container -->
 
+</div> <!-- footer -->
+</div> <!-- A -->
+</div> <!-- B -->
+</div> <!-- C -->
+
   </body>
 </html> ]]
