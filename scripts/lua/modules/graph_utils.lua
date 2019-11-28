@@ -140,8 +140,8 @@ function breakdownBar(sent, sentLabel, rcvd, rcvdLabel, thresholdLow, thresholdH
     if(sent2rcvd < thresholdLow) then sentLabel = '<i class="fa fa-warning fa-lg"></i> '..sentLabel
     elseif(sent2rcvd > thresholdHigh) then rcvdLabel = '<i class="fa fa-warning fa-lg""></i> '..rcvdLabel end
 
-      print('<div class="progress"><div class="progress-bar progress-bar-warning" aria-valuenow="'.. sent2rcvd..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd.. '%;">'..sentLabel)
-      print('</div><div class="progress-bar progress-bar-info" aria-valuenow="'.. (100-sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
+      print('<div class="progress"><div class="progress-bar bg-warning" aria-valuenow="'.. sent2rcvd..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd.. '%;">'..sentLabel)
+      print('</div><div class="progress-bar bg-info" aria-valuenow="'.. (100-sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
 
    else
       print('&nbsp;')
@@ -154,7 +154,7 @@ function percentageBar(total, value, valueLabel)
    -- io.write("****>> "..total.."/"..value.."\n")
    if((total ~= nil) and (total > 0)) then
       pctg = round((value * 100) / total, 0)
-      print('<div class="progress"><div class="progress-bar progress-bar-warning" aria-valuenow="'.. pctg..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. pctg.. '%;">'..valueLabel)
+      print('<div class="progress"><div class="progress-bar bg-warning" aria-valuenow="'.. pctg..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. pctg.. '%;">'..valueLabel)
       print('</div></div>')
    else
       print('&nbsp;')
@@ -170,7 +170,7 @@ function makeProgressBar(percentage)
    end
 
    local perc_int = round(percentage)
-   return '<span style="width: 70%; float:left"><div class="progress"><div class="progress-bar progress-bar-warning" aria-valuenow="'..
+   return '<span style="width: 70%; float:left"><div class="progress"><div class="progress-bar bg-warning" aria-valuenow="'..
       perc_int ..'" aria-valuemin="0" aria-valuemax="100" style="width: '.. perc_int ..'%;"></div></div></span><span style="width: 30%; margin-left: 15px;">'..
       round(percentage, 1) ..' %</span>'
 end
@@ -208,7 +208,7 @@ function stackedProgressBars(total, bars, other_label, formatter, css_class)
       if bar.style == nil then bar.style = "" end
       if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
       res[#res + 1] = [[
-         <div class="progress-bar progress-bar-]] .. (bar.class) .. [[" role="progressbar" style="width:]] .. percentage .. [[%;]] .. bar.style .. [["></div></a>]]
+         <div class="progress-bar bg-]] .. (bar.class) .. [[" role="progressbar" style="width:]] .. percentage .. [[%;]] .. bar.style .. [["></div></a>]]
       if bar.link ~= nil then res[#res + 1] = [[</a>]] end
    end
 
@@ -236,7 +236,7 @@ function stackedProgressBars(total, bars, other_label, formatter, css_class)
       res[#res + 1] = [[<span>]]
       if(num > 0) then res[#res + 1] = [[<br>]] end
       if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
-      res[#res + 1] = [[<span class="label label-]].. (bar.class) ..[[" style="]] .. bar.style .. [[">&nbsp;</span>]]
+      res[#res + 1] = [[<span class="badge badge-]].. (bar.class) ..[[" style="]] .. bar.style .. [[">&nbsp;</span>]]
       if bar.link ~= nil then res[#res + 1] = [[</a>]] end
       res[#res + 1] = [[<span>]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
       num = num + 1
@@ -1303,7 +1303,7 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
 
       output[#output + 1] = [[
           <div class='progress' style=']]..(quotas_to_show.traffic_style or "")..[['>
-            <div class='progress-bar progress-bar-warning' aria-valuenow=']]..traffic_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..traffic_quota_ratio..'%;\'>'..
+            <div class='progress-bar bg-warning' aria-valuenow=']]..traffic_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..traffic_quota_ratio..'%;\'>'..
               ternary(traffic_quota_ratio == traffic_quota_ratio --[[nan check]], traffic_quota_ratio, 0)..[[%
             </div>
           </div>]]
@@ -1325,7 +1325,7 @@ function printProtocolQuota(proto, ndpi_stats, category_stats, quotas_to_show, s
 
       output[#output + 1] = ([[
           <div class='progress' style=']]..(quotas_to_show.time_style or "")..[['>
-            <div class='progress-bar progress-bar-warning' aria-valuenow=']]..duration_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..duration_quota_ratio..'%;\'>'..
+            <div class='progress-bar bg-warning' aria-valuenow=']]..duration_quota_ratio..'\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: '..duration_quota_ratio..'%;\'>'..
               ternary(duration_quota_ratio == duration_quota_ratio --[[nan check]], duration_quota_ratio, 0)..[[%
             </div>
           </div>]])

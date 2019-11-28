@@ -211,7 +211,7 @@ function remote_assistance.statusLabel()
     color = "danger"
   end
 
-  return [[<span class="label label-]] .. color .. [[">]] .. status ..[[</span>]]
+  return [[<span class="badge badge-]] .. color .. [[">]] .. status ..[[</span>]]
 end
 
 -- ########################################################

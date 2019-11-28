@@ -121,13 +121,13 @@ function MosPercentageBar(value)
    value = tonumber(value)
 
    if (value >= 4.0)  then
-      ret_bar = '<span class="label label-success">'..value..' '..i18n("flow_details.desirable_label")..'</span>'
+      ret_bar = '<span class="badge badge-success">'..value..' '..i18n("flow_details.desirable_label")..'</span>'
    elseif ((value >= 3.6) and (value < 4.0)) then
-      ret_bar = '<span class="label label-info">'..value..' '..i18n("flow_details.acceptable_label")..'</span>'
+      ret_bar = '<span class="badge badge-info">'..value..' '..i18n("flow_details.acceptable_label")..'</span>'
    elseif ((value >= 2.6) and (value < 3.6)) then
-      ret_bar = '<span class="label label-warning">'..value..' '..i18n("flow_details.reach_connection_label")..'</span>'
+      ret_bar = '<span class="badge badge-warning">'..value..' '..i18n("flow_details.reach_connection_label")..'</span>'
    elseif ((value > 0) and (value < 2.6)) then
-      ret_bar = '<span class="label label-danger">'..value..' '..i18n("flow_details.not_recommended_label")..'</span>'
+      ret_bar = '<span class="badge badge-danger">'..value..' '..i18n("flow_details.not_recommended_label")..'</span>'
    end
 
    return ret_bar
@@ -140,13 +140,13 @@ function RFactorPercentageBar(value)
    value = tonumber(value)
 
    if (value >= 80.0)  then
-      ret_bar = '<span class="label label-success">'..value..' '..i18n("flow_details.desirable_label")..'</span>'
+      ret_bar = '<span class="badge badge-success">'..value..' '..i18n("flow_details.desirable_label")..'</span>'
    elseif ((value >= 70.0) and (value < 80.0)) then
-      ret_bar = '<span class="label label-info">'..value..' '..i18n("flow_details.acceptable_label")..'</span>'
+      ret_bar = '<span class="badge badge-info">'..value..' '..i18n("flow_details.acceptable_label")..'</span>'
    elseif ((value >= 50.0) and (value < 70.0)) then
-      ret_bar = '<span class="label label-warning">'..value..' '..i18n("flow_details.reach_connection_label")..'</span>'
+      ret_bar = '<span class="badge badge-warning">'..value..' '..i18n("flow_details.reach_connection_label")..'</span>'
    elseif ((value >= 0) and (value < 50.0)) then
-      ret_bar = '<span class="label label-danger">'..value..' '..i18n("flow_details.not_recommended_label")..'</span>'
+      ret_bar = '<span class="badge badge-danger">'..value..' '..i18n("flow_details.not_recommended_label")..'</span>'
    end
 
    return ret_bar
@@ -156,37 +156,37 @@ end
 
 function SipCallStatePercentageBar(state)
   -- Wireshark use different state http://wiki.wireshark.org/VoIP_calls
-  label_class =  "label-default"
+  label_class =  "badge-secondary"
 
   if (state == "REGISTER") then
-    label_class = "label-info"
+    label_class = "badge-info"
   end
 
   if (state == "CALL_STARTED") then
-    label_class = "label-info"
+    label_class = "badge-info"
   end
 
   if (state == "CALL_IN_PROGRESS") then
-    label_class = "label-progress"
+    label_class = "badge-progress"
   end
 
   if (state == "CALL_COMPLETED") then
-    label_class = "label-success"
+    label_class = "badge-success"
   end
 
   if (state == "CALL_ERROR") then
-    label_class = "label-danger"
+    label_class = "badge-danger"
   end
 
   if (state == "CALL_CANCELED") then
-    label_class = "label-warning"
+    label_class = "badge-warning"
   end
 
   if (state == "UNKNOWN") then
-    label_class = "bar-warning"
+    label_class = "badge-warning"
   end
 
-  print('<span class="label '..label_class..'">'..state..'</span>')
+  print('<span class="badge '..label_class..'">'..state..'</span>')
 end
 
 -- ######################################

@@ -714,9 +714,9 @@ function loggingSelector(label, comment, submit_field, redis_key)
   end
 
   local logging_values = {"trace", "debug", "info", "normal", "warning", "error"}
-  local color_map = {"default", "success", "info", "primary", "warning", "danger"}
+  local color_map = {"secondary", "success", "info", "primary", "warning", "danger"}
   local logging_keys = {}
-  local color = "default"
+  local color = "secondary"
 
   for i,v in ipairs(logging_values) do logging_keys[i] = firstToUpper(v) end
 

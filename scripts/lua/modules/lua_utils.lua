@@ -917,7 +917,7 @@ function addGauge(name, url, maxValue, width, height)
   if(url ~= nil) then print('<A HREF="'..url..'">') end
   print [[
   <div class="progress">
-       <div id="]] print(name) print [[" class="progress-bar progress-bar-warning"></div>
+       <div id="]] print(name) print [[" class="progress-bar bg-warning"></div>
   </div>
   ]]
   if(url ~= nil) then print('</A>\n') end
@@ -2438,12 +2438,12 @@ end
 
 -- print TCP flags
 function printTCPFlags(flags)
-   if(hasbit(flags,0x01)) then print('<span class="label label-info">FIN</span> ') end
-   if(hasbit(flags,0x02)) then print('<span class="label label-info">SYN</span> ')  end
-   if(hasbit(flags,0x04)) then print('<span class="label label-danger">RST</span> ') end
-   if(hasbit(flags,0x08)) then print('<span class="label label-info">PUSH</span> ') end
-   if(hasbit(flags,0x10)) then print('<span class="label label-info">ACK</span> ')  end
-   if(hasbit(flags,0x20)) then print('<span class="label label-info">URG</span> ')  end
+   if(hasbit(flags,0x01)) then print('<span class="badge badge-info">FIN</span> ') end
+   if(hasbit(flags,0x02)) then print('<span class="badge badge-info">SYN</span> ')  end
+   if(hasbit(flags,0x04)) then print('<span class="badge badge-danger">RST</span> ') end
+   if(hasbit(flags,0x08)) then print('<span class="badge badge-info">PUSH</span> ') end
+   if(hasbit(flags,0x10)) then print('<span class="badge badge-info">ACK</span> ')  end
+   if(hasbit(flags,0x20)) then print('<span class="badge badge-info">URG</span> ')  end
 end
 
 -- convert the integer carrying TCP flags in a more convenient lua table
@@ -2474,7 +2474,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((ndpi_proto_id ~= nil) and (ndpi_proto_id ~= "")) then hist_url = hist_url.."&protocol="..ndpi_proto_id end
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
-      -- print('<span class="label label-info">')
+      -- print('<span class="badge badge-info">')
       print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history fa-lg"></i></a>')
       -- print('</span>')
    end

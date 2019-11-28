@@ -759,7 +759,7 @@ else
 	 cli_name = cli_name .. ":" .. flow["cli.port"]
 	 srv_name = srv_name .. ":" .. flow["srv.port"]
       end
-      print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar progress-bar-info" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
+      print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar bg-info" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
       print("</td></tr>\n")
    end
 
@@ -771,8 +771,8 @@ else
 	 local srv2cli = round(flow["tcp.nw_latency.server"], 3)
 	 
 	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
-	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">'.. cli2srv ..' ms (client)</div>')
-	 print('<div class="progress-bar progress-bar-info" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
+	 print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">'.. cli2srv ..' ms (client)</div>')
+	 print('<div class="progress-bar bg-info" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
 	 print("</td></tr>\n")
 
 	 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125

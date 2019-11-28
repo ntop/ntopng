@@ -231,8 +231,8 @@ local function print_single_group(value)
    print("\"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
 
    sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
-   print ("\"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
-	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: "
+   print ("\"column_breakdown\" : \"<div class='progress'><div class='progress-bar bg-warning' style='width: "
+	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-info' style='width: "
 	     .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
    print('", ')
 

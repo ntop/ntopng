@@ -1068,7 +1068,7 @@ function getSIPTableRows(info)
 	string_table = string_table.."&label="..sip_rtp_src_address_ip..":"..sip_rtp_src_port
 	string_table = string_table.." <-> "
 	string_table = string_table..sip_rtp_dst_address_ip..":"..sip_rtp_dst_port.."\">"
-	string_table = string_table..'<span class="label label-info">'..i18n("flow_details.rtp_flow")..'</span></a>'
+	string_table = string_table..'<span class="badge badge-info">'..i18n("flow_details.rtp_flow")..'</span></a>'
      end
      string_table = string_table.."</div></td></tr>\n"
 
@@ -1476,8 +1476,8 @@ function printBlockFlowJs()
         block_flow_csrf = data.csrf;
         if (data.status == "BLOCKED") {
           $('#'+row_id+'_info').find('.block-badge')
-            .removeClass('label-default')
-            .addClass('label-danger')
+            .removeClass('badge-secondary')
+            .addClass('badge-danger')
             .attr('title', ']] print(i18n("flow_details.flow_traffic_is_dropped")) print[[');
           $('#'+row_id+'_application, #'+row_id+'_l4, #'+row_id+'_client, #'+row_id+'_server')
             .css("text-decoration", "line-through");
