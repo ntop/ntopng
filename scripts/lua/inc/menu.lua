@@ -770,18 +770,18 @@ if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet
 end
 
 -- Hidden by default, will be shown by the footer if necessary
-print('<br><div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
+print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
 print('</div>')
 
 -- Hidden by default, will be shown by the footer if necessary
-print('<br><div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+print('<div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
 print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
 print('</div>')
 
 if(_SESSION["INVALID_CSRF"]) then
-  print('<br><div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+  print('<div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
   print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
   print(i18n("expired_csrf"))
   print('</div>')
