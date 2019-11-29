@@ -35,6 +35,10 @@ every minute and send it to a remote server:
 
   local script = {
     hooks = {},
+    gui = {
+      i18n_title = "Test script",
+      i18n_description = "A test script",
+    }
   }
 
   -- #################################################################
