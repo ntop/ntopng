@@ -62,7 +62,7 @@ function page_utils.print_header(title)
   </head>
 <body>
 
-  <!-- <div class="container-narrow"> -->
+  <div class="container-narrow">
 ]]
 end
 
@@ -101,7 +101,7 @@ function page_utils.print_header_minimal(title)
   </head>
 <body>
 
-  <!-- <div class="container-narrow"> -->
+  <div class="container-narrow">
 ]]
 end
 
