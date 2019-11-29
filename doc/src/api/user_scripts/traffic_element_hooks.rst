@@ -68,6 +68,7 @@ every minute and send it to a remote server:
 
   return(script)
 
+The script can be saved as `scripts/callbacks/interface/host/test.lua`.
 It's important to note that the `script.setup()` and `script.teardown()` functions
 are only executed once per script, whereas the hook functions (`script.hooks.min` in this
 case) will be executed once per host.
