@@ -359,11 +359,11 @@ function populateGraphMenuEntry(label, base_url, params, tab_id, needs_separator
 end
 
 function makeMenuDivider()
-   return '<li role="separator" class="divider"></li>'
+   return '<div class="dropdown-divider"></div>'
 end
 
 function makeMenuHeader(label)
-   return '<li class="dropdown-header">'.. label ..'</li>'
+   return '<h6 class="dropdown-header">'.. label ..'</h6>'
 end
 
 function graphMenuDivider()
