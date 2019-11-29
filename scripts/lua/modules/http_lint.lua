@@ -1316,6 +1316,7 @@ local known_parameters = {
    ["influx_dbname"]                               = validateSingleWord,
    ["influx_username"]                             = validateEmptyOr(validateSingleWord),
    ["influx_password"]                             = validateEmptyOr(validateSingleWord),
+   ["influx_query_timeout"]                        = validateNumber,
 
    -- Multiple Choice
    ["disaggregation_criterion"]                    = validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx", "ingress_vrf_id"}),

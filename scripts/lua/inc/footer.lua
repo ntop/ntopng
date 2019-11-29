@@ -189,14 +189,9 @@ if ts_utils.getDriverName() == "influxdb" then
 
   if not isEmptyString(msg) then
     print[[
-$("#influxdb-error-msg-text").html("]] print(msg) print[[");
+$("#influxdb-error-msg-text").html("]] print(msg:gsub('"', '\\"')) print[[");
 $("#influxdb-error-msg").show();
 ]]
-    -- Show the error message
-    --~ print('<br><div id="influxdb-error-msg" class="alert alert-danger" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
-    --~ print(msg)
-    --~ print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-    --~ print('</div>')
   end
 end
 

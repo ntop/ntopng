@@ -1361,6 +1361,11 @@ function printStatsTimeseries()
 				    "ntopng.prefs.ts_high_resolution", has_custom_housekeeping,
 				    nil, nil, nil, influx_active)
 
+  prefsInputFieldPrefs(subpage_active.entries["influxdb_query_timeout"].title, subpage_active.entries["influxdb_query_timeout"].description,
+		       "ntopng.prefs.",
+		       "influx_query_timeout", "10",
+           "number", influx_active, nil, nil, {min=1})
+
   print('<tr><th colspan=2 class="info">'..i18n('prefs.interfaces_timeseries')..'</th></tr>')
 
   -- TODO: make also per-category interface RRDs

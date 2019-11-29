@@ -207,7 +207,10 @@ local menu_subpages = {
     }, timeseries_resolution_resolution = {
       title       = i18n("prefs.timeseries_resolution_resolution_title"),
       description = i18n("prefs.timeseries_resolution_resolution_description"),
-    },
+    }, influxdb_query_timeout = {
+      title       = i18n("prefs.influxdb_query_timeout_title"),
+      description = i18n("prefs.influxdb_query_timeout_description"),
+    }
   }}, {id="alerts",        label=i18n("show_alerts.alerts"),               advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_disable_alerts == true), entries={
     disable_alerts_generation = {
       title       = i18n("prefs.disable_alerts_generation_title"),
