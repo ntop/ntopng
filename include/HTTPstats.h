@@ -62,6 +62,7 @@ class HTTPstats {
 
   Mutex m;
   HostHash *h;
+  Host *host;
   bool warning_shown;
   VirtualHostHash *virtualHosts;
 
@@ -99,7 +100,7 @@ class HTTPstats {
   inline u_int16_t makeRate(u_int16_t v, float tdiff) { return((u_int16_t)((((float)v* 1000)/tdiff) + .5f)); }
 
  public:
-  HTTPstats(NetworkInterface *_iface);
+  HTTPstats(Host *host);
   ~HTTPstats();
 
   inline u_int32_t get_num_virtual_hosts() { return(virtualHosts ? virtualHosts->getNumEntries() : 0); }

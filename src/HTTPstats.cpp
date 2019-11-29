@@ -30,10 +30,11 @@ struct http_walk_info {
 
 /* *************************************** */
 
-HTTPstats::HTTPstats(NetworkInterface *_iface) {
+HTTPstats::HTTPstats(Host *_host) {
   struct timeval tv;
 
-  h =_iface->get_hosts_hash(), warning_shown = false;
+  host = _host;
+  h = host->getInterface()->get_hosts_hash(), warning_shown = false;
   memset(&query, 0, sizeof(query));
   memset(&response, 0, sizeof(response));
   memset(&query_rate, 0, sizeof(query_rate));
@@ -43,7 +44,7 @@ HTTPstats::HTTPstats(NetworkInterface *_iface) {
 
   gettimeofday(&tv, NULL);
   memcpy(&last_update_time, &tv, sizeof(struct timeval));
-  if((virtualHosts = new (std::nothrow) VirtualHostHash(_iface, 1, 4096)) == NULL) {
+  if((virtualHosts = new (std::nothrow) VirtualHostHash(host->getInterface(), 1, 4096)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: are you running out of memory?");
   }
 }
@@ -519,9 +520,11 @@ bool HTTPstats::updateHTTPHostRequest(time_t t,
       }
     } else {
       if(!warning_shown) {
+	char buf[128];
+
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Too many virtual hosts %u: enlarge hash",
-				     virtualHosts->getNumEntries());
+				     "Too many virtual hosts on %s (%u virtual hosts). New virtual hosts will be ignored.",
+				     host->get_ip()->print(buf, sizeof(buf)), virtualHosts->getNumEntries());
 	warning_shown = true;
       }
     }

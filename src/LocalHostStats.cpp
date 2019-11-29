@@ -27,7 +27,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = strdup("{}");
   dns  = new DnsStats();
-  http = new HTTPstats(_host->getInterface());
+  http = new HTTPstats(_host);
   icmp = NULL;
   nextSitesUpdate = 0;
 
