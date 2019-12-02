@@ -24,6 +24,7 @@ function page_utils.print_header(title)
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
+    <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/tempusdominus/css/tempusdominus-bootstrap-4.css">
 <!--    <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.css" rel="stylesheet"> -->
 <!--    <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap-theme.css" rel="stylesheet"> -->
     <link href="]] print(http_prefix) print[[/font-awesome/css/font-awesome.css" rel="stylesheet">
@@ -53,15 +54,19 @@ function page_utils.print_header(title)
     <![endif]-->
 
     <link href="]] print(http_prefix) print[[/css/ntopng.css?]] print(startup_epoch) print[[" rel="stylesheet">
-    <link rel="stylesheet" href="]] print(http_prefix) print[[/css/bootstrap-datetimepicker.css" />
+<!--    <link rel="stylesheet" href="]] print(http_prefix) print[[/css/bootstrap-datetimepicker.css" /> -->
+
+
 
     <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
+
     <script type="text/javascript" src="]] print(http_prefix) print[[/popper-1.12.9/js/popper.js?]] print(startup_epoch) print[[" crossorigin="anonymous"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/js/bootstrap.min.js?]] print(startup_epoch) print[[" integrity="sha384-3qaqj0lc6sV/qpzrc1N5DC6i1VRn/HyX4qdPaiEFbn54VjQBEU341pvjz7Dv3n6P" crossorigin="anonymous"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/push.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/tempusdominus/js/tempusdominus-bootstrap-4.js?]] print(startup_epoch) print[["></script>
   </head>
 <body>
 
