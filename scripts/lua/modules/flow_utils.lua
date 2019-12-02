@@ -829,7 +829,7 @@ function getFlowValue(info, field)
    local value_original = "0"
 
    if(info[field] ~= nil) then
-      return_value = info[field]
+      return_value = handleCustomFlowField(field, info[field])
       value_original = info[field]
    else
       for key,value in pairs(info) do
@@ -1276,25 +1276,33 @@ function getRTPTableRows(info)
 
       -- MOS
       if isFlowValueDefined(info, "RTP_IN_MOS") then		 
-	 local rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")/100
-	 local rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")/100
-
+	 local rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")
+	 local rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")
+tprint(rtp_in_mos)
 	 if(rtp_in_mos == nil or rtp_in_mos == "") and (rtp_out_mos == nil or rtp_out_mos == "") then
 	    quality_mos_hide = "style=\"display: none;\""
 	 else
 	    quality_mos_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"quality_mos_id_tr\" ".. quality_mos_hide .."><th style=\"text-align:right\">"..i18n("flow_details.pseudo_mos").."</th><td><span id=mos_in_signal></span><span id=mos_in>"
+
+	 string_table = string_table..
+           "<tr id=\"quality_mos_id_tr\" ".. quality_mos_hide ..">"..
+             "<th style=\"text-align:right\">"..i18n("flow_details.pseudo_mos").."</th>"..
+             "<td><span id=mos_in_signal></span><span id=mos_in>"
+
 	 if((rtp_in_mos ~= nil) and (rtp_in_mos ~= "")) then
 	    string_table = string_table .. MosPercentageBar(rtp_in_mos)
 	 end
+
 	 string_table = string_table .. "</span> <span id=mos_in_trend></span></td>"
 	 
 	 string_table = string_table .. "<td><span id=mos_out_signal></span><span id=mos_out>"
 	 if((rtp_out_mos ~= nil) and (rtp_out_mos ~= "")) then
 	    string_table = string_table .. MosPercentageBar(rtp_out_mos)
 	 end
-	 string_table = string_table .. "</span> <span id=mos_out_trend></span></td></tr>"
+
+	 string_table = string_table.."</span> <span id=mos_out_trend></span>"..
+           "</td></tr>"
       end
       
       -- R_FACTOR

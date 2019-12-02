@@ -43,7 +43,7 @@ enum {
 
 typedef struct {
   const char *string;
-  u_int64_t uint_num;
+  int64_t int_num;
   double double_num;
 } ParsedValue;
 
