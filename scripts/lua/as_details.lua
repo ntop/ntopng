@@ -1,8 +1,8 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if(ntop.isPro()) then
@@ -49,34 +49,23 @@ end
 Create Menu Bar with buttons
 --]]
 local nav_url = ntop.getHttpPrefix().."/lua/as_details.lua?asn="..tonumber(asn)
-print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
 
-print("<li><a href=\"#\">" .. i18n("as_details.as") .. ": "..label.."</A> </li>")
+local title = i18n("as_details.as") .. ": "..label
 
-if(page == "flows") then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("flows").."</a></li>\n")
-else
-   print("<li><a href=\""..nav_url.."&page=flows\">"..i18n("flows").."</a></li>")
-end
-
-if(page == "historical") then
-   print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
-else
-   print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
+   page_utils.print_navbar(title, nav_url,
+			   {
+			      {
+				 active = page == "flows" or not page,
+				 page_name = "flows",
+				 label = i18n("flows"),
+			      },
+			      {
+				 active = page == "historical",
+				 page_name = "historical",
+				 label = "<i class='fa fa-area-chart'></i>",
+			      },
+			   }
+   )
 
 if isEmptyString(page) or page == "historical" then   
    local default_schema = "asn:traffic"
