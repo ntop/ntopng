@@ -219,8 +219,11 @@ else
    end
 
    if host.dhcpHost then
-      title = title.." <i class='fa fa-flash fa-lg' aria-hidden='true' title='DHCP Host'></i>"
+      title = title.." <i class='fa fa-flash' aria-hidden='true' title='DHCP Host'></i>"
    end
+
+local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
+local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
 
    page_utils.print_navbar(title, url,
 			   {
@@ -228,7 +231,7 @@ else
 				 hidden = only_historical,
 				 active = page == "overview" or page == nil,
 				 page_name = "overview",
-				 label = "<i class=\"fa fa-home fa-lg\"></i>",
+				 label = "<i class=\"fa fa-home\"></i>",
 			      },
 			      {
 				 hidden = only_historical,
@@ -313,13 +316,13 @@ else
 				 hidden = only_historical or isLoopback(ifname) or not host["has_dropbox_shares"],
 				 active = page == "dropbox",
 				 page_name = "dropbox",
-				 label = "<i class='fa fa-dropbox fa-lg'></i>",
+				 label = "<i class='fa fa-dropbox'></i>",
 			      },
 			      {
 				 hidden = only_historical or host["privatehost"],
 				 active = page == "geomap",
 				 page_name = "geomap",
-				 label = "<i class='fa fa-globe fa-lg'></i>",
+				 label = "<i class='fa fa-globe'></i>",
 			      },
 			      {
 				 hidden = only_historical or is_pcap_dump or not host["localhost"] or not ts_utils.getDriverName() == "rrd",
@@ -337,13 +340,13 @@ else
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 				 active = page == "config",
 				 page_name = "config",
-				 label = "<i class=\"fa fa-cog fa-lg\"></i></a></li>",
+				 label = "<i class=\"fa fa-cog\"></i></a></li>",
 			      },
 			      {
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 				 active = page == "callbacks",
 				 page_name = "callbacks",
-				 label = "<i class=\"fa fa-superpowers fa-lg\"></i>",
+				 label = "<i class=\"fa fa-superpowers\"></i>",
 			      },
 			   }
    )

@@ -59,42 +59,23 @@ if(pool_id == nil) then
     return
 end
 
-print [[
-<div class="bs-docs-example">
-  <nav class="navbar navbar-default" role="navigation">
-    <div class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-]]
+local title = i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool"))..": "..pool_name
 
-print("<li><a href=\"#\">"
-	 ..i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool"))
-	 ..": "..pool_name.."</A> </li>")
-
-local go_page_params = table.clone(page_params)
-
-if page == "historical" then
-  print("<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i>\n")
-else
-  go_page_params["page"] = "historical"
-  print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\"><i class='fa fa-area-chart fa-lg'></i>\n")
-end
-
-if (ntop.isEnterprise() or ntop.isnEdge()) and ifstats.inline and pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
-  if page == "quotas" then
-    print("<li class=\"active\"><a href=\"#\">"..i18n("quotas").."</i>\n")
-  else
-    go_page_params["page"] = "quotas"
-    print("<li><a href=\""..getPageUrl(base_url, go_page_params).."\">"..i18n("quotas").."\n")
-  end
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-      </ul>
-    </div>
-  </nav>
-</div>
-]]
+   page_utils.print_navbar(title, base_url,
+			   {
+			      {
+				 active = page == "historical" or not page,
+				 page_name = "historical",
+				 label = "<i class='fa fa-area-chart'></i>",
+			      },
+			      {
+				 hidden = not ntop.isEnterprise() or not ntop.isnEdge() or not ifstats or pool_id == host_pools_utils.DEFAULT_POOL_ID,
+				 active = page == "quotas",
+				 page_name = "quotas",
+				 label = i18n("quotas"),
+			      },
+			   }
+   )
 
 local pools_stats = interface.getHostPoolsStats()
 local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]

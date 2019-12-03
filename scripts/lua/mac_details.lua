@@ -112,10 +112,6 @@ local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_inf
 local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
 local title = i18n("mac_details.mac")..": "..mac
 
-
-local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
-local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
-
 page_utils.print_navbar(title, url,
 			{
 			   {
