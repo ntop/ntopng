@@ -110,10 +110,10 @@ else
 end
 
 	 print ("  \"column_group\"     : \"" .. group_label .. "\", ")
-	 print ("  \"column_edit\"      : \"<a href='#password_dialog' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><span class='label label-info'>" .. i18n("manage_users.manage") .. "</span></a> ")
+	 print ("  \"column_edit\"      : \"<a href='#password_dialog' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><span class='badge badge-info'>" .. i18n("manage_users.manage") .. "</span></a> ")
 
   if(key ~= "admin") then
-	    print ("<a href='#delete_user_dialog' role='button' class='add-on' data-toggle='modal' id='delete_btn_" .. key .. "'><span class='label label-danger'>" .. i18n("delete") .. "</span></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
+	    print ("<a href='#delete_user_dialog' role='button' class='add-on' data-toggle='modal' id='delete_btn_" .. key .. "'><span class='badge badge-danger'>" .. i18n("delete") .. "</span></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
 	 end
 	 print ("\"}")
 	 num = num + 1
