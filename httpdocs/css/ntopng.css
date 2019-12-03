@@ -1,181 +1,193 @@
+/*
+NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  
 
-// Media queries breakpoints
-// --------------------------------------------------
+DO NOT TRY TO OVERRIDE BOOTSTRAP HERE 
+IF YOU NEED TO EDIT STYLES, CREATE NEW CSS
+ONE FOR EACH FUNCTION YOU NEED TO OVERRIDE
+AS OTHERWISE IT WOULD BE A PAIN TO UPDATE
+BOOTSTRAP AND UNDERSTAND WHY IT DOESN'T WORK
 
-// Extra small screen / phone
-@screen-xsmall:              480px;
-@screen-phone:               @screen-xsmall;
-
-// Small screen / tablet
-@screen-small:               768px;
-@screen-tablet:              @screen-small;
-
-// Medium screen / desktop
-@screen-medium:              992px;
-@screen-desktop:             @screen-medium;
-
-// Large screen / wide desktop
-@screen-large:               1200px;
-@screen-large-desktop:       @screen-large;
-
-// So media queries don't overlap when required, provide a maximum
-@screen-small-max:           (@screen-medium - 1);
-@screen-tablet-max:          (@screen-desktop - 1);
-@screen-desktop-max:         (@screen-large-desktop - 1);
-
-// Grid system
-// --------------------------------------------------
-
-// Number of columns in the grid system
-@grid-columns:              12;
-// Padding, to be divided by two and applied to the left and right of all columns
-@grid-gutter-width:         30px;
-// Point at which the navbar stops collapsing
-@grid-float-breakpoint:     @screen-tablet;
-
-body {
-  padding-top: 0px;
-  padding-bottom: 20px;
-}
-
-.logo-brand {
-  width: 103px;
-  height: 50px;
-}
-
-/* Custom container */
-.container-narrow {
-  margin-left: 20px;
-  margin-right: 20px;
-  /* max-width: 1024px; */
-}
-
-/* Smaller table row padding */
-.table th, .table td {
-  padding: 6px;
-}
-
-/* Smaller and smaller table row padding */
-.table-smaller tbody tr td {
-  padding: 2px;
-}
-
-/* useful in dropdowns */
-.scrollable-menu {
-  height: auto;
-  max-height: 30em;
-  overflow-x: hidden;
-}
-
-/* Custom container */
-.progress {
-  margin-bottom: 0px;
-}
-.container-narrow > hr {
-  margin: 30px 0;
-}
-
-/* Main marketing message and sign up button */
-.jumbotron {
-  margin: 20px 0;
-  text-align: center;
-}
-.jumbotron h1 {
-  font-size: 22px;
-  line-height: 1;
-}
-.jumbotron .btn {
-  font-size: 21px;
-  padding: 14px 24px;
-}
-
-/* Supporting marketing content */
-.marketing {
-  margin: 20px 0;
-}
-.marketing p + h4 {
-  margin-top: 28px;
-}
-
-.table th.text-right,
-.table td.text-right {
-  text-align: right;
-}
-
-.navbar-nav > li > a {padding-top:10px !important; padding-bottom:10px !important;}
-.navbar {min-height:42px !important}
-.nav-pills {min-height:42px !important}
-
-/* Fix for Google Maps and Twitter Bootstrap
-https://github.com/twbs/bootstrap/issues/1552
+NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  
 */
-img {
-  max-width: none;
-}
 
-/*Custom tooltip dimension*/
-.tooltip-inner {
-  max-width: 350px;
-}
 
-/*Flow dropdown resize*/
-#flow_dropdown {
-  min-width: 110px;
-}
+/* // Media queries breakpoints */
+/* // -------------------------------------------------- */
 
-/*Host dropdown resize*/
-#host_dropdown {
-min-width: 100px;
-}
+/* // Extra small screen / phone */
+/* @screen-xsmall:              480px; */
+/* @screen-phone:               @screen-xsmall; */
 
-/*Footer sticky*/
-#footer {
-  /*position: absolute;*/
-  /*bottom: 10px;*/
-  width: 100%;
-  /* Set the fixed height of the footer here */
-  height: 120px;
-  /*background-color: #f5f5f5;*/
-}
+/* // Small screen / tablet */
+/* @screen-small:               768px; */
+/* @screen-tablet:              @screen-small; */
 
-/* For shaper id selection, should also inherit from form-control */
-.shaper-selector {
-  width: 11em;
-  margin: 0 auto;
-}
+/* // Medium screen / desktop */
+/* @screen-medium:              992px; */
+/* @screen-desktop:             @screen-medium; */
 
-/* Pool name selector */
-.pool-selector {
-  margin-right: 1em;
-  width: 23em;
-  margin-left: 1em;
-}
+/* // Large screen / wide desktop */
+/* @screen-large:               1200px; */
+/* @screen-large-desktop:       @screen-large; */
 
-.well-wizard {
-  background: rgb(249, 249, 249);
-}
+/* // So media queries don't overlap when required, provide a maximum */
+/* @screen-small-max:           (@screen-medium - 1); */
+/* @screen-tablet-max:          (@screen-desktop - 1); */
+/* @screen-desktop-max:         (@screen-large-desktop - 1); */
 
-nav-wizard a:active, a:focus {
-  outline:0;
-  border:none;
-  -moz-outline-style: none;
-}
+/* // Grid system */
+/* // -------------------------------------------------- */
 
-.text-middle, .table > tbody > tr > td.text-middle {
-  vertical-align: middle;
-}
+/* // Number of columns in the grid system */
+/* @grid-columns:              12; */
+/* // Padding, to be divided by two and applied to the left and right of all columns */
+/* @grid-gutter-width:         30px; */
+/* // Point at which the navbar stops collapsing */
+/* @grid-float-breakpoint:     @screen-tablet; */
 
-/*Hide numeric input box spinners for 'no-spinner' class */
-input.no-spinner[type=number]::-webkit-inner-spin-button,
-input.no-spinner[type=number]::-webkit-outer-spin-button {
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  appearance: none;
-  margin: 0;
-}
-input.no-spinner[type=number] {
-  -moz-appearance:textfield;
-}
+/* body { */
+/*   padding-top: 0px; */
+/*   padding-bottom: 20px; */
+/* } */
+
+/* .logo-brand { */
+/*   width: 103px; */
+/*   height: 50px; */
+/* } */
+
+/* /\* Custom container *\/ */
+/* .container-narrow { */
+/*   margin-left: 20px; */
+/*   margin-right: 20px; */
+/*   /\* max-width: 1024px; *\/ */
+/* } */
+
+/* /\* Smaller table row padding *\/ */
+/* .table th, .table td { */
+/*   padding: 6px; */
+/* } */
+
+/* /\* Smaller and smaller table row padding *\/ */
+/* .table-smaller tbody tr td { */
+/*   padding: 2px; */
+/* } */
+
+/* /\* useful in dropdowns *\/ */
+/* .scrollable-menu { */
+/*   height: auto; */
+/*   max-height: 30em; */
+/*   overflow-x: hidden; */
+/* } */
+
+/* /\* Custom container *\/ */
+/* .progress { */
+/*   margin-bottom: 0px; */
+/* } */
+/* .container-narrow > hr { */
+/*   margin: 30px 0; */
+/* } */
+
+/* /\* Main marketing message and sign up button *\/ */
+/* .jumbotron { */
+/*   margin: 20px 0; */
+/*   text-align: center; */
+/* } */
+/* .jumbotron h1 { */
+/*   font-size: 22px; */
+/*   line-height: 1; */
+/* } */
+/* .jumbotron .btn { */
+/*   font-size: 21px; */
+/*   padding: 14px 24px; */
+/* } */
+
+/* /\* Supporting marketing content *\/ */
+/* .marketing { */
+/*   margin: 20px 0; */
+/* } */
+/* .marketing p + h4 { */
+/*   margin-top: 28px; */
+/* } */
+
+/* .table th.text-right, */
+/* .table td.text-right { */
+/*   text-align: right; */
+/* } */
+
+/* .navbar-nav > li > a {padding-top:10px !important; padding-bottom:10px !important;} */
+/* .navbar {min-height:42px !important} */
+/* .nav-pills {min-height:42px !important} */
+
+/* /\* Fix for Google Maps and Twitter Bootstrap */
+/* https://github.com/twbs/bootstrap/issues/1552 */
+/* *\/ */
+/* img { */
+/*   max-width: none; */
+/* } */
+
+/* /\*Custom tooltip dimension*\/ */
+/* .tooltip-inner { */
+/*   max-width: 350px; */
+/* } */
+
+/* /\*Flow dropdown resize*\/ */
+/* #flow_dropdown { */
+/*   min-width: 110px; */
+/* } */
+
+/* /\*Host dropdown resize*\/ */
+/* #host_dropdown { */
+/* min-width: 100px; */
+/* } */
+
+/* /\*Footer sticky*\/ */
+/* #footer { */
+/*   /\*position: absolute;*\/ */
+/*   /\*bottom: 10px;*\/ */
+/*   width: 100%; */
+/*   /\* Set the fixed height of the footer here *\/ */
+/*   height: 120px; */
+/*   /\*background-color: #f5f5f5;*\/ */
+/* } */
+
+/* /\* For shaper id selection, should also inherit from form-control *\/ */
+/* .shaper-selector { */
+/*   width: 11em; */
+/*   margin: 0 auto; */
+/* } */
+
+/* /\* Pool name selector *\/ */
+/* .pool-selector { */
+/*   margin-right: 1em; */
+/*   width: 23em; */
+/*   margin-left: 1em; */
+/* } */
+
+/* .well-wizard { */
+/*   background: rgb(249, 249, 249); */
+/* } */
+
+/* nav-wizard a:active, a:focus { */
+/*   outline:0; */
+/*   border:none; */
+/*   -moz-outline-style: none; */
+/* } */
+
+/* .text-middle, .table > tbody > tr > td.text-middle { */
+/*   vertical-align: middle; */
+/* } */
+
+/* /\*Hide numeric input box spinners for 'no-spinner' class *\/ */
+/* input.no-spinner[type=number]::-webkit-inner-spin-button, */
+/* input.no-spinner[type=number]::-webkit-outer-spin-button { */
+/*   -moz-appearance: none; */
+/*   -webkit-appearance: none; */
+/*   appearance: none; */
+/*   margin: 0; */
+/* } */
+/* input.no-spinner[type=number] { */
+/*   -moz-appearance:textfield; */
+/* } */
 
 /* sprobe ****************************** */
 
@@ -208,137 +220,137 @@ path.link {
 
 /* ****************************** */
 
-/* http://stackoverflow.com/questions/13516534/how-to-avoid-page-break-inside-table-row-for-wkhtmltopdf */
-table, tr, td, th, tbody, thead, tfoot {
-    page-break-inside: avoid !important;
-}
+/* /\* http://stackoverflow.com/questions/13516534/how-to-avoid-page-break-inside-table-row-for-wkhtmltopdf *\/ */
+/* table, tr, td, th, tbody, thead, tfoot { */
+/*     page-break-inside: avoid !important; */
+/* } */
 
-.badge-error {
-  background-color: #b94a48;
-}
-.badge-error:hover {
-  background-color: #953b39;
-}
-.badge-warning {
-  background-color: #f89406;
-}
-.badge-warning:hover {
-  background-color: #c67605;
-}
-.badge-success {
-  background-color: #468847;
-}
-.badge-success:hover {
-  background-color: #356635;
-}
-.badge-info {
-  background-color: #3a87ad;
-}
-.badge-info:hover {
-  background-color: #2d6987;
-}
-.badge-inverse {
-  background-color: #333333;
-}
-.badge-inverse:hover {
-  background-color: #1a1a1a;
-}
-.badge-top-right {
-  position: relative;
-  top: -8px;
-  right: 2px;
-}
-.menu-item {
-  border: 1px solid #ddd !important;
-}
+/* .badge-error { */
+/*   background-color: #b94a48; */
+/* } */
+/* .badge-error:hover { */
+/*   background-color: #953b39; */
+/* } */
+/* .badge-warning { */
+/*   background-color: #f89406; */
+/* } */
+/* .badge-warning:hover { */
+/*   background-color: #c67605; */
+/* } */
+/* .badge-success { */
+/*   background-color: #468847; */
+/* } */
+/* .badge-success:hover { */
+/*   background-color: #356635; */
+/* } */
+/* .badge-info { */
+/*   background-color: #3a87ad; */
+/* } */
+/* .badge-info:hover { */
+/*   background-color: #2d6987; */
+/* } */
+/* .badge-inverse { */
+/*   background-color: #333333; */
+/* } */
+/* .badge-inverse:hover { */
+/*   background-color: #1a1a1a; */
+/* } */
+/* .badge-top-right { */
+/*   position: relative; */
+/*   top: -8px; */
+/*   right: 2px; */
+/* } */
+/* .menu-item { */
+/*   border: 1px solid #ddd !important; */
+/* } */
 
-tr.quotas > td {
-  padding: 0px;
-}
+/* tr.quotas > td { */
+/*   padding: 0px; */
+/* } */
 
-.overall_quota {
-  width: 400px;
-  text-align: left;
-  margin-left: 1px;
-}
+/* .overall_quota { */
+/*   width: 400px; */
+/*   text-align: left; */
+/*   margin-left: 1px; */
+/* } */
 
-.overall_quota label.btn {
-  width: 55px;
-}
+/* .overall_quota label.btn { */
+/*   width: 55px; */
+/* } */
 
-.table-borderless tbody tr td,
-.table-borderless tbody tr th,
-.table-borderless thead tr th,
-.table-borderless thead tr td,
-.table-borderless tfoot tr th,
-.table-borderless tfoot tr td {
-    border: none;
-}
+/* .table-borderless tbody tr td, */
+/* .table-borderless tbody tr th, */
+/* .table-borderless thead tr th, */
+/* .table-borderless thead tr td, */
+/* .table-borderless tfoot tr th, */
+/* .table-borderless tfoot tr td { */
+/*     border: none; */
+/* } */
 
-/* Avoids popup data-original-title flickering */
-.fade {
-   opacity: 0;
-   -webkit-transition: opacity 0s linear;
-      -moz-transition: opacity 0s linear;
-       -ms-transition: opacity 0s linear;
-        -o-transition: opacity 0s linear;
-           transition: opacity 0s linear;
- }
+/* /\* Avoids popup data-original-title flickering *\/ */
+/* .fade { */
+/*    opacity: 0; */
+/*    -webkit-transition: opacity 0s linear; */
+/*       -moz-transition: opacity 0s linear; */
+/*        -ms-transition: opacity 0s linear; */
+/*         -o-transition: opacity 0s linear; */
+/*            transition: opacity 0s linear; */
+/*  } */
 
-.local-ip-selector input {
-  width: 5em;
-  display: inline-block;
-  text-align: right;
-}
+/* .local-ip-selector input { */
+/*   width: 5em; */
+/*   display: inline-block; */
+/*   text-align: right; */
+/* } */
 
-.local-ip-selector select {
-  width: 7em;
-  display: inline-block;
-}
+/* .local-ip-selector select { */
+/*   width: 7em; */
+/*   display: inline-block; */
+/* } */
 
-.local-ip-selector {
-  min-width: 22em;
-  text-align: right;
-}
+/* .local-ip-selector { */
+/*   min-width: 22em; */
+/*   text-align: right; */
+/* } */
 
-/* Fix icons width in header */
-.masthead > ul.nav > li > ul > li > a > i {
-  width: 15px;
-  text-align: center;
-  margin-right: 2px;
-}
+/* /\* Fix icons width in header *\/ */
+/* .masthead > ul.nav > li > ul > li > a > i { */
+/*   width: 15px; */
+/*   text-align: center; */
+/*   margin-right: 2px; */
+/* } */
 
-.list-group > a.disabled {
-  color: #999999;
-}
-.list-group > a.disabled:hover,
-.list-group > a.disabled:focus {
-  color: #999999;
-  text-decoration: none;
-  background-color: transparent;
-  cursor: not-allowed;
-}
+/* .list-group > a.disabled { */
+/*   color: #999999; */
+/* } */
+/* .list-group > a.disabled:hover, */
+/* .list-group > a.disabled:focus { */
+/*   color: #999999; */
+/*   text-decoration: none; */
+/*   background-color: transparent; */
+/*   cursor: not-allowed; */
+/* } */
 
-.line-dashed .nv-line {
-  stroke-dasharray: 5, 5;
-}
+/* .line-dashed .nv-line { */
+/*   stroke-dasharray: 5, 5; */
+/* } */
 
-.chart-loading-spinner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  font-size: 50px;
-}
+/* .chart-loading-spinner { */
+/*   position: absolute; */
+/*   top: 50%; */
+/*   left: 50%; */
+/*   font-size: 50px; */
+/* } */
 
-.timeseries-dropdown {
-  padding-left: 5px;
-  padding-right: 10px;
-  min-width: 7em;
-}
+/* .timeseries-dropdown { */
+/*   padding-left: 5px; */
+/*   padding-right: 10px; */
+/*   min-width: 7em; */
+/* } */
 
-#chart1-flows td:last-child a:not(:first-child) {
-  margin-left: 5px;
-}
+/* #chart1-flows td:last-child a:not(:first-child) { */
+/*   margin-left: 5px; */
+/* } */
 
 /* NOTE: this is commented to avoid highliting overlapping line issues due to
  * curves interpolation.
@@ -356,84 +368,84 @@ tr.quotas > td {
 }
 */
 
-.line-animated .nv-line {
-  animation-name: line-appear;
-  animation-delay: 0.25s;
-  animation-duration: 1.25s;
-  animation-fill-mode: backwards;
-}
+/* .line-animated .nv-line { */
+/*   animation-name: line-appear; */
+/*   animation-delay: 0.25s; */
+/*   animation-duration: 1.25s; */
+/*   animation-fill-mode: backwards; */
+/* } */
 
-@keyframes line-appear {
-  from {-webkit-clip-path: polygon(0px -1000px, 0px -1000px, 0px 1000px, 0px 1000px);}
-  to {-webkit-clip-path: polygon(0px -1000px, 100% -1000px, 100% 1000px, 0px 1000px);}
-}
+/* @keyframes line-appear { */
+/*   from {-webkit-clip-path: polygon(0px -1000px, 0px -1000px, 0px 1000px, 0px 1000px);} */
+/*   to {-webkit-clip-path: polygon(0px -1000px, 100% -1000px, 100% 1000px, 0px 1000px);} */
+/* } */
 
-.zoom-reset {
-  margin-right: 8px;
-  font-size: 0.75em;
-}
+/* .zoom-reset { */
+/*   margin-right: 8px; */
+/*   font-size: 0.75em; */
+/* } */
 
-.zoom-reset:hover, .zoom-reset:focus {
-  outline:0 !important;
-}
+/* .zoom-reset:hover, .zoom-reset:focus { */
+/*   outline:0 !important; */
+/* } */
 
-.chart-action-buttons button:not(:first-child) {
-  margin-left: 5px;
-}
+/* .chart-action-buttons button:not(:first-child) { */
+/*   margin-left: 5px; */
+/* } */
 
-.chart-action-buttons button {
-  /* margin-top: 2px; */
-}
+/* .chart-action-buttons button { */
+/*   /\* margin-top: 2px; *\/ */
+/* } */
 
-.ntop-progress-stacked {
-  width: 400px;
-}
+/* .ntop-progress-stacked { */
+/*   width: 400px; */
+/* } */
 
 
-/* ntop fix: Keep old behaviour after commit https://github.com/twbs/bootstrap/commit/a15c24410be8b94671dcfc3b154e0034a3aaf35f */
-.form-inline .input-group .input-group-addon {
-  width: 1% !important;
-}
+/* /\* ntop fix: Keep old behaviour after commit https://github.com/twbs/bootstrap/commit/a15c24410be8b94671dcfc3b154e0034a3aaf35f *\/ */
+/* .form-inline .input-group .input-group-addon { */
+/*   width: 1% !important; */
+/* } */
 
-/* Hide second axis completely */
-/* #historical-tab-chart .nv-y2 { */
+/* /\* Hide second axis completely *\/ */
+/* /\* #historical-tab-chart .nv-y2 { *\/ */
 
-/* Hide second axis lines */
-#historical-tab-chart .nv-y2 .tick line {
-  display: none;
-}
+/* /\* Hide second axis lines *\/ */
+/* #historical-tab-chart .nv-y2 .tick line { */
+/*   display: none; */
+/* } */
 
-#chart1-flows table {
-  margin-top: 10px;
-  font-size: 14px;
-}
+/* #chart1-flows table { */
+/*   margin-top: 10px; */
+/*   font-size: 14px; */
+/* } */
 
-.typeahead-dropdown-right .dropdown-menu {
-  left: auto !important;
-  right: 0;
-}
+/* .typeahead-dropdown-right .dropdown-menu { */
+/*   left: auto !important; */
+/*   right: 0; */
+/* } */
 
-.dialog-body-full-height {
-  padding: 15px;
-  padding-bottom: 0;
-}
+/* .dialog-body-full-height { */
+/*   padding: 15px; */
+/*   padding-bottom: 0; */
+/* } */
 
-.label-empty {
-  background-color: #EFEFEF !important;
-}
+/* .label-empty { */
+/*   background-color: #EFEFEF !important; */
+/* } */
 
-.stacked-progress-legend {
-  margin-top: 4px;
-}
+/* .stacked-progress-legend { */
+/*   margin-top: 4px; */
+/* } */
 
-.stacked-progress-legend > span span:not(:first-child) {
-  font-size: 0.8em;
-  margin-left: 3px;
-}
+/* .stacked-progress-legend > span span:not(:first-child) { */
+/*   font-size: 0.8em; */
+/*   margin-left: 3px; */
+/* } */
 
-.stacked-progress-legend > span:not(:first-child) {
-  margin-left: 20px;
-}
+/* .stacked-progress-legend > span:not(:first-child) { */
+/*   margin-left: 20px; */
+/* } */
 
 /* CSS for eBPF process charts */
 .link {
@@ -458,14 +470,14 @@ tr.quotas > td {
   text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
 }
 
-.drilldown-icon {
-  font-size: 16px;
-}
+/* .drilldown-icon { */
+/*   font-size: 16px; */
+/* } */
 
 
-/* Fix for fa-share blocked by adblock */
-.fa-topology-alt:before {
-  content: "\f1e0";
-}
+/* /\* Fix for fa-share blocked by adblock *\/ */
+/* .fa-topology-alt:before { */
+/*   content: "\f1e0"; */
+/* } */
 
 /* end of CSS for EBPF charts */
