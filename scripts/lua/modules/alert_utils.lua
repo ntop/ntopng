@@ -1151,8 +1151,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
       </form>
 
-      <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#deleteGlobalAlertConfig" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("show_alerts.delete_config_btn",{conf=firstToUpper(entity_type)})) print[[</button>
-      <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#deleteAlertSourceSettings" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(delete_button_msg) print[[</button>
+      <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#deleteGlobalAlertConfig" style="float:right; margin-right:1em;"> ]] print(i18n("show_alerts.delete_config_btn",{conf=firstToUpper(entity_type)})) print[[</button>
+      <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#deleteAlertSourceSettings" style="float:right; margin-right:1em;"> ]] print(delete_button_msg) print[[</button>
       ]]
       end
 
@@ -1943,7 +1943,7 @@ $("[clicked=1]").trigger("click");
 	 local delete_params = getTabParameters(url_params, nil)
 	 delete_params.epoch_end = -1
 
-	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-secondary"><i type="submit" class="fa fa-trash-o"></i> <span id="purgeBtnMessage">]]
+	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-secondary"> <span id="purgeBtnMessage">]]
 	 print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
 	 print[[</span></button>
    </div> <!-- closes alertsActionsPanel -->

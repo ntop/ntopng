@@ -208,9 +208,12 @@ else
 
       print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-warning"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
 print [[
-            <nav class="navbar navbar-light" role="navigation">
-              <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
+              <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse" id="navbarNav">
+                  <ul class="navbar-nav">
 ]]
 if((debug_hosts) and (host["ip"] ~= nil)) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_ip",{hostip=host["ip"],vlan=host["vlan"]}).."\n") end
 url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
@@ -218,7 +221,7 @@ if _GET["tskey"] ~= nil then
    url = url .. "&tskey=" .. _GET["tskey"]
 end
 
-print("<li><a href=\"#\">"..i18n("host_details.host")..": "..host_info["host"])
+print("<li class=\"nav-item\"><a class=\"nav-link\" href=\"#\">"..i18n("host_details.host")..": "..host_info["host"])
 if host["broadcast_domain_host"] then
   print(" <i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>")
 end
@@ -240,93 +243,93 @@ print("</A> </li>")
 
 if not only_historical then
 if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
+   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 else
-   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
+   print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
 end
 
 if(page == "traffic") then
-   print("<li class=\"active\"><a href=\"#\">".. i18n("traffic") .. "</a></li>\n")
+   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">".. i18n("traffic") .. "</a></li>\n")
 else
    if(host["ip"] ~= nil) then
-      print("<li><a href=\""..url.."&page=traffic\">" .. i18n("traffic") .. "</a></li>")
+      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=traffic\">" .. i18n("traffic") .. "</a></li>")
    end
 end
 
   if((host["packets.sent"] + host["packets.rcvd"]) > 0) then
 if(page == "packets") then
-   print("<li class=\"active\"><a href=\"#\">" .. i18n("packets") .. "</a></li>\n")
+   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">" .. i18n("packets") .. "</a></li>\n")
 elseif not have_nedge then
    if((host["ip"] ~= nil) and (
    	(host["udp.packets.sent"] > 0)
 	or (host["udp.packets.rcvd"] > 0)
    	or (host["tcp.packets.sent"] > 0)
 	or (host["tcp.packets.rcvd"] > 0))) then
-      print("<li><a href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
+      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
    end
 end
 end
 
 if(page == "ports") then
-   print("<li class=\"active\"><a href=\"#\">" .. i18n("ports") .. "</a></li>\n")
+   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">" .. i18n("ports") .. "</a></li>\n")
 else
    if(host["ip"] ~= nil) then
-      print("<li><a href=\""..url.."&page=ports\">" .. i18n("ports") .. "</a></li>")
+      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=ports\">" .. i18n("ports") .. "</a></li>")
    end
 end
 
 if(not(isLoopback(ifname))) then
    if(page == "peers") then
-      print("<li class=\"active\"><a href=\"#\">" .. i18n("peers") .. "</a></li>\n")
+      print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">" .. i18n("peers") .. "</a></li>\n")
    else
       if(host["ip"] ~= nil) then
-	 print("<li><a href=\""..url.."&page=peers\">" .. i18n("peers") .. "</a></li>")
+	 print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=peers\">" .. i18n("peers") .. "</a></li>")
       end
    end
 end
 
 if((host["ICMPv4"] ~= nil) or (host["ICMPv6"] ~= nil)) then
    if(page == "ICMP") then
-      print("<li class=\"active\"><a href=\"#\">"..i18n("icmp").."</a></li>\n")
+      print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("icmp").."</a></li>\n")
    else
-      print("<li><a href=\""..url.."&page=ICMP\">"..i18n("icmp").."</a></li>")
+      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=ICMP\">"..i18n("icmp").."</a></li>")
    end
 end
 
 if(page == "ndpi") then
   direction = _GET["direction"]
-  print("<li class=\"active\"><a href=\"#\">" .. i18n("applications") .."</a></li>\n")
+  print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">" .. i18n("applications") .."</a></li>\n")
 else
    if(host["ip"] ~= nil) then
-      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("applications") .. "</a></li>")
+      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=ndpi\">" .. i18n("applications") .. "</a></li>")
    end
 end
 
 if(page == "dns") then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("dns").."</a></li>\n")
+  print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("dns").."</a></li>\n")
 else
    if((host["dns"] ~= nil)
    and ((host["dns"]["sent"]["num_queries"]+host["dns"]["rcvd"]["num_queries"]) > 0)) then
-      print("<li><a href=\""..url.."&page=dns\">"..i18n("dns").."</a></li>")
+      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=dns\">"..i18n("dns").."</a></li>")
    end
 end
 
 if(host["ja3_fingerprint"] ~= nil) then
    if(page == "tls") then
-   print("<li class=\"active\"><a href=\"#\">"..i18n("tls").."</a></li>\n")
+   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("tls").."</a></li>\n")
    else
       if(table.len(host["ja3_fingerprint"]) > 0) then
-        print("<li><a href=\""..url.."&page=tls\">"..i18n("tls").."</a></li>")
+        print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=tls\">"..i18n("tls").."</a></li>")
       end
    end
 end
 
 if(host["hassh_fingerprint"] ~= nil) then
    if(page == "ssh") then
-   print("<li class=\"active\"><a href=\"#\">"..i18n("ssh").."</a></li>\n")
+   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("ssh").."</a></li>\n")
    else
       if(table.len(host["hassh_fingerprint"]) > 0) then
-        print("<li><a href=\""..url.."&page=ssh\">"..i18n("ssh").."</a></li>")
+        print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=ssh\">"..i18n("ssh").."</a></li>")
       end
    end
 end
@@ -334,22 +337,23 @@ end
 http = host["http"]
 
 if(page == "http") then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("http"))
+  print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("http").."</a>")
 else
    if((http ~= nil)
       and ((http["sender"]["query"]["total"] + http["receiver"]["response"]["total"] + table.len(http["virtual_hosts"])) > 0)) then
-      print("<li><a href=\""..url.."&page=http\">"..i18n("http"))
-      if(host["active_http_hosts"] > 0) then print(" <span class='badge badge-top-right'>".. host["active_http_hosts"] .."</span>") end
+      print("<li class=\"nav-item\">")
+      if(host["active_http_hosts"] > 0) then print(' <span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">'.. host["active_http_hosts"] .."</span>") end
+      print("<a class=\"nav-link\" href=\""..url.."&page=http\">"..i18n("http").."</a>")
    end
 end
 
-print("</a></li>\n")
+print("</li>\n")
 
 if(page == "flows") then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("flows").."</a></li>\n")
+  print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("flows").."</a></li>\n")
 else
    if(host["ip"] ~= nil) then
-      print("<li><a href=\""..url.."&page=flows\">"..i18n("flows").."</a></li>")
+      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=flows\">"..i18n("flows").."</a></li>")
    end
 end
 
@@ -363,19 +367,19 @@ if host["localhost"] == true then
 
    if not prefs.are_top_talkers_enabled or table.len(top_sites) > 0 or table.len(top_sites_old) > 0 then
       if(page == "sites") then
-	 print("<li class=\"active\"><a href=\"#\">"..i18n("sites_page.sites").."</a></li>\n")
+	 print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("sites_page.sites").."</a></li>\n")
       else
 	 if(host["ip"] ~= nil) then
-	    print("<li><a href=\""..url.."&page=sites\">"..i18n("sites_page.sites").."</a></li>")
+	    print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=sites\">"..i18n("sites_page.sites").."</a></li>")
 	 end
       end
    end
 
    if ntop.isEnterprise() and isAllowedSystemInterface() then
       if(page == "snmp") then
-	 print("<li class=\"active\"><a href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
+	 print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
       else
-	 print("<li><a href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
+	 print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
       end
    end
 end
@@ -383,9 +387,9 @@ end
 if host.systemhost then
    if interface.hasEBPF() then
       if(page == "processes") then
-	 print("<li class=\"active\"><a href=\"#\">"..i18n("user_info.processes").."</a></li>\n")
+	 print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("user_info.processes").."</a></li>\n")
       else
-	 print("<li><a href=\""..url.."&page=processes\">"..i18n("user_info.processes").."</a></li>")
+	 print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=processes\">"..i18n("user_info.processes").."</a></li>")
       end
    end
 end
@@ -397,19 +401,19 @@ if(not(isLoopback(ifname))) then
 
       if(table.len(namespaces) > 0) then
 	 if(page == "dropbox") then
-	    print("<li class=\"active\"><a href=\"#\"><i class='fa fa-dropbox fa-lg'></i></a></li>\n")
+	    print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class='fa fa-dropbox fa-lg'></i></a></li>\n")
 	 else
-	    print("<li><a href=\""..url.."&page=dropbox\"><i class='fa fa-dropbox fa-lg'></i></a></li>")
+	    print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=dropbox\"><i class='fa fa-dropbox fa-lg'></i></a></li>")
 	 end
       end
    end
 
    if not host.privatehost then
       if(page == "geomap") then
-	 print("<li class=\"active\"><a href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
+	 print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
       else
 	 if(host["ip"] ~= nil) then
-	    print("<li><a href=\""..url.."&page=geomap\"><i class='fa fa-globe fa-lg'></i></a></li>")
+	    print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=geomap\"><i class='fa fa-globe fa-lg'></i></a></li>")
 	 end
       end
    end
@@ -419,17 +423,17 @@ end -- not only_historical
 
 if areAlertsEnabled() then
    if(page == "alerts") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
+      print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
-      print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
+      print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
    end
 end
 
 if((page == "historical") or ts_utils.exists("host:traffic", {ifid = ifId, host = tskey})) or interfaceHasNindexSupport() then
    if(page == "historical") then
-     print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+     print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
-     print("\n<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+     print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    end
 end
 
@@ -437,20 +441,20 @@ if not only_historical and not is_pcap_dump then
    if host["localhost"] and ts_utils.getDriverName() == "rrd" then
       if ntop.isEnterprise() or ntop.isnEdge() then
 	 if(page == "traffic_report") then
-	    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
+	    print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
 	 else
-	    print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
+	    print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
 	 end
       else
-	 print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
+	 print("\n<li><a class=\"nav-link\" href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
       end
    end
 
 if ntop.isEnterprise() and ifstats.inline and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
   if page == "quotas" then
-    print("\n<li class=\"active\"><a href=\"#\">"..i18n("quotas").."</a></li>\n")
+    print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("quotas").."</a></li>\n")
   else
-    print("\n<li><a href=\""..url.."&page=quotas\">"..i18n("quotas").."</a></li>\n")
+    print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=quotas\">"..i18n("quotas").."</a></li>\n")
   end
 end
 
@@ -458,21 +462,20 @@ end -- not only_historical
 
 if(isAdministrator()) then
    if(page == "config") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
+      print("\n<li class=\"nav-item\" class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
-      print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
+      print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
    if not interface.isPcapDumpInterface() then
       if(page == "callbacks") then
-         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
+         print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
       else
-         print("\n<li><a href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+         print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
       end
    end
 end
 
 print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
 </ul>
 </div>
 </nav>
