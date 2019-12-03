@@ -34,8 +34,8 @@ print("<br>")
 print [[
 <ul id="n2n-nav" class="nav nav-tabs" role="tablist">]]
 
-print('<li class="'.. ternary(tab == "protocols", "active", "") ..'"><a href="?tab=protocols">'.. i18n("applications") .. "</a>")
-print('<li class="'.. ternary(tab ~= "protocols", "active", "") ..'"><a href="?tab=categories">'.. i18n("categories") .. "</a>")
+print('<li class="nav-item '.. ternary(tab == "protocols", "active", "") ..'"><a class="nav-link '.. ternary(tab == "protocols", "active", "") ..'" href="?tab=protocols">'.. i18n("applications") .. "</a>")
+print('<li class="nav-item '.. ternary(tab ~= "protocols", "active", "") ..'"><a class="nav-link '.. ternary(tab ~= "protocols", "active", "") ..'" href="?tab=categories">'.. i18n("categories") .. "</a>")
 
 print[[</ul>]]
 
