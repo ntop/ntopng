@@ -102,10 +102,10 @@ end
 print [[
 <ul id="n2n-nav" class="nav nav-tabs" role="tablist">]]
 
-print('<li class="'.. ternary(tab == "config", "active", "") ..'"><a href="?tab=config"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") .. "</a>")
+print('<li class="nav-item '.. ternary(tab == "config", "active", "") ..'"><a class="nav-link '.. ternary(tab == "config", "active", "") ..'" href="?tab=config"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") .. "</a>")
 
 if assist_enabled then
-  print('<li class="'.. ternary(tab == "status", "active", "") ..'"><a href="?tab=status">'.. i18n("status") .. "</a>")
+   print('<li class="nav-item '.. ternary(tab == "status", "active", "") ..'"><a class="nav-link '.. ternary(tab == "status", "active", "") ..'" href="?tab=status">'.. i18n("status") .. "</a>")
 end
 
 print[[</ul>]]

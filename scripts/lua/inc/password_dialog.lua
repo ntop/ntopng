@@ -23,11 +23,11 @@ print [[
 
   <div class="tabbable"> <!-- Only required for left/right tabs -->
   <ul class="nav nav-tabs" role="tablist" id="edit-user-container">
-    <li class="active"><a href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
+    <li class="nav-item active"><a class="nav-link active" href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
 ]]
 
 if(is_admin) then
-   print[[<li><a href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
+   print[[<li class="nav-item"><a class="nav-link" href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
 end
    print[[
   </ul>

@@ -37,7 +37,7 @@ else
             <nav class="navbar navbar-default" role="navigation">
               <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-	    <li><a href="#"><i class="fa fa-linux fa-lg"></i> ]] print(user_key)
+	    <li class="nav-item"><a class="nav-link" href="#"><i class="fa fa-linux fa-lg"></i> ]] print(user_key)
 
   if host_key then
      print(string.format(" [%s: %s]", i18n("host_details.host"), name))
@@ -45,15 +45,34 @@ else
 
   print [[  </a></li>]]
 
+  local li_active = ''
+  local a_active = ''
+  if(page == "UserApps") then
+     li_active = ' class = "nav-item active"'
+     a_active = ' class = "nav-link active"'
+  else
+     li_active = ' class = "nav-item"'
+     a_active = ' class = "nav-link"'
+  end
+print('<li'..li_active..'><a'..a_active..' href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserApps">'..i18n("applications")..'</a></li>\n')
 
-if(page == "UserApps") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserApps">'..i18n("applications")..'</a></li>\n')
+if(page == "UserProtocols") then
+   li_active = ' class = "nav-item active"'
+   a_active = ' class = "nav-link active"'
+else
+   li_active = ' class = "nav-item"'
+   a_active = ' class = "nav-link"'
+end
+print('<li'..li_active..'><a'..a_active..' href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserProtocols">'..i18n("protocols")..'</a></li>\n')
 
-if(page == "UserProtocols") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserProtocols">'..i18n("protocols")..'</a></li>\n')
-
-if(page == "Flows") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flow")..'</a></li>\n')
+if(page == "Flows") then
+   li_active = ' class = "nav-item active"'
+   a_active = ' class = "nav-link active"'
+else
+   li_active = ' class="nav-item"'
+   a_active = ' class = "nav-link"'
+end
+print('<li'..li_active..'><a'..a_active..' href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flow")..'</a></li>\n')
 
 
 print('</ul>\n\t</div>\n\t\t</nav>\n')

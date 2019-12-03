@@ -952,8 +952,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       end
    else
       local function printTab(tab, content, sel_tab)
-         if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
-         print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=callbacks&tab="..tab)
+         if(tab == sel_tab) then print("\t<li class='nav-item active show'>") else print("\t<li class='nav-item'>") end
+         print("<a class='nav-link' href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=callbacks&tab="..tab)
          for param, value in pairs(page_params) do
             print("&"..param.."="..value)
          end
@@ -1151,8 +1151,8 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
       </form>
 
-      <button class="btn btn-secondary" onclick="$('#deleteGlobalAlertConfig').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("show_alerts.delete_config_btn",{conf=firstToUpper(entity_type)})) print[[</button>
-      <button class="btn btn-secondary" onclick="$('#deleteAlertSourceSettings').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(delete_button_msg) print[[</button>
+      <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#deleteGlobalAlertConfig" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("show_alerts.delete_config_btn",{conf=firstToUpper(entity_type)})) print[[</button>
+      <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#deleteAlertSourceSettings" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(delete_button_msg) print[[</button>
       ]]
       end
 
@@ -1221,8 +1221,8 @@ function printAlertTables(entity_type, alert_source, page_name, page_params, alt
    print('<ul class="nav nav-tabs">')
 
    local function printTab(tab, content, sel_tab)
-      if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
-      print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=alerts&tab="..tab)
+      if(tab == sel_tab) then print("\t<li class='nav-item active show'>") else print("\t<li class='nav-item'>") end
+      print("<a class='nav-link' href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=alerts&tab="..tab)
       for param, value in pairs(page_params) do
          print("&"..param.."="..value)
       end
@@ -1674,12 +1674,12 @@ function toggleAlert(disable) {
 	    clicked = "1"
 	 end
 	 print [[
-      <div class="tab-pane fade in" id="tab-]] print(t["div-id"]) print[[">
+      <div class="tab-pane in" id="tab-]] print(t["div-id"]) print[[">
 	<div id="]] print(t["div-id"]) print[["></div>
       </div>
 
       <script type="text/javascript">
-      $("#]] print(nav_tab_id) print[[").append('<li class="]] print(ternary(options.dont_nest_alerts, 'hidden', '')) print[["><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
+      $("#]] print(nav_tab_id) print[[").append('<li class="nav-item ]] print(ternary(options.dont_nest_alerts, 'hidden', '')) print[["><a class="nav-link" href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
       </script>
    ]]
 

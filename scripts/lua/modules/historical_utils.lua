@@ -1474,18 +1474,18 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
 <br>
 <div class="container-fluid" id="historical-flows-container">
   <ul class="nav nav-tabs" role="tablist">
-    <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> ]] print(i18n("db_explorer.summary")) print[[ </a> </li>
+    <li class="nav-item active"> <a class="nav-link active" href="#historical-flows-summary" role="tab" data-toggle="tab"> ]] print(i18n("db_explorer.summary")) print[[ </a> </li>
 ]]
 
-   print '<li id="tab-ipv4-li" style="display: none;"> <a href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
-   print '<li id="tab-ipv6-li" style="display: none;"> <a href="#tab-ipv6" role="tab"> ' print(i18n("ipv6")) print' </a> </li>'
+   print '<li class="nav-item" id="tab-ipv4-li" style="display: none;"> <a class="nav-link" href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
+   print '<li class="nav-item" id="tab-ipv6-li" style="display: none;"> <a class="nav-link" href="#tab-ipv6" role="tab"> ' print(i18n("ipv6")) print' </a> </li>'
 
 print [[
   </ul>
 
   <div class="tab-content">
 
-    <div class="tab-pane fade in active" id="historical-flows-summary">
+    <div class="tab-pane in active" id="historical-flows-summary">
       <br>
       <div class="panel panel-default" id="historical-flows-summary-div">
         <div class="panel-heading"> <h3 class="panel-title">]] print(i18n("flow_search_results")) print[[&nbsp;<span id="results-from-aggregated-flows"></span></h3> </div>
@@ -1517,7 +1517,7 @@ print[[
 ]]
 
    print [[
-    <div class="tab-pane fade" id="tab-ipv4" num_flows=0 ]] print(div_data) print[[>
+    <div class="tab-pane" id="tab-ipv4" num_flows=0 ]] print(div_data) print[[>
       <div id="table-flows4"></div>
 ]] historicalDownloadButtonsBar('flows_v4', 'tab-ipv4',
 				true,
@@ -1526,7 +1526,7 @@ print[[
 ]]
 
    print [[
-    <div class="tab-pane fade" id="tab-ipv6" num_flows=0 ]] print(div_data) print[[>
+    <div class="tab-pane" id="tab-ipv6" num_flows=0 ]] print(div_data) print[[>
       <div id="table-flows6"></div>
 ]] historicalDownloadButtonsBar('flows_v6', 'tab-ipv6',
 				false,

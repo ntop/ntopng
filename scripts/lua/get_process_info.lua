@@ -112,9 +112,9 @@ print [[
    <ul class="nav nav-tabs">
 ]]
 
-print [[<li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("applications")) print[[</a></li> ]]
+print [[<li class="nav-item active"><a class="nav-link active" href="#l7" data-toggle="tab">]] print(i18n("applications")) print[[</a></li> ]]
 
-print [[<li><a href="#l4" data-toggle="tab">]] print(i18n("protocols")) print[[</a></li>]]
+print [[<li class="nav-item"><a class="nav-link" href="#l4" data-toggle="tab">]] print(i18n("protocols")) print[[</a></li>]]
 
 print [[
     </ul>
@@ -260,16 +260,16 @@ end
 for key, value in pairsByKeys(stats["ndpi"], asc) do
    class_active = ''
    if(key == application) then
-      class_active = ' class="active"'
+      class_active = ' active'
    end
 
 
    if (pid_key ~= nil) then
-    print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows&application=' .. key..'">'..key..'</a></li>')
+    print('<li class="nav-item'..class_active..'"><a class="nav-link'..class_active..'" href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows&application=' .. key..'">'..key..'</a></li>')
     end
 
     if (name_key ~= nil) then
-    print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows&application=' .. key..'">'..key..'</a></li>')
+    print('<li class="nav-item'..class_active..'"><a class="nav-link'..class_active..'" href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows&application=' .. key..'">'..key..'</a></li>')
     end
 
 
@@ -381,7 +381,7 @@ print [[
     <ul class="nav nav-tabs">
 ]]
 
-print [[<li class="active"><a href="#topHost" data-toggle="tab">]] print(i18n("processes_stats.top_hosts")) print[[</a></li> ]]
+print [[<li class="nav-item active"><a class="nav-link active" href="#topHost" data-toggle="tab">]] print(i18n("processes_stats.top_hosts")) print[[</a></li> ]]
 
 print [[
     </ul>

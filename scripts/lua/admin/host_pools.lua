@@ -1,5 +1,5 @@
 --
--- (C) 2017-18 - ntop.org
+-- (C) 2017-19 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -262,12 +262,12 @@ local ifstats = interface.getStats()
 print [[
 
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
-    <li><a data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
-    <li><a data-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>
 ]]
 
 if ifstats.has_macs then
-  print[[<li><a data-toggle="tab" role="tab" href="#unassigned">]] print(i18n("unknown_devices.unassigned_devices")) print[[</a></li>]]
+  print[[<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#unassigned">]] print(i18n("unknown_devices.unassigned_devices")) print[[</a></li>]]
 end
 
 print[[

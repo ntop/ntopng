@@ -146,18 +146,18 @@ local tab_delete_active = ""
 
 if((page == "export") or (page == nil)) then
    tab_export_active = " in active"
-   print[[<li class="active"><a data-toggle="tab" href="#export">]] print(i18n("manage_data.export_tab")) print[[</a></li>]]
+   print[[<li class="nav-item active"><a class="nav-link active" data-toggle="tab" href="#export">]] print(i18n("manage_data.export_tab")) print[[</a></li>]]
 else
-   print[[<li><a data-toggle="tab" href="#export">]] print(i18n("manage_data.export_tab")) print[[</a></li>]]
+   print[[<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#export">]] print(i18n("manage_data.export_tab")) print[[</a></li>]]
 end
 
 -- TODO show delete tab also in oem after https://github.com/ntop/ntopng/issues/2258 is fixed
 if isAdministrator() and (not info.oem) then
    if((page == "delete")) then
       tab_delete_active = " in active"
-      print[[<li class="active"><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
+      print[[<li class="nav-item active"><a class="nav-link active" data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
    else
-      print[[<li><a data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
+      print[[<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
    end
 end
 
@@ -169,7 +169,7 @@ print[[</ul>
 
 print [[
 
-  <div id="export" class="tab-pane fade ]]print(tab_export_active) print[[">
+  <div id="export" class="tab-pane ]]print(tab_export_active) print[[">
   <br>
 
 <section class="panel panel-default">
@@ -248,11 +248,11 @@ print [[
 ]]
 
 
-print("</div>") -- closes <div id="export" class="tab-pane fade in active">
+print("</div>") -- closes <div id="export" class="tab-pane in active">
 
 print [[
 
-  <div id="delete" class="tab-pane fade]] print(tab_delete_active) print[[">
+  <div id="delete" class="tab-pane ]] print(tab_delete_active) print[[">
   <br>
 
 <section class="panel panel-default">

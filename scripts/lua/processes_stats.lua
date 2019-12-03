@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -23,8 +23,8 @@ print [[
   <br>
   
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#Overview" data-toggle="tab">]] print(i18n("overview")) print[[</a></li>
-      <li ><a href="#Timeline" data-toggle="tab">]] print(i18n("processes_stats.timeline")) print[[</a></li>
+      <li class="nav-item active"><a class="nav-link active" href="#Overview" data-toggle="tab">]] print(i18n("overview")) print[[</a></li>
+      <li class="nav-item"><a class="nav-link" href="#Timeline" data-toggle="tab">]] print(i18n("processes_stats.timeline")) print[[</a></li>
     </ul>
 
     <!-- Tab content-->

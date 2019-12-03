@@ -399,7 +399,6 @@ print [[
 
 if((page == "overview") or (page == nil)) then
    local tags = {ifid = ifstats.id}
-
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")
    if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
@@ -964,7 +963,7 @@ print[[
     <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
   </ul>
   <div class="tab-content">
-    <div id="applications" class="tab-pane fade in active">
+    <div id="applications" class="tab-pane in active">
       <br>
       <table class="table table-bordered table-striped">
 ]]

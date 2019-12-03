@@ -857,13 +857,13 @@ font-family: Arial, Helvetica, sans-serif;
 
 <div class="container-fluid">
   <ul class="nav nav-tabs" role="tablist" id="historical-tabs-container">
-    <li class="active"> <a href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
+    <li class="nav-item active"> <a class="nav-link active" href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
 ]]
 
 local show_historical_tabs = ntop.getPrefs().is_dump_flows_to_mysql_enabled and options.show_historical
 
 if show_historical_tabs then
-   print('<li><a href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
+   print('<li class="nav-item"><a class="nav-link" href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
 end
 
 print[[
@@ -871,7 +871,7 @@ print[[
 
 
   <div class="tab-content">
-    <div class="tab-pane fade active in" id="historical-tab-chart">
+    <div class="tab-pane active in" id="historical-tab-chart">
 
 <br>
 <table border=0>
@@ -1031,7 +1031,7 @@ if show_historical_tabs then
    local l7proto = tags.protocol or ""
    local k2info = hostkey2hostinfo(host)
 
-   print('<div class="tab-pane fade" id="historical-flows">')
+   print('<div class="tab-pane" id="historical-flows">')
    if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
       -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
       historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, l7proto, '', '', '', k2info["vlan"])

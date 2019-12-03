@@ -1176,11 +1176,11 @@ elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
       print [[
   <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
-    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
-    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
+    <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
   </ul>
   <div class="tab-content">
-    <div id="applications" class="tab-pane fade in active">
+    <div id="applications" class="tab-pane in active">
       <br>
   <table class="table table-bordered table-striped">]]
 

@@ -60,16 +60,16 @@ if (_GET["page"] ~= "historical") then
       print [[
 <div class="container-fluid">
   <ul class="nav nav-tabs">
-    <li class="active"><a data-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
+    <li class="nav-item" class="active"><a class="nav-link active" data-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
 ]]
 
       if(asn ~= "0") then
 	 print [[
-    <li><a data-toggle="tab" href="#asinfo">]] print(i18n("hosts_stats.as_info")) print[[</a></li>
-    <li><a data-toggle="tab" href="#aspath">]] print(i18n("hosts_stats.as_path")) print[[</a></li>
-    <li><a data-toggle="tab" href="#geoloc">]] print(i18n("hosts_stats.as_geolocation")) print[[</a></li>
-    <li><a data-toggle="tab" href="#prefix">]] print(i18n("hosts_stats.as_prefixes")) print[[</a></li>
-    <li><a data-toggle="tab" href="#bgp">]] print(i18n("hosts_stats.bgp_updates")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#asinfo">]] print(i18n("hosts_stats.as_info")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#aspath">]] print(i18n("hosts_stats.as_path")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#geoloc">]] print(i18n("hosts_stats.as_geolocation")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#prefix">]] print(i18n("hosts_stats.as_prefixes")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#bgp">]] print(i18n("hosts_stats.bgp_updates")) print[[</a></li>
 ]]
       end
    end
@@ -79,7 +79,7 @@ if (_GET["page"] ~= "historical") then
    if(asn ~= nil) then
       print [[
   <div class="tab-content">
-<div id="home" class="tab-pane fade in active">
+<div id="home" class="tab-pane in active">
 ]]
    end
 
@@ -568,11 +568,11 @@ if (_GET["page"] ~= "historical") then
 
 <script src="/js/ripe_widget_api.js"></script>
 
-<div id="asinfo" class="tab-pane fade"></div>
-<div id="aspath" class="tab-pane fade"></div>
-<div id="geoloc" class="tab-pane fade"></div>
-<div id="prefix" class="tab-pane fade"></div>
-<div id="bgp" class="tab-pane fade"></div>
+<div id="asinfo" class="tab-pane"></div>
+<div id="aspath" class="tab-pane"></div>
+<div id="geoloc" class="tab-pane"></div>
+<div id="prefix" class="tab-pane"></div>
+<div id="bgp" class="tab-pane"></div>
 
 </div>
 
