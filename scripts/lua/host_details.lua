@@ -222,8 +222,8 @@ else
       title = title.." <i class='fa fa-flash' aria-hidden='true' title='DHCP Host'></i>"
    end
 
-local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
-local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
+local url = ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(host_info)
+local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(host["mac"])
 
    page_utils.print_navbar(title, url,
 			   {
