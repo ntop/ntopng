@@ -74,6 +74,8 @@ function page_utils.print_header(title)
 ]]
 end
 
+-- #################################
+
 function page_utils.print_header_minimal(title)
   local http_prefix = ntop.getHttpPrefix()
 
@@ -110,6 +112,42 @@ function page_utils.print_header_minimal(title)
 <body>
 
   <div class="container-narrow">
+]]
+end
+
+-- #################################
+
+function page_utils.print_navbar(title, base_url, items_table)
+   print[[
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">]] print(title) print[[</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">]]
+
+   for _, item in ipairs(items_table) do
+      if not item["hidden"] then
+	 local badge = ''
+	 if tonumber(item["badge_num"]) and tonumber(item["badge_num"]) > 0 then
+	    badge = string.format(' <span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">%u</span>', tonumber(item["badge_num"]))
+
+	 end
+
+	 if item["active"] then
+	    print(string.format("<li class=\"nav-item active\">%s<a class=\"nav-link active\" href=\"#\">%s</a></li>", badge, item["label"]))
+	 else
+	    print(string.format("<li class=\"nav-item\">%s<a class=\"nav-link\" href=\"%s&page=%s\">%s</a></li>", badge, base_url, item["page_name"], item["label"]))
+	 end
+      end
+   end
+   print[[
+    </ul>
+  </div>
+</nav>
+
 ]]
 end
 

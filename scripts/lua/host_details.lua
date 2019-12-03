@@ -206,279 +206,149 @@ else
      host["name"] = host["label"]
    end
 
-      print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-warning"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
-print [[
-              <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                  <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse" id="navbarNav">
-                  <ul class="navbar-nav">
-]]
-if((debug_hosts) and (host["ip"] ~= nil)) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_host_ip",{hostip=host["ip"],vlan=host["vlan"]}).."\n") end
-url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
-if _GET["tskey"] ~= nil then
-   url = url .. "&tskey=" .. _GET["tskey"]
-end
+   print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-warning"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
 
-print("<li class=\"nav-item\"><a class=\"nav-link\" href=\"#\">"..i18n("host_details.host")..": "..host_info["host"])
-if host["broadcast_domain_host"] then
-  print(" <i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>")
-end
-
-if(host.dhcpHost) then
-   print(" <i class='fa fa-flash fa-lg' aria-hidden='true' title='DHCP Host'></i>")
-end
-
---[[
-local tskey = _GET["tskey"] or host["tskey"]
-
-if tskey ~= hostkey_compact then
-   -- Print the tskey
-   print(string.format(" [LBD: %s]", visualTsKey(tskey)))
-end
-]]
-
-print("</A> </li>")
-
-if not only_historical then
-if((page == "overview") or (page == nil)) then
-   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
-else
-   print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
-end
-
-if(page == "traffic") then
-   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">".. i18n("traffic") .. "</a></li>\n")
-else
-   if(host["ip"] ~= nil) then
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=traffic\">" .. i18n("traffic") .. "</a></li>")
-   end
-end
-
-  if((host["packets.sent"] + host["packets.rcvd"]) > 0) then
-if(page == "packets") then
-   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">" .. i18n("packets") .. "</a></li>\n")
-elseif not have_nedge then
-   if((host["ip"] ~= nil) and (
-   	(host["udp.packets.sent"] > 0)
-	or (host["udp.packets.rcvd"] > 0)
-   	or (host["tcp.packets.sent"] > 0)
-	or (host["tcp.packets.rcvd"] > 0))) then
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
-   end
-end
-end
-
-if(page == "ports") then
-   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">" .. i18n("ports") .. "</a></li>\n")
-else
-   if(host["ip"] ~= nil) then
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=ports\">" .. i18n("ports") .. "</a></li>")
-   end
-end
-
-if(not(isLoopback(ifname))) then
-   if(page == "peers") then
-      print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">" .. i18n("peers") .. "</a></li>\n")
-   else
-      if(host["ip"] ~= nil) then
-	 print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=peers\">" .. i18n("peers") .. "</a></li>")
-      end
-   end
-end
-
-if((host["ICMPv4"] ~= nil) or (host["ICMPv6"] ~= nil)) then
-   if(page == "ICMP") then
-      print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("icmp").."</a></li>\n")
-   else
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=ICMP\">"..i18n("icmp").."</a></li>")
-   end
-end
-
-if(page == "ndpi") then
-  direction = _GET["direction"]
-  print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">" .. i18n("applications") .."</a></li>\n")
-else
-   if(host["ip"] ~= nil) then
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=ndpi\">" .. i18n("applications") .. "</a></li>")
-   end
-end
-
-if(page == "dns") then
-  print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("dns").."</a></li>\n")
-else
-   if((host["dns"] ~= nil)
-   and ((host["dns"]["sent"]["num_queries"]+host["dns"]["rcvd"]["num_queries"]) > 0)) then
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=dns\">"..i18n("dns").."</a></li>")
-   end
-end
-
-if(host["ja3_fingerprint"] ~= nil) then
-   if(page == "tls") then
-   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("tls").."</a></li>\n")
-   else
-      if(table.len(host["ja3_fingerprint"]) > 0) then
-        print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=tls\">"..i18n("tls").."</a></li>")
-      end
-   end
-end
-
-if(host["hassh_fingerprint"] ~= nil) then
-   if(page == "ssh") then
-   print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("ssh").."</a></li>\n")
-   else
-      if(table.len(host["hassh_fingerprint"]) > 0) then
-        print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=ssh\">"..i18n("ssh").."</a></li>")
-      end
-   end
-end
-
-http = host["http"]
-
-if(page == "http") then
-  print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("http").."</a>")
-else
-   if((http ~= nil)
-      and ((http["sender"]["query"]["total"] + http["receiver"]["response"]["total"] + table.len(http["virtual_hosts"])) > 0)) then
-      print("<li class=\"nav-item\">")
-      if(host["active_http_hosts"] > 0) then print(' <span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">'.. host["active_http_hosts"] .."</span>") end
-      print("<a class=\"nav-link\" href=\""..url.."&page=http\">"..i18n("http").."</a>")
-   end
-end
-
-print("</li>\n")
-
-if(page == "flows") then
-  print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("flows").."</a></li>\n")
-else
-   if(host["ip"] ~= nil) then
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=flows\">"..i18n("flows").."</a></li>")
-   end
-end
-
-if host["localhost"] == true then
-   if not isEmptyString(host["sites"]) then
-      top_sites = json.decode(host["sites"]) or {}
-   end
-   if not isEmptyString(host["sites.old"]) then
-      top_sites_old = json.decode(host["sites.old"]) or {}
+   local url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
+   if _GET["tskey"] ~= nil then
+      url = url .. "&tskey=" .. _GET["tskey"]
    end
 
-   if not prefs.are_top_talkers_enabled or table.len(top_sites) > 0 or table.len(top_sites_old) > 0 then
-      if(page == "sites") then
-	 print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("sites_page.sites").."</a></li>\n")
-      else
-	 if(host["ip"] ~= nil) then
-	    print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=sites\">"..i18n("sites_page.sites").."</a></li>")
-	 end
-      end
+   local title = i18n("host_details.host")..": "..host_info["host"]
+   if host["broadcast_domain_host"] then
+      title = title.." <i class='fa fa-sitemap' aria-hidden='true' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
    end
 
-   if ntop.isEnterprise() and isAllowedSystemInterface() then
-      if(page == "snmp") then
-	 print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
-      else
-	 print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
-      end
-   end
-end
-
-if host.systemhost then
-   if interface.hasEBPF() then
-      if(page == "processes") then
-	 print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("user_info.processes").."</a></li>\n")
-      else
-	 print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=processes\">"..i18n("user_info.processes").."</a></li>")
-      end
-   end
-end
-
-if(not(isLoopback(ifname))) then
-   if(host.has_dropbox_shares == true) then
-      local dropbox = require("dropbox_utils")
-      local namespaces = dropbox.getHostNamespaces(host.ip)
-
-      if(table.len(namespaces) > 0) then
-	 if(page == "dropbox") then
-	    print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class='fa fa-dropbox fa-lg'></i></a></li>\n")
-	 else
-	    print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=dropbox\"><i class='fa fa-dropbox fa-lg'></i></a></li>")
-	 end
-      end
+   if host.dhcpHost then
+      title = title.." <i class='fa fa-flash fa-lg' aria-hidden='true' title='DHCP Host'></i>"
    end
 
-   if not host.privatehost then
-      if(page == "geomap") then
-	 print("<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
-      else
-	 if(host["ip"] ~= nil) then
-	    print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=geomap\"><i class='fa fa-globe fa-lg'></i></a></li>")
-	 end
-      end
-   end
-end
-
-end -- not only_historical
-
-if areAlertsEnabled() then
-   if(page == "alerts") then
-      print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
-   elseif interface.isPcapDumpInterface() == false then
-      print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
-   end
-end
-
-if((page == "historical") or ts_utils.exists("host:traffic", {ifid = ifId, host = tskey})) or interfaceHasNindexSupport() then
-   if(page == "historical") then
-     print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
-   else
-     print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-   end
-end
-
-if not only_historical and not is_pcap_dump then
-   if host["localhost"] and ts_utils.getDriverName() == "rrd" then
-      if ntop.isEnterprise() or ntop.isnEdge() then
-	 if(page == "traffic_report") then
-	    print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
-	 else
-	    print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
-	 end
-      else
-	 print("\n<li><a class=\"nav-link\" href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
-      end
-   end
-
-if ntop.isEnterprise() and ifstats.inline and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
-  if page == "quotas" then
-    print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\">"..i18n("quotas").."</a></li>\n")
-  else
-    print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=quotas\">"..i18n("quotas").."</a></li>\n")
-  end
-end
-
-end -- not only_historical
-
-if(isAdministrator()) then
-   if(page == "config") then
-      print("\n<li class=\"nav-item\" class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-   elseif interface.isPcapDumpInterface() == false then
-      print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
-   end
-   if not interface.isPcapDumpInterface() then
-      if(page == "callbacks") then
-         print("\n<li class=\"nav-item active\"><a class=\"nav-link active\" href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
-      else
-         print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
-      end
-   end
-end
+   page_utils.print_navbar(title, url,
+			   {
+			      {
+				 hidden = only_historical,
+				 active = page == "overview" or page == nil,
+				 page_name = "overview",
+				 label = "<i class=\"fa fa-home fa-lg\"></i>",
+			      },
+			      {
+				 hidden = only_historical,
+				 active = page == "traffic",
+				 page_name = "traffic",
+				 label = i18n("traffic"),
+			      },
+			      {
+				 hidden = only_historical or (host["packets.sent"] + host["packets.rcvd"] == 0),
+				 active = page == "packets",
+				 page_name = "packets",
+				 label = i18n("packets"),
+			      },
+			      {
+				 hidden = only_historical,
+				 active = page == "ports",
+				 page_name = "ports",
+				 label = i18n("ports"),
+			      },
+			      {
+				 hidden = only_historical or isLoopback(ifname),
+				 active = page == "peers",
+				 page_name = "peers",
+				 label = i18n("peers"),
+			      },
+			      {
+				 hidden = only_historical or (not host["ICMPv4"] and not host["ICMPv6"]),
+				 active = page == "ICMP",
+				 page_name = "ICMP",
+				 label = i18n("icmp"),
+			      },
+			      {
+				 hidden = only_historical,
+				 active = page == "ndpi",
+				 page_name = "ndpi",
+				 label = i18n("applications"),
+			      },
+			      {
+				 hidden = only_historical,
+				 active = page == "dns",
+				 page_name = "dns",
+				 label = i18n("dns"),
+			      },
+			      {
+				 hidden = only_historical or not host["ja3_fingerprint"],
+				 active = page == "tls",
+				 page_name = "tls",
+				 label = i18n("tls"),
+			      },
+			      {
+				 hidden = only_historical or not host["hassh_fingerprint"],
+				 active = page == "ssh",
+				 page_name = "ssh",
+				 label = i18n("ssh"),
+			      },
+			      {
+				 hidden = only_historical or not host["http"],
+				 active = page == "http",
+				 page_name = "http",
+				 label = i18n("http"),
+				 badge_num = host["active_http_hosts"],
+			      },
+			      {
+				 hidden = only_historical,
+				 active = page == "flows",
+				 page_name = "flows",
+				 label = i18n("flows"),
+			      },
+			      {
+				 hidden = only_historical or not host["localhost"],
+				 active = page == "sites",
+				 page_name = "sites",
+				 label = i18n("sites_page.sites"),
+			      },
+			      {
+				 hidden = only_historical or not host["systemhost"] or not interface.hasEBPF(),
+				 active = page == "processes",
+				 page_name = "processes",
+				 label = i18n("user_info.processes"),
+			      },
+			      {
+				 hidden = only_historical or isLoopback(ifname) or not host["has_dropbox_shares"],
+				 active = page == "dropbox",
+				 page_name = "dropbox",
+				 label = "<i class='fa fa-dropbox fa-lg'></i>",
+			      },
+			      {
+				 hidden = only_historical or host["privatehost"],
+				 active = page == "geomap",
+				 page_name = "geomap",
+				 label = "<i class='fa fa-globe fa-lg'></i>",
+			      },
+			      {
+				 hidden = only_historical or is_pcap_dump or not host["localhost"] or not ts_utils.getDriverName() == "rrd",
+				 active = page == "traffic_report",
+				 page_name = "traffic_report",
+				 label = "<i class='fa fa-file-text report-icon'></i>",
+			      },
+			      {
+				 hidden = only_historical or not ntop.isEnterprise() or not ifstats.inline or not host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID,
+				 active = page == "quotas",
+				 page_name = "quotas",
+				 label = i18n("quotas"),
+			      },
+			      {
+				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
+				 active = page == "config",
+				 page_name = "config",
+				 label = "<i class=\"fa fa-cog fa-lg\"></i></a></li>",
+			      },
+			      {
+				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
+				 active = page == "callbacks",
+				 page_name = "callbacks",
+				 label = "<i class=\"fa fa-superpowers fa-lg\"></i>",
+			      },
+			   }
+   )
 
 print [[
-</ul>
-</div>
-</nav>
 </div>
    ]]
 
