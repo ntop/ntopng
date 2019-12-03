@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -40,50 +40,32 @@ end
 
 system_schemas = system_scripts.getAdditionalTimeseries("rtt")
 
-print [[
-  <nav class="navbar navbar-default" role="navigation">
-  <div class="navbar-collapse collapse">
-    <ul class="nav navbar-nav">
-]]
-
-print("<li><a href=\"#\">" .. i18n("graphs.rtt"))
+local title = i18n("graphs.rtt")
 if host ~= nil then
-  print(": " .. rtt_utils.key2label(host))
-end
-print("</a></li>\n")
-
-if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
-else
-   print("<li><a href=\"".. ntop.getHttpPrefix() .."/lua/system/rtt_stats.lua\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
+   title = title..": " .. rtt_utils.key2label(host)
 end
 
-if((host ~= nil) and ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host = host})) then
-  if(page == "historical") then
-    print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-  else
-    print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-  end
-end
-
-if(isAdministrator() and system_scripts.hasAlerts({entity = alert_consts.alertEntity("pinged_host")})) then
-   if(page == "alerts") then
-      print("\n<li class=\"active\"><a href=\"#\">")
-   else
-      print("\n<li><a href=\""..url.."&page=alerts\">")
-   end
-
-   print("<i class=\"fa fa-warning fa-lg\"></i></a>")
-   print("</li>")
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-
-   ]]
+page_utils.print_navbar(title, url,
+			{
+			   {
+			      active = page == "overview" or not page,
+			      page_name = "overview",
+			      label = "<i class=\"fa fa-home\"></i>",
+			   },
+			   {
+			      hidden = not host or not ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host = host}),
+			      active = page == "historical",
+			      page_name = "historical",
+			      label = "<i class='fa fa-area-chart'></i>",
+			   },
+			   {
+			      hidden = not isAdministrator() or not system_scripts.hasAlerts({entity = alert_consts.alertEntity("pinged_host")}),
+			      active = page == "alerts",
+			      page_name = "alerts",
+			      label = "<i class=\"fa fa-warning\"></i>",
+			   },
+			}
+)
 
 -- #######################################################
 
@@ -95,28 +77,28 @@ if(page == "overview") then
 
       -- process arguments
       for _, host_line in pairs(rtt_hosts_args) do
-        local parts = string.split(host_line, "|")
-        local key = table.remove(parts, 1)
-        local old_host = table.remove(parts, 1)
-        local value = table.concat(parts, "|")
+	local parts = string.split(host_line, "|")
+	local key = table.remove(parts, 1)
+	local old_host = table.remove(parts, 1)
+	local value = table.concat(parts, "|")
 
-        rtt_hosts[key] = {old_host, value}
+	rtt_hosts[key] = {old_host, value}
       end
 
       -- Delete changed
       for host, value in pairs(rtt_hosts) do
-        local old_host = value[1]
+	local old_host = value[1]
 
-        if((not isEmptyString(old_host)) and (host ~= old_host)) then
-          rtt_utils.removeHost(old_host)
-        end
+	if((not isEmptyString(old_host)) and (host ~= old_host)) then
+	  rtt_utils.removeHost(old_host)
+	end
       end
 
       -- Add new
       for host, value in pairs(rtt_hosts) do
-        local conf = value[2]
+	local conf = value[2]
 
-        rtt_utils.addHost(host, conf)
+	rtt_utils.addHost(host, conf)
       end
     elseif((_POST["action"] == "delete") and (_POST["rtt_host"] ~= nil)) then
       rtt_utils.removeHost(_POST["rtt_host"])
@@ -126,11 +108,11 @@ if(page == "overview") then
   print(
     template.gen("modal_confirm_dialog.html", {
       dialog={
-        id      = "delete_host_dialog",
-        action  = "deleteRttHost()",
-        title   = i18n("system_stats.delete_rtt_host"),
-        message = i18n("system_stats.delete_rtt_confirm", {host="<span id=\"host-to-delete\"></span>"}),
-        confirm = i18n("delete"),
+	id      = "delete_host_dialog",
+	action  = "deleteRttHost()",
+	title   = i18n("system_stats.delete_rtt_host"),
+	message = i18n("system_stats.delete_rtt_confirm", {host="<span id=\"host-to-delete\"></span>"}),
+	confirm = i18n("delete"),
       }
     })
   )
@@ -147,7 +129,7 @@ if(page == "overview") then
     var action_field_idx = 9;
 
 	 $("#table-hosts").datatable({
-	 	url: "]]
+		url: "]]
   print (getPageUrl(ntop.getHttpPrefix().."/lua/get_rtt_hosts.lua", {rtt_host = host}))
       print[[",
       title: "",
@@ -155,109 +137,109 @@ if(page == "overview") then
       buttons: [
       ]]
       if isAdministrator() then
-        print[['<a id="addRowBtn" onclick="addRow()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>']]
+	print[['<a id="addRowBtn" onclick="addRow()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>']]
       end
       print[[
       ],
-	 	showPagination: true,]]
+		showPagination: true,]]
 
       local preference = tablePreferences("rows_number", _GET["perPage"])
       if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
     print[[
- 	columns: [
-        {
-          title: "]] print(i18n("traffic_profiles.host_traffic")) print[[",
-          field: "column_host",
-          sortable: false,
-          css: {
+	columns: [
+	{
+	  title: "]] print(i18n("traffic_profiles.host_traffic")) print[[",
+	  field: "column_host",
+	  sortable: false,
+	  css: {
 
-            width: "20%",
-          }
-        }, {
-          title: "]] print(i18n("chart")) print[[",
-          field: "column_chart",
-          hidden: ]] if not ts_creation then print("true") else print("false") end print[[,
-          sortable: false,
-          css: {
-            textAlign: 'center',
-            width: "5%",
-          }
-        }, {
-          title: "]] print(i18n("flows_page.ip_version")) print[[",
-          field: "column_iptype",
-          sortable: false,
-          css: {
-            textAlign: 'center',
-            width: "10%",
-          }
-        }, {
-          title: "]] print(i18n("system_stats.probe")) print[[",
-          field: "column_probetype",
-          sortable: false,
-          css: {
-            textAlign: 'center',
-            width: "10%",
-          }
-        }, {
-          title: "]] print(i18n("system_stats.max_rtt")) print[[",
-          field: "column_max_rrt",
-          sortable: false,
-          css: {
-            textAlign: 'center',
+	    width: "20%",
+	  }
+	}, {
+	  title: "]] print(i18n("chart")) print[[",
+	  field: "column_chart",
+	  hidden: ]] if not ts_creation then print("true") else print("false") end print[[,
+	  sortable: false,
+	  css: {
+	    textAlign: 'center',
+	    width: "5%",
+	  }
+	}, {
+	  title: "]] print(i18n("flows_page.ip_version")) print[[",
+	  field: "column_iptype",
+	  sortable: false,
+	  css: {
+	    textAlign: 'center',
+	    width: "10%",
+	  }
+	}, {
+	  title: "]] print(i18n("system_stats.probe")) print[[",
+	  field: "column_probetype",
+	  sortable: false,
+	  css: {
+	    textAlign: 'center',
+	    width: "10%",
+	  }
+	}, {
+	  title: "]] print(i18n("system_stats.max_rtt")) print[[",
+	  field: "column_max_rrt",
+	  sortable: false,
+	  css: {
+	    textAlign: 'center',
 
-          }
-        }, {
-          title: "]] print(i18n("system_stats.last_rtt")) print[[",
-          field: "column_last_rrt",
-          sortable: false,
-          css: {
-            textAlign: 'center',
-            width: "10%",
-          }
-        }, {
-          title: "]] print(i18n("system_stats.last_ip")) print[[",
-          field: "column_last_ip",
-          sortable: false,
-          css: {
-            textAlign: 'center',
-            width: "10%",
-          }
-        }, {
-          title: "]] print(i18n("category_lists.last_update")) print[[",
-          field: "column_last_update",
-          sortable: false,
-          css: {
-            textAlign: 'center',
-            width: "10%",
-          }
-        }, {
-          title: "]] print(i18n("actions")) print[[",
-          field: "column_actions",
-          hidden: ]] print(tostring(not isAdministrator())) print[[,
-          css: {
-            textAlign: 'center',
-            width: "10%",
-          }
-        }, {
-          field: "column_key",
-          hidden: true,
-        }
+	  }
+	}, {
+	  title: "]] print(i18n("system_stats.last_rtt")) print[[",
+	  field: "column_last_rrt",
+	  sortable: false,
+	  css: {
+	    textAlign: 'center',
+	    width: "10%",
+	  }
+	}, {
+	  title: "]] print(i18n("system_stats.last_ip")) print[[",
+	  field: "column_last_ip",
+	  sortable: false,
+	  css: {
+	    textAlign: 'center',
+	    width: "10%",
+	  }
+	}, {
+	  title: "]] print(i18n("category_lists.last_update")) print[[",
+	  field: "column_last_update",
+	  sortable: false,
+	  css: {
+	    textAlign: 'center',
+	    width: "10%",
+	  }
+	}, {
+	  title: "]] print(i18n("actions")) print[[",
+	  field: "column_actions",
+	  hidden: ]] print(tostring(not isAdministrator())) print[[,
+	  css: {
+	    textAlign: 'center',
+	    width: "10%",
+	  }
+	}, {
+	  field: "column_key",
+	  hidden: true,
+	}
 		],
     tableCallback: function() {
-        if(datatableIsEmpty("#table-hosts")) {
-          datatableAddEmptyRow("#table-hosts", "]] print(i18n("system_stats.no_hosts_configured")) print[[");
-        } else {
-          datatableForEachRow("#table-hosts", function() {
-            var host = $(this).find("td:eq(0)").html();
-            var key = $(this).find("td:eq("+ key_field_idx +")").html();
-            addInputFields($(this));
+	if(datatableIsEmpty("#table-hosts")) {
+	  datatableAddEmptyRow("#table-hosts", "]] print(i18n("system_stats.no_hosts_configured")) print[[");
+	} else {
+	  datatableForEachRow("#table-hosts", function() {
+	    var host = $(this).find("td:eq(0)").html();
+	    var key = $(this).find("td:eq("+ key_field_idx +")").html();
+	    addInputFields($(this));
 
-            datatableAddDeleteButtonCallback.bind(this)(action_field_idx, "elem_to_delete = '" + key + "'; $('#host-to-delete').html('" + host + "'); $('#delete_host_dialog').modal('show');", "]] print(i18n('delete')) print[[");
-          });
-        }
+	    datatableAddDeleteButtonCallback.bind(this)(action_field_idx, "elem_to_delete = '" + key + "'; $('#host-to-delete').html('" + host + "'); $('#delete_host_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+	  });
+	}
 
-        aysResetForm('#table-hosts-form');
+	aysResetForm('#table-hosts-form');
       }
   });
 
@@ -289,8 +271,8 @@ if(page == "overview") then
 
     $(arr).each(function() {
       sel.append($("<option>").attr('value',this.val)
-        .text(this.text)
-        .prop('selected', this.val == value));
+	.text(this.text)
+	.prop('selected', this.val == value));
     });
   }
 
@@ -374,7 +356,7 @@ if(page == "overview") then
       var row = $(this);
 
       if(!row.attr("data-skip"))
-        rtt_hosts.push(rowToData(row));
+	rtt_hosts.push(rowToData(row));
     });
 
     // Reset the form to avoid form change messages

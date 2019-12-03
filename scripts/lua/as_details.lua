@@ -46,26 +46,26 @@ if isEmptyString(asn) then
 end
 
 --[[
-Create Menu Bar with buttons
+   Create Menu Bar with buttons
 --]]
 local nav_url = ntop.getHttpPrefix().."/lua/as_details.lua?asn="..tonumber(asn)
 
 local title = i18n("as_details.as") .. ": "..label
 
-   page_utils.print_navbar(title, nav_url,
+page_utils.print_navbar(title, nav_url,
+			{
 			   {
-			      {
-				 active = page == "flows" or not page,
-				 page_name = "flows",
-				 label = i18n("flows"),
-			      },
-			      {
-				 active = page == "historical",
-				 page_name = "historical",
-				 label = "<i class='fa fa-area-chart'></i>",
-			      },
-			   }
-   )
+			      active = page == "flows" or not page,
+			      page_name = "flows",
+			      label = i18n("flows"),
+			   },
+			   {
+			      active = page == "historical",
+			      page_name = "historical",
+			      label = "<i class='fa fa-area-chart'></i>",
+			   },
+			}
+)
 
 if isEmptyString(page) or page == "historical" then   
    local default_schema = "asn:traffic"

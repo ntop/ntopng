@@ -32,54 +32,28 @@ local page = _GET["page"] or "overview"
 local url = system_scripts.getPageScriptPath(probe) .. "?ifid=" .. getInterfaceId(ifname)
 system_schemas = system_scripts.getAdditionalTimeseries("redis")
 
-print [[
-  <nav class="navbar navbar-default" role="navigation">
-  <div class="navbar-collapse collapse">
-    <ul class="nav navbar-nav">
-]]
+local title = "Redis"
 
-print("<li><a href=\"#\">" .. "Redis" .. "</a></li>\n")
-
-if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
-else
-   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
-end
-
-if((page == "stats") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>\n")
-else
-   print("<li><a href=\""..url.."&page=stats\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>")
-end
-
-if ts_creation then
-   if(page == "historical") then
-      print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-   else
-      print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-   end
-end
-
-if isAdministrator()
--- and system_scripts.hasAlerts({entity = alert_consts.alertEntity("redis")}))
-then
-   -- if(page == "alerts") then
-   --    print("\n<li class=\"active\"><a href=\"#\">")
-   -- else
-   --    print("\n<li><a href=\""..url.."&page=alerts\">")
-   -- end
-
-   -- print("<i class=\"fa fa-warning fa-lg\"></i></a>")
-   -- print("</li>")
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-
-   ]]
+page_utils.print_navbar(title, url,
+			{
+			   {
+			      active = page == "overview" or not page,
+			      page_name = "overview",
+			      label = "<i class=\"fa fa-home\"></i>",
+			   },
+			   {
+			      active = page == "stats",
+			      page_name = "stats",
+			      label = "<i class=\"fa fa-wrench\"></i>",
+			   },
+			   {
+			      hidden = not ts_creation,
+			      active = page == "historical",
+			      page_name = "historical",
+			      label = "<i class='fa fa-area-chart'></i>",
+			   },
+			}
+)
 
 -- #######################################################
 
