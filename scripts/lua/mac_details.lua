@@ -102,70 +102,54 @@ local mac_info = interface.getMacInfo(mac)
 local only_historical = (mac_info == nil) and (page == "historical")
 
 if(mac_info == nil) and not only_historical then
-      print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
-      print("</div>")
-      dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
-      return
+   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
+   print("</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
-print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button>
-              <div class="navbar-collapse collapse" id="navbarNav">
-              <ul class="navbar-nav">
-]]
+local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
+local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
+local title = i18n("mac_details.mac")..": "..mac
 
-print("<li class=\"nav-item\"><a class=\"nav-link\" href=\"#\">"..i18n("mac_details.mac")..": "..mac.."</A> </li>")
 
 local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
 local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
 
-if not only_historical then
-if((page == "overview") or (page == nil)) then
-   print("<li class=\"nav-item active\"><a class=\"nav-link\" href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
-else
-   print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
-end
-
-if((mac_info ~= nil) and (not have_nedge) and
-            (mac_info["packets.sent"] > 0 or mac_info["packets.rcvd"] > 0)) then
-   if(page == "packets") then
-      print("<li class=\"nav-item active\"><a class=\"nav-link\" href=\"#\">" .. i18n("packets") .. "</a></li>\n")
-   else
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
-   end
-end
-
-if has_snmp_location then
-   if(page == "snmp") then
-	 print("<li class=\"nav-item active\"><a class=\"nav-link\" href=\"#\">"..i18n("host_details.snmp").."</a></li>\n")
-      else
-	 print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=snmp\">"..i18n("host_details.snmp").."</a></li>")
-   end
-end
-
-end -- not only_historical
-
-if(ts_utils.exists("mac:traffic", {ifid=ifId, mac=devicekey})) then
-   if(page == "historical") then
-     print("\n<li class=\"nav-item active\"><a class=\"nav-link\" href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
-   else
-      print("\n<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-   end
-end
-
-if not only_historical then
-if(page == "config") then
-   print("<li class=\"nav-item active\"><a class=\"nav-link\" href=\"#\"><i class=\"fa fa-cog fa-lg\"></i>\n")
-elseif isAdministrator() then
-   print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i>\n")
-end
-end -- only_historical
-
-print("<li class=\"nav-item\"><a class=\"nav-link\" href='javascript:history.go(-1)'><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
+page_utils.print_navbar(title, url,
+			{
+			   {
+			      hidden = only_historical,
+			      active = page == "overview" or page == nil,
+			      page_name = "overview",
+			      label = "<i class=\"fa fa-home fa-lg\"></i>",
+			   },
+			   {
+			      hidden = only_historical or (mac_info["packets.sent"] + mac_info["packets.rcvd"] == 0),
+			      active = page == "packets",
+			      page_name = "packets",
+			      label = i18n("packets"),
+			   },
+			   {
+			      hidden = not has_snmp_location,
+			      active = page == "snmp",
+			      page_name = "snmp",
+			      label = i18n("host_details.snmp"),
+			   },
+			   {
+			      hidden = not ts_utils.exists("mac:traffic", {ifid=ifId, mac = devicekey}),
+			      active = page == "historical",
+			      page_name = "historical",
+			      label = "<i class='fa fa-area-chart'></i>",
+			   },
+			   {
+			      hidden = not isAdministrator() or interface.isPcapDumpInterface(),
+			      active = page == "config",
+			      page_name = "config",
+			      label = "<i class=\"fa fa-cog fa-lg\"></i></a></li>",
+			   },
+			}
+)
 
 if((page == "overview") or (page == nil)) then
 
