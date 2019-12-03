@@ -269,10 +269,10 @@ function internals_utils.printInternals(ifid)
 
    print[[
 <ul class="nav nav-tabs" role="tablist">
-  <li ]] if tab == "hash_tables" then print[[class="active"]] end print[[>
-    <a href="?page=internals&tab=hash_tables]] print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>
-  <li ]] if tab == "periodic_activities" then print[[class="active"]] end print[[>
-    <a href="?page=internals&tab=periodic_activities"]] print[[">]] print(i18n("internals.periodic_activities")) print[[</a>
+  <li class="nav-item ]] if tab == "hash_tables" then print[[active]] end print[[">
+    <a class="nav-link ]] if tab == "hash_tables" then print[[active]] end print[[" href="?page=internals&tab=hash_tables]] print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>
+  <li class="nav-item ]] if tab == "periodic_activities" then print[[active]] end print[[">
+    <a class="nav-link ]] if tab == "periodic_activities" then print[[active]] end print[[" href="?page=internals&tab=periodic_activities"]] print[[">]] print(i18n("internals.periodic_activities")) print[[</a>
   </li>
 </ul>
 

@@ -173,82 +173,6 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print(msg)
 
-url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
-
---  Added global javascript variable, in order to disable the refresh of pie chart in case
---  of historical interface
-print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000; /* ms */;</script>\n')
-
-print [[
-  <nav class="navbar navbar-default" role="navigation">
-  <div class="navbar-collapse collapse">
-    <ul class="nav navbar-nav">
-]]
-
-local short_name = getHumanReadableInterfaceName(ifname)
-
-print("<li><a href=\"#\">" .. i18n("interface") .. ": " .. short_name .."</a></li>\n")
-
-if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
-else
-   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
-end
-
-if interface.isPacketInterface() then
-   if(page == "networks") then
-      print("<li class=\"active\"><a href=\"#\">" .. i18n("networks") .. "</a></li>\n")
-   else
-      print("<li><a href=\""..url.."&page=networks\">" .. i18n("networks") .. "</a></li>")
-   end
-end
-
--- Disable Packets and Protocols tab in case of the number of packets is equal to 0
-if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
-   if(page == "packets") then
-      print("<li class=\"active\"><a href=\"#\">" .. i18n("packets") .. "</a></li>\n")
-   else
-      print("<li><a href=\""..url.."&page=packets\">" .. i18n("packets") .. "</a></li>")
-   end
-
-   if(page == "ndpi") then
-      print("<li class=\"active\"><a href=\"#\">" .. i18n("applications") .. "</a></li>\n")
-   else
-      print("<li><a href=\""..url.."&page=ndpi\">" .. i18n("applications") .. "</a></li>")
-   end
-end
-
-if(page == "ICMP") then
-  print("<li class=\"active\"><a href=\"#\">" .. i18n("icmp") .. "</a></li>\n")
-elseif not have_nedge then
-  print("<li><a href=\""..url.."&page=ICMP\">" .. i18n("icmp") .. "</a></li>")
-end
-
--- only show if the interface has seen mac addresses
-if ifstats["has_macs"] then
-   if(page == "ARP") then
-     print("<li class=\"active\"><a href=\"#\">" .. i18n("arp") .. "</a></li>\n")
-   elseif not have_nedge then
-     print("<li><a href=\""..url.."&page=ARP\">" .. i18n("arp") .. "</a></li>")
-   end
-end
-
-if(ts_utils.exists("iface:traffic", {ifid=ifid}) and not is_historical) then
-   if(page == "historical") then
-      print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-   else
-      print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-   end
-end
-
-
-if not have_nedge and (table.len(ifstats.profiles) > 0) then
-  if(page == "trafficprofiles") then
-    print("<li class=\"active\"><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
-  else
-    print("<li><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
-  end
-end
 if _SERVER["REQUEST_METHOD"] == "POST" and _POST["companion_interface"] ~= nil then
    companion_interface_utils.setCompanion(ifstats.id, _POST["companion_interface"])
 end
@@ -281,121 +205,125 @@ local has_traffic_recording_page =  (recording_utils.isAvailable()
 
 local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
 
-if has_traffic_recording_page then
-   if(page == "traffic_recording") then
-      print("<li class=\"active\"><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i>")
-   else
-      print("<li><a href=\""..url.."&page=traffic_recording\"><i class=\"fa fa-hdd-o fa-lg\"></i>")
-   end
-
-   if not dismiss_recording_providers_reminder then
-      print("<span class='badge badge-top-right'><i class=\"fa fa-cog fa-sm\"></i></span>")
-   end
-
-   print("</a></li>")
+local num_pool_hosts = ifstats.num_members.num_hosts
+if ifstats.num_members_per_pool[host_pools_utils.DEFAULT_POOL_ID] then
+   -- don't show unassigned hosts in the counter
+   num_pool_hosts = num_pool_hosts - ifstats.num_members_per_pool[host_pools_utils.DEFAULT_POOL_ID].num_hosts
 end
 
-if isAdministrator() and areAlertsEnabled() then
-   if(page == "alerts") then
-      print("\n<li class=\"active\"><a href=\"#\">")
-   elseif not is_pcap_dump then
-      print("\n<li><a href=\""..url.."&page=alerts\">")
-   end
 
-   if not is_pcap_dump then
-      print("<i class=\"fa fa-warning fa-lg\"></i></a>")
-      print("</li>")
-   end
-end
+local url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
-if not is_pcap_dump and ts_utils.getDriverName() == "rrd" then
-   if ntop.isEnterprise() or ntop.isnEdge() then
-      if(page == "traffic_report") then
-         print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
-      else
-         print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
-      end
-   else
-      print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
-   end
-end
+--  Added global javascript variable, in order to disable the refresh of pie chart in case
+--  of historical interface
+print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000; /* ms */;</script>\n')
 
-if(isAdministrator()) then
-   if(page == "config") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-   elseif not is_pcap_dump then
-      print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
-   end
-   if(page == "callbacks") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
-   else
-      print("\n<li><a href=\""..url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
-   end
-end
-
-if(page == "internals") then
-   print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>\n")
-else
-   print("\n<li><a href=\""..url.."&page=internals\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>")
-end
-
-if(isAdministrator() and ntop.isEnterprise() and not ifstats.isDynamic) and isEmptyString(ntop.getCache(disaggregation_criterion_key)) then
-   if(page == "sub_interfaces") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-code-fork fa-lg\"></i></a></li>\n")
-   else
-      print("\n<li><a href=\""..url.."&page=sub_interfaces\"><i class=\"fa fa-code-fork fa-lg\"></i></a></li>")
-   end
-end
-
-if isAdministrator() then
-   local num_pool_hosts = ifstats.num_members.num_hosts
-   local label
-
-   if(ifstats.num_members_per_pool[host_pools_utils.DEFAULT_POOL_ID]) then
-      -- don't show unassigned hosts in the counter
-      num_pool_hosts = num_pool_hosts - ifstats.num_members_per_pool[host_pools_utils.DEFAULT_POOL_ID].num_hosts
-   end
-
-   if(num_pool_hosts > 0) then
-      label = "<span class='badge badge-top-right' title='".. i18n("host_pools.active_pool_members") .."'>".. num_pool_hosts .."</span>"
-   else
-      label = ""
-   end
-
-   if not have_nedge then
-      if(page == "pools") then
-         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users fa-lg\"></i> "..label.."</a></li>\n")
-      else
-         print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users fa-lg\"></i> "..label.."</a></li>")
-      end
-   end
-end
-
-if isAdministrator() and (not is_pcap_dump) then
-   if(page == "dhcp") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-bolt fa-lg\"></i></a></li>\n")
-   else
-      print("\n<li><a href=\""..url.."&page=dhcp\"><i class=\"fa fa-bolt fa-lg\"></i></a></li>")
-   end
-end
-
-if(hasSnmpDevices(ifstats.id) and is_packet_interface and false --[[disabled: no functionality provided right now]]) then
-   if(page == "snmp_bind") then
-      print("\n<li class=\"active\"><a href=\"#\">" .. i18n("if_stats_overview.snmp") .. "</li>")
-   else
-      print("\n<li><a href=\""..url.."&page=snmp_bind\">" .. i18n("if_stats_overview.snmp") .. "</a></li>")
-   end
-end
-
-local ifname_clean = "iface_"..tostring(ifid)
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-
-   ]]
+local short_name = getHumanReadableInterfaceName(ifname)
+local title = i18n("interface") .. ": " .. short_name
+   page_utils.print_navbar(title, url,
+			   {
+			      {
+				 hidden = only_historical,
+				 active = page == "overview" or page == nil,
+				 page_name = "overview",
+				 label = "<i class=\"fa fa-home\"></i>",
+			      },
+			      {
+				 hidden = not interface.isPacketInterface(),
+				 active = page == "networks",
+				 page_name = "networks",
+				 label = i18n("networks"),
+			      },
+			      {
+				 hidden = not ifstats or ifstats.stats.packets == 0,
+				 active = page == "packets",
+				 page_name = "packets",
+				 label = i18n("packets"),
+			      },
+			      {
+				 active = page == "ndpi",
+				 page_name = "ndpi",
+				 label = i18n("applications"),
+			      },
+			      {
+				 active = page == "ICMP",
+				 page_name = "ICMP",
+				 label = i18n("icmp"),
+			      },
+			      {
+				 hidden = not ifstats or not ifstats["has_macs"],
+				 active = page == "ARP",
+				 page_name = "ARP",
+				 label = i18n("arp"),
+			      },
+			      {
+				 hidden = not ts_utils.exists("iface:traffic", {ifid=ifid}),
+				 active = page == "historical",
+				 page_name = "historical",
+				 label = "<i class='fa fa-area-chart'></i>",
+			      },
+			      {
+				 hidden = have_nedge or not ifstats or ifstats.profiles == 0,
+				 active = page == "trafficprofiles",
+				 page_name = "trafficprofiles",
+				 label = "<i class=\"fa fa-user-md\"></i>",
+			      },
+			      {
+				 hidden = not has_traffic_recording_page,
+				 active = page == "traffic_recording",
+				 page_name = "traffic_recording",
+				 label = "<i class=\"fa fa-hdd-o\"></i>",
+			      },
+			      {
+				 hidden = not isAdministrator() or not areAlertsEnabled(),
+				 active = page == "alerts",
+				 page_name = "alerts",
+				 label = "<i class=\"fa fa-warning\"></i>",
+			      },
+			      {
+				 hidden = is_pcap_dump or not ts_utils.getDriverName() == "rrd",
+				 active = page == "traffic_report",
+				 page_name = "traffic_report",
+				 label = "<i class='fa fa-file-text report-icon'></i>",
+			      },
+			      {
+				 hidden = not isAdministrator() or is_pcap_dump,
+				 active = page == "config",
+				 page_name = "config",
+				 label = "<i class=\"fa fa-cog\"></i></a></li>",
+			      },
+			      {
+				 hidden = not isAdministrator() or is_pcap_dump,
+				 active = page == "callbacks",
+				 page_name = "callbacks",
+				 label = "<i class=\"fa fa-superpowers\"></i>",
+			      },
+			      {
+				 active = page == "internals",
+				 page_name = "internals",
+				 label = "<i class=\"fa fa-wrench\"></i>",
+			      },
+			      {
+				 hidden = not isAdministrator() or not ntop.isEnterprise() or ifstats.isDynamic,
+				 active = page == "sub_interfaces",
+				 page_name = "sub_interfaces",
+				 label = "<i class=\"fa fa-code-fork\"></i>",
+			      },
+			      {
+				 hidden = not isAdministrator() or have_nedge,
+				 active = page == "pools",
+				 page_name = "pools",
+				 label = "<i class=\"fa fa-users\"></i>",
+				 badge_num = num_pool_hosts,
+			      },
+			      {
+				 hidden = not isAdministrator() or is_pcap_dump,
+				 active = page == "dhcp",
+				 page_name = "dhcp",
+				 label = "<i class=\"fa fa-bolt\"></i>",
+			      },
+			   }
+   )
 
 if((page == "overview") or (page == nil)) then
    local tags = {ifid = ifstats.id}
@@ -959,8 +887,8 @@ elseif((page == "packets")) then
 elseif(page == "ndpi") then
 print[[
   <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
-    <li class="active"><a data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
-    <li><a data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
+    <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
   </ul>
   <div class="tab-content">
     <div id="applications" class="tab-pane in active">
@@ -1313,16 +1241,16 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
    print('<ul id="traffic-recording-nav" class="nav nav-tabs" role="tablist">')
 
    if config_enabled then
-      print('<li class="'.. ternary(tab == "config", "active", "") ..'"><a href="?ifid='.. ifstats.id
+      print('<li class="nav-item '.. ternary(tab == "config", "active", "") ..'"><a class="nav-link '.. ternary(tab == "config", "active", "") ..'" href="?ifid='.. ifstats.id
 	       ..'&page=traffic_recording"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") ..'</a></li>')
    end
 
    if recording_enabled then
-      print('<li class="'.. ternary(tab == "status", "active", "") ..'"><a href="?ifid='.. ifstats.id
+      print('<li class="nav-item '.. ternary(tab == "status", "active", "") ..'"><a class="nav-link '.. ternary(tab == "status", "active", "") ..'" href="?ifid='.. ifstats.id
 	 ..'&page=traffic_recording&tab=status">'.. i18n("status") ..'</a></li>')
 
       if ntop.isEnterprise() then
-	 print('<li class="'.. ternary(tab == "jobs", "active", "") ..'"><a href="?ifid='.. ifstats.id
+	 print('<li class="nav-item '.. ternary(tab == "jobs", "active", "") ..'"><a class="nav-link '.. ternary(tab == "jobs", "active", "") ..'" href="?ifid='.. ifstats.id
 	    ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
       end
    end
