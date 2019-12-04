@@ -27,125 +27,98 @@ print [[
 
 </script>
 
- <form data-toggle="validator" id="form_add_user" class="form-inline" method="post" action="add_user.lua" accept-charset="UTF-8">
+ <form data-toggle="validator" id="form_add_user" method="post" action="add_user.lua" accept-charset="UTF-8">
 			   ]]
 
 print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 print [[
 
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("login.username")) print[[</label>
-      <div class="input-group">
-        <span class="input-group-addon"><i class="fa fa-user-circle-o" aria-hidden="true"></i></span>
-        <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
+    <label for="username_input">]] print(i18n("login.username")) print[[</label>
+    <div class="input-group mb-6">
+      <div class="input-group-prepend">
+	<span class="input-group-text"><i class="fa fa-user-circle-o" aria-hidden="true"></i></span>
       </div>
+      <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
     </div>
 
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("users.full_name")) print[[</label>
-      <div class="input-group">
-        <span class="input-group-addon"><i class="fa fa-user" aria-hidden="true"></i></span>
-        <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
+    <label for="full_name_input">]] print(i18n("users.full_name")) print[[</label>
+    <div class="input-group mb-6">
+      <div class="input-group-prepend">
+	<span class="input-group-text"><i class="fa fa-user" aria-hidden="true"></i></span>
       </div>
+      <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
     </div>
-</div>
 
-<br>
-
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("login.password")) print[[</label>
-      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
+    <label for="password_input">]] print(i18n("login.password")) print[[</label>
+    <div class="input-group mb-6">
+      <div class="input-group-prepend">
+	<span class="input-group-text"><i class="fa fa-lock"></i></span>
       </div>
-  </div>
-
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("login.confirm_password")) print[[</label>
-      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
-      </div>
+      <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
-</div>
 
-<br>
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("manage_users.user_role")) print[[</label>
-      <div class="input-group" style="width:100%;">
-        <select name="user_role" class="form-control" style="width:100%;">
-          <option value="unprivileged">]] print(i18n("manage_users.non_privileged_user")) print[[</option>
-          <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
-        </select>
+    <label for="confirm_password_input">]] print(i18n("login.confirm_password")) print[[</label>
+    <div class="input-group mb-6">
+      <div class="input-group-prepend">
+	<span class="input-group-text"><i class="fa fa-lock"></i></span>
       </div>
-  </div>
+      <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+    </div>
 
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("manage_users.allowed_interface")) print[[</label>
-      <div class="input-group" style="width:100%;">
-        <select name="allowed_interface" class="form-control">
-          <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
+
+    <label for="user_role">]] print(i18n("manage_users.user_role")) print[[</label>
+    <div class="input-group mb-6">
+	<select id="user_role" name="user_role" class="form-control" style="width:100%;">
+	  <option value="unprivileged">]] print(i18n("manage_users.non_privileged_user")) print[[</option>
+	  <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
+	</select>
+    </div>
+
+    <label for="allowed_interface">]] print(i18n("manage_users.allowed_interface")) print[[</labe>l
+    <div class="input-group mb-6">
+	<select name="allowed_interface" class="form-control">
+	  <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
 ]]
 
    for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
       print('<option value="'..getInterfaceId(interface_name)..'"> '..getHumanReadableInterfaceName(interface_name)..'</option>')
    end
    print[[
-        </select>
-      </div>
+	</select>
     </div>
-</div>
 
-<br>
-
-<div class="row">
-    <div class="form-group col-md-12 has-feedback">
-      <label class="form-label">]] print(i18n("manage_users.allowed_networks")) print[[</label>
-      <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-        <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
-      </div>
+    <label for="allowed_networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
+    <div class="input-group mb-6">
+      <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
-</div>
-<br>
 ]]
 
 if not ntop.isnEdge() then
   print[[
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("language")) print[[</label>
-      <div class="input-group">
-        <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
-        <select name="user_language" class="form-control">]]
+    <label for="user_language">]] print(i18n("language")) print[[</label>
+    <div class="input-group mb-6">
+      <div class="input-group-prepend">
+	<span class="input-group-text"><i class="fa fa-language" aria-hidden="true"></i></span>
+      </div>
+      <select id="user_language" name="user_language" class="form-control">]]
 
   for _, lang in ipairs(locales_utils.getAvailableLocales()) do
      print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
   end
 
   print[[
-        </select>
-      </div>
+      </select>
     </div>
-
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label"></label>
-      <div class="input-group">
-      </div>
-    </div>
-</div>
-<br>
 ]]
 end
 
 print[[
-<div class="row">
-    <div class="form-group col-md-12 has-feedback">
+<br>
+    <div class="input-group mb-12">
       <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">]] print(i18n("manage_users.add_new_user")) print[[</button>
     </div>
-</div>
 
 </form>
 <script>
@@ -169,10 +142,10 @@ print[[
 
   function resetAddUserForm() {
 	$("#username_input").val("");
-        $("#full_name_input").val("");
+	$("#full_name_input").val("");
 	$("#password_input").val("");
-        $("#confirm_password_input").val("");
-	$("#allowed_networks_input").val("0.0.0.0/0,::/0");	
+	$("#confirm_password_input").val("");
+	$("#allowed_networks_input").val("0.0.0.0/0,::/0");
   }
 
   resetAddUserForm();
@@ -221,10 +194,10 @@ print[[
     } else {
       var arrayOfStrings = $("#allowed_networks_input").val().split(",");
       for (var i=0; i < arrayOfStrings.length; i++) {
-        if(!is_network_mask(arrayOfStrings[i])) {
-          add_user_alert.error("Invalid network list specified ("+arrayOfStrings[i]+")");
-          return(false);
-        }
+	if(!is_network_mask(arrayOfStrings[i])) {
+	  add_user_alert.error("Invalid network list specified ("+arrayOfStrings[i]+")");
+	  return(false);
+	}
       }
     }]]
 
@@ -234,22 +207,22 @@ local location_href = ntop.getHttpPrefix().."/lua/admin/users.lua"
 print[[
     $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?username='+$("#username_input").val()+"&allowed_networks="+$("#allowed_networks_input").val(), function(data){
       if (!data.valid) {
-        add_user_alert.error(data.msg);
+	add_user_alert.error(data.msg);
       } else {
-        $.ajax({
-          type: frmadduser.attr('method'),
-          url: frmadduser.attr('action'),
-          data: frmadduser.serialize(),
-          success: function (data) {
-          var response = jQuery.parseJSON(data);
-          if (response.result == 0) {
-            add_user_alert.success(response.message);
-            window.location.href = ']] print(location_href) print[[';
-          } else {
-            add_user_alert.error(response.message);
-          }
-          frmadduser[0].reset();
-        }
+	$.ajax({
+	  type: frmadduser.attr('method'),
+	  url: frmadduser.attr('action'),
+	  data: frmadduser.serialize(),
+	  success: function (data) {
+	  var response = jQuery.parseJSON(data);
+	  if (response.result == 0) {
+	    add_user_alert.success(response.message);
+	    window.location.href = ']] print(location_href) print[[';
+	  } else {
+	    add_user_alert.error(response.message);
+	  }
+	  frmadduser[0].reset();
+	}
       });
      }
    });
