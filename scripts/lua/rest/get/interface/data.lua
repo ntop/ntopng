@@ -9,7 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
-local system_scripts = require("system_scripts_utils")
+local plugins_utils = require("plugins_utils")
 
 sendHTTPHeader('application/json')
 
@@ -89,7 +89,7 @@ function dumpInterfaceStats(ifid)
          res["has_alerts"]         = ifstats["has_alerts"]
          res["ts_alerts"] = {}
 
-         if ts_utils.getDriverName() == "influxdb" and system_scripts.hasAlerts({entity = alert_consts.alertEntity("influx_db")}) then
+         if ts_utils.getDriverName() == "influxdb" and plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")}) then
             res["ts_alerts"]["influxdb"] = true
          end
       end

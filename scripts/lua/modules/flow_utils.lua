@@ -1917,11 +1917,17 @@ end
 -- A one line flow description
 -- This uses the information from flow.getInfo()
 function shortFlowLabel(flow)
-  return(string.format("[%s] %s:%d -> %s:%s [%s]",
-    flow["proto.l4"],
+  local info = ""
+
+  if flow["info"] then
+    info = " [" .. flow["info"] .. "]"
+  end
+
+  return(string.format("[%s] %s %s:%d -> %s:%s%s",
+    flow["proto.ndpi"], flow["proto.l4"],
     flow["cli.ip"], flow["cli.port"],
     flow["srv.ip"], flow["srv.port"],
-    flow["proto.ndpi"]
+    info
   ))
 end
 

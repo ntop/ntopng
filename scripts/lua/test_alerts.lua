@@ -26,6 +26,9 @@ interface.checkNetworksAlertsMin()
 -- checks the current interface alerts
 interface.checkInterfaceAlertsMin()
 
+-- run the system scripts
+ntop.checkSystemScriptsMin()
+
 --require "snmp_utils"
 --run_5min_snmp_caching(600)
 --dofile(dirs.installdir .. "/pro/scripts/callbacks/system/5min.lua")

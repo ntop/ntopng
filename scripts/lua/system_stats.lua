@@ -10,12 +10,12 @@ active_page = "system_stats"
 require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
-local system_scripts = require("system_scripts_utils")
+local plugins_utils = require("plugins_utils")
 local alert_consts = require("alert_consts")
 require("graph_utils")
 require("alert_utils")
 
-local ts_creation = system_scripts.timeseriesCreationEnabled()
+local ts_creation = plugins_utils.timeseriesCreationEnabled()
 
 if not isAllowedSystemInterface() then
    return
@@ -30,7 +30,6 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_stats.lua?ifid=" .. getInterfaceId(ifname)
 local info = ntop.getInfo()
-system_schemas = system_scripts.getAdditionalTimeseries("system")
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -208,10 +207,10 @@ elseif(page == "historical" and ts_creation) then
    url = url.."&page=historical"
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = table.merge({
+      timeseries = {
 	    {schema="system:cpu_load",            label=i18n("about.cpu_load"), metrics_labels = {i18n("about.cpu_load")}, value_formatter = {"ffloat"}},
 	    {schema="process:resident_memory",    label=i18n("graphs.process_memory")},
-      }, system_schemas)
+      }
    })
 elseif((page == "alerts") and isAdministrator()) then
    local old_ifname = ifname

@@ -157,13 +157,6 @@ local function print_callbacks_config_table(descr, expert_view)
    if(expert_view) then
       print("<td></td>")
    end
-   print("<td class='text-center'>")
-   print(format_utils.secondsToTime(total_stats.tot_elapsed))
-   print("</td><td class='text-center'>")
-   print(format_utils.formatValue(total_stats.tot_num_calls))
-   print("</td><td class='text-center'>")
-   --~ print(format_utils.formatValue(round(avg_speed, 0)))
-   print("</td></tr>")
 
    print("</tr>")
    print[[</table>]]

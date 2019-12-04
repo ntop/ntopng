@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local prefs_dump_utils = require "prefs_dump_utils"
 
 require "lua_utils"
-local system_scripts = require("system_scripts_utils")
+local ts_utils = require "ts_utils"
 require("ts_minute")
 
 local prefs_changed = ntop.getCache("ntopng.prefs_changed")
@@ -19,5 +19,5 @@ if(prefs_changed == "true") then
    prefs_dump_utils.savePrefsToDisk()
 end
 
-local when = os.time()
-system_scripts.runTask("minute", when)
+-- Run minute scripts
+ntop.checkSystemScriptsMin()

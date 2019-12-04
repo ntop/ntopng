@@ -7,6 +7,7 @@ local flow_consts = {}
 local locales_utils = require "locales_utils"
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
+local plugins_utils = require("plugins_utils")
 
 -- Custom User Status
 flow_consts.custom_status_1 = 59
@@ -19,7 +20,7 @@ flow_consts.custom_status_5 = 63
 
 function flow_consts.getDefinititionsDir()
     local dirs = ntop.getDirs()
-    return(os_utils.fixPath(dirs.installdir .. "/scripts/callbacks/status_defs"))
+    return(os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/status_definitions"))
 end
 
 -- ################################################################################

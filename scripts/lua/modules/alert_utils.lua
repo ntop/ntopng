@@ -118,6 +118,10 @@ function alertEngineRaw(granularity_id)
 end
 
 function alertEngine(v)
+   if(alert_consts.alerts_granularities[v] == nil) then
+      tprint(debug.traceback())
+   end
+
    return(alert_consts.alerts_granularities[v].granularity_id)
 end
 
@@ -138,6 +142,10 @@ function alertEngineDescription(v)
 end
 
 function granularity2sec(v)
+   if(alert_consts.alerts_granularities[v] == nil) then
+      tprint(debug.traceback())
+   end
+
   return(alert_consts.alerts_granularities[v].granularity_seconds)
 end
 
@@ -780,28 +788,29 @@ end
 -- #################################
 
 local function printProbesTab(entity_probes, entity_type, entity_value, page_name, page_params, alt_name, options)
-   local system_scripts = require("system_scripts_utils")
+   -- TODO migrate probes
+   --~ local system_scripts = require("system_scripts_utils")
 
-   if #entity_probes > 0 then
-      print[[
-   <br>
-   <table class="table table-bordered table-striped">
-     <tr>
-       <th width="10%">]] print(i18n("system_stats.probe")) print[[</th>
-       <th width="25%">]] print(i18n("system_stats.probe_config")) print[[</th>
-     </tr>]]
+   --~ if #entity_probes > 0 then
+      --~ print[[
+   --~ <br>
+   --~ <table class="table table-bordered table-striped">
+     --~ <tr>
+       --~ <th width="10%">]] print(i18n("system_stats.probe")) print[[</th>
+       --~ <th width="25%">]] print(i18n("system_stats.probe_config")) print[[</th>
+     --~ </tr>]]
 
-      for _, probe in ipairs(entity_probes) do
-      print[[
-     <tr>
-       <td>]] print(probe["probe"]["name"]) print[[</td>
-       <td><a href="]] print(probe["config"]["url"]) print[["><i class="fa fa-cog" aria-hidden="true"></i></a></td>
-     </tr>]]
+      --~ for _, probe in ipairs(entity_probes) do
+      --~ print[[
+     --~ <tr>
+       --~ <td>]] print(probe["probe"]["name"]) print[[</td>
+       --~ <td><a href="]] print(probe["config"]["url"]) print[["><i class="fa fa-cog" aria-hidden="true"></i></a></td>
+     --~ </tr>]]
 	 
-      end
+      --~ end
 
-      print[[</table>]]
-   end
+      --~ print[[</table>]]
+   --~ end
 end
 
 -- #################################
@@ -1267,12 +1276,14 @@ function printAlertTables(entity_type, alert_source, page_name, page_params, alt
    if(tab == nil) then tab = "config" end
    local is_alert_list_tab = ((tab == "alert_list") or (tab == "past_alert_list") or (tab == "flow_alert_list"))
 
+   --[[ TODO migrate probes
    local system_scripts = require("system_scripts_utils")
    local entity_probes = system_scripts.getEntityProbes(entity_type, alert_source)
 
    if #entity_probes > 0 then
       printTab("probes", i18n("system_stats.probes"), tab)
    end
+   ]]
 
    printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
 
@@ -2395,6 +2406,10 @@ function formatAlertMessage(ifid, alert)
     elseif(type(description) == "function") then
       msg = description(ifid, alert, msg)
     end
+  end
+
+  if(type(msg) == "table") then
+   return("")
   end
 
   return(msg)

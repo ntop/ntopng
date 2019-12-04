@@ -8,6 +8,7 @@
 
 local os_utils = require("os_utils")
 local json = require("dkjson")
+local plugins_utils = require("plugins_utils")
 
 local user_scripts = {}
 
@@ -26,8 +27,7 @@ user_scripts.field_units = {
   syn_min = "field_units.syn_min",
 }
 
-local CALLBACKS_DIR = dirs.installdir .. "/scripts/callbacks"
-local PRO_CALLBACKS_DIR = dirs.installdir .. "/pro/scripts/callbacks"
+local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 
@@ -43,6 +43,9 @@ user_scripts.script_types = {
   }, snmp_device = {
     parent_dir = "system",
     hooks = {"snmpDeviceInterface"},
+  }, system = {
+    parent_dir = "system",
+    hooks = {"min", "5mins", "hour", "day"},
   }, syslog = {
     parent_dir = "syslog",
     hooks = {"handleEvent"},
@@ -73,7 +76,7 @@ local benchmarks = {}
 -- ##############################################
 
 function user_scripts.getSubdirectoryPath(script_type, subdir, is_pro)
-  local prefix = ternary(is_pro, PRO_CALLBACKS_DIR, CALLBACKS_DIR)
+  local prefix = CALLBACKS_DIR
   local path
 
   if not isEmptyString(subdir) and subdir ~= "." then
@@ -263,17 +266,7 @@ end
 local function getScriptsDirectories(script_type, subdir)
    local check_dirs = {
       user_scripts.getSubdirectoryPath(script_type, subdir),
-      user_scripts.getSubdirectoryPath(script_type, subdir) .. "/alerts",
    }
-
-   if ntop.isPro() then
-      check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]])
-      check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]]) .. "/alerts"
-
-      if ntop.isEnterprise() then
-         check_dirs[#check_dirs + 1] = user_scripts.getSubdirectoryPath(script_type, subdir, true --[[ pro ]]) .. "/enterprise"
-      end
-   end
 
    return(check_dirs)
 end
@@ -410,10 +403,14 @@ end
 function user_scripts.load(ifid, script_type, subdir, options)
    local rv = {modules = {}, hooks = {}, conf = {}}
    local is_nedge = ntop.isnEdge()
+   local is_windows = ntop.isWindows()
    local alerts_disabled = (not areAlertsEnabled())
    local old_ifid = interface.getId()
-
    options = options or {}
+
+   -- Load additional schemas
+   plugins_utils.loadSchemas(options.hook_filter)
+
    local hook_filter = options.hook_filter
    local do_benchmark = options.do_benchmark
    local return_all = options.return_all
@@ -465,6 +462,10 @@ function user_scripts.load(ifid, script_type, subdir, options)
                goto next_module
             end
 
+            if((not return_all) and (user_script.windows_exclude and is_windows)) then
+               goto next_module
+            end
+
             if(table.empty(user_script.hooks)) then
                traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s', skipping", user_script.key))
                goto next_module
@@ -504,12 +505,17 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	       user_script.gui.input_builder = user_scripts.checkbox_input_builder
 	    end
 	    if(user_script.gui and user_script.gui.post_handler == nil) then
-	       user_script.gui.post_handler = user_scripts.checkbox_post_handler
+	       user_script.gui.post_handler = user_scripts.getDefaultPostHandler(user_script.gui.input_builder) or user_scripts.checkbox_post_handler
 	    end
 	    -- end TODO
 
 	    if(user_script.gui and user_script.gui.input_builder and (not user_script.gui.post_handler)) then
-	       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' is missing the gui.post_handler", user_script.key))
+	       -- Try to use a default post handler
+	       user_script.gui.post_handler = user_scripts.getDefaultPostHandler(user_script.gui.input_builder)
+
+	       if(user_script.gui.post_handler == nil) then
+		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' is missing the gui.post_handler", user_script.key))
+	       end
 	    end
 
 	    if(scripts_filter ~= nil) then
@@ -594,6 +600,23 @@ end
 
 -- ##############################################
 
+-- @brief Convenient method to only load a specific script
+function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
+   local check_dirs = getScriptsDirectories(script_type, subdir)
+
+   for _, checks_dir in pairs(check_dirs) do
+      local full_path = os_utils.fixPath(checks_dir .. "/" .. mod_fname .. ".lua")
+
+      if ntop.exists(full_path) then
+	 return(assert(loadfile(full_path))())
+      end
+   end
+
+   return(nil)
+end
+
+-- ##############################################
+
 -- Get the configuration to use for a specific entity
 -- @param user_script the user script, loaded with user_scripts.load
 -- @param (optional) hook the hook function
@@ -615,6 +638,11 @@ function user_scripts.getConfiguration(user_script, hook, entity_value, is_remot
    if(rv == nil) then
       -- Search for a global/default configuration
       rv = user_scripts.getGlobalConfiguration(user_script, hook, is_remote_host)
+   end
+
+   if(rv.script_conf == nil) then
+      -- Use the default
+      rv.script_conf = user_script.default_value or {}
    end
 
    return(rv)
@@ -773,7 +801,7 @@ function user_scripts.threshold_cross_input_builder(gui_conf, input_id, value)
 </select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> <span>%s</span>]],
     input_op, gt_selected, lt_selected,
     gui_conf.field_min or "0", gui_conf.field_max or "", gui_conf.field_step or "1",
-    input_val, value.edge, i18n(gui_conf.i18n_field_unit))
+    input_val, value.threshold, i18n(gui_conf.i18n_field_unit))
   )
 end
 
@@ -784,9 +812,20 @@ function user_scripts.threshold_cross_post_handler(input_id)
   if(input_val ~= nil) then
     return {
       operator = input_op,
-      edge = input_val,
+      threshold = input_val,
     }
   end
+end
+
+-- ##############################################
+
+-- For built-in input_builders, return the _POST handler to use
+local input_builder_to_post_handler = {
+   [user_scripts.threshold_cross_input_builder] = user_scripts.threshold_cross_post_handler,
+}
+
+function user_scripts.getDefaultPostHandler(input_builder)
+   return(input_builder_to_post_handler[input_builder])
 end
 
 -- ##############################################
@@ -841,10 +880,10 @@ function user_scripts.handlePOST(subdir, available_modules, hook, entity_value, 
 	 local enabled_k = "enabled_" .. k
 	 local is_enabled = _POST[enabled_k]
 	 local conf_key = ternary(is_global, get_global_conf_key(remote_host), entity_value)
-	 local script_conf = {}
+	 local script_conf = nil
 
 	 if(user_script.gui and (user_script.gui.post_handler ~= nil)) then
-	    script_conf = user_script.gui.post_handler(k) or {}
+	    script_conf = user_script.gui.post_handler(k)
 	 end
 
 	 if(is_enabled == nil) then

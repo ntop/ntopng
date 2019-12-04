@@ -325,7 +325,7 @@ end
 -- System
 
 if isAllowedSystemInterface() then
-   local system_scripts = require("system_scripts_utils")
+   local plugins_utils = require("plugins_utils")
 
    if active_page == "system_stats" or active_page == "system_interfaces_stats" then
      print [[ <li class="nav-item dropdown active">
@@ -350,14 +350,13 @@ if isAllowedSystemInterface() then
       print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
    end
 
-   local system_menu_entries = system_scripts.getSystemMenuEntries()
+   local menu = plugins_utils.getMenuEntries() or {}
 
-   if #system_menu_entries > 0 then
-      print('<li class="dropdown-divider"></li>')
-      print('<li class="dropdown-header">') print(i18n("system_stats.probes")) print('</li>')
+   if not table.empty(menu) then
+      print('<li class="divider"></li>')
 
-      for _, entry in ipairs(system_scripts.getSystemMenuEntries()) do
-	 print[[<li class="nav-item"><a class="dropdown-item" href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
+      for _, entry in pairsByField(menu, "sort_order", rev) do
+         print[[<li class="nav-item"><a class="dropdown-item" href="]] print(entry.url) print[[">]] print(i18n(entry.label) or entry.label) print[[</a></li>]]
       end
    end
 

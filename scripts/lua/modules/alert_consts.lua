@@ -6,6 +6,7 @@
 local alert_consts = {}
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
+local plugins_utils = require("plugins_utils")
 require("ntop_utils")
 
 if(ntop.isPro()) then
@@ -126,7 +127,7 @@ end
 -- ##############################################
 
 function alert_consts.getDefinititionsDir()
-   return(os_utils.fixPath(dirs.installdir .. "/scripts/callbacks/alert_defs"))
+   return(os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/alert_definitions"))
 end
 
 -- ##############################################
@@ -179,7 +180,7 @@ local function loadAlertsDefs()
          -- Check the required fields
          for _, k in pairs(required_fields) do
             if(def_script[k] == nil) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in alert_defs/%s", k, fname))
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in alert_definitions/%s", k, fname))
                goto next_script
             end
          end
@@ -187,7 +188,7 @@ local function loadAlertsDefs()
          local def_id = tonumber(def_script.alert_id)
 
          if(alerts_by_id[def_id] ~= nil) then
-            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("alert_defs/%s: alert ID %d redefined, skipping", fname, def_id))
+            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("alert_definitions/%s: alert ID %d redefined, skipping", fname, def_id))
             goto next_script
          end
 

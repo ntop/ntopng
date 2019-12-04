@@ -355,6 +355,7 @@ class Ntop {
   inline NagiosManager*    getNagios()               { return(nagios_manager);      };
 #endif
 #endif
+  void checkSystemScripts(ScriptPeriodicity p);
   void checkSNMPDeviceAlerts(ScriptPeriodicity p);
   void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm);
   void getUsers(lua_State* vm);

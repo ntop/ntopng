@@ -65,6 +65,7 @@ Makefile
 .DS_Store
 pro
 scripts/lua/pro
+scripts/lua/plugins
 tools/gdbsudo
 nbproject
 .cproject

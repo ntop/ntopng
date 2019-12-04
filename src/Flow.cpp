@@ -3931,6 +3931,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "srv2cli.bytes", stats.srv2cli_bytes);
   lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.cli2srv_packets);
   lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.srv2cli_packets);
+  if(getFlowInfo()) lua_push_str_table_entry(vm, "info", getFlowInfo());
 }
 
 /* ***************************************************** */

@@ -2569,6 +2569,20 @@ static int ntop_check_interface_alerts_day(lua_State* vm)  { return(ntop_check_i
 
 /* ****************************************** */
 
+static int ntop_check_system_scripts(lua_State* vm, ScriptPeriodicity p) {
+  ntop->checkSystemScripts(p);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+static int ntop_check_system_scripts_min(lua_State* vm)   { return(ntop_check_system_scripts(vm, minute_script)); }
+static int ntop_check_system_scripts_5min(lua_State* vm)  { return(ntop_check_system_scripts(vm, five_minute_script)); }
+static int ntop_check_system_scripts_hour(lua_State* vm)  { return(ntop_check_system_scripts(vm, hour_script)); }
+static int ntop_check_system_scripts_day(lua_State* vm)   { return(ntop_check_system_scripts(vm, day_script)); }
+
+/* ****************************************** */
+
 static int ntop_check_snmp_device_alerts(lua_State* vm, ScriptPeriodicity p) {
   ntop->checkSNMPDeviceAlerts(p);
 
@@ -11332,7 +11346,11 @@ static const luaL_Reg ntop_reg[] = {
   { "refreshDeviceProtocolsPoliciesConf", ntop_refresh_device_protocols_policies_pref },
 #endif
 
-  /* Alerts */
+  /* System User Scripts */
+  { "checkSystemScriptsMin",     ntop_check_system_scripts_min   },
+  { "checkSystemScripts5Min",    ntop_check_system_scripts_5min  },
+  { "checkSystemScriptsHour",    ntop_check_system_scripts_hour  },
+  { "checkSystemScriptsDay",     ntop_check_system_scripts_day   },
   { "checkSNMPDeviceAlerts5Min", ntop_check_snmp_device_alerts_5min },
 
   { NULL,          NULL}

@@ -9,7 +9,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. pa
 -- do NOT include lua_utils here, it's not necessary, keep it light!
 local callback_utils = require "callback_utils"
 local ts_utils = require("ts_utils_core")
-local system_scripts = require("system_scripts_utils")
 require("ts_second")
 
 -- Toggle debug
@@ -58,4 +57,6 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    end
 end, true --[[ get direction stats ]])
 
-system_scripts.runTask("second", when)
+if interface_rrd_creation_enabled then
+   ts_utils.append("system:cpu_load", {ifid = getSystemInterfaceId(), load_percentage = ntop.refreshCpuLoad()}, when)
+end

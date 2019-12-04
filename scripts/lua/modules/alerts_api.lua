@@ -471,79 +471,6 @@ end
 -- type_info building functions
 -- ##############################################
 
-function alerts_api.thresholdCrossType(granularity, metric, value, operator, threshold)
-  return({
-    alert_type = alert_consts.alert_types.alert_threshold_cross,
-    alert_subtype = string.format("%s_%s", granularity, metric),
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_severity = alert_consts.alert_severities.error,
-    alert_type_params = {
-      metric = metric, value = value,
-      operator = operator, threshold = threshold,
-    }
-  })
-end
-
--- ##############################################
-
-function alerts_api.synFloodType(granularity, metric, value, operator, threshold)
-  return({
-    alert_type = alert_consts.alert_types.alert_tcp_syn_flood,
-    alert_subtype = metric,
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_severity = alert_consts.alert_severities.error,
-    alert_type_params = {
-      value = value,
-      threshold = threshold,
-    }
-  })
-end
-
--- ##############################################
-
-function alerts_api.synScanType(granularity, metric, value, operator, threshold)
-  return({
-    alert_type = alert_consts.alert_types.alert_tcp_syn_scan,
-    alert_subtype = metric,
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_severity = alert_consts.alert_severities.error,
-    alert_type_params = {
-      value = value,
-      threshold = threshold,
-    }
-  })
-end
-
--- ##############################################
-
-function alerts_api.flowFloodType(granularity, metric, value, operator, threshold)
-  return({
-    alert_type = alert_consts.alert_types.alert_flows_flood,
-    alert_subtype = metric,
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_severity = alert_consts.alert_severities.error,
-    alert_type_params = {
-      value = value,
-      threshold = threshold,
-    }
-  })
-end
-
--- ##############################################
-
-function alerts_api.pingIssuesType(value, threshold, ip)
-  return({
-    alert_type = alert_consts.alert_types.alert_ping_issues,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_granularity = alert_consts.alerts_granularities.min,
-    alert_type_params = {
-      value = value, threshold = threshold, ip = ip,
-    }
-  })
-end
-
--- ##############################################
-
 function alerts_api.userActivityType(scope, name, params, remote_addr, status)
   return({
     alert_type = alert_consts.alert_types.alert_user_activity,
@@ -991,27 +918,29 @@ end
 
 -- ##############################################
 
--- An alert check function which performs threshold checks of a value
--- against a configured threshold and generates a threshold_cross alert
--- if the value is above the threshold.
--- A user script (see user_scripts.lua) must implement:
---   get_threshold_value(granularity, entity_info)
---   A function, which returns the current value to be compared agains the threshold
--- The user_script may implement an additional threshold_type_builder function which
--- which returns a type_info. Check alerts_api.thresholdCrossType for the threshold_type_builder signature.
-function alerts_api.threshold_check_function(params)
-  local alarmed = false
-  local value = params.user_script.get_threshold_value(params.granularity, params.entity_info)
+-- TODO document
+function alerts_api.checkThresholdAlert(params, alert_type, value)
+  local script = params.user_script
   local threshold_config = params.alert_config
+  local alarmed = false
 
-  local threshold_edge = tonumber(threshold_config.edge)
-  local threshold_builder = ternary(params.user_script.threshold_type_builder, params.user_script.threshold_type_builder, alerts_api.thresholdCrossType)
-  local threshold_type = threshold_builder(params.granularity, params.user_script.key, value, threshold_config.operator, threshold_edge)
+  local threshold_type = {
+    alert_type = alert_type,
+    alert_subtype = script.key,
+    alert_granularity = alert_consts.alerts_granularities[params.granularity],
+    alert_severity = alert_consts.alert_severities.error,
+    alert_type_params = {
+      metric = params.user_script.key,
+      value = value,
+      operator = threshold_config.operator,
+      threshold = threshold_config.threshold,
+    }
+  }
 
   if(threshold_config.operator == "lt") then
-    if(value < threshold_edge) then alarmed = true end
+    if(value < threshold_config.threshold) then alarmed = true end
   else
-    if(value > threshold_edge) then alarmed = true end
+    if(value > threshold_config.threshold) then alarmed = true end
   end
 
   if(alarmed) then

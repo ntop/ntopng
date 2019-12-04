@@ -3,19 +3,37 @@
 --
 
 i18n = require "i18n"
+local dirs = ntop.getDirs()
+
+local locales = {}
+
+local default_locale = "en"
+local default_locale_path = dirs.installdir..'/scripts/locales/en.lua'
 
 function i18n.loadLocaleFile(path, locale)
   local chunk = assert(loadfile(path))
   local data = chunk()
+
+  -- Check if plugin specific locales exist
+  local plugins_locales = dirs.workingdir .. "/plugins/locales/" .. locale .. ".lua"
+
+  if ntop.exists(plugins_locales) then
+    local chunk = assert(loadfile(plugins_locales))
+    local plugins_data = chunk()
+
+    -- Add the plugins localized strings
+    for k, v in pairs(plugins_data) do
+      data[k] = v
+    end
+  end
+  
   i18n.load({[locale]=data})
 end
 
 -- Provides a fallback for not already localized strings
-i18n.loadLocaleFile(dirs.installdir..'/scripts/locales/en.lua', "en")
+i18n.loadLocaleFile(default_locale_path, default_locale)
 
-local locales = {}
-
-locales.default_locale = "en"
+locales.default_locale = default_locale
 
 -- language is a global variable set from C that corresponds to the user default language
 -- it may be null when lua_utils are imported from periodic scripts
@@ -66,8 +84,22 @@ for _, locale in ipairs(supported_locales) do
    end
 end
 
+-- ##############################################
+
 function locales.getAvailableLocales()
    return available_locales
 end
+
+-- ##############################################
+
+function locales.readDefaultLocale()
+  local path = default_locale_path
+  local chunk = assert(loadfile(path))
+  local data = chunk()
+
+  return(data)
+end
+
+-- ##############################################
 
 return locales

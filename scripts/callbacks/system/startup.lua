@@ -14,6 +14,10 @@ if(ntop.isPro()) then
    require("startup")
 end
 
+-- Important: load this before any other alert related module
+local plugins_utils = require "plugins_utils"
+plugins_utils.loadPlugins()
+
 require "lua_utils"
 require "alert_utils"
 

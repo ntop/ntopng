@@ -294,10 +294,9 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 	 print(string.format("%s() [check: %s]: %s\n", mod_fn, mod_key, shortFlowLabel(info)))
       end
 
-      -- TODO use conf
       local conf = user_scripts.getConfiguration(script)
 
-      hook_fn(now)
+      hook_fn(now, conf.script_conf)
       rv = true
 
       ::continue::

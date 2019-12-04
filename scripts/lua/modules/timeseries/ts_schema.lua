@@ -69,14 +69,8 @@ function ts_schema:new(name, options)
     return nil
   end
 
-  local step_info = ts_schema.supported_steps[tostring(options.step)]
-
-  if not step_info and not options.is_system_schema then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "unsupported step option in schema " .. name)
-    return nil
-  end
-
   local obj = {name=name, options=options, _tags={}, _metrics={}, tags={}, metrics={}}
+  local step_info = ts_schema.supported_steps[tostring(options.step)]
 
   if step_info ~= nil then
     -- add retention policy and other informations
