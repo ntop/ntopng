@@ -114,7 +114,7 @@ print('<div class="tab-content">')
 
 if tab == "config" then
 print[[
-  <form id="remote_assistance_form" class="form-inline" method="post">
+  <form id="remote_assistance_form" method="post">
     <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
 
     <div id="assistance-config" class="tab-pane in active">
