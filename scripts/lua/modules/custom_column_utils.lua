@@ -164,7 +164,7 @@ function custom_column_utils.printCustomColumnDropdown(base_url, page_params)
 	 goto continue
       end
 
-      print[[<li><a href="]] custom_column_params["custom_column"] = key; print(getPageUrl(base_url, custom_column_params)); print[[">]] print(label) print[[</a></li>]]
+      print[[<li><a class="dropdown-item" href="]] custom_column_params["custom_column"] = key; print(getPageUrl(base_url, custom_column_params)); print[[">]] print(label) print[[</a></li>]]
 
       ::continue::
    end
