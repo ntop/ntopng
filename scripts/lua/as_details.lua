@@ -138,7 +138,7 @@ if(application ~= nil) then
    application_filter = '<span class="fa fa-filter"></span>'
 end
 local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
-dt_buttons = dt_buttons..'<li><a href="'..nav_url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
+dt_buttons = dt_buttons..'<li><a class="dropdown-item" href="'..nav_url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
 
 local ndpi_stats = interface.getASInfo(asn)
 
@@ -147,7 +147,7 @@ for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
    if(key == application) then
       class_active = ' class="active"'
    end
-   dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..nav_url..'&page=flows&application='..key..'">'..key..'</a></li>'
+   dt_buttons = dt_buttons..'<li '..class_active..'><a class="dropdown-item" href="'..nav_url..'&page=flows&application='..key..'">'..key..'</a></li>'
 end
 
 dt_buttons = dt_buttons .. "</ul></div>']"

@@ -911,15 +911,15 @@
       .addClass("dropdown-menu")
       .css({ fontSize: 'initial', fontWeight: 'normal' })
       .append(
-          $('<li data-value="10"><a href="#">10</a></li>')
+          $('<li data-value="10"><a class="dropdown-item" href="#">10</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
-        , $('<li data-value="20"><a href="#">20</a></li>')
+        , $('<li data-value="20"><a class="dropdown-item" href="#">20</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
-        , $('<li data-value="50"><a href="#">50</a></li>')
+        , $('<li data-value="50"><a class="dropdown-item" href="#">50</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
-        , $('<li data-value="100"><a href="#">100</a></li>')
+        , $('<li data-value="100"><a class="dropdown-item" href="#">100</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
-        , $('<li data-value="200"><a href="#">200</a></li>')
+        , $('<li data-value="200"><a class="dropdown-item" href="#">200</a></li>')
             .click(function() { _updatePerPage.call(this, that); return false; })
       );
     this.buttons.push($perpage_values);

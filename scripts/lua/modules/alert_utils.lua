@@ -753,7 +753,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
 
    local class_active = ""
    if active_entry == nil then class_active = ' class="active"' end
-   buttons = buttons..'<li'..class_active..'><a href="?status='..status..dropdownUrlParams(get_params)..'">All</a></i>'
+   buttons = buttons..'<li'..class_active..'><a class="dropdown-item" href="?status='..status..dropdownUrlParams(get_params)..'">All</a></i>'
 
    for _, entry in pairs(actual_entries) do
       local id = tonumber(entry["id"])
@@ -764,8 +764,8 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
 
         class_active = ""
         if label == active_entry then class_active = ' class="active"' end
-        -- buttons = buttons..'<li'..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
-        buttons = buttons..'<li'..class_active..'><a href="?status='..status
+        -- buttons = buttons..'<li'..class_active..'><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
+        buttons = buttons..'<li'..class_active..'><a class="dropdown-item" href="?status='..status
         buttons = buttons..dropdownUrlParams(get_params)
         buttons = buttons..'&alert_'..selection_name..'='..id..'">'
         buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'

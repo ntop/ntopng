@@ -888,7 +888,7 @@ local page_params = {
 if(options.timeseries) then
    print [[
 <div class="btn-group">
-  <button class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
+  <button class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
   <ul class="dropdown-menu">
 ]]
 
@@ -901,7 +901,7 @@ if(options.timeseries) then
 ]]
 end -- options.timeseries
 
-print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
+print('&nbsp;Timeframe:  <div class="btn-group btn-group-toggle" data-toggle="buttons" id="graph_zoom">\n')
 
 for k,v in ipairs(zoom_vals) do
    -- display 1 minute button only for networks and interface stats
@@ -1433,7 +1433,7 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
          page_params["category"] = ternary(by_id, ternary(entry.cat_id ~= "", "cat_" .. entry.cat_id, ""), entry.id)
 
          print('<li' .. ternary(cat_id_or_name == ternary(by_id, entry.cat_id, entry.id), ' class="active"', '') ..
-            '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") ..
+            '><a class="dropdown-item" href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") ..
             entry.text .. '</a></li>')
       else
          print(makeMenuDivider())

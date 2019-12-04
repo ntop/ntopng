@@ -139,12 +139,12 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 
    local manuf_params = table.clone(page_params)
    manuf_params.manufacturer = nil
-   print('<li><a href="' .. getPageUrl(base_url, manuf_params) .. '">' .. i18n("mac_stats.all_manufacturers") .. '</a></li>')
+   print('<li><a class="dropdown-item" href="' .. getPageUrl(base_url, manuf_params) .. '">' .. i18n("mac_stats.all_manufacturers") .. '</a></li>')
 
    for manuf, count in pairsByKeys(manufactures) do
       local _manuf = string.gsub(string.gsub(manuf, "'", "&#39;"), "\"", "&quot;")
       manuf_params.manufacturer = manuf
-      print('<li' .. ternary(manuf_filter == manuf, ' class="active"', '') .. '><a href="' ..
+      print('<li' .. ternary(manuf_filter == manuf, ' class="active"', '') .. '><a class="dropdown-item" href="' ..
          getPageUrl(base_url, manuf_params) .. '">' ..
          _manuf .." (" ..count.. ')</a></li>')
    end
@@ -157,12 +157,12 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    type_params.device_type = nil
-   print('<li><a href="' .. getPageUrl(base_url, type_params) .. '">' .. i18n("mac_stats.all_devices") .. '</a></li>')
+   print('<li><a class="dropdown-item" href="' .. getPageUrl(base_url, type_params) .. '">' .. i18n("mac_stats.all_devices") .. '</a></li>')
 
    for devtype, count in pairsByKeys(device_types) do
       type_params.device_type = devtype
 
-      print('<li' .. ternary(devtype_filter == tostring(devtype), ' class="active"', '') .. '><a href="' ..
+      print('<li' .. ternary(devtype_filter == tostring(devtype), ' class="active"', '') .. '><a class="dropdown-item" href="' ..
          getPageUrl(base_url, type_params) .. '">' ..
          discover.devtype2string(devtype)  .." (" ..count.. ')</a></li>')
    end
@@ -175,14 +175,14 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    os_params.operating_system = nil
-   print('<li><a href="' .. getPageUrl(base_url, os_params) .. '">' .. i18n("mac_stats.all_devices") .. '</a></li>')
+   print('<li><a class="dropdown-item" href="' .. getPageUrl(base_url, os_params) .. '">' .. i18n("mac_stats.all_devices") .. '</a></li>')
 
    for osid, count in pairsByKeys(operating_systems) do
       local os_name = discover.getOsName(osid)
       if isEmptyString(os_name) then os_name = i18n("unknown") end
       os_params.operating_system = osid
 
-      print('<li' .. ternary(os_filter == tostring(osid), ' class="active"', '') .. '><a href="' ..
+      print('<li' .. ternary(os_filter == tostring(osid), ' class="active"', '') .. '><a class="dropdown-item" href="' ..
          getPageUrl(base_url, os_params) .. '">' .. --(discover.getOsIcon(osid):gsub("'",'"') or "") ..
          os_name  .." (" ..count.. ')</a></li>')
    end

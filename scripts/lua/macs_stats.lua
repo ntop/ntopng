@@ -108,14 +108,14 @@ print('buttons: [')
    -- Filter MACS
    local macs_params = table.clone(page_params)
    macs_params.devices_mode = nil
-   print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a class="dropdown-item" href="')
    print(getPageUrl(base_url, macs_params))
    print('">'..i18n("mac_stats.all_devices")..'</a></li>')
 
    -- Source MACs only
    print('<li')
    if devices_mode == "source_macs_only" then print(' class="active"') end
-   print('><a href="')
+   print('><a class="dropdown-item" href="')
    macs_params.devices_mode = "source_macs_only"
    print(getPageUrl(base_url, macs_params))
    print('">'..i18n("mac_stats.source_macs")..'</a></li>')
@@ -129,7 +129,7 @@ print('buttons: [')
        <div class="btn-group pull-right">\
        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("mac_stats.manufacturer")) print(manufacturer_filter) print[[<span class="caret"></span></button>\
        <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-          <li><a href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
+          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
    ]]
 
 for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_type), asc) do
@@ -137,7 +137,7 @@ for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_t
       manufacturer_params.manufacturer = manuf
       print('<li')
       if manufacturer == manuf then print(' class="active"') end
-      print('><a href="'..getPageUrl(base_url, manufacturer_params)..'">'.._manuf..' ('..count..')'..'</a></li>')
+      print('><a class="dropdown-item" href="'..getPageUrl(base_url, manufacturer_params)..'">'.._manuf..' ('..count..')'..'</a></li>')
    end
    print[[
        </ul>\
@@ -151,14 +151,14 @@ for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_t
        <div class="btn-group pull-right">\
        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("details.device_type")) print(devtype_filter) print[[<span class="caret"></span></button>\
        <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
-          <li><a href="]] print(getPageUrl(base_url, devicetype_params)) print[[">]] print(i18n("mac_stats.all_devices")) print[[</a></li>\
+          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, devicetype_params)) print[[">]] print(i18n("mac_stats.all_devices")) print[[</a></li>\
    ]]
 
    for typeidx, count in pairsByKeys(interface.getMacDeviceTypes(nil, nil, manufacturer, device_type), asc) do
       devicetype_params.device_type = typeidx
       print('<li')
       if typeidx == device_type then print(' class="active"') end
-      print('><a href="'..getPageUrl(base_url, devicetype_params)..'">'.. discover.devtype2string(typeidx) ..' ('..count..')'..'</a></li>')
+      print('><a class="dropdown-item" href="'..getPageUrl(base_url, devicetype_params)..'">'.. discover.devtype2string(typeidx) ..' ('..count..')'..'</a></li>')
    end
    print[[
        </ul>\

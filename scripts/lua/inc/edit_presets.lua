@@ -312,7 +312,7 @@ local function printDeviceProtocolsPage()
    for _, entry in pairs(entries) do
       if entry ~= "" then
          page_params["policy_filter"] = entry.id
-         print('<li' .. ternary(policy_filter == entry.id, ' class="active"', '') .. '><a href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
+         print('<li' .. ternary(policy_filter == entry.id, ' class="active"', '') .. '><a class="dropdown-item" href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
       else
          print('<li role="separator" class="divider"></li>')
       end

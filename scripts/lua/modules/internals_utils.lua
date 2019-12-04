@@ -36,10 +36,10 @@ local function printHashTablesDropdown(base_url, page_params)
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.hash_table")) print[[]] print(hash_table_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\]]
 
-   print[[<li><a href="]] print(getPageUrl(base_url, hash_table_params)) print[[">]] print(i18n("internals.all_hash_tables")) print[[</a></li>\]]
+   print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, hash_table_params)) print[[">]] print(i18n("internals.all_hash_tables")) print[[</a></li>\]]
 
    for ht, stats in pairsByKeys(interface.getHashTablesStats(), asc) do
-      print[[ <li]] if hash_table == ht then print(' class="active"') end print[[><a href="]] hash_table_params["hash_table"] = ht; print(getPageUrl(base_url, hash_table_params)); print[[">]] print(i18n("hash_table."..ht)) print[[</a></li>\]]
+      print[[ <li]] if hash_table == ht then print(' class="active"') end print[[><a class="dropdown-item" href="]] hash_table_params["hash_table"] = ht; print(getPageUrl(base_url, hash_table_params)); print[[">]] print(i18n("hash_table."..ht)) print[[</a></li>\]]
    end
 end
 
@@ -155,10 +155,10 @@ local function printPeriodicactivityDropdown(base_url, page_params)
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.periodic_activity")) print[[]] print(periodic_activity_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\]]
 
-   print[[<li><a href="]] print(getPageUrl(base_url, periodic_activity_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
+   print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, periodic_activity_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
 
    for script, stats in pairsByKeys(interface.getPeriodicActivitiesStats(), asc) do
-      print[[ <li]] if periodic_activity == script then print(' class="active"') end print[[><a href="]] periodic_activity_params["periodic_script"] = script; print(getPageUrl(base_url, periodic_activity_params)); print[[">]] print(script) print[[</a></li>\]]
+      print[[ <li]] if periodic_activity == script then print(' class="active"') end print[[><a class="dropdown-item" href="]] periodic_activity_params["periodic_script"] = script; print(getPageUrl(base_url, periodic_activity_params)); print[[">]] print(script) print[[</a></li>\]]
    end
 end
 
