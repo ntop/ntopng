@@ -55,35 +55,38 @@ print [[
 
 local col_md_size = "6"
 
-print('<br><div class="row">')
+print('<br>')
 
 if(not is_admin) then
    col_md_size = "4"
 print [[
-  <div class='form-group col-md-]] print(col_md_size) print[[ has-feedback'>
-      <label for="" class="control-label">]] print(i18n("manage_users.old_password")) print[[</label>
-      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required>
+  <label for="old_password_input">]] print(i18n("manage_users.old_password")) print[[</label>
+  <div class='input-group mb-]] print(col_md_size) print[[ has-feedback'>
+      <div class="input-group-prepend">
+        <span class="input-group-text"><i class="fa fa-lock"></i></span>
       </div>
+      <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required>
   </div>
    ]]
 end
 
 print [[
-  <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
-      <label for="" class="control-label">]] print(i18n("manage_users.new_password")) print[[</label>
-      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+  <label for="new_password_input">]] print(i18n("manage_users.new_password")) print[[</label>
+  <div class='input-group mb-]] print(col_md_size) print[['>
+      <div class="input-group-prepend"><span class="input-group-text">
+        <i class="fa fa-lock"></i></span>
       </div>
+        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
 
-  <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
-      <label for="" class="control-label">]] print(i18n("manage_users.new_password_confirm")) print[[</label>
-      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+  <label for="confirm_new_password_input">]] print(i18n("manage_users.new_password_confirm")) print[[</label>
+  <div class='input-group md-]] print(col_md_size) print[['>
+      <div class="input-group-prepend">
+        <span class="input-group-text"><i class="fa fa-lock"></i></span>
       </div>
+        <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
-</div>
+
 
 <div><small>]] print(i18n("manage_users.allowed_passwd_charset")) print[[.  </small></div>
 
