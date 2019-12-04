@@ -565,20 +565,18 @@ flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_i
 
 local ifid = interface.name2id(ifname)
 local label = getFlowLabel(flow)
+local title = i18n("flow")..": "..label
+local url = ntop.getHttpPrefix().."/lua/flow_details.lua"
 
-print [[
-
-<div class="bs-docs-example">
-	    <nav class="navbar navbar-default" role="navigation">
-	      <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-	 <li><a href="#">]] print(i18n("flow")) print[[: ]] print(label) print [[ </a></li>
-<li class="active"><a href="#">]] print(i18n("overview")) print[[</a></li>
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</div>
-</div>
-</nav>
-]]
+page_utils.print_navbar(title, url,
+			{
+			   {
+			      active = true,
+			      page_name = "overview",
+			      label = i18n("overview"),
+			   },
+			}
+)
 
 if(flow == nil) then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
