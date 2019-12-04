@@ -626,8 +626,8 @@ print [[
       var newid = "member_" + member_id;
       numPoolMembers++;
 
-      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center hidden">Persistent</td><td class="text-center"></td></tr>');
-      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn', 'decPoolMembers')", "]] print(i18n('undo')) print[[");
+      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center"></td></tr>');
+      datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn', 'decPoolMembers')", "]] print(i18n('undo')) print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
 
@@ -932,10 +932,10 @@ print [[
         /* Add at 'pool_id' position */
         host_pools.splice(pool_id, 0, {id:pool_id});
 
-        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]]
-printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center"></td></tr>');
+        var tr = $('<tr id=' + newid + '><td class="text-center" style="display:none;">' + pool_id + '</td><td>]]
+printPoolNameField('pool_id') print[[</td><td align="center"></td></tr>');
 
-        datatableAddDeleteButtonCallback.bind(tr)(4, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
+        datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
         $("#table-create table").append(tr);
         $("input", tr).focus();
 
