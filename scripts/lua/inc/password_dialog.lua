@@ -108,25 +108,21 @@ print [[
 </div>
 <div class="tab-pane" id="change-prefs-dialog">
 
-  <form data-toggle="validator" id="form_pref_change" class="form-inline" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
+  <form data-toggle="validator" id="form_pref_change" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
 <br>
-<div class="row">
-  <div class='col-md-6 form-group has-feedback'>
-      <label class="input-label">]] print(i18n("manage_users.user_role")) print[[</label>
-      <div class="input-group" style="width:100%;">
+  <label for="host_role_select">]] print(i18n("manage_users.user_role")) print[[</label>
+  <div class='input-group mb-6'>
         <select id="host_role_select" name="user_role" class="form-control">
           <option value="unprivileged">]] print(i18n("manage_users.non_privileged_user")) print[[</option>
           <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
         </select>
-      </div>
   </div>
 
-  <div class='col-md-6 form-group has-feedback'>
-      <label class="form-label">]] print(i18n("manage_users.allowed_interface")) print[[</label>
-      <div class="input-group" style="width:100%;">
+  <label for="allowed_interface">]] print(i18n("manage_users.allowed_interface")) print[[</label>
+  <div class='input-group mb-6'>
         <select name="allowed_interface" id="allowed_interface" class="form-control">
           <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
 ]]
@@ -136,66 +132,37 @@ print [[
    end
    print[[
         </select>
-    </div>
   </div>
-</div>
 
-<br>
-
-<div class="row">
-    <div class="form-group col-md-12 has-feedback">
-      <label class="control-label">]] print(i18n("manage_users.allowed_networks")) print[[</label>
-      <div class="pull-right" style="margin-left:1em;">
-        <label class="control-label"></label>
-        <div>
-          <button type="button" class="btn btn-default" onclick="$('#networks_input').val('0.0.0.0/0,::/0');">Default</button>
-        </div>
-      </div>
-      <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-        <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required>
-      </div>
+    <label for="networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
+    <div class='input-group mb-6'>
+      <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required>
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[ 192.168.1.0/24,172.16.0.0/16</small>
     </div>
-</div>
-<br>
 ]]
 
 if not ntop.isnEdge() then
 print[[
-<div class="row">
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">]] print(i18n("language")) print[[</label>
-      <div class="input-group">
-        <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
-        <select name="user_language" id="user_language" class="form-control">]]
+    <label for="user_language">]] print(i18n("language")) print[[</label>
+    <div class='input-group mb-6'>
+      <div class="input-group-prepend">
+        <span class="input-group-text"><i class="fa fa-language" aria-hidden="true"></i></span>
+      </div>
+      <select name="user_language" id="user_language" class="form-control">]]
 
 for _, lang in ipairs(locales_utils.getAvailableLocales()) do
    print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
 end
-
 print[[
         </select>
-      </div>
     </div>
-
-    <div class="form-group col-md-6 has-feedback">
-      <label class="form-label"></label>
-      <div class="input-group">
-      </div>
-    </div>
-</div>
 <br>]]
 end
 
 print[[
-<div class="row">
     <div class="form-group col-md-12 has-feedback">
       <button id="pref_change" class="btn btn-primary btn-block">]] print(i18n("manage_users.change_user_preferences")) print[[</button>
     </div>
-</div>
-
-<br>
-
   </form>
 </div> <!-- closes div "change-prefs-dialog" -->
 ]]
