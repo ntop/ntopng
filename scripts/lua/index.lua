@@ -138,7 +138,7 @@ print [[
 
 if (refresh ~= '0') then
   print [[
-          &nbsp;]] print(i18n("index_page.live_update")) print[[:  <div class="btn-group btn-group-xs" data-toggle="buttons-radio" data-toggle-name="topflow_graph_state">
+          &nbsp;]] print(i18n("index_page.live_update")) print[[:  <div class="btn-group btn-group-toggle btn-group-xs" data-toggle="buttons-radio" data-toggle-name="topflow_graph_state">
             <button id="topflow_graph_state_play" value="1" type="button" class="btn btn-secondary btn-xs active" data-toggle="button" ><i class="fa fa-play"></i></button>
             <button id="topflow_graph_state_stop" value="0" type="button" class="btn btn-secondary btn-xs" data-toggle="button" ><i class="fa fa-stop"></i></button>
           </div>

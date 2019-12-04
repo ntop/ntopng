@@ -264,7 +264,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   print [[
     <td align=right>
-      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="table table-borderless form-group" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>
           <td style="vertical-align:top;">]]

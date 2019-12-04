@@ -194,7 +194,7 @@ print [[
            <br>
     
            <div class="form-group form-inline">
-             <div class="btn-group" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
+             <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
                <label class="btn btn-secondary active">
                  <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("manage_data.all_hosts")) print[[
                </label>
@@ -229,7 +229,7 @@ print [[
          </div>
     
          <div class='col-md-2'>
-           <div class="btn-group pull-right">
+           <div class="btn-group btn-group-toggle pull-right">
              <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary pull-right">
            </div>
          </div>
@@ -277,7 +277,7 @@ print [[
            <br>
     
            <div class="form-group form-inline">
-             <div class="btn-group invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
+             <div class="btn-group btn-group-toggle invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
                <label class="btn btn-secondary active">
                  <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle" checked="checked">]] print(i18n("manage_data.single")) print[[
                </label>
@@ -302,7 +302,7 @@ print [[
          </div>
     
          <div class='col-md-2'>
-           <div class="btn-group pull-right">
+           <div class="btn-group btn-group-toggle pull-right">
            </div>
          </div>
        </div>

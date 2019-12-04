@@ -41,7 +41,7 @@ print [[
        <br>
 
        <div class="form-group form-inline">
-         <div class="btn-group" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
+         <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
            <label class="btn btn-secondary active">
              <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("export_data.all_hosts")) print[[
            </label>
