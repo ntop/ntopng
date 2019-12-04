@@ -747,7 +747,7 @@
                       .addClass("btn btn-info")
                       .append(
                         $("<span></span>")
-                          .addClass("glyphicon glyphicon-check")
+                          .addClass("fa fa-check")
                           .text("All")
                       )
                       .click(function () {
@@ -828,7 +828,7 @@
       .attr("href", "#" + this.$column_modal.attr("id"))
       .append(
         $("<span></span>")
-          .addClass("glyphicon glyphicon-cog")
+          .addClass("fa fa-cog")
       )
       .click(function(e) {
         that.$column_modal
@@ -863,7 +863,7 @@
       .data("content", "Open the filter dialog.")
       .extend(
         $("<span></span>")
-          .addClass("glyphicon glyphicon-filter")
+          .addClass("fa fa-filter")
       )
       .click(function() {
         if($(o.filterModal).hasClass("modal"))
@@ -936,7 +936,7 @@
       .attr("href", "#")
       .append(
         $("<span></span>")
-          .addClass("glyphicon glyphicon-info-sign")
+          .addClass("fa fa-info-circle")
       )
       .click(function() {
         return false;
@@ -1264,8 +1264,8 @@
     toggleColumns: true,
     url: '',
     columns: [],
-    ascending: $("<span></span>").addClass("glyphicon glyphicon-chevron-up"),
-    descending: $("<span></span>").addClass("glyphicon glyphicon-chevron-down"),
+    ascending: $("<span></span>").addClass("fa fa-chevron-up"),
+    descending: $("<span></span>").addClass("fa fa-chevron-down"),
     rowCallback: undefined,
     tableCallback: undefined,
     headerCallback: undefined,
