@@ -32,7 +32,7 @@ local devices_mode_filter = ""
 if(not isEmptyString(_GET["devices_mode"])) then
    devices_mode = _GET["devices_mode"]
    page_params["devices_mode"] = _GET["devices_mode"]
-   devices_mode_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   devices_mode_filter = '<span class="fa fa-filter"></span>'
 end
 
 local manufacturer = nil
@@ -40,7 +40,7 @@ local manufacturer_filter = ""
 if(not isEmptyString(_GET["manufacturer"])) then
    manufacturer = _GET["manufacturer"]
    page_params["manufacturer"] = manufacturer
-   manufacturer_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   manufacturer_filter = '<span class="fa fa-filter"></span>'
 end
 
 local device_type = nil
@@ -48,7 +48,7 @@ local devtype_filter = ""
 if(not isEmptyString(_GET["device_type"])) then
    device_type = tonumber(_GET["device_type"])
    page_params["device_type"] = device_type
-   devtype_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   devtype_filter = '<span class="fa fa-filter"></span>'
 end
 
 print [[

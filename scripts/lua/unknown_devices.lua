@@ -22,7 +22,7 @@ local devices_mode_filter = ""
 
 if not isEmptyString(_GET["unassigned_devices"]) then
    page_params.unassigned_devices = _GET["unassigned_devices"]
-   devices_mode_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   devices_mode_filter = '<span class="fa fa-filter"></span>'
 end
 
 if isAdministrator() and (_POST["member"] ~= nil) and (_POST["pool"] ~= nil) then

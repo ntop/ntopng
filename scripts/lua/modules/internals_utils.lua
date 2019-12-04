@@ -25,7 +25,7 @@ local function printHashTablesDropdown(base_url, page_params)
    local hash_table = _GET["hash_table"]
    local hash_table_filter
    if not isEmptyString(hash_table) then
-      hash_table_filter = '<span class="glyphicon glyphicon-filter"></span>'
+      hash_table_filter = '<span class="fa fa-filter"></span>'
    else
       hash_table_filter = ''
    end
@@ -144,7 +144,7 @@ local function printPeriodicactivityDropdown(base_url, page_params)
    local periodic_activity = _GET["periodic_script"]
    local periodic_activity_filter
    if not isEmptyString(periodic_activity) then
-      periodic_activity_filter = '<span class="glyphicon glyphicon-filter"></span>'
+      periodic_activity_filter = '<span class="fa fa-filter"></span>'
    else
       periodic_activity_filter = ''
    end

@@ -1409,7 +1409,7 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
 
    -- 'Category' button
    print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-         i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+         i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="fa fa-filter"></span>', '') ..
          '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    -- 'Category' dropdown menu

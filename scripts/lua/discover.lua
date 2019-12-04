@@ -134,7 +134,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 
    -- Manufacturer filter
    print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-      i18n("mac_stats.manufacturer") .. ternary(not isEmptyString(manuf_filter), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+      i18n("mac_stats.manufacturer") .. ternary(not isEmptyString(manuf_filter), '<span class="fa fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    local manuf_params = table.clone(page_params)
@@ -153,7 +153,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    -- Device Type filter
    local type_params = table.clone(page_params)
    print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-      i18n("details.device_type") .. ternary(not isEmptyString(devtype_filter), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+      i18n("details.device_type") .. ternary(not isEmptyString(devtype_filter), '<span class="fa fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    type_params.device_type = nil
@@ -171,7 +171,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    -- OS filter
    local os_params = table.clone(page_params)
    print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-      i18n("os") .. ternary(not isEmptyString(os_filter), '<span class="glyphicon glyphicon-filter"></span>', '') ..
+      i18n("os") .. ternary(not isEmptyString(os_filter), '<span class="fa fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    os_params.operating_system = nil

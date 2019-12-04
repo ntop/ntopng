@@ -318,7 +318,7 @@ function printIpVersionDropdown(base_url, page_params)
    local ipversion = _GET["version"]
    local ipversion_filter
    if not isEmptyString(ipversion) then
-      ipversion_filter = '<span class="glyphicon glyphicon-filter"></span>'
+      ipversion_filter = '<span class="fa fa-filter"></span>'
    else
       ipversion_filter = ''
    end
@@ -350,7 +350,7 @@ function printVLANFilterDropdown(base_url, page_params)
    local vlan_id = _GET["vlan"]
    local vlan_id_filter = ''
    if not isEmptyString(vlan_id) then
-      vlan_id_filter = '<span class="glyphicon glyphicon-filter"></span>'
+      vlan_id_filter = '<span class="fa fa-filter"></span>'
    end
 
    local vlan_id_params = table.clone(page_params)
@@ -377,7 +377,7 @@ function printTrafficTypeFilterDropdown(base_url, page_params)
    local traffic_type = _GET["traffic_type"]
    local traffic_type_filter = ''
    if not isEmptyString(traffic_type) then
-      traffic_type_filter = '<span class="glyphicon glyphicon-filter"></span>'
+      traffic_type_filter = '<span class="fa fa-filter"></span>'
    end
 
    local traffic_type_params = table.clone(page_params)
@@ -424,7 +424,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
    local cur_dev_filter = ''
    local snmp_community = ''
    if not isEmptyString(cur_dev) then
-      cur_dev_filter = '<span class="glyphicon glyphicon-filter"></span>'
+      cur_dev_filter = '<span class="fa fa-filter"></span>'
    end
 
    local dev_params = table.clone(page_params)
@@ -466,7 +466,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
 	 local cur_if = _GET[direction]
 	 local cur_if_filter = ''
 	 if not isEmptyString(cur_if) then
-	    cur_if_filter = '<span class="glyphicon glyphicon-filter"></span>'
+	    cur_if_filter = '<span class="fa fa-filter"></span>'
 	 end
 
 	 local if_params = table.clone(page_params)

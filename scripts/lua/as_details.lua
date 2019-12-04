@@ -135,7 +135,7 @@ end
 
 local application_filter = ''
 if(application ~= nil) then
-   application_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   application_filter = '<span class="fa fa-filter"></span>'
 end
 local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
 dt_buttons = dt_buttons..'<li><a href="'..nav_url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'

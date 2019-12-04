@@ -1081,7 +1081,7 @@ elseif((page == "ndpi")) then
       local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=ndpi";
 
       if(direction ~= nil) then
-	 direction_filter = '<span class="glyphicon glyphicon-filter"></span>'
+	 direction_filter = '<span class="fa fa-filter"></span>'
       end
 
       print('<div class="dt-toolbar btn-toolbar pull-right">')

@@ -45,7 +45,7 @@ end
 local hosts_filter = ''
 
 if ((mode ~= "all") or (not isEmptyString(pool))) then
-   hosts_filter = '<span class="glyphicon glyphicon-filter"></span>'
+   hosts_filter = '<span class="fa fa-filter"></span>'
 end
 
 local active_page = "hosts"

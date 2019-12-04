@@ -743,7 +743,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
 
    button_label = button_label or firstToUpper(selection_name)
    if active_entry ~= nil and active_entry ~= "" then
-      button_label = firstToUpper(active_entry)..'<span class="glyphicon glyphicon-filter"></span>'
+      button_label = firstToUpper(active_entry)..'<span class="fa fa-filter"></span>'
    end
 
    buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..button_label
