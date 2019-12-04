@@ -227,6 +227,7 @@ function lists_utils.getCategoryLists()
       local list = table.merge(default_values, redis_lists[key] or {status = {}})
       list.status = table.merge(default_status, list.status)
       lists[key] = list
+      list.name = key
    end
 
    return lists
@@ -421,8 +422,20 @@ end
 
 -- ##############################################
 
+local cur_load_warnings = 0
+local max_load_warnings = 50
+
+local function loadWarning(msg)
+   if(cur_load_warnings >= max_load_warnings) then
+      return
+   end
+
+   traceError(TRACE_WARNING, TRACE_CONSOLE, msg)
+   cur_load_warnings = cur_load_warnings + 1
+end
+
 --@return nil on parse error, "domain" if the loaded item is an host, "ip" otherwise
-local function loadListItem(host, category, user_custom_categories)
+local function loadListItem(host, category, user_custom_categories, list)
    category = tonumber(category)
 
    -- Checking for "whitelisted hosts" (Format: !<host>)
@@ -442,11 +455,32 @@ local function loadListItem(host, category, user_custom_categories)
       end
 
       if isIPv4(host) or isIPv4Network(host) then
-	 ntop.loadCustomCategoryIp(host, category)
-	 return "ip"
+	 -- IPv4 address
+	 if((not list) or (list.format ~= "domain")) then
+	   if((host == "0.0.0.0") or (host == "0.0.0.0/0")) then
+	     loadWarning(string.format("Bad IPv4 address '%s' in list '%s'", host, list.name))
+	   else
+	     ntop.loadCustomCategoryIp(host, category)
+	     return "ip"
+	   end
+	 else
+	   loadWarning(string.format("Invalid IPv4 address '%s' in list '%s'", host, list.name))
+	 end
+      elseif isIPv6(host) then
+	 -- IPv6 address
+         loadWarning(string.format("Unsupported IPv6 address '%s' found in list '%s'", host, list.name))
       else
-	 ntop.loadCustomCategoryHost(host, category)
-	 return "domain"
+	 -- Domain
+	 if((not list) or (list.format ~= "ip")) then
+	   if((string.len(host) < 4) or (string.find(host, "%.") == nil)) then
+	     traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Bad domain name '%s' in list '%s'", host, list.name))
+	   else
+	     ntop.loadCustomCategoryHost(host, category)
+	     return "domain"
+	   end
+	 else
+	   loadWarning(string.format("Invalid domain '%s' in list '%s'", host, list.name))
+	 end
       end
    end
 
@@ -531,7 +565,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
 	 end
 
 	 if host then
-	    local rv = loadListItem(host, list.category, user_custom_categories)
+	    local rv = loadListItem(host, list.category, user_custom_categories, list)
 
 	    if(rv == "domain") then
 	       stats.num_hosts = stats.num_hosts + 1
