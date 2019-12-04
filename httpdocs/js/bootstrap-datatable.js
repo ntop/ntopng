@@ -546,8 +546,9 @@
 
           // setup the pager container and the quick page buttons
           var $pager = $("<ul></ul>").addClass("pagination")
-            , $first = $("<li></li>").append(
+            , $first = $("<li></li>").addClass("page-item").append(
                 $("<a></a>")
+	          .addClass("page-link")
                   .attr("href", "#")
                   .data("page", 1)
                   .html("&laquo;")
@@ -557,8 +558,9 @@
                     return false;
                   })
               )
-            , $previous = $("<li></li>").append(
+            , $previous = $("<li></li>").addClass("page-item").append(
                 $("<a></a>")
+                  .addClass("page-link")
                   .attr("href", "#")
                   .data("page", o.currentPage - 1)
                   .html("&lt;")
@@ -569,8 +571,9 @@
                     return false;
                   })
               )
-            , $next = $("<li></li>").append(
+            , $next = $("<li></li>").addClass("page-item").append(
                 $("<a></a>")
+		  .addClass("page-link")
                   .attr("href", "#")
                   .data("page", o.currentPage + 1)
                   .html("&gt;")
@@ -581,8 +584,9 @@
                     return false;
                   })
               )
-            , $last = $("<li></li>").append(
+            , $last = $("<li></li>").addClass("page-item").append(
                 $("<a></a>")
+		  .addClass("page-link")
                   .attr("href", "#")
                   .data("page", o.pageCount)
                   .html("&raquo;")
@@ -615,9 +619,10 @@
 
           // append the pagination links
           for(var i = start; i <= end; i++) {
-            var $link = $("<li></li>")
+            var $link = $("<li></li>").addClass("page-item")
               .append(
                 $("<a></a>")
+		  .addClass("page-link") 
                   .attr("href", "#")
                   .data("page", i)
                   .text(i)

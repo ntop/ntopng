@@ -270,11 +270,11 @@ end
 if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces, only for their view
    if active_page == "hosts" then
       print [[ <li class="nav-item dropdown active">
-      <a class="nav-link dropdown-toggle active" data-toggle="dropdown">
+      <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
 ]]
    else
       print [[ <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown">
+      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
 ]]
    end
 
