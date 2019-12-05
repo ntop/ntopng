@@ -727,7 +727,7 @@ function loggingSelector(label, comment, submit_field, redis_key)
 end
 
 function printPageSection(section_name)
-   print('<tr><th colspan=2 class="info">'..section_name..'</th></tr>')
+   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..section_name..'</th></tr></thead>')
 end
 
 function printSaveButton(some_content)
