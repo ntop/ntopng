@@ -1,11 +1,9 @@
 <form action="{{typeahead.action}}" data-toggle="validator">
 <div class="control-group {{typeahead.class}}" style="{{typeahead.style}}">
   <div class="input-group">
-    <span class="input-group-btn">
-      <button class="btn btn-default" type="submit" id="{{typeahead.base_id}}_submit" data-ays-ignore="true">
-        <span class="glyphicon glyphicon-search"></span>
-      </button>
-    </span>
+    <div class="input-group-prepend">
+      <button class="input-group-text"><i class="fa fa-search" aria-hidden="true"></i></button>
+    </div>
   {% for k,v in pairs(typeahead.parameters or {}) do %}
     <input type="hidden" name="{{k}}" value="{{v}}" />
   {% end %}
