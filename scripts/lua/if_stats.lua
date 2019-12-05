@@ -229,13 +229,13 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = "<i class=\"fa fa-home\"></i>",
 			      },
 			      {
-				 hidden = not interface.isPacketInterface(),
+				 hidden = not interface.isPacketInterface() or ntop.isnEdge(),
 				 active = page == "networks",
 				 page_name = "networks",
 				 label = i18n("networks"),
 			      },
 			      {
-				 hidden = not ifstats or ifstats.stats.packets == 0,
+				 hidden = not ifstats or ifstats.stats.packets == 0 or ntop.isnEdge(),
 				 active = page == "packets",
 				 page_name = "packets",
 				 label = i18n("packets"),
@@ -246,12 +246,13 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = i18n("applications"),
 			      },
 			      {
+				 hidden = ntop.isnEdge(),
 				 active = page == "ICMP",
 				 page_name = "ICMP",
 				 label = i18n("icmp"),
 			      },
 			      {
-				 hidden = not ifstats or not ifstats["has_macs"],
+				 hidden = not ifstats or not ifstats["has_macs"] or ntop.isnEdge(),
 				 active = page == "ARP",
 				 page_name = "ARP",
 				 label = i18n("arp"),
