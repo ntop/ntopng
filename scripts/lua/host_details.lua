@@ -231,7 +231,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 hidden = only_historical,
 				 active = page == "overview" or page == nil,
 				 page_name = "overview",
-				 label = "<i class=\"fa fa-home\"></i>",
+				 label = "<i class=\"fa fa-lg fa-home\"></i>",
 			      },
 			      {
 				 hidden = only_historical,
@@ -316,31 +316,31 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 hidden = only_historical or isLoopback(ifname) or not host["has_dropbox_shares"],
 				 active = page == "dropbox",
 				 page_name = "dropbox",
-				 label = "<i class='fa fa-dropbox'></i>",
+				 label = "<i class='fa fa-lg fa-dropbox'></i>",
 			      },
 			      {
 				 hidden = only_historical or host["privatehost"],
 				 active = page == "geomap",
 				 page_name = "geomap",
-				 label = "<i class='fa fa-globe'></i>",
+				 label = "<i class='fa fa-lg fa-globe'></i>",
 			      },
 			      {
 				 hidden = not areAlertsEnabled(),
 				 active = page == "alerts",
 				 page_name = "alerts",
-				 label = "<i class=\"fa fa-warning\"></i>",
+				 label = "<i class=\"fa fa-lg fa-warning\"></i>",
 			      },
 			      {
 				 hidden = not ts_utils.exists("host:traffic", {ifid = ifId, host = tskey}),
 				 active = page == "historical",
 				 page_name = "historical",
-				 label = "<i class='fa fa-area-chart'></i>",
+				 label = "<i class='fa fa-lg fa-area-chart'></i>",
 			      },
 			      {
 				 hidden = only_historical or is_pcap_dump or not host["localhost"] or not ts_utils.getDriverName() == "rrd",
 				 active = page == "traffic_report",
 				 page_name = "traffic_report",
-				 label = "<i class='fa fa-file-text report-icon'></i>",
+				 label = "<i class='fa fa-lg fa-file-text report-icon'></i>",
 			      },
 			      {
 				 hidden = only_historical or not ntop.isEnterprise() or not ifstats.inline or not host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID,
@@ -352,13 +352,13 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 				 active = page == "config",
 				 page_name = "config",
-				 label = "<i class=\"fa fa-cog\"></i></a></li>",
+				 label = "<i class=\"fa fa-lg fa-cog\"></i></a></li>",
 			      },
 			      {
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 				 active = page == "callbacks",
 				 page_name = "callbacks",
-				 label = "<i class=\"fa fa-superpowers\"></i>",
+				 label = "<i class=\"fa fa-lg fa-superpowers\"></i>",
 			      },
 			   }
    )

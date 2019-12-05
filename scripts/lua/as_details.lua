@@ -62,7 +62,7 @@ page_utils.print_navbar(title, nav_url,
 			   {
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-area-chart'></i>",
+			      label = "<i class='fa fa-lg fa-area-chart'></i>",
 			   },
 			}
 )

@@ -136,13 +136,13 @@ page_utils.print_navbar(title, url,
 			      hidden = not ts_utils.exists("mac:traffic", {ifid=ifId, mac = devicekey}),
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-area-chart'></i>",
+			      label = "<i class='fa fa-lg fa-area-chart'></i>",
 			   },
 			   {
 			      hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 			      active = page == "config",
 			      page_name = "config",
-			      label = "<i class=\"fa fa-cog fa-lg\"></i></a></li>",
+			      label = "<i class=\"fa fa-lg fa-lg\"></i></a></li>",
 			   },
 			}
 )

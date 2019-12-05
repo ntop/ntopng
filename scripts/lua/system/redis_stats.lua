@@ -39,18 +39,18 @@ page_utils.print_navbar(title, url,
 			   {
 			      active = page == "overview" or not page,
 			      page_name = "overview",
-			      label = "<i class=\"fa fa-home\"></i>",
+			      label = "<i class=\"fa fa-lg fa-home\"></i>",
 			   },
 			   {
 			      active = page == "stats",
 			      page_name = "stats",
-			      label = "<i class=\"fa fa-wrench\"></i>",
+			      label = "<i class=\"fa fa-lg fa-wrench\"></i>",
 			   },
 			   {
 			      hidden = not ts_creation,
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-area-chart'></i>",
+			      label = "<i class='fa fa-lg fa-area-chart'></i>",
 			   },
 			}
 )
