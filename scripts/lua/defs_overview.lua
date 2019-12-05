@@ -18,7 +18,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print[[<hr>
 <div class="row">
 <div class="col col-md-4 col-md-offset-1">
-<table class="table table-bordered table-condensed">
+<table class="table table-bordered table-sm">
 <tr><th class='text-center'>Alert ID</th><th>Alert Key</th></tr>]]
 
 local id_start = 0
@@ -34,7 +34,7 @@ end
 print[[</table>
 </div>
 <div class="col col-md-offset-1 col-md-4">
-<table class="table table-bordered table-condensed">
+<table class="table table-bordered table-sm">
 <tr><th class='text-center'>Status ID</th><th>Status Key</th><th class='text-center'>Priority</th></tr>]]
 
 for status_id=id_start,id_end do

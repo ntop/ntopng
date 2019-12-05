@@ -168,7 +168,7 @@ print[[
 
   $("#table-custom-cat-form").datatable({
     url: "]] print (ntop.getHttpPrefix()) print [[/lua/admin/get_custom_categories_hosts.lua?l7proto=]] print(category_filter or "") print[[",
-    class: "table table-striped table-bordered table-condensed",
+    class: "table table-striped table-bordered table-sm",
     ]]
 
 -- Set the preference table

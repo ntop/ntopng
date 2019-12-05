@@ -295,7 +295,7 @@ print[[
 
   $("#table-edit-ndpi-applications").datatable({
     url: url_update ,
-    class: "table table-striped table-bordered table-condensed",
+    class: "table table-striped table-bordered table-sm",
     buttons: [ ]]
 
   if has_protos_file then

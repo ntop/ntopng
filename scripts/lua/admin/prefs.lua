@@ -517,7 +517,7 @@ function printExternalAlertsReport()
              "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width="43em"}, required=true, pattern=getURLPattern()})
 
     -- Channel settings
-    print('<tr id="slack_channels" style="' .. ternary(showSlackNotificationPrefs, "", "display:none;").. '"><td><strong>' .. i18n("prefs.slack_channel_names") .. '</strong><p><small>' .. i18n("prefs.slack_channel_names_descr") .. '</small></p></td><td><table class="table table-borderless table-condensed"><tr><th>'.. i18n("prefs.alert_entity") ..'</th><th>' .. i18n("prefs.slack_channel") ..'</th></tr>')
+    print('<tr id="slack_channels" style="' .. ternary(showSlackNotificationPrefs, "", "display:none;").. '"><td><strong>' .. i18n("prefs.slack_channel_names") .. '</strong><p><small>' .. i18n("prefs.slack_channel_names_descr") .. '</small></p></td><td><table class="table table-borderless table-sm"><tr><th>'.. i18n("prefs.alert_entity") ..'</th><th>' .. i18n("prefs.slack_channel") ..'</th></tr>')
 
     for entity_type_raw, entity in pairsByKeys(alert_consts.alert_entities) do
       local entity_type = alert_consts.alertEntity(entity_type_raw)

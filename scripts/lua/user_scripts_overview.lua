@@ -23,7 +23,7 @@ local edition = _GET["edition"] or ""
 
 local function printUserScripts(title, scripts)
   print[[<h3>]] print(title) print[[</h3>
-    <table class="table table-bordered table-condensed table-striped">
+    <table class="table table-bordered table-sm table-striped">
     <tr><th class='text-center' width="30%">Script</th><th width="10%">Availability</th><th width="30%">Hooks</th><th>Filters</th></tr>]]
 
   for name, script in pairsByKeys(scripts.modules) do

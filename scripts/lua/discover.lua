@@ -129,7 +129,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
          url: "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_discover_data.lua", page_params)) print[[",
          title: "",
          showPagination: true,
-         class: "table table-striped table-bordered table-condensed",
+         class: "table table-striped table-bordered table-sm",
          buttons: []]
 
    -- Manufacturer filter
