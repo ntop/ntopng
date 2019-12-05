@@ -325,6 +325,18 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = "<i class='fa fa-globe'></i>",
 			      },
 			      {
+				 hidden = not areAlertsEnabled(),
+				 active = page == "alerts",
+				 page_name = "alerts",
+				 label = "<i class=\"fa fa-warning\"></i>",
+			      },
+			      {
+				 hidden = not ts_utils.exists("host:traffic", {ifid = ifId, host = tskey}),
+				 active = page == "historical",
+				 page_name = "historical",
+				 label = "<i class='fa fa-area-chart'></i>",
+			      },
+			      {
 				 hidden = only_historical or is_pcap_dump or not host["localhost"] or not ts_utils.getDriverName() == "rrd",
 				 active = page == "traffic_report",
 				 page_name = "traffic_report",
