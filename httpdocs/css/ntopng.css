@@ -470,14 +470,14 @@ path.link {
   text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
 }
 
-/* .drilldown-icon { */
-/*   font-size: 16px; */
-/* } */
+.drilldown-icon {
+  font-size: 16px;
+}
 
 
-/* /\* Fix for fa-share blocked by adblock *\/ */
-/* .fa-topology-alt:before { */
-/*   content: "\f1e0"; */
-/* } */
+/* Fix for fa-share blocked by adblock */
+.fa-topology-alt:before {
+  content: "\f1e0";
+}
 
 /* end of CSS for EBPF charts */

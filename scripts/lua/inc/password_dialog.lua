@@ -15,9 +15,9 @@ print [[
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-  <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
-  <h3 id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span id="password_dialog_title"></span>]]})) print[[ </h3>
-</div>
+        <h3 id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span id="password_dialog_title"></span>]]})) print[[ </h3>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+      </div>
 
 <div class="modal-body">
 

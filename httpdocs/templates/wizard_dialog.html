@@ -2,8 +2,8 @@
   <div class="modal-dialog" style="{{wizard.style or ''}}">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
         <h3 id="{{wizard.id}}Label">{{wizard.title}}</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
       </div>
 
       {% wizard.actual_steps = {}; wizard.size_sum = 0 %}

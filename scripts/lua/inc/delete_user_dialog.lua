@@ -3,9 +3,9 @@ print [[
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-  <h3 id="delete_user_dialog_label">]] print(i18n("users.delete_user")) print[[</h3>
-</div>
+        <h3 id="delete_user_dialog_label">]] print(i18n("users.delete_user")) print[[</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+      </div>
 
 <div class="modal-body">
 

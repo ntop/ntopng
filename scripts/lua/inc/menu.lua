@@ -388,7 +388,7 @@ end
 print [[ <li class="nav-item dropdown"> ]]
 
 print [[
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">]] print(ifname) print[[ <b class="caret"></b>
+      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">]] print(getHumanReadableInterfaceName(ifname)) print[[ <b class="caret"></b>
       </a>
       <ul class="dropdown-menu">
 ]]
