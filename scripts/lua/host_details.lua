@@ -1264,19 +1264,22 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 ]]
 end
 
-	print('<tr><th rowspan=2>'..i18n("dns_page.request_vs_reply")..'</th><th colspan=2>'..i18n("dns_page.ratio")..'<th colspan=2>'..i18n("breakdown")..'</th></tr>')
-        local dns_ratio = tonumber(host["dns"]["sent"]["num_queries"]) / tonumber(host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"])
-        local dns_ratio_str = string.format("%.2f", dns_ratio)
+	 if host["dns"]["rcvd"]["num_replies_ok"] + host["dns"]["rcvd"]["num_replies_error"] > 0 then
+	    print('<tr><th rowspan=2>'..i18n("dns_page.request_vs_reply")..'</th><th colspan=2>'..i18n("dns_page.ratio")..'<th colspan=2>'..i18n("breakdown")..'</th></tr>')
+	    local dns_ratio = tonumber(host["dns"]["sent"]["num_queries"]) / tonumber(host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"])
+	    local dns_ratio_str = string.format("%.2f", dns_ratio)
 
-        if(dns_ratio < 0.9) then
-          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>"
-        end
+	    if(dns_ratio < 0.9) then
+	       dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>"
+	    end
 
-	print('<tr><td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
-	breakdownBar(host["dns"]["sent"]["num_queries"], i18n("dns_page.queries"), host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], i18n("dns_page.replies"), 30, 70)
+	    print('<tr><td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
+	    breakdownBar(host["dns"]["sent"]["num_queries"], i18n("dns_page.queries"), host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], i18n("dns_page.replies"), 30, 70)
 
-print [[
-	</td></tr>
+	    print [[</td></tr>]]
+	 end
+	
+	print[[
         </table>
        <small><b>]] print(i18n("dns_page.note")) print[[:</b><br>]] print(i18n("dns_page.note_dns_ratio")) print[[
 </small>
