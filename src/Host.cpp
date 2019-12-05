@@ -629,7 +629,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_get_num_contacts(vm);
   lua_get_num_http_hosts(vm);
 
-  luaDNS(vm);
+  luaDNS(vm, verbose);
   luaTCP(vm);
   luaICMP(vm, get_ip()->isIPv4(), false);
 

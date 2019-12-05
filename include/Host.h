@@ -286,8 +286,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { };
   virtual void incNumDNSResponsesSent(u_int32_t ret_code) { };
   virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { };
-  virtual void luaHTTP(lua_State *vm) const { };
-  virtual void luaDNS(lua_State *vm) const { };
+  virtual void luaHTTP(lua_State *vm)              const { };
+  virtual void luaDNS(lua_State *vm, bool verbose) const { };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { };
   virtual void luaTCP(lua_State *vm) const { };
   virtual u_int16_t getNumActiveContactsAsClient() const  { return 0; };

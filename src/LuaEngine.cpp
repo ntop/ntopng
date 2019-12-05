@@ -8623,7 +8623,7 @@ static int ntop_host_get_dns_info(lua_State* vm) {
   lua_newtable(vm);
 
   if(h)
-    h->luaDNS(vm);
+    h->luaDNS(vm, true /* Verbose */);
 
   return(CONST_LUA_OK);
 }
