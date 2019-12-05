@@ -1706,9 +1706,9 @@ print("<center>")
 
 
 print [[
-     <style type="text/css">
-     #map-canvas { width: 800px; height: 480px; }
-   </style>
+<style type="text/css">
+  #map-canvas { width: 100%; height: 480px; }
+</style>
 
 </center>
 ]]

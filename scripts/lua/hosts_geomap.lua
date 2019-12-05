@@ -24,9 +24,9 @@ hosts_stats = hosts_stats["hosts"]
 if(num > 0) then
 print [[
 
-     <style type="text/css">
-     #map-canvas { width: 640px; height: 480px; }
-   </style>
+<style type="text/css">
+  #map-canvas { width: 100%; height: 480px; }
+</style>
 
 <hr>
 <h2>]] print(i18n("geo_map.hosts_geomap")) print[[</H2>
