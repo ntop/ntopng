@@ -600,7 +600,7 @@ function printExternalAlertsReport()
     end
 
     -- Webhook
-    print('<tr><th colspan=2 class="info">'..i18n('prefs.webhook_notification')..'</th></tr>')
+    print('<thead class="thead-light"><tr><th colspan="2" class="info">'..i18n("prefs.webhook_notification")..'</th></tr></thead>')
 
     local elementToSwitchWebhook = {"row_webhook_notification_severity_preference", "webhook_url", "webhook_sharedsecret", "webhook_test", "webhook_username", "webhook_password"}
 
@@ -1680,7 +1680,7 @@ function printFlowDBDump()
 end
 
    print[[
-       <table class="table table-borderless">
+       <table class="table">
          <col width="20%">
          <col width="80%">
          <tr><td style="padding-right: 20px;">]]
