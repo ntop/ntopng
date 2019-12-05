@@ -363,10 +363,6 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 			   }
    )
 
-print [[
-</div>
-   ]]
-
 local macinfo = interface.getMacInfo(host["mac"])
 local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
    and (info["version.enterprise_edition"]) and host_has_snmp_location(host["mac"])
