@@ -321,7 +321,7 @@ if (_GET["page"] ~= "historical") then
    -- Hosts filter
    local hosts_filter_params = table.clone(page_params)
 
-   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("hosts_stats.filter_hosts")..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("hosts_stats.filter_hosts")..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li class="dropdown-item"><a class="dropdown-link" href="')
 
    hosts_filter_params.mode = nil
    hosts_filter_params.pool = nil
@@ -329,47 +329,41 @@ if (_GET["page"] ~= "historical") then
    print ('">'..i18n("hosts_stats.all_hosts")..'</a></li>')
 
    hosts_filter_params.mode = "local"
-   print('<li')
-   if mode == hosts_filter_params.mode then print(' class="active"') end
-   print('><a href="')
+   print('<li class="dropdown-item ')
+   print('"><a class="dropdown-link" href="')
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.local_hosts_only")..'</a></li>')
 
    hosts_filter_params.mode = "remote"
-   print('<li')
-   if mode == hosts_filter_params.mode then print(' class="active"') end
-   print('><a href="')
+   print('<li class="dropdown-item ')
+   print('"><a class="dropdown-link" href="')
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.remote_hosts_only")..'</a></li>')
 
    if interface.isPacketInterface() and not interface.isPcapDumpInterface() then
       hosts_filter_params.mode = "dhcp"
-      print('<li')
-      if mode == hosts_filter_params.mode then print(' class="active"') end
-      print('><a href="')
+      print('<li class="dropdown-item ')
+      print('"><a class="dropdown-link" href="')
       print (getPageUrl(base_url, hosts_filter_params))
       print ('">'..i18n("mac_stats.dhcp_only")..'</a></li>')
 
       hosts_filter_params.mode = "broadcast_domain"
-      print('<li')
-      if mode == hosts_filter_params.mode then print(' class="active"') end
-      print('><a href="')
+      print('<li class="dropdown-item ')
+      print('"><a class="dropdown-link" href="')
       print (getPageUrl(base_url, hosts_filter_params))
       print ('">'..i18n("hosts_stats.broadcast_domain_hosts_only")..'</a></li>')
    end
 
    hosts_filter_params.mode = "blacklisted"
-   print('<li')
-   if mode == hosts_filter_params.mode then print(' class="active"') end
-   print('><a href="')
+   print('<li class="dropdown-item ')
+   print('"><a class="dropdown-link" href="')
    print (getPageUrl(base_url, hosts_filter_params))
    print ('">'..i18n("hosts_stats.blacklisted_hosts_only")..'</a></li>')
 
    if isBridgeInterface(ifstats) then
       hosts_filter_params.mode = "filtered"
-      print('<li')
-      if mode == hosts_filter_params.mode then print(' class="active"') end
-      print('><a href="')
+      print('<li class="dropdown-item ')
+      print('"><a class="dropdown-link" href="')
       print (getPageUrl(base_url, hosts_filter_params))
       print ('">'..i18n("hosts_stats.filtered_hosts_only")..'</a></li>')
    end
@@ -381,9 +375,8 @@ if (_GET["page"] ~= "historical") then
       print('<li role="separator" class="divider"></li>')
       for _, _pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
 	 hosts_filter_params.pool = _pool.id
-	 print('<li')
-	 if pool == _pool.id then print(' class="active"') end
-	 print('><a href="'..getPageUrl(base_url, hosts_filter_params)..'">'
+	 print('<li class="dropdown-item ')
+	 print('"><a class="dropdown-link" href="'..getPageUrl(base_url, hosts_filter_params)..'">'
 		  ..i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"),
 			 {pool_name=string.gsub(_pool.name, "'", "\\'")}) ..'</li>')
       end
