@@ -1525,7 +1525,7 @@ $(function() {
 });
 
 function getActiveTabId() {
-   return $("#]] print(nav_tab_id) print[[ > li.active > a").attr('href').substr(1);
+   return $("#]] print(nav_tab_id) print[[ > li > a.active").attr('href').substr(1);
 }
 
 function updateDeleteLabel(tabid) {
