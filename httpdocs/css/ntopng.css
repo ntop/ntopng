@@ -189,6 +189,10 @@ NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 /*   -moz-appearance:textfield; */
 /* } */
 
+.masthead  > .nav > .nav-item {
+    margin-left: 5px;
+}
+
 /* sprobe ****************************** */
 
 
