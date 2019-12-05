@@ -374,7 +374,7 @@ if isAllowedSystemInterface() then
 
    if #system_menu_entries > 0 then
       print('<li class="dropdown-divider"></li>')
-      print('<li class="nav-item" class="dropdown-header">') print(i18n("system_stats.probes")) print('</li>')
+      print('<li class="dropdown-header">') print(i18n("system_stats.probes")) print('</li>')
 
       for _, entry in ipairs(system_scripts.getSystemMenuEntries()) do
 	 print[[<li class="nav-item"><a class="nav-link" href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
