@@ -331,16 +331,16 @@ path.link {
 /*   cursor: not-allowed; */
 /* } */
 
-/* .line-dashed .nv-line { */
-/*   stroke-dasharray: 5, 5; */
-/* } */
+.line-dashed .nv-line {
+  stroke-dasharray: 5, 5;
+}
 
-/* .chart-loading-spinner { */
-/*   position: absolute; */
-/*   top: 50%; */
-/*   left: 50%; */
-/*   font-size: 50px; */
-/* } */
+.chart-loading-spinner {
+  position: absolute; */
+  top: 50%;
+  left: 50%;
+  font-size: 50px;
+}
 
 /* .timeseries-dropdown { */
 /*   padding-left: 5px; */
@@ -353,9 +353,7 @@ path.link {
 /* } */
 
 /* NOTE: this is commented to avoid highliting overlapping line issues due to
- * curves interpolation.
-*/
-/*
+ * curves interpolation. */
 #historical-tab-chart .nv-area-stroke-hint {
   animation-name: line-stroke-appear;
   animation-duration: 1.5s;
@@ -366,19 +364,18 @@ path.link {
   from { stroke-opacity: 0; stroke-width: 0; }
   to { stroke-opacity: 1; stroke-width: 1.2; }
 }
-*/
 
-/* .line-animated .nv-line { */
-/*   animation-name: line-appear; */
-/*   animation-delay: 0.25s; */
-/*   animation-duration: 1.25s; */
-/*   animation-fill-mode: backwards; */
-/* } */
+.line-animated .nv-line {
+  animation-name: line-appear;
+  animation-delay: 0.25s;
+  animation-duration: 1.25s;
+  animation-fill-mode: backwards;
+}
 
-/* @keyframes line-appear { */
-/*   from {-webkit-clip-path: polygon(0px -1000px, 0px -1000px, 0px 1000px, 0px 1000px);} */
-/*   to {-webkit-clip-path: polygon(0px -1000px, 100% -1000px, 100% 1000px, 0px 1000px);} */
-/* } */
+@keyframes line-appear {
+  from {-webkit-clip-path: polygon(0px -1000px, 0px -1000px, 0px 1000px, 0px 1000px);}
+  to {-webkit-clip-path: polygon(0px -1000px, 100% -1000px, 100% 1000px, 0px 1000px);}
+}
 
 /* .zoom-reset { */
 /*   margin-right: 8px; */
@@ -397,9 +394,9 @@ path.link {
 /*   /\* margin-top: 2px; *\/ */
 /* } */
 
-/* .ntop-progress-stacked { */
-/*   width: 400px; */
-/* } */
+.ntop-progress-stacked {
+  width: 400px;
+}
 
 
 /* /\* ntop fix: Keep old behaviour after commit https://github.com/twbs/bootstrap/commit/a15c24410be8b94671dcfc3b154e0034a3aaf35f *\/ */

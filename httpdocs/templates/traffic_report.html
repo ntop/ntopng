@@ -1,5 +1,5 @@
-<div class="center-block" style="width:80em;">
-  <table class="table table-bordered table-condensed table-striped">
+<div class="container-fluid" style="width:80em;">
+  <table class="table table-bordered table-sm table-striped">
   <thead>
     <tr>
       {% for j in range(2, #report.series) do %}
@@ -21,20 +21,20 @@
   {% for i in range(report.rows) do %}
     <tr>
       {% if i == report.rows then %}
-        <th class='col-sm-1 text-right'>{{report.values[1][i]}}</th> <!-- Total -->
+        <th class=' text-right'>{{report.values[1][i]}}</th> <!-- Total -->
       {% else %}
         {% if report.values[1][i].highlighted then %}
-          <td class='col-sm-1 text-right' ><div style="width:65%;"><span style="color: #FF5454;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></span></div></td>
+          <td class=' text-right' ><div style="width:65%;"><span style="color: #FF5454;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></span></div></td>
         {% else %}
-          <td class='col-sm-1 text-right' ><div style="width:65%;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></div></td>
+          <td class=' text-right' ><div style="width:65%;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></div></td>
         {% end %}
       {% end %}
       
       {% for j in range(2, #report.values) do %}
         {% if i == report.rows then %}
-      <th class='text-right col-sm-1'>{{report.values[j][i].bytes}}</th><th class='text-right col-sm-1'>{{report.values[j][i].activity}}</th>  <!-- Total-->
+      <th class='text-right '>{{report.values[j][i].bytes}}</th><th class='text-right '>{{report.values[j][i].activity}}</th>  <!-- Total-->
         {% else %}
-      <td class='text-right col-sm-1'>{{report.values[j][i].bytes}}</td><td class='text-right col-sm-1'>{{report.values[j][i].activity}}</td>
+      <td class='text-right '>{{report.values[j][i].bytes}}</td><td class='text-right '>{{report.values[j][i].activity}}</td>
         {% end %}
       {% end %}
     </tr>
