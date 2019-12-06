@@ -25,11 +25,8 @@ function page_utils.print_header(title)
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
     <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/tempusdominus/css/tempusdominus-bootstrap-4.css">
-<!--    <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.css" rel="stylesheet"> -->
-<!--    <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap-theme.css" rel="stylesheet"> -->
     <link href="]] print(http_prefix) print[[/font-awesome/css/font-awesome.css" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
-<!--    <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/jquery-ui.css"> -->
     <link href="]] print(http_prefix) print[[/css/dc.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/heatmap.css" rel="stylesheet">
 <style>
@@ -46,17 +43,12 @@ function page_utils.print_header(title)
     <!-- http://kamisama.github.io/cal-heatmap/v2/ -->
     <link href="]] print(http_prefix) print[[/css/cal-heatmap.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">
-<!--    <link href="]] print(http_prefix) print[[/css/bootstrap-slider.css" rel="stylesheet"> -->
-<!--    <link href="]] print(http_prefix) print[[/css/bootstrap-nav-wizard.css" rel="stylesheet"> -->
 
     <!--[if lt IE 9]>
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
 
     <link href="]] print(http_prefix) print[[/css/ntopng.css?]] print(startup_epoch) print[[" rel="stylesheet">
-<!--    <link rel="stylesheet" href="]] print(http_prefix) print[[/css/bootstrap-datetimepicker.css" /> -->
-
-
 
     <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
@@ -90,13 +82,9 @@ function page_utils.print_header_minimal(title)
     <title>]] print(page_title) print[[</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
     <link href="]] print(http_prefix) print[[/font-awesome/css/font-awesome.css" rel="stylesheet">
-    <script src="]] print(http_prefix) print[[/js/jquery.js"></script>
-    <script src="]] print(http_prefix) print[[/js/jquery-ui.js"></script>
-    <script src="]] print(http_prefix) print[[/js/bootstrap.js"></script>
-    <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/jquery-ui.css">
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
     <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
     <script src="]] print(http_prefix) print[[/js/validator.js"></script>
 <style>
