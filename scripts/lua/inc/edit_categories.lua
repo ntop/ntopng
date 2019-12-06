@@ -83,7 +83,7 @@ if not isEmptyString(category_filter) then
   print[[<td>
     <form>
       <input type="hidden" name="tab" value="categories" />
-      <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="$(this).closest('form').submit();">
         <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(cat_name) print[[
       </button>
     </form>

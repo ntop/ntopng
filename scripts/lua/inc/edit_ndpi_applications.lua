@@ -213,7 +213,7 @@ if not isEmptyString(proto_filter) then
   print[[<td>
     <form action="]] print(base_url) print [[" method="get">
       <input type="hidden" name="tab" value="protocols" />
-      <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="$(this).closest('form').submit();">
         <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
       </button>
     </form>

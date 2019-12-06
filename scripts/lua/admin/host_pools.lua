@@ -306,7 +306,7 @@ if members_filtering ~= nil then
       <input type="hidden" name="ifid" value="]] print(ifId.."") print[[" />
       <input type="hidden" name="page" value="pools" />
       <input type="hidden" name="pool" value="]] print(selected_pool.id) print[[" />
-      <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="$(this).closest('form').submit();">
         <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(formatMemberFilter()) print[[
       </button>
     </form>
@@ -365,7 +365,7 @@ end
   end
 
 print[[
-      <button id="emptyPoolButton" class="btn btn-default" onclick="$('#empty_pool_dialog').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true"></i> ]] print(i18n("host_pools.empty_pool")) print[[</button>
+      <button id="emptyPoolButton" class="btn btn-secondary" onclick="$('#empty_pool_dialog').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true"></i> ]] print(i18n("host_pools.empty_pool")) print[[</button>
 ]]
 
 print[[

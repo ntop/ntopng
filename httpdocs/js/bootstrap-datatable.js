@@ -785,7 +785,7 @@
               }) : ""
 
           , $("<button></button>")
-            .addClass("btn btn-default")
+            .addClass("btn btn-secondary")
             .data('dismiss', 'modal')
             .append(
               $("<span></span>")
