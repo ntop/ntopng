@@ -72,7 +72,6 @@ local page_params = {}
 if (page == "flows" or page == nil) then
 
 print [[
-      <hr>
       <div id="table-flows"></div>]]
 
 print(i18n("notes"))

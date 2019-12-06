@@ -109,7 +109,7 @@ function page_utils.print_navbar(title, base_url, items_table)
    print[[
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="#">]] print(title) print[[</a>
+  <a class="navbar-brand" href="#"><small>]] print(title) print[[</small></a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -135,7 +135,7 @@ function page_utils.print_navbar(title, base_url, items_table)
     </ul>
   </div>
 </nav>
-
+<p>
 ]]
 end
 

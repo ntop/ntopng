@@ -23,7 +23,6 @@ local page_params = {
 local title = ternary(isEmptyString(page_params.pod), i18n("containers_stats.containers_list"), i18n("containers_stats.containers_of_pod", {pod=shortenString(page_params.pod)}))
 
 print [[
-  <hr>
   <div id="table-containers"></div>
   <script>
   var url_update = "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_containers_data.lua", page_params)) print[[";]]

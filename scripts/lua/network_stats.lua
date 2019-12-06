@@ -29,7 +29,6 @@ function getPageTitle()
 end
 
 print [[
-      <hr>
       <div id="table-network"></div>
 	 <script>
 	 var url_update = "]]

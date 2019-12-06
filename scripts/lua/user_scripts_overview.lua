@@ -14,7 +14,7 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print[[<hr>]]
+-- print[[<hr>]]
 
 local ifid = interface.getId()
 local edition = _GET["edition"] or ""

@@ -136,7 +136,6 @@ if num_inactive_interfaces > 0 then
 end
 
 print[[
-<hr>
 <h2>]] print(i18n("manage_data.manage_data")) print[[</h2>
 <br>
 <ul id="manage-data-nav" class="nav nav-tabs">]]

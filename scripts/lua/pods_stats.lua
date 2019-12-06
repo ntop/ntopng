@@ -19,7 +19,6 @@ local page_params = {}
 -- #######################################################
 
 print [[
-  <hr>
   <div id="table-pods"></div>
   <script>
   var url_update = "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_pods_data.lua", page_params)) print[[";]]

@@ -28,7 +28,6 @@ print [[
   #map-canvas { width: 100%; height: 480px; }
 </style>
 
-<hr>
 <h2>]] print(i18n("geo_map.hosts_geomap")) print[[</H2>
 
 ]]

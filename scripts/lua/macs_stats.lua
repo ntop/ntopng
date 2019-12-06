@@ -52,7 +52,6 @@ if(not isEmptyString(_GET["device_type"])) then
 end
 
 print [[
-      <hr>
       <div id="table-mac"></div>
 	 <script>
 	 var url_update = "]]

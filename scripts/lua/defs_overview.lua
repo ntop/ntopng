@@ -15,7 +15,7 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print[[<hr>
+print[[
 <div class="row">
 <div class="col col-md-4 col-md-offset-1">
 <table class="table table-bordered table-sm">

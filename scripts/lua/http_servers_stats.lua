@@ -17,7 +17,6 @@ active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print [[
-      <hr>
       <div id="table-http"></div>
 	 <script>
 	 var url_update = "]]

@@ -39,7 +39,6 @@ print [[
 </style>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
-<hr>
 <h2>]] print(i18n("tree_map.hosts_treemap")) print[[</H2>
 <div id='chart'></div>
 
