@@ -365,120 +365,6 @@ if isAllowedSystemInterface() then
 end
 
 -- ##############################################
--- Interfaces Selector
-
-print [[ <li class="nav-item dropdown"> ]]
-
-print [[
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">]] print(getHumanReadableInterfaceName(ifname)) print[[ <b class="caret"></b>
-      </a>
-      <ul class="dropdown-menu">
-]]
-
-local views = {}
-local drops = {}
-local recording = {}
-local packetinterfaces = {}
-local ifnames = {}
-local ifdescr = {}
-local ifHdescr = {}
-local ifCustom = {}
-local dynamic = {}
-
-for v,k in pairs(iface_names) do
-   interface.select(k)
-   local _ifstats = interface.getStats()
-   ifnames[_ifstats.id] = k
-   ifdescr[_ifstats.id] = _ifstats.description
-   --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
-   if(_ifstats.isView == true) then views[k] = true end
-   if(_ifstats.isDynamic == true) then dynamic[k] = true end
-   if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
-   if(interface.isPacketInterface()) then packetinterfaces[k] = true end
-   if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
-      drops[k] = true
-   end
-   ifHdescr[_ifstats.id] = getHumanReadableInterfaceName(_ifstats.description.."")
-   ifCustom[_ifstats.id] = _ifstats.customIftype
-end
-
--- First round: only physical interfaces
--- Second round: only virtual interfaces
-
-for round = 1, 2 do
-
-   for k,_ in pairsByValues(ifHdescr, asc) do
-      local descr
-
-      if((round == 1) and (ifCustom[k] ~= nil)) then
-	 -- do nothing
-      elseif((round == 2) and (ifCustom[k] == nil)) then
-	 -- do nothing
-      else
-	 v = ifnames[k]
-
-	 local page_params = table.clone(_GET)
-	 page_params.ifid = k
-	 -- ntop.getHttpPrefix()
-	 local url = getPageUrl("", page_params)
-
-	 print("      <li class=\"nav-item\">")
-
-	 if(v == ifname) then
-	    print("<a class=\"nav-link\" href=\""..url.."\">")
-	 else
-	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
-	    print[[<input name="switch_interface" type="hidden" value="1" />]]
-	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-	    print[[</form>]]
-	    print[[<a class="nav-link" href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
-	 end
-
-	 if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
-	 if(isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
-
-	 descr = getHumanReadableInterfaceName(v.."")
-
-	 if(string.contains(descr, "{")) then -- Windows
-	    descr = ifdescr[k]
-	 else
-	    if(v ~= ifdescr[k]) then
-	       descr = descr .. " (".. ifdescr[k] ..")"
-	    end
-	 end
-
-	 print(descr)
-
-	 if(views[v] == true) then
-	    print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
-	 end
-
-	 if(dynamic[v] == true) then
-	    print(' <i class="fa fa-code-fork" aria-hidden="true"></i> ')
-	 end
-
-	 if(drops[v] == true) then
-	    print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
-	 end
-
-	 if(recording[v] == true) then
-	    print(' <i class="fa fa-hdd-o" aria-hidden="true"></i> ')
-	 end
-
-	 print("</a>")
-	 print("</li>\n")
-      end
-   end
-end
-
-print [[
-
-      </ul>
-    </li>
-]]
-end -- num_ifaces > 0
-
--- ##############################################
 -- Admin
 
 if active_page == "admin" then
@@ -607,6 +493,127 @@ end
 if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
+
+
+-- ##############################################
+-- Interfaces Selector
+
+print [[ <li class="nav-item dropdown"> ]]
+
+print [[
+      <a class="nav-link dropdown-toggle btn-secondary" data-toggle="dropdown" href="#">]] print(getHumanReadableInterfaceName(ifname)) print[[ <b class="caret"></b>
+      </a>
+      <ul class="dropdown-menu">
+]]
+
+local views = {}
+local drops = {}
+local recording = {}
+local packetinterfaces = {}
+local ifnames = {}
+local ifdescr = {}
+local ifHdescr = {}
+local ifCustom = {}
+local dynamic = {}
+
+for v,k in pairs(iface_names) do
+   interface.select(k)
+   local _ifstats = interface.getStats()
+   ifnames[_ifstats.id] = k
+   ifdescr[_ifstats.id] = _ifstats.description
+   --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
+   if(_ifstats.isView == true) then views[k] = true end
+   if(_ifstats.isDynamic == true) then dynamic[k] = true end
+   if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
+   if(interface.isPacketInterface()) then packetinterfaces[k] = true end
+   if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
+      drops[k] = true
+   end
+   ifHdescr[_ifstats.id] = getHumanReadableInterfaceName(_ifstats.description.."")
+   ifCustom[_ifstats.id] = _ifstats.customIftype
+end
+
+-- First round: only physical interfaces
+-- Second round: only virtual interfaces
+
+for round = 1, 2 do
+
+   for k,_ in pairsByValues(ifHdescr, asc) do
+      local descr
+
+      if((round == 1) and (ifCustom[k] ~= nil)) then
+	 -- do nothing
+      elseif((round == 2) and (ifCustom[k] == nil)) then
+	 -- do nothing
+      else
+	 v = ifnames[k]
+
+	 local page_params = table.clone(_GET)
+	 page_params.ifid = k
+	 -- ntop.getHttpPrefix()
+	 local url = getPageUrl("", page_params)
+
+	 print("      <li class=\"nav-item\">")
+
+	 if(v == ifname) then
+	    print("<a class=\"nav-link\" href=\""..url.."\">")
+	 else
+	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
+	    print[[<input name="switch_interface" type="hidden" value="1" />]]
+	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+	    print[[</form>]]
+	    print[[<a class="nav-link" href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
+	 end
+
+	 if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
+	 if(isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
+
+	 descr = getHumanReadableInterfaceName(v.."")
+
+	 if(string.contains(descr, "{")) then -- Windows
+	    descr = ifdescr[k]
+	 else
+	    if(v ~= ifdescr[k]) then
+	       descr = descr .. " (".. ifdescr[k] ..")"
+	    end
+	 end
+
+	 print(descr)
+
+	 if(views[v] == true) then
+	    print(' <i class="fa fa-eye" aria-hidden="true"></i> ')
+	 end
+
+	 if(dynamic[v] == true) then
+	    print(' <i class="fa fa-code-fork" aria-hidden="true"></i> ')
+	 end
+
+	 if(drops[v] == true) then
+	    print('&nbsp;<span><i class="fa fa-tint" aria-hidden="true"></i></span>')
+	 end
+
+	 if(recording[v] == true) then
+	    print(' <i class="fa fa-hdd-o" aria-hidden="true"></i> ')
+	 end
+
+	 print("</a>")
+	 print("</li>\n")
+      end
+   end
+end
+
+print [[
+
+      </ul>
+    </li>
+]]
+end -- num_ifaces > 0
+
+print("<li><span style=\"margin: 5px\"></span></li>")
+
+-- ##############################################
+-- Search
+
 print("<li>")
 print(
   template.gen("typeahead_input.html", {
