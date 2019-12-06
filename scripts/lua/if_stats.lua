@@ -1740,7 +1740,7 @@ elseif(page == "config") then
 
       print[[
    </table>
-   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+   <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
    </form>
    <script>
       aysHandleForm("#iface_config");
@@ -1835,7 +1835,7 @@ elseif(page == "snmp_bind") then
    </table>
 
    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-   <button id="snmp_bind_submit" class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+   <button id="snmp_bind_submit" class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
 
 <b>]] print(i18n("snmp.note") .. ":") print[[</b><br>

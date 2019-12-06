@@ -252,7 +252,7 @@ print[[
   <form id="protos_cat_form" lass="form-inline" style="margin-bottom: 0px;" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
     <div id="table-edit-ndpi-applications"></div>
-    <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+    <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
   </form>
   ]]
 

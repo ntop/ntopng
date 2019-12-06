@@ -201,7 +201,7 @@ local function printDeviceProtocolsPage()
    print[[<form id="]] print(form_id) print[[" lass="form-inline" style="margin-bottom: 0px;" method="post">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
       <div id="]] print(table_id) print[["></div>
-      <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+      <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
    </form>
 
    <button class="btn btn-default" onclick="$('#to_reset_devtype').html($('#device_type_selector option:selected').text()); $('#presetsResetDefaults').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-undo" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("users.reset_to_defaults")) print[[</button>

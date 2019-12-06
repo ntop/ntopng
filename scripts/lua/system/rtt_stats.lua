@@ -120,7 +120,7 @@ if(page == "overview") then
   print[[
 <form id="table-hosts-form" method="post" data-toggle="validator">
   <div id="table-hosts"></div>
-  <button id="hosts-save" class="btn btn-primary" style="float:right; margin-right:1em;" onclick="if($(this).hasClass('disabled')) return false;" type="submit">]] print(i18n("save_settings")) print[[</button>
+  <button id="hosts-save" class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" onclick="if($(this).hasClass('disabled')) return false;" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
 <br><br>
 
