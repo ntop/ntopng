@@ -841,22 +841,24 @@ end
 if(found) then
    print [[
 
+   <br />
    <table border=0>
-   <tr><td>
-   <div id="chart-row-hosts">
-       <strong>]] print(i18n("peers_page.top_peers_for_host",{hostkey=hostinfo2hostkey(host_info)})) print  [[</strong>
-       <div class="clearfix"></div>
-   </div>
+   <tr>
+     <td>
+       <div id="chart-row-hosts">
+         <strong>]] print(i18n("peers_page.top_peers_for_host",{hostkey=hostinfo2hostkey(host_info)})) print  [[</strong>
+         <div class="clearfix"></div>
+       </div>
 
-   <div id="chart-ring-protocol">
-       <strong>]] print(i18n("peers_page.top_peer_protocol")) print[[</strong>
-       <div class="clearfix"></div>
-   </div>
-   </td></tr></table>
-
-<div class="row">
-    <div>
-    <table class="table table-hover dc-data-table">
+       <div id="chart-ring-protocol">
+         <strong>]] print(i18n("peers_page.top_peer_protocol")) print[[</strong>
+         <div class="clearfix"></div>
+       </div>
+     </td>
+   </tr>
+   </table>
+   <br />
+   <table class="table table-hover dc-data-table">
         <thead>
         <tr class="header">
             <th>]] print(i18n("peers_page.host")) print[[</th>
@@ -864,9 +866,7 @@ if(found) then
             <th>]] print(i18n("peers_page.traffic_volume")) print[[</th>
         </tr>
         </thead>
-    </table>
-</div>
-
+   </table>
 
 <script>
 var protocolChart = dc.pieChart("#chart-ring-protocol");
