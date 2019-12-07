@@ -238,7 +238,7 @@ function stackedProgressBars(total, bars, other_label, formatter, css_class)
       if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
       res[#res + 1] = [[<span class="badge badge-]].. (bar.class) ..[[" style="]] .. bar.style .. [[">&nbsp;</span>]]
       if bar.link ~= nil then res[#res + 1] = [[</a>]] end
-      res[#res + 1] = [[<span>]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
+      res[#res + 1] = [[<span> ]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
       num = num + 1
    end
 

@@ -83,7 +83,7 @@ if not is_pcap_dump then
       </a>
 
     <ul class="dropdown-menu">
-<li class="nav-item"><a class="nav-link" href="]]
+<li class="nav-item"><a class="dropdown-item" href="]]
 
 print(ntop.getHttpPrefix())
 if ntop.isPro() then
@@ -95,16 +95,16 @@ end
 print [["><i class="fa fa-dashboard"></i> ]] print(i18n("dashboard.traffic_dashboard")) print[[</a></li>]]
 
   if(interface.isDiscoverableInterface()) then
-    print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> ') print(i18n("prefs.network_discovery")) print('</a></li>')
+    print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> ') print(i18n("prefs.network_discovery")) print('</a></li>')
   end
 
 if(ntop.isPro()) then
-  print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> ') print(i18n("report.traffic_report")) print('</a></li>')
+  print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> ') print(i18n("report.traffic_report")) print('</a></li>')
 end
 
 if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled and not ifs.isViewed then
   print('<li class="dropdown-divider"></li>')
-  print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifid='..ifId..'"><i class="fa fa-history"></i> ') print(i18n("db_explorer.historical_data_explorer")) print('</a></li>')
+  print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifid='..ifId..'"><i class="fa fa-history"></i> ') print(i18n("db_explorer.historical_data_explorer")) print('</a></li>')
 end
 
 
@@ -141,7 +141,7 @@ if ntop.getPrefs().are_alerts_enabled == true then
       </a>
     <ul class="dropdown-menu">
       <li class="nav-item">
-	<a class="nav-link"  href="]]
+	<a class="dropdown-item"  href="]]
    print(ntop.getHttpPrefix())
    print [[/lua/show_alerts.lua">
 	  <i class="fa fa-warning" id="alerts-menu-triangle"></i> ]] print(i18n("show_alerts.detected_alerts")) print[[
@@ -151,13 +151,13 @@ if ntop.getPrefs().are_alerts_enabled == true then
    if ntop.isEnterprise() then
       print[[
       <li class="nav-item">
-	<a class="nav-link" href="]]
+	<a class="dropdown-item" href="]]
       print(ntop.getHttpPrefix())
       print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i> ]] print(i18n("alerts_dashboard.alerts_dashboard")) print[[
 	</a>
      </li>
      <li class="dropdown-divider"></li>
-     <li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix())
+     <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix())
       print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fa fa-history"></i> ]] print(i18n("flow_alerts_explorer.label")) print[[
 	</a>
      </li>
@@ -198,64 +198,64 @@ if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces,
    print(i18n("flows_page.hosts")) print[[ <b class="caret"></b>
       </a>
     <ul class="dropdown-menu">
-      <li class="nav-item"><a class="nav-link" href="]]
+      <li class="nav-item"><a class="dropdown-item" href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua">]] print(i18n("flows_page.hosts")) print[[</a></li>
       ]]
 
 
 if ifs["has_macs"] == true then
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("users.devices")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("users.devices")) print('</a></li>')
 end
 
-print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
+print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
 
-print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">') print(i18n("host_pools.host_pools")) print('</a></li>')
+print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">') print(i18n("host_pools.host_pools")) print('</a></li>')
 
 if(ntop.hasGeoIP()) then
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">') print(i18n("prefs.toggle_asn_rrds_title")) print('</a></li>')
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">') print(i18n("countries")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">') print(i18n("prefs.toggle_asn_rrds_title")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">') print(i18n("countries")) print('</a></li>')
 end
-print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
+print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
 
 if(interface.hasVLANs()) then
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
 end
 
 if ifs.has_seen_pods then
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/pods_stats.lua">') print(i18n("containers_stats.pods")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pods_stats.lua">') print(i18n("containers_stats.pods")) print('</a></li>')
 end
 if ifs.has_seen_containers then
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/containers_stats.lua">') print(i18n("containers_stats.containers")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/containers_stats.lua">') print(i18n("containers_stats.containers")) print('</a></li>')
 end
 
 print('<li class="dropdown-divider"></li>')
 print('<li class="dropdown-header">') print(i18n("local_traffic")) print('</li>')
 
-print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') print(i18n("http_servers_stats.http_servers")) print('</a></li>')
+print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') print(i18n("http_servers_stats.http_servers")) print('</a></li>')
 
 if not is_pcap_dump then
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
 end
 
 print('<li class="dropdown-divider"></li>')
 
 if(not(isLoopback(ifname))) then
    print [[
-	    <li class="nav-item"><a class="nav-link" href="]]
+	    <li class="nav-item"><a class="dropdown-item" href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/hosts_geomap.lua"><i class="fa fa-map-marker"></i> ]] print(i18n("geo_map.geo_map")) print[[</a></li>]]
 
-   print[[<li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix())
+   print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix())
    print [[/lua/hosts_treemap.lua"><i class="fa fa-sitemap"></i> ]] print(i18n("tree_map.hosts_treemap")) print[[</a></li>]]
 end
 
 if(ntop.getPrefs().is_arp_matrix_generation_enabled) then
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/arp_matrix_graph.lua"><i class="fa fa-th-large"></i> ') print(i18n("arp_top_talkers")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/arp_matrix_graph.lua"><i class="fa fa-th-large"></i> ') print(i18n("arp_top_talkers")) print('</a></li>')
 end
 
 print [[
-      <li class="nav-item"><a class="nav-link" href="]]
+      <li class="nav-item"><a class="dropdown-item" href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/bubble.lua"><i class="fa fa-circle-o"></i> Host Explorer</a></li>
    ]]
@@ -288,10 +288,10 @@ if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
    local has_ebpf_events, has_sflow_devs = false, false
    if ifs.has_seen_ebpf_events then
       has_ebpf_events = true
-      print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
+      print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
    elseif table.len(interface.getSFlowDevices() or {}) > 0 then
       has_sflow_devs = true
-      print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
+      print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
 
    end
 
@@ -300,7 +300,7 @@ if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
       print('<li class="nav-item" class="dropdown-header">') print(i18n("flows")) print('</li>')
    end
 
-   print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
+   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
 
   print [[
 
@@ -341,13 +341,13 @@ if isAllowedSystemInterface() then
        <ul class="dropdown-menu">]]
 
    if ntop.isEnterprise() then
-      print('<li class="nav-item"><a class="nav-link" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
+      print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
    end
 
-   print[[<li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
+   print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
 
    if num_ifaces > 1 then
-      print[[<li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
+      print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
    end
 
    local system_menu_entries = system_scripts.getSystemMenuEntries()
@@ -357,7 +357,7 @@ if isAllowedSystemInterface() then
       print('<li class="dropdown-header">') print(i18n("system_stats.probes")) print('</li>')
 
       for _, entry in ipairs(system_scripts.getSystemMenuEntries()) do
-	 print[[<li class="nav-item"><a class="nav-link" href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
+	 print[[<li class="nav-item"><a class="dropdown-item" href="]] print(entry.url) print[[">]] print(entry.label) print[[</a></li>]]
       end
    end
 
@@ -384,32 +384,32 @@ print [[
 
 if _SESSION["localuser"] then
    if(is_admin) then
-     print[[<li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix())
+     print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix())
      print[[/lua/admin/users.lua"><i class="fa fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
    else
-     print [[<li class="nav-item"><a class="nav-link" href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
+     print [[<li class="nav-item"><a class="dropdown-item" href="#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
    end
 end
 
 if(is_admin) then
-   print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
+   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
 
    if remote_assistance.isAvailable() then
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..ntop.getHttpPrefix().."/lua/admin/remote_assistance.lua\"><i class=\"fa fa-commenting\"></i> ") print(i18n("remote_assistance.remote_assistance")) print("</a></li>\n")
+      print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/remote_assistance.lua\"><i class=\"fa fa-commenting\"></i> ") print(i18n("remote_assistance.remote_assistance")) print("</a></li>\n")
    end
 
    if(ntop.isPro()) then
-      print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> ") print(i18n("traffic_profiles.traffic_profiles")) print("</a></li>\n")
+      print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fa fa-user-md\"></i> ") print(i18n("traffic_profiles.traffic_profiles")) print("</a></li>\n")
       if(false) then
-	 print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
+	 print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fa fa-archive\"></i> Reports Archive</a></li>\n")
       end
    end
 
-   print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("custom_categories.apps_and_categories")) print("</a></li>\n")
-   print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua\"><i class=\"fa fa-sticky-note\"></i> ") print(i18n("category_lists.category_lists")) print("</a></li>\n")
+   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fa fa-tags\"></i> ") print(i18n("custom_categories.apps_and_categories")) print("</a></li>\n")
+   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua\"><i class=\"fa fa-sticky-note\"></i> ") print(i18n("category_lists.category_lists")) print("</a></li>\n")
 
 
-   print("<li class=\"nav-item\"><a class=\"nav-link\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
+   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fa fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
 end
 
 if _SESSION["localuser"] or is_admin then
@@ -418,17 +418,17 @@ if _SESSION["localuser"] or is_admin then
 end
 
 print [[
-      <li class="nav-item"><a class="nav-link" href="]]
+      <li class="nav-item"><a class="dropdown-item" href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/manage_data.lua"><i class="fa fa-hdd-o"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
 
 if(is_admin) then
   print [[
-      <li class="nav-item"><a class="nav-link" href="]]
+      <li class="nav-item"><a class="dropdown-item" href="]]
   print(ntop.getHttpPrefix())
   print [[/lua/get_config.lua"><i class="fa fa-download"></i> ]] print(i18n("conf_backup.conf_backup")) print[[</a></li>]]
 
-  print[[ <li class="nav-item"><a class="nav-link" href="https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration" target="_blank"><i class="fa fa-upload"></i> ]] print(i18n("conf_backup.conf_restore")) print[[ <i class="fa fa-external-link"></i></a></li>]]
+  print[[ <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration" target="_blank"><i class="fa fa-upload"></i> ]] print(i18n("conf_backup.conf_restore")) print[[ <i class="fa fa-external-link"></i></a></li>]]
 end
 
 print[[
@@ -436,72 +436,12 @@ print[[
   </li>]]
 
 -- ##############################################
--- Info
-
-if active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories" then
-   print [[ <li class="nav-item dropdown active">
-	    <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
-]]
-else
-   print [[ <li class="nav-item dropdown">
-	    <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
-]]
-end
-
-print [[
-	<i class="fa fa-info-circle fa-lg"></i> <b class="caret"></b>
-      </a>
-    <ul class="dropdown-menu">
-      <li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
-      <li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
-      <li class="nav-item"><a class="nav-link" href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li class="nav-item"><a class="nav-link" href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li class="nav-item"><a class="nav-link" href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
-
-      <li class="dropdown-divider"></li>
-      <li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fa fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
-      <li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fa fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
-      <li class="nav-item"><a class="nav-link" href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fa fa-warning"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
-      <li class="nav-item"><a class="nav-link" href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li class="nav-item"><a class="nav-link" href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link"></i></a></li>
-
-</ul>
-]]
-
--- ##############################################
--- Logout
-
-if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
-print [[
-    <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
-	 <i class="fa fa-power-off fa-lg"></i> <b class="caret"></b>
-      </a>
-    <ul class="dropdown-menu">]]
-
-print[[<li class="nav-item"><a class="nav-link" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> ]] print(i18n("login.logout_user_x", {user=_SESSION["user"]})) print [[</a></li>]]
-
-   print[[
-    </ul>
-    </li>
-   ]]
-end
-
-
-if(not is_admin) then
-   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
-end
-
-
--- ##############################################
 -- Interfaces Selector
 
 print [[ <li class="nav-item dropdown"> ]]
 
 print [[
-      <a class="nav-link dropdown-toggle btn-secondary" data-toggle="dropdown" href="#">]] print(getHumanReadableInterfaceName(ifname)) print[[ <b class="caret"></b>
+      <a class="nav-link dropdown-toggle " data-toggle="dropdown" href="#"> { ]] print(getHumanReadableInterfaceName(ifname)) print[[ }<b class="caret"></b>
       </a>
       <ul class="dropdown-menu">
 ]]
@@ -556,13 +496,13 @@ for round = 1, 2 do
 	 print("      <li class=\"nav-item\">")
 
 	 if(v == ifname) then
-	    print("<a class=\"nav-link\" href=\""..url.."\">")
+	    print("<a class=\"dropdown-item\" href=\""..url.."\">")
 	 else
 	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
 	    print[[<input name="switch_interface" type="hidden" value="1" />]]
 	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
 	    print[[</form>]]
-	    print[[<a class="nav-link" href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
+	    print[[<a class="dropdown-item" href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
 	 end
 
 	 if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
@@ -609,7 +549,41 @@ print [[
 ]]
 end -- num_ifaces > 0
 
-print("<li><span style=\"margin: 5px\"></span></li>")
+print("<li><span style=\"margin: 26px\"></span></li>")
+
+
+-- ##############################################
+-- Info
+
+if active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories" then
+   print [[ <li class="nav-item dropdown active">
+	    <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
+]]
+else
+   print [[ <li class="nav-item dropdown">
+	    <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
+]]
+end
+
+print [[
+	<i class="fa fa-life-ring fa-lg"></i> <b class="caret"></b>
+      </a>
+    <ul class="dropdown-menu">
+      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
+      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
+      <li class="nav-item"><a class="dropdown-item" href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
+
+      <li class="dropdown-divider"></li>
+      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fa fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
+      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fa fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
+      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fa fa-warning"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link"></i></a></li>
+
+</ul>
+]]
 
 -- ##############################################
 -- Search
@@ -632,6 +606,28 @@ print(
   })
 )
 print("</li>")
+
+-- ##############################################
+-- Logout
+
+if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
+
+print[[
+
+<li class="nav-link"><a href="]]
+print(ntop.getHttpPrefix())
+print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"> <i class="fa fa-power-off fa-lg"></i> </a></li>]]
+
+
+end
+
+
+if(not is_admin) then
+   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
+end
+
+
+
 
 print("</ul>\n<h3 class=\"muted\"><A href=\""..ntop.getHttpPrefix().."/\">")
 

@@ -2235,6 +2235,7 @@ local lang = {
     ["logging_out"] = "Logging out...",
     ["login"] = "Login",
     ["logout"] = "Logout",
+    ["logout_message"] = "Are you sure you want to logout?",
     ["logout_user_x"] = "Logout %{user}",
     ["must_change_password"] = "Default admin password must be changed. Please enter a new password below.",
     ["password"] = "Password",

@@ -1760,6 +1760,7 @@ local lang = {
     ["logging_out"] = "Uscendo dal programma...",
     ["login"] = "Accedi",
     ["logout"] = "Esci",
+    ["logout_message"] = "Sei sicuro di voler uscire?",
     ["logout_user_x"] = "Disconnetti %{user}",
     ["must_change_password"] = "La password amministratore predefinita deve essere cambiata. Si prega d'inserire una nuova password qui sotto.",
     ["password"] = "Password",
