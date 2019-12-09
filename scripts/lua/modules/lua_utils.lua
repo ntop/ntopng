@@ -1141,17 +1141,17 @@ function getApplicationIcon(name)
   local icon = ""
   if(name == nil) then name = "" end
 
-  if(findString(name, "Skype")) then icon = '<i class=\'fa fa-skype fa-lg\'></i>'
-  elseif(findString(name, "Unknown")) then icon = '<i class=\'fa fa-question fa-lg\'></i>'
-  elseif(findString(name, "Twitter")) then icon = '<i class=\'fab fa-twitter fa-lg\'></i>'
-  elseif(findString(name, "DropBox")) then icon = '<i class=\'fab fa-dropbox fa-lg\'></i>'
-  elseif(findString(name, "Spotify")) then icon = '<i class=\'fab fa-spotify fa-lg\'></i>'
-  elseif(findString(name, "Apple")) then icon = '<i class=\'fab fa-apple fa-lg\'></i>'
+  if(findString(name, "Skype")) then icon = '<i class=\'fa fa-skype\'></i>'
+  elseif(findString(name, "Unknown")) then icon = '<i class=\'fa fa-question\'></i>'
+  elseif(findString(name, "Twitter")) then icon = '<i class=\'fab fa-twitter\'></i>'
+  elseif(findString(name, "DropBox")) then icon = '<i class=\'fab fa-dropbox\'></i>'
+  elseif(findString(name, "Spotify")) then icon = '<i class=\'fab fa-spotify\'></i>'
+  elseif(findString(name, "Apple")) then icon = '<i class=\'fab fa-apple\'></i>'
   elseif(findString(name, "Google") or
-    findString(name, "Chrome")) then icon = '<i class=\'fab fa-google-plus-g fa-lg\'></i>'
-  elseif(findString(name, "FaceBook")) then icon = '<i class=\'fab fa-facebook fa-lg\'></i>'
-  elseif(findString(name, "Youtube")) then icon = '<i class=\'fab fa-youtube fa-lg\'></i>'
-  elseif(findString(name, "thunderbird")) then icon = '<i class=\'fa fa-paper-plane fa-lg\'></i>'
+    findString(name, "Chrome")) then icon = '<i class=\'fab fa-google-plus-g\'></i>'
+  elseif(findString(name, "FaceBook")) then icon = '<i class=\'fab fa-facebook\'></i>'
+  elseif(findString(name, "Youtube")) then icon = '<i class=\'fab fa-youtube\'></i>'
+  elseif(findString(name, "thunderbird")) then icon = '<i class=\'fa fa-paper-plane\'></i>'
   end
 
   return(icon)
