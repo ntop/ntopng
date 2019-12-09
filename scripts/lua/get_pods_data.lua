@@ -99,7 +99,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
    local chart = "-"
 
    if ts_utils.exists("pod:num_flows", {ifid=ifId, pod=key}) then
-      chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/pod_details.lua?pod='.. key ..'&page=historical"><i class="fa fa-area-chart fa-lg"></i></a>'
+      chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/pod_details.lua?pod='.. key ..'&page=historical"><i class="fa fa-chart-area fa-lg"></i></a>'
    end
 
    local num_containers = pod["num_containers"]

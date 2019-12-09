@@ -562,7 +562,7 @@ function host_pools_utils.hostpool2record(ifid, pool_id, pool)
    record["column_chart"] = ""
 
    if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" then
-      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..pool_id..'&page=historical"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..pool_id..'&page=historical"><i class=\'fa fa-chart-area fa-lg\'></i></A>'
    end
 
    return record

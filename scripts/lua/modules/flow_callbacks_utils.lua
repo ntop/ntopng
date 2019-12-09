@@ -88,7 +88,7 @@ local function print_callbacks_config_table(descr, expert_view)
       print("<td ".. rowspan .." class='text-center'>")
 
       if(ts_utils.exists("flow_user_script:duration", {ifid=ifid, user_script=mod_k, subdir="flow"})) then
-	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..mod_k..'&subdir=flow"><i class="fa fa-area-chart fa-lg" data-original-title="" title=""></i></a>')
+	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..mod_k..'&subdir=flow"><i class="fa fa-chart-area fa-lg" data-original-title="" title=""></i></a>')
       end
 
       print("</td>")
@@ -151,7 +151,7 @@ local function print_callbacks_config_table(descr, expert_view)
    -- Print total stats
    print("</tr><tr><td><b>" .. i18n("total") .. "</b></td><td class='text-center'>")
    if(ts_utils.exists("flow_user_script:total_stats", {ifid=ifid, subdir="flow"})) then
-      print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&subdir=flow&user_script='.. total_user_module ..'&ts_schema=custom:flow_user_script:total_stats"><i class="fa fa-area-chart fa-lg"></i></a>')
+      print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&subdir=flow&user_script='.. total_user_module ..'&ts_schema=custom:flow_user_script:total_stats"><i class="fa fa-chart-area fa-lg"></i></a>')
    end
    print("<td>")
    if(expert_view) then

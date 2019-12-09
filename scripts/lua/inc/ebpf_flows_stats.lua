@@ -157,7 +157,7 @@ if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 --[[
          rowCallback: function(row) { return flow_table_setID(row); },]]
    print[[
-         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
+         tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
    print(i18n('flows_page.idle_flows_not_listed'))
    print[['); },
 ]]

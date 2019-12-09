@@ -52,7 +52,7 @@ else
       print(string.format("%s: %s", i18n("host_details.host"), name))
    end
 
-   print [[ <i class="fa fa-linux fa-lg"></i> ]] print(user_key)
+   print [[ <i class="fab fa-linux fa-lg"></i> ]] print(user_key)
 
    print [[  </a></li>]]
 

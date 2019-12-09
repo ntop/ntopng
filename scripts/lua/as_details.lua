@@ -62,7 +62,7 @@ page_utils.print_navbar(title, nav_url,
 			   {
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-area-chart'></i>",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
 			   },
 			}
 )
@@ -158,7 +158,7 @@ print [[
          url: url_update,
          buttons: ]] print(dt_buttons) print[[,
          rowCallback: function ( row ) { return flow_table_setID(row); },
-         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
+         tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
    print(i18n('flows_page.idle_flows_not_listed'))
    print[['); },
 	       showPagination: true,

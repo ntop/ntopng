@@ -299,7 +299,7 @@ print[[
     buttons: [ ]]
 
   if has_protos_file then
-    print[['<a id="addApplication" onclick="showAddApplicationDialog()" role="button" class="add-on btn pull-right" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>',]]
+    print[['<a id="addApplication" onclick="showAddApplicationDialog()" role="button" class="add-on btn float-right" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>',]]
   end
 
   if isEmptyString(proto_filter) then

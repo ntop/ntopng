@@ -290,7 +290,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 	 url: url_update,
 	 buttons: ]] print(dt_buttons) print[[,
 	 rowCallback: function ( row ) { return flow_table_setID(row); },
-	 tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
+	 tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
    print(i18n('flows_page.idle_flows_not_listed'))
    print[['); },
 	 showPagination: true,

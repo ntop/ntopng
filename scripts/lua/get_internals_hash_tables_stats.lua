@@ -144,7 +144,7 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
       local idle_perc = idle_entries * 100 / (idle_entries + active_entries + 1)
 
       if(idle_perc >= 50) then
-         warn = "<i class=\"fa fa-warning fa-lg\" title=\"".. i18n("internals.high_idle_entries") .."\" style=\"color: #f0ad4e;\"></i> "
+         warn = "<i class=\"fa fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.high_idle_entries") .."\" style=\"color: #f0ad4e;\"></i> "
       end
 
       record["column_key"] = key
@@ -157,7 +157,7 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
 
       if iffilter then
 	 if ts_utils.exists("ht:state", {ifid = iffilter, hash_table = htstats.ht}) then
-	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/hash_table_details.lua?hash_table='..htstats.ht..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/hash_table_details.lua?hash_table='..htstats.ht..'\"><i class=\'fa fa-chart-area fa-lg\'></i></A>'
 	 end
       end
 

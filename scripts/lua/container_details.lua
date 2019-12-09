@@ -50,9 +50,9 @@ print [[
 print("<li><a href=\"#\">" .. i18n("containers_stats.container") .. ": "..container_label.."</A> </li>")
 
 if(page == "historical") then
-    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i></a></li>\n")
 else
-    print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+    print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
 end
 
 print [[

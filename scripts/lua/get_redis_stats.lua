@@ -99,7 +99,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
     local value = commands_stats[key]
 
     if(ts_utils.exists("redis:hits", {ifid=sys_ifaceid, command=key})) then
-      chart = '<a href="?page=historical&redis_command='..key..'&ts_schema=redis:hits"><i class=\'fa fa-area-chart fa-lg\'></i></a>'
+      chart = '<a href="?page=historical&redis_command='..key..'&ts_schema=redis:hits"><i class=\'fa fa-chart-area fa-lg\'></i></a>'
     end
 
     res[#res + 1] = {

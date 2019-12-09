@@ -66,7 +66,7 @@ local title = i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool")).
 			      {
 				 active = page == "historical" or not page,
 				 page_name = "historical",
-				 label = "<i class='fa fa-lg fa-area-chart'></i>",
+				 label = "<i class='fa fa-lg fa-chart-area'></i>",
 			      },
 			      {
 				 hidden = not ntop.isEnterprise() or not ntop.isnEdge() or not ifstats or pool_id == host_pools_utils.DEFAULT_POOL_ID,

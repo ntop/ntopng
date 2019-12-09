@@ -330,7 +330,7 @@ local function ja3url(what, safety)
    else
       ret = '<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fa fa-external-link"></i>'
       if((safety ~= nil) and (safety ~= "safe")) then
-	 ret = ret .. ' [ <i class="fa fa-warning" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
+	 ret = ret .. ' [ <i class="fa fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
       end
 
       print(ret)
@@ -554,7 +554,7 @@ if not table.empty(alert_banners) then
    print("<br>")
 end
 
-print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..i18n("flow_details.not_purged")..'</div>')
+print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle fa-lg"></i>&nbsp;'..i18n("flow_details.not_purged")..'</div>')
 
 throughput_type = getThroughputType()
 
@@ -579,7 +579,7 @@ page_utils.print_navbar(title, url,
 )
 
 if(flow == nil) then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
+   print('<div class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
 else
    if isAdministrator() then
       if(_POST["drop_flow_policy"] == "true") then
@@ -621,14 +621,14 @@ else
       and (flow["protos.tls_version"] ~= 0)) then
       print(" [ "..tlsVersion2Str(flow["protos.tls_version"]).." ]")
       if(tonumber(flow["protos.tls_version"]) < 771) then
-	 print(' <i class="fa fa-warning" aria-hidden=true style="color: orange;"></i> ')
+	 print(' <i class="fa fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> ')
 	 print(i18n("flow_details.tls_old_protocol_version"))
       end
    end
 
    if(ifstats.inline) then
       if(flow["verdict.pass"]) then
-	 print('<form class="form-inline pull-right" style="margin-bottom: 0px;" method="post">')
+	 print('<form class="form-inline float-right" style="margin-bottom: 0px;" method="post">')
 	 print('<input type="hidden" name="drop_flow_policy" value="true">')
 	 print('<button type="submit" class="btn btn-secondary btn-xs"><i class="fa fa-ban"></i> '..i18n("flow_details.drop_flow_traffic_btn")..'</button>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -858,7 +858,7 @@ else
 	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.tls.server_certificate"].."\">"..flow["protos.tls.server_certificate"].."</A>")
 
 	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_tls_certificate_mismatch.status_id)) then
-	    print("\n<br><i class=\"fa fa-warning fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
+	    print("\n<br><i class=\"fa fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
       print("</td>")
@@ -945,8 +945,9 @@ else
 	 local unreachable_flow = interface.findFlowByTuple(flow["cli.ip"], flow["srv.ip"], flow["vlan"], icmp["unreach"]["dst_port"], icmp["unreach"]["src_port"], icmp["unreach"]["protocol"])
 
 	 if unreachable_flow then
+	    tprint(unreachable_flow)
 	    print(" ["..i18n("flow")..": ")
-	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."'><span class='badge badge-info'>Info</span></A>")
+	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."&flow_hash_id="..unreachable_flow["hash_entry_id"].."'><span class='badge badge-info'>Info</span></A>")
 	    print(" "..getFlowLabel(unreachable_flow, true, true))
 	    print("]")
 	 else
@@ -964,7 +965,7 @@ else
       alerted_status = flow["alerted_status"]
       local message = flow_consts.getStatusDescription(alerted_status, flow2statusinfo(flow))
 
-      print("<tr><th width=30%><i class='fa fa-warning' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
+      print("<tr><th width=30%><i class='fa fa-exclamation-triangle' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
       print("</td></tr>\n")
    end

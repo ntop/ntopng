@@ -98,7 +98,7 @@ if stats ~= nil then
   if start_time ~= nil then
     print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
     if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
-      print(' - <i class="fa fa-warning"></i> ')
+      print(' - <i class="fa fa-exclamation-triangle"></i> ')
       print(i18n("traffic_recording.missing_data_msg"))
     end
     print("</td></tr>\n")
@@ -117,7 +117,7 @@ if custom_provider and running then
    local warn = ''
 
    if not extraction_checks_ok then
-      warn = '<i class="fa fa-warning"></i> '
+      warn = '<i class="fa fa-exclamation-triangle"></i> '
    end
 
    print("<tr><th nowrap>"..i18n("traffic_recording.traffic_extractions").."</th><td>"..warn..extraction_checks_msg.."</td></tr>\n")

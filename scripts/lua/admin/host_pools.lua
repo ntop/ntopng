@@ -285,7 +285,7 @@ local no_pools = (#available_pools <= 1)
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
     if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=ifId, pool=selected_pool.id}) then
-      print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fa fa-area-chart'></i></a>")
+      print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fa fa-chart-area'></i></a>")
     end
 end
 

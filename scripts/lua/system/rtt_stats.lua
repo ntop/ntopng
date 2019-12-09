@@ -56,13 +56,13 @@ page_utils.print_navbar(title, url,
 			      hidden = not host or not ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host = host}),
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-area-chart'></i>",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
 			   },
 			   {
 			      hidden = not isAdministrator() or not system_scripts.hasAlerts({entity = alert_consts.alertEntity("pinged_host")}),
 			      active = page == "alerts",
 			      page_name = "alerts",
-			      label = "<i class=\"fa fa-lg fa-warning\"></i>",
+			      label = "<i class=\"fa fa-lg fa-exclamation-triangle\"></i>",
 			   },
 			}
 )

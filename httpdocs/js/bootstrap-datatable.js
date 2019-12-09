@@ -238,7 +238,7 @@
           , that = this;
 
         this.$toolbar = $("<div></div>")
-          .addClass("dt-toolbar btn-toolbar pull-right");
+          .addClass("dt-toolbar btn-toolbar float-right");
 
         this.$button_group = $("<div></div>")
           .addClass("btn-group")
@@ -292,7 +292,7 @@
         end = (o.currentPage * o.perPage);
         if(end > o.totalRows) end = o.totalRows;
 
-        $('<div class="pull-left"><p>' + i18n.showing_x_to_y_rows.sformat(start, end, o.totalRows) + '</p></div>')
+        $('<div class="float-left"><p>' + i18n.showing_x_to_y_rows.sformat(start, end, o.totalRows) + '</p></div>')
           .prependTo(this.$bottom_details);
       }
 
@@ -539,7 +539,7 @@
         if(o.perPage >= res.totalRows) return;
 
         if(!this.$pagination) {
-          this.$pagination = $("<div></div>").addClass("pull-right");
+          this.$pagination = $("<div></div>").addClass("float-right");
 
           // how many pages?
           o.pageCount = Math.ceil(res.totalRows / o.perPage);
@@ -739,7 +739,7 @@
         .addClass("modal-footer")
         .append(
             // show the check 'all / none' columns
-            $('<div class="pull-left"></div>')
+            $('<div class="float-left"></div>')
               .append(
                 $('<div class="btn-group"></div>')
                   .append(

@@ -53,7 +53,7 @@ print("<div class=\"\" style=\"margin: 20px\">")
 
 print [[
       <div class="masthead">
-	<ul class="nav nav-pills pull-right">
+	<ul class="nav nav-pills float-right">
    ]]
 
 
@@ -79,7 +79,7 @@ if not is_pcap_dump then
    end
 
    print [[
-	<i class="fa fa-dashboard fa-lg"></i> <b class="caret"></b>
+	<i class="fa fa-tachometer-alt fa-lg"></i> <b class="caret"></b>
       </a>
 
     <ul class="dropdown-menu">
@@ -92,14 +92,14 @@ else
    print("/lua/index.lua")
 end
 
-print [["><i class="fa fa-dashboard"></i> ]] print(i18n("dashboard.traffic_dashboard")) print[[</a></li>]]
+print [["><i class="fa fa-tachometer-alt"></i> ]] print(i18n("dashboard.traffic_dashboard")) print[[</a></li>]]
 
   if(interface.isDiscoverableInterface()) then
-    print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb-o"></i> ') print(i18n("prefs.network_discovery")) print('</a></li>')
+    print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb"></i> ') print(i18n("prefs.network_discovery")) print('</a></li>')
   end
 
 if(ntop.isPro()) then
-  print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> ') print(i18n("report.traffic_report")) print('</a></li>')
+  print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-chart-area"></i> ') print(i18n("report.traffic_report")) print('</a></li>')
 end
 
 if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled and not ifs.isViewed then
@@ -137,14 +137,14 @@ if ntop.getPrefs().are_alerts_enabled == true then
    print [[
       <li class="nav-item dropdown]] print(active) print[[" id="alerts-id"]] print(style) print[[>
       <a class="nav-link dropdown-toggle]] print(active) print[[" data-toggle="dropdown" href="#">
-	 <i class="fa fa-warning fa-lg "]] print(color) print[["></i> <b class="caret"></b>
+	 <i class="fa fa-exclamation-triangle fa-lg "]] print(color) print[["></i> <b class="caret"></b>
       </a>
     <ul class="dropdown-menu">
       <li class="nav-item">
 	<a class="dropdown-item"  href="]]
    print(ntop.getHttpPrefix())
    print [[/lua/show_alerts.lua">
-	  <i class="fa fa-warning" id="alerts-menu-triangle"></i> ]] print(i18n("show_alerts.detected_alerts")) print[[
+	  <i class="fa fa-exclamation-triangle" id="alerts-menu-triangle"></i> ]] print(i18n("show_alerts.detected_alerts")) print[[
 	</a>
       </li>
 ]]
@@ -153,7 +153,7 @@ if ntop.getPrefs().are_alerts_enabled == true then
       <li class="nav-item">
 	<a class="dropdown-item" href="]]
       print(ntop.getHttpPrefix())
-      print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i> ]] print(i18n("alerts_dashboard.alerts_dashboard")) print[[
+      print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-tachometer-alt"></i> ]] print(i18n("alerts_dashboard.alerts_dashboard")) print[[
 	</a>
      </li>
      <li class="dropdown-divider"></li>
@@ -257,7 +257,7 @@ end
 print [[
       <li class="nav-item"><a class="dropdown-item" href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/bubble.lua"><i class="fa fa-circle-o"></i> Host Explorer</a></li>
+print [[/lua/bubble.lua"><i class="fa fa-circle"></i> Host Explorer</a></li>
    ]]
 
 print("</ul> </li>")
@@ -395,7 +395,7 @@ if(is_admin) then
    print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
 
    if remote_assistance.isAvailable() then
-      print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/remote_assistance.lua\"><i class=\"fa fa-commenting\"></i> ") print(i18n("remote_assistance.remote_assistance")) print("</a></li>\n")
+      print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/remote_assistance.lua\"><i class=\"fa fa-comment-dots\"></i> ") print(i18n("remote_assistance.remote_assistance")) print("</a></li>\n")
    end
 
    if(ntop.isPro()) then
@@ -420,7 +420,7 @@ end
 print [[
       <li class="nav-item"><a class="dropdown-item" href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/manage_data.lua"><i class="fa fa-hdd-o"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
+print [[/lua/manage_data.lua"><i class="fa fa-hdd"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
 
 if(is_admin) then
   print [[
@@ -525,7 +525,7 @@ for round = 1, 2 do
 	 end
 
 	 if(dynamic[v] == true) then
-	    print(' <i class="fa fa-code-fork" aria-hidden="true"></i> ')
+	    print(' <i class="fa fa-code-branch" aria-hidden="true"></i> ')
 	 end
 
 	 if(drops[v] == true) then
@@ -533,7 +533,7 @@ for round = 1, 2 do
 	 end
 
 	 if(recording[v] == true) then
-	    print(' <i class="fa fa-hdd-o" aria-hidden="true"></i> ')
+	    print(' <i class="fa fa-hdd" aria-hidden="true"></i> ')
 	 end
 
 	 print("</a>")
@@ -572,13 +572,13 @@ print [[
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
       <li class="nav-item"><a class="dropdown-item" href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://t.me/ntop_community" target="_blank"><i class="fa fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://t.me/ntop_community" target="_blank"><i class="fab fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li class="nav-item"><a class="dropdown-item" href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
 
       <li class="dropdown-divider"></li>
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fa fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fa fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fa fa-warning"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
+      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fab fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
+      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fa fa-exclamation-triangle"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
       <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link"></i></a></li>
 
@@ -616,7 +616,7 @@ print[[
 
 <li class="nav-link"><a href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"> <i class="fa fa-power-off fa-lg"></i> </a></li>]]
+print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"> <i class="fa fa-sign-out-alt fa-lg"></i> </a></li>]]
 
 
 end
@@ -639,7 +639,7 @@ print("</A></h3>\n</div>\n")
 interface.select(ifname)
 
 if(dirs.workingdir == "/var/tmp/ntopng") then
-   print('<br><div class="alert alert-danger" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
+   print('<br><div class="alert alert-danger" role="alert"><i class="fa fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
    print(i18n("about.datadir_warning"))
    print('</a></div>')
 end
@@ -649,7 +649,7 @@ local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPre
 if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet_interface) then
    if(not lbd_serialize_by_mac) then
       if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
-	 print('<br><div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+	 print('<br><div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fa fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
 	 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
 	 print(i18n("about.host_identifier_warning", {name=i18n("prefs.toggle_host_tskey_title"), url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"}))
 	 print('</a></div>')
@@ -659,7 +659,7 @@ if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet
       local ranges = dhcp_utils.listRanges(ifs.id)
 
       if(table.empty(ranges)) then
-	 print('<br><div class="alert alert-warning" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+	 print('<br><div class="alert alert-warning" role="alert"><i class="fa fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
 	 print(i18n("about.dhcp_range_missing_warning", {
 	    name = i18n("prefs.toggle_host_tskey_title"),
 	    url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
@@ -670,18 +670,18 @@ if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet
 end
 
 -- Hidden by default, will be shown by the footer if necessary
-print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
+print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fa fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
 print('</div>')
 
 -- Hidden by default, will be shown by the footer if necessary
-print('<div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+print('<div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fa fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
 print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
 print('</div>')
 
 if(_SESSION["INVALID_CSRF"]) then
-  print('<div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fa fa-warning fa-lg" id="alerts-menu-triangle"></i> ')
+  print('<div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fa fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
   print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
   print(i18n("expired_csrf"))
   print('</div>')

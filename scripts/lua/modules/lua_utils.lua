@@ -432,7 +432,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
       dev_params[p] = nil
    end
 
-   print[[, '<div class="btn-group pull-right">\
+   print[[, '<div class="btn-group float-right">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
@@ -472,7 +472,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
 	 local if_params = table.clone(page_params)
 
 	 if_params[direction] = nil
-	    print[[, '<div class="btn-group pull-right">\
+	    print[[, '<div class="btn-group float-right">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page."..direction)) print[[]] print(cur_if_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page.all_"..direction)) print[[</a></li>\]]
@@ -1143,14 +1143,14 @@ function getApplicationIcon(name)
 
   if(findString(name, "Skype")) then icon = '<i class=\'fa fa-skype fa-lg\'></i>'
   elseif(findString(name, "Unknown")) then icon = '<i class=\'fa fa-question fa-lg\'></i>'
-  elseif(findString(name, "Twitter")) then icon = '<i class=\'fa fa-twitter fa-lg\'></i>'
-  elseif(findString(name, "DropBox")) then icon = '<i class=\'fa fa-dropbox fa-lg\'></i>'
-  elseif(findString(name, "Spotify")) then icon = '<i class=\'fa fa-spotify fa-lg\'></i>'
-  elseif(findString(name, "Apple")) then icon = '<i class=\'fa fa-apple fa-lg\'></i>'
+  elseif(findString(name, "Twitter")) then icon = '<i class=\'fab fa-twitter fa-lg\'></i>'
+  elseif(findString(name, "DropBox")) then icon = '<i class=\'fab fa-dropbox fa-lg\'></i>'
+  elseif(findString(name, "Spotify")) then icon = '<i class=\'fab fa-spotify fa-lg\'></i>'
+  elseif(findString(name, "Apple")) then icon = '<i class=\'fab fa-apple fa-lg\'></i>'
   elseif(findString(name, "Google") or
-    findString(name, "Chrome")) then icon = '<i class=\'fa fa-google-plus fa-lg\'></i>'
-  elseif(findString(name, "FaceBook")) then icon = '<i class=\'fa fa-facebook-square fa-lg\'></i>'
-  elseif(findString(name, "Youtube")) then icon = '<i class=\'fa fa-youtube-square fa-lg\'></i>'
+    findString(name, "Chrome")) then icon = '<i class=\'fab fa-google-plus-g fa-lg\'></i>'
+  elseif(findString(name, "FaceBook")) then icon = '<i class=\'fab fa-facebook fa-lg\'></i>'
+  elseif(findString(name, "Youtube")) then icon = '<i class=\'fab fa-youtube fa-lg\'></i>'
   elseif(findString(name, "thunderbird")) then icon = '<i class=\'fa fa-paper-plane fa-lg\'></i>'
   end
 
@@ -2142,13 +2142,13 @@ function formatBreed(breed)
    if(breed == "Safe") then
       return("<i class='fa fa-lock' alt='Safe Protocol'></i>")
    elseif(breed == "Acceptable") then
-      return("<i class='fa fa-thumbs-o-up' alt='Acceptable Protocol'></i>")
+      return("<i class='fa fa-thumbs-up' alt='Acceptable Protocol'></i>")
    elseif(breed == "Fun") then
-      return("<i class='fa fa-smile-o' alt='Fun Protocol'></i>")
+      return("<i class='fa fa-smile' alt='Fun Protocol'></i>")
    elseif(breed == "Unsafe") then
-      return("<i class='fa fa-thumbs-o-down'></i>")
+      return("<i class='fa fa-thumbs-down'></i>")
    elseif(breed == "Dangerous") then
-      return("<i class='fa fa-warning'></i>")
+      return("<i class='fa fa-exclamation-triangle'></i>")
    else
       return("")
    end
@@ -2616,23 +2616,23 @@ end
 -- Add here the icons you guess based on the Mac address
 -- TODO move to discovery stuff
 local guess_icon_keys = {
-  ["dell inc."] = "fa-desktop",
-  ["vmware, inc."] = "fa-desktop",
-  ["xensource, inc."] = "fa-desktop",
-  ["lanner electronics, inc."] = "fa-desktop",
-  ["nexcom international co., ltd."] = "fa-desktop",
-  ["apple, inc."] = "fa-apple",
-  ["cisco systems, inc"] = "fa-arrows",
-  ["juniper networks"] = "fa-arrows",
-  ["brocade communications systems, inc."] = "fa-arrows",
-  ["force10 networks, inc."] = "fa-arrows",
-  ["huawei technologies co.,ltd"] = "fa-arrows",
-  ["alcatel-lucent ipd"] = "fa-arrows",
-  ["arista networks, inc."] = "fa-arrows",
-  ["3com corporation"] = "fa-arrows",
-  ["routerboard.com"] = "fa-arrows",
-  ["extreme networks"] = "fa-arrows",
-  ["xerox corporation"] = "fa-print"
+  ["dell inc."] = "fa fa-desktop",
+  ["vmware, inc."] = "fa fa-desktop",
+  ["xensource, inc."] = "fa fa-desktop",
+  ["lanner electronics, inc."] = "fa fa-desktop",
+  ["nexcom international co., ltd."] = "fa fa-desktop",
+  ["apple, inc."] = "fab fa-apple",
+  ["cisco systems, inc"] = "fa fa-arrows-alt",
+  ["juniper networks"] = "fa fa-arrows-alt",
+  ["brocade communications systems, inc."] = "fa fa-arrows-alt",
+  ["force10 networks, inc."] = "fa fa-arrows-alt",
+  ["huawei technologies co.,ltd"] = "fa fa-arrows-alt",
+  ["alcatel-lucent ipd"] = "fa fa-arrows-alt",
+  ["arista networks, inc."] = "fa fa-arrows-alt",
+  ["3com corporation"] = "fa fa-arrows-alt",
+  ["routerboard.com"] = "fa fa-arrows-alt",
+  ["extreme networks"] = "fa fa-arrows-alt",
+  ["xerox corporation"] = "fa fa-print"
 }
 
 function guessHostIcon(key)
@@ -2640,7 +2640,7 @@ function guessHostIcon(key)
    local icon = guess_icon_keys[m]
 
    if((icon ~= nil) and (icon ~= "")) then
-      return(" <i class='fa "..icon.." fa-lg'></i>")
+      return(" <i class='"..icon.." fa-lg'></i>")
    else
       return ""
    end
@@ -3223,7 +3223,7 @@ end
 function printWarningAlert(message)
    print[[<div class="alert alert-warning alert-dismissable" role="alert">]]
    print[[<a class="close" data-dismiss="alert" aria-label="close">&times;</a>]]
-   print[[<i class="fa fa-warning fa-sm"></i> ]]
+   print[[<i class="fa fa-exclamation-triangle fa-sm"></i> ]]
    print[[<strong>]] print(i18n("warning")) print[[</strong> ]]
    print(message)
    print[[</div>]]

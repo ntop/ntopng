@@ -49,9 +49,9 @@ end
 if ts_creation then
    if(ts_utils.exists("process:resident_memory", {ifid=getSystemInterfaceId()})) then
       if(page == "historical") then
-	 print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+	 print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
       else
-	 print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+	 print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
       end
    end
 end
@@ -64,7 +64,7 @@ if(isAdministrator() and areAlertsEnabled()) then
    end
 
    if not is_pcap_dump then
-      print("<i class=\"fa fa-warning fa-lg\"></i></a>")
+      print("<i class=\"fa fa-exclamation-triangle fa-lg\"></i></a>")
       print("</li>")
    end
 end

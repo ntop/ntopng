@@ -13,11 +13,11 @@ discover.progress_string = "discovery.progess"
 
 discover.osinfo = {
   [0] = {"Unknown",       ''},
-  [1] = {"Linux",         '<i class=\'fa fa-linux fa-lg\'></i>'},
-  [2] = {"Windows",       '<i class=\'fa fa-windows fa-lg\'></i>'},
-  [3] = {"MacOS",         '<i class=\'fa fa-apple fa-lg\'></i>'},
-  [4] = {"iOS",           '<i class=\'fa fa-apple fa-lg\'></i>'},
-  [5] = {"Android",       '<i class=\'fa fa-android fa-lg\'></i>'},
+  [1] = {"Linux",         '<i class=\'fab fa-linux fa-lg\'></i>'},
+  [2] = {"Windows",       '<i class=\'fab fa-windows fa-lg\'></i>'},
+  [3] = {"MacOS",         '<i class=\'fab fa-apple fa-lg\'></i>'},
+  [4] = {"iOS",           '<i class=\'fab fa-apple fa-lg\'></i>'},
+  [5] = {"Android",       '<i class=\'fab fa-android fa-lg\'></i>'},
   [6] = {"LaserJET",      'LasetJET'},
   [7] = {"AppleAirport",  'Apple Airport'},
   -- NOTE: keep in sync with OperatingSystem in ntop_typedefs.h
@@ -185,13 +185,13 @@ discover.apple_products = {
 discover.asset_icons = {
    ['unknown']     = '',
    ['printer']     = '<i class="fa fa-print fa-lg devtype-icon" aria-hidden="true"></i>', -- 1
-   ['video']       = '<i class="fa fa-video-camera fa-lg devtype-icon" aria-hidden="true"></i>', -- 2
+   ['video']       = '<i class="fa fa-video fa-lg devtype-icon" aria-hidden="true"></i>', -- 2
    ['workstation'] = '<i class="fa fa-desktop fa-lg devtype-icon" aria-hidden="true"></i>', -- ... and so on
    ['laptop']      = '<i class="fa fa-laptop fa-lg devtype-icon" aria-hidden="true"></i>',
    ['tablet']      = '<i class="fa fa-tablet fa-lg devtype-icon" aria-hidden="true"></i>',
    ['phone']       = '<i class="fa fa-mobile fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['tv']          = '<i class="fa fa-television fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['networking']  = '<i class="fa fa-arrows fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['tv']          = '<i class="fa fa-tv fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['networking']  = '<i class="fa fa-arrows-alt fa-lg devtype-icon" aria-hidden="true"></i>',
    ['wifi']        = '<i class="fa fa-wifi fa-lg devtype-icon" aria-hidden="true"></i>',
    ['nas']         = '<i class="fa fa-database fa-lg devtype-icon" aria-hidden="true"></i>',
    ['multimedia']  = '<i class="fa fa-music fa-lg devtype-icon" aria-hidden="true"></i>',
@@ -200,7 +200,7 @@ discover.asset_icons = {
 }
 
 discover.extra_asset_icons = {
-   ['lightbulb']      = '<i class="fa fa-lightbulb-o fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['lightbulb']      = '<i class="fa fa-lightbulb fa-lg devtype-icon" aria-hidden="true"></i>',
    ['phone']          = '<i class="fa fa-phone fa-lg devtype-icon" aria-hidden="true"></i>',
    ['health']         = '<i class="fa fa-medkit fa-lg devtype-icon" aria-hidden="true"></i>',
 }
@@ -222,9 +222,9 @@ local id2label = {
    -- IMPORTANT: please keep in sync asset_icons with id2label
 }
 
-discover.ghost_icon = '<i class="fa fa-snapchat-ghost fa-lg" aria-hidden="true"></i>'
-discover.android_icon = '<i class="fa fa-android fa-lg" aria-hidden="true"></i>'
-discover.apple_icon = '<i class="fa fa-apple fa-lg" aria-hidden="true"></i>'
+discover.ghost_icon = '<i class="fa fa-ghost fa-lg" aria-hidden="true"></i>'
+discover.android_icon = '<i class="fab fa-android fa-lg" aria-hidden="true"></i>'
+discover.apple_icon = '<i class="fab fa-apple fa-lg" aria-hidden="true"></i>'
 discover.MAX_DISCOVERED_DEVICES = 8192
 
 -- ################################################################################

@@ -120,7 +120,7 @@ elseif discovered["status"]["code"] == "NOCACHE" then
 end
 
 if discovered["status"]["code"] == "ERROR" then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
+   print('<div class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
 elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print[[<div id="discover-table"></div>]]
 
@@ -129,11 +129,11 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
          url: "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_discover_data.lua", page_params)) print[[",
          title: "",
          showPagination: true,
-         class: "table table-striped table-bordered table-sm",
+         class: "table table-striped table-bordered",
          buttons: []]
 
    -- Manufacturer filter
-   print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
       i18n("mac_stats.manufacturer") .. ternary(not isEmptyString(manuf_filter), '<span class="fa fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 

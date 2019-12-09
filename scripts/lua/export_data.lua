@@ -74,8 +74,8 @@ print [[
      </div>
 
      <div class='col-md-2'>
-       <div class="btn-group pull-right">
-         <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary pull-right">
+       <div class="btn-group float-right">
+         <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary float-right">
        </div>
      </div>
    </div>

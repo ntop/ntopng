@@ -117,7 +117,7 @@ if (_GET["page"] ~= "historical") then
 
          if charts_available then
             charts_icon = charts_icon.."&nbsp; <a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network="..
-               network .. "&page=historical'><i class='fa fa-sm fa-area-chart'></i></a>"
+               network .. "&page=historical'><i class='fa fa-sm fa-chart-area'></i></a>"
          end
 
          charts_icon = charts_icon.."</small>"
@@ -216,7 +216,7 @@ if (_GET["page"] ~= "historical") then
       pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
 			{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
 	 .."<small>".. pool_edit ..
-	 ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-area-chart fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
+	 ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
 	 "</small>"
    end
 
@@ -235,7 +235,7 @@ if (_GET["page"] ~= "historical") then
    if not isEmptyString(protocol_name) then
       charts_icon = " <a href='".. ntop.getHttpPrefix() .."/lua/if_stats.lua?ifid="..
          ifstats.id .. "&page=historical&ts_schema=iface:ndpi&protocol=" .. protocol_name..
-         "'><i class='fa fa-sm fa-area-chart'></i></a>"
+         "'><i class='fa fa-sm fa-chart-area'></i></a>"
    end
 
    function getPageTitle()
@@ -272,7 +272,7 @@ if (_GET["page"] ~= "historical") then
    print ('rowCallback: function ( row ) { return host_table_setID(row); },')
 
    print [[
-       tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
+       tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
    print(i18n('hosts_stats.idle_hosts_not_listed'))
    print[['); },
 ]]
@@ -290,30 +290,30 @@ if (_GET["page"] ~= "historical") then
 
    
    --[[ if((page_params.network ~= nil) and (page_params.network ~= "-1")) then
-      print('\'<div class="btn-group pull-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-area-chart fa-lg\"></i></A></div>\', ')
+      print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-chart-area fa-lg\"></i></A></div>\', ')
       elseif (page_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
-      print('\'<div class="btn-group pull-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A></div>\', ')
+      print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A></div>\', ')
       end]]
 
    -- Ip version selector
-   print[['<div class="btn-group pull-right">]]
+   print[['<div class="btn-group float-right">]]
    custom_column_utils.printCustomColumnDropdown(base_url, page_params)
    print[[</div>']]
    
 
    -- Ip version selector
-   print[[, '<div class="btn-group pull-right">]]
+   print[[, '<div class="btn-group float-right">]]
    printIpVersionDropdown(base_url, page_params)
    print[[</div>']]
 
    -- VLAN selector
    if ifstats.vlan then
-      print[[, '<div class="btn-group pull-right">]]
+      print[[, '<div class="btn-group float-right">]]
       printVLANFilterDropdown(base_url, page_params)
       print[[</div>']]
    end
 
-   print[[, '<div class="btn-group pull-right">]]
+   print[[, '<div class="btn-group float-right">]]
    printTrafficTypeFilterDropdown(base_url, page_params)
    print[[</div>']]
 
@@ -620,7 +620,7 @@ else
       <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li><a href="#">]] print(title) print[[</a> </li>]]
-   print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+   print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i></a></li>\n")
    print[[
       <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
       </ul>

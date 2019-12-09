@@ -62,28 +62,28 @@ print [[
 print("<li><a href=\"#\">" .. i18n("network_details.network") .. ": "..network_name.."</A> </li>")
 
 if(page == "historical") then
-    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i></a></li>\n")
 else
-    print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+    print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
 end
 
 if areAlertsEnabled() then
     if(page == "alerts") then
-	print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
+	print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-exclamation-triangle fa-lg\"></i></a></li>\n")
     else
-	print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
+	print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-exclamation-triangle fa-lg\"></i></a></li>")
     end
 end
 
 if ts_utils.getDriverName() == "rrd" then
    if ntop.isEnterprise() or ntop.isnEdge() then
       if(page == "traffic_report") then
-	 print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
+	 print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-alt report-icon'></i></a></li>\n")
       else
-	 print("\n<li><a href=\""..nav_url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
+	 print("\n<li><a href=\""..nav_url.."&page=traffic_report\"><i class='fa fa-file-alt report-icon'></i></a></li>")
       end
    else
-      print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
+      print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-alt report-icon'></i></A></li>\n")
    end
 end
 
@@ -96,9 +96,9 @@ if((network ~= nil) and (isAdministrator())) then
     end
 
     if(page == "callbacks") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>\n")
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fab fa-superpowers fa-lg\"></i></a></li>\n")
    else
-      print("\n<li><a href=\""..nav_url.."&page=callbacks\"><i class=\"fa fa-superpowers fa-lg\"></i></a></li>")
+      print("\n<li><a href=\""..nav_url.."&page=callbacks\"><i class=\"fab fa-superpowers fa-lg\"></i></a></li>")
    end
 end
 

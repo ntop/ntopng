@@ -37,7 +37,7 @@ else
             <nav class="navbar navbar-default" role="navigation">
               <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-	    <li class="nav-item"><a class="nav-link" href="#"><i class="fa fa-linux fa-lg"></i> ]] print(user_key)
+	    <li class="nav-item"><a class="nav-link" href="#"><i class="fab fa-linux fa-lg"></i> ]] print(user_key)
 
   if host_key then
      print(string.format(" [%s: %s]", i18n("host_details.host"), name))

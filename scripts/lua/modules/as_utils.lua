@@ -34,7 +34,7 @@ function as2record(ifId, as)
    record["column_chart"] = ""
 
    if ts_utils.exists("asn:traffic", {ifid=ifId, asn=as["asn"]}) then
-      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..as["asn"]..'&page=historical"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..as["asn"]..'&page=historical"><i class=\'fa fa-chart-area fa-lg\'></i></A>'
    end
 
    return record

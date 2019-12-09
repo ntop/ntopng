@@ -146,7 +146,7 @@ if(host == nil) and (not only_historical) then
 	 print('";</script>')
       else
 	 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-	 print('<div class=\"alert alert-danger\"><i class="fa fa-warning"></i> '.. i18n("host_details.host_cannot_be_found_message",{host=hostinfo2hostkey(host_info)}) .. " ")
+	 print('<div class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle"></i> '.. i18n("host_details.host_cannot_be_found_message",{host=hostinfo2hostkey(host_info)}) .. " ")
 	 if((json ~= nil) and (json ~= "")) then
 	    print[[<form id="host_restore_form" method="post">]]
 	    print[[<input name="mode" type="hidden" value="restore" />]]
@@ -206,7 +206,7 @@ else
      host["name"] = host["label"]
    end
 
-   print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-warning"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
+   print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
 
    local url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
    if _GET["tskey"] ~= nil then
@@ -316,7 +316,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 hidden = only_historical or isLoopback(ifname) or not host["has_dropbox_shares"],
 				 active = page == "dropbox",
 				 page_name = "dropbox",
-				 label = "<i class='fa fa-lg fa-dropbox'></i>",
+				 label = "<i class='fab fa-lg fa-dropbox'></i>",
 			      },
 			      {
 				 hidden = only_historical or host["privatehost"],
@@ -328,19 +328,19 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 hidden = not areAlertsEnabled(),
 				 active = page == "alerts",
 				 page_name = "alerts",
-				 label = "<i class=\"fa fa-lg fa-warning\"></i>",
+				 label = "<i class=\"fa fa-lg fa-exclamation-triangle\"></i>",
 			      },
 			      {
 				 hidden = not ts_utils.exists("host:traffic", {ifid = ifId, host = tskey}),
 				 active = page == "historical",
 				 page_name = "historical",
-				 label = "<i class='fa fa-lg fa-area-chart'></i>",
+				 label = "<i class='fa fa-lg fa-chart-area'></i>",
 			      },
 			      {
 				 hidden = only_historical or is_pcap_dump or not host["localhost"] or not ts_utils.getDriverName() == "rrd",
 				 active = page == "traffic_report",
 				 page_name = "traffic_report",
-				 label = "<i class='fa fa-lg fa-file-text report-icon'></i>",
+				 label = "<i class='fa fa-lg fa-file-alt report-icon'></i>",
 			      },
 			      {
 				 hidden = only_historical or not ntop.isEnterprise() or not ifstats.inline or not host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID,
@@ -358,7 +358,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 				 active = page == "callbacks",
 				 page_name = "callbacks",
-				 label = "<i class=\"fa fa-lg fa-superpowers\"></i>",
+				 label = "<i class=\"fab fa-lg fa-superpowers\"></i>",
 			      },
 			   }
    )
@@ -510,7 +510,7 @@ if((page == "overview") or (page == nil)) then
    end
 
 if(host["num_alerts"] > 0) then
-   print("<tr><th><i class=\"fa fa-warning\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li> <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'><span id=num_alerts>"..host["num_alerts"] .. "</span></a> <span id=alerts_trend></span></td></tr>\n")
+   print("<tr><th><i class=\"fa fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li> <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'><span id=num_alerts>"..host["num_alerts"] .. "</span></a> <span id=alerts_trend></span></td></tr>\n")
 end
 
 if debug_score then
@@ -520,7 +520,7 @@ if debug_score then
 end
 
 if(host["active_alerted_flows"] > 0) then
-  print("<tr><th><i class=\"fa fa-warning\" style='color: #B94A48;'></i> "..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li> <a href='".. ntop.getHttpPrefix() .."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=flows&flow_status=alerted'><span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span></a> <span id=flow_alerts_trend></span></td></tr>\n")
+  print("<tr><th><i class=\"fa fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li> <a href='".. ntop.getHttpPrefix() .."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=flows&flow_status=alerted'><span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span></a> <span id=flow_alerts_trend></span></td></tr>\n")
 end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
@@ -1092,8 +1092,8 @@ elseif((page == "ndpi")) then
 	 direction_filter = '<span class="fa fa-filter"></span>'
       end
 
-      print('<div class="dt-toolbar btn-toolbar pull-right">')
-      print('<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="direction_dropdown">')
+      print('<div class="dt-toolbar btn-toolbar float-right">')
+      print('<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="direction_dropdown">')
       print('<li><a href="'..base_url..'">'..i18n("all")..'</a></li>')
       print('<li><a href="'..base_url..'&direction=sent">'..i18n("ndpi_page.sent_only")..'</a></li>')
       print('<li><a href="'..base_url..'&direction=recv">'..i18n("ndpi_page.received_only")..'</a></li>')
@@ -1213,7 +1213,7 @@ setInterval(update_ndpi_categories_table, 5000);
 	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fa fa-flask\"></i>"}).." ")
       end
 
-      print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-warning\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&host=".._GET["host"].."&page=historical"}))
+      print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fa fa-exclamation-triangle\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&host=".._GET["host"].."&page=historical"}))
       print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
       print("</ul>")
 
@@ -1525,7 +1525,7 @@ print [[
          url: url_update,
          buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
          rowCallback: function ( row ) { return flow_table_setID(row); },
-         tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
+         tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
 print(i18n('flows_page.idle_flows_not_listed'))
 print[['); },
          showPagination: true,

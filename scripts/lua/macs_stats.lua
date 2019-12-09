@@ -91,7 +91,7 @@ print('title: "'..title..'",\n')
 
 print ('rowCallback: function ( row ) { return mac_table_setID(row); },')
 print[[
-        tableCallback: function()  { $("#dt-bottom-details > .pull-left > p").first().append('. ]]
+        tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
 print(i18n('mac_stats.idle_devices_not_listed'))
 print[['); },]]
 
@@ -125,7 +125,7 @@ print('buttons: [')
    local manufacturer_params = table.clone(page_params)
    manufacturer_params.manufacturer = nil
    print[[, '\
-       <div class="btn-group pull-right">\
+       <div class="btn-group float-right">\
        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("mac_stats.manufacturer")) print(manufacturer_filter) print[[<span class="caret"></span></button>\
        <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
           <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
@@ -147,7 +147,7 @@ for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_t
    local devicetype_params = table.clone(page_params)
    devicetype_params.device_type = nil
    print[[, '\
-       <div class="btn-group pull-right">\
+       <div class="btn-group float-right">\
        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("details.device_type")) print(devtype_filter) print[[<span class="caret"></span></button>\
        <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
           <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, devicetype_params)) print[[">]] print(i18n("mac_stats.all_devices")) print[[</a></li>\

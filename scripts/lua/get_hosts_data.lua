@@ -238,7 +238,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
-      column_ip = column_ip .. " <i class='fa fa-warning' style='color: #B94A48;'></i>"
+      column_ip = column_ip .. " <i class='fa fa-exclamation-triangle' style='color: #B94A48;'></i>"
    end
 
    if value["systemhost"]    then column_ip = column_ip .. "&nbsp;<i class='fa fa-flag'></i> " end
@@ -247,7 +247,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local host = interface.getHostInfo(hosts_stats[key].ip, hosts_stats[key].vlan)
    if((host ~= nil) and (host.has_dropbox_shares == true)) then
-      column_ip = column_ip .." <i class='fa fa-dropbox'></i> "
+      column_ip = column_ip .." <i class='fab fa-dropbox fa-lg'></i> "
    end
    
    if((host ~= nil) and (host.country ~= nil) and (host.country ~= "")) then

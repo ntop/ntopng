@@ -228,8 +228,8 @@ print [[
          </div>
     
          <div class='col-md-2'>
-           <div class="btn-group btn-group-toggle pull-right">
-             <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary pull-right">
+           <div class="btn-group btn-group-toggle float-right">
+             <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary float-right">
            </div>
          </div>
        </div>
@@ -301,7 +301,7 @@ print [[
          </div>
     
          <div class='col-md-2'>
-           <div class="btn-group btn-group-toggle pull-right">
+           <div class="btn-group btn-group-toggle float-right">
            </div>
          </div>
        </div>

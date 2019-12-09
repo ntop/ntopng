@@ -146,7 +146,7 @@ function prefsResolutionButtons(fmt, value, fixed_id, format_spec, max_val)
     options_ctr = options_ctr + 1
   end
 
-  local res = makeResolutionButtons(format_spec or FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"pull-right"}}, max_val)
+  local res = makeResolutionButtons(format_spec or FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"float-right"}}, max_val)
 
   res.value = truncate(res.value)
   

@@ -1091,7 +1091,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       print("<td class='text-center'>")
 	       if ts_utils.exists("elem_user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type}) then
 		  print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
-			   mod_k..'&subdir='..entity_type..'"><i class="fa fa-area-chart fa-lg"></i></a>')
+			   mod_k..'&subdir='..entity_type..'"><i class="fa fa-chart-area fa-lg"></i></a>')
 	       end
 	    end
 
@@ -1699,7 +1699,7 @@ function toggleAlert(disable) {
 	       showPagination: true,
                buttons: [']]
 
-   local title = t["label"]..ternary(t["chart"] ~= "", " <small><A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..string.format("%d", ifid).."&page=historical&ts_schema="..t["chart"].."'><i class='fa fa-area-chart fa-sm'></i></A></small>", "")
+   local title = t["label"]..ternary(t["chart"] ~= "", " <small><A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..string.format("%d", ifid).."&page=historical&ts_schema="..t["chart"].."'><i class='fa fa-chart-area fa-sm'></i></A></small>", "")
 
 	 if(options.hide_filters ~= true)  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils

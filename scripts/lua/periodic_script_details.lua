@@ -38,7 +38,7 @@ print [[
 ]]
 
 print("<li><a href=\"#\">".. i18n("internals.iface_periodic_scripts", {iface = getHumanReadableInterfaceName(getInterfaceName(ifId))}) .."</A> </li>")
-print("<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i>\n")
+print("<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i>\n")
 
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>

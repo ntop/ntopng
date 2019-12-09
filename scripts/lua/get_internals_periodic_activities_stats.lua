@@ -147,7 +147,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local warn = ""
 
       if(last_duration > max_duration) then
-         warn = "<i class=\"fa fa-warning fa-lg\" title=\"".. i18n("internals.script_deadline_exceeded") .."\" style=\"color: #f0ad4e;\"></i> "
+         warn = "<i class=\"fa fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.script_deadline_exceeded") .."\" style=\"color: #f0ad4e;\"></i> "
       end
 
       record["column_key"] = key
@@ -165,7 +165,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       if iffilter then
 	 if ts_utils.exists("periodic_script:duration", {ifid = iffilter, periodic_script = script_stats.script}) then
-	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fa fa-chart-area fa-lg\'></i></A>'
 	 end
       end
 

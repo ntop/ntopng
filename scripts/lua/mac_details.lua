@@ -102,7 +102,7 @@ local mac_info = interface.getMacInfo(mac)
 local only_historical = (mac_info == nil) and (page == "historical")
 
 if(mac_info == nil) and not only_historical then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
+   print('<div class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
    print("</div>")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
@@ -136,7 +136,7 @@ page_utils.print_navbar(title, url,
 			      hidden = not ts_utils.exists("mac:traffic", {ifid=ifId, mac = devicekey}),
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-area-chart'></i>",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
 			   },
 			   {
 			      hidden = not isAdministrator() or interface.isPcapDumpInterface(),

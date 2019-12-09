@@ -94,7 +94,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
     local chart = ""
 
     if ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host=key}) then
-      chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/system/rtt_stats.lua?rtt_host='.. key ..'&page=historical"><i class="fa fa-area-chart fa-lg"></i></a>'
+      chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/system/rtt_stats.lua?rtt_host='.. key ..'&page=historical"><i class="fa fa-chart-area fa-lg"></i></a>'
     end
 
     local column_last_ip = ""

@@ -1779,7 +1779,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     local ipversion_params = table.clone(page_params)
     ipversion_params["version"] = nil
 
-    print[[, '<div class="btn-group pull-right">]]
+    print[[, '<div class="btn-group float-right">]]
     printIpVersionDropdown(base_url, ipversion_params)
     print [[</div>']]
 
@@ -1787,14 +1787,14 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     local l4proto_params = table.clone(page_params)
     l4proto_params["l4proto"] = nil
 
-    print[[, '<div class="btn-group pull-right">]]
+    print[[, '<div class="btn-group float-right">]]
     printL4ProtoDropdown(base_url, l4proto_params, flowstats["l4_protocols"])
     print [[</div>']]
 
     -- VLAN selector
     local vlan_params = table.clone(page_params)
     if ifstats.vlan then
-       print[[, '<div class="btn-group pull-right">]]
+       print[[, '<div class="btn-group float-right">]]
        printVLANFilterDropdown(base_url, vlan_params)
        print[[</div>']]
     end

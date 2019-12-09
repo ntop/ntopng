@@ -63,7 +63,7 @@ $("#table-system-interfaces-stats").datatable({
    buttons: [ ]]
 
    -- Ip version selector
-   print[['<div class="btn-group pull-right">]]
+   print[['<div class="btn-group float-right">]]
    printHashTablesDropdown(base_url, page_params)
    print[[</div>']]
 
@@ -182,7 +182,7 @@ $("#table-internals-periodic-activities").datatable({
    buttons: [ ]]
 
    -- Ip version selector
-   print[['<div class="btn-group pull-right">]]
+   print[['<div class="btn-group float-right">]]
    printPeriodicactivityDropdown(base_url, page_params)
    print[[</div>']]
 

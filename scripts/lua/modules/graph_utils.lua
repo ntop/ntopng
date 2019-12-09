@@ -137,8 +137,8 @@ function breakdownBar(sent, sentLabel, rcvd, rcvdLabel, thresholdLow, thresholdH
     if((thresholdLow == nil) or (thresholdLow < 0)) then thresholdLow = 0 end
     if((thresholdHigh == nil) or (thresholdHigh > 100)) then thresholdHigh = 100 end
 
-    if(sent2rcvd < thresholdLow) then sentLabel = '<i class="fa fa-warning fa-lg"></i> '..sentLabel
-    elseif(sent2rcvd > thresholdHigh) then rcvdLabel = '<i class="fa fa-warning fa-lg""></i> '..rcvdLabel end
+    if(sent2rcvd < thresholdLow) then sentLabel = '<i class="fa fa-exclamation-triangle fa-lg"></i> '..sentLabel
+    elseif(sent2rcvd > thresholdHigh) then rcvdLabel = '<i class="fa fa-exclamation-triangle fa-lg""></i> '..rcvdLabel end
 
       print('<div class="progress"><div class="progress-bar bg-warning" aria-valuenow="'.. sent2rcvd..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd.. '%;">'..sentLabel)
       print('</div><div class="progress-bar bg-info" aria-valuenow="'.. (100-sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
@@ -363,7 +363,7 @@ function makeMenuDivider()
 end
 
 function makeMenuHeader(label)
-   return '<h6 class="dropdown-header">'.. label ..'</h6>'
+   return '<li class="dropdown-header">'.. label ..'</li>'
 end
 
 function graphMenuDivider()
@@ -1408,7 +1408,7 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
    count_callback = count_callback or count_all
 
    -- 'Category' button
-   print('\'<div class="btn-group pull-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
          i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="fa fa-filter"></span>', '') ..
          '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 

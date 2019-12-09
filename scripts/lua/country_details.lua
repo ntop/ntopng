@@ -46,7 +46,7 @@ local title = i18n("country_details.country") .. ": "..country
 			      {
 				 active = page == "historical" or not page,
 				 page_name = "historical",
-				 label = "<i class='fa fa-lg fa-area-chart'></i>",
+				 label = "<i class='fa fa-lg fa-chart-area'></i>",
 			      },
 			   }
    )
