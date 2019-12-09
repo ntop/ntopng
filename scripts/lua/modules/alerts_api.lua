@@ -345,12 +345,14 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
   end
 
   for _, alert in pairs(alerts) do
+    -- NOTE: do not pass alerts here as a parameters as deleting items while
+    -- does not work in lua
     alerts_api.release(entity_info, {
       alert_type = alert_consts.alert_types[alertTypeRaw(alert.alert_type)],
       alert_severity = alert_consts.alert_severities[alertSeverityRaw(alert.alert_severity)],
       alert_subtype = alert.alert_subtype,
       alert_granularity = alert_consts.alerts_granularities[sec2granularity(alert.alert_granularity)],
-    }, nil, alerts)
+    })
   end
 end
 
