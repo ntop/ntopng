@@ -5,10 +5,9 @@
 local live_traffic_utils = {}
 
 function live_traffic_utils.printLiveTrafficForm(ifid, host_info)
-   local show_modal = false
+   local has_vlan = (host_info and (tonumber(host_info["vlan"]) or 0) > 0)
 
-   if host_info and (tonumber(host_info["vlan"]) or 0) > 0 then
-      show_modal = true
+   if has_vlan then
       local template = require "template_utils"
 
       print(
@@ -25,14 +24,14 @@ function live_traffic_utils.printLiveTrafficForm(ifid, host_info)
       )
    end
 
-print[[
+   print[[
 <form id="live-capture-form" class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print [[" method="GET">
   <input type=hidden id="live-capture-ifid" name=ifid value="]] print(ifid.."") print [[">]]
-  if host_info then
-    print[[<input type=hidden id="live-capture-host" name=host value="]] print(hostinfo2hostkey(host_info)) print [[">]]
-  end
+   if host_info then
+      print[[<input type=hidden id="live-capture-host" name=host value="]] print(hostinfo2hostkey(host_info)) print [[">]]
+   end
 
-  print[[<div class="form-group mb-2">
+   print[[<div class="form-group mb-2">
     <label for="duration" class="sr-only">]] print(i18n("duration")) print[[</label>
       <select class="form-control" id="duration" name=duration>
       <option value=10>10 sec</option>
@@ -52,18 +51,19 @@ print[[
 <script type='text/javascript'>
 ]]
 
-  if not show_modal then
-     print[[
+   if not has_vlan then
+      print[[
 var live_capture_download_show_modal = function() {
    /* resume submit */
    return true;
 }
 ]]
-  else
-     print[[
+   else
+      print[[
 var live_capture_download_show_modal = function(){
-  if($('#live-capture-bpf-filter').val() == '') {
-    /* Resume submit, nothing to show as the user didn't specify any BPF */
+  if($('#live-capture-bpf-filter').val() == '' || 
+     $('#live-capture-bpf-filter').val().includes('vlan')) {
+    /* Resume submit, nothing to show (the user didn't specify any BPF or VLAN is specified) */
     return true;
   }
 
@@ -80,8 +80,8 @@ var live_traffic_download_submit = function() {
   $('#live-capture-form').submit();
 };
 ]]
-  end
-  print[[
+   end
+   print[[
 </script>
 ]]
 
