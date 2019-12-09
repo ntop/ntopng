@@ -403,6 +403,18 @@ path.link {
   width: 400px;
 }
 
+.ntop-progress-stacked-legend {
+  margin-top: 4px;
+}
+
+.ntop-progress-stacked-legend > span span:not(:first-child) {
+/*   font-size: 0.8em; */
+  margin-left: 3px;
+}
+
+.ntop-progress-stacked-legend > span:not(:first-child) {
+  margin-left: 20px;
+}
 
 /* /\* ntop fix: Keep old behaviour after commit https://github.com/twbs/bootstrap/commit/a15c24410be8b94671dcfc3b154e0034a3aaf35f *\/ */
 /* .form-inline .input-group .input-group-addon { */
@@ -434,19 +446,6 @@ path.link {
 
 /* .label-empty { */
 /*   background-color: #EFEFEF !important; */
-/* } */
-
-/* .stacked-progress-legend { */
-/*   margin-top: 4px; */
-/* } */
-
-/* .stacked-progress-legend > span span:not(:first-child) { */
-/*   font-size: 0.8em; */
-/*   margin-left: 3px; */
-/* } */
-
-/* .stacked-progress-legend > span:not(:first-child) { */
-/*   margin-left: 20px; */
 /* } */
 
 /* CSS for eBPF process charts */

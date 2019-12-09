@@ -216,7 +216,7 @@ function stackedProgressBars(total, bars, other_label, formatter, css_class)
       </div></div>]]
 
    -- The legend
-   res[#res + 1] = [[<div class="stacked-progress-legend">]]
+   res[#res + 1] = [[<div class="ntop-progress-stacked-legend">]]
 
    local legend_items = bars
 
