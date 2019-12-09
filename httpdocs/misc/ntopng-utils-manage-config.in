@@ -11,6 +11,8 @@ fi
 DATADIR="${DEFAULT_DATADIR}"
 DATADIR_SET=false
 
+REDIS_INFO=""
+
 ARCHIVE_NAME="conf.tar.gz"
 ARCHIVE=""
 ARCHIVE_SET=false
@@ -36,6 +38,7 @@ function print_usage() {
     echo "`basename $0` -a install-n2disk-conf [-d datadir] -i interface"
     echo "`basename $0` -a install-n2n-conf [-d datadir]"
     echo "`basename $0` -a print-datadir"
+    echo "`basename $0` -a print-redis-info"
     echo ""
     echo "[-d datadir]"
     echo "  The path to the ntopng data directory."
@@ -74,6 +77,10 @@ function print_usage() {
     echo "[-a print-datadir]"
     echo "`basename $0` -a print-datadir"
     echo "Print the path of the ntopng data directory."
+    echo ""
+    echo "[-a print-redis-info]"
+    echo "`basename $0` -a print-redis-info"
+    echo "Print the redis connection details used by ntopng."
     echo ""
 }
 
@@ -133,7 +140,7 @@ function cleanup() {
 
 trap cleanup EXIT
 
-if [[ ( $ACTION != "backup" && $ACTION != "restore" && $ACTION != "check-restore" && $ACTION != "install-n2disk-conf" && $ACTION != "install-n2n-conf" && $ACTION != "print-datadir" ) ]]; then
+if [[ ( $ACTION != "backup" && $ACTION != "restore" && $ACTION != "check-restore" && $ACTION != "install-n2disk-conf" && $ACTION != "install-n2n-conf" && $ACTION != "print-datadir" && $ACTION != "print-redis-info" ) ]]; then
     print_usage
     exit 1
 fi
@@ -146,6 +153,18 @@ fi
 if [ $ACTION == "check-restore" ]; then
     QUIET=true
 fi
+
+function prepare_redis_info() {
+    if [ -f "${DEFAULT_CONF_FILE}" ]; then
+	# make sure there's at most one among -r and --redis
+	local REDIS_COUNT="`cat "${DEFAULT_CONF_FILE}" | grep -v "#" | grep "\-r[= ]\|\-\-redis"  | wc -l`"
+
+	if [ "${REDIS_COUNT}" -eq "1" ]; then
+	    # use awk to split on spaces or = signs and remove " and ' s, and take the last column that should be the path to the data directory
+	    REDIS_INFO=`cat "${DEFAULT_CONF_FILE}" | grep -v "#" | grep "\-r[= ]\|\-\-redis" | awk -F"[= ]" '{print $NF}' | sed s/\"//g | sed s/\'//g`
+	fi
+    fi
+}
 
 function prepare_cur_data_dir_path() {
     if [ "${DATADIR_SET}" = false ] && [ -f "${DEFAULT_CONF_FILE}" ]; then
@@ -453,6 +472,7 @@ function install_n2n_conf() {
 
 prepare_cur_data_dir_path
 prepare_tar_file_path
+prepare_redis_info
 
 if [ $ACTION == "backup" ]; then
     echo "Backing up to ${ARCHIVE} ..."
@@ -495,6 +515,10 @@ elif [ $ACTION == "install-n2n-conf" ]; then
 elif [ $ACTION == "print-datadir" ]; then
 
     echo "${DATADIR}"
+
+elif [ $ACTION == "print-redis-info" ]; then
+
+    echo "${REDIS_INFO}"
 
 else
     # never reached
