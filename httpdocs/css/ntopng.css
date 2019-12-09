@@ -407,8 +407,7 @@ path.link {
   margin-top: 4px;
 }
 
-.ntop-progress-stacked-legend > span span:not(:first-child) {
-/*   font-size: 0.8em; */
+.ntop-progress-stacked-legend > span > span:last-child {
   margin-left: 3px;
 }
 
