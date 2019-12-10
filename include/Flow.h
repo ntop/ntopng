@@ -143,7 +143,6 @@ class Flow : public GenericHashEntry {
 
     struct {
       u_int8_t icmp_type, icmp_code;
-      u_int16_t icmp_echo_id;
       u_int16_t max_icmp_payload_size;
     } icmp;
   } protos;
@@ -507,11 +506,10 @@ class Flow : public GenericHashEntry {
       protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code;
       if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? true : false, get_srv_host());
       if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? false : true, get_cli_host());
-      protos.icmp.icmp_echo_id = ntohs(*((u_int16_t*)&icmpdata[4]));
     }
   }
-  inline void getICMP(u_int8_t *_icmp_type, u_int8_t *_icmp_code, u_int16_t *_icmp_echo_id) {
-    *_icmp_type = protos.icmp.icmp_type, *_icmp_code = protos.icmp.icmp_code, *_icmp_echo_id = protos.icmp.icmp_echo_id;
+  inline void getICMP(u_int8_t *_icmp_type, u_int8_t *_icmp_code) {
+    *_icmp_type = protos.icmp.icmp_type, *_icmp_code = protos.icmp.icmp_code;
   }
   inline u_int8_t getICMPType()     { return(isICMP() ? protos.icmp.icmp_type : 0); }
   inline bool hasInvalidDNSQueryChars() { return(isDNS() && protos.dns.invalid_chars_in_query); }

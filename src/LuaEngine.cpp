@@ -8737,9 +8737,8 @@ static int ntop_flow_get_icmp_status_info(lua_State* vm) {
 
   if(f->getICMPInfo()) {
     u_int8_t icmp_type, icmp_code;
-    u_int16_t echo_id;
 
-    f->getICMP(&icmp_type, &icmp_code, &echo_id);
+    f->getICMP(&icmp_type, &icmp_code);
 
     lua_newtable(vm);
     lua_push_int32_table_entry(vm, "type", icmp_type);
