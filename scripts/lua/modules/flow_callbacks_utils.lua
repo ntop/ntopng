@@ -59,8 +59,6 @@ local function print_callbacks_config_table(descr, expert_view)
       end
    end
 
-   tprint(descr)
-   
    for mod_k, user_script in pairsByKeys(descr.modules, asc) do
       local hooks_benchmarks = benchmarks[mod_k] or {}
       local num_hooks = table.len(hooks_benchmarks)

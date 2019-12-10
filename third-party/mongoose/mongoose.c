@@ -4410,7 +4410,6 @@ static void handle_request(struct mg_connection *conn) {
   remove_double_dots_and_double_slashes((char *) ri->uri);
 
   /* BEGIN NTOP */
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "URI: %s", conn->request_info.uri);
   if((strncmp(conn->request_info.uri, "/plugins-src", 12) == 0)  /* Serve lua files */
      && (!strstr(conn->request_info.uri, "/pro/"))
      && (!strstr(conn->request_info.uri, "/enterprise/")) /* Skip non-community edition files */
