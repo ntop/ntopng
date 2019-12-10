@@ -29,21 +29,8 @@ typedef struct {
 } IPPacketStats;
 
 typedef struct {
-  u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
-  u_int64_t last, next;
-} TCPPacketStats;
-
-typedef struct {
   u_int64_t last, next;
 } TCPSeqNum;
-
-typedef struct {
-  u_int32_t cli2srv_packets, srv2cli_packets;
-  u_int64_t cli2srv_bytes, srv2cli_bytes;
-  u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
-  TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
-  ndpi_analyze_struct cli2srv_bytes_stats, srv2cli_bytes_stats;
-} FlowTrafficStats;
 
 class Flow : public GenericHashEntry {
  private:
@@ -380,20 +367,20 @@ class Flow : public GenericHashEntry {
   inline u_int16_t get_srv_port()        const { return(ntohs(srv_port));                 };
   inline u_int16_t get_vlan_id()         const { return(vlanId);                          };
   inline u_int8_t  get_protocol()        const { return(protocol);                        };
-  inline u_int64_t get_bytes()           const { return(stats.cli2srv_bytes+stats.srv2cli_bytes);     };
-  inline u_int64_t get_bytes_cli2srv()   const { return(stats.cli2srv_bytes);                   };
-  inline u_int64_t get_bytes_srv2cli()   const { return(stats.srv2cli_bytes);                   };
-  inline u_int64_t get_goodput_bytes()   const { return(stats.cli2srv_goodput_bytes+stats.srv2cli_goodput_bytes);     };
-  inline u_int64_t get_packets()         const { return(stats.cli2srv_packets+stats.srv2cli_packets); };
-  inline u_int64_t get_packets_cli2srv() const { return(stats.cli2srv_packets);                 };
-  inline u_int64_t get_packets_srv2cli() const { return(stats.srv2cli_packets);                 };
-  inline u_int64_t get_partial_bytes()           const { return get_partial_bytes_cli2srv() + get_partial_bytes_srv2cli();     };
-  inline u_int64_t get_partial_packets()         const { return get_partial_packets_cli2srv() + get_partial_packets_srv2cli(); };
-  inline u_int64_t get_partial_goodput_bytes()   const { return last_db_dump.delta.cli2srv_goodput_bytes + last_db_dump.delta.srv2cli_goodput_bytes;       };
-  inline u_int64_t get_partial_bytes_cli2srv()   const { return last_db_dump.delta.cli2srv_bytes;   };
-  inline u_int64_t get_partial_bytes_srv2cli()   const { return last_db_dump.delta.srv2cli_bytes;   };
-  inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.cli2srv_packets; };
-  inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.srv2cli_packets; };
+  inline u_int64_t get_bytes()           const { return(stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes() );                };
+  inline u_int64_t get_bytes_cli2srv()   const { return(stats.get_cli2srv_bytes());                                             };
+  inline u_int64_t get_bytes_srv2cli()   const { return(stats.get_srv2cli_bytes());                                             };
+  inline u_int64_t get_goodput_bytes()   const { return(stats.get_cli2srv_goodput_bytes() + stats.get_srv2cli_goodput_bytes()); };
+  inline u_int64_t get_packets()         const { return(stats.get_cli2srv_packets() + stats.get_srv2cli_packets());             };
+  inline u_int64_t get_packets_cli2srv() const { return(stats.get_cli2srv_packets());                                           };
+  inline u_int64_t get_packets_srv2cli() const { return(stats.get_srv2cli_packets());                                           };
+  inline u_int64_t get_partial_bytes()           const { return get_partial_bytes_cli2srv() + get_partial_bytes_srv2cli();      };
+  inline u_int64_t get_partial_packets()         const { return get_partial_packets_cli2srv() + get_partial_packets_srv2cli();  };
+  inline u_int64_t get_partial_goodput_bytes()   const { return last_db_dump.delta.get_cli2srv_goodput_bytes() + last_db_dump.delta.get_srv2cli_goodput_bytes();       };
+  inline u_int64_t get_partial_bytes_cli2srv()   const { return last_db_dump.delta.get_cli2srv_bytes();   };
+  inline u_int64_t get_partial_bytes_srv2cli()   const { return last_db_dump.delta.get_srv2cli_bytes();   };
+  inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.get_cli2srv_packets(); };
+  inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.get_srv2cli_packets(); };
   bool needsExtraDissection();
   bool hasDissectedTooManyPackets();
   bool get_partial_traffic_stats_view(FlowTrafficStats *delta, bool *first_partial);

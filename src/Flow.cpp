@@ -37,7 +37,6 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
-  memset(&stats, 0, sizeof(stats));
   last_partial = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_last_packets = 0, cli2srv_last_bytes = 0,
@@ -82,9 +81,6 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
 
-  ndpi_init_data_analysis(&stats.cli2srv_bytes_stats, 0),
-    ndpi_init_data_analysis(&stats.srv2cli_bytes_stats, 0);
-  
   external_alert = NULL;
   trigger_immediate_periodic_update = false;
   pending_lua_call_protocol_detected = false;
@@ -262,8 +258,8 @@ Flow::~Flow() {
   else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
 
-  if(last_partial)         free(last_partial);
-  if(last_db_dump.partial) free(last_db_dump.partial);
+  if(last_partial)         delete(last_partial);
+  if(last_db_dump.partial) delete(last_db_dump.partial);
   if(json_info)            json_object_put(json_info);
   if(tlv_info) {
     ndpi_term_serializer(tlv_info);
@@ -697,7 +693,7 @@ char* Flow::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_cli2srv() const {
-  int64_t diff = stats.cli2srv_bytes - cli2srv_last_bytes;
+  int64_t diff = stats.get_cli2srv_bytes() - cli2srv_last_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -709,7 +705,7 @@ u_int64_t Flow::get_current_bytes_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_srv2cli() const {
-  int64_t diff = stats.srv2cli_bytes - srv2cli_last_bytes;
+  int64_t diff = stats.get_srv2cli_bytes() - srv2cli_last_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -721,7 +717,7 @@ u_int64_t Flow::get_current_bytes_srv2cli() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_goodput_bytes_cli2srv() const {
-  int64_t diff = stats.cli2srv_goodput_bytes - cli2srv_last_goodput_bytes;
+  int64_t diff = stats.get_cli2srv_goodput_bytes() - cli2srv_last_goodput_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -733,7 +729,7 @@ u_int64_t Flow::get_current_goodput_bytes_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_goodput_bytes_srv2cli() const {
-  int64_t diff = stats.srv2cli_goodput_bytes - srv2cli_last_goodput_bytes;
+  int64_t diff = stats.get_srv2cli_goodput_bytes() - srv2cli_last_goodput_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -745,7 +741,7 @@ u_int64_t Flow::get_current_goodput_bytes_srv2cli() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_cli2srv() const {
-  int64_t diff = stats.cli2srv_packets - cli2srv_last_packets;
+  int64_t diff = stats.get_cli2srv_packets() - cli2srv_last_packets;
 
   /*
     We need to do this as due to concurrency issues,
@@ -757,7 +753,7 @@ u_int64_t Flow::get_current_packets_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_srv2cli() const {
-  int64_t diff = stats.srv2cli_packets - srv2cli_last_packets;
+  int64_t diff = stats.get_srv2cli_packets() - srv2cli_last_packets;
 
   /*
     We need to do this as due to concurrency issues,
@@ -825,21 +821,21 @@ char* Flow::print(char *buf, u_int buf_len) const {
   if(protocol == IPPROTO_TCP) {
     int len = 0;
 
-    if((stats.tcp_stats_s2d.pktOOO+stats.tcp_stats_d2s.pktOOO) > 0)
+    if((stats.get_cli2srv_tcp_ooo() + stats.get_srv2cli_tcp_ooo()) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[OOO=%u/%u]",
-		      stats.tcp_stats_s2d.pktOOO, stats.tcp_stats_d2s.pktOOO);
+		      stats.get_cli2srv_tcp_ooo(), stats.get_srv2cli_tcp_ooo());
 
-    if((stats.tcp_stats_s2d.pktLost+stats.tcp_stats_d2s.pktLost) > 0)
+    if((stats.get_cli2srv_tcp_lost() + stats.get_srv2cli_tcp_lost()) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[Lost=%u/%u]",
-		      stats.tcp_stats_s2d.pktLost, stats.tcp_stats_d2s.pktLost);
+		      stats.get_cli2srv_tcp_lost(), stats.get_srv2cli_tcp_lost());
 
-    if((stats.tcp_stats_s2d.pktRetr+stats.tcp_stats_d2s.pktRetr) > 0)
+    if((stats.get_cli2srv_tcp_retr() + stats.get_srv2cli_tcp_retr()) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[Retr=%u/%u]",
-		      stats.tcp_stats_s2d.pktRetr, stats.tcp_stats_d2s.pktRetr);
+		      stats.get_cli2srv_tcp_retr(), stats.get_srv2cli_tcp_retr());
 
-    if((stats.tcp_stats_s2d.pktKeepAlive+stats.tcp_stats_d2s.pktKeepAlive) > 0)
+    if((stats.get_cli2srv_tcp_keepalive() + stats.get_srv2cli_tcp_keepalive()) > 0)
       len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[KeepAlive=%u/%u]",
-		      stats.tcp_stats_s2d.pktKeepAlive, stats.tcp_stats_d2s.pktKeepAlive);
+		      stats.get_cli2srv_tcp_keepalive(), stats.get_srv2cli_tcp_keepalive());
   }
 
   snprintf(buf, buf_len,
@@ -858,8 +854,8 @@ char* Flow::print(char *buf, u_int buf_len) const {
 	   get_protocol_category(),
 	   get_protocol_category_name(),
 	   flow_device.device_ip, flow_device.in_index, flow_device.out_index,
-	   stats.cli2srv_packets, stats.srv2cli_packets,
-	   (long long unsigned) stats.cli2srv_bytes, (long long unsigned) stats.srv2cli_bytes,
+	   stats.get_cli2srv_packets(), stats.get_srv2cli_packets(),
+	   (long long unsigned) stats.get_cli2srv_bytes(), (long long unsigned) stats.get_srv2cli_bytes(),
 	   printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
 	   printTCPflags(dst2src_tcp_flags, buf4, sizeof(buf4)),
 	   (isTLS() && protos.tls.certificate) ? "[" : "",
@@ -1011,7 +1007,7 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     } else if(protocol == IPPROTO_UDP) {
       if(
 	 (srv_host && srv_host->get_ip()->isBroadMulticastAddress())
-	 || (stats.srv2cli_packets > 0 /* We see a response, hence we assume this is not a probing attempt */)
+	 || (stats.get_srv2cli_packets() > 0 /* We see a response, hence we assume this is not a probing attempt */)
 	 )
 	dump_flow = true;
     }
@@ -1021,7 +1017,7 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%u/%u] %s",
 				 dump_flow ? "DUMP" : "",
-				 stats.cli2srv_packets, stats.srv2cli_packets,
+				 stats.get_cli2srv_packets(), stats.get_srv2cli_packets(),
 				 print(buf, sizeof(buf)));
 #endif
 
@@ -1054,13 +1050,13 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 
   stats_protocol = getStatsProtocol();
 
-  sent_packets = stats.cli2srv_packets, sent_bytes = stats.cli2srv_bytes, sent_goodput_bytes = stats.cli2srv_goodput_bytes;
+  sent_packets = stats.get_cli2srv_packets(), sent_bytes = stats.get_cli2srv_bytes(), sent_goodput_bytes = stats.get_cli2srv_goodput_bytes();
   diff_sent_packets = sent_packets - cli2srv_last_packets,
     diff_sent_bytes = sent_bytes - cli2srv_last_bytes, diff_sent_goodput_bytes = sent_goodput_bytes - cli2srv_last_goodput_bytes;
   prev_cli2srv_last_bytes = cli2srv_last_bytes, prev_cli2srv_last_goodput_bytes = cli2srv_last_goodput_bytes,
     prev_cli2srv_last_packets = cli2srv_last_packets;
 
-  rcvd_packets = stats.srv2cli_packets, rcvd_bytes = stats.srv2cli_bytes, rcvd_goodput_bytes = stats.srv2cli_goodput_bytes;
+  rcvd_packets = stats.get_srv2cli_packets(), rcvd_bytes = stats.get_srv2cli_bytes(), rcvd_goodput_bytes = stats.get_srv2cli_goodput_bytes();
   diff_rcvd_packets = rcvd_packets - srv2cli_last_packets,
     diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
   prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes,
@@ -1309,14 +1305,14 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 	thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec);
 
 #ifdef DEBUG_TREND
-	if((stats.cli2srv_goodput_bytes+stats.srv2cli_goodput_bytes) > 0) {
+	if((stats.get_cli2srv_goodput_bytes() + stats.get_srv2cli_goodput_bytes()) > 0) {
 	  char buf[256];
 
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodput long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
 				       print(buf, sizeof(buf)),
 				       goodputTrend.getLongTerm(), goodputTrend.getMidTerm(), goodputTrend.getShortTerm(),
 				       goodputTrend.getTrendMsg(),
-				       ((float)(100*(stats.cli2srv_goodput_bytes+stats.srv2cli_goodput_bytes)))/(float)(stats.cli2srv_bytes+stats.srv2cli_bytes));
+				       ((float)(100*(stats.get_cli2srv_goodput_bytes() + stats.get_srv2cli_goodput_bytes())))/(float)(stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes()));
 	}
 #endif
 #endif
@@ -1825,8 +1821,8 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
 
 void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
   ndpi_stats->incStats(0, ndpiDetectedProtocol.app_protocol,
-		       stats.cli2srv_packets, stats.cli2srv_bytes,
-		       stats.srv2cli_packets, stats.srv2cli_bytes);
+		       stats.get_cli2srv_packets(), stats.get_cli2srv_bytes(),
+		       stats.get_srv2cli_packets(), stats.get_srv2cli_bytes());
 
   status_stats->incStats(getStatusBitmap(), protocol);
 }
@@ -1939,7 +1935,7 @@ json_object* Flow::flow2json() {
   json_object_object_add(my_object, Utils::jsonLabel(PROTOCOL, "PROTOCOL", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(protocol));
 
-  if(((stats.cli2srv_packets+stats.srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
+  if(((stats.get_cli2srv_packets() + stats.get_srv2cli_packets()) > NDPI_MIN_NUM_PACKETS)
      || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(ndpiDetectedProtocol.app_protocol));
@@ -2169,32 +2165,13 @@ bool Flow::get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *f
     return(false);
 
   if(!*dst) {
-    if(!(*dst = (FlowTrafficStats*)calloc(1, sizeof(FlowTrafficStats))))
+    if(!(*dst = new (std::nothrow) FlowTrafficStats()))
       return(false);
     *first_partial = true;
   } else
     *first_partial = false;
 
-  memcpy(&tmp, &stats, sizeof(stats));
-
-  fts->cli2srv_packets = tmp.cli2srv_packets - (*dst)->cli2srv_packets;
-  fts->srv2cli_packets = tmp.srv2cli_packets - (*dst)->srv2cli_packets;
-  fts->cli2srv_bytes   = tmp.cli2srv_bytes - (*dst)->cli2srv_bytes;
-  fts->srv2cli_bytes   = tmp.srv2cli_bytes - (*dst)->srv2cli_bytes;
-  fts->cli2srv_goodput_bytes = tmp.cli2srv_goodput_bytes - (*dst)->cli2srv_goodput_bytes;
-  fts->srv2cli_goodput_bytes = tmp.srv2cli_goodput_bytes - (*dst)->srv2cli_goodput_bytes;
-
-  fts->tcp_stats_s2d.pktRetr = tmp.tcp_stats_s2d.pktRetr - (*dst)->tcp_stats_s2d.pktRetr,
-    fts->tcp_stats_s2d.pktOOO = tmp.tcp_stats_s2d.pktOOO - (*dst)->tcp_stats_s2d.pktOOO,
-    fts->tcp_stats_s2d.pktLost = tmp.tcp_stats_s2d.pktLost - (*dst)->tcp_stats_s2d.pktLost,
-    fts->tcp_stats_s2d.pktKeepAlive = tmp.tcp_stats_s2d.pktKeepAlive - (*dst)->tcp_stats_s2d.pktKeepAlive;
-
-  fts->tcp_stats_d2s.pktRetr = tmp.tcp_stats_d2s.pktRetr - (*dst)->tcp_stats_d2s.pktRetr,
-    fts->tcp_stats_d2s.pktOOO = tmp.tcp_stats_d2s.pktOOO - (*dst)->tcp_stats_d2s.pktOOO,
-    fts->tcp_stats_d2s.pktLost = tmp.tcp_stats_d2s.pktLost - (*dst)->tcp_stats_d2s.pktLost,
-    fts->tcp_stats_d2s.pktKeepAlive = tmp.tcp_stats_d2s.pktKeepAlive - (*dst)->tcp_stats_d2s.pktKeepAlive;
-
-  memcpy(*dst, &tmp, sizeof(tmp));
+  stats.get_partial(dst, fts);
 
   return(true);
 }
@@ -2286,14 +2263,14 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   
   updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when, update_iat);
 
+  stats.incStats(cli2srv_direction, 1, pkt_len, payload_len);
+
   if(cli2srv_direction) {
-    stats.cli2srv_packets++, stats.cli2srv_bytes += pkt_len, stats.cli2srv_goodput_bytes += payload_len, ip_stats_s2d.pktFrag += is_fragment;
-    ndpi_data_add_value(&stats.cli2srv_bytes_stats, pkt_len);
+    ip_stats_s2d.pktFrag += is_fragment;
     if(cli_host) cli_host->incSentStats(pkt_len);
     if(srv_host) srv_host->incRecvStats(pkt_len);
   } else {
-    stats.srv2cli_packets++, stats.srv2cli_bytes += pkt_len, stats.srv2cli_goodput_bytes += payload_len, ip_stats_d2s.pktFrag += is_fragment;
-    ndpi_data_add_value(&stats.srv2cli_bytes_stats, pkt_len);
+    ip_stats_d2s.pktFrag += is_fragment;
     if(cli_host) cli_host->incRecvStats(pkt_len);
     if(srv_host) srv_host->incSentStats(pkt_len);
   }
@@ -2332,19 +2309,20 @@ void Flow::addFlowStats(bool cli2srv_direction,
 
   updateSeen(last_seen);
 
-  if(cli2srv_direction)
-    stats.cli2srv_packets += in_pkts, stats.cli2srv_bytes += in_bytes, stats.cli2srv_goodput_bytes += in_goodput_bytes,
-      stats.srv2cli_packets += out_pkts, stats.srv2cli_bytes += out_bytes, stats.srv2cli_goodput_bytes += out_goodput_bytes,
-      ip_stats_s2d.pktFrag += in_fragments, ip_stats_d2s.pktFrag += out_fragments;
-  else
-    stats.cli2srv_packets += out_pkts, stats.cli2srv_bytes += out_bytes, stats.cli2srv_goodput_bytes += out_goodput_bytes,
-      stats.srv2cli_packets += in_pkts, stats.srv2cli_bytes += in_bytes, stats.srv2cli_goodput_bytes += in_goodput_bytes,
-      ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
+  if(cli2srv_direction) {
+    stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);
+    stats.incStats(false, out_pkts, out_bytes, out_goodput_bytes);
+    ip_stats_s2d.pktFrag += in_fragments, ip_stats_d2s.pktFrag += out_fragments;
+  } else {
+    stats.incStats(true, out_pkts, out_bytes, out_goodput_bytes);
+    stats.incStats(false, in_pkts, in_bytes, in_goodput_bytes);
+    ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
+  }
 
   if(bytes_thpt == 0 && last_seen >= first_seen + 1) {
     /* Do a fist estimation while waiting for the periodic activities */
-    bytes_thpt = (stats.cli2srv_bytes + stats.srv2cli_bytes) / (float)(last_seen - first_seen),
-      pkts_thpt = (stats.cli2srv_packets + stats.srv2cli_packets) / (float)(last_seen - first_seen);
+    bytes_thpt = (stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes()) / (float)(last_seen - first_seen),
+      pkts_thpt = (stats.get_cli2srv_packets() + stats.get_srv2cli_packets()) / (float)(last_seen - first_seen);
   }
 }
 /* *************************************** */
@@ -2575,19 +2553,8 @@ void Flow::incTcpBadStats(bool src2dst_direction,
     if(keep_alive_pkts) iface->incKeepAlivePkts(keep_alive_pkts);
   }
 
-  if(fts) {
-    TCPPacketStats * cur_stats;
-
-    if(src2dst_direction)
-      cur_stats = &fts->tcp_stats_s2d;
-    else
-      cur_stats = &fts->tcp_stats_d2s;
-
-    cur_stats->pktKeepAlive += keep_alive_pkts;
-    cur_stats->pktRetr += retr_pkts;
-    cur_stats->pktOOO += ooo_pkts;
-    cur_stats->pktLost += lost_pkts;
-  }
+  if(fts)
+    fts->incTcpStats(src2dst_direction, retr_pkts, ooo_pkts, lost_pkts, keep_alive_pkts);
 
   if(cli) {
     cli_network_id = cli->get_local_network_id();
@@ -3431,8 +3398,8 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
      A complete solution would require the registration of a netfilter callback
      and the detection of event NFCT_T_DESTROY.
   */
-  nf_existing_flow = !(stats.cli2srv_packets > s2d_pkts || stats.cli2srv_bytes > s2d_bytes
-		       || stats.srv2cli_packets > d2s_pkts || stats.srv2cli_bytes > d2s_bytes);
+  nf_existing_flow = !(stats.get_cli2srv_packets() > s2d_pkts || stats.get_cli2srv_bytes() > s2d_bytes
+		       || stats.get_srv2cli_packets() > d2s_pkts || stats.get_srv2cli_bytes() > d2s_bytes);
 
   updateSeen();
 
@@ -3446,23 +3413,23 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   iface->_incStats(isIngress2EgressDirection(), now, eth_proto,
 		   getStatsProtocol(), get_protocol_category(),
 		   protocol,
-		   nf_existing_flow ? s2d_bytes - stats.cli2srv_bytes : s2d_bytes,
-		   nf_existing_flow ? s2d_pkts - stats.cli2srv_packets : s2d_pkts,
+		   nf_existing_flow ? s2d_bytes - stats.get_cli2srv_bytes() : s2d_bytes,
+		   nf_existing_flow ? s2d_pkts - stats.get_cli2srv_packets() : s2d_pkts,
 		   overhead);
 
   iface->_incStats(!isIngress2EgressDirection(), now, eth_proto,
 		   getStatsProtocol(), get_protocol_category(),
 		   protocol,
-		   nf_existing_flow ? d2s_bytes - stats.srv2cli_bytes : d2s_bytes,
-		   nf_existing_flow ? d2s_pkts - stats.srv2cli_packets : d2s_pkts,
+		   nf_existing_flow ? d2s_bytes - stats.get_srv2cli_bytes() : d2s_bytes,
+		   nf_existing_flow ? d2s_pkts - stats.get_srv2cli_packets() : d2s_pkts,
 		   overhead);
 
   if(nf_existing_flow) {
-    stats.cli2srv_packets = s2d_pkts, stats.cli2srv_bytes = s2d_bytes,
-      stats.srv2cli_packets = d2s_pkts, stats.srv2cli_bytes = d2s_bytes;
+    stats.setStats(true, s2d_pkts, s2d_bytes, 0);
+    stats.setStats(false, d2s_pkts, d2s_bytes, 0);
   } else {
-    stats.cli2srv_packets += s2d_pkts, stats.cli2srv_bytes += s2d_bytes,
-      stats.srv2cli_packets += d2s_pkts, stats.srv2cli_bytes += d2s_bytes;
+    stats.incStats(true, s2d_pkts, s2d_bytes, 0);
+    stats.incStats(false, d2s_pkts, d2s_bytes, 0);
   }
 }
 #endif
@@ -3732,7 +3699,7 @@ void Flow::lua_get_protocols(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "proto.l4_id", get_protocol());
   lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
 
-  if(((stats.cli2srv_packets + stats.srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
+  if(((stats.get_cli2srv_packets() + stats.get_srv2cli_packets()) > NDPI_MIN_NUM_PACKETS)
      || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || iface->is_ndpi_enabled()
      || iface->isSampledTraffic()
@@ -3754,8 +3721,8 @@ void Flow::lua_get_protocols(lua_State* vm) const {
 /* ***************************************************** */
 
 void Flow::lua_get_bytes(lua_State* vm) const {
-  lua_push_uint64_table_entry(vm, "bytes", stats.cli2srv_bytes + stats.srv2cli_bytes);
-  lua_push_uint64_table_entry(vm, "goodput_bytes", stats.cli2srv_goodput_bytes + stats.srv2cli_goodput_bytes);
+  lua_push_uint64_table_entry(vm, "bytes", stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes());
+  lua_push_uint64_table_entry(vm, "goodput_bytes", stats.get_cli2srv_goodput_bytes() + stats.get_srv2cli_goodput_bytes());
   lua_push_uint64_table_entry(vm, "bytes.last",
 			      get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, "goodput_bytes.last",
@@ -3783,17 +3750,17 @@ void Flow::lua_get_throughput(lua_State* vm) const {
 /* ***************************************************** */
 
 void Flow::lua_get_dir_traffic(lua_State* vm, bool cli2srv) const {
-  ndpi_analyze_struct *cur_analyze = cli2srv ? (ndpi_analyze_struct*)&stats.cli2srv_bytes_stats : (ndpi_analyze_struct*)&stats.srv2cli_bytes_stats;
+  ndpi_analyze_struct *cur_analyze = (ndpi_analyze_struct*)stats.get_analize_struct(cli2srv);
   const IPPacketStats *cur_ip_stats = cli2srv ? &ip_stats_s2d : &ip_stats_d2s;
 
   lua_push_uint64_table_entry(vm,
 			      cli2srv ? "cli2srv.bytes" : "srv2cli.bytes",
-			      cli2srv ? stats.cli2srv_bytes : stats.srv2cli_bytes);
+			      cli2srv ? stats.get_cli2srv_bytes() : stats.get_srv2cli_bytes());
   lua_push_uint64_table_entry(vm,
 			      cli2srv ? "cli2srv.goodput_bytes" : "srv2cli.goodput_bytes",
-			      cli2srv ? stats.cli2srv_goodput_bytes : stats.srv2cli_goodput_bytes);
+			      cli2srv ? stats.get_cli2srv_goodput_bytes() : stats.get_srv2cli_goodput_bytes());
   lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.packets" : "srv2cli.packets",
-			      cli2srv ? stats.cli2srv_packets : stats.srv2cli_packets);
+			      cli2srv ? stats.get_cli2srv_packets() : stats.get_srv2cli_packets());
 
   lua_push_uint64_table_entry(vm,
 			      cli2srv ? "cli2srv.last" : "srv2cli.last",
@@ -3829,9 +3796,9 @@ void Flow::lua_get_dir_iat(lua_State* vm, bool cli2srv) const {
 /* ***************************************************** */
 
 void Flow::lua_get_packets(lua_State* vm) const {  
-  lua_push_uint64_table_entry(vm, "packets", stats.cli2srv_packets + stats.srv2cli_packets);
-  lua_push_uint64_table_entry(vm, "packets.sent", stats.cli2srv_packets);
-  lua_push_uint64_table_entry(vm, "packets.rcvd", stats.srv2cli_packets);
+  lua_push_uint64_table_entry(vm, "packets", stats.get_cli2srv_packets() + stats.get_srv2cli_packets());
+  lua_push_uint64_table_entry(vm, "packets.sent", stats.get_cli2srv_packets());
+  lua_push_uint64_table_entry(vm, "packets.rcvd", stats.get_srv2cli_packets());
   lua_push_uint64_table_entry(vm, "packets.last",
 			      get_current_packets_cli2srv() + get_current_packets_srv2cli());
 }
@@ -3927,21 +3894,21 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
   lua_push_str_table_entry(vm, "proto.ndpi_app", ndpi_get_proto_name(iface->get_ndpi_struct(), ndpiDetectedProtocol.app_protocol));
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
-  lua_push_uint64_table_entry(vm, "cli2srv.bytes", stats.cli2srv_bytes);
-  lua_push_uint64_table_entry(vm, "srv2cli.bytes", stats.srv2cli_bytes);
-  lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.cli2srv_packets);
-  lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.srv2cli_packets);
+  lua_push_uint64_table_entry(vm, "cli2srv.bytes", stats.get_cli2srv_bytes());
+  lua_push_uint64_table_entry(vm, "srv2cli.bytes", stats.get_srv2cli_bytes());
+  lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.get_cli2srv_packets());
+  lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.get_srv2cli_packets());
   if(getFlowInfo()) lua_push_str_table_entry(vm, "info", getFlowInfo());
 }
 
 /* ***************************************************** */
 
 u_int32_t Flow::getCliTcpIssues() {
-  return(stats.tcp_stats_s2d.pktRetr + stats.tcp_stats_s2d.pktOOO + stats.tcp_stats_s2d.pktLost);
+  return(stats.get_cli2srv_tcp_retr() + stats.get_cli2srv_tcp_ooo() + stats.get_cli2srv_tcp_lost());
 }
 
 u_int32_t Flow::getSrvTcpIssues() {
-  return(stats.tcp_stats_d2s.pktRetr + stats.tcp_stats_d2s.pktOOO + stats.tcp_stats_d2s.pktLost);
+  return(stats.get_srv2cli_tcp_retr() + stats.get_srv2cli_tcp_ooo() + stats.get_srv2cli_tcp_lost());
 }
 
 /* ***************************************************** */
@@ -3949,12 +3916,12 @@ u_int32_t Flow::getSrvTcpIssues() {
 void Flow::lua_get_tcp_stats(lua_State *vm) const {
   lua_newtable(vm);
 
-  lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", stats.tcp_stats_s2d.pktRetr);
-  lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", stats.tcp_stats_s2d.pktOOO);
-  lua_push_uint64_table_entry(vm, "cli2srv.lost", stats.tcp_stats_s2d.pktLost);
-  lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", stats.tcp_stats_d2s.pktRetr);
-  lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", stats.tcp_stats_d2s.pktOOO);
-  lua_push_uint64_table_entry(vm, "srv2cli.lost", stats.tcp_stats_d2s.pktLost);
+  lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", stats.get_cli2srv_tcp_retr());
+  lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", stats.get_cli2srv_tcp_ooo());
+  lua_push_uint64_table_entry(vm, "cli2srv.lost", stats.get_cli2srv_tcp_lost());
+  lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", stats.get_srv2cli_tcp_retr());
+  lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", stats.get_srv2cli_tcp_ooo());
+  lua_push_uint64_table_entry(vm, "srv2cli.lost", stats.get_srv2cli_tcp_lost());
 }
 
 /* ***************************************************** */
@@ -4100,14 +4067,14 @@ void Flow::lua_get_icmp_info(lua_State *vm) const {
 void Flow::lua_get_tcp_info(lua_State *vm) const {  
   if(get_protocol() == IPPROTO_TCP) {
     lua_push_bool_table_entry(vm, "tcp.seq_problems",
-			      (stats.tcp_stats_s2d.pktRetr
-			       | stats.tcp_stats_s2d.pktOOO
-			       | stats.tcp_stats_s2d.pktLost
-			       | stats.tcp_stats_s2d.pktKeepAlive
-			       | stats.tcp_stats_d2s.pktRetr
-			       | stats.tcp_stats_d2s.pktOOO
-			       | stats.tcp_stats_d2s.pktLost
-			       | stats.tcp_stats_d2s.pktKeepAlive) ? true : false);
+			      (stats.get_cli2srv_tcp_retr()
+			       || stats.get_cli2srv_tcp_ooo()
+			       || stats.get_cli2srv_tcp_lost()
+			       || stats.get_cli2srv_tcp_keepalive()
+			       || stats.get_srv2cli_tcp_retr()
+			       || stats.get_srv2cli_tcp_ooo()
+			       || stats.get_srv2cli_tcp_lost()
+			       || stats.get_srv2cli_tcp_keepalive()) ? true : false);
 
     lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
     lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
@@ -4115,14 +4082,14 @@ void Flow::lua_get_tcp_info(lua_State *vm) const {
     lua_push_float_table_entry(vm, "tcp.max_thpt.cli2srv", getCli2SrvMaxThpt());
     lua_push_float_table_entry(vm, "tcp.max_thpt.srv2cli", getSrv2CliMaxThpt());
 
-    lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", stats.tcp_stats_s2d.pktRetr);
-    lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", stats.tcp_stats_s2d.pktOOO);
-    lua_push_uint64_table_entry(vm, "cli2srv.lost", stats.tcp_stats_s2d.pktLost);
-    lua_push_uint64_table_entry(vm, "cli2srv.keep_alive", stats.tcp_stats_s2d.pktKeepAlive);
-    lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", stats.tcp_stats_d2s.pktRetr);
-    lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", stats.tcp_stats_d2s.pktOOO);
-    lua_push_uint64_table_entry(vm, "srv2cli.lost", stats.tcp_stats_d2s.pktLost);
-    lua_push_uint64_table_entry(vm, "srv2cli.keep_alive", stats.tcp_stats_d2s.pktKeepAlive);
+    lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", stats.get_cli2srv_tcp_retr());
+    lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", stats.get_cli2srv_tcp_ooo());
+    lua_push_uint64_table_entry(vm, "cli2srv.lost", stats.get_cli2srv_tcp_lost());
+    lua_push_uint64_table_entry(vm, "cli2srv.keep_alive", stats.get_cli2srv_tcp_keepalive());
+    lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", stats.get_srv2cli_tcp_retr());
+    lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", stats.get_srv2cli_tcp_ooo());
+    lua_push_uint64_table_entry(vm, "srv2cli.lost", stats.get_srv2cli_tcp_lost());
+    lua_push_uint64_table_entry(vm, "srv2cli.keep_alive", stats.get_srv2cli_tcp_keepalive());
 
     lua_push_uint64_table_entry(vm, "cli2srv.tcp_flags", src2dst_tcp_flags);
     lua_push_uint64_table_entry(vm, "srv2cli.tcp_flags", dst2src_tcp_flags);

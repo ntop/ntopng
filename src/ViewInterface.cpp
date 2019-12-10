@@ -303,8 +303,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 	cli_host->incStats(tv->tv_sec, f->get_protocol(),
 			   f->getStatsProtocol(), f->get_protocol_category(),
 			   f->getCustomApp(),
-			   partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
-			   partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
+			   partials.get_cli2srv_packets(), partials.get_cli2srv_bytes(), partials.get_cli2srv_goodput_bytes(),
+			   partials.get_srv2cli_packets(), partials.get_srv2cli_bytes(), partials.get_srv2cli_goodput_bytes(),
 			   cli_ip->isNonEmptyUnicastAddress());
 
 	if(first_partial)
@@ -318,8 +318,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 	srv_host->incStats(tv->tv_sec, f->get_protocol(),
 			   f->getStatsProtocol(), f->get_protocol_category(),
 			   f->getCustomApp(),
-			   partials.srv2cli_packets, partials.srv2cli_bytes, partials.srv2cli_goodput_bytes,
-			   partials.cli2srv_packets, partials.cli2srv_bytes, partials.cli2srv_goodput_bytes,
+			   partials.get_srv2cli_packets(), partials.get_srv2cli_bytes(), partials.get_srv2cli_goodput_bytes(),
+			   partials.get_cli2srv_packets(), partials.get_cli2srv_bytes(), partials.get_cli2srv_goodput_bytes(),
 			   srv_ip->isNonEmptyUnicastAddress());
 
 	if(first_partial)
@@ -333,17 +333,17 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 	       tv->tv_sec, cli_ip && cli_ip->isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       f->getStatsProtocol(), f->get_protocol_category(),
 	       f->get_protocol(),
-	       partials.srv2cli_bytes + partials.cli2srv_bytes,
-	       partials.srv2cli_packets + partials.cli2srv_packets,
+	       partials.get_srv2cli_bytes() + partials.get_cli2srv_bytes(),
+	       partials.get_srv2cli_packets() + partials.get_cli2srv_packets(),
 	       24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
 
       Flow::incTcpBadStats(true /* src2dst */, NULL, cli_host, srv_host, this,
-			   partials.tcp_stats_s2d.pktOOO, partials.tcp_stats_s2d.pktRetr,
-			   partials.tcp_stats_s2d.pktLost, partials.tcp_stats_s2d.pktKeepAlive);
+			   partials.get_cli2srv_tcp_ooo(), partials.get_cli2srv_tcp_retr(),
+			   partials.get_cli2srv_tcp_lost(), partials.get_cli2srv_tcp_keepalive());
 
       Flow::incTcpBadStats(false /* dst2src */, NULL, cli_host, srv_host, this,
-			   partials.tcp_stats_d2s.pktOOO, partials.tcp_stats_d2s.pktRetr,
-			   partials.tcp_stats_d2s.pktLost, partials.tcp_stats_d2s.pktKeepAlive);
+			   partials.get_srv2cli_tcp_ooo(), partials.get_srv2cli_tcp_retr(),
+			   partials.get_srv2cli_tcp_lost(), partials.get_srv2cli_tcp_keepalive());
     }
   }
 }

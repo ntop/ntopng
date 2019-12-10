@@ -346,6 +346,7 @@ using namespace std;
 #include "Country.h"
 #include "MacStats.h"
 #include "Mac.h"
+#include "FlowTrafficStats.h"
 #include "TimeseriesStats.h"
 #include "HostStats.h"
 #include "LocalHostStats.h"
