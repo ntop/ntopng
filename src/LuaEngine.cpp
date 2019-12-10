@@ -9704,18 +9704,6 @@ static int ntop_flow_get_dns_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_get_icmp_info(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  lua_newtable(vm);
-
-  if(f) f->lua_get_icmp_info(vm);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
 static int ntop_interface_release_engaged_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
 
@@ -11082,7 +11070,6 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getSSHInfo",               ntop_flow_get_ssh_info               },
   { "getHTTPInfo",              ntop_flow_get_http_info              },
   { "getDNSInfo",               ntop_flow_get_dns_info               },
-  { "getICMPInfo",              ntop_flow_get_icmp_info              },
 
   { NULL,                     NULL }
 };
