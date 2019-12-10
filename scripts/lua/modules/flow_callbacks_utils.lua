@@ -190,7 +190,7 @@ function flow_callbacks_utils.print_callbacks_config()
    print[[<form id="flow-callbacks-config" class="form-inline" method="post">]]
    print_callbacks_config_table(descr, show_advanced_prefs)
    print[[<input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("true") else print("false") end print[["/>]]
-   print[[<button class="btn btn-primary" style="float:right; margin-right:1em;" type="submit">]] print(i18n("save_configuration")) print[[</button>]]
+   print[[<button class="btn btn-primary" style="float:right; margin-right:1em; margin-left:auto" type="submit">]] print(i18n("save_configuration")) print[[</button>]]
    print[[</form>]]
    print[[
 
