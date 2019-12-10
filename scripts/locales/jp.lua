@@ -572,7 +572,7 @@ local lang = {
     ["rcvd"] = "受信",
     ["replies"] = "Replies",
     ["reply_breakdown"] = "Reply 分解",
-    ["request_vs_reply"] = "Request vs Reply",
+    ["request_vs_reply"] = "Request vs Reply Ratio",
   },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "最大送信フロー/secがオーバーしました。flooderと考えられます",
@@ -2112,9 +2112,12 @@ local lang = {
     ["received_distribution"] = "受信 Distribution",
     ["retransmissions"] = "Retransmissions",
     ["sent_distribution"] = "Sent Distribution",
+    ["sent_vs_rcvd_distribution"] = "Sent vs Rcvd Distribution",
     ["size_distribution"] = "Size Distribution",
     ["tcp_flags_distribution"] = "TCP Flags Distribution",
+    ["tcp_flags_vs_arp_distribution"] = "TCP Flags / ARP Distribution",
     ["tcp_packets_analysis"] = "TCP パケット Analysis",
+    ["version_vs_flags_distribution"] = "IP version / TCP Flags Distribution",
   },
   ["peers_page"] = {
     ["host"] = "ホスト",

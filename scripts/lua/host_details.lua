@@ -747,24 +747,40 @@ end
       <table class="table table-bordered table-striped">
 	 ]]
 
-      tot = 0 for key, value in pairs(host["pktStats.sent"]) do tot = tot + value end
-      if(tot > 0) then
-	 print('<tr><th class="text-left">'..i18n("packets_page.sent_distribution")..'</th><td colspan=5><div class="pie-chart" id="sizeSentDistro"></div></td></tr>')
-      end
+   tots = 0 for key, value in pairs(host["pktStats.sent"]) do tots = tots + value end
+   totr = 0 for key, value in pairs(host["pktStats.recv"]) do totr = totr + value end
+   
+   if((tots > 0) or (totr > 0)) then
+     print('<tr><th class="text-left">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
+     if(tots > 0) then
+       print('<td colspan=1><div class="pie-chart" id="sizeSentDistro"></div></td>')
+     else
+        print('<td colspan=1>&nbsp;</td>')
+     end
+  
+     if(totr > 0) then
+       print('<td colspan=1><div class="pie-chart" id="sizeRecvDistro"></div></td>')
+     else
+       print('<td colspan=1>&nbsp;</td>') 
+     end
+     print('</tr>')
+   end
 
-      tot = 0 for key, value in pairs(host["pktStats.recv"]) do tot = tot + value end
-      if(tot > 0) then
-	 print('<tr><th class="text-left">'..i18n("packets_page.received_distribution")..'</th><td colspan=5><div class="pie-chart" id="sizeRecvDistro"></div></td></tr>')
-      end
+   local has_tcp_distro = (host["tcp.packets.rcvd"] + host["tcp.packets.sent"] > 0)
+   local has_arp_distro = (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00")
 
-      if (host["tcp.packets.rcvd"] + host["tcp.packets.sent"] > 0) then
+if(has_tcp_distro and has_arp_distro) then
+print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')  
+else
+      if (has_tcp_distro) then
 	 print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
       end
-      if (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") then
+      if (has_arp_distro) then
          if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
             print('<tr><th class="text-left">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
          end
       end
+end
 
       hostinfo2json(host_info)
       print [[
@@ -1225,24 +1241,11 @@ setInterval(update_ndpi_categories_table, 5000);
 	 print("<table class=\"table table-bordered table-striped\">\n")
 	 print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th>"..i18n("dns_page.queries").."</th><th>"..i18n("dns_page.positive_replies").."</th><th>"..i18n("dns_page.error_replies").."</th><th colspan=2>"..i18n("dns_page.reply_breakdown").."</th></tr>")
 	 print("<tr><th>"..i18n("sent").."</th><td class=\"text-right\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
+
 	 print("<td class=\"text-right\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
 	 print("<td class=\"text-right\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
 	 breakdownBar(host["dns"]["sent"]["num_replies_ok"], "OK", host["dns"]["sent"]["num_replies_error"], "Error", 0, 100)
 	 print("</td></tr>")
-
-	 if(host["dns"]["sent"]["num_queries"] > 0) then
-	    print [[
-		     <tr><th>]] print(i18n("dns_page.dns_query_sent_distribution")) print[[</th><td colspan=5>
-		     <div class="pie-chart" id="dnsSent"></div>
-		     <script type='text/javascript'>
-
-					 do_pie("#dnsSent", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "sent" }, "", refresh);
-				      </script>
-					 </td></tr>
-           ]]
-         end
 
 	 print("<tr><th>"..i18n("dns_page.rcvd").."</th><td class=\"text-right\"><span id=dns_rcvd_num_queries>".. formatValue(host["dns"]["rcvd"]["num_queries"]) .."</span> <span id=trend_rcvd_num_queries></span></td>")
 	 print("<td class=\"text-right\"><span id=dns_rcvd_num_replies_ok>".. formatValue(host["dns"]["rcvd"]["num_replies_ok"]) .."</span> <span id=trend_rcvd_num_replies_ok></span></td>")
@@ -1250,22 +1253,8 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 	 breakdownBar(host["dns"]["rcvd"]["num_replies_ok"], "OK", host["dns"]["rcvd"]["num_replies_error"], "Error", 50, 100)
 	 print("</td></tr>")
 
-	 if(host["dns"]["rcvd"]["num_queries"] > 0) then
-print [[
-	 <tr><th>DNS Rcvd Query Distribution</th><td colspan=5>
-         <div class="pie-chart" id="dnsRcvd"></div>
-         <script type='text/javascript'>
-
-	     do_pie("#dnsRcvd", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "recv" }, "", refresh);
-         </script>
-         </td></tr>
-]]
-end
-
 	 if host["dns"]["rcvd"]["num_replies_ok"] + host["dns"]["rcvd"]["num_replies_error"] > 0 then
-	    print('<tr><th rowspan=2>'..i18n("dns_page.request_vs_reply")..'</th><th colspan=2>'..i18n("dns_page.ratio")..'<th colspan=2>'..i18n("breakdown")..'</th></tr>')
+	    print('<tr><th>'..i18n("dns_page.request_vs_reply")..'</th>')
 	    local dns_ratio = tonumber(host["dns"]["sent"]["num_queries"]) / tonumber(host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"])
 	    local dns_ratio_str = string.format("%.2f", dns_ratio)
 
@@ -1273,10 +1262,46 @@ end
 	       dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>"
 	    end
 
-	    print('<tr><td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
+	    print('<td colspan=2 align=right>'..  dns_ratio_str ..'</td><td colspan=2>')
 	    breakdownBar(host["dns"]["sent"]["num_queries"], i18n("dns_page.queries"), host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], i18n("dns_page.replies"), 30, 70)
 
 	    print [[</td></tr>]]
+	 end
+
+         -- Charts
+         if((host["dns"]["sent"]["num_queries"] + host["dns"]["rcvd"]["num_queries"]) > 0) then
+	    print [[<tr><th>]] print(i18n("dns_page.dns_query_sent_vs_rcvd_distribution")) print[[</th>]]
+	 if(host["dns"]["sent"]["num_queries"] > 0) then
+	    print[[<td colspan=2>
+		     <div class="pie-chart" id="dnsSent"></div>
+		     <script type='text/javascript'>
+
+					 do_pie("#dnsSent", ']]
+            print (ntop.getHttpPrefix())
+            print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "sent" }, "", refresh);
+				      </script>
+					 </td>
+           ]]
+        else
+           print[[<td colspan=2>&nbsp;</td>]]
+         end
+
+
+	 if(host["dns"]["rcvd"]["num_queries"] > 0) then
+print [[
+         <td colspan=2><div class="pie-chart" id="dnsRcvd"></div>
+         <script type='text/javascript'>
+
+	     do_pie("#dnsRcvd", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "recv" }, "", refresh);
+         </script>
+         </td>
+]]
+	 else
+	    print [[<td colspan=2>&nbsp;</td>]]
+	 end
+	 print("</tr>")
 	 end
 	
 	print[[

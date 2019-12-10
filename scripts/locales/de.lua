@@ -433,7 +433,7 @@ local lang = {
     ["rcvd"] = "Rcvd",
     ["replies"] = "Antworten",
     ["reply_breakdown"] = "Antwort Breakdown",
-    ["request_vs_reply"] = "Anfrage vs Antwort",
+    ["request_vs_reply"] = "Anfrage vs Antwort Ratio",
   },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "Maximale Anzahl der gesendeten Flows/Sek über die ein Host als Flooder betrachtet wird",
@@ -1574,9 +1574,12 @@ local lang = {
     ["received_distribution"] = "Erhaltene Verteilung",
     ["retransmissions"] = "Retransmissions",
     ["sent_distribution"] = "Gesendete Verteilung",
+    ["sent_vs_rcvd_distribution"] = "Sent vs Rcvd Verteilung",
     ["size_distribution"] = "Grössenverteilung",
     ["tcp_flags_distribution"] = "TCP Flags Verteilung",
+    ["tcp_flags_vs_arp_distribution"] = "TCP Flags / ARP Vertailung",
     ["tcp_packets_analysis"] = "TCP Paketsanalyse",
+    ["version_vs_flags_distribution"] = "IP version / TCP Flags Vertailung",
   },
   ["peers_page"] = {
     ["host"] = "Host",

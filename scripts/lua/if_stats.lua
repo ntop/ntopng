@@ -857,8 +857,8 @@ elseif((page == "packets")) then
     end
 
     print[[
-  	 <tr ]] print(nedge_hidden) print[[><th class="text-left">]] print(i18n("packets_page.tcp_flags_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>
-    <tr><th class="text-left">]] print(i18n("packets_page.ip_version_distribution")) print[[</th><td colspan=5><div class="pie-chart" id="ipverDistro"></div></td></tr>
+  	 <tr ]] print(nedge_hidden) print[[><th class="text-left">]] print(i18n("packets_page.version_vs_flags_distribution")) print[[</th>
+<td colspan=1><div class="pie-chart" id="ipverDistro"></div></td><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td></tr>
       </table>
 
 	<script type='text/javascript'>

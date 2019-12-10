@@ -741,7 +741,7 @@ local lang = {
     ["rcvd"] = "Rcvd",
     ["replies"] = "Odpovědi",
     ["reply_breakdown"] = "Reply Breakdown",
-    ["request_vs_reply"] = "Žádost vs Odpověď",
+    ["request_vs_reply"] = "Žádost vs Odpověď Pom\u011Br",
   },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "Spustit upozornění, když nový klient překročí prahovou hodnotu toků/s prahovou hodnotu",
@@ -2533,8 +2533,11 @@ local lang = {
     ["received_distribution"] = "Přijatá distribuce",
     ["retransmissions"] = "Opakované přenosy",
     ["sent_distribution"] = "Odeslána distribuce",
+    ["sent_vs_rcvd_distribution"] = "Sent / Rcvd Distribuce",
     ["size_distribution"] = "Distribuce velikosti",
     ["tcp_flags_distribution"] = "Distribuce příznaků TCP",
+    ["version_vs_flags_distribution"] = "IP version / TCP Flags Distribuce",
+    ["tcp_flags_vs_arp_distribution"] = "TCP Flags / ARP Distribuce",
     ["tcp_packets_analysis"] = "Analýza paketů TCP",
   },
   ["peers_page"] = {

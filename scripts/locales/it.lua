@@ -585,7 +585,7 @@ local lang = {
     ["rcvd"] = "Rcvt",
     ["replies"] = "Risposte",
     ["reply_breakdown"] = "Breakdown Risposte",
-    ["request_vs_reply"] = "Richiesta vs Risposta",
+    ["request_vs_reply"] = "Rapporto Richiesta vs Risposta",
   },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "Numero massimo di flussi inviati / sec oltre i quali un host è considerato un flooder",
@@ -1893,9 +1893,12 @@ local lang = {
     ["received_distribution"] = "Distribuzione Ricezione",
     ["retransmissions"] = "Ritransmissioni",
     ["sent_distribution"] = "Distribuzione Invio",
+    ["sent_vs_rcvd_distribution"] = "Distribuzione Inviati e Ricevuti",
     ["size_distribution"] = "Distribuzione Dimensione",
     ["tcp_flags_distribution"] = "Distribuzione Flags TCP",
+    ["tcp_flags_vs_arp_distribution"] = "Distribuzione TCP Flags / ARP",
     ["tcp_packets_analysis"] = "Analisi Pacchetti TCP",
+    ["version_vs_flags_distribution"] = "Distribuzione Versione IP e TCP Flags",
   },
   ["peers_page"] = {
     ["host"] = "Host",
