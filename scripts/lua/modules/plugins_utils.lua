@@ -20,24 +20,30 @@ plugins_utils.ENTERPRISE_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/
 -- NOTE: keep in sync with the HTTPServer runtime_dir
 plugins_utils.PLUGINS_RUNTIME_PATH = os_utils.fixPath(dirs.workingdir .. "/plugins")
 
+plugins_utils.PLUGINS_RUNTIME_METADATA = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/plugins_metadata.lua")
+
 local RUNTIME_PATHS = {}
+local METADATA = nil
 
 -- ##############################################
 
 function plugins_utils.listPlugins()
   local plugins = {}
-  local source_dirs = {plugins_utils.COMMUNITY_SOURCE_DIR}
+  local source_dirs = {{"community", plugins_utils.COMMUNITY_SOURCE_DIR}}
   local plugins_with_deps = {}
 
   if ntop.isPro() then
-    source_dirs[#source_dirs + 1] = plugins_utils.PRO_SOURCE_DIR
+    source_dirs[#source_dirs + 1] = {"pro", plugins_utils.PRO_SOURCE_DIR}
 
     if ntop.isEnterprise() then
-      source_dirs[#source_dirs + 1] = plugins_utils.ENTERPRISE_SOURCE_DIR
+      source_dirs[#source_dirs + 1] = {"enterprise", plugins_utils.ENTERPRISE_SOURCE_DIR}
     end
   end
 
-  for _, source_dir in ipairs(source_dirs) do
+  for _, source_conf in ipairs(source_dirs) do
+    local edition = source_conf[1]
+    local source_dir = source_conf[2]
+
     for plugin_name in pairs(ntop.readdir(source_dir)) do
       local plugin_dir = os_utils.fixPath(source_dir .. "/" .. plugin_name)
       local plugin_info = os_utils.fixPath(plugin_dir .. "/plugin.lua")
@@ -50,8 +56,8 @@ function plugins_utils.listPlugins()
         -- Augument information
         metadata.path = plugin_dir
         metadata.key = plugin_name
+        metadata.edition = edition
 
-        -- TODO check plugin dependencies
         if not table.empty(metadata.dependencies) then
           plugins_with_deps[plugin_name] = metadata
         else
@@ -154,10 +160,14 @@ local function copy_file(fname, src_path, dst_path)
   return(true)
 end
 
-local function recursive_copy(src_path, dst_path)
+local function recursive_copy(src_path, dst_path, path_map)
   for fname in pairs(ntop.readdir(src_path)) do
     if not copy_file(fname, src_path, dst_path) then
       return(false)
+    end
+
+    if path_map then
+      path_map[os_utils.fixPath(dst_path .. "/" .. fname)] = os_utils.fixPath(src_path .. "/" .. fname)
     end
   end
 
@@ -231,18 +241,28 @@ end
 
 -- ##############################################
 
-local function load_plugin_user_scripts(plugin)
+local function load_plugin_user_scripts(paths_to_plugin, plugin)
   local scripts_path = os_utils.fixPath(plugin.path .. "/user_scripts")
+  local paths_map = {}
 
-  return(
-    recursive_copy(os_utils.fixPath(scripts_path .. "/interface"), RUNTIME_PATHS.interface_scripts) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/host"), RUNTIME_PATHS.host_scripts) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/network"), RUNTIME_PATHS.network_scripts) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/flow"), RUNTIME_PATHS.flow_scripts) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/syslog"), RUNTIME_PATHS.syslog) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/snmp_device"), RUNTIME_PATHS.snmp_scripts) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/system"), RUNTIME_PATHS.system_scripts)
+  local rv = (
+    recursive_copy(os_utils.fixPath(scripts_path .. "/interface"), RUNTIME_PATHS.interface_scripts, paths_map) and
+    recursive_copy(os_utils.fixPath(scripts_path .. "/host"), RUNTIME_PATHS.host_scripts, paths_map) and
+    recursive_copy(os_utils.fixPath(scripts_path .. "/network"), RUNTIME_PATHS.network_scripts, paths_map) and
+    recursive_copy(os_utils.fixPath(scripts_path .. "/flow"), RUNTIME_PATHS.flow_scripts, paths_map) and
+    recursive_copy(os_utils.fixPath(scripts_path .. "/syslog"), RUNTIME_PATHS.syslog, paths_map) and
+    recursive_copy(os_utils.fixPath(scripts_path .. "/snmp_device"), RUNTIME_PATHS.snmp_scripts, paths_map) and
+    recursive_copy(os_utils.fixPath(scripts_path .. "/system"), RUNTIME_PATHS.system_scripts, paths_map)
   )
+
+  for runtime_path, source_path in pairs(paths_map) do
+    paths_to_plugin[runtime_path] = {
+      source_path = source_path,
+      plugin = plugin,
+    }
+  end
+
+  return(rv)
 end
 
 -- ##############################################
@@ -294,6 +314,7 @@ function plugins_utils.loadPlugins()
   local plugins = plugins_utils.listPlugins()
   local locales = {}
   local menu_entries = {}
+  local path_map = {}
   local en_locale = locales_utils.readDefaultLocale()
 
   -- Clean previous structure
@@ -315,7 +336,7 @@ function plugins_utils.loadPlugins()
         load_plugin_i18n(locales, en_locale, plugin) and
         load_plugin_ts_schemas(plugin) and
         load_plugin_web_gui(menu_entries, plugin) and
-        load_plugin_user_scripts(plugin) then
+        load_plugin_user_scripts(path_map, plugin) then
       -- Ok
     else
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Errors occurred while processing plugin %s", plugin.key))
@@ -335,6 +356,14 @@ function plugins_utils.loadPlugins()
 
     persistence.store(menu_path, menu_entries)
   end
+
+  -- Save loaded plugins metadata
+  -- See load_metadata()
+  local plugins_metadata = {
+    plugins = plugins,
+    path_map = path_map,
+  }
+  persistence.store(plugins_utils.PLUGINS_RUNTIME_METADATA, plugins_metadata)
 end
 
 -- ##############################################
@@ -429,6 +458,44 @@ function plugins_utils.timeseriesCreationEnabled()
    end
 
    return system_probes_timeseries_enabled
+end
+
+-- ##############################################
+
+local function load_metadata()
+  if(METADATA == nil) then
+    METADATA = assert(loadfile(plugins_utils.PLUGINS_RUNTIME_METADATA))()
+  end
+end
+
+-- ##############################################
+
+-- @brief Retrieve the original source path of a user script
+-- @param script_path the runtime path of the user script
+-- @return the user script source path
+function plugins_utils.getUserScriptSourcePath(script_path)
+  load_metadata()
+
+  local info = METADATA.path_map[script_path]
+
+  if info then
+    return(info.source_path)
+  end
+end
+
+-- ##############################################
+
+-- @brief Retrieve the plugin associated with the user script
+-- @param script_path the runtime path of the user script
+-- @return the associated plugin
+function plugins_utils.getUserScriptPlugin(script_path)
+  load_metadata()
+
+  local info = METADATA.path_map[script_path]
+
+  if info then
+    return(info.plugin)
+  end
 end
 
 -- ##############################################

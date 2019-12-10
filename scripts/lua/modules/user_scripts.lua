@@ -406,6 +406,8 @@ function user_scripts.load(ifid, script_type, subdir, options)
    local is_windows = ntop.isWindows()
    local alerts_disabled = (not areAlertsEnabled())
    local old_ifid = interface.getId()
+   local is_pro = ntop.isPro()
+   local is_enterprise = ntop.isEnterprise()
    options = options or {}
 
    -- Load additional schemas
@@ -481,9 +483,18 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	    end
 
             -- Augument with additional attributes
-            user_script.is_alert = is_alert_path
+            user_script.is_alert = is_alert_path -- TODO fix
             user_script.path = os_utils.fixPath(checks_dir .. "/" .. fname)
 	    user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
+	    user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)
+	    user_script.plugin = plugins_utils.getUserScriptPlugin(user_script.path)
+	    user_script.edition = user_script.plugin.edition
+
+	    -- Recheck the edition as the demo mode may expire
+	    if((user_script.edition == "pro" and (not is_pro)) or
+	       ((user_script.edition == "enterprise" and (not is_enterprise)))) then
+	       goto next_module
+	    end
 
             if((not return_all) and alerts_disabled and user_script.is_alert) then
                goto next_module

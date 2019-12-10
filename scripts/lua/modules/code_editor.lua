@@ -13,7 +13,7 @@ local code_editor = {}
 function code_editor.editor(scriptname)
    
 if(starts(scriptname, "/plugins/")) then
-   lua_script_url = string.gsub(scriptname, "/plugins/", "/plugins-src/")
+   lua_script_url = string.gsub(scriptname, "/plugins/", "scripts/plugins/")
 else
    lua_script_url = ""
 end

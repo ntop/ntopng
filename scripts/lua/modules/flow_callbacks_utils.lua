@@ -82,8 +82,12 @@ local function print_callbacks_config_table(descr, expert_view)
 	 rowspan = string.format(' rowspan="%d"', num_hooks)
       end
 
-      local url = '<A HREF="/lua/code_viewer.lua?lua_script_path=/plugins/'..mod_k..'/user_scripts/flow/'..mod_k..'.lua"><i class="fa fa-lg fa-binoculars"></i></A>'
-      url = "" -- TODO: remove this line as soon as we are able to select only the community scripts
+      local url = ''
+
+      if(user_script.edition == "community") then
+	 -- TODO: see user_script.source_path
+	 --url = '<A HREF="/lua/code_viewer.lua?lua_script_path=/plugins/'..mod_k..'/user_scripts/flow/'..mod_k..'.lua"><i class="fa fa-lg fa-binoculars"></i></A>'
+      end
       print("<tr><td ".. rowspan .."><b>".. title .." "..url.."</b><br>")
       print("<small>"..description.."</small></td>")
 

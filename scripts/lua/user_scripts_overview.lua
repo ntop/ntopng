@@ -57,10 +57,10 @@ local function printUserScripts(title, scripts)
     end
 
     -- Availability
-    if(string.find(script.path, "/enterprise/")) then
+    if(script.edition == "enterprise") then
       available = "Enterprise"
       if((edition ~= "") and (edition ~= "enterprise")) then goto skip end
-    elseif(string.find(script.path, "/pro/")) then
+    elseif(script.edition == "pro") then
       available = "Pro"
       if((edition ~= "") and (edition ~= "pro")) then goto skip end
     else

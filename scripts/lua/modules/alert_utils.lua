@@ -1093,11 +1093,14 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       goto next_module
 	    end
 
+	    local url = ''
 
-            local path = string.sub(user_script.path, string.len(ntop.getDirs().workingdir)+1)
-            local url = '<A HREF="/lua/code_viewer.lua?lua_script_path='..path..'"><i class="fa fa-lg fa-binoculars"></i></A>'
+	    if(user_script.edition == "community") then
+	       -- TODO: see user_script.source_path
+	       --local path = string.sub(user_script.path, string.len(ntop.getDirs().workingdir)+1)
+	       --local url = '<A HREF="/lua/code_viewer.lua?lua_script_path='..path..'"><i class="fa fa-lg fa-binoculars"></i></A>'
+	    end
             
-            url = "" -- TODO: remove this line as soon as the script path is fixed
 	    print("<tr><td><b>".. (i18n(gui_conf.i18n_title) or gui_conf.i18n_title) .. " " .. url .."</b><br>")
 	    print("<small>".. (i18n(gui_conf.i18n_description) or gui_conf.i18n_description) .."</small>\n")
 
