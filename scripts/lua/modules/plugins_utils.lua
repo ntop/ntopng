@@ -17,9 +17,8 @@ plugins_utils.COMMUNITY_SOURCE_DIR = os_utils.fixPath(dirs.scriptdir .. "/plugin
 plugins_utils.PRO_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/pro_plugins")
 plugins_utils.ENTERPRISE_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_plugins")
 
--- TODO: use more appropriate runtime path
+-- NOTE: keep in sync with the HTTPServer runtime_dir
 plugins_utils.PLUGINS_RUNTIME_PATH = os_utils.fixPath(dirs.workingdir .. "/plugins")
-plugins_utils.PLUGINS_GUI_RUNTIME_PATH = os_utils.fixPath(dirs.scriptdir .. "/lua/plugins")
 
 local RUNTIME_PATHS = {}
 
@@ -104,7 +103,7 @@ local function init_runtime_paths()
     ts_schemas = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/ts_schemas"),
 
     -- Web Gui
-    web_gui = os_utils.fixPath(plugins_utils.PLUGINS_GUI_RUNTIME_PATH),
+    web_gui = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/scripts",
 
     -- User scripts
     interface_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/interface/interface"),
@@ -299,7 +298,6 @@ function plugins_utils.loadPlugins()
 
   -- Clean previous structure
   ntop.rmdir(plugins_utils.PLUGINS_RUNTIME_PATH)
-  ntop.rmdir(plugins_utils.PLUGINS_GUI_RUNTIME_PATH)
 
   -- Initialize directories
   init_runtime_paths()
@@ -399,7 +397,7 @@ end
 -- ##############################################
 
 function plugins_utils.getUrl(script)
-  return(ntop.getHttpPrefix() .. "/lua/plugins/" .. script)
+  return(ntop.getHttpPrefix() .. "/plugins/" .. script)
 end
 
 -- ##############################################

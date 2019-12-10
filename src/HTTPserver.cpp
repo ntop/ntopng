@@ -938,6 +938,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   if((strncmp(request_info->uri, "/lua/", 5) == 0)
      || (strcmp(request_info->uri, "/metrics") == 0)
+     || (strncmp(request_info->uri, "/plugins/", 9) == 0)
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
     char path[255] = { 0 }, uri[2048];
@@ -969,6 +970,9 @@ static int handle_lua_request(struct mg_connection *conn) {
       if(strcmp(request_info->uri, "/metrics") == 0)
 	snprintf(path, sizeof(path), "%s/lua/metrics.lua",
 	  httpserver->get_scripts_dir());
+      else if(strncmp(request_info->uri, "/plugins/", 9) == 0)
+	snprintf(path, sizeof(path), "%s/plugins/scripts/%s",
+	  httpserver->get_runtime_dir(), request_info->uri + 9);
       else
 	snprintf(path, sizeof(path), "%s%s%s",
 		 httpserver->get_scripts_dir(),
@@ -1180,7 +1184,7 @@ int init_client_x509_auth(void *ctx) {
 
 /* ****************************************** */
 
-HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
+HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir, const char *_runtime_dir) {
   struct mg_callbacks callbacks;
   const char *http_binding_addr1, *http_binding_addr2;
   const char *https_binding_addr1, *https_binding_addr2;
@@ -1230,6 +1234,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
     gui_access_restricted = true;
   
   docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
+  runtime_dir = strdup(_runtime_dir);
   ssl_enabled = false;
   httpserver = this;
 #ifdef HAVE_NEDGE
@@ -1338,7 +1343,7 @@ HTTPserver::~HTTPserver() {
 
   if(wispr_captive_data) free(wispr_captive_data);
   if(captive_redirect_addr) free(captive_redirect_addr);
-  free(docs_dir), free(scripts_dir);
+  free(docs_dir), free(scripts_dir), free(runtime_dir);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };
 
