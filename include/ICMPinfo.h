@@ -34,6 +34,7 @@ class ICMPinfo {
  private:
   u_int8_t icmp_type;
   u_int8_t icmp_code;
+  u_int16_t icmp_identifier;
   unreachable_t *unreach;
 
   void reset();

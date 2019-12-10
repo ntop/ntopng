@@ -34,7 +34,8 @@ ICMPinfo::ICMPinfo(const ICMPinfo& _icmp_info) {
   reset();
 
   icmp_type = _icmp_info.icmp_type,
-    icmp_code = _icmp_info.icmp_code;
+    icmp_code = _icmp_info.icmp_code,
+    icmp_identifier = _icmp_info.icmp_identifier;
 
   if(_icmp_info.unreach
      && (unreach = (unreachable_t*)calloc(1, sizeof(*unreach)))) {
@@ -51,7 +52,7 @@ ICMPinfo::ICMPinfo(const ICMPinfo& _icmp_info) {
 void ICMPinfo::reset() {
   if(unreach) free(unreach);
   unreach = NULL;
-  icmp_type = icmp_code = 0;
+  icmp_type = icmp_code = icmp_identifier = 0;
 }
 
 /* *************************************** */
@@ -68,6 +69,9 @@ u_int32_t ICMPinfo::key() const {
   if(unreach) {
     k += unreach->src_ip.key() + unreach->dst_ip.key() + unreach->src_port + unreach->dst_port + unreach->protocol;
   }
+
+  if(icmp_identifier)
+    k += icmp_identifier;
 
   return k;
 }
@@ -98,6 +102,25 @@ void ICMPinfo::dissectICMP(u_int16_t const payload_len, const u_int8_t * const p
 	  unreach->dst_port = icmp_port_unreach_udp->dest,
 	  unreach->protocol = icmp_port_unreach_ip->protocol;
       }
+    } else if((icmp_type == ICMP_ECHO || icmp_type == ICMP_ECHOREPLY
+	       || icmp_type == ICMP_TIMESTAMP || icmp_type == ICMP_TIMESTAMPREPLY
+	       || icmp_type == ICMP_INFO_REQUEST || icmp_type == ICMP_INFO_REPLY)
+	      && icmp_code == 0
+	      && payload_len > 5) {
+      /* https://tools.ietf.org/html/rfc792
+
+	 Echo or Echo Reply Message
+	 Timestamp or Timestamp Reply Message
+	 Information Request or Information Reply Message
+
+	 Identifier
+
+	 If code = 0, an identifier to aid in matching echos and replies,
+	 may be zero.
+      */
+
+      icmp_identifier = ntohs(*(u_int16_t*)&payload_data[4]);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "identifier: 0x%X [0x%x%x]", icmp_identifier, payload_data[4], payload_data[5]);
     }
   }
 }
@@ -112,6 +135,8 @@ void ICMPinfo::print() const {
 				 unreach->src_ip.print(buf1, sizeof(buf1)), unreach->src_port,
 				 unreach->dst_ip.print(buf2, sizeof(buf2)), unreach->dst_port);
   }
+  if(icmp_identifier)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[identifier: 0x%x]", icmp_identifier);
 }
 
 /* *************************************** */
@@ -131,6 +156,9 @@ bool ICMPinfo::equal(const ICMPinfo * const _icmp_info) const {
 
     return equal;
   }
+
+  if(icmp_identifier)
+    return icmp_identifier == _icmp_info->icmp_identifier;
 
   /* TODO: possibly add checks on icmp type and code */
   return true;
