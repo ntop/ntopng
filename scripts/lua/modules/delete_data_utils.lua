@@ -2,6 +2,8 @@
 -- (C) 2014-18 - ntop.org
 --
 local dirs = ntop.getDirs()
+
+require("lua_utils")
 local ts_utils = require("ts_utils")
 local os_utils = require("os_utils")
 local tracker = require "tracker"
