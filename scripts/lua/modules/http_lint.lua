@@ -143,6 +143,12 @@ local function validateUnquoted(p)
 end
 http_lint.validateUnquoted = validateUnquoted
 
+local function validateLuaScriptPath(p)
+   if (string.find(p, "'") ~= nil) then return false end   
+   return(starts(p, "/plugins"))   
+end
+http_lint.validateLuaScriptPath = validateLuaScriptPath
+
 local function validateUnchecked(p)
    -- This function does not perform any validation, so only the C side validation takes place.
    -- In particular, single quotes are allowed so they must be handled explicitly by the programmer in
@@ -1177,6 +1183,9 @@ local known_parameters = {
    ["ewma_alpha_percent"]      = validateNumber,
    ["senders_receivers"]       = validateSendersReceivers,      -- Used in top scripts
    ["fingerprint_type"]        = validateFingerprintType,
+
+-- Script editor
+   ["lua_script_path"]         = validateLuaScriptPath,
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons

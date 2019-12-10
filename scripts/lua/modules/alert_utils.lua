@@ -1050,7 +1050,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
        <form method="post">
        <br>
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-       <tr><th width="40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th>]]
+       <tr><th width"40%">]] print(i18n("alerts_thresholds_config.threshold_type")) print[[</th>]]
       if(tab == "min") then
          print[[<th class="text-center" width=5%>]] print(i18n("chart")) print[[</th>]]
       end
@@ -1093,7 +1093,12 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       goto next_module
 	    end
 
-	    print("<tr><td><b>".. (i18n(gui_conf.i18n_title) or gui_conf.i18n_title) .."</b><br>")
+
+            local path = string.sub(user_script.path, string.len(ntop.getDirs().workingdir)+1)
+            local url = '<A HREF="/lua/code_viewer.lua?lua_script_path='..path..'"><i class="fa fa-lg fa-binoculars"></i></A>'
+            
+            url = "" -- TODO: remove this line as soon as the script path is fixed
+	    print("<tr><td><b>".. (i18n(gui_conf.i18n_title) or gui_conf.i18n_title) .. " " .. url .."</b><br>")
 	    print("<small>".. (i18n(gui_conf.i18n_description) or gui_conf.i18n_description) .."</small>\n")
 
 	    if(tab == "min") then

@@ -1,0 +1,54 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-editor .margin-view-overlays .folding {
+	cursor: pointer;
+	background-repeat: no-repeat;
+	background-origin: border-box;
+	background-position: calc(50% + 2px) center;
+	background-size: auto calc(100% - 3px);
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+
+.monaco-editor .margin-view-overlays .folding {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik03Ljk3NjAzIDEwLjA3MTlMMTIuMzMzMyA1LjcxNDYxTDEyLjk1MjEgNi4zMzMzM0w4LjI4NTM5IDExTDcuNjY2NjcgMTFMMyA2LjMzMzMzTDMuNjE4NzIgNS43MTQ2MUw3Ljk3NjAzIDEwLjA3MTlaIiBmaWxsPSIjNDI0MjQyIi8+Cjwvc3ZnPgo=");
+}
+
+.monaco-editor.hc-black .margin-view-overlays .folding,
+.monaco-editor.vs-dark .margin-view-overlays .folding {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik03Ljk3NjAzIDEwLjA3MTlMMTIuMzMzMyA1LjcxNDYxTDEyLjk1MjEgNi4zMzMzM0w4LjI4NTM5IDExTDcuNjY2NjcgMTFMMyA2LjMzMzMzTDMuNjE4NzIgNS43MTQ2MUw3Ljk3NjAzIDEwLjA3MTlaIiBmaWxsPSIjQzVDNUM1Ii8+Cjwvc3ZnPgo=");
+}
+
+.monaco-editor.hc-black .margin-view-overlays .folding {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik03Ljk3NjAzIDEwLjA3MTlMMTIuMzMzMyA1LjcxNDYxTDEyLjk1MjEgNi4zMzMzM0w4LjI4NTM5IDExTDcuNjY2NjcgMTFMMyA2LjMzMzMzTDMuNjE4NzIgNS43MTQ2MUw3Ljk3NjAzIDEwLjA3MTlaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K");
+}
+
+.monaco-editor .margin-view-overlays:hover .folding,
+.monaco-editor .margin-view-overlays .folding.alwaysShowFoldIcons {
+	opacity: 1;
+}
+
+.monaco-editor .margin-view-overlays .folding.collapsed {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMC4wNzE5IDcuOTk5OTlMNS43MTQ2IDEyLjM1NzNMNi4zMzMzMiAxMi45NzZMMTEgOC4zMDkzNVY3LjY5MDYzTDYuMzMzMzIgMy4wMjM5Nkw1LjcxNDYgMy42NDI2OEwxMC4wNzE5IDcuOTk5OTlaIiBmaWxsPSIjNDI0MjQyIi8+Cjwvc3ZnPgo=");
+	opacity: 1;
+}
+
+.monaco-editor.vs-dark .margin-view-overlays .folding.collapsed {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMC4wNzE5IDcuOTk5OTlMNS43MTQ2IDEyLjM1NzNMNi4zMzMzMiAxMi45NzZMMTEgOC4zMDkzNVY3LjY5MDY0TDYuMzMzMzIgMy4wMjM5N0w1LjcxNDYgMy42NDI2OUwxMC4wNzE5IDcuOTk5OTlaIiBmaWxsPSIjQzVDNUM1Ii8+Cjwvc3ZnPgo=");
+}
+
+.monaco-editor.hc-black .margin-view-overlays .folding.collapsed {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMC4wNzE5IDcuOTk5OTlMNS43MTQ2IDEyLjM1NzNMNi4zMzMzMiAxMi45NzZMMTEgOC4zMDkzNVY3LjY5MDYzTDYuMzMzMzIgMy4wMjM5Nkw1LjcxNDYgMy42NDI2OEwxMC4wNzE5IDcuOTk5OTlaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K");
+}
+
+.monaco-editor .inline-folded:after {
+	color: grey;
+	margin: 0.1em 0.2em 0 0.2em;
+	content: "⋯";
+	display: inline;
+	line-height: 1em;
+	cursor: pointer;
+}

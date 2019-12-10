@@ -59,6 +59,8 @@ local function print_callbacks_config_table(descr, expert_view)
       end
    end
 
+   tprint(descr)
+   
    for mod_k, user_script in pairsByKeys(descr.modules, asc) do
       local hooks_benchmarks = benchmarks[mod_k] or {}
       local num_hooks = table.len(hooks_benchmarks)
@@ -82,8 +84,10 @@ local function print_callbacks_config_table(descr, expert_view)
 	 rowspan = string.format(' rowspan="%d"', num_hooks)
       end
 
-      print("<tr><td ".. rowspan .."><b>".. title .."</b><br>")
-      print("<small>"..description..".</small></td>")
+      local url = '<A HREF="/lua/code_viewer.lua?lua_script_path=/plugins/'..mod_k..'/user_scripts/flow/'..mod_k..'.lua"><i class="fa fa-lg fa-binoculars"></i></A>'
+      url = "" -- TODO: remove this line as soon as we are able to select only the community scripts
+      print("<tr><td ".. rowspan .."><b>".. title .." "..url.."</b><br>")
+      print("<small>"..description.."</small></td>")
 
       print("<td ".. rowspan .." class='text-center'>")
 

@@ -1919,7 +1919,7 @@ static void convert_uri_to_file_name(struct mg_connection *conn, char *buf,
     conn->request_info.uri = &conn->request_info.uri[http_prefix_len];
 
   uri = conn->request_info.uri;
-
+  
   // Using buf_len - 1 because memmove() for PATH_INFO may shift part
   // of the path one byte on the right.
   mg_snprintf(conn, buf, buf_len - 1, "%s%s", conn->ctx->config[DOCUMENT_ROOT],
@@ -4399,13 +4399,25 @@ static void handle_request(struct mg_connection *conn) {
   char path[PATH_MAX];
   int uri_len, ssl_index;
   struct file file = STRUCT_FILE_INITIALIZER;
-
+  u_int8_t ntop_serving_lua_source = 0; /* NTOP */
+  
   if ((conn->request_info.query_string = strchr(ri->uri, '?')) != NULL) {
     * ((char *) conn->request_info.query_string++) = '\0';
   }
+  
   uri_len = (int) strlen(ri->uri);
   url_decode(ri->uri, uri_len, (char *) ri->uri, uri_len + 1, 0);
   remove_double_dots_and_double_slashes((char *) ri->uri);
+
+  /* BEGIN NTOP */
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "URI: %s", conn->request_info.uri);
+  if((strncmp(conn->request_info.uri, "/plugins-src", 12) == 0)  /* Serve lua files */
+     && (!strstr(conn->request_info.uri, "/pro/"))
+     && (!strstr(conn->request_info.uri, "/enterprise/")) /* Skip non-community edition files */
+     )
+    ntop_serving_lua_source = 1;
+  /* END NTOP */
+  
   convert_uri_to_file_name(conn, path, sizeof(path), &file);
   conn->throttle = set_throttle(conn->ctx->config[THROTTLE],
 				get_remote_ip(conn), ri->uri);
@@ -4414,74 +4426,100 @@ static void handle_request(struct mg_connection *conn) {
   if (conn->ctx->callbacks.begin_request != NULL &&
       conn->ctx->callbacks.begin_request(conn)) {
     // Do nothing, callback has served the request
-  } else if (!conn->client.is_ssl && conn->client.ssl_redir &&
-	     (ssl_index = get_first_ssl_listener_index(conn->ctx)) > -1) {
-    redirect_to_https_port(conn, ssl_index);
-  } else if (!is_put_or_delete_request(conn) &&
-	     !check_authorization(conn, path)) {
-    send_authorization_request(conn);
+  } else {
+    /* BEGIN NTOP */
+    if(ntop_serving_lua_source) {
+      char *httpdocs;
+
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "From %s", path);
+	    
+      httpdocs = strstr(path, "/httpdocs/plugins-src/");
+
+      if(httpdocs) {
+	char buf[256];      
+	u_int len;
+
+	snprintf(buf, sizeof(buf), "/scripts/plugins%s", &httpdocs[21]);
+	len = strlen(buf);
+	
+	memmove(httpdocs, buf, len+1);
+      }
+
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Renamed to %s", path);
+      mg_stat(conn, path, &file);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "New path %s", path);
+    }
+    /* END NTOP */
+    
+  if (!conn->client.is_ssl && conn->client.ssl_redir &&
+	  (ssl_index = get_first_ssl_listener_index(conn->ctx)) > -1) {
+   redirect_to_https_port(conn, ssl_index);
+ } else if (!is_put_or_delete_request(conn) &&
+	    !check_authorization(conn, path)) {
+   send_authorization_request(conn);
 #if defined(USE_WEBSOCKET)
-  } else if (is_websocket_request(conn)) {
-    handle_websocket_request(conn);
+ } else if (is_websocket_request(conn)) {
+   handle_websocket_request(conn);
 #endif
-  } else if (!strcmp(ri->request_method, "OPTIONS")) {
-    send_options(conn);
-  } else if (conn->ctx->config[DOCUMENT_ROOT] == NULL) {
-    send_http_error(conn, 404, "Not Found", "Not Found");
-  } else if (is_put_or_delete_request(conn) &&
-	     (conn->ctx->config[PUT_DELETE_PASSWORDS_FILE] == NULL ||
-	      is_authorized_for_put(conn) != 1)) {
-    send_authorization_request(conn);
-  } else if (!strcmp(ri->request_method, "PUT")) {
-    put_file(conn, path);
-  } else if (!strcmp(ri->request_method, "DELETE")) {
-    if (mg_remove(path) == 0) {
-      send_http_error(conn, 200, "OK", "%s", "");
-    } else {
-      send_http_error(conn, 500, http_500_error, "remove(%s): %s", path,
-		      strerror(ERRNO));
-    }
-  } else if ((file.membuf == NULL && file.modification_time == (time_t) 0) ||
-	     must_hide_file(conn, path)) {
-    send_http_error(conn, 404, "Not Found", "%s", "File not found");
-  } else if (file.is_directory && ri->uri[uri_len - 1] != '/') {
-    mg_printf(conn, "HTTP/1.1 301 Moved Permanently\r\n"
-	      "Location: %s/\r\n\r\n", ri->uri);
-  } else if (!strcmp(ri->request_method, "PROPFIND")) {
-    handle_propfind(conn, path, &file);
-  } else if (file.is_directory &&
-	     !substitute_index_file(conn, path, sizeof(path), &file)) {
-    if (!mg_strcasecmp(conn->ctx->config[ENABLE_DIRECTORY_LISTING], "yes")) {
-      handle_directory_request(conn, path);
-    } else {
-      send_http_error(conn, 403, "Directory Listing Denied",
-		      "Directory listing denied");
-    }
+ } else if (!strcmp(ri->request_method, "OPTIONS")) {
+   send_options(conn);
+ } else if (conn->ctx->config[DOCUMENT_ROOT] == NULL) {
+   send_http_error(conn, 404, "Not Found", "Not Found");
+ } else if (is_put_or_delete_request(conn) &&
+	    (conn->ctx->config[PUT_DELETE_PASSWORDS_FILE] == NULL ||
+	     is_authorized_for_put(conn) != 1)) {
+   send_authorization_request(conn);
+ } else if (!strcmp(ri->request_method, "PUT")) {
+   put_file(conn, path);
+ } else if (!strcmp(ri->request_method, "DELETE")) {
+   if (mg_remove(path) == 0) {
+     send_http_error(conn, 200, "OK", "%s", "");
+   } else {
+     send_http_error(conn, 500, http_500_error, "remove(%s): %s", path,
+		     strerror(ERRNO));
+   }
+ } else if ((file.membuf == NULL && file.modification_time == (time_t) 0) ||
+	    must_hide_file(conn, path)) {
+   send_http_error(conn, 404, "Not Found", "%s", "File not found");
+ } else if (file.is_directory && ri->uri[uri_len - 1] != '/') {
+   mg_printf(conn, "HTTP/1.1 301 Moved Permanently\r\n"
+	     "Location: %s/\r\n\r\n", ri->uri);
+ } else if (!strcmp(ri->request_method, "PROPFIND")) {
+   handle_propfind(conn, path, &file);
+ } else if (file.is_directory &&
+	    !substitute_index_file(conn, path, sizeof(path), &file)) {
+   if (!mg_strcasecmp(conn->ctx->config[ENABLE_DIRECTORY_LISTING], "yes")) {
+     handle_directory_request(conn, path);
+   } else {
+     send_http_error(conn, 403, "Directory Listing Denied",
+		     "Directory listing denied");
+   }
 #ifdef MONGOOSE_USE_LUA
-  } else if (match_prefix("**.lp$", 6, path) > 0) {
-    handle_lsp_request(conn, path, &file);
+ } else if (match_prefix("**.lp$", 6, path) > 0) {
+   handle_lsp_request(conn, path, &file);
 #endif
 #if !defined(NO_CGI)
-  } else if (match_prefix(conn->ctx->config[CGI_EXTENSIONS],
-			  strlen(conn->ctx->config[CGI_EXTENSIONS]),
-			  path) > 0) {
-    if (strcmp(ri->request_method, "POST") &&
-	strcmp(ri->request_method, "HEAD") &&
-	strcmp(ri->request_method, "GET")) {
-      send_http_error(conn, 501, "Not Implemented",
-		      "Method %s is not implemented", ri->request_method);
-    } else {
-      handle_cgi_request(conn, path);
-    }
+ } else if (match_prefix(conn->ctx->config[CGI_EXTENSIONS],
+			 strlen(conn->ctx->config[CGI_EXTENSIONS]),
+			 path) > 0) {
+   if (strcmp(ri->request_method, "POST") &&
+       strcmp(ri->request_method, "HEAD") &&
+       strcmp(ri->request_method, "GET")) {
+     send_http_error(conn, 501, "Not Implemented",
+		     "Method %s is not implemented", ri->request_method);
+   } else {
+     handle_cgi_request(conn, path);
+   }
 #endif // !NO_CGI
-  } else if (match_prefix(conn->ctx->config[SSI_EXTENSIONS],
-			  strlen(conn->ctx->config[SSI_EXTENSIONS]),
-			  path) > 0) {
-    handle_ssi_file_request(conn, path);
-  } else if (is_not_modified(conn, &file)) {
-    send_http_error(conn, 304, "Not Modified", "%s", "");
-  } else {
-    handle_file_request(conn, path, &file);
+ } else if (match_prefix(conn->ctx->config[SSI_EXTENSIONS],
+			 strlen(conn->ctx->config[SSI_EXTENSIONS]),
+			 path) > 0) {
+   handle_ssi_file_request(conn, path);
+ } else if (is_not_modified(conn, &file)) {
+   send_http_error(conn, 304, "Not Modified", "%s", "");
+ } else {
+   handle_file_request(conn, path, &file);
+ }
   }
 }
 

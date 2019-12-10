@@ -1756,7 +1756,6 @@ elseif(page == "callbacks") then
    drawAlertSourceSettings("interface", ifname_clean,
       i18n("show_alerts.iface_delete_config_btn", {iface=alias}), "show_alerts.iface_delete_config_confirm",
       "if_stats.lua", {ifid=ifid}, alias, "interface")
-
 elseif(page == "internals") then
    internals_utils.printInternals(ifid)
 print [[
