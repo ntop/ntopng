@@ -4430,7 +4430,7 @@ static void handle_request(struct mg_connection *conn) {
     if(ntop_serving_lua_source) {
       char *httpdocs;
 
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "From %s", path);
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "From %s", path);
 	    
       httpdocs = strstr(path, "/httpdocs/plugins-src/");
 
@@ -4444,9 +4444,9 @@ static void handle_request(struct mg_connection *conn) {
 	memmove(httpdocs, buf, len+1);
       }
 
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Renamed to %s", path);
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Renamed to %s", path);
       mg_stat(conn, path, &file);
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "New path %s", path);
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "New path %s", path);
     }
     /* END NTOP */
     
