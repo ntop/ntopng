@@ -483,3 +483,19 @@ path.link {
 }
 
 /* end of CSS for EBPF charts */
+
+/** CSS modifies by @gabryon99 **/
+
+.mt-6 {
+  margin-top: 6rem !important;
+}
+
+.navbar-shadow {
+  box-shadow: 0 3px 6px rgba(0,0,0,0.01), 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.table td, .table th {
+  padding: 0.45rem !important;
+}
+
+/** end of CSS wrote by @gabryon99 */
