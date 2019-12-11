@@ -502,7 +502,10 @@ size_t Utils::file_write(const char *path, const char *content, size_t content_l
   if(fd == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to write file %s", path);
   } else {
+#ifndef WIN32
     chmod(path, CONST_DEFAULT_FILE_MODE);
+#endif
+
     ret = fwrite(content, content_len, 1, fd);
     fclose(fd);
   }

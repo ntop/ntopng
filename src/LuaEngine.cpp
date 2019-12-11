@@ -2608,6 +2608,26 @@ static int ntop_temporary_disable_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_default_file_permissions(lua_State* vm) {
+  char *fpath;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  fpath = (char*)lua_tostring(vm, 1);
+
+  if(!fpath)
+    return(CONST_LUA_ERROR);
+
+#ifndef WIN32
+  chmod(fpath, CONST_DEFAULT_FILE_MODE);
+#endif
+
+  lua_pushnil(vm);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_verbose_trace(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -11143,6 +11163,7 @@ static const luaL_Reg ntop_reg[] = {
 #endif
   { "reloadPreferences",   ntop_reload_preferences },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
+  { "setDefaultFilePermissions",  ntop_set_default_file_permissions },
   
 #ifdef NTOPNG_PRO
 #ifndef WIN32

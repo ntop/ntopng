@@ -168,6 +168,8 @@ local function copy_file(fname, src_path, dst_path)
   outfile:write(instr)
   outfile:close()
 
+  ntop.setDefaultFilePermissions(dst)
+
   return(true)
 end
 
@@ -429,6 +431,7 @@ function plugins_utils.loadPlugins()
     local locale_path = os_utils.fixPath(RUNTIME_PATHS.locales .. "/" .. fname)
 
     persistence.store(locale_path, plugins_locales)
+    ntop.setDefaultFilePermissions(locale_path)
   end
 
   -- Save the menu entries
@@ -436,6 +439,7 @@ function plugins_utils.loadPlugins()
     local menu_path = os_utils.fixPath(RUNTIME_PATHS.web_gui .. "/menu.lua")
 
     persistence.store(menu_path, menu_entries)
+    ntop.setDefaultFilePermissions(menu_path)
   end
 
   -- Save loaded plugins metadata
@@ -445,6 +449,7 @@ function plugins_utils.loadPlugins()
     path_map = path_map,
   }
   persistence.store(plugins_utils.PLUGINS_RUNTIME_METADATA, plugins_metadata)
+  ntop.setDefaultFilePermissions(plugins_utils.PLUGINS_RUNTIME_METADATA)
 
   return(true)
 end
