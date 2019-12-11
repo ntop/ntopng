@@ -33,7 +33,7 @@ class FlowTrafficStats {
   u_int32_t cli2srv_packets, srv2cli_packets;
   u_int64_t cli2srv_bytes, srv2cli_bytes;
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
-  TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
+  TCPPacketStats cli2srv_tcp_stats, srv2cli_tcp_stats;
   ndpi_analyze_struct cli2srv_bytes_stats, srv2cli_bytes_stats;
 
  public:
@@ -56,15 +56,15 @@ class FlowTrafficStats {
   inline u_int64_t get_cli2srv_goodput_bytes() const { return cli2srv_goodput_bytes;      };
   inline u_int64_t get_srv2cli_goodput_bytes() const { return srv2cli_goodput_bytes;      };
 
-  inline u_int32_t get_cli2srv_tcp_retr()      const { return tcp_stats_s2d.pktRetr;      };
-  inline u_int32_t get_cli2srv_tcp_ooo()       const { return tcp_stats_s2d.pktOOO;       };
-  inline u_int32_t get_cli2srv_tcp_lost()      const { return tcp_stats_s2d.pktLost;      };
-  inline u_int32_t get_cli2srv_tcp_keepalive() const { return tcp_stats_s2d.pktKeepAlive; };
+  inline u_int32_t get_cli2srv_tcp_retr()      const { return cli2srv_tcp_stats.pktRetr;      };
+  inline u_int32_t get_cli2srv_tcp_ooo()       const { return cli2srv_tcp_stats.pktOOO;       };
+  inline u_int32_t get_cli2srv_tcp_lost()      const { return cli2srv_tcp_stats.pktLost;      };
+  inline u_int32_t get_cli2srv_tcp_keepalive() const { return cli2srv_tcp_stats.pktKeepAlive; };
 
-  inline u_int32_t get_srv2cli_tcp_retr()      const { return tcp_stats_d2s.pktRetr;      };
-  inline u_int32_t get_srv2cli_tcp_ooo()       const { return tcp_stats_d2s.pktOOO;       };
-  inline u_int32_t get_srv2cli_tcp_lost()      const { return tcp_stats_d2s.pktLost;      };
-  inline u_int32_t get_srv2cli_tcp_keepalive() const { return tcp_stats_d2s.pktKeepAlive; };
+  inline u_int32_t get_srv2cli_tcp_retr()      const { return srv2cli_tcp_stats.pktRetr;      };
+  inline u_int32_t get_srv2cli_tcp_ooo()       const { return srv2cli_tcp_stats.pktOOO;       };
+  inline u_int32_t get_srv2cli_tcp_lost()      const { return srv2cli_tcp_stats.pktLost;      };
+  inline u_int32_t get_srv2cli_tcp_keepalive() const { return srv2cli_tcp_stats.pktKeepAlive; };
   
 };
 

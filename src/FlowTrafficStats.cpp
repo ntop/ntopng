@@ -28,8 +28,8 @@ FlowTrafficStats::FlowTrafficStats() {
   cli2srv_bytes = srv2cli_bytes = 0;
   cli2srv_goodput_bytes = srv2cli_goodput_bytes = 0;
 
-  memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d));
-  memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
+  memset(&cli2srv_tcp_stats, 0, sizeof(cli2srv_tcp_stats));
+  memset(&srv2cli_tcp_stats, 0, sizeof(srv2cli_tcp_stats));
 
   ndpi_init_data_analysis(&cli2srv_bytes_stats, 0),
     ndpi_init_data_analysis(&srv2cli_bytes_stats, 0);
@@ -45,8 +45,8 @@ FlowTrafficStats::FlowTrafficStats(const FlowTrafficStats &fts) {
   cli2srv_goodput_bytes = fts.cli2srv_goodput_bytes;
   srv2cli_goodput_bytes = fts.srv2cli_goodput_bytes;
 
-  memcpy(&tcp_stats_s2d, &fts.tcp_stats_s2d, sizeof(tcp_stats_s2d));
-  memcpy(&tcp_stats_d2s, &fts.tcp_stats_d2s, sizeof(tcp_stats_d2s));
+  memcpy(&cli2srv_tcp_stats, &fts.cli2srv_tcp_stats, sizeof(cli2srv_tcp_stats));
+  memcpy(&srv2cli_tcp_stats, &fts.srv2cli_tcp_stats, sizeof(srv2cli_tcp_stats));
 
   ndpi_init_data_analysis(&cli2srv_bytes_stats, 0),
     ndpi_init_data_analysis(&srv2cli_bytes_stats, 0);
@@ -69,9 +69,9 @@ void FlowTrafficStats::incTcpStats(bool cli2srv_direction, u_int retr, u_int ooo
   TCPPacketStats * cur_stats;
 
   if(cli2srv_direction)
-    cur_stats = &tcp_stats_s2d;
+    cur_stats = &cli2srv_tcp_stats;
   else
-    cur_stats = &tcp_stats_d2s;
+    cur_stats = &srv2cli_tcp_stats;
 
   cur_stats->pktKeepAlive += keepalive;
   cur_stats->pktRetr += retr;
@@ -86,9 +86,9 @@ void FlowTrafficStats::setTcpStats(bool cli2srv_direction, u_int retr, u_int ooo
   TCPPacketStats * cur_stats;
 
   if(cli2srv_direction)
-    cur_stats = &tcp_stats_s2d;
+    cur_stats = &cli2srv_tcp_stats;
   else
-    cur_stats = &tcp_stats_d2s;
+    cur_stats = &srv2cli_tcp_stats;
 
   cur_stats->pktKeepAlive = keepalive;
   cur_stats->pktRetr = retr;
