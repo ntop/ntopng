@@ -444,6 +444,8 @@ print[[
   $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
   $('#updates-install-li').hide();
 
+  var updates_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
+
   /* Install latest update */
   var installUpdate = function() {
     if (confirm(']] print(i18n("updates.install_confirm")) print[[')) {
@@ -451,9 +453,10 @@ print[[
         type: 'POST',
         url: ']] print (ntop.getHttpPrefix()) print [[/lua/install_update.lua',
         data: {
-          csrf: ']] print(ntop.getRandomCSRFValue()) print[['
+          csrf: updates_csrf
         },
         success: function(rsp) {
+          updates_csrf = rsp.csrf;
           $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
           $('#updates-install-li').hide();
         }
@@ -467,10 +470,11 @@ print[[
       type: 'POST',
       url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
       data: {
-        search: 'true',
-        csrf: ']] print(ntop.getRandomCSRFValue()) print[['
+        csrf: updates_csrf,
+        search: 'true'
       },
       success: function(rsp) {
+        updates_csrf = rsp.csrf;
         $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
         $('#updates-install-li').hide();
       }

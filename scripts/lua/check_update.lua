@@ -47,6 +47,10 @@ else
   end
 end
 
-res = { status = status, version = new_version }
+res = { 
+  status = status, 
+  version = new_version,
+  csrf = ntop.getRandomCSRFValue()
+}
 
 print(json.encode(res, nil, 1))
