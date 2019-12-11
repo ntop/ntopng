@@ -15,6 +15,12 @@ REDIS_RUN_UPGRADE_KEY="ntopng.updates.run_upgrade"
 ACTION=""
 QUIET=true
 
+# Required by apt-get on Ubuntu 18 to run in non interactive mode
+export DEBIAN_FRONTEND="noninteractive"
+
+# Workaround for third-party installers not using absolute paths
+export PATH="$PATH:/sbin:/usr/sbin"
+
 # Read redis connection info
 REDIS_INFO=$(${NTOPNG_CONFIG_TOOL} -a print-redis-info)
 HOST=$(echo ${REDIS_INFO} | cut -d'=' -f2 | cut -d'@' -f1 | cut -d':' -f1)
