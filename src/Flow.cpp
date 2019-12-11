@@ -693,7 +693,7 @@ char* Flow::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_cli2srv() const {
-  int64_t diff = stats.get_cli2srv_bytes() - cli2srv_last_bytes;
+  int64_t diff = get_bytes_cli2srv() - cli2srv_last_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -705,7 +705,7 @@ u_int64_t Flow::get_current_bytes_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_srv2cli() const {
-  int64_t diff = stats.get_srv2cli_bytes() - srv2cli_last_bytes;
+  int64_t diff = get_bytes_srv2cli() - srv2cli_last_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -717,7 +717,7 @@ u_int64_t Flow::get_current_bytes_srv2cli() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_goodput_bytes_cli2srv() const {
-  int64_t diff = stats.get_cli2srv_goodput_bytes() - cli2srv_last_goodput_bytes;
+  int64_t diff = get_goodput_bytes_cli2srv() - cli2srv_last_goodput_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -729,7 +729,7 @@ u_int64_t Flow::get_current_goodput_bytes_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_goodput_bytes_srv2cli() const {
-  int64_t diff = stats.get_srv2cli_goodput_bytes() - srv2cli_last_goodput_bytes;
+  int64_t diff = get_goodput_bytes_srv2cli() - srv2cli_last_goodput_bytes;
 
   /*
     We need to do this as due to concurrency issues,
@@ -741,7 +741,7 @@ u_int64_t Flow::get_current_goodput_bytes_srv2cli() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_cli2srv() const {
-  int64_t diff = stats.get_cli2srv_packets() - cli2srv_last_packets;
+  int64_t diff = get_packets_cli2srv() - cli2srv_last_packets;
 
   /*
     We need to do this as due to concurrency issues,
@@ -753,7 +753,7 @@ u_int64_t Flow::get_current_packets_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_srv2cli() const {
-  int64_t diff = stats.get_srv2cli_packets() - srv2cli_last_packets;
+  int64_t diff = get_packets_srv2cli() - srv2cli_last_packets;
 
   /*
     We need to do this as due to concurrency issues,
@@ -854,8 +854,8 @@ char* Flow::print(char *buf, u_int buf_len) const {
 	   get_protocol_category(),
 	   get_protocol_category_name(),
 	   flow_device.device_ip, flow_device.in_index, flow_device.out_index,
-	   stats.get_cli2srv_packets(), stats.get_srv2cli_packets(),
-	   (long long unsigned) stats.get_cli2srv_bytes(), (long long unsigned) stats.get_srv2cli_bytes(),
+	   get_packets_cli2srv(), get_packets_srv2cli(),
+	   (long long unsigned) get_bytes_cli2srv(), (long long unsigned) get_bytes_srv2cli(),
 	   printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
 	   printTCPflags(dst2src_tcp_flags, buf4, sizeof(buf4)),
 	   (isTLS() && protos.tls.certificate) ? "[" : "",
@@ -1007,7 +1007,7 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     } else if(protocol == IPPROTO_UDP) {
       if(
 	 (srv_host && srv_host->get_ip()->isBroadMulticastAddress())
-	 || (stats.get_srv2cli_packets() > 0 /* We see a response, hence we assume this is not a probing attempt */)
+	 || (get_packets_srv2cli() > 0 /* We see a response, hence we assume this is not a probing attempt */)
 	 )
 	dump_flow = true;
     }
@@ -1017,7 +1017,7 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%u/%u] %s",
 				 dump_flow ? "DUMP" : "",
-				 stats.get_cli2srv_packets(), stats.get_srv2cli_packets(),
+				 get_packets_cli2srv(), get_packets_srv2cli(),
 				 print(buf, sizeof(buf)));
 #endif
 
@@ -1050,13 +1050,13 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 
   stats_protocol = getStatsProtocol();
 
-  sent_packets = stats.get_cli2srv_packets(), sent_bytes = stats.get_cli2srv_bytes(), sent_goodput_bytes = stats.get_cli2srv_goodput_bytes();
+  sent_packets = get_packets_cli2srv(), sent_bytes = get_bytes_cli2srv(), sent_goodput_bytes = get_goodput_bytes_cli2srv();
   diff_sent_packets = sent_packets - cli2srv_last_packets,
     diff_sent_bytes = sent_bytes - cli2srv_last_bytes, diff_sent_goodput_bytes = sent_goodput_bytes - cli2srv_last_goodput_bytes;
   prev_cli2srv_last_bytes = cli2srv_last_bytes, prev_cli2srv_last_goodput_bytes = cli2srv_last_goodput_bytes,
     prev_cli2srv_last_packets = cli2srv_last_packets;
 
-  rcvd_packets = stats.get_srv2cli_packets(), rcvd_bytes = stats.get_srv2cli_bytes(), rcvd_goodput_bytes = stats.get_srv2cli_goodput_bytes();
+  rcvd_packets = get_packets_srv2cli(), rcvd_bytes = get_bytes_srv2cli(), rcvd_goodput_bytes = get_goodput_bytes_srv2cli();
   diff_rcvd_packets = rcvd_packets - srv2cli_last_packets,
     diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
   prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes,
@@ -1305,14 +1305,14 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 	thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec);
 
 #ifdef DEBUG_TREND
-	if((stats.get_cli2srv_goodput_bytes() + stats.get_srv2cli_goodput_bytes()) > 0) {
+	if((get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli()) > 0) {
 	  char buf[256];
 
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodput long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
 				       print(buf, sizeof(buf)),
 				       goodputTrend.getLongTerm(), goodputTrend.getMidTerm(), goodputTrend.getShortTerm(),
 				       goodputTrend.getTrendMsg(),
-				       ((float)(100*(stats.get_cli2srv_goodput_bytes() + stats.get_srv2cli_goodput_bytes())))/(float)(stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes()));
+				       ((float)(100*(get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli())))/(float)(get_bytes_cli2srv() + get_bytes_srv2cli()));
 	}
 #endif
 #endif
@@ -1821,8 +1821,8 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
 
 void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
   ndpi_stats->incStats(0, ndpiDetectedProtocol.app_protocol,
-		       stats.get_cli2srv_packets(), stats.get_cli2srv_bytes(),
-		       stats.get_srv2cli_packets(), stats.get_srv2cli_bytes());
+		       get_packets_cli2srv(), get_bytes_cli2srv(),
+		       get_packets_srv2cli(), get_bytes_srv2cli());
 
   status_stats->incStats(getStatusBitmap(), protocol);
 }
@@ -1935,7 +1935,7 @@ json_object* Flow::flow2json() {
   json_object_object_add(my_object, Utils::jsonLabel(PROTOCOL, "PROTOCOL", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(protocol));
 
-  if(((stats.get_cli2srv_packets() + stats.get_srv2cli_packets()) > NDPI_MIN_NUM_PACKETS)
+  if(((get_packets_cli2srv() + get_packets_srv2cli()) > NDPI_MIN_NUM_PACKETS)
      || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(ndpiDetectedProtocol.app_protocol));
@@ -2321,8 +2321,8 @@ void Flow::addFlowStats(bool cli2srv_direction,
 
   if(bytes_thpt == 0 && last_seen >= first_seen + 1) {
     /* Do a fist estimation while waiting for the periodic activities */
-    bytes_thpt = (stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes()) / (float)(last_seen - first_seen),
-      pkts_thpt = (stats.get_cli2srv_packets() + stats.get_srv2cli_packets()) / (float)(last_seen - first_seen);
+    bytes_thpt = (get_bytes_cli2srv() + get_bytes_srv2cli()) / (float)(last_seen - first_seen),
+      pkts_thpt = (get_packets_cli2srv() + get_packets_srv2cli()) / (float)(last_seen - first_seen);
   }
 }
 /* *************************************** */
@@ -3398,8 +3398,8 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
      A complete solution would require the registration of a netfilter callback
      and the detection of event NFCT_T_DESTROY.
   */
-  nf_existing_flow = !(stats.get_cli2srv_packets() > s2d_pkts || stats.get_cli2srv_bytes() > s2d_bytes
-		       || stats.get_srv2cli_packets() > d2s_pkts || stats.get_srv2cli_bytes() > d2s_bytes);
+  nf_existing_flow = !(get_packets_cli2srv() > s2d_pkts || get_bytes_cli2srv() > s2d_bytes
+		       || get_packets_srv2cli() > d2s_pkts || get_bytes_srv2cli() > d2s_bytes);
 
   updateSeen();
 
@@ -3413,15 +3413,15 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   iface->_incStats(isIngress2EgressDirection(), now, eth_proto,
 		   getStatsProtocol(), get_protocol_category(),
 		   protocol,
-		   nf_existing_flow ? s2d_bytes - stats.get_cli2srv_bytes() : s2d_bytes,
-		   nf_existing_flow ? s2d_pkts - stats.get_cli2srv_packets() : s2d_pkts,
+		   nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
+		   nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
 		   overhead);
 
   iface->_incStats(!isIngress2EgressDirection(), now, eth_proto,
 		   getStatsProtocol(), get_protocol_category(),
 		   protocol,
-		   nf_existing_flow ? d2s_bytes - stats.get_srv2cli_bytes() : d2s_bytes,
-		   nf_existing_flow ? d2s_pkts - stats.get_srv2cli_packets() : d2s_pkts,
+		   nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
+		   nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
 		   overhead);
 
   if(nf_existing_flow) {
@@ -3699,7 +3699,7 @@ void Flow::lua_get_protocols(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "proto.l4_id", get_protocol());
   lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
 
-  if(((stats.get_cli2srv_packets() + stats.get_srv2cli_packets()) > NDPI_MIN_NUM_PACKETS)
+  if(((get_packets_cli2srv() + get_packets_srv2cli()) > NDPI_MIN_NUM_PACKETS)
      || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
      || iface->is_ndpi_enabled()
      || iface->isSampledTraffic()
@@ -3721,8 +3721,8 @@ void Flow::lua_get_protocols(lua_State* vm) const {
 /* ***************************************************** */
 
 void Flow::lua_get_bytes(lua_State* vm) const {
-  lua_push_uint64_table_entry(vm, "bytes", stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes());
-  lua_push_uint64_table_entry(vm, "goodput_bytes", stats.get_cli2srv_goodput_bytes() + stats.get_srv2cli_goodput_bytes());
+  lua_push_uint64_table_entry(vm, "bytes", get_bytes_cli2srv() + get_bytes_srv2cli());
+  lua_push_uint64_table_entry(vm, "goodput_bytes", get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, "bytes.last",
 			      get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, "goodput_bytes.last",
@@ -3755,12 +3755,12 @@ void Flow::lua_get_dir_traffic(lua_State* vm, bool cli2srv) const {
 
   lua_push_uint64_table_entry(vm,
 			      cli2srv ? "cli2srv.bytes" : "srv2cli.bytes",
-			      cli2srv ? stats.get_cli2srv_bytes() : stats.get_srv2cli_bytes());
+			      cli2srv ? get_bytes_cli2srv() : get_bytes_srv2cli());
   lua_push_uint64_table_entry(vm,
 			      cli2srv ? "cli2srv.goodput_bytes" : "srv2cli.goodput_bytes",
-			      cli2srv ? stats.get_cli2srv_goodput_bytes() : stats.get_srv2cli_goodput_bytes());
+			      cli2srv ? get_goodput_bytes_cli2srv() : get_goodput_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.packets" : "srv2cli.packets",
-			      cli2srv ? stats.get_cli2srv_packets() : stats.get_srv2cli_packets());
+			      cli2srv ? get_packets_cli2srv() : get_packets_srv2cli());
 
   lua_push_uint64_table_entry(vm,
 			      cli2srv ? "cli2srv.last" : "srv2cli.last",
@@ -3796,9 +3796,9 @@ void Flow::lua_get_dir_iat(lua_State* vm, bool cli2srv) const {
 /* ***************************************************** */
 
 void Flow::lua_get_packets(lua_State* vm) const {  
-  lua_push_uint64_table_entry(vm, "packets", stats.get_cli2srv_packets() + stats.get_srv2cli_packets());
-  lua_push_uint64_table_entry(vm, "packets.sent", stats.get_cli2srv_packets());
-  lua_push_uint64_table_entry(vm, "packets.rcvd", stats.get_srv2cli_packets());
+  lua_push_uint64_table_entry(vm, "packets", get_packets_cli2srv() + get_packets_srv2cli());
+  lua_push_uint64_table_entry(vm, "packets.sent", get_packets_cli2srv());
+  lua_push_uint64_table_entry(vm, "packets.rcvd", get_packets_srv2cli());
   lua_push_uint64_table_entry(vm, "packets.last",
 			      get_current_packets_cli2srv() + get_current_packets_srv2cli());
 }
@@ -3894,10 +3894,10 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
   lua_push_str_table_entry(vm, "proto.ndpi_app", ndpi_get_proto_name(iface->get_ndpi_struct(), ndpiDetectedProtocol.app_protocol));
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
-  lua_push_uint64_table_entry(vm, "cli2srv.bytes", stats.get_cli2srv_bytes());
-  lua_push_uint64_table_entry(vm, "srv2cli.bytes", stats.get_srv2cli_bytes());
-  lua_push_uint64_table_entry(vm, "cli2srv.packets", stats.get_cli2srv_packets());
-  lua_push_uint64_table_entry(vm, "srv2cli.packets", stats.get_srv2cli_packets());
+  lua_push_uint64_table_entry(vm, "cli2srv.bytes", get_bytes_cli2srv());
+  lua_push_uint64_table_entry(vm, "srv2cli.bytes", get_bytes_srv2cli());
+  lua_push_uint64_table_entry(vm, "cli2srv.packets", get_packets_cli2srv());
+  lua_push_uint64_table_entry(vm, "srv2cli.packets", get_packets_srv2cli());
   if(getFlowInfo()) lua_push_str_table_entry(vm, "info", getFlowInfo());
 }
 

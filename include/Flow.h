@@ -371,9 +371,11 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_bytes_cli2srv()   const { return(stats.get_cli2srv_bytes());                                             };
   inline u_int64_t get_bytes_srv2cli()   const { return(stats.get_srv2cli_bytes());                                             };
   inline u_int64_t get_goodput_bytes()   const { return(stats.get_cli2srv_goodput_bytes() + stats.get_srv2cli_goodput_bytes()); };
+  inline u_int64_t get_goodput_bytes_cli2srv() const { return(stats.get_cli2srv_goodput_bytes()); };
+  inline u_int64_t get_goodput_bytes_srv2cli() const { return(stats.get_srv2cli_goodput_bytes()); };
   inline u_int64_t get_packets()         const { return(stats.get_cli2srv_packets() + stats.get_srv2cli_packets());             };
-  inline u_int64_t get_packets_cli2srv() const { return(stats.get_cli2srv_packets());                                           };
-  inline u_int64_t get_packets_srv2cli() const { return(stats.get_srv2cli_packets());                                           };
+  inline u_int32_t get_packets_cli2srv() const { return(stats.get_cli2srv_packets());                                           };
+  inline u_int32_t get_packets_srv2cli() const { return(stats.get_srv2cli_packets());                                           };
   inline u_int64_t get_partial_bytes()           const { return get_partial_bytes_cli2srv() + get_partial_bytes_srv2cli();      };
   inline u_int64_t get_partial_packets()         const { return get_partial_packets_cli2srv() + get_partial_packets_srv2cli();  };
   inline u_int64_t get_partial_goodput_bytes()   const { return last_db_dump.delta.get_cli2srv_goodput_bytes() + last_db_dump.delta.get_srv2cli_goodput_bytes();       };
