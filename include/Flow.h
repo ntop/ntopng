@@ -173,6 +173,8 @@ class Flow : public GenericHashEntry {
 
   /* Lazily initialized and used by a possible view interface */
   PartializableFlowTrafficStats *last_partial;
+  /* Partial used to periodically update stats out of flows */
+  PartializableFlowTrafficStats *periodic_stats_update_partial;
 
 #ifdef HAVE_NEDGE
   struct {
@@ -192,15 +194,6 @@ class Flow : public GenericHashEntry {
   float bytes_thpt_srv2cli, goodput_bytes_thpt_srv2cli;
   float pkts_thpt, pkts_thpt_cli2srv, pkts_thpt_srv2cli;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
-  //TimeSeries<float> *bytes_rate;
-  u_int64_t cli2srv_last_packets, srv2cli_last_packets,
-    prev_cli2srv_last_packets, prev_srv2cli_last_packets;
-  u_int64_t cli2srv_last_bytes, srv2cli_last_bytes,
-    cli2srv_last_goodput_bytes, srv2cli_last_goodput_bytes,
-    prev_cli2srv_last_bytes, prev_srv2cli_last_bytes,
-    prev_cli2srv_last_goodput_bytes, prev_srv2cli_last_goodput_bytes;
-
-  //  tcpFlags = tp->th_flags, tcpSeqNum = ntohl(tp->th_seq), tcpAckNum = ntohl(tp->th_ack), tcpWin = ntohs(tp->th_win);
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
   void allocDPIMemory();
   bool checkTor(char *hostname);

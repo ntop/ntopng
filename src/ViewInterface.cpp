@@ -288,6 +288,9 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
   bool first_partial; /* Whether this is the first time the view is visiting this flow */
   const IpAddress *cli_ip = f->get_cli_ip_addr(), *srv_ip = f->get_srv_ip_addr();
 
+  if(f->get_last_seen() > getTimeLastPktRcvd())
+    setTimeLastPktRcvd(f->get_last_seen());
+
   if(f->get_partial_traffic_stats_view(&partials, &first_partial)) {
     if(!cli_ip || !srv_ip)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get flow hosts. Out of memory? Expect issues.");

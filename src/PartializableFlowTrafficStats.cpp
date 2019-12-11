@@ -105,8 +105,10 @@ void PartializableFlowTrafficStats::setStats(bool cli2srv_direction, u_int num_p
 /* *************************************** */
 
 void PartializableFlowTrafficStats::get_partial(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *fts) const {
-  PartializableFlowTrafficStats tmp(*this); /* Set temp to the current value */
+  /* Set temp to the current value */
+  PartializableFlowTrafficStats tmp(*this); 
 
+  /* Compute the differences between the snapshot tmp and the values found in dst, and put them in the argument fts */
   fts->setStats(true,
 		tmp.get_cli2srv_packets() - (*dst)->get_cli2srv_packets(),
 		tmp.get_cli2srv_bytes() - (*dst)->get_cli2srv_bytes(),
@@ -129,5 +131,8 @@ void PartializableFlowTrafficStats::get_partial(PartializableFlowTrafficStats **
 		   tmp.get_srv2cli_tcp_lost() - (*dst)->get_srv2cli_tcp_lost(),
 		   tmp.get_srv2cli_tcp_keepalive() - (*dst)->get_srv2cli_tcp_keepalive());
 
-  **dst = tmp; /* Use the copy constructor to snapshot the value of tmp to dst */
+  /* Finally, update dst with the values snapshotted in tmp.
+     Use the copy constructor to snapshot the value of tmp to dst
+  */
+  **dst = tmp;
 }

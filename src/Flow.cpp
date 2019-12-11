@@ -37,13 +37,10 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
-  last_partial = NULL;
+  last_partial = periodic_stats_update_partial = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
-  cli2srv_last_packets = 0, cli2srv_last_bytes = 0,
-    srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL,
-    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_tls_hs = true,
-    flow_dropped_counts_increased = false, vrfId = 0;
+  cli_host = srv_host = NULL;
+  good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
     alert_score = CONST_NO_SCORE_SET;
 
   alert_status_info = NULL;
@@ -77,8 +74,6 @@ Flow::Flow(NetworkInterface *_iface,
   bytes_thpt_cli2srv  = 0, goodput_bytes_thpt_cli2srv = 0;
   bytes_thpt_srv2cli  = 0, goodput_bytes_thpt_srv2cli = 0;
   pkts_thpt = 0, pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
-  cli2srv_last_bytes = 0, prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = 0, prev_srv2cli_last_bytes = 0;
-  cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
 
   external_alert = NULL;
@@ -258,8 +253,10 @@ Flow::~Flow() {
   else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
 
-  if(last_partial)         delete(last_partial);
-  if(last_db_dump.partial) delete(last_db_dump.partial);
+  if(last_partial)                  delete(last_partial);
+  if(periodic_stats_update_partial) delete(periodic_stats_update_partial);
+  if(last_db_dump.partial)          delete(last_db_dump.partial);
+
   if(json_info)            json_object_put(json_info);
   if(tlv_info) {
     ndpi_term_serializer(tlv_info);
@@ -693,7 +690,7 @@ char* Flow::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_cli2srv() const {
-  int64_t diff = get_bytes_cli2srv() - cli2srv_last_bytes;
+  int64_t diff = get_bytes_cli2srv() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_cli2srv_bytes() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -705,7 +702,7 @@ u_int64_t Flow::get_current_bytes_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_srv2cli() const {
-  int64_t diff = get_bytes_srv2cli() - srv2cli_last_bytes;
+  int64_t diff = get_bytes_srv2cli() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_srv2cli_bytes() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -717,7 +714,7 @@ u_int64_t Flow::get_current_bytes_srv2cli() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_goodput_bytes_cli2srv() const {
-  int64_t diff = get_goodput_bytes_cli2srv() - cli2srv_last_goodput_bytes;
+  int64_t diff = get_goodput_bytes_cli2srv() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_cli2srv_goodput_bytes() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -729,7 +726,7 @@ u_int64_t Flow::get_current_goodput_bytes_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_goodput_bytes_srv2cli() const {
-  int64_t diff = get_goodput_bytes_srv2cli() - srv2cli_last_goodput_bytes;
+  int64_t diff = get_goodput_bytes_srv2cli() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_srv2cli_goodput_bytes() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -741,7 +738,7 @@ u_int64_t Flow::get_current_goodput_bytes_srv2cli() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_cli2srv() const {
-  int64_t diff = get_packets_cli2srv() - cli2srv_last_packets;
+  int64_t diff = get_packets_cli2srv() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_cli2srv_packets() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -753,7 +750,7 @@ u_int64_t Flow::get_current_packets_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_srv2cli() const {
-  int64_t diff = get_packets_srv2cli() - srv2cli_last_packets;
+  int64_t diff = get_packets_srv2cli() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_srv2cli_packets() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -982,10 +979,21 @@ void Flow::incFlowDroppedCounters() {
 void Flow::periodic_stats_update(void *user_data, bool quick) {
   periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*) user_data;
   struct timeval *tv = periodic_stats_update_user_data->tv;
-  u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
-  u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-    diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
-  bool updated = false;
+  bool first_partial;
+  PartializableFlowTrafficStats partial;
+  get_partial_traffic_stats(&periodic_stats_update_partial, &partial, &first_partial);
+
+  u_int32_t diff_sent_packets = partial.get_cli2srv_packets();
+  u_int64_t diff_sent_bytes = partial.get_cli2srv_bytes();
+  u_int64_t diff_sent_goodput_bytes = partial.get_cli2srv_goodput_bytes();
+
+  u_int32_t diff_rcvd_packets = partial.get_srv2cli_packets();
+  u_int64_t diff_rcvd_bytes = partial.get_srv2cli_bytes();
+  u_int64_t diff_rcvd_goodput_bytes = partial.get_srv2cli_goodput_bytes();
+
+  u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
+  u_int64_t diff_pkts  = diff_sent_packets + diff_rcvd_packets;
+  
   bool cli_and_srv_in_same_subnet = false;
   bool cli_and_srv_in_same_country = false;
   int16_t cli_network_id, srv_network_id;
@@ -1049,23 +1057,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
   }
 
   stats_protocol = getStatsProtocol();
-
-  sent_packets = get_packets_cli2srv(), sent_bytes = get_bytes_cli2srv(), sent_goodput_bytes = get_goodput_bytes_cli2srv();
-  diff_sent_packets = sent_packets - cli2srv_last_packets,
-    diff_sent_bytes = sent_bytes - cli2srv_last_bytes, diff_sent_goodput_bytes = sent_goodput_bytes - cli2srv_last_goodput_bytes;
-  prev_cli2srv_last_bytes = cli2srv_last_bytes, prev_cli2srv_last_goodput_bytes = cli2srv_last_goodput_bytes,
-    prev_cli2srv_last_packets = cli2srv_last_packets;
-
-  rcvd_packets = get_packets_srv2cli(), rcvd_bytes = get_bytes_srv2cli(), rcvd_goodput_bytes = get_goodput_bytes_srv2cli();
-  diff_rcvd_packets = rcvd_packets - srv2cli_last_packets,
-    diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
-  prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes,
-    prev_srv2cli_last_packets = srv2cli_last_packets;
-
-  cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes,
-    cli2srv_last_goodput_bytes = sent_goodput_bytes;
-  srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes,
-    srv2cli_last_goodput_bytes = rcvd_goodput_bytes;
 
   if(cli_host && srv_host) {
     cli_network_id = cli_host->get_local_network_id();
@@ -1239,19 +1230,12 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 
     if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
       // bps
-      u_int64_t diff_bytes_cli2srv = cli2srv_last_bytes - prev_cli2srv_last_bytes;
-      u_int64_t diff_bytes_srv2cli = srv2cli_last_bytes - prev_srv2cli_last_bytes;
-      u_int64_t diff_bytes         = diff_bytes_cli2srv + diff_bytes_srv2cli;
-
-      u_int64_t diff_goodput_bytes_cli2srv = cli2srv_last_goodput_bytes - prev_cli2srv_last_goodput_bytes;
-      u_int64_t diff_goodput_bytes_srv2cli = srv2cli_last_goodput_bytes - prev_srv2cli_last_goodput_bytes;
-
-      float bytes_msec_cli2srv         = ((float)(diff_bytes_cli2srv*1000))/tdiff_msec;
-      float bytes_msec_srv2cli         = ((float)(diff_bytes_srv2cli*1000))/tdiff_msec;
+      float bytes_msec_cli2srv         = ((float)(diff_sent_bytes*1000))/tdiff_msec;
+      float bytes_msec_srv2cli         = ((float)(diff_rcvd_bytes*1000))/tdiff_msec;
       float bytes_msec                 = bytes_msec_cli2srv + bytes_msec_srv2cli;
 
-      float goodput_bytes_msec_cli2srv = ((float)(diff_goodput_bytes_cli2srv*1000))/tdiff_msec;
-      float goodput_bytes_msec_srv2cli = ((float)(diff_goodput_bytes_srv2cli*1000))/tdiff_msec;
+      float goodput_bytes_msec_cli2srv = ((float)(diff_sent_goodput_bytes*1000))/tdiff_msec;
+      float goodput_bytes_msec_srv2cli = ((float)(diff_rcvd_goodput_bytes*1000))/tdiff_msec;
       float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
 
       if(isDetectionCompleted() && cli_host && srv_host) {
@@ -1318,12 +1302,8 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 #endif
 
 	// pps
-	u_int64_t diff_pkts_cli2srv = cli2srv_last_packets - prev_cli2srv_last_packets;
-	u_int64_t diff_pkts_srv2cli = srv2cli_last_packets - prev_srv2cli_last_packets;
-	u_int64_t diff_pkts         = diff_pkts_cli2srv + diff_pkts_srv2cli;
-
-	float pkts_msec_cli2srv     = ((float)(diff_pkts_cli2srv*1000))/tdiff_msec;
-	float pkts_msec_srv2cli     = ((float)(diff_pkts_srv2cli*1000))/tdiff_msec;
+	float pkts_msec_cli2srv     = ((float)(diff_sent_packets*1000))/tdiff_msec;
+	float pkts_msec_srv2cli     = ((float)(diff_rcvd_packets*1000))/tdiff_msec;
 	float pkts_msec             = pkts_msec_cli2srv + pkts_msec_srv2cli;
 
 	/* Just to be safe */
@@ -1344,15 +1324,11 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
 				       pkts_msec, tdiff_msec, diff_pkts, pkts_thpt);
 
-	updated = true;
       }
     }
-  } else
-    updated = true;
+  }
 
-  if(updated)
-    memcpy(&last_update_time, tv, sizeof(struct timeval));
-
+  memcpy(&last_update_time, tv, sizeof(struct timeval));
   GenericHashEntry::periodic_stats_update(user_data, quick);
 }
 

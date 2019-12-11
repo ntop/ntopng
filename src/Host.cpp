@@ -182,7 +182,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   nextResolveAttempt = 0, mdns_info = NULL;
   host_label_set = false;
   vlan_id = _vlanId % MAX_NUM_VLAN,
-  first_seen = last_seen = iface->getTimeLastPktRcvd();
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
