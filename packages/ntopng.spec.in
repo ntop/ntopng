@@ -94,6 +94,7 @@ rm -fr $RPM_BUILD_ROOT
 %files
 /usr/bin/ntopng
 /usr/bin/ntopctl
+/usr/bin/ntopng-utils-manage-config
 /usr/bin/ntopng-utils-manage-updates
 /usr/share/man/man8/ntopng.8.gz
 %config(noreplace) /etc/ntopng/ntopng.conf
