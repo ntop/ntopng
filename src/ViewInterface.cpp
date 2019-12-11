@@ -284,7 +284,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   const struct timeval *tv = periodic_ht_state_update_user_data->tv;
 
-  FlowTrafficStats partials;
+  PartializableFlowTrafficStats partials;
   bool first_partial; /* Whether this is the first time the view is visiting this flow */
   const IpAddress *cli_ip = f->get_cli_ip_addr(), *srv_ip = f->get_srv_ip_addr();
 

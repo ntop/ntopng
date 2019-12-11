@@ -2158,14 +2158,14 @@ void Flow::housekeep(time_t t) {
 
 /* *************************************** */
 
-bool Flow::get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *fts, bool *first_partial) const {
-  FlowTrafficStats tmp;
+bool Flow::get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *fts, bool *first_partial) const {
+  PartializableFlowTrafficStats tmp;
 
   if(!fts || !dst)
     return(false);
 
   if(!*dst) {
-    if(!(*dst = new (std::nothrow) FlowTrafficStats()))
+    if(!(*dst = new (std::nothrow) PartializableFlowTrafficStats()))
       return(false);
     *first_partial = true;
   } else
@@ -2178,14 +2178,14 @@ bool Flow::get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *f
 
 /* *************************************** */
 
-bool Flow::get_partial_traffic_stats_view(FlowTrafficStats *fts, bool *first_partial) {
+bool Flow::get_partial_traffic_stats_view(PartializableFlowTrafficStats *fts, bool *first_partial) {
   return get_partial_traffic_stats(&last_partial, fts, first_partial);
 }
   
 /* *************************************** */
 
 bool Flow::update_partial_traffic_stats_db_dump() {  
-  FlowTrafficStats delta;
+  PartializableFlowTrafficStats delta;
   bool first_partial;
 
   if(!get_partial_traffic_stats(&last_db_dump.partial, &delta, &first_partial))

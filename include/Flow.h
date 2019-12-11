@@ -166,13 +166,13 @@ class Flow : public GenericHashEntry {
   
   /* Counter values at last host update */
   struct {
-    FlowTrafficStats *partial;
-    FlowTrafficStats delta;
+    PartializableFlowTrafficStats *partial;
+    PartializableFlowTrafficStats delta;
     time_t first_seen, last_seen;
   } last_db_dump;
 
   /* Lazily initialized and used by a possible view interface */
-  FlowTrafficStats *last_partial;
+  PartializableFlowTrafficStats *last_partial;
 
 #ifdef HAVE_NEDGE
   struct {
@@ -216,7 +216,7 @@ class Flow : public GenericHashEntry {
   void updateSrvJA3();
   void updateHASSH(bool as_client);
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
-  bool get_partial_traffic_stats(FlowTrafficStats **dst, FlowTrafficStats *delta, bool *first_partial) const;
+  bool get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *delta, bool *first_partial) const;
   /**
    * @brief Method to call a given lua script on the flow
    * @details This method calls a lua script on the flow if there is time, that is, when quick is false. Otherwise
@@ -385,7 +385,7 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.get_srv2cli_packets(); };
   bool needsExtraDissection();
   bool hasDissectedTooManyPackets();
-  bool get_partial_traffic_stats_view(FlowTrafficStats *delta, bool *first_partial);
+  bool get_partial_traffic_stats_view(PartializableFlowTrafficStats *delta, bool *first_partial);
   inline FlowTrafficStats * getFlowTrafficStats() { return &stats; };
   bool update_partial_traffic_stats_db_dump();
   inline float get_bytes_thpt()          const { return(bytes_thpt);                      };

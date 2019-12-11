@@ -23,31 +23,14 @@
 
 /* *************************************** */
 
-FlowTrafficStats::FlowTrafficStats() {
-  cli2srv_packets = srv2cli_packets = 0;
-  cli2srv_bytes = srv2cli_bytes = 0;
-  cli2srv_goodput_bytes = srv2cli_goodput_bytes = 0;
-
-  memset(&cli2srv_tcp_stats, 0, sizeof(cli2srv_tcp_stats));
-  memset(&srv2cli_tcp_stats, 0, sizeof(srv2cli_tcp_stats));
-
+FlowTrafficStats::FlowTrafficStats() : PartializableFlowTrafficStats() {
   ndpi_init_data_analysis(&cli2srv_bytes_stats, 0),
     ndpi_init_data_analysis(&srv2cli_bytes_stats, 0);
 }
 
 /* *************************************** */
 
-FlowTrafficStats::FlowTrafficStats(const FlowTrafficStats &fts) {
-  cli2srv_packets = fts.cli2srv_packets;
-  srv2cli_packets = fts.srv2cli_packets;
-  cli2srv_bytes = fts.cli2srv_bytes;
-  srv2cli_bytes = fts.srv2cli_bytes;
-  cli2srv_goodput_bytes = fts.cli2srv_goodput_bytes;
-  srv2cli_goodput_bytes = fts.srv2cli_goodput_bytes;
-
-  memcpy(&cli2srv_tcp_stats, &fts.cli2srv_tcp_stats, sizeof(cli2srv_tcp_stats));
-  memcpy(&srv2cli_tcp_stats, &fts.srv2cli_tcp_stats, sizeof(srv2cli_tcp_stats));
-
+FlowTrafficStats::FlowTrafficStats(const FlowTrafficStats &fts) : PartializableFlowTrafficStats(fts) {
   ndpi_init_data_analysis(&cli2srv_bytes_stats, 0),
     ndpi_init_data_analysis(&srv2cli_bytes_stats, 0);
 }
@@ -65,89 +48,25 @@ const ndpi_analyze_struct* FlowTrafficStats::get_analize_struct(bool cli2srv_dir
 
 /* *************************************** */
 
-void FlowTrafficStats::incTcpStats(bool cli2srv_direction, u_int retr, u_int ooo, u_int lost, u_int keepalive) {
-  TCPPacketStats * cur_stats;
-
-  if(cli2srv_direction)
-    cur_stats = &cli2srv_tcp_stats;
-  else
-    cur_stats = &srv2cli_tcp_stats;
-
-  cur_stats->pktKeepAlive += keepalive;
-  cur_stats->pktRetr += retr;
-  cur_stats->pktOOO += ooo;
-  cur_stats->pktLost += lost;
-}
-
-
-/* *************************************** */
-
-void FlowTrafficStats::setTcpStats(bool cli2srv_direction, u_int retr, u_int ooo, u_int lost, u_int keepalive) {
-  TCPPacketStats * cur_stats;
-
-  if(cli2srv_direction)
-    cur_stats = &cli2srv_tcp_stats;
-  else
-    cur_stats = &srv2cli_tcp_stats;
-
-  cur_stats->pktKeepAlive = keepalive;
-  cur_stats->pktRetr = retr;
-  cur_stats->pktOOO = ooo;
-  cur_stats->pktLost = lost;
-}
-
-/* *************************************** */
-
 void FlowTrafficStats::incStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len) {
-  if(cli2srv_direction) {
-    cli2srv_packets += num_pkts, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len;
+  PartializableFlowTrafficStats::incStats(cli2srv_direction, num_pkts, pkt_len, payload_len);
+
+  if(cli2srv_direction)
     ndpi_data_add_value(&cli2srv_bytes_stats, pkt_len);
-  } else {
-    srv2cli_packets += num_pkts, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
+  else
     ndpi_data_add_value(&srv2cli_bytes_stats, pkt_len);
-  }
 }
 
 /* *************************************** */
 
 void FlowTrafficStats::setStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len) {
+  PartializableFlowTrafficStats::setStats(cli2srv_direction, num_pkts, pkt_len, payload_len);
+
   if(cli2srv_direction) {
-    cli2srv_packets = num_pkts, cli2srv_bytes = pkt_len, cli2srv_goodput_bytes = payload_len;
     ndpi_init_data_analysis(&cli2srv_bytes_stats, 0);
     ndpi_data_add_value(&cli2srv_bytes_stats, pkt_len);
   } else {
-    srv2cli_packets = num_pkts, srv2cli_bytes = pkt_len, srv2cli_goodput_bytes = payload_len;
     ndpi_init_data_analysis(&srv2cli_bytes_stats, 0);
     ndpi_data_add_value(&srv2cli_bytes_stats, pkt_len);
   }
-}
-
-/* *************************************** */
-
-void FlowTrafficStats::get_partial(FlowTrafficStats **dst, FlowTrafficStats *fts) const {
-  FlowTrafficStats tmp(*this); /* Set temp to the current value */
-
-  fts->setStats(true,
-		tmp.get_cli2srv_packets() - (*dst)->get_cli2srv_packets(),
-		tmp.get_cli2srv_bytes() - (*dst)->get_cli2srv_bytes(),
-		tmp.get_cli2srv_goodput_bytes() - (*dst)->get_cli2srv_goodput_bytes());
-
-  fts->setStats(false,
-		tmp.get_srv2cli_packets() - (*dst)->get_srv2cli_packets(),
-		tmp.get_srv2cli_bytes() - (*dst)->get_srv2cli_bytes(),
-		tmp.get_srv2cli_goodput_bytes() - (*dst)->get_srv2cli_goodput_bytes());
-
-  fts->setTcpStats(true,
-		   tmp.get_cli2srv_tcp_retr() - (*dst)->get_cli2srv_tcp_retr(),
-		   tmp.get_cli2srv_tcp_ooo() - (*dst)->get_cli2srv_tcp_ooo(),
-		   tmp.get_cli2srv_tcp_lost() - (*dst)->get_cli2srv_tcp_lost(),
-		   tmp.get_cli2srv_tcp_keepalive() - (*dst)->get_cli2srv_tcp_keepalive());
-
-  fts->setTcpStats(false,
-		   tmp.get_srv2cli_tcp_retr() - (*dst)->get_srv2cli_tcp_retr(),
-		   tmp.get_srv2cli_tcp_ooo() - (*dst)->get_srv2cli_tcp_ooo(),
-		   tmp.get_srv2cli_tcp_lost() - (*dst)->get_srv2cli_tcp_lost(),
-		   tmp.get_srv2cli_tcp_keepalive() - (*dst)->get_srv2cli_tcp_keepalive());
-
-  **dst = tmp; /* Use the copy constructor to snapshot the value of tmp to dst */
 }
