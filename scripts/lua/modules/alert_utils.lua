@@ -93,6 +93,10 @@ function alertTypeLabel(v, nohtml)
 end
 
 function alertType(v)
+  if(alert_consts.alert_types[v] == nil) then
+     tprint(debug.traceback())
+  end
+
   return(alert_consts.alert_types[v].alert_id)
 end
 

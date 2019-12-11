@@ -630,7 +630,7 @@ function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
       local full_path = os_utils.fixPath(checks_dir .. "/" .. mod_fname .. ".lua")
 
       if ntop.exists(full_path) then
-	 return(assert(loadfile(full_path))())
+	 return(dofile(full_path))
       end
    end
 

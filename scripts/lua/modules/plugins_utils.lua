@@ -27,8 +27,12 @@ local METADATA = nil
 
 -- ##############################################
 
+-- @brief Lists the all available plugins
+-- @returns a sorted table with plugins as values.
+-- @notes Plugins must be loaded based according to the sort order to honor dependencies
 function plugins_utils.listPlugins()
   local plugins = {}
+  local rv = {}
   local source_dirs = {{"community", plugins_utils.COMMUNITY_SOURCE_DIR}}
   local plugins_with_deps = {}
 
@@ -49,9 +53,12 @@ function plugins_utils.listPlugins()
       local plugin_info = os_utils.fixPath(plugin_dir .. "/plugin.lua")
 
       if ntop.exists(plugin_info) then
-        -- Using loadfile instead of require is needed since the plugin.lua
-        -- name is the same across the plusings
-        local metadata = assert(loadfile(plugin_info))()
+        local metadata = dofile(plugin_info)
+
+        if(metadata == nil) then
+          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load plugin.lua in '%s'", plugin_name))
+          goto continue
+        end
 
         -- Augument information
         metadata.path = plugin_dir
@@ -62,10 +69,13 @@ function plugins_utils.listPlugins()
           plugins_with_deps[plugin_name] = metadata
         else
           plugins[plugin_name] = metadata
+          rv[#rv + 1] = metadata
         end
       else
         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing plugin.lua in '%s'", plugin_name))
       end
+
+      ::continue::
     end
   end
 
@@ -88,10 +98,11 @@ function plugins_utils.listPlugins()
 
     if satisfied then
       plugins[plugin_name] = metadata
+      rv[#rv + 1] = metadata
     end
   end
 
-  return(plugins)
+  return(rv)
 end
 
 -- ##############################################
@@ -176,11 +187,38 @@ end
 
 -- ##############################################
 
-local function load_plugin_definitions(plugin)
-  return(
-    recursive_copy(os_utils.fixPath(plugin.path .. "/alert_definitions"), RUNTIME_PATHS.alert_definitions) and
-    recursive_copy(os_utils.fixPath(plugin.path .. "/status_definitions"), RUNTIME_PATHS.status_definitions)
-  )
+-- NOTE: cannot save the definitions to a single file via the persistance
+-- module because they may contain functions (e.g. in the i18n_description)
+local function load_definitions(defs_dir, runtime_path, validator)
+  for fname in pairs(ntop.readdir(defs_dir) or {}) do
+    if string.ends(fname, ".lua") then
+      local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+      local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
+      local def_script = dofile(full_path)
+
+      -- Verify the definitions
+      if(type(def_script) ~= "table") then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading definition from %s", full_path))
+        return(false)
+      end
+
+      if(validator and not validator(def_script, mod_fname, full_path)) then
+        return(false)
+      end
+
+      copy_file(fname, defs_dir, runtime_path)
+    end
+  end
+
+  return(true)
+end
+
+local function load_plugin_definitions(plugin, alert_definitions, status_definitions)
+  local alert_consts = require("alert_consts")
+  local flow_consts = require("flow_consts")
+
+  return(load_definitions(os_utils.fixPath(plugin.path .. "/alert_definitions"), RUNTIME_PATHS.alert_definitions, alert_consts.loadDefinition)
+    and load_definitions(os_utils.fixPath(plugin.path .. "/status_definitions"), RUNTIME_PATHS.status_definitions, flow_consts.loadDefinition))
 end
 
 -- ##############################################
@@ -256,10 +294,18 @@ local function load_plugin_user_scripts(paths_to_plugin, plugin)
   )
 
   for runtime_path, source_path in pairs(paths_map) do
-    paths_to_plugin[runtime_path] = {
-      source_path = source_path,
-      plugin = plugin,
-    }
+    -- Ensure that the script does not have errors
+    local res = dofile(runtime_path)
+
+    if(res == nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping bad user script '%s' in plugin '%s'", source_path, plugin.key))
+      os.remove(runtime_path)
+    else
+      paths_to_plugin[runtime_path] = {
+        source_path = source_path,
+        plugin = plugin,
+      }
+    end
   end
 
   return(rv)
@@ -272,7 +318,7 @@ local function load_plugin_web_gui(menu_entries, plugin)
 
   for fname in pairs(ntop.readdir(gui_dir)) do
     if(fname == "menu.lua") then
-      local menu_entry = assert(loadfile(os_utils.fixPath(gui_dir .. "/" .. fname)))()
+      local menu_entry = dofile(os_utils.fixPath(gui_dir .. "/" .. fname))
 
       if(menu_entry) then
         if(menu_entry.label == nil) then
@@ -311,7 +357,10 @@ end
 -- @notes This should be called at startup
 function plugins_utils.loadPlugins()
   local locales_utils = require("locales_utils")
+  local alert_consts = require("alert_consts")
+  local flow_consts = require("flow_consts")
   local plugins = plugins_utils.listPlugins()
+  local loaded_plugins = {}
   local locales = {}
   local menu_entries = {}
   local path_map = {}
@@ -323,11 +372,41 @@ function plugins_utils.loadPlugins()
   -- Initialize directories
   init_runtime_paths()
 
+  -- Ensure that the directory is writable
+  ntop.mkdir(plugins_utils.PLUGINS_RUNTIME_PATH)
+  local test_file = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/test")
+
+  local outfile, err = io.open(test_file, "w")
+  if(outfile) then
+    outfile:close()
+  end
+
+  if(outfile == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Cannot write to the plugins directory: %s. Plugins will not be loaded!",
+      err or plugins_utils.PLUGINS_RUNTIME_PATH))
+    return(false)
+  end
+
+  os.remove(test_file)
+
   for _, path in pairs(RUNTIME_PATHS) do
     ntop.mkdir(path)
   end
 
-  for _, plugin in pairs(plugins) do
+  -- Reset the definitions before loading
+  alert_consts.resetDefinitions()
+  flow_consts.resetDefinitions()
+
+  -- Load the plugins following the dependecies order
+  for _, plugin in ipairs(plugins) do
+    -- Ensure that the depencies has been loaded as well
+    for _, dep in pairs(plugin.dependencies or {}) do
+      if not loaded_plugins[dep] then
+        traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping plugin %s due to missing dependency '%s'", plugin.key, dep))
+        goto continue
+      end
+    end
+
     if do_trace then
       io.write(string.format("Loading plugin %s\n", plugin.key))
     end
@@ -337,10 +416,12 @@ function plugins_utils.loadPlugins()
         load_plugin_ts_schemas(plugin) and
         load_plugin_web_gui(menu_entries, plugin) and
         load_plugin_user_scripts(path_map, plugin) then
-      -- Ok
+      loaded_plugins[plugin.key] = plugin
     else
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Errors occurred while processing plugin %s", plugin.key))
     end
+
+    ::continue::
   end
 
   -- Save the locales
@@ -360,10 +441,12 @@ function plugins_utils.loadPlugins()
   -- Save loaded plugins metadata
   -- See load_metadata()
   local plugins_metadata = {
-    plugins = plugins,
+    plugins = loaded_plugins,
     path_map = path_map,
   }
   persistence.store(plugins_utils.PLUGINS_RUNTIME_METADATA, plugins_metadata)
+
+  return(true)
 end
 
 -- ##############################################
@@ -398,7 +481,7 @@ function plugins_utils.loadSchemas(granularity)
         -- Check if not already loaded
         if((schemas_loaded[fgran] == nil) and ntop.exists(fpath)) then
           -- load the script
-          assert(loadfile(fpath))()
+          dofile(fpath)
         end
       end
       
@@ -416,7 +499,7 @@ function plugins_utils.getMenuEntries()
   local menu_path = os_utils.fixPath(RUNTIME_PATHS.web_gui .. "/menu.lua")
 
   if ntop.exists(menu_path) then
-    local menu = assert(loadfile(menu_path))()
+    local menu = dofile(menu_path)
     return(menu)
   end
 
@@ -464,7 +547,7 @@ end
 
 local function load_metadata()
   if(METADATA == nil) then
-    METADATA = assert(loadfile(plugins_utils.PLUGINS_RUNTIME_METADATA))()
+    METADATA = dofile(plugins_utils.PLUGINS_RUNTIME_METADATA)
   end
 end
 

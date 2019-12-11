@@ -32,6 +32,7 @@ end
 --  alert_severity: the alert severity associated to this status
 --  i18n_title: a localization string for the status
 --  i18n_description (optional): a localization string / function for the description
+-- See flow_consts.resetDefinitions()
 flow_consts.status_types = {}
 local status_by_id = {}
 local status_key_by_id = {}
@@ -46,44 +47,74 @@ local function loadStatusDefs()
     end
 
     local defs_dir = flow_consts.getDefinititionsDir()
-    package.path = defs_dir .. "/?.lua;" .. package.path
-    local required_fields = {"status_id", "relevance", "prio", "alert_severity", "alert_type", "i18n_title"}
+    flow_consts.resetDefinitions()
 
     for fname in pairs(ntop.readdir(defs_dir)) do
         if ends(fname, ".lua") then
             local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-            local def_script = require(mod_fname)
+            local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
+            local def_script = dofile(full_path)
 
-            -- Check the required fields
-            for _, k in pairs(required_fields) do
-                if(def_script[k] == nil) then
-                    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in status_defs/%s", k, fname))
-                    goto next_script
-                end
-            end
-
-            local def_id = tonumber(def_script.status_id)
-
-            if(status_by_id[def_id] ~= nil) then
-                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("status_defs/%s: status ID %d redefined, skipping", fname, def_id))
+            if(def_script == nil) then
+                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading status definition from %s", full_path))
                 goto next_script
             end
 
-            if(status_by_prio[def_script.prio] ~= nil) then
-                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("status_defs/%s: status priority must be unique, skipping", fname))
-                goto next_script
-            end
-
-            -- Success
-            flow_consts.status_types[mod_fname] = def_script
-            status_by_id[def_id] = def_script
-            status_key_by_id[def_id] = mod_fname
-            max_prio = math.max(max_prio, def_script.prio)
-            status_by_prio[def_script.prio] = def_script
+            flow_consts.loadDefinition(def_script, mod_fname, full_path)
         end
 
         ::next_script::
     end
+end
+
+-- ################################################################################
+
+function flow_consts.resetDefinitions()
+   flow_consts.status_types = {}
+   status_by_id = {}
+   status_key_by_id = {}
+   status_by_prio = {}
+   max_prio = 0
+end
+
+-- ################################################################################
+
+function flow_consts.loadDefinition(def_script, mod_fname, script_path)
+    local required_fields = {"status_id", "relevance", "prio", "alert_severity", "alert_type", "i18n_title"}
+
+    -- Check the required fields
+    for _, k in pairs(required_fields) do
+        if(def_script[k] == nil) then
+            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s", k, script_path))
+            return(false)
+        end
+    end
+
+    local def_id = tonumber(def_script.status_id)
+
+    if(def_id == nil) then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing status ID %d", script_path, def_id))
+        return(false)
+    end
+
+    if(status_by_id[def_id] ~= nil) then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: status ID %d redefined, skipping", script_path, def_id))
+        return(false)
+    end
+
+    if(status_by_prio[def_script.prio] ~= nil) then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: status priority must be unique, skipping", script_path))
+        return(false)
+    end
+
+    -- Success
+    status_by_id[def_id] = def_script
+    status_key_by_id[def_id] = mod_fname
+    max_prio = math.max(max_prio, def_script.prio)
+    status_by_prio[def_script.prio] = def_script
+    flow_consts.status_types[mod_fname] = def_script
+
+    return(true)
 end
 
 -- ################################################################################

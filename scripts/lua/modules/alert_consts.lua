@@ -157,6 +157,7 @@ end
 -- ##############################################
 
 -- NOTE: flow alerts are formatted based on their status. See flow_consts.status_types.
+-- See alert_consts.resetDefinitions()
 alert_consts.alert_types = {}
 local alerts_by_id = {}
 
@@ -170,35 +171,64 @@ local function loadAlertsDefs()
    local dirs = ntop.getDirs()
    local defs_dir = alert_consts.getDefinititionsDir()
    package.path = defs_dir .. "/?.lua;" .. package.path
-   local required_fields = {"alert_id", "i18n_title", "icon"}
+
+   alert_consts.resetDefinitions()
 
    for fname in pairs(ntop.readdir(defs_dir)) do
       if string.ends(fname, ".lua") then
          local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-         local def_script = require(mod_fname)
+         local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
+         local def_script = dofile(full_path)
 
-         -- Check the required fields
-         for _, k in pairs(required_fields) do
-            if(def_script[k] == nil) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in alert_definitions/%s", k, fname))
-               goto next_script
-            end
+         if(def_script == nil) then
+             traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading alert definition from %s", full_path))
+             goto next_script
          end
 
-         local def_id = tonumber(def_script.alert_id)
-
-         if(alerts_by_id[def_id] ~= nil) then
-            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("alert_definitions/%s: alert ID %d redefined, skipping", fname, def_id))
-            goto next_script
-         end
-
-         -- Success
-         alert_consts.alert_types[mod_fname] = def_script
-         alerts_by_id[def_id] = mod_fname
+         alert_consts.loadDefinition(def_script, mod_fname, full_path)
       end
 
       ::next_script::
    end
+end
+
+-- ##############################################
+
+function alert_consts.resetDefinitions()
+   alert_consts.alert_types = {}
+   alerts_by_id = {}
+end
+
+-- ##############################################
+
+function alert_consts.loadDefinition(def_script, mod_fname, script_path)
+   local required_fields = {"alert_id", "i18n_title", "icon"}
+
+   -- Check the required fields
+   for _, k in pairs(required_fields) do
+      if(def_script[k] == nil) then
+         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in", k, script_path))
+         return(false)
+      end
+   end
+
+   local def_id = tonumber(def_script.alert_id)
+
+   if(def_id == nil) then
+       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing alert ID %d", script_path, def_id))
+       return(false)
+   end
+
+   if(alerts_by_id[def_id] ~= nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: alert ID %d redefined, skipping", script_path, def_id))
+      return(false)
+   end
+
+   alert_consts.alert_types[mod_fname] = def_script
+   alerts_by_id[def_id] = mod_fname
+
+   -- Success
+   return(true)
 end
 
 -- ##############################################
