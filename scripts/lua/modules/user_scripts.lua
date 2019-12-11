@@ -436,14 +436,31 @@ function user_scripts.load(ifid, script_type, subdir, options)
 
       for fname in pairs(ntop.readdir(checks_dir)) do
          if string.ends(fname, ".lua") then
-            local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-            local user_script = require(mod_fname)
             local setup_ok = true
+	    local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+	    local full_path = os_utils.fixPath(checks_dir .. "/" .. fname)
+	    local plugin = plugins_utils.getUserScriptPlugin(full_path)
+
+	    if(plugin == nil) then
+	       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping unknown user script '%s'", mod_fname))
+	       goto next_module
+	    end
+
+	    local edition = plugin.edition
+
+	    -- Recheck the edition as the demo mode may expire
+	    if((edition == "pro" and (not is_pro)) or
+	       ((edition == "enterprise" and (not is_enterprise)))) then
+	       traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, edition))
+	       goto next_module
+	    end
 
             traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
 
+            local user_script = require(mod_fname)
+
             if(type(user_script) ~= "table") then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", checks_dir.."/"..fname))
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))
                goto next_module
             end
 
@@ -484,17 +501,11 @@ function user_scripts.load(ifid, script_type, subdir, options)
 
             -- Augument with additional attributes
             user_script.is_alert = is_alert_path -- TODO fix
-            user_script.path = os_utils.fixPath(checks_dir .. "/" .. fname)
+            user_script.path = full_path
 	    user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
 	    user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)
-	    user_script.plugin = plugins_utils.getUserScriptPlugin(user_script.path)
-	    user_script.edition = user_script.plugin.edition
-
-	    -- Recheck the edition as the demo mode may expire
-	    if((user_script.edition == "pro" and (not is_pro)) or
-	       ((user_script.edition == "enterprise" and (not is_enterprise)))) then
-	       goto next_module
-	    end
+	    user_script.plugin = plugin
+	    user_script.edition = edition
 
             if((not return_all) and alerts_disabled and user_script.is_alert) then
                goto next_module
