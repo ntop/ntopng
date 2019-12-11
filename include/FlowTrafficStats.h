@@ -26,7 +26,6 @@
 
 typedef struct {
   u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
-  u_int64_t last, next;
 } TCPPacketStats;
 
 class FlowTrafficStats {
