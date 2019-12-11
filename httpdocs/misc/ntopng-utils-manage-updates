@@ -114,7 +114,7 @@ function check_updates() {
 		# CentOS
 
 		# Check update and get version
-		NTOPNG_VERSION=$(${YUM} check-update ntopng | grep ntopng | tr -s' ' | cut -d' ' -f2)
+		NTOPNG_VERSION=$(${YUM} check-update ntopng | grep ntopng | tr -s ' ' | cut -d' ' -f2)
 	fi
 
 	# If there is an update, set new version on redis, otherwise delete the current version (if any)
