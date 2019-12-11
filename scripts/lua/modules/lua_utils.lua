@@ -1754,39 +1754,6 @@ function hostinfo2jqueryid(host_info,host_type)
   return rsp
 end
 
--- version is major.minor.veryminor
-function version2int(v)
-   if(v == nil) then return(0) end
-
-  e = string.split(v, "%.");
-  if(e ~= nil) then
-    major = e[1]
-    minor = e[2]
-    veryminor = e[3]
-
-    if(major == nil or tonumber(major) == nil or type(major) ~= "string")     then major = 0 end
-    if(minor == nil or tonumber(minor) == nil or type(minor) ~= "string")     then minor = 0 end
-    if(veryminor == nil or tonumber(veryminor) == nil or type(veryminor) ~= "string") then veryminor = 0 end
-
-    version = tonumber(major)*1000 + tonumber(minor)*100 -- + tonumber(veryminor)
-    return(version)
-  else
-    return(0)
-  end
-end
-
-function get_version_update_msg(info, latest_version)
-  version_elems = split(info["version"], " ")
-  new_version = version2int(latest_version)
-  this_version = version2int(version_elems[1])
-
-  if(new_version > this_version) then
-   return [[<div class='alert alert-warning'><font color=red><i class='fa fa-cloud-download fa-lg'></i> A new ]]..info["product"]..[[ (v.]]..(latest_version)..[[) is available for <A HREF='http://www.ntop.org/get-started/download/'>download</A>: please upgrade.</font></div>]]
-  else
-   return ""
-  end
-end
-
 -- NOTE: on index based tables using #table is much more performant
 function table.len(table)
  local count = 0

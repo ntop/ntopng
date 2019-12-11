@@ -3697,6 +3697,15 @@ local lang = {
     ["select_pool"] = "Please select an host pool from the dropdown below to assign '%{mac}' to:",
     ["unassigned_devices"] = "Unassigned Devices",
   },
+  ["updates"] = {
+    ["available"] = "New ntopng ",
+    ["check"] = "Check for updates",
+    ["checking"] = "Checking for updates..",
+    ["install"] = "Install update",
+    ["install_confirm"] = "Do you want to update and restart ntopng now?",
+    ["installing"] = "Installing update..",
+    ["no_updates"] = "No updates available",
+  },
   ["user_activity"] = {
     ["alerts_deleted"] = "User '%{user}' purged '%{status}' alerts.",
     ["changed_preference"] = "User '%{user}' changed settings for %{pref}.",

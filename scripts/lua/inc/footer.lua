@@ -523,35 +523,6 @@ if not table.empty(_POST) then
   ]]
 end
 
--- Update check
-local latest_version = ntop.getCache("ntopng.cache.version")
-
-latest_version = trimSpace(string.gsub(latest_version, "\n", ""))
-
-if isEmptyString(latest_version) then
-  print[[
-  $.ajax({
-      type: 'GET',
-        url: ']]
-print (ntop.getHttpPrefix())
-print [[/lua/check_update.lua',
-        data: {},
-        success: function(rsp) {
-          if(rsp && rsp.msg)
-            $("#ntopng_update_available").html(rsp.msg);
-        }
-    });
-  ]]
-else
-  local msg = get_version_update_msg(info, latest_version)
-
-  if not isEmptyString(msg) then
-    print[[
-      $("#ntopng_update_available").html("]] print(msg) print[[");
-    ]]
-  end
-end
-
 print[[
 
 // hide the possibly shown alerts icon in the header

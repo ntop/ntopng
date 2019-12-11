@@ -447,6 +447,18 @@ path.link {
 /*   background-color: #EFEFEF !important; */
 /* } */
 
+.dropdown-item-disabled:not([href]):hover {
+  color: #888
+}
+
+.dropdown-item-disabled:not([href]) {
+  color: #888
+}
+
+.dropdown-item-disabled {
+  color: #888
+}
+
 /* CSS for eBPF process charts */
 .link {
   fill: none;

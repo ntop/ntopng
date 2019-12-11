@@ -15,6 +15,7 @@ ntopng-prep:
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8
 	cp -r $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
 	mv ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config ${NTOPNG_BUILD}/usr/bin/
+	mv ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-updates ${NTOPNG_BUILD}/usr/bin/
 	cp $(NTOPNG_HOME)/packages/usr/bin/ntopctl ${NTOPNG_BUILD}/usr/bin/
 	cp -Lr $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/share/ntopng  # L to dereference symlinks
 	mv ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
