@@ -430,6 +430,94 @@ if(is_admin) then
   print[[ <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration" target="_blank"><i class="fa fa-upload"></i> ]] print(i18n("conf_backup.conf_restore")) print[[ <i class="fa fa-external-link"></i></a></li>]]
 end
 
+-- Updates submenu
+if(is_admin) then
+  print [[
+      <li class="dropdown-divider"></li>
+      <li class="dropdown-header" id="updates-info-li"></li>
+      <li class="nav-item"><a class="dropdown-item" id="updates-install-li" href="#"></a></li>
+  ]]
+
+-- Updates check
+print[[
+<script>
+  $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
+  $('#updates-install-li').hide();
+
+  /* Install latest update */
+  var installUpdate = function() {
+    if (confirm(']] print(i18n("updates.install_confirm")) print[[')) {
+      $.ajax({
+        type: 'POST',
+        url: ']] print (ntop.getHttpPrefix()) print [[/lua/install_update.lua',
+        data: {
+          csrf: ']] print(ntop.getRandomCSRFValue()) print[['
+        },
+        success: function(rsp) {
+          $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
+          $('#updates-install-li').hide();
+        }
+      });
+    }
+  }
+
+  /* Check for new updates */
+  var checkForUpdates = function() {
+    $.ajax({
+      type: 'POST',
+      url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
+      data: {
+        search: 'true',
+        csrf: ']] print(ntop.getRandomCSRFValue()) print[['
+      },
+      success: function(rsp) {
+        $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
+        $('#updates-install-li').hide();
+      }
+    });
+  }
+
+  /* Update the menu with the current updates status */
+  var updatesRefresh = function() {
+    $.ajax({
+      type: 'GET',
+        url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
+        data: {},
+        success: function(rsp) {
+          if(rsp && rsp.status) {
+
+            if (rsp.status == 'installing') {
+              $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
+              $('#updates-install-li').hide();
+
+            } else if (rsp.status == 'checking') {
+              $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
+              $('#updates-install-li').hide();
+
+            } else if (rsp.status == 'update-avail') { 
+              $('#updates-info-li').html(']] print(i18n("updates.available")) print[[' + rsp.version + '!');
+              $('#updates-install-li').html('<i class="fa fa-download"></i> ]] print(i18n("updates.install")) print[[');
+              $('#updates-install-li').show();
+              $('#updates-install-li').off("click");
+              $('#updates-install-li').click(installUpdate);
+
+            } else /* (rsp.status == 'not-avail') */ {
+              $('#updates-info-li').html(']] print(i18n("updates.no_updates")) print[[');
+              $('#updates-install-li').html('<i class="fa fa-sync"></i> ]] print(i18n("updates.check")) print[[');
+              $('#updates-install-li').show();
+              $('#updates-install-li').off("click");
+              $('#updates-install-li').click(checkForUpdates);
+            }
+          }
+        }
+    });
+  }
+  updatesRefresh();
+  setInterval(updatesRefresh, 10000);
+</script>
+]]
+end
+
 print[[
     </ul>
   </li>]]
@@ -581,94 +669,6 @@ print [[
       <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
       <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link"></i></a></li>
 ]]
-
--- Updates submenu
-if(is_admin) then
-  print [[
-      <li class="dropdown-divider"></li>
-      <li class="nav-item"><a class="dropdown-item dropdown-item-disabled" id="updates-info-li"></a></li>
-      <li class="nav-item"><a class="dropdown-item" id="updates-install-li" href="#"></a></li>
-  ]]
-
--- Updates check
-print[[
-<script>
-  $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
-  $('#updates-install-li').hide();
-
-  /* Install latest update */
-  var installUpdate = function() {
-    if (confirm(']] print(i18n("updates.install_confirm")) print[[')) {
-      $.ajax({
-        type: 'POST',
-        url: ']] print (ntop.getHttpPrefix()) print [[/lua/install_update.lua',
-        data: {
-          csrf: ']] print(ntop.getRandomCSRFValue()) print[['
-        },
-        success: function(rsp) {
-          $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
-          $('#updates-install-li').hide();
-        }
-      });
-    }
-  }
-
-  /* Check for new updates */
-  var checkForUpdates = function() {
-    $.ajax({
-      type: 'POST',
-      url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
-      data: {
-        search: 'true',
-        csrf: ']] print(ntop.getRandomCSRFValue()) print[['
-      },
-      success: function(rsp) {
-        $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
-        $('#updates-install-li').hide();
-      }
-    });
-  }
-
-  /* Update the menu with the current updates status */
-  var updatesRefresh = function() {
-    $.ajax({
-      type: 'GET',
-        url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
-        data: {},
-        success: function(rsp) {
-          if(rsp && rsp.status) {
-
-            if (rsp.status == 'installing') {
-              $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
-              $('#updates-install-li').hide();
-
-            } else if (rsp.status == 'checking') {
-              $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
-              $('#updates-install-li').hide();
-
-            } else if (rsp.status == 'update-avail') { 
-              $('#updates-info-li').html(']] print(i18n("updates.available")) print[[' + rsp.version + '!');
-              $('#updates-install-li').html('<i class="fa fa-download"></i> ]] print(i18n("updates.install")) print[[');
-              $('#updates-install-li').show();
-              $('#updates-install-li').off("click");
-              $('#updates-install-li').click(installUpdate);
-
-            } else /* (rsp.status == 'not-avail') */ {
-              $('#updates-info-li').html(']] print(i18n("updates.no_updates")) print[[');
-              $('#updates-install-li').html('<i class="fa fa-sync"></i> ]] print(i18n("updates.check")) print[[');
-              $('#updates-install-li').show();
-              $('#updates-install-li').off("click");
-              $('#updates-install-li').click(checkForUpdates);
-            }
-          }
-        }
-    });
-  }
-  updatesRefresh();
-  setInterval(updatesRefresh, 10000);
-</script>
-]]
-end
 
 print [[
 </ul>
