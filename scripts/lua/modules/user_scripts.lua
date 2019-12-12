@@ -389,6 +389,39 @@ end
 
 -- ##############################################
 
+local function init_user_script(user_script, mod_fname, full_path, plugin, configs)
+   user_script.key = mod_fname
+   user_script.is_alert = false -- TODO fix
+   user_script.path = full_path
+   user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
+   user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)
+   user_script.plugin = plugin
+   user_script.edition = plugin.edition
+
+   -- Load the configuration
+   user_script.conf = configs[user_script.key] or {}
+
+   -- TODO remove after gui migration
+   if(user_script.gui and (user_script.gui.input_builder == nil)) then
+      user_script.gui.input_builder = user_scripts.checkbox_input_builder
+   end
+   if(user_script.gui and user_script.gui.post_handler == nil) then
+      user_script.gui.post_handler = user_scripts.getDefaultPostHandler(user_script.gui.input_builder) or user_scripts.checkbox_post_handler
+   end
+   -- end TODO
+
+   if(user_script.gui and user_script.gui.input_builder and (not user_script.gui.post_handler)) then
+      -- Try to use a default post handler
+      user_script.gui.post_handler = user_scripts.getDefaultPostHandler(user_script.gui.input_builder)
+
+      if(user_script.gui.post_handler == nil) then
+	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' is missing the gui.post_handler", user_script.key))
+      end
+   end
+end
+
+-- ##############################################
+
 -- @brief Load the user scripts.
 -- @param ifid the interface ID
 -- @param script_type one of user_scripts.script_types
@@ -409,6 +442,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
    local is_pro = ntop.isPro()
    local is_enterprise = ntop.isEnterprise()
    options = options or {}
+   ifid = tonumber(ifid)
 
    -- Load additional schemas
    plugins_utils.loadSchemas(options.hook_filter)
@@ -432,8 +466,6 @@ function user_scripts.load(ifid, script_type, subdir, options)
    for _, checks_dir in pairs(check_dirs) do
       package.path = checks_dir .. "/?.lua;" .. package.path
 
-      local is_alert_path = string.ends(checks_dir, "alerts")
-
       for fname in pairs(ntop.readdir(checks_dir)) do
          if string.ends(fname, ".lua") then
             local setup_ok = true
@@ -446,12 +478,10 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	       goto next_module
 	    end
 
-	    local edition = plugin.edition
-
 	    -- Recheck the edition as the demo mode may expire
-	    if((edition == "pro" and (not is_pro)) or
-	       ((edition == "enterprise" and (not is_enterprise)))) then
-	       traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, edition))
+	    if((plugin.edition == "pro" and (not is_pro)) or
+	       ((plugin.edition == "enterprise" and (not is_enterprise)))) then
+	       traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, plugin.edition))
 	       goto next_module
 	    end
 
@@ -464,16 +494,13 @@ function user_scripts.load(ifid, script_type, subdir, options)
                goto next_module
             end
 
-	    -- Key is an alias for the module name
-	    user_script.key = mod_fname
-
-            if(rv.modules[user_script.key]) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", user_script.key))
+            if(rv.modules[mod_fname]) then
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
                goto next_module
             end
 
             if((not return_all) and user_script.packet_interface_only and (not interface.isPacketInterface())) then
-               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for non packet interface", user_script.key))
+               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for non packet interface", mod_fname))
                goto next_module
             end
 
@@ -486,7 +513,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
             end
 
             if(table.empty(user_script.hooks)) then
-               traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s', skipping", user_script.key))
+               traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s', skipping", mod_fname))
                goto next_module
             end
 
@@ -494,49 +521,23 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	       user_script.l7_proto_id = interface.getnDPIProtoId(user_script.l7_proto)
 
 	       if(user_script.l7_proto_id == -1) then
-		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown L7 protocol filter '%s' in user script '%s', skipping", user_script.l7_proto, user_script.key))
+		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown L7 protocol filter '%s' in user script '%s', skipping", user_script.l7_proto, mod_fname))
 		  goto next_module
 	       end
 	    end
 
             -- Augument with additional attributes
-            user_script.is_alert = is_alert_path -- TODO fix
-            user_script.path = full_path
-	    user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
-	    user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)
-	    user_script.plugin = plugin
-	    user_script.edition = edition
+	    init_user_script(user_script, mod_fname, full_path, plugin, rv.conf)
 
-            if((not return_all) and alerts_disabled and user_script.is_alert) then
-               goto next_module
-            end
-
-            if(hook_filter ~= nil) then
-               -- Only return modules which should be called for the specified hook
-               if((user_script.hooks[hook_filter] == nil) and (user_script.hooks["all"] == nil)) then
-                  traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for hook '%s'", user_script.key, hook_filter))
-                  goto next_module
-               end
-            end
-
-	    -- Load the configuration
-	    user_script.conf = rv.conf[user_script.key] or {}
-
-	    -- TODO remove after gui migration
-	    if(user_script.gui and (user_script.gui.input_builder == nil)) then
-	       user_script.gui.input_builder = user_scripts.checkbox_input_builder
+	    if((not return_all) and alerts_disabled and user_script.is_alert) then
+	       goto next_module
 	    end
-	    if(user_script.gui and user_script.gui.post_handler == nil) then
-	       user_script.gui.post_handler = user_scripts.getDefaultPostHandler(user_script.gui.input_builder) or user_scripts.checkbox_post_handler
-	    end
-	    -- end TODO
 
-	    if(user_script.gui and user_script.gui.input_builder and (not user_script.gui.post_handler)) then
-	       -- Try to use a default post handler
-	       user_script.gui.post_handler = user_scripts.getDefaultPostHandler(user_script.gui.input_builder)
-
-	       if(user_script.gui.post_handler == nil) then
-		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' is missing the gui.post_handler", user_script.key))
+	    if(hook_filter ~= nil) then
+	       -- Only return modules which should be called for the specified hook
+	       if((user_script.hooks[hook_filter] == nil) and (user_script.hooks["all"] == nil)) then
+		  traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for hook '%s'", user_script.key, hook_filter))
+		  goto next_module
 	       end
 	    end
 
@@ -628,9 +629,18 @@ function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
 
    for _, checks_dir in pairs(check_dirs) do
       local full_path = os_utils.fixPath(checks_dir .. "/" .. mod_fname .. ".lua")
+      local plugin = plugins_utils.getUserScriptPlugin(full_path)
 
-      if ntop.exists(full_path) then
-	 return(dofile(full_path))
+      if(ntop.exists(full_path) and (plugin ~= nil)) then
+	 local user_script = dofile(full_path)
+
+	 if(user_script ~= nil) then
+	    local configs = loadConfiguration(subdir)
+
+	    init_user_script(user_script, mod_fname, full_path, plugin, configs)
+
+	    return(user_script)
+	 end
       end
    end
 

@@ -1183,6 +1183,10 @@ local known_parameters = {
    ["ewma_alpha_percent"]      = validateNumber,
    ["senders_receivers"]       = validateSendersReceivers,      -- Used in top scripts
    ["fingerprint_type"]        = validateFingerprintType,
+   ["granularity"]             = validateSingleWord,
+   ["script_type"]             = validateSingleWord,
+   ["script_subdir"]           = validateSingleWord,
+   ["script_key"]              = validateSingleWord,
 
 -- Script editor
    ["lua_script_path"]         = validateLuaScriptPath,
