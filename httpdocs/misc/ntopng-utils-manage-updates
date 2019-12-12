@@ -114,6 +114,7 @@ function check_updates() {
 		# CentOS
 
 		# Check update and get version
+		${YUM} clean all
 		NTOPNG_VERSION=$(${YUM} check-update ntopng | grep ntopng | tr -s ' ' | cut -d' ' -f2)
 	fi
 
@@ -160,6 +161,8 @@ function handle_upgrade_requests() {
 			# CentOS
 
 			# Install
+			${YUM} clean all
+			${YUM} check-update ntopng
 			${YUM} -y install ntopng
 			RESULT=$?
 		fi
