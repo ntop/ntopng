@@ -2624,6 +2624,7 @@ static int ntop_set_default_file_permissions(lua_State* vm) {
 #endif
 
   lua_pushnil(vm);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -6033,6 +6034,20 @@ static inline int ntop_interface_reset_mac_stats(lua_State* vm) {
 // ***API***
 static int ntop_interface_delete_mac_data(lua_State* vm) {
   return(ntop_interface_reset_mac_stats(vm, true));
+}
+
+/* ****************************************** */
+
+static int ntop_is_package(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+#ifdef NTOPNG_PRO
+  /* This assumes that pro version is available from packages only.
+   * Please consider changing this check if this is no longer the case. */
+  lua_pushboolean(vm, true);
+#else
+  lua_pushboolean(vm, false);
+#endif
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -11182,6 +11197,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isEnterprise",           ntop_is_enterprise },
   { "isnEdge",                ntop_is_nedge },
   { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
+  { "isPackage",              ntop_is_package },
 
   /* Historical database */
   { "insertMinuteSampling",          ntop_stats_insert_minute_sampling },
