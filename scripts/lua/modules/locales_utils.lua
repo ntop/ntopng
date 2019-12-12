@@ -7,10 +7,25 @@ local dirs = ntop.getDirs()
 
 local locales = {}
 
+-- ##############################################
+
 local default_locale = "en"
 local default_locale_path = dirs.installdir..'/scripts/locales/en.lua'
+local available_locales = {}
+local locales_initialized = false
 
-function i18n.loadLocaleFile(path, locale)
+local supported_locales = {
+   {code = "en"},
+   {code = "it"},
+   {code = "de"},
+   {code = "jp"},
+   {code = "pt"},
+   {code = "cz"}
+}
+
+-- ##############################################
+
+function locales.loadLocaleFile(path, locale)
   local chunk = assert(loadfile(path))
   local data = chunk()
 
@@ -30,28 +45,7 @@ function i18n.loadLocaleFile(path, locale)
   i18n.load({[locale]=data})
 end
 
--- Provides a fallback for not already localized strings
-i18n.loadLocaleFile(default_locale_path, default_locale)
-
-locales.default_locale = default_locale
-
--- language is a global variable set from C that corresponds to the user default language
--- it may be null when lua_utils are imported from periodic scripts
-if language == nil then
-   local admin_lang = ntop.getPref("ntopng.user.admin.language")
-   language = ternary(isEmptyString(admin_lang), locales.default_locale, admin_lang)
-end
-
-i18n.setLocale(language)
-
-local supported_locales = {
-   {code = "en"},
-   {code = "it"},
-   {code = "de"},
-   {code = "jp"},
-   {code = "pt"},
-   {code = "cz"}
-}
+-- ##############################################
 
 local function lookupLocale(localename)
    local base_path = dirs.installdir..'/scripts/locales/'
@@ -64,29 +58,54 @@ local function lookupLocale(localename)
    return nil
 end
 
--- Note: en already loaded
-if (language ~= "en") and (not ntop.isnEdge()) then
-   local locale_path = lookupLocale(language)
+-- ##############################################
 
-   if locale_path then
-      i18n.loadLocaleFile(locale_path, language)
+local function initLocales()
+   if(locales_initialized) then
+      -- Already initialized
+      return
    end
-end
 
-local available_locales = {}
+   -- Provides a fallback for not already localized strings
+   locales.loadLocaleFile(default_locale_path, default_locale)
 
--- use pairsByKeys to impose an order
-for _, locale in ipairs(supported_locales) do
-   local localename = locale["code"]
+   locales.default_locale = default_locale
 
-   if lookupLocale(localename) then
-      available_locales[#available_locales + 1] = locale
+   -- language is a global variable set from C that corresponds to the user default language
+   -- it may be null when lua_utils are imported from periodic scripts
+   if language == nil then
+      local admin_lang = ntop.getPref("ntopng.user.admin.language")
+      language = ternary(isEmptyString(admin_lang), locales.default_locale, admin_lang)
    end
+
+   i18n.setLocale(language)
+
+   -- Note: en already loaded
+   if (language ~= "en") and (not ntop.isnEdge()) then
+      local locale_path = lookupLocale(language)
+
+      if locale_path then
+         locales.loadLocaleFile(locale_path, language)
+      end
+   end
+
+   -- use pairsByKeys to impose an order
+   for _, locale in ipairs(supported_locales) do
+      local localename = locale["code"]
+
+      if lookupLocale(localename) then
+         available_locales[#available_locales + 1] = locale
+      end
+   end
+
+   locales_initialized = true
 end
 
 -- ##############################################
 
 function locales.getAvailableLocales()
+   initLocales()
+
    return available_locales
 end
 
@@ -99,6 +118,23 @@ function locales.readDefaultLocale()
 
   return(data)
 end
+
+-- ##############################################
+
+-- Locales lazy loading: only load them when a script calls i18n(...)
+local orig_i18n_metatable = getmetatable(i18n)
+local i18n_mt = {}
+
+-- Replace the i18n(...) invocation
+function i18n_mt.__call(...)
+   -- ensure that the loacales are loaded
+   initLocales()
+
+   -- call the original i18n function
+   return(orig_i18n_metatable.__call(...))
+end
+
+setmetatable(i18n, i18n_mt)
 
 -- ##############################################
 
