@@ -1434,11 +1434,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   }
 
   if(flow->isDetectionCompleted()
-     && (!isSampledTraffic())
-     && flow->get_cli_host() && flow->get_srv_host()) {
+     && (!isSampledTraffic())) {
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_DHCP:
-      {
+      if(*srcHost) {
 	Mac *mac = (*srcHost)->getMac(), *payload_cli_mac;
 
 	if(mac && (trusted_payload_len > 240)) {
@@ -1507,7 +1506,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       break;
 
     case NDPI_PROTOCOL_DHCPV6:
-      {
+      if(*srcHost && *dstHost){
 	Mac *src_mac = (*srcHost)->getMac();
 	Mac *dst_mac = (*dstHost)->getMac();
 

@@ -977,6 +977,34 @@ void Flow::incFlowDroppedCounters() {
     flow_dropped_counts_increased = true;
   }
 }
+/* *************************************** */
+
+void Flow::hosts_periodic_stats_update(Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, const struct timeval *tv) const {
+  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
+  case NDPI_PROTOCOL_HTTP:
+    if(cli_host && cli_host->getHTTPstats()) cli_host->getHTTPstats()->incStats(true  /* Client */, partial->get_flow_http_stats());
+    if(srv_host && srv_host->getHTTPstats()) srv_host->getHTTPstats()->incStats(false /* Server */, partial->get_flow_http_stats());
+
+    if(operating_system != os_unknown) {
+      if(cli_host
+	 && !(get_cli_ip_addr()->isBroadcastAddress()
+	      || get_cli_ip_addr()->isMulticastAddress()))
+	cli_host->setOS(operating_system);
+    }
+  }
+
+  if(srv_host
+     && host_server_name
+     && isThreeWayHandshakeOK()
+     && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
+	 || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
+    if(srv_host->getHTTPstats())
+      srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
+						      partial->get_num_http_requests(),
+						      partial->get_cli2srv_bytes(),
+						      partial->get_srv2cli_bytes());
+  }
+}
 
 /* *************************************** */
 
@@ -1070,16 +1098,7 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
       cli_and_srv_in_same_subnet = true;
 
     if(diff_sent_bytes || diff_rcvd_bytes) {
-      switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
-      case NDPI_PROTOCOL_HTTP:
-	if(cli_host->getHTTPstats()) cli_host->getHTTPstats()->incStats(true  /* Client */, partial.get_flow_http_stats());
-	if(srv_host->getHTTPstats()) srv_host->getHTTPstats()->incStats(false /* Server */, partial.get_flow_http_stats());
-	if(operating_system != os_unknown) {
-	  if(!(get_cli_ip_addr()->isBroadcastAddress()
-	       || get_cli_ip_addr()->isMulticastAddress()))
-	    cli_host->setOS(operating_system);
-	}
-      }
+      hosts_periodic_stats_update(cli_host, srv_host, &partial, tv);
 
       /* Update L2 Device stats */
       if(srv_mac) {
@@ -1214,15 +1233,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 	}
       }
 
-      if(host_server_name
-	 && isThreeWayHandshakeOK()
-	 && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
-	     || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
-	if(srv_host->getHTTPstats())
-	  srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
-							  partial.get_num_http_requests(),
-							  diff_sent_bytes, diff_rcvd_bytes);
-      }
     }
 
     /* Check and possibly enqueue host remote-to-remote alerts */

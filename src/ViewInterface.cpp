@@ -302,6 +302,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 		    NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
 		    NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
 
+      f->hosts_periodic_stats_update(cli_host, srv_host, &partials, tv);
+
       if(cli_host) {
 	cli_host->incStats(tv->tv_sec, f->get_protocol(),
 			   f->getStatsProtocol(), f->get_protocol_category(),
