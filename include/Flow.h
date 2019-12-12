@@ -267,9 +267,10 @@ class Flow : public GenericHashEntry {
         ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
          (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
   }
-  inline bool isMaskedFlow() {
-    return(!get_cli_host() || Utils::maskHost(get_cli_host()->isLocalHost())
-	   || !get_srv_host() || Utils::maskHost(get_srv_host()->isLocalHost()));
+  inline bool isMaskedFlow() const {
+    int16_t network_id;
+    return(Utils::maskHost(get_cli_ip_addr()->isLocalHost(&network_id))
+	   || Utils::maskHost(get_srv_ip_addr()->isLocalHost(&network_id)));
   };
   inline const char* getServerCipherClass()  const { return(isTLS() ? cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher) : NULL); }
   char* serialize(bool es_json = false);

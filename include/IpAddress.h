@@ -79,7 +79,7 @@ class IpAddress {
   inline void setVersion(u_int8_t version)            { addr.ipVersion = version; };
   char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF) const;
   char* printMask(char *str, u_int str_len, bool isLocalIP);
-  bool isLocalHost(int16_t *network_id);
+  bool isLocalHost(int16_t *network_id) const;
   bool isLocalInterfaceAddress();
   char* serialize();
   bool get_sockaddr(struct sockaddr ** const sa, ssize_t * const sa_len) const;

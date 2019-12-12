@@ -217,7 +217,7 @@ char* IpAddress::printMask(char *str, u_int str_len, bool isLocalIP) {
 
 /* ******************************************* */
 
-bool IpAddress::isLocalHost(int16_t *network_id) {
+bool IpAddress::isLocalHost(int16_t *network_id) const {
   if(addr.ipVersion == 4) {
     u_int32_t v = /* htonl */(addr.ipType.ipv4);
 
