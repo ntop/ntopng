@@ -130,8 +130,8 @@ function check_updates() {
 function check_updates_on_demand() {
 	CHECK_FOR_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_CHECK_FOR_UPDATES_KEY} | grep 1)
 	if [ "${CHECK_FOR_UPDATES}" == "1" ]; then
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY}
 		check_updates
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY}
 	fi
 }
 
