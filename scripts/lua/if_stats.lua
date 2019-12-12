@@ -635,15 +635,17 @@ if(ifstats.zmqRecvStats ~= nil) then
         print("</td></tr>\n")
       end
    end
- 
-   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then
+
+   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then  
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(ifId)
 
       print("</td></tr>\n")
-      
+   end
+
+   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false) then      
       print("<tr><th width=250>"..i18n("if_stats_overview.reset_counters").."</th>")
       print("<td colspan=5>")
 
