@@ -729,14 +729,16 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if isAdministrator() then
+   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(ifId)
 
       print("</td></tr>\n")
+   end
 
+   if isAdministrator() then
       print("<tr><th width=250>"..i18n("if_stats_overview.reset_counters").."</th>")
       print("<td colspan=5>")
 
