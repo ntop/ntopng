@@ -431,7 +431,7 @@ if(is_admin) then
 end
 
 -- Updates submenu
-if(is_admin and ntop.isPackage() and not ntop.isWindows) then
+if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
   print [[
       <li class="dropdown-divider"></li>
       <li class="dropdown-header" id="updates-info-li"></li>
