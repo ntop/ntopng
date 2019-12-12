@@ -359,8 +359,6 @@ end
 -- @notes This should be called at startup
 function plugins_utils.loadPlugins()
   local locales_utils = require("locales_utils")
-  local alert_consts = require("alert_consts")
-  local flow_consts = require("flow_consts")
   local plugins = plugins_utils.listPlugins()
   local loaded_plugins = {}
   local locales = {}
@@ -368,8 +366,13 @@ function plugins_utils.loadPlugins()
   local path_map = {}
   local en_locale = locales_utils.readDefaultLocale()
 
-  -- Clean previous structure
+  -- Remove previously loaded plugins
   ntop.rmdir(plugins_utils.PLUGINS_RUNTIME_PATH)
+
+  -- Note: load these only after cleaning the old plugins, to avoid
+  -- errors due to ntopng version change (e.g. after adding the --community switch)
+  local alert_consts = require("alert_consts")
+  local flow_consts = require("flow_consts")
 
   -- Initialize directories
   init_runtime_paths()
