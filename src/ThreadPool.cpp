@@ -98,6 +98,7 @@ void ThreadPool::run() {
       if(q) delete q;
       break;
     } else {
+      Utils::setThreadName(q->script_path);
       (q->j)->runScript(q->script_path, q->iface, q->deadline);
       delete q;
     }

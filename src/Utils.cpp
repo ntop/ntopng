@@ -372,7 +372,15 @@ void Utils::setThreadName(const char *name) {
   // Mac OS X: must be set from within the thread (can't specify thread ID)
   char buf[16]; // NOTE: on linux there is a 16 char limit
   int rc;
-  snprintf(buf, sizeof(buf), "%s", name);
+  char *bname = NULL;
+
+  if(Utils::file_exists(name)) {
+    bname = strrchr((char*)name, '/');
+    if(bname) bname++;
+  }
+
+  snprintf(buf, sizeof(buf), "%s", bname ? bname : name);
+
 #if defined(__APPLE__)
   if((rc = pthread_setname_np(buf)))
 #else
