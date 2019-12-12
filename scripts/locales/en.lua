@@ -3698,7 +3698,7 @@ local lang = {
     ["unassigned_devices"] = "Unassigned Devices",
   },
   ["updates"] = {
-    ["available"] = "New ntopng ",
+    ["available"] = "New",
     ["check"] = "Check for updates",
     ["checking"] = "Checking for updates..",
     ["install"] = "Install update",

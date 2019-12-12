@@ -372,6 +372,7 @@ if active_page == "admin" then
 ]]
 else
   print [[ <li class="nav-item dropdown">
+      <span class="badge badge-pill badge-danger" id="admin-badge" style="float:right;margin-right:20px;display:none"></span>
       <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
 ]]
 end
@@ -459,6 +460,7 @@ print[[
           updates_csrf = rsp.csrf;
           $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
           $('#updates-install-li').hide();
+          $('#admin-badge').hide();
         }
       });
     }
@@ -477,6 +479,7 @@ print[[
         updates_csrf = rsp.csrf;
         $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
         $('#updates-install-li').hide();
+        $('#admin-badge').hide();
       }
     });
   }
@@ -493,17 +496,21 @@ print[[
             if (rsp.status == 'installing') {
               $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
               $('#updates-install-li').hide();
+              $('#admin-badge').hide();
 
             } else if (rsp.status == 'checking') {
               $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
               $('#updates-install-li').hide();
+              $('#admin-badge').hide();
 
             } else if (rsp.status == 'update-avail') { 
-              $('#updates-info-li').html(']] print(i18n("updates.available")) print[[' + rsp.version + '!');
+              $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ntopng ' + rsp.version + '!');
               $('#updates-install-li').html('<i class="fa fa-download"></i> ]] print(i18n("updates.install")) print[[');
               $('#updates-install-li').show();
               $('#updates-install-li').off("click");
               $('#updates-install-li').click(installUpdate);
+              $('#admin-badge').html('1');
+              $('#admin-badge').show();
 
             } else /* (rsp.status == 'not-avail') */ {
               $('#updates-info-li').html(']] print(i18n("updates.no_updates")) print[[');
@@ -511,6 +518,7 @@ print[[
               $('#updates-install-li').show();
               $('#updates-install-li').off("click");
               $('#updates-install-li').click(checkForUpdates);
+              $('#admin-badge').hide();
             }
           }
         }
