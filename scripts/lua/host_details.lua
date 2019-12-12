@@ -619,10 +619,10 @@ end
    
    if(host["json"] ~= nil) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fa fa-download fa-lg\"></i></th><td")
-      if(not isAdministrator()) then print(" colspan=2") end
+      if(not isAdministrator() or not interface.isPacketInterface()) then print(" colspan=2") end
       print("><A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
 
-      if(isAdministrator()) then
+      if(isAdministrator() and interface.isPacketInterface()) then
 	 print [[<td>]]
 
          local live_traffic_utils = require("live_traffic_utils")
