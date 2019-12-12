@@ -24,28 +24,44 @@
 
 #include "ntop_includes.h"
 
-typedef struct {
-  u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
-} TCPPacketStats;
 
 class PartializableFlowTrafficStats {
  private:
+  ndpi_protocol ndpiDetectedProtocol;
   u_int32_t cli2srv_packets, srv2cli_packets;
   u_int64_t cli2srv_bytes, srv2cli_bytes;
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
-  TCPPacketStats cli2srv_tcp_stats, srv2cli_tcp_stats;
+  FlowTCPPacketStats cli2srv_tcp_stats, srv2cli_tcp_stats;
+  union {
+    FlowHTTPStats http;
+  } protos;
 
  public:
   PartializableFlowTrafficStats();
   PartializableFlowTrafficStats(const PartializableFlowTrafficStats &fts);
+  PartializableFlowTrafficStats operator-(const PartializableFlowTrafficStats &fts);
   virtual ~PartializableFlowTrafficStats();
 
+  void setDetectedProtocol(const ndpi_protocol *ndpi_detected_protocol);
+
   void incTcpStats(bool cli2srv_direction, u_int retr, u_int ooo, u_int lost, u_int keepalive);
-  void setTcpStats(bool cli2srv_direction, u_int retr, u_int ooo, u_int lost, u_int keepalive);
+
+  inline void incHTTPReqPOST()  { protos.http.num_post++;  };
+  inline void incHTTPReqPUT()   { protos.http.num_put++;   };
+  inline void incHTTPReqGET()   { protos.http.num_get++;   };
+  inline void incHTTPReqHEAD()  { protos.http.num_head++;  };
+  inline void incHTTPReqOhter() { protos.http.num_other++; };
+  inline void incHTTPResp1xx()  { protos.http.num_1xx++;   };
+  inline void incHTTPResp2xx()  { protos.http.num_2xx++;   };
+  inline void incHTTPResp3xx()  { protos.http.num_3xx++;   };
+  inline void incHTTPResp4xx()  { protos.http.num_4xx++;   };
+  inline void incHTTPResp5xx()  { protos.http.num_5xx++;   };
+
   virtual void incStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len);
   virtual void setStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len);
 
   void get_partial(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *fts) const;
+  inline const FlowHTTPStats *get_flow_http_stats() const { return &protos.http; };
 
   inline u_int32_t get_cli2srv_packets()       const { return cli2srv_packets;            };
   inline u_int32_t get_srv2cli_packets()       const { return srv2cli_packets;            };
@@ -63,7 +79,8 @@ class PartializableFlowTrafficStats {
   inline u_int32_t get_srv2cli_tcp_ooo()       const { return srv2cli_tcp_stats.pktOOO;       };
   inline u_int32_t get_srv2cli_tcp_lost()      const { return srv2cli_tcp_stats.pktLost;      };
   inline u_int32_t get_srv2cli_tcp_keepalive() const { return srv2cli_tcp_stats.pktKeepAlive; };
-  
+
+  u_int16_t get_num_http_requests() const;
 };
 
 #endif /* _PARTIALIZABLE_FLOW_TRAFFIC_STATS_H_ */

@@ -61,7 +61,6 @@ class Flow : public GenericHashEntry {
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
-  u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   bool counted_in_aggregated_flow, status_counted_in_aggregated_flow;
   bool ingress2egress_direction;
@@ -80,6 +79,7 @@ class Flow : public GenericHashEntry {
   json_object *json_info;
   ndpi_serializer *tlv_info;
   char *host_server_name, *bt_hash;
+  OperatingSystem operating_system;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
   u_int32_t marker;

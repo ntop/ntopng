@@ -456,32 +456,21 @@ json_object* HTTPstats::getJSONObject() {
 
 /* ******************************************* */
 
-void HTTPstats::incRequest(struct http_query_stats *q, const char *method) {
-  if(method[0] == 'G') q->num_get++;
-  else if((method[0] == 'P') && (method[1] == 'O')) q->num_post++;
-  else if(method[0] == 'H') q->num_head++;
-  else if((method[0] == 'P') && (method[1] == 'U')) q->num_put++;
-  else q->num_other++;
-}
+void HTTPstats::incStats(bool as_client, const FlowHTTPStats *fts) {
+  struct http_query_stats *q = as_client ? &query[AS_SENDER] : &query[AS_RECEIVER];
+  struct http_response_stats *r = as_client ? &response[AS_RECEIVER] : &response[AS_SENDER];
 
-/* ******************************************* */
+  if(fts->num_get)   q->num_get   += fts->num_get;
+  if(fts->num_post)  q->num_post  += fts->num_post;
+  if(fts->num_head)  q->num_head  += fts->num_head;
+  if(fts->num_put)   q->num_put   += fts->num_put;
+  if(fts->num_other) q->num_other += fts->num_other;
 
-void HTTPstats::incResponse(struct http_response_stats *r, const char *return_code) {
-  const char *code;
-
-  if(!return_code)
-    return;
-
-  code = strchr(return_code, ' ');
-  if(!code) return;
-
-  switch(code[1]) {
-  case '1': r->num_1xx++; break;
-  case '2': r->num_2xx++; break;
-  case '3': r->num_3xx++; break;
-  case '4': r->num_4xx++; break;
-  case '5': r->num_5xx++; break;
-  }
+  if(fts->num_1xx)   r->num_1xx += fts->num_1xx;
+  if(fts->num_2xx)   r->num_2xx += fts->num_2xx;
+  if(fts->num_3xx)   r->num_3xx += fts->num_3xx;
+  if(fts->num_4xx)   r->num_4xx += fts->num_4xx;
+  if(fts->num_5xx)   r->num_5xx += fts->num_5xx;
 }
 
 /* ******************************************* */

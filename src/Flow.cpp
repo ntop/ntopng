@@ -41,8 +41,7 @@ Flow::Flow(NetworkInterface *_iface,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli_host = srv_host = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
-    alert_score = CONST_NO_SCORE_SET;
-
+  alert_score = CONST_NO_SCORE_SET;
   alert_status_info = NULL;
   alert_type = alert_none;
   alert_level = alert_level_none;
@@ -66,9 +65,10 @@ Flow::Flow(NetworkInterface *_iface,
   cli_ebpf = srv_ebpf = NULL;
   json_info = NULL, tlv_info = NULL, cli2srv_direction = true, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
-    host_server_name = NULL, diff_num_http_requests = 0,
+    host_server_name = NULL;
     bt_hash = NULL;
 
+  operating_system = os_unknown;
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
     bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, top_pkts_thpt = 0;
   bytes_thpt_cli2srv  = 0, goodput_bytes_thpt_cli2srv = 0;
@@ -575,6 +575,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
         ndpiDetectedProtocol.category = proto_id.category;
 
+      stats.setDetectedProtocol(&ndpiDetectedProtocol);
       processDetectedProtocol();
       detection_completed = true;      
 
@@ -593,12 +594,15 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       default:
 	/* nDPI is not allocated for non-TCP non-UDP flows so, in order to
 	   make sure custom cateories are properly populated, function ndpi_fill_ip_protocol_category
-	   must be called explicitly.*/
+	   must be called explicitly. */
 	if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED /* Override only if unspecified */
-	   && get_cli_ip_addr()->get_ipv4() && get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */)
+	   && get_cli_ip_addr()->get_ipv4() && get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
 	  ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
 					 get_cli_ip_addr()->get_ipv4(), get_srv_ip_addr()->get_ipv4(),
 					 &ndpiDetectedProtocol);
+	  stats.setDetectedProtocol(&ndpiDetectedProtocol);
+	} 
+
 	break;
       }
 
@@ -1066,8 +1070,18 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
       cli_and_srv_in_same_subnet = true;
 
     if(diff_sent_bytes || diff_rcvd_bytes) {
-      /* Update L2 Device stats */
+      switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
+      case NDPI_PROTOCOL_HTTP:
+	if(cli_host->getHTTPstats()) cli_host->getHTTPstats()->incStats(true  /* Client */, partial.get_flow_http_stats());
+	if(srv_host->getHTTPstats()) srv_host->getHTTPstats()->incStats(false /* Server */, partial.get_flow_http_stats());
+	if(operating_system != os_unknown) {
+	  if(!(get_cli_ip_addr()->isBroadcastAddress()
+	       || get_cli_ip_addr()->isMulticastAddress()))
+	    cli_host->setOS(operating_system);
+	}
+      }
 
+      /* Update L2 Device stats */
       if(srv_mac) {
 #ifdef HAVE_NEDGE
         srv_mac->incSentStats(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes);
@@ -1206,12 +1220,8 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 	     || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
 	if(srv_host->getHTTPstats())
 	  srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
-							  diff_num_http_requests,
+							  partial.get_num_http_requests(),
 							  diff_sent_bytes, diff_rcvd_bytes);
-	diff_num_http_requests = 0; /*
-				      As this is a difference it is reset
-				      whenever we update the counters
-				    */
       }
     }
 
@@ -2135,8 +2145,6 @@ void Flow::housekeep(time_t t) {
 /* *************************************** */
 
 bool Flow::get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *fts, bool *first_partial) const {
-  PartializableFlowTrafficStats tmp;
-
   if(!fts || !dst)
     return(false);
 
@@ -2798,31 +2806,37 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 /* *************************************** */
 
 void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
-  HTTPstats *h;
   ssize_t host_server_name_len = host_server_name && host_server_name[0] != '\0' ? strlen(host_server_name) : 0;
 
   if(!isThreeWayHandshakeOK())
     ; /* Useless to compute http stats as client and server could be swapped */
   else if(src2dst_direction) {
     char *space;
-
-    // payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
-    h = cli_host ? cli_host->getHTTPstats() : NULL; if(h) h->incRequestAsSender(payload); /* Sent */
-    h = srv_host ? srv_host->getHTTPstats() : NULL; if(h) h->incRequestAsReceiver(payload); /* Rcvd */
     dissect_next_http_packet = true;
 
     /* use memchr to prevent possibly non-NULL terminated HTTP requests */
-    if(payload && ((space = (char*)memchr(payload, ' ', payload_len-1)) != NULL)) {
+    if(payload && ((space = (char*)memchr(payload, ' ', payload_len - 1)) != NULL)) {
       u_int l = space - payload;
+      bool go_deeper = true;
 
-      if((!strncmp(payload, "GET", 3))
-	 || (!strncmp(payload, "POST", 4))
-	 || (!strncmp(payload, "HEAD", 4))
-	 || (!strncmp(payload, "PUT", 3))
-	 ) {
+      if(payload_len >= 2) {
+	switch(payload[0]) {
+	case 'P':
+	  switch(payload[1]) {
+	  case 'O': stats.incHTTPReqPOST();  break;
+	  case 'U': stats.incHTTPReqPUT();   break;
+	  default:  stats.incHTTPReqOhter(); go_deeper = false; break;
+	  }
+	  break;
+	case 'G': stats.incHTTPReqGET();   break;
+	case 'H': stats.incHTTPReqHEAD();  break;
+	default:  stats.incHTTPReqOhter(); go_deeper = false; break;
+	}
+      } else
+	go_deeper = false;
+
+      if(go_deeper) {
 	char *ua;
-
-	diff_num_http_requests++; /* One new request found */
 
 	if(protos.http.last_method) free(protos.http.last_method);
 	if((protos.http.last_method = (char*)malloc(l + 1)) != NULL) {
@@ -2871,52 +2885,33 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[UA] %s", buf);
 #endif
 
-	  if(cli_host
-	     && cli_host->getMac()
-	     // && (cli_host->getMac()->getOperatingSystem() == os_unknown)
-	     ) {
-	    /*
-	      https://en.wikipedia.org/wiki/User_agent
+	  /*
+	    https://en.wikipedia.org/wiki/User_agent
 
-	      Most Web browsers use a User-Agent string value as follows:
-	      Mozilla/[version] ([system and browser information]) [platform] ([platform details]) [extensions]
-	    */
+	    Most Web browsers use a User-Agent string value as follows:
+	    Mozilla/[version] ([system and browser information]) [platform] ([platform details]) [extensions]
+	  */
 
-	    if((ua = strchr(buf, '(')) != NULL) {
-	      char *end = strchr(buf, ')');
+	  if((ua = strchr(buf, '(')) != NULL) {
+	    char *end = strchr(buf, ')');
 
-	      if(end) {
-        /* TODO: move into nDPI */
-		OperatingSystem os = os_unknown;
+	    if(end) {
+	      /* TODO: move into nDPI */
+	      end[0] = '\0';
+	      ua++;
 
-		end[0] = '\0';
-		ua++;
-
-		if(strstr(ua, "iPad") || strstr(ua, "iPod") || strstr(ua, "iPhone"))
-		  os = os_ios;
-		else if(strstr(ua, "Android"))
-		  os = os_android;
-		else if(strstr(ua, "Airport"))
-		  os = os_apple_airport;
-		else if(strstr(ua, "Macintosh") || strstr(ua, "OS X"))
-		  os = os_macos;
-		else if(strstr(ua, "Windows"))
-		  os = os_windows;
-		else if(strcasestr(ua, "Linux") || strstr(ua, "Debian") || strstr(ua, "Ubuntu"))
-		  os = os_linux;
-
-		if(os != os_unknown) {
-#ifdef DEBUG_UA
-		  char mbuf[32];
-
-		  ntop->getTrace()->traceEvent(TRACE_WARNING, "[UA] [%s][OS=%u][%s]", cli_host->getMac()->get_string_key(mbuf, sizeof(mbuf)), os, ua);
-#endif
-
-		  if(!(get_cli_ip_addr()->isBroadcastAddress()
-		       || get_cli_ip_addr()->isMulticastAddress()))
-		  cli_host->setOS(os);
-		}
-	      }
+	      if(strstr(ua, "iPad") || strstr(ua, "iPod") || strstr(ua, "iPhone"))
+		operating_system = os_ios;
+	      else if(strstr(ua, "Android"))
+		operating_system = os_android;
+	      else if(strstr(ua, "Airport"))
+		operating_system = os_apple_airport;
+	      else if(strstr(ua, "Macintosh") || strstr(ua, "OS X"))
+		operating_system = os_macos;
+	      else if(strstr(ua, "Windows"))
+		operating_system = os_windows;
+	      else if(strcasestr(ua, "Linux") || strstr(ua, "Debian") || strstr(ua, "Ubuntu"))
+		operating_system = os_linux;
 	    }
 	  }
 	}
@@ -2927,8 +2922,6 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       char *space;
 
       // payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
-      h = cli_host ? cli_host->getHTTPstats() : NULL; if(h) h->incResponseAsReceiver(payload); /* Rcvd */
-      h = srv_host ? srv_host->getHTTPstats() : NULL; if(h) h->incResponseAsSender(payload); /* Sent */
       dissect_next_http_packet = false;
 
       if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
@@ -2936,6 +2929,15 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 	payload_len -= (l + 1);
 	payload = &space[1];
+
+	switch(payload[0]) {
+	case '1': stats.incHTTPResp1xx(); break;
+	case '2': stats.incHTTPResp2xx(); break;
+	case '3': stats.incHTTPResp3xx(); break;
+	case '4': stats.incHTTPResp4xx(); break;
+	case '5': stats.incHTTPResp5xx(); break;
+	}
+
 	if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
 	  char tmp[32];
 	  l = min_val(space - payload, (int)(sizeof(tmp) - 1));
@@ -2952,30 +2954,30 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       size_t len = payload_len;
 
       for (int i=0; i<HTTP_MAX_HEADER_LINES && len > 2; i++) {
-        const char * newline = (const char *) memchr(s, '\n', len);
+	const char * newline = (const char *) memchr(s, '\n', len);
 
-        if((!newline) || (newline - s < 2) || (*(newline - 1) != '\r')) break;
+	if((!newline) || (newline - s < 2) || (*(newline - 1) != '\r')) break;
 
-        size_t linesize = newline - s + 1;
-        const char * terminator = (const char *) memchr(s, ';', linesize);
-        size_t effsize = terminator ? (terminator - s) : (linesize - 2);
+	size_t linesize = newline - s + 1;
+	const char * terminator = (const char *) memchr(s, ';', linesize);
+	size_t effsize = terminator ? (terminator - s) : (linesize - 2);
 
-        if(effsize < sizeof(buf)) {
-          strncpy(buf, s, effsize);
-          buf[effsize] = '\0';
+	if(effsize < sizeof(buf)) {
+	  strncpy(buf, s, effsize);
+	  buf[effsize] = '\0';
 
-          if(strstr(buf, HTTP_CONTENT_TYPE_HEADER) == buf) {
-            const char * ct = buf + sizeof(HTTP_CONTENT_TYPE_HEADER) - 1;
+	  if(strstr(buf, HTTP_CONTENT_TYPE_HEADER) == buf) {
+	    const char * ct = buf + sizeof(HTTP_CONTENT_TYPE_HEADER) - 1;
 
-            if(protos.http.last_content_type) free(protos.http.last_content_type);
-            protos.http.last_content_type = strdup(ct);
+	    if(protos.http.last_content_type) free(protos.http.last_content_type);
+	    protos.http.last_content_type = strdup(ct);
 	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "LAST CONTENT TYPE: '%s'", protos.http.last_content_type);
-            break;
-          }
-        }
+	    break;
+	  }
+	}
 
-        len -= linesize;
-        s = newline + 1;
+	len -= linesize;
+	s = newline + 1;
       }
     }
   }

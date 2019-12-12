@@ -548,6 +548,22 @@ typedef struct {
 class SNMP;
 #endif
 
+typedef struct {
+  u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
+} FlowTCPPacketStats;
+
+typedef struct {
+  u_int8_t num_get, num_post, num_head, num_put, num_other;
+  u_int8_t num_1xx, num_2xx, num_3xx, num_4xx, num_5xx;
+} FlowHTTPStats;
+
+typedef struct {
+  u_int8_t num_a, num_ns, num_cname, num_soa,
+    num_ptr, num_mx, num_txt, num_aaaa,
+    num_any, num_other;
+  u_int8_t num_replies_ok, num_replies_error;
+} FlowDNSStats;
+
 /* Forward class declarations for the Lua context */
 class NetworkStats;
 class Host;

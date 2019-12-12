@@ -1,8 +1,8 @@
 --
--- (C) 2014-15-15 - ntop.org
+-- (C) 2019 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -11,12 +11,12 @@ sendHTTPContentTypeHeader('text/html')
 
 interface.select(ifname)
 
-host_info = url2hostinfo(_GET)
-mode = _GET["http_mode"]
+local host_info = url2hostinfo(_GET)
+local mode = _GET["http_mode"]
 
-host = interface.getHostInfo(host_info["host"],host_info["vlan"])
+local host = interface.getHostInfo(host_info["host"],host_info["vlan"])
 
-left = 0
+local left = 0
 
 print "[\n"
 

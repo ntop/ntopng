@@ -1434,7 +1434,7 @@ elseif(page == "http") then
       if(vh ~= nil) then
          local now    = os.time()
          local ago1h  = now - 3600
-         num = table.len(vh)
+         local num = table.len(vh)
          if(num > 0) then
             local ifId = getInterfaceId(ifname)
             print("<tr><th rowspan="..(num+1).." width=20%>"..i18n("http_page.virtual_hosts").."</th><th>Name</th><th>"..i18n("http_page.traffic_sent").."</th><th>"..i18n("http_page.traffic_received").."</th><th>"..i18n("http_page.requests_served").."</th></tr>\n")
