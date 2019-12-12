@@ -9,6 +9,9 @@ local script = {
   default_enabled = true,
   anomaly_type_builder = alerts_api.slowStatsUpdateType,
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   hooks = {
     min = alerts_api.anomaly_check_function,
   },

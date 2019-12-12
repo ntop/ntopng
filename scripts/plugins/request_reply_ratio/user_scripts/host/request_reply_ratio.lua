@@ -52,6 +52,9 @@ script = {
   nedge_exclude = true,
   default_enabled = true,
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   hooks = {
     ["5mins"] = request_reply_ratio
   },

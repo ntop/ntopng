@@ -10,6 +10,9 @@ local script = {
   -- This module is enabled by default
   default_enabled = true,
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   -- The default threshold value. The format is specific of the
   -- user_scripts.threshold_cross_input_builder
   default_value = {

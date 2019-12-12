@@ -10,6 +10,9 @@ local script = {
   -- This module is disabled by default
   default_enabled = false,
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   -- No default threshold configuration is provided
   default_value = {},
 

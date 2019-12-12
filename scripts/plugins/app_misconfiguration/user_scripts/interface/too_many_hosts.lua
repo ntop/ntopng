@@ -9,6 +9,9 @@ local script = {
   always_enabled = true,
   anomaly_type_builder = alerts_api.misconfiguredAppType,
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   hooks = {
     min = alerts_api.anomaly_check_function,
   }

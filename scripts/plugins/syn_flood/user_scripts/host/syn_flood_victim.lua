@@ -14,6 +14,9 @@ local script = {
     threshold = 50,
   },
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   -- See below
   hooks = {},
 

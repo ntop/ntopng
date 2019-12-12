@@ -30,6 +30,9 @@ script = {
     min = check_interface_drops,
   },
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   gui = {
     i18n_title = "show_alerts.flow_user_scripts_drops_title",
     i18n_description = i18n("show_alerts.flow_user_scripts_drops_descr",

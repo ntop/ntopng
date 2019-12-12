@@ -391,7 +391,6 @@ end
 
 local function init_user_script(user_script, mod_fname, full_path, plugin, configs)
    user_script.key = mod_fname
-   user_script.is_alert = false -- TODO fix
    user_script.path = full_path
    user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
    user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)

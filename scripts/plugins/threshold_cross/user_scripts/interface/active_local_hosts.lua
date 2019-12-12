@@ -9,6 +9,9 @@ local user_scripts = require("user_scripts")
 local script = {
   default_enabled = false,
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   -- See below
   hooks = {},
 
