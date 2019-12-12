@@ -112,6 +112,8 @@ local function init_runtime_paths()
     -- Definitions
     alert_definitions = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/alert_definitions"),
     status_definitions = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/status_definitions"),
+    pro_alert_definitions = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/alert_definitions/pro"),
+    pro_status_definitions = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/status_definitions/pro"),
 
     -- Locales
     locales = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/locales"),
@@ -218,9 +220,21 @@ end
 local function load_plugin_definitions(plugin, alert_definitions, status_definitions)
   local alert_consts = require("alert_consts")
   local flow_consts = require("flow_consts")
+  local alert_definitions
+  local status_definitions
 
-  return(load_definitions(os_utils.fixPath(plugin.path .. "/alert_definitions"), RUNTIME_PATHS.alert_definitions, alert_consts.loadDefinition)
-    and load_definitions(os_utils.fixPath(plugin.path .. "/status_definitions"), RUNTIME_PATHS.status_definitions, flow_consts.loadDefinition))
+  if(plugin.edition == "community") then
+    alert_definitions = RUNTIME_PATHS.alert_definitions
+    status_definitions = RUNTIME_PATHS.status_definitions
+  else
+    -- It's necessary to split pro plugins to avoid errors on demo mode end
+    -- while loading pro scripts
+    alert_definitions = RUNTIME_PATHS.pro_alert_definitions
+    status_definitions = RUNTIME_PATHS.pro_status_definitions
+  end
+
+  return(load_definitions(os_utils.fixPath(plugin.path .. "/alert_definitions"), alert_definitions, alert_consts.loadDefinition)
+    and load_definitions(os_utils.fixPath(plugin.path .. "/status_definitions"), status_definitions, flow_consts.loadDefinition))
 end
 
 -- ##############################################

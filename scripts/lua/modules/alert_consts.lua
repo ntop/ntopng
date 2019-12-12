@@ -169,26 +169,31 @@ local function loadAlertsDefs()
    end
 
    local dirs = ntop.getDirs()
-   local defs_dir = alert_consts.getDefinititionsDir()
-   package.path = defs_dir .. "/?.lua;" .. package.path
+   local defs_dirs = {alert_consts.getDefinititionsDir()}
+
+   if ntop.isPro() then
+      defs_dirs[#defs_dirs + 1] = alert_consts.getDefinititionsDir() .. "/pro"
+   end
 
    alert_consts.resetDefinitions()
 
-   for fname in pairs(ntop.readdir(defs_dir)) do
-      if string.ends(fname, ".lua") then
-         local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-         local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
-         local def_script = dofile(full_path)
+   for _, defs_dir in pairs(defs_dirs) do
+      for fname in pairs(ntop.readdir(defs_dir)) do
+         if string.ends(fname, ".lua") then
+            local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+            local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
+            local def_script = dofile(full_path)
 
-         if(def_script == nil) then
-             traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading alert definition from %s", full_path))
-             goto next_script
+            if(def_script == nil) then
+                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading alert definition from %s", full_path))
+                goto next_script
+            end
+
+            alert_consts.loadDefinition(def_script, mod_fname, full_path)
          end
 
-         alert_consts.loadDefinition(def_script, mod_fname, full_path)
+         ::next_script::
       end
-
-      ::next_script::
    end
 end
 
