@@ -37,7 +37,7 @@ class PacketStats {
 
   void resetStats();
   void incFlagStats(u_int8_t flags);
-  void incStats(u_int pkt_len);
+  void incStats(u_int num_pkts, u_int pkt_len);
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();

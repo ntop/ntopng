@@ -39,17 +39,17 @@ void PacketStats::resetStats() {
 
 /* *************************************** */
 
-void PacketStats::incStats(u_int pkt_len) { 
-  if(pkt_len <= 64)        upTo64 += 1;
-  else if(pkt_len <= 128)  upTo128 += 1;
-  else if(pkt_len <= 256)  upTo256 += 1;
-  else if(pkt_len <= 512)  upTo512 += 1;
-  else if(pkt_len <= 1024) upTo1024 += 1;
-  else if(pkt_len <= 1518) upTo1518 += 1;
-  else if(pkt_len <= 2500) upTo2500 += 1;
-  else if(pkt_len <= 6500) upTo6500 += 1;
-  else if(pkt_len <= 9000) upTo9000 += 1;
-  else above9000 += 1;
+void PacketStats::incStats(u_int num_pkts, u_int pkt_len) { 
+  if(pkt_len <= 64)        upTo64   += num_pkts;
+  else if(pkt_len <= 128)  upTo128  += num_pkts;
+  else if(pkt_len <= 256)  upTo256  += num_pkts;
+  else if(pkt_len <= 512)  upTo512  += num_pkts;
+  else if(pkt_len <= 1024) upTo1024 += num_pkts;
+  else if(pkt_len <= 1518) upTo1518 += num_pkts;
+  else if(pkt_len <= 2500) upTo2500 += num_pkts;
+  else if(pkt_len <= 6500) upTo6500 += num_pkts;
+  else if(pkt_len <= 9000) upTo9000 += num_pkts;
+  else above9000 += num_pkts;
 };  
 
 /* *************************************** */

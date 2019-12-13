@@ -385,7 +385,7 @@ class NetworkInterface : public AlertableEntity {
     ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
     ndpiStats->incCategoryStats(when, ndpi_category, 0 /* see above comment */, pkt_len);
-    pktStats.incStats(pkt_len);
+    pktStats.incStats(1, pkt_len);
     l4Stats.incStats(when, l4proto,
       ingressPacket ? num_pkts : 0, ingressPacket ? pkt_len : 0,
       !ingressPacket ? num_pkts : 0, !ingressPacket ? pkt_len : 0);

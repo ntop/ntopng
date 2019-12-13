@@ -216,9 +216,11 @@ class Flow : public GenericHashEntry {
   static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when, bool update_iat);
   bool isReadyToBeMarkedAsIdle();
   char* printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const;
-  void update_pools_stats(const struct timeval *tv,
+  void update_pools_stats(NetworkInterface *iface,
+			  Host *cli_host, Host *srv_host,
+			  const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
-			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes);
+			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) const;
   void periodic_dump_check(const struct timeval *tv);
   void updateCliJA3();
   void updateSrvJA3();

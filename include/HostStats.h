@@ -62,8 +62,8 @@ class HostStats: public TimeseriesStats {
 
   virtual void computeAnomalyIndex(time_t when) {};
 
-  inline void incSentStats(u_int pkt_len)           { sent_stats.incStats(pkt_len);       };
-  inline void incRecvStats(u_int pkt_len)           { recv_stats.incStats(pkt_len);       };
+  inline void incSentStats(u_int num_pkts, u_int pkt_len) { sent_stats.incStats(num_pkts, pkt_len); };
+  inline void incRecvStats(u_int num_pkts, u_int pkt_len) { recv_stats.incStats(num_pkts, pkt_len); };
   inline void incnDPIFlows(u_int16_t l7_protocol)   { if(ndpiStats) ndpiStats->incFlowsStats(l7_protocol); };
   inline u_int32_t getTotalNumFlowsAsClient() const { return(total_num_flows_as_client);  };
   inline u_int32_t getTotalNumFlowsAsServer() const { return(total_num_flows_as_server);  };
