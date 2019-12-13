@@ -229,7 +229,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = "<i class=\"fa fa-lg fa-home\"></i>",
 			      },
 			      {
-				 hidden = not interface.isPacketInterface() or ntop.isnEdge(),
+				 hidden = not interface.isPacketInterface() or ntop.isnEdge() or interface.isView(),
 				 active = page == "networks",
 				 page_name = "networks",
 				 label = i18n("networks"),
