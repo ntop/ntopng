@@ -258,7 +258,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("peers"),
 			      },
 			      {
-				 hidden = only_historical or (not host["ICMPv4"] and not host["ICMPv6"]),
+				 hidden = only_historical or not host["localhost"] or (not host["ICMPv4"] and not host["ICMPv6"]),
 				 active = page == "ICMP",
 				 page_name = "ICMP",
 				 label = i18n("icmp"),

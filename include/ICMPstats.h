@@ -44,7 +44,7 @@ class ICMPstats {
   ICMPstats();
   ~ICMPstats();
 
-  void incStats(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
+  void incStats(u_int32_t num_pkts, u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
   void updateStats(const struct timeval *tv);
   void lua(bool isV4, lua_State *vm, bool verbose = true);
   bool hasAnomalies(time_t when);

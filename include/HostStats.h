@@ -95,14 +95,14 @@ class HostStats: public TimeseriesStats {
   inline HostPoolStats* getQuotaEnforcementStats() { return(quota_enforcement_stats); }
 #endif
 
-  virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {}
   virtual void luaHTTP(lua_State *vm) const {}
   virtual void luaDNS(lua_State *vm, bool verbose) const  {}
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  {}
   virtual void incrVisitedWebSite(char *hostname) {}
   virtual void tsLua(lua_State* vm) {}
-  virtual HTTPstats* getHTTPstats() const { return(NULL); }
-  virtual DnsStats*  getDNSstats()  const { return(NULL); }
+  virtual HTTPstats* getHTTPstats()  const { return(NULL); }
+  virtual DnsStats*  getDNSstats()   const { return(NULL); }
+  virtual ICMPstats* getICMPstats()  const { return(NULL); }
 };
 
 #endif

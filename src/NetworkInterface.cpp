@@ -1368,22 +1368,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	u_int8_t icmp_type = l4[0];
 	u_int8_t icmp_code = l4[1];
 
-	if((flow->get_cli_host() && flow->get_cli_host()->isLocalHost())
-	   && (flow->get_srv_host() && flow->get_srv_host()->isLocalHost())) {
-	  /* Set correct direction in localhost ping */
-	  if((icmp_type == ICMP_ECHO /* ICMP Echo [RFC792] */)
-	     || (icmp_type == 128 /* 128 - ICMPV6 Echo Request [RFC4443] */))
-	    src2dst_direction = true;
-	  else if((icmp_type == ICMP_ECHOREPLY /* ICMP Echo Reply [RFC792] */)
-		  || (icmp_type == 129 /* 129 - ICMPV6 Echo Reply [RFC4443] */))
-	    src2dst_direction = false;
-	}
-
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	if(l4_proto == IPPROTO_ICMP)
-	  icmp_v4.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
+	  icmp_v4.incStats(1, icmp_type, icmp_code, is_sent_packet, NULL);
 	else
-	  icmp_v6.incStats(icmp_type, icmp_code, is_sent_packet, NULL);
+	  icmp_v6.incStats(1, icmp_type, icmp_code, is_sent_packet, NULL);
 
 	flow->setICMPPayloadSize(trusted_l4_packet_len);
       }

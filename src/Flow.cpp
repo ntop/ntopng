@@ -107,16 +107,6 @@ Flow::Flow(NetworkInterface *_iface,
   } else /* Server host has not been allocated, let's keep the info in an IpAddress */
     srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip);
 
-  if(icmp_info) {
-    if(icmp_info->isPortUnreachable()) { //port unreachable icmpv6/icmpv4
-
-      if(srv_host) srv_host->incNumUnreachableFlows(true  /* as server */);
-      if(cli_host) cli_host->incNumUnreachableFlows(false /* as client */);
-    } else if(icmp_info->isHostUnreachable(protocol)) {
-      if(srv_host) srv_host->incNumHostUnreachableFlows(true  /* as server */);
-      if(cli_host) cli_host->incNumHostUnreachableFlows(false /* as client */);
-    }
-  }
 
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -977,9 +967,10 @@ void Flow::incFlowDroppedCounters() {
     flow_dropped_counts_increased = true;
   }
 }
+
 /* *************************************** */
 
-void Flow::hosts_periodic_stats_update(Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, const struct timeval *tv) const {
+void Flow::hosts_periodic_stats_update(Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
   switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
   case NDPI_PROTOCOL_HTTP:
     if(cli_host && cli_host->getHTTPstats()) cli_host->getHTTPstats()->incStats(true  /* Client */, partial->get_flow_http_stats());
@@ -1008,6 +999,33 @@ void Flow::hosts_periodic_stats_update(Host *cli_host, Host *srv_host, Partializ
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
     if(srv_host && srv_host->getDNSstats())
       srv_host->getDNSstats()->incStats(false /* Server */, partial->get_flow_dns_stats());
+    break;
+  case NDPI_PROTOCOL_IP_ICMP:
+  case NDPI_PROTOCOL_IP_ICMPV6:
+    if(cli_host && cli_host->getICMPstats()) {
+      if(partial->get_cli2srv_packets())
+	cli_host->getICMPstats()->incStats(partial->get_cli2srv_packets(), protos.icmp.cli2srv.icmp_type, protos.icmp.cli2srv.icmp_code, true  /* Sent */, srv_host);
+      if(partial->get_srv2cli_packets())
+	cli_host->getICMPstats()->incStats(partial->get_srv2cli_packets(), protos.icmp.srv2cli.icmp_type, protos.icmp.srv2cli.icmp_code, false /* Rcvd */, srv_host);
+    }
+    if(srv_host && srv_host->getICMPstats()) {
+      if(partial->get_cli2srv_packets())
+	srv_host->getICMPstats()->incStats(partial->get_cli2srv_packets(), protos.icmp.cli2srv.icmp_type, protos.icmp.cli2srv.icmp_code, false /* Rcvd */, cli_host);
+      if(partial->get_srv2cli_packets())
+	srv_host->getICMPstats()->incStats(partial->get_srv2cli_packets(), protos.icmp.srv2cli.icmp_type, protos.icmp.srv2cli.icmp_code, true  /* Sent */, cli_host);
+    }
+
+    if(first_partial && icmp_info) {
+      if(icmp_info->isPortUnreachable()) { //port unreachable icmpv6/icmpv4
+
+	if(srv_host) srv_host->incNumUnreachableFlows(true  /* as server */);
+	if(cli_host) cli_host->incNumUnreachableFlows(false /* as client */);
+      } else if(icmp_info->isHostUnreachable(protocol)) {
+	if(srv_host) srv_host->incNumHostUnreachableFlows(true  /* as server */);
+	if(cli_host) cli_host->incNumHostUnreachableFlows(false /* as client */);
+      }
+    }
+
     break;
   default:
     break;
@@ -1107,7 +1125,7 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
       cli_and_srv_in_same_subnet = true;
 
     if(diff_sent_bytes || diff_rcvd_bytes) {
-      hosts_periodic_stats_update(cli_host, srv_host, &partial, tv);
+      hosts_periodic_stats_update(cli_host, srv_host, &partial, first_partial, tv);
 
       /* Update L2 Device stats */
       if(srv_mac) {
@@ -1564,8 +1582,13 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(isICMP()) {
       lua_newtable(vm);
-      lua_push_uint64_table_entry(vm, "type", protos.icmp.icmp_type);
-      lua_push_uint64_table_entry(vm, "code", protos.icmp.icmp_code);
+      if(isBidirectional()) {
+	lua_push_uint64_table_entry(vm, "type", protos.icmp.srv2cli.icmp_type);
+	lua_push_uint64_table_entry(vm, "code", protos.icmp.srv2cli.icmp_code);
+      }else {
+	lua_push_uint64_table_entry(vm, "type", protos.icmp.cli2srv.icmp_type);
+	lua_push_uint64_table_entry(vm, "code", protos.icmp.cli2srv.icmp_code);
+      }
 
       if(icmp_info)
 	icmp_info->lua(vm, NULL, iface, get_vlan_id());
@@ -4053,19 +4076,6 @@ void Flow::lua_get_dns_info(lua_State *vm) const {
         lua_push_bool_table_entry(vm, "protos.dns.invalid_chars_in_query", protos.dns.invalid_chars_in_query);
     }
   }
-}
-
-/* ***************************************************** */
-
-void Flow::lua_get_icmp_info(lua_State *vm) const {
-  lua_newtable(vm);
-
-  if(!isICMP())
-    return;
-
-  lua_push_int32_table_entry(vm, "type", protos.icmp.icmp_type);
-  lua_push_int32_table_entry(vm, "code", protos.icmp.icmp_code);
-  lua_push_int32_table_entry(vm, "max_payload_size", protos.icmp.max_icmp_payload_size);
 }
 
 /* ***************************************************** */

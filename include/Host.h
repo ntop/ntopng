@@ -161,6 +161,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual int16_t get_local_network_id() const = 0;
   virtual HTTPstats* getHTTPstats()           const { return(NULL);                  };
   virtual DnsStats*  getDNSstats()            const { return(NULL);                  };
+  virtual ICMPstats* getICMPstats()           const { return(NULL);                  };
   inline void set_ipv4(u_int32_t _ipv4)             { ip.set(_ipv4);                 };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
@@ -221,7 +222,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void periodic_hash_entry_state_update(void *user_data, bool quick);
   void periodic_stats_update(void *user_data, bool quick);
 
-  virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {};
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement);
 

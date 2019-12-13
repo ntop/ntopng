@@ -56,7 +56,6 @@ class LocalHostStats: public HostStats {
   virtual void incNumFlows(bool as_client, Host *peer);
   virtual void decNumFlows(bool as_client, Host *peer);
 
-  virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
   virtual void luaDNS(lua_State *vm, bool verbose) const  { if(dns) dns->lua(vm,verbose); }
   virtual void luaHTTP(lua_State *vm) const  { if(http) http->lua(vm); }
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { if (icmp) icmp->lua(isV4, vm, verbose); }
@@ -66,6 +65,7 @@ class LocalHostStats: public HostStats {
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() const { return(http); };
   virtual DnsStats*  getDNSstats()  const { return(dns);  };
+  virtual ICMPstats* getICMPstats() const { return(icmp); };
   virtual u_int16_t getNumActiveContactsAsClient() { return contacts_as_cli.size(); }
   virtual u_int16_t getNumActiveContactsAsServer() { return contacts_as_srv.size(); }
 };

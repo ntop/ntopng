@@ -129,7 +129,9 @@ class Flow : public GenericHashEntry {
     } tls;
 
     struct {
-      u_int8_t icmp_type, icmp_code;
+      struct {
+	u_int8_t icmp_type, icmp_code;
+      } cli2srv, srv2cli;
       u_int16_t max_icmp_payload_size;
     } icmp;
   } protos;
@@ -348,7 +350,7 @@ class Flow : public GenericHashEntry {
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
   inline bool isOneWay()                 const { return(get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli())); };
-  inline bool isBidirectional()          const { return(get_packets_cli2srv() && get_packets_cli2srv());                      };
+  inline bool isBidirectional()          const { return(get_packets_cli2srv() && get_packets_srv2cli());                      };
   inline void* get_cli_id()              const { return(cli_id);                          };
   inline void* get_srv_id()              const { return(srv_id);                          };
   inline u_int32_t get_cli_ipv4()        const { return(cli_host->get_ip()->get_ipv4());  };
@@ -432,7 +434,7 @@ class Flow : public GenericHashEntry {
   void set_hash_entry_state_idle();
   bool is_hash_entry_state_idle_transition_ready() const;
   void periodic_hash_entry_state_update(void *user_data, bool quick);
-  void hosts_periodic_stats_update(Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, const struct timeval *tv) const;
+  void hosts_periodic_stats_update(Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
   void periodic_stats_update(void *user_data, bool quick);
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;
@@ -448,7 +450,6 @@ class Flow : public GenericHashEntry {
   void lua_get_min_info(lua_State* vm);
   void lua_duration_info(lua_State* vm);
   void lua_device_protocol_allowed_info(lua_State *vm);
-  void lua_get_icmp_info(lua_State *vm) const;
   void lua_get_tcp_stats(lua_State *vm) const;
 
   void lua_get_unicast_info(lua_State* vm) const;
@@ -488,15 +489,27 @@ class Flow : public GenericHashEntry {
   void fillZmqFlowCategory();
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type, u_int8_t icmp_code, u_int8_t *icmpdata) {
     if(isICMP()) {
-      protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code;
-      if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? true : false, get_srv_host());
-      if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? false : true, get_cli_host());
+      if(src2dst_direction)
+	protos.icmp.cli2srv.icmp_type = icmp_type, protos.icmp.cli2srv.icmp_code = icmp_code;
+      else	
+	protos.icmp.srv2cli.icmp_type = icmp_type, protos.icmp.srv2cli.icmp_code = icmp_code;
+      // if(get_cli_host()) get_cli_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? true : false, get_srv_host());
+      // if(get_srv_host()) get_srv_host()->incICMP(icmp_type, icmp_code, src2dst_direction ? false : true, get_cli_host());
     }
   }
   inline void getICMP(u_int8_t *_icmp_type, u_int8_t *_icmp_code) {
-    *_icmp_type = protos.icmp.icmp_type, *_icmp_code = protos.icmp.icmp_code;
+    if(isBidirectional())
+      *_icmp_type = protos.icmp.srv2cli.icmp_type, *_icmp_code = protos.icmp.srv2cli.icmp_code;
+    else
+      *_icmp_type = protos.icmp.cli2srv.icmp_type, *_icmp_code = protos.icmp.cli2srv.icmp_code;
   }
-  inline u_int8_t getICMPType()     { return(isICMP() ? protos.icmp.icmp_type : 0); }
+  inline u_int8_t getICMPType() {
+    if(isICMP()) {
+      return isBidirectional() ? protos.icmp.srv2cli.icmp_type : protos.icmp.cli2srv.icmp_type;
+    }
+
+    return 0;
+  }
   inline bool hasInvalidDNSQueryChars() { return(isDNS() && protos.dns.invalid_chars_in_query); }
   inline bool hasMaliciousSignature() { return(has_malicious_cli_signature || has_malicious_srv_signature); }
   inline bool shouldCheckTLSCertificate() { return(isTLS() && !protos.tls.subject_alt_name_match

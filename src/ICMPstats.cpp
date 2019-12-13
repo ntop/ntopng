@@ -41,11 +41,14 @@ ICMPstats::~ICMPstats() {
 
 /* *************************************** */
 
-void ICMPstats::incStats(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {
+void ICMPstats::incStats(u_int32_t num_pkts, u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {
   std::map<u_int16_t, ICMPstats_t>::const_iterator it;
   ICMPstats_t s;
   u_int16_t key = get_typecode(icmp_type, icmp_code);
   char buf[64];
+
+  if(!num_pkts)
+    return;
 
   m.lock(__FILE__, __LINE__);
 
@@ -55,17 +58,17 @@ void ICMPstats::incStats(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host
     memset(&s, 0, sizeof(s));
 
   if(icmp_type == ICMP_DEST_UNREACH)
-    num_destination_unreachable.inc(1);
+    num_destination_unreachable.inc(num_pkts);
 
   if(sent) {
-    s.pkt_sent++;
+    s.pkt_sent += num_pkts;
 
     if(peer) {
       if(s.last_host_sent_peer) free(s.last_host_sent_peer);
       s.last_host_sent_peer = strdup(peer->get_string_key(buf, sizeof(buf)));
     }
   } else {
-    s.pkt_rcvd++;
+    s.pkt_rcvd += num_pkts;
 
     if(peer) {
       if(s.last_host_rcvd_peer) free(s.last_host_rcvd_peer);

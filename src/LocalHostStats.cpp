@@ -26,9 +26,9 @@
 LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = strdup("{}");
-  dns  = new DnsStats();
-  http = new HTTPstats(_host);
-  icmp = NULL;
+  dns  = new (std::nothrow) DnsStats();
+  http = new (std::nothrow) HTTPstats(_host);
+  icmp = new (std::nothrow) ICMPstats();
   nextSitesUpdate = 0;
 
   if(TimeseriesRing::isRingEnabled(_host->getInterface()))
@@ -185,13 +185,6 @@ void LocalHostStats::deserialize(json_object *o) {
   /* Restores possibly checkpointed data */
   checkpoints.sent_bytes = getNumBytesSent();
   checkpoints.rcvd_bytes = getNumBytesRcvd();
-}
-
-/* *************************************** */
-
-void LocalHostStats::incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {
-  if(!icmp) icmp = new ICMPstats();
-  if(icmp)  icmp->incStats(icmp_type, icmp_code, sent, peer);
 }
 
 /* *************************************** */
