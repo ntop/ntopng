@@ -310,7 +310,6 @@ class Flow : public GenericHashEntry {
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   static void incTcpBadStats(bool src2dst_direction,
-			     FlowTrafficStats *fts,
 			     Host *cli, Host *srv,
 			     NetworkInterface *iface,
 			     u_int32_t ooo_pkts, u_int32_t retr_pkts,
@@ -382,7 +381,6 @@ class Flow : public GenericHashEntry {
   bool needsExtraDissection();
   bool hasDissectedTooManyPackets();
   bool get_partial_traffic_stats_view(PartializableFlowTrafficStats *delta, bool *first_partial);
-  inline FlowTrafficStats * getFlowTrafficStats() { return &stats; };
   bool update_partial_traffic_stats_db_dump();
   inline float get_bytes_thpt()          const { return(bytes_thpt);                      };
   inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt);              };
@@ -434,7 +432,7 @@ class Flow : public GenericHashEntry {
   void set_hash_entry_state_idle();
   bool is_hash_entry_state_idle_transition_ready() const;
   void periodic_hash_entry_state_update(void *user_data, bool quick);
-  void hosts_periodic_stats_update(Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
+  void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
   void periodic_stats_update(void *user_data, bool quick);
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;

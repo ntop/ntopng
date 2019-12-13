@@ -970,7 +970,21 @@ void Flow::incFlowDroppedCounters() {
 
 /* *************************************** */
 
-void Flow::hosts_periodic_stats_update(Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
+void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
+  switch(get_protocol()) {
+  case IPPROTO_TCP:
+    Flow::incTcpBadStats(true, cli_host, srv_host, iface,
+			 partial->get_cli2srv_tcp_ooo(), partial->get_cli2srv_tcp_retr(),
+			 partial->get_cli2srv_tcp_lost(), partial->get_cli2srv_tcp_keepalive());
+    Flow::incTcpBadStats(false, cli_host, srv_host, iface,
+			 partial->get_srv2cli_tcp_ooo(), partial->get_srv2cli_tcp_retr(),
+			 partial->get_srv2cli_tcp_lost(), partial->get_srv2cli_tcp_keepalive());
+    break;
+
+  default:
+    break;
+  }
+
   switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
   case NDPI_PROTOCOL_HTTP:
     if(cli_host && cli_host->getHTTPstats()) cli_host->getHTTPstats()->incStats(true  /* Client */, partial->get_flow_http_stats());
@@ -1016,7 +1030,7 @@ void Flow::hosts_periodic_stats_update(Host *cli_host, Host *srv_host, Partializ
     }
 
     if(first_partial && icmp_info) {
-      if(icmp_info->isPortUnreachable()) { //port unreachable icmpv6/icmpv4
+      if(icmp_info->isPortUnreachable()) { // Port unreachable icmpv6/icmpv4
 
 	if(srv_host) srv_host->incNumUnreachableFlows(true  /* as server */);
 	if(cli_host) cli_host->incNumUnreachableFlows(false /* as client */);
@@ -1117,6 +1131,9 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 
   stats_protocol = getStatsProtocol();
 
+  if(diff_sent_bytes || diff_rcvd_bytes)
+    hosts_periodic_stats_update(getInterface(), cli_host, srv_host, &partial, first_partial, tv);
+
   if(cli_host && srv_host) {
     cli_network_id = cli_host->get_local_network_id();
     srv_network_id = srv_host->get_local_network_id();
@@ -1125,8 +1142,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
       cli_and_srv_in_same_subnet = true;
 
     if(diff_sent_bytes || diff_rcvd_bytes) {
-      hosts_periodic_stats_update(cli_host, srv_host, &partial, first_partial, tv);
-
       /* Update L2 Device stats */
       if(srv_mac) {
 #ifdef HAVE_NEDGE
@@ -2552,7 +2567,6 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 /* *************************************** */
 
 void Flow::incTcpBadStats(bool src2dst_direction,
-			  FlowTrafficStats *fts,
 			  Host *cli, Host *srv,
 			  NetworkInterface *iface,
 			  u_int32_t ooo_pkts,
@@ -2578,9 +2592,6 @@ void Flow::incTcpBadStats(bool src2dst_direction,
     if(ooo_pkts)        iface->incOOOPkts(ooo_pkts);
     if(keep_alive_pkts) iface->incKeepAlivePkts(keep_alive_pkts);
   }
-
-  if(fts)
-    fts->incTcpStats(src2dst_direction, retr_pkts, ooo_pkts, lost_pkts, keep_alive_pkts);
 
   if(cli) {
     cli_network_id = cli->get_local_network_id();
@@ -2739,7 +2750,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
   }
 
   if(cnt_keep_alive || cnt_lost || cnt_ooo || cnt_retx)
-    incTcpBadStats(src2dst_direction, getFlowTrafficStats(), get_cli_host(), get_srv_host(), getInterface(), cnt_ooo, cnt_retx, cnt_lost, cnt_keep_alive);
+    stats.incTcpStats(src2dst_direction, cnt_retx, cnt_ooo, cnt_lost, cnt_keep_alive);
 }
 
 /* *************************************** */

@@ -302,7 +302,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 		    NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
 		    NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
 
-      f->hosts_periodic_stats_update(cli_host, srv_host, &partials, first_partial, tv);
+      f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
 
       if(cli_host) {
 	cli_host->incStats(tv->tv_sec, f->get_protocol(),
@@ -341,14 +341,6 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 	       partials.get_srv2cli_bytes() + partials.get_cli2srv_bytes(),
 	       partials.get_srv2cli_packets() + partials.get_cli2srv_packets(),
 	       24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
-
-      Flow::incTcpBadStats(true /* src2dst */, NULL, cli_host, srv_host, this,
-			   partials.get_cli2srv_tcp_ooo(), partials.get_cli2srv_tcp_retr(),
-			   partials.get_cli2srv_tcp_lost(), partials.get_cli2srv_tcp_keepalive());
-
-      Flow::incTcpBadStats(false /* dst2src */, NULL, cli_host, srv_host, this,
-			   partials.get_srv2cli_tcp_ooo(), partials.get_srv2cli_tcp_retr(),
-			   partials.get_srv2cli_tcp_lost(), partials.get_srv2cli_tcp_keepalive());
     }
   }
 }
