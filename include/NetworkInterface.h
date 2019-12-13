@@ -596,7 +596,6 @@ class NetworkInterface : public AlertableEntity {
   bool registerLiveCapture(struct ntopngLuaContext * const luactx, int *id);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);
   void dumpLiveCaptures(lua_State* vm);
-  int  dumpDropboxHosts(lua_State *vm);
   bool stopLiveCapture(int capture_id);
 #ifdef NTOPNG_PRO
 #ifdef HAVE_NEDGE

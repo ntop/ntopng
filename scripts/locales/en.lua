@@ -53,7 +53,6 @@ local lang = {
   ["download_x"] = "%{what} download",
   ["downloaders"] = "Download Volume",
   ["drilldown"] = "Drilldown",
-  ["dropbox_sharing_with"] = "This host is Dropbox sharing documents on LAN with:",
   ["duplexstatus"] = "Duplex Status",
   ["duration"] = "Duration",
   ["egress"] = "Egress",

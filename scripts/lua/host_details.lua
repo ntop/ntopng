@@ -313,12 +313,6 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("user_info.processes"),
 			      },
 			      {
-				 hidden = only_historical or isLoopback(ifname) or not host["has_dropbox_shares"],
-				 active = page == "dropbox",
-				 page_name = "dropbox",
-				 label = "<i class='fab fa-lg fa-dropbox'></i>",
-			      },
-			      {
 				 hidden = only_historical or host["privatehost"],
 				 active = page == "geomap",
 				 page_name = "geomap",
@@ -1709,24 +1703,6 @@ elseif(page == "snmp" and ntop.isEnterprise() and isAllowedSystemInterface()) th
 elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
    ebpf_utils.draw_processes_graph(host_info)
-
-elseif(page == "dropbox") then
-   local dropbox = require("dropbox_utils")
-   local namespaces = dropbox.getHostNamespaces(host.ip)
-
-   print(i18n("dropbox_sharing_with"))
-   print("<ul>")
-   for k,v in pairs(namespaces) do
-      local host = interface.getHostInfo(k, host_vlan)
-
-      print("<li><a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k)
-      if(host_vlan ~= 0) then print("&vlan="..host_vlan) end
-      print("&page=dropbox\">")
-      print(getResolvedAddress(hostkey2hostinfo(k)))
-      print("</A> ["..v.." share(s) in common]</li>")
-   end
-
-   print("</ul>")
 elseif not host.privatehost and page == "geomap" then
 print("<center>")
 

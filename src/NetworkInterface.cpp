@@ -1602,11 +1602,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	discovery->queueMDNSRespomse(iph->saddr, payload, trusted_payload_len);
       break;
 
-    case NDPI_PROTOCOL_DROPBOX:
-      if((src_port == dst_port) && (dst_port == htons(17500)))
-	flow->get_cli_host()->dissectDropbox((const char *)payload, trusted_payload_len);
-      break;
-
     case NDPI_PROTOCOL_TLS:
       if(trusted_payload_len > 0)
 	flow->dissectTLS((char *)payload, trusted_payload_len);
@@ -7087,35 +7082,6 @@ void NetworkInterface::reloadHostsBlacklist() {
 
   /* Update the hosts */
   walker(&begin_slot, walk_all,  walker_hosts, host_reload_blacklist, NULL);
-}
-
-/* **************************************************** */
-
-static bool local_hosts_2_dropbox_walker(GenericHashEntry *h, void *user_data, bool *matched) {
-  Host *host = (Host*)h;
-
-  if(host && (host->getNumDropboxPeers() > 0)) {
-    lua_State *vm = (lua_State*)user_data;
-
-    host->dumpDropbox(vm);
-    *matched = true;
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* *************************************** */
-
-int NetworkInterface::dumpDropboxHosts(lua_State *vm) {
-  int rc;
-  u_int32_t begin_slot = 0;
-
-  lua_newtable(vm);
-
-  rc = walker(&begin_slot, true /* walk_all */, walker_hosts,
-	      local_hosts_2_dropbox_walker, vm) ? 0 : -1;
-
-  return(rc);
 }
 
 /* *************************************** */

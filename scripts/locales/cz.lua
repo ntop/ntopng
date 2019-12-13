@@ -52,7 +52,6 @@ local lang = {
   ["download_x"] = "%{what} stáhnout",
   ["downloaders"] = "Download Volume",
   ["drilldown"] = "Drilldown",
-  ["dropbox_sharing_with"] = " Tento hostitel sdílí dokumenty s Dropboxem v síti LAN s:",
   ["duplexstatus"] = "Duplex Status",
   ["duration"] = "Doba trvání",
   ["egress"] = "Odchozí",

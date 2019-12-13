@@ -59,7 +59,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   u_int32_t syn_sent_last_min, synack_recvd_last_min; /* syn scan counters (attacker) */
   u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
-  std::vector<u_int32_t> dropbox_namespaces;
   MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server;
   u_int32_t asn;
   AutonomousSystem *as;
@@ -336,7 +335,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void checkBroadcastDomain();
   bool hasAnomalies() const;
   void housekeepAlerts(ScriptPeriodicity p);
-  inline u_int getNumDropboxPeers()                      { return(dropbox_namespaces.size()); };
   virtual void inlineSetOSDetail(const char *detail) { }
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
   void inlineSetSSDPLocation(const char * const url);
@@ -344,8 +342,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void inlineSetMDNSName(const char * const n);
   void inlineSetMDNSTXTName(const char * const n);
   void setResolvedName(const char * const resolved_name);
-  void dissectDropbox(const char *payload, u_int16_t payload_len);
-  void dumpDropbox(lua_State *vm);
   inline Fingerprint* getJA3Fingerprint()   { return(&fingerprints.ja3);   }
   inline Fingerprint* getHASSHFingerprint() { return(&fingerprints.hassh); }
   virtual void setFlowPort(bool as_server, Host *peer, u_int8_t protocol,

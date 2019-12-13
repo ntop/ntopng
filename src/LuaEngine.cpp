@@ -3647,22 +3647,6 @@ static int ntop_dump_local_hosts_2_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_dump_dropbox_hosts(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  lua_pushnil(vm);
-  ntop_interface->dumpDropboxHosts(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t pid;
@@ -10810,7 +10794,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis           },
   { "dropMultipleFlowsTraffic", ntop_drop_multiple_flows_traffic        },
   { "findPidFlows",             ntop_get_interface_find_pid_flows       },
-  { "dumpDropboxHosts",         ntop_dump_dropbox_hosts                 },
   { "findNameFlows",            ntop_get_interface_find_proc_name_flows },
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },
