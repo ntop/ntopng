@@ -114,6 +114,10 @@ class Flow : public GenericHashEntry {
     } ssdp;
 
     struct {
+      char *name;
+    } netbios;
+
+    struct {
       char *client_signature, *server_signature;
       struct {
 	/* https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c */
@@ -272,6 +276,7 @@ class Flow : public GenericHashEntry {
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isMDNS() const { return(isProto(NDPI_PROTOCOL_MDNS)); }
   inline bool isSSDP() const { return(isProto(NDPI_PROTOCOL_SSDP)); }
+  inline bool isNetBIOS() const { return(isProto(NDPI_PROTOCOL_NETBIOS)); }
   inline bool isDHCP() const { return(isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
@@ -493,6 +498,7 @@ class Flow : public GenericHashEntry {
   void dissectTLS(char *payload, u_int16_t payload_len);
   void dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectMDNS(u_int8_t *payload, u_int16_t payload_len);
+  void dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
   void fillZmqFlowCategory();

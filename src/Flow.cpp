@@ -273,6 +273,8 @@ Flow::~Flow() {
     if(protos.mdns.ssid)             free(protos.mdns.ssid);
   } else if (isSSDP()) {
     if(protos.ssdp.location)         free(protos.ssdp.location);
+  } else if (isNetBIOS()) {
+    if(protos.netbios.name)          free(protos.netbios.name);
   } else if(isSSH()) {
     if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
@@ -1029,6 +1031,11 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
   case NDPI_PROTOCOL_SSDP:
     if(cli_host) {
       if(protos.ssdp.location) cli_host->offlineSetSSDPLocation(protos.ssdp.location);
+    }
+    break;
+  case NDPI_PROTOCOL_NETBIOS:
+    if(cli_host) {
+      if(protos.netbios.name) cli_host->set_host_label(protos.netbios.name, true);
     }
     break;
   case NDPI_PROTOCOL_IP_ICMP:
@@ -3293,6 +3300,43 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 	break;
       }
     }
+  }
+}
+
+/* *************************************** */
+
+void Flow::dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len) {
+  char name[64];
+
+  if(((payload[2] & 0x80) /* NetBIOS Response */ || ((payload[2] & 0x78) == 0x28 /* NetBIOS Registration */))
+     && (ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0)
+     && (!strstr(name, "__MSBROWSE__"))
+     ) {
+
+    if(name[0] == '*') {
+      int limit = min_val(payload_len-57, (int)sizeof(name)-1);
+      int i = 0;
+
+      while((i<limit) && (payload[57+i] != 0x20) && isprint(payload[57+i])) {
+	name[i] = payload[57+i];
+	i++;
+      }
+
+      if((i<limit) && (payload[57+i] != 0x00 /* Not a Workstation/Redirector */))
+	name[0] = '\0'; /* ignore */
+      else
+	name[i] = '\0';
+    }
+#if 0
+    char buf[32];
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting hostname from NetBios [raw=0x%x opcode=0x%x response=0x%x]: ip=%s -> '%s'",
+				 payload[2], (payload[2] & 0x78) >> 3, (payload[2] & 0x80) >> 7,
+				 (*srcHost)->get_ip()->print(buf, sizeof(buf)), name);
+#endif
+
+    if(name[0])
+      protos.netbios.name = strdup(name);
   }
 }
 
