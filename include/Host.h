@@ -337,7 +337,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void housekeepAlerts(ScriptPeriodicity p);
   virtual void inlineSetOSDetail(const char *detail) { }
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
-  void inlineSetSSDPLocation(const char * const url);
+  void offlineSetSSDPLocation(const char * const url);
   void offlineSetMDNSInfo(char * const s);
   void offlineSetMDNSName(const char * const n);
   void offlineSetMDNSTXTName(const char * const n);

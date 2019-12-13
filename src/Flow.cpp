@@ -271,6 +271,8 @@ Flow::~Flow() {
     if(protos.mdns.name)             free(protos.mdns.name);
     if(protos.mdns.name_txt)         free(protos.mdns.name_txt);
     if(protos.mdns.ssid)             free(protos.mdns.ssid);
+  } else if (isSSDP()) {
+    if(protos.ssdp.location)         free(protos.ssdp.location);
   } else if(isSSH()) {
     if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
@@ -1022,6 +1024,11 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       if(protos.mdns.answer)   cli_host->offlineSetMDNSInfo(protos.mdns.answer);
       if(protos.mdns.name)     cli_host->offlineSetMDNSName(protos.mdns.name);
       if(protos.mdns.name_txt) cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt);
+    }
+    break;
+  case NDPI_PROTOCOL_SSDP:
+    if(cli_host) {
+      if(protos.ssdp.location) cli_host->offlineSetSSDPLocation(protos.ssdp.location);
     }
     break;
   case NDPI_PROTOCOL_IP_ICMP:
@@ -3282,7 +3289,7 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 	url[i] = '\0';
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SSDP URL:] %s", url);
-	if(cli_host) cli_host->inlineSetSSDPLocation(url);
+	if(!protos.ssdp.location) protos.ssdp.location = strdup(url);
 	break;
       }
     }

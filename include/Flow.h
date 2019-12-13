@@ -110,6 +110,10 @@ class Flow : public GenericHashEntry {
     } mdns;
 
     struct {
+      char *location;
+    } ssdp;
+
+    struct {
       char *client_signature, *server_signature;
       struct {
 	/* https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c */
@@ -267,6 +271,7 @@ class Flow : public GenericHashEntry {
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isMDNS() const { return(isProto(NDPI_PROTOCOL_MDNS)); }
+  inline bool isSSDP() const { return(isProto(NDPI_PROTOCOL_SSDP)); }
   inline bool isDHCP() const { return(isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }

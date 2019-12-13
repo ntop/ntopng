@@ -1192,7 +1192,7 @@ void Host::offlineSetMDNSInfo(char * const str) {
 
 /* *************************************** */
 
-void Host::inlineSetSSDPLocation(const char * const url) {
+void Host::offlineSetSSDPLocation(const char * const url) {
   if(!ssdpLocation && url && (ssdpLocation = strdup(url)))
     ;
 }
