@@ -945,7 +945,6 @@ else
 	 local unreachable_flow = interface.findFlowByTuple(flow["cli.ip"], flow["srv.ip"], flow["vlan"], icmp["unreach"]["dst_port"], icmp["unreach"]["src_port"], icmp["unreach"]["protocol"])
 
 	 if unreachable_flow then
-	    tprint(unreachable_flow)
 	    print(" ["..i18n("flow")..": ")
 	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."&flow_hash_id="..unreachable_flow["hash_entry_id"].."'><span class='badge badge-info'>Info</span></A>")
 	    print(" "..getFlowLabel(unreachable_flow, true, true))
