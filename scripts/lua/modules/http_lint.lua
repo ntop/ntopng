@@ -1115,6 +1115,10 @@ local known_parameters = {
 -- NAVIGATION
    ["page"]                    = validateSingleWord,            -- Currently active subpage tab
    ["tab"]                     = validateSingleWord,            -- Currently active tab, handled by javascript
+
+-- CONFIGSETS
+   ["confset_id"]              = validateNumber,
+   ["confset_name"]            = validateUnquoted,
    
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching

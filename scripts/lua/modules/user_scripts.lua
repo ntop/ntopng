@@ -30,6 +30,7 @@ user_scripts.field_units = {
 local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
+local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets"
 
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
@@ -952,6 +953,137 @@ function user_scripts.handlePOST(subdir, available_modules, hook, entity_value, 
 
    reload_scripts_config(available_modules)
    saveConfiguration(subdir, scripts_conf)
+end
+
+-- ##############################################
+
+local function findConfigSet(configsets, name)
+   for id, configset in pairs(configsets) do
+      if(configset.name == name) then
+	 return(configset)
+      end
+   end
+
+   return(nil)
+end
+
+-- ##############################################
+
+local function getNewConfigSetId(configsets)
+   local max_id = -1
+
+   for i in pairs(configsets) do
+      max_id = math.max(max_id, tonumber(i))
+   end
+
+   return(max_id+1)
+end
+
+-- ##############################################
+
+local function saveConfigsets(configsets)
+   local rv = json.encode(configsets)
+   ntop.setPref(CONFIGSETS_KEY, rv)
+end
+
+-- ##############################################
+
+function user_scripts.getConfigsets()
+   local configsets = ntop.getPref(CONFIGSETS_KEY) or ""
+
+   configsets = json.decode(configsets) or {}
+
+   return(configsets)
+end
+
+-- ##############################################
+
+-- @brief Creates a new configset.
+-- @params name the unique config set name
+-- @returns a tuple <configset, errmsg>. If configset is nil, errmsg
+-- will contain a localized error describing the problem.
+function user_scripts.newConfigset(name)
+   local configsets = user_scripts.getConfigsets()
+   local existing = findConfigSet(configsets, name)
+
+   if existing then
+      return nil, i18n("configsets.error_exists", {name=name})
+   end
+
+   local confid = getNewConfigSetId(configsets)
+
+   local newconfset = {
+      id = confid,
+      name = name,
+      config = {},
+   }
+
+   configsets[confid] = newconfset
+   saveConfigsets(configsets)
+
+   return newconfset
+end
+
+-- ##############################################
+
+function user_scripts.deleteConfigset(confid)
+   local configsets = user_scripts.getConfigsets()
+
+   if(configsets[confid] == nil) then
+      return false, i18n("configsets.unknown_id", {confid=confid})
+   end
+
+   configsets[confid] = nil
+   saveConfigsets(configsets)
+
+   return true
+end
+
+-- ##############################################
+
+function user_scripts.renameConfigset(confid, new_name)
+   local configsets = user_scripts.getConfigsets()
+
+   if(configsets[confid] == nil) then
+      return false, i18n("configsets.unknown_id", {confid=confid})
+   end
+
+   local existing = findConfigSet(configsets, new_name)
+
+   if existing then
+      return false, i18n("configsets.error_exists", {name=new_name})
+   end
+
+   configsets[confid].name = new_name
+   saveConfigsets(configsets)
+
+   return true
+end
+
+-- ##############################################
+
+function user_scripts.cloneConfigset(confid, new_name)
+   local configsets = user_scripts.getConfigsets()
+
+   if(configsets[confid] == nil) then
+      return false, i18n("configsets.unknown_id", {confid=confid})
+   end
+
+   local existing = findConfigSet(configsets, new_name)
+
+   if existing then
+      return false, i18n("configsets.error_exists", {name=new_name})
+   end
+
+   local new_confid = getNewConfigSetId(configsets)
+
+   configsets[new_confid] = table.clone(configsets[confid])
+   configsets[new_confid].id = new_confid
+   configsets[new_confid].name = new_name
+
+   saveConfigsets(configsets)
+
+   return true
 end
 
 -- ##############################################

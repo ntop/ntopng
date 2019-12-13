@@ -480,6 +480,10 @@ local lang = {
     ["conf_backup"] = "Backup Configuration",
     ["conf_restore"] = "Restore Configuration",
   },
+  ["configsets"] = {
+    ["error_exists"] = "The configuration name \"%{name}\" is already in use",
+    ["unknown_id"] = "No configuration found with id %{confid}",
+  },
   ["contacts_page"] = {
     ["client_address"] = "Client Address",
     ["client_contacts_initiator"] = "Client Contacts (Initiator)",
