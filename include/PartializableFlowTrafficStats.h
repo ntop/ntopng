@@ -34,6 +34,7 @@ class PartializableFlowTrafficStats {
   FlowTCPPacketStats cli2srv_tcp_stats, srv2cli_tcp_stats;
   union {
     FlowHTTPStats http;
+    FlowDNSStats dns;
   } protos;
 
  public:
@@ -57,11 +58,15 @@ class PartializableFlowTrafficStats {
   inline void incHTTPResp4xx()  { protos.http.num_4xx++;   };
   inline void incHTTPResp5xx()  { protos.http.num_5xx++;   };
 
+  void incDNSQuery(u_int16_t query_type);
+  void incDNSResp(u_int16_t resp_code);
+
   virtual void incStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len);
   virtual void setStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len);
 
   void get_partial(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *fts) const;
   inline const FlowHTTPStats *get_flow_http_stats() const { return &protos.http; };
+  inline const FlowDNSStats *get_flow_dns_stats()   const { return &protos.dns;  };
 
   inline u_int32_t get_cli2srv_packets()       const { return cli2srv_packets;            };
   inline u_int32_t get_srv2cli_packets()       const { return srv2cli_packets;            };

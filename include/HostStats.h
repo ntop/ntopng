@@ -96,16 +96,13 @@ class HostStats: public TimeseriesStats {
 #endif
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer) {}
-  virtual void incNumDNSQueriesSent(u_int16_t query_type) {}
-  virtual void incNumDNSQueriesRcvd(u_int16_t query_type) {}
-  virtual void incNumDNSResponsesSent(u_int32_t ret_code) {}
-  virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) {}
   virtual void luaHTTP(lua_State *vm) const {}
   virtual void luaDNS(lua_State *vm, bool verbose) const  {}
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  {}
   virtual void incrVisitedWebSite(char *hostname) {}
   virtual void tsLua(lua_State* vm) {}
   virtual HTTPstats* getHTTPstats() const { return(NULL); }
+  virtual DnsStats*  getDNSstats()  const { return(NULL); }
 };
 
 #endif

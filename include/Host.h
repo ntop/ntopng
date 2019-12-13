@@ -161,6 +161,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   
   virtual int16_t get_local_network_id() const = 0;
   virtual HTTPstats* getHTTPstats()           const { return(NULL);                  };
+  virtual DnsStats*  getDNSstats()            const { return(NULL);                  };
   inline void set_ipv4(u_int32_t _ipv4)             { ip.set(_ipv4);                 };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
@@ -282,10 +283,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void incnDPIFlows(u_int16_t l7_protocol)    { if(stats) stats->incnDPIFlows(l7_protocol); }
  
   inline void incFlagStats(bool as_client, u_int8_t flags)  { stats->incFlagStats(as_client, flags); };
-  virtual void incNumDNSQueriesSent(u_int16_t query_type) { };
-  virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { };
-  virtual void incNumDNSResponsesSent(u_int32_t ret_code) { };
-  virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { };
   virtual void luaHTTP(lua_State *vm)              const { };
   virtual void luaDNS(lua_State *vm, bool verbose) const { };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { };

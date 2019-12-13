@@ -991,19 +991,28 @@ void Flow::hosts_periodic_stats_update(Host *cli_host, Host *srv_host, Partializ
 	      || get_cli_ip_addr()->isMulticastAddress()))
 	cli_host->setOS(operating_system);
     }
-  }
-
-  if(srv_host
-     && host_server_name
-     && isThreeWayHandshakeOK()
-     && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
-	 || ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP_PROXY))) {
-    if(srv_host->getHTTPstats())
+    /* Don't break, let's process also HTTP_PROXY */
+  case NDPI_PROTOCOL_HTTP_PROXY:
+    if(srv_host
+       && srv_host->getHTTPstats()
+       && host_server_name
+       && isThreeWayHandshakeOK()) {
       srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
 						      partial->get_num_http_requests(),
 						      partial->get_cli2srv_bytes(),
 						      partial->get_srv2cli_bytes());
+    }
+    break;
+  case NDPI_PROTOCOL_DNS:
+    if(cli_host && cli_host->getDNSstats())
+      cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
+    if(srv_host && srv_host->getDNSstats())
+      srv_host->getDNSstats()->incStats(false /* Server */, partial->get_flow_dns_stats());
+    break;
+  default:
+    break;
   }
+
 }
 
 /* *************************************** */
@@ -2811,6 +2820,15 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
     if(bt_proto)
       setBittorrentHash(&bt_proto[27]);
   }
+}
+
+/* *************************************** */
+
+void Flow::dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len) {
+  if(isDNSQuery())
+    stats.incDNSQuery(getLastQueryType());
+  else
+    stats.incDNSResp(getDNSRetCode());
 }
 
 /* *************************************** */

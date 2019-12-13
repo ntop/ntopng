@@ -270,7 +270,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("applications"),
 			      },
 			      {
-				 hidden = only_historical,
+				 hidden = only_historical or not host["localhost"],
 				 active = page == "dns",
 				 page_name = "dns",
 				 label = i18n("dns"),
@@ -288,7 +288,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("ssh"),
 			      },
 			      {
-				 hidden = only_historical or not host["http"],
+				 hidden = only_historical or not host["localhost"] or not host["http"],
 				 active = page == "http",
 				 page_name = "http",
 				 label = i18n("http"),
@@ -1236,7 +1236,7 @@ setInterval(update_ndpi_categories_table, 5000);
 
    end
 
-   elseif(page == "dns") then
+elseif(page == "dns") then
       if(host["dns"] ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
 	 print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th>"..i18n("dns_page.queries").."</th><th>"..i18n("dns_page.positive_replies").."</th><th>"..i18n("dns_page.error_replies").."</th><th colspan=2>"..i18n("dns_page.reply_breakdown").."</th></tr>")

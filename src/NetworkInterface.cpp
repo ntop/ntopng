@@ -1579,28 +1579,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	Make sure only non-zero-payload segments are processed.
       */
       if((trusted_payload_len > 0) && payload) {
+	flow->dissectDNS(src2dst_direction, (char*)payload, trusted_payload_len);
 	/*
 	  DNS-over-TCP has a 2-bytes field with DNS payload length
 	  at the beginning. See RFC1035 section 4.2.2. TCP usage.
 	*/
-	if(flow->get_cli_host() && flow->get_srv_host()) {
-	  Host *client = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
-	  Host *server = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
-
-	  /*
-	    Inside the DNS packet it is possible to have multiple queries
-	    and mix query types. In general this is not a practice followed
-	    by applications.
-	  */
-
-	  if(flow->isDNSQuery()) {
-	    u_int16_t query_type = flow->getLastQueryType();
-	    client->incNumDNSQueriesSent(query_type), server->incNumDNSQueriesRcvd(query_type);
-	  } else {
-	    u_int8_t ret_code = flow->getDNSRetCode();
-	    client->incNumDNSResponsesSent(ret_code), server->incNumDNSResponsesRcvd(ret_code);
-	  }
-	}
       }
 
       break;

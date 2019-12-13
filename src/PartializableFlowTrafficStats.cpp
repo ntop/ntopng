@@ -84,6 +84,20 @@ PartializableFlowTrafficStats PartializableFlowTrafficStats::operator-(const Par
     cur.protos.http.num_4xx   -= fts.protos.http.num_4xx;
     cur.protos.http.num_5xx   -= fts.protos.http.num_5xx;
     break;
+  case NDPI_PROTOCOL_DNS:
+    cur.protos.dns.num_a     -= fts.protos.dns.num_a;
+    cur.protos.dns.num_ns    -= fts.protos.dns.num_ns;
+    cur.protos.dns.num_cname -= fts.protos.dns.num_cname;
+    cur.protos.dns.num_soa   -= fts.protos.dns.num_soa;
+    cur.protos.dns.num_ptr   -= fts.protos.dns.num_ptr;
+    cur.protos.dns.num_mx    -= fts.protos.dns.num_mx;
+    cur.protos.dns.num_txt   -= fts.protos.dns.num_txt;
+    cur.protos.dns.num_aaaa  -= fts.protos.dns.num_aaaa;
+    cur.protos.dns.num_any   -= fts.protos.dns.num_any;
+    cur.protos.dns.num_other -= fts.protos.dns.num_other;
+    cur.protos.dns.num_replies_ok    -= fts.protos.dns.num_replies_ok;
+    cur.protos.dns.num_replies_error -= fts.protos.dns.num_replies_error;
+    break;
   default:
     break;
   }
@@ -134,6 +148,67 @@ void PartializableFlowTrafficStats::setStats(bool cli2srv_direction, u_int num_p
     cli2srv_packets = num_pkts, cli2srv_bytes = pkt_len, cli2srv_goodput_bytes = payload_len;
   else
     srv2cli_packets = num_pkts, srv2cli_bytes = pkt_len, srv2cli_goodput_bytes = payload_len;
+}
+
+/* *************************************** */
+
+void PartializableFlowTrafficStats::incDNSQuery(u_int16_t query_type) {
+  switch(query_type) {
+  case 0:
+    /* Zero means we have not been able to decode the DNS message */
+    break;
+  case 1:
+    /* A */
+    protos.dns.num_a++;
+    break;
+  case 2:
+    /* NS */
+    protos.dns.num_ns++;
+    break;
+  case 5: 
+    /* CNAME */ 
+    protos.dns.num_cname++;
+    break;
+  case 6:
+    /* SOA */ 
+    protos.dns.num_soa++;
+    break;
+  case 12:
+    /* PTR */ 
+    protos.dns.num_ptr++;
+    break;
+  case 15:
+    /* MX */
+    protos.dns.num_mx++;
+    break;
+  case 16:
+    /* TXT */
+    protos.dns.num_txt++;
+    break;
+  case 28:
+    /* AAAA */
+    protos.dns.num_aaaa++;
+    break;
+  case 255:
+    /* ANY */ 
+    protos.dns.num_any++;
+    break;
+  default:
+    protos.dns.num_other++;
+    break;
+  }
+}
+
+/* *************************************** */
+
+void PartializableFlowTrafficStats::incDNSResp(u_int16_t resp_code) {
+  switch(resp_code) {
+  case 0:
+    protos.dns.num_replies_ok++;
+    break;
+  default:
+    protos.dns.num_replies_error++;
+  }
 }
 
 /* *************************************** */

@@ -39,20 +39,15 @@ class DnsStats {
  private:
   struct dns_stats sent_stats, rcvd_stats;
 
-  void incQueryBreakdown(struct queries_breakdown *bd, u_int16_t query_type);
   void deserializeStats(json_object *o, struct dns_stats *stats);
   json_object* getStatsJSONObject(struct dns_stats *stats);
   void luaStats(lua_State *vm, struct dns_stats *stats, const char *label, bool verbose);
-  void incNumDNSQueries(u_int16_t query_type, struct dns_stats *s);
 
  public:
   DnsStats();
 
-  inline void incNumDNSQueriesSent(u_int16_t query_type) { incNumDNSQueries(query_type, &sent_stats); };
-  inline void incNumDNSQueriesRcvd(u_int16_t query_type) { incNumDNSQueries(query_type, &rcvd_stats); };
+  void incStats(bool as_client, const FlowDNSStats *fts);
   void updateStats(const struct timeval * const tv);
-  void incNumDNSResponsesSent(u_int8_t ret_code);
-  void incNumDNSResponsesRcvd(u_int8_t ret_code);
 
   char* serialize();
   void deserialize(json_object *o);

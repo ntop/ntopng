@@ -40,8 +40,7 @@ class LocalHostStats: public HostStats {
   LocalHostStats(Host *_host);
   virtual ~LocalHostStats();
 
-  inline DnsStats* getDNSStats()    const  { return(dns);  }
-  HTTPstats* getHTTPStats()         const  { return(http); }
+
   inline ICMPstats* getICMPStats()  const  { return(icmp); }
 
   virtual void incStats(time_t when, u_int8_t l4_proto,
@@ -58,10 +57,6 @@ class LocalHostStats: public HostStats {
   virtual void decNumFlows(bool as_client, Host *peer);
 
   virtual void incICMP(u_int8_t icmp_type, u_int8_t icmp_code, bool sent, Host *peer);
-  virtual void incNumDNSQueriesSent(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesSent(query_type); };
-  virtual void incNumDNSQueriesRcvd(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesRcvd(query_type); };
-  virtual void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
-  virtual void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
   virtual void luaDNS(lua_State *vm, bool verbose) const  { if(dns) dns->lua(vm,verbose); }
   virtual void luaHTTP(lua_State *vm) const  { if(http) http->lua(vm); }
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { if (icmp) icmp->lua(isV4, vm, verbose); }
@@ -70,6 +65,7 @@ class LocalHostStats: public HostStats {
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() const { return(http); };
+  virtual DnsStats*  getDNSstats()  const { return(dns);  };
   virtual u_int16_t getNumActiveContactsAsClient() { return contacts_as_cli.size(); }
   virtual u_int16_t getNumActiveContactsAsServer() { return contacts_as_srv.size(); }
 };

@@ -26,7 +26,7 @@
 HostTimeseriesPoint::HostTimeseriesPoint(const LocalHostStats * const hs) : TimeseriesPoint() {
   Host *host = hs->getHost();
   host_stats = new TimeseriesStats(*hs);
-  dns = hs->getDNSStats() ? new DnsStats(*hs->getDNSStats()) : NULL;
+  dns = hs->getDNSstats() ? new DnsStats(*hs->getDNSstats()) : NULL;
   icmp = NULL;
 
   if(hs->getICMPStats() && (hs->getHost()->get_ip()->isIPv4())) {

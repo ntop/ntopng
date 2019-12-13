@@ -32,6 +32,29 @@ DnsStats::DnsStats() {
 
 /* *************************************** */
 
+void DnsStats::incStats(bool as_client, const FlowDNSStats *fts) {
+  struct dns_stats *qry = as_client ? &sent_stats : &rcvd_stats;
+  struct dns_stats *rsp = as_client ? &rcvd_stats : &sent_stats;
+  u_int16_t tot_qry = 0;
+
+  if(fts->num_a)     qry->breakdown.num_a     += fts->num_a,     tot_qry += fts->num_a;
+  if(fts->num_ns)    qry->breakdown.num_ns    += fts->num_ns,    tot_qry += fts->num_ns;
+  if(fts->num_cname) qry->breakdown.num_cname += fts->num_cname, tot_qry += fts->num_cname;
+  if(fts->num_soa)   qry->breakdown.num_soa   += fts->num_soa,   tot_qry += fts->num_soa;
+  if(fts->num_ptr)   qry->breakdown.num_ptr   += fts->num_ptr,   tot_qry += fts->num_ptr;
+  if(fts->num_mx)    qry->breakdown.num_mx    += fts->num_mx,    tot_qry += fts->num_mx;
+  if(fts->num_txt)   qry->breakdown.num_txt   += fts->num_txt,   tot_qry += fts->num_txt;
+  if(fts->num_aaaa)  qry->breakdown.num_aaaa  += fts->num_aaaa,  tot_qry += fts->num_aaaa;
+  if(fts->num_any)   qry->breakdown.num_any   += fts->num_any,   tot_qry += fts->num_any;
+  if(fts->num_other) qry->breakdown.num_other += fts->num_other, tot_qry += fts->num_other;
+  if(tot_qry)        qry->num_queries.inc(tot_qry);
+
+  if(fts->num_replies_ok)    rsp->num_replies_ok.inc(fts->num_replies_ok);
+  if(fts->num_replies_error) rsp->num_replies_error.inc(fts->num_replies_error);
+}
+
+/* *************************************** */
+
 void DnsStats::luaStats(lua_State *vm, struct dns_stats *stats, const char *label, bool verbose) {
   lua_newtable(vm);
 
@@ -191,63 +214,6 @@ json_object* DnsStats::getJSONObject() {
 
 /* ******************************************* */
 
-void DnsStats::incQueryBreakdown(struct queries_breakdown *bd, u_int16_t query_type) {
-  switch(query_type) {
-  case 0:
-    /* Zero means we have not been able to decode the DNS message */
-    break;
-  case 1:
-    /* A */
-    bd->num_a++;
-    break;
-  case 2:
-    /* NS */
-    bd->num_ns++;
-    break;
-  case 5: 
-    /* CNAME */ 
-    bd->num_cname++;
-    break;
-  case 6:
-    /* SOA */ 
-    bd->num_soa++;
-    break;
-  case 12:
-    /* PTR */ 
-    bd->num_ptr++;
-    break;
-  case 15:
-    /* MX */
-    bd->num_mx++;
-    break;
-  case 16:
-    /* TXT */
-    bd->num_txt++;
-    break;
-  case 28:
-    /* AAAA */
-    bd->num_aaaa++;
-    break;
-  case 255:
-    /* ANY */ 
-    bd->num_any++;
-    break;
-  default:
-    bd->num_other++;
-    break;
-  }
-}
-
-/* ******************************************* */
-
-void DnsStats::incNumDNSQueries(u_int16_t query_type,
-				struct dns_stats *stats) {
-  stats->num_queries.inc(1); 
-  incQueryBreakdown(&stats->breakdown, query_type);
-};
-
-/* ******************************************* */
-
 void DnsStats::updateStats(const struct timeval * const tv) {
   time_t when = tv->tv_sec;
 
@@ -274,21 +240,3 @@ void DnsStats::updateStats(const struct timeval * const tv) {
 			       rcvd_stats.num_replies_error.print(buf, sizeof(buf)));
 #endif
 }
-
-/* ******************************************* */
-
-void DnsStats::incNumDNSResponsesSent(u_int8_t ret_code) {
-  if(ret_code == 0)
-    sent_stats.num_replies_ok.inc(1);
-  else
-    sent_stats.num_replies_error.inc(1);
-};
-
-/* ******************************************* */
-
-void DnsStats::incNumDNSResponsesRcvd(u_int8_t ret_code) {
-  if(ret_code == 0)
-    rcvd_stats.num_replies_ok.inc(1);
-  else
-    rcvd_stats.num_replies_error.inc(1);
-};
