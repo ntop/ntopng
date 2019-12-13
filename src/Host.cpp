@@ -1152,7 +1152,7 @@ void Host::reloadHostBlacklist() {
 
 /* *************************************** */
 
-void Host::inlineSetMDNSInfo(char * const str) {
+void Host::offlineSetMDNSInfo(char * const str) {
   char *cur_info;
   const char *tokens[] = {
     "._http._tcp.local",
@@ -1199,14 +1199,14 @@ void Host::inlineSetSSDPLocation(const char * const url) {
 
 /* *************************************** */
 
-void Host::inlineSetMDNSName(const char * const mdns_n) {
+void Host::offlineSetMDNSName(const char * const mdns_n) {
   if(!names.mdns && mdns_n && (names.mdns = strdup(mdns_n)))
     ;
 }
 
 /* *************************************** */
 
-void Host::inlineSetMDNSTXTName(const char * const mdns_n_txt) {
+void Host::offlineSetMDNSTXTName(const char * const mdns_n_txt) {
   if(!names.mdns_txt && mdns_n_txt && (names.mdns_txt = strdup(mdns_n_txt)))
     ;
 }

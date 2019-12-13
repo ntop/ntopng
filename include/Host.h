@@ -338,9 +338,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void inlineSetOSDetail(const char *detail) { }
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
   void inlineSetSSDPLocation(const char * const url);
-  void inlineSetMDNSInfo(char * const s);
-  void inlineSetMDNSName(const char * const n);
-  void inlineSetMDNSTXTName(const char * const n);
+  void offlineSetMDNSInfo(char * const s);
+  void offlineSetMDNSName(const char * const n);
+  void offlineSetMDNSTXTName(const char * const n);
   void setResolvedName(const char * const resolved_name);
   inline Fingerprint* getJA3Fingerprint()   { return(&fingerprints.ja3);   }
   inline Fingerprint* getHASSHFingerprint() { return(&fingerprints.hassh); }

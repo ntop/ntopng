@@ -266,6 +266,11 @@ Flow::~Flow() {
     if(protos.http.last_content_type) free(protos.http.last_content_type);
   } else if(isDNS()) {
     if(protos.dns.last_query)   free(protos.dns.last_query);
+  } else if (isMDNS()) {
+    if(protos.mdns.answer)           free(protos.mdns.answer);
+    if(protos.mdns.name)             free(protos.mdns.name);
+    if(protos.mdns.name_txt)         free(protos.mdns.name_txt);
+    if(protos.mdns.ssid)             free(protos.mdns.ssid);
   } else if(isSSH()) {
     if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
@@ -351,10 +356,8 @@ void Flow::processDetectedProtocol() {
       The statement below can create issues sometimes as devices publish
       themselves with varisous names depending on the context (**)
     */
-    if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[MDNS] %s", ndpiFlow->protos.mdns.answer);
-      cli_host->inlineSetMDNSInfo(ndpiFlow->protos.mdns.answer);
-    }
+    if(ndpiFlow->protos.mdns.answer[0] != '\0' && !protos.mdns.answer)
+      protos.mdns.answer = strdup(ndpiFlow->protos.mdns.answer);
     break;
 
   case NDPI_PROTOCOL_DNS:
@@ -1013,6 +1016,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
     if(srv_host && srv_host->getDNSstats())
       srv_host->getDNSstats()->incStats(false /* Server */, partial->get_flow_dns_stats());
+    break;
+  case NDPI_PROTOCOL_MDNS:
+    if(cli_host) {
+      if(protos.mdns.answer)   cli_host->offlineSetMDNSInfo(protos.mdns.answer);
+      if(protos.mdns.name)     cli_host->offlineSetMDNSName(protos.mdns.name);
+      if(protos.mdns.name_txt) cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt);
+    }
     break;
   case NDPI_PROTOCOL_IP_ICMP:
   case NDPI_PROTOCOL_IP_ICMPV6:
@@ -3183,8 +3193,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  c[0] = '\0';
       }
 
-      if(cli_host)
-	cli_host->inlineSetMDNSName(name); /* See (**) */
+      if(!protos.mdns.name) protos.mdns.name = strdup(name);
 
       if((rsp_type == 0x10 /* TXT */) && (data_len > 0)) {
 	char *txt = (char*)&payload[i+sizeof(rsp)], txt_buf[256];
@@ -3221,12 +3230,12 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 		}
 	      }
 
-	      if(strncmp(txt_buf, "nm=", 3) == 0) {
-		if(cli_host)
-		  cli_host->inlineSetMDNSTXTName(&txt_buf[3]);
-	      }
+	      if(strncmp(txt_buf, "nm=", 3) == 0)
+		if(!protos.mdns.name_txt) protos.mdns.name_txt = strdup(&txt_buf[3]);
 
-	      if(strncmp(txt_buf, "ssid=", 3) == 0) {
+	      if(strncmp(txt_buf, "ssid=", 5) == 0) {
+		if(!protos.mdns.ssid) protos.mdns.ssid = strdup(&txt_buf[5]);
+
 		if(cli_host && cli_host->getMac())
 		  cli_host->getMac()->inlineSetSSID(&txt_buf[5]);
 	      }
