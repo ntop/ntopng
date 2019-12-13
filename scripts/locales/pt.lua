@@ -2408,7 +2408,7 @@ local lang = {
     ["n2disk_license_systemid"] = "SystemID: %{systemid}",
     ["n2disk_license_title"] = "Chave de licença do n2disk",
     ["n2disk_license_version"] = "Versão n2disk: %{version}",
-    ["n2n_supernode_description"] = "O endereço do <a href=\"%{url}\">n2n</a> <i class=\"fa fa-external-link\"></i> supernode. Configure seu próprio supernode para ter um acesso remoto totalmente privado.<br>OBSERVAÇÃO: essa alteração afetará somente após a reinicialização da Assistência Remota.",
+    ["n2n_supernode_description"] = "O endereço do <a href=\"%{url}\">n2n</a> <i class=\"fa fa-external-link-alt\"></i> supernode. Configure seu próprio supernode para ter um acesso remoto totalmente privado.<br>OBSERVAÇÃO: essa alteração afetará somente após a reinicialização da Assistência Remota.",
     ["n2n_supernode_title"] = "Supernode",
     ["nagios_host_name_description"] = "O host_name exatamente conforme especificado na definição do host Nagios para o %{product} host. Padrão: ntopng-host",
     ["nagios_host_name_title"] = "Nagios host_name",

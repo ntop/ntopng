@@ -2309,7 +2309,7 @@ local lang = {
     ["n2disk_license_systemid"] = "システムID: %{systemid}",
     ["n2disk_license_title"] = "n2disk License キー",
     ["n2disk_license_version"] = "n2disk バージョン: %{version}",
-    ["n2n_supernode_description"] = "<a href=\"%{url}\">n2n</a> <i class=\"fa fa-external-link\"></i> supernodeのアドレス。 完全なプライベートリモートアクセスを実現するにはあなた自身の専用のsupernodeを設定してください<br>注意: この変更はリモート Assistanceの再起動後にのみ反映されます.",
+    ["n2n_supernode_description"] = "<a href=\"%{url}\">n2n</a> <i class=\"fa fa-external-link-alt\"></i> supernodeのアドレス。 完全なプライベートリモートアクセスを実現するにはあなた自身の専用のsupernodeを設定してください<br>注意: この変更はリモート Assistanceの再起動後にのみ反映されます.",
     ["n2n_supernode_title"] = "Supernode",
     ["nagios_host_name_description"] = "%{product}のホストに対して設定されたNagios ホスト名の定義。 デフォルト: ntopng-host",
     ["nagios_host_name_title"] = "Nagios ホスト_name",

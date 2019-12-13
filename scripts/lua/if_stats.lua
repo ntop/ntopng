@@ -362,7 +362,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if not isEmptyString(ifstats["probe.public_ip"]) then
-	 remote_probe_public_ip = "<b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n"
+	 remote_probe_public_ip = "<b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link-alt'></i></td>\n"
       end
 
       if not isEmptyString(ifstats["zmq.num_flow_exports"]) then

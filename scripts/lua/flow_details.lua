@@ -328,7 +328,7 @@ local function ja3url(what, safety)
    if(what == nil) then
       print("&nbsp;")
    else
-      ret = '<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fa fa-external-link"></i>'
+      ret = '<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fa fa-external-link-alt"></i>'
       if((safety ~= nil) and (safety ~= "safe")) then
 	 ret = ret .. ' [ <i class="fa fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
       end
@@ -847,7 +847,7 @@ else
 
    if(flow["protos.tls.certificate"] ~= nil) then
       print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
-      print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.tls.certificate"].."\">"..flow["protos.tls.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
+      print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.tls.certificate"].."\">"..flow["protos.tls.certificate"].."</A> <i class=\"fa fa-external-link-alt\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.certificate"], flow["category"])) end
       historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.tls.certificate"])
       printAddCustomHostRule(flow["protos.tls.certificate"])
@@ -1049,7 +1049,7 @@ else
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
 	 print(flow["protos.dns.last_query"])
       else
-	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..flow["protos.dns.last_query"].."</A> <i class='fa fa-external-link'></i>")
+	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..flow["protos.dns.last_query"].."</A> <i class='fa fa-external-link-alt'></i>")
       end
 
       if(flow["category"] ~= nil) then
@@ -1093,7 +1093,7 @@ else
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
       end
-      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link\"></i>")
+      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link-alt\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
       printAddCustomHostRule(s)
       print("</td></tr>\n")
@@ -1101,7 +1101,7 @@ else
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
       print("<A HREF=\"http://")
       if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-      print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '', 64).."</A> <i class=\"fa fa-external-link\">")
+      print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '', 64).."</A> <i class=\"fa fa-external-link-alt\">")
       print("</td></tr>\n")
 
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then
@@ -1109,7 +1109,7 @@ else
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></i>")
+	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link-alt\"></i>")
 	 if not isEmptyString(flow["protos.http.server_name"]) then
 	    printAddCustomHostRule(flow["protos.http.server_name"])
 	 end

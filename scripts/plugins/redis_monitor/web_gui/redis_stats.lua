@@ -54,7 +54,7 @@ page_utils.print_navbar("Redis", url,
 -- #######################################################
 
 if(page == "overview") then
-   local fa_external =  "<i class='fa fa-external-link'></i>"
+   local fa_external =  "<i class='fa fa-external-link-alt'></i>"
    local tags = {ifid=getSystemInterfaceId()}
    print("<table class=\"table table-bordered table-striped\">\n")
 

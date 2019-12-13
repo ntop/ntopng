@@ -453,7 +453,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>"..i18n("asn").."</th><td>")
 
       print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn .."'>"..host.asname.."</A> [ "..i18n("asn").." <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn.."'>".. host.asn.."</A> ]</td>")
-      print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..'</A> <i class="fa fa-external-link"></i></td>')
+      print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..'</A> <i class="fa fa-external-link-alt"></i></td>')
       print("</td></tr>\n")
    end
 
@@ -478,7 +478,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       -- tprint(host) io.write("\n")
-      print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
+      print(host["name"] .. "</span></A> <i class=\"fa fa-external-link-alt\"></i> ")
 
       if host["is_blacklisted"] then
 	 print(" <i class=\'fa fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>")
@@ -736,7 +736,7 @@ end
 
 
    if(host["ssdp"] ~= nil) then
-      print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fa fa-external-link fa-lg\"></i> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
+      print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fa fa-external-link-alt fa-lg\"></i> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
    end
 
    print("</table>\n")
@@ -1440,7 +1440,7 @@ elseif(page == "http") then
             print("<tr><th rowspan="..(num+1).." width=20%>"..i18n("http_page.virtual_hosts").."</th><th>Name</th><th>"..i18n("http_page.traffic_sent").."</th><th>"..i18n("http_page.traffic_received").."</th><th>"..i18n("http_page.requests_served").."</th></tr>\n")
             for k,v in pairsByKeys(vh, asc) do
                local j = string.gsub(k, "%.", "___")
-               print("<tr><td><A HREF='http://"..k.."'>"..k.."</A> <i class='fa fa-external-link'></i>")
+               print("<tr><td><A HREF='http://"..k.."'>"..k.."</A> <i class='fa fa-external-link-alt'></i>")
                historicalProtoHostHref(ifId, host, nil, nil, k)
                print("</td>")
                print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
@@ -1960,7 +1960,7 @@ elseif (page == "config") then
       local mud_recording_pref = mud_utils.getHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
 
       print [[<tr>
-         <th>]] print(i18n("host_config.mud_recording")) print[[ <a href="https://developer.cisco.com/docs/mud/#!what-is-mud" target="_blank"><i class='fa fa-external-link'></i></a></th>
+         <th>]] print(i18n("host_config.mud_recording")) print[[ <a href="https://developer.cisco.com/docs/mud/#!what-is-mud" target="_blank"><i class='fa fa-external-link-alt'></i></a></th>
          <td>
                <select name="mud_recording" class="form-control" style="width:20em;">
                   <option value="disabled" ]] if mud_recording_pref == "disabled" then print("selected") end print[[>]] print(i18n("traffic_recording.disabled")) print[[</option>

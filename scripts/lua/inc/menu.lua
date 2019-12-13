@@ -428,7 +428,7 @@ if(is_admin) then
   print(ntop.getHttpPrefix())
   print [[/lua/get_config.lua"><i class="fa fa-download"></i> ]] print(i18n("conf_backup.conf_backup")) print[[</a></li>]]
 
-  print[[ <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration" target="_blank"><i class="fa fa-upload"></i> ]] print(i18n("conf_backup.conf_restore")) print[[ <i class="fa fa-external-link"></i></a></li>]]
+  print[[ <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration" target="_blank"><i class="fa fa-upload"></i> ]] print(i18n("conf_backup.conf_restore")) print[[ <i class="fa fa-external-link-alt"></i></a></li>]]
 end
 
 -- Updates submenu
@@ -670,16 +670,16 @@ print [[
     <ul class="dropdown-menu">
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fa fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fa fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://t.me/ntop_community" target="_blank"><i class="fab fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="http://blog.ntop.org/" target="_blank"><i class="fa fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fa fa-external-link-alt"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://t.me/ntop_community" target="_blank"><i class="fab fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fa fa-external-link-alt"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fa fa-external-link-alt"></i></a></li>
 
       <li class="dropdown-divider"></li>
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fa fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fab fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fa fa-exclamation-triangle"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link"></i></a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fa fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fa fa-external-link-alt"></i></a></li>
+      <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fa fa-book"></i> ]] print("Lua/C API") print[[ <i class="fa fa-external-link-alt"></i></a></li>
 ]]
 
 print [[
