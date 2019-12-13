@@ -597,6 +597,7 @@ for round = 1, 2 do
 	 if(v == ifname) then
 	    print("<a class=\"dropdown-item\" href=\""..url.."\">")
 	 else
+	    -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
 	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
 	    print[[<input name="switch_interface" type="hidden" value="1" />]]
 	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]

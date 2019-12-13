@@ -5105,6 +5105,26 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
 
 /* ****************************************** */
 
+static void build_redirect(const char *url, const char * query_string,
+	char *buf, size_t bufsize) {
+  snprintf(buf, bufsize, "HTTP/1.1 302 Found\r\n"
+     "Location: %s%s%s\r\n\r\n"
+     "<html>\n"
+     "<head>\n"
+     "<title>Moved</title>\n"
+     "</head>\n"
+     "<body>\n"
+     "<h1>Moved</h1>\n"
+     "<p>This page has moved to <a href=\"%s\">%s</a>.</p>\n"
+     "</body>\n"
+     "</html>\n", url,
+     query_string ? "?" : "",
+     query_string ? query_string : "",
+     url, url);
+}
+
+/* ****************************************** */
+
 // *** API ***
 static int ntop_http_redirect(lua_State* vm) {
   char *url, str[512];
@@ -5114,18 +5134,7 @@ static int ntop_http_redirect(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((url = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  snprintf(str, sizeof(str), "HTTP/1.1 302 Found\r\n"
-	   "Location: %s\r\n\r\n"
-	   "<html>\n"
-	   "<head>\n"
-	   "<title>Moved</title>\n"
-	   "</head>\n"
-	   "<body>\n"
-	   "<h1>Moved</h1>\n"
-	   "<p>This page has moved to <a href=\"%s\">%s</a>.</p>\n"
-	   "</body>\n"
-	   "</html>\n", url, url, url);
-
+  build_redirect(url, NULL, str, sizeof(str));
   lua_pushstring(vm, str);
 
   return(CONST_LUA_OK);
@@ -11794,6 +11803,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char addr_buf[64];
   char session_buf[64];
   char ifid_buf[32];
+  bool send_redirect = false;
   IpAddress client_addr;
 
   *attack_attempt = false;
@@ -11852,8 +11862,14 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       mg_get_var(post_data, post_data_len, "switch_interface", switch_interface, sizeof(switch_interface));
       if (strlen(switch_interface) > 0 && request_info->query_string) {
         mg_get_var(request_info->query_string, strlen(request_info->query_string), "ifid", ifid_buf, sizeof(ifid_buf));
-        if (strlen(ifid_buf) > 0)
+        if (strlen(ifid_buf) > 0) {
           switchInterface(L, ifid_buf, user, session_buf);
+
+	  /* Sending a redirect is needed to prevent the current lua script
+	   * from receiving the POST request, as it could exchange the request
+	   * as a configuration save request. */
+	  send_redirect = true;
+	}
       }
 
     } else
@@ -11863,6 +11879,16 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       free(post_data);
   } else
     *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
+
+  if(send_redirect) {
+    char buf[512];
+
+    build_redirect(request_info->uri, request_info->query_string, buf, sizeof(buf));
+
+    /* Redirect the page and terminate this request */
+    mg_printf(conn, buf);
+    return(CONST_LUA_OK);
+  }
 
   /* Put the GET params into the environment */
   if(request_info->query_string)
