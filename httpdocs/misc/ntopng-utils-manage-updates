@@ -11,6 +11,7 @@ REDIS_CLI="/usr/bin/redis-cli"
 REDIS_CHECK_FOR_UPDATES_KEY="ntopng.updates.check_for_updates"
 REDIS_NEW_VERSION_AVAILABLE_KEY="ntopng.updates.new_version"
 REDIS_RUN_UPGRADE_KEY="ntopng.updates.run_upgrade"
+REDIS_AUTO_UPDATES_KEY="ntopng.prefs.is_autoupdates_enabled"
 
 ACTION=""
 QUIET=true
@@ -99,6 +100,47 @@ if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $A
 	exit 1
 fi
 
+# Check if the user requested a ntopng update, and upgrade it in case
+function run_upgrade() {
+	RESULT=1
+
+	if [ "${OS}" == "DEBIAN" ]; then
+		# Debian or Ubuntu
+
+		# Update repo index
+		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+
+		# Install
+		${APT_GET} upgrade --assume-yes --allow-unauthenticated ntopng
+		RESULT=$?
+
+		# Check if installation si successful (we do not trust $?)
+		NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
+		if [ -z "${NTOPNG_VERSION}" ]; then
+			RESULT=0
+		fi
+	else
+		# CentOS
+
+		# Install
+		${YUM} clean all
+		${YUM} check-update ntopng
+		${YUM} -y install ntopng
+		RESULT=$?
+	fi
+
+	if [ $RESULT -eq 0 ]; then
+		[ $QUIET = false ] && echo "ntopng updated successfully"
+		# Cleanup new version available key
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY}
+	else
+		[ $QUIET = false ] && echo "Unable to update"
+	fi
+
+	# Cleanup upgrade request key if any
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY}
+}
+
 # Check for new ntopng updates available
 function check_updates() {
 	NTOPNG_VERSION=""
@@ -121,6 +163,12 @@ function check_updates() {
 	# If there is an update, set new version on redis, otherwise delete the current version (if any)
 	if [ ! -z "${NTOPNG_VERSION}" ]; then
 		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400
+
+		# Check if automatic updates are enabled
+		AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} | grep 1)
+		if [ "${AUTO_UPDATES}" == "1" ]; then
+			run_upgrade
+		fi
 	else
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY}
 	fi
@@ -140,43 +188,7 @@ function handle_upgrade_requests() {
 	# Check redis for upgrade requests
 	UPGRADE=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_RUN_UPGRADE_KEY} | grep 1)
 	if [ "${UPGRADE}" == "1" ]; then
-		RESULT=1
-
-		if [ "${OS}" == "DEBIAN" ]; then
-			# Debian or Ubuntu
-
-			# Update repo index
-			${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-
-			# Install
-			${APT_GET} upgrade --assume-yes --allow-unauthenticated ntopng
-			RESULT=$?
-
-			# Check if installation si successful (we do not trust $?)
-			NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
-			if [ -z "${NTOPNG_VERSION}" ]; then
-				RESULT=0
-			fi
-		else
-			# CentOS
-
-			# Install
-			${YUM} clean all
-			${YUM} check-update ntopng
-			${YUM} -y install ntopng
-			RESULT=$?
-		fi
-
-		if [ $RESULT -eq 0 ]; then
-			[ $QUIET = false ] && echo "ntopng updated successfully"
-			# Cleanup new version available key
-			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY}
-		else
-			[ $QUIET = false ] && echo "Unable to update"
-		fi
-
-		# Cleanup upgrade request key
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY}
+		run_upgrade
 	fi
 }
 

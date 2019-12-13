@@ -455,6 +455,11 @@ local menu_subpages = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
     }
+  }}, {id="updates", label=i18n("prefs.updates"), advanced=false, pro_only=false, hidden=false, entries={
+    toggle_autoupdates = {
+      title       = i18n("prefs.toggle_autoupdates_title"),
+      description = i18n("prefs.toggle_autoupdates_description"),
+    }
   }},
 }
 

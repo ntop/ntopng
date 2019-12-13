@@ -1227,6 +1227,7 @@ local known_parameters = {
    ["toggle_captive_portal"]                       = validateBool,
    ["toggle_informative_captive_portal"]           = validateBool,
    ["toggle_autologout"]                           = validateBool,
+   ["toggle_autoupdates"]                          = validateBool,
    ["toggle_ldap_anonymous_bind"]                  = validateBool,
    ["toggle_local"]                                = validateBool,
    ["toggle_local_host_cache_enabled"]             = validateBool,

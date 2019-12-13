@@ -967,6 +967,28 @@ end
 
 -- ================================================================================
 
+function printUpdates()
+  print('<form method="post">')
+  print('<table class="table">')
+
+  print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.updates")..'</th></tr></thead>')
+    prefsToggleButton(subpage_active, {
+      field = "toggle_autoupdates",
+      default = "0",
+      pref = "is_autoupdates_enabled",
+    })
+
+  -- #####################
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
+
+end
+
+-- ================================================================================
+
 local function printAuthDuration()
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.authentication_duration")..'</th></tr></thead>')
 
@@ -1791,6 +1813,10 @@ end
 
 if(tab == "misc") then
    printMisc()
+end
+
+if(tab == "updates") then
+   printUpdates()
 end
 
 if(tab == "auth") then
