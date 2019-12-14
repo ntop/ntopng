@@ -63,6 +63,8 @@ void IpAddress::set(union usa *ip) {
     memcpy(&addr.ipType.ipv6, &ip->sin6.sin6_addr, sizeof(struct ndpi_in6_addr));
     addr.ipVersion = 6;
   }
+
+  compute_key();
 }
 
 /* ******************************************* */
@@ -116,12 +118,12 @@ void IpAddress::checkIP() {
       addr.multicastIP = true;
     else if((a == 0xFFFFFFFF) || (a == 0))
       addr.broadcastIP = true;
-
-    if(ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id, &nmask_bits)) {
-      if(nmask_bits < 31) { /* /32 is just an host, /31 is a point-to-point */
+    else if(ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id, &nmask_bits)) {
+      if(nmask_bits > 0 && nmask_bits < 31) { /* /0 no mask /32 is just an host, /31 is a point-to-point */
         nmask = ~((1 << (32 - nmask_bits)) - 1);
-        if(a == (a | ~nmask) || a == (a & nmask))
-    addr.broadcastIP = true;
+        if(a == (a | ~nmask)   /* e.g., 10.0.0.0/8 -> matches 10.255.255.255.255 */
+	   || a == (a & nmask) /* e.g., 10.0.0.0/8 -> matches 10.0.0.0 */)
+	  addr.broadcastIP = true;
       }
     }
   } else if (addr.ipVersion == 6) {
@@ -184,8 +186,6 @@ bool IpAddress::isLocalInterfaceAddress() {
 /* ******************************************* */
 
 void IpAddress::compute_key() {
-  if(ip_key != 0) return; /* Already computed */
-
   checkIP();
 
   if(addr.ipVersion == 4) {
