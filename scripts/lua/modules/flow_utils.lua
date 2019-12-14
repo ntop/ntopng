@@ -474,19 +474,66 @@ local icmp_v4_msgs = {
 }
 
 local icmp_v6_msgs = {
-   { 1, 0,  i18n("icmp_v6_msgs.type_1_0_destination_unreachable") },
-   { 2, 0,  i18n("icmp_v6_msgs.type_2_0_packet_too_big") },
-   { 3, 0, i18n("icmp_v6_msgs.type_3_0_hop_limit_exceeded_in_transit") },
-   { 3, 1, i18n("icmp_v6_msgs.type_3_1_fragment_reassembly_time_exceeded") },
-   { 4, 0, i18n("icmp_v6_msgs.type_4_0_parameter_problem") },
+   {   1, 0, i18n("icmp_v6_msgs.type_1_0_destination_unreachable") },
+   {   1, 1, i18n("icmp_v6_msgs.type_1_1_communication_prohibited") },
+   {   1, 2, i18n("icmp_v6_msgs.type_1_2_beyond_scope") },
+   {   1, 3, i18n("icmp_v6_msgs.type_1_3_destination_host_unreachable") },
+   {   1, 4, i18n("icmp_v6_msgs.type_1_4_destination_port_unreachable") },
+   {   1, 5, i18n("icmp_v6_msgs.type_1_5_source_address_failed_policy") },
+   {   1, 6, i18n("icmp_v6_msgs.type_1_6_reject_route_to_destination") },
+   {   1, 7, i18n("icmp_v6_msgs.type_1_7_error_in_source_routing_header") },
+   {   2, 0, i18n("icmp_v6_msgs.type_2_0_packet_too_big") },
+   {   3, 0, i18n("icmp_v6_msgs.type_3_0_hop_limit_exceeded_in_transit") },
+   {   3, 1, i18n("icmp_v6_msgs.type_3_1_fragment_reassembly_time_exceeded") },
+   {   4, 0, i18n("icmp_v6_msgs.type_4_0_parameter_problem") },
+   {   4, 1, i18n("icmp_v6_msgs.type_4_1_unrecognized_next_header_type_encountered") },
+   {   4, 2, i18n("icmp_v6_msgs.type_4_2_unrecognized_option_encountered") },
+   {   4, 3, i18n("icmp_v6_msgs.type_4_3_first_fragment_has_incomplete_chain") },
+   {   4, 4, i18n("icmp_v6_msgs.type_4_4_sr_upper_layer_header_error") },
    { 128, 0, i18n("icmp_v6_msgs.type_128_0_echo_request") },
    { 129, 0, i18n("icmp_v6_msgs.type_129_0_echo_reply") },
+   { 130, 0, i18n("icmp_v6_msgs.type_130_0_multicast_listener_query") },
    { 131, 0, i18n("icmp_v6_msgs.type_131_0_multicast_listener_report") },
+   { 132, 0, i18n("icmp_v6_msgs.type_132_0_multicast_listener_done") },
    { 133, 0, i18n("icmp_v6_msgs.type_133_0_router_solicitation") },
    { 134, 0, i18n("icmp_v6_msgs.type_134_0_router_advertisement") },
    { 135, 0, i18n("icmp_v6_msgs.type_135_0_neighbor_solicitation") },
    { 136, 0, i18n("icmp_v6_msgs.type_136_0_neighbor_advertisement") },
-   { 143, 0, i18n("icmp_v6_msgs.type_143_0_multicast_listener_report_v2") },
+   { 137, 0, i18n("icmp_v6_msgs.type_137_0_redirect_message") },
+   { 138, 0, i18n("icmp_v6_msgs.type_138_0_router_renumbering") },
+   { 139, 0, i18n("icmp_v6_msgs.type_139_0_icmp_node_information_query_ipv6_subject") },
+   { 139, 1, i18n("icmp_v6_msgs.type_139_1_icmp_node_information_query_name_subject") },
+   { 139, 2, i18n("icmp_v6_msgs.type_139_2_icmp_node_information_query_ipv4_subject") },
+   { 140, 0, i18n("icmp_v6_msgs.type_140_0_icmp_node_information_response_ok") },
+   { 140, 0, i18n("icmp_v6_msgs.type_140_1_icmp_node_information_response_refused") },
+   { 140, 0, i18n("icmp_v6_msgs.type_140_2_icmp_node_information_response_unknown") },
+   { 141, 0, i18n("icmp_v6_msgs.type_141_0_inverse_neighbor_discovery") },
+   { 142, 0, i18n("icmp_v6_msgs.type_142_0_inverse_neighbor_discovery") },
+   { 144, 0, i18n("icmp_v6_msgs.type_144_0_home_agent_address_discovery") },
+   { 145, 0, i18n("icmp_v6_msgs.type_145_0_home_agent_address_discovery") },
+   { 146, 0, i18n("icmp_v6_msgs.type_146_0_mobile_prefix_solicitation") },
+   { 147, 0, i18n("icmp_v6_msgs.type_147_0_mobile_prefix_advertisement") },
+   { 157, 0, i18n("icmp_v6_msgs.type_157_0_duplicate_address_request_code_suffix_dar_msg") },
+   { 157, 1, i18n("icmp_v6_msgs.type_157_1_duplicate_address_request_code_suffix_edar64_msg") },
+   { 157, 2, i18n("icmp_v6_msgs.type_157_2_duplicate_address_request_code_suffix_edar128_msg") },
+   { 157, 3, i18n("icmp_v6_msgs.type_157_3_duplicate_address_request_code_suffix_edar192_msg") },
+   { 157, 4, i18n("icmp_v6_msgs.type_157_4_duplicate_address_request_code_suffix_edar256_msg") },
+   { 157, {5, 15}, i18n("icmp_v6_msgs.type_157_5_duplicate_address_request_code_suffix_unassigned") },
+   { 158, 0, i18n("icmp_v6_msgs.type_158_0_duplicate_address_request_code_suffix_dac_msg") },
+   { 158, 1, i18n("icmp_v6_msgs.type_158_1_duplicate_address_request_code_suffix_edac64_msg") },
+   { 158, 2, i18n("icmp_v6_msgs.type_158_2_duplicate_address_request_code_suffix_edac128_msg") },
+   { 158, 3, i18n("icmp_v6_msgs.type_158_3_duplicate_address_request_code_suffix_edac192_msg") },
+   { 158, 4, i18n("icmp_v6_msgs.type_158_4_duplicate_address_request_code_suffix_edac256_msg") },
+   { 158, 5, i18n("icmp_v6_msgs.type_158_5_duplicate_address_request_code_suffix_unassigned") },
+   { 158, {5, 15}, i18n("icmp_v6_msgs.type_158_5_duplicate_address_request_code_suffix_unassigned") },
+   { 160, 0, i18n("icmp_v6_msgs.type_160_0_extended_echo_request_no_error") },
+   { 160, {1,255}, i18n("icmp_v6_msgs.type_160_1_extended_echo_request_unassigned") },
+   { 161, 0, i18n("icmp_v6_msgs.type_161_0_extended_echo_reply_no_error") },
+   { 161, 1, i18n("icmp_v6_msgs.type_161_1_extended_echo_reply_malformed") },
+   { 161, 2, i18n("icmp_v6_msgs.type_161_2_extended_echo_reply_no_such_interface") },
+   { 161, 3, i18n("icmp_v6_msgs.type_161_3_extended_echo_reply_no_such_table_entry") },
+   { 161, 4, i18n("icmp_v6_msgs.type_161_4_extended_echo_reply_multiple_interfaces_satisfy") },
+   { 161, {5,255}, i18n("icmp_v6_msgs.type_161_5_extended_echo_reply_unassigned") },
 }
 
 function get_icmp_label(icmp_type, icmp_value, is_v4)
@@ -499,14 +546,19 @@ function get_icmp_label(icmp_type, icmp_value, is_v4)
       what = icmp_v6_msgs
       label = "ICMPv6"
    end
-   
+
    for _, k in pairs(what) do
-      local i_type  = tostring(k[1])
-      local i_value = tostring(k[2])
       local i_msg   = k[3]
 
       -- tprint("ICMP Type = "..icmp_type.." Value = "..icmp_value)
-      if i_type == icmp_type and i_value == icmp_value then
+      if type(k[2]) == "table" then
+	 local lower_bound = k[2][1]
+	 local upper_bound = k[2][2]
+
+	 if tonumber(icmp_value) >= lower_bound and tonumber(icmp_value) <= upper_bound then
+	    return i_msg
+	 end
+      elseif tostring(k[1]) == icmp_type and tostring(k[2]) == icmp_value then
         return(i_msg)
       end
    end

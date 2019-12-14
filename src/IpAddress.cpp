@@ -119,7 +119,7 @@ void IpAddress::checkIP() {
     else if((a == 0xFFFFFFFF) || (a == 0))
       addr.broadcastIP = true;
     else if(ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id, &nmask_bits)) {
-      if(nmask_bits > 0 && nmask_bits < 31) { /* /0 no mask /32 is just an host, /31 is a point-to-point */
+      if(nmask_bits > 0 && nmask_bits < 31) { /* /0 no mask, /32 is just an host, /31 is a point-to-point */
         nmask = ~((1 << (32 - nmask_bits)) - 1);
         if(a == (a | ~nmask)   /* e.g., 10.0.0.0/8 -> matches 10.255.255.255.255 */
 	   || a == (a & nmask) /* e.g., 10.0.0.0/8 -> matches 10.0.0.0 */)
