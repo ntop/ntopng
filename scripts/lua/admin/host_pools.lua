@@ -307,7 +307,7 @@ if members_filtering ~= nil then
       <input type="hidden" name="page" value="pools" />
       <input type="hidden" name="pool" value="]] print(selected_pool.id) print[[" />
       <button type="button" class="btn btn-secondary btn-sm" onclick="$(this).closest('form').submit();">
-        <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(formatMemberFilter()) print[[
+        <i class="fa fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(formatMemberFilter()) print[[
       </button>
     </form>
   </td>

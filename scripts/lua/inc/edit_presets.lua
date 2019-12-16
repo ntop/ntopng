@@ -140,7 +140,7 @@ local function printDeviceProtocolsPage()
       end
       print[[
         <button type="button" class="btn btn-secondary btn-sm" style="margin-bottom: 18px;" onclick="$(this).closest('form').submit();">
-          <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
+          <i class="fa fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
         </button>
       </form>
     </td>]]
