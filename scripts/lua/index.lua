@@ -72,34 +72,33 @@ end
 
 
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
--- Print tabbed header
+   local nav_url = ntop.getHttpPrefix()..'/?ifid='..interface.getId()
+   local title = i18n("index_page.dashboard")
 
-   print('<nav class="navbar navbar-default" role="navigation">\n\t<div class="navbar-collapse collapse">\n\t<ul class="nav navbar-nav">\n')
-
-   print('<li><a href="#">'..i18n("index_page.dashboard")..': </a></li>\n')
-
-   if(not(is_loopback)) then
-      if(page == "TopFlowTalkers") then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowTalkers">'..i18n("talkers")..'</a></li>\n')
-   end
-
-   if((page == "TopHosts")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopHosts">'..i18n("index_page.hosts")..'</a></li>\n')
-
-   if((page == "TopPorts")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopPorts">'..i18n("ports")..'</a></li>\n')
-
-   if((page == "TopApplications")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopApplications">'..i18n("index_page.applications")..'</a></li>\n')
-
-   if(not(is_loopback)) then
-      if((page == "TopASNs")) then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopASNs">'..i18n("index_page.asns")..'</a></li>\n')
-      if((page == "TopFlowSenders")) then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowSenders">'..i18n("index_page.senders")..'</a></li>\n')
-   end
-
-   print('</ul>\n\t</div>\n\t</nav>\n')
+   page_utils.print_navbar(title, nav_url,
+			   {
+			      {
+				 active = page == "TopFlowTalkers" or not page,
+				 page_name = "TopFlowTalkers",
+				 label = i18n("talkers"),
+			      },
+			      {
+				 active = page == "TopHosts",
+				 page_name = "TopHosts",
+				 label = i18n("index_page.hosts"),
+			      },
+			      {
+				 active = page == "TopPorts",
+				 page_name = "TopPorts",
+				 label = i18n("ports"),
+			      },
+			      {
+				 active = page == "TopApplications",
+				 page_name = "TopApplications",
+				 label = i18n("index_page.applications"),
+			      },
+			   }
+   )
 
    if(page == "TopFlowTalkers") then
       print('<div style="text-align: center;">\n<h4>'..i18n("index_page.top_flow_talkers")..'</h4></div>\n')
