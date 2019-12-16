@@ -33,7 +33,16 @@ print [[
 
 </style>
 
-<div id="chart" style="margin-left: auto; margin-right: auto;"></div>
+
+
+<div class="container">
+    <div class="row">
+	<div class="col-12">
+          <div id="chart" style="margin-left: auto; margin-right: auto;"></div>
+	</div>
+     </div>
+</div>
+
 <script src="]] print(ntop.getHttpPrefix()) print[[/js/sankey.js"></script>
 
 <script>
@@ -46,11 +55,10 @@ print [[
 var sankey_has_chart = false;
 
 function sankey() {
-
   var w = $("#chart").width();
   var h = window.innerHeight / 2;
 
-  var margin = {top: 1, right: 10, bottom: 1, left: 10},
+  var margin = {top: 10, right: 10, bottom: 10, left: 10},
       width = w - margin.left - margin.right,
       height = h - margin.top - margin.bottom;
 
@@ -91,9 +99,12 @@ print [[
   d3.select("#chart").select("svg").remove();
   sankey_has_chart = true;
 
+  var sankey_width = width + margin.left + margin.right;
+  var sankey_height = height + margin.top + margin.bottom;
+
   var svg_sankey = d3.select("#chart").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("width", sankey_width)
+    .attr("height", sankey_height)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
