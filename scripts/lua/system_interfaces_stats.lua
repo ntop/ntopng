@@ -24,36 +24,24 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
 
-local url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua"
+local url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?ifid="..interface.getId()
 local info = ntop.getInfo()
+local title = i18n("system_interfaces_status")
 
-print [[
-  <nav class="navbar navbar-default" role="navigation">
-  <div class="navbar-collapse collapse">
-    <ul class="nav navbar-nav">
-]]
-
-print("<li><a href=\"#\">" .. i18n("system_interfaces_status") .. "</a></li>\n")
-
-if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
-else
-   print("<li><a href=\""..url.."?page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
-end
-
-if(page == "internals") then
-   print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>\n")
-else
-   print("\n<li><a href=\""..url.."?page=internals\"><i class=\"fa fa-wrench fa-lg\"></i></a></li>")
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-
-   ]]
+page_utils.print_navbar(title, url,
+			{
+			   {
+			      active = page == "overview" or not page,
+			      page_name = "overview",
+			      label = "<i class=\"fa fa-home fa-lg\"></i>",
+			   },
+			   {
+			      active = page == "internals",
+			      page_name = "internals",
+			      label = "<i class=\"fa fa-wrench fa-lg\"></i>",
+			   },
+			}
+)
 
 -- #######################################################
 

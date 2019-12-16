@@ -20,30 +20,19 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 --[[
 Create Menu Bar with buttons
 --]]
-local nav_url = ntop.getHttpPrefix().."/lua/telemetry.lua"
 
-print [[
-<div class="bs-docs-example">
-<nav class="navbar navbar-default" role="navigation">
-<div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
+local nav_url = ntop.getHttpPrefix().."/lua/telemetry.lua?ifid="..interface.getId()
+local title = i18n("telemetry")
 
-print("<li><a href=\"#\">"..i18n("telemetry").."</A> </li>")
-
-if page == "overview" then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
-else
-   print("<li><a href=\""..nav_url.."?page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
+page_utils.print_navbar(title, url,
+			{
+			   {
+			      active = page == "overview" or not page,
+			      page_name = "overview",
+			      label = "<i class=\"fa fa-home fa-lg\"></i>",
+			   },
+			}
+)
 
 if page == "overview" then
    telemetry_utils.print_overview()

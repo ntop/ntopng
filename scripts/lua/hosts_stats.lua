@@ -603,30 +603,6 @@ if (_GET["page"] ~= "historical") then
 </script>
 ]]
    end -- if(asn ~= nil)
-else
-   -- historical page
-   require "graph_utils"
-
-   local title = ""
-   if asn ~= nil then
-      title = i18n("asn")..": "..asn
-   elseif vlan ~= nil then
-      title = i18n("vlan")..": "..vlan
-   end
-
-   print[[
-   <div class="bs-docs-example">
-      <nav class="navbar navbar-default" role="navigation">
-      <div class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-        <li><a href="#">]] print(title) print[[</a> </li>]]
-   print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i></a></li>\n")
-   print[[
-      <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-      </ul>
-      </div>
-      </nav>
-   </div>]]
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

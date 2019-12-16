@@ -21,7 +21,6 @@ local subdir     = _GET["subdir"]
 local ifstats = interface.getStats()
 local ifId = ifstats.id
 local schema_prefix = ternary(subdir == "flow", "flow_user_script", "elem_user_script")
-
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header()
@@ -38,23 +37,18 @@ if(not ts_utils.exists(schema_prefix .. ":duration", {ifid = ifId, user_script =
    return
 end
 
-print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
+local nav_url = ntop.getHttpPrefix().."/lua/user_script_details.lua?ifid="..interface.getId()
+local title = "User Script: "..user_script
 
-print("<li><a href=\"#\">User Script: "..user_script.."</A> </li>")
-print("<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i>\n")
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
+page_utils.print_navbar(title, nav_url,
+			{
+			   {
+			      active = page == "overview" or not page,
+			      page_name = "overview",
+			      label = "<i class=\"fa fa-home fa-lg\"></i>",
+			   },
+			}
+)
 
 local schema = _GET["ts_schema"] or "custom:".. schema_prefix ..":vs_total"
 local selected_epoch = _GET["epoch"] or ""
