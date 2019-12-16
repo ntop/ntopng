@@ -10528,8 +10528,14 @@ static int ntop_lua_require(lua_State* L) {
   }
 
   if(script_path == "" ||
-     __ntop_lua_handlefile(L, (char *)script_path.c_str(),  false))
+	  __ntop_lua_handlefile(L, (char *)script_path.c_str(),  false)) {
+    if(lua_type(L, -1) == LUA_TSTRING) {
+      const char *err = lua_tostring(L, -1);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path.c_str(), err ? err : "");
+    }
+
     return 0;
+  }
 
   return 1;
 }
