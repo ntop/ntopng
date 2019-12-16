@@ -31,25 +31,32 @@ local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets"
+user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
+-- NOTE: the subdirs name must be unique
 user_scripts.script_types = {
   flow = {
     parent_dir = "interface",
     hooks = {"protocolDetected", "statusChanged", "flowEnd", "periodicUpdate"},
+    subdirs = {"flow"},
   }, traffic_element = {
     parent_dir = "interface",
     hooks = {"min", "5mins", "hour", "day"},
+    subdirs = {"interface", "host", "network"},
   }, snmp_device = {
     parent_dir = "system",
     hooks = {"snmpDevice", "snmpDeviceInterface"},
+    subdirs = {"snmp_device"},
   }, system = {
     parent_dir = "system",
     hooks = {"min", "5mins", "hour", "day"},
+    subdirs = {"system"},
   }, syslog = {
     parent_dir = "syslog",
     hooks = {"handleEvent"},
+    subdirs = {"."},
   }
 }
 
@@ -390,12 +397,13 @@ end
 
 -- ##############################################
 
-local function init_user_script(user_script, mod_fname, full_path, plugin, configs)
+local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, configs)
    user_script.key = mod_fname
    user_script.path = full_path
    user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
    user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)
    user_script.plugin = plugin
+   user_script.script_type = script_type
    user_script.edition = plugin.edition
 
    -- Load the configuration
@@ -416,6 +424,16 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, confi
 
       if(user_script.gui.post_handler == nil) then
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' is missing the gui.post_handler", user_script.key))
+      end
+   end
+
+   -- Expand hooks
+   if(user_script.hooks["all"] ~= nil) then
+      local callback = user_script.hooks["all"]
+      user_script.hooks["all"] = nil
+
+      for _, hook in pairs(script_type.hooks) do
+	 user_script.hooks[hook] = callback
       end
    end
 end
@@ -453,7 +471,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
    local scripts_filter = options.scripts_filter
 
    if(old_ifid ~= ifid) then
-      interface.select(ifid) -- required for interface.isPacketInterface() below
+      interface.select(tostring(ifid)) -- required for interface.isPacketInterface() below
    end
 
    for _, hook in pairs(script_type.hooks) do
@@ -527,7 +545,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	    end
 
             -- Augument with additional attributes
-	    init_user_script(user_script, mod_fname, full_path, plugin, rv.conf)
+	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, rv.conf)
 
 	    if((not return_all) and alerts_disabled and user_script.is_alert) then
 	       goto next_module
@@ -565,22 +583,9 @@ function user_scripts.load(ifid, script_type, subdir, options)
             for hook, hook_fn in pairs(user_script.hooks) do
 	       -- load previously computed benchmarks (if any)
 	       -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
-               if(hook == "all") then
-                  -- Register for all the hooks
-                  for _, hook in pairs(script_type.hooks) do
-		     if do_benchmark then
-			rv.hooks[hook][user_script.key] = benchmark_init(subdir, user_script.key, hook, hook_fn)
-		     else
-			rv.hooks[hook][user_script.key] = hook_fn
-		     end
-                  end
-
-                  -- no more hooks allowed
-                  break
-               elseif(rv.hooks[hook] == nil) then
+               if(rv.hooks[hook] == nil) then
                   traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, user_script.key))
                else
-
 		  if do_benchmark then
 		     rv.hooks[hook][user_script.key] = benchmark_init(subdir, user_script.key, hook, hook_fn)
 		  else
@@ -615,7 +620,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
    end
 
    if(old_ifid ~= ifid) then
-      interface.select(old_ifid)
+      interface.select(tostring(old_ifid))
    end
 
    return(rv)
@@ -637,7 +642,7 @@ function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
 	 if(user_script ~= nil) then
 	    local configs = loadConfiguration(subdir)
 
-	    init_user_script(user_script, mod_fname, full_path, plugin, configs)
+	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, configs)
 
 	    return(user_script)
 	 end
@@ -1006,10 +1011,16 @@ end
 
 function user_scripts.getConfigsets()
    local configsets = ntop.getPref(CONFIGSETS_KEY) or ""
+   local rv = {}
 
    configsets = json.decode(configsets) or {}
 
-   return(configsets)
+   -- Convert the ID keys to number
+   for _, confset in pairs(configsets) do
+      rv[confset.id] = confset
+   end
+
+   return(rv)
 end
 
 -- ##############################################
@@ -1043,6 +1054,12 @@ end
 -- ##############################################
 
 function user_scripts.deleteConfigset(confid)
+   confid = tonumber(confid)
+
+   if(confid == user_scripts.DEFAULT_CONFIGSET_ID) then
+      return false, "Cannot delete default configset"
+   end
+
    local configsets = user_scripts.getConfigsets()
 
    if(configsets[confid] == nil) then
@@ -1100,6 +1117,69 @@ function user_scripts.cloneConfigset(confid, new_name)
    saveConfigsets(configsets)
 
    return true
+end
+
+-- ##############################################
+
+function user_scripts.loadDefaultConfig()
+   local configsets = user_scripts.getConfigsets()
+   local ifid = getSystemInterfaceId()
+   local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
+
+   for type_id, script_type in pairs(user_scripts.script_types) do
+      for _, subdir in pairs(script_type.subdirs) do
+	 local scripts = user_scripts.load(ifid, script_type, subdir, {return_all = true})
+	 default_conf[subdir] = default_conf[subdir] or {}
+
+	 for key, usermod in pairs(scripts.modules) do
+	    if((usermod.default_enabled ~= nil) or (usermod.default_value ~= nil)) then
+	       default_conf[subdir][key] = default_conf[subdir][key] or {}
+	       local script_config = default_conf[subdir][key]
+
+	       for hook in pairs(usermod.hooks) do
+		  -- Do not override an existing configuration
+		  if(script_config[hook] == nil) then
+		     script_config[hook] = {
+			enabled = usermod.default_enabled or false,
+			script_conf = usermod.default_value or {},
+		     }
+		  end
+	       end
+	    end
+	 end
+      end
+   end
+
+   configsets[user_scripts.DEFAULT_CONFIGSET_ID] = {
+      id = user_scripts.DEFAULT_CONFIGSET_ID,
+      name = i18n("policy_presets.default"),
+      config = default_conf,
+   }
+
+   saveConfigsets(configsets)
+end
+
+-- ##############################################
+
+function user_scripts.getConfigsetHooksConf(configset, script, subdir)
+   local script_key = script.key
+
+   if(configset.config[subdir] and configset.config[subdir][script_key]) then
+      -- A configuration was found
+      return(configset.config[subdir][script_key])
+   end
+
+   -- Default
+   local rv = {}
+
+   for hook in pairs(script.hooks) do
+      rv[hook] = {
+	 enabled = false,
+	 script_conf = {},
+      }
+   end
+
+   return(rv)
 end
 
 -- ##############################################

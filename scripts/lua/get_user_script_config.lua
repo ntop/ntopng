@@ -14,8 +14,8 @@ sendHTTPContentTypeHeader('application/json')
 
 local stype = _GET["script_type"] or "traffic_element"
 local subdir = _GET["script_subdir"] or "host"
+local confset_id = tonumber(_GET["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID)
 local script_key = _GET["script_key"]
-local entity_value = _GET["entity_val"]
 
 local script_type = user_scripts.script_types[stype]
 
@@ -26,6 +26,13 @@ end
 
 if(script_key == nil) then
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing script_key parameter")
+  return
+end
+
+local config_set = user_scripts.getConfigsets()[confset_id]
+
+if(config_set == nil) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown configset ID: " .. confset_id)
   return
 end
 
@@ -64,21 +71,19 @@ if(script.gui) then
   end
 end
 
-for _, hook in pairs(script_type.hooks) do
-  local conf = user_scripts.getConfiguration(script, hook, entity_value)
+local hooks_config = user_scripts.getConfigsetHooksConf(config_set, script, subdir)
 
-  if(conf ~= nil) then
-    local granularity_info = alert_consts.alerts_granularities[hook]
-    local label = nil
+for hook, config in pairs(hooks_config) do
+  local granularity_info = alert_consts.alerts_granularities[hook]
+  local label = nil
 
-    if(granularity_info) then
-      label = i18n(granularity_info.i18n_title)
-    end
-
-    result.hooks[hook] = table.merge(conf, {
-      label = label,
-    })
+  if(granularity_info) then
+    label = i18n(granularity_info.i18n_title)
   end
+
+  result.hooks[hook] = table.merge(config, {
+    label = label,
+  })
 end
 
 -- ################################################

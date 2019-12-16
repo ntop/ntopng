@@ -16,6 +16,9 @@ active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local plugins_utils = require("plugins_utils")
+local user_scripts = require("user_scripts")
+
 plugins_utils.loadPlugins()
+user_scripts.loadDefaultConfig()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
