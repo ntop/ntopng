@@ -53,24 +53,6 @@ page_utils.print_navbar(title, nav_url,
 			}
 )
 
-print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
-
-print("<li><a href=\"#\">".. i18n("internals.iface_hash_tables", {iface = getHumanReadableInterfaceName(getInterfaceName(ifId))}) .."</A> </li>")
-print("<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i>\n")
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
-
 local schema = _GET["ts_schema"] or "ht:state"
 local selected_epoch = _GET["epoch"] or ""
 local url = ntop.getHttpPrefix()..'/lua/hash_table_details.lua?ifid='..ifId..'&page=historical'
