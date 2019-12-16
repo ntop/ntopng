@@ -30,10 +30,14 @@ local result = {}
 
 for script_name, script in pairs(scripts.modules) do
   if script.gui.i18n_title and script.gui.i18n_description then
+    local enabled_hooks = user_scripts.getEnabledHooks(script)
+
     result[#result + 1] = {
       key = script_name,
       title = i18n(script.gui.i18n_title) or script.gui.i18n_title,
       description = i18n(script.gui.i18n_description) or script.gui.i18n_description,
+      enabled_hooks = enabled_hooks,
+      is_enabled = not table.empty(enabled_hooks),
     }
   end
 end

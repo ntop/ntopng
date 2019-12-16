@@ -48,39 +48,50 @@ end
 
 local cur_granularity
 
-local function snmp_device_run_user_scripts(snmp_device, deadline)
-   local do_call = true
+local function snmp_device_run_user_scripts(snmp_device)
    local granularity = cur_granularity
+   local device_ip  = snmp_device.get_device_info()["host"]
+   local device = snmp_device.get_device()
+   local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
+   local device_interfaces = snmp_device.merge_interfaces_data()
 
-   local device_ip         = snmp_device.get_device_info()["host"]
-   local device_interfaces = snmp_device.get_device()["interfaces"] or {}
-   local device_if_status  = snmp_device.get_device()["interfaces_status"] or {}
-   local device_counters   = snmp_device.get_device()["counters"] or {}
-   local device_bridge     = snmp_device.get_device()["bridge"] or {}
+   local info = {
+      granularity = granularity,
+      alert_entity = snmp_device_entity,
+      interfaces = device_interfaces,
+      user_script = check,
+      system = device["system"],
+   }
 
-   -- For each callback that needs to be called on the interfaces...
-   for mod_key, hook_fn in pairs(available_modules.hooks["snmpDeviceInterface"]) do
+   -- Run callback for each device
+   for mod_key, hook_fn in pairs(available_modules.hooks["snmpDevice"] or {}) do
+      local check = available_modules.modules[mod_key]
+
+      hook_fn(device_ip, info)
+   end
+
+   -- Run callback for each interface
+   for mod_key, hook_fn in pairs(available_modules.hooks["snmpDeviceInterface"] or {}) do
       local check = available_modules.modules[mod_key]
 
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(device_interfaces) do
-	 local entity_info = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
-	 local info = {
-	    snmp_device_ip = device_ip,
-	    snmp_interface = snmp_interface,
-	    if_status = device_if_status[snmp_interface_index],
-	    if_counters = device_counters[snmp_interface_index],
-	    if_bridge = device_bridge[snmp_interface_index]}
+	 local if_type = snmp_iftype(snmp_interface.type)
+	 local do_call = true
+
+	 if(check.skip_virtual_interfaces and
+	       ((if_type == "propVirtual") or (if_type == "softwareLoopback"))) then
+	    do_call = false
+	 end
 
 	 if(do_call) then
-	    hook_fn({
-	    	  granularity = granularity,
-	    	  alert_entity = entity_info,
-	    	  entity_info = info,
-	    	  cur_alerts = cur_alerts,
-	    	  alert_config = config,
-	    	  user_script = check,
-	    })
+	    local iface_entity = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
+
+	    hook_fn(device_ip, snmp_interface_index, table.merge(snmp_interface, {
+	       granularity = granularity,
+	       alert_entity = iface_entity,
+	       user_script = check,
+	    }))
 	 end
       end
    end
@@ -94,7 +105,19 @@ end
 function runScripts(granularity)
    cur_granularity = granularity
 
-   if not table.empty(available_modules.hooks["snmpDeviceInterface"]) then
-      local in_time = foreachSNMPDevice(snmp_device_run_user_scripts, nil --[[ snmp_rrds_enabled --]], nil --[[ deadline --]])
+   if(table.empty(available_modules.hooks)) then
+      -- Nothing to do
+      return
+   end
+
+   -- NOTE: don't use foreachSNMPDevice, we want to get all the SNMP
+   -- devices, not only the active ones, without changing the device state
+   local snmpdevs = get_snmp_devices()
+
+   for _, device in pairs(snmpdevs) do
+      local snmp_device = require "snmp_device"
+      snmp_device.init(device["ip"])
+
+      snmp_device_run_user_scripts(snmp_device)
    end
 end

@@ -30,48 +30,30 @@ page_utils.print_header()
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
-local url = plugins_utils.getUrl("influxdb_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local url = plugins_utils.getUrl("influxdb_stats.lua") .. "?ifid=" .. interface.getId()
+local title = "InfluxDB"
 
-print [[
-  <nav class="navbar navbar-default" role="navigation">
-  <div class="navbar-collapse collapse">
-    <ul class="nav navbar-nav">
-]]
-
-print("<li><a href=\"#\">" .. "InfluxDB" .. "</a></li>\n")
-
-if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
-else
-   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
-end
-
-if ts_creation then
-   if(page == "historical") then
-      print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
-   else
-      print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
-   end
-end
-
-if(isAdministrator() and plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")})) then
-   if(page == "alerts") then
-      print("\n<li class=\"active\"><a href=\"#\">")
-   else
-      print("\n<li><a href=\""..url.."&page=alerts\">")
-   end
-
-   print("<i class=\"fa fa-exclamation-triangle fa-lg\"></i></a>")
-   print("</li>")
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-
-   ]]
+page_utils.print_navbar(title, url,
+			{
+			   {
+			      active = page == "overview" or not page,
+			      page_name = "overview",
+			      label = "<i class=\"fa fa-home fa-lg\"></i>",
+			   },
+			   {
+			      hidden = not ts_creation,
+			      active = page == "historical",
+			      page_name = "historical",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			   },
+			   {
+			      hidden = interface.isPcapDumpInterface() or not isAdministrator() or not areAlertsEnabled() or not plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")}),
+			      active = page == "alerts",
+			      page_name = "alerts",
+			      label = "<i class=\"fa fa-exclamation-triangle fa-lg\"></i>",
+			   },
+			}
+)
 
 -- #######################################################
 

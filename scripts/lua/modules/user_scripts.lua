@@ -43,7 +43,7 @@ user_scripts.script_types = {
     hooks = {"min", "5mins", "hour", "day"},
   }, snmp_device = {
     parent_dir = "system",
-    hooks = {"snmpDeviceInterface"},
+    hooks = {"snmpDevice", "snmpDeviceInterface"},
   }, system = {
     parent_dir = "system",
     hooks = {"min", "5mins", "hour", "day"},
@@ -874,6 +874,22 @@ function user_scripts.teardown(available_modules, do_benchmark, do_print_benchma
       local ifid = interface.getId()
       user_scripts.benchmark_dump(ifid, do_print_benchmark)
    end
+end
+
+-- ##############################################
+
+function user_scripts.getEnabledHooks(user_script, entity_value, is_remote_host)
+   local rv = {}
+
+   entity_value = entity_value or get_global_conf_key(is_remote_host)
+
+   for hook, conf in pairs(user_script.conf) do
+      if conf[entity_value] and conf[entity_value].enabled then
+	 rv[#rv + 1] = hook
+      end
+   end
+
+   return(rv)
 end
 
 -- ##############################################
