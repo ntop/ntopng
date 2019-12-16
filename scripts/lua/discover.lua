@@ -10,7 +10,7 @@ require "lua_utils"
 local discover = require "discover_utils"
 local page_utils = require("page_utils")
 local ifId = getInterfaceId(ifname)
-local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></small>'
+local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fa fa-sync fa-sm" aria-hidden="true"></i></a></small>'
 
 active_page = "dashboard"
 

@@ -39,7 +39,7 @@ elseif recording_utils.isEnabled(ifstats.id) then
 end
 
 print("<h2>"..i18n("traffic_recording.traffic_recording_status"))
-print(" <small><a href='#' onclick='location.reload(); return false;' title='' data-original-title='"..i18n("refresh").."'><i class='fa fa-refresh fa-sm' aria-hidden='true' data-original-title='' title=''></i></a></small>")
+print(" <small><a href='#' onclick='location.reload(); return false;' title='' data-original-title='"..i18n("refresh").."'><i class='fa fa-sync fa-sm' aria-hidden='true' data-original-title='' title=''></i></a></small>")
 print("</h2><br>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
