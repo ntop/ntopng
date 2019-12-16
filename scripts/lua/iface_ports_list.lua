@@ -10,9 +10,13 @@ local format_utils = require "format_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-local host = _GET["host"]
 local host_info = url2hostinfo(_GET)
 local host_key = hostinfo2hostkey(host_info)
+
+if isEmptyString(host_key) then
+   host_info = nil
+   host_key = nil
+end
 
 local function fill_ports_array(field_key, flows_stats)
    local ports_array = {}
@@ -58,6 +62,7 @@ local min_num = 4
 local num = 0
 local accumulate = 0
 for key, value in pairsByValues(_ports, rev) do
+
    if value < threshold then
       break
    end
@@ -66,7 +71,10 @@ for key, value in pairsByValues(_ports, rev) do
       print ",\n"
    end
 
-   print("\t { \"label\": \"" .. key .."\", \"value\": ".. value ..", \"url\": \""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..key.."&host="..hostinfo2hostkey(host_info))
+   print("\t { \"label\": \"" .. key .."\", \"value\": ".. value ..", \"url\": \""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..key)
+   if host_key then
+      print("&host="..host_key)
+   end
 
    print("\" }")
 
@@ -77,7 +85,10 @@ end
 -- In case there is some leftover do print it as "Other"
 if accumulate < tot then
    local other_label = i18n("other")
-   local url = ntop.getHttpPrefix().."/lua/host_details.lua?page=flows&host="..hostinfo2hostkey(host_info)
+   local url = ntop.getHttpPrefix().."/lua/host_details.lua?page=flows"
+   if host_key then
+      url = url.."&host="..host_key
+   end
 
    if(num > 0) then
       print (",\n")
