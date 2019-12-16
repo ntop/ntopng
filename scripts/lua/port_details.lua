@@ -18,14 +18,14 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print [[
 
 
-<ul class="breadcrumb">
-  <li><A HREF="]]
+<ol class="breadcrumb">
+  <li class="breadcrumb-item active" ><A HREF="]]
 print (ntop.getHttpPrefix())
 print [[/lua/flows_stats.lua">]] print(i18n("flows")) print [[</A> </li>
 ]]
 
 
-print("<li>"..i18n("port_details.l4_port")..": ".._GET["port"].."</li></ul>")
+print("<li class=\"breadcrumb-item\">"..i18n("port_details.l4_port")..": ".._GET["port"].."</li></ol>")
 
 print [[
       <div id="table-hosts"></div>
