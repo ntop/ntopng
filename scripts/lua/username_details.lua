@@ -36,51 +36,39 @@ end
 if(user_key == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("user_info.missing_user_name_message").."</div>")
 else
+   local title = ''
+   local nav_url = ntop.getHttpPrefix().."/lua/username_details.lua?username="..user_key.."&uid="..uid
+
    if host_info and host_info["host"] then
       name = getResolvedAddress(hostkey2hostinfo(host_info["host"]))
       if isEmptyString(name) then
 	 name = host_info["host"]
       end
+
+      title = string.format("%s: %s", i18n("host_details.host"), name)
+      nav_url = nav_url.."&"..hostinfo2url(host_info)
    end
-   print [[
-	    <nav class="navbar navbar-default" role="navigation">
-	      <div class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-	    <li><a href="#">]]
+   title = title.." <i class=\"fab fa-linux fa-lg\"></i> "..user_key
 
-   if host_info then
-      print(string.format("%s: %s", i18n("host_details.host"), name))
-   end
-
-   print [[ <i class="fab fa-linux fa-lg"></i> ]] print(user_key)
-
-   print [[  </a></li>]]
-
-
-   if(page == "username_processes") then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
-   if host_info then
-      print('&'..hostinfo2url(host_info))
-   end
-   print('&page=username_processes">'..i18n("user_info.processes")..'</a></li>\n')
-
-   if(page == "username_ndpi") then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
-   if host_info then
-      print('&'..hostinfo2url(host_info))
-   end
-   print('&page=username_ndpi">'..i18n("applications")..'</a></li>\n')
-
-   if(page == "flows") then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="?username='.. user_key..'&uid='..uid)
-   if host_info then
-      print('&'..hostinfo2url(host_info))
-   end
-   print('&page=flows">'..i18n("flows")..'</a></li>\n')
-
-   print [[ <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a> ]]
-
-   print('</ul>\n\t</div>\n\t\t</nav>\n')
+   page_utils.print_navbar(title, nav_url,
+			   {
+			      {
+				 active = page == "username_processes" or not page,
+				 page_name = "username_processes",
+				 label = i18n("user_info.processes"),
+			      },
+			      {
+				 active = page == "username_ndpi",
+				 page_name = "username_ndpi",
+				 label = i18n("applications"),
+			      },
+			      {
+				 active = page == "flows",
+				 page_name = "flows",
+				 label = i18n("flows"),
+			      },
+			   }
+   )
 
    if(page == "username_processes") then
       print [[

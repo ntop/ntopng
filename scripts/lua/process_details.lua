@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2019 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -38,53 +38,34 @@ else
    if num == 0 then
       print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("processes_stats.no_traffic_detected").."</div>")
    else
+      local title = ''
+      local nav_url = ntop.getHttpPrefix().."/lua/process_details.lua?pid="..pid.."&pid_name="..name_key
+
       if host_info and host_info["host"] then
 	 name = getResolvedAddress(hostkey2hostinfo(host_info["host"]))
 	 if isEmptyString(name) then
 	    name = host_info["host"]
 	 end
+
+	 title = string.format("%s: %s", i18n("host_details.host"), name)
+	 nav_url = nav_url.."&"..hostinfo2url(host_info)
       end
-      print [[
-	    <nav class="navbar navbar-default" role="navigation">
-	      <div class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-	    <li><a href="#">]]
+      title = title..' <i class="fa fa-terminal"></i> '..name_key
 
-      if host_info then
-	 print(string.format("%s: %s", i18n("host_details.host"), name))
-      end
-
-      print [[ <i class="fa fa-terminal fa-lg"></i> ]] print(name_key)
-
-      print [[ </a></li>]]
-
-      local active = ''
-      if page == "process_ndpi" then
-	 active=' class="active"'
-      end
-
-      print('<li'..active..'><a href="?pid='.. pid..'&pid_name='..name_key)
-      if host_info then
-	 print("&"..hostinfo2url(host_info))
-      end
-      print('&page=process_ndpi">'..i18n("applications")..'</a></li>\n')
-
-      active = ''
-      if page == "flows" then
-	 active=' class="active"'
-      end
-
-      print('<li'..active..'><a href="?pid='.. pid..'&pid_name='..name_key)
-      if host_info then
-	 print("&"..hostinfo2url(host_info))
-      end
-      print('&page=flows">'..i18n("flows")..'</a></li>\n')
-
-      print [[ <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a> ]]
-
-      -- End Tab Menu
-
-      print('</ul>\n\t</div>\n\t</nav>\n')
+      page_utils.print_navbar(title, nav_url,
+			      {
+				 {
+				    active = page == "process_ndpi" or not page,
+				    page_name = "process_ndpi",
+				    label = i18n("applications"),
+				 },
+				 {
+				    active = page == "flows",
+				    page_name = "flows",
+				    label = i18n("flows"),
+				 },
+			      }
+      )
 
       if page == "process_ndpi" then
 	 ebpf_utils.draw_ndpi_piecharts(ifstats, "get_process_data.lua", host_info, nil, name_key)
