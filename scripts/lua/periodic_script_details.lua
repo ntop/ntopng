@@ -30,6 +30,19 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local nav_url = ntop.getHttpPrefix().."/lua/periodic_script_details.lua?ifid="..ifId
+local title = i18n("internals.iface_periodic_scripts", {iface = getHumanReadableInterfaceName(getInterfaceName(ifId))})
+
+page_utils.print_navbar(title, nav_url,
+			{
+			   {
+			      active = page == "historical" or not page,
+			      page_name = "historical",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			   },
+			}
+)
+
 print [[
 <div class="bs-docs-example">
             <nav class="navbar navbar-default" role="navigation">
