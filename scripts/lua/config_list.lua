@@ -18,6 +18,9 @@ page_utils.print_header(i18n("about.about_x", { product=info.product }))
 active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local script_type = "traffic_element"
+local script_subdir = "host"
+
 -- append css tag on page
 print([[<link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet">]])
 
@@ -39,10 +42,10 @@ print [[
                <table id='hostsScripts' class="table table-striped table-bordered mt-1">
                   <thead>
                      <tr>
-                        <!-- <th>Enabled</th> -->
+                        <th>Enabled</th>
                         <th>Script Name</th>
                         <th>Script Description</th>
-                        <!-- <th>Script Granularities</th> -->
+                        <th>Script Granularities</th>
                         <th>Edit Config</th>
                      </tr>
                   </thead>
@@ -57,19 +60,23 @@ print [[
 ]]
 
 -- modal to edit config
-print [[
+print ([[
    <div class="modal fade" role="dialog" id='modal-script'>
       <div class="modal-dialog modal-lg ">
          <div class="modal-content">
             <div class="modal-header">
-            <h5 class="modal-title">Script {type} / Config <span id='script-name'></span></h5>
+            <h5 class="modal-title">Script ]].. script_type ..[[ / Config <span id='script-name'></span></h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                <span aria-hidden="true">&times;</span>
             </button>
             </div>
             <div class="modal-body">
-               <div id='script-config-editor'>
-               </div>
+               <form method='post'>
+                  <table class='table table-borderless' id='script-config-editor'>
+                     <tbody>
+                     </tbody>
+                  </table>
+               </form>
             </div>
             <div class="modal-footer">
             <button type='button' class='btn btn-warning mr-auto'>Reset Default</button>
@@ -79,7 +86,7 @@ print [[
          </div>
       </div>
    </div>
-]]
+]])
 
 -- include datatable script and datatable plugin
 print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.js"></script> ]])
@@ -91,39 +98,43 @@ print ([[
          const $script_table = $("#hostsScripts").DataTable({
             dom: "Bfrtip",
             ajax: {
-               'url': ']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?script_type=traffic_element&script_subdir=host',
+               'url': ']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?script_type=]].. script_type ..[[&script_subdir=]].. script_subdir ..[[',
                'type': 'GET',
                dataSrc: ''
             },
             drawCallback: function(settings) {
-               // delegate_checkboxes();
+               delegate_checkboxes();
             },
+            initComplete: function(settings, json) {
+               count_scripts();
+            },
+            order: [ [0, "desc"] ],
             buttons: [
                {
                   extend: "filterScripts",
                   attr: {
-                  id: "all-scripts"
+                     id: "all-scripts"
                   },
                   text: "All"
                },
                {
                   extend: "filterScripts",
                   attr: {
-                  id: "enabled-scripts"
+                     id: "enabled-scripts"
                   },
                   text: "Enabled"
                },
                {
                   extend: "filterScripts",
                   attr: {
-                  id: "disabled-scripts"
+                     id: "disabled-scripts"
                   },
                   text: "Disabled"
                }
             ],
             columns: [
-               /*{ 
-                  data: 'enabled',
+               { 
+                  data: 'is_enabled',
                   render: function (data, type, row) {
 
                   if (type == 'display') {
@@ -132,24 +143,29 @@ print ([[
 
                   return data;
                   },
-               },*/
+               },
                { 
                   data: 'title',
                   render: function (data, type, row) {
 
-                  if (type == 'display') {
-                     return `<b>${data}</b>`
-                  }
-                  return data;
+                     if (type == 'display') {
+                        return `<b>${data}</b>`
+                     }
+                     return data;
                   }
                },
                { data: 'description' },
-               //{ data: 'granularities' },
+               { 
+                  data: 'enabled_hooks',
+                  render: function (data, type, row) {
+                     return data.join(', ')
+                  }
+               },
                {
                   targets: -1,
                   data: null,
                   render: function (data, type, row) {
-                     return `<button data-toggle="modal" data-target="#modal-script" data-key="${data.key}" class="btn btn-primary w-100">Edit Config</button>`;
+                     return `<button data-toggle="modal" data-target="#modal-script" class="btn btn-primary w-100">Edit Config</button>`;
                   },
                   sortable: false
                }
@@ -158,9 +174,96 @@ print ([[
 
          $('#hostsScripts').on('click', 'button[data-target="#modal-script"]', function(e) {
             
-            // get key script
-            const key_script = $(this).data('key');
-            console.log(key_script);
+            // get script key and script name
+            const row_data = $script_table.row($(this).parent().parent()).data();
+            const script_key = row_data.key;
+            const script_title = row_data.title;
+            
+            // change title to modal
+            $("#script-name").text(script_title);
+
+            $.when(
+               $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_user_script_config.lua', {
+                     script_type: ']].. script_type ..[[',
+                     script_subdir: ']].. script_subdir ..[[',
+                     script_key: script_key
+                  }
+               )
+            )
+            .then((data, status, x) => {
+
+               // clean table editor
+               const $table_editor = $("#script-config-editor > tbody");
+               $table_editor.empty();
+
+               // destructure gui and hooks from data
+               const {gui, hooks} = data
+
+               const build_gui = (gui, hooks) => {
+
+                  const build_input_box = ({input_builder, field_max, field_min, fields_unit, field_operator}) => {
+
+                     // TODO: other templates
+                     if (input_builder == '') {
+                        return $("<p>Not enabled!</p>")
+                     }
+                     else if (input_builder == 'threshold_cross') {
+                        return $(`<div class='input-group'></div>`)
+                           .append(`<div class='input-group-prepend'>
+                                 <select class='btn btn-outline-secondary'>
+                                       <option>${field_operator == "gt" ? ">" : "<"}</option>
+                                       <option>${field_operator != "gt" ? ">" : "<"}</option>
+                                 </select>
+                           </div>`)
+                           .append(`<input type='number' 
+                                          class='form-control'
+                                          min='${field_min == undefined ? '' : field_min}'
+                                          max='${field_max == undefined ? '' : field_max}'>`)
+                           .append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit}</span>`);
+                     }
+
+                  }
+
+                  const build_hook = ({label, enabled, script_conf}) => {
+
+                     const $element = $("<tr></tr>");
+                     // create checkbox for hook
+                     $element.append(`<td><input type="checkbox" ${enabled ? "checked" : ""} ></td>`);
+                     // create label for hook
+                     $element.append(`<td><label for=''>${label}</label><td>`);
+                     
+                     // create input_box
+                     const $input_box = build_input_box(gui);
+                     // set script conf params
+                     $input_box.find("input[type='number']").val(script_conf.threshold);
+
+                     $element.append(`<td></td>`).append($input_box);
+
+                     return $element;
+                  }
+
+                  // append hooks to table
+                  if ("5mins" in hooks) {
+                     $table_editor.append(build_hook(hooks["5mins"]));
+                  }
+                  if ("hour" in hooks) {
+                     $table_editor.append(build_hook(hooks["hour"]));
+                  }
+                  if ("day" in hooks) {
+                     $table_editor.append(build_hook(hooks["day"]));
+                  }
+                  if ("min" in hooks) {
+                     $table_editor.append(build_hook(hooks["min"]));
+                  }
+
+               }
+
+               build_gui(gui, hooks);
+               
+            });
+
+
+            console.log(script_key);
 
          });
 
@@ -169,33 +272,40 @@ print ([[
 
                const checked = $(this).is(':checked');
 
-               const $disabled_button = $(`#disabled-scripts`);
-               const $enabled_button = $(`#enabled-scripts`);
-
                // update cell data
                const $table_data = $(this).parent();
+               // fix little datatable bug about events
+               if ($table_data.length == 0) return;
                $script_table.cell($table_data).data(checked).draw();
 
-               // count scripts
-               let enabled_count = 0;
-               let disabled_count = 0;
-               
-               $script_table.data().each(d => {
+               count_scripts();
+            });
+         }
 
-                  if (d.enabled) {
+         function count_scripts() {
+
+            // count scripts
+            const $disabled_button = $(`#disabled-scripts`);
+            const $all_button = $("#all-scripts");
+            const $enabled_button = $(`#enabled-scripts`);
+
+            let enabled_count = 0;
+            let disabled_count = 0;
+            
+            $script_table.data().each(d => {
+
+               if (d.is_enabled) {
                   enabled_count++;
-                  }
-                  else {
+               }
+               else {
                   disabled_count++;
-                  }
+               }
 
             });
 
+            $all_button.html(`All (${enabled_count + disabled_count})`)
             $enabled_button.html(`Enabled (${enabled_count})`);
             $disabled_button.html(`Disabled (${disabled_count})`);
-            
-
-            });
          }
 
       });
