@@ -1121,6 +1121,25 @@ end
 
 -- ##############################################
 
+function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
+   local configsets = user_scripts.getConfigsets()
+
+   if(configsets[confid] == nil) then
+      return false, i18n("configsets.unknown_id", {confid=confid})
+   end
+
+   local config = configsets[confid].config
+
+   config[subdir] = config[subdir] or {}
+   config[subdir][script_key] = new_config
+
+   saveConfigsets(configsets)
+
+   return true
+end
+
+-- ##############################################
+
 function user_scripts.loadDefaultConfig()
    local configsets = user_scripts.getConfigsets()
    local ifid = getSystemInterfaceId()

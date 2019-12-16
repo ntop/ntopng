@@ -18,6 +18,11 @@ if(action == nil) then
   return
 end
 
+if(not isAdministrator()) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Admin privileges required")
+  return
+end
+
 -- ################################################
 
 local result = {}

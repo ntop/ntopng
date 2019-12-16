@@ -2757,9 +2757,9 @@ function table.compare(t1, t2, ignore_mt)
 end
 
 function toboolean(s)
-  if s == "true" then
+  if((s == "true") or (s == true)) then
     return true
-  elseif s == "false" then
+  elseif((s == "false") or (s == false)) then
     return false
   else
     return nil
