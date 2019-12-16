@@ -110,7 +110,7 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
 print [[
 <div class="control-group" style="text-align: center;">
 &nbsp;]] print(i18n("index_page.refresh_frequency")) print[[: <div class="btn-group btn-small">
-  <button class="btn btn-secondary btn-xs dropdown-toggle" data-toggle="dropdown">
+  <button class="btn btn-light btn-xs dropdown-toggle" data-toggle="dropdown">
 ]]
 if (refresh ~= '0') then
   if (refresh == '60000') then
@@ -122,14 +122,14 @@ else
   print(' '..i18n("index_page.never")..' ')
 end
 
-print [[<span class="caret"></span></button>
+print [[</button>
   <ul class="dropdown-menu ">
 ]]
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=5000" >5 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=10000" >10 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=30000" >30 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=60000" >1 '..i18n("index_page.minute")..'</a></li>\n')
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=0" >'..i18n("index_page.never")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=5000" >5 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=10000" >10 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=30000" >30 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=60000" >1 '..i18n("index_page.minute")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=0" >'..i18n("index_page.never")..'</a></li>\n')
 print [[
   </ul>
 </div><!-- /btn-group -->

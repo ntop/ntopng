@@ -2,7 +2,7 @@
 -- (C) 2014-15-15 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -10,8 +10,8 @@ require "graph_utils"
 
 local page_utils = require("page_utils")
 
-page        = _GET["page"]
-hosts_ip     = _GET["hosts"]
+local page        = _GET["page"]
+local hosts_ip     = _GET["hosts"]
 
 -- Default values
 if(page == nil) then 
@@ -41,9 +41,9 @@ print [[
     <ul class="nav navbar-nav">
 ]]
 
-url=ntop.getHttpPrefix().."/lua/hosts_comparison.lua?hosts="..hosts_ip
+local url = ntop.getHttpPrefix().."/lua/hosts_comparison.lua?hosts="..hosts_ip
 
-hosts_ip_tab_name = string.gsub(hosts_ip, ',', " <i class=\"fa fa-exchange fa-lg\"></i> ")
+local hosts_ip_tab_name = string.gsub(hosts_ip, ',', " <i class=\"fa fa-exchange fa-lg\"></i> ")
 
 print("<li><a href=\"#\">"..i18n("flows_page.hosts")..": "..hosts_ip_tab_name.." </a></li>\n")
 
@@ -92,7 +92,7 @@ if (page == "overview") then
 if(show_aggregation) then
    print [[
 <div class="btn-group">
-  <button class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
+  <button class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
   <ul class="dropdown-menu">
 ]]
 
@@ -110,8 +110,8 @@ print [[
 
 print('&nbsp;'..i18n("refresh")..':  <div class="btn-group">\n')
  print[[
- <button id="graph_refresh" class="btn btn-secondary btn-sm">
-    <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print[[" class="glyphicon glyphicon-refresh"></i></button>
+ <button id="graph_refresh" class="btn btn-light btn-sm">
+    <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print[[" class="fa fa-sync"></i></button>
 ]]
 print [[
 </div>
@@ -137,12 +137,7 @@ end -- End if(show_aggregation)
 
 -- =========================== Aggregation Menu =================
 print("<center>")
-print('<div class="row">')
-print("  <div>")
 dofile(dirs.installdir .. "/scripts/lua/inc/sankey.lua")
-print("  </div>")
-
-print("</div>")
 print("</center><br/>")
 
 
@@ -151,7 +146,7 @@ elseif(page == "traffic") then
 if(show_aggregation) then
    print [[
 <div class="btn-group">
-  <button id="aggregation_bubble_displayed" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
+  <button id="aggregation_bubble_displayed" class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
   <ul class="dropdown-menu" id="aggregation_bubble">
     <li><a>]] print(i18n("application")) print[[</a></li>
     <li><a>]] print(i18n("protocol")) print[[</a></li>
@@ -164,7 +159,7 @@ if(show_aggregation) then
 
 print('&nbsp;'..i18n("refresh")..':  <div class="btn-group">\n')
  print[[
- <button id="graph_refresh" class="btn btn-secondary btn-sm">
+ <button id="graph_refresh" class="btn btn-light btn-sm">
     <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print[[" class="glyphicon glyphicon-refresh"></i></button>
 ]]
 print [[
