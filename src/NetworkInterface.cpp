@@ -3573,10 +3573,14 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     /* Unicast: at least one between client and server is unicast address */
     if(retriever->pag
        && retriever->pag->unicastTraffic(&unicast)
-       && ((unicast && ((f->get_cli_ip_addr() && (f->get_cli_ip_addr()->isMulticastAddress() || f->get_cli_ip_addr()->isBroadcastAddress()))
-			|| (f->get_srv_ip_addr() && (f->get_srv_ip_addr()->isMulticastAddress() || f->get_srv_ip_addr()->isBroadcastAddress()))))
-	   || (!unicast && ((f->get_cli_ip_addr() && (!f->get_cli_ip_addr()->isMulticastAddress() && !f->get_cli_ip_addr()->isBroadcastAddress()))
-			    && (f->get_srv_ip_addr() && (!f->get_srv_ip_addr()->isMulticastAddress() && !f->get_srv_ip_addr()->isBroadcastAddress()))))))
+       && ((unicast && ((f->get_cli_ip_addr()->isMulticastAddress()
+			 || f->get_cli_ip_addr()->isBroadcastAddress()
+			 || f->get_srv_ip_addr()->isMulticastAddress()
+			 || f->get_srv_ip_addr()->isBroadcastAddress())))
+	   || (!unicast && (!f->get_cli_ip_addr()->isMulticastAddress()
+			    && !f->get_cli_ip_addr()->isBroadcastAddress()
+			    && !f->get_srv_ip_addr()->isMulticastAddress()
+			    && !f->get_srv_ip_addr()->isBroadcastAddress()))))
       return(false);
 
     /* Pool filter */
@@ -7383,7 +7387,7 @@ bool NetworkInterface::dequeueFlowFromCompanion(ParsedFlow **f) {
 static void handle_entity_alerts(AlertCheckLuaEngine *acle, AlertableEntity *entity) {
   lua_State *L = acle->getState();
 
-  lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
+  lua_getglobal(L, USER_SCRIPTS_RUN_CALLBACK); /* Called function */
   lua_pushstring(L, acle->getGranularity());  /* push 1st argument */
   acle->pcall(1 /* num args */, 0);
 }
@@ -7605,7 +7609,7 @@ static bool host_release_engaged_alerts(GenericHashEntry *entity, void *user_dat
   AlertCheckLuaEngine *host_script = (AlertCheckLuaEngine *)user_data;
 
   if(host->getNumTriggeredAlerts()) {
-    lua_getglobal(host_script->getState(), ALERT_ENTITY_CALLBACK_RELEASE_ALERTS);
+    lua_getglobal(host_script->getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
     host_script->setHost(host);
     host_script->pcall(0, 0);
   }
@@ -7630,7 +7634,7 @@ void NetworkInterface::releaseAllEngagedAlerts() {
   /* Interface */
   if(getNumTriggeredAlerts()) {
     AlertCheckLuaEngine interface_script(alert_entity_interface, minute_script /* doesn't matter */, this);
-    lua_getglobal(interface_script.getState(), ALERT_ENTITY_CALLBACK_RELEASE_ALERTS);
+    lua_getglobal(interface_script.getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
     interface_script.pcall(0, 0);
   }
 
@@ -7639,7 +7643,7 @@ void NetworkInterface::releaseAllEngagedAlerts() {
     NetworkStats *stats = getNetworkStats(network_id);
 
     if(stats->getNumTriggeredAlerts()) {
-      lua_getglobal(network_script.getState(), ALERT_ENTITY_CALLBACK_RELEASE_ALERTS);
+      lua_getglobal(network_script.getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
       network_script.setNetwork(stats);
       network_script.pcall(0, 0);
     }

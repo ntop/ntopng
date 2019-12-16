@@ -155,8 +155,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
     if(keep_alive_pkts) stats->incKeepAliveRcvd(keep_alive_pkts);
   }
 
-  inline void incSentStats(u_int pkt_len)           { stats->incSentStats(pkt_len);          };
-  inline void incRecvStats(u_int pkt_len)           { stats->incRecvStats(pkt_len);          };
+  inline void incSentStats(u_int num_pkts, u_int pkt_len)  { stats->incSentStats(num_pkts, pkt_len); };
+  inline void incRecvStats(u_int num_pkts, u_int pkt_len)  { stats->incRecvStats(num_pkts, pkt_len); };
   
   virtual int16_t get_local_network_id() const = 0;
   virtual HTTPstats* getHTTPstats()           const { return(NULL);                  };

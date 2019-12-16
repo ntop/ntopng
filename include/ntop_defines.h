@@ -494,8 +494,8 @@
 #define CONST_AGGREGATIONS            "aggregations"
 #define CONST_HOST_CONTACTS           "host_contacts"
 
-#define ALERT_ENTITY_CALLBACK_CHECK_ALERTS    "checkAlerts"
-#define ALERT_ENTITY_CALLBACK_RELEASE_ALERTS  "releaseAlerts"
+#define USER_SCRIPTS_RUN_CALLBACK             "runScripts"
+#define USER_SCRIPTS_RELEASE_ALERTS_CALLBACK  "releaseAlerts"
 
 #define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */

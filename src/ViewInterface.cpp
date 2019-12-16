@@ -284,6 +284,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   const struct timeval *tv = periodic_ht_state_update_user_data->tv;
 
+  NetworkStats *network_stats;
   PartializableFlowTrafficStats partials;
   bool first_partial; /* Whether this is the first time the view is visiting this flow */
   const IpAddress *cli_ip = f->get_cli_ip_addr(), *srv_ip = f->get_srv_ip_addr();
@@ -305,30 +306,22 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
       f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
 
       if(cli_host) {
-	cli_host->incStats(tv->tv_sec, f->get_protocol(),
-			   f->getStatsProtocol(), f->get_protocol_category(),
-			   f->getCustomApp(),
-			   partials.get_cli2srv_packets(), partials.get_cli2srv_bytes(), partials.get_cli2srv_goodput_bytes(),
-			   partials.get_srv2cli_packets(), partials.get_srv2cli_bytes(), partials.get_srv2cli_goodput_bytes(),
-			   cli_ip->isNonEmptyUnicastAddress());
-
-	if(first_partial)
+	if(first_partial) {
 	  cli_host->incNumFlows(f->get_last_seen(), true, srv_host), cli_host->incUses();
+	  network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
+	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), true);
+	}
 
 	if(f->idle())
 	  cli_host->decNumFlows(f->get_last_seen(), true, srv_host), cli_host->decUses();
       }
 
       if(srv_host) {
-	srv_host->incStats(tv->tv_sec, f->get_protocol(),
-			   f->getStatsProtocol(), f->get_protocol_category(),
-			   f->getCustomApp(),
-			   partials.get_srv2cli_packets(), partials.get_srv2cli_bytes(), partials.get_srv2cli_goodput_bytes(),
-			   partials.get_cli2srv_packets(), partials.get_cli2srv_bytes(), partials.get_cli2srv_goodput_bytes(),
-			   srv_ip->isNonEmptyUnicastAddress());
-
-	if(first_partial)
+	if(first_partial) {
 	  srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false, cli_host);
+	  network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
+	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), false);
+	}
 
 	if(f->idle())
 	  srv_host->decUses(), srv_host->decNumFlows(f->get_last_seen(), false, cli_host);

@@ -978,6 +978,114 @@ void Flow::incFlowDroppedCounters() {
 /* *************************************** */
 
 void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
+  update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
+		     partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
+ 
+if(cli_host && srv_host) {
+    bool cli_and_srv_in_same_subnet = false;
+    bool cli_and_srv_in_same_country = false;
+    Vlan *vl;
+    int16_t cli_network_id = cli_host->get_local_network_id();
+    int16_t srv_network_id = srv_host->get_local_network_id();
+    int16_t stats_protocol = getStatsProtocol(); /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
+    NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
+
+    if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
+      cli_and_srv_in_same_subnet = true;
+
+    if(iface && (vl = iface->getVlan(vlanId, false, false /* NOT an inline call */))) {
+      /* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
+      /* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
+	 two hosts exists for that vlan and that any purge attempt will be prevented. */
+#ifdef VLAN_DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing Vlan %u stats", vlanId);
+#endif
+      vl->incStats(tv->tv_sec, stats_protocol,
+		   partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
+		   partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
+    }
+
+    // Update network stats
+    cli_network_stats = cli_host->getNetworkStats(cli_network_id);
+    cli_host->incStats(tv->tv_sec, get_protocol(),
+		       stats_protocol, get_protocol_category(), custom_app,
+		       partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(), partial->get_cli2srv_goodput_bytes(),
+		       partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(), partial->get_srv2cli_goodput_bytes(),
+		       srv_host->get_ip()->isNonEmptyUnicastAddress());
+
+    // update per-subnet byte counters
+    if(cli_network_stats) { // only if the network is known and local
+      if(!cli_and_srv_in_same_subnet) {
+	cli_network_stats->incEgress(tv->tv_sec, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
+				     srv_host->get_ip()->isBroadcastAddress());
+	cli_network_stats->incIngress(tv->tv_sec, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(),
+				      cli_host->get_ip()->isBroadcastAddress());
+      } else // client and server ARE in the same subnet
+	// need to update the inner counter (just one time, will intentionally skip this for srv_host)
+	cli_network_stats->incInner(tv->tv_sec, partial->get_cli2srv_packets() + partial->get_srv2cli_packets(),
+				    partial->get_cli2srv_bytes() + partial->get_srv2cli_bytes(),
+				    srv_host->get_ip()->isBroadcastAddress()
+				    || cli_host->get_ip()->isBroadcastAddress());
+    }
+
+    srv_network_stats = srv_host->getNetworkStats(srv_network_id);
+    srv_host->incStats(tv->tv_sec, get_protocol(),
+		       stats_protocol, get_protocol_category(), custom_app,
+		       partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(), partial->get_srv2cli_goodput_bytes(),
+		       partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(), partial->get_cli2srv_goodput_bytes(),
+		       cli_host->get_ip()->isNonEmptyUnicastAddress());
+
+    if(srv_network_stats) {
+      // local and known server network
+      if(!cli_and_srv_in_same_subnet) {
+	srv_network_stats->incIngress(tv->tv_sec, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
+				      srv_host->get_ip()->isBroadcastAddress());
+	srv_network_stats->incEgress(tv->tv_sec, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(),
+				     cli_host->get_ip()->isBroadcastAddress());
+      }
+    }
+
+    if(cli_host->get_asn() != srv_host->get_asn()) {
+      AutonomousSystem *cli_as = cli_host ? cli_host->get_as() : NULL,
+	*srv_as = srv_host ? srv_host->get_as() : NULL;
+
+      if(cli_as)
+	cli_as->incStats(tv->tv_sec, stats_protocol, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(), partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
+      if(srv_as)
+	srv_as->incStats(tv->tv_sec, stats_protocol, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(), partial->get_cli2srv_packets(), partial->get_cli2srv_bytes());
+    }
+
+    // Update Country stats
+    Country *cli_country_stats = cli_host->getCountryStats();
+    Country *srv_country_stats = srv_host->getCountryStats();
+
+    if(cli_country_stats && srv_country_stats && cli_country_stats->equal(srv_country_stats))
+      cli_and_srv_in_same_country = true;
+
+    if(cli_country_stats) {
+      if(!cli_and_srv_in_same_country) {
+	cli_country_stats->incEgress(tv->tv_sec, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
+				     srv_host->get_ip()->isBroadcastAddress());
+	cli_country_stats->incIngress(tv->tv_sec, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(),
+				      cli_host->get_ip()->isBroadcastAddress());
+      } else // client and server ARE in the same country
+	// need to update the inner counter (just one time, will intentionally skip this for srv_host)
+	cli_country_stats->incInner(tv->tv_sec, partial->get_cli2srv_packets() + partial->get_srv2cli_packets(),
+				    partial->get_cli2srv_bytes() + partial->get_srv2cli_bytes(),
+				    srv_host->get_ip()->isBroadcastAddress()
+				    || cli_host->get_ip()->isBroadcastAddress());
+    }
+
+    if(srv_country_stats) {
+      if(!cli_and_srv_in_same_country) {
+	srv_country_stats->incIngress(tv->tv_sec, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
+				      srv_host->get_ip()->isBroadcastAddress());
+	srv_country_stats->incEgress(tv->tv_sec, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(),
+				     cli_host->get_ip()->isBroadcastAddress());
+      }
+    }
+  }
+
   switch(get_protocol()) {
   case IPPROTO_TCP:
     Flow::incTcpBadStats(true, cli_host, srv_host, iface,
@@ -1068,7 +1176,6 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
   default:
     break;
   }
-
 }
 
 /* *************************************** */
@@ -1091,12 +1198,7 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
   u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
   u_int64_t diff_pkts  = diff_sent_packets + diff_rcvd_packets;
   
-  bool cli_and_srv_in_same_subnet = false;
-  bool cli_and_srv_in_same_country = false;
-  int16_t cli_network_id, srv_network_id;
   int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
-  Vlan *vl;
-  NetworkStats *cli_network_stats;
   Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
   Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
 
@@ -1159,12 +1261,6 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     hosts_periodic_stats_update(getInterface(), cli_host, srv_host, &partial, first_partial, tv);
 
   if(cli_host && srv_host) {
-    cli_network_id = cli_host->get_local_network_id();
-    srv_network_id = srv_host->get_local_network_id();
-
-    if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
-      cli_and_srv_in_same_subnet = true;
-
     if(diff_sent_bytes || diff_rcvd_bytes) {
       /* Update L2 Device stats */
       if(srv_mac) {
@@ -1199,106 +1295,10 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
 
 #ifndef HAVE_NEDGE
 	if(trafficProfile)
-	  trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
+	  trafficProfile->incBytes(diff_sent_bytes + diff_rcvd_bytes);
 #endif
       }
 #endif
-      update_pools_stats(tv, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-
-      if(iface && iface->hasSeenVlanTaggedPackets() && (vl = iface->getVlan(vlanId, false, false /* NOT an inline call */))) {
-	/* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
-	/* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
-	   two hosts exists for that vlan and that any purge attempt will be prevented. */
-#ifdef VLAN_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing Vlan %u stats", vlanId);
-#endif
-	vl->incStats(tv->tv_sec, stats_protocol,
-		     diff_sent_packets, diff_sent_bytes,
-		     diff_rcvd_packets, diff_rcvd_bytes);
-      }
-
-      // Update network stats
-      cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-      cli_host->incStats(tv->tv_sec, protocol,
-			 stats_protocol, get_protocol_category(), custom_app,
-			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-			 get_srv_ip_addr()->isNonEmptyUnicastAddress());
-
-      // update per-subnet byte counters
-      if(cli_network_stats) { // only if the network is known and local
-	if(!cli_and_srv_in_same_subnet) {
-	  cli_network_stats->incEgress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
-				       get_srv_ip_addr()->isBroadcastAddress());
-	  cli_network_stats->incIngress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
-					get_cli_ip_addr()->isBroadcastAddress());
-	} else // client and server ARE in the same subnet
-	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	  cli_network_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
-				      diff_sent_bytes + diff_rcvd_bytes,
-				      get_srv_ip_addr()->isBroadcastAddress()
-				      || get_cli_ip_addr()->isBroadcastAddress());
-      }
-
-      NetworkStats *srv_network_stats;
-
-      srv_network_stats = srv_host->getNetworkStats(srv_network_id);
-      srv_host->incStats(tv->tv_sec, protocol,
-			 stats_protocol, get_protocol_category(), custom_app,
-			 diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
-			 diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-			 get_cli_ip_addr()->isNonEmptyUnicastAddress());
-
-      if(srv_network_stats) {
-	// local and known server network
-	if(!cli_and_srv_in_same_subnet) {
-	  srv_network_stats->incIngress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
-					get_srv_ip_addr()->isBroadcastAddress());
-	  srv_network_stats->incEgress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
-				       get_cli_ip_addr()->isBroadcastAddress());
-	}
-      }
-
-      if(cli_host->get_asn() != srv_host->get_asn()) {
-        AutonomousSystem *cli_as = cli_host ? cli_host->get_as() : NULL,
-	  *srv_as = srv_host ? srv_host->get_as() : NULL;
-
-        if(cli_as)
-          cli_as->incStats(tv->tv_sec, stats_protocol, diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
-        if(srv_as)
-          srv_as->incStats(tv->tv_sec, stats_protocol, diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
-      }
-
-      // Update Country stats
-      Country *cli_country_stats = cli_host->getCountryStats();
-      Country *srv_country_stats = srv_host->getCountryStats();
-
-      if(cli_country_stats && srv_country_stats && cli_country_stats->equal(srv_country_stats))
-	cli_and_srv_in_same_country = true;
-
-      if(cli_country_stats) {
-	if(!cli_and_srv_in_same_country) {
-	  cli_country_stats->incEgress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
-				       get_srv_ip_addr()->isBroadcastAddress());
-	  cli_country_stats->incIngress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
-					get_cli_ip_addr()->isBroadcastAddress());
-	} else // client and server ARE in the same country
-	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-	  cli_country_stats->incInner(tv->tv_sec, diff_sent_packets + diff_rcvd_packets,
-				      diff_sent_bytes + diff_rcvd_bytes,
-				      get_srv_ip_addr()->isBroadcastAddress()
-				      || get_cli_ip_addr()->isBroadcastAddress());
-      }
-
-      if(srv_country_stats) {
-	if(!cli_and_srv_in_same_country) {
-	  srv_country_stats->incIngress(tv->tv_sec, diff_sent_packets, diff_sent_bytes,
-					get_srv_ip_addr()->isBroadcastAddress());
-	  srv_country_stats->incEgress(tv->tv_sec, diff_rcvd_packets, diff_rcvd_bytes,
-				       get_cli_ip_addr()->isBroadcastAddress());
-	}
-      }
-
     }
 
     /* Check and possibly enqueue host remote-to-remote alerts */
@@ -1428,9 +1428,11 @@ void Flow::periodic_dump_check(const struct timeval *tv) {
 
 /* *************************************** */
 
-void Flow::update_pools_stats(const struct timeval *tv,
+void Flow::update_pools_stats(NetworkInterface *iface,
+			      Host *cli_host, Host *srv_host,
+			      const struct timeval *tv,
 			      u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
-			      u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) {
+			      u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) const {
   if(!diff_sent_bytes && !diff_rcvd_bytes)
     return; /* Nothing to update */
 
@@ -2332,12 +2334,12 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   if(cli2srv_direction) {
     ip_stats_s2d.pktFrag += is_fragment;
-    if(cli_host) cli_host->incSentStats(pkt_len);
-    if(srv_host) srv_host->incRecvStats(pkt_len);
+    if(cli_host) cli_host->incSentStats(1, pkt_len);
+    if(srv_host) srv_host->incRecvStats(1, pkt_len);
   } else {
     ip_stats_d2s.pktFrag += is_fragment;
-    if(cli_host) cli_host->incRecvStats(pkt_len);
-    if(srv_host) srv_host->incSentStats(pkt_len);
+    if(cli_host) cli_host->incRecvStats(1, pkt_len);
+    if(srv_host) srv_host->incSentStats(1, pkt_len);
   }
 
   if((applLatencyMsec == 0) && (payload_len > 0)) {

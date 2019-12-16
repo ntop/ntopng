@@ -824,7 +824,7 @@ void Ntop::checkSystemScripts(ScriptPeriodicity p) {
   AlertCheckLuaEngine acle(alert_entity_process, p, NULL);
   lua_State *L = acle.getState();
 
-  lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
+  lua_getglobal(L, USER_SCRIPTS_RUN_CALLBACK); /* Called function */
   lua_pushstring(L, acle.getGranularity());              /* push 1st argument */
   acle.pcall(1 /* num args */, 0);
 }
@@ -835,7 +835,7 @@ void Ntop::checkSNMPDeviceAlerts(ScriptPeriodicity p) {
   AlertCheckLuaEngine acle(alert_entity_snmp_device, p, NULL);
   lua_State *L = acle.getState();
 
-  lua_getglobal(L,  ALERT_ENTITY_CALLBACK_CHECK_ALERTS); /* Called function */
+  lua_getglobal(L, USER_SCRIPTS_RUN_CALLBACK); /* Called function */
   lua_pushstring(L, acle.getGranularity());              /* push 1st argument */
   acle.pcall(1 /* num args */, 0);
 }

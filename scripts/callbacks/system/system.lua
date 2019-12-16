@@ -49,9 +49,9 @@ end
 -- #################################################################
 
 -- The function below is called once
-function checkAlerts(granularity)
+function runScripts(granularity)
   if table.empty(available_modules.hooks[granularity]) then
-    if(do_trace) then print("system:checkAlerts("..granularity.."): no modules, skipping\n") end
+    if(do_trace) then print("system:runScripts("..granularity.."): no modules, skipping\n") end
     return
   end
 
