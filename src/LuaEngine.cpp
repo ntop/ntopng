@@ -11649,10 +11649,13 @@ bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
 
   iface = ntop->getNetworkInterface(vm, atoi(ifid));
 
-  if (iface == NULL || strlen(session) == 0)
+  if(iface == NULL)
     return false;
 
-  if (user != NULL and strlen(user) > 0) { // Login enabled
+  if(user != NULL) {
+    if(!strlen(session) && strcmp(user, NTOP_NOLOGIN_USER))
+      return false; 
+
     snprintf(iface_key, sizeof(iface_key), NTOPNG_PREFS_PREFIX ".%s.iface", user);
     snprintf(ifname_key, sizeof(ifname_key), NTOPNG_PREFS_PREFIX ".%s.ifname", user);
   } else { // Login disabled
