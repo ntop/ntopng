@@ -812,7 +812,7 @@ void Host::periodic_hash_entry_state_update(void *user_data, bool quick) {
       lua_State *L = acle->getState();
       acle->setHost(this);
 
-      lua_getglobal(L, ALERT_ENTITY_CALLBACK_RELEASE_ALERTS); /* Called function */
+      lua_getglobal(L, USER_SCRIPTS_RELEASE_ALERTS_CALLBACK); /* Called function */
 
       acle->pcall(0 /* 0 arguments */, 0 /* 0 results */);
     }

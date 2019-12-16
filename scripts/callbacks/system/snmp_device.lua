@@ -48,7 +48,7 @@ end
 
 local cur_granularity
 
-local function snmp_device_interfaces_check_alerts(snmp_device, deadline)
+local function snmp_device_run_user_scripts(snmp_device, deadline)
    local do_call = true
    local granularity = cur_granularity
 
@@ -91,10 +91,10 @@ end
 -- #################################################################
 
 -- The function below is called once per local snmp_device
-function checkAlerts(granularity)
+function runScripts(granularity)
    cur_granularity = granularity
 
    if not table.empty(available_modules.hooks["snmpDeviceInterface"]) then
-      local in_time = foreachSNMPDevice(snmp_device_interfaces_check_alerts, nil --[[ snmp_rrds_enabled --]], nil --[[ deadline --]])
+      local in_time = foreachSNMPDevice(snmp_device_run_user_scripts, nil --[[ snmp_rrds_enabled --]], nil --[[ deadline --]])
    end
 end
