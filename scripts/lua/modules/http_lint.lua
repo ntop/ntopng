@@ -585,6 +585,17 @@ local function validateDate(p)
    end
 end
 
+local function validateMemberRelaxed(m)
+   -- This does not actually check the semantic with isValidPoolMember
+   -- as this is used in pool deletion to handle bad pool member values 
+   -- inserted by mistake)
+   if validateUnquoted(m) then
+      return true
+   else
+      return false
+   end
+end
+
 local function validateMember(m)
    if isValidPoolMember(m) then
       return true
@@ -1427,7 +1438,7 @@ local known_parameters = {
    ["empty_pool"]              = validateNumber,                -- host_pools.lua, action to empty a pool by ID
    ["pool_to_delete"]          = validateNumber,                -- host_pools.lua, pool ID to delete
    ["edit_pools"]              = validateEmpty,                 -- host_pools.lua, set if pools are being edited
-   ["member_to_delete"]        = validateMember,                -- host_pools.lua, member to delete from pool
+   ["member_to_delete"]        = validateMemberRelaxed,         -- host_pools.lua, member to delete from pool
    ["sampling_rate"]           = validateEmptyOr(validateNumber),            -- if_stats.lua
    ["resetstats_mode"]         = validateResetStatsMode,        -- reset_stats.lua
    ["snmp_action"]             = validateSnmpAction,            -- snmp specific
