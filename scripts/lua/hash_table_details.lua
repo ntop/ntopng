@@ -40,6 +40,19 @@ if(not ts_utils.exists("ht:state", {ifid = ifId, hash_table = hash_table})) then
    return
 end
 
+local nav_url = ntop.getHttpPrefix().."/lua/hash_table_details.lua?ifid="..ifId
+local title = i18n("internals.hash_table").. ": "..hash_table
+
+page_utils.print_navbar(title, nav_url,
+			{
+			   {
+			      active = page == "historical" or not page,
+			      page_name = "historical",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			   },
+			}
+)
+
 print [[
 <div class="bs-docs-example">
             <nav class="navbar navbar-default" role="navigation">
