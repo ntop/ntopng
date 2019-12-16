@@ -46,7 +46,7 @@ page_utils.print_navbar(title, url,
 			      label = "<i class='fa fa-lg fa-chart-area'></i>",
 			   },
 			   {
-			      hidden = is_pcap_dump or not isAdministrator() or not areAlertsEnabled(),
+			      hidden = interface.isPcapDumpInterface() or not isAdministrator() or not areAlertsEnabled(),
 			      active = page == "alerts",
 			      page_name = "alerts",
 			      label = "<i class=\"fa fa-exclamation-triangle fa-lg\"></i>",
