@@ -628,6 +628,7 @@
 #define CONST_TREND_TIME_GRANULARITY   1 /* sec */
 #define CONST_DEFAULT_PRIVATE_NETS     "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8,127.0.0.0/8"
 #define CONST_DEFAULT_LOCAL_NETS       "127.0.0.0/8"
+#define CONST_DEFAULT_ALL_NETS         "0.0.0.0/0,::/0"
 
 #define CONST_NUM_RESOLVERS            2
 

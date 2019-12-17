@@ -197,6 +197,8 @@ void get_host_vlan_info(char* lua_ip, char** host_ip,
 
   if(vlan)
     (*vlan_id) = (u_int16_t)atoi(vlan);
+  else
+    (*vlan_id) = 0;
 }
 
 /* ****************************************** */
@@ -1153,12 +1155,9 @@ static int ntop_get_interface_mac_hosts(lua_State* vm) {
 static int ntop_set_host_operating_system(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip = NULL, buf[64];
-  u_int16_t vlan_id;
+  u_int16_t vlan_id = 0;
   OperatingSystem os = os_unknown;
   Host *host;
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
@@ -1166,15 +1165,13 @@ static int ntop_set_host_operating_system(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   os = (OperatingSystem)lua_tonumber(vm, 2);
 
-  if(os >= os_max_os) return(CONST_LUA_ERROR);
-
   host = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
-  
-  if(!host)
-    return(CONST_LUA_ERROR);
 
-  if(os != os_unknown)
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", ntop_interface->get_name(), host_ip, vlan_id, host, os);
+
+  if(ntop_interface && host && os < os_max_os && os != os_unknown)
     host->setOS(os);
+
   lua_pushnil(vm);
 
   return(CONST_LUA_OK);
@@ -12003,13 +12000,13 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     getLuaVMUservalue(L, user) = (char*)user;
 
     snprintf(key, sizeof(key), CONST_STR_USER_NETS, user);
-    if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
-       && (val[0] != '\0')) {
+    if(ntop->getRedis()->get(key, val, sizeof(val)) == -1)
+      ptree.addAddress(CONST_DEFAULT_ALL_NETS);
+    else
       ptree.addAddresses(val);
 
-      getLuaVMUservalue(L, allowedNets) = &ptree;
+    getLuaVMUservalue(L, allowedNets) = &ptree;
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET [p: %p][val: %s][user: %s]", &ptree, val, user);
-    }
 
     snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, user);
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)

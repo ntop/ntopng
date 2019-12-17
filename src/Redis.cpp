@@ -735,7 +735,7 @@ void Redis::setDefaults() {
 #endif
     );
     set((char*)"ntopng.user.admin.group", (char*)CONST_USER_GROUP_ADMIN);
-    set((char*)"ntopng.user.admin.allowed_nets", (char*)"0.0.0.0/0,::/0");
+    set((char*)"ntopng.user.admin.allowed_nets", CONST_DEFAULT_ALL_NETS);
   } else if(strncmp(value, admin_md5, strlen(admin_md5))) {
     set((char*)CONST_DEFAULT_PASSWORD_CHANGED, (char*)"1");
   }
