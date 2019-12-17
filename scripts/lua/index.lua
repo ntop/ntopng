@@ -1,8 +1,8 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
@@ -72,34 +72,33 @@ end
 
 
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
--- Print tabbed header
+   local nav_url = ntop.getHttpPrefix()..'/?ifid='..interface.getId()
+   local title = i18n("index_page.dashboard")
 
-   print('<nav class="navbar navbar-default" role="navigation">\n\t<div class="navbar-collapse collapse">\n\t<ul class="nav navbar-nav">\n')
-
-   print('<li><a href="#">'..i18n("index_page.dashboard")..': </a></li>\n')
-
-   if(not(is_loopback)) then
-      if(page == "TopFlowTalkers") then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowTalkers">'..i18n("talkers")..'</a></li>\n')
-   end
-
-   if((page == "TopHosts")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopHosts">'..i18n("index_page.hosts")..'</a></li>\n')
-
-   if((page == "TopPorts")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopPorts">'..i18n("ports")..'</a></li>\n')
-
-   if((page == "TopApplications")) then active=' class="active"' else active = "" end
-   print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopApplications">'..i18n("index_page.applications")..'</a></li>\n')
-
-   if(not(is_loopback)) then
-      if((page == "TopASNs")) then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopASNs">'..i18n("index_page.asns")..'</a></li>\n')
-      if((page == "TopFlowSenders")) then active=' class="active"' else active = "" end
-      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowSenders">'..i18n("index_page.senders")..'</a></li>\n')
-   end
-
-   print('</ul>\n\t</div>\n\t</nav>\n')
+   page_utils.print_navbar(title, nav_url,
+			   {
+			      {
+				 active = page == "TopFlowTalkers" or not page,
+				 page_name = "TopFlowTalkers",
+				 label = i18n("talkers"),
+			      },
+			      {
+				 active = page == "TopHosts",
+				 page_name = "TopHosts",
+				 label = i18n("index_page.hosts"),
+			      },
+			      {
+				 active = page == "TopPorts",
+				 page_name = "TopPorts",
+				 label = i18n("ports"),
+			      },
+			      {
+				 active = page == "TopApplications",
+				 page_name = "TopApplications",
+				 label = i18n("index_page.applications"),
+			      },
+			   }
+   )
 
    if(page == "TopFlowTalkers") then
       print('<div style="text-align: center;">\n<h4>'..i18n("index_page.top_flow_talkers")..'</h4></div>\n')
@@ -117,20 +116,20 @@ if (refresh ~= '0') then
   if (refresh == '60000') then
     print('1 '..i18n("index_page.minute"))
   else
-    print((refresh/1000)..' '..i18n("index_page.seconds")..' ')
+     print(string.format("%u %s", refresh / 1000, i18n("index_page.seconds")))
   end
 else
   print(' '..i18n("index_page.never")..' ')
 end
 
-print [[<span class="caret"></span></button>
+print [[</button>
   <ul class="dropdown-menu ">
 ]]
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=5000" >5 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=10000" >10 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=30000" >30 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=60000" >1 '..i18n("index_page.minute")..'</a></li>\n')
-print('<li style="text-align: left;"> <a href="'..ntop.getHttpPrefix()..'?refresh=0" >'..i18n("index_page.never")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=5000" >5 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=10000" >10 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=30000" >30 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=60000" >1 '..i18n("index_page.minute")..'</a></li>\n')
+print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=0" >'..i18n("index_page.never")..'</a></li>\n')
 print [[
   </ul>
 </div><!-- /btn-group -->
@@ -138,7 +137,7 @@ print [[
 
 if (refresh ~= '0') then
   print [[
-          &nbsp;]] print(i18n("index_page.live_update")) print[[:  <div class="btn-group btn-group-toggle btn-group-xs" data-toggle="buttons-radio" data-toggle-name="topflow_graph_state">
+          &nbsp;]] print(i18n("index_page.live_update")) print[[:  <div class="btn-group btn-group-toggle btn-group-xs" data-toggle="buttons" data-toggle-name="topflow_graph_state">
             <button id="topflow_graph_state_play" value="1" type="button" class="btn btn-secondary btn-xs active" data-toggle="button" ><i class="fa fa-play"></i></button>
             <button id="topflow_graph_state_stop" value="0" type="button" class="btn btn-secondary btn-xs" data-toggle="button" ><i class="fa fa-stop"></i></button>
           </div>

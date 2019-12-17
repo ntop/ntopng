@@ -42,29 +42,17 @@ else
       Create Menu Bar with buttons
    --]]
    local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan"..vlan_id
-   print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
+   local title = i18n("vlan")..": "..vlan_id
 
-   print("<li><a href=\"#\">"..i18n("vlan")..": "..vlan_id.."</A> </li>")
-
-   if(page == "historical") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i></a></li>\n")
-   else
-      print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
-   end
-
-
-   print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
+   page_utils.print_navbar(title, nav_url,
+			   {
+			      {
+				 active = page == "historical" or not page,
+				 page_name = "historical",
+				 label = "<i class='fa fa-lg fa-chart-area'></i>",
+			      },
+			   }
+   )
 
    --[[
       Selectively render information pages

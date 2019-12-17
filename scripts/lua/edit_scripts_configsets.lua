@@ -18,6 +18,11 @@ if(action == nil) then
   return
 end
 
+if(not isAdministrator()) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Admin privileges required")
+  return
+end
+
 -- ################################################
 
 local result = {}
@@ -36,7 +41,7 @@ if(action == "add") then
     result.error = err
   end
 else
-  local confid = _GET["confset_id"]
+  local confid = tonumber(_GET["confset_id"])
 
   if(confid == nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_id' parameter")

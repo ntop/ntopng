@@ -29,6 +29,7 @@ local lists_utils = require "lists_utils"
 local recovery_utils = require "recovery_utils"
 local delete_data_utils = require "delete_data_utils"
 local ts_utils = require "ts_utils"
+local user_scripts = require("user_scripts")
 
 local prefs = ntop.getPrefs()
 
@@ -38,6 +39,9 @@ if(ntop.isPro()) then
    shaper_utils = require "shaper_utils"
    shaper_utils.initShapers()
 end
+
+-- Load the default user scripts configuration
+user_scripts.loadDefaultConfig()
 
 -- Use a specific bridging_policy_target_type default for previous user installations
 if isEmptyString(ntop.getPref("ntopng.prefs.bridging_policy_target_type")) then

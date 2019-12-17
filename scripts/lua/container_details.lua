@@ -14,8 +14,7 @@ local format_utils = require("format_utils")
 local container      = _GET["container"]
 local page           = _GET["page"]
 
-interface.select(ifname)
-local ifId = getInterfaceId(ifname)
+local ifId = interface.getId()
 local ts_utils = require("ts_utils")
 active_page = "hosts"
 
@@ -40,28 +39,18 @@ end
 Create Menu Bar with buttons
 --]]
 local nav_url = ntop.getHttpPrefix().."/lua/container_details.lua?container="..container
-print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
+local title = i18n("containers_stats.container") .. ": "..container_label
 
-print("<li><a href=\"#\">" .. i18n("containers_stats.container") .. ": "..container_label.."</A> </li>")
-
-if(page == "historical") then
-    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i></a></li>\n")
-else
-    print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
+page_utils.print_navbar(title, nav_url,
+			{
+			   {
+			      hidden = not ts_utils.exists("container:num_flows", {ifid=ifId, container=container}),
+			      active = page == "historical" or not page,
+			      page_name = "historical",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			   },
+			}
+)
 
 --[[
 Selectively render information pages

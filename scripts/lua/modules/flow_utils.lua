@@ -614,7 +614,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       label = label.." [ "..cli_mac.." ]"
    end
 
-   label = label.." <i class=\"fa fa-exchange fa-lg\"  aria-hidden=\"true\"></i> "
+   label = label.." <i class=\"fa fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> "
 
    if not isEmptyString(srv_name) then
       label = label..srv_name
@@ -836,7 +836,7 @@ function getSIPInfo(infoPar)
       if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
         returnString = ""
       else
-        returnString =  calling_party .. " <i class='fa fa-exchange fa-sm' aria-hidden='true'></i> " .. called_party
+        returnString =  calling_party .. " <i class='fa fa-exchange-alt fa-sm' aria-hidden='true'></i> " .. called_party
       end
     end
   end
@@ -899,9 +899,9 @@ function getSIPTableRows(info)
      called_party = extractSIPCaller(called_party)
      calling_party = extractSIPCaller(calling_party)
      if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
-       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: none;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fa fa-exchange fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
+       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: none;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fa fa-exchange-alt fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
      else
-       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: table-row;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fa fa-exchange fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party>" .. calling_party .. " <i class=\"fa fa-exchange fa-lg\"></i> " .. called_party .. "</div></td></tr>\n"
+       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: table-row;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fa fa-exchange-alt fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party>" .. calling_party .. " <i class=\"fa fa-exchange-alt fa-lg\"></i> " .. called_party .. "</div></td></tr>\n"
      end
 
      rtp_codecs = getFlowValue(info, "SIP_RTP_CODECS")
@@ -945,8 +945,8 @@ function getSIPTableRows(info)
 	show_rtp_stream = 1
      end
      if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
-       --string_table = string_table.." <i class=\"fa fa-exchange fa-lg\"></i> "
-       string_table_3 = " <i class=\"fa fa-exchange fa-lg\"></i> "
+       --string_table = string_table.." <i class=\"fa fa-exchange-alt fa-lg\"></i> "
+       string_table_3 = " <i class=\"fa fa-exchange-alt fa-lg\"></i> "
        show_rtp_stream = 1
      end
      if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
@@ -976,9 +976,9 @@ function getSIPTableRows(info)
      end
 
      if (show_rtp_stream == 1) then
-       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: table-row;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
+       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: table-row;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fa fa-exchange-alt fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
      else
-       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: none;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
+       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: none;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fa fa-exchange-alt fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
      end
      string_table = string_table..string_table_1..string_table_2..string_table_3..string_table_4..string_table_5
 

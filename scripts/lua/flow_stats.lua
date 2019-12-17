@@ -163,7 +163,7 @@ else
         if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
           print(', "sip.calling_called_party":"'..calling_party .. ' ' .. called_party..'"')
         else
-          print(', "sip.calling_called_party":"'..calling_party .. ' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ' .. called_party..'"')
+          print(', "sip.calling_called_party":"'..calling_party .. ' <i class=\\\"fa fa-exchange-alt fa-lg\\\"></i> ' .. called_party..'"')
         end
 
         print(', "sip.rtp_codecs":"'..getFlowValue(info, "SIP_RTP_CODECS")..'"')
@@ -411,7 +411,7 @@ else
           print('</A>')
         end
         if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
-          print(' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ')
+          print(' <i class=\\\"fa fa-exchange-alt fa-lg\\\"></i> ')
         end
         if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
           sip_rtp_dst_addr = 1

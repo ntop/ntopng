@@ -6692,6 +6692,7 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "license",   (char*)"GNU GPLv3");
   lua_push_str_table_entry(vm, "platform",  (char*)PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "version",   (char*)PACKAGE_VERSION);
+  lua_push_str_table_entry(vm, "revision",  (char*)PACKAGE_REVISION);
   lua_push_str_table_entry(vm, "git",       (char*)NTOPNG_GIT_RELEASE);
 #ifndef WIN32
   lua_push_uint64_table_entry(vm, "pid",       getpid());
@@ -11649,10 +11650,13 @@ bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
 
   iface = ntop->getNetworkInterface(vm, atoi(ifid));
 
-  if (iface == NULL || strlen(session) == 0)
+  if(iface == NULL)
     return false;
 
-  if (user != NULL and strlen(user) > 0) { // Login enabled
+  if(user != NULL) {
+    if(!strlen(session) && strcmp(user, NTOP_NOLOGIN_USER))
+      return false; 
+
     snprintf(iface_key, sizeof(iface_key), NTOPNG_PREFS_PREFIX ".%s.iface", user);
     snprintf(ifname_key, sizeof(ifname_key), NTOPNG_PREFS_PREFIX ".%s.ifname", user);
   } else { // Login disabled
@@ -11892,7 +11896,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     build_redirect(request_info->uri, request_info->query_string, buf, sizeof(buf));
 
     /* Redirect the page and terminate this request */
-    mg_printf(conn, buf);
+    mg_printf(conn, "%s", buf);
     return(CONST_LUA_OK);
   }
 

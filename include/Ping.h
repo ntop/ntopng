@@ -26,7 +26,7 @@
 
 class Ping {
  private:
-  int pid;
+  u_int16_t ping_id;
   int sd, sd6;
   u_int8_t cnt;
   bool running;

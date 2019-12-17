@@ -30,23 +30,18 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
+local nav_url = ntop.getHttpPrefix().."/lua/periodic_script_details.lua?ifid="..ifId
+local title = i18n("internals.iface_periodic_scripts", {iface = getHumanReadableInterfaceName(getInterfaceName(ifId))})
 
-print("<li><a href=\"#\">".. i18n("internals.iface_periodic_scripts", {iface = getHumanReadableInterfaceName(getInterfaceName(ifId))}) .."</A> </li>")
-print("<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i>\n")
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
+page_utils.print_navbar(title, nav_url,
+			{
+			   {
+			      active = page == "historical" or not page,
+			      page_name = "historical",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			   },
+			}
+)
 
 local schema = _GET["ts_schema"] or "custom:flow_script:stats"
 local selected_epoch = _GET["epoch"] or ""

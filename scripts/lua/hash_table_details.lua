@@ -40,23 +40,18 @@ if(not ts_utils.exists("ht:state", {ifid = ifId, hash_table = hash_table})) then
    return
 end
 
-print [[
-<div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
+local nav_url = ntop.getHttpPrefix().."/lua/hash_table_details.lua?ifid="..ifId
+local title = i18n("internals.hash_table").. ": "..hash_table
 
-print("<li><a href=\"#\">".. i18n("internals.iface_hash_tables", {iface = getHumanReadableInterfaceName(getInterfaceName(ifId))}) .."</A> </li>")
-print("<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i>\n")
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
+page_utils.print_navbar(title, nav_url,
+			{
+			   {
+			      active = page == "historical" or not page,
+			      page_name = "historical",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			   },
+			}
+)
 
 local schema = _GET["ts_schema"] or "ht:state"
 local selected_epoch = _GET["epoch"] or ""

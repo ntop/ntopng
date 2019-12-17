@@ -21,7 +21,6 @@ local network        = _GET["network"]
 local network_name   = _GET["network_cidr"]
 local page           = _GET["page"]
 
-interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
 local have_nedge = ntop.isnEdge()
@@ -52,63 +51,41 @@ end
 Create Menu Bar with buttons
 --]]
 local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network)
-print [[
-<div class="bs-docs-example">
-	    <nav class="navbar navbar-default" role="navigation">
-	      <div class="navbar-collapse collapse">
-<ul class="nav navbar-nav">
-]]
+local title = i18n("network_details.network") .. ": "..network_name
 
-print("<li><a href=\"#\">" .. i18n("network_details.network") .. ": "..network_name.."</A> </li>")
-
-if(page == "historical") then
-    print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-chart-area fa-lg'></i></a></li>\n")
-else
-    print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-chart-area fa-lg'></i></a></li>")
-end
-
-if areAlertsEnabled() then
-    if(page == "alerts") then
-	print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-exclamation-triangle fa-lg\"></i></a></li>\n")
-    else
-	print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-exclamation-triangle fa-lg\"></i></a></li>")
-    end
-end
-
-if ts_utils.getDriverName() == "rrd" then
-   if ntop.isEnterprise() or ntop.isnEdge() then
-      if(page == "traffic_report") then
-	 print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-alt report-icon'></i></a></li>\n")
-      else
-	 print("\n<li><a href=\""..nav_url.."&page=traffic_report\"><i class='fa fa-file-alt report-icon'></i></a></li>")
-      end
-   else
-      print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-alt report-icon'></i></A></li>\n")
-   end
-end
-
-if((network ~= nil) and (isAdministrator())) then
-    if(page == "config") then
-	print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-
-    else
-	print("\n<li><a href=\""..nav_url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
-    end
-
-    if(page == "callbacks") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fab fa-superpowers fa-lg\"></i></a></li>\n")
-   else
-      print("\n<li><a href=\""..nav_url.."&page=callbacks\"><i class=\"fab fa-superpowers fa-lg\"></i></a></li>")
-   end
-end
-
-print [[
-<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
-</ul>
-</div>
-</nav>
-</div>
-]]
+page_utils.print_navbar(title, nav_url,
+			{
+			   {
+			      active = page == "historical" or not page,
+			      page_name = "historical",
+			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			   },
+			   {
+			      hidden = interface.isPcapDumpInterface() or not areAlertsEnabled(),
+			      active = page == "alerts",
+			      page_name = "alerts",
+			      label = "<i class=\"fa fa-exclamation-triangle fa-lg\"></i>",
+			   },
+			   {
+			      hidden = ts_utils.getDriverName() ~= "rrd" or not ntop.isEnterprise() or ntop.isnEdge(),
+			      active = page == "traffic_report",
+			      page_name = "traffic_report",
+			      label = "<i class='fa fa-file-alt report-icon'></i>",
+			   },
+			   {
+			      hidden = not network or not isAdministrator(),
+			      active = page == "config",
+			      page_name = "config",
+			      label = "<i class=\"fa fa-cog fa-lg\"></i>",
+			   },
+			   {
+			      hidden = not network or not isAdministrator(),
+			      active = page == "callbacks",
+			      page_name = "callbacks",
+			      label = "<i class=\"fab fa-superpowers fa-lg\"></i>",
+			   },
+			}
+)
 
 --[[
 Selectively render information pages

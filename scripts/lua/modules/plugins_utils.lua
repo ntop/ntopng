@@ -60,6 +60,11 @@ function plugins_utils.listPlugins()
           goto continue
         end
 
+        if(metadata.disabled) then
+          -- The plugin is disabled, skip it
+          goto continue
+        end
+
         -- Augument information
         metadata.path = plugin_dir
         metadata.key = plugin_name

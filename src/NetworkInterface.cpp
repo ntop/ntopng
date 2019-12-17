@@ -2543,7 +2543,8 @@ bool NetworkInterface::checkPeriodicStatsUpdateTime(const struct timeval *tv) {
   float diff = Utils::msTimevalDiff(tv, &last_periodic_stats_update) / 1000;
 
   if(diff < 0 /* Need a reset */
-     || diff >= periodicStatsUpdateFrequency()) {
+     || diff >= periodicStatsUpdateFrequency()
+     || read_from_pcap_dump_done()) {
     memcpy(&last_periodic_stats_update, tv, sizeof(last_periodic_stats_update));
     return true;
   }
@@ -2560,7 +2561,7 @@ u_int32_t NetworkInterface::periodicStatsUpdateFrequency() const {
 /* **************************************************** */
 
 void NetworkInterface::periodicUpdateInitTime(struct timeval *tv) const {
-  if(!read_from_pcap_dump() || reproducePcapOriginalSpeed())
+  if(getIfType() != interface_type_PCAP_DUMP)
     gettimeofday(tv, NULL);
   else
     tv->tv_sec = last_pkt_rcvd, tv->tv_usec = 0;

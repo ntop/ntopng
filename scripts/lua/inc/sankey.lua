@@ -73,12 +73,6 @@ local debug = false
 
 if(_GET["host"] ~= nil) then
    print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua?ifid='..(_ifstats.id)..'&' ..hostinfo2url(hostkey2hostinfo(_GET["host"])).. '"')
-elseif((_GET["hosts"] ~= nil) and (_GET["aggregation"] ~= nil)) then
-   print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] .. '&aggregation='.._GET["aggregation"] ..'"')
-   active_sankey = "comparison"
-elseif(_GET["hosts"] ~= nil) then
-   print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] ..'"')
-   active_sankey = "comparison"
 else
    print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua"')
 end
@@ -140,21 +134,6 @@ print [[
 	  .style("stroke-width", function(d) { return Math.max(1, d.dy); })
 	  .style("stroke", function(d){ return d.color = colorlink(d); })
 	  .sort(function(a, b) { return b.dy - a.dy; })
-    .on("dblclick", function(d) {
-        url_ref = "]]
-print (ntop.getHttpPrefix())
-print [[/lua/hosts_comparison.lua?hosts="+escape(d.source.host);
-
-        if(iface_vlan )
-          url_ref  += "@"+escape(d.source.vlan);
-
-        url_ref += ","+escape(d.target.host);
-
-        if(iface_vlan )
-          url_ref  += "@"+escape(d.target.vlan);
-
-          window.location.href = url_ref;
-      });
 
 	link.append("title")
 	  .text(function(d) { return d.source.name + " - " + d.target.name + "\n" + format(d.sent, d.rcvd) + "\n Double click to show more information about the flows between this two host." ; });
@@ -241,7 +220,7 @@ print(url.."hosts=".._GET["hosts"])
 
   link.append("title")
     .text(function(d) { return d.source.name + " - " + d.target.name + "\n" + bytesToVolume(d.value)+ "\n Double click to show more information about this flows." ; });
-
+debugger;
   var node = svg_sankey.append("g").selectAll(".node")
     .data(hosts.nodes)
     .enter().append("g")

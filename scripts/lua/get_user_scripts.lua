@@ -9,6 +9,8 @@ require "lua_utils"
 local json = require("dkjson")
 local user_scripts = require("user_scripts")
 
+local dirs = ntop.getDirs()
+
 sendHTTPContentTypeHeader('application/json')
 
 local stype = _GET["script_type"] or "traffic_element"
@@ -31,6 +33,12 @@ local result = {}
 for script_name, script in pairs(scripts.modules) do
   if script.gui.i18n_title and script.gui.i18n_description then
     local enabled_hooks = user_scripts.getEnabledHooks(script)
+    local edit_url = nil
+
+    if(script.edition == "community") then
+      local path = string.sub(script.source_path, string.len(dirs.scriptdir)+1)
+      edit_url = ntop.getHttpPrefix() .. '/lua/code_viewer.lua?lua_script_path='.. path
+    end
 
     result[#result + 1] = {
       key = script_name,
@@ -38,6 +46,7 @@ for script_name, script in pairs(scripts.modules) do
       description = i18n(script.gui.i18n_description) or script.gui.i18n_description,
       enabled_hooks = enabled_hooks,
       is_enabled = not table.empty(enabled_hooks),
+      edit_url = edit_url,
     }
   end
 end

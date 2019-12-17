@@ -55,7 +55,7 @@ void Ping::setOpts(int fd) {
 /* ****************************************** */
 
 Ping::Ping() {
-  pid = getpid(), cnt = 0;
+  ping_id = rand(), cnt = 0;
   running = true;
 
 #if defined(__APPLE__)
@@ -134,10 +134,14 @@ int Ping::ping(char *_addr, bool use_v6) {
     addr.sin_port = 0;
     addr.sin_addr.s_addr = *(long*)hname->h_addr;
   }
-  
+
   bzero(&pckt, sizeof(pckt));
   pckt.hdr.type = use_v6 ? ICMP6_ECHO_REQUEST : ICMP_ECHO;
-  pckt.hdr.un.echo.id = pid;
+
+  /* NOTE: each connection must have a unique ID, otherwise some replies
+   * will not arrive. */
+  pckt.hdr.un.echo.id = ping_id + cnt;
+
   for(i = 0; i < sizeof(pckt.msg)-1; i++) pckt.msg[i] = i+'0';
   pckt.msg[i] = 0;
   pckt.hdr.un.echo.sequence = cnt++;
@@ -201,6 +205,7 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 			      struct in_addr *ip, struct in6_addr *ip6) {
   struct ndpi_icmphdr *icmp;
   struct ping_packet *pckt;
+  bool overflow = ((u_int16_t)(ping_id + cnt) < ping_id);
 
  if(ip) {
    struct ndpi_iphdr *ip4 = (struct ndpi_iphdr*)buf;
@@ -215,8 +220,10 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
  if((ip && (icmp->type != ICMP_ECHOREPLY))
     || (ip6 && (icmp->type != ICMP6_ECHO_REPLY)))
    return;
- 
-  if(icmp->un.echo.id == pid) {
+
+  /* The PING ID must be between ping_id (inclusive) and ping_id + cnt (exclusive) */
+  if((!overflow && ((icmp->un.echo.id >= ping_id) && (icmp->un.echo.id < (ping_id + cnt)))) ||
+     (overflow && ((icmp->un.echo.id >= ping_id) || (icmp->un.echo.id <= ((u_int16_t)ping_id + cnt))))) {
     float rtt;
     struct timeval end, *begin = (struct timeval*)pckt->msg;
     char *h, buf[64];
