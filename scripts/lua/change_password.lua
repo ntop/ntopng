@@ -100,26 +100,28 @@ print[[
 
   ]]
 
-if not ntop.isnEdge() then
 print[[
-  <div class="form-group">
-      <label class="form-label">]] print(i18n("language")) print[[</label>
-      <div class="input-group">
-        <span class="input-group-addon"><i class="fa fa-language" aria-hidden="true"></i></span>
-        <select name="user_language" id="user_language" class="form-control">]]
+    <label for="user_language">]] print(i18n("language")) print[[</label>
+    <div class="input-group mb-6">
+      <div class="input-group-prepend">
+	<span class="input-group-text"><i class="fa fa-language" aria-hidden="true"></i></span>
+      </div>
+      <select id="user_language" name="user_language" class="form-control">]]
 
 for _, lang in ipairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'" ' .. ternary(lang["code"] == "en", "selected", "") .. '>'..i18n("locales." .. lang["code"])..'</option>')
+   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
 end
 
 print[[
-        </select>
-      </div>
-    </div>]]
-end
+      </select>
+    </div>
+]]
 
 print[[
+<br>
+<div class="input-group mb-12">
     <button class="btn btn-lg btn-primary btn-block disabled" type="submit">]] print(i18n("login.change_password")) print[[</button>
+</div>
   	<div class="row">
       <div >&nbsp;</div>
       <div class="col-lg-12">
