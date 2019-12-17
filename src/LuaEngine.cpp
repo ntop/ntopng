@@ -1167,7 +1167,9 @@ static int ntop_set_host_operating_system(lua_State* vm) {
 
   host = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
 
+#if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", ntop_interface->get_name(), host_ip, vlan_id, host, os);
+#endif
 
   if(ntop_interface && host && os < os_max_os && os != os_unknown)
     host->setOS(os);
