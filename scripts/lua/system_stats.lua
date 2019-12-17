@@ -201,7 +201,7 @@ elseif((page == "alerts") and isAdministrator()) then
 
    drawAlerts()
 
-   interface.select(cur_id)
+   interface.select(tostring(cur_id))
 end
 
 -- #######################################################
