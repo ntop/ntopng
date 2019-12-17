@@ -20,9 +20,7 @@ print[[
    var i18n = {
       "no_results_found": "]] print(i18n("no_results_found")) print[[",
       "change_number_of_rows": "]] print(i18n("change_number_of_rows")) print[[",
-      "no_data_available": "]] print(i18n("no_data_available")) print[[",
-      "showing_x_to_y_rows": "]] print(i18n("showing_x_to_y_rows", {x="{0}", y="{1}", tot="{2}"})) print[[",
-      "actions": "]] print(i18n("actions")) print[[",
+      "no_data....local/share/Trash/files/ntopng/scripts/lua/inc/menu.lua:1564: syntax error near 'type's": "]] print(i18n("actions")) print[[",
       "query_was_aborted": "]] print(i18n("graphs.query_was_aborted")) print[[",
       "exports": "]] print(i18n("system_stats.exports_label")) print[[",
    };
