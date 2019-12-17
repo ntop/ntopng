@@ -43,7 +43,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 
 ifstats = interface.getStats()
-is_loopback = isLoopback(ifname)
+is_loopback = interface.isLoopback()
 iface_id = interface.name2id(ifname)
 
 -- Load from or set in redis the refresh frequency for the top flow sankey

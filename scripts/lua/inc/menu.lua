@@ -92,7 +92,7 @@ end
 
 print [["><i class="fa fa-tachometer-alt"></i> ]] print(i18n("dashboard.traffic_dashboard")) print[[</a></li>]]
 
-  if(interface.isDiscoverableInterface()) then
+if interface.isDiscoverableInterface() and not interface.isLoopback() then
     print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fa fa-lightbulb"></i> ') print(i18n("prefs.network_discovery")) print('</a></li>')
   end
 
@@ -238,7 +238,7 @@ end
 
 print('<li class="dropdown-divider"></li>')
 
-if(not(isLoopback(ifname))) then
+if not interface.isLoopback() then
    print [[
 	    <li class="nav-item"><a class="dropdown-item" href="]]
 print(ntop.getHttpPrefix())

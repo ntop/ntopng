@@ -23,7 +23,7 @@ end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local ifstats = interface.getStats()
-local is_loopback = isLoopback(ifname)
+local is_loopback = interface.isLoopback(),
 local iface_id = interface.name2id(ifname)
 
 -- Load from or set in redis the refresh frequency for the top talkers heatmap

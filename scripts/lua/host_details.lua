@@ -252,7 +252,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("ports"),
 			      },
 			      {
-				 hidden = only_historical or isLoopback(ifname),
+				 hidden = only_historical or interface.isLoopback(),
 				 active = page == "peers",
 				 page_name = "peers",
 				 label = i18n("peers"),
