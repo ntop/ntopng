@@ -14,6 +14,10 @@ local format_utils = require("format_utils")
 sendHTTPContentTypeHeader('text/html')
 page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
+if not isAdministrator() then
+  return
+end
+
 active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
