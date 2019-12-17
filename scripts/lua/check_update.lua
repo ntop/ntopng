@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
+local info = ntop.getInfo() 
 
 sendHTTPHeader('application/json')
 
@@ -17,6 +18,29 @@ end
 local new_version_available_key = "ntopng.updates.new_version"
 local check_for_updates_key = "ntopng.updates.check_for_updates"
 local upgrade_request_key = "ntopng.updates.run_upgrade"
+
+function version2number(v, rev)
+  if v == nil then
+    return 0
+  end
+
+  local e = string.split(v, "%.");
+
+  if e == nil then
+    return 0
+  end
+
+  local major = e[1]
+  local minor = e[2]
+
+  if major == nil or tonumber(major) == nil then major = 0 end
+  if minor == nil or tonumber(minor) == nil then minor = 0 end
+  if rev   == nil or tonumber(rev)   == nil then rev = 0   end
+
+  local version = tonumber(major)*1000000 + tonumber(minor)*10000 + tonumber(rev)
+
+  return version
+end
 
 local status = "not-avail"
 local checking_updates = nil
@@ -43,7 +67,16 @@ else
 
   -- Check if the availability of a new update has been detected
   elseif not isEmptyString(new_version) then
-    status = "update-avail"
+
+    -- Checking if current version is < available version (to handle manual updates)
+    local curr_version = version2number(info["version"], info["revision"])
+    local new_version_spl = string.split(new_version, "-");
+    if new_version_spl ~= nil then
+      local avail_version = version2number(new_version_spl[1], new_version_spl[2])
+      if avail_version > curr_version then
+        status = "update-avail"
+      end
+    end
   end
 end
 

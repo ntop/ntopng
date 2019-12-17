@@ -6692,6 +6692,7 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "license",   (char*)"GNU GPLv3");
   lua_push_str_table_entry(vm, "platform",  (char*)PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "version",   (char*)PACKAGE_VERSION);
+  lua_push_str_table_entry(vm, "revision",  (char*)PACKAGE_REVISION);
   lua_push_str_table_entry(vm, "git",       (char*)NTOPNG_GIT_RELEASE);
 #ifndef WIN32
   lua_push_uint64_table_entry(vm, "pid",       getpid());

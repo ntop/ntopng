@@ -277,6 +277,9 @@ else
 AC_MSG_RESULT(not found)
 fi
 
+GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
+AC_DEFINE_UNQUOTED(PACKAGE_REVISION, "${GIT_COMMITS}", [Package Revision])
+
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_DATE, "${GIT_DATE}", [Last GIT change])
 
