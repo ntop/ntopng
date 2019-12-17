@@ -12003,7 +12003,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
     snprintf(key, sizeof(key), CONST_STR_USER_NETS, user);
     if(ntop->getRedis()->get(key, val, sizeof(val)) == -1)
-      ptree.addAddress(CONST_DEFAULT_ALL_NETS);
+      ptree.addAddresses(CONST_DEFAULT_ALL_NETS);
     else
       ptree.addAddresses(val);
 
