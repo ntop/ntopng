@@ -1845,7 +1845,7 @@ end
 function shortFlowLabel(flow)
   local info = ""
 
-  if flow["info"] then
+  if not isEmptyString(flow["info"]) then
     info = " [" .. flow["info"] .. "]"
   end
 

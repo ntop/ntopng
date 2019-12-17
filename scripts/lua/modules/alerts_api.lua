@@ -212,7 +212,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   end
 
   if(type_info.alert_granularity == nil) then
-    alertErrorTraceback("Missing mandatory granularity")
+    alertErrorTraceback("Missing mandatory 'alert_granularity'")
     return(false)
   end
 
