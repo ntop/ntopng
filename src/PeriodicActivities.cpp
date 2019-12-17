@@ -131,7 +131,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   static activity_descr ad[] = {
     { SECOND_SCRIPT_PATH,             1, standard_priority_pool, false, false, true  },
     { HT_STATE_UPDATE_SCRIPT_PATH,    5, high_priority_pool,     false, true,  false },
-    { STATS_UPDATE_SCRIPT_PATH,       5, standard_priority_pool, false, false, false },
+    { STATS_UPDATE_SCRIPT_PATH,       5, standard_priority_pool, false, false, true  },
     { MINUTE_SCRIPT_PATH,            60, no_priority_pool,       false, false, true  },
     { FIVE_MINUTES_SCRIPT_PATH,     300, no_priority_pool,       false, false, true  },
     { HOURLY_SCRIPT_PATH,          3600, no_priority_pool,       false, false, true  },
