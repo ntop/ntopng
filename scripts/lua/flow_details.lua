@@ -939,7 +939,11 @@ else
    local icmp = flow["icmp"]
 
    if(icmp ~= nil) then
-      print("<tr><th width=30%>"..i18n("flow_details.icmp_info").."</th><td colspan=2>".. getICMPTypeCode(icmp))
+      local icmp_utils = require "icmp_utils"
+      local icmp_label = icmp_utils.get_icmp_label(ternary(isIPv4(flow["cli.ip"]), 4, 6), flow["icmp"]["type"], flow["icmp"]["code"])
+      icmp_label = icmp_label..string.format(" (<b>%s</b>: %u <b>%s</b>: %u)", i18n("icmp_page.icmp_type"), flow["icmp"]["type"], i18n("icmp_page.icmp_code"), flow["icmp"]["code"])
+
+      print("<tr><th width=30%>"..i18n("flow_details.icmp_info").."</th><td colspan=2>"..icmp_label)
 
       if icmp["unreach"] then
 	 local unreachable_flow = interface.findFlowByTuple(flow["cli.ip"], flow["srv.ip"], flow["vlan"], icmp["unreach"]["dst_port"], icmp["unreach"]["src_port"], icmp["unreach"]["protocol"])

@@ -17,6 +17,7 @@ local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local alert_endpoints = require "alert_endpoints_utils"
 local flow_consts = require "flow_consts"
+local icmp_utils = require "icmp_utils"
 local user_scripts = require "user_scripts"
 
 local shaper_utils = nil
@@ -599,7 +600,7 @@ local function getFlowStatusInfo(record, status_info)
       elseif status_info["icmp"] and status_info["icmp"]["unreach"] then -- New format
 	 res = string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp"]["unreach"]["dst_ip"], unreach_port=status_info["icmp"]["unreach"]["dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp"]["unreach"]["protocol"])}))
       else
-	 res = string.format("[%s]", getICMPTypeCode(type_code))
+	 res = string.format("[%s]", icmp_utils.get_icmp_label(4 --[[ ipv4 --]], type_code["type"], type_code["code"]))
       end
    end
 
