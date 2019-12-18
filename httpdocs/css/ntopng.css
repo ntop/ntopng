@@ -533,4 +533,10 @@ path.link {
   background: none;
 }
 
+.script-toast {
+  position: absolute;
+  top: 5rem;
+  right: 2rem;
+}
+
 /** end of CSS wrote by @gabryon99 */
