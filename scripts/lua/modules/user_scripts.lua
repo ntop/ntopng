@@ -881,22 +881,6 @@ end
 
 -- ##############################################
 
-function user_scripts.getEnabledHooks(user_script, entity_value, is_remote_host)
-   local rv = {}
-
-   entity_value = entity_value or get_global_conf_key(is_remote_host)
-
-   for hook, conf in pairs(user_script.conf) do
-      if conf[entity_value] and conf[entity_value].enabled then
-	 rv[#rv + 1] = hook
-      end
-   end
-
-   return(rv)
-end
-
--- ##############################################
-
 function user_scripts.handlePOST(subdir, available_modules, hook, entity_value, remote_host)
    if(table.empty(_POST)) then
       return

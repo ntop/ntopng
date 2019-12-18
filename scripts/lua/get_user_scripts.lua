@@ -13,6 +13,7 @@ local dirs = ntop.getDirs()
 
 sendHTTPContentTypeHeader('application/json')
 
+local confset_id = tonumber(_GET["confset_id"])
 local stype = _GET["script_type"] or "traffic_element"
 local subdir = _GET["script_subdir"] or "host"
 
@@ -20,6 +21,18 @@ local script_type = user_scripts.script_types[stype]
 
 if(script_type == nil) then
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad script_type: " .. stype)
+  return
+end
+
+if(confset_id == nil) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_id' paramter")
+  return
+end
+
+local config_set = user_scripts.getConfigsets()[confset_id]
+
+if(config_set == nil) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown configset ID: " .. confset_id)
   return
 end
 
@@ -32,8 +45,15 @@ local result = {}
 
 for script_name, script in pairs(scripts.modules) do
   if script.gui.i18n_title and script.gui.i18n_description then
-    local enabled_hooks = user_scripts.getEnabledHooks(script)
+    local hooks = user_scripts.getConfigsetHooksConf(config_set, script, subdir)
+    local enabled_hooks = {}
     local edit_url = nil
+
+    for hook, conf in pairs(hooks) do
+      if(conf.enabled) then
+        enabled_hooks[#enabled_hooks + 1] = hook
+      end
+    end
 
     if(script.edition == "community") then
       local path = string.sub(script.source_path, string.len(dirs.scriptdir)+1)
