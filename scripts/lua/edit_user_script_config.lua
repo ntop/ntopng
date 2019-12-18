@@ -56,6 +56,8 @@ local result = {}
 
 local success, err = user_scripts.updateScriptConfig(confset_id, script_key, subdir, data)
 
+result.success = success
+
 if not success then
   result.error = err
 end

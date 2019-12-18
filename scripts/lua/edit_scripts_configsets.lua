@@ -9,7 +9,7 @@ require "lua_utils"
 local json = require("dkjson")
 local user_scripts = require("user_scripts")
 
-local action = _GET["action"]
+local action = _POST["action"]
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -28,7 +28,7 @@ end
 local result = {}
 
 if(action == "add") then
-  local name = _GET["confset_name"]
+  local name = _POST["confset_name"]
 
   if(name == nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_name' parameter")
@@ -41,7 +41,7 @@ if(action == "add") then
     result.error = err
   end
 else
-  local confid = tonumber(_GET["confset_id"])
+  local confid = tonumber(_POST["confset_id"])
 
   if(confid == nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_id' parameter")
@@ -50,12 +50,13 @@ else
 
   if(action == "delete") then
     local success, err = user_scripts.deleteConfigset(confid)
+    result.success = success
 
     if not success then
       result.error = err
     end
   elseif(action == "rename") then
-    local new_name = _GET["confset_name"]
+    local new_name = _POST["confset_name"]
 
     if(new_name == nil) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'newname' parameter")
@@ -63,12 +64,13 @@ else
     end
 
     local success, err = user_scripts.renameConfigset(confid, new_name)
+    result.success = success
 
     if not success then
       result.error = err
     end
   elseif(action == "clone") then
-    local new_name = _GET["confset_name"]
+    local new_name = _POST["confset_name"]
 
     if(new_name == nil) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_name' parameter")
@@ -76,6 +78,7 @@ else
     end
 
     local success, err = user_scripts.cloneConfigset(confid, new_name)
+    result.success = success
 
     if not success then
       result.error = err
