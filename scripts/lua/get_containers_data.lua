@@ -100,7 +100,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
    local chart = "-"
 
    if ts_utils.exists("container:num_flows", {ifid=ifId, container=key}) then
-      chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/container_details.lua?container='.. key ..'&page=historical"><i class="fa fa-chart-area fa-lg"></i></a>'
+      chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/container_details.lua?container='.. key ..'&page=historical"><i class="fas fa-chart-area fa-lg"></i></a>'
    end
  
     res[#res + 1] = {

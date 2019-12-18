@@ -288,7 +288,7 @@ function handleCustomFlowField(key, value, snmpdevice)
 	  end
 
           r = r .. "<th>"..i18n("flow_details.imsi").."</th><td>"..elems[1]..mcc_name
-	  r = r .. " <A HREF='http://www.numberingplans.com/?page=analysis&sub=imsinr'><i class='fa fa-info'></i></A></td></tr>"
+	  r = r .. " <A HREF='http://www.numberingplans.com/?page=analysis&sub=imsinr'><i class='fas fa-info'></i></A></td></tr>"
 	  r = r .. "<th>"..i18n("flow_details.nsapi").."</th><td>".. elems[2].."</td></tr>"
 	  r = r .. "<th>"..i18n("flow_details.gsm_cell_lac").."</th><td>".. elems[3].."</td></tr>"
 	  r = r .. "<th>"..i18n("flow_details.gsm_cell_identifier").."</th><td>".. elems[4].."</td></tr>"
@@ -523,10 +523,10 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
   host_name = host_name.."\">"..shortenString(flowinfo2hostname(flow,cli_or_srv))
 
   if(flow[cli_or_srv .. ".systemhost"] == true) then
-     host_name = host_name.." <i class='fa fa-flag' aria-hidden='true'></i>"
+     host_name = host_name.." <i class='fas fa-flag' aria-hidden='true'></i>"
   end
   if(flow[cli_or_srv ..  ".blacklisted"] == true) then
-     host_name = host_name.." <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
+     host_name = host_name.." <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
   end
   host_name = host_name.."</A>"
 
@@ -614,7 +614,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       label = label.." [ "..cli_mac.." ]"
    end
 
-   label = label.." <i class=\"fa fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> "
+   label = label.." <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> "
 
    if not isEmptyString(srv_name) then
       label = label..srv_name
@@ -836,7 +836,7 @@ function getSIPInfo(infoPar)
       if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
         returnString = ""
       else
-        returnString =  calling_party .. " <i class='fa fa-exchange-alt fa-sm' aria-hidden='true'></i> " .. called_party
+        returnString =  calling_party .. " <i class='fas fa-exchange-alt fa-sm' aria-hidden='true'></i> " .. called_party
       end
     end
   end
@@ -854,7 +854,7 @@ function getRTPInfo(infoPar)
   if infoFlow ~= nil then
      call_id = getFlowValue(infoFlow, "RTP_SIP_CALL_ID")
      if tostring(call_id) ~= "" then
-	call_id = "<i class='fa fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;"..call_id
+	call_id = "<i class='fas fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;"..call_id
      else
 	call_id = ""
      end
@@ -869,7 +869,7 @@ end
 function getSIPTableRows(info)
    local string_table = ""
    local call_id = ""
-   local call_id_ico = "<i class='fa fa-phone' aria-hidden='true'></i>&nbsp;"
+   local call_id_ico = "<i class='fas fa-phone' aria-hidden='true'></i>&nbsp;"
    local called_party = ""
    local calling_party = ""
    local rtp_codecs = ""
@@ -899,9 +899,9 @@ function getSIPTableRows(info)
      called_party = extractSIPCaller(called_party)
      calling_party = extractSIPCaller(calling_party)
      if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
-       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: none;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fa fa-exchange-alt fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
+       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: none;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fas fa-exchange-alt fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
      else
-       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: table-row;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fa fa-exchange-alt fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party>" .. calling_party .. " <i class=\"fa fa-exchange-alt fa-lg\"></i> " .. called_party .. "</div></td></tr>\n"
+       string_table = string_table.."<tr id=\"called_calling_tr\" style=\"display: table-row;\"><th>"..i18n("flow_details.call_initiator").." <i class=\"fas fa-exchange-alt fa-lg\"></i> "..i18n("flow_details.called_party").."</th><td colspan=2><div id=calling_called_party>" .. calling_party .. " <i class=\"fas fa-exchange-alt fa-lg\"></i> " .. called_party .. "</div></td></tr>\n"
      end
 
      rtp_codecs = getFlowValue(info, "SIP_RTP_CODECS")
@@ -945,8 +945,8 @@ function getSIPTableRows(info)
 	show_rtp_stream = 1
      end
      if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
-       --string_table = string_table.." <i class=\"fa fa-exchange-alt fa-lg\"></i> "
-       string_table_3 = " <i class=\"fa fa-exchange-alt fa-lg\"></i> "
+       --string_table = string_table.." <i class=\"fas fa-exchange-alt fa-lg\"></i> "
+       string_table_3 = " <i class=\"fas fa-exchange-alt fa-lg\"></i> "
        show_rtp_stream = 1
      end
      if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
@@ -976,9 +976,9 @@ function getSIPTableRows(info)
      end
 
      if (show_rtp_stream == 1) then
-       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: table-row;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fa fa-exchange-alt fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
+       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: table-row;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fas fa-exchange-alt fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
      else
-       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: none;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fa fa-exchange-alt fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
+       string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: none;\"><th width=33%>"..i18n("flow_details.rtp_stream_peers").." (src <i class=\"fas fa-exchange-alt fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
      end
      string_table = string_table..string_table_1..string_table_2..string_table_3..string_table_4..string_table_5
 
@@ -1096,7 +1096,7 @@ function getRTPTableRows(info)
 	 else
 	    sip_call_id_hide = "style=\"display: table-row;\""
 	 end
-	 string_table = string_table .. "<tr id=\"sip_call_id_tr\" "..sip_call_id_hide.."><th> "..i18n("flow_details.sip_call_id").." <i class='fa fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;</th><td colspan=2><div id=rtp_sip_call_id>" .. sip_call_id_var .. "</div></td></tr>\n"
+	 string_table = string_table .. "<tr id=\"sip_call_id_tr\" "..sip_call_id_hide.."><th> "..i18n("flow_details.sip_call_id").." <i class='fas fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;</th><td colspan=2><div id=rtp_sip_call_id>" .. sip_call_id_var .. "</div></td></tr>\n"
       end
       
       -- TWO-WAY CALL-QUALITY INDICATORS
@@ -1421,7 +1421,7 @@ function printL4ProtoDropdown(base_url, page_params, l4_protocols)
    local l4proto = _GET["l4proto"]
    local l4proto_filter
    if not isEmptyString(l4proto) then
-      l4proto_filter = '<span class="fa fa-filter"></span>'
+      l4proto_filter = '<span class="fas fa-filter"></span>'
    else
       l4proto_filter = ''
    end
@@ -1483,7 +1483,7 @@ end
 
 local function getParamFilter(page_params, param_name)
     if page_params[param_name] then
-	return '<span class="fa fa-filter"></span>'
+	return '<span class="fas fa-filter"></span>'
     end
 
     return ''
@@ -1845,7 +1845,7 @@ end
 function shortFlowLabel(flow)
   local info = ""
 
-  if flow["info"] then
+  if not isEmptyString(flow["info"]) then
     info = " [" .. flow["info"] .. "]"
   end
 

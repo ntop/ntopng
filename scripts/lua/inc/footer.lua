@@ -144,8 +144,8 @@ if not interface.isPcapDumpInterface() then
       print (ntop.getHttpPrefix())
       print [[/lua/if_stats.lua">
             <table style="border-collapse:collapse; !important">
-            <tr><td><i class="fa fa-arrow-up" title="]] print(i18n("iface_upload", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-upload-text"></td></tr>
-            <tr><td><i class="fa fa-arrow-down" title="]] print(i18n("iface_download", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-download-text"></td></tr>
+            <tr><td><i class="fas fa-arrow-up" title="]] print(i18n("iface_upload", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-upload-text"></td></tr>
+            <tr><td><i class="fas fa-arrow-down" title="]] print(i18n("iface_download", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-download-text"></td></tr>
             </table>
             </div>
             <div class="col-xs-6 col-sm-4">
@@ -290,7 +290,7 @@ print [[/lua/logout.lua");  }, */
 
 print[[
 
-                var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | ]] print(i18n("about.uptime")) print[[: "+rsp.uptime+"</small>";
+                var msg = "&nbsp;<i class=\"fas fa-clock-o\"></i> <small>"+rsp.localtime+" | ]] print(i18n("about.uptime")) print[[: "+rsp.uptime+"</small>";
 
                 if(rsp.system_host_stats.mem_total !== undefined) {
                    var mem_total = rsp.system_host_stats.mem_total;
@@ -321,7 +321,7 @@ print[[
  print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua\">"
 
-                    msg += "<span class=\"badge " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fa fa-exclamation-triangle\"></i></span></A>";
+                    msg += "<span class=\"badge " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fas fa-exclamation-triangle\"></i></span></A>";
                    }
 
                    if(rsp.alerted_flows > 0) {
@@ -329,7 +329,7 @@ print [[/lua/show_alerts.lua\">"
  print (ntop.getHttpPrefix())
 print [[/lua/flows_stats.lua?flow_status=alerted\">"
 
-                    msg += "<span class=\"badge " + label + "\">"+addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fa fa-exclamation-triangle\"></i></span></A>";
+                    msg += "<span class=\"badge " + label + "\">"+addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></A>";
                    }
 
                    //Push.create('Hello World!');
@@ -343,7 +343,7 @@ print [[/lua/flows_stats.lua?flow_status=alerted\">"
                   msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/system/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=alerts#tab-table-engaged-alerts\">"
-                  msg += "<span class=\"badge badge-danger\"><i class=\"fa fa-database\"></i></span></A>";
+                  msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-database\"></i></span></A>";
                 }
 
                 var alarm_threshold_low = 60;  /* 60% */
@@ -356,7 +356,7 @@ print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua?mode=local\">";
 
                   msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge badge-success\">";
-                  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+                  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 
                   checkMigrationMessage(rsp);
                 }
@@ -376,7 +376,7 @@ print [[/lua/hosts_stats.lua?mode=remote\">";
                   msg += "<span title=\"" + remove_hosts_label +"\" class=\"badge badge-danger\">";
                 }
 
-                msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fa fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
+                msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a> ";
 
             if(typeof rsp.num_devices !== "undefined") {
               var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
@@ -415,7 +415,7 @@ print [[/lua/flows_stats.lua\">";
                 if(rsp.flow_export_drops > 0) {
                    msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/if_stats.lua\"><i class=\"fa fa-exclamation-triangle\" style=\"color: #B94A48;\"></i> <span class=\"badge badge-danger\">"+addCommas(rsp.flow_export_drops)+" Dropped flow";
+print [[/lua/if_stats.lua\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #B94A48;\"></i> <span class=\"badge badge-danger\">"+addCommas(rsp.flow_export_drops)+" Dropped flow";
                    if(rsp.flow_export_drops > 1) msg += "s";
 
                    msg += "</span></A> ";
@@ -427,7 +427,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-exclamation-triangle\" style=\"colo
                 print (ntop.getHttpPrefix())
                 print [[/lua/live_capture_stats.lua\">";
                 msg += "<span class=\"badge badge-primary\">";
-                msg += addCommas(rsp.num_live_captures)+" <i class=\"fa fa-download fa-lg\"></i></A> </span> ";
+                msg += addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></A> </span> ";
             }
 
             if(typeof rsp.remote_assistance !== "undefined") {
@@ -436,7 +436,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-exclamation-triangle\" style=\"colo
 
               msg += "&nbsp;<a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/remote_assistance.lua?tab=status\"><span class=\"badge badge-" + status_label + "\" title=\"]]
               print(i18n("remote_assistance.remote_assistance")) print[[\">";
-              msg += "<i class=\"fa fa-comment-dots fa-lg\"></i></span></a>";
+              msg += "<i class=\"fas fa-comment-dots fa-lg\"></i></span></a>";
             }
 
             if(typeof rsp.traffic_recording !== "undefined") {
@@ -448,7 +448,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-exclamation-triangle\" style=\"colo
                 }
                 msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=status\">";
                 msg += "<span class=\"badge badge-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
-                msg += "<i class=\"fa fa-hdd fa-lg\"></i></a></span>";
+                msg += "<i class=\"fas fa-hdd fa-lg\"></i></a></span>";
             }
 
             if(typeof rsp.traffic_extraction !== "undefined") {
@@ -457,7 +457,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-exclamation-triangle\" style=\"colo
                 if (rsp.traffic_extraction == "ready") status_label="primary";
                 msg += "&nbsp;<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=jobs\">";
                 msg += "<span class=\"badge badge-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
-                msg += rsp.traffic_extraction_num_tasks+" <i class=\"fa fa-tasks fa-lg\"></i></a></span>";
+                msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></a></span>";
             }
 
             $('#network-load').html(msg);

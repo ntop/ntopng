@@ -152,9 +152,9 @@ end
 -- Constants
 presets_utils.actions = {
    { name = "DROP",  id = presets_utils.DROP, text = drop_text,
-     icon = '<i class="fa fa-'..drop_icon..'" aria-hidden="true"></i>'},
+     icon = '<i class="fas fa-'..drop_icon..'" aria-hidden="true"></i>'},
    { name = "ALLOW", id = presets_utils.ALLOW, text = allow_text,
-     icon = '<i class="fa fa-'..allow_icon..'" aria-hidden="true"></i>'},
+     icon = '<i class="fas fa-'..allow_icon..'" aria-hidden="true"></i>'},
 }
 
 -- Action ID to action name

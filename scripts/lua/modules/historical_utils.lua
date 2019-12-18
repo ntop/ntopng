@@ -402,7 +402,7 @@ var populateInterfaceTopTalkersTable = function(){
 
           populateHistoricalDbExplorerLink(label_td, addr);
 
-	  label_td.append('&nbsp;<a onclick="populateHostTopTalkersTable(\'' + addr +'\');"><i class="fa fa-pie-chart" title="]] print(i18n("db_explorer.talkers_with_this_host")) print[["></i></a>');
+	  label_td.append('&nbsp;<a onclick="populateHostTopTalkersTable(\'' + addr +'\');"><i class="fas fa-pie-chart" title="]] print(i18n("db_explorer.talkers_with_this_host")) print[["></i></a>');
 
 	  return row;
 	},
@@ -459,7 +459,7 @@ var populateHostTopTalkersTable = function(host){
 
           populateHistoricalDbExplorerLink(label_td, addr);
 
-	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fa fa-exchange-alt" title="]] print(i18n("db_explorer.applications_between", {peer1="' + host + '", peer2="' + addr + '"})) print[["></i></a>');
+	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fas fa-exchange-alt" title="]] print(i18n("db_explorer.applications_between", {peer1="' + host + '", peer2="' + addr + '"})) print[["></i></a>');
 	  return row;
 	},
 	columns:
@@ -526,7 +526,7 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 
           populateHistoricalDbExplorerLink(label_td, '', l7_proto_id);
 
-	  label_td.append('&nbsp;<a onclick="populateFlowsPerHostsPairTable(\'' + peer1 +'\',\'' + peer2 +'\',\'' + l7_proto_id +'\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="]] print(i18n("db_explorer.app_flows_between", {app="' + label + '", peer1="' + peer1 + '", peer2="' + peer2 + '"})) print[["></i></a>');
+	  label_td.append('&nbsp;<a onclick="populateFlowsPerHostsPairTable(\'' + peer1 +'\',\'' + peer2 +'\',\'' + l7_proto_id +'\',\'' + num_flows +'\');"><i class="fas fa-tasks" title="]] print(i18n("db_explorer.app_flows_between", {app="' + label + '", peer1="' + peer1 + '", peer2="' + peer2 + '"})) print[["></i></a>');
 	  return row;
 	},
 	columns:
@@ -796,7 +796,7 @@ print [[
 
         populateHistoricalDbExplorerLink(proto_label_td, '', proto_id);
 
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fa fa-pie-chart" title="]] print(i18n("db_explorer.get_proto_talkers")) print[["></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fas fa-pie-chart" title="]] print(i18n("db_explorer.get_proto_talkers")) print[["></i></a>');
 	  return row;
 	},
       columns:
@@ -861,7 +861,7 @@ var populateAppTopTalkersTable = function(proto_id){
 
           populateHistoricalDbExplorerLink(label_td, addr, proto_id);
 
-	  label_td.append('&nbsp;<a onclick="populatePeersPerHostByApplication(\'' + addr +'\',\'' + proto_id +'\');"><i class="fa fa-exchange-alt" title="]] print(i18n("db_explorer.app_talkers_with", {app="' + app + '", peer="' + addr +'"})) print[["></i></a>');
+	  label_td.append('&nbsp;<a onclick="populatePeersPerHostByApplication(\'' + addr +'\',\'' + proto_id +'\');"><i class="fas fa-exchange-alt" title="]] print(i18n("db_explorer.app_talkers_with", {app="' + app + '", peer="' + addr +'"})) print[["></i></a>');
 	  return row;
 	},
 	columns:
@@ -922,7 +922,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
           populateHistoricalDbExplorerLink(label_td, addr);
 
           var num_flows = parseInt($("td:eq(6)", row[0]).text().replace(/[^0-9]/g, ''));
-          label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');populateFlowsPerHostPairByApplicationTable(\'' + host +'\',\'' + addr + '\',\'' + proto_id + '\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="]] print(i18n("db_explorer.protocol_flows_between", {proto="' + $(\"#historical-apps-container\").attr(\"l7_proto\") + '", peer1="' + host + '", peer2="' + addr + '"})) print[["></i></a>');
+          label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');populateFlowsPerHostPairByApplicationTable(\'' + host +'\',\'' + addr + '\',\'' + proto_id + '\',\'' + num_flows +'\');"><i class="fas fa-tasks" title="]] print(i18n("db_explorer.protocol_flows_between", {proto="' + $(\"#historical-apps-container\").attr(\"l7_proto\") + '", peer1="' + host + '", peer2="' + addr + '"})) print[["></i></a>');
 	  return row;
 	},
 	columns:
@@ -1054,7 +1054,7 @@ print [[
 
         populateHistoricalDbExplorerLink(proto_label_td, '', proto_id);
 
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange-alt" title="]] print(i18n("db_explorer.hosts_talking_proto_with", {proto="' + proto_id + '", host="' + host + '"})) print[["></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fas fa-exchange-alt" title="]] print(i18n("db_explorer.hosts_talking_proto_with", {proto="' + proto_id + '", host="' + host + '"})) print[["></i></a>');
 	  return row;
 	},
       columns:
@@ -1314,10 +1314,10 @@ print[[
     },
     success: function(msg){
       if(msg.status !== "ok") {
-        $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i> ' + msg.statusText  + '</H5>').show()
+        $("#historical-flows-summary-body").html('<H5><i class="fas fa-exclamation-triangle fa-2x"></i> ' + msg.statusText  + '</H5>').show()
         return;
       } else if(msg.count.IPv4.tot_flows <= 0 && msg.count.IPv6.tot_flows <= 0) {
-        $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;]]print(i18n("error_no_search_results"))print[[</H5>').show()
+        $("#historical-flows-summary-body").html('<H5><i class="fas fa-exclamation-triangle fa-2x"></i>&nbsp;]]print(i18n("error_no_search_results"))print[[</H5>').show()
         return;
       }
 
@@ -1736,7 +1736,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
       -- print('<span class="badge badge-info">')
-      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fa fa-history fa-lg"></i></a>')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-history fa-lg"></i></a>')
       -- print('</span>')
    end
 end

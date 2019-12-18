@@ -86,7 +86,7 @@ local function print_callbacks_config_table(descr, expert_view)
 
       if(user_script.edition == "community") then
 	 local path = string.sub(user_script.source_path, string.len(ntop.getDirs().scriptdir)+1)
-	 url = '<A HREF="/lua/code_viewer.lua?lua_script_path='.. path ..'"><i class="fa fa-lg fa-binoculars"></i></A>'
+	 url = '<A HREF="/lua/code_viewer.lua?lua_script_path='.. path ..'"><i class="fas fa-lg fa-binoculars"></i></A>'
       end
       print("<tr><td ".. rowspan .."><b>".. title .." "..url.."</b><br>")
       print("<small>"..description.."</small></td>")
@@ -94,7 +94,7 @@ local function print_callbacks_config_table(descr, expert_view)
       print("<td ".. rowspan .." class='text-center'>")
 
       if(ts_utils.exists("flow_user_script:duration", {ifid=ifid, user_script=mod_k, subdir="flow"})) then
-	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..mod_k..'&subdir=flow"><i class="fa fa-chart-area fa-lg" data-original-title="" title=""></i></a>')
+	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..mod_k..'&subdir=flow"><i class="fas fa-chart-area fa-lg" data-original-title="" title=""></i></a>')
       end
 
       print("</td>")
@@ -109,7 +109,7 @@ local function print_callbacks_config_table(descr, expert_view)
 
 	 print(user_script.gui.input_builder(user_script.gui or {}, k, value))
       else
-	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=alerts"><i class="fa fa-flask fa-lg"></i></a>')
+	 print('<a href="'.. ntop.getHttpPrefix() ..'/lua/admin/prefs.lua?tab=alerts"><i class="fas fa-flask fa-lg"></i></a>')
       end
       print("</td>")
 
@@ -157,7 +157,7 @@ local function print_callbacks_config_table(descr, expert_view)
    -- Print total stats
    print("</tr><tr><td><b>" .. i18n("total") .. "</b></td><td class='text-center'>")
    if(ts_utils.exists("flow_user_script:total_stats", {ifid=ifid, subdir="flow"})) then
-      print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&subdir=flow&user_script='.. total_user_module ..'&ts_schema=custom:flow_user_script:total_stats"><i class="fa fa-chart-area fa-lg"></i></a>')
+      print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&subdir=flow&user_script='.. total_user_module ..'&ts_schema=custom:flow_user_script:total_stats"><i class="fas fa-chart-area fa-lg"></i></a>')
    end
    print("<td>")
    if(expert_view) then

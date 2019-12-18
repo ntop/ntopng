@@ -102,7 +102,7 @@ local mac_info = interface.getMacInfo(mac)
 local only_historical = (mac_info == nil) and (page == "historical")
 
 if(mac_info == nil) and not only_historical then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
+   print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
    print("</div>")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
@@ -118,7 +118,7 @@ page_utils.print_navbar(title, url,
 			      hidden = only_historical,
 			      active = page == "overview" or page == nil,
 			      page_name = "overview",
-			      label = "<i class=\"fa fa-home fa-lg\"></i>",
+			      label = "<i class=\"fas fa-home fa-lg\"></i>",
 			   },
 			   {
 			      hidden = only_historical or (mac_info["packets.sent"] + mac_info["packets.rcvd"] == 0),
@@ -136,13 +136,13 @@ page_utils.print_navbar(title, url,
 			      hidden = not ts_utils.exists("mac:traffic", {ifid=ifId, mac = devicekey}),
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
 			      hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 			      active = page == "config",
 			      page_name = "config",
-			      label = "<i class=\"fa fa-lg fa-lg\"></i></a></li>",
+			      label = "<i class=\"fas fa-lg fa-lg\"></i></a></li>",
 			   },
 			}
 )
@@ -174,7 +174,7 @@ if((page == "overview") or (page == nil)) then
    end
    
    if isAdministrator() then
-      print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac_info)..'&page=config"><i class="fa fa-cog"></i></a>\n')
+      print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac_info)..'&page=config"><i class="fas fa-cog"></i></a>\n')
    end
 
    if(not isEmptyString(mac_info.model)) then
@@ -198,7 +198,7 @@ if((page == "overview") or (page == nil)) then
 
    if isAdministrator() then
       print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config">]]
-      print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
+      print[[<i class="fas fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
    end
 
    print("</td>\n")
@@ -210,7 +210,7 @@ if((page == "overview") or (page == nil)) then
       print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, pool_id)) print[[</a></span>]]
          if isAdministrator() then
           print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
-          print[[<i class="fa fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
+          print[[<i class="fas fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
          end
       else
         -- no link for view interfaces
@@ -227,14 +227,14 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>".. i18n("details.device_type") .. "</th><td>" .. discover.devtype2icon(mac_info.devtype) .. " ")
       print(discover.devtype2string(mac_info.devtype))
       if(mac_info.ssid ~= nil) then
-	 print(' ( <i class="fa fa-wifi fa-lg devtype-icon" aria-hidden="true"></i> '..mac_info.ssid..' )')
+	 print(' ( <i class="fas fa-wifi fa-lg devtype-icon" aria-hidden="true"></i> '..mac_info.ssid..' )')
       end
 
       print("</td><td></td></tr>\n")
    end
 
    if(mac_info.fingerprint ~= "") then
-    print("<tr><th><A HREF=https://en.wikipedia.org/wiki/Device_fingerprint>DHCP Fingerprint</A> "..'<i class="fa fa-hand-o-up fa-lg" aria-hidden="true"></i>'
+    print("<tr><th><A HREF=https://en.wikipedia.org/wiki/Device_fingerprint>DHCP Fingerprint</A> "..'<i class="fas fa-hand-o-up fa-lg" aria-hidden="true"></i>'
 	     .."</th><td colspan=2>"..mac_info.fingerprint.."</td></tr>\n")
    end
 
@@ -262,7 +262,7 @@ if((page == "overview") or (page == nil)) then
    if interface.isBridgeInterface(ifstats) then
       print("<tr id=bridge_dropped_flows_tr ") if not mac_info["flows.dropped"] then print("style='display:none;'") end print(">")
 
-      print("<th><i class=\"fa fa-ban fa-lg\"></i> "..i18n("details.flows_dropped_by_bridge").."</th>")
+      print("<th><i class=\"fas fa-ban fa-lg\"></i> "..i18n("details.flows_dropped_by_bridge").."</th>")
       print("<td colspan=2><span id=bridge_dropped_flows>" .. formatValue((mac_info["flows.dropped"] or 0)) .. "</span>")
 
       print("</tr>")

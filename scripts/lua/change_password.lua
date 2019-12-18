@@ -104,7 +104,7 @@ print[[
     <label for="user_language">]] print(i18n("language")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
-	<span class="input-group-text"><i class="fa fa-language" aria-hidden="true"></i></span>
+	<span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
       </div>
       <select id="user_language" name="user_language" class="form-control">]]
 
@@ -118,10 +118,10 @@ print[[
 ]]
 
 print[[
-<br>
-<div class="input-group mb-12">
-    <button class="btn btn-lg btn-primary btn-block disabled" type="submit">]] print(i18n("login.change_password")) print[[</button>
-</div>
+        <br>
+        <div class="input-group mb-12">
+          <button class="btn btn-lg btn-primary btn-block disabled" type="submit">]] print(i18n("login.change_password")) print[[</button>
+        </div>
   	<div class="row">
       <div >&nbsp;</div>
       <div class="col-lg-12">

@@ -37,19 +37,19 @@ page_utils.print_navbar(title, url,
 			   {
 			      active = page == "overview" or not page,
 			      page_name = "overview",
-			      label = "<i class=\"fa fa-home fa-lg\"></i>",
+			      label = "<i class=\"fas fa-home fa-lg\"></i>",
 			   },
 			   {
 			      hidden = not ts_creation or not ts_utils.exists("process:resident_memory", {ifid=getSystemInterfaceId()}),
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
 			      hidden = interface.isPcapDumpInterface() or not isAdministrator() or not areAlertsEnabled(),
 			      active = page == "alerts",
 			      page_name = "alerts",
-			      label = "<i class=\"fa fa-exclamation-triangle fa-lg\"></i>",
+			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
 			   },
 			}
 )
@@ -201,7 +201,7 @@ elseif((page == "alerts") and isAdministrator()) then
 
    drawAlerts()
 
-   interface.select(cur_id)
+   interface.select(tostring(cur_id))
 end
 
 -- #######################################################

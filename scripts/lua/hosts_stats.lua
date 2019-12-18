@@ -45,7 +45,7 @@ end
 local hosts_filter = ''
 
 if ((mode ~= "all") or (not isEmptyString(pool))) then
-   hosts_filter = '<span class="fa fa-filter"></span>'
+   hosts_filter = '<span class="fas fa-filter"></span>'
 end
 
 local active_page = "hosts"
@@ -113,11 +113,11 @@ if (_GET["page"] ~= "historical") then
          local charts_available = ts_utils.exists("subnet:traffic", {ifid=ifstats.id, subnet=network_key})
 
          charts_icon = " <small><a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network="..
-            network .. "&page=config'><i class='fa fa-sm fa-cog'></i></a>"
+            network .. "&page=config'><i class='fas fa-sm fa-cog'></i></a>"
 
          if charts_available then
             charts_icon = charts_icon.."&nbsp; <a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network="..
-               network .. "&page=historical'><i class='fa fa-sm fa-chart-area'></i></a>"
+               network .. "&page=historical'><i class='fas fa-sm fa-chart-area'></i></a>"
          end
 
          charts_icon = charts_icon.."</small>"
@@ -175,8 +175,8 @@ if (_GET["page"] ~= "historical") then
 
    if(asn ~= nil) then 
       asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
-	 "<small>&nbsp;<i class='fa fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
-	 asn .. "'><i class='fa fa-external-link-alt fa-sm' title=\\\"".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
+	 "<small>&nbsp;<i class='fas fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
+	 asn .. "'><i class='fas fa-external-link-alt fa-sm' title=\\\"".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
 	 "\\\"></i></A></small>"
    end
 
@@ -209,14 +209,14 @@ if (_GET["page"] ~= "historical") then
        title = i18n("host_pools.manage_pools")
 	 end
 
-	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fa fa-cog fa-sm' title='"..title .. "'></i></A>"
+	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fas fa-cog fa-sm' title='"..title .. "'></i></A>"
 
       end
 
       pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
 			{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
 	 .."<small>".. pool_edit ..
-	 ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fa fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
+	 ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fas fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
 	 "</small>"
    end
 
@@ -235,7 +235,7 @@ if (_GET["page"] ~= "historical") then
    if not isEmptyString(protocol_name) then
       charts_icon = " <a href='".. ntop.getHttpPrefix() .."/lua/if_stats.lua?ifid="..
          ifstats.id .. "&page=historical&ts_schema=iface:ndpi&protocol=" .. protocol_name..
-         "'><i class='fa fa-sm fa-chart-area'></i></a>"
+         "'><i class='fas fa-sm fa-chart-area'></i></a>"
    end
 
    function getPageTitle()
@@ -290,9 +290,9 @@ if (_GET["page"] ~= "historical") then
 
    
    --[[ if((page_params.network ~= nil) and (page_params.network ~= "-1")) then
-      print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-chart-area fa-lg\"></i></A></div>\', ')
+      print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fas fa-chart-area fa-lg\"></i></A></div>\', ')
       elseif (page_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
-      print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A></div>\', ')
+      print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fas fa-users fa-lg\"></i></A></div>\', ')
       end]]
 
    -- Ip version selector

@@ -10,6 +10,7 @@ require "flow_utils"
 local format_utils = require("format_utils")
 local flow_consts = require "flow_consts"
 local flow_utils = require "flow_utils"
+local icmp_utils = require "icmp_utils"
 local json = require "dkjson"
 
 local have_nedge = ntop.isnEdge()
@@ -54,7 +55,7 @@ for key, value in ipairs(flows_stats) do
       info = flows_stats[key]["info"]
       italic = false
    elseif(not isEmptyString(flows_stats[key]["icmp"])) then
-      info = getICMPTypeCode(flows_stats[key]["icmp"])
+      info = icmp_utils.get_icmp_label(ternary(isIPv4(flows_stats[key]["cli.ip"]), 4, 6), flows_stats[key]["icmp"]["type"], flows_stats[key]["icmp"]["code"])
    elseif(flows_stats[key]["proto.ndpi"] == "SIP") then
       info = getSIPInfo(flows_stats[key])
    elseif(flows_stats[key]["proto.ndpi"] == "RTP") then
@@ -107,7 +108,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if value["cli.allowed_host"] and not ifstats.isViewed then
       src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. shortenString(stripVlan(cli_name))
-      if(value["cli.systemhost"] == true) then src_key = src_key .. "&nbsp;<i class='fa fa-flag'></i>" end
+      if(value["cli.systemhost"] == true) then src_key = src_key .. "&nbsp;<i class='fas fa-flag'></i>" end
 
       src_key = src_key .. "</A>"
 
@@ -127,7 +128,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if value["srv.allowed_host"] and not ifstats.isViewed then
       dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. shortenString(stripVlan(srv_name))
-      if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fa fa-flag'></i>" end
+      if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fas fa-flag'></i>" end
       dst_key = dst_key .. "</A>"
 
       if(value["srv.port"] > 0) then
@@ -164,9 +165,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       .."'><span class='badge badge-info'>Info</span></A>"
    if(have_nedge) then
       if (value["verdict.pass"]) then
-	 column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='badge badge-secondary block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..", "..value["hash_entry_id"]..");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
+	 column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='badge badge-secondary block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..", "..value["hash_entry_id"]..");' style='cursor: pointer;'", "")).."><i class='fas fa-ban' /></span>"
       else
-	 column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='badge badge-danger block-badge'><i class='fa fa-ban' /></span>"
+	 column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='badge badge-danger block-badge'><i class='fas fa-ban' /></span>"
       end
    end
    record["column_key"] = column_key
@@ -178,15 +179,15 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if info then
       if info.broadcast_domain_host then
-	 column_client = column_client.." <i class='fa fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
+	 column_client = column_client.." <i class='fas fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
       end
 
       if info.dhcpHost then
-	 column_client = column_client.." <i class=\'fa fa-flash fa-sm\' title=\'DHCP Host\'></i>"
+	 column_client = column_client.." <i class=\'fas fa-flash fa-sm\' title=\'DHCP Host\'></i>"
       end
 
       if info.is_blacklisted then
-	 column_client = column_client.." <i class=\'fa fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
+	 column_client = column_client.." <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
       end
 
       column_client = column_client..getFlag(info["country"])
@@ -207,15 +208,15 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if info then
       if info.broadcast_domain_host then
-	 column_server = column_server.." <i class='fa fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
+	 column_server = column_server.." <i class='fas fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
       end
 
       if info.dhcpHost then
-	 column_server = column_server.." <i class=\'fa fa-flash fa-sm\' title=\'DHCP Host\'></i>"
+	 column_server = column_server.." <i class=\'fas fa-flash fa-sm\' title=\'DHCP Host\'></i>"
       end
 
       if info.is_blacklisted then
-	 column_server = column_server.." <i class=\'fa fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
+	 column_server = column_server.." <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
       end
 
       column_server = column_server..getFlag(info["country"])
@@ -239,7 +240,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if value["alerted_status"] then
       local status_info = flow_consts.getStatusDescription(value["alerted_status"], flow2statusinfo(value))
-      column_proto_l4 = "<i class='fa fa-exclamation-triangle' style='color: #B94A48' title='"..noHtml(status_info) .."'></i> "
+      column_proto_l4 = "<i class='fas fa-exclamation-triangle' style='color: #B94A48' title='"..noHtml(status_info) .."'></i> "
    elseif value["status_map"] and value["flow.status"] ~= flow_consts.status_types.status_normal.status_id then
       local title = ''
 
@@ -253,7 +254,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 end
       end
 
-      column_proto_l4 = "<i class='fa fa-exclamation-circle' style='color: orange;' title='"..noHtml(title) .."'></i> "
+      column_proto_l4 = "<i class='fas fa-exclamation-circle' style='color: orange;' title='"..noHtml(title) .."'></i> "
    end
 
    column_proto_l4 = column_proto_l4..value["proto.l4"]
@@ -285,11 +286,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    if((value["throughput_trend_"..throughput_type] ~= nil)
       and (value["throughput_trend_"..throughput_type] > 0)) then
       if(value["throughput_trend_"..throughput_type] == 1) then
-	 column_thpt = column_thpt.."<i class='fa fa-arrow-up'></i>"
+	 column_thpt = column_thpt.."<i class='fas fa-arrow-up'></i>"
       elseif(value["throughput_trend_"..throughput_type] == 2) then
-	 column_thpt = column_thpt.."<i class='fa fa-arrow-down'></i>"
+	 column_thpt = column_thpt.."<i class='fas fa-arrow-down'></i>"
       elseif(value["throughput_trend_"..throughput_type] == 3) then
-	 column_thpt = column_thpt.."<i class='fa fa-minus'></i>"
+	 column_thpt = column_thpt.."<i class='fas fa-minus'></i>"
       end
    end
    record["column_thpt"] = column_thpt

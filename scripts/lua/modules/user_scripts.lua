@@ -482,8 +482,6 @@ function user_scripts.load(ifid, script_type, subdir, options)
    rv.conf = loadConfiguration(subdir)
 
    for _, checks_dir in pairs(check_dirs) do
-      package.path = checks_dir .. "/?.lua;" .. package.path
-
       for fname in pairs(ntop.readdir(checks_dir)) do
          if string.ends(fname, ".lua") then
             local setup_ok = true
@@ -505,7 +503,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
 
             traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
 
-            local user_script = require(mod_fname)
+            local user_script = dofile(full_path)
 
             if(type(user_script) ~= "table") then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))

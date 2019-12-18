@@ -50,7 +50,7 @@ else
 	 title = string.format("%s: %s", i18n("host_details.host"), name)
 	 nav_url = nav_url.."&"..hostinfo2url(host_info)
       end
-      title = title..' <i class="fa fa-terminal"></i> '..name_key
+      title = title..' <i class="fas fa-terminal"></i> '..name_key
 
       page_utils.print_navbar(title, nav_url,
 			      {

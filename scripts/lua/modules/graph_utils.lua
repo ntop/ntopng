@@ -137,8 +137,8 @@ function breakdownBar(sent, sentLabel, rcvd, rcvdLabel, thresholdLow, thresholdH
     if((thresholdLow == nil) or (thresholdLow < 0)) then thresholdLow = 0 end
     if((thresholdHigh == nil) or (thresholdHigh > 100)) then thresholdHigh = 100 end
 
-    if(sent2rcvd < thresholdLow) then sentLabel = '<i class="fa fa-exclamation-triangle fa-lg"></i> '..sentLabel
-    elseif(sent2rcvd > thresholdHigh) then rcvdLabel = '<i class="fa fa-exclamation-triangle fa-lg""></i> '..rcvdLabel end
+    if(sent2rcvd < thresholdLow) then sentLabel = '<i class="fas fa-exclamation-triangle fa-lg"></i> '..sentLabel
+    elseif(sent2rcvd > thresholdHigh) then rcvdLabel = '<i class="fas fa-exclamation-triangle fa-lg""></i> '..rcvdLabel end
 
       print('<div class="progress"><div class="progress-bar bg-warning" aria-valuenow="'.. sent2rcvd..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd.. '%;">'..sentLabel)
       print('</div><div class="progress-bar bg-info" aria-valuenow="'.. (100-sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
@@ -1386,7 +1386,7 @@ function printPoolChangeDropdown(ifId, pool_id, have_nedge)
 
    output[#output + 1] = [[
             </select>&nbsp;
-        <A HREF="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fa fa-sm fa-cog" aria-hidden="true" title="]]
+        <A HREF="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fas fa-sm fa-cog" aria-hidden="true" title="]]
       ..i18n(ternary(have_nedge, "nedge.edit_users", "host_pools.edit_host_pools"))
       .. [["></i> ]]
       .. i18n(ternary(have_nedge, "nedge.edit_users", "host_pools.edit_host_pools"))
@@ -1409,7 +1409,7 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
 
    -- 'Category' button
    print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-         i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="fa fa-filter"></span>', '') ..
+         i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="fas fa-filter"></span>', '') ..
          '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    -- 'Category' dropdown menu

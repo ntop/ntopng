@@ -238,11 +238,11 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
-      column_ip = column_ip .. " <i class='fa fa-exclamation-triangle' style='color: #B94A48;'></i>"
+      column_ip = column_ip .. " <i class='fas fa-exclamation-triangle' style='color: #B94A48;'></i>"
    end
 
-   if value["systemhost"]    then column_ip = column_ip .. "&nbsp;<i class='fa fa-flag'></i> " end
-   if value["hiddenFromTop"] then column_ip = column_ip .. "&nbsp;<i class='fa fa-eye-slash'></i> " end
+   if value["systemhost"]    then column_ip = column_ip .. "&nbsp;<i class='fas fa-flag'></i> " end
+   if value["hiddenFromTop"] then column_ip = column_ip .. "&nbsp;<i class='fas fa-eye-slash'></i> " end
    if value["childSafe"]     then column_ip = column_ip .. getSafeChildIcon() end
 
    local host = interface.getHostInfo(hosts_stats[key].ip, hosts_stats[key].vlan)
@@ -259,11 +259,11 @@ for _key, _value in pairsByKeys(vals, funct) do
    column_ip = column_ip .. icon
 
    if((host ~= nil) and (host.ip ~= "0.0.0.0")) then
-      if(value.dhcpHost) then column_ip = column_ip .. "&nbsp;<i class='fa fa-flash fa-lg' title='DHCP Host'></i>" end
+      if(value.dhcpHost) then column_ip = column_ip .. "&nbsp;<i class='fas fa-flash fa-lg' title='DHCP Host'></i>" end
    end
 
    if((host ~= nil) and (host["is_blacklisted"] == true)) then
-      column_ip = column_ip .. " <i class=\'fa fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
+      column_ip = column_ip .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
    end
 
    record["column_ip"] = column_ip
@@ -296,7 +296,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if value["has_blocking_quota"] or value["has_blocking_shaper"] then
-      column_name = column_name .. " <i class='fa fa-ban' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
+      column_name = column_name .. " <i class='fas fa-ban' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
    end
 
    if debug_score then
@@ -325,11 +325,11 @@ for _key, _value in pairsByKeys(vals, funct) do
       end
 
       if(value["throughput_trend_"..throughput_type] == 1) then
-	 column_thpt = column_thpt .. " <i class='fa fa-arrow-up'></i>"
+	 column_thpt = column_thpt .. " <i class='fas fa-arrow-up'></i>"
       elseif(value["throughput_trend_"..throughput_type] == 2) then
-	 column_thpt = column_thpt .. " <i class='fa fa-arrow-down'></i>"
+	 column_thpt = column_thpt .. " <i class='fas fa-arrow-down'></i>"
       elseif(value["throughput_trend_"..throughput_type] == 3) then
-	 column_thpt = column_thpt .. " <i class='fa fa-minus'></i>"
+	 column_thpt = column_thpt .. " <i class='fas fa-minus'></i>"
       end
       record["column_thpt"] = column_thpt
 
@@ -347,7 +347,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 	 (ternary(drop_traffic, i18n("host_config.unblock_host_traffic"), i18n("host_config.drop_all_host_traffic")))..
 	 "' class='badge badge-"..(ternary(drop_traffic, "danger", "secondary")).." block-badge' "..
 	 (ternary(isAdministrator(), "onclick='block_host(\""..symkey.."\", \""..hostinfo2url(value)..
-		     "\");' style='cursor: pointer;'", "")).."><i class='fa fa-ban' /></span>"
+		     "\");' style='cursor: pointer;'", "")).."><i class='fas fa-ban' /></span>"
    end
 
    record["column_info"] = column_info
@@ -367,7 +367,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       end
 
       if value["broadcast_domain_host"] then
-	 column_location = column_location.." <span class='badge badge-info'><i class='fa fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
+	 column_location = column_location.." <span class='badge badge-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
       end
 
       record["column_location"] = column_location

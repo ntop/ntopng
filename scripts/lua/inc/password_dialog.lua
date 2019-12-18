@@ -16,7 +16,7 @@ print [[
     <div class="modal-content">
       <div class="modal-header">
         <h3 id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span id="password_dialog_title"></span>]]})) print[[ </h3>
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fas fa-times"></i></button>
       </div>
 
 <div class="modal-body">
@@ -63,7 +63,7 @@ print [[
   <label for="old_password_input">]] print(i18n("manage_users.old_password")) print[[</label>
   <div class='input-group mb-]] print(col_md_size) print[[ has-feedback'>
       <div class="input-group-prepend">
-        <span class="input-group-text"><i class="fa fa-lock"></i></span>
+        <span class="input-group-text"><i class="fas fa-lock"></i></span>
       </div>
       <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required>
   </div>
@@ -74,7 +74,7 @@ print [[
   <label for="new_password_input">]] print(i18n("manage_users.new_password")) print[[</label>
   <div class='input-group mb-]] print(col_md_size) print[['>
       <div class="input-group-prepend"><span class="input-group-text">
-        <i class="fa fa-lock"></i></span>
+        <i class="fas fa-lock"></i></span>
       </div>
         <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
@@ -82,7 +82,7 @@ print [[
   <label for="confirm_new_password_input">]] print(i18n("manage_users.new_password_confirm")) print[[</label>
   <div class='input-group md-]] print(col_md_size) print[['>
       <div class="input-group-prepend">
-        <span class="input-group-text"><i class="fa fa-lock"></i></span>
+        <span class="input-group-text"><i class="fas fa-lock"></i></span>
       </div>
         <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
@@ -146,7 +146,7 @@ print[[
     <label for="user_language">]] print(i18n("language")) print[[</label>
     <div class='input-group mb-6'>
       <div class="input-group-prepend">
-        <span class="input-group-text"><i class="fa fa-language" aria-hidden="true"></i></span>
+        <span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
       </div>
       <select name="user_language" id="user_language" class="form-control">]]
 

@@ -391,7 +391,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   chart.is_zoomed = ((current_zoom_level > 0) || has_initial_zoom());
 
   //var spinner = $("<img class='chart-loading-spinner' src='" + spinner_url + "'/>");
-  var spinner = $('<i class="chart-loading-spinner fa fa-spinner fa-lg fa-spin"></i>');
+  var spinner = $('<i class="chart-loading-spinner fas fa-spinner fa-lg fa-spin"></i>');
   $chart.parent().css("position", "relative");
 
   var chart_colors_full = [

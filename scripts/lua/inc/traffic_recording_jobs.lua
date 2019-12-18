@@ -78,7 +78,7 @@ print(
 print [[
   <div id="extractionjobs"></div>
 
-  <button class="btn btn-secondary" onclick="$('#PcapDeleteAllDialog').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("show_alerts.delete_all")) print[[</button>
+  <button class="btn btn-secondary" onclick="$('#PcapDeleteAllDialog').modal('show');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("show_alerts.delete_all")) print[[</button>
 
   <br><br>
   <span>]]

@@ -131,7 +131,7 @@ local function print_single_group(value)
       print(getFullLocalNetworkName(value["name"])..'</A> ')
       print('", "column_chart": "')
       if tonumber(value["id"]) ~= -1 and interface.isPcapDumpInterface() == false then
-	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical\'><i class=\'fa fa-chart-area fa-lg\'></i></A>')
+	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical\'><i class=\'fas fa-chart-area fa-lg\'></i></A>')
       else
 	 print("-")
       end
@@ -147,7 +147,7 @@ local function print_single_group(value)
       print('"column_chart": "')
 
       if (ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=getInterfaceId(ifname), pool=value["id"]})) then
-         print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-chart-area fa-lg\'></i></A>')
+         print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fas fa-chart-area fa-lg\'></i></A>')
       else
          print('')
       end
@@ -158,7 +158,7 @@ local function print_single_group(value)
       print('"column_chart": "')
 
       if ts_utils.exists("asn:traffic", {ifid=getInterfaceId(ifname), asn=value["id"]}) then
-         print('<A HREF='..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..value["id"]..'&page=historical><i class=\'fa fa-chart-area fa-lg\'></i></A>')
+         print('<A HREF='..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..value["id"]..'&page=historical><i class=\'fas fa-chart-area fa-lg\'></i></A>')
       else
          print('')
       end
@@ -213,7 +213,7 @@ local function print_single_group(value)
       if(charts_enabled) then
          print("\"column_chart\" : \"")
          if ts_utils.exists("country:traffic", {ifid=getInterfaceId(ifname), country=value["id"]}) then
-            print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/country_details.lua?country='..value["id"]..'&page=historical\'><i class=\'fa fa-chart-area fa-lg\'></i></A>')
+            print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/country_details.lua?country='..value["id"]..'&page=historical\'><i class=\'fas fa-chart-area fa-lg\'></i></A>')
          else
             print("-")
          end

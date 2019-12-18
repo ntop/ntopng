@@ -54,10 +54,18 @@ function plugins_utils.listPlugins()
 
       if ntop.exists(plugin_info) then
         local metadata = dofile(plugin_info)
+        local mandatory_fields = {"title", "description", "author", "version"}
 
         if(metadata == nil) then
           traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load plugin.lua in '%s'", plugin_name))
           goto continue
+        end
+
+        for _, field in pairs(mandatory_fields) do
+          if(metadata[field] == nil) then
+            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing mandatory field '%s' in plugin.lua of '%s'", field, plugin_name))
+            goto continue
+          end
         end
 
         if(metadata.disabled) then
@@ -442,7 +450,7 @@ function plugins_utils.loadPlugins()
         load_plugin_user_scripts(path_map, plugin) then
       loaded_plugins[plugin.key] = plugin
     else
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Errors occurred while processing plugin %s", plugin.key))
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Errors occurred while processing plugin '%s'", plugin.key))
     end
 
     ::continue::
@@ -606,6 +614,16 @@ function plugins_utils.getUserScriptPlugin(script_path)
   if info then
     return(info.plugin)
   end
+end
+
+-- ##############################################
+
+-- @brief Retrieve metadata of the loaded plugins
+-- @return the loaded plugins metadata
+function plugins_utils.getLoadedPlugins()
+  load_metadata()
+
+  return(METADATA.plugins)
 end
 
 -- ##############################################

@@ -403,6 +403,12 @@ class NetworkInterface : public AlertableEntity {
     _incStats(ingressPacket, when, eth_proto, ndpi_proto, ndpi_category, l4proto, pkt_len, num_pkts, pkt_overhead);
   };
 
+  inline void incICMPStats(bool is_icmpv6, u_int32_t num_pkts, u_int8_t icmp_type, u_int8_t icmp_code, bool sent) {
+    if(is_icmpv6)
+      icmp_v6.incStats(num_pkts, icmp_type, icmp_code, sent, NULL);
+    else
+      icmp_v4.incStats(num_pkts, icmp_type, icmp_code, sent, NULL);
+  };
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);
   };

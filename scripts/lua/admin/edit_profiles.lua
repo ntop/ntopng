@@ -276,7 +276,7 @@ print[[
       title: "]] print(i18n("traffic_profiles.edit_traffic_profiles")) print[[",
       forceTable: true,
       buttons: [
-         '<a id="addNewProfileBtn" onclick="addNewProfile()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
+         '<a id="addNewProfileBtn" onclick="addNewProfile()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
             title: "]] print(i18n("traffic_profiles.profile_name")) print[[",

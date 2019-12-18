@@ -32,9 +32,10 @@ end
 -- #######################################################
 
 local function printPlugins()
-  local plugins = plugins_utils.listPlugins()
+  local plugins = plugins_utils.getLoadedPlugins()
 
-  print[[<table class="table table-bordered table-sm table-striped">
+  print[[<h3>Loaded Plugins</h3><br>
+  <table class="table table-bordered table-sm table-striped">
     <tr><th width="20%">Plugin</th><th>Description</th><th class="text-center">Version</th><th>Source Location</th><th width="10%">Availability</th></tr>]]
 
   for _, plugin in pairsByField(plugins, "title", asc) do

@@ -30,7 +30,7 @@ function network2record(ifId, network)
 
    record["column_chart"] = ""
 
-   record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network["network_id"]..'&page=historical"><i class=\'fa fa-chart-area fa-lg\'></i></A>'
+   record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network["network_id"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
 
    return record
 end

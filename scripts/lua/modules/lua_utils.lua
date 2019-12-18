@@ -275,7 +275,7 @@ end
 function printASN(asn, asname)
   asname = asname:gsub('"','')
   if(asn > 0) then
-    return("<A HREF='http://as.robtex.com/as"..asn..".html' title='"..asname.."'>"..asname.."</A> <i class='fa fa-external-link-alt fa-lg'></i>")
+    return("<A HREF='http://as.robtex.com/as"..asn..".html' title='"..asname.."'>"..asname.."</A> <i class='fas fa-external-link-alt fa-lg'></i>")
   else
     return(asname)
   end
@@ -318,7 +318,7 @@ function printIpVersionDropdown(base_url, page_params)
    local ipversion = _GET["version"]
    local ipversion_filter
    if not isEmptyString(ipversion) then
-      ipversion_filter = '<span class="fa fa-filter"></span>'
+      ipversion_filter = '<span class="fas fa-filter"></span>'
    else
       ipversion_filter = ''
    end
@@ -350,7 +350,7 @@ function printVLANFilterDropdown(base_url, page_params)
    local vlan_id = _GET["vlan"]
    local vlan_id_filter = ''
    if not isEmptyString(vlan_id) then
-      vlan_id_filter = '<span class="fa fa-filter"></span>'
+      vlan_id_filter = '<span class="fas fa-filter"></span>'
    end
 
    local vlan_id_params = table.clone(page_params)
@@ -377,7 +377,7 @@ function printTrafficTypeFilterDropdown(base_url, page_params)
    local traffic_type = _GET["traffic_type"]
    local traffic_type_filter = ''
    if not isEmptyString(traffic_type) then
-      traffic_type_filter = '<span class="fa fa-filter"></span>'
+      traffic_type_filter = '<span class="fas fa-filter"></span>'
    end
 
    local traffic_type_params = table.clone(page_params)
@@ -424,7 +424,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
    local cur_dev_filter = ''
    local snmp_community = ''
    if not isEmptyString(cur_dev) then
-      cur_dev_filter = '<span class="fa fa-filter"></span>'
+      cur_dev_filter = '<span class="fas fa-filter"></span>'
    end
 
    local dev_params = table.clone(page_params)
@@ -466,7 +466,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
 	 local cur_if = _GET[direction]
 	 local cur_if_filter = ''
 	 if not isEmptyString(cur_if) then
-	    cur_if_filter = '<span class="fa fa-filter"></span>'
+	    cur_if_filter = '<span class="fas fa-filter"></span>'
 	 end
 
 	 local if_params = table.clone(page_params)
@@ -1141,8 +1141,8 @@ function getApplicationIcon(name)
   local icon = ""
   if(name == nil) then name = "" end
 
-  if(findString(name, "Skype")) then icon = '<i class=\'fa fa-skype\'></i>'
-  elseif(findString(name, "Unknown")) then icon = '<i class=\'fa fa-question\'></i>'
+  if(findString(name, "Skype")) then icon = '<i class=\'fas fa-skype\'></i>'
+  elseif(findString(name, "Unknown")) then icon = '<i class=\'fas fa-question\'></i>'
   elseif(findString(name, "Twitter")) then icon = '<i class=\'fab fa-twitter\'></i>'
   elseif(findString(name, "DropBox")) then icon = '<i class=\'fab fa-dropbox\'></i>'
   elseif(findString(name, "Spotify")) then icon = '<i class=\'fab fa-spotify\'></i>'
@@ -1151,7 +1151,7 @@ function getApplicationIcon(name)
     findString(name, "Chrome")) then icon = '<i class=\'fab fa-google-plus-g\'></i>'
   elseif(findString(name, "FaceBook")) then icon = '<i class=\'fab fa-facebook\'></i>'
   elseif(findString(name, "Youtube")) then icon = '<i class=\'fab fa-youtube\'></i>'
-  elseif(findString(name, "thunderbird")) then icon = '<i class=\'fa fa-paper-plane\'></i>'
+  elseif(findString(name, "thunderbird")) then icon = '<i class=\'fas fa-paper-plane\'></i>'
   end
 
   return(icon)
@@ -1415,7 +1415,7 @@ function flowinfo2process(process, host_info_to_url)
 	 
 	 clean_name = t[#t]
 
-	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fa fa-terminal'></i> %s</A>",
+	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fas fa-terminal'></i> %s</A>",
 				   ntop.getHttpPrefix(),
 				   host_info_to_url,
 				   full_clean_name,
@@ -1426,7 +1426,7 @@ function flowinfo2process(process, host_info_to_url)
       -- if not isEmptyString(process["user_name"]) then
       -- 	 local clean_user_name = process["user_name"]:gsub("'", '')
 
-      -- 	 proc_user_name = string.format("<A HREF='%s/lua/username_details.lua?%s&username=%s&uid=%u'><i class='fa fa-linux'></i> %s</A>",
+      -- 	 proc_user_name = string.format("<A HREF='%s/lua/username_details.lua?%s&username=%s&uid=%u'><i class='fas fa-linux'></i> %s</A>",
       -- 					ntop.getHttpPrefix(),
       -- 					host_info_to_url,
       -- 					clean_user_name,
@@ -1446,13 +1446,13 @@ function flowinfo2container(container)
    local fmt, cont_name, pod_name = '', '', ''
 
    if container then
-      cont_name = string.format("<A HREF='%s/lua/flows_stats.lua?container=%s'><i class='fa fa-ship'></i> %s</A>",
+      cont_name = string.format("<A HREF='%s/lua/flows_stats.lua?container=%s'><i class='fas fa-ship'></i> %s</A>",
 				ntop.getHttpPrefix(),
 				container["id"], format_utils.formatContainer(container))
 
       -- local formatted_pod = format_utils.formatPod(container)
       -- if not isEmptyString(formatted_pod) then
-      -- 	 pod_name = string.format("<A HREF='%s/lua/containers_stats.lua?pod=%s'><i class='fa fa-crosshairs'></i> %s</A>",
+      -- 	 pod_name = string.format("<A HREF='%s/lua/containers_stats.lua?pod=%s'><i class='fas fa-crosshairs'></i> %s</A>",
       -- 				  ntop.getHttpPrefix(),
       -- 				  formatted_pod,
       -- 				  formatted_pod)
@@ -2099,15 +2099,15 @@ end
 
 function formatBreed(breed)
    if(breed == "Safe") then
-      return("<i class='fa fa-lock' alt='Safe Protocol'></i>")
+      return("<i class='fas fa-lock' alt='Safe Protocol'></i>")
    elseif(breed == "Acceptable") then
-      return("<i class='fa fa-thumbs-up' alt='Acceptable Protocol'></i>")
+      return("<i class='fas fa-thumbs-up' alt='Acceptable Protocol'></i>")
    elseif(breed == "Fun") then
-      return("<i class='fa fa-smile' alt='Fun Protocol'></i>")
+      return("<i class='fas fa-smile' alt='Fun Protocol'></i>")
    elseif(breed == "Unsafe") then
-      return("<i class='fa fa-thumbs-down'></i>")
+      return("<i class='fas fa-thumbs-down'></i>")
    elseif(breed == "Dangerous") then
-      return("<i class='fa fa-exclamation-triangle'></i>")
+      return("<i class='fas fa-exclamation-triangle'></i>")
    else
       return("")
    end
@@ -2351,7 +2351,7 @@ end
 -- ###############################################
 
 function formatWebSite(site)
-   return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fa fa-external-link-alt\"></i></th>")
+   return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fas fa-external-link-alt\"></i></th>")
 end
 
 -- ###############################################
@@ -2378,7 +2378,7 @@ function formatElephantFlowStatus(status, flowstatus_info, local2remote)
       end
    end
 
-   res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
+   res = string.format("%s<sup><i class='fas fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
 
    if threshold ~= "" then
       res = string.format("%s [%s]", res, i18n("flow_details.elephant_exceeded", {vol = bytesToSize(threshold)}))
@@ -2434,140 +2434,9 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
       -- print('<span class="badge badge-info">')
-      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history fa-lg"></i></a>')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fas fa-history fa-lg"></i></a>')
       -- print('</span>')
    end
-end
-
--- ##########################################
-
-local _icmp_types = {
-   { 0, 0, "icmp_v4_types.type_0_0_echo_reply" },
-   { 3, 0, "icmp_v4_types.type_3_0_network_unreachable" },
-   { 3, 1, "icmp_v4_types.type_3_1_host_unreachable" },
-   { 3, 2, "icmp_v4_types.type_3_2_protocol_unreachable" },
-   { 3, 3, "icmp_v4_types.type_3_3_port_unreachable" },
-   { 3, 4, "icmp_v4_types.type_3_4_fragmentation_needed_but_no_fragment_bit_set" },
-   { 3, 5, "icmp_v4_types.type_3_5_source_routing_failed" },
-   { 3, 6, "icmp_v4_types.type_3_6_destination_network_unknown" },
-   { 3, 7, "icmp_v4_types.type_3_7_destination_host_unknown" },
-   { 3, 8, "icmp_v4_types.type_3_8_source_host_isolated" },
-   { 3, 9, "icmp_v4_types.type_3_9_destination_network_administratively_prohibited" },
-   { 3, 10, "icmp_v4_types.type_3_10_destination_host_administratively_prohibited" },
-   { 3, 11, "icmp_v4_types.type_3_11_network_unreachable_for_tos" },
-   { 3, 12, "icmp_v4_types.type_3_12_host_unreachable_for_tos" },
-   { 3, 13, "icmp_v4_types.type_3_13_communication_administratively_prohibited_by_filtering" },
-   { 3, 14, "icmp_v4_types.type_3_14_host_precedence_violation" },
-   { 3, 15, "icmp_v4_types.type_3_15_precedence_cutoff_in_effect" },
-   { 4, 0, "icmp_v4_types.type_4_0_source_quench" },
-   { 5, 0, "icmp_v4_types.type_5_0_redirect_for_network" },
-   { 5, 1, "icmp_v4_types.type_5_1_redirect_for_host" },
-   { 5, 2, "icmp_v4_types.type_5_2_redirect_for_tos_and_network" },
-   { 5, 3, "icmp_v4_types.type_5_3_redirect_for_tos_and_host" },
-   { 8, 0, "icmp_v4_types.type_8_0_echo_request" },
-   { 9, 0, "icmp_v4_types.type_9_0_router_advertisement" },
-   { 10, 0, "icmp_v4_types.type_10_0_route_solicitation" },
-   { 11, 0, "icmp_v4_types.type_11_0_ttl_equals_0_during_transit" },
-   { 11, 1, "icmp_v4_types.type_11_1_ttl_equals_0_during_reassembly" },
-   { 12, 0, "icmp_v4_types.type_12_0_ip_header_bad" },
-   { 12, 1, "icmp_v4_types.type_12_1_required_options_missing" },
-   { 13, 0, "icmp_v4_types.type_13_0_timestamp_request" },
-   { 14, 0, "icmp_v4_types.type_14_0_timestamp_reply" },
-   { 15, 0, "icmp_v4_types.type_15_0_information_request" },
-   { 16, 0, "icmp_v4_types.type_16_0_information_reply" },
-   { 17, 0, "icmp_v4_types.type_17_0_address_mask_request" },
-   { 18, 0, "icmp_v4_types.type_18_0_address_mask_reply" }
-}
-
--- Code is currently ignored on IVMPv6
-local _icmpv6_types = {
-   { 0, i18n("icmp_v6_types.type_0_reserved") },
-   { 1, i18n("icmp_v6_types.type_1_destination_unreachable") },
-   { 2, i18n("icmp_v6_types.type_2_packet_too_big") },
-   { 3, i18n("icmp_v6_types.type_3_time_exceeded") },
-   { 4, i18n("icmp_v6_types.type_4_parameter_problem") },
-   { 100, i18n("icmp_v6_types.type_100_private_experimentation") },
-   { 101, i18n("icmp_v6_types.type_101_private_experimentation") },
-   --{ 102-126, i18n("icmp_v6_types.type_102-126_unassigned") },
-   { 127, i18n("icmp_v6_types.type_127_reserved_for_expansion_of_icmpv6_error_messages") },
-   { 128, i18n("icmp_v6_types.type_128_echo_request") },
-   { 129, i18n("icmp_v6_types.type_129_echo_reply") },
-   { 130, i18n("icmp_v6_types.type_130_multicast_listener_query") },
-   { 131, i18n("icmp_v6_types.type_131_multicast_listener_report") },
-   { 132, i18n("icmp_v6_types.type_132_multicast_listener_done") },
-   { 133, i18n("icmp_v6_types.type_133_router_solicitation") },
-   { 134, i18n("icmp_v6_types.type_134_router_advertisement") },
-   { 135, i18n("icmp_v6_types.type_135_neighbor_solicitation") },
-   { 136, i18n("icmp_v6_types.type_136_neighbor_advertisement") },
-   { 137, i18n("icmp_v6_types.type_137_redirect_message") },
-   { 138, i18n("icmp_v6_types.type_138_router_renumbering") },
-   { 139, i18n("icmp_v6_types.type_139_icmp_node_information_query") },
-   { 140, i18n("icmp_v6_types.type_140_icmp_node_information_response") },
-   { 141, i18n("icmp_v6_types.type_141_inverse_neighbor_discovery_solicitation_message") },
-   { 142, i18n("icmp_v6_types.type_142_inverse_neighbor_discovery_advertisement_message") },
-   { 143, i18n("icmp_v6_types.type_143_version_2_multicast_listener_report") },
-   { 144, i18n("icmp_v6_types.type_144_home_agent_address_discovery_request_message") },
-   { 145, i18n("icmp_v6_types.type_145_home_agent_address_discovery_reply_message") },
-   { 146, i18n("icmp_v6_types.type_146_mobile_prefix_solicitation") },
-   { 147, i18n("icmp_v6_types.type_147_mobile_prefix_advertisement") },
-   { 148, i18n("icmp_v6_types.type_148_certification_path_solicitation_message") },
-   { 149, i18n("icmp_v6_types.type_149_certification_path_advertisement_message") },
-   { 150, i18n("icmp_v6_types.type_150_icmp_messages_utilized_by_experimental_mobility_protocols") },
-   { 151, i18n("icmp_v6_types.type_151_multicast_router_advertisement") },
-   { 152, i18n("icmp_v6_types.type_152_multicast_router_solicitation") },
-   { 153, i18n("icmp_v6_types.type_153_multicast_router_termination") },
-   { 154, i18n("icmp_v6_types.type_154_fmipv6_messages") },
-   { 155, i18n("icmp_v6_types.type_155_rpl_control_message") },
-   { 156, i18n("icmp_v6_types.type_156_ilnpv6_locator_update_message") },
-   { 157, i18n("icmp_v6_types.type_157_duplicate_address_request") },
-   { 158, i18n("icmp_v6_types.type_158_duplicate_address_confirmation") },
-   { 159, i18n("icmp_v6_types.type_159_mpl_control_message") },
-   --{ 160-199, i18n("icmp_v6_types.type_160-199_unassigned") },
-   { 200, i18n("icmp_v6_types.type_200_private_experimentation") },
-   { 201, i18n("icmp_v6_types.type_201_private_experimentation") },
-   { 255, i18n("icmp_v6_types.type_255_reserved_for_expansion_of_icmpv6_informational_messages") }
-}
-
--- #############################################
-
-function getICMPV6TypeCode(icmp)
-  local t = icmp.type
-  local c = icmp.code
-
-  for _, _e in ipairs(_icmpv6_types) do
-    if(_e[1] == t) then
-    	return(_e[2])
-    end
-  end
-
-  if t and c then
-     return (t or '').."/"..(c or '')
-  else
-     return ''
-  end
-end
-
--- #############################################
-
-function getICMPTypeCode(icmp)
-  local t = icmp.type
-  local c = icmp.code
-  local extra = {src_port = '', dst_port = '', protocol = ''}
-
-  if icmp["unreach"] then
-     extra["src_port"] = icmp["unreach"]["src_port"]..''
-     extra["dst_port"] = icmp["unreach"]["dst_port"]..''
-     extra["protocol"] = getL4ProtoName(icmp["unreach"]["protocol"])
-  end
-
-  for _, _e in ipairs(_icmp_types) do
-    if((_e[1] == t) and (_e[2] == c)) then
-       local res = _e[3]
-       return i18n(res, extra)
-    end
-  end
-
- return(getICMPV6TypeCode(icmp))
 end
 
 -- #############################################
@@ -2575,23 +2444,23 @@ end
 -- Add here the icons you guess based on the Mac address
 -- TODO move to discovery stuff
 local guess_icon_keys = {
-  ["dell inc."] = "fa fa-desktop",
-  ["vmware, inc."] = "fa fa-desktop",
-  ["xensource, inc."] = "fa fa-desktop",
-  ["lanner electronics, inc."] = "fa fa-desktop",
-  ["nexcom international co., ltd."] = "fa fa-desktop",
+  ["dell inc."] = "fas fa-desktop",
+  ["vmware, inc."] = "fas fa-desktop",
+  ["xensource, inc."] = "fas fa-desktop",
+  ["lanner electronics, inc."] = "fas fa-desktop",
+  ["nexcom international co., ltd."] = "fas fa-desktop",
   ["apple, inc."] = "fab fa-apple",
-  ["cisco systems, inc"] = "fa fa-arrows-alt",
-  ["juniper networks"] = "fa fa-arrows-alt",
-  ["brocade communications systems, inc."] = "fa fa-arrows-alt",
-  ["force10 networks, inc."] = "fa fa-arrows-alt",
-  ["huawei technologies co.,ltd"] = "fa fa-arrows-alt",
-  ["alcatel-lucent ipd"] = "fa fa-arrows-alt",
-  ["arista networks, inc."] = "fa fa-arrows-alt",
-  ["3com corporation"] = "fa fa-arrows-alt",
-  ["routerboard.com"] = "fa fa-arrows-alt",
-  ["extreme networks"] = "fa fa-arrows-alt",
-  ["xerox corporation"] = "fa fa-print"
+  ["cisco systems, inc"] = "fas fa-arrows-alt",
+  ["juniper networks"] = "fas fa-arrows-alt",
+  ["brocade communications systems, inc."] = "fas fa-arrows-alt",
+  ["force10 networks, inc."] = "fas fa-arrows-alt",
+  ["huawei technologies co.,ltd"] = "fas fa-arrows-alt",
+  ["alcatel-lucent ipd"] = "fas fa-arrows-alt",
+  ["arista networks, inc."] = "fas fa-arrows-alt",
+  ["3com corporation"] = "fas fa-arrows-alt",
+  ["routerboard.com"] = "fas fa-arrows-alt",
+  ["extreme networks"] = "fas fa-arrows-alt",
+  ["xerox corporation"] = "fas fa-print"
 }
 
 function guessHostIcon(key)
@@ -3107,7 +2976,7 @@ function stripVlan(name)
 end
 
 function getSafeChildIcon()
-   return("&nbsp;<font color='#5cb85c'><i class='fa fa-lg fa-child' aria-hidden='true'></i></font>")
+   return("&nbsp;<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true'></i></font>")
 end
 
 -- ###########################################
@@ -3182,7 +3051,7 @@ end
 function printWarningAlert(message)
    print[[<div class="alert alert-warning alert-dismissable" role="alert">]]
    print[[<a class="close" data-dismiss="alert" aria-label="close">&times;</a>]]
-   print[[<i class="fa fa-exclamation-triangle fa-sm"></i> ]]
+   print[[<i class="fas fa-exclamation-triangle fa-sm"></i> ]]
    print[[<strong>]] print(i18n("warning")) print[[</strong> ]]
    print(message)
    print[[</div>]]

@@ -35,18 +35,18 @@ page_utils.print_navbar("Redis", url,
 			   {
 			      active = page == "overview" or not page,
 			      page_name = "overview",
-			      label = "<i class=\"fa fa-lg fa-home\"></i>",
+			      label = "<i class=\"fas fa-lg fa-home\"></i>",
 			   },
 			   {
 			      active = page == "stats",
 			      page_name = "stats",
-			      label = "<i class=\"fa fa-lg fa-wrench\"></i>",
+			      label = "<i class=\"fas fa-lg fa-wrench\"></i>",
 			   },
 			   {
 			      hidden = not ts_creation,
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			}
 )
@@ -54,7 +54,7 @@ page_utils.print_navbar("Redis", url,
 -- #######################################################
 
 if(page == "overview") then
-   local fa_external =  "<i class='fa fa-external-link-alt'></i>"
+   local fa_external =  "<i class='fas fa-external-link-alt'></i>"
    local tags = {ifid=getSystemInterfaceId()}
    print("<table class=\"table table-bordered table-striped\">\n")
 
@@ -64,13 +64,13 @@ if(page == "overview") then
    local storage_chart_available = ts_creation and ts_utils.exists("redis:memory", tags)
    print("<tr><td nowrap width='30%'><b>".. i18n("about.ram_memory") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_ram_memory").."</small></td>")
    print("<td class='text-center' width=5%>")
-   print(ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:memory'><i class='fa fa-lg fa-chart-area'></i></A>", ""))
+   print(ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:memory'><i class='fas fa-lg fa-chart-area'></i></A>", ""))
    print("</td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-memory\"></span></td></tr>\n")
 
    local keys_chart_available = ts_creation and ts_utils.exists("redis:keys", tags)
    print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.redis.redis_keys") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_keys").."</small></td>")
    print("<td class='text-center' width=5%>")
-   print(ternary(keys_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:keys'><i class='fa fa-chart-area fa-lg'></i></A>", ""))
+   print(ternary(keys_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:keys'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
    print("</td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-keys\"></span></td></tr>\n")
 
    print[[<script>

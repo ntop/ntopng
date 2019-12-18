@@ -120,7 +120,7 @@ for id, _ in pairsByValues(sorter, sOrder) do
 
   local chart_link = nil
   if not isEmptyString(job.chart_url) then
-    chart_link = '<a href="'.. job.chart_url ..'"><i class="fa fa-lg fa-chart-area"></i></a>'
+    chart_link = '<a href="'.. job.chart_url ..'"><i class="fas fa-lg fa-chart-area"></i></a>'
   end
 
   local bpf_filter = "-"

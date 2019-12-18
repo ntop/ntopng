@@ -16,7 +16,7 @@ print [[",
 		showPagination: true,
 		title: "]] print(title) print[[",
 		buttons: [
-			"<a href='#add_user_dialog' role='button' class='add-on btn' data-toggle='modal'><i class='fa fa-user-plus fa-sm'></i></a>"
+			"<a href='#add_user_dialog' role='button' class='add-on btn' data-toggle='modal'><i class='fas fa-user-plus fa-sm'></i></a>"
 		],
 		columns: [
 			{

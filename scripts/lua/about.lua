@@ -49,7 +49,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       print("pro")
    end
 
-   print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fa fa-external-link-alt'></i> ]")
+   print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fas fa-external-link-alt'></i> ]")
 
 print [[
     <br><small>]]

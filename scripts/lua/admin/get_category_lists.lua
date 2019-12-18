@@ -29,7 +29,7 @@ local function getListStatusLabel(list)
     local info_msg = ""
 
     if type(list.status.last_error) == "string" then
-      info = ' <i class="fa fa-info-circle"></i>'
+      info = ' <i class="fas fa-info-circle"></i>'
       info_msg = list.status.last_error
     end
 
@@ -141,7 +141,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
     res[#res + 1] = {
       column_name = list.name,
-      column_label = list.name .. ' <a href="'.. list.url ..'" target="_blank"><i class="fa fa-external-link-alt"></i></a>',
+      column_label = list.name .. ' <a href="'.. list.url ..'" target="_blank"><i class="fas fa-external-link-alt"></i></a>',
       column_status = list.status_label,
       column_url = list.url,
       column_enabled = list.enabled,

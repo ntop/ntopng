@@ -1076,7 +1076,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     Flow **hostFlow) {
   u_int16_t trusted_ip_len = max_val(0, (int)h->caplen - ip_offset);
   u_int16_t trusted_payload_len = 0;
-  bool src2dst_direction, is_sent_packet = false; /* FIX */
+  bool src2dst_direction;
   u_int8_t l4_proto;
   Flow *flow;
   Mac *srcMac = NULL, *dstMac = NULL;
@@ -1369,11 +1369,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	u_int8_t icmp_code = l4[1];
 
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
-	if(l4_proto == IPPROTO_ICMP)
-	  icmp_v4.incStats(1, icmp_type, icmp_code, is_sent_packet, NULL);
-	else
-	  icmp_v6.incStats(1, icmp_type, icmp_code, is_sent_packet, NULL);
-
 	flow->setICMPPayloadSize(trusted_l4_packet_len);
       }
       break;

@@ -47,7 +47,7 @@ page_utils.print_navbar(title, nav_url,
 			      hidden = not ts_utils.exists("container:num_flows", {ifid=ifId, container=container}),
 			      active = page == "historical" or not page,
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			}
 )

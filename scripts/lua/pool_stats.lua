@@ -36,7 +36,7 @@ print [[
 local title
 
 if have_nedge then
-    title = i18n("nedge.users_list") .. " <small><a title='".. i18n("manage_users.manage_users") .."' href='".. ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_list_users.lua'><i class='fa fa-cog'></i></a></small>"
+    title = i18n("nedge.users_list") .. " <small><a title='".. i18n("manage_users.manage_users") .."' href='".. ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_list_users.lua'><i class='fas fa-cog'></i></a></small>"
 else
     title = i18n("pool_stats.host_pool_list")
 end
@@ -55,7 +55,7 @@ print ('sort: [ ["' .. getDefaultTableSort("pool_id") ..'","' .. getDefaultTable
 print [[
         showPagination: true,
         buttons: [
-         '<a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=8&page=pools#create" class="add-on btn"><i class="fa fa-plus" aria-hidden="true"></i></a>'
+         '<a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=8&page=pools#create" class="add-on btn"><i class="fas fa-plus" aria-hidden="true"></i></a>'
         ],
         columns: [
         {

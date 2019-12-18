@@ -29,6 +29,11 @@ local INFLUX_EXPORT_QUEUE = "ntopng.influx_file_queue"
 local MIN_INFLUXDB_SUPPORTED_VERSION = "1.5.1"
 local FIRST_AGGREGATION_TIME_KEY = "ntopng.prefs.influxdb.first_aggregation_time"
 
+-- hourly continuous queries are disabled as they create a lot of pressure
+-- on the InfluxDB database.
+local HOURLY_CQ_ENABLED = false
+local HOURLY_CQ_DISABLED_KEY = "ntopng.prefs.influxdb.1h_cq_disabled"
+
 -- ##############################################
 
 local INFLUX_KEY_PREFIX = "ntopng.cache.influxdb."
@@ -251,7 +256,13 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
   local oldest_1h_data = os.time() - rp_1h_duration_sec
   local oldest_raw_data = getDatabaseRetentionDays() * 86400
   local max_raw_interval = 12 * 3600 -- after 12 hours begin to use the aggregated data
-  local max_1h_interval = 15 * 86400 -- after 15 days use the 1d aggregated data
+  local max_1h_interval
+
+  if(HOURLY_CQ_ENABLED) then
+    max_1h_interval = 15 * 86400 -- after 15 days use the 1d aggregated data
+  else
+    max_1h_interval = 5 * 86400 -- after 5 days use the 1d aggregated data
+  end
 
   if options.target_aggregation then
     if((options.target_aggregation == "1h") and (tstart < oldest_1h_data)) or
@@ -272,7 +283,7 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
     return "raw"
   elseif tstart < oldest_1h_data then
     return "1d"
-  elseif tstart < oldest_raw_data then
+  elseif(HOURLY_CQ_ENABLED and (tstart < oldest_raw_data)) then
     return "1h"
   end
 
@@ -280,7 +291,7 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
 
   if interval >= max_1h_interval then
     return "1d"
-  elseif interval >= max_raw_interval then
+  elseif(HOURLY_CQ_ENABLED and (interval >= max_raw_interval)) then
     return "1h"
   end
 
@@ -353,7 +364,7 @@ local function influx_query_multi(base_url, query, username, password, options)
     -- Show the error
     ntop.setCache("ntopng.cache.influxdb.last_error", i18n("graphs.influxdb_not_responding", {
       url = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts#influx_query_timeout",
-      flask_icon = '<i class="fa fa-flask"></i>',
+      flask_icon = '<i class="fas fa-flask"></i>',
     }))
   end
 
@@ -1584,9 +1595,15 @@ local function updateCQRetentionPolicies(dbname, url, username, password)
   end
 
   local queries = {
-    makeRetentionPolicyQuery(rp_1h_statement, "1h", dbname, get1hDatabaseRetentionDays()),
     makeRetentionPolicyQuery(rp_1d_statement, "1d", dbname, get1dDatabaseRetentionDays())
   }
+
+  if(HOURLY_CQ_ENABLED) then
+    queries[#queries + 1] = makeRetentionPolicyQuery(rp_1h_statement, "1h", dbname, get1hDatabaseRetentionDays())
+  else
+    -- Delete existing 1h aggregated data
+    queries[#queries + 1] = "DROP RETENTION POLICY \"1h\" ON \"" .. dbname .. "\""
+  end
 
   return multiQueryPost(queries, url, username, password)
 end
@@ -1849,10 +1866,19 @@ function driver:setup(ts_utils)
   ts_utils.loadSchemas()
   local schemas = ts_utils.getLoadedSchemas()
 
+  -- NOTE: continuos queries cannot be altered, so they must be manually
+  -- dropped and created in case of changes
   for _, schema in pairs(ts_utils.getPossiblyChangedSchemas()) do
-    queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema ..'__1h" ON ' .. self.db
+    if(HOURLY_CQ_ENABLED) then
+      queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema ..'__1h" ON ' .. self.db
+    end
+
     queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema ..'__1d" ON ' .. self.db
   end
+
+  -- Needed to handle migration
+  local previous_1h_enabled = not (ntop.getPref(HOURLY_CQ_DISABLED_KEY) == "1")
+  local migration_necessary = (previous_1h_enabled ~= HOURLY_CQ_ENABLED)
 
   for _, schema in pairs(schemas) do
     local tags = table.concat(schema._tags, ",")
@@ -1861,11 +1887,25 @@ function driver:setup(ts_utils)
       goto continue
     end
 
-    local cq_1h = getCqQuery(self.db, tags, schema, "autogen", "1h", schema.options.step, 3600, "2h")
-    local cq_1d = getCqQuery(self.db, tags, schema, "1h", "1d", 3600, 86400)
+    if(migration_necessary) then
+        -- NOTE: dropping all the continuous queries all together is not possible
+        -- as InfluxDB does not provide an API for this and calling "SHOW CONTINUOUS QUERIES"
+        -- yelds too much result data
+        queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema.name ..'__1h" ON ' .. self.db
+        queries[#queries + 1] = 'DROP CONTINUOUS QUERY "'.. schema.name ..'__1d" ON ' .. self.db
+    end
 
-    queries[#queries + 1] = cq_1h:gsub("\n", ""):gsub("%s%s+", " ")
-    queries[#queries + 1] = cq_1d:gsub("\n", ""):gsub("%s%s+", " ")
+    if(HOURLY_CQ_ENABLED) then
+      local cq_1h = getCqQuery(self.db, tags, schema, "autogen", "1h", schema.options.step, 3600, "2h")
+      local cq_1d = getCqQuery(self.db, tags, schema, "1h", "1d", 3600, 86400)
+
+      queries[#queries + 1] = cq_1h:gsub("\n", ""):gsub("%s%s+", " ")
+      queries[#queries + 1] = cq_1d:gsub("\n", ""):gsub("%s%s+", " ")
+    else
+      local cq_1d = getCqQuery(self.db, tags, schema, "autogen", "1d", schema.options.step, 86400)
+
+      queries[#queries + 1] = cq_1d:gsub("\n", ""):gsub("%s%s+", " ")
+    end
 
     if #queries >= max_batch_size then
       if not multiQueryPost(queries, self.url, self.username, self.password) then
@@ -1885,9 +1925,19 @@ function driver:setup(ts_utils)
     end
   end
 
+  if(migration_necessary) then
+    ntop.setPref(HOURLY_CQ_DISABLED_KEY, ternary(HOURLY_CQ_ENABLED, "0", "1"))
+
+    -- Need to recalculate it
+    ntop.delCache(FIRST_AGGREGATION_TIME_KEY)
+
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, "InfluxDB CQ migration completed")
+  end
+
   if tonumber(ntop.getPref(FIRST_AGGREGATION_TIME_KEY)) == nil then
+    local first_rp = ternary(HOURLY_CQ_ENABLED, "1h", "1d")
     local res = influx_query(self.url .. "/query?db=".. self.db .."&epoch=s",
-      'SELECT FIRST(bytes) FROM "1h"."iface:traffic"', self.username, self.password)
+      'SELECT FIRST(bytes) FROM "'.. first_rp ..'"."iface:traffic"', self.username, self.password)
     local first_t = os.time()
 
     if res and res.series and res.series[1].values then
