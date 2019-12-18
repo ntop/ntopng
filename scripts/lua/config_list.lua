@@ -25,13 +25,12 @@ print([[
     <div class='container-fluid mt-3'>
         <div class='row'>
             <div class='col-md-12 col-lg-12'>
-
-                <table id="config-list" class='table table-striped table-bordered mt-3'>
+                <table id="config-list" class='table table-striped table-hover mt-3'>
                     <thead>
                         <tr>
                             <th>Configuration Name</th>
                             <th>Edit Configuration</th>
-                            <th>Config Settings<th>
+                            <th>Config Settings</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,6 +42,11 @@ print([[
     </div>
 ]])
 
+print([[
+
+
+]])
+
 -- add datatable script to config list page
 print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.js"></script> ]])
 
@@ -51,13 +55,24 @@ print([[
     $(document).ready(function() {
 
 
-        $("#config-list").DataTable({
-
+        const $config_table = $("#config-list").DataTable({
+            dom: "Bfrtip",
             ajax: {
-                url: ']].. ntop.getHttpPrefix() ..[[lua/get_scripts_configsets.lua',
+                url: ']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua',
                 type: 'GET',
                 dataSrc: ''
             },
+            buttons: [
+                {
+                    text: '<i class="fas fa-plus-circle"></i> Add New Config',
+                    attr: {
+                        class: 'btn btn-success'
+                    },
+                    action: function(event, table) {
+                        console.log(event)
+                    }
+                }
+            ],
             columns: [
                 {
                     data: 'name',
@@ -68,19 +83,21 @@ print([[
                 {
                     targets: -2,
                     data: null, 
+                    width: '10%',
                     render: function(data, type, row) {
-                        return `<a href='#' class='btn btn-info'>Edit Config</a>`;
+                        return `<a href='script_list.lua?confset_id=${data.id}' class='btn btn-info w-100'><i class='fas fa-edit'></i> Edit Config</a>`;
                     }
                 },
                 {
                     targets: -1,
                     data: null,
+                    width: '16%',
                     render: function(data, type, row) {
                         return `
                             <div class='btn-group'>
-                                <button class='btn btn-secondary' type='button'>Clone</button>
-                                <button class='btn btn-secondary' type='button'>Rename</button>
-                                <button class='btn btn-danger' type='button'>Delete</button>
+                                <button data-action='clone' class='btn btn-secondary' type='button'><i class='fas fa-clone'></i> Clone</button>
+                                <button data-action='rename' ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-secondary' type='button'><i class='fas fa-i-cursor'></i> Rename</button>
+                                <button data-action='delete' ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-danger' type='button'><i class='fas fa-times'></i> Delete</button>
                             </div>
                         `;
                     }
@@ -89,8 +106,57 @@ print([[
 
         });
 
+        $('#config-list').on('click', 'button[data-action="clone"]', function(e) {
+
+            const row_data = $config_table.row($(this).parent().parent()).data();
+            const conf_name = `${row_data.name} (Clone)`;
+            const conf_id = row_data.id;
+
+            $.when(
+                $.get(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
+                    action: 'clone',
+                    confset_id: conf_id,
+                    confset_name: conf_name
+                })
+            )
+            .then((data, status, xhr) => {
+                
+                // if success then reload the page
+                if (status == 'success') location.reload();
+
+                // otherwise show a toast with error message
+                // TODO
+
+            })
+
+        });
+
+        $('#config-list').on('click', 'button[data-action="delete"]', function(e) {
+
+            const row_data = $config_table.row($(this).parent().parent()).data();
+            const conf_id = row_data.id;
+
+            $.when(
+                $.get(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
+                    action: 'delete',
+                    confset_id: conf_id,
+                })
+            )
+            .then((data, status, xhr) => {
+                
+                // if success then reload the page
+                if (status == 'success') location.reload();
+
+                // otherwise show a toast with error message
+                // TODO
+
+            })
+
+        });
+
     })
 </script>
 ]])
 
 
+dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
