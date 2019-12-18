@@ -98,21 +98,21 @@ print('buttons: [')
    print('\'<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("unknown_devices.filter_devices")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    devices_mode.unassigned_devices = nil
-   print ('<li><a href="')
+   print ('<li class="nav-item"><a class="dropdown-item" href="')
    print (getPageUrl(base_url, devices_mode))
    print ('#unassigned">'..i18n("unknown_devices.all_devices")..'</a></li>')
 
    devices_mode.unassigned_devices = "active_only"
-   print('<li')
+   print('<li class="nav-item"')
    if page_params.unassigned_devices == devices_mode.unassigned_devices then print(' class="active"') end
-   print('><a href="')
+   print('><a class="dropdown-item" href="')
    print (getPageUrl(base_url, devices_mode))
    print ('#unassigned">'..i18n("unknown_devices.active_only")..'</a></li>')
 
    devices_mode.unassigned_devices = "inactive_only"
-   print('<li')
+   print('<li class="nav-item"')
    if page_params.unassigned_devices == devices_mode.unassigned_devices then print(' class="active"') end
-   print('><a href="')
+   print('><a class="dropdown-item" href="')
    print (getPageUrl(base_url, devices_mode))
    print ('#unassigned">'..i18n("unknown_devices.inactive_only")..'</a></li>')
 
