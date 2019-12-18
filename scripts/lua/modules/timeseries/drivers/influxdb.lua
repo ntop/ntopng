@@ -256,7 +256,13 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
   local oldest_1h_data = os.time() - rp_1h_duration_sec
   local oldest_raw_data = getDatabaseRetentionDays() * 86400
   local max_raw_interval = 12 * 3600 -- after 12 hours begin to use the aggregated data
-  local max_1h_interval = 15 * 86400 -- after 15 days use the 1d aggregated data
+  local max_1h_interval
+
+  if(HOURLY_CQ_ENABLED) then
+    max_1h_interval = 15 * 86400 -- after 15 days use the 1d aggregated data
+  else
+    max_1h_interval = 5 * 86400 -- after 5 days use the 1d aggregated data
+  end
 
   if options.target_aggregation then
     if((options.target_aggregation == "1h") and (tstart < oldest_1h_data)) or
