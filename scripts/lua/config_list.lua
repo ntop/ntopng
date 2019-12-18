@@ -121,7 +121,7 @@ print([[
             </div>
             <div class="modal-body">
                 Do you want really remove this configuration?<br>
-                <b>Attention</b>: this operation is irreversibile
+                <b>Attention</b>: this operation is irreversible!
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -149,7 +149,7 @@ print([[
                     <div class='form-group'>
                         <label class='form-label' for='#create-input'>Type a new name:</label>
                         <input type='text' id='create-input' class='form-control' />
-                        <div class="invalid-feedback" id='create-error' >
+                        <div class="invalid-feedback" id='create-error'>
                             {message}
                         </div>
                     </div>
@@ -266,6 +266,8 @@ print([[
 
             $("#clone-name").html(`<b>${conf_name}</b>`)
             $("#clone-input").attr("placeholder", `i.e. ${conf_name} (Clone)`);
+
+            $("#clone-error").hide();
 
             $("#btn-confirm-clone").off("click");
             $("#btn-confirm-clone").click(function(e) {

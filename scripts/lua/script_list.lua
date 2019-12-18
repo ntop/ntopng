@@ -22,6 +22,10 @@ local script_type = "traffic_element"
 local script_subdir = "host"
 local confset_id = _GET["confset_id"]
 
+if confset_id == nil then
+   
+end
+
 -- append css tag on page
 print([[<link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet">]])
 
@@ -43,7 +47,6 @@ print [[
                <table id='hostsScripts' class="table table-striped table-bordered mt-3">
                   <thead>
                      <tr>
-                        <th>Enabled</th>
                         <th>Script Name</th>
                         <th>Script Description</th>
                         <th>Script Granularities</th>
@@ -83,7 +86,7 @@ print ([[
       <div class="modal-dialog modal-lg ">
          <div class="modal-content">
             <div class="modal-header">
-            <h5 class="modal-title">Script ]].. script_type ..[[ / Config <span id='script-name'></span></h5>
+            <h5 class="modal-title">Script / Config <span id='script-name'></span></h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                <span aria-hidden="true">&times;</span>
             </button>
@@ -91,14 +94,17 @@ print ([[
             <div class="modal-body">
                <form method='post'>
                   <table class='table table-borderless' id='script-config-editor'>
+                     <thead>
+                     
+                     </thead>
                      <tbody>
                      </tbody>
                   </table>
                </form>
             </div>
             <div class="modal-footer">
-               <button type='button' class='btn btn-warning mr-auto'>Reset Default</button>
-               <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+               <button type='button' class='btn btn-danger mr-auto'>Reset Default</button>
+               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                <button id="btn-apply" type="button" class="btn btn-primary" data-dismiss="modal">Apply changes</button>
             </div>
          </div>
@@ -118,6 +124,8 @@ print ([[
             delay: 2000
          })
 
+         $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?script_type=]].. script_type ..[[&script_subdir=]].. script_subdir ..[[', (d) => console.log(d))
+
          const $script_table = $("#hostsScripts").DataTable({
             dom: "Bfrtip",
             ajax: {
@@ -125,13 +133,10 @@ print ([[
                'type': 'GET',
                dataSrc: ''
             },
-            drawCallback: function(settings) {
-               delegate_checkboxes();
-            },
             initComplete: function(settings, json) {
                count_scripts();
             },
-            order: [ [0, "desc"] ],
+            order: [ [0, "asc"] ],
             buttons: [
                {
                   extend: "filterScripts",
@@ -157,17 +162,6 @@ print ([[
             ],
             columns: [
                { 
-                  data: 'is_enabled',
-                  render: function (data, type, row) {
-
-                     if (type == 'display') {
-                        return `<input class='script-checkbox' type='checkbox' ${data ? 'checked' : ''} />`;
-                     }
-
-                  return data;
-                  },
-               },
-               { 
                   data: 'title',
                   render: function (data, type, row) {
                      if (type == 'display') {
@@ -180,6 +174,11 @@ print ([[
                { 
                   data: 'enabled_hooks',
                   render: function (data, type, row) {
+
+                     if (data.length <= 0 && type != "display") {
+                        return false;
+                     }
+
                      return data.join(', ')
                   }
                },
@@ -187,7 +186,7 @@ print ([[
                   targets: -1,
                   data: null,
                   render: function (data, type, row) {
-                     return `<button data-toggle="modal" data-target="#modal-script" class="btn btn-primary w-100">Edit Config</button>`;
+                     return `<button data-toggle="modal" data-target="#modal-script" class="btn btn-primary w-100"><i class='fas fa-edit'></i></button>`;
                   },
                   sortable: false
                }
@@ -286,6 +285,8 @@ print ([[
                // bind event to modal_button
                const on_apply = (e) => {
 
+                  const $button = $(this);
+
                   // prepare request to save config
                   const data = {}
             
@@ -307,6 +308,9 @@ print ([[
                      }
                   });                 
 
+                  // disable button
+                  $button.attr("disabled", "");
+
                   // make post request
                   $.when(
                      $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_user_script_config.lua', {
@@ -320,11 +324,9 @@ print ([[
                   )
                   .then((d, status, xhr) => {
 
-                     console.log(d, status, xhr);
                      $toast.find(".toast-body").html(`The edits has been saved for <b>${script_title}</b>`)
                      $toast.toast('show');
-
-                     location.reload();
+                     $button.removeAttr("disabled");
 
                   })
 
@@ -336,24 +338,6 @@ print ([[
 
 
          });
-
-         /**
-         * Delegate checkboxes event for datatable plugin
-         */
-         function delegate_checkboxes() {
-            $(`#hostsScripts tbody td input[type='checkbox']`).click(function (e) {
-
-               const checked = $(this).is(':checked');
-
-               // update cell data
-               const $table_data = $(this).parent();
-               // fix little datatable bug about events
-               if ($table_data.length == 0) return;
-               $script_table.cell($table_data).data(checked).draw();
-
-               count_scripts();
-            });
-         }
 
          /**
          * Count the scripts number inside the table
