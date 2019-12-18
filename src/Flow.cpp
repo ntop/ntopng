@@ -81,7 +81,8 @@ Flow::Flow(NetworkInterface *_iface,
   pending_lua_call_protocol_detected = false;
   next_lua_call_periodic_update = 0;
 
-  memset(&last_db_dump, 0, sizeof(last_db_dump));
+  last_db_dump.partial = NULL;
+  last_db_dump.first_seen = last_db_dump.last_seen = 0;
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
@@ -2270,13 +2271,10 @@ bool Flow::get_partial_traffic_stats_view(PartializableFlowTrafficStats *fts, bo
 /* *************************************** */
 
 bool Flow::update_partial_traffic_stats_db_dump() {  
-  PartializableFlowTrafficStats delta;
   bool first_partial;
 
-  if(!get_partial_traffic_stats(&last_db_dump.partial, &delta, &first_partial))
+  if(!get_partial_traffic_stats(&last_db_dump.partial, &last_db_dump.delta, &first_partial))
     return(false);
-
-  memcpy(&last_db_dump.delta, &delta, sizeof(delta));
 
   if(first_partial)
     last_db_dump.first_seen = get_first_seen();
