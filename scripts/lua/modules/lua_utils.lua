@@ -275,7 +275,7 @@ end
 function printASN(asn, asname)
   asname = asname:gsub('"','')
   if(asn > 0) then
-    return("<A HREF='http://as.robtex.com/as"..asn..".html' title='"..asname.."'>"..asname.."</A> <i class='fa fa-external-link-alt fa-lg'></i>")
+    return("<A HREF='http://as.robtex.com/as"..asn..".html' title='"..asname.."'>"..asname.."</A> <i class='fas fa-external-link-alt fa-lg'></i>")
   else
     return(asname)
   end
@@ -318,7 +318,7 @@ function printIpVersionDropdown(base_url, page_params)
    local ipversion = _GET["version"]
    local ipversion_filter
    if not isEmptyString(ipversion) then
-      ipversion_filter = '<span class="fa fa-filter"></span>'
+      ipversion_filter = '<span class="fas fa-filter"></span>'
    else
       ipversion_filter = ''
    end
@@ -350,7 +350,7 @@ function printVLANFilterDropdown(base_url, page_params)
    local vlan_id = _GET["vlan"]
    local vlan_id_filter = ''
    if not isEmptyString(vlan_id) then
-      vlan_id_filter = '<span class="fa fa-filter"></span>'
+      vlan_id_filter = '<span class="fas fa-filter"></span>'
    end
 
    local vlan_id_params = table.clone(page_params)
@@ -377,7 +377,7 @@ function printTrafficTypeFilterDropdown(base_url, page_params)
    local traffic_type = _GET["traffic_type"]
    local traffic_type_filter = ''
    if not isEmptyString(traffic_type) then
-      traffic_type_filter = '<span class="fa fa-filter"></span>'
+      traffic_type_filter = '<span class="fas fa-filter"></span>'
    end
 
    local traffic_type_params = table.clone(page_params)
@@ -424,7 +424,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
    local cur_dev_filter = ''
    local snmp_community = ''
    if not isEmptyString(cur_dev) then
-      cur_dev_filter = '<span class="fa fa-filter"></span>'
+      cur_dev_filter = '<span class="fas fa-filter"></span>'
    end
 
    local dev_params = table.clone(page_params)
@@ -466,7 +466,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
 	 local cur_if = _GET[direction]
 	 local cur_if_filter = ''
 	 if not isEmptyString(cur_if) then
-	    cur_if_filter = '<span class="fa fa-filter"></span>'
+	    cur_if_filter = '<span class="fas fa-filter"></span>'
 	 end
 
 	 local if_params = table.clone(page_params)
@@ -1141,8 +1141,8 @@ function getApplicationIcon(name)
   local icon = ""
   if(name == nil) then name = "" end
 
-  if(findString(name, "Skype")) then icon = '<i class=\'fa fa-skype\'></i>'
-  elseif(findString(name, "Unknown")) then icon = '<i class=\'fa fa-question\'></i>'
+  if(findString(name, "Skype")) then icon = '<i class=\'fas fa-skype\'></i>'
+  elseif(findString(name, "Unknown")) then icon = '<i class=\'fas fa-question\'></i>'
   elseif(findString(name, "Twitter")) then icon = '<i class=\'fab fa-twitter\'></i>'
   elseif(findString(name, "DropBox")) then icon = '<i class=\'fab fa-dropbox\'></i>'
   elseif(findString(name, "Spotify")) then icon = '<i class=\'fab fa-spotify\'></i>'
@@ -1151,7 +1151,7 @@ function getApplicationIcon(name)
     findString(name, "Chrome")) then icon = '<i class=\'fab fa-google-plus-g\'></i>'
   elseif(findString(name, "FaceBook")) then icon = '<i class=\'fab fa-facebook\'></i>'
   elseif(findString(name, "Youtube")) then icon = '<i class=\'fab fa-youtube\'></i>'
-  elseif(findString(name, "thunderbird")) then icon = '<i class=\'fa fa-paper-plane\'></i>'
+  elseif(findString(name, "thunderbird")) then icon = '<i class=\'fas fa-paper-plane\'></i>'
   end
 
   return(icon)
@@ -1415,7 +1415,7 @@ function flowinfo2process(process, host_info_to_url)
 	 
 	 clean_name = t[#t]
 
-	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fa fa-terminal'></i> %s</A>",
+	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fas fa-terminal'></i> %s</A>",
 				   ntop.getHttpPrefix(),
 				   host_info_to_url,
 				   full_clean_name,
@@ -1426,7 +1426,7 @@ function flowinfo2process(process, host_info_to_url)
       -- if not isEmptyString(process["user_name"]) then
       -- 	 local clean_user_name = process["user_name"]:gsub("'", '')
 
-      -- 	 proc_user_name = string.format("<A HREF='%s/lua/username_details.lua?%s&username=%s&uid=%u'><i class='fa fa-linux'></i> %s</A>",
+      -- 	 proc_user_name = string.format("<A HREF='%s/lua/username_details.lua?%s&username=%s&uid=%u'><i class='fas fa-linux'></i> %s</A>",
       -- 					ntop.getHttpPrefix(),
       -- 					host_info_to_url,
       -- 					clean_user_name,
@@ -1446,13 +1446,13 @@ function flowinfo2container(container)
    local fmt, cont_name, pod_name = '', '', ''
 
    if container then
-      cont_name = string.format("<A HREF='%s/lua/flows_stats.lua?container=%s'><i class='fa fa-ship'></i> %s</A>",
+      cont_name = string.format("<A HREF='%s/lua/flows_stats.lua?container=%s'><i class='fas fa-ship'></i> %s</A>",
 				ntop.getHttpPrefix(),
 				container["id"], format_utils.formatContainer(container))
 
       -- local formatted_pod = format_utils.formatPod(container)
       -- if not isEmptyString(formatted_pod) then
-      -- 	 pod_name = string.format("<A HREF='%s/lua/containers_stats.lua?pod=%s'><i class='fa fa-crosshairs'></i> %s</A>",
+      -- 	 pod_name = string.format("<A HREF='%s/lua/containers_stats.lua?pod=%s'><i class='fas fa-crosshairs'></i> %s</A>",
       -- 				  ntop.getHttpPrefix(),
       -- 				  formatted_pod,
       -- 				  formatted_pod)
@@ -2099,15 +2099,15 @@ end
 
 function formatBreed(breed)
    if(breed == "Safe") then
-      return("<i class='fa fa-lock' alt='Safe Protocol'></i>")
+      return("<i class='fas fa-lock' alt='Safe Protocol'></i>")
    elseif(breed == "Acceptable") then
-      return("<i class='fa fa-thumbs-up' alt='Acceptable Protocol'></i>")
+      return("<i class='fas fa-thumbs-up' alt='Acceptable Protocol'></i>")
    elseif(breed == "Fun") then
-      return("<i class='fa fa-smile' alt='Fun Protocol'></i>")
+      return("<i class='fas fa-smile' alt='Fun Protocol'></i>")
    elseif(breed == "Unsafe") then
-      return("<i class='fa fa-thumbs-down'></i>")
+      return("<i class='fas fa-thumbs-down'></i>")
    elseif(breed == "Dangerous") then
-      return("<i class='fa fa-exclamation-triangle'></i>")
+      return("<i class='fas fa-exclamation-triangle'></i>")
    else
       return("")
    end
@@ -2351,7 +2351,7 @@ end
 -- ###############################################
 
 function formatWebSite(site)
-   return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fa fa-external-link-alt\"></i></th>")
+   return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fas fa-external-link-alt\"></i></th>")
 end
 
 -- ###############################################
@@ -2378,7 +2378,7 @@ function formatElephantFlowStatus(status, flowstatus_info, local2remote)
       end
    end
 
-   res = string.format("%s<sup><i class='fa fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
+   res = string.format("%s<sup><i class='fas fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
 
    if threshold ~= "" then
       res = string.format("%s [%s]", res, i18n("flow_details.elephant_exceeded", {vol = bytesToSize(threshold)}))
@@ -2434,7 +2434,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
       -- print('<span class="badge badge-info">')
-      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history fa-lg"></i></a>')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fas fa-history fa-lg"></i></a>')
       -- print('</span>')
    end
 end
@@ -2444,23 +2444,23 @@ end
 -- Add here the icons you guess based on the Mac address
 -- TODO move to discovery stuff
 local guess_icon_keys = {
-  ["dell inc."] = "fa fa-desktop",
-  ["vmware, inc."] = "fa fa-desktop",
-  ["xensource, inc."] = "fa fa-desktop",
-  ["lanner electronics, inc."] = "fa fa-desktop",
-  ["nexcom international co., ltd."] = "fa fa-desktop",
+  ["dell inc."] = "fas fa-desktop",
+  ["vmware, inc."] = "fas fa-desktop",
+  ["xensource, inc."] = "fas fa-desktop",
+  ["lanner electronics, inc."] = "fas fa-desktop",
+  ["nexcom international co., ltd."] = "fas fa-desktop",
   ["apple, inc."] = "fab fa-apple",
-  ["cisco systems, inc"] = "fa fa-arrows-alt",
-  ["juniper networks"] = "fa fa-arrows-alt",
-  ["brocade communications systems, inc."] = "fa fa-arrows-alt",
-  ["force10 networks, inc."] = "fa fa-arrows-alt",
-  ["huawei technologies co.,ltd"] = "fa fa-arrows-alt",
-  ["alcatel-lucent ipd"] = "fa fa-arrows-alt",
-  ["arista networks, inc."] = "fa fa-arrows-alt",
-  ["3com corporation"] = "fa fa-arrows-alt",
-  ["routerboard.com"] = "fa fa-arrows-alt",
-  ["extreme networks"] = "fa fa-arrows-alt",
-  ["xerox corporation"] = "fa fa-print"
+  ["cisco systems, inc"] = "fas fa-arrows-alt",
+  ["juniper networks"] = "fas fa-arrows-alt",
+  ["brocade communications systems, inc."] = "fas fa-arrows-alt",
+  ["force10 networks, inc."] = "fas fa-arrows-alt",
+  ["huawei technologies co.,ltd"] = "fas fa-arrows-alt",
+  ["alcatel-lucent ipd"] = "fas fa-arrows-alt",
+  ["arista networks, inc."] = "fas fa-arrows-alt",
+  ["3com corporation"] = "fas fa-arrows-alt",
+  ["routerboard.com"] = "fas fa-arrows-alt",
+  ["extreme networks"] = "fas fa-arrows-alt",
+  ["xerox corporation"] = "fas fa-print"
 }
 
 function guessHostIcon(key)
@@ -2976,7 +2976,7 @@ function stripVlan(name)
 end
 
 function getSafeChildIcon()
-   return("&nbsp;<font color='#5cb85c'><i class='fa fa-lg fa-child' aria-hidden='true'></i></font>")
+   return("&nbsp;<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true'></i></font>")
 end
 
 -- ###########################################
@@ -3051,7 +3051,7 @@ end
 function printWarningAlert(message)
    print[[<div class="alert alert-warning alert-dismissable" role="alert">]]
    print[[<a class="close" data-dismiss="alert" aria-label="close">&times;</a>]]
-   print[[<i class="fa fa-exclamation-triangle fa-sm"></i> ]]
+   print[[<i class="fas fa-exclamation-triangle fa-sm"></i> ]]
    print[[<strong>]] print(i18n("warning")) print[[</strong> ]]
    print(message)
    print[[</div>]]

@@ -62,7 +62,7 @@ page_utils.print_navbar(title, nav_url,
 			   {
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			}
 )
@@ -72,7 +72,7 @@ if isEmptyString(page) or page == "historical" then
 
    if(not ts_utils.exists(default_schema, {ifid=ifId, asn=asn})) then
       print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("as_details.no_available_data_for_as",{asn = label}))
-      print(" "..i18n("as_details.as_timeseries_enable_message",{url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fa fa-flask\"></i>"})..'</div>')
+      print(" "..i18n("as_details.as_timeseries_enable_message",{url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fas fa-flask\"></i>"})..'</div>')
 
    else
       local schema = _GET["ts_schema"] or default_schema
@@ -135,7 +135,7 @@ end
 
 local application_filter = ''
 if(application ~= nil) then
-   application_filter = '<span class="fa fa-filter"></span>'
+   application_filter = '<span class="fas fa-filter"></span>'
 end
 local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
 dt_buttons = dt_buttons..'<li><a class="dropdown-item" href="'..nav_url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'

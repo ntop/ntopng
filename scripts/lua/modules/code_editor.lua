@@ -20,7 +20,7 @@ end
 
 print [[
 <p>
-<H3><i class="fa fa-lg fa-binoculars"></i> ]] print(scriptname) print [[</H3>
+<H3><i class="fas fa-lg fa-binoculars"></i> ]] print(scriptname) print [[</H3>
 <p>
 <script>var require = { paths: { 'vs': ']] print(ntop.getHttpPrefix()) print[[/monaco-editor/min/vs' } };</script>
 <script src="]] print(ntop.getHttpPrefix()) print[[/monaco-editor/min/vs/loader.js"></script>

@@ -747,7 +747,7 @@
                       .addClass("btn btn-info")
                       .append(
                         $("<span></span>")
-                          .addClass("fa fa-check")
+                          .addClass("fas fa-check")
                           .text("All")
                       )
                       .click(function () {
@@ -828,7 +828,7 @@
       .attr("href", "#" + this.$column_modal.attr("id"))
       .append(
         $("<span></span>")
-          .addClass("fa fa-cog")
+          .addClass("fas fa-cog")
       )
       .click(function(e) {
         that.$column_modal
@@ -863,7 +863,7 @@
       .data("content", "Open the filter dialog.")
       .extend(
         $("<span></span>")
-          .addClass("fa fa-filter")
+          .addClass("fas fa-filter")
       )
       .click(function() {
         if($(o.filterModal).hasClass("modal"))
@@ -936,7 +936,7 @@
       .attr("href", "#")
       .append(
         $("<span></span>")
-          .addClass("fa fa-info-circle")
+          .addClass("fas fa-info-circle")
       )
       .click(function() {
         return false;
@@ -1264,8 +1264,8 @@
     toggleColumns: true,
     url: '',
     columns: [],
-    ascending: $("<span></span>").addClass("fa fa-chevron-up"),
-    descending: $("<span></span>").addClass("fa fa-chevron-down"),
+    ascending: $("<span></span>").addClass("fas fa-chevron-up"),
+    descending: $("<span></span>").addClass("fas fa-chevron-down"),
     rowCallback: undefined,
     tableCallback: undefined,
     headerCallback: undefined,

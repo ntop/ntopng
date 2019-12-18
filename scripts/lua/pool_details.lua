@@ -66,7 +66,7 @@ local title = i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool")).
 			      {
 				 active = page == "historical" or not page,
 				 page_name = "historical",
-				 label = "<i class='fa fa-lg fa-chart-area'></i>",
+				 label = "<i class='fas fa-lg fa-chart-area'></i>",
 			      },
 			      {
 				 hidden = not ntop.isEnterprise() or not ntop.isnEdge() or not ifstats or pool_id == host_pools_utils.DEFAULT_POOL_ID,
@@ -111,7 +111,7 @@ if (ntop.isEnterprise() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAU
 elseif page == "historical" then
   if(not ts_utils.exists("host_pool:traffic", {ifid=ifId, pool=pool_id})) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("pool_details.no_available_data_for_host_pool_message",{pool_name=pool_name}))
-    print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fa fa-flask\"></i>"})..'</div>')
+    print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fas fa-flask\"></i>"})..'</div>')
   else
     local schema = _GET["ts_schema"] or "host_pool:traffic"
     local selected_epoch = _GET["epoch"] or ""

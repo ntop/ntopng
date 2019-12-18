@@ -32,13 +32,13 @@ page_utils.print_navbar(title, url,
      {
 	active = page == "overview" or not page,
 	page_name = "overview",
-	label = "<i class=\"fa fa-lg fa-home\"></i>",
+	label = "<i class=\"fas fa-lg fa-home\"></i>",
      },
      {
 	hidden = false,
 	active = page == "config",
 	page_name = "config",
-	label = "<i class='fa fa-lg fa-cog'></i>",
+	label = "<i class='fas fa-lg fa-cog'></i>",
      },
   }
 )

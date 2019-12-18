@@ -38,19 +38,19 @@ page_utils.print_navbar(title, url,
 			   {
 			      active = page == "overview" or not page,
 			      page_name = "overview",
-			      label = "<i class=\"fa fa-home fa-lg\"></i>",
+			      label = "<i class=\"fas fa-home fa-lg\"></i>",
 			   },
 			   {
 			      hidden = not ts_creation,
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
 			      hidden = interface.isPcapDumpInterface() or not isAdministrator() or not areAlertsEnabled() or not plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")}),
 			      active = page == "alerts",
 			      page_name = "alerts",
-			      label = "<i class=\"fa fa-exclamation-triangle fa-lg\"></i>",
+			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
 			   },
 			}
 )
@@ -58,7 +58,7 @@ page_utils.print_navbar(title, url,
 -- #######################################################
 
 if(page == "overview") then
-   local fa_external =  "<i class='fa fa-external-link-alt'></i>"
+   local fa_external =  "<i class='fas fa-external-link-alt'></i>"
    local tags = {ifid=getSystemInterfaceId()}
     print("<table class=\"table table-bordered table-striped\">\n")
 
@@ -67,13 +67,13 @@ if(page == "overview") then
     local storage_chart_available = ts_creation and ts_utils.exists("influxdb:storage_size", tags)
     print("<tr><td nowrap width='30%'><b>".. i18n("traffic_recording.storage_utilization") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_storage_utilization").."</small></td>")
     print("<td class='text-center' width=5%>")
-    print(ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:storage_size'><i class='fa fa-chart-area fa-lg'></i></A>", ""))
+    print(ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:storage_size'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
     print("</td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
 
     local ram_chart_available = ts_creation and ts_utils.exists("influxdb:memory_size", tags)
     print("<tr><td nowrap><b>".. i18n("about.ram_memory") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_ram_memory").."</small></td>")
     print("<td class='text-center' width=5%>")
-    print(ternary(ram_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:memory_size'><i class='fa fa-chart-area fa-lg'></i></A>", ""))
+    print(ternary(ram_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:memory_size'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
     print("</td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-memory\"></span></td></tr>\n")
 
     if(probe ~= nil) then
@@ -82,23 +82,23 @@ if(page == "overview") then
        local exports_chart_available = ts_creation and ts_utils.exists("influxdb:exports", tags)
        print("<tr><td nowrap><b>".. i18n("system_stats.exports") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_exports").."</small></td>")
        print("<td class='text-center' width=5%>")
-       print(ternary(exports_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:exports'><i class='fa fa-chart-area fa-lg'></i></A>", ""))
+       print(ternary(exports_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:exports'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
        print("<td><span id=\"influxdb-exports\">".. formatValue(stats.exports) .."</span></td></tr>\n")
 
        local exported_points_chart_available = ts_creation and ts_utils.exists("influxdb:exported_points", tags)
        print("<tr><td nowrap><b>".. i18n("system_stats.exported_points") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_exported_points").."</small></td>")
        print("<td class='text-center' width=5%>")
-       print(ternary(exported_points_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:exported_points'><i class='fa fa-chart-area fa-lg'></i></A>", ""))
+       print(ternary(exported_points_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:exported_points'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
        print("</td><td><span id=\"influxdb-exported-points\">".. formatValue(stats.points_exported) .."</span></td></tr>\n")
 
        local dropped_points_chart_available = ts_creation and ts_utils.exists("influxdb:dropped_points", tags)
        print("<tr><td nowrap><b>".. i18n("system_stats.dropped_points") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_dropped_points").."</small></td>")
        print("<td class='text-center' width=5%>")
-       print(ternary(dropped_points_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:dropped_points'><i class='fa fa-chart-area fa-lg'></i></A>", ""))
+       print(ternary(dropped_points_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:dropped_points'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
        print("</td><td><span id=\"influxdb-dropped-points\">".. formatValue(stats.points_dropped) .."</span></td></tr>\n")
     end
 
-    print("<tr><td nowrap><b>".. i18n("system_stats.series_cardinality") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_cardinality").."</small></td><td></td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span><i id=\"high-cardinality-warn\" class=\"fa fa-exclamation-triangle fa-lg\" title=\"".. i18n("system_stats.high_series_cardinality") .."\" style=\"color: orange; display:none\"></td></i></tr>\n")
+    print("<tr><td nowrap><b>".. i18n("system_stats.series_cardinality") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_cardinality").."</small></td><td></td><td><img class=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-series\"></span><i id=\"high-cardinality-warn\" class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("system_stats.high_series_cardinality") .."\" style=\"color: orange; display:none\"></td></i></tr>\n")
     print[[<script>
 
  var last_db_bytes, last_memory, last_num_series;

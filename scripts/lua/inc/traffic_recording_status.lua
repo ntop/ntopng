@@ -39,7 +39,7 @@ elseif recording_utils.isEnabled(ifstats.id) then
 end
 
 print("<h2>"..i18n("traffic_recording.traffic_recording_status"))
-print(" <small><a href='#' onclick='location.reload(); return false;' title='' data-original-title='"..i18n("refresh").."'><i class='fa fa-sync fa-sm' aria-hidden='true' data-original-title='' title=''></i></a></small>")
+print(" <small><a href='#' onclick='location.reload(); return false;' title='' data-original-title='"..i18n("refresh").."'><i class='fas fa-sync fa-sm' aria-hidden='true' data-original-title='' title=''></i></a></small>")
 print("</h2><br>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
@@ -58,7 +58,7 @@ elseif enabled then
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
     <input type="hidden" name="action" value="restart" />
 </form>]]
-     print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fa fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
+     print(" <small><a href='#' onclick='$(\"#restart_rec_form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fas fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
   end
 else
   print(i18n("traffic_recording.disabled"))
@@ -98,7 +98,7 @@ if stats ~= nil then
   if start_time ~= nil then
     print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
     if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
-      print(' - <i class="fa fa-exclamation-triangle"></i> ')
+      print(' - <i class="fas fa-exclamation-triangle"></i> ')
       print(i18n("traffic_recording.missing_data_msg"))
     end
     print("</td></tr>\n")
@@ -117,7 +117,7 @@ if custom_provider and running then
    local warn = ''
 
    if not extraction_checks_ok then
-      warn = '<i class="fa fa-exclamation-triangle"></i> '
+      warn = '<i class="fas fa-exclamation-triangle"></i> '
    end
 
    print("<tr><th nowrap>"..i18n("traffic_recording.traffic_extractions").."</th><td>"..warn..extraction_checks_msg.."</td></tr>\n")

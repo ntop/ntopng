@@ -102,7 +102,7 @@ end
 print [[
 <ul id="n2n-nav" class="nav nav-tabs" role="tablist">]]
 
-print('<li class="nav-item '.. ternary(tab == "config", "active", "") ..'"><a class="nav-link '.. ternary(tab == "config", "active", "") ..'" href="?tab=config"><i class="fa fa-cog"></i> '.. i18n("traffic_recording.settings") .. "</a>")
+print('<li class="nav-item '.. ternary(tab == "config", "active", "") ..'"><a class="nav-link '.. ternary(tab == "config", "active", "") ..'" href="?tab=config"><i class="fas fa-cog"></i> '.. i18n("traffic_recording.settings") .. "</a>")
 
 if assist_enabled then
    print('<li class="nav-item '.. ternary(tab == "status", "active", "") ..'"><a class="nav-link '.. ternary(tab == "status", "active", "") ..'" href="?tab=status">'.. i18n("status") .. "</a>")
@@ -142,7 +142,7 @@ if assist_enabled then
   print[[
         <tr>
           <th>]] print(i18n("remote_assistance.connection_script")) print[[</th>
-          <td><a href="?action=get_script"><i class="fa fa-download fa-lg"></i> <i class="fa fa-terminal fa-lg"></i></a><br>
+          <td><a href="?action=get_script"><i class="fas fa-download fa-lg"></i> <i class="fas fa-terminal fa-lg"></i></a><br>
           <small>]] print(i18n("remote_assistance.connection_script_descr")) print[[</small>
           </td>
         </tr>]]
@@ -236,13 +236,13 @@ else -- tab == "status"
   print("<table class=\"table table-bordered table-striped\">\n")
   print("<tr><th width='15%' nowrap>"..i18n("interface").."</th><td>".. remote_assistance.getInterfaceName() .."</td></tr>\n")
   print("<tr><th width='15%' nowrap>"..i18n("ip_address").."</th><td>".. remote_assistance.getIpAddress() .."</td></tr>\n")
-  print("<tr><th width='15%' nowrap>"..i18n("prefs.n2n_supernode_title").."</th><td>".. remote_assistance.getSupernode() .." <a href=\"".. ntop.getHttpPrefix() .."/lua/admin/prefs.lua?tab=remote_assistance\"><i class=\"fa fa-cog fa-lg\"></i></a></td></tr>\n")
+  print("<tr><th width='15%' nowrap>"..i18n("prefs.n2n_supernode_title").."</th><td>".. remote_assistance.getSupernode() .." <a href=\"".. ntop.getHttpPrefix() .."/lua/admin/prefs.lua?tab=remote_assistance\"><i class=\"fas fa-cog fa-lg\"></i></a></td></tr>\n")
   print("<tr><th nowrap>"..i18n("status").."</th><td>") print(noHtml(remote_assistance.statusLabel()) .. ". ")
   print[[<form style="display:inline" id="restart-service-form" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
     <input type="hidden" name="action" value="restart" />
 </form>]]
-  print(" <small><a href='#' onclick='$(\"#restart-service-form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fa fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
+  print(" <small><a href='#' onclick='$(\"#restart-service-form\").submit(); return false;' title='' data-original-title='"..i18n("traffic_recording.restart_service").."'></small>&nbsp;<i class='fas fa-repeat fa-lg' aria-hidden='true' data-original-title='' title=''></i></a>")
   print("</td></tr>")
 
   print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>")

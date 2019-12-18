@@ -111,7 +111,7 @@ print [[
       <tr>
         <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
         <td colspan=2>
-    <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> <i class="fa fa-hdd fa-lg"></i> ]] print(ternary(recording_utils.isSupportedZMQInterface(ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))) print [[</input>
+    <input name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[> <i class="fas fa-hdd fa-lg"></i> ]] print(ternary(recording_utils.isSupportedZMQInterface(ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))) print [[</input>
         </td>
       </tr>
 

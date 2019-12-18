@@ -116,12 +116,12 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    local k = string.gsub(key, "%.", "___") -- Needed as JQuery does not like . in id= field
 
 	    print('\"key\" : \"'.. k ..'\",\n')
-	    print(' \"column_http_virtual_host\" : \"<A HREF=\'http://'..key..'\'>'..key.."</A> <i class='fa fa-external-link-alt'></i>")
+	    print(' \"column_http_virtual_host\" : \"<A HREF=\'http://'..key..'\'>'..key.."</A> <i class='fas fa-external-link-alt'></i>")
 
 	    print(" <A HREF='")
 	    local url = ntop.getHttpPrefix().."/lua/flows_stats.lua?vhost="..key
 	    print(url.."'>")
-	    print("<i class='fa fa-search-plus fa-lg'></i>")
+	    print("<i class='fas fa-search-plus fa-lg'></i>")
 	    print("</A>")
 
 	    print("\",\n")
@@ -137,11 +137,11 @@ for _key, _value in pairsByKeys(vals, funct) do
 
 	    print("\",\n \"column_act_num_http_requests\" : \"" .. formatValue(value["http.act_num_requests"]).." ")
 	    if(value["http.requests_trend"] == 1) then
-	       print("<i class='fa fa-arrow-up'></i>")
+	       print("<i class='fas fa-arrow-up'></i>")
 	    elseif(value["http.requests_trend"] == 2) then
-	       print("<i class='fa fa-arrow-down'></i>")
+	       print("<i class='fas fa-arrow-down'></i>")
 	    else
-	       print("<i class='fa fa-minus'></i>")
+	       print("<i class='fas fa-minus'></i>")
 	    end
 	    print("\" } ")
 	    num = num + 1

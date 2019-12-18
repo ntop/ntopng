@@ -57,7 +57,7 @@ end
 
 function telemetry_utils.show_notice()
    if not dismiss_notice() and (not _SERVER or not _SERVER["URI"]:match("/lua/admin/prefs.lua")) then
-      print('<br><div id="telemetry-data" class="alert alert-info" role="alert"><i class="fa fa-info-circle"></i> ')
+      print('<br><div id="telemetry-data" class="alert alert-info" role="alert"><i class="fas fa-info-circle"></i> ')
       print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
 
       telemetry_utils.notice_msg()

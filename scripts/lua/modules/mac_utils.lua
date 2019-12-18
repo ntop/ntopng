@@ -59,7 +59,7 @@ function mac2record(mac)
    record["column_mac"] = mac2link(mac)
 
    if(mac.fingerprint ~= "") then
-      record["column_mac"] = record["column_mac"]..' <i class="fa fa-hand-o-up fa-lg" aria-hidden="true" title="DHCP Fingerprinted"></i>'
+      record["column_mac"] = record["column_mac"]..' <i class="fas fa-hand-o-up fa-lg" aria-hidden="true" title="DHCP Fingerprinted"></i>'
       -- io.write(mac.fingerprint.."\n")
    end
    

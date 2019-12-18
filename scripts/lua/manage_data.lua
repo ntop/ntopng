@@ -305,7 +305,7 @@ print [[
            </div>
          </div>
        </div>
-          <button class="btn btn-secondary" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
+          <button class="btn btn-secondary" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
         </form>
     
   </div>
@@ -318,14 +318,14 @@ print[[<div>]]
 
 print[[
 <form class="interface_data_form" method="POST">
-  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(i18n("system")) print[['); delete_system_iface = true; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_system_interface_data")) print[[</button>
+  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(i18n("system")) print[['); delete_system_iface = true; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_system_interface_data")) print[[</button>
 </form>
 ]]
 
 if num_inactive_interfaces > 0 then
    print[[
         <form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
-          <button class="btn btn-secondary" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
+          <button class="btn btn-secondary" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
         </form>
 ]]
 end
@@ -333,7 +333,7 @@ end
 if (not ntop.isnEdge()) and (not delete_active_interface_requested) then
    print[[
 <form class="interface_data_form" method="POST">
-  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(ifname) print[['); delete_system_iface = false; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
+  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(ifname) print[['); delete_system_iface = false; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
 </form>
 ]]
 end

@@ -37,7 +37,7 @@ print [[
     <label for="username_input">]] print(i18n("login.username")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
-	<span class="input-group-text"><i class="fa fa-user-circle" aria-hidden="true"></i></span>
+	<span class="input-group-text"><i class="fas fa-user-circle" aria-hidden="true"></i></span>
       </div>
       <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
     </div>
@@ -45,7 +45,7 @@ print [[
     <label for="full_name_input">]] print(i18n("users.full_name")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
-	<span class="input-group-text"><i class="fa fa-user" aria-hidden="true"></i></span>
+	<span class="input-group-text"><i class="fas fa-user" aria-hidden="true"></i></span>
       </div>
       <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
     </div>
@@ -53,7 +53,7 @@ print [[
     <label for="password_input">]] print(i18n("login.password")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
-	<span class="input-group-text"><i class="fa fa-lock"></i></span>
+	<span class="input-group-text"><i class="fas fa-lock"></i></span>
       </div>
       <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
@@ -61,7 +61,7 @@ print [[
     <label for="confirm_password_input">]] print(i18n("login.confirm_password")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
-	<span class="input-group-text"><i class="fa fa-lock"></i></span>
+	<span class="input-group-text"><i class="fas fa-lock"></i></span>
       </div>
       <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
@@ -100,7 +100,7 @@ if not ntop.isnEdge() then
     <label for="user_language">]] print(i18n("language")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
-	<span class="input-group-text"><i class="fa fa-language" aria-hidden="true"></i></span>
+	<span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
       </div>
       <select id="user_language" name="user_language" class="form-control">]]
 

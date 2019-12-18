@@ -96,11 +96,11 @@ if host then
 
       -- See ValueTrend in ntop_typedefs.h for values
       if host["throughput_trend_"..throughput_type] == 1 then
-	 res_thpt = res_thpt .. " <i class='fa fa-arrow-up'></i>"
+	 res_thpt = res_thpt .. " <i class='fas fa-arrow-up'></i>"
       elseif host["throughput_trend_"..throughput_type] == 2 then
-	 res_thpt = res_thpt .. " <i class='fa fa-arrow-down'></i>"
+	 res_thpt = res_thpt .. " <i class='fas fa-arrow-down'></i>"
       elseif host["throughput_trend_"..throughput_type] == 3 then
-	 res_thpt = res_thpt .. " <i class='fa fa-minus'></i>"
+	 res_thpt = res_thpt .. " <i class='fas fa-minus'></i>"
       end
 
       res["column_thpt"] = res_thpt

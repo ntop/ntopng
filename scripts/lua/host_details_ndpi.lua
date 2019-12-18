@@ -100,7 +100,7 @@ for _k in pairsByKeys(vals , desc) do
     t = host["ndpi"][k]["bytes.sent"]+host["ndpi"][k]["bytes.rcvd"]
 
     if((host["ndpi"][k]["bytes.sent"] == 0) and (host["ndpi"][k]["bytes.rcvd"] > 0)) then
-       print(" <i class=\"fa fa-exclamation-triangle fa-lg\" style=\"color: orange;\"></i>")
+       print(" <i class=\"fas fa-exclamation-triangle fa-lg\" style=\"color: orange;\"></i>")
     end
 
     historicalProtoHostHref(getInterfaceId(ifname), host, nil, protos[k], nil)

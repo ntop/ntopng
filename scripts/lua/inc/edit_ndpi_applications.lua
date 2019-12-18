@@ -214,7 +214,7 @@ if not isEmptyString(proto_filter) then
     <form action="]] print(base_url) print [[" method="get">
       <input type="hidden" name="tab" value="protocols" />
       <button type="button" class="btn btn-secondary btn-sm" onclick="$(this).closest('form').submit();">
-        <i class="fa fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
+        <i class="fas fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
       </button>
     </form>
   </td>]]
@@ -299,7 +299,7 @@ print[[
     buttons: [ ]]
 
   if has_protos_file then
-    print[['<a id="addApplication" onclick="showAddApplicationDialog()" role="button" class="add-on btn float-right" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>',]]
+    print[['<a id="addApplication" onclick="showAddApplicationDialog()" role="button" class="add-on btn float-right" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>',]]
   end
 
   if isEmptyString(proto_filter) then

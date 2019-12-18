@@ -328,9 +328,9 @@ local function ja3url(what, safety)
    if(what == nil) then
       print("&nbsp;")
    else
-      ret = '<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fa fa-external-link-alt"></i>'
+      ret = '<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..'</A> <i class="fas fa-external-link-alt"></i>'
       if((safety ~= nil) and (safety ~= "safe")) then
-	 ret = ret .. ' [ <i class="fa fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
+	 ret = ret .. ' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
       end
 
       print(ret)
@@ -451,7 +451,7 @@ local function printAddCustomHostRule(full_url)
      })
    )
 
-   print(' <a href="#" onclick="$(\'#add_to_customized_categories\').modal(\'show\'); return false;"><i title="'.. i18n("custom_categories.add_to_categories") ..'" class="fa fa-plus"></i></a>')
+   print(' <a href="#" onclick="$(\'#add_to_customized_categories\').modal(\'show\'); return false;"><i title="'.. i18n("custom_categories.add_to_categories") ..'" class="fas fa-plus"></i></a>')
 
    print[[<script>
    function addToCustomizedCategories() {
@@ -554,7 +554,7 @@ if not table.empty(alert_banners) then
    print("<br>")
 end
 
-print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle fa-lg"></i>&nbsp;'..i18n("flow_details.not_purged")..'</div>')
+print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i>&nbsp;'..i18n("flow_details.not_purged")..'</div>')
 
 throughput_type = getThroughputType()
 
@@ -579,7 +579,7 @@ page_utils.print_navbar(title, url,
 )
 
 if(flow == nil) then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
+   print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i> '..i18n("flow_details.flow_cannot_be_found_message")..' '.. purgedErrorString()..'</div>')
 else
    if isAdministrator() then
       if(_POST["drop_flow_policy"] == "true") then
@@ -621,7 +621,7 @@ else
       and (flow["protos.tls_version"] ~= 0)) then
       print(" [ "..tlsVersion2Str(flow["protos.tls_version"]).." ]")
       if(tonumber(flow["protos.tls_version"]) < 771) then
-	 print(' <i class="fa fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> ')
+	 print(' <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> ')
 	 print(i18n("flow_details.tls_old_protocol_version"))
       end
    end
@@ -630,7 +630,7 @@ else
       if(flow["verdict.pass"]) then
 	 print('<form class="form-inline float-right" style="margin-bottom: 0px;" method="post">')
 	 print('<input type="hidden" name="drop_flow_policy" value="true">')
-	 print('<button type="submit" class="btn btn-secondary btn-xs"><i class="fa fa-ban"></i> '..i18n("flow_details.drop_flow_traffic_btn")..'</button>')
+	 print('<button type="submit" class="btn btn-secondary btn-xs"><i class="fas fa-ban"></i> '..i18n("flow_details.drop_flow_traffic_btn")..'</button>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('</form>')
       end
@@ -745,7 +745,7 @@ else
 	 print("<td>&nbsp;</td></tr>\n")
       end
 
-      print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fa fa-arrow-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fa fa-arrow-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+      print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-arrow-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-arrow-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
       print("<tr><td colspan=2>")
       cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
@@ -795,23 +795,23 @@ else
       if flow["cli2srv.packets"] > 1 and flow["interarrival.cli2srv"] and flow["interarrival.cli2srv"]["max"] > 0 then
 	  print("<tr><th width=30%")
 	  if(flow["flow.idle"] == true) then print(" rowspan=2") end
-	  print(">"..i18n("flow_details.packet_inter_arrival_time").."</th><td nowrap>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server")..": ")
+	  print(">"..i18n("flow_details.packet_inter_arrival_time").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
 	  print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
 	  print("</td>\n")
 	  if(flow["srv2cli.packets"] < 2) then
 	     print("<td>&nbsp;")
 	  else
-	     print("<td nowrap>"..i18n("client").." <i class=\"fa fa-arrow-left\"></i> "..i18n("server")..": ")
+	     print("<td nowrap>"..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ")
 	     print(msToTime(flow["interarrival.srv2cli"]["min"]).." / "..msToTime(flow["interarrival.srv2cli"]["avg"]).." / "..msToTime(flow["interarrival.srv2cli"]["max"]))
 	  end
 	  print("</td></tr>\n")
-	  if(flow["flow.idle"] == true) then print("<tr><td colspan=2><i class='fa fa-clock-o'></i> <small>"..i18n("flow_details.looks_like_idle_flow_message").."</small></td></tr>") end
+	  if(flow["flow.idle"] == true) then print("<tr><td colspan=2><i class='fas fa-clock-o'></i> <small>"..i18n("flow_details.looks_like_idle_flow_message").."</small></td></tr>") end
        end
 
        if((flow["cli2srv.fragments"] + flow["srv2cli.fragments"]) > 0) then
 	  rowspan = 3
 	  print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.ip_packet_analysis").."</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'></tr>")
-	  print("<tr><th>&nbsp;</th><th>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fa fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
+	  print("<tr><th>&nbsp;</th><th>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
 	  print("<tr><th>"..i18n("details.fragments").."</th><td align=right><span id=c2sFrag>".. formatPackets(flow["cli2srv.fragments"]) .."</span> / <span id=s2cFrag>".. formatPackets(flow["srv2cli.fragments"]) .."</span></td></tr>\n")
        end
 
@@ -827,7 +827,7 @@ else
 	      + flow["cli2srv.lost"] + flow["srv2cli.lost"]
 	      + flow["cli2srv.keep_alive"] + flow["srv2cli.keep_alive"]) > 0) then
 	     print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.tcp_packet_analysis").."</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'></tr>")
-	     print("<tr><th>&nbsp;</th><th>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fa fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
+	     print("<tr><th>&nbsp;</th><th>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
 
 	     if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then
 		print("<tr><th>"..i18n("details.retransmissions").."</th><td align=right><span id=c2sretr>".. formatPackets(flow["cli2srv.retransmissions"]) .."</span> / <span id=s2cretr>".. formatPackets(flow["srv2cli.retransmissions"]) .."</span></td></tr>\n")
@@ -846,8 +846,8 @@ else
     end
 
    if(flow["protos.tls.certificate"] ~= nil) then
-      print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
-      print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.tls.certificate"].."\">"..flow["protos.tls.certificate"].."</A> <i class=\"fa fa-external-link-alt\"></i>")
+      print("<tr><th width=30%><i class='fas fa-lock fa-lg'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
+      print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.tls.certificate"].."\">"..flow["protos.tls.certificate"].."</A> <i class=\"fas fa-external-link-alt\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.certificate"], flow["category"])) end
       historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.tls.certificate"])
       printAddCustomHostRule(flow["protos.tls.certificate"])
@@ -858,7 +858,7 @@ else
 	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.tls.server_certificate"].."\">"..flow["protos.tls.server_certificate"].."</A>")
 
 	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_tls_certificate_mismatch.status_id)) then
-	    print("\n<br><i class=\"fa fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
+	    print("\n<br><i class=\"fas fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
       print("</td>")
@@ -868,12 +868,12 @@ else
    if((flow["protos.tls.ja3.client_hash"] ~= nil) or (flow["protos.tls.ja3.server_hash"] ~= nil)) then
       print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
       if(flow["protos.tls.ja3.client_malicious"]) then
-        print('<i class="fa fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
+        print('<i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
       end
       ja3url(flow["protos.tls.ja3.client_hash"], nil)
       print("</td><td>")
       if(flow["protos.tls.ja3.server_malicious"]) then
-        print('<i class="fa fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
+        print('<i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
       end
       ja3url(flow["protos.tls.ja3.server_hash"], flow["protos.tls.ja3.server_unsafe_cipher"])
       --print(cipher2str(flow["protos.tls.ja3.server_cipher"]))
@@ -883,17 +883,17 @@ else
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
      '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-toggle="tooltip" title="'..i18n("flow_details.computed_as_tcp_window_size_rtt")..'">'..
-     i18n("flow_details.max_estimated_tcp_throughput").."</a><td nowrap> "..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server")..": ")
+     i18n("flow_details.max_estimated_tcp_throughput").."</a><td nowrap> "..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
-     print("</td><td> "..i18n("client").." <i class=\"fa fa-arrow-left\"></i> "..i18n("server")..": ")
+     print("</td><td> "..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ")
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
    end
   
    if((flow["cli2srv.trend"] ~= nil) and false) then
-     print("<tr><th width=30%>"..i18n("flow_details.throughput_trend").."</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
+     print("<tr><th width=30%>"..i18n("flow_details.throughput_trend").."</th><td nowrap>"..flow["cli.ip"].." <i class=\"fas fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
      print(flow["cli2srv.trend"])
-     print("</td><td>"..flow["cli.ip"].." <i class=\"fa fa-arrow-left\"></i> "..flow["srv.ip"]..": ")
+     print("</td><td>"..flow["cli.ip"].." <i class=\"fas fa-arrow-left\"></i> "..flow["srv.ip"]..": ")
      print(flow["srv2cli.trend"])
      print("</td></tr>\n")
     end
@@ -901,9 +901,9 @@ else
    local flags = flow["cli2srv.tcp_flags"] or flow["srv2cli.tcp_flags"]
 
    if((flags ~= nil) and (flags > 0)) then
-      print("<tr><th width=30% rowspan=2>"..i18n("tcp_flags").."</th><td nowrap>"..i18n("client").." <i class=\"fa fa-arrow-right\"></i> "..i18n("server")..": ")
+      print("<tr><th width=30% rowspan=2>"..i18n("tcp_flags").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
       printTCPFlags(flow["cli2srv.tcp_flags"])
-      print("</td><td nowrap>"..i18n("client").." <i class=\"fa fa-arrow-left\"></i> "..i18n("server")..": ")
+      print("</td><td nowrap>"..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ")
       printTCPFlags(flow["srv2cli.tcp_flags"])
       print("</td></tr>\n")
 
@@ -968,7 +968,7 @@ else
       alerted_status = flow["alerted_status"]
       local message = flow_consts.getStatusDescription(alerted_status, flow2statusinfo(flow))
 
-      print("<tr><th width=30%><i class='fa fa-exclamation-triangle' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
+      print("<tr><th width=30%><i class='fas fa-exclamation-triangle' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
       print("</td></tr>\n")
    end
@@ -982,7 +982,7 @@ else
    end
 
    if(additional_status ~= 0) then
-      local status_icon = "<i class=\"fa fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
+      local status_icon = "<i class=\"fas fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
 
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
       for _, t in pairs(flow_consts.status_types) do
@@ -1052,7 +1052,7 @@ else
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
 	 print(flow["protos.dns.last_query"])
       else
-	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..flow["protos.dns.last_query"].."</A> <i class='fa fa-external-link-alt'></i>")
+	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..flow["protos.dns.last_query"].."</A> <i class='fas fa-external-link-alt'></i>")
       end
 
       if(flow["category"] ~= nil) then
@@ -1096,7 +1096,7 @@ else
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
       end
-      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link-alt\"></i>")
+      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fas fa-external-link-alt\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
       printAddCustomHostRule(s)
       print("</td></tr>\n")
@@ -1104,7 +1104,7 @@ else
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
       print("<A HREF=\"http://")
       if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-      print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '', 64).."</A> <i class=\"fa fa-external-link-alt\">")
+      print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '', 64).."</A> <i class=\"fas fa-external-link-alt\">")
       print("</td></tr>\n")
 
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then
@@ -1112,7 +1112,7 @@ else
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link-alt\"></i>")
+	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fas fa-external-link-alt\"></i>")
 	 if not isEmptyString(flow["protos.http.server_name"]) then
 	    printAddCustomHostRule(flow["protos.http.server_name"])
 	 end
@@ -1275,36 +1275,36 @@ print[[
 			/* **************************************** */
 
 			if(cli2srv_packets == rsp["cli2srv.packets"]) {
-			   $('#sent_trend').html("<i class=\"fa fa-minus\"></i>");
+			   $('#sent_trend').html("<i class=\"fas fa-minus\"></i>");
 			} else {
-			   $('#sent_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+			   $('#sent_trend').html("<i class=\"fas fa-arrow-up\"></i>");
 			}
 
 			if(srv2cli_packets == rsp["srv2cli.packets"]) {
-			   $('#rcvd_trend').html("<i class=\"fa fa-minus\"></i>");
+			   $('#rcvd_trend').html("<i class=\"fas fa-minus\"></i>");
 			} else {
-			   $('#rcvd_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+			   $('#rcvd_trend').html("<i class=\"fas fa-arrow-up\"></i>");
 			}
 
 			if(bytes == rsp["bytes"]) {
-			   $('#volume_trend').html("<i class=\"fa fa-minus\"></i>");
+			   $('#volume_trend').html("<i class=\"fas fa-minus\"></i>");
 			} else {
-			   $('#volume_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+			   $('#volume_trend').html("<i class=\"fas fa-arrow-up\"></i>");
 			}
 
 			if(goodput_bytes == rsp["goodput_bytes"]) {
-			   $('#goodput_volume_trend').html("<i class=\"fa fa-minus\"></i>");
+			   $('#goodput_volume_trend').html("<i class=\"fas fa-minus\"></i>");
 			} else {
-			   $('#goodput_volume_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+			   $('#goodput_volume_trend').html("<i class=\"fas fa-arrow-up\"></i>");
 			}
 
 			if(throughput > rsp["throughput_raw"]) {
-			   $('#throughput_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+			   $('#throughput_trend').html("<i class=\"fas fa-arrow-down\"></i>");
 			} else if(throughput < rsp["throughput_raw"]) {
-			   $('#throughput_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+			   $('#throughput_trend').html("<i class=\"fas fa-arrow-up\"></i>");
 			   $('#top_throughput').html(rsp["top_throughput_display"]);
 			} else {
-			   $('#throughput_trend').html("<i class=\"fa fa-minus\"></i>");
+			   $('#throughput_trend').html("<i class=\"fas fa-minus\"></i>");
 			} ]]
 
       if(isThereSIP == 1) then

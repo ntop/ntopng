@@ -10,7 +10,7 @@ require "lua_utils"
 local discover = require "discover_utils"
 local page_utils = require("page_utils")
 local ifId = getInterfaceId(ifname)
-local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fa fa-sync fa-sm" aria-hidden="true"></i></a></small>'
+local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fas fa-sync fa-sm" aria-hidden="true"></i></a></small>'
 
 active_page = "dashboard"
 
@@ -81,7 +81,7 @@ end
 
 if discovery_requested then
 
-   print('<div class=\"alert alert-info alert-dismissable\">'..'<img src="'..ntop.getHttpPrefix()..'/img/loading.gif"> '..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fa fa-flask\"></i>"})..'<span id="discovery-progress"></span>.</div>')
+   print('<div class=\"alert alert-info alert-dismissable\">'..'<img src="'..ntop.getHttpPrefix()..'/img/loading.gif"> '..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fas fa-flask\"></i>"})..'<span id="discovery-progress"></span>.</div>')
 
    print[[
 
@@ -116,11 +116,11 @@ print[[
 
 elseif discovered["status"]["code"] == "NOCACHE" then
    -- nothing to show and nothing has been requested
-   print('<div class=\"alert alert-info alert-dismissable\"><i class="fa fa-info-circle fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
+   print('<div class=\"alert alert-info alert-dismissable\"><i class="fas fa-info-circle fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
 end
 
 if discovered["status"]["code"] == "ERROR" then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-exclamation-triangle fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
+   print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i>&nbsp;'..discovered["status"]["message"]..'</div>')
 elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print[[<div id="discover-table"></div>]]
 
@@ -134,7 +134,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 
    -- Manufacturer filter
    print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-      i18n("mac_stats.manufacturer") .. ternary(not isEmptyString(manuf_filter), '<span class="fa fa-filter"></span>', '') ..
+      i18n("mac_stats.manufacturer") .. ternary(not isEmptyString(manuf_filter), '<span class="fas fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    local manuf_params = table.clone(page_params)
@@ -153,7 +153,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    -- Device Type filter
    local type_params = table.clone(page_params)
    print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-      i18n("details.device_type") .. ternary(not isEmptyString(devtype_filter), '<span class="fa fa-filter"></span>', '') ..
+      i18n("details.device_type") .. ternary(not isEmptyString(devtype_filter), '<span class="fas fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    type_params.device_type = nil
@@ -171,7 +171,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    -- OS filter
    local os_params = table.clone(page_params)
    print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-      i18n("os") .. ternary(not isEmptyString(os_filter), '<span class="fa fa-filter"></span>', '') ..
+      i18n("os") .. ternary(not isEmptyString(os_filter), '<span class="fas fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    os_params.operating_system = nil

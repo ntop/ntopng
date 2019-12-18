@@ -184,25 +184,25 @@ discover.apple_products = {
 
 discover.asset_icons = {
    ['unknown']     = '',
-   ['printer']     = '<i class="fa fa-print fa-lg devtype-icon" aria-hidden="true"></i>', -- 1
-   ['video']       = '<i class="fa fa-video fa-lg devtype-icon" aria-hidden="true"></i>', -- 2
-   ['workstation'] = '<i class="fa fa-desktop fa-lg devtype-icon" aria-hidden="true"></i>', -- ... and so on
-   ['laptop']      = '<i class="fa fa-laptop fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['tablet']      = '<i class="fa fa-tablet fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['phone']       = '<i class="fa fa-mobile fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['tv']          = '<i class="fa fa-tv fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['networking']  = '<i class="fa fa-arrows-alt fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['wifi']        = '<i class="fa fa-wifi fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['nas']         = '<i class="fa fa-database fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['multimedia']  = '<i class="fa fa-music fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['iot']         = '<i class="fa fa-thermometer fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['printer']     = '<i class="fas fa-print fa-lg devtype-icon" aria-hidden="true"></i>', -- 1
+   ['video']       = '<i class="fas fa-video fa-lg devtype-icon" aria-hidden="true"></i>', -- 2
+   ['workstation'] = '<i class="fas fa-desktop fa-lg devtype-icon" aria-hidden="true"></i>', -- ... and so on
+   ['laptop']      = '<i class="fas fa-laptop fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['tablet']      = '<i class="fas fa-tablet fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['phone']       = '<i class="fas fa-mobile fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['tv']          = '<i class="fas fa-tv fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['networking']  = '<i class="fas fa-arrows-alt fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['wifi']        = '<i class="fas fa-wifi fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['nas']         = '<i class="fas fa-database fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['multimedia']  = '<i class="fas fa-music fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['iot']         = '<i class="fas fa-thermometer fa-lg devtype-icon" aria-hidden="true"></i>',
    -- IMPORTANT: please keep in sync asset_icons with id2label
 }
 
 discover.extra_asset_icons = {
-   ['lightbulb']      = '<i class="fa fa-lightbulb fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['phone']          = '<i class="fa fa-phone fa-lg devtype-icon" aria-hidden="true"></i>',
-   ['health']         = '<i class="fa fa-medkit fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['lightbulb']      = '<i class="fas fa-lightbulb fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['phone']          = '<i class="fas fa-phone fa-lg devtype-icon" aria-hidden="true"></i>',
+   ['health']         = '<i class="fas fa-medkit fa-lg devtype-icon" aria-hidden="true"></i>',
 }
 
 local id2label = {
@@ -222,7 +222,7 @@ local id2label = {
    -- IMPORTANT: please keep in sync asset_icons with id2label
 }
 
-discover.ghost_icon = '<i class="fa fa-ghost fa-lg" aria-hidden="true"></i>'
+discover.ghost_icon = '<i class="fas fa-ghost fa-lg" aria-hidden="true"></i>'
 discover.android_icon = '<i class="fab fa-android fa-lg" aria-hidden="true"></i>'
 discover.apple_icon = '<i class="fab fa-apple fa-lg" aria-hidden="true"></i>'
 discover.MAX_DISCOVERED_DEVICES = 8192

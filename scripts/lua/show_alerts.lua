@@ -29,7 +29,7 @@ if ntop.getPrefs().are_alerts_enabled == false then
    print("<div class=\"alert alert alert-warning\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>" .. " " .. i18n("show_alerts.alerts_are_disabled_message") .. "</div>")
 --return
 elseif not has_engaged_alerts and not has_past_alerts and not has_flow_alerts and not has_disabled_alerts then
-   print("<div class=\"alert alert alert-info\"><i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i>" .. " " .. i18n("show_alerts.no_recorded_alerts_message",{ifname=ifname}).."</div>")
+   print("<div class=\"alert alert alert-info\"><i class=\"fas fa-info-circle fa-lg\" aria-hidden=\"true\"></i>" .. " " .. i18n("show_alerts.no_recorded_alerts_message",{ifname=ifname}).."</div>")
 else
    drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET)
 end -- closes if ntop.getPrefs().are_alerts_enabled == false then

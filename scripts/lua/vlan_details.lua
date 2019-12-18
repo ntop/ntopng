@@ -49,7 +49,7 @@ else
 			      {
 				 active = page == "historical" or not page,
 				 page_name = "historical",
-				 label = "<i class='fa fa-lg fa-chart-area'></i>",
+				 label = "<i class='fas fa-lg fa-chart-area'></i>",
 			      },
 			   }
    )

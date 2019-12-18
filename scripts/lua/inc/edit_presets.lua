@@ -140,7 +140,7 @@ local function printDeviceProtocolsPage()
       end
       print[[
         <button type="button" class="btn btn-secondary btn-sm" style="margin-bottom: 18px;" onclick="$(this).closest('form').submit();">
-          <i class="fa fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
+          <i class="fas fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(proto_name) print[[
         </button>
       </form>
     </td>]]
@@ -204,7 +204,7 @@ local function printDeviceProtocolsPage()
       <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
    </form>
 
-   <button class="btn btn-secondary" onclick="$('#to_reset_devtype').html($('#device_type_selector option:selected').text()); $('#presetsResetDefaults').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-undo" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("users.reset_to_defaults")) print[[</button>
+   <button class="btn btn-secondary" onclick="$('#to_reset_devtype').html($('#device_type_selector option:selected').text()); $('#presetsResetDefaults').modal('show');" style="float:right; margin-right:1em;"><i class="fas fa-undo" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("users.reset_to_defaults")) print[[</button>
 
    <br>]]
  
@@ -300,7 +300,7 @@ local function printDeviceProtocolsPage()
 
    -- 'Filter Policies' button
    print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
-         i18n("nedge.filter_policies") .. ternary(not isEmptyString(policy_filter), '<span class="fa fa-filter"></span>', '') ..
+         i18n("nedge.filter_policies") .. ternary(not isEmptyString(policy_filter), '<span class="fas fa-filter"></span>', '') ..
          '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
 
    -- 'Filter Policies' dropdown menu

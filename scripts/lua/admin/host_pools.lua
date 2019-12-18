@@ -285,7 +285,7 @@ local no_pools = (#available_pools <= 1)
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
     if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=ifId, pool=selected_pool.id}) then
-      print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fa fa-chart-area'></i></a>")
+      print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fas fa-chart-area'></i></a>")
     end
 end
 
@@ -307,7 +307,7 @@ if members_filtering ~= nil then
       <input type="hidden" name="page" value="pools" />
       <input type="hidden" name="pool" value="]] print(selected_pool.id) print[[" />
       <button type="button" class="btn btn-secondary btn-sm" onclick="$(this).closest('form').submit();">
-        <i class="fa fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(formatMemberFilter()) print[[
+        <i class="fas fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(formatMemberFilter()) print[[
       </button>
     </form>
   </td>
@@ -365,7 +365,7 @@ end
   end
 
 print[[
-      <button id="emptyPoolButton" class="btn btn-secondary" onclick="$('#empty_pool_dialog').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true"></i> ]] print(i18n("host_pools.empty_pool")) print[[</button>
+      <button id="emptyPoolButton" class="btn btn-secondary" onclick="$('#empty_pool_dialog').modal('show');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true"></i> ]] print(i18n("host_pools.empty_pool")) print[[</button>
 ]]
 
 print[[
@@ -683,7 +683,7 @@ print [[
       hidePerPage: true,
       
       buttons: [
-         '<a id="addPoolMemberBtn" onclick="addPoolMember()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
+         '<a id="addPoolMemberBtn" onclick="addPoolMember()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
             title: "]] print(i18n("host_pools.member_address")) print[[",
@@ -969,7 +969,7 @@ printPoolNameField('pool_id') print[[</td><td align="center"></td></tr>');
       perPage: ]] print(perPagePools) print[[,
 
       buttons: [
-         '<a id="addNewPoolBtn" onclick="addPool()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
+         '<a id="addNewPoolBtn" onclick="addPool()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
             field: "column_pool_id",

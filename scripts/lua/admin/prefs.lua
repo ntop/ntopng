@@ -485,7 +485,7 @@ function printExternalAlertsReport()
   print('<tr id="alerts_test" style="' .. ternary(showEmailNotificationPrefs, "", "display:none;").. '"><td><button class="btn btn-secondary disable-on-dirty" type="button" onclick="sendTestEmail();" style="width:230px; float:left;">'..i18n("prefs.send_test_mail")..'</button></td></tr>')
      end -- ntop.sendMail
 
-     print('<thead class="thead-light"><tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr></thead>')
+     print('<thead class="thead-light"><tr><th colspan=2 class="info"><i class="fas fa-slack" aria-hidden="true"></i> '..i18n('prefs.slack_integration')..'</th></tr></thead>')
 
      local elementToSwitchSlack = {"row_slack_notification_severity_preference", "slack_sender_username", "slack_webhook", "slack_test", "slack_channels"}
 
@@ -780,8 +780,8 @@ function printTelemetry()
 
    print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.telemetry")..'</th></tr></thead>')
 
-   local t_labels = {i18n("prefs.telemetry_do_not_contribute")..' <i class="fa fa-frown-o"></i>',
-		     i18n("prefs.telemetry_contribute")..' <i class="fa fa-heart"></i>'}
+   local t_labels = {i18n("prefs.telemetry_do_not_contribute")..' <i class="fas fa-frown-o"></i>',
+		     i18n("prefs.telemetry_contribute")..' <i class="fas fa-heart"></i>'}
    local t_values = {"0", "1"}
    local elementToSwitch = {"telemetry_email"}
    local showElementArray = {false, true}

@@ -47,19 +47,19 @@ page_utils.print_navbar(title, url,
 			   {
 			      active = page == "overview" or not page,
 			      page_name = "overview",
-			      label = "<i class=\"fa fa-lg fa-home\"></i>",
+			      label = "<i class=\"fas fa-lg fa-home\"></i>",
 			   },
 			   {
 			      hidden = not host or not ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host = host}),
 			      active = page == "historical",
 			      page_name = "historical",
-			      label = "<i class='fa fa-lg fa-chart-area'></i>",
+			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
 			      hidden = not isAdministrator() or not plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("pinged_host")}),
 			      active = page == "alerts",
 			      page_name = "alerts",
-			      label = "<i class=\"fa fa-lg fa-exclamation-triangle\"></i>",
+			      label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 			   },
 			}
 )
@@ -134,7 +134,7 @@ if(page == "overview") then
       buttons: [
       ]]
       if isAdministrator() then
-	print[['<a id="addRowBtn" onclick="addRow()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>']]
+	print[['<a id="addRowBtn" onclick="addRow()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>']]
       end
       print[[
       ],

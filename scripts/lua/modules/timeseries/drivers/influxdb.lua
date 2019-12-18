@@ -364,7 +364,7 @@ local function influx_query_multi(base_url, query, username, password, options)
     -- Show the error
     ntop.setCache("ntopng.cache.influxdb.last_error", i18n("graphs.influxdb_not_responding", {
       url = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts#influx_query_timeout",
-      flask_icon = '<i class="fa fa-flask"></i>',
+      flask_icon = '<i class="fas fa-flask"></i>',
     }))
   end
 

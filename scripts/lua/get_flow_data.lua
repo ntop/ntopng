@@ -35,11 +35,11 @@ else
     end
 
     if(flow["throughput_trend_"..throughput_type] == 1) then 
-       print("<i class='fa fa-arrow-up'></i>")
+       print("<i class='fas fa-arrow-up'></i>")
        elseif(flow["throughput_trend_"..throughput_type] == 2) then
-       print("<i class='fa fa-arrow-down'></i>")
+       print("<i class='fas fa-arrow-down'></i>")
        elseif(flow["throughput_trend_"..throughput_type] == 3) then
-       print("<i class='fa fa-minus'></i>")
+       print("<i class='fas fa-minus'></i>")
     end
 
       print("\"")

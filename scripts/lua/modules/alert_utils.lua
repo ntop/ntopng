@@ -86,7 +86,7 @@ function alertTypeLabel(v, nohtml)
       if(nohtml) then
         return(title)
       else
-        return(string.format('<i class="fa %s"></i> %s', type_info.icon, title))
+        return(string.format('<i class="fas %s"></i> %s', type_info.icon, title))
       end
    end
 
@@ -690,7 +690,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
          local lb = ""
          if (record["flow_status"] == "13") -- blacklisted flow
                   and (not flow["srv.blacklisted"]) and (not flow["cli.blacklisted"]) then
-            lb = " <i class='fa fa-ban' aria-hidden='true' title='Blacklisted'></i>"
+            lb = " <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
          end
          msg = msg.."["..i18n("info")..": "..decoded["info"]..lb.."] "
       end
@@ -756,7 +756,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
 
    button_label = button_label or firstToUpper(selection_name)
    if active_entry ~= nil and active_entry ~= "" then
-      button_label = firstToUpper(active_entry)..'<span class="fa fa-filter"></span>'
+      button_label = firstToUpper(active_entry)..'<span class="fas fa-filter"></span>'
    end
 
    buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..button_label
@@ -809,7 +809,7 @@ local function printProbesTab(entity_probes, entity_type, entity_value, page_nam
       --~ print[[
      --~ <tr>
        --~ <td>]] print(probe["probe"]["name"]) print[[</td>
-       --~ <td><a href="]] print(probe["config"]["url"]) print[["><i class="fa fa-cog" aria-hidden="true"></i></a></td>
+       --~ <td><a href="]] print(probe["config"]["url"]) print[["><i class="fas fa-cog" aria-hidden="true"></i></a></td>
      --~ </tr>]]
 	 
       --~ end
@@ -879,7 +879,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
          <th width="25%">]] print(i18n("device_protocols.alert")) print[[</th>
          <td>
                <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
-                  <i class="fa fa-exclamation-triangle fa-lg"></i>
+                  <i class="fas fa-exclamation-triangle fa-lg"></i>
                   ]] print(enable_label) print[[
                </input>
          </td>
@@ -888,7 +888,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
    if(entity_type == "host") then
       print[[<tr>
          <td width="30%">
-           <b>]] print(i18n("host_details.status_ignore")) print[[</b> <i class="fa fa-info-circle" title="]] print(i18n("host_details.disabled_flow_status_help")) print[["></i>
+           <b>]] print(i18n("host_details.status_ignore")) print[[</b> <i class="fas fa-info-circle" title="]] print(i18n("host_details.disabled_flow_status_help")) print[["></i>
          </td>
          <td>
            <input id="status_trigger_alert" name="disabled_status" type="hidden" />
@@ -981,7 +981,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
          local resolution = granularity.granularity_seconds
 
          if (not options.remote_host) or resolution <= 60 then
-	    --~ l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
+	    --~ l = '<i class="fas fa-cog" aria-hidden="true"></i>&nbsp;'..l
 	    printTab(k, l, tab)
          end
       end
@@ -1102,7 +1102,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 
 	    if(user_script.plugin.edition == "community") then
 	       local path = string.sub(user_script.source_path, string.len(ntop.getDirs().scriptdir)+1)
-	       url = '<A HREF="/lua/code_viewer.lua?lua_script_path='..path..'"><i class="fa fa-lg fa-binoculars"></i></A>'
+	       url = '<A HREF="/lua/code_viewer.lua?lua_script_path='..path..'"><i class="fas fa-lg fa-binoculars"></i></A>'
 	    end
             
 	    print("<tr><td><b>".. (i18n(gui_conf.i18n_title) or gui_conf.i18n_title) .. " " .. url .."</b><br>")
@@ -1112,7 +1112,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	       print("<td class='text-center'>")
 	       if ts_utils.exists("elem_user_script:duration", {ifid=ifid, user_script=mod_k, subdir=entity_type}) then
 		  print('<a href="'.. ntop.getHttpPrefix() ..'/lua/user_script_details.lua?ifid='..ifid..'&user_script='..
-			   mod_k..'&subdir='..entity_type..'"><i class="fa fa-chart-area fa-lg"></i></a>')
+			   mod_k..'&subdir='..entity_type..'"><i class="fas fa-chart-area fa-lg"></i></a>')
 	       end
 	    end
 
@@ -1297,7 +1297,7 @@ function printAlertTables(entity_type, alert_source, page_name, page_params, alt
    end
    ]]
 
-   printTab("config", '<i class="fa fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
+   printTab("config", '<i class="fas fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
 
    print('</ul>')
 
@@ -1722,7 +1722,7 @@ function toggleAlert(disable) {
 	       showPagination: true,
                buttons: [']]
 
-   local title = t["label"]..ternary(t["chart"] ~= "", " <small><A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..string.format("%d", ifid).."&page=historical&ts_schema="..t["chart"].."'><i class='fa fa-chart-area fa-sm'></i></A></small>", "")
+   local title = t["label"]..ternary(t["chart"] ~= "", " <small><A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..string.format("%d", ifid).."&page=historical&ts_schema="..t["chart"].."'><i class='fas fa-chart-area fa-sm'></i></A></small>", "")
 
 	 if(options.hide_filters ~= true)  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils

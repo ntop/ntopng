@@ -49,7 +49,7 @@ print[[
       title: "",
       forceTable: true,
       buttons: [
-         '<a id="addRangeBtn" onclick="addDhcpRow()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
+         '<a id="addRangeBtn" onclick="addDhcpRow()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
             title: "]] print(i18n("nedge.dhcp_first_ip")) print[[",

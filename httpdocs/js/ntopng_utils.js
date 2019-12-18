@@ -236,19 +236,19 @@ String.prototype.startsWith = function (string) {
 
 function get_trend(actual, before) {
     if((before === undefined) || (actual == before)) {
-	return("<i class=\"fa fa-minus\"></i>");
+	return("<i class=\"fas fa-minus\"></i>");
     } else {
-	return("<i class=\"fa fa-arrow-up\"></i>");
+	return("<i class=\"fas fa-arrow-up\"></i>");
     }
 }
 
 function getOSIcon(name) {
     var icon = "";
 
-    if (name.search("Linux") != -1 || name.search("Ubuntu") != -1) icon = '<i class=\'fa fa-linux fa-lg\'></i> ';
-    else if (name.search("Android") != -1) icon = '<i class=\'fa fa-android fa-lg\'></i> ';
-    else if (name.search("Windows") != -1 || name.search("Win32") != -1 || name.search("MSIE") != -1) icon = '<i class=\'fa fa-windows fa-lg\'></i> ';
-    else if (name.search("iPhone") != -1 || name.search("iPad") != -1 || name.search("OS X") != -1 ) icon = '<i class=\'fa fa-apple fa-lg\'></i> ';
+    if (name.search("Linux") != -1 || name.search("Ubuntu") != -1) icon = '<i class=\'fab fa-linux fa-lg\'></i> ';
+    else if (name.search("Android") != -1) icon = '<i class=\'fab fa-android fa-lg\'></i> ';
+    else if (name.search("Windows") != -1 || name.search("Win32") != -1 || name.search("MSIE") != -1) icon = '<i class=\'fab fa-windows fa-lg\'></i> ';
+    else if (name.search("iPhone") != -1 || name.search("iPad") != -1 || name.search("OS X") != -1 ) icon = '<i class=\'fab fa-apple fa-lg\'></i> ';
 
     return icon;
 }
@@ -307,11 +307,11 @@ String.prototype.capitalize = function() {
 
 function drawTrend(current, last, withColor) {
   if(current == last) {
-    return("<i class=\"fa fa-minus\"></i>");
+    return("<i class=\"fas fa-minus\"></i>");
   } else if(current > last) {
-    return("<i class=\"fa fa-arrow-up\""+withColor+"></i>");
+    return("<i class=\"fas fa-arrow-up\""+withColor+"></i>");
   } else {
-    return("<i class=\"fa fa-arrow-down\"></i>");
+    return("<i class=\"fas fa-arrow-down\"></i>");
   }   
 }
 
