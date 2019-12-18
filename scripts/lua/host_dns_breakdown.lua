@@ -18,25 +18,21 @@ if mode == "sent" then
 end
 
 local host = interface.getHostInfo(host_info["host"],host_info["vlan"])
-
+local tot = 0
 local left = 0
 
 print "[\n"
 
---for k,v in pairs(host["dns"][what]) do
---   print(k.."="..v.."<br>\n")
---end
-
 if(host ~= nil) then
    if(host["dns"][what]["queries"] ~= nil) then
-      tot = host["dns"][what]["queries"]["num_a"] + host["dns"][what]["queries"]["num_ns"] + host["dns"][what]["queries"]["num_cname"] + host["dns"][what]["queries"]["num_soa"] + host["dns"][what]["queries"]["num_ptr"] + host["dns"][what]["queries"]["num_mx"]  + host["dns"][what]["queries"]["num_txt"] + host["dns"][what]["queries"]["num_aaaa"] + host["dns"][what]["queries"]["num_any"]
+      tot = host["dns"][what]["queries"]["num_a"] + host["dns"][what]["queries"]["num_ns"] + host["dns"][what]["queries"]["num_cname"] + host["dns"][what]["queries"]["num_soa"] + host["dns"][what]["queries"]["num_ptr"] + host["dns"][what]["queries"]["num_mx"]  + host["dns"][what]["queries"]["num_txt"] + host["dns"][what]["queries"]["num_aaaa"] + host["dns"][what]["queries"]["num_any"] + host["dns"][what]["queries"]["num_other"]
    else
       tot = 0
    end
 
    if(tot > 0) then
-      min = (tot * 3)/100
-      comma = ""
+      local min = 0 -- Show all the queries, they are just a buch and fit well in the pie chart
+      local comma = ""
 
       if(host["dns"][what]["queries"]["num_a"] > min) then
          print('\t { "label": "A", "value": '.. host["dns"][what]["queries"]["num_a"] .. '}\n')
@@ -101,7 +97,7 @@ if(host ~= nil) then
          left = left + host["dns"][what]["queries"]["num_any"]
       end
 
-      other = host["dns"][what]["queries"]["num_other"] + left
+      local other = host["dns"][what]["queries"]["num_other"] + left
       if(other > 0) then print(comma..'\t { "label": "Other", "value": '.. other .. '}\n')
       end
    end
