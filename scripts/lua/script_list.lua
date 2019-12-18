@@ -13,6 +13,8 @@ local os_utils = require "os_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
+page_utils.print_header(i18n("about.about_x", { product=info.product }))
+
 active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
