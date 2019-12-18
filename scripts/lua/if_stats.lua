@@ -1029,33 +1029,56 @@ setInterval(update_ndpi_categories_table, 5000);
 ]]
 
 elseif(page == "ICMP") then
-
-  print [[
-     <table id="icmp_table" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th>]] print(i18n("icmp_page.icmp_type")) print [[</th><th>]] print(i18n("icmp_page.icmp_code")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
-     <tbody id="iface_details_icmp_tbody">
-     </tbody>
-     </table>
+print[[
+  <ul id="icmp_nav" class="nav nav-tabs" role="tablist">
+    <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#icmp" active>]] print(i18n("icmp")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#icmpv6">]] print(i18n("icmp")) print[[V6</a></li>
+  </ul>
+  <div class="tab-content">
+    <div id="icmp" class="tab-pane in active">
+      <br>
+       <table id="icmp_table_4" class="table table-bordered table-striped tablesorter">
+         <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th>]] print(i18n("icmp_page.icmp_type")) print [[</th><th>]] print(i18n("icmp_page.icmp_code")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
+         <tbody id="iface_details_icmp_tbody_4">
+         </tbody>
+       </table>
+    </div>
+    <div id="icmpv6" class="tab-pane">
+      <br>
+       <table id="icmp_table_6" class="table table-bordered table-striped tablesorter">
+         <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th>]] print(i18n("icmp_page.icmp_type")) print [[</th><th>]] print(i18n("icmp_page.icmp_code")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
+         <tbody id="iface_details_icmp_tbody_6">
+         </tbody>
+       </table>
+    </div>
 
 <script>
-function update_icmp_table() {
+function update_icmp_table(ip_version) {
+  var icmp_table_id = '#icmp_table_' + ip_version;
+  var icmp_table_body_id = '#iface_details_icmp_tbody_' + ip_version;
+
   $.ajax({
     type: 'GET',
     url: ']]
   print(ntop.getHttpPrefix())
   print [[/lua/get_icmp_data.lua',
-    data: { ifid: "]] print(ifId.."")  print [[" },
+    data: { ifid: "]] print(ifId.."")  print [[", version: ip_version },
     success: function(content) {
       if(content) {
-         $('#iface_details_icmp_tbody').html(content);
-         $('#icmp_table').trigger("update");
+         $(icmp_table_body_id).html(content);
+         $(icmp_table_id).trigger("update");
       }
     }
   });
 }
 
-update_icmp_table();
-setInterval(update_icmp_table, 5000);
+function update_icmp_tables() {
+  update_icmp_table(4);
+  update_icmp_table(6);
+}
+
+update_icmp_tables();
+setInterval(update_icmp_tables, 5000);
 </script>
 
 ]]
@@ -2128,7 +2151,8 @@ print [[
 <script>
 $(document).ready(function()
     {
-	$("#icmp_table").tablesorter();
+	$("#icmp_table_4").tablesorter();
+	$("#icmp_table_6").tablesorter();
 	$("#arp_table").tablesorter();
 	$("#if_stats_ndpi").tablesorter();
 	$("#if_stats_ndpi_categories").tablesorter();

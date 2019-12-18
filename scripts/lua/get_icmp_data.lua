@@ -15,6 +15,7 @@ sendHTTPContentTypeHeader('text/html')
 
 interface.select(ifname)
 local host_info = url2hostinfo(_GET)
+local ip_version = _GET["version"]
 
 -- #####################################################################
 
@@ -36,7 +37,15 @@ else
 end
 
 if(stats ~= nil) then
-   local icmp_keys = { "ICMPv4", "ICMPv6" }
+   local icmp_keys = {}
+
+   if not ip_version or ip_version == "4" then
+      icmp_keys[#icmp_keys + 1] = "ICMPv4"
+   end
+
+   if not ip_version or ip_version == "6" then
+      icmp_keys[#icmp_keys + 1] = "ICMPv6"
+   end
 
    for _, k in pairs(icmp_keys) do
       local icmp = stats[k]

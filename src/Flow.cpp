@@ -1096,6 +1096,24 @@ if(cli_host && srv_host) {
 			 partial->get_srv2cli_tcp_lost(), partial->get_srv2cli_tcp_keepalive());
     break;
 
+  case IPPROTO_ICMP:
+    if(iface) {
+      if(partial->get_cli2srv_packets())
+	iface->incICMPStats(false /* icmp v4 */ , partial->get_cli2srv_packets(), protos.icmp.cli2srv.icmp_type, protos.icmp.cli2srv.icmp_code, true);
+      if(partial->get_srv2cli_packets())
+	iface->incICMPStats(false /* icmp v4 */ , partial->get_srv2cli_packets(), protos.icmp.srv2cli.icmp_type, protos.icmp.srv2cli.icmp_code, true);
+    }
+    break;
+
+  case IPPROTO_ICMPV6:
+    if(iface) {
+      if(partial->get_cli2srv_packets())
+	iface->incICMPStats(true /* icmp v6 */ , partial->get_cli2srv_packets(), protos.icmp.cli2srv.icmp_type, protos.icmp.cli2srv.icmp_code, true);
+      if(partial->get_srv2cli_packets())
+	iface->incICMPStats(true /* icmp v6 */ , partial->get_srv2cli_packets(), protos.icmp.srv2cli.icmp_type, protos.icmp.srv2cli.icmp_code, true);
+    }
+
+    break;
   default:
     break;
   }
