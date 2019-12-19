@@ -3672,24 +3672,36 @@ void Flow::postFlowSetIdle(const struct timeval *tv, bool quick) {
 
 /* ***************************************************** */
 
-void Flow::fillZmqFlowCategory() {
+void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) const {
   struct ndpi_detection_module_struct *ndpi_struct = iface->get_ndpi_struct();
-  char *srv_name = getFlowServerInfo();
+  const char *dst_name = NULL;
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
-  if(!cli_ip || !srv_ip)
-    return;
-
-  if(cli_ip->isIPv4()) {
-    if(ndpi_fill_ip_protocol_category(ndpi_struct, cli_ip->get_ipv4(), srv_ip->get_ipv4(), &ndpiDetectedProtocol))
+  if(cli_ip && srv_ip && cli_ip->isIPv4()) {
+      if(ndpi_fill_ip_protocol_category(ndpi_struct, cli_ip->get_ipv4(), srv_ip->get_ipv4(), res))
       return;
   }
 
-  if(srv_name && srv_name[0]) {
+  switch(ndpi_get_lower_proto(*res)) {
+  case NDPI_PROTOCOL_DNS:
+    dst_name = zflow->dns_query;
+    break;
+  case NDPI_PROTOCOL_HTTP_PROXY:
+  case NDPI_PROTOCOL_HTTP:
+    dst_name = zflow->http_site;
+    break;
+  case NDPI_PROTOCOL_TLS:
+    dst_name = zflow->tls_server_name;
+    break;
+  default:
+    break;
+  }
+
+  if(dst_name) {
     unsigned long id;
 
-    if(ndpi_match_custom_category(ndpi_struct, srv_name, strlen(srv_name), &id) == 0) {
-      ndpiDetectedProtocol.category = (ndpi_protocol_category_t)id;
+    if(ndpi_match_custom_category(ndpi_struct, (char*)dst_name, strlen(dst_name), &id) == 0) {
+      res->category = (ndpi_protocol_category_t)id;
       return;
     }
   }

@@ -310,8 +310,10 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
 
-  if(!flow->isDetectionCompleted())
+  if(!flow->isDetectionCompleted()) {
+    flow->fillZmqFlowCategory(zflow, &p);
     flow->setDetectedProtocol(p, true);
+  }
 
   flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
   flow->setTLVInfo(zflow->getAdditionalFieldsTLV());
@@ -372,9 +374,6 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
     json_object *o = json_tokener_parse_verbose(zflow->external_alert, &jerr);
     if(o) flow->setExternalAlert(o);
   }
-
-  // NOTE: fill the category only after the server name is set
-  flow->fillZmqFlowCategory();
 
   /* Do not put incStats before guessing the flow protocol */
   incStats(true /* ingressPacket */,

@@ -503,7 +503,7 @@ class Flow : public GenericHashEntry {
   void dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-  void fillZmqFlowCategory();
+  void fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) const;
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type, u_int8_t icmp_code, u_int8_t *icmpdata) {
     if(isICMP()) {
       if(src2dst_direction)
