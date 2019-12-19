@@ -54,9 +54,9 @@ user_scripts.script_types = {
     hooks = {"min", "5mins", "hour", "day"},
     subdirs = {"system"},
   }, syslog = {
-    parent_dir = "syslog",
+    parent_dir = "system",
     hooks = {"handleEvent"},
-    subdirs = {"."},
+    subdirs = {"syslog"},
   }
 }
 
