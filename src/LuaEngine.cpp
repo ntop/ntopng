@@ -10660,6 +10660,30 @@ static int ntop_is_gui_access_restricted(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_service_restart(lua_State* vm) {
+#if defined(__linux__) && defined(NTOPNG_PRO)
+  /* This assumes that pro version is available from packages only (this is not 
+   * true during development actually). Please consider changing this check if needed. */
+  extern AfterShutdownAction afterShutdownAction;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(!ntop->isUserAdministrator(vm))
+    return(CONST_LUA_ERROR);
+
+  /* See also ntop_shutdown (used by nEdge) */
+  afterShutdownAction = after_shutdown_restart_self;
+  ntop->getGlobals()->requestShutdown();
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+#else
+  return(CONST_LUA_ERROR);
+#endif
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_set_logging_level(lua_State* vm) {
   char *lvlStr;
@@ -11273,6 +11297,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getNetworkNameById",   ntop_network_name_by_id },
   { "getNetworkIdByName",   ntop_network_id_by_name },
   { "isGuiAccessRestricted", ntop_is_gui_access_restricted },
+  { "serviceRestart",       ntop_service_restart },
 
   /* Security */
   { "getRandomCSRFValue",   ntop_generate_csrf_value },
@@ -11293,7 +11318,6 @@ static const luaL_Reg ntop_reg[] = {
   { "resolveName",       ntop_resolve_address },       /* Note: you should use resolveAddress() to call from Lua */
   { "getResolvedName",   ntop_get_resolved_address },  /* Note: you should use getResolvedAddress() to call from Lua */
   { "resolveHost",       ntop_resolve_host         },
-
 
   /* Logging */
 #ifndef WIN32
