@@ -2361,6 +2361,40 @@ void Ntop::reloadJA3Hashes() {
 
 /* ******************************************* */
 
+void Ntop::loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str) {
+  char **keys, **values;
+  Redis *redis = getRedis();
+  int rc;
+
+  if(!redis)
+    return;
+
+  rc = redis->hashGetAll(CUSTOM_NDPI_PROTOCOLS_ASSOCIATIONS_HASH, &keys, &values);
+
+  if(rc > 0) {
+    for(int i = 0; i < rc; i++) {
+      u_int16_t protoId;
+      ndpi_protocol_category_t protoCategory;
+
+      if(keys[i] && values[i]) {
+        protoId = atoi(keys[i]);
+        protoCategory = (ndpi_protocol_category_t) atoi(values[i]);
+
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Loading protocol association: ID %d -> category %d", protoId, protoCategory);
+        ndpi_set_proto_category(ndpi_str, protoId, protoCategory);
+      }
+
+      if(values[i]) free(values[i]);
+      if(keys[i]) free(keys[i]);
+    }
+
+    free(keys);
+    free(values);
+  }
+}
+
+/* ******************************************* */
+
 struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(ndpi_no_prefs);
   u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
@@ -2383,6 +2417,9 @@ struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
   // enable all protocols
   NDPI_BITMASK_SET_ALL(all);
   ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
+
+  // load custom protocols
+  loadProtocolsAssociations(ndpi_s);
 
   return(ndpi_s);
 }
@@ -2476,3 +2513,19 @@ void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
     ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
 }
 
+/* *************************************** */
+
+ndpi_protocol_category_t Ntop::get_ndpi_proto_category(u_int protoid) {
+  ndpi_protocol proto;
+
+  proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+  proto.master_protocol = protoid;
+  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+  return get_ndpi_proto_category(proto);
+}
+
+/* *************************************** */
+
+void Ntop::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
+  ndpi_set_proto_category(get_ndpi_struct(), protoId, protoCategory);
+}

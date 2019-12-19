@@ -133,8 +133,6 @@ companion_interface_utils.initCompanions()
 
 -- ##################################################################
 
-initCustomnDPIProtoCategories()
-
 lists_utils.clearErrors()
 lists_utils.downloadLists()
 lists_utils.reloadLists()

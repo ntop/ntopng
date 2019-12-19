@@ -87,7 +87,7 @@ for app_name, app_id in pairs(applications) do
       goto continue
    end
 
-   local cat = interface.getnDPIProtoCategory(tonumber(app_id))
+   local cat = ntop.getnDPIProtoCategory(tonumber(app_id))
 
    if not isEmptyString(proto_filter) then
      if tostring(app_id) ~= proto_filter then

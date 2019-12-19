@@ -107,7 +107,7 @@ if (_POST["action"] == "add") or (_POST["action"] == "edit") then
     end
   end
 elseif not table.empty(_POST) then
-  local custom_categories = getCustomnDPIProtoCategories(ifname)
+  local custom_categories = getCustomnDPIProtoCategories()
 
   for k, new_cat in pairs(_POST) do
     if starts(k, "proto_") then
@@ -119,13 +119,13 @@ elseif not table.empty(_POST) then
       if custom_categories[id] ~= nil then
         old_cat = custom_categories[id]
       else
-        old_cat = interface.getnDPIProtoCategory(tonumber(id))
+        old_cat = ntop.getnDPIProtoCategory(tonumber(id))
         old_cat = old_cat and old_cat.id or 0
       end
 
       if old_cat ~= new_cat then
         -- io.write("Changing nDPI category for " .. id .. ": " .. old_cat .. " -> " .. new_cat .. "\n")
-        setCustomnDPIProtoCategory(ifname, tonumber(id), new_cat)
+        setCustomnDPIProtoCategory(tonumber(id), new_cat)
       end
     end
   end

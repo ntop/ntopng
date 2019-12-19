@@ -4983,12 +4983,6 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans(bool force_idle) {
 
 /* *************************************** */
 
-void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
-  ndpi_set_proto_category(get_ndpi_struct(), protoId, protoCategory);
-}
-
-/* *************************************** */
-
 static void guess_all_ndpi_protocols_walker(Flow *flow, NetworkInterface *iface) {
   if(iface->get_ndpi_struct() && flow->get_ndpi_flow()) {
     if(!flow->isDetectionCompleted()) {
@@ -6031,19 +6025,6 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
     interfaceStats->set(stats);
   }
 }
-
-/* **************************************** */
-
-ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid) {
-  ndpi_protocol proto;
-
-  proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-  proto.master_protocol = protoid;
-  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-  return get_ndpi_proto_category(proto);
-}
-
-/* **************************************** */
 
 /* **************************************** */
 

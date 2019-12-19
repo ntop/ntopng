@@ -104,7 +104,7 @@ local function matchesCategoryFilter(item_id)
       return true
    end
 
-   local cat = interface.getnDPIProtoCategory(tonumber(item_id))
+   local cat = ntop.getnDPIProtoCategory(tonumber(item_id))
    return category == cat.name
 end
 
@@ -119,7 +119,7 @@ for item_name, item_id in pairs(items) do
       goto continue
    end
 
-   local cat = interface.getnDPIProtoCategory(tonumber(item_id))
+   local cat = ntop.getnDPIProtoCategory(tonumber(item_id))
 
    items[item_name] = { name = item_name, id = item_id, conf = device_policies[tonumber(item_id)], catName = cat.name }
    num_items = num_items + 1

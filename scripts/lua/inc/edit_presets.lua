@@ -326,7 +326,7 @@ local function printDeviceProtocolsPage()
    local function categoryCountCallback(cat_id, cat_name)
       local cat_count = 0
       for proto_id,p in pairs(device_policies) do
-         local cat = interface.getnDPIProtoCategory(tonumber(proto_id))
+         local cat = ntop.getnDPIProtoCategory(tonumber(proto_id))
          if cat.name == cat_name and (isEmptyString(policy_filter) 
               or policy_filter == p.clientActionId or policy_filter == p.serverActionId) then
             cat_count = cat_count + 1

@@ -1912,14 +1912,13 @@ function setInterfaceRegreshRate(ifid, refreshrate)
    end
 end
 
-local function getCustomnDPIProtoCategoriesKey(ifid)
-   return getRedisIfacePrefix(ifid)..".custom_nDPI_proto_categories"
+local function getCustomnDPIProtoCategoriesKey()
+   return "ntop.prefs.custom_nDPI_proto_categories"
 end
 
-function getCustomnDPIProtoCategories(if_name)
-   local ifid = getInterfaceId(if_name)
+function getCustomnDPIProtoCategories()
    local ndpi_protos = interface.getnDPIProtocols()
-   local key = getCustomnDPIProtoCategoriesKey(ifid)
+   local key = getCustomnDPIProtoCategoriesKey()
 
    local res = {}
    for _, app_id in pairs(ndpi_protos) do
@@ -1932,24 +1931,13 @@ function getCustomnDPIProtoCategories(if_name)
    return res
 end
 
-function initCustomnDPIProtoCategories()
-   for _, ifname in pairs(interface.getIfNames()) do
-      interface.select(ifname)
-      local custom = getCustomnDPIProtoCategories(ifname)
+function setCustomnDPIProtoCategory(app_id, new_cat_id)
+   ntop.setnDPIProtoCategory(app_id, new_cat_id)
 
-      for app_id, cat_id in pairs(custom) do
-	 interface.setnDPIProtoCategory(app_id, cat_id)
-      end
-   end
-end
-
-function setCustomnDPIProtoCategory(if_name, app_id, new_cat_id)
-   interface.select(if_name)
-   interface.setnDPIProtoCategory(app_id, new_cat_id)
-
-   local ifid = getInterfaceId(if_name)
    local key = getCustomnDPIProtoCategoriesKey(ifid)
 
+   -- NOTE: when the ndpi struct changes, the custom associations are
+   -- reloaded by Ntop::loadProtocolsAssociations
    ntop.setHashCache(key, tostring(app_id), tostring(new_cat_id));
 end
 

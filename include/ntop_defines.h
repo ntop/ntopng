@@ -192,6 +192,7 @@
 #define MAX_NUM_NTOPNG_LOG_FILES           5
 #define MAX_NUM_NTOPNG_TRACES              32
 #define PCAP_DUMP_INTERFACES_DELETE_HASH   "ntopng.prefs.delete_pcap_dump_interfaces_data"
+#define CUSTOM_NDPI_PROTOCOLS_ASSOCIATIONS_HASH "ntop.prefs.custom_nDPI_proto_categories"
 #define TRAFFIC_FILTERING_CACHE            "ntopng.trafficfiltering.cache"
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
 #define PREFS_CHANGED            "ntopng.prefs_changed"
