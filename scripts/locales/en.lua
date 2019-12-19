@@ -223,7 +223,6 @@ local lang = {
     ["flow_callbacks_directory"] = "Flow",
     ["host_callbacks_directory"] = "Host",
     ["host_identifier_warning"] = "This interface is monitoring DHCP hosts. Please consider changing the <a href='%{url}'>%{name}</a> preference to \"Mac Address\".",
-    ["influxdb_migration_msg"] = "You have a lot of local hosts. Please consider <a href='%{url}'>moving from RRD to InfluxDB</a> for timeseries storage to improve performance.",
     ["interface_callbacks_directory"] = "Interface",
     ["last_log"] = "Last Log Trace",
     ["licence"] = "License",
@@ -269,6 +268,7 @@ local lang = {
     ["host_pool_has_disconnected"] = "The host pool <a href=\"%{url}\">%{pool}</a> has disconnected from the network.",
     ["host_remote_to_remote"] = "Remote host <a href=\"%{url}\">%{ip}</a> [ <a href=\"%{mac_url}\">%{mac}</a> ] has contacted a remote host. Remote-to-remote flows available from the <a href=\"%{flow_alerts_url}\">flow alerts page</a>.",
     ["influxdb_dropped_points"] = "Points dropped. Could not send them to \"%{influxdb}\".",
+    ["influxdb_migration_msg"] = "You have a lot of local hosts. Please consider <a href='%{url}'>moving from RRD to InfluxDB</a> for timeseries storage to improve performance.",
     ["influxdb_partial_write"] = "This can be fixed by setting \"max-values-per-tag = 0\" in the InfluxDB server config.",
     ["influxdb_write_error"] = "There was an error while sending timeseries data to \"%{influxdb}\": %{err}",
     ["interface_entity"] = "interface %{entity_value}",
@@ -278,6 +278,7 @@ local lang = {
     ["misbehaving_flows_ratio"] = "%{entity} has %{sent_or_rcvd} too many misbehaving flows vs total flows [Ratio: %{ratio}%%]",
     ["network_entity"] = "network %{entity_value}",
     ["nfq_flushed"] = "Interface <a href=\"%{url}\">%{name}</a> packets queue flushed. Queue %{pct}%% full with %{tot} packets and %{dropped} drops.",
+    ["no_influxdb"] = "Please <A HREF=\"%{url}\">enable timeseries dump to InfluxDB</A> and then reload this page",
     ["ntopng_anomalous_termination"] = "Started after anomalous termination (<a href=\"%{url}\">bug report</a>)",
     ["ntopng_start"] = "Started",
     ["ntopng_stop"] = "Stopped",
@@ -3047,8 +3048,8 @@ local lang = {
   ["restart"] = {
     ["confirm"] = "Do you want to restart ntopng now?",
     ["restart"] = "Restart",
-    ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
     ["restart_now"] = "Restart now",
+    ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
   },
   ["sflows_stats"] = {
     ["active_flows"] = "Active Flows",
