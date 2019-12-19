@@ -137,6 +137,12 @@ local function init_runtime_paths()
     -- Web Gui
     web_gui = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/scripts",
 
+    -- Alert endpoints
+    alert_endpoints = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/alert_endpoints",
+
+    -- HTTP lint
+    http_lint = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/http_lint",
+
     -- User scripts
     interface_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/interface/interface"),
     host_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/interface/host"),
@@ -151,8 +157,17 @@ end
 -- ##############################################
 
 local function copy_file(fname, src_path, dst_path)
-  local src = os_utils.fixPath(src_path .. "/" .. fname)
-  local dst = os_utils.fixPath(dst_path .. "/" .. fname)
+  local src
+  local dst
+
+  if(fname == nil) then
+    src = src_path
+    dst = dst_path
+  else
+    src = os_utils.fixPath(src_path .. "/" .. fname)
+    dst = os_utils.fixPath(dst_path .. "/" .. fname)
+  end
+
   local infile, err = io.open(src, "r")
 
   if(do_trace) then
@@ -308,6 +323,21 @@ end
 
 -- ##############################################
 
+local function load_plugin_lint(plugin)
+  local lint_path = os_utils.fixPath(plugin.path .. "/http_lint.lua")
+
+  if(ntop.exists(lint_path)) then
+    if(not copy_file(nil, lint_path,
+        os_utils.fixPath(RUNTIME_PATHS.http_lint .. "/" .. plugin.key .. ".lua"))) then
+      return(false)
+    end
+  end
+
+  return(true)
+end
+
+-- ##############################################
+
 local function load_plugin_user_scripts(paths_to_plugin, plugin)
   local scripts_path = os_utils.fixPath(plugin.path .. "/user_scripts")
   local paths_map = {}
@@ -338,6 +368,41 @@ local function load_plugin_user_scripts(paths_to_plugin, plugin)
   end
 
   return(rv)
+end
+
+-- ##############################################
+
+local function load_plugin_alert_endpoints(endpoints_prefs_entries, plugin)
+  local endpoints_path = os_utils.fixPath(plugin.path .. "/alert_endpoints")
+
+  for fname in pairs(ntop.readdir(endpoints_path)) do
+    if(fname == "prefs_entries.lua") then
+      local prefs_entries = dofile(os_utils.fixPath(endpoints_path .. "/" .. fname))
+
+      if(prefs_entries) then
+        if(prefs_entries.entries == nil) then
+          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing field 'entries' in %s (prefs_entries.lua)", plugin.key))
+          return(false)
+        end
+        if(prefs_entries.endpoint_key == nil) then
+          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing field 'endpoint_key' in %s (prefs_entries.lua)", plugin.key))
+          return(false)
+        end
+        if(endpoints_prefs_entries[prefs_entries.endpoint_key] ~= nil) then
+          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Endpoint key '%s' already defined, error in %s (prefs_entries.lua)", prefs_entries.endpoint_key, plugin.key))
+          return(false)
+        end
+
+        endpoints_prefs_entries[prefs_entries.endpoint_key] = prefs_entries
+      end
+    else
+      if not copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
+        return(false)
+      end
+    end
+  end
+
+  return(true)
 end
 
 -- ##############################################
@@ -390,6 +455,7 @@ function plugins_utils.loadPlugins()
   local loaded_plugins = {}
   local locales = {}
   local menu_entries = {}
+  local endpoints_prefs_entries = {}
   local path_map = {}
   local en_locale = locales_utils.readDefaultLocale()
 
@@ -445,9 +511,11 @@ function plugins_utils.loadPlugins()
 
     if load_plugin_definitions(plugin) and
         load_plugin_i18n(locales, en_locale, plugin) and
+        load_plugin_lint(plugin) and
         load_plugin_ts_schemas(plugin) and
         load_plugin_web_gui(menu_entries, plugin) and
-        load_plugin_user_scripts(path_map, plugin) then
+        load_plugin_user_scripts(path_map, plugin) and
+        load_plugin_alert_endpoints(endpoints_prefs_entries, plugin) then
       loaded_plugins[plugin.key] = plugin
     else
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Errors occurred while processing plugin '%s'", plugin.key))
@@ -470,6 +538,14 @@ function plugins_utils.loadPlugins()
 
     persistence.store(menu_path, menu_entries)
     ntop.setDefaultFilePermissions(menu_path)
+  end
+
+  -- Save alert endpoint entries
+  if not table.empty(endpoints_prefs_entries) then
+    local entries_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/prefs_entries.lua")
+
+    persistence.store(entries_path, endpoints_prefs_entries)
+    ntop.setDefaultFilePermissions(entries_path)
   end
 
   -- Save loaded plugins metadata
@@ -624,6 +700,107 @@ function plugins_utils.getLoadedPlugins()
   load_metadata()
 
   return(METADATA.plugins)
+end
+
+-- ##############################################
+
+function plugins_utils.loadAlertEndpoint(endpoint_key)
+  local endpoint_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/".. endpoint_key ..".lua")
+
+  if not ntop.exists(endpoint_path) then
+    return(nil)
+  end
+
+  return(dofile(endpoint_path))
+end
+
+-- ##############################################
+
+-- Descending sort by priority
+local function endpoint_sorter(a, b)
+  if((a.prio ~= nil) and (b.prio == nil)) then
+    return(true)
+  elseif((a.prio == nil) and (b.prio ~= nil)) then
+    return(false)
+  elseif(a.prio ~= b.prio) then
+    return(a.prio > b.prio)
+  end
+
+  -- Use the endpoint key to fix a defined sort order
+  return(a.key > b.key)
+end
+
+-- @brief Get the available alert endpoints
+-- @return a sorted table, in order of priority, for the alert endpoints
+function plugins_utils.getLoadedAlertEndpoints()
+  init_runtime_paths()
+
+  local rv = {}
+  local prefs_map = {}
+  local prefs_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/prefs_entries.lua")
+
+  if ntop.exists(prefs_path) then
+    prefs_map = dofile(prefs_path) or {}
+  end
+
+  for fname in pairs(ntop.readdir(RUNTIME_PATHS.alert_endpoints) or {}) do
+    if((fname ~= "prefs_entries.lua") and string.ends(fname, ".lua")) then
+      local full_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/" .. fname)
+      local endpoint = dofile(full_path)
+
+      if(endpoint) then
+        if((type(endpoint.isAvailable) ~= "function") or endpoint.isAvailable()) then
+          local key = string.sub(fname, 1, string.len(fname) - 4)
+          endpoint.full_path = full_path
+          endpoint.key = key
+          endpoint.prefs_entries = prefs_map[key] and prefs_map[key].entries
+
+          rv[#rv + 1] = endpoint
+        end
+      else
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load alert endpoint '%s'", full_path))
+      end
+    end
+  end
+
+  -- Sort by priority (higher priority first)
+  table.sort(rv, endpoint_sorter)
+
+  return(rv)
+end 
+
+-- ##############################################
+
+function plugins_utils.extendLintParams(http_lint, params)
+  init_runtime_paths()
+
+  for fname in pairs(ntop.readdir(RUNTIME_PATHS.http_lint)) do
+    local full_path = os_utils.fixPath(RUNTIME_PATHS.http_lint .. "/" .. fname)
+    local lint = dofile(full_path)
+
+    if(lint == nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load '%s'", full_path))
+      goto continue
+    end
+
+    if(lint.getAdditionalParameters == nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing mandatory function 'getAdditionalParameters' in '%s'", full_path))
+      goto continue
+    end
+
+    local rv = lint.getAdditionalParameters(http_lint)
+
+    if(type(rv) ~= "table") then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("function 'getAdditionalParameters' in '%s' returned a non-table value", full_path))
+      goto continue
+    end
+
+    for k, v in pairs(rv) do
+      params[k] = v
+    end
+
+    ::continue::
+  end
 end
 
 -- ##############################################

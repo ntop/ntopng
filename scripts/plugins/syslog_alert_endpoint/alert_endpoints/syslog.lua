@@ -10,6 +10,15 @@ local syslog = {}
 
 syslog.DEFAULT_SEVERITY = "info"
 syslog.EXPORT_FREQUENCY = 1 -- 1 second, i.e., as soon as possible
+syslog.prio = 300
+
+-- ##############################################
+
+function syslog.isAvailable()
+   return(ntop.syslog ~= nil)
+end
+
+-- ##############################################
 
 function syslog.dequeueAlerts(queue)
    local notifications = ntop.lrangeCache(queue, 0, -1)
@@ -69,5 +78,40 @@ function syslog.dequeueAlerts(queue)
 
    return {success = true}
 end
+
+-- ##############################################
+
+function syslog.printPrefs(alert_endpoints, subpage_active, showElements)
+   print('<thead class="thead-light"><tr><th colspan="2" class="info">'..i18n("prefs.syslog_notification")..'</th></tr></thead>')
+
+   local alertsEnabled = showElements
+   local elementToSwitch = {"row_syslog_alert_format"}
+
+   prefsToggleButton(subpage_active, {
+     field = "toggle_alert_syslog",
+     pref = alert_endpoints.getAlertNotificationModuleEnableKey("syslog", true),
+     default = "0",
+     disabled = alertsEnabled == false,
+     to_switch = elementToSwitch,
+   })
+
+   local format_labels = {i18n("prefs.syslog_alert_format_plaintext"), i18n("prefs.syslog_alert_format_json")}
+   local format_values = {"plaintext", "json"}
+
+   if ntop.getPref(alert_endpoints.getAlertNotificationModuleEnableKey("syslog")) == "0" then
+     alertsEnabled = false
+   end
+
+   multipleTableButtonPrefs(subpage_active.entries["syslog_alert_format"].title,
+       subpage_active.entries["syslog_alert_format"].description,
+       format_labels, format_values,
+       "plaintext",
+       "primary",
+       "syslog_alert_format",
+       "ntopng.prefs.syslog_alert_format", nil,
+       nil, nil, nil, alertsEnabled)
+end
+
+-- ##############################################
 
 return syslog

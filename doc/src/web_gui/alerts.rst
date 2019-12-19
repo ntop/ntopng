@@ -27,7 +27,9 @@ Generated alerts can also be sent to third-party endpoints. Currently supported 
 - Nagios
 - Webhook
 
-Endpoints can be enabled and configured from the ntopng preferences page.
+Endpoints can be enabled and configured from the ntopng preferences page. Users can create custom
+endpoints via a custom plugin. Check out the `example plugin <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/example/alert_endpoints>`_
+for more details.
 
 Email
 ~~~~~
