@@ -21,6 +21,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local script_type = "traffic_element"
 local script_subdir = "host"
 local confset_id = _GET["confset_id"]
+local confset_name = _GET["confset_name"]
 
 if confset_id == nil then
    
@@ -30,8 +31,15 @@ end
 print([[<link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet">]])
 
 -- TODO: add i18 localazitation
-print [[
+print ([[
    <div class='container-fluid mt-3'>
+      <nav aria-label="breadcrumb">
+         <ol class="breadcrumb">
+            <li class="breadcrumb-item" aria-current="page"><a href='/'>ntopng</a></li>
+            <li class="breadcrumb-item" aria-current="page"><a href='/lua/config_list.lua'>Config List</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Config <b>]].. confset_name ..[[</b></li>
+         </ol>
+      </nav>
       <ul class="nav nav-pills" role='tablist'>
          <li class="nav-item">
             <a class="nav-link active" data-toggle="tab" href="#hosts" role="tab" aria-controls="hosts">Hosts</a>
@@ -49,8 +57,8 @@ print [[
                      <tr>
                         <th>Script Name</th>
                         <th>Script Description</th>
-                        <th>Script Granularities</th>
-                        <th>Edit Config</th>
+                        <th>Script Granularities Enabled</th>
+                        <th>Edit</th>
                      </tr>
                   </thead>
                   <tbody>
@@ -61,7 +69,7 @@ print [[
          </div>
       </div>
    </div>
-]]
+]])
 
 -- toast to alert operations about saving
 print ([[
@@ -92,10 +100,12 @@ print ([[
             </button>
             </div>
             <div class="modal-body">
-               <form method='post'>
+               <form id='edit-form' method='post'>
                   <table class='table table-borderless' id='script-config-editor'>
                      <thead>
-                     
+                        <tr>
+                           <th class='text-center'>Enable Granularity</th>
+                        </tr>
                      </thead>
                      <tbody>
                      </tbody>
@@ -103,7 +113,7 @@ print ([[
                </form>
             </div>
             <div class="modal-footer">
-               <button type='button' class='btn btn-danger mr-auto'>Reset Default</button>
+               <button id='btn-reset' type='button' class='btn btn-danger mr-auto'>Reset Default</button>
                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                <button id="btn-apply" type="button" class="btn btn-primary" data-dismiss="modal">Apply changes</button>
             </div>
@@ -119,17 +129,10 @@ print ([[
    <script type='text/javascript'>
       $(document).ready(function() {
 
-         const $toast = $('.toast').toast({
-            autohide: true,
-            delay: 2000
-         })
-
-         $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?script_type=]].. script_type ..[[&script_subdir=]].. script_subdir ..[[', (d) => console.log(d))
-
          const $script_table = $("#hostsScripts").DataTable({
             dom: "Bfrtip",
             ajax: {
-               'url': ']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?script_type=]].. script_type ..[[&script_subdir=]].. script_subdir ..[[',
+               'url': ']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?confset_id=]].. confset_id ..[[&script_type=]].. script_type ..[[&script_subdir=]].. script_subdir ..[[',
                'type': 'GET',
                dataSrc: ''
             },
@@ -178,6 +181,9 @@ print ([[
                      if (data.length <= 0 && type != "display") {
                         return false;
                      }
+                     if (data.length > 0 && type != "display") {
+                        return true;
+                     }
 
                      return data.join(', ')
                   }
@@ -186,11 +192,29 @@ print ([[
                   targets: -1,
                   data: null,
                   render: function (data, type, row) {
-                     return `<button data-toggle="modal" data-target="#modal-script" class="btn btn-primary w-100"><i class='fas fa-edit'></i></button>`;
+                     return `<button data-toggle="modal" data-target="#modal-script" class="btn btn-sm btn-primary">
+                        <i class='fas fa-edit'></i>
+                     </button>`;
                   },
                   sortable: false
                }
             ]
+         });
+
+         $("#edit-form").areYouSure({
+            'message':'Your edits are not saved yet! Do you really want to close this dialog?'
+         });
+
+         // handle modal-script close event
+         $("#modal-script").on("hide.bs.modal", function(e) {
+
+
+            // if the forms is dirty then ask to the user
+            // if he wants save edits
+            if ($('#edit-form').hasClass('dirty')) {
+               e.preventDefault();
+               // TODO: ask to user if he really wants abort edits
+            }
          });
 
          $('#hostsScripts').on('click', 'button[data-target="#modal-script"]', function(e) {
@@ -219,7 +243,9 @@ print ([[
 
                // destructure gui and hooks from data
                const {gui, hooks} = data;
-               console.log(data);
+
+               // create dictonary for default values
+               const defaults = {inputs: {}, checks: {}, selects: {}};
 
                const build_gui = (gui, hooks) => {
 
@@ -233,31 +259,48 @@ print ([[
                         return $(`<div class='input-group template'></div>`)
                            .append(`<div class='input-group-prepend'>
                                  <select class='btn btn-outline-secondary'>
-                                       <option>${field_operator == "gt" ? ">" : "<"}</option>
-                                       <option>${field_operator != "gt" ? ">" : "<"}</option>
+                                       <option value="gt">&gt</option>
+                                       <option value="lt">&lt;</option>
                                  </select>
                            </div>`)
                            .append(`<input type='number' 
                                           class='form-control'
                                           min='${field_min == undefined ? '' : field_min}'
                                           max='${field_max == undefined ? '' : field_max}'>`)
-                           .append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit}</span>`);
+                           .append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit}</span>`)
+                           .append(`<div class="invalid-feedback">{message}</div>`)
                      }
 
                   }
 
                   const build_hook = ({label, enabled, script_conf}, granularity) => {
 
+                     // create table row inside the edit form
                      const $element = $("<tr></tr>").attr("id", granularity);
+
                      // create checkbox for hook
-                     $element.append(`<td><input type="checkbox" ${enabled ? "checked" : ""} ></td>`);
+                     $element.append(`<td class='text-center'>
+                        <input name="${granularity}-check" type="checkbox" ${enabled ? "checked" : ""} >
+                     </td>`);
+
                      // create label for hook
-                     $element.append(`<td><label for=''>${label}</label><td>`);
+                     $element.append(`<td><label>${label}</label></td>`);
                      
                      // create input_box
                      const $input_box = build_input_box(gui);
+                     // select the right operator
+                     $input_box.find("select").attr("name", `${granularity}-select`).val(script_conf.operator)
+                     // set input name
+                     $input_box.find("input[type='number']").attr("name", `${granularity}-input`)
                      // set script conf params
                      $input_box.find("input[type='number']").val(script_conf.threshold);
+                     // set placeholder
+                     $input_box.find("input[type='number']").attr("placeholder", script_conf.threshold);
+
+                     // attach default value to defaults dictonary
+                     defaults.inputs[`${granularity}-input`] = script_conf.threshold;
+                     defaults.checks[`${granularity}-check`] = enabled;
+                     defaults.selects[`${granularity}-select`] = script_conf.operator;
 
                      $element.append(`<td></td>`).append($input_box);
 
@@ -280,8 +323,11 @@ print ([[
 
                }
 
+               console.log(gui, hooks);
+
+               // render gui on the edit modal
                build_gui(gui, hooks);
-               
+            
                // bind event to modal_button
                const on_apply = (e) => {
 
@@ -290,6 +336,9 @@ print ([[
                   // prepare request to save config
                   const data = {}
             
+                  // variable for checking errors
+                  let error = false;
+
                   $table_editor.children("tr").each(function (index) {
 
                      const id = $(this).attr("id");
@@ -299,6 +348,16 @@ print ([[
                      const operator = $template.find("select").val() == ">" ? "gt" : "lt";
                      const threshold = $template.find("input").val();
 
+                     // hide before errors
+                     $template.find(`.invalid-feedback`).hide();
+
+                     // if the value is empty then alert the user (only for checked granularities)
+                     if (enabled && (threshold == null || threshold == undefined || threshold == "")) {
+                        $template.find(`.invalid-feedback`).text("Please fill the input box!").show();
+                        error = true;
+                        return;
+                     }
+
                      data[id] = {
                         'enabled': enabled,
                         'script_conf': {
@@ -306,7 +365,13 @@ print ([[
                            'threshold': threshold
                         }
                      }
-                  });                 
+                  });            
+                  
+                  // check if there are any errors on input values
+                  if (error) return;
+
+                  // remove dirty class from form
+                  $('#edit-form').removeClass('dirty')
 
                   // disable button
                   $button.attr("disabled", "");
@@ -324,15 +389,47 @@ print ([[
                   )
                   .then((d, status, xhr) => {
 
-                     $toast.find(".toast-body").html(`The edits has been saved for <b>${script_title}</b>`)
-                     $toast.toast('show');
-                     $button.removeAttr("disabled");
+                     console.log(d);
+                     location.reload();
 
                   })
 
                };
-               $("#btn-apply").off("click");
-               $("#btn-apply").click(on_apply);
+
+               const on_reset = (e) => {
+
+                  // iterate over keys
+                  for (const key in defaults.inputs) {
+                     // reset default values for inputs
+                     $(`input[name='${key}']`).val(defaults.inputs[key]);
+                  }
+
+                  // iterate over keys
+                  for (const key in defaults.selects) {
+                     // reset default values for selects
+                     $(`select[name='${key}']`).val(defaults.selects[key]);
+                  }
+
+                  // iterate over keys
+                  for (const key in defaults.checks) {
+                     // reset checkboxes
+                     $(`input[name='${key}']`).prop('checked', defaults.checks[key]);
+                  } 
+
+                  // remove dirty class from form
+                  $('#edit-form').removeClass('dirty')
+
+               }
+
+               // bind click event to btn-apply
+               $("#btn-apply").off("click").click(on_apply);
+
+               // bind reset default click event
+               $("#btn-reset").off("click").click(on_reset);
+
+               // bind are you sure to form
+               $('#edit-form').trigger('rescan.areYouSure');
+               $('#edit-form').trigger('reinitialize.areYouSure');
 
             });
 

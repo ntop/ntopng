@@ -25,6 +25,12 @@ print([[
     <div class='container-fluid mt-3'>
         <div class='row'>
             <div class='col-md-12 col-lg-12'>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item" aria-current="page"><a href='/'>ntopng</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Config List</li>
+                    </ol>
+                </nav>
                 <div class='table-responsive'>
                     <table id="config-list" class='table table-striped table-hover mt-3'>
                         <thead>
@@ -132,40 +138,6 @@ print([[
     </div>
 ]])
 
--- create modal
-print([[
-
-    <div class="modal fade" id="create-modal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Create New Configuration</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form class='form'>
-                    <div class='form-group'>
-                        <label class='form-label' for='#create-input'>Type a new name:</label>
-                        <input type='text' id='create-input' class='form-control' />
-                        <div class="invalid-feedback" id='create-error'>
-                            {message}
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-creation' class="btn btn-primary">Create Config</button>
-            </div>
-            </div>
-        </div>
-    </div>
-
-
-]])
-
 -- add datatable script to config list page
 print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.js"></script> ]])
 
@@ -175,23 +147,11 @@ print([[
 
 
         const $config_table = $("#config-list").DataTable({
-            dom: "Bfrtip",
             ajax: {
                 url: ']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua',
                 type: 'GET',
                 dataSrc: ''
             },
-            buttons: [
-                {
-                    text: 'Add New Config',
-                    attr: {
-                        class: 'btn btn-primary'
-                    },
-                    action: function(event, table) {
-                        $("#create-modal").modal('show');
-                    }
-                }
-            ],
             columns: [
                 {
                     data: 'name',
@@ -201,15 +161,15 @@ print([[
                 },
                 {
                     targets: -1,
-                    width: '20%',
+                    width: '10%',
                     data: null,
                     render: function(data, type, row) {
                         return `
                             <div class='btn-group'>
-                                <a href='script_list.lua?confset_id=${data.id}' title='Edit' class='btn btn-info'><i class='fas fa-edit'></i></a>
-                                <button title='Clone' data-toggle="modal" data-target="#clone-modal" class='btn btn-secondary' type='button'><i class='fas fa-clone'></i></button>
-                                <button title='Rename' data-toggle="modal" data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-secondary' type='button'><i class='fas fa-i-cursor'></i></button>
-                                <button title='Delete' data-toggle="modal" data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-danger' type='button'><i class='fas fa-times'></i></button>
+                                <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}' title='Edit' class='btn btn-sm btn-info'><i class='fas fa-edit'></i></a>
+                                <button title='Clone' data-toggle="modal" data-target="#clone-modal" class='btn btn-sm btn-secondary' type='button'><i class='fas fa-clone'></i></button>
+                                <button title='Rename' data-toggle="modal" data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary' type='button'><i class='fas fa-i-cursor'></i></button>
+                                <button title='Delete' data-toggle="modal" data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-danger' type='button'><i class='fas fa-times'></i></button>
                             </div>
                         `;
                     }
@@ -217,46 +177,6 @@ print([[
             ]
 
         });
-
-        $("#btn-confirm-creation").click(function() {
-
-            const $button = $(this);
-            const input_value = $('#create-input').val();
-
-            if (input_value == null || input_value == undefined || input_value == null) {
-
-                $("#create-error").text("The name for the new configuration cannot be null!").show();
-                return;
-            }
-
-            $button.attr("disabled", "");
-
-            $.when(
-                $.get(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
-                    action: 'add',
-                    confset_name: input_value    
-                })
-            )
-            .then((data, status, xhr) => {
-                
-                $button.removeAttr("disabled");
-
-                const is_empty = !Object.keys(data).length;
-                if (!is_empty) {
-                    $("#create-error").text(data.error).show();
-                    return;
-                }
-
-                // hide errors and clean modal
-                $("#create-error").hide(); $("#create-input").val("");
-                // reload table
-                $config_table.ajax.reload();
-                // hide modal
-                $("#create-modal").modal('hide');
-
-            });
-
-        })
 
         $('#config-list').on('click', 'button[data-target="#clone-modal"]', function(e) {
 
@@ -270,6 +190,8 @@ print([[
             $("#clone-error").hide();
 
             $("#btn-confirm-clone").off("click");
+            $("#clone-modal form").off("submit");
+
             $("#btn-confirm-clone").click(function(e) {
 
                 const clonation_name = $("#clone-input").val();
@@ -284,9 +206,10 @@ print([[
                 $button.attr("disabled", "");
 
                 $.when(
-                    $.get(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
+                    $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
                         action: 'clone',
                         confset_id: conf_id,
+                        csrf: ']].. ntop.getRandomCSRFValue() ..[[',
                         confset_name: clonation_name    
                     })
                 )
@@ -294,8 +217,7 @@ print([[
                     
                     $button.removeAttr("disabled");
 
-                    const is_empty = !Object.keys(data).length;
-                    if (!is_empty) {
+                    if (!data.success) {
                         $("#clone-error").text(data.error).show();
                         return;
                     }
@@ -306,10 +228,16 @@ print([[
                     $config_table.ajax.reload();
                     // hide modal
                     $("#clone-modal").modal('hide');
+                    location.reload();
 
                 });
             })
 
+            $("#clone-modal").on("submit", "form", function (e) {
+                
+                e.preventDefault();
+                $("#btn-confirm-clone").trigger("click");
+            });
 
         });
 
@@ -339,9 +267,10 @@ print([[
                 $button.attr("disabled");
 
                 $.when(
-                    $.get(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
+                    $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
                         action: 'rename',
                         confset_id: conf_id,
+                        csrf: ']].. ntop.getRandomCSRFValue() ..[[',
                         confset_name: input_value
                     })
                 )
@@ -349,8 +278,7 @@ print([[
 
                     $button.removeAttr("disabled");
 
-                    const is_empty = !Object.keys(data).length;
-                    if (!is_empty) {
+                    if (!data.success) {
                         $("#rename-error").text(data.error).show();
                         return;
                     }
@@ -361,6 +289,7 @@ print([[
                     $config_table.ajax.reload();
                     // hide modal
                     $("#rename-modal").modal('hide');
+                    location.reload();
 
                 })
 
@@ -382,8 +311,9 @@ print([[
                 $button.attr("disabled", "");
 
                 $.when(
-                    $.get(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
+                    $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
                         action: 'delete',
+                        csrf: ']].. ntop.getRandomCSRFValue() ..[[',
                         confset_id: conf_id,
                     })
                 )
@@ -391,8 +321,7 @@ print([[
                     
                     $button.removeAttr("disabled");
 
-                    const is_empty = !Object.keys(data).length;
-                    if (!is_empty) {
+                    if (!data.success) {
                         $("#delete-error").text(data.error).show();
                         return;
                     }
@@ -403,6 +332,8 @@ print([[
                     // hide modal
                     $("#delete-modal").modal('hide');
     
+                    location.reload();
+
                 });
 
             })
