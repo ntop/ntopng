@@ -136,7 +136,7 @@ function presets_utils.init()
    -----------------------------------------------------------------------------
 end
 
-local drop_icon = "warning"
+local drop_icon = "exclamation-triangle"
 local allow_icon = "check"
 local drop_text = i18n("device_protocols.alert")
 local allow_text = i18n("device_protocols.ok")
