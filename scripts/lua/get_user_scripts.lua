@@ -29,7 +29,7 @@ if(confset_id == nil) then
   return
 end
 
-local config_set = user_scripts.getConfigsets()[confset_id]
+local config_set = user_scripts.getConfigsets(subdir)[confset_id]
 
 if(config_set == nil) then
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown configset ID: " .. confset_id)

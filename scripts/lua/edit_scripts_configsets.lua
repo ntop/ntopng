@@ -10,6 +10,7 @@ local json = require("dkjson")
 local user_scripts = require("user_scripts")
 
 local action = _POST["action"]
+local subdir = _POST["subdir"] or "host"
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -27,66 +28,51 @@ end
 
 local result = {}
 
-if(action == "add") then
-  local name = _POST["confset_name"]
+local confid = tonumber(_POST["confset_id"])
 
-  if(name == nil) then
+if(confid == nil) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_id' parameter")
+  return
+end
+
+if(action == "delete") then
+  local success, err = user_scripts.deleteConfigset(subdir, confid)
+  result.success = success
+
+  if not success then
+    result.error = err
+  end
+elseif(action == "rename") then
+  local new_name = _POST["confset_name"]
+
+  if(new_name == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'newname' parameter")
+    return
+  end
+
+  local success, err = user_scripts.renameConfigset(subdir, confid, new_name)
+  result.success = success
+
+  if not success then
+    result.error = err
+  end
+elseif(action == "clone") then
+  local new_name = _POST["confset_name"]
+
+  if(new_name == nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_name' parameter")
     return
   end
 
-  local confset, err = user_scripts.newConfigset(name)
+  local success, err = user_scripts.cloneConfigset(subdir, confid, new_name)
+  result.success = success
 
-  if(confset == nil) then
+  if not success then
     result.error = err
   end
 else
-  local confid = tonumber(_POST["confset_id"])
-
-  if(confid == nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_id' parameter")
-    return
-  end
-
-  if(action == "delete") then
-    local success, err = user_scripts.deleteConfigset(confid)
-    result.success = success
-
-    if not success then
-      result.error = err
-    end
-  elseif(action == "rename") then
-    local new_name = _POST["confset_name"]
-
-    if(new_name == nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'newname' parameter")
-      return
-    end
-
-    local success, err = user_scripts.renameConfigset(confid, new_name)
-    result.success = success
-
-    if not success then
-      result.error = err
-    end
-  elseif(action == "clone") then
-    local new_name = _POST["confset_name"]
-
-    if(new_name == nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_name' parameter")
-      return
-    end
-
-    local success, err = user_scripts.cloneConfigset(confid, new_name)
-    result.success = success
-
-    if not success then
-      result.error = err
-    end
-  else
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown action '".. action .. "'")
-    return
-  end
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown action '".. action .. "'")
+  return
 end
 
 -- ################################################
