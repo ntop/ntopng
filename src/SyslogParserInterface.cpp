@@ -48,6 +48,13 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "[SYSLOG] Raw message: %s", log_line);
 #endif
 
+
+  /*
+   * Extracting application name and message content from the syslog message.
+   * Format:
+   * TIMESTAMP DEVICE APPLICATION[PID]: CONTENT
+   */
+
   tmp = strstr(log_line, "]: ");
   if(tmp == NULL) return 0; /* unexpected format */
   tmp[1] = '\0';
