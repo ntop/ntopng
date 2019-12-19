@@ -2,6 +2,7 @@ require "lua_utils"
 
 local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
+local plugins_utils = require("plugins_utils")
 
 local prefs = ntop.getPrefs()
 
@@ -20,6 +21,24 @@ if ntop.isPro() then
      nindex_utils = require("nindex_utils")
      _, max_nindex_retention = nindex_utils.getRetention()
   end
+end
+
+local function getAlertEndpointsEntries()
+  local endpoints = plugins_utils.getLoadedAlertEndpoints()
+  local rv = {
+    notification_severity_preference = {
+      title       = i18n("prefs.slack_notification_severity_preference_title", {url="http://www.slack.com"}),
+      description = i18n("prefs.slack_notification_severity_preference_description"),
+    }
+  }
+
+  for _, endpoint in ipairs(endpoints) do
+    for entry_k, entry in pairs(endpoint.prefs_entries or {}) do
+      rv[entry_k] = entry
+    end
+  end
+
+  return(rv)
 end
 
 -- This table is used both to control access to the preferences and to filter preferences results
@@ -261,74 +280,9 @@ local menu_subpages = {
       hidden      = not ntop.isPro(),
     }
     
-  }}, {id="ext_alerts",    label=i18n("prefs.alerts_notifications"), advanced=false, hidden=hasAlertsDisabled(), pro_only=false, entries={
-    toggle_external_alerts = {
-      title       = i18n("prefs.toggle_alerts_notifications_title"),
-      description = i18n("prefs.toggle_alerts_notifications_description"),
-    },
-    toggle_email_notification = {
-      title       = i18n("prefs.toggle_email_notification_title"),
-      description = i18n("prefs.toggle_email_notification_description"),
-    },
-    email_notification_sender = {
-      title       = i18n("prefs.email_notification_sender_title"),
-      description = i18n("prefs.email_notification_sender_description"),
-    },
-    email_notification_recipient = {
-      title       = i18n("prefs.email_notification_recipient_title"),
-      description = i18n("prefs.email_notification_recipient_description"),
-    },
-    email_notification_server = {
-      title       = i18n("prefs.email_notification_server_title"),
-      description = i18n("prefs.email_notification_server_description"),
-    },
-    email_notification_username = {
-      title       = i18n("prefs.email_notification_username_title"),
-      description = i18n("prefs.email_notification_username_description"),
-    },
-    email_notification_password = {
-      title       = i18n("prefs.email_notification_password_title"),
-      description = i18n("prefs.email_notification_password_description"),
-    },
-    toggle_slack_notification = {
-      title       = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"}),
-      description = i18n("prefs.toggle_slack_notification_description", {url="https://github.com/ntop/ntopng/blob/dev/doc/README.slack"}),
-    }, slack_notification_severity_preference = {
-      title       = i18n("prefs.slack_notification_severity_preference_title", {url="http://www.slack.com"}),
-      description = i18n("prefs.slack_notification_severity_preference_description"),
-    }, sender_username = {
-      title       = i18n("prefs.sender_username_title"),
-      description = i18n("prefs.sender_username_description"),
-    }, slack_webhook = {
-      title       = i18n("prefs.slack_webhook_title"),
-      description = i18n("prefs.slack_webhook_description"),
-    },
-    toggle_webhook_notification = {
-      title       = i18n("prefs.toggle_webhook_notification_title"),
-      description = i18n("prefs.toggle_webhook_notification_description"),
-    }, webhook_notification_severity_preference = {
-      title       = i18n("prefs.webhook_notification_severity_preference_title"),
-      description = i18n("prefs.webhook_notification_severity_preference_description"),
-    }, webhook_url = {
-      title       = i18n("prefs.webhook_url_title"),
-      description = i18n("prefs.webhook_url_description"),
-    }, webhook_sharedsecret = {
-      title       = i18n("prefs.webhook_sharedsecret_title"),
-      description = i18n("prefs.webhook_sharedsecret_description"),
-    }, webhook_username = {
-      title       = i18n("login.username"),
-      description = i18n("prefs.webhook_username_description"),
-    }, webhook_password = {
-      title       = i18n("login.password"),
-      description = i18n("prefs.webhook_password_description"),
-    }, syslog_alert_format = {
-      title       = i18n("prefs.syslog_alert_format_title"),
-      description = i18n("prefs.syslog_alert_format_description"),
-    }, toggle_alert_syslog = {
-      title       = i18n("prefs.toggle_alert_syslog_title"),
-      description = i18n("prefs.toggle_alert_syslog_description"),
-    }
-  }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
+  }}, {id="ext_alerts",    label=i18n("prefs.alerts_notifications"), advanced=false, hidden=hasAlertsDisabled(), pro_only=false,
+    entries = getAlertEndpointsEntries()
+  }, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),
       description = i18n("prefs.toggle_top_sites_description", {url="https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"})},
@@ -462,39 +416,5 @@ local menu_subpages = {
     }
   }},
 }
-
--- Add nagios configuration (if available)
--- Presently, nagios is not available under windows
-if hasNagiosSupport() then
-   for _, i in pairs(menu_subpages) do
-      if i["id"] == "ext_alerts" then
-	 local nagios = {
-	    toggle_alert_nagios = {
-	       title       = i18n("prefs.toggle_alert_nagios_title"),
-	       description = i18n("prefs.toggle_alert_nagios_description"),
-	    }, nagios_nsca_host = {
-	       title       = i18n("prefs.nagios_nsca_host_title"),
-	       description = i18n("prefs.nagios_nsca_host_description"),
-	    }, nagios_nsca_port = {
-	       title       = i18n("prefs.nagios_nsca_port_title"),
-	       description = i18n("prefs.nagios_nsca_port_description"),
-	    }, nagios_send_nsca_executable = {
-	       title       = i18n("prefs.nagios_send_nsca_executable_title"),
-	       description = i18n("prefs.nagios_send_nsca_executable_description"),
-	    }, nagios_send_nsca_config = {
-	       title       = i18n("prefs.nagios_send_nsca_config_title"),
-	       description = i18n("prefs.nagios_send_nsca_config_description"),
-	    }, nagios_host_name = {
-	       title       = i18n("prefs.nagios_host_name_title"),
-	       description = i18n("prefs.nagios_host_name_description", {product=info["product"]}),
-	    }, nagios_service_name = {
-	       title       = i18n("prefs.nagios_service_name_title"),
-	       description = i18n("prefs.nagios_service_name_description", {product=info["product"]}),
-	    },
-	 }
-	 i["entries"] = table.merge(i["entries"], nagios)
-      end
-   end
-end
 
 return menu_subpages

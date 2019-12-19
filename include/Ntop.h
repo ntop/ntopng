@@ -88,6 +88,7 @@ class Ntop {
 
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
+  void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
   bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
   void cleanShadownDPI();
   
@@ -468,6 +469,9 @@ class Ntop {
   void reloadCustomCategories();
   void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
+  inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
+  ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
+  void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
 };
 
 extern Ntop *ntop;

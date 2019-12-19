@@ -709,26 +709,59 @@ print(
 print("</li>")
 
 -- ##############################################
+-- Logout / Restart
+
+print [[ <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-power-off fa-lg"></i> <b class="caret"></b></a>
+  <ul class="dropdown-menu dropdown-menu-right float-right">]]
+
 -- Logout
 
 if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
+  print[[
 
-print[[
-
-<li class="nav-link"><a href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"> <i class="fas fa-sign-out-alt fa-lg"></i> </a></li>]]
-
-
+<li class="nav-item"><a class="dropdown-item" href="]]
+  print(ntop.getHttpPrefix())
+  print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"> <i class="fas fa-sign-out-alt fa-lg"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
 end
-
 
 if(not is_admin) then
-   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
+  dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
 
+-- Restart
+if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
+  print [[
+      <li class="dropdown-divider"></li>
+      <li class="nav-item"><a class="dropdown-item" id="restart-service-li" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
+  ]]
 
+print[[
+<script>
+  var restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
+  var restartService = function() {
+    if (confirm(']] print(i18n("restart.confirm")) print[[')) {
+      $.ajax({
+        type: 'POST',
+        url: ']] print (ntop.getHttpPrefix()) print [[/lua/admin/service_restart.lua',
+        data: {
+          csrf: restart_csrf
+        },
+        success: function(rsp) {
+          restart_csrf = rsp.csrf;
+          alert("]] print(i18n("restart.restarting")) print[[");
+        }
+      });
+    }
+  }
+  $('#restart-service-li').click(restartService);
+</script>
+]]
+end
 
+print[[
+    </ul>
+  </li>]]
 
 print("</ul>\n<h3 class=\"muted\"><A href=\""..ntop.getHttpPrefix().."/\">")
 

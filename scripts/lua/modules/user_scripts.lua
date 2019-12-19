@@ -30,7 +30,7 @@ user_scripts.field_units = {
 local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
-local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets"
+local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets.%s"
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- Hook points for flow/periodic modules
@@ -54,9 +54,9 @@ user_scripts.script_types = {
     hooks = {"min", "5mins", "hour", "day"},
     subdirs = {"system"},
   }, syslog = {
-    parent_dir = "syslog",
+    parent_dir = "system",
     hooks = {"handleEvent"},
-    subdirs = {"."},
+    subdirs = {"syslog"},
   }
 }
 
@@ -881,22 +881,6 @@ end
 
 -- ##############################################
 
-function user_scripts.getEnabledHooks(user_script, entity_value, is_remote_host)
-   local rv = {}
-
-   entity_value = entity_value or get_global_conf_key(is_remote_host)
-
-   for hook, conf in pairs(user_script.conf) do
-      if conf[entity_value] and conf[entity_value].enabled then
-	 rv[#rv + 1] = hook
-      end
-   end
-
-   return(rv)
-end
-
--- ##############################################
-
 function user_scripts.handlePOST(subdir, available_modules, hook, entity_value, remote_host)
    if(table.empty(_POST)) then
       return
@@ -1000,15 +984,21 @@ end
 
 -- ##############################################
 
-local function saveConfigsets(configsets)
-   local rv = json.encode(configsets)
-   ntop.setPref(CONFIGSETS_KEY, rv)
+local function getConfigsetsKey(subdir)
+   return(string.format(CONFIGSETS_KEY, subdir))
 end
 
 -- ##############################################
 
-function user_scripts.getConfigsets()
-   local configsets = ntop.getPref(CONFIGSETS_KEY) or ""
+local function saveConfigsets(subdir, configsets)
+   local rv = json.encode(configsets)
+   ntop.setPref(getConfigsetsKey(subdir), rv)
+end
+
+-- ##############################################
+
+function user_scripts.getConfigsets(subdir)
+   local configsets = ntop.getPref(getConfigsetsKey(subdir)) or ""
    local rv = {}
 
    configsets = json.decode(configsets) or {}
@@ -1023,57 +1013,29 @@ end
 
 -- ##############################################
 
--- @brief Creates a new configset.
--- @params name the unique config set name
--- @returns a tuple <configset, errmsg>. If configset is nil, errmsg
--- will contain a localized error describing the problem.
-function user_scripts.newConfigset(name)
-   local configsets = user_scripts.getConfigsets()
-   local existing = findConfigSet(configsets, name)
-
-   if existing then
-      return nil, i18n("configsets.error_exists", {name=name})
-   end
-
-   local confid = getNewConfigSetId(configsets)
-
-   local newconfset = {
-      id = confid,
-      name = name,
-      config = {},
-   }
-
-   configsets[confid] = newconfset
-   saveConfigsets(configsets)
-
-   return newconfset
-end
-
--- ##############################################
-
-function user_scripts.deleteConfigset(confid)
+function user_scripts.deleteConfigset(subdir, confid)
    confid = tonumber(confid)
 
    if(confid == user_scripts.DEFAULT_CONFIGSET_ID) then
       return false, "Cannot delete default configset"
    end
 
-   local configsets = user_scripts.getConfigsets()
+   local configsets = user_scripts.getConfigsets(subdir)
 
    if(configsets[confid] == nil) then
       return false, i18n("configsets.unknown_id", {confid=confid})
    end
 
    configsets[confid] = nil
-   saveConfigsets(configsets)
+   saveConfigsets(subdir, configsets)
 
    return true
 end
 
 -- ##############################################
 
-function user_scripts.renameConfigset(confid, new_name)
-   local configsets = user_scripts.getConfigsets()
+function user_scripts.renameConfigset(subdir, confid, new_name)
+   local configsets = user_scripts.getConfigsets(subdir)
 
    if(configsets[confid] == nil) then
       return false, i18n("configsets.unknown_id", {confid=confid})
@@ -1086,15 +1048,15 @@ function user_scripts.renameConfigset(confid, new_name)
    end
 
    configsets[confid].name = new_name
-   saveConfigsets(configsets)
+   saveConfigsets(subdir, configsets)
 
    return true
 end
 
 -- ##############################################
 
-function user_scripts.cloneConfigset(confid, new_name)
-   local configsets = user_scripts.getConfigsets()
+function user_scripts.cloneConfigset(subdir, confid, new_name)
+   local configsets = user_scripts.getConfigsets(subdir)
 
    if(configsets[confid] == nil) then
       return false, i18n("configsets.unknown_id", {confid=confid})
@@ -1111,8 +1073,30 @@ function user_scripts.cloneConfigset(confid, new_name)
    configsets[new_confid] = table.clone(configsets[confid])
    configsets[new_confid].id = new_confid
    configsets[new_confid].name = new_name
+   configsets[new_confid].targets = {}
 
-   saveConfigsets(configsets)
+   saveConfigsets(subdir, configsets)
+
+   return true, new_confid
+end
+
+-- ##############################################
+
+function user_scripts.setConfigsetTargets(subdir, confid, targets)
+   local configsets = user_scripts.getConfigsets(subdir)
+
+   if(configsets[confid] == nil) then
+      return false, i18n("configsets.unknown_id", {confid=confid})
+   end
+
+   if(confid == user_scripts.DEFAULT_CONFIGSET_ID) then
+      return false, "Cannot set target on the default configuration"
+   end
+
+   -- Update the targets
+   configsets[confid].targets = targets
+
+   saveConfigsets(subdir, configsets)
 
    return true
 end
@@ -1120,7 +1104,7 @@ end
 -- ##############################################
 
 function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
-   local configsets = user_scripts.getConfigsets()
+   local configsets = user_scripts.getConfigsets(subdir)
 
    if(configsets[confid] == nil) then
       return false, i18n("configsets.unknown_id", {confid=confid})
@@ -1131,7 +1115,7 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
    config[subdir] = config[subdir] or {}
    config[subdir][script_key] = new_config
 
-   saveConfigsets(configsets)
+   saveConfigsets(subdir, configsets)
 
    return true
 end
@@ -1139,12 +1123,13 @@ end
 -- ##############################################
 
 function user_scripts.loadDefaultConfig()
-   local configsets = user_scripts.getConfigsets()
    local ifid = getSystemInterfaceId()
-   local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
 
    for type_id, script_type in pairs(user_scripts.script_types) do
       for _, subdir in pairs(script_type.subdirs) do
+	 local configsets = user_scripts.getConfigsets()
+	 local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
+
 	 local scripts = user_scripts.load(ifid, script_type, subdir, {return_all = true})
 	 default_conf[subdir] = default_conf[subdir] or {}
 
@@ -1164,16 +1149,17 @@ function user_scripts.loadDefaultConfig()
 	       end
 	    end
 	 end
+
+	 configsets[user_scripts.DEFAULT_CONFIGSET_ID] = {
+	    id = user_scripts.DEFAULT_CONFIGSET_ID,
+	    name = i18n("policy_presets.default"),
+	    config = default_conf,
+	    targets = {},
+	 }
+
+	 saveConfigsets(subdir, configsets)
       end
    end
-
-   configsets[user_scripts.DEFAULT_CONFIGSET_ID] = {
-      id = user_scripts.DEFAULT_CONFIGSET_ID,
-      name = i18n("policy_presets.default"),
-      config = default_conf,
-   }
-
-   saveConfigsets(configsets)
 end
 
 -- ##############################################

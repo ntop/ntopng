@@ -4109,3 +4109,34 @@ u_int32_t Utils::pow2(u_int32_t v) {
   v++;
   return v;
 }
+
+/* ****************************************************** */
+
+#ifdef __linux__
+void Utils::deferredExec(const char * const command) {
+  char command_buf[256];
+  int res;
+
+  if(!command || command[0] == '\0')
+    return;
+
+  /* Self-restarting service does not restart with systemd:
+     This is a hard limitation imposed by systemd.
+     The best suggestions so far are to use at, cron, or systemd timer units.
+
+     https://unix.stackexchange.com/questions/202048/self-restarting-service-does-not-restart-with-systemd
+   */
+  if((res = snprintf(command_buf, sizeof(command_buf),
+		     "echo \"sleep 1 && %s\" | at now",
+		     command)) < 0
+     || res >= (int)sizeof(command_buf))
+    return;
+
+  printf("%s\n", command_buf);
+  fflush(stdout);
+  system(command_buf);
+}
+#endif
+
+/* ****************************************************** */
+

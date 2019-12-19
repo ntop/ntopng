@@ -3044,6 +3044,12 @@ local lang = {
     ["traffic_report"] = "Traffic Report",
     ["use_server_timezone"] = "Use Server Timezone",
   },
+  ["restart"] = {
+    ["confirm"] = "Do you want to restart ntopng now?",
+    ["restart"] = "Restart",
+    ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
+    ["restart_now"] = "Restart now",
+  },
   ["sflows_stats"] = {
     ["active_flows"] = "Active Flows",
     ["client_peer"] = "Client Peer",
@@ -3324,7 +3330,7 @@ local lang = {
   },
   ["sub_interfaces"] = {
     ["add_sub_if"] = "Add Sub-Interface",
-    ["add_sub_if_success"] = "Sub-Interface created successfully. <b>A restart of ntopng is required for the change to have effect</b>.",
+    ["add_sub_if_success"] = "Sub-Interface created successfully. A restart of ntopng is required for the change to have effect.",
     ["confirm_delete"] = "Are you sure you want to delete %{name}?",
     ["delete"] = "Delete Sub-Interface",
     ["disaggregation"] = "Custom Traffic Disaggregation",

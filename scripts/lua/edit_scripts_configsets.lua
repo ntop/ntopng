@@ -8,8 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require("dkjson")
 local user_scripts = require("user_scripts")
+local http_lint = require("http_lint")
 
-local action = _GET["action"]
+local action = _POST["action"]
+local subdir = _POST["subdir"] or "host"
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -27,63 +29,76 @@ end
 
 local result = {}
 
-if(action == "add") then
-  local name = _GET["confset_name"]
+local confid = tonumber(_POST["confset_id"])
 
-  if(name == nil) then
+if(confid == nil) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_id' parameter")
+  return
+end
+
+if(action == "delete") then
+  local success, err = user_scripts.deleteConfigset(subdir, confid)
+  result.success = success
+
+  if not success then
+    result.error = err
+  end
+elseif(action == "rename") then
+  local new_name = _POST["confset_name"]
+
+  if(new_name == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'newname' parameter")
+    return
+  end
+
+  local success, err = user_scripts.renameConfigset(subdir, confid, new_name)
+  result.success = success
+
+  if not success then
+    result.error = err
+  end
+elseif(action == "clone") then
+  local new_name = _POST["confset_name"]
+
+  if(new_name == nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_name' parameter")
     return
   end
 
-  local confset, err = user_scripts.newConfigset(name)
+  local success, err = user_scripts.cloneConfigset(subdir, confid, new_name)
+  result.success = success
 
-  if(confset == nil) then
+  if not success then
     result.error = err
+  else
+    result.config_id = err
   end
-else
-  local confid = tonumber(_GET["confset_id"])
+elseif(action == "set_targets") then
+  local targets = _POST["confset_targets"]
 
-  if(confid == nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_id' parameter")
+  if(targets == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_targets' parameter")
     return
   end
 
-  if(action == "delete") then
-    local success, err = user_scripts.deleteConfigset(confid)
+  local targets = http_lint.parseConfsetTargets(subdir, targets)
 
-    if not success then
-      result.error = err
-    end
-  elseif(action == "rename") then
-    local new_name = _GET["confset_name"]
-
-    if(new_name == nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'newname' parameter")
-      return
-    end
-
-    local success, err = user_scripts.renameConfigset(confid, new_name)
-
-    if not success then
-      result.error = err
-    end
-  elseif(action == "clone") then
-    local new_name = _GET["confset_name"]
-
-    if(new_name == nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_name' parameter")
-      return
-    end
-
-    local success, err = user_scripts.cloneConfigset(confid, new_name)
+  if(targets ~= nil) then
+    -- Validation ok
+    local success, err = user_scripts.setConfigsetTargets(subdir, confid, targets)
+    result.success = success
 
     if not success then
       result.error = err
     end
   else
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown action '".. action .. "'")
-    return
+    -- Validation error
+    result.success = false
+    result.error = "Validation error"
   end
+else
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown action '".. action .. "'")
+  return
 end
 
 -- ################################################

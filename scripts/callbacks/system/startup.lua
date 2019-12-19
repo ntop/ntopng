@@ -6,7 +6,7 @@
 -- This script is executed once at startup similar to /etc/rc.local on Unix
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if(ntop.isPro()) then
@@ -30,7 +30,7 @@ local recovery_utils = require "recovery_utils"
 local delete_data_utils = require "delete_data_utils"
 local ts_utils = require "ts_utils"
 local user_scripts = require("user_scripts")
-
+local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
 
 host_pools_utils.initPools()
@@ -116,15 +116,6 @@ ntop.delCache("ntopng.influx_file_queue")
 
 -- ##################################################################
 
--- Initialize device policies (presets)
-local presets_utils = require "presets_utils"
-local ifid, ifname = getFirstInterfaceId()
-interface.select(ifname)
-presets_utils.init()
-presets_utils.reloadAllDevicePolicies()
-
--- ##################################################################
-
 -- Check remote assistance expiration
 local remote_assistance = require "remote_assistance"
 remote_assistance.checkAvailable()
@@ -142,12 +133,20 @@ companion_interface_utils.initCompanions()
 
 -- ##################################################################
 
-initCustomnDPIProtoCategories()
-
--- housekeeping will do the actual reload...
 lists_utils.clearErrors()
 lists_utils.downloadLists()
 lists_utils.reloadLists()
+-- Need to do the actual reload also here as otherwise some
+-- flows may be misdetected until housekeeping.lua is executed
+lists_utils.checkReloadLists()
+
+-- ##################################################################
+
+-- Initialize device policies (presets)
+-- NOTE: Must go after lists_utils initialization and reload
+-- as new custom protocols can be set by lists utils
+presets_utils.init()
+presets_utils.reloadAllDevicePolicies()
 
 -- TODO: migrate custom re-arm settings
 

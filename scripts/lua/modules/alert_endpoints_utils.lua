@@ -7,6 +7,7 @@ local alert_endpoints = {}
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_endpoints/?.lua;" .. package.path
 
 local alert_consts = require("alert_consts")
+local plugins_utils = require("plugins_utils")
 
 --
 -- Generic alerts extenral report
@@ -15,23 +16,7 @@ local alert_consts = require("alert_consts")
 --
 --  - modules are enabled with the getAlertNotificationModuleEnableKey key
 --  - module severity is defined with the getAlertNotificationModuleSeverityKey key
---  - A [module] name must have a corresponding modules/[module]_utils.lua script
 --
-
--- ##############################################
-
--- NOTE: order is important as it defines evaluation order
-local ALERT_NOTIFICATION_MODULES = {
-   "custom", "nagios", "slack", "webhook"
-}
-
-if ntop.syslog then
-   table.insert(ALERT_NOTIFICATION_MODULES, 1, "syslog")
-end
-
-if ntop.sendMail then -- only if email support is available
-   table.insert(ALERT_NOTIFICATION_MODULES, 1, "email")
-end
 
 -- ##############################################
 
@@ -75,34 +60,27 @@ local function getEnabledAlertNotificationModules()
       return {}
    end
 
+   local available_modules = plugins_utils.getLoadedAlertEndpoints()
    local enabled_modules = {}
 
-   for _, modname in ipairs(ALERT_NOTIFICATION_MODULES) do
+   for _, _module in ipairs(available_modules) do
+      local modname = _module.key
       local module_enabled = ntop.getPref(alert_endpoints.getAlertNotificationModuleEnableKey(modname))
       local min_severity = ntop.getPref(alert_endpoints.getAlertNotificationModuleSeverityKey(modname))
       local req_name = modname
 
       if module_enabled == "1" then
-         local ok, _module, j = pcall(require, req_name)
-
-         if not ok then
-            traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while importing alert notification module " .. req_name)
-
-            -- the traceback
-            io.write(_module)
-         else
-	    if isEmptyString(min_severity) then
-	       min_severity = _module.DEFAULT_SEVERITY or "warning"
-	    end
-
-            enabled_modules[#enabled_modules + 1] = {
-               name = modname,
-               severity = min_severity,
-               export_frequency = tonumber(_module.EXPORT_FREQUENCY) or 60,
-               export_queue = "ntopng.alerts.modules_notifications_queue." .. modname,
-               ["module"] = _module,
-            }
+         if isEmptyString(min_severity) then
+            min_severity = _module.DEFAULT_SEVERITY or "warning"
          end
+
+         enabled_modules[#enabled_modules + 1] = {
+            name = modname,
+            severity = min_severity,
+            export_frequency = tonumber(_module.EXPORT_FREQUENCY) or 60,
+            export_queue = "ntopng.alerts.modules_notifications_queue." .. modname,
+            ["module"] = _module,
+         }
       end
    end
 
@@ -152,6 +130,18 @@ function alert_endpoints.processNotifications(now, periodic_frequency)
        end
     end
   end
+end
+
+-- ##############################################
+
+function alert_endpoints.getSeverityLabels()
+   return({i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")})
+end
+
+-- ##############################################
+
+function alert_endpoints.getSeverityValues()
+   return({"error", "warning", "info"})
 end
 
 -- ##############################################

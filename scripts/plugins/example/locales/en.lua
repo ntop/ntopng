@@ -25,4 +25,7 @@ return {
   system_script_description = "An example user script executed once per ntopng instance",
   custom_menu_entry = "Example Menu Entry",
   custom_page_title = "Example page",
+  toggle_example_notification_title = "Toggle Example Notification",
+  toggle_example_notification_description = "An example alert notification endpoint",
+  example_notification = "Example Notification",
 }

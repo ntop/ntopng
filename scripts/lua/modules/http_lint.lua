@@ -536,6 +536,8 @@ local function validateNotificationSeverity(tz)
    return validateChoiceInline({"error","warning","info"})
 end
 
+http_lint.validateNotificationSeverity = validateNotificationSeverity
+
 local function validateIPV4(p)
    return isIPv4(p)
 end
@@ -639,6 +641,7 @@ local function validateBool(p)
       end
    end
 end
+http_lint.validateBool = validateBool
 
 local function validateSortOrder(p)
    local defaults = {"asc", "desc"}
@@ -994,6 +997,16 @@ local function validateOperatingMode(m)
 end
 
 -- #################################################################
+
+function http_lint.parseConfsetTargets(subdir, param)
+   -- TODO
+   local values = string.split(param, ",") or {param}
+
+   return(values)
+end
+
+-- #################################################################
+
 -- NOTE: Put here all the parameters to validate
 
 local known_parameters = {
@@ -1130,7 +1143,8 @@ local known_parameters = {
 -- CONFIGSETS
    ["confset_id"]              = validateNumber,
    ["confset_name"]            = validateUnquoted,
-   
+   ["confset_targets"]         = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
+
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
    ["__"]                      = validateUnquoted,              -- see LDAP prefs page
@@ -1357,6 +1371,7 @@ local known_parameters = {
    ["nagios_notification_severity_preference"]     = validateNotificationSeverity,
    ["email_notification_severity_preference"]      = validateNotificationSeverity,
    ["webhook_notification_severity_preference"]    = validateNotificationSeverity,
+   ["notification_severity_preference"]            = validateNotificationSeverity,
    ["multiple_ldap_authentication"]                = validateChoiceInline({"local","ldap","ldap_local"}),
    ["multiple_ldap_account_type"]                  = validateChoiceInline({"posix","samaccount"}),
    ["toggle_logging_level"]                        = validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
@@ -1702,6 +1717,7 @@ end
 -- #################################################################
 
 local function lintParams()
+   local plugins_utils = require("plugins_utils")
    local params_to_validate = { _GET, _POST }
    local id, _, k, v
 
@@ -1710,6 +1726,9 @@ local function lintParams()
    local relaxGetValidation  = true                --[[ To consider empty fields as valid in _GET parameters ]]
    local relaxPostValidation = false               --[[ To consider empty fields as valid in _POST parameters ]]
    local debug = false                             --[[ To enable validation debug messages ]]
+
+   -- Extend the parameters with validators from the plugins
+   local additional_params = plugins_utils.extendLintParams(http_lint, known_parameters)
 
    for _,id in pairs(params_to_validate) do
       for k,v in pairs(id) do
