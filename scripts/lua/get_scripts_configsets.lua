@@ -21,6 +21,7 @@ for _, configset in pairs(config_sets) do
   rv[#rv + 1] = {
     id = configset.id,
     name = configset.name,
+    targets = configset.targets,
   }
 end
 

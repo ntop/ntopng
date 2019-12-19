@@ -1073,6 +1073,28 @@ function user_scripts.cloneConfigset(subdir, confid, new_name)
    configsets[new_confid] = table.clone(configsets[confid])
    configsets[new_confid].id = new_confid
    configsets[new_confid].name = new_name
+   configsets[new_confid].targets = {}
+
+   saveConfigsets(subdir, configsets)
+
+   return true, new_confid
+end
+
+-- ##############################################
+
+function user_scripts.setConfigsetTargets(subdir, confid, targets)
+   local configsets = user_scripts.getConfigsets(subdir)
+
+   if(configsets[confid] == nil) then
+      return false, i18n("configsets.unknown_id", {confid=confid})
+   end
+
+   if(confid == user_scripts.DEFAULT_CONFIGSET_ID) then
+      return false, "Cannot set target on the default configuration"
+   end
+
+   -- Update the targets
+   configsets[confid].targets = targets
 
    saveConfigsets(subdir, configsets)
 
@@ -1132,6 +1154,7 @@ function user_scripts.loadDefaultConfig()
 	    id = user_scripts.DEFAULT_CONFIGSET_ID,
 	    name = i18n("policy_presets.default"),
 	    config = default_conf,
+	    targets = {},
 	 }
 
 	 saveConfigsets(subdir, configsets)

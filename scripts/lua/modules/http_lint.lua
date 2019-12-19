@@ -997,6 +997,16 @@ local function validateOperatingMode(m)
 end
 
 -- #################################################################
+
+function http_lint.parseConfsetTargets(subdir, param)
+   -- TODO
+   local values = string.split(param, ",") or {param}
+
+   return(values)
+end
+
+-- #################################################################
+
 -- NOTE: Put here all the parameters to validate
 
 local known_parameters = {
@@ -1133,7 +1143,8 @@ local known_parameters = {
 -- CONFIGSETS
    ["confset_id"]              = validateNumber,
    ["confset_name"]            = validateUnquoted,
-   
+   ["confset_targets"]         = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
+
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
    ["__"]                      = validateUnquoted,              -- see LDAP prefs page
