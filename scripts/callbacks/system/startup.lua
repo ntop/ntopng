@@ -6,7 +6,7 @@
 -- This script is executed once at startup similar to /etc/rc.local on Unix
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if(ntop.isPro()) then
@@ -144,10 +144,12 @@ companion_interface_utils.initCompanions()
 
 initCustomnDPIProtoCategories()
 
--- housekeeping will do the actual reload...
 lists_utils.clearErrors()
 lists_utils.downloadLists()
 lists_utils.reloadLists()
+-- Need to do the actual reload also here as otherwise some
+-- flows may be misdetected until housekeeping.lua is executed
+lists_utils.checkReloadLists()
 
 -- TODO: migrate custom re-arm settings
 
