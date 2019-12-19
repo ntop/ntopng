@@ -4063,8 +4063,8 @@ void Flow::lua_device_protocol_allowed_info(lua_State *vm) {
   if(!cli_host || !srv_host)
     return;
 
-  cli_ps = cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true);
-  srv_ps = srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false);
+  cli_ps = cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true);
+  srv_ps = srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false);
   cli_allowed = (cli_ps == device_proto_allowed);
   srv_allowed = (srv_ps == device_proto_allowed);
 
