@@ -127,7 +127,7 @@ print([[
             </div>
             <div class="modal-body">
                 Do you want really remove this configuration?<br>
-                <b>Attention</b>: this operation is irreversible!
+                <b>Attention</b>: this process is irreversible! 
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -147,6 +147,7 @@ print([[
 
 
         const $config_table = $("#config-list").DataTable({
+            fixedColumns: true,
             ajax: {
                 url: ']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua',
                 type: 'GET',
@@ -257,6 +258,7 @@ print([[
 
                 const $button = $(this);
                 const input_value = $("#rename-input").val();
+
 
                 // show error message if the input is empty
                 if (input_value == "" || input_value == null || input_value == undefined) {
