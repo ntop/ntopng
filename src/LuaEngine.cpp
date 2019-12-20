@@ -824,6 +824,19 @@ static int ntop_set_ndpi_protocol_category(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_ptree_clear(lua_State* vm) {
+  if(getLuaVMUservalue(vm, addr_tree) != NULL) {
+    delete getLuaVMUservalue(vm, addr_tree);
+    getLuaVMUservalue(vm, addr_tree) = NULL;
+  }
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_ptree_insert(lua_State* vm) {
   char *addr;
   int16_t value;
@@ -11469,6 +11482,7 @@ static const luaL_Reg ntop_reg[] = {
   { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },
 
   /* Patricia Tree */
+  { "ptreeClear",             ntop_ptree_clear             },
   { "ptreeInsert",            ntop_ptree_insert            },
   { "ptreeMatch",             ntop_ptree_match             },
 

@@ -991,9 +991,56 @@ end
 
 -- ##############################################
 
+local function validateConfigsets(configsets)
+   local cur_targets = {}
+
+   -- Ensure that no duplicate target is set
+   for _, configset in pairs(configsets) do
+      for _, conf_target in ipairs(configset.targets) do
+	 local is_v4 = isIPv4(conf_target)
+	 local is_v6 = isIPv6(conf_target)
+	 local conf_target_normalized = nil
+
+	 if(is_v4 or is_v6) then
+	    local address, prefix = splitNetworkPrefix(conf_target)
+	    local max_prefixlen = ternary(is_v4, 32, 128)
+
+	    if((prefix == nil) or (prefix >= max_prefixlen)) then
+	       prefix = max_prefixlen
+	    end
+
+	    -- Normalize
+	    conf_target_normalized = ntop.networkPrefix(address, prefix) .. "/" .. prefix
+	 else
+	    conf_target_normalized = conf_target
+	 end
+
+	 local existing_id = cur_targets[conf_target_normalized]
+
+	 if(existing_id) then
+	    return false, i18n("configsets.duplicate_target", {target = conf_target, confname1 = configsets[existing_id].name, confname2 = configset.name})
+	 end
+
+	 cur_targets[conf_target_normalized] = configset.id
+      end
+   end
+
+   return true
+end
+
+-- ##############################################
+
 local function saveConfigsets(subdir, configsets)
    local rv = json.encode(configsets)
    ntop.setPref(getConfigsetsKey(subdir), rv)
+
+   local rv, err = validateConfigsets(configsets)
+
+   if(not rv) then
+      return rv, err
+   end
+
+   return true
 end
 
 -- ##############################################
@@ -1028,9 +1075,7 @@ function user_scripts.deleteConfigset(subdir, confid)
    end
 
    configsets[confid] = nil
-   saveConfigsets(subdir, configsets)
-
-   return true
+   return saveConfigsets(subdir, configsets)
 end
 
 -- ##############################################
@@ -1049,9 +1094,7 @@ function user_scripts.renameConfigset(subdir, confid, new_name)
    end
 
    configsets[confid].name = new_name
-   saveConfigsets(subdir, configsets)
-
-   return true
+   return saveConfigsets(subdir, configsets)
 end
 
 -- ##############################################
@@ -1076,7 +1119,11 @@ function user_scripts.cloneConfigset(subdir, confid, new_name)
    configsets[new_confid].name = new_name
    configsets[new_confid].targets = {}
 
-   saveConfigsets(subdir, configsets)
+   local rv, err = saveConfigsets(subdir, configsets)
+
+   if(not rv) then
+      return rv, err
+   end
 
    return true, new_confid
 end
@@ -1097,9 +1144,7 @@ function user_scripts.setConfigsetTargets(subdir, confid, targets)
    -- Update the targets
    configsets[confid].targets = targets
 
-   saveConfigsets(subdir, configsets)
-
-   return true
+   return saveConfigsets(subdir, configsets)
 end
 
 -- ##############################################
@@ -1115,9 +1160,7 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
 
    config[script_key] = new_config
 
-   saveConfigsets(subdir, configsets)
-
-   return true
+   return saveConfigsets(subdir, configsets)
 end
 
 -- ##############################################
@@ -1210,6 +1253,9 @@ local host_confsets_ptree_initialized = false
 -- Performs an IP based match by using a patricia tree
 function user_scripts.getHostTargetConfiset(configsets, ip_target)
    if(not host_confsets_ptree_initialized) then
+      -- Start with an empty ptree
+      ntop.ptreeClear()
+
       for _, configset in pairs(configsets) do
 	 for _, conf_target in pairs(configset.targets) do
 	    ntop.ptreeInsert(conf_target, configset.id)

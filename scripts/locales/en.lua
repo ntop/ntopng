@@ -483,6 +483,7 @@ local lang = {
     ["conf_restore"] = "Restore Configuration",
   },
   ["configsets"] = {
+    ["duplicate_target"] = "Target \"%{target}\" is assigned to both configuration \"%{confname1}\" and \"%{confname2}\"",
     ["error_exists"] = "The configuration name \"%{name}\" is already in use",
     ["unknown_id"] = "No configuration found with id %{confid}",
   },
