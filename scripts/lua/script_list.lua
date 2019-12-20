@@ -432,16 +432,22 @@ else
 
                            $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
 
+                           if (granularity.script_conf.threshold === undefined) {
+                              $(`input[name='${key}-input']`).val(0);
+                           }
+                           else {
+                              $(`input[name='${key}-input']`).val(granularity.script_conf.threshold);
+                           }
+
                            if (granularity.enabled) {
                               $(`select[name='${key}-select']`).removeAttr("disabled");
                               $(`input[name='${key}-input']`).removeAttr("readonly");
                            }
                            else {
                               $(`input[name='${key}-input']`).attr("readonly", "");
-                              $(`input[name='${key}-select']`).attr("disabled", "");
-                           }
+                              $(`select[name='${key}-select']`).attr("disabled", "");
+                           }                  
 
-                           $(`input[name='${key}-input']`).val(granularity.script_conf.threshold);
                            $(`select[name='${key}-select']`).val(granularity.script_conf.operator);
 
                         }
