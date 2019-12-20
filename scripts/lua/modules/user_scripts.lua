@@ -1127,7 +1127,7 @@ function user_scripts.loadDefaultConfig()
 
    for type_id, script_type in pairs(user_scripts.script_types) do
       for _, subdir in pairs(script_type.subdirs) do
-	 local configsets = user_scripts.getConfigsets()
+	 local configsets = user_scripts.getConfigsets(subdir)
 	 local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
 
 	 local scripts = user_scripts.load(ifid, script_type, subdir, {return_all = true})
@@ -1188,8 +1188,7 @@ end
 
 local fast_target_lookup = nil
 
--- NOTE: this only works for exact searches. For hosts a different
--- approach will be used, see scripts/callbacks/interface/host.lua
+-- NOTE: this only works for exact searches. For hosts see user_scripts.getHostTargetConfiset
 function user_scripts.getTargetConfiset(configsets, target)
    if(fast_target_lookup == nil) then
       fast_target_lookup = {}
@@ -1202,6 +1201,26 @@ function user_scripts.getTargetConfiset(configsets, target)
    end
 
    return(fast_target_lookup[target] or configsets[user_scripts.DEFAULT_CONFIGSET_ID])
+end
+
+-- ##############################################
+
+local host_confsets_ptree_initialized = false
+
+-- Performs an IP based match by using a patricia tree
+function user_scripts.getHostTargetConfiset(configsets, ip_target)
+   if(not host_confsets_ptree_initialized) then
+      for _, configset in pairs(configsets) do
+	 for _, conf_target in pairs(configset.targets) do
+	    ntop.ptreeInsert(conf_target, configset.id)
+	 end
+      end
+
+      host_confsets_ptree_initialized = true
+   end
+
+   local match_id = ntop.ptreeMatch(ip_target) or user_scripts.DEFAULT_CONFIGSET_ID
+   return(configsets[match_id])
 end
 
 -- ##############################################

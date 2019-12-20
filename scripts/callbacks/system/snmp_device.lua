@@ -19,6 +19,7 @@ local do_trace = false             -- Trace lua calls
 local config_alerts = nil
 local available_modules = nil
 local ifid = nil
+local confisets = nil
 local snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
 
 -- The function below ia called once (#pragma once)
@@ -33,6 +34,8 @@ function setup(str_granularity)
    available_modules = user_scripts.load(ifid, user_scripts.script_types.snmp_device, "snmp_device", {
       do_benchmark = do_benchmark,
    })
+
+   configsets = user_scripts.getConfigsets("snmp_device")
 end
 
 -- #################################################################
@@ -62,6 +65,9 @@ local function snmp_device_run_user_scripts(snmp_device)
       user_script = check,
       system = device["system"],
    }
+
+   local device_conf = user_scripts.getHostTargetConfiset(configsets, device_ip)
+  -- TODO use device_conf
 
    -- Run callback for each device
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDevice"] or {}) do
