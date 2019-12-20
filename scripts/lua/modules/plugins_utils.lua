@@ -136,6 +136,7 @@ local function init_runtime_paths()
 
     -- Web Gui
     web_gui = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/scripts",
+    menu_items = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/menu_items",
 
     -- Alert endpoints
     alert_endpoints = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/alert_endpoints",
@@ -407,12 +408,13 @@ end
 
 -- ##############################################
 
-local function load_plugin_web_gui(menu_entries, plugin)
+local function load_plugin_web_gui(plugin)
   local gui_dir = os_utils.fixPath(plugin.path .. "/web_gui")
 
   for fname in pairs(ntop.readdir(gui_dir)) do
     if(fname == "menu.lua") then
-      local menu_entry = dofile(os_utils.fixPath(gui_dir .. "/" .. fname))
+      local full_path = os_utils.fixPath(gui_dir .. "/" .. fname)
+      local menu_entry = dofile(full_path)
 
       if(menu_entry) then
         if(menu_entry.label == nil) then
@@ -426,15 +428,16 @@ local function load_plugin_web_gui(menu_entries, plugin)
           local script_path = os_utils.fixPath(gui_dir .. "/" .. menu_entry.script)
 
           if(not ntop.exists(script_path)) then
-            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing menu entry script path '%s' does not exists in %s", script_path, plugin.key))
+            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Menu entry script path '%s' does not exists in %s", script_path, plugin.key))
             return(false)
           end
 
-          menu_entry.url = plugins_utils.getUrl(menu_entry.script)
+          if(not copy_file(nil, full_path,
+              os_utils.fixPath(RUNTIME_PATHS.menu_items .. "/" .. plugin.key .. ".lua"))) then
+            return(false)
+          end
         end
       end
-
-      menu_entries[plugin.key] = menu_entry
     else
       if not copy_file(fname, gui_dir, RUNTIME_PATHS.web_gui) then
         return(false)
@@ -454,7 +457,6 @@ function plugins_utils.loadPlugins()
   local plugins = plugins_utils.listPlugins()
   local loaded_plugins = {}
   local locales = {}
-  local menu_entries = {}
   local endpoints_prefs_entries = {}
   local path_map = {}
   local en_locale = locales_utils.readDefaultLocale()
@@ -513,7 +515,7 @@ function plugins_utils.loadPlugins()
         load_plugin_i18n(locales, en_locale, plugin) and
         load_plugin_lint(plugin) and
         load_plugin_ts_schemas(plugin) and
-        load_plugin_web_gui(menu_entries, plugin) and
+        load_plugin_web_gui(plugin) and
         load_plugin_user_scripts(path_map, plugin) and
         load_plugin_alert_endpoints(endpoints_prefs_entries, plugin) then
       loaded_plugins[plugin.key] = plugin
@@ -530,14 +532,6 @@ function plugins_utils.loadPlugins()
 
     persistence.store(locale_path, plugins_locales)
     ntop.setDefaultFilePermissions(locale_path)
-  end
-
-  -- Save the menu entries
-  if not table.empty(menu_entries) then
-    local menu_path = os_utils.fixPath(RUNTIME_PATHS.web_gui .. "/menu.lua")
-
-    persistence.store(menu_path, menu_entries)
-    ntop.setDefaultFilePermissions(menu_path)
   end
 
   -- Save alert endpoint entries
@@ -606,15 +600,21 @@ end
 
 function plugins_utils.getMenuEntries()
   init_runtime_paths()
+  local menu = {}
 
-  local menu_path = os_utils.fixPath(RUNTIME_PATHS.web_gui .. "/menu.lua")
+  for fname in pairs(ntop.readdir(RUNTIME_PATHS.menu_items)) do
+    local full_path = os_utils.fixPath(RUNTIME_PATHS.menu_items .. "/" .. fname)
+    local plugin_key = string.sub(fname, 1, string.len(fname)-4)
 
-  if ntop.exists(menu_path) then
-    local menu = dofile(menu_path)
-    return(menu)
+    local menu_entry = dofile(full_path)
+
+    if(menu_entry and ((not menu_entry.is_shown) or menu_entry.is_shown())) then
+      menu_entry.url = plugins_utils.getUrl(menu_entry.script)
+      menu[plugin_key] = menu_entry
+    end
   end
 
-  return(nil)
+  return(menu)
 end
 
 -- ##############################################

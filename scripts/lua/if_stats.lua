@@ -305,7 +305,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = "<i class=\"fas fa-lg fa-wrench\"></i>",
 			      },
 			      {
-				 hidden = not isAdministrator() or not ntop.isEnterprise() or ifstats.isDynamic,
+				 hidden = not isAdministrator() or not ntop.isEnterprise() or ifstats.isDynamic or ifstats.isView,
 				 active = page == "sub_interfaces",
 				 page_name = "sub_interfaces",
 				 label = "<i class=\"fas fa-lg fa-code-branch\"></i>",

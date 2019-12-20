@@ -52,6 +52,7 @@ class AddressTree {
   void getAddresses(lua_State* vm) const;
   int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
   int16_t findMac(const u_int8_t addr[]);
+  int16_t find(const char *addr, u_int8_t *network_mask_bits = NULL);
   bool match(char *addr);
   patricia_node_t* match(const IpAddress * const ipa, int network_bits) const;
   void dump();

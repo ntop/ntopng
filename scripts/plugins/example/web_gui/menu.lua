@@ -17,4 +17,9 @@ return {
   -- The sort order in the menu. Entries with higher sort_order are shown
   -- before entries with lower sort order.
   sort_order = -1,
+
+  -- Conditionally show or hide the menu entry
+  is_shown = function()
+    return(true)
+  end,
 }

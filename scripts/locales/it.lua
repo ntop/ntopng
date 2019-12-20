@@ -228,6 +228,7 @@ local lang = {
     ["mac_ip_association_change"] = "IP %{ip} ha cambiato associazione da <a href=\"%{old_mac_url}\">%{old_mac}</a> a <a href=\"%{new_mac_url}\">%{new_mac}</a>",
     ["network_entity"] = "network %{entity_value}",
     ["nfq_flushed"] = "La coda dei pacchetti dell'interfaccia <a href=\"%{url}\">%{name}</a> è stata svuotata. Coda %{pct}%% piena con %{tot} pacchetti e %{dropped} persi.",
+    ["no_influxdb"] = "Si prega di <A HREF=\"%{url}\">impostare InfluxDB come database</A> per le serie temporali e quindi ricaricare questa pagina",
     ["ntopng_anomalous_termination"] = "Avvio dopo terminazione anonima (<a href=\"%{url}\">riporta bug</a>)",
     ["ntopng_start"] = "Avviato",
     ["ntopng_stop"] = "Fermato",

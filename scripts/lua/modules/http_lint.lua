@@ -999,8 +999,25 @@ end
 -- #################################################################
 
 function http_lint.parseConfsetTargets(subdir, param)
-   -- TODO
    local values = string.split(param, ",") or {param}
+   local validator = nil
+
+   if((subdir == "host") or (subdir == "snmp_device") or (subdir == "network")) then
+      -- IP addresses/CIDR
+      validator = validateNetwork
+   elseif((subdir == "interface") or (subdir == "flow") or (subdir == "syslog")) then
+      -- interface name
+      validator = validateSingleWord
+   else
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown subdir: " .. subdir)
+      return(nil)
+   end
+
+   for _, v in pairs(values) do
+      if(not validator(v)) then
+         return(nil)
+      end
+   end
 
    return(values)
 end
@@ -1299,6 +1316,7 @@ local known_parameters = {
    ["toggle_webhook_notification"]                 = validateBool,
    ["toggle_auth_session_midnight_expiration"]     = validateBool,
    ["toggle_client_x509_auth"]                     = validateBool,
+   ["toggle_snmp_debug"]                           = validateBool,
    ["toggle_snmp_alerts_port_duplexstatus_change"] = validateBool,
    ["toggle_snmp_alerts_port_status_change"]       = validateBool,
    ["toggle_snmp_alerts_port_errors"]              = validateBool,

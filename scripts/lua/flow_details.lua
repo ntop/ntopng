@@ -1255,8 +1255,8 @@ print[[
 			if(pctg < 50) { pctg = "<font color=red>"+pctg+"</font>"; } else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
 
 			$('#goodput_percentage').html(pctg);
-			$('#cli2srv').html(addCommas(rsp["cli2srv.packets"])+" Pkts / "+bytesToVolume(rsp["cli2srv.bytes"]));
-			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / "+bytesToVolume(rsp["srv2cli.bytes"]));
+			$('#cli2srv').html(addCommas(rsp["cli2srv.packets"])+" Pkts / " + addCommas(bytesToVolume(rsp["cli2srv.bytes"])));
+			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / " + addCommas(bytesToVolume(rsp["srv2cli.bytes"])));
 			$('#throughput').html(rsp.throughput);
 
 			if(typeof rsp["c2sOOO"] !== "undefined") {

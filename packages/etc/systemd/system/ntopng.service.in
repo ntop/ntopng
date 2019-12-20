@@ -18,7 +18,7 @@ ExecStartPost=/bin/sh -c '/bin/echo "$(/bin/date) @APP@ StartPost" >> /var/log/n
 ExecStopPost=-/bin/rm -rf /run/ntopng.conf
 ExecStopPost=/bin/sh -c '/bin/echo "$(/bin/date) @APP@ StopPost" >> /var/log/ntop-systemd.log'
 
-Restart=on-abnormal
+Restart=on-failure
 RestartSec=5
 
 [Install]

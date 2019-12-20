@@ -19,15 +19,17 @@ require("alert_utils")
 local ts_creation = plugins_utils.timeseriesCreationEnabled()
 local probe = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.script_types.system, "system", "influxdb_monitor")
 
-if not isAllowedSystemInterface() or (ts_utils.getDriverName() ~= "influxdb") then
-   return
-end
-
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+if not isAllowedSystemInterface() or (ts_utils.getDriverName() ~= "influxdb") then
+   local url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts"
+   print('<div class="alert alert-danger">'..i18n("alert_messages.no_influxdb", { url=url })..'</div>')
+   return
+end
 
 local page = _GET["page"] or "overview"
 local url = plugins_utils.getUrl("influxdb_stats.lua") .. "?ifid=" .. interface.getId()

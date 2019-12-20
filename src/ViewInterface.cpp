@@ -344,7 +344,7 @@ void ViewInterface::flowPollLoop() {
   while(!ntop->getGlobals()->isShutdownRequested()) {
     while(idle()) sleep(1);
     /* Nothing to do, everything is done in ViewInterface::generic_periodic_hash_entry_state_update */
-    usleep(1000000);
+    _usleep(1000000);
   }
 }
 

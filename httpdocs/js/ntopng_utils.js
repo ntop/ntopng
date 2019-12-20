@@ -406,7 +406,7 @@ function bytesToVolume(bytes) {
   if((bytes > 0) && (bytes < NTOPNG_MIN_VISUAL_VALUE)) return('< ' + NTOPNG_MIN_VISUAL_VALUE + " Bytes");
   var res = scaleValue(bytes, sizes, 1024);
 
-  return res[0].toFixed(2) + " " + res[1];
+  return parseFloat(res[0]) + " " + res[1];
 };
 
 function bytesToVolumeAndLabel(bytes) {

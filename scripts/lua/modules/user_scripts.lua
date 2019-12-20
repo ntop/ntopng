@@ -30,7 +30,7 @@ user_scripts.field_units = {
 local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
-local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets.%s"
+local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets.subdir_%s"
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- Hook points for flow/periodic modules
@@ -397,9 +397,10 @@ end
 
 -- ##############################################
 
-local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, configs)
+local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, configs)
    user_script.key = mod_fname
    user_script.path = full_path
+   user_script.subdir = subdir
    user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
    user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)
    user_script.plugin = plugin
@@ -543,7 +544,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	    end
 
             -- Augument with additional attributes
-	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, rv.conf)
+	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, rv.conf)
 
 	    if((not return_all) and alerts_disabled and user_script.is_alert) then
 	       goto next_module
@@ -640,7 +641,7 @@ function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
 	 if(user_script ~= nil) then
 	    local configs = loadConfiguration(subdir)
 
-	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, configs)
+	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, configs)
 
 	    return(user_script)
 	 end
@@ -990,9 +991,56 @@ end
 
 -- ##############################################
 
+local function validateConfigsets(configsets)
+   local cur_targets = {}
+
+   -- Ensure that no duplicate target is set
+   for _, configset in pairs(configsets) do
+      for _, conf_target in ipairs(configset.targets) do
+	 local is_v4 = isIPv4(conf_target)
+	 local is_v6 = isIPv6(conf_target)
+	 local conf_target_normalized = nil
+
+	 if(is_v4 or is_v6) then
+	    local address, prefix = splitNetworkPrefix(conf_target)
+	    local max_prefixlen = ternary(is_v4, 32, 128)
+
+	    if((prefix == nil) or (prefix >= max_prefixlen)) then
+	       prefix = max_prefixlen
+	    end
+
+	    -- Normalize
+	    conf_target_normalized = ntop.networkPrefix(address, prefix) .. "/" .. prefix
+	 else
+	    conf_target_normalized = conf_target
+	 end
+
+	 local existing_id = cur_targets[conf_target_normalized]
+
+	 if(existing_id) then
+	    return false, i18n("configsets.duplicate_target", {target = conf_target, confname1 = configsets[existing_id].name, confname2 = configset.name})
+	 end
+
+	 cur_targets[conf_target_normalized] = configset.id
+      end
+   end
+
+   return true
+end
+
+-- ##############################################
+
 local function saveConfigsets(subdir, configsets)
    local rv = json.encode(configsets)
    ntop.setPref(getConfigsetsKey(subdir), rv)
+
+   local rv, err = validateConfigsets(configsets)
+
+   if(not rv) then
+      return rv, err
+   end
+
+   return true
 end
 
 -- ##############################################
@@ -1027,9 +1075,7 @@ function user_scripts.deleteConfigset(subdir, confid)
    end
 
    configsets[confid] = nil
-   saveConfigsets(subdir, configsets)
-
-   return true
+   return saveConfigsets(subdir, configsets)
 end
 
 -- ##############################################
@@ -1048,9 +1094,7 @@ function user_scripts.renameConfigset(subdir, confid, new_name)
    end
 
    configsets[confid].name = new_name
-   saveConfigsets(subdir, configsets)
-
-   return true
+   return saveConfigsets(subdir, configsets)
 end
 
 -- ##############################################
@@ -1075,7 +1119,11 @@ function user_scripts.cloneConfigset(subdir, confid, new_name)
    configsets[new_confid].name = new_name
    configsets[new_confid].targets = {}
 
-   saveConfigsets(subdir, configsets)
+   local rv, err = saveConfigsets(subdir, configsets)
+
+   if(not rv) then
+      return rv, err
+   end
 
    return true, new_confid
 end
@@ -1096,9 +1144,7 @@ function user_scripts.setConfigsetTargets(subdir, confid, targets)
    -- Update the targets
    configsets[confid].targets = targets
 
-   saveConfigsets(subdir, configsets)
-
-   return true
+   return saveConfigsets(subdir, configsets)
 end
 
 -- ##############################################
@@ -1112,12 +1158,9 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
 
    local config = configsets[confid].config
 
-   config[subdir] = config[subdir] or {}
-   config[subdir][script_key] = new_config
+   config[script_key] = new_config
 
-   saveConfigsets(subdir, configsets)
-
-   return true
+   return saveConfigsets(subdir, configsets)
 end
 
 -- ##############################################
@@ -1127,16 +1170,15 @@ function user_scripts.loadDefaultConfig()
 
    for type_id, script_type in pairs(user_scripts.script_types) do
       for _, subdir in pairs(script_type.subdirs) do
-	 local configsets = user_scripts.getConfigsets()
+	 local configsets = user_scripts.getConfigsets(subdir)
 	 local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
 
 	 local scripts = user_scripts.load(ifid, script_type, subdir, {return_all = true})
-	 default_conf[subdir] = default_conf[subdir] or {}
 
 	 for key, usermod in pairs(scripts.modules) do
 	    if((usermod.default_enabled ~= nil) or (usermod.default_value ~= nil)) then
-	       default_conf[subdir][key] = default_conf[subdir][key] or {}
-	       local script_config = default_conf[subdir][key]
+	       default_conf[key] = default_conf[key] or {}
+	       local script_config = default_conf[key]
 
 	       for hook in pairs(usermod.hooks) do
 		  -- Do not override an existing configuration
@@ -1164,12 +1206,12 @@ end
 
 -- ##############################################
 
-function user_scripts.getConfigsetHooksConf(configset, script, subdir)
+function user_scripts.getConfigsetHooksConf(configset, script)
    local script_key = script.key
 
-   if(configset.config[subdir] and configset.config[subdir][script_key]) then
+   if(configset.config[script_key]) then
       -- A configuration was found
-      return(configset.config[subdir][script_key])
+      return(configset.config[script_key])
    end
 
    -- Default
@@ -1183,6 +1225,48 @@ function user_scripts.getConfigsetHooksConf(configset, script, subdir)
    end
 
    return(rv)
+end
+
+-- ##############################################
+
+local fast_target_lookup = nil
+
+-- NOTE: this only works for exact searches. For hosts see user_scripts.getHostTargetConfiset
+function user_scripts.getTargetConfiset(configsets, target)
+   if(fast_target_lookup == nil) then
+      fast_target_lookup = {}
+
+      for _, configset in pairs(configsets) do
+	 for _, conf_target in pairs(configset.targets) do
+	    fast_target_lookup[conf_target] = configset
+	 end
+      end
+   end
+
+   return(fast_target_lookup[target] or configsets[user_scripts.DEFAULT_CONFIGSET_ID])
+end
+
+-- ##############################################
+
+local host_confsets_ptree_initialized = false
+
+-- Performs an IP based match by using a patricia tree
+function user_scripts.getHostTargetConfiset(configsets, ip_target)
+   if(not host_confsets_ptree_initialized) then
+      -- Start with an empty ptree
+      ntop.ptreeClear()
+
+      for _, configset in pairs(configsets) do
+	 for _, conf_target in pairs(configset.targets) do
+	    ntop.ptreeInsert(conf_target, configset.id)
+	 end
+      end
+
+      host_confsets_ptree_initialized = true
+   end
+
+   local match_id = ntop.ptreeMatch(ip_target) or user_scripts.DEFAULT_CONFIGSET_ID
+   return(configsets[match_id])
 end
 
 -- ##############################################

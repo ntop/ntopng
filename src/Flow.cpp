@@ -2901,9 +2901,17 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 /* *************************************** */
 
 void Flow::dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len) {
-  if(isDNSQuery())
+  struct ndpi_dns_packet_header dns_header;
+  u_int8_t payload_offset = get_protocol() == IPPROTO_UDP ? 0 : 2;
+
+  if(payload_len + payload_offset < sizeof(dns_header))
+    return;
+
+  memcpy(&dns_header, &payload[payload_offset], sizeof(dns_header));
+
+  if((dns_header.flags & 0x8000) == 0x0000)
     stats.incDNSQuery(getLastQueryType());
-  else
+  else if((dns_header.flags & 0x8000) == 0x8000)
     stats.incDNSResp(getDNSRetCode());
 }
 

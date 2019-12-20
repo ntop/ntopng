@@ -24,6 +24,7 @@ local script_benchmark_tot_clock = 0
 local script_benchmark_tot_calls = 0
 
 local available_modules = nil
+local confisets = nil
 local ifid = nil
 local host_entity = alert_consts.alert_entities.host.entity_id
 
@@ -57,6 +58,8 @@ function setup(str_granularity)
       hook_filter = str_granularity,
       do_benchmark = do_benchmark,
    })
+
+   configsets = user_scripts.getConfigsets("host")
 end
 
 -- #################################################################
@@ -99,6 +102,8 @@ function runScripts(granularity)
   benchmark_end()
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
+  local host_conf = user_scripts.getHostTargetConfiset(configsets, host_ip.ip)
+  -- TODO use host_conf
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
     local user_script = available_modules.modules[mod_key]

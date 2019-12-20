@@ -406,10 +406,10 @@ int main(int argc, char *argv[])
     Utils::deferredExec("systemctl start systemd-poweroff");
     break;
   case after_shutdown_restart_self:
-    /* Necessary to check if the service has been activated via systemd before actually
-       restarting it using systemd. When the service hasn't been started with systemd (e.g., during the development)
-       it is desirable to skip the use of systemd */
-    Utils::deferredExec("systemctl restart ntopng");
+    /* Returning 1 to force systemd to restart the service due 
+     * to 'Unclean exit code'. A systemctl restart does not work here.
+     * Note: this requires 'Restart=on-failure' to work */
+    return(1);
     break;
   case after_shutdown_nop:
   default:

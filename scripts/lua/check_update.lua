@@ -18,6 +18,7 @@ end
 local new_version_available_key = "ntopng.updates.new_version"
 local check_for_updates_key = "ntopng.updates.check_for_updates"
 local upgrade_request_key = "ntopng.updates.run_upgrade"
+local upgrade_failure_key = "ntopng.updates.upgrade_failure"
 
 function version2number(v, rev)
   if v == nil then
@@ -75,6 +76,10 @@ else
       local avail_version = version2number(new_version_spl[1], new_version_spl[2])
       if avail_version > curr_version then
         status = "update-avail"
+        local upgrade_failure = ntop.getCache(upgrade_failure_key)
+        if not isEmptyString(upgrade_failure) then
+          status = upgrade_failure
+        end
       end
     end
   end

@@ -149,6 +149,9 @@ LuaEngine::~LuaEngine() {
 	delete ctx->ping;
 #endif
 
+      if(ctx->addr_tree != NULL)
+        delete ctx->addr_tree;
+
       free(ctx);
     }
 
@@ -821,6 +824,79 @@ static int ntop_set_ndpi_protocol_category(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_ptree_clear(lua_State* vm) {
+  if(getLuaVMUservalue(vm, addr_tree) != NULL) {
+    delete getLuaVMUservalue(vm, addr_tree);
+    getLuaVMUservalue(vm, addr_tree) = NULL;
+  }
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_ptree_insert(lua_State* vm) {
+  char *addr;
+  int16_t value;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  addr = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  value = (int16_t)lua_tointeger(vm, 2);
+
+  if(value < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Negative values not allowed in ptreeInsert");
+    return(CONST_LUA_ERROR);
+  }
+
+  if(getLuaVMUservalue(vm, addr_tree) == NULL) {
+    AddressTree *tree = new AddressTree(true);
+
+    if(tree == NULL)
+      return(CONST_LUA_ERROR);
+
+    getLuaVMUservalue(vm, addr_tree) = tree;
+  }
+
+  lua_pushboolean(vm, getLuaVMUservalue(vm, addr_tree)->addAddress(addr, value));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_ptree_match(lua_State* vm) {
+  char *addr;
+  int16_t value;
+  u_int8_t found_mask;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  addr = (char*)lua_tostring(vm, 1);
+
+  if(!addr) return(CONST_LUA_ERROR);
+
+  if(getLuaVMUservalue(vm, addr_tree) == NULL) {
+    /* This corresponds to an empty tree, return no match */
+    lua_pushnil(vm);
+    return(CONST_LUA_OK);
+  }
+
+  value = getLuaVMUservalue(vm, addr_tree)->find(addr, &found_mask);
+
+  if(value == -1) {
+    /* Not found */
+    lua_pushnil(vm);
+  } else
+    lua_pushinteger(vm, value);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /**
  * @brief Same as ntop_get_ndpi_protocol_name() with the exception that the protocol breed is returned
  *
@@ -939,7 +1015,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(lua_type(vm,12) == LUA_TNUMBER)  pool_filter          = (u_int16_t)lua_tonumber(vm, 12);
   if(lua_type(vm,13) == LUA_TNUMBER)  ipver_filter         = (u_int8_t)lua_tonumber(vm, 13);
   if(lua_type(vm,14) == LUA_TNUMBER)  proto_filter         = (int)lua_tonumber(vm, 14);
-  if(lua_type(vm,15) == LUA_TNUMBER)  traffic_type_filter  = (TrafficType)lua_tonumber(vm, 15);
+  if(lua_type(vm,15) == LUA_TNUMBER)  traffic_type_filter  = (TrafficType)lua_tointeger(vm, 15);
   if(lua_type(vm,16) == LUA_TBOOLEAN) filtered_hosts       = lua_toboolean(vm, 16);
   if(lua_type(vm,17) == LUA_TBOOLEAN) blacklisted_hosts    = lua_toboolean(vm, 17);
   if(lua_type(vm,18) == LUA_TBOOLEAN) hide_top_hidden      = lua_toboolean(vm, 18);
@@ -1154,7 +1230,7 @@ static int ntop_set_host_operating_system(lua_State* vm) {
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  os = (OperatingSystem)lua_tonumber(vm, 2);
+  os = (OperatingSystem)lua_tointeger(vm, 2);
 
   host = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
 
@@ -1887,6 +1963,22 @@ static int ntop_match_custom_category(lua_State* vm) {
     lua_pushnil(vm);
   else
     lua_pushinteger(vm, (int)match);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_tls_version_name(lua_State* vm) {
+  u_int16_t tls_version;
+  u_int8_t unknown_version = 0;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  tls_version = (u_int16_t)lua_tonumber(vm, 1);
+
+  lua_pushstring(vm, ndpi_ssl_version2str(tls_version, &unknown_version));
 
   return(CONST_LUA_OK);
 }
@@ -8343,7 +8435,7 @@ static int ntop_host_get_cached_alert_value(lua_State* vm) {
   if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   val = h->getAlertCachedValue(std::string(key), periodicity);
   lua_pushstring(vm, val.c_str());
@@ -8370,7 +8462,7 @@ static int ntop_host_set_cached_alert_value(lua_State* vm) {
   if((value = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 3)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, 3)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if((!key) || (!value))
     return(CONST_LUA_PARAM_ERROR);
@@ -8564,7 +8656,7 @@ static int ntop_host_get_category_bytes(lua_State* vm) {
   lua_newtable(vm);
 
   if(h && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
-    cat_id = (ndpi_protocol_category_t)lua_tonumber(vm, 1);
+    cat_id = (ndpi_protocol_category_t)lua_tointeger(vm, 1);
     h->lua_get_cat_bytes(vm, cat_id);
   }
 
@@ -9533,7 +9625,7 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   atype = (AlertType)lua_tonumber(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  severity = (AlertLevel)lua_tonumber(vm, 3);
+  severity = (AlertLevel)lua_tointeger(vm, 3);
 
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
     now = (time_t) lua_tonumber(vm, 4);
@@ -9793,7 +9885,7 @@ static int ntop_network_get_cached_alert_value(lua_State* vm) {
   if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   val = ns->getAlertCachedValue(std::string(key), periodicity);
   lua_pushstring(vm, val.c_str());
@@ -9820,7 +9912,7 @@ static int ntop_network_set_cached_alert_value(lua_State* vm) {
   if((value = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 3)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, 3)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if((!key) || (!value))
     return(CONST_LUA_PARAM_ERROR);
@@ -9846,7 +9938,7 @@ static int ntop_interface_get_cached_alert_value(lua_State* vm) {
   if((key = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, 2)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   val = c->iface->getAlertCachedValue(std::string(key), periodicity);
   lua_pushstring(vm, val.c_str());
@@ -9872,7 +9964,7 @@ static int ntop_interface_set_cached_alert_value(lua_State* vm) {
   if((value = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, 3)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, 3)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if((!key) || (!value))
     return(CONST_LUA_PARAM_ERROR);
@@ -9899,10 +9991,10 @@ static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable,
   if((key = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)lua_tonumber(vm, idx++);
+  alert_severity = (AlertLevel)lua_tointeger(vm, idx++);
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_type = (AlertType)lua_tonumber(vm, idx++);
@@ -9988,7 +10080,7 @@ static int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *alertabl
   if((key = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tonumber(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   when = (time_t)lua_tonumber(vm, idx++);
@@ -11357,6 +11449,7 @@ static const luaL_Reg ntop_reg[] = {
   { "listInterfaces",       ntop_list_interfaces      },
   { "ipCmp",                ntop_ip_cmp               },
   { "matchCustomCategory",    ntop_match_custom_category },
+  { "getTLSVersionName",    ntop_get_tls_version_name },
 
   /* JA3 */
   { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
@@ -11387,6 +11480,11 @@ static const luaL_Reg ntop_reg[] = {
   /* nDPI */
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },
   { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },
+
+  /* Patricia Tree */
+  { "ptreeClear",             ntop_ptree_clear             },
+  { "ptreeInsert",            ntop_ptree_insert            },
+  { "ptreeMatch",             ntop_ptree_match             },
 
   /* nEdge */
 #ifdef HAVE_NEDGE

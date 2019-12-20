@@ -281,7 +281,7 @@ static void* packetPollLoop(void* ptr) {
                 
 	      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Sleeping %.3f sec", ((float)(sleepMs))/1000);
 		
-	      usleep(sleepMs*1000);
+	      _usleep(sleepMs*1000);
 
 	      /* Recompute after sleep */
 	      gettimeofday(&now, NULL);

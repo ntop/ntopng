@@ -575,6 +575,7 @@ struct ntopngLuaContext {
   struct mg_connection *conn;
   AddressTree *allowedNets;
   NetworkInterface *iface;
+  AddressTree *addr_tree;
 #ifndef WIN32
   Ping *ping;
 #endif
