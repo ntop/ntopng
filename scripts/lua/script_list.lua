@@ -349,11 +349,19 @@ else
                         const enabled = $(this).find("input[type='checkbox']").is(":checked");
                         const $template = $(this).find(".template");
 
-                        const operator = $template.find("select").val() == ">" ? "gt" : "lt";
+                        const operator = $template.find("select").val();
                         const threshold = $template.find("input").val();
 
                         // hide before errors
                         $template.find(`.invalid-feedback`).hide();
+
+                        // if operator is empty then alert the user
+                        if (enabled && (operator == "" || operator == undefined || operator == null)) {
+
+                           $template.find(`.invalid-feedback`).text("Please select an operator!").show();
+                           error = true;
+                           return;
+                        }
 
                         // if the value is empty then alert the user (only for checked granularities)
                         if (enabled && (threshold == null || threshold == undefined || threshold == "")) {
@@ -414,14 +422,27 @@ else
 
                         const {hooks} = data;
 
+                        console.log(data);
+
                         // reset default values
                         for (key in hooks) {
                            
                            const granularity = hooks[key];
+                           console.log(key, granularity)
+
+                           $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
+
+                           if (granularity.enabled) {
+                              $(`select[name='${key}-select']`).removeAttr("disabled");
+                              $(`input[name='${key}-input']`).removeAttr("readonly");
+                           }
+                           else {
+                              $(`input[name='${key}-input']`).attr("readonly", "");
+                              $(`input[name='${key}-select']`).attr("disabled", "");
+                           }
 
                            $(`input[name='${key}-input']`).val(granularity.script_conf.threshold);
-                           $(`input[name='${key}-select']`).val(granularity.script_conf.operator);
-                           $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
+                           $(`select[name='${key}-select']`).val(granularity.script_conf.operator);
 
                         }
 
