@@ -1893,6 +1893,22 @@ static int ntop_match_custom_category(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_tls_version_name(lua_State* vm) {
+  u_int16_t tls_version;
+  u_int8_t unknown_version = 0;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  tls_version = (u_int16_t)lua_tonumber(vm, 1);
+
+  lua_pushstring(vm, ndpi_ssl_version2str(tls_version, &unknown_version));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_gainWriteCapabilities(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushnil(vm);
@@ -11357,6 +11373,7 @@ static const luaL_Reg ntop_reg[] = {
   { "listInterfaces",       ntop_list_interfaces      },
   { "ipCmp",                ntop_ip_cmp               },
   { "matchCustomCategory",    ntop_match_custom_category },
+  { "getTLSVersionName",    ntop_get_tls_version_name },
 
   /* JA3 */
   { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
