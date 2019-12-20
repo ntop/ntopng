@@ -26,6 +26,7 @@ local do_benchmark = true          -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
 local calculate_stats = false
+local flows_config = nil
 
 local available_modules = nil
 local benchmarks = {}
@@ -114,6 +115,9 @@ function setup()
          end
       end
    end
+
+   local configsets = user_scripts.getConfigsets("flow")
+   flows_config = user_scripts.getTargetConfiset(configsets, getInterfaceName(ifid)).config
 end
 
 -- #################################################################
