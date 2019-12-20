@@ -18,6 +18,7 @@ local do_trace = false             -- Trace lua calls
 local available_modules = nil
 local ifid = nil
 local network_entity = alert_consts.alert_entities.network.entity_id
+local configsets = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -30,6 +31,8 @@ function setup(str_granularity)
       hook_filter = str_granularity,
       do_benchmark = do_benchmark,
    })
+
+   configsets = user_scripts.getConfigsets("network")
 end
 
 -- #################################################################
@@ -63,6 +66,8 @@ function runScripts(granularity)
 
    local cur_alerts = network.getAlerts(granularity_id)
    local entity_info = alerts_api.networkAlertEntity(network_key)
+   local subnet_conf = user_scripts.getTargetConfiset(configsets, network_key).config
+   -- TODO use subnet_conf
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
       local user_script = available_modules.modules[mod_key]

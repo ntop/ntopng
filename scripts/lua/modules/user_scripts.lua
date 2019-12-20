@@ -30,7 +30,7 @@ user_scripts.field_units = {
 local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
-local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets.%s"
+local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets.subdir_%s"
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- Hook points for flow/periodic modules
@@ -397,9 +397,10 @@ end
 
 -- ##############################################
 
-local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, configs)
+local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, configs)
    user_script.key = mod_fname
    user_script.path = full_path
+   user_script.subdir = subdir
    user_script.default_enabled = ternary(user_script.default_enabled == false, false, true --[[ a nil value means enabled ]])
    user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)
    user_script.plugin = plugin
@@ -543,7 +544,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	    end
 
             -- Augument with additional attributes
-	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, rv.conf)
+	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, rv.conf)
 
 	    if((not return_all) and alerts_disabled and user_script.is_alert) then
 	       goto next_module
@@ -640,7 +641,7 @@ function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
 	 if(user_script ~= nil) then
 	    local configs = loadConfiguration(subdir)
 
-	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, configs)
+	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, configs)
 
 	    return(user_script)
 	 end
@@ -1112,8 +1113,7 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
 
    local config = configsets[confid].config
 
-   config[subdir] = config[subdir] or {}
-   config[subdir][script_key] = new_config
+   config[script_key] = new_config
 
    saveConfigsets(subdir, configsets)
 
@@ -1131,12 +1131,11 @@ function user_scripts.loadDefaultConfig()
 	 local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
 
 	 local scripts = user_scripts.load(ifid, script_type, subdir, {return_all = true})
-	 default_conf[subdir] = default_conf[subdir] or {}
 
 	 for key, usermod in pairs(scripts.modules) do
 	    if((usermod.default_enabled ~= nil) or (usermod.default_value ~= nil)) then
-	       default_conf[subdir][key] = default_conf[subdir][key] or {}
-	       local script_config = default_conf[subdir][key]
+	       default_conf[key] = default_conf[key] or {}
+	       local script_config = default_conf[key]
 
 	       for hook in pairs(usermod.hooks) do
 		  -- Do not override an existing configuration
@@ -1164,12 +1163,12 @@ end
 
 -- ##############################################
 
-function user_scripts.getConfigsetHooksConf(configset, script, subdir)
+function user_scripts.getConfigsetHooksConf(configset, script)
    local script_key = script.key
 
-   if(configset.config[subdir] and configset.config[subdir][script_key]) then
+   if(configset.config[script_key]) then
       -- A configuration was found
-      return(configset.config[subdir][script_key])
+      return(configset.config[script_key])
    end
 
    -- Default
@@ -1183,6 +1182,26 @@ function user_scripts.getConfigsetHooksConf(configset, script, subdir)
    end
 
    return(rv)
+end
+
+-- ##############################################
+
+local fast_target_lookup = nil
+
+-- NOTE: this only works for exact searches. For hosts a different
+-- approach will be used, see scripts/callbacks/interface/host.lua
+function user_scripts.getTargetConfiset(configsets, target)
+   if(fast_target_lookup == nil) then
+      fast_target_lookup = {}
+
+      for _, configset in pairs(configsets) do
+	 for _, conf_target in pairs(configset.targets) do
+	    fast_target_lookup[conf_target] = configset
+	 end
+      end
+   end
+
+   return(fast_target_lookup[target] or configsets[user_scripts.DEFAULT_CONFIGSET_ID])
 end
 
 -- ##############################################

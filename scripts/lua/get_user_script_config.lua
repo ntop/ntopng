@@ -71,7 +71,7 @@ if(script.gui) then
   end
 end
 
-local hooks_config = user_scripts.getConfigsetHooksConf(config_set, script, subdir)
+local hooks_config = user_scripts.getConfigsetHooksConf(config_set, script)
 
 for hook, config in pairs(hooks_config) do
   local granularity_info = alert_consts.alerts_granularities[hook]

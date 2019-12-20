@@ -503,13 +503,20 @@ print[[
               $('#updates-install-li').hide();
               $('#admin-badge').hide();
 
-            } else if (rsp.status == 'update-avail') { 
+            } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') { 
               $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ntopng ' + rsp.version + '!');
-              $('#updates-install-li').html('<i class="fas fa-download"></i> ]] print(i18n("updates.install")) print[[');
+              var icon = '<i class="fas fa-download"></i>';
+              $('#updates-install-li').attr('title', '');
+              if (rsp.status == 'upgrade-failure') {
+                icon = '<i class="fas fa-exclamation-triangle"></i>';
+                $('#updates-install-li').attr('title', ']] print(i18n("updates.upgrade_failure_message")) print [[');
+              }
+              $('#updates-install-li').html(icon + ' ]] print(i18n("updates.install")) print[[');
               $('#updates-install-li').show();
               $('#updates-install-li').off("click");
               $('#updates-install-li').click(installUpdate);
-              $('#admin-badge').html('1');
+              if (rsp.status == 'upgrade-failure') $('#admin-badge').html('!');
+              else $('#admin-badge').html('1');
               $('#admin-badge').show();
 
             } else /* (rsp.status == 'not-avail') */ {

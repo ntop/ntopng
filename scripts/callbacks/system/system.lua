@@ -17,6 +17,7 @@ local do_trace = false             -- Trace lua calls
 
 local available_modules = nil
 local system_ts_enabled = nil
+local system_config = nil
 
 -- #################################################################
 
@@ -35,6 +36,9 @@ function setup(str_granularity)
       hook_filter = str_granularity,
       do_benchmark = do_benchmark,
    })
+
+   local configsets = user_scripts.getConfigsets("system")
+   system_config = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
 end
 
 -- #################################################################
@@ -59,6 +63,7 @@ function runScripts(granularity)
   local suppressed_alerts = false
   local when = os.time()
   --~ local cur_alerts = host.getAlerts(granularity_id)
+  -- TODO use system_config
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
     local user_script = available_modules.modules[mod_key]

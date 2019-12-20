@@ -18,6 +18,7 @@ local do_trace = false             -- Trace lua calls
 local ifid = nil
 local available_modules = nil
 local interface_entity = alert_consts.alert_entities.interface.entity_id
+local iface_config = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -30,6 +31,9 @@ function setup(str_granularity)
       hook_filter = str_granularity,
       do_benchmark = do_benchmark,
    })
+
+   local configsets = user_scripts.getConfigsets("interface")
+   iface_config = user_scripts.getTargetConfiset(configsets, ifname).config
 end
 
 -- #################################################################
@@ -67,6 +71,7 @@ function runScripts(granularity)
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
      local user_script = available_modules.modules[mod_key]
      local conf = user_scripts.getConfiguration(user_script, granularity, interface_key)
+     -- TODO use iface_config
 
      if(conf.enabled) then
         if((not user_script.is_alert) or (not suppressed_alerts)) then

@@ -147,6 +147,7 @@ function run_upgrade() {
 # Check for new ntopng updates available
 function check_updates() {
 	NTOPNG_VERSION=""
+	RESULT=1
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
 
@@ -158,16 +159,25 @@ function check_updates() {
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, trying to fix it
 			${APT_GET} --assume-yes --fix-broken install
+
+			${APT_GET} --just-print upgrade 2>&1 >/dev/null
 		fi
 
-		# Check update and get version
-		NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
+		if [ ! $? -eq 0 ]; then
+			# Something went wrong, unable to fix it
+			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure"
+		else
+			# Check update and get version
+			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
+			RESULT=0
+		fi
 	else
 		# CentOS
 
 		# Check update and get version
 		${YUM} clean all
 		NTOPNG_VERSION=$(${YUM} check-update ntopng | grep ntopng | tr -s ' ' | cut -d' ' -f2)
+		RESULT=0
 	fi
 
 	# If there is an update, set new version on redis, otherwise delete the current version (if any)
@@ -181,7 +191,9 @@ function check_updates() {
 		fi
 	else
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY}
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY}
+		if [ $RESULT -eq 0 ]; then
+			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY}
+		fi
 	fi
 }
 
