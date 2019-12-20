@@ -2117,6 +2117,7 @@ function check_macs_alerts(ifid)
 
    local active_devices_set = getActiveDevicesHashKey(ifid)
    local prev_active_devices = swapKeysValues(ntop.getMembersCache(active_devices_set) or {})
+   local num_prev_active_devices = table.len(prev_active_devices)
 
    local seen_devices_hash = getFirstSeenDevicesHashKey(ifid)
    local seen_devices = ntop.getHashAllCache(seen_devices_hash) or {}
@@ -2155,29 +2156,38 @@ function check_macs_alerts(ifid)
 	    -- Device connection
 	    ntop.setMembersCache(active_devices_set, mac)
 
-	    if alert_device_connection_enabled then
-	       local name = getDeviceName(mac)
-	       setSavedDeviceName(mac, name)
+            -- Do not nofify new connected devices if the prev_active_devices
+            -- set was empty (cleared or on startup)
+            if num_prev_active_devices > 0 then
 
-	       alerts_api.store(
-	          alerts_api.macEntity(mac),
-	          alerts_api.deviceHasConnectedType(name))
+	       if alert_device_connection_enabled then
+	          local name = getDeviceName(mac)
+	          setSavedDeviceName(mac, name)
+
+	          alerts_api.store(
+	             alerts_api.macEntity(mac),
+	             alerts_api.deviceHasConnectedType(name))
+               end
 	    end
          end
       end
    end)
 
-   for mac in pairs(prev_active_devices) do
-      if not active_devices[mac] then
-         -- Device disconnection
-         local name = getSavedDeviceName(mac)
-         ntop.delMembersCache(active_devices_set, mac)
+   -- Safety check to avoid notifying disconnected devices 
+   -- during shutdown when they are no longer active in ntopng.
+   if not ntop.isShutdown() then
 
-         if alert_device_connection_enabled then
-            alerts_api.store(
-              alerts_api.macEntity(mac),
-              alerts_api.deviceHasDisconnectedType(name)
-            )
+      for mac in pairs(prev_active_devices) do
+         if not active_devices[mac] then
+            -- Device disconnection
+            local name = getSavedDeviceName(mac)
+            ntop.delMembersCache(active_devices_set, mac)
+
+            if alert_device_connection_enabled then
+               alerts_api.store(
+                 alerts_api.macEntity(mac),
+                 alerts_api.deviceHasDisconnectedType(name))
+            end
          end
       end
    end
