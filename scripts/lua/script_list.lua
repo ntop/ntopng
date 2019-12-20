@@ -211,7 +211,7 @@ else
                const script_title = row_data.title;
                
                // change title to modal
-               $("#script-name").text(script_title);
+               $("#script-name").html(`<b>${script_title}</b>`);
 
                $.when(
                   $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_user_script_config.lua', {

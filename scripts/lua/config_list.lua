@@ -74,7 +74,7 @@ print([[
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-rename' class="btn btn-primary">Rename Config</button>
+                <button type="button" id='btn-confirm-rename' class="btn btn-primary">Confirm Rename</button>
             </div>
             </div>
         </div>
@@ -131,7 +131,7 @@ print([[
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-delete' class="btn btn-danger">Delete Config</button>
+                <button type="button" id='btn-confirm-delete' class="btn btn-danger">Confirm Deleting</button>
             </div>
             </div>
         </div>
@@ -305,6 +305,7 @@ print([[
 
             const row_data = $config_table.row($(this).parent().parent()).data();
             const conf_id = row_data.id;
+            $("#delete-name").html(`<b>${row_data.name}</b>`)
 
             $("#btn-confirm-delete").off("click");
             $("#btn-confirm-delete").click(function(e) {
