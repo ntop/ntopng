@@ -20,7 +20,7 @@ $.fn.dataTable.ext.buttons.filterScripts = {
             dt.data().each(d => {
 
                 // count all enabled scripts
-                const parsed = d.enabled;
+                const parsed = d.is_enabled;
                 if (parsed) count += 1;
 
             });
@@ -29,7 +29,7 @@ $.fn.dataTable.ext.buttons.filterScripts = {
             dt.data().each(d => {
 
                 // count all disabled scripts
-                const parsed = d.enabled;
+                const parsed = d.is_enabled;
                 if (!parsed) count += 1;
 
             });
@@ -46,11 +46,11 @@ $.fn.dataTable.ext.buttons.filterScripts = {
         }
         else if (button_id == "enabled-scripts") {
             // draw all enabled scripts
-            dt.columns(0).search("true").draw();
+            dt.columns(2).search("true").draw();
         }
         else if (button_id == "disabled-scripts") {
             // draw all disabled scripts
-            dt.columns(0).search("false").draw();
+            dt.columns(2).search("false").draw();
         }
     }
 };
