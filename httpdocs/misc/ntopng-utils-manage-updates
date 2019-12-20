@@ -11,6 +11,7 @@ REDIS_CLI="/usr/bin/redis-cli"
 REDIS_CHECK_FOR_UPDATES_KEY="ntopng.updates.check_for_updates"
 REDIS_NEW_VERSION_AVAILABLE_KEY="ntopng.updates.new_version"
 REDIS_RUN_UPGRADE_KEY="ntopng.updates.run_upgrade"
+REDIS_UPGRADE_FAILURE_KEY="ntopng.updates.upgrade_failure"
 REDIS_AUTO_UPDATES_KEY="ntopng.prefs.is_autoupdates_enabled"
 
 ACTION=""
@@ -111,10 +112,10 @@ function run_upgrade() {
 		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Install
-		${APT_GET} upgrade --assume-yes --allow-unauthenticated ntopng
+		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated ntopng
 		RESULT=$?
 
-		# Check if installation si successful (we do not trust $?)
+		# Check if installation is successful (we do not trust $?)
 		NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
 		if [ -z "${NTOPNG_VERSION}" ]; then
 			RESULT=0
@@ -133,8 +134,10 @@ function run_upgrade() {
 		[ $QUIET = false ] && echo "ntopng updated successfully"
 		# Cleanup new version available key
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY}
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY}
 	else
 		[ $QUIET = false ] && echo "Unable to update"
+		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure"
 	fi
 
 	# Cleanup upgrade request key if any
@@ -150,8 +153,15 @@ function check_updates() {
 		# Update repo index
 		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
+		# Check for broken packages
+		${APT_GET} --just-print upgrade 2>&1 >/dev/null
+		if [ ! $? -eq 0 ]; then
+			# Something went wrong, trying to fix it
+			${APT_GET} --assume-yes --fix-broken install
+		fi
+
 		# Check update and get version
-		NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
+		NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
 	else
 		# CentOS
 
@@ -171,6 +181,7 @@ function check_updates() {
 		fi
 	else
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY}
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY}
 	fi
 }
 

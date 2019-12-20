@@ -2112,63 +2112,63 @@ local function getSavedDeviceName(mac)
 end
 
 function check_macs_alerts(ifid)
-   local active_devices_set = getActiveDevicesHashKey(ifid)
-   local seen_devices_hash = getFirstSeenDevicesHashKey(ifid)
-   local seen_devices = ntop.getHashAllCache(seen_devices_hash) or {}
-   local max_active_devices_cardinality = 16384
-   local prev_active_devices = swapKeysValues(ntop.getMembersCache(active_devices_set) or {})
    local alert_new_devices_enabled = ntop.getPref("ntopng.prefs.alerts.device_first_seen_alert") == "1"
    local alert_device_connection_enabled = ntop.getPref("ntopng.prefs.alerts.device_connection_alert") == "1"
-   local new_active_devices = {}
-   local num_devices = table.len(seen_devices)
 
-   if(num_devices >= max_active_devices_cardinality) then
-      traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Too many active devices, discarding %u devices", num_devices))
+   local active_devices_set = getActiveDevicesHashKey(ifid)
+   local prev_active_devices = swapKeysValues(ntop.getMembersCache(active_devices_set) or {})
+
+   local seen_devices_hash = getFirstSeenDevicesHashKey(ifid)
+   local seen_devices = ntop.getHashAllCache(seen_devices_hash) or {}
+   local num_seen_devices = table.len(seen_devices)
+
+   local max_active_devices_cardinality = 16384
+   if(num_seen_devices >= max_active_devices_cardinality) then
+      traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Too many active devices, discarding %u devices", num_seen_devices))
       ntop.delCache(active_devices_set)
       prev_active_devices = {}
    end
 
+   local active_devices = {}
    callback_utils.foreachDevice(getInterfaceName(ifid), nil, function(devicename, devicestats, devicebase)
-				   -- note: location is always lan when capturing from a local interface
-				   if (not devicestats.special_mac) and (devicestats.location == "lan") then
-				      local mac = devicestats.mac
+      -- note: location is always lan when capturing from a local interface
+      if (not devicestats.special_mac) and (devicestats.location == "lan") then
+         local mac = devicestats.mac
 
-				      if not seen_devices[mac] then
-					 -- First time we see a device
-					 ntop.setHashCache(seen_devices_hash, mac, tostring(os.time()))
+	 active_devices[mac] = 1
 
-					 if alert_new_devices_enabled then
-					    local name = getDeviceName(mac)
-					    setSavedDeviceName(mac, name)
+         if not seen_devices[mac] then
+	    -- First time we see a device
+	    ntop.setHashCache(seen_devices_hash, mac, tostring(os.time()))
 
-              alerts_api.store(
-                alerts_api.macEntity(mac),
-                alerts_api.newDeviceType(name)
-              )
-					 end
-				      end
+	    if alert_new_devices_enabled then
+	       local name = getDeviceName(mac)
+	       setSavedDeviceName(mac, name)
 
-				      if not prev_active_devices[mac] then
-					 -- Device connection
-					 ntop.setMembersCache(active_devices_set, mac)
+	       alerts_api.store(
+	          alerts_api.macEntity(mac),
+	          alerts_api.newDeviceType(name))
+	    end
+         end
 
-					 if alert_device_connection_enabled then
-					    local name = getDeviceName(mac)
-					    setSavedDeviceName(mac, name)
+         if not prev_active_devices[mac] then
+	    -- Device connection
+	    ntop.setMembersCache(active_devices_set, mac)
 
-              alerts_api.store(
-                alerts_api.macEntity(mac),
-                alerts_api.deviceHasConnectedType(name)
-              )
-					 end
-				      else
-					 new_active_devices[mac] = 1
-				      end
-				   end
+	    if alert_device_connection_enabled then
+	       local name = getDeviceName(mac)
+	       setSavedDeviceName(mac, name)
+
+	       alerts_api.store(
+	          alerts_api.macEntity(mac),
+	          alerts_api.deviceHasConnectedType(name))
+	    end
+         end
+      end
    end)
 
    for mac in pairs(prev_active_devices) do
-      if not new_active_devices[mac] then
+      if not active_devices[mac] then
          -- Device disconnection
          local name = getSavedDeviceName(mac)
          ntop.delMembersCache(active_devices_set, mac)

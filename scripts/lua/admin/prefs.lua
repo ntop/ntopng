@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -1329,6 +1329,14 @@ function printSnmp()
 		       "ntopng.prefs.",
 		       "default_snmp_community",
 		       "public", false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=64}, disabled=disabled})
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_snmp_debug",
+    default = "0",
+    pref = "snmp_debug",
+  })
+
+  print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.snmp_alerts")..'</th></tr></thead>')
 
   prefsToggleButton(subpage_active, {
     field = "toggle_snmp_alerts_port_status_change",
