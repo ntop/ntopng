@@ -1072,3 +1072,12 @@ void get_locale_strings(void)
 	if (strlen(buff)) strcpy(am_pm[1], buff);
 }
 #endif
+
+// strndup() is not available on Windows
+char* strndup(const char* s1, size_t n)
+{
+	char* copy = (char*)malloc(n + 1);
+	memcpy(copy, s1, n);
+	copy[n] = 0;
+	return copy;
+};

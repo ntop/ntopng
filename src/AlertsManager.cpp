@@ -396,7 +396,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
         else if(!strcmp(key, "alert_type"))
           alert_type = lua_tonumber(L, -1);
         else if(!strcmp(key, "alert_severity"))
-           alert_severity = (AlertLevel) lua_tonumber(L, -1);
+           alert_severity = (AlertLevel)lua_tointeger(L, -1);
         else if(!strcmp(key, "flow_status"))
           status = lua_tonumber(L, -1);
         else if(!strcmp(key, "vlan_id"))

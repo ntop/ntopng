@@ -2124,12 +2124,12 @@ ticks Utils::gettickspersec() {
 
   /* computing usleep delay */
   tick_start = Utils::getticks();
-  usleep(1);
+  _usleep(1);
   tick_delta = Utils::getticks() - tick_start;
 
   /* computing CPU freq */
   tick_start = Utils::getticks();
-  usleep(1001);
+  _usleep(1001);
   return (Utils::getticks() - tick_start - tick_delta) * 1000 /*kHz -> Hz*/;
 #else
   return CLOCKS_PER_SEC;

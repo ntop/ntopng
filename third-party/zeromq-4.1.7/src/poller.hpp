@@ -34,6 +34,7 @@
 
 #ifdef ZMQ_HAVE_WINDOWS
 #include "windows.hpp"
+#define ZMQ_USE_SELECT
 #endif
 
 #if   defined ZMQ_USE_KQUEUE  + defined ZMQ_USE_EPOLL \
