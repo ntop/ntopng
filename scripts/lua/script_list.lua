@@ -19,7 +19,7 @@ active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local script_type = "traffic_element"
-local script_subdir = "host"
+local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
 local confset_name = _GET["confset_name"]
 
@@ -35,38 +35,25 @@ else
       <div class='container-fluid mt-3'>
          <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-               <li class="breadcrumb-item" aria-current="page"><a href='/'>ntopng</a></li>
                <li class="breadcrumb-item" aria-current="page"><a href='/lua/config_list.lua'>Config List</a></li>
                <li class="breadcrumb-item active" aria-current="page">Config <b>]].. confset_name ..[[</b></li>
             </ol>
-         </nav>
-         <ul class="nav nav-pills" role='tablist'>
-            <li class="nav-item">
-               <a class="nav-link active" data-toggle="tab" href="#hosts" role="tab" aria-controls="hosts">Hosts</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" data-toggle="tab" href="#flows" role="tab" aria-controls="hosts">Flows</a>
-            </li>
-         </ul>
-         <div class="tab-content">
-            <div class='tab-pane fade show active' id='hosts' role='tabpanel'>
-               <div class='row'>
+         </nav>   
+         <div class='row'>
                   <div class='col-md-12 col-lg-12 mt-3'>
-                  <table id='hostsScripts' class="table table-striped table-bordered mt-3">
-                     <thead>
-                        <tr>
-                           <th>Script Name</th>
-                           <th>Script Description</th>
-                           <th>Script Enabled</th>
-                           <th>Edit</th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                     </tbody>
-                  </table>
-                  </div>
+                     <table id='hostsScripts' class="table w-100 table-striped table-hover table-bordered mt-3">
+                        <thead>
+                           <tr>
+                              <th>Name</th>
+                              <th>Description</th>
+                              <th>Enabled</th>
+                              <th>Edit</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                     </div>
                </div>
-            </div>
          </div>
       </div>
    ]])
@@ -79,9 +66,6 @@ else
             <div class="modal-content">
                <div class="modal-header">
                <h5 class="modal-title">Script / Config <span id='script-name'></span></h5>
-               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-               </button>
                </div>
                <div class="modal-body">
                   <form id='edit-form' method='post'>
@@ -115,7 +99,13 @@ else
 
             const $script_table = $("#hostsScripts").DataTable({
                dom: "Bfrtip",
-               fixedColumns: true,
+               language: {
+                  paginate: {
+                     previous: '&lt;',
+                     next: '&gt;'
+                  }
+               },
+               lengthChange: false,
                ajax: {
                   'url': ']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?confset_id=]].. confset_id ..[[&script_type=]].. script_type ..[[&script_subdir=]].. script_subdir ..[[',
                   'type': 'GET',
@@ -123,6 +113,7 @@ else
                },
                stateSave: true,
                initComplete: function(settings, json) {
+                  $(`#all-scripts`).addClass("active");
                   count_scripts();
                },
                order: [ [0, "asc"] ],
@@ -130,7 +121,7 @@ else
                   {
                      extend: "filterScripts",
                      attr: {
-                        id: "all-scripts"
+                        id: "all-scripts",
                      },
                      text: "All"
                   },
@@ -162,6 +153,7 @@ else
                   { data: 'description' },
                   { 
                      data: 'enabled_hooks',
+                     sortable: false,
                      render: function (data, type, row) {
 
                         if (data.length <= 0 && type != "display") {
@@ -178,9 +170,14 @@ else
                      targets: -1,
                      data: null,
                      render: function (data, type, row) {
-                        return `<button data-toggle="modal" data-target="#modal-script" class="btn btn-sm btn-primary">
-                           <i class='fas fa-edit'></i>
-                        </button>`;
+                        return `
+                        <div class='btn-group'>
+                           <button data-toggle="modal" data-target="#modal-script" class="btn btn-sm btn-primary">
+                              <i class='fas fa-edit'></i>
+                           </button>
+                           <a href='${data.edit_url}' class='btn btn-sm btn-secondary'><i class='fas fa-scroll'></i></a>
+                        </div>
+                        `;
                      },
                      sortable: false
                   }
@@ -243,8 +240,7 @@ else
                            return $(`<div class='input-group template w-75'></div>`)
                               .append(`<div class='input-group-prepend'>
                                     <select class='btn btn-outline-secondary'>
-                                          <option selected disabled></option>
-                                          <option value="gt">&gt</option>
+                                          <option selected value="gt">&gt</option>
                                           <option value="lt">&lt;</option>
                                     </select>
                               </div>`)
@@ -265,7 +261,7 @@ else
 
                         // create checkbox for hook
                         $element.append(`<td class='text-center'>
-                           <input name="${granularity}-check" data-toggle='toggle' type="checkbox" ${enabled ? "checked" : ""} >
+                           <input name="${granularity}-check" type="checkbox" ${enabled ? "checked" : ""} >
                         </td>`);
 
                         // create label for hook
@@ -343,6 +339,7 @@ else
                      // variable for checking errors
                      let error = false;
 
+                     // iterate over granularities
                      $table_editor.children("tr").each(function (index) {
 
                         const id = $(this).attr("id");
@@ -370,6 +367,7 @@ else
                            return;
                         }
 
+                        // save data into dictonary
                         data[id] = {
                            'enabled': enabled,
                            'script_conf': {
@@ -400,10 +398,7 @@ else
                         })
                      )
                      .then((d, status, xhr) => {
-
-                        console.log(d);
                         location.reload();
-
                      })
 
                   };
@@ -422,13 +417,10 @@ else
 
                         const {hooks} = data;
 
-                        console.log(data);
-
                         // reset default values
                         for (key in hooks) {
                            
                            const granularity = hooks[key];
-                           console.log(key, granularity)
 
                            $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
 

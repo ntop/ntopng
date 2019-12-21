@@ -12,7 +12,6 @@ $.fn.dataTable.ext.buttons.filterScripts = {
 
         // count scripts inside table
         if (button_id == "all-scripts") {
-
             // count all scripts
             count = dt.data().length;
         }
@@ -40,6 +39,9 @@ $.fn.dataTable.ext.buttons.filterScripts = {
     action: function (e, dt, node, config) {
         // get button script type
         const button_id = config.attr.id;
+        $("#all-scripts").removeClass('active');
+        $("#enabled-scripts").removeClass('active');
+        $("#disabled-scripts").removeClass('active');
 
         if (button_id == "all-scripts") {
             dt.columns().search("").draw();
@@ -52,5 +54,7 @@ $.fn.dataTable.ext.buttons.filterScripts = {
             // draw all disabled scripts
             dt.columns(2).search("false").draw();
         }
+
+        $(`#${button_id}`).addClass("active");
     }
 };

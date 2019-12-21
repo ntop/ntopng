@@ -522,14 +522,13 @@ path.link {
   color: #007bff;
 }
 
-.filter-scripts-button:focus {
+.filter-scripts-button.active {
   color: #0050a5;
   font-weight: bold;
 }
 
 .filter-scripts-button:hover {
-  text-decoration: underline;
-  color: #007bff;
+  color: #0050a5;
   background: none;
 }
 

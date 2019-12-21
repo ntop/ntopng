@@ -27,23 +27,36 @@ print([[
             <div class='col-md-12 col-lg-12'>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item" aria-current="page"><a href='/'>ntopng</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Config List</li>
                     </ol>
                 </nav>
-                <div class='table-responsive'>
-                    <table id="config-list" class='table table-striped table-hover mt-3'>
-                        <thead>
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Hosts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Flows</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Interfaces</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Networks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">SNMP</a>
+                    </li>
+                </ul>
+                <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
+                       <thead>
                             <tr>
                                 <th>Configuration Name</th>
+                                <th>Applied to</th>
                                 <th>Config Settings</th>
                             </tr>
                         </thead>
-                        <tbody>
-
-                        </tbody>
-                    </table>
-                </div>
+                        <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -74,7 +87,7 @@ print([[
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-rename' class="btn btn-primary">Confirm Rename</button>
+                <button type="button" id='btn-confirm-rename' class="btn btn-primary">Apply</button>
             </div>
             </div>
         </div>
@@ -106,7 +119,35 @@ print([[
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-clone' class="btn btn-primary">Confirm Cloning</button>
+                <button type="button" id='btn-confirm-clone' class="btn btn-primary">Apply</button>
+            </div>
+            </div>
+        </div>
+    </div>
+]])
+
+-- applied modal 
+print([[
+    <div class="modal fade" id="applied-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Apply Config: <span id='apply-name'></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+              <form class='form' type='post'>
+                <div class='form-group'>
+                    <label for='input-applied'>{placeholder}</label>
+                    <input type='text' name='input-applied' class='form-control'/>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" id='btn-confirm-apply' class="btn btn-primary">Apply</button>
             </div>
             </div>
         </div>
@@ -145,9 +186,16 @@ print([[
 <script type='text/javascript'>
     $(document).ready(function() {
 
+        $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua', d => console.log(d));
 
         const $config_table = $("#config-list").DataTable({
-            fixedColumns: true,
+            lengthChange: false,
+            language: {
+                paginate: {
+                   previous: '&lt;',
+                   next: '&gt;'
+                }
+            },
             ajax: {
                 url: ']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua',
                 type: 'GET',
@@ -161,14 +209,21 @@ print([[
                     }
                 },
                 {
+                    data: 'targets',
+                    render: function(data, type, row) {
+                        return data.join(', ');
+                    }
+                },
+                {
                     targets: -1,
                     width: '10%',
                     data: null,
                     render: function(data, type, row) {
                         return `
                             <div class='btn-group'>
-                                <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}' title='Edit' class='btn btn-sm btn-info'><i class='fas fa-edit'></i></a>
+                                <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=host' title='Edit' class='btn btn-sm btn-info'><i class='fas fa-edit'></i></a>
                                 <button title='Clone' data-toggle="modal" data-target="#clone-modal" class='btn btn-sm btn-secondary' type='button'><i class='fas fa-clone'></i></button>
+                                <button title='Applied to' data-toggle='modal' data-target='#applied-modal' ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary' type='button'><i class='fas fa-server'></i></button>
                                 <button title='Rename' data-toggle="modal" data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary' type='button'><i class='fas fa-i-cursor'></i></button>
                                 <button title='Delete' data-toggle="modal" data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-danger' type='button'><i class='fas fa-times'></i></button>
                             </div>
