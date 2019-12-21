@@ -288,7 +288,9 @@ else
                         }
 
                         // select the right operator
-                        $input_box.find("select").attr("name", `${granularity}-select`).val(script_conf.operator)
+                        if (script_conf.operator != undefined) {
+                           $input_box.find("select").attr("name", `${granularity}-select`).val(script_conf.operator)
+                        }
                         // set input name
                         $input_box.find("input[type='number']").attr("name", `${granularity}-input`)
                         // set script conf params
