@@ -23,6 +23,16 @@ local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
 local confset_name = _GET["confset_name"]
 
+local titles = {
+   ["host"] = "Hosts",
+   ["snmp_device"] = "SNMP",
+   ["system"] = "System",
+   ["flow"] = "Flows",
+   ["interface"] = "Interfaces",
+   ["network"] = "Networks",
+   ["syslog"] = "Syslog"
+}
+
 if confset_id == nil or confset_id == "" then
    print([[404]])
 else
@@ -36,6 +46,7 @@ else
          <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                <li class="breadcrumb-item" aria-current="page"><a href='/lua/config_list.lua'>Config List</a></li>
+               <li class="breadcrumb-item" aria-current="page"><a href='/lua/config_list.lua?subdir=]].. script_subdir ..[['>]].. titles[script_subdir] ..[[</a></li>
                <li class="breadcrumb-item active" aria-current="page">Config <b>]].. confset_name ..[[</b></li>
             </ol>
          </nav>   
@@ -47,7 +58,7 @@ else
                               <th>Name</th>
                               <th>Description</th>
                               <th>Enabled</th>
-                              <th>Edit</th>
+                              <th>Actions</th>
                            </tr>
                         </thead>
                         <tbody>
@@ -172,10 +183,10 @@ else
                      render: function (data, type, row) {
                         return `
                         <div class='btn-group'>
-                           <button data-toggle="modal" data-target="#modal-script" class="btn btn-sm btn-primary">
+                           <button data-toggle="modal" title='Edit Script' data-target="#modal-script" class="btn btn-sm btn-primary">
                               <i class='fas fa-edit'></i>
                            </button>
-                           <a href='${data.edit_url}' class='btn btn-sm btn-secondary'><i class='fas fa-scroll'></i></a>
+                           <a href='${data.edit_url}' title='View Source Script' class='btn btn-sm btn-secondary'><i class='fas fa-scroll'></i></a>
                         </div>
                         `;
                      },

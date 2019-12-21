@@ -17,6 +17,8 @@ page_utils.print_header(i18n("about.about_x", { product=info.product }))
 active_page = "about"
 
 local subdir = _GET["subdir"]
+
+-- temporary solution
 local titles = {
     ["host"] = "Hosts",
     ["snmp_device"] = "SNMP",
@@ -163,6 +165,7 @@ print([[
                 <div class='form-group'>
                     <label for='input-applied'>Type targets:</label>
                     <input type='text' id='applied-input' class='form-control'/>
+                    <small>Type targets separated by a comma. i.e: 192.168.1.20,192.123.2.0</small>
                     <div class="invalid-feedback" id='apply-error'>
                             {message}
                         </div>

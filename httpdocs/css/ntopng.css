@@ -517,25 +517,25 @@ path.link {
 .filter-scripts-button {
   padding: 0;
   background: none;
-  margin: 0.2rem 1rem;
   border: none;
   color: #007bff;
+  padding: .5rem 1rem;
 }
 
 .filter-scripts-button.active {
-  color: #0050a5;
-  font-weight: bold;
+  color: #ffffff;
+  background-color: #007bff;
+  border-radius: 0.25rem;
+}
+
+.filter-scripts-button.active:hover {
+  background-color: #007bff;
+  color: #ffffff;
 }
 
 .filter-scripts-button:hover {
   color: #0050a5;
   background: none;
-}
-
-.script-toast {
-  position: absolute;
-  top: 5rem;
-  right: 2rem;
 }
 
 /** end of CSS wrote by @gabryon99 */
