@@ -16,6 +16,13 @@ page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
 
 active_page = "about"
+
+local subdir = _GET["subdir"]
+
+if subdir == nil then
+    subdir = 'host'
+end
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print([[<link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet">]])
@@ -27,15 +34,15 @@ print([[
             <div class='col-md-12 col-lg-12'>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item active" aria-current="page">Config List</li>
+                        <li class="breadcrumb-item" aria-current="page">Config List</li>
                     </ol>
                 </nav>
                 <ul class="nav nav-pills">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Hosts</a>
+                        <a class="nav-link active" href="?subdir=host">Hosts</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Flows</a>
+                        <a class="nav-link" href="">Flows</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Interfaces</a>
@@ -44,7 +51,7 @@ print([[
                         <a class="nav-link" href="#">Networks</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">SNMP</a>
+                        <a class="nav-link" href="?subdir=snmp">SNMP</a>
                     </li>
                 </ul>
                 <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
@@ -197,7 +204,7 @@ print([[
                 }
             },
             ajax: {
-                url: ']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua',
+                url: ']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua?script_subdir=]].. subdir ..[[',
                 type: 'GET',
                 dataSrc: ''
             },
@@ -221,7 +228,7 @@ print([[
                     render: function(data, type, row) {
                         return `
                             <div class='btn-group'>
-                                <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=host' title='Edit' class='btn btn-sm btn-info'><i class='fas fa-edit'></i></a>
+                                <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=]].. subdir ..[[' title='Edit' class='btn btn-sm btn-info'><i class='fas fa-edit'></i></a>
                                 <button title='Clone' data-toggle="modal" data-target="#clone-modal" class='btn btn-sm btn-secondary' type='button'><i class='fas fa-clone'></i></button>
                                 <button title='Applied to' data-toggle='modal' data-target='#applied-modal' ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary' type='button'><i class='fas fa-server'></i></button>
                                 <button title='Rename' data-toggle="modal" data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary' type='button'><i class='fas fa-i-cursor'></i></button>
