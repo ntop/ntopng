@@ -14,10 +14,18 @@ sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
-
 active_page = "about"
 
 local subdir = _GET["subdir"]
+local titles = {
+    ["host"] = "Hosts",
+    ["snmp_device"] = "SNMP",
+    ["system"] = "System",
+    ["flow"] = "Flows",
+    ["interface"] = "Interfaces",
+    ["network"] = "Networks",
+    ["syslog"] = "Syslog"
+}
 
 if subdir == nil then
     subdir = 'host'
@@ -27,40 +35,37 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print([[<link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet">]])
 
-
---
---
-
 print([[
     <div class='container-fluid mt-3'>
         <div class='row'>
             <div class='col-md-12 col-lg-12'>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item" aria-current="page">Config List</li>
+                        <li class="breadcrumb-item">Config List</li>
+                        <li class='breadcrumb-item active'>]] .. titles[subdir] .. [[</li>
                     </ol>
                 </nav>
                 <ul class="nav nav-pills">
                     <li class="nav-item">
-                        <a class="nav-link" href="?subdir=host">Hosts</a>
+                        <a class="nav-link ]] .. (subdir == "host" and "active" or "") .. [[" href="?subdir=host">Hosts</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?subdir=flow">Flows</a>
+                        <a class="nav-link ]] .. (subdir == "flow" and "active" or "") .. [[" href="?subdir=flow">Flows</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?subdir=interface">Interfaces</a>
+                        <a class="nav-link ]] .. (subdir == "interface" and "active" or "") .. [[" href="?subdir=interface">Interfaces</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?subdir=network">Networks</a>
+                        <a class="nav-link ]] .. (subdir == "network" and "active" or "") .. [[" href="?subdir=network">Networks</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?subdir=snmp_device">SNMP</a>
+                        <a class="nav-link ]] .. (subdir == "snmp_device" and "active" or "") .. [[" href="?subdir=snmp_device">SNMP</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?subdir=system">System</a>
+                        <a class="nav-link ]] .. (subdir == "system" and "active" or "") .. [[" href="?subdir=system">System</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?subdir=syslog">Syslog</a>
+                        <a class="nav-link ]] .. (subdir == "syslog" and "active" or "") .. [[" href="?subdir=syslog">Syslog</a>
                     </li>
                 </ul>
                 <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
@@ -205,7 +210,7 @@ print([[
 <script type='text/javascript'>
     $(document).ready(function() {
 
-        $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua', d => console.log(d));
+        $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua?script_subdir=]].. subdir ..[[', d => console.log(d));
 
         const $config_table = $("#config-list").DataTable({
             lengthChange: false,
@@ -284,6 +289,7 @@ print([[
                     $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
                         action: 'clone',
                         confset_id: conf_id,
+                        script_subdir: ']].. subdir ..[[',
                         csrf: ']].. ntop.getRandomCSRFValue() ..[[',
                         confset_name: clonation_name    
                     })
