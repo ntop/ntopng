@@ -113,7 +113,7 @@ else
                },
                stateSave: true,
                initComplete: function(settings, json) {
-                  $(`#all-scripts`).addClass("active");
+                  $(`#enabled-scripts`).addClass("active").trigger("click");
                   count_scripts();
                },
                order: [ [0, "asc"] ],
