@@ -1093,9 +1093,15 @@ end
 
 -- #################################
 
-function hostVisualization(ip, name)
-   if (ip ~= name) and isIPv6(ip) then
-      return name.." [IPv6]"
+function hostVisualization(ip, name, vlan)
+   if (ip ~= name) then
+      if isIPv6(ip) then
+        name = name.." [IPv6]"
+      end
+   else
+      if vlan ~= nil and tonumber(vlan) > 0 then
+        name = name.."@"..vlan
+      end
    end
    return name
 end
@@ -1114,7 +1120,7 @@ function resolveAddress(hostinfo, allow_empty)
          return getResolvedAddress(hostinfo)
       end
    end
-   return hostVisualization(hostinfo["host"], hostname)
+   return hostVisualization(hostinfo["host"], hostname, hostinfo["vlan"])
 end
 
 -- #################################
@@ -1122,7 +1128,7 @@ end
 -- NOTE: use host2name when possible
 function getResolvedAddress(hostinfo)
    local hostname = ntop.getResolvedName(hostinfo["host"])
-   return hostVisualization(hostinfo["host"], hostname)
+   return hostVisualization(hostinfo["host"], hostname, hostinfo["vlan"])
 end
 
 -- #################################

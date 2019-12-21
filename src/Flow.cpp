@@ -1908,9 +1908,17 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
 /* *************************************** */
 
 void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
-  ndpi_stats->incStats(0, ndpiDetectedProtocol.app_protocol,
+  ndpi_protocol detected_protocol = get_detected_protocol();
+  
+  ndpi_stats->incStats(0, detected_protocol.master_protocol,
 		       get_packets_cli2srv(), get_bytes_cli2srv(),
 		       get_packets_srv2cli(), get_bytes_srv2cli());
+
+  if(detected_protocol.app_protocol != detected_protocol.master_protocol
+     && detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
+    ndpi_stats->incStats(0, detected_protocol.app_protocol,
+			 get_packets_cli2srv(), get_bytes_cli2srv(),
+			 get_packets_srv2cli(), get_bytes_srv2cli());
 
   status_stats->incStats(getStatusBitmap(), protocol);
 }
