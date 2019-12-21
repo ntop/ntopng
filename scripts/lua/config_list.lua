@@ -28,6 +28,9 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print([[<link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet">]])
 
 
+--
+--
+
 print([[
     <div class='container-fluid mt-3'>
         <div class='row'>
@@ -39,19 +42,25 @@ print([[
                 </nav>
                 <ul class="nav nav-pills">
                     <li class="nav-item">
-                        <a class="nav-link active" href="?subdir=host">Hosts</a>
+                        <a class="nav-link" href="?subdir=host">Hosts</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="">Flows</a>
+                        <a class="nav-link" href="?subdir=flow">Flows</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Interfaces</a>
+                        <a class="nav-link" href="?subdir=interface">Interfaces</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Networks</a>
+                        <a class="nav-link" href="?subdir=network">Networks</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="?subdir=snmp">SNMP</a>
+                        <a class="nav-link" href="?subdir=snmp_device">SNMP</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="?subdir=system">System</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="?subdir=syslog">Syslog</a>
                     </li>
                 </ul>
                 <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
@@ -133,7 +142,7 @@ print([[
     </div>
 ]])
 
--- applied modal 
+-- applied to modal 
 print([[
     <div class="modal fade" id="applied-modal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -147,8 +156,11 @@ print([[
             <div class="modal-body">
               <form class='form' type='post'>
                 <div class='form-group'>
-                    <label for='input-applied'>{placeholder}</label>
-                    <input type='text' name='input-applied' class='form-control'/>
+                    <label for='input-applied'>Type targets:</label>
+                    <input type='text' id='applied-input' class='form-control'/>
+                    <div class="invalid-feedback" id='apply-error'>
+                            {message}
+                        </div>
                 </div>
               </form>
             </div>
@@ -300,6 +312,65 @@ print([[
                 
                 e.preventDefault();
                 $("#btn-confirm-clone").trigger("click");
+            });
+
+        });
+
+        $('#config-list').on('click', 'button[data-target="#applied-modal"]', function(e) {
+
+            const row_data = $config_table.row($(this).parent().parent()).data();
+            const conf_id = row_data.id;
+
+            $("#applied-input").val(row_data.targets.join(","))
+
+            $("#apply-name").html(`<b>${row_data.name}</b>`);
+
+            $('#btn-confirm-apply').off('click');
+
+            $('#btn-confirm-apply').click(function(e) {
+
+                const $button = $(this);
+                const input_value = $("#applied-input").val();
+
+                // show error message if the input is empty
+                if (input_value == "" || input_value == null || input_value == undefined) {
+                    $("#apply-error").text("The targets cannot be empty!").show();
+                    return;
+                }
+
+                console.log(input_value)
+
+                $button.attr("disabled");
+
+                $.when(
+                    $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
+                        action: 'set_targets',
+                        confset_id: conf_id,
+                        confset_targets: input_value,
+                        script_subdir: ']].. subdir ..[[',
+                        csrf: ']].. ntop.getRandomCSRFValue() ..[['
+                    })
+                )
+                .then((data, status, xhr) => {
+
+                    $button.removeAttr("disabled");
+
+                    if (!data.success) {
+                        $("#apply-error").text(data.error).show();
+                        return;
+                    }
+
+                    // hide errors and clean modal
+                    $("#apply-error").hide(); $("#apply-input").val("");
+                    // reload table
+                    $config_table.ajax.reload();
+                    // hide modal
+                    $("#applied-modal").modal('hide');
+                    location.reload();
+
+                })
+
+
             });
 
         });
