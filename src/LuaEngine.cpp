@@ -5973,12 +5973,17 @@ static int ntop_get_interface_periodic_activities_stats(lua_State* vm) {
 static int ntop_periodic_ht_state_update(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   time_t deadline;
+  bool skip_user_scripts = false;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK || !ntop_interface)
     return(CONST_LUA_ERROR);
 
   deadline = (time_t)lua_tonumber(vm, 1);
-  ntop_interface->periodicHTStateUpdate(deadline, vm);
+
+  if(lua_type(vm, 2) == LUA_TBOOLEAN)
+    skip_user_scripts = lua_toboolean(vm, 2);
+
+  ntop_interface->periodicHTStateUpdate(deadline, vm, skip_user_scripts);
 
   return(CONST_LUA_OK);
 }

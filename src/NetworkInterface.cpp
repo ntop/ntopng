@@ -2702,8 +2702,9 @@ bool NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   NetworkInterface *iface = periodic_ht_state_update_user_data->iface;
   bool quick_update = quick_periodic_ht_state_update(periodic_ht_state_update_user_data->deadline, node);
+  bool skip_user_scripts = periodic_ht_state_update_user_data->skip_user_scripts;
 
-  node->periodic_hash_entry_state_update(user_data, quick_update);
+  node->periodic_hash_entry_state_update(user_data, quick_update, skip_user_scripts);
 
   /* If this is a viewed interface, it is necessary to also call this method
      for the overlying view interface to make sure its counters (e.g., hosts, ases, vlans)
@@ -2719,7 +2720,7 @@ bool NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry
 
 /* For viewed interfaces, this method is executed by the ViewInterface for each
    of its underlying viewed interfaces. */
-void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
+void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts) {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
 #endif
@@ -2743,6 +2744,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
     periodic_ht_state_update_user_data.iface = this,
     periodic_ht_state_update_user_data.deadline = deadline,
     periodic_ht_state_update_user_data.tv = &tv;
+    periodic_ht_state_update_user_data.skip_user_scripts = skip_user_scripts;
 
   if(vm)
     lua_newtable(vm);
