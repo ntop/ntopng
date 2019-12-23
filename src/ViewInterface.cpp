@@ -273,9 +273,9 @@ Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 
 /* **************************************************** */
 
-void ViewInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm) {
+void ViewInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts) {
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    viewed_interfaces[s]->periodicHTStateUpdate(deadline, vm);
+    viewed_interfaces[s]->periodicHTStateUpdate(deadline, vm, skip_user_scripts);
 }
 
 /* **************************************************** */

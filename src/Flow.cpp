@@ -1883,7 +1883,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 
 /* *************************************** */
 
-void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
+void Flow::periodic_hash_entry_state_update(void *user_data, bool quick, bool skip_user_scripts) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   struct timeval *tv = periodic_ht_state_update_user_data->tv;
 
@@ -1922,9 +1922,10 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick) {
 
   /* Now that the states in the finite state machine have been moved forward, it is time to check and 
      possibly perform lua calls on the flow. */
-  performLuaCalls(tv, periodic_ht_state_update_user_data, quick);
+  if(!skip_user_scripts)
+    performLuaCalls(tv, periodic_ht_state_update_user_data, quick);
 
-  GenericHashEntry::periodic_hash_entry_state_update(user_data, quick);
+  GenericHashEntry::periodic_hash_entry_state_update(user_data, quick, skip_user_scripts);
 }
 
 /* *************************************** */

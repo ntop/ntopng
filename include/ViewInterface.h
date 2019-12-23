@@ -36,7 +36,7 @@ class ViewInterface : public NetworkInterface {
 
  public:
   ViewInterface(const char *_endpoint);
-  virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm);
+  virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts);
   bool walker(u_int32_t *begin_slot,
 	      bool walk_all,
 	      WalkerType wtype,
