@@ -45,14 +45,16 @@ function prefs_dump_utils.savePrefsToDisk()
 	 end
       end
    end
-
+   
    local json = require("dkjson")
    local dump = json.encode(out, nil, 1)
 
-   local file = io.open(where, "w")
+   local file,err = io.open(where, "w")
    if(file ~= nil) then
       file:write(dump)
       file:close()
+   else
+      print("[ERROR] Unable to write file "..where..": "..err.."\n")
    end
 end
 
