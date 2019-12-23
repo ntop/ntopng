@@ -202,12 +202,13 @@ else
             // handle modal-script close event
             $("#modal-script").on("hide.bs.modal", function(e) {
 
-
                // if the forms is dirty then ask to the user
                // if he wants save edits
                if ($('#edit-form').hasClass('dirty')) {
-                  e.preventDefault();
-                  // TODO: ask to user if he really wants abort edits
+                  
+                  const result = confirm("The changes will not be saved. Are you sure?");
+                  if (!result) e.preventDefault();
+                  
                }
             });
 
@@ -220,6 +221,17 @@ else
                
                // change title to modal
                $("#script-name").html(`<b>${script_title}</b>`);
+
+               $("#modal-script form").off('submit');
+
+               $("#modal-script").on("submit", "form", function (e) {
+             
+                  e.preventDefault();
+                  $('#edit-form').trigger('reinitialize.areYouSure');
+
+                  $('#edit-form').removeClass('dirty');
+                  $("#btn-apply").trigger("click");
+               });
 
                $.when(
                   $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_user_script_config.lua', {
@@ -469,14 +481,6 @@ else
                   // bind are you sure to form
                   $('#edit-form').trigger('rescan.areYouSure');
                   $('#edit-form').trigger('reinitialize.areYouSure');
-
-                  $("#modal-script form").off('submit');
-
-                  $("#modal-script").on("submit", "form", function (e) {
-                
-                     e.preventDefault();
-                     $("#btn-apply").trigger("click");
-                 });
 
                });
 
