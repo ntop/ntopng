@@ -538,4 +538,9 @@ path.link {
   background: none;
 }
 
+.square-btn {
+  width: 2rem;
+  height: 2rem;
+}
+
 /** end of CSS wrote by @gabryon99 */

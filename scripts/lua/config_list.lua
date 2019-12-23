@@ -20,11 +20,14 @@ active_page = "about"
 -- 
 
 local subdir = _GET["subdir"]
+-- set default value for subdir if its empty
+if subdir == nil then
+    subdir = "host"
+end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print([[<link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet">]])
-
 
 print([[
     <div class='container-fluid mt-3'>
@@ -200,7 +203,7 @@ else
         <div class='form-group'>
             <label for='input-applied'>Type targets:</label>
             <input type='text' id='applied-input' class='form-control'/>
-            <small>Type targets separated by a comma. i.e: 192.168.1.20,192.123.2.0</small>
+            <small>Type targets separated by a comma. i.e: 192.168.1.20,192.168.0.0/16</small>
             <div class="invalid-feedback" id='apply-error'>
                 {message}
             </div>
@@ -290,14 +293,16 @@ print([[
                     targets: -1,
                     width: '10%',
                     data: null,
+                    className: 'text-center',
                     render: function(data, type, row) {
                         return `
                             <div class='btn-group'>
-                                <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=]].. subdir ..[[' title='Edit' class='btn btn-sm btn-info'><i class='fas fa-edit'></i></a>
-                                <button title='Clone' data-toggle="modal" data-target="#clone-modal" class='btn btn-sm btn-secondary' type='button'><i class='fas fa-clone'></i></button>
-                                <button title='Applied to' data-toggle='modal' data-target='#applied-modal' ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary' type='button'><i class='fas fa-server'></i></button>
-                                <button title='Rename' data-toggle="modal" data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary' type='button'><i class='fas fa-i-cursor'></i></button>
-                                <button title='Delete' data-toggle="modal" data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-danger' type='button'><i class='fas fa-times'></i></button>
+                                <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=]].. subdir ..[[' title='Edit' class='btn btn-sm btn-info square-btn'><i class='fas fa-edit'></i></a>
+                                <button title='Clone' data-toggle="modal" data-target="#clone-modal" class='btn btn-sm btn-secondary square-btn' type='button'><i class='fas fa-clone'></i></button>
+                                ]]..
+                                    ( subdir ~= "system" and [[<button title='Applied to' data-toggle='modal' data-target='#applied-modal' ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary square-btn' type='button'><i class='fas fa-server'></i></button>]] or "")
+                                ..[[<button title='Rename' data-toggle="modal" data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary square-btn' type='button'><i class='fas fa-i-cursor'></i></button>
+                                <button title='Delete' data-toggle="modal" data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-danger square-btn' type='button'><i class='fas fa-times'></i></button>
                             </div>
                         `;
                     }
@@ -386,7 +391,7 @@ print([[
                     elseif subdir == "network" then
                         return [[ $("#applied-networks").val(row_data.targets.map(d => d.key.toString())) ]]
                     else
-                        return [[ $("#applied-input").val(row_data.targets.join(",")) ]]
+                        return [[ console.info(row_data); $("#applied-input").val(row_data.targets.map(d => d.key.toString()).join(',')) ]]
                     end
 
                 end
@@ -394,6 +399,8 @@ print([[
 
 
             $("#apply-name").html(`<b>${row_data.name}</b>`);
+
+            $("#applied-modal form").off("submit");
 
             $('#btn-confirm-apply').off('click');
             $('#btn-confirm-apply').click(function(e) {
@@ -458,6 +465,12 @@ print([[
 
             });
 
+            $("#applied-modal").on("submit", "form", function (e) {
+                
+                e.preventDefault();
+                $("#btn-confirm-apply").trigger("click");
+            });
+
         });
 
         $('#config-list').on('click', 'button[data-target="#rename-modal"]', function(e) {
@@ -469,7 +482,7 @@ print([[
             $("#rename-input").attr('placeholder', row_data.name);
 
             // bind rename click event
-
+            $("#rename-modal form").off("submit");
             $("#btn-confirm-rename").off('click');
 
             $("#btn-confirm-rename").click(function(e) {
@@ -517,6 +530,12 @@ print([[
             })
 
 
+            $("#rename-modal").on("submit", "form", function (e) {
+                
+                e.preventDefault();
+                $("#btn-confirm-rename").trigger("click");
+            });
+
         });
 
         $('#config-list').on('click', 'button[data-target="#delete-modal"]', function(e) {
@@ -526,6 +545,8 @@ print([[
             $("#delete-name").html(`<b>${row_data.name}</b>`)
 
             $("#btn-confirm-delete").off("click");
+            $("#delete-modal form").off('submit');
+
             $("#btn-confirm-delete").click(function(e) {
 
                 const $button = $(this);
@@ -559,7 +580,11 @@ print([[
 
             })
 
-            
+            $("#delete-modal").on("submit", "form", function (e) {
+                
+                e.preventDefault();
+                $("#btn-confirm-delete").trigger("click");
+            });
 
         });
 

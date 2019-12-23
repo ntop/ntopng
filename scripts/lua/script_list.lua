@@ -18,7 +18,6 @@ page_utils.print_header(i18n("about.about_x", { product=info.product }))
 active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local script_type = "traffic_element"
 local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
 local confset_name = _GET["confset_name"]
@@ -118,7 +117,7 @@ else
                },
                lengthChange: false,
                ajax: {
-                  'url': ']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?confset_id=]].. confset_id ..[[&script_type=]].. script_type ..[[&script_subdir=]].. script_subdir ..[[',
+                  'url': ']].. ntop.getHttpPrefix() ..[[/lua/get_user_scripts.lua?confset_id=]].. confset_id ..[[&script_subdir=]].. script_subdir ..[[',
                   'type': 'GET',
                   dataSrc: ''
                },
@@ -180,13 +179,14 @@ else
                   {
                      targets: -1,
                      data: null,
+                     className: 'text-center',
                      render: function (data, type, row) {
                         return `
                         <div class='btn-group'>
-                           <button data-toggle="modal" title='Edit Script' data-target="#modal-script" class="btn btn-sm btn-primary">
+                           <button data-toggle="modal" title='Edit Script' data-target="#modal-script" class="btn btn-square btn-sm btn-primary">
                               <i class='fas fa-edit'></i>
                            </button>
-                           <a href='${data.edit_url}' title='View Source Script' class='btn btn-sm btn-secondary'><i class='fas fa-scroll'></i></a>
+                           <a href='${data.edit_url}' title='View Source Script' class='btn btn-square btn-sm btn-secondary'><i class='fas fa-scroll'></i></a>
                         </div>
                         `;
                      },
@@ -401,7 +401,6 @@ else
                      // make post request
                      $.when(
                         $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_user_script_config.lua', {
-                           script_type: ']].. script_type ..[[',
                            script_subdir: ']].. script_subdir ..[[',
                            script_key: script_key,
                            csrf: ']].. ntop.getRandomCSRFValue() ..[[',
@@ -470,6 +469,14 @@ else
                   // bind are you sure to form
                   $('#edit-form').trigger('rescan.areYouSure');
                   $('#edit-form').trigger('reinitialize.areYouSure');
+
+                  $("#modal-script form").off('submit');
+
+                  $("#modal-script").on("submit", "form", function (e) {
+                
+                     e.preventDefault();
+                     $("#btn-apply").trigger("click");
+                 });
 
                });
 
