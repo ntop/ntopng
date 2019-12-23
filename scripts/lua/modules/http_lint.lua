@@ -1009,13 +1009,13 @@ function http_lint.parseConfsetTargets(subdir, param)
       -- interface name
       validator = validateSingleWord
    else
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown subdir: " .. subdir)
-      return(nil)
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unsupported subdir: " .. subdir)
+      return nil, "Unsupported subdir"
    end
 
    for _, v in pairs(values) do
       if(not validator(v)) then
-         return(nil)
+         return nil, i18n("configsets.bad_target", {target = v})
       end
    end
 

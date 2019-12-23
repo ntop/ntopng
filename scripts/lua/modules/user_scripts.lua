@@ -33,9 +33,46 @@ local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets.subdir_%s"
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
+-- NOTE: the subdir id must be unique
+-- target_type: when used with configsets, specifies the allowed target.
+--   - cidr: IPv4/IPv6 address or CIDR (e.g. 192.168.0.0/16, 1.2.3.4)
+--   - interface: a network interface name (e.g. eth0)
+--   - network: a local network CIDR (e.g. 192.168.0.0/24)
+--   - none: no targets allowed
+local available_subdirs = {
+   {
+      id = "host",
+      label = "hosts",
+      target_type = "cidr",
+   }, {
+      id = "flow",
+      label = "flows",
+      target_type = "interface",
+   }, {
+      id = "interface",
+      label = "interfaces",
+      target_type = "interface",
+   }, {
+      id = "network",
+      label = "networks",
+      target_type = "network",
+   }, {
+      id = "snmp_device",
+      label = "host_details.snmp",
+      target_type = "cidr",
+   }, {
+      id = "system",
+      label = "system",
+      target_type = "none",
+   }, {
+      id = "syslog",
+      label = "Syslog",
+      target_type = "interface",
+   }
+}
+
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
--- NOTE: the subdirs name must be unique
 user_scripts.script_types = {
   flow = {
     parent_dir = "interface",
@@ -957,6 +994,21 @@ function user_scripts.handlePOST(subdir, available_modules, hook, entity_value, 
 
    reload_scripts_config(available_modules)
    saveConfiguration(subdir, scripts_conf)
+end
+
+-- ##############################################
+
+function user_scripts.listSubdirs()
+   local rv = {}
+
+   for _, subdir in ipairs(available_subdirs) do
+      local item = table.clone(subdir)
+      item.label = i18n(item.label) or item.label
+
+      rv[#rv + 1] = item
+   end
+
+   return(rv)
 end
 
 -- ##############################################

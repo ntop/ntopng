@@ -81,7 +81,7 @@ elseif(action == "set_targets") then
     return
   end
 
-  local targets = http_lint.parseConfsetTargets(subdir, targets)
+  local targets, err = http_lint.parseConfsetTargets(subdir, targets)
 
   if(targets ~= nil) then
     -- Validation ok
@@ -94,7 +94,10 @@ elseif(action == "set_targets") then
   else
     -- Validation error
     result.success = false
-    result.error = "Validation error"
+    result.error = err
+
+    -- Can be used to trigger a new request
+    result.csrf = ntop.getRandomCSRFValue()
   end
 else
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown action '".. action .. "'")
