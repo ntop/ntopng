@@ -223,7 +223,6 @@ else
 
                $.when(
                   $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_user_script_config.lua', {
-                        script_type: ']].. script_type ..[[',
                         script_subdir: ']].. script_subdir ..[[',
                         confset_id: ]].. confset_id ..[[,
                         script_key: script_key
@@ -421,7 +420,6 @@ else
                      // get default values for config
                      $.when(
                         $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_user_script_config.lua', {
-                           script_type: ']].. script_type ..[[',
                            script_subdir: ']].. script_subdir ..[[',
                            script_key: script_key
                         })

@@ -9,6 +9,7 @@ local info = ntop.getInfo()
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
+local user_scripts = require "user_scripts"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -16,26 +17,14 @@ page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
 active_page = "about"
 
+-- 
+
 local subdir = _GET["subdir"]
-
--- temporary solution
-local titles = {
-    ["host"] = "Hosts",
-    ["snmp_device"] = "SNMP",
-    ["system"] = "System",
-    ["flow"] = "Flows",
-    ["interface"] = "Interfaces",
-    ["network"] = "Networks",
-    ["syslog"] = "Syslog"
-}
-
-if subdir == nil then
-    subdir = 'host'
-end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print([[<link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet">]])
+
 
 print([[
     <div class='container-fluid mt-3'>
@@ -44,31 +33,27 @@ print([[
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item">Config List</li>
-                        <li class='breadcrumb-item active'>]] .. titles[subdir] .. [[</li>
                     </ol>
                 </nav>
                 <ul class="nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link ]] .. (subdir == "host" and "active" or "") .. [[" href="?subdir=host">Hosts</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ]] .. (subdir == "flow" and "active" or "") .. [[" href="?subdir=flow">Flows</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ]] .. (subdir == "interface" and "active" or "") .. [[" href="?subdir=interface">Interfaces</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ]] .. (subdir == "network" and "active" or "") .. [[" href="?subdir=network">Networks</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ]] .. (subdir == "snmp_device" and "active" or "") .. [[" href="?subdir=snmp_device">SNMP</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ]] .. (subdir == "system" and "active" or "") .. [[" href="?subdir=system">System</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ]] .. (subdir == "syslog" and "active" or "") .. [[" href="?subdir=syslog">Syslog</a>
-                    </li>
+]])
+        
+
+-- print tabs iteration over subdirs
+for _, isubdir in ipairs(user_scripts.listSubdirs()) do
+    
+    print('<li class="nav-item">')
+    print([[
+        <a class="nav-link ]].. (isubdir.id == subdir and "active" or "") ..[[" href="?subdir=]].. isubdir.id ..[[">
+            ]].. isubdir.label ..[[
+        </a>
+    ]])
+    print("</li>")
+
+end
+
+
+print([[
                 </ul>
                 <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
                        <thead>
@@ -161,15 +146,71 @@ print([[
                 </button>
             </div>
             <div class="modal-body">
-              <form class='form' type='post'>
-                <div class='form-group'>
-                    <label for='input-applied'>Type targets:</label>
-                    <input type='text' id='applied-input' class='form-control'/>
-                    <small>Type targets separated by a comma. i.e: 192.168.1.20,192.123.2.0</small>
-                    <div class="invalid-feedback" id='apply-error'>
-                            {message}
-                        </div>
-                </div>
+              <form class='form' type='post'>]])
+
+if subdir == "interface" or subdir == "flow" then
+
+    print([[
+        <div class='form-group'>
+            <label for='apply-interfaces'>Select interfaces:</label>
+            <select multiple id='applied-interfaces' class='form-control'>]])
+
+    -- get interfaces from computer
+    local ifaces = interface.getIfNames()
+
+    for key, ifname in pairsByKeys(ifaces) do
+        local label = getHumanReadableInterfaceName(ifname)
+        print([[<option value=']].. key ..[['>]].. label ..[[</option>]])
+    end
+
+    print([[
+            </select>
+            <div class="invalid-feedback" id='apply-error'>
+                {message}
+            </div>
+        </div>
+    ]])
+
+elseif subdir == "network" then
+
+    print([[
+        <div class='form-group'>
+            <label for='apply-networks'>Select networks:</label>
+            <select multiple id='applied-networks' class='form-control'>]])
+
+    -- get networks 
+    local subnets = interface.getNetworksStats()
+
+    for cidr in pairsByKeys(subnets) do
+        local key = ntop.getNetworkIdByName(cidr)
+        local label = getLocalNetworkAlias(cidr)
+        print([[<option value=']].. key ..[['>]].. label ..[[</option>]])
+    end
+
+    print([[
+            </select>
+            <div class="invalid-feedback" id='apply-error'>
+                {message}
+            </div>
+        </div>
+    ]])
+
+else
+    
+    print([[
+        <div class='form-group'>
+            <label for='input-applied'>Type targets:</label>
+            <input type='text' id='applied-input' class='form-control'/>
+            <small>Type targets separated by a comma. i.e: 192.168.1.20,192.123.2.0</small>
+            <div class="invalid-feedback" id='apply-error'>
+                {message}
+            </div>
+        </div>
+    ]])
+
+end
+
+print([[
               </form>
             </div>
             <div class="modal-footer">
@@ -211,9 +252,9 @@ print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/dat
 
 print([[
 <script type='text/javascript'>
-    $(document).ready(function() {
+    let apply_csrf  = ']].. ntop.getRandomCSRFValue() ..[[';
 
-        $.get(']].. ntop.getHttpPrefix() ..[[/lua/get_scripts_configsets.lua?script_subdir=]].. subdir ..[[', d => console.log(d));
+    $(document).ready(function() {
 
         const $config_table = $("#config-list").DataTable({
             lengthChange: false,
@@ -238,7 +279,12 @@ print([[
                 {
                     data: 'targets',
                     render: function(data, type, row) {
-                        return data.join(', ');
+
+                        if (type == "display" && data.length > 0) {
+                            const flat = data.map((f) => f.label);
+                            return flat.join(', ');
+                        }
+                        return data;
                     }
                 },
                 {
@@ -325,29 +371,55 @@ print([[
 
         });
 
+
         $('#config-list').on('click', 'button[data-target="#applied-modal"]', function(e) {
 
             const row_data = $config_table.row($(this).parent().parent()).data();
             const conf_id = row_data.id;
 
-            $("#applied-input").val(row_data.targets.join(","))
+            ]] .. (
+                function() 
+                    
+                    -- select default values from row data
+
+                    if subdir == "flow" or subdir == "interface" then
+                        return [[ $("#applied-interfaces").val(row_data.targets.map(d => d.key.toString())) ]]
+                    elseif subdir == "network" then
+                        return [[ $("#applied-networks").val(row_data.targets.map(d => d.key.toString())) ]]
+                    else
+                        return [[ $("#applied-input").val(row_data.targets.join(",")) ]]
+                    end
+
+                end
+            )() .. [[
+
 
             $("#apply-name").html(`<b>${row_data.name}</b>`);
 
             $('#btn-confirm-apply').off('click');
-
             $('#btn-confirm-apply').click(function(e) {
 
                 const $button = $(this);
-                const input_value = $("#applied-input").val();
 
+                ]].. (
+                    function() 
+                    
+                        if subdir == "flow" or subdir == "interface" then
+                            return [[ const applied_value = $("#applied-interfaces").val().join(','); ]]
+                        elseif subdir == "network" then
+                            return [[ const applied_value = $("#applied-networks").val().join(','); ]]
+                        else
+                            return [[ const applied_value = $("#applied-input").val(); ]]
+                        end
+
+                    end
+                )() ..[[
+                
                 // show error message if the input is empty
-                if (input_value == "" || input_value == null || input_value == undefined) {
+                if (applied_value == "" || applied_value == null || applied_value == undefined) {
                     $("#apply-error").text("The targets cannot be empty!").show();
                     return;
                 }
-
-                console.log(input_value)
 
                 $button.attr("disabled");
 
@@ -355,9 +427,9 @@ print([[
                     $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_scripts_configsets.lua', {
                         action: 'set_targets',
                         confset_id: conf_id,
-                        confset_targets: input_value,
+                        confset_targets: applied_value,
                         script_subdir: ']].. subdir ..[[',
-                        csrf: ']].. ntop.getRandomCSRFValue() ..[['
+                        csrf: apply_csrf
                     })
                 )
                 .then((data, status, xhr) => {
@@ -365,6 +437,7 @@ print([[
                     $button.removeAttr("disabled");
 
                     if (!data.success) {
+                        apply_csrf = data.csrf;
                         $("#apply-error").text(data.error).show();
                         return;
                     }
