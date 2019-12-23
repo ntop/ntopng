@@ -17,7 +17,7 @@ local confset_id = tonumber(_GET["confset_id"]) or user_scripts.DEFAULT_CONFIGSE
 local subdir = _GET["script_subdir"]
 
 if(subdir == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'subdir' parameter")
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
   return
 end
 

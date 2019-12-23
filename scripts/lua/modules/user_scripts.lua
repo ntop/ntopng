@@ -1029,6 +1029,18 @@ end
 
 -- ##############################################
 
+function user_scripts.getSubdirTargetType(search_subdir)
+   for _, subdir in pairs(available_subdirs) do
+      if(subdir.id == search_subdir) then
+	 return(subdir.target_type)
+      end
+   end
+
+   return "none"
+end
+
+-- ##############################################
+
 local function findConfigSet(configsets, name)
    for id, configset in pairs(configsets) do
       if(configset.name == name) then

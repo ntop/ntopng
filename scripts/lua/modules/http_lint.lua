@@ -1006,8 +1006,8 @@ function http_lint.parseConfsetTargets(subdir, param)
       -- IP addresses/CIDR
       validator = validateNetwork
    elseif((subdir == "interface") or (subdir == "flow") or (subdir == "syslog")) then
-      -- interface name
-      validator = validateSingleWord
+      -- interface ID
+      validator = validateInterface
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unsupported subdir: " .. subdir)
       return nil, "Unsupported subdir"

@@ -36,7 +36,7 @@ if(table.empty(data)) then
 end
 
 if(subdir == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'subdir' parameter")
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
   return
 end
 
