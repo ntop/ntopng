@@ -133,11 +133,11 @@ function run_upgrade() {
 	if [ $RESULT -eq 0 ]; then
 		[ $QUIET = false ] && echo "ntopng updated successfully"
 		# Cleanup new version available key
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY}
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY}
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY} 2>/dev/null 
 	else
 		[ $QUIET = false ] && echo "Unable to update"
-		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure"
+		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure" 2>/dev/null 
 	fi
 
 	# Cleanup upgrade request key if any
@@ -165,7 +165,7 @@ function check_updates() {
 
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, unable to fix it
-			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure"
+			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure" 2>/dev/null 
 		else
 			# Check update and get version
 			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
@@ -182,34 +182,34 @@ function check_updates() {
 
 	# If there is an update, set new version on redis, otherwise delete the current version (if any)
 	if [ ! -z "${NTOPNG_VERSION}" ]; then
-		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400
+		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400 2>/dev/null 
 
 		# Check if automatic updates are enabled
-		AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} | grep 1)
+		AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} 2>/dev/null | grep 1)
 		if [ "${AUTO_UPDATES}" == "1" ]; then
 			run_upgrade
 		fi
 	else
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY}
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>/dev/null 
 		if [ $RESULT -eq 0 ]; then
-			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY}
+			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY} 2>/dev/null 
 		fi
 	fi
 }
 
 # Check if the user requested a 'Check for updates' manually
 function check_updates_on_demand() {
-	CHECK_FOR_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_CHECK_FOR_UPDATES_KEY} | grep 1)
+	CHECK_FOR_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_CHECK_FOR_UPDATES_KEY} 2>/dev/null | grep 1)
 	if [ "${CHECK_FOR_UPDATES}" == "1" ]; then
 		check_updates
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY}
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} 2>/dev/null 
 	fi
 }
 
 # Check if the user requested a ntopng update, and upgrade it in case
 function handle_upgrade_requests() {
 	# Check redis for upgrade requests
-	UPGRADE=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_RUN_UPGRADE_KEY} | grep 1)
+	UPGRADE=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_RUN_UPGRADE_KEY} 2>/dev/null | grep 1)
 	if [ "${UPGRADE}" == "1" ]; then
 		run_upgrade
 	fi
