@@ -1221,6 +1221,25 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
   Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
   Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
 
+  if(isDNS()
+     && ((iface->isPacketInterface() && stats.get_num_dns_queries() > 1)
+	 || (!iface->isPacketInterface() && stats.get_srv2cli_packets() > 1))) {
+    /*
+      When the number of DNS queries for the same flow is greater than one,
+      nDPI can no longer reliably determine the application protocol as it just uses
+      the first request to determine it.
+      For example, if the same flow contains the first request for google.com and then other
+      requests, the flow would be marked ad DNS.Google but this would be inaccurate and only
+      representative for the first query.
+      For this reason, when the number of queries is greater than one, the application
+      protocol is reset to unknown.
+
+      See https://github.com/ntop/ntopng/issues/3106 and enclosed pcap for additional details.
+    */
+    if(get_detected_protocol().app_protocol != NDPI_PROTOCOL_UNKNOWN)
+      ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+  }
+
   if(update_flow_port_stats) {
     bool dump_flow = false;
 
