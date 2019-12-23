@@ -12,8 +12,7 @@ local alert_consts = require("alert_consts")
 
 sendHTTPContentTypeHeader('application/json')
 
-local stype = _POST["script_type"] or "traffic_element"
-local subdir = _POST["script_subdir"] or "host"
+local subdir = _POST["script_subdir"]
 local confset_id = tonumber(_POST["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID)
 local script_key = _POST["script_key"]
 
@@ -36,12 +35,15 @@ if(table.empty(data)) then
   return
 end
 
--- ################################################
+if(subdir == nil) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
+  return
+end
 
-local script_type = user_scripts.script_types[stype]
+local script_type = user_scripts.getScriptType(subdir)
 
 if(script_type == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad script_type: " .. stype)
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad subdir: " .. subdir)
   return
 end
 

@@ -11,12 +11,11 @@ local user_scripts = require("user_scripts")
 local http_lint = require("http_lint")
 
 local action = _POST["action"]
-local subdir = _POST["subdir"] or "host"
 
 sendHTTPContentTypeHeader('application/json')
 
 if(action == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'action' parameter")
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'action' parameter. Bad CSRF?")
   return
 end
 
@@ -37,7 +36,7 @@ if(confid == nil) then
 end
 
 if(action == "delete") then
-  local success, err = user_scripts.deleteConfigset(subdir, confid)
+  local success, err = user_scripts.deleteConfigset(confid)
   result.success = success
 
   if not success then
@@ -51,7 +50,7 @@ elseif(action == "rename") then
     return
   end
 
-  local success, err = user_scripts.renameConfigset(subdir, confid, new_name)
+  local success, err = user_scripts.renameConfigset(confid, new_name)
   result.success = success
 
   if not success then
@@ -65,7 +64,7 @@ elseif(action == "clone") then
     return
   end
 
-  local success, err = user_scripts.cloneConfigset(subdir, confid, new_name)
+  local success, err = user_scripts.cloneConfigset(confid, new_name)
   result.success = success
 
   if not success then
@@ -75,13 +74,19 @@ elseif(action == "clone") then
   end
 elseif(action == "set_targets") then
   local targets = _POST["confset_targets"]
+  local subdir = _POST["script_subdir"]
 
   if(targets == nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_targets' parameter")
     return
   end
 
-  local targets = http_lint.parseConfsetTargets(subdir, targets)
+  if(subdir == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
+    return
+  end
+
+  local targets, err = http_lint.parseConfsetTargets(subdir, targets)
 
   if(targets ~= nil) then
     -- Validation ok
@@ -94,7 +99,10 @@ elseif(action == "set_targets") then
   else
     -- Validation error
     result.success = false
-    result.error = "Validation error"
+    result.error = err
+
+    -- Can be used to trigger a new request
+    result.csrf = ntop.getRandomCSRFValue()
   end
 else
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown action '".. action .. "'")

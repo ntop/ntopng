@@ -13,14 +13,18 @@ local dirs = ntop.getDirs()
 
 sendHTTPContentTypeHeader('application/json')
 
-local confset_id = tonumber(_GET["confset_id"])
-local stype = _GET["script_type"] or "traffic_element"
-local subdir = _GET["script_subdir"] or "host"
+local confset_id = tonumber(_GET["confset_id"]) or user_scripts.DEFAULT_CONFIGSET_ID
+local subdir = _GET["script_subdir"]
 
-local script_type = user_scripts.script_types[stype]
+if(subdir == nil) then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
+  return
+end
+
+local script_type = user_scripts.getScriptType(subdir)
 
 if(script_type == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad script_type: " .. stype)
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad subdir: " .. subdir)
   return
 end
 
@@ -29,7 +33,7 @@ if(confset_id == nil) then
   return
 end
 
-local config_set = user_scripts.getConfigsets(subdir)[confset_id]
+local config_set = user_scripts.getConfigsets()[confset_id]
 
 if(config_set == nil) then
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown configset ID: " .. confset_id)
@@ -44,8 +48,8 @@ local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir)
 local result = {}
 
 for script_name, script in pairs(scripts.modules) do
-  if script.gui.i18n_title and script.gui.i18n_description then
-    local hooks = user_scripts.getConfigsetHooksConf(config_set, script, subdir)
+  if script.gui and script.gui.i18n_title and script.gui.i18n_description then
+    local hooks = user_scripts.getScriptConfig(config_set, script, subdir)
     local enabled_hooks = {}
     local edit_url = nil
 

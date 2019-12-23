@@ -35,7 +35,7 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   configsets = user_scripts.getConfigsets("snmp_device")
+   configsets = user_scripts.getConfigsets()
 end
 
 -- #################################################################
@@ -66,7 +66,7 @@ local function snmp_device_run_user_scripts(snmp_device)
       system = device["system"],
    }
 
-   local device_conf = user_scripts.getHostTargetConfiset(configsets, device_ip)
+   local device_conf = user_scripts.getHostTargetConfigset(configsets, "snmp_device", device_ip)
   -- TODO use device_conf
 
    -- Run callback for each device

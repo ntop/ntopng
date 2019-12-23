@@ -1,8 +1,8 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -11,8 +11,7 @@ require "db_utils"
 require "flow_aggregation_utils"
 require "template"
 
-interface.select(ifname)
-ifstats = interface.getStats()
+local ifstats = interface.getStats()
 
 local ifId = _GET["ifid"]
 local host = _GET["peer1"]

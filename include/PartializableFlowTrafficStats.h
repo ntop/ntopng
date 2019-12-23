@@ -86,6 +86,7 @@ class PartializableFlowTrafficStats {
   inline u_int32_t get_srv2cli_tcp_keepalive() const { return srv2cli_tcp_stats.pktKeepAlive; };
 
   u_int16_t get_num_http_requests() const;
+  u_int16_t get_num_dns_queries()   const;
 };
 
 #endif /* _PARTIALIZABLE_FLOW_TRAFFIC_STATS_H_ */

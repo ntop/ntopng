@@ -1402,7 +1402,7 @@ int Redis::restore(char *key, char *buf) {
   int rc;
   redisReply *reply;
   char *buf_bin = (char*)malloc(strlen(buf));
-  const char * argv[5] = {"RESTORE", key, "0", buf_bin};
+  const char * argv[5] = {"RESTORE", key, "0" /* <-- TTL */, buf_bin};
   size_t argvlen[5] = {7, 0, 0, 0, 7};
 
   if(buf_bin == NULL)

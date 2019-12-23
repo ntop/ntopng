@@ -1168,7 +1168,11 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
       _GET["protocol"] = l7proto
       div_data = div_data..' l7_proto_id="'..l7proto..'" '
    end
+
    if l4proto ~= "" and l4proto ~= nil then
+      if tonumber(l4proto) == nil then
+	 l4proto = l4_proto_to_id(l4proto)
+      end
       _GET["l4proto"] = l4proto
       div_data = div_data..' l4_proto_id="'..l4proto..'" '
    end

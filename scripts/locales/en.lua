@@ -70,6 +70,7 @@ local lang = {
   ["fingerprint_note"] = "Application name is set only if ntopng is configured to receive a eBPF feed via ZMQ",
   ["flow"] = "Flow",
   ["flow_search_criteria"] = "Flow Search Criteria",
+  ["flow_alerts_search_criteria"] = "Flow Alerts Search Criteria",
   ["flow_search_from_aggregated"] = "(Aggregated)",
   ["flow_search_results"] = "Flow Search Results",
   ["flows"] = "Flows",
@@ -483,6 +484,7 @@ local lang = {
     ["conf_restore"] = "Restore Configuration",
   },
   ["configsets"] = {
+    ["bad_target"] = "Bad configuration target: \"%{target}\"",
     ["duplicate_target"] = "Target \"%{target}\" is assigned to both configuration \"%{confname1}\" and \"%{confname2}\"",
     ["error_exists"] = "The configuration name \"%{name}\" is already in use",
     ["unknown_id"] = "No configuration found with id %{confid}",

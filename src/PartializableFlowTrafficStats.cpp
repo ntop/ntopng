@@ -231,3 +231,9 @@ void PartializableFlowTrafficStats::get_partial(PartializableFlowTrafficStats **
 u_int16_t PartializableFlowTrafficStats::get_num_http_requests() const {
   return protos.http.num_get + protos.http.num_post + protos.http.num_head + protos.http.num_put + protos.http.num_other;
 }
+
+/* *************************************** */
+
+u_int16_t PartializableFlowTrafficStats::get_num_dns_queries() const {
+  return protos.dns.num_a + protos.dns.num_ns + protos.dns.num_cname + protos.dns.num_soa + protos.dns.num_ptr + protos.dns.num_mx + protos.dns.num_txt + protos.dns.num_aaaa + protos.dns.num_any + protos.dns.num_other;
+}
