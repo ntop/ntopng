@@ -1238,6 +1238,9 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
     */
     if(get_detected_protocol().app_protocol != NDPI_PROTOCOL_UNKNOWN)
       ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+
+    if(get_protocol_category() != NDPI_PROTOCOL_CATEGORY_NETWORK)
+      ndpiDetectedProtocol.category = NDPI_PROTOCOL_CATEGORY_NETWORK;
   }
 
   if(update_flow_port_stats) {
@@ -3713,8 +3716,8 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
   if(cli_ip && srv_ip && cli_ip->isIPv4()) {
-      if(ndpi_fill_ip_protocol_category(ndpi_struct, cli_ip->get_ipv4(), srv_ip->get_ipv4(), res))
-      return;
+    if(ndpi_fill_ip_protocol_category(ndpi_struct, cli_ip->get_ipv4(), srv_ip->get_ipv4(), res))
+    return;
   }
 
   switch(ndpi_get_lower_proto(*res)) {
