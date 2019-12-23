@@ -1,8 +1,8 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -23,7 +23,11 @@ local vlan        = _GET["vlan"]
 local profile     = _GET["profile"]
 local limit       = _GET["limit"]
 
-if epoch_begin> epoch_end then
+if not isEmptyString(l4proto) and tonumber(l4proto) == nil then
+   l4proto = l4_proto_to_id(l4proto)
+end
+
+if epoch_begin > epoch_end then
    local tmp = epoch_end
    epoch_end = epoch_begin
    epoch_being = epoch_end
@@ -49,7 +53,7 @@ headerShown = false
 
 -- os.execute("sleep 30") -- this is to test slow responses
 for k,v in pairs(versions) do
-   local res = getNumFlows(ifId, k, host, _GET["l4proto"], _GET["port"], _GET["protocol"], _GET["info"], _GET["vlan"], _GET["profile"], _GET["epoch_begin"], _GET["epoch_end"])
+   local res = getNumFlows(ifId, k, host, l4proto, port, _GET["protocol"], info, vlan, profile, epoch_begin, epoch_end)
 
    if res == nil or res[1] == nil then
       totals["status"] = "error"

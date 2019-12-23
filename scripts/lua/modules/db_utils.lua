@@ -1,5 +1,5 @@
 --
--- (C) 2014-15 - ntop.org
+-- (C) 2014-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -37,7 +37,12 @@ function expandIpV4Network(net)
       addr = clearbit(addr, bit(i))
    end
 
-   return({ addr, addr+num_hosts-1 })
+   -- Uses floor function to make sure numbers are returned as integers
+   local addr_lowest  = math.floor(addr)
+   local addr_highest = math.floor(addr + num_hosts - 1)
+
+   local res = { addr_lowest, addr_highest }
+   return(res)
 end
 
 -- ########################################################
@@ -311,7 +316,6 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
    end
 
    if(db_debug == true) then io.write(sql.."\n") end
-
    res = interface.execSQLQuery(sql)
 
    if(type(res) == "string") then
