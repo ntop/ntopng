@@ -1209,9 +1209,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     if(key_is_string) {
       u_int8_t kbkp = key.str[key.str_len];
       key.str[key.str_len] = '\0';
-
+      snprintf(key_str, sizeof(key_str), "%s", key.str);
       getKeyId(key.str, key.str_len, &pen, &key_id);
-
       key.str[key.str_len] = kbkp;
     }
 
@@ -1236,9 +1235,10 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
       break;
     }
 
-    if(key_is_string) snprintf(key_str, sizeof(key_str), "%s", key.str);
-    else if(pen)      snprintf(key_str, sizeof(key_str), "%u.%u", pen, key_id);
-    else              snprintf(key_str, sizeof(key_str), "%u", key_id);
+    if(!key_is_string) {
+      if(pen) snprintf(key_str, sizeof(key_str), "%u.%u", pen, key_id);
+      else    snprintf(key_str, sizeof(key_str), "%u", key_id);
+    }
 
 #if 0
     if(ntop->getTrace()->get_trace_level() >= TRACE_LEVEL_DEBUG) {
