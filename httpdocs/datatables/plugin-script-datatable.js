@@ -39,20 +39,25 @@ $.fn.dataTable.ext.buttons.filterScripts = {
     action: function (e, dt, node, config) {
         // get button script type
         const button_id = config.attr.id;
+
         $("#all-scripts").removeClass('active');
         $("#enabled-scripts").removeClass('active');
         $("#disabled-scripts").removeClass('active');
 
         if (button_id == "all-scripts") {
             dt.columns().search("").draw();
+            window.location.hash = "all";
         }
         else if (button_id == "enabled-scripts") {
             // draw all enabled scripts
             dt.columns(2).search("true").draw();
+            window.location.hash = "enabled";
         }
         else if (button_id == "disabled-scripts") {
             // draw all disabled scripts
             dt.columns(2).search("false").draw();
+            window.location.hash = "disabled";
+
         }
 
         $(`#${button_id}`).addClass("active");

@@ -123,7 +123,23 @@ else
                },
                stateSave: true,
                initComplete: function(settings, json) {
-                  $(`#enabled-scripts`).addClass("active").trigger("click");
+                  // select the correct tab
+                  (() => {
+                     
+                     const hash = window.location.hash;
+
+                     // redirect to correct tab
+                     if (hash == undefined || hash == null || hash == "" || hash == "#enabled") {
+                        $(`#enabled-scripts`).addClass("active").trigger("click");
+                     }
+                     else if (hash == "#disabled") {
+                        $(`#disabled-scripts`).addClass("active").trigger("click");
+                     }
+                     else {
+                        $(`#all-scripts`).addClass("active").trigger("click");
+                     }
+
+                  })();
                   count_scripts();
                },
                order: [ [0, "asc"] ],
