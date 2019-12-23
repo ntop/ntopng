@@ -17,8 +17,8 @@ function setup()
    local ifid = interface.getId()
    syslog_modules = user_scripts.load(ifid, user_scripts.script_types.syslog, "syslog")
 
-   local configsets = user_scripts.getConfigsets("syslog")
-   syslog_conf = user_scripts.getTargetConfiset(configsets, getInterfaceName(ifid)).config
+   local configsets = user_scripts.getConfigsets()
+   syslog_conf = user_scripts.getTargetConfig(configsets, "syslog", getInterfaceName(ifid))
 end
 
 -- #################################################################

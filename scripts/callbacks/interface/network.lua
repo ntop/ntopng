@@ -32,7 +32,7 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   configsets = user_scripts.getConfigsets("network")
+   configsets = user_scripts.getConfigsets()
 end
 
 -- #################################################################
@@ -66,7 +66,7 @@ function runScripts(granularity)
 
    local cur_alerts = network.getAlerts(granularity_id)
    local entity_info = alerts_api.networkAlertEntity(network_key)
-   local subnet_conf = user_scripts.getTargetConfiset(configsets, network_key).config
+   local subnet_conf = user_scripts.getTargetConfig(configsets, "network", network_key)
    -- TODO use subnet_conf
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do

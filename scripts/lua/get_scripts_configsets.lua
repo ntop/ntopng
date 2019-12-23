@@ -9,11 +9,9 @@ require "lua_utils"
 local json = require("dkjson")
 local user_scripts = require("user_scripts")
 
-local subdir = _GET["script_subdir"] or "host"
-
 sendHTTPContentTypeHeader('application/json')
 
-local config_sets = user_scripts.getConfigsets(subdir)
+local config_sets = user_scripts.getConfigsets()
 local rv = {}
 
 -- Only return the essential information

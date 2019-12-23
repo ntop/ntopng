@@ -32,8 +32,8 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   local configsets = user_scripts.getConfigsets("interface")
-   iface_config = user_scripts.getTargetConfiset(configsets, ifname).config
+   local configsets = user_scripts.getConfigsets()
+   iface_config = user_scripts.getTargetConfig(configsets, "interface", ifname)
 end
 
 -- #################################################################

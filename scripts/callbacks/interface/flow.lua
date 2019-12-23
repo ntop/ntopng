@@ -116,8 +116,8 @@ function setup()
       end
    end
 
-   local configsets = user_scripts.getConfigsets("flow")
-   flows_config = user_scripts.getTargetConfiset(configsets, getInterfaceName(ifid)).config
+   local configsets = user_scripts.getConfigsets()
+   flows_config = user_scripts.getTargetConfig(configsets, "flow", getInterfaceName(ifid))
 end
 
 -- #################################################################

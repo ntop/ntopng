@@ -59,7 +59,7 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   configsets = user_scripts.getConfigsets("host")
+   configsets = user_scripts.getConfigsets()
 end
 
 -- #################################################################
@@ -102,7 +102,7 @@ function runScripts(granularity)
   benchmark_end()
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
-  local host_conf = user_scripts.getHostTargetConfiset(configsets, host_ip.ip)
+  local host_conf = user_scripts.getHostTargetConfigset(configsets, "host", host_ip.ip)
   -- TODO use host_conf
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do

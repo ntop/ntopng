@@ -12,15 +12,14 @@ local alert_consts = require("alert_consts")
 
 sendHTTPContentTypeHeader('application/json')
 
-local stype = _GET["script_type"] or "traffic_element"
 local subdir = _GET["script_subdir"] or "host"
 local confset_id = tonumber(_GET["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID)
 local script_key = _GET["script_key"]
 
-local script_type = user_scripts.script_types[stype]
+local script_type = user_scripts.getScriptType(subdir)
 
 if(script_type == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad script_type: " .. stype)
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad subdir: " .. subdir)
   return
 end
 
@@ -29,7 +28,7 @@ if(script_key == nil) then
   return
 end
 
-local config_set = user_scripts.getConfigsets(subdir)[confset_id]
+local config_set = user_scripts.getConfigsets()[confset_id]
 
 if(config_set == nil) then
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown configset ID: " .. confset_id)
@@ -71,7 +70,7 @@ if(script.gui) then
   end
 end
 
-local hooks_config = user_scripts.getConfigsetHooksConf(config_set, script)
+local hooks_config = user_scripts.getScriptConfig(config_set, script, subdir)
 
 for hook, config in pairs(hooks_config) do
   local granularity_info = alert_consts.alerts_granularities[hook]

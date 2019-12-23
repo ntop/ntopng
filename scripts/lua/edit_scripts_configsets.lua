@@ -11,12 +11,11 @@ local user_scripts = require("user_scripts")
 local http_lint = require("http_lint")
 
 local action = _POST["action"]
-local subdir = _POST["subdir"] or "host"
 
 sendHTTPContentTypeHeader('application/json')
 
 if(action == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'action' parameter")
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'action' parameter. Bad CSRF?")
   return
 end
 
@@ -37,7 +36,7 @@ if(confid == nil) then
 end
 
 if(action == "delete") then
-  local success, err = user_scripts.deleteConfigset(subdir, confid)
+  local success, err = user_scripts.deleteConfigset(confid)
   result.success = success
 
   if not success then
@@ -51,7 +50,7 @@ elseif(action == "rename") then
     return
   end
 
-  local success, err = user_scripts.renameConfigset(subdir, confid, new_name)
+  local success, err = user_scripts.renameConfigset(confid, new_name)
   result.success = success
 
   if not success then
@@ -65,7 +64,7 @@ elseif(action == "clone") then
     return
   end
 
-  local success, err = user_scripts.cloneConfigset(subdir, confid, new_name)
+  local success, err = user_scripts.cloneConfigset(confid, new_name)
   result.success = success
 
   if not success then
@@ -75,9 +74,15 @@ elseif(action == "clone") then
   end
 elseif(action == "set_targets") then
   local targets = _POST["confset_targets"]
+  local subdir = _POST["script_subdir"]
 
   if(targets == nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_targets' parameter")
+    return
+  end
+
+  if(subdir == nil) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'subdir' parameter")
     return
   end
 
