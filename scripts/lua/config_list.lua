@@ -182,9 +182,8 @@ elseif subdir == "network" then
     local subnets = interface.getNetworksStats()
 
     for cidr in pairsByKeys(subnets) do
-        local key = ntop.getNetworkIdByName(cidr)
         local label = getLocalNetworkAlias(cidr)
-        print([[<option value=']].. key ..[['>]].. label ..[[</option>]])
+        print([[<option value=']].. cidr ..[['>]].. label ..[[</option>]])
     end
 
     print([[
@@ -405,9 +404,13 @@ print([[
                     function() 
                     
                         if subdir == "flow" or subdir == "interface" then
-                            return [[ const applied_value = $("#applied-interfaces").val().join(','); ]]
+                            return [[ 
+                                const applied_value = $("#applied-interfaces").val().join(','); 
+                            ]]
                         elseif subdir == "network" then
-                            return [[ const applied_value = $("#applied-networks").val().join(','); ]]
+                            return [[ 
+                                const applied_value = $("#applied-networks").val().join(',');
+                            ]]
                         else
                             return [[ const applied_value = $("#applied-input").val(); ]]
                         end
