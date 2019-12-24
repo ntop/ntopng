@@ -15,7 +15,7 @@ sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
-active_page = "about"
+active_page = "script_list"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local script_subdir = _GET["subdir"]
@@ -359,21 +359,24 @@ else
                      const gui_empty = !Object.keys(gui).length;
                      if (gui_empty) {
 
-                        // append checkbox
-                        for (key in hooks) {
-                           
-                           $table_editor.append(`<tr id='${key}'>
-                           <td class='text-center'>
-                              <div class='form-check'>   
-                                 <input class='form-check-input' type='checkbox' name='${key}-check' ${hooks[key].enabled ? "checked" : ""} />
-                              </div>
-                           </td>
-                           <td> 
-                              <label class='form-check-label'>${key}</label>
-                           </td>
-                           </tr>`);
-
+                        const key = Object.keys(hooks).join('-');
+                        let enabled = true;
+                        for (k in hooks) {
+                           enabled = enabled && hooks[k].enabled;
                         }
+
+                        $table_editor.append(`<tr id='${key}'>
+                        <td class='text-center'>
+                           <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                              <label class="btn btn-secondary ${enabled ? "active" : ""}">
+                                 <input type="radio" name="${key}-check" value='true' id="on-btn"> On
+                              </label>
+                              <label class="btn btn-secondary ${!enabled ? "checked" : ""}">
+                                 <input type="radio" name="${key}-check" value='false' id="off-btn"> Off
+                              </label>
+                           </div>
+                        </td>
+                        </tr>`);
 
                         return;
                      }
@@ -414,21 +417,23 @@ else
                      $table_editor.children("tr").each(function (index) {
 
                         const id = $(this).attr("id");
-                        console.log(id);
-
-                        const enabled = $(this).find("input[type='checkbox']").is(":checked");
                         
                         // check if there is no template
                         const gui_empty = !Object.keys(gui).length;
                         if (gui_empty) {
 
+                           const value = $(`input[name='${id}-check']:checked`).val() == "true";
+
                            // save checkbox state
-                           data[id] = {
-                              'enabled': enabled
-                           }
+                           id.split('-').forEach(k => {
+                              data[k] = {
+                                 'enabled': value
+                              }
+                           })
                            return;
                         }
 
+                        const enabled = $(this).find("input[type='checkbox']").is(":checked");
                         const $template = $(this).find(".template");
 
                         const operator = $template.find("select").val();
