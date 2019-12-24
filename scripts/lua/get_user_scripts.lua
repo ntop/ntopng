@@ -51,12 +51,15 @@ for script_name, script in pairs(scripts.modules) do
   if script.gui and script.gui.i18n_title and script.gui.i18n_description then
     local hooks = user_scripts.getScriptConfig(config_set, script, subdir)
     local enabled_hooks = {}
+    local all_hooks = {}
     local edit_url = nil
 
     for hook, conf in pairs(hooks) do
       if(conf.enabled) then
         enabled_hooks[#enabled_hooks + 1] = hook
       end
+
+      all_hooks[#all_hooks + 1] = hook
     end
 
     if(script.edition == "community") then
@@ -64,13 +67,21 @@ for script_name, script in pairs(scripts.modules) do
       edit_url = ntop.getHttpPrefix() .. '/lua/code_viewer.lua?lua_script_path='.. path
     end
 
+    local input_handler = nil
+
+    if(script.gui.input_builder == user_scripts.threshold_cross_input_builder) then -- TODO make generic
+      input_handler = "threshold_cross"
+    end
+
     result[#result + 1] = {
       key = script_name,
       title = i18n(script.gui.i18n_title) or script.gui.i18n_title,
       description = i18n(script.gui.i18n_description) or script.gui.i18n_description,
       enabled_hooks = enabled_hooks,
+      all_hooks = all_hooks,
       is_enabled = not table.empty(enabled_hooks),
       edit_url = edit_url,
+      input_handler = input_handler,
     }
   end
 end
