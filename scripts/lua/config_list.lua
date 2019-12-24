@@ -13,17 +13,26 @@ local user_scripts = require "user_scripts"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("about.about_x", { product=info.product }))
-
-active_page = "about"
-
--- 
-
+-- get subdir form url
 local subdir = _GET["subdir"]
 -- set default value for subdir if its empty
 if subdir == nil then
     subdir = "host"
 end
+
+local titles = {
+    ["host"] = i18n("config_scripts.granularities.host"),
+    ["snmp_device"] = i18n("config_scripts.granularities.snmp_device"),
+    ["system"] = i18n("config_scripts.granularities.system"),
+    ["flow"] = i18n("config_scripts.granularities.flow"),
+    ["interface"] = i18n("config_scripts.granularities.interface"),
+    ["network"] = i18n("config_scripts.granularities.network"),
+    ["syslog"] = i18n("config_scripts.granularities.syslog")
+ }
+
+page_utils.print_header(i18n("config_scripts.config_x", { product=titles[subdir] }))
+
+active_page = "config_scripts"
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

@@ -23,13 +23,13 @@ local confset_id = _GET["confset_id"]
 local confset_name = _GET["confset_name"]
 
 local titles = {
-   ["host"] = "Hosts",
-   ["snmp_device"] = "SNMP",
-   ["system"] = "System",
-   ["flow"] = "Flows",
-   ["interface"] = "Interfaces",
-   ["network"] = "Networks",
-   ["syslog"] = "Syslog"
+   ["host"] = i18n("config_scripts.granularities.host"),
+   ["snmp_device"] = i18n("config_scripts.granularities.snmp_device"),
+   ["system"] = i18n("config_scripts.granularities.system"),
+   ["flow"] = i18n("config_scripts.granularities.flow"),
+   ["interface"] = i18n("config_scripts.granularities.interface"),
+   ["network"] = i18n("config_scripts.granularities.network"),
+   ["syslog"] = i18n("config_scripts.granularities.syslog")
 }
 
 if confset_id == nil or confset_id == "" then

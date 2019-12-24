@@ -69,8 +69,8 @@ local lang = {
   ["filter"] = "Filter",
   ["fingerprint_note"] = "Application name is set only if ntopng is configured to receive a eBPF feed via ZMQ",
   ["flow"] = "Flow",
-  ["flow_search_criteria"] = "Flow Search Criteria",
   ["flow_alerts_search_criteria"] = "Flow Alerts Search Criteria",
+  ["flow_search_criteria"] = "Flow Search Criteria",
   ["flow_search_from_aggregated"] = "(Aggregated)",
   ["flow_search_results"] = "Flow Search Results",
   ["flows"] = "Flows",
@@ -482,6 +482,18 @@ local lang = {
   ["conf_backup"] = {
     ["conf_backup"] = "Backup Configuration",
     ["conf_restore"] = "Restore Configuration",
+  },
+  ["config_scripts"] = {
+    ["config_x"] = "Config %{product}",
+    ["granularities"] = {
+      ["flow"] = "Flows",
+      ["host"] = "Hosts",
+      ["interface"] = "Interfaces",
+      ["network"] = "Networks",
+      ["snmp_device"] = "SNMP Devices",
+      ["syslog"] = "Syslog",
+      ["system"] = "System",
+    },
   },
   ["configsets"] = {
     ["bad_target"] = "Bad configuration target: \"%{target}\"",
