@@ -2339,7 +2339,9 @@ void NetworkInterface::startPacketPolling() {
     }
 
 #ifdef __linux__
-    pthread_setname_np(pollLoop, get_name());
+    char buf[16];
+    snprintf(buf, sizeof(buf), "inline ifid %u", get_id());
+    pthread_setname_np(pollLoop, buf);
 #endif
   }
 

@@ -1337,6 +1337,10 @@ function user_scripts.getTargetConfig(configsets, subdir, target)
 
    local conf = fast_target_lookup[target] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
 
+   if(conf == nil) then
+      return({})
+   end
+
    return(conf.config[subdir] or {})
 end
 
