@@ -62,29 +62,31 @@ print[[</small>
 	 <p>
    ]]
 
-   print('<form class="form-inline" style="margin-bottom: 0px;" method="post" onsubmit="return trimLicenceSpaces();">')
+   print('<form class="form-inline" method="post" onsubmit="return trimLicenceSpaces();">')
 
    if(isAdministrator()) then
       if(info["pro.use_redis_license"] or (info["pro.license"] == "")) then
+	 print('<div class="form-group">')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('<input id="ntopng_licence" type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 pattern='.. getLicensePattern() ..' value="')
+	 print('<input id="ntopng_license" class="form-control" type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 pattern='.. getLicensePattern() ..' value="')
 	 print(info["ntopng.license"])
-	 
+
 	 print [["></input>
-		  &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-secondary btn-xs">]] print(i18n("about.save_licence")) print[[</button>	       
+	 </div>
+		     &nbsp;<button type="submit" class="btn btn-secondary">]] print(i18n("about.save_licence")) print[[</button>
 		  </form>
-          <script>
-            function trimLicenceSpaces() {
-                $("#ntopng_licence").val($("#ntopng_licence").val().trim());
-                return true;
-            }
-          </script>
+	  <script>
+	    function trimLicenceSpaces() {
+		$("#ntopng_license").val($("#ntopng_license").val().trim());
+		return true;
+	    }
+	  </script>
 	    ]]
       else
 	 if(info["pro.license"]) then
-	    print(i18n("about.licence")..": ".. info["pro.license"] .."\n")
-	    if info["pro.license_ends_at"] ~= nil and info["pro.license_days_left"] ~= nil then
-	       print("<br>"..i18n("about.maintenance", {
+            print(i18n("about.licence")..": ".. info["pro.license"] .."\n")
+            if info["pro.license_ends_at"] ~= nil and info["pro.license_days_left"] ~= nil then
+               print("<br>"..i18n("about.maintenance", {
 				     _until = format_utils.formatEpoch(info["pro.license_ends_at"]),
 				     days_left = info["pro.license_days_left"]}))
 	    end
