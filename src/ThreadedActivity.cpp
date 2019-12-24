@@ -37,18 +37,20 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 				   bool _align_to_localtime,
 				   bool _exclude_viewed_interfaces,
 				   bool _exclude_pcap_dump_interfaces,
+           bool _reuse_vm,
 				   ThreadPool *_pool) {
   terminating = false;
   periodicity = _periodicity_seconds;
   align_to_localtime = _align_to_localtime;
   exclude_viewed_interfaces = _exclude_viewed_interfaces;
   exclude_pcap_dump_interfaces = _exclude_pcap_dump_interfaces;
+  reuse_vm = _reuse_vm;
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (bool *) calloc(MAX_NUM_INTERFACE_IDS, sizeof(bool));
   threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_INTERFACE_IDS]();
   pool = _pool;
-  
+
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Creating ThreadedActivity '%s'", this, path);
 #endif
@@ -57,7 +59,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 /* ******************************************* */
 
 ThreadedActivity::~ThreadedActivity() {
-  map<int, ThreadedActivityStats*>::const_iterator it;
+  std::map<std::string, LuaReusableEngine*>::iterator it;
 
   /* NOTE: terminateEnqueueLoop should have already been called by the PeriodicActivities
    * destructor. */
@@ -76,6 +78,9 @@ ThreadedActivity::~ThreadedActivity() {
     free(interfaceTasksRunning);
 
   if(path) free(path);
+
+  for(it = vms.begin(); it != vms.end(); ++it)
+    delete(it->second);
 }
 
 /* ******************************************* */
@@ -206,7 +211,7 @@ void ThreadedActivity::runScript() {
 
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, time_t deadline) {
-  LuaEngine *l;
+  LuaEngine *l = NULL;
   u_long max_duration_ms = periodicity * 1e3;
   u_long msec_diff;
   struct timeval begin, end;
@@ -220,23 +225,42 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_path, iface);
-  
-  try {
-    l = new LuaEngine();
-  } catch(std::bad_alloc& ba) {
-    static bool oom_warning_sent = false;
 
-    if(!oom_warning_sent) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "[ThreadedActivity] Unable to start a Lua interpreter.");
-      oom_warning_sent = true;
+  if(reuse_vm) {
+    LuaReusableEngine *engine;
+    std::map<std::string, LuaReusableEngine*>::iterator it;
+
+    /* Reuse an existing engine or allocate a new one */
+    vms_mutex.lock(__FILE__, __LINE__);
+
+    if((it = vms.find(iface->get_name())) != vms.end())
+      engine = it->second;
+    else {
+      engine = new LuaReusableEngine(script_path, iface, 300 /* Reload every 5 minutes */);
+      vms[iface->get_name()] = engine;
     }
 
-    return;
-  }
+    vms_mutex.unlock(__FILE__, __LINE__);
 
-  gettimeofday(&begin, NULL);
-  l->run_script(script_path, iface, false /* Execute */, deadline);
-  gettimeofday(&end, NULL);
+    engine->pcall(deadline);
+  } else {
+    try {
+      l = new LuaEngine();
+    } catch(std::bad_alloc& ba) {
+      static bool oom_warning_sent = false;
+
+      if(!oom_warning_sent) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "[ThreadedActivity] Unable to start a Lua interpreter.");
+        oom_warning_sent = true;
+      }
+
+      return;
+    }
+
+    gettimeofday(&begin, NULL);
+    l->run_script(script_path, iface, false /* Execute */, deadline);
+    gettimeofday(&end, NULL);
+  }
 
   msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
   updateThreadedActivityStats(iface, msec_diff);
@@ -260,7 +284,8 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   else
     setInterfaceTaskRunning(iface, false);
 
-  delete l;
+  if(l)
+    delete l;
 }
 
 /* ******************************************* */
@@ -400,4 +425,17 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::setNextVmReload(time_t t) {
+  std::map<std::string, LuaReusableEngine*>::iterator it;
+
+  vms_mutex.lock(__FILE__, __LINE__);
+
+  for(it = vms.begin(); it != vms.end(); ++it)
+    it->second->setNextVmReload(t);
+
+  vms_mutex.unlock(__FILE__, __LINE__);
 }

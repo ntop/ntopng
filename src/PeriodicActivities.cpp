@@ -28,6 +28,7 @@ typedef struct _activity_descr {
   bool align_to_localtime;  
   bool exclude_viewed_interfaces;
   bool exclude_pcap_dump_interfaces;
+  bool reuse_vm;
 } activity_descr;
 
 /* ******************************************* */
@@ -96,7 +97,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 #endif
   ThreadedActivity *startup_activity;
   u_int8_t num_threads = DEFAULT_THREAD_POOL_SIZE;
-    
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
 
   if(stat(ntop->get_callbacks_dir(), &buf) != 0) {
@@ -129,20 +130,20 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   no_priority_pool       = new ThreadPool(false, num_threads);
   
   static activity_descr ad[] = {
-    { SECOND_SCRIPT_PATH,             1, standard_priority_pool, false, false, true  },
-    { HT_STATE_UPDATE_SCRIPT_PATH,    5, high_priority_pool,     false, true,  false },
-    { STATS_UPDATE_SCRIPT_PATH,       5, standard_priority_pool, false, false, true  },
-    { MINUTE_SCRIPT_PATH,            60, no_priority_pool,       false, false, true  },
-    { FIVE_MINUTES_SCRIPT_PATH,     300, no_priority_pool,       false, false, true  },
-    { HOURLY_SCRIPT_PATH,          3600, no_priority_pool,       false, false, true  },
-    { DAILY_SCRIPT_PATH,          86400, no_priority_pool,       true,  false, true  },
-    { HOUSEKEEPING_SCRIPT_PATH,       3, standard_priority_pool, false, false, true  },
-    { DISCOVER_SCRIPT_PATH,           5, no_priority_pool,       false, false, true  },
-    { TIMESERIES_SCRIPT_PATH,         5, standard_priority_pool, false, false, true  },
+    { SECOND_SCRIPT_PATH,             1, standard_priority_pool, false, false, true,  true  },
+    { HT_STATE_UPDATE_SCRIPT_PATH,    5, high_priority_pool,     false, true,  false, true  },
+    { STATS_UPDATE_SCRIPT_PATH,       5, standard_priority_pool, false, false, true,  true  },
+    { MINUTE_SCRIPT_PATH,            60, no_priority_pool,       false, false, true,  false },
+    { FIVE_MINUTES_SCRIPT_PATH,     300, no_priority_pool,       false, false, true,  false },
+    { HOURLY_SCRIPT_PATH,          3600, no_priority_pool,       false, false, true,  false },
+    { DAILY_SCRIPT_PATH,          86400, no_priority_pool,       true,  false, true,  false },
+    { HOUSEKEEPING_SCRIPT_PATH,       3, standard_priority_pool, false, false, true,  true  },
+    { DISCOVER_SCRIPT_PATH,           5, no_priority_pool,       false, false, true,  true  },
+    { TIMESERIES_SCRIPT_PATH,         5, standard_priority_pool, false, false, true,  true  },
 #ifdef HAVE_NEDGE
-    { PINGER_SCRIPT_PATH,             5, no_priority_pool,       false, false, true  },
+    { PINGER_SCRIPT_PATH,             5, no_priority_pool,       false, false, true,  false },
 #endif
-    { NULL, 0, NULL, false, false }
+    { NULL, 0, NULL, false, false, false, false }
   };
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Each periodic activity script will use %u threads", num_threads);
@@ -155,6 +156,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 						d->align_to_localtime,
 						d->exclude_viewed_interfaces,
 						d->exclude_pcap_dump_interfaces,
+            d->reuse_vm,
 						d->pool);
     if(ta) {
       activities[num_activities++] = ta;
@@ -163,4 +165,13 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 
     d++;
   }
+}
+
+/* ******************************************* */
+
+void PeriodicActivities::reloadVMs() {
+  time_t next_reload = time(NULL) + 1;
+
+  for(int i = 0; i < num_activities; i++)
+    activities[i]->setNextVmReload(next_reload);
 }

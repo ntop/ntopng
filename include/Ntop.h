@@ -80,6 +80,10 @@ class Ntop {
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue, *internal_alerts_queue;
 
+#ifdef __linux__
+  int inotify_fd;
+#endif
+
 #ifdef NTOPNG_PRO
 #ifndef WIN32
   NagiosManager *nagios_manager;
