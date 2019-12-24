@@ -33,7 +33,9 @@ local titles = {
 }
 
 if confset_id == nil or confset_id == "" then
-   print([[404]])
+   print([[<div class='alert alert-danger'>
+      <b>Attention!</b> The page was not found! <a class='text-danger' href='#' onclick='history.back()'>Click here to return to the previous page!</a>
+   </div>]])
 else
 
    -- append css tag on page
@@ -329,7 +331,7 @@ else
                         // set script conf params
                         $input_box.find("input[type='number']").val(script_conf.threshold);
                         // set placeholder
-                        $input_box.find("input[type='number']").attr("placeholder", script_conf.threshold);
+                        // $input_box.find("input[type='number']").attr("placeholder", script_conf.threshold);
 
                         // bind check event on checkboxes
                         $element.on('change', "input[type='checkbox']", function(e) {
@@ -507,7 +509,7 @@ else
                            $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
 
                            if (granularity.script_conf.threshold === undefined) {
-                              $(`input[name='${key}-input']`).val(0);
+                              $(`input[name='${key}-input']`).val('');
                            }
                            else {
                               $(`input[name='${key}-input']`).val(granularity.script_conf.threshold);
