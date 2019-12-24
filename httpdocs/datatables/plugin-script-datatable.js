@@ -46,17 +46,17 @@ $.fn.dataTable.ext.buttons.filterScripts = {
 
         if (button_id == "all-scripts") {
             dt.columns().search("").draw();
-            window.location.hash = "all";
+            window.history.replaceState(undefined, undefined, "#all");
         }
         else if (button_id == "enabled-scripts") {
             // draw all enabled scripts
             dt.columns(2).search("true").draw();
-            window.location.hash = "enabled";
+            window.history.replaceState(undefined, undefined, "#enabled");
         }
         else if (button_id == "disabled-scripts") {
             // draw all disabled scripts
             dt.columns(2).search("false").draw();
-            window.location.hash = "disabled";
+            window.history.replaceState(undefined, undefined, "#disabled");
 
         }
 
