@@ -87,8 +87,7 @@ else
                               <th class='text-center'>Enabled</th>
                            </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
                      </table>
                   </form>
                </div>
@@ -188,6 +187,7 @@ else
                   { 
                      data: 'enabled_hooks',
                      sortable: false,
+                     className: 'text-center',
                      render: function (data, type, row) {
 
                         if (data.length <= 0 && type != "display") {
@@ -196,6 +196,55 @@ else
                         if (data.length > 0 && type != "display") {
                            return true;
                         }
+
+                        console.log(row);
+
+                        if (data.length >= 0 && type == "display" && row.all_hooks.length > 0 && row.input_handler == undefined) {
+
+                              $('#hostsScripts').on('click', `input[name='${row.key}-check']`, function(e) {
+
+                              const $this = $(this);
+                              const value = $this.val();
+                              const hooks = row.all_hooks;
+                              const data = {};
+
+                              hooks.forEach(d => {
+                                 data[d] = {
+                                    enabled: (value == "true")
+                                 }
+                              })
+
+                              console.log(data);
+
+                              $.when(
+                                 $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_user_script_config.lua', {
+                                    script_subdir: ']].. script_subdir ..[[',
+                                    script_key: row.key,
+                                    csrf: ']].. ntop.getRandomCSRFValue() ..[[',
+                                    JSON: JSON.stringify(data),
+                                    confset_id: ]].. confset_id ..[[
+                                 })
+                              )
+                              .then((d, status, xhr) => {
+                                 location.reload();
+                              })
+
+                           });
+
+                           return `
+                           <form type='post'>
+                              <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                 <label class="btn btn-sm btn-secondary ${row.is_enabled ? "active" : ""}">
+                                    <input value='true' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> On
+                                 </label>
+                                 <label class="btn btn-sm btn-secondary ${!row.is_enabled ? "active" : ""}">
+                                    <input value='false' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> Off
+                                 </label>
+                              </div>
+                           </form>`;
+
+                        }
+                       
 
                         return data.join(', ')
                      }
@@ -206,12 +255,12 @@ else
                      className: 'text-center',
                      render: function (data, type, row) {
                         return `
-                        <div class='btn-group'>
-                           <button data-toggle="modal" title='Edit Script' data-target="#modal-script" class="btn btn-square btn-sm btn-primary">
-                              <i class='fas fa-edit'></i>
-                           </button>
-                           <a href='${data.edit_url}' title='View Source Script' class='btn btn-square btn-sm btn-secondary'><i class='fas fa-scroll'></i></a>
-                        </div>
+                           <div class='btn-group'>
+                              <button ${row.input_handler == undefined ? "disabled" : ""} data-toggle="modal" title='Edit Script' data-target="#modal-script" class="btn btn-square btn-sm btn-primary">
+                                 <i class='fas fa-edit'></i>
+                              </button>
+                              <a href='${data.edit_url}' title='View Source Script' class='btn btn-square btn-sm btn-secondary'><i class='fas fa-scroll'></i></a>
+                           </div>
                         `;
                      },
                      sortable: false
@@ -355,32 +404,7 @@ else
                         return $element;
                      }
 
-                     // check if template it's empty
-                     const gui_empty = !Object.keys(gui).length;
-                     if (gui_empty) {
-
-                        const key = Object.keys(hooks).join('-');
-                        let enabled = true;
-                        for (k in hooks) {
-                           enabled = enabled && hooks[k].enabled;
-                        }
-
-                        $table_editor.append(`<tr id='${key}'>
-                        <td class='text-center'>
-                           <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                              <label class="btn btn-secondary ${enabled ? "active" : ""}">
-                                 <input type="radio" name="${key}-check" value='true' id="on-btn"> On
-                              </label>
-                              <label class="btn btn-secondary ${!enabled ? "checked" : ""}">
-                                 <input type="radio" name="${key}-check" value='false' id="off-btn"> Off
-                              </label>
-                           </div>
-                        </td>
-                        </tr>`);
-
-                        return;
-                     }
-
+            
                      // append hooks to table
                      if ("5mins" in hooks) {
                         $table_editor.append(build_hook(hooks["5mins"], "5mins"));
@@ -417,22 +441,7 @@ else
                      $table_editor.children("tr").each(function (index) {
 
                         const id = $(this).attr("id");
-                        
-                        // check if there is no template
-                        const gui_empty = !Object.keys(gui).length;
-                        if (gui_empty) {
-
-                           const value = $(`input[name='${id}-check']:checked`).val() == "true";
-
-                           // save checkbox state
-                           id.split('-').forEach(k => {
-                              data[k] = {
-                                 'enabled': value
-                              }
-                           })
-                           return;
-                        }
-
+                     
                         const enabled = $(this).find("input[type='checkbox']").is(":checked");
                         const $template = $(this).find(".template");
 
@@ -476,6 +485,8 @@ else
                      // disable button
                      $button.attr("disabled", "");
 
+                     console.log(data)
+
                      // make post request
                      $.when(
                         $.post(']].. ntop.getHttpPrefix() ..[[/lua/edit_user_script_config.lua', {
@@ -509,7 +520,6 @@ else
                         for (key in hooks) {
                            
                            const granularity = hooks[key];
-                           console.log(key);
 
                            $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
 

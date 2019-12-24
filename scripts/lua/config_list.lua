@@ -103,8 +103,8 @@ print([[
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-rename' class="btn btn-primary">Apply</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">]].. i18n("cancel", {}) ..[[</button>
+                <button type="button" id='btn-confirm-rename' class="btn btn-primary">]].. i18n("apply", {}) ..[[</button>
             </div>
             </div>
         </div>
@@ -132,8 +132,8 @@ print([[
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-clone' class="btn btn-primary">Apply</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">]].. i18n("cancel", {}) ..[[</button>
+                <button type="button" id='btn-confirm-clone' class="btn btn-primary">]].. i18n("apply", {}) ..[[</button>
             </div>
             </div>
         </div>
@@ -216,8 +216,8 @@ print([[
               </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-apply' class="btn btn-primary">Apply</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">]].. i18n("cancel", {}) ..[[</button>
+                <button type="button" id='btn-confirm-apply' class="btn btn-primary">]].. i18n("apply", {}) ..[[</button>
             </div>
             </div>
         </div>
