@@ -44,7 +44,7 @@ print([[
             <div class='col-md-12 col-lg-12'>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item">Config List</li>
+                        <li class="breadcrumb-item">]].. i18n("config_scripts.config_list", {}) ..[[</li>
                     </ol>
                 </nav>
                 <ul class="nav nav-pills">
@@ -70,9 +70,9 @@ print([[
                 <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
                        <thead>
                             <tr>
-                                <th>Configuration Name</th>
-                                <th>Applied to</th>
-                                <th>Config Settings</th>
+                                <th>]].. i18n("config_scripts.config_name", {}) ..[[</th>
+                                <th>]].. i18n("config_scripts.applied_to", {}) ..[[</th>
+                                <th>]].. i18n("config_scripts.config_setting", {}) ..[[</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -89,12 +89,12 @@ print([[
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Rename Configuration: <span id='config-name'></span></h5>
+                <h5 class="modal-title">]].. i18n("config_scripts.config_rename", {}) ..[[: <span id='config-name'></span></h5>
             </div>
             <div class="modal-body">
                 <form class='form'>
                     <div class='form-group'>
-                        <label class='form-label' for='#rename-input'>Type the new name:</label>
+                        <label class='form-label' for='#rename-input'>]].. i18n("config_scripts.config_rename_message") ..[[:</label>
                         <input type='text' id='rename-input' class='form-control' />
                         <div class="invalid-feedback" id='rename-error' >
                             {message}
@@ -118,12 +118,12 @@ print([[
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Cloning Configuration: <span id='clone-name'></span></h5>
+                <h5 class="modal-title">]].. i18n("config_scripts.config_clone", {}) ..[[: <span id='clone-name'></span></h5>
             </div>
             <div class="modal-body">
                 <form class='form'>
                     <div class='form-group'>
-                        <label class='form-label' for='#clone-input'>Type a name for the clonation:</label>
+                        <label class='form-label' for='#clone-input'>]].. i18n("config_scripts.config_clone_message", {}) ..[[:</label>
                         <input type='text' id='clone-input' class='form-control'/>
                         <div class="invalid-feedback" id='clone-error'>
                             {message}
@@ -146,7 +146,7 @@ print([[
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Apply Config: <span id='apply-name'></span></h5>
+                <h5 class="modal-title">]].. i18n("config_scripts.config_apply", {}) ..[[: <span id='apply-name'></span></h5>
             </div>
             <div class="modal-body">
               <form class='form' type='post'>]])
@@ -155,7 +155,7 @@ if subdir == "interface" or subdir == "flow" then
 
     print([[
         <div class='form-group'>
-            <label for='apply-interfaces'>Select interfaces:</label>
+            <label for='apply-interfaces'>]].. i18n("config_scripts.select_interface", {}) ..[[:</label>
             <select multiple id='applied-interfaces' class='form-control'>]])
 
     -- get interfaces from computer
@@ -178,7 +178,7 @@ elseif subdir == "network" then
 
     print([[
         <div class='form-group'>
-            <label for='apply-networks'>Select networks:</label>
+            <label for='apply-networks'>]].. i18n("config_scripts.select_network", {}) ..[[:</label>
             <select multiple id='applied-networks' class='form-control'>]])
 
     -- get networks 
@@ -201,9 +201,9 @@ else
     
     print([[
         <div class='form-group'>
-            <label for='input-applied'>Type targets:</label>
+            <label for='input-applied'>]].. i18n("config_scripts.type_targets", {}) ..[[:</label>
             <input type='text' id='applied-input' class='form-control'/>
-            <small>Type targets separated by a comma. i.e: 192.168.1.20,192.168.0.0/16</small>
+            <small>]].. i18n("config_scripts.type_targets_example", {}) ..[[</small>
             <div class="invalid-feedback" id='apply-error'>
                 {message}
             </div>
@@ -230,17 +230,17 @@ print([[
     <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Deleting Configuration: <span id='delete-name'></span></h5>
-            </div>
-            <div class="modal-body">
-                Do you want really remove this configuration?<br>
-                <b>Attention</b>: this process is irreversible! 
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id='btn-confirm-delete' class="btn btn-danger">Confirm Deleting</button>
-            </div>
+                <div class="modal-header">
+                    <h5 class="modal-title">]].. i18n("config_scripts.config_delete", {}) ..[[: <span id='delete-name'></span></h5>
+                </div>
+                <div class="modal-body">
+                ]].. i18n("config_scripts.config_delete_message", {}) ..[[<br>
+                    <b>Attention</b>: this process is irreversible! 
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" id='btn-confirm-delete' class="btn btn-danger">Confirm Deleting</button>
+                </div>
             </div>
         </div>
     </div>
