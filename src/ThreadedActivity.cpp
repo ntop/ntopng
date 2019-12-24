@@ -242,7 +242,9 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
 
     vms_mutex.unlock(__FILE__, __LINE__);
 
+    gettimeofday(&begin, NULL);
     engine->pcall(deadline);
+    gettimeofday(&end, NULL);
   } else {
     try {
       l = new LuaEngine();
