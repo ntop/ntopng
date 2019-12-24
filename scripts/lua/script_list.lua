@@ -105,6 +105,7 @@ else
    print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/plugin-script-datatable.js"></script> ]])
    print ([[
       <script type='text/javascript'>
+
          $(document).ready(function() {
 
             const $script_table = $("#hostsScripts").DataTable({
@@ -140,6 +141,11 @@ else
                      }
 
                   })();
+
+                  // clean searchbox
+                  $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
+
+                  // counts scripts inside table
                   count_scripts();
                },
                order: [ [0, "asc"] ],
@@ -347,6 +353,27 @@ else
                         return $element;
                      }
 
+                     // check if template it's empty
+                     const gui_empty = !Object.keys(gui).length;
+                     if (gui_empty) {
+
+                        // append checkbox
+                        for (key in hooks) {
+                           
+                           $table_editor.append(`<tr id='${key}'>
+                           <td class='text-center'>
+                              <input type='checkbox' name='check-${key}' ${hooks[key].enabled ? "checked" : ""} />
+                           </td>
+                           <td>
+                              ${key}
+                           </td>
+                           </tr>`);
+
+                        }
+
+                        return;
+                     }
+
                      // append hooks to table
                      if ("5mins" in hooks) {
                         $table_editor.append(build_hook(hooks["5mins"], "5mins"));
@@ -383,7 +410,21 @@ else
                      $table_editor.children("tr").each(function (index) {
 
                         const id = $(this).attr("id");
+                        console.log(id);
+
                         const enabled = $(this).find("input[type='checkbox']").is(":checked");
+                        
+                        // check if there is no template
+                        const gui_empty = !Object.keys(gui).length;
+                        if (gui_empty) {
+
+                           // save checkbox state
+                           data[id] = {
+                              'enabled': enabled
+                           }
+                           return;
+                        }
+
                         const $template = $(this).find(".template");
 
                         const operator = $template.find("select").val();
@@ -415,7 +456,7 @@ else
                               'threshold': threshold
                            }
                         }
-                     });            
+                     });        
                      
                      // check if there are any errors on input values
                      if (error) return;

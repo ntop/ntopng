@@ -260,6 +260,11 @@ print([[
 
         const $config_table = $("#config-list").DataTable({
             lengthChange: false,
+            stateSave: true,
+            initComplete: function() {
+                // clear searchbox datatable
+                $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
+            },
             language: {
                 paginate: {
                    previous: '&lt;',
@@ -286,6 +291,10 @@ print([[
                             const flat = data.map((f) => f.label);
                             return flat.join(', ');
                         }
+                        else if(type == 'display' && data.length == 0) {
+                            return "<div class='text-warning'><i class='fas fa-exclamation-triangle'></i> <b>Warning</b>: this config is not applied to any host!<div>"
+                        }
+
                         return data;
                     }
                 },
