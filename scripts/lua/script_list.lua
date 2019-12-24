@@ -75,7 +75,7 @@ else
          <div class="modal-dialog modal-lg ">
             <div class="modal-content">
                <div class="modal-header">
-               <h5 class="modal-title">Script / Config <span id='script-name'></span></h5>
+                  <h5 class="modal-title">Script / Config <span id='script-name'></span></h5>
                </div>
                <div class="modal-body">
                   <form id='edit-form' method='post'>
@@ -362,10 +362,12 @@ else
                            
                            $table_editor.append(`<tr id='${key}'>
                            <td class='text-center'>
-                              <input type='checkbox' name='check-${key}' ${hooks[key].enabled ? "checked" : ""} />
+                              <div class='form-check'>   
+                                 <input class='form-check-input' type='checkbox' name='${key}-check' ${hooks[key].enabled ? "checked" : ""} />
+                              </div>
                            </td>
-                           <td>
-                              ${key}
+                           <td> 
+                              <label class='form-check-label'>${key}</label>
                            </td>
                            </tr>`);
 
@@ -500,6 +502,7 @@ else
                         for (key in hooks) {
                            
                            const granularity = hooks[key];
+                           console.log(key);
 
                            $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
 

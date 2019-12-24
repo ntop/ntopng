@@ -42,7 +42,7 @@ print([[
 ]])
         
 
--- print tabs iteration over subdirs
+-- print tabs iterating over subdirs
 for _, isubdir in ipairs(user_scripts.listSubdirs()) do
     
     print('<li class="nav-item">')
@@ -81,9 +81,6 @@ print([[
             <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Rename Configuration: <span id='config-name'></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
             <div class="modal-body">
                 <form class='form'>
@@ -113,9 +110,6 @@ print([[
             <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Cloning Configuration: <span id='clone-name'></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
             <div class="modal-body">
                 <form class='form'>
@@ -144,9 +138,6 @@ print([[
             <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Apply Config: <span id='apply-name'></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
             <div class="modal-body">
               <form class='form' type='post'>]])
@@ -232,9 +223,6 @@ print([[
             <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Deleting Configuration: <span id='delete-name'></span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
             <div class="modal-body">
                 Do you want really remove this configuration?<br>
@@ -295,7 +283,8 @@ print([[
                             return "<div class='text-warning'><i class='fas fa-exclamation-triangle'></i> <b>Warning</b>: this config is not applied to any specific target!<div>"
                         }
 
-                        return data;
+                        const flat = data.map((f) => f.label);
+                        return flat.join(', ');
                     }
                 },
                 {
