@@ -6,6 +6,7 @@ local plugins_utils = {}
 
 local os_utils = require("os_utils")
 local persistence = require("persistence")
+local file_utils = require("file_utils")
 require "lua_trace"
 
 local dirs = ntop.getDirs()
@@ -157,69 +158,6 @@ end
 
 -- ##############################################
 
-local function copy_file(fname, src_path, dst_path)
-  local src
-  local dst
-
-  if(fname == nil) then
-    src = src_path
-    dst = dst_path
-  else
-    src = os_utils.fixPath(src_path .. "/" .. fname)
-    dst = os_utils.fixPath(dst_path .. "/" .. fname)
-  end
-
-  local infile, err = io.open(src, "r")
-
-  if(do_trace) then
-    io.write(string.format("\tLoad [%s]\n", fname))
-  end
-
-  if(ntop.exists(dst)) then
-    -- NOTE: overwriting is not allowed as it means that a file was already provided by
-    -- another plugin
-    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Trying to overwrite existing file %s", dst))
-    return(false)
-  end
-
-  if(infile == nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not open file %s for read: %s", src, err or ""))
-    return(false)
-  end
-
-  local instr = infile:read("*a")
-  infile:close()
-
-  local outfile, err = io.open(dst, "w")
-  if(outfile == nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not open file %s for write", dst, err or ""))
-    return(false)
-  end
-
-  outfile:write(instr)
-  outfile:close()
-
-  ntop.setDefaultFilePermissions(dst)
-
-  return(true)
-end
-
-local function recursive_copy(src_path, dst_path, path_map)
-  for fname in pairs(ntop.readdir(src_path)) do
-    if not copy_file(fname, src_path, dst_path) then
-      return(false)
-    end
-
-    if path_map then
-      path_map[os_utils.fixPath(dst_path .. "/" .. fname)] = os_utils.fixPath(src_path .. "/" .. fname)
-    end
-  end
-
-  return(true)
-end
-
--- ##############################################
-
 -- NOTE: cannot save the definitions to a single file via the persistance
 -- module because they may contain functions (e.g. in the i18n_description)
 local function load_definitions(defs_dir, runtime_path, validator)
@@ -239,7 +177,7 @@ local function load_definitions(defs_dir, runtime_path, validator)
         return(false)
       end
 
-      copy_file(fname, defs_dir, runtime_path)
+      file_utils.copy_file(fname, defs_dir, runtime_path)
     end
   end
 
@@ -276,7 +214,7 @@ local function load_plugin_ts_schemas(plugin)
     ntop.mkdir(ts_path)
 
     return(
-      recursive_copy(src_path, ts_path)
+      file_utils.recursive_copy(src_path, ts_path)
     )
   end
 
@@ -328,7 +266,7 @@ local function load_plugin_lint(plugin)
   local lint_path = os_utils.fixPath(plugin.path .. "/http_lint.lua")
 
   if(ntop.exists(lint_path)) then
-    if(not copy_file(nil, lint_path,
+    if(not file_utils.copy_file(nil, lint_path,
         os_utils.fixPath(RUNTIME_PATHS.http_lint .. "/" .. plugin.key .. ".lua"))) then
       return(false)
     end
@@ -344,13 +282,13 @@ local function load_plugin_user_scripts(paths_to_plugin, plugin)
   local paths_map = {}
 
   local rv = (
-    recursive_copy(os_utils.fixPath(scripts_path .. "/interface"), RUNTIME_PATHS.interface_scripts, paths_map) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/host"), RUNTIME_PATHS.host_scripts, paths_map) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/network"), RUNTIME_PATHS.network_scripts, paths_map) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/flow"), RUNTIME_PATHS.flow_scripts, paths_map) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/syslog"), RUNTIME_PATHS.syslog, paths_map) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/snmp_device"), RUNTIME_PATHS.snmp_scripts, paths_map) and
-    recursive_copy(os_utils.fixPath(scripts_path .. "/system"), RUNTIME_PATHS.system_scripts, paths_map)
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/interface"), RUNTIME_PATHS.interface_scripts, paths_map) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/host"), RUNTIME_PATHS.host_scripts, paths_map) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/network"), RUNTIME_PATHS.network_scripts, paths_map) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/flow"), RUNTIME_PATHS.flow_scripts, paths_map) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/syslog"), RUNTIME_PATHS.syslog, paths_map) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/snmp_device"), RUNTIME_PATHS.snmp_scripts, paths_map) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/system"), RUNTIME_PATHS.system_scripts, paths_map)
   )
 
   for runtime_path, source_path in pairs(paths_map) do
@@ -397,7 +335,7 @@ local function load_plugin_alert_endpoints(endpoints_prefs_entries, plugin)
         endpoints_prefs_entries[prefs_entries.endpoint_key] = prefs_entries
       end
     else
-      if not copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
+      if not file_utils.copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
         return(false)
       end
     end
@@ -432,14 +370,14 @@ local function load_plugin_web_gui(plugin)
             return(false)
           end
 
-          if(not copy_file(nil, full_path,
+          if(not file_utils.copy_file(nil, full_path,
               os_utils.fixPath(RUNTIME_PATHS.menu_items .. "/" .. plugin.key .. ".lua"))) then
             return(false)
           end
         end
       end
     else
-      if not copy_file(fname, gui_dir, RUNTIME_PATHS.web_gui) then
+      if not file_utils.copy_file(fname, gui_dir, RUNTIME_PATHS.web_gui) then
         return(false)
       end
     end

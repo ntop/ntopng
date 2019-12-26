@@ -1770,11 +1770,10 @@ static int ntop_get_file_dir_exists(lua_State* vm) {
 #endif
   int rc;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   path = (char*)lua_tostring(vm, 1);
 
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s) called", __FUNCTION__, path ? path : "???");
   rc = (stat(path, &buf) != 0) ? 0 : 1;
   //   ntop->getTrace()->traceEvent(TRACE_ERROR, "%s: %d", path, rc);
   lua_pushboolean(vm, rc);
@@ -2206,9 +2205,10 @@ static int ntop_list_dir_files(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  path = (char*)lua_tostring(vm, 1);
+  path = (char*)lua_tostring(vm, 1);  
   ntop->fixPath(path);
 
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Listing directory %s", path);
   lua_newtable(vm);
 
   if((dirp = opendir(path)) != NULL) {
@@ -7696,13 +7696,15 @@ static int ntop_delete_old_rrd_files(lua_State *vm) {
 static int ntop_mkdir_tree(lua_State* vm) {
   char *dir;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
   lua_pushnil(vm);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((dir = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
   if(dir[0] == '\0')                                   return(CONST_LUA_OK); /* Nothing to do */
 
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Trying to created directory %s", dir);
+    
   lua_pushboolean(vm, Utils::mkdir_tree(dir));
   return(CONST_LUA_OK);
 }
