@@ -28,6 +28,7 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
   total_ticks = 0;
   const char *lua_file = NULL;
   iface = _iface;
+  tps = Utils::gettickspersec();
 
   p = script_periodicity;
 
@@ -81,9 +82,9 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
 
 AlertCheckLuaEngine::~AlertCheckLuaEngine() {
 #if 0
-  float elapsed_time = (float)total_ticks / Utils::gettickspersec();
+  float elapsed_time = (float)total_ticks / tps;
 
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "[elapsed time: %.4f sec][num calls: %u][calls/sec: %.4f][%s][clocks/sec: %llu]", elapsed_time, num_calls, num_calls / elapsed_time, script_path, Utils::gettickspersec());
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "[elapsed time: %.4f sec][num calls: %u][calls/sec: %.4f][%s][clocks/sec: %llu]", elapsed_time, num_calls, num_calls / elapsed_time, script_path, tps);
 #endif
 
   if(script_path[0] != '\0') {
@@ -104,7 +105,7 @@ void AlertCheckLuaEngine::lua_stats(const char *key, lua_State *vm) {
 
     lua_newtable(vm);
 
-    float elapsed_time = (float)total_ticks / Utils::gettickspersec();
+    float elapsed_time = (float)total_ticks / tps;
 
     lua_push_uint64_table_entry(vm, "num_calls", (u_int64_t)num_calls);
     lua_push_float_table_entry(vm, "tot_duration_ms", elapsed_time * 1000);
