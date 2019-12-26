@@ -198,9 +198,6 @@ Flow::Flow(NetworkInterface *_iface,
     setDetectedProtocol(ndpiDetectedProtocol, true);
     break;
   }
-
-  protos.tls.dissect_certificate = true,
-    protos.tls.subject_alt_name_match = false;
 }
 
 /* *************************************** */
@@ -3749,7 +3746,7 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
 /* ***************************************************** */
 
 void Flow::dissectTLS(char *payload, u_int16_t payload_len) {
-  if(protos.tls.dissect_certificate) {
+  if(!protos.tls.certificate_dissected) {
     u_int16_t _payload_len = payload_len + protos.tls.certificate_leftover;
     u_char *_payload       = (u_char*)malloc(_payload_len);
     bool find_initial_pattern = true;
@@ -3770,7 +3767,7 @@ void Flow::dissectTLS(char *payload, u_int16_t payload_len) {
     }
 
     if(_payload_len > 4) {
-      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4 && protos.tls.dissect_certificate; i++) {
+      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4 && !protos.tls.certificate_dissected; i++) {
 
 	/* Look for the Subject Alternative Name Extension with OID 55 1D 11 */
 	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
@@ -3795,7 +3792,7 @@ void Flow::dissectTLS(char *payload, u_int16_t payload_len) {
 		i += 2;
 
 		if(!isalpha(_payload[i]) && _payload[i] != '*') {
-		  protos.tls.dissect_certificate = false;
+		  protos.tls.certificate_dissected = true;
 		  break;
 		}
 		else {
@@ -3815,7 +3812,7 @@ void Flow::dissectTLS(char *payload, u_int16_t payload_len) {
 		      && ((buf[0] != '*' && !strncasecmp(protos.tls.certificate, buf, sizeof(buf)))
 			  || (buf[0] == '*' && strcasestr(protos.tls.certificate, &buf[1])))) {
 		    protos.tls.subject_alt_name_match = true;
-		    protos.tls.dissect_certificate = false;
+		    protos.tls.certificate_dissected = true;
 		    break;
 		  }
 
@@ -3835,7 +3832,7 @@ void Flow::dissectTLS(char *payload, u_int16_t payload_len) {
 		break;
 	      }
 	    } else {
-	      protos.tls.dissect_certificate = false;
+	      protos.tls.certificate_dissected = true;
 	      break;
 	    }
 	  } /* while */

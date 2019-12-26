@@ -131,8 +131,7 @@ class Flow : public GenericHashEntry {
       /* Certificate dissection */
       char *certificate_buf_leftover;
       u_int certificate_leftover;
-      bool dissect_certificate;
-      bool subject_alt_name_match;
+      bool certificate_dissected, subject_alt_name_match;
       struct {
 	/* https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967 */
 	char *client_hash, *server_hash;
