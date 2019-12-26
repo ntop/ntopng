@@ -11626,7 +11626,7 @@ static int post_iterator(void *cls,
 /*
   Run a Lua script from within ntopng (no HTTP GUI)
 */
-int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_only, time_t deadline) {
+int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_only, time_t deadline, bool no_pcall) {
   int rc = 0;
 
   if(!L) return(-1);
@@ -11654,7 +11654,7 @@ int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_
 #endif
       rc = !load_only ? luaL_dofile(L, script_path) : luaL_loadfile(L, script_path);
 
-    if(rc == 0 && load_only)
+    if(rc == 0 && load_only && !no_pcall)
       rc = lua_pcall(L, 0, 0, 0); /* Prevents loaded scripts from failing silently by showing possible syntax errors */
 
     if(rc != 0) {

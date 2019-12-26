@@ -21,6 +21,12 @@
 
 #include "ntop_includes.h"
 
+#ifdef __linux__
+#include <sys/inotify.h>
+#define EVENT_SIZE  ( sizeof (struct inotify_event) )
+#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+#endif
+
 #ifdef WIN32
 #include <shlobj.h> /* SHGetFolderPath() */
 #else
@@ -150,6 +156,10 @@ Ntop::Ntop(char *appName) {
   pro = NULL;
 #endif
 
+#ifdef __linux__
+  inotify_fd = -1;
+#endif
+
   // printf("--> %s [%s]\n", startup_dir, appName);
 
   initTimezone();
@@ -237,6 +247,10 @@ Ntop::~Ntop() {
   if(redis)   { delete redis; redis = NULL;     }
   if(prefs)   { delete prefs; prefs = NULL;     }
   if(globals) { delete globals; globals = NULL; }
+
+#ifdef __linux__
+  if(inotify_fd > 0)  close(inotify_fd);
+#endif
 }
 
 /* ******************************************* */
@@ -432,7 +446,28 @@ void Ntop::start() {
   system_interface->allocateStructures();
 
   for(int i=0; i<num_defined_interfaces; i++)
-    iface[i]->allocateStructures();  
+    iface[i]->allocateStructures();
+
+#ifdef __linux__
+  inotify_fd = inotify_init();
+
+  if(inotify_fd < 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "inotify_init failed[%d]: %s", errno, strerror(errno));
+  else {
+    uint32_t mask = IN_CREATE | IN_DELETE | IN_MODIFY;
+    char path[MAX_PATH];
+
+    /* Watch some directories. TODO: recursive watch */
+    snprintf(path, sizeof(path), "%s/system", ntop->get_callbacks_dir());
+    inotify_add_watch(inotify_fd, path, mask);
+
+    snprintf(path, sizeof(path), "%s/interface", ntop->get_callbacks_dir());
+    inotify_add_watch(inotify_fd, path, mask);
+
+    snprintf(path, sizeof(path), "%s/lua/modules", prefs->get_scripts_dir());
+    inotify_add_watch(inotify_fd, path, mask);
+  }
+#endif
 
   /* Note: must start periodic activities loop only *after* interfaces have been
    * completely initialized.
@@ -482,21 +517,49 @@ void Ntop::start() {
 #endif
 
     runHousekeepingTasks();
-    gettimeofday(&end, NULL);
 
-    usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
+    do {
+      gettimeofday(&end, NULL);
 
-    if(usec_diff < nap) {
-      nap -= usec_diff;
+      usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
+
+      if(usec_diff < nap) {
+        int maxfd = 0;
+        fd_set rset;
+        struct timeval tv;
 
 #if 0
-      ntop->getTrace()->traceEvent(TRACE_DEBUG,
-				   "Sleeping %i microsecods before doing the chores.",
-				   nap);
+        ntop->getTrace()->traceEvent(TRACE_DEBUG,
+            "Sleeping %i microsecods before doing the chores.",
+            (nap - usec_diff));
 #endif
 
-      _usleep(nap);
-    }
+        FD_ZERO(&rset);
+
+#ifdef __linux__
+        if(inotify_fd > 0) {
+          FD_SET(inotify_fd, &rset);
+          maxfd = inotify_fd;
+        }
+#endif
+
+        tv.tv_sec = 0, tv.tv_usec = (nap - usec_diff);
+
+        if(select(maxfd + 1, &rset, NULL, NULL, &tv) > 0) {
+#ifdef __linux__
+          if(FD_ISSET(inotify_fd, &rset)) {
+            char buffer[EVENT_BUF_LEN];
+
+            /* Consume the event */
+            read(inotify_fd, buffer, sizeof(buffer));
+
+            ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
+            pa->reloadVMs();
+          }
+#endif
+        }
+      }
+    } while(usec_diff < nap);
   }
 }
 

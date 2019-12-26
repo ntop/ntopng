@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-19 - ntop.org
+ * (C) 2019 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,26 +19,27 @@
  *
  */
 
-#ifndef _PERIODIC_ACTIVITIES_H_
-#define _PERIODIC_ACTIVITIES_H_
+#ifndef _LUA_REUSABLE_ENGINE_H_
+#define _LUA_REUSABLE_ENGINE_H_
 
 #include "ntop_includes.h"
 
-class PeriodicActivities {
+class LuaReusableEngine {
  private:
-  ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
-  u_int16_t num_activities;
-  ThreadPool *high_priority_pool, *standard_priority_pool, *no_priority_pool;
-  
+  LuaEngine *vm;
+  NetworkInterface *iface;
+  char *script_path;
+  int reload_interval;
+  time_t next_reload;
+
+  void reloadVm(time_t now);
+
  public:
-  PeriodicActivities();
-  ~PeriodicActivities();
+  LuaReusableEngine(const char *_script_path, NetworkInterface *_iface, int _reload_interval);
+  ~LuaReusableEngine();
 
-  void startPeriodicActivitiesLoop();
-  void sendShutdownSignal();
-
-  void lua(NetworkInterface *iface, lua_State *vm);
-  void reloadVMs();
+  bool pcall(time_t deadline);
+  inline void setNextVmReload(time_t t) { next_reload = t; }
 };
 
-#endif /* _PERIODIC_ACTIVITIES_H_ */
+#endif
