@@ -286,6 +286,7 @@ using namespace std;
 #include "AlertsQueue.h"
 #include "NetworkInterfaceTsPoint.h"
 #include "LuaEngine.h"
+#include "LuaReusableEngine.h"
 #include "AlertCheckLuaEngine.h"
 #include "FlowAlertCheckLuaEngine.h"
 #include "SyslogLuaEngine.h"

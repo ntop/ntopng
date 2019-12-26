@@ -37,10 +37,15 @@ class ThreadedActivity {
   bool exclude_pcap_dump_interfaces;
   bool thread_started;
   bool systemTaskRunning;
+  bool reuse_vm;
   bool *interfaceTasksRunning;
   Mutex m;
   ThreadPool *pool;
   ThreadedActivityStats **threaded_activity_stats;
+  Mutex vms_mutex;
+
+  /* iface -> engine */
+  std::map<std::string, LuaReusableEngine*> vms;
 
   void periodicActivityBody();
   void aperiodicActivityBody();
@@ -49,13 +54,15 @@ class ThreadedActivity {
   void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
   bool isInterfaceTaskRunning(NetworkInterface *iface);
   void updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration);
-  
+  void reloadVm(const char *ifname);
+
  public:
   ThreadedActivity(const char* _path,		   
 		   u_int32_t _periodicity_seconds = 0,
 		   bool _align_to_localtime = false,
 		   bool _exclude_viewed_interfaces = false,
 		   bool _exclude_pcap_dump_interfaces = false,
+       bool _reuse_vm = false,
 		   ThreadPool* _pool = NULL);
   ~ThreadedActivity();
 
@@ -67,6 +74,7 @@ class ThreadedActivity {
   inline void shutdown()      { terminating = true; };
   void terminateEnqueueLoop();
   bool isTerminating();
+  void setNextVmReload(time_t when);
 
   void run();
 
