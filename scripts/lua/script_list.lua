@@ -93,9 +93,9 @@ else
                   </form>
                </div>
                <div class="modal-footer">
-                  <button id='btn-reset' title='Reset Default ntonpng values' type='button' class='btn btn-danger mr-auto'>Reset Default</button>
-                  <button type="button" title='Cancel' class="btn btn-secondary" data-dismiss="modal">]].. i18n("cancel", {}) ..[[</button>
-                  <button id="btn-apply" title='Apply' type="button" class="btn btn-primary" data-dismiss="modal">]].. i18n("apply", {}) ..[[</button>
+                  <button id='btn-reset' title='Reset Default ntopng values' type='button' class='btn btn-danger mr-auto'>Reset Default</button>
+                  <button type="button" title=']].. i18n("cancel", {}) ..[[' class="btn btn-secondary" data-dismiss="modal">]].. i18n("cancel", {}) ..[[</button>
+                  <button id="btn-apply" title=']].. i18n("apply", {}) ..[[' type="button" class="btn btn-primary" data-dismiss="modal">]].. i18n("apply", {}) ..[[</button>
                </div>
             </div>
          </div>
@@ -129,6 +129,7 @@ else
                   // select the correct tab
                   (() => {
                      
+                     // get hash from url
                      const hash = window.location.hash;
 
                      // redirect to correct tab
@@ -198,11 +199,9 @@ else
                            return true;
                         }
 
-                        console.log(row);
-
                         if (data.length >= 0 && type == "display" && row.all_hooks.length > 0 && row.input_handler == undefined) {
 
-                              $('#hostsScripts').on('click', `input[name='${row.key}-check']`, function(e) {
+                           $('#hostsScripts').on('click', `input[name='${row.key}-check']`, function(e) {
 
                               const $this = $(this);
                               const value = $this.val();
@@ -246,7 +245,6 @@ else
 
                         }
                        
-
                         return data.join(', ')
                      }
                   },
@@ -280,10 +278,12 @@ else
                // if he wants save edits
                if ($('#edit-form').hasClass('dirty')) {
                   
+                  // ask to user if he REALLY wants close modal
                   const result = confirm("The changes will not be saved. Are you sure?");
                   if (!result) e.preventDefault();
                   
-                  $('#edit-form').removeClass('dirty')
+                  // remove dirty class from form
+                  $('#edit-form').removeClass('dirty');
                }
             });
 
@@ -329,7 +329,6 @@ else
 
                      const build_input_box = ({input_builder, field_max, field_min, fields_unit, field_operator}) => {
 
-                        // TODO: other templates
                         if (input_builder == '') {
                            return $("<p>Not enabled!</p>")
                         }
@@ -423,9 +422,7 @@ else
 
                   }
 
-                  console.log(gui, hooks);
-
-                  // render gui on the edit modal
+                  // append gui on the edit modal
                   build_gui(gui, hooks);
                
                   // bind event to modal_button
@@ -505,6 +502,7 @@ else
 
                   };
 
+                  // bind event on reset defaults button
                   const on_reset = (e) => {
 
                      // get default values for config
@@ -569,7 +567,7 @@ else
             /**
             * Count the scripts number inside the table
             */
-            function count_scripts() {
+            const count_scripts = () => {
 
                // count scripts
                const $disabled_button = $(`#disabled-scripts`);

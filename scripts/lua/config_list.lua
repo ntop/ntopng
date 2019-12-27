@@ -251,6 +251,8 @@ print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/dat
 
 print([[
 <script type='text/javascript'>
+
+    // hold a csrf token for apply targets
     let apply_csrf  = ']].. ntop.getRandomCSRFValue() ..[[';
 
     $(document).ready(function() {
@@ -284,6 +286,8 @@ print([[
                     data: 'targets',
                     render: function(data, type, row) {
 
+                        // show targets as a string into display mode
+                        // if there aren't ant targets then show an alert
                         if (type == "display" && data.length > 0) {
                             const flat = data.map((f) => f.label);
                             return flat.join(', ');
@@ -292,6 +296,7 @@ print([[
                             return "<div class='text-warning'><i class='fas fa-exclamation-triangle'></i> <b>]].. i18n("warning", {}) ..[[</b>: ]].. i18n("config_scripts.no_targets_applied", {}) ..[[<div>"
                         }
 
+                        // return targets as a string
                         const flat = data.map((f) => f.label);
                         return flat.join(', ');
                     }
@@ -324,16 +329,20 @@ print([[
             const conf_name = `${row_data.name}`;
             const conf_id = row_data.id;
 
+            // set title to modal
             $("#clone-name").html(`<b>${conf_name}</b>`)
+            // set a placeholder for the clone input
             $("#clone-input").attr("placeholder", `i.e. ${conf_name} (Clone)`);
 
             $("#clone-error").hide();
 
+            // unbind events from button and form to prevent older events attached
             $("#btn-confirm-clone").off("click");
             $("#clone-modal form").off("submit");
 
             $("#btn-confirm-clone").click(function(e) {
 
+                // get the new name for the clonation
                 const clonation_name = $("#clone-input").val();
                 const $button = $(this);
 
@@ -343,6 +352,7 @@ print([[
                     return;
                 }
 
+                // disable button until request hasn't finished
                 $button.attr("disabled", "");
 
                 $.when(
@@ -356,8 +366,10 @@ print([[
                 )
                 .then((data, status, xhr) => {
                     
+                    // re-enable button
                     $button.removeAttr("disabled");
 
+                    // if the operation was not successful then show an error
                     if (!data.success) {
                         $("#clone-error").text(data.error).show();
                         return;
@@ -376,6 +388,7 @@ print([[
 
             $("#clone-modal").on("submit", "form", function (e) {
                 
+                // prevent default form submit
                 e.preventDefault();
                 $("#btn-confirm-clone").trigger("click");
             });
@@ -496,7 +509,6 @@ print([[
 
                 const $button = $(this);
                 const input_value = $("#rename-input").val();
-
 
                 // show error message if the input is empty
                 if (input_value == "" || input_value == null || input_value == undefined) {
