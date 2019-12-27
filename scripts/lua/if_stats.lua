@@ -1137,6 +1137,7 @@ elseif(page == "historical") then
       show_historical = not ifstats.isViewed,
       timeseries = {
          {schema="iface:flows",                 label=i18n("graphs.active_flows")},
+	 {schema="iface:new_flows",             label=i18n("graphs.new_flows"), value_formatter = {"fflows", "formatFlows"}},
          {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
          {schema="iface:engaged_alerts",        label=i18n("show_alerts.engaged_alerts")},
          {schema="custom:flows_vs_local_hosts", label=i18n("graphs.flows_vs_local_hosts"), check={"iface:flows", "iface:local_hosts"}, step=60},

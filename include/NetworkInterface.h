@@ -79,6 +79,7 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
   u_int64_t num_active_alerted_flows, num_idle_alerted_flows;
   u_int32_t num_dropped_alerts, num_dropped_flow_scripts_calls;
+  u_int64_t num_new_flows;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
 
@@ -555,6 +556,7 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t getNumDroppedPackets() { return 0; };
   virtual u_int32_t getNumDroppedFlowScriptsCalls() { return num_dropped_flow_scripts_calls; };
   virtual u_int     getNumPacketDrops();
+  virtual u_int64_t getNumNewFlows();
   virtual u_int     getNumFlows();
   u_int             getNumL2Devices();
   u_int             getNumHosts();

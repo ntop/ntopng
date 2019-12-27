@@ -29,8 +29,9 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    -- We check for ifstats.stats.bytes to start writing only when there's data. This
    -- prevents artificial and wrong peaks especially during the startup of ntopng.
    if ifstats.stats.bytes > 0 then
-      ts_utils.append("iface:traffic", {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
-      ts_utils.append("iface:packets", {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
+      ts_utils.append("iface:traffic",   {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
+      ts_utils.append("iface:packets",   {ifid=ifstats.id, packets=ifstats.stats.packets}, when)
+      ts_utils.append("iface:new_flows", {ifid=ifstats.id, new_flows=ifstats.stats.new_flows}, when)
 
       if ifstats.has_traffic_directions then
 	 ts_utils.append("iface:traffic_rxtx", {ifid=ifstats.id,

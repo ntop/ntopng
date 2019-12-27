@@ -251,7 +251,8 @@ void NetworkInterface::init() {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
-    num_dropped_flow_scripts_calls = 0;
+    num_dropped_flow_scripts_calls = 0,
+      num_new_flows = 0;
 
   flows_hash = NULL, hosts_hash = NULL;
   macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
@@ -854,6 +855,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
       return(NULL);
 
     *new_flow = true;
+    num_new_flows++;
 
     if(!flows_hash->hasEmptyRoom()) {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many flows");
@@ -4910,6 +4912,12 @@ u_int32_t NetworkInterface::getNumPacketDrops() {
 
 /* **************************************************** */
 
+u_int64_t NetworkInterface::getNumNewFlows() {
+  return(num_new_flows);
+};
+
+/* **************************************************** */
+
 u_int NetworkInterface::getNumFlows() {
   return(flows_hash ? flows_hash->getNumEntries() : 0);
 };
@@ -5194,6 +5202,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "local_hosts", getNumLocalHosts());
   lua_push_uint64_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_uint64_table_entry(vm, "drops",       getNumPacketDrops());
+  lua_push_uint64_table_entry(vm, "new_flows",   getNumNewFlows());
   lua_push_uint64_table_entry(vm, "num_dropped_flow_scripts_calls", getNumDroppedFlowScriptsCalls());
   lua_push_uint64_table_entry(vm, "devices",     getNumL2Devices());
   lua_push_uint64_table_entry(vm, "current_macs",  getNumMacs());

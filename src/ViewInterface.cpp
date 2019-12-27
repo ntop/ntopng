@@ -128,6 +128,17 @@ u_int32_t ViewInterface::getNumPacketDrops() {
 
 /* **************************************************** */
 
+u_int64_t ViewInterface::getNumNewFlows() {
+  u_int64_t tot = 0;
+
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumNewFlows();
+
+  return(tot);
+};
+
+/* **************************************************** */
+
 u_int ViewInterface::getNumFlows() {
   u_int tot = 0;
 

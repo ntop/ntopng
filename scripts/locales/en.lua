@@ -1612,6 +1612,7 @@ local lang = {
     ["95_perc"] = "95th Perc",
     ["active_devices"] = "Active Devices",
     ["active_flows"] = "Active Flows",
+    ["new_flows"] = "New Flows",
     ["active_host_contacts"] = "Active Host Contacts",
     ["active_hosts"] = "Active Hosts",
     ["active_http_servers"] = "Active HTTP Servers",
