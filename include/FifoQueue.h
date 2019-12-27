@@ -20,18 +20,29 @@
  */
 
 
-#ifndef _FIFO_STRINGS_QUEUE_H
-#define _FIFO_STRINGS_QUEUE_H
+#ifndef _FIFO_QUEUE_H
+#define _FIFO_QUEUE_H
 
 #include "ntop_includes.h"
 
-/* A simple thread safe FIFO non-blocking bounded queue for strings */
-class FifoStringsQueue : public FifoQueue {
+/* A simple thread safe FIFO non-blocking bounded queue */
+class FifoQueue {
+ private:
+  Mutex *m;
+  void **items;
+  u_int32_t size;
+  u_int32_t cur_items;
+  u_int32_t head;
+  u_int32_t tail;
+
  public:
-  FifoStringsQueue(u_int32_t queue_size);
-  ~FifoStringsQueue();
-  bool enqueue(const char *item);
-  char* dequeue();
+  FifoQueue(u_int32_t queue_size);
+  ~FifoQueue();
+  bool enqueue(void *item);
+  void* dequeue();
+  inline bool canEnqueue()      { return(cur_items < size); }
+  inline u_int32_t getLength()  { return(cur_items);        }
+  inline u_int32_t getSize()    { return(size);             }
 };
 
 #endif /* _FIFO_QUEUE_H */

@@ -21,68 +21,38 @@
 
 #include "ntop_includes.h"
 
-// #define DEBUG_FIFO_QUEUE
-
-FifoStringsQueue::FifoStringsQueue(u_int32_t queue_size) {
-  m = new Mutex();
-  size = queue_size;
-  head = tail = 0;
-  cur_items = 0;
-
-  items = (char**)calloc(size, sizeof(char**));
-  if(items == NULL) throw 1;
+FifoStringsQueue::FifoStringsQueue(u_int32_t queue_size) : FifoQueue(queue_size) {
+  
 }
 
 /* ******************************************* */
 
 FifoStringsQueue::~FifoStringsQueue() {
-  delete m;
-
-  while(cur_items > 0) {
-    if(items[head])
-      free(items[head]);
-
-    cur_items--;
-
-#ifdef DEBUG_FIFO_QUEUE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queue free [pos=%d, remaining=%d]", head, cur_items);
-#endif
-
-    if(++head >= size)
-      head = 0;
-  }
-
-  free(items);
+  char *tmp;
+  
+  while ((tmp = dequeue()) != NULL)
+    free(tmp);
 }
 
 /* ******************************************* */
 
 /* NOTE: strdup is performed internally. */
 bool FifoStringsQueue::enqueue(const char *item) {
+  char *item_copy;
   bool rv = false;
 
-  m->lock(__FILE__, __LINE__);
+  if (item == NULL)
+    return rv;
 
-  if(canEnqueue() && item) {
-    items[tail] = strdup(item);
+  item_copy = strdup(item);
+  if (item_copy != NULL) {
 
-    if(items[tail]) {
-      rv = true;
-      cur_items++;
-#ifdef DEBUG_FIFO_QUEUE
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueue [pos=%d, new_length=%d]", tail, cur_items);
-#endif
+    rv = FifoQueue::enqueue((void*) item_copy);
 
-      if(++tail >= size)
-        tail = 0;
-    }
-  } else {
-#ifdef DEBUG_FIFO_QUEUE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueue: queue full [%d items], skipping", cur_items);
-#endif
+    if (rv == false)
+      free(item_copy);
   }
 
-  m->unlock(__FILE__, __LINE__);
   return(rv);
 }
 
@@ -90,31 +60,7 @@ bool FifoStringsQueue::enqueue(const char *item) {
 
 /* NOTE: the caller should free the returned string */
 char* FifoStringsQueue::dequeue() {
-  char *rv;
-
-  if(!cur_items) {
-#ifdef DEBUG_FIFO_QUEUE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeue: no items [head=%d, tail=%d]", head, tail);
-#endif
-    return(NULL);
-  }
-
-  m->lock(__FILE__, __LINE__);
-
-  rv = items[head];
-  items[head] = NULL;
-
-  cur_items--;
-
-#ifdef DEBUG_FIFO_QUEUE
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeue: [pos=%d, item=%s, remaining=%d]", head, rv, cur_items);
-#endif
-
-  if(++head >= size)
-    head = 0;
-
-  m->unlock(__FILE__, __LINE__);
-  return(rv);
+  return (char*) FifoQueue::dequeue(); 
 }
 
 /* make test_fifo_queue */
