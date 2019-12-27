@@ -390,6 +390,12 @@ local lang = {
       ["system"] = "Sistema",
     },
   },
+  ["scripts_list"] = {
+    ["scripts_x"] = "Scripts %{subdir} - %{config}",
+    ["are_you_sure"] = "Le modifiche non sono ancora state salvate. Sei veramente sicuro di volere chiudere la finestra?",
+    ["config"] = "Configurazione",
+    ["reset_default"] = "Ripristina Default"
+  },
   ["contacts_page"] = {
     ["client_address"] = "Indirizzo client",
     ["client_contacts_initiator"] = "Contatti del Client (Iniziatore)",

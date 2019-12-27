@@ -19,10 +19,6 @@ local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
 local confset_name = _GET["confset_name"]
 
-page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=script_subdir, config=confset_name }))
-
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
 local titles = {
    ["host"] = i18n("config_scripts.granularities.host"),
    ["snmp_device"] = i18n("config_scripts.granularities.snmp_device"),
@@ -32,6 +28,11 @@ local titles = {
    ["network"] = i18n("config_scripts.granularities.network"),
    ["syslog"] = i18n("config_scripts.granularities.syslog")
 }
+
+page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_subdir], config=confset_name }))
+
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
 
 if confset_id == nil or confset_id == "" then
    print([[<div class='alert alert-danger'>
@@ -47,9 +48,9 @@ else
       <div class='container-fluid mt-3'>
          <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-               <li class="breadcrumb-item" aria-current="page"><a href='/lua/config_list.lua'>Config List</a></li>
+               <li class="breadcrumb-item" aria-current="page"><a href='/lua/config_list.lua'>]].. i18n("config_scripts.config_list", {}) ..[[</a></li>
                <li class="breadcrumb-item" aria-current="page"><a href='/lua/config_list.lua?subdir=]].. script_subdir ..[['>]].. titles[script_subdir] ..[[</a></li>
-               <li class="breadcrumb-item active" aria-current="page">Config <b>]].. confset_name ..[[</b></li>
+               <li class="breadcrumb-item active" aria-current="page">]].. i18n("scripts_list.config", {}) ..[[ <b>]].. confset_name ..[[</b></li>
             </ol>
          </nav>   
          <div class='row'>
@@ -58,9 +59,9 @@ else
                         <thead>
                            <tr>
                               <th>]].. i18n("name", {}) ..[[</th>
-                              <th>Description</th>
-                              <th>Enabled</th>
-                              <th>Action</th>
+                              <th>]].. i18n("description", {}) ..[[</th>
+                              <th>]].. i18n("enabled", {}) ..[[</th>
+                              <th>]].. i18n("action", {})..[[</th>
                            </tr>
                         </thead>
                         <tbody>
@@ -78,14 +79,14 @@ else
          <div class="modal-dialog modal-lg ">
             <div class="modal-content">
                <div class="modal-header">
-                  <h5 class="modal-title">Script / Config <span id='script-name'></span></h5>
+                  <h5 class="modal-title">Script / ]].. i18n("scripts_list.config", {}) ..[[ <span id='script-name'></span></h5>
                </div>
                <div class="modal-body">
                   <form id='edit-form' method='post'>
                      <table class='table table-borderless' id='script-config-editor'>
                         <thead>
                            <tr>
-                              <th class='text-center'>Enabled</th>
+                              <th class='text-center'>]].. i18n("enabled", {}) ..[[</th>
                            </tr>
                         </thead>
                         <tbody></tbody>
@@ -93,7 +94,7 @@ else
                   </form>
                </div>
                <div class="modal-footer">
-                  <button id='btn-reset' title='Reset Default ntopng values' type='button' class='btn btn-danger mr-auto'>Reset Default</button>
+                  <button id='btn-reset' title='Reset Default ntopng values' type='button' class='btn btn-danger mr-auto'>]].. i18n("scripts_list.reset_default") ..[[</button>
                   <button type="button" title=']].. i18n("cancel", {}) ..[[' class="btn btn-secondary" data-dismiss="modal">]].. i18n("cancel", {}) ..[[</button>
                   <button id="btn-apply" title=']].. i18n("apply", {}) ..[[' type="button" class="btn btn-primary" data-dismiss="modal">]].. i18n("apply", {}) ..[[</button>
                </div>
@@ -268,7 +269,7 @@ else
             });
 
             $("#edit-form").areYouSure({
-               'message':'Your edits are not saved yet! Do you really want to close this dialog?'
+               'message':']].. i18n("scripts_list.are_you_sure", {}) ..[['
             });
 
             // handle modal-script close event
@@ -329,7 +330,7 @@ else
 
                      const build_input_box = ({input_builder, field_max, field_min, fields_unit, field_operator}) => {
 
-                        if (input_builder == '') {
+                        if (input_builder == '' || input_builder == undefined || input_builder == null) {
                            return $("<p>Not enabled!</p>")
                         }
                         else if (input_builder == 'threshold_cross') {
@@ -565,7 +566,7 @@ else
             });
 
             /**
-            * Count the scripts number inside the table
+            * Count the scripts that are enabled, disabled inside the script table
             */
             const count_scripts = () => {
 
@@ -588,9 +589,9 @@ else
 
                });
 
-               $all_button.html(`All (${enabled_count + disabled_count})`)
-               $enabled_button.html(`Enabled (${enabled_count})`);
-               $disabled_button.html(`Disabled (${disabled_count})`);
+               $all_button.html(`]].. i18n("all", {}) ..[[ (${enabled_count + disabled_count})`)
+               $enabled_button.html(`]].. i18n("enabled", {}) ..[[ (${enabled_count})`);
+               $disabled_button.html(`]].. i18n("disabled", {}) ..[[ (${disabled_count})`);
             }
 
          });

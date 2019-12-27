@@ -1,5 +1,6 @@
 local lang = {
   ["abort"] = "Abort",
+  ["action"] = "Action",
   ["actions"] = "Actions",
   ["activities"] = "Activities",
   ["activity"] = "Activity",
@@ -41,6 +42,7 @@ local lang = {
   ["day"] = "Day",
   ["define"] = "Define",
   ["delete"] = "Delete",
+  ["description"] = "Description",
   ["destination"] = "Destination",
   ["device_protocols_description"] = "In this page it is possible to configure the list of acceptable applications per device type and direction (device as client or server with respect to the application). By enabling Device Applications Alerts in the Alerts configuration page under Preferences, alerts are generated when an anomalous application is detected.",
   ["devices"] = "Devices",
@@ -57,6 +59,7 @@ local lang = {
   ["duration"] = "Duration",
   ["egress"] = "Egress",
   ["empty"] = "Empty",
+  ["enabled"] = "Enabled",
   ["end"] = "End",
   ["enterpriseOnly"] = "This feature is only available in the ntopng Enterprise edition",
   ["error"] = "Error",
@@ -3086,6 +3089,9 @@ local lang = {
     ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
   },
   ["scripts_list"] = {
+    ["are_you_sure"] = "Your edits are not saved yet! Do you really want to close this dialog?",
+    ["config"] = "Config",
+    ["reset_default"] = "Reset Default",
     ["scripts_x"] = "Scripts %{subdir} - %{config}",
   },
   ["sflows_stats"] = {
