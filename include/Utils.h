@@ -201,6 +201,7 @@ class Utils {
 #ifdef __linux__
   static void deferredExec(const char * const command);
 #endif
+  static void tlv2lua(lua_State *vm, ndpi_serializer *serializer);
 };
 
 #endif /* _UTILS_H_ */

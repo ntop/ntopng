@@ -4144,3 +4144,93 @@ void Utils::deferredExec(const char * const command) {
 
 /* ****************************************************** */
 
+void Utils::tlv2lua(lua_State *vm, ndpi_serializer *serializer) {
+  ndpi_deserializer deserializer;
+  ndpi_serialization_type kt, et;
+  int rc;
+
+  rc = ndpi_init_deserializer(&deserializer, serializer);
+
+  if (rc == -1)
+    return;
+
+  while((et = ndpi_deserialize_get_item_type(&deserializer, &kt)) != ndpi_serialization_unknown) {
+    char key[64];
+    u_int32_t k32;
+    ndpi_string ks, vs;
+    u_int32_t v32;
+    int32_t i32;
+    float f = 0;
+    u_int64_t v64;
+    int64_t i64;
+    u_int8_t bkp;
+
+    if (et == ndpi_serialization_end_of_record) {
+      ndpi_deserialize_next(&deserializer);
+      return;
+    }
+
+    switch(kt) {
+      case ndpi_serialization_uint32:
+        ndpi_deserialize_key_uint32(&deserializer, &k32);
+        snprintf(key, sizeof(key), "%u", k32);
+      break;
+
+      case ndpi_serialization_string:
+        ndpi_deserialize_key_string(&deserializer, &ks);
+        bkp = ks.str[ks.str_len];
+        ks.str[ks.str_len] = '\0';
+        snprintf(key, sizeof(key), "%s", ks.str);
+        ks.str[ks.str_len] = bkp;
+      break;
+
+      default:
+        /* Unexpected type */
+        return;
+    }
+
+    switch(et) {
+      case ndpi_serialization_uint32:
+        ndpi_deserialize_value_uint32(&deserializer, &v32);
+        lua_push_int32_table_entry(vm, key, v32);
+        break;
+
+      case ndpi_serialization_uint64:
+        ndpi_deserialize_value_uint64(&deserializer, &v64);
+        lua_push_uint64_table_entry(vm, key, v64);
+        break;
+
+      case ndpi_serialization_int32:
+        ndpi_deserialize_value_int32(&deserializer, &i32);
+        lua_push_int32_table_entry(vm, key, i32);
+        break;
+
+      case ndpi_serialization_int64:
+        ndpi_deserialize_value_int64(&deserializer, &i64);
+        lua_push_uint64_table_entry(vm, key, i64);
+        break;
+
+      case ndpi_serialization_float:
+        ndpi_deserialize_value_float(&deserializer, &f);
+        lua_push_float_table_entry(vm, key, f);
+        break;
+
+      case ndpi_serialization_string:
+        ndpi_deserialize_value_string(&deserializer, &vs);
+        bkp = vs.str[vs.str_len];
+        vs.str[vs.str_len] = '\0';
+        lua_push_str_table_entry(vm, key, vs.str);
+        vs.str[vs.str_len] = bkp;
+        break;
+
+      default:
+        /* Unexpected type */
+        return;
+    }
+
+    /* Move to the next element */    
+    ndpi_deserialize_next(&deserializer);
+  }
+}
+
+/* ****************************************************** */

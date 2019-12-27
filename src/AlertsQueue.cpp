@@ -29,13 +29,18 @@ AlertsQueue::AlertsQueue(NetworkInterface *_iface) {
 
 /* **************************************************** */
 
-void AlertsQueue::pushAlertJson(const char *atype, json_object *alert) {
+/*
+ * Note: consumer should destroy the tlv with:
+ * ndpi_term_serializer(tlv);
+ * free(tlv);
+ */
+void AlertsQueue::pushAlertJson(const char *atype, ndpi_serializer *alert) {
   /* These are mandatory fields, present in all the pushed alerts */
-  json_object_object_add(alert, "ifid", json_object_new_int(iface->get_id()));
-  json_object_object_add(alert, "alert_type", json_object_new_string(atype));
-  json_object_object_add(alert, "alert_tstamp", json_object_new_int64(time(NULL)));
+  ndpi_serialize_string_uint32(alert, "ifid", iface->get_id());
+  ndpi_serialize_string_string(alert, "alert_type", atype);
+  ndpi_serialize_string_uint64(alert, "alert_tstamp", time(NULL));
 
-  if(!ntop->getInternalAlertsQueue()->enqueue(json_object_to_json_string(alert)))
+  if(!ntop->getInternalAlertsQueue()->enqueue(alert))
     iface->incNumDroppedAlerts(1);
 }
 
@@ -43,12 +48,14 @@ void AlertsQueue::pushAlertJson(const char *atype, json_object *alert) {
 
 void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
     u_int32_t ip, u_int32_t router_ip, int vlan_id) {
-  json_object *jobject;
+  ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
     return;
 
-  if((jobject = json_object_new_object())) {
+  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
+
+  if (tlv) {
     char cli_mac_s[32], sender_mac_s[32];
     char ipbuf[64], router_ip_buf[64], *ip_s, *router_ip_s;
 
@@ -60,14 +67,15 @@ void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
     ntop->getTrace()->traceEvent(TRACE_INFO, "IP not in DHCP range: %s (mac=%s, sender=%s, router=%s)",
 				       ipbuf, cli_mac_s, sender_mac_s, router_ip_s);
 
-    json_object_object_add(jobject, "client_mac", json_object_new_string(cli_mac_s));
-    json_object_object_add(jobject, "sender_mac", json_object_new_string(sender_mac_s));
-    json_object_object_add(jobject, "client_ip", json_object_new_string(ip_s));
-    json_object_object_add(jobject, "router_ip", json_object_new_string(router_ip_s));
-    json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
 
-    pushAlertJson("misconfigured_dhcp_range", jobject);
-    json_object_put(jobject);
+    ndpi_serialize_string_string(tlv, "client_mac", cli_mac_s);
+    ndpi_serialize_string_string(tlv, "sender_mac", sender_mac_s);
+    ndpi_serialize_string_string(tlv, "client_ip", ip_s);
+    ndpi_serialize_string_string(tlv, "router_ip", router_ip_s);
+    ndpi_serialize_string_int32(tlv, "vlan_id", vlan_id);
+
+    pushAlertJson("misconfigured_dhcp_range", tlv);
   }
 }
 
@@ -75,30 +83,35 @@ void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
 
 void AlertsQueue::pushSlowPeriodicActivity(u_long msec_diff,
     u_long max_duration_ms, const char *activity_path) {
-  json_object *jobject;
+  ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
     return;
 
-  if((jobject = json_object_new_object())) {
-    json_object_object_add(jobject, "duration_ms", json_object_new_int64(msec_diff));
-    json_object_object_add(jobject, "max_duration_ms", json_object_new_int64(max_duration_ms));
-    json_object_object_add(jobject, "path", json_object_new_string(activity_path));
+  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-    pushAlertJson("slow_periodic_activity", jobject);
-    json_object_put(jobject);
+  if (tlv) {
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
+
+    ndpi_serialize_string_int64(tlv, "duration_ms", msec_diff);
+    ndpi_serialize_string_int64(tlv, "max_duration_ms", max_duration_ms);
+    ndpi_serialize_string_string(tlv, "path", activity_path);
+
+    pushAlertJson("slow_periodic_activity", tlv);
   }
 }
 
 /* **************************************************** */
 
 void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_mac, u_int8_t *new_mac) {
-  json_object *jobject;
+  ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
     return;
 
-  if((jobject = json_object_new_object())) {
+  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
+
+  if (tlv) {
     char oldmac_s[32], newmac_s[32], ipbuf[32], *ip_s;
 
     Utils::formatMac(old_mac, oldmac_s, sizeof(oldmac_s));
@@ -108,12 +121,13 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_m
     ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s: modified MAC association %s -> %s",
 				       ip_s, oldmac_s, newmac_s);
 
-    json_object_object_add(jobject, "ip", json_object_new_string(ip_s));
-    json_object_object_add(jobject, "old_mac", json_object_new_string(oldmac_s));
-    json_object_object_add(jobject, "new_mac", json_object_new_string(newmac_s));
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
 
-    pushAlertJson("mac_ip_association_change", jobject);
-    json_object_put(jobject);
+    ndpi_serialize_string_string(tlv, "ip", ip_s);
+    ndpi_serialize_string_string(tlv, "old_mac", oldmac_s);
+    ndpi_serialize_string_string(tlv, "new_mac", newmac_s);
+
+    pushAlertJson("mac_ip_association_change", tlv);
   }
 }
 
@@ -121,12 +135,14 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_m
 
 void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, const u_int8_t *dst_mac,
     u_int32_t spa, u_int32_t tpa, int vlan_id) {
-  json_object *jobject;
+  ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
     return;
 
-  if((jobject = json_object_new_object())) {
+  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
+
+  if (tlv) {
     char src_mac_s[32], dst_mac_s[32], spa_buf[32], tpa_buf[32];
     char *spa_s, *tpa_s;
 
@@ -135,68 +151,78 @@ void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, cons
     spa_s = Utils::intoaV4(spa, spa_buf, sizeof(spa_buf));
     tpa_s = Utils::intoaV4(tpa, tpa_buf, sizeof(tpa_buf));
 
-    json_object_object_add(jobject, "vlan_id", json_object_new_int(vlan_id));
-    json_object_object_add(jobject, "src_mac", json_object_new_string(src_mac_s));
-    json_object_object_add(jobject, "dst_mac", json_object_new_string(dst_mac_s));
-    json_object_object_add(jobject, "spa", json_object_new_string(spa_s));
-    json_object_object_add(jobject, "tpa", json_object_new_string(tpa_s));
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
 
-    pushAlertJson("broadcast_domain_too_large", jobject);
-    json_object_put(jobject);
+    ndpi_serialize_string_int32(tlv, "vlan_id", vlan_id);
+    ndpi_serialize_string_string(tlv, "src_mac", src_mac_s);
+    ndpi_serialize_string_string(tlv, "dst_mac", dst_mac_s);
+    ndpi_serialize_string_string(tlv, "spa", spa_s);
+    ndpi_serialize_string_string(tlv, "tpa", tpa_s);
+
+    pushAlertJson("broadcast_domain_too_large", tlv);
   }
 }
 
 /* **************************************************** */
 
 void AlertsQueue::pushRemoteToRemoteAlert(Host *host) {
-  json_object *jobject;
+  ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
     return;
 
-  if((jobject = json_object_new_object())) {
+  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
+
+  if (tlv) {
     char ipbuf[64], macbuf[32];
 
-    json_object_object_add(jobject, "host", json_object_new_string(host->get_ip()->print(ipbuf, sizeof(ipbuf))));
-    json_object_object_add(jobject, "vlan", json_object_new_int(host->get_vlan_id()));
-    json_object_object_add(jobject, "mac_address", json_object_new_string(host->getMac() ? host->getMac()->print(macbuf, sizeof(macbuf)) : ""));
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
 
-    pushAlertJson("remote_to_remote", jobject);
-    json_object_put(jobject);
+    ndpi_serialize_string_string(tlv, "host", host->get_ip()->print(ipbuf, sizeof(ipbuf)));
+    ndpi_serialize_string_int32(tlv, "vlan", host->get_vlan_id());
+    ndpi_serialize_string_string(tlv, "mac_address", host->getMac() ? host->getMac()->print(macbuf, sizeof(macbuf)) : "");
+
+    pushAlertJson("remote_to_remote", tlv);
   }
 }
 
 /* **************************************************** */
 
 void AlertsQueue::pushLoginTrace(const char*user, bool authorized) {
-  json_object *jobject;
+  ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
     return;
 
-  if((jobject = json_object_new_object())) {
-    json_object_object_add(jobject, "scope", json_object_new_string("login"));
-    json_object_object_add(jobject, "user", json_object_new_string(user));
+  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-    pushAlertJson(authorized ? "user_activity" : "login_failed", jobject);
-    json_object_put(jobject);
+  if (tlv) {
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
+
+    ndpi_serialize_string_string(tlv, "scope", "login");
+    ndpi_serialize_string_string(tlv, "user", user);
+
+    pushAlertJson(authorized ? "user_activity" : "login_failed", tlv);
   }
 }
 
 /* **************************************************** */
 
 void AlertsQueue::pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queue_dropped) {
-  json_object *jobject;
+  ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
     return;
 
-  if((jobject = json_object_new_object())) {
-    json_object_object_add(jobject, "tot",     json_object_new_int(queue_len));
-    json_object_object_add(jobject, "pct",     json_object_new_int(queue_len_pct));
-    json_object_object_add(jobject, "dropped", json_object_new_int(queue_dropped));
+  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-    pushAlertJson("nfq_flushed", jobject);
-    json_object_put(jobject);
+  if (tlv) {
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
+
+    ndpi_serialize_string_int32(tlv, "tot",     queue_len);
+    ndpi_serialize_string_int32(tlv, "pct",     queue_len_pct);
+    ndpi_serialize_string_int32(tlv, "dropped", queue_dropped);
+
+    pushAlertJson("nfq_flushed", tlv);
   }
 }

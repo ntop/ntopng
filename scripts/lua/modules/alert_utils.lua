@@ -2548,24 +2548,18 @@ function checkStoreAlertsFromC(deadline)
   end
 
   while(os.time() <= deadline) do
-    local message = ntop.popInternalAlerts()
+    local alert = ntop.popInternalAlerts()
 
-    if((message == nil) or (message == "")) then
+    if alert == nil then
       break
     end
 
-    if(verbose) then print(message.."\n") end
+    if(verbose) then tprint(alert) end
 
-    local alert = json.decode(message)
+    local entity_info, type_info = processStoreAlertFromQueue(alert)
 
-    if(alert == nil) then
-      if(verbose) then io.write("JSON Decoding error: "..message.."\n") end
-    else
-      local entity_info, type_info = processStoreAlertFromQueue(alert)
-
-      if((type_info ~= nil) and (entity_info ~= nil)) then
-        alerts_api.store(entity_info, type_info, alert.alert_tstamp)
-      end
+    if((type_info ~= nil) and (entity_info ~= nil)) then
+      alerts_api.store(entity_info, type_info, alert.alert_tstamp)
     end
   end
 end

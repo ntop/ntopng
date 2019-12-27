@@ -9739,10 +9739,14 @@ static int ntop_pop_alert_notification(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_pop_internal_alerts(lua_State* vm) {
-  char *internal_alerts = ntop->getInternalAlertsQueue()->dequeue();
+  ndpi_serializer *internal_alerts = (ndpi_serializer*) ntop->getInternalAlertsQueue()->dequeue();
 
-  if(internal_alerts) {
-    lua_pushstring(vm, internal_alerts);
+  if(internal_alerts != NULL) {
+
+    lua_newtable(vm);
+    Utils::tlv2lua(vm, (ndpi_serializer*) internal_alerts);
+
+    ndpi_term_serializer(internal_alerts);
     free(internal_alerts);
   } else
     lua_pushnil(vm);

@@ -30,7 +30,7 @@ class AlertsQueue {
  private:
   NetworkInterface *iface;
 
-  void pushAlertJson(const char *atype, json_object *alert);
+  void pushAlertJson(const char *atype, ndpi_serializer *alert);
 
  public:
   AlertsQueue(NetworkInterface *iface);
