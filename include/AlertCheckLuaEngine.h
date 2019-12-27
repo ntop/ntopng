@@ -28,7 +28,7 @@ class AlertCheckLuaEngine : public LuaEngine {
   char script_path[MAX_PATH];
   u_int num_calls;
   ticks total_ticks, tps /* Ticks per second */;
-  virtual void lua_stats_skipped(lua_State *vm) const {};
+  virtual void lua_stats_detail(lua_State *vm) const {};
 
  protected:
   NetworkInterface *iface;

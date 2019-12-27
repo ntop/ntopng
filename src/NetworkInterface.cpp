@@ -2695,20 +2695,12 @@ void NetworkInterface::periodicStatsUpdate() {
 
 /* **************************************************** */
 
-bool NetworkInterface::quick_periodic_ht_state_update(time_t deadline, GenericHashEntry *ghe) {
-  /* TODO: optimize time(NULL) */
-  return time(NULL) + 2 >= deadline;
-}
-
-/* **************************************************** */
-
 bool NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   NetworkInterface *iface = periodic_ht_state_update_user_data->iface;
-  bool quick_update = quick_periodic_ht_state_update(periodic_ht_state_update_user_data->deadline, node);
   bool skip_user_scripts = periodic_ht_state_update_user_data->skip_user_scripts;
 
-  node->periodic_hash_entry_state_update(user_data, quick_update, skip_user_scripts);
+  node->periodic_hash_entry_state_update(user_data, skip_user_scripts);
 
   /* If this is a viewed interface, it is necessary to also call this method
      for the overlying view interface to make sure its counters (e.g., hosts, ases, vlans)
@@ -2717,7 +2709,7 @@ bool NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry
   if(iface->isViewed())
     iface->viewedBy()->generic_periodic_hash_entry_state_update(node, user_data);
 
-  return quick_update;
+  return false; // TODO: possibly need to rework this to the caller can ignore the return value
 }
 
 /* **************************************************** */
@@ -5018,7 +5010,7 @@ static bool process_all_active_flows_walker(GenericHashEntry *node, void *user_d
 
   guess_all_ndpi_protocols_walker(flow, iface);
 
-  flow->postFlowSetIdle(&tv, false);
+  flow->postFlowSetIdle(&tv);
 
   return(false /* keep walking */);
 }

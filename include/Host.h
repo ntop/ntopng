@@ -219,7 +219,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   char* get_tskey(char *buf, size_t bufsize);
 
   bool is_hash_entry_state_idle_transition_ready() const;
-  void periodic_hash_entry_state_update(void *user_data, bool quick, bool skip_user_scripts);
+  void periodic_hash_entry_state_update(void *user_data, bool skip_user_scripts);
   void periodic_stats_update(void *user_data, bool quick);
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,

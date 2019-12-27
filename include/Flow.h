@@ -234,18 +234,16 @@ class Flow : public GenericHashEntry {
    * @param flow_lua_call The time of the call that should be performed on the flow
    * @param tv Pointer to a timeval struct indicating the current time at which the update is performed
    * @param periodic_ht_state_update_user_data Pointer to a structure holding update-related data (including the lua engine)
-   * @param quick Whether lua calls should be performed in quick mode as there is no more time left to fully perform them
    */  
-  bool performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick);
+  bool performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data);
   /**
    * @brief Method to possibly call lua scripts on the flow
    * @details This method evaluates the states of the flow and possibly calls lua functions on this flow.
    *
    * @param tv Pointer to a timeval struct indicating the current time at which the update is performed
    * @param periodic_ht_state_update_user_data Pointer to a structure holding update-related data (including the lua engine)
-   * @param quick Whether lua calls should be performed in quick mode as there is no more time left to fully perform them
    */
-  void performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick);
+  void performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data);
 
  public:
   Flow(NetworkInterface *_iface,
@@ -448,7 +446,7 @@ class Flow : public GenericHashEntry {
   /* Methods to handle the flow in-memory lifecycle */
   void set_hash_entry_state_idle();
   bool is_hash_entry_state_idle_transition_ready() const;
-  void periodic_hash_entry_state_update(void *user_data, bool quick, bool skip_user_scripts);
+  void periodic_hash_entry_state_update(void *user_data, bool skip_user_scripts);
   void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
   void periodic_stats_update(void *user_data, bool quick);
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
@@ -625,7 +623,7 @@ class Flow : public GenericHashEntry {
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
   void housekeep(time_t t);
-  void postFlowSetIdle(const struct timeval *tv, bool quick);
+  void postFlowSetIdle(const struct timeval *tv);
   void setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction);
   inline const ContainerInfo* getClientContainerInfo() const {
     return cli_ebpf && cli_ebpf->container_info_set ? &cli_ebpf->container_info : NULL;

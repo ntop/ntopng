@@ -29,7 +29,6 @@ local calculate_stats = false
 local flows_config = nil
 
 local available_modules = nil
-local benchmarks = {}
 
 -- Keeps information about the current predominant alerted status
 local alerted_status
@@ -48,6 +47,7 @@ local stats = {
    num_complete_scripts = 0,	-- Number of invoked scripts on flows with THW completed
    num_partial_scripts = 0,	-- Number of invoked scripts on flows with THW not-completed
    num_try_alerts = 0,  	-- Number of calls to triggerFlowAlert
+   num_skipped_to_time = 0,     -- Number of calls skipped due to no time left
    partial_scripts = {},	-- List of scripts invoked on flow with THW not-completed
 }
 
@@ -56,7 +56,7 @@ local stats = {
 local function addL4Callaback(l4_proto, hook_name, script_key, callback)
    local l4_scripts = available_modules.l4_hooks[l4_proto]
 
-   if(l4_scripts == nil) then
+   if not l4_scripts then
       l4_scripts = {}
       available_modules.l4_hooks[l4_proto] = l4_scripts
    end
@@ -94,10 +94,10 @@ function setup()
       for script_key, callback in pairs(hooks) do
          local script = available_modules.modules[script_key]
 
-         if(script.l4_proto ~= nil) then
+         if script.l4_proto then
             local l4_proto = l4_proto_to_id(script.l4_proto)
 
-            if(l4_proto == nil) then
+            if not l4_proto then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Unknown l4_proto '%s' in module '%s', skipping", script.l4_proto, script_key))
             else
                addL4Callaback(l4_proto, hook_name, script_key, callback)
@@ -108,7 +108,7 @@ function setup()
             for _, l4_proto in pairs(l4_keys) do
                local l4_proto = l4_proto[3]
 
-               if(l4_proto > 0) then
+               if l4_proto > 0 then
                   addL4Callaback(l4_proto, hook_name, script_key, callback)
                end
             end
@@ -129,11 +129,11 @@ function teardown()
       print("flow.lua:teardown() called\n")
    end
 
-   if(available_modules ~= nil) then
+   if available_modules then
       user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
    end
 
-   if(calculate_stats) then
+   if calculate_stats then
       tprint(stats)
    end
 end
@@ -148,7 +148,7 @@ local function augumentFlowStatusInfo(l4_proto, flow_status)
    flow_status["ntopng.key"] = flow.getKey()
    flow_status["hash_entry_id"] = flow.getHashEntryId()
 
-   if(l4_proto == 1 --[[ ICMP ]]) then
+   if l4_proto == 1 --[[ ICMP ]] then
       -- NOTE: this information is parsed by getFlowStatusInfo()
       flow_status["icmp"] = flow.getICMPStatusInfo()
    end
@@ -164,8 +164,8 @@ local function triggerFlowAlert(now, l4_proto)
    local status_id = alerted_status.status_id
 
    -- Ensure that this status was not disabled by the user on the client/server
-   if(((cli_disabled_status ~= 0) and (ntop.bitmapIsSet(cli_disabled_status, status_id))) or
-      ((srv_disabled_status ~= 0) and (ntop.bitmapIsSet(srv_disabled_status, status_id)))) then
+   if (cli_disabled_status ~= 0 and ntop.bitmapIsSet(cli_disabled_status, status_id)) or
+       (srv_disabled_status ~= 0 and ntop.bitmapIsSet(srv_disabled_status, status_id)) then
 
       if do_trace then
          traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format(
@@ -183,7 +183,7 @@ local function triggerFlowAlert(now, l4_proto)
 
    alerted_status_msg = alerted_status_msg or {}
 
-   if(type(alerted_status_msg) == "table") then
+   if type(alerted_status_msg) == "table" then
       -- NOTE: porting this to C is not feasable as the lua table can contain
       -- arbitrary data
       augumentFlowStatusInfo(l4_proto, alerted_status_msg)
@@ -202,6 +202,42 @@ end
 
 -- #################################################################
 
+local function in_time(deadline)
+   -- Calling os.time() costs per call ~0.033 usecs so nothing expensive to be called every time
+   --
+   -- This is the code used to profile
+   --
+   -- local num_calls = 1000000
+   -- local start_ticks = ntop.getticks()
+   -- for i = 0, num_calls do
+   --    local a = os.time()
+   -- end
+   -- local end_ticks = ntop.getticks()
+   -- traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("usecs [ticks]: %.8f", (end_ticks - start_ticks) / ntop.gettickspersec() / num_calls * 1000 * 1000))
+
+   local res
+   local time_left = deadline - os.time()
+
+   if time_left >= 4 then
+      -- There's enough time to run every script
+      res = true
+   elseif time_left > 1 then
+      -- Start skipping unidirectional flows as the deadline is approaching
+      res = flow.getPacketsRcvd() > 0
+   else
+      -- No time left
+      res = false
+   end
+
+   if not res and calculate_stats then
+      stats.num_skipped_to_time = stats.num_skipped_to_time + 1
+   end
+
+   return res
+end
+
+-- #################################################################
+
 -- Function for the actual module execution. Iterates over available (and enabled)
 -- modules, calling them one after one.
 -- @param l4_proto the L4 protocol of the flow
@@ -209,18 +245,21 @@ end
 -- @param app_id the L7 app protocol of the flow
 -- @param mod_fn the callback to call
 -- @return true if some module was called, false otherwise
-local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
+local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, update_ctr)
    if calculate_stats then
       stats.num_invocations = stats.num_invocations + 1
    end
 
-   if not(available_modules) then
-      return
+   if not available_modules then
+      return true
+   end
+
+   if not in_time(deadline) then
+      return false -- No time left to execute scripts
    end
 
    local all_modules = available_modules.modules
    local hooks = available_modules.l4_hooks[l4_proto]
-   local rv = false
    local prev_predominant_status = flow_consts.getStatusInfo(flow.getPredominantStatus())
 
    -- Reset predominant status information
@@ -230,16 +269,16 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    recalculate_predominant_status = false
    predominant_status = prev_predominant_status
 
-   if(hooks ~= nil) then
+   if hooks then
       hooks = hooks[mod_fn]
    end
 
-   if(hooks == nil) then
+   if not hooks then
       if do_trace then print(string.format("No flow.lua modules, skipping %s(%d) for %s\n", mod_fn, l4_proto, shortFlowLabel(flow.getInfo()))) end
-      return(false)
+      return true
    end
 
-   if(do_trace) then print(string.format("%s()[START]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), prev_predominant_status.status_id)) end
+   if do_trace then print(string.format("%s()[START]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), prev_predominant_status.status_id)) end
 
    local now = os.time()
    local info = nil
@@ -248,14 +287,14 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
       info = flow.getInfo()
    end
 
-   local twh_in_progress = ((l4_proto == 6 --[[TCP]]) and (not flow.isTwhOK()))
+   local twh_in_progress = l4_proto == 6 --[[TCP]] and not flow.isTwhOK()
 
    for mod_key, hook_fn in pairs(hooks) do
       local script = all_modules[mod_key]
 
-      if(mod_fn == "periodicUpdate") then
+      if mod_fn == "periodicUpdate" then
 	 -- Check if the script should be invoked
-	 if((update_ctr % script.periodic_update_divisor) ~= 0) then
+	 if (update_ctr % script.periodic_update_divisor) ~= 0 then
 	    if do_trace then
 	       print(string.format("%s() [check: %s]: skipping periodicUpdate [ctr: %s, divisor: %s, frequency: %s]\n",
 		  mod_fn, mod_key, update_ctr, script.periodic_update_divisor, script.periodic_update_seconds))
@@ -266,7 +305,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
       end
 
       -- Check if the script requires the flow to have successfully completed the three-way handshake
-      if(script.three_way_handshake_ok and twh_in_progress) then
+      if script.three_way_handshake_ok and twh_in_progress then
 	 -- Check if the script wants the three way handshake completed
 	 if do_trace then
 	    print(string.format("%s() [check: %s]: skipping flow with incomplete three way handshake\n", mod_fn, mod_key))
@@ -277,7 +316,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 
       local script_l7 = script.l7_proto_id
 
-      if((script_l7 ~= nil) and (master_id ~= script_l7) and (app_id ~= script_l7)) then
+      if script_l7 and master_id ~= script_l7 and app_id ~= script_l7 then
 	 if do_trace then
 	    print(string.format("%s() [check: %s]: skipping flow with proto=%s/%s [wants: %s]\n", mod_fn, mod_key, master_id, app_id, script_l7))
 	 end
@@ -301,25 +340,24 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
       local conf = user_scripts.getConfiguration(script)
 
       hook_fn(now, conf.script_conf)
-      rv = true
 
       ::continue::
    end
 
-   if(recalculate_predominant_status) then
+   if recalculate_predominant_status then
       -- The predominant status has changed and we've lost track of it
       -- This is the worst case, it must be recalculated manually
       predominant_status = flow_consts.getPredominantStatus(flow.getStatus())
    end
 
-   if(do_trace) then print(string.format("%s()[END]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), predominant_status.status_id)) end
+   if do_trace then print(string.format("%s()[END]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), predominant_status.status_id)) end
 
-   if(prev_predominant_status ~= predominant_status) then
+   if prev_predominant_status ~= predominant_status then
       -- The predominant status has changed, updated the flow
       flow.setPredominantStatus(predominant_status.status_id)
    end
 
-   if((alerted_status ~= nil) and flow.canTriggerAlert()) then
+   if alerted_status and flow.canTriggerAlert() then
       triggerFlowAlert(now, l4_proto)
 
       if calculate_stats then
@@ -327,7 +365,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
       end
    end
 
-   return(rv)
+   return true
 end
 
 -- #################################################################
@@ -338,7 +376,7 @@ end
 function flow.triggerStatus(status_id, status_json, custom_severity)
    local new_status = flow_consts.getStatusInfo(status_id)
 
-   if((alerted_status == nil) or (new_status.prio > alerted_status.prio)) then
+   if not alerted_status or new_status.prio > alerted_status.prio then
       -- The new alerted status as an higher priority
       alerted_status = new_status
       alerted_status_msg = status_json
@@ -358,7 +396,7 @@ function flow.setStatus(status_id)
       -- The status has actually changed
       local new_status = flow_consts.getStatusInfo(status_id)
 
-      if(new_status.prio > predominant_status.prio) then
+      if new_status.prio > predominant_status.prio then
          -- The new status as an higher priority
          predominant_status = new_status
       end
@@ -371,7 +409,7 @@ end
 function flow.clearStatus(status_id)
    if c_flow_clear_status(status_id) then
       -- The status has actually changed
-      if(predominant_status.id == status_id) then
+      if predominant_status.id == status_id then
          -- The predominant status has been cleared, need to recalculate it
          recalculate_predominant_status = true
       end
@@ -382,24 +420,24 @@ end
 
 -- Given an L4 protocol, we must call both the hooks registered for that protocol and
 -- the hooks registered for any L4 protocol (id 255)
-function protocolDetected(l4_proto, master_id, app_id)
-   call_modules(l4_proto, master_id, app_id, "protocolDetected")
+function protocolDetected(deadline, l4_proto, master_id, app_id)
+   return call_modules(deadline, l4_proto, master_id, app_id, "protocolDetected")
 end
 
 -- #################################################################
 
-function statusChanged(l4_proto, master_id, app_id)
-   call_modules(l4_proto, master_id, app_id, "statusChanged")
+function statusChanged(deadline, l4_proto, master_id, app_id)
+   return call_modules(deadline, l4_proto, master_id, app_id, "statusChanged")
 end
 
 -- #################################################################
 
-function flowEnd(l4_proto, master_id, app_id)
-   call_modules(l4_proto, master_id, app_id, "flowEnd")
+function flowEnd(deadline, l4_proto, master_id, app_id)
+   return call_modules(deadline, l4_proto, master_id, app_id, "flowEnd")
 end
 
 -- #################################################################
 
-function periodicUpdate(l4_proto, master_id, app_id, update_ctr)
-   call_modules(l4_proto, master_id, app_id, "periodicUpdate", update_ctr)
+function periodicUpdate(deadline, l4_proto, master_id, app_id, update_ctr)
+   return call_modules(deadline, l4_proto, master_id, app_id, "periodicUpdate", update_ctr)
 end

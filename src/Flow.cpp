@@ -1880,17 +1880,9 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 
 /* *************************************** */
 
-void Flow::periodic_hash_entry_state_update(void *user_data, bool quick, bool skip_user_scripts) {
+void Flow::periodic_hash_entry_state_update(void *user_data, bool skip_user_scripts) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   struct timeval *tv = periodic_ht_state_update_user_data->tv;
-
-#if 0
-  char buf[256];
-
-  if(quick) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deadline approaching, quick update [%s][%s]", getInterface()->get_name(), print(buf, sizeof(buf)));
-  }
-#endif
 
   switch(get_state()) {
   case hash_entry_state_allocated:
@@ -1905,24 +1897,22 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool quick, bool sk
 
   case hash_entry_state_active:
     if(next_lua_call_periodic_update == 0) next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS;
-    if(!quick)
-      periodic_dump_check(tv); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
+    periodic_dump_check(tv); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
-    postFlowSetIdle(tv, quick);
-    if(!quick)
-      periodic_dump_check(tv); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
+    postFlowSetIdle(tv);
+    periodic_dump_check(tv); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
     break;
   }
 
   /* Now that the states in the finite state machine have been moved forward, it is time to check and 
      possibly perform lua calls on the flow. */
   if(!skip_user_scripts)
-    performLuaCalls(tv, periodic_ht_state_update_user_data, quick);
+    performLuaCalls(tv, periodic_ht_state_update_user_data);
 
-  GenericHashEntry::periodic_hash_entry_state_update(user_data, quick, skip_user_scripts);
+  GenericHashEntry::periodic_hash_entry_state_update(user_data, skip_user_scripts);
 }
 
 /* *************************************** */
@@ -3689,7 +3679,7 @@ void Flow::updateHASSH(bool as_client) {
 /* ***************************************************** */
 
 /* Called when a flow is set_idle */
-void Flow::postFlowSetIdle(const struct timeval *tv, bool quick) {
+void Flow::postFlowSetIdle(const struct timeval *tv) {
   if(status_map.get() != status_normal) {
 #if 0
     char buf[256];
@@ -4286,7 +4276,7 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 
 /* ***************************************************** */
 
-bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick) {
+bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
   const char *lua_call_fn_name = NULL;
 
   if(flow_lua_call != flow_lua_call_idle
@@ -4298,19 +4288,6 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
     return false; /* Cannot allocate memory */
 
   FlowAlertCheckLuaEngine *acle = (FlowAlertCheckLuaEngine*)periodic_ht_state_update_user_data->acle;
-
-  if(quick) {
-    switch(get_state()) {
-    case hash_entry_state_idle:
-      acle->incSkippedPcalls(flow_lua_call);
-      break;
-    default:
-      acle->incPendingPcalls(flow_lua_call);
-      break;
-    }
-
-    return false; /* Need to return as there's no time to do the actual call */
-  }
 
   lua_State *L = acle->getState();
   acle->setFlow(this);
@@ -4332,10 +4309,11 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
     return false;
   }
 
-  int num_args = 3;
+  int num_args = 4;
 
   /* Call the function */
   lua_getglobal(L, lua_call_fn_name); /* Called function */
+  lua_pushinteger(L, periodic_ht_state_update_user_data->deadline);
   lua_pushinteger(L, protocol);
   lua_pushinteger(L, ndpiDetectedProtocol.master_protocol);
   lua_pushinteger(L, ndpiDetectedProtocol.app_protocol);
@@ -4347,7 +4325,26 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
     num_args++;
   }
 
-  acle->pcall(num_args, 0 /* 0 results */);
+  if(acle->pcall(num_args,
+		 1 /* 1 result, true if the call has been executed
+		      or false if there was not time left,
+		      depending on the deadline passed as argument */)) {
+    bool executed = lua_toboolean(acle->getState(), -1);
+    lua_pop(acle->getState(), -1);
+
+    if(executed)
+      acle->incSuccessfulPcalls(flow_lua_call);
+    else {
+      switch(get_state()) {
+      case hash_entry_state_idle:
+	acle->incSkippedPcalls(flow_lua_call);
+	break;
+      default:
+	acle->incPendingPcalls(flow_lua_call);
+	break;
+      }
+    }
+  }
 
   return true;
 }
@@ -4355,13 +4352,13 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, p
 
 /* ***************************************************** */
 
-void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data, bool quick) {
+void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
   Bitmap prev_status = status_map;
   HashEntryState cur_state = get_state();
 
   /* Check if it is time to call the protocol detected */
   if(pending_lua_call_protocol_detected
-     && performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data, quick))
+     && performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data))
     pending_lua_call_protocol_detected = false;
 
   /* Check if it is time to call the periodic update. Need to make sure this is not called BEFORE
@@ -4370,7 +4367,7 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
      && (trigger_immediate_periodic_update ||
 	 (next_lua_call_periodic_update > 0 /* 0 means not-yet-set */
 	  && next_lua_call_periodic_update <= tv->tv_sec))
-     && performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data, quick)) {
+     && performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data)) {
     next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
     if(trigger_immediate_periodic_update) trigger_immediate_periodic_update = false; /* Reset if necessary */
   }
@@ -4378,12 +4375,12 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
   /* Check if it is time to call the idle. There is no need to change any boolean here to remember
      the call has been performed: each flow in idle state is visited exactly once. */
   if(cur_state == hash_entry_state_idle)
-    performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data, quick);
+    performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data);
 
   /* Regardless of the calls performed previously, if someone of them has changed the state of the flow,
      thi extra status_changed lua function is executed. */
   if(prev_status.get() != status_map.get()) {
-    performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data, quick);
+    performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data);
 
     /* Update the hosts status */
     if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);

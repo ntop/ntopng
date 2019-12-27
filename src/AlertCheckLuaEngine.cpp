@@ -110,7 +110,7 @@ void AlertCheckLuaEngine::lua_stats(const char *key, lua_State *vm) {
     lua_push_uint64_table_entry(vm, "num_calls", (u_int64_t)num_calls);
     lua_push_float_table_entry(vm, "tot_duration_ms", elapsed_time * 1000);
 
-    lua_stats_skipped(vm);
+    lua_stats_detail(vm);
 
     lua_pushstring(vm, "stats");
     lua_insert(vm, -2);

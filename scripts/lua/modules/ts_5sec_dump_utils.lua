@@ -27,7 +27,7 @@ function ts_dump.iface_update_periodic_ht_state_update_stats(when, ifid, periodi
       }, when, verbose)
 
      ts_utils.append("flow_script:lua_duration", {ifid = ifid, num_ms = stats["tot_duration_ms"]}, when, verbose)
-     ts_utils.append("flow_script:successful_calls", {ifid = ifid, num_calls = stats["num_calls"]}, when, verbose)
+     ts_utils.append("flow_script:successful_calls", {ifid = ifid, num_calls = stats["num_successful"]}, when, verbose)
    end
 end
 

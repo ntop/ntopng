@@ -220,11 +220,10 @@ class GenericHashEntry {
    * @brief Function in charge of hash entry offline state updates
    *
    * @param user_date A pointer to user submitted data potentially necessary for the update
-   * @param quick Only perform minimal operations to ensure FSM advancements
    * @param skip_user_scripts If true, use scripts won't be called
    * 
    */
-  virtual void periodic_hash_entry_state_update(void *user_data, bool quick, bool skip_user_scripts);
+  virtual void periodic_hash_entry_state_update(void *user_data, bool skip_user_scripts);
   /**
    * @brief Function in charge of updating periodic entry stats (e.g., its throughput or L7 traffic)
    *
