@@ -10,7 +10,6 @@ BOOTSTRAP AND UNDERSTAND WHY IT DOESN'T WORK
 NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  
 */
 
-
 /* // Media queries breakpoints */
 /* // -------------------------------------------------- */
 
@@ -189,19 +188,18 @@ NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 /*   -moz-appearance:textfield; */
 /* } */
 
-.masthead  > .nav > .nav-item {
-    margin-left: 3px;
-    margin-right: 3px;
+.masthead > .nav > .nav-item {
+  margin-left: 3px;
+  margin-right: 3px;
 }
 
 /* sprobe ****************************** */
 
-
 .circle {
-    border-radius: 50%/50%; 
-    width: 9px;
-    height: 9px;
-margin-right: 5px;
+  border-radius: 50%/50%;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
 }
 
 .node circle {
@@ -341,8 +339,8 @@ path.link {
 }
 
 .chart-loading-spinner {
-  position: absolute; */
-  top: 50%;
+  position: absolute;
+  */top: 50%;
   left: 50%;
   font-size: 50px;
 }
@@ -366,8 +364,14 @@ path.link {
 }
 
 @keyframes line-stroke-appear {
-  from { stroke-opacity: 0; stroke-width: 0; }
-  to { stroke-opacity: 1; stroke-width: 1.2; }
+  from {
+    stroke-opacity: 0;
+    stroke-width: 0;
+  }
+  to {
+    stroke-opacity: 1;
+    stroke-width: 1.2;
+  }
 }
 
 .line-animated .nv-line {
@@ -378,8 +382,22 @@ path.link {
 }
 
 @keyframes line-appear {
-  from {-webkit-clip-path: polygon(0px -1000px, 0px -1000px, 0px 1000px, 0px 1000px);}
-  to {-webkit-clip-path: polygon(0px -1000px, 100% -1000px, 100% 1000px, 0px 1000px);}
+  from {
+    -webkit-clip-path: polygon(
+      0px -1000px,
+      0px -1000px,
+      0px 1000px,
+      0px 1000px
+    );
+  }
+  to {
+    -webkit-clip-path: polygon(
+      0px -1000px,
+      100% -1000px,
+      100% 1000px,
+      0px 1000px
+    );
+  }
 }
 
 /* .zoom-reset { */
@@ -455,7 +473,7 @@ path.link {
 }
 
 .link.proc2host {
-  stroke-dasharray: 0,2 1;
+  stroke-dasharray: 0, 2 1;
 }
 
 .ebpf_circle {
@@ -474,7 +492,6 @@ path.link {
   font-size: 16px;
 }
 
-
 /* Fix for fa-share blocked by adblock */
 .fa-topology-alt:before {
   content: "\f1e0";
@@ -489,11 +506,41 @@ path.link {
 }
 
 .navbar-shadow {
-  box-shadow: 0 3px 6px rgba(0,0,0,0.01), 0 3px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.01), 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-.table td, .table th {
+.table td,
+.table th {
   padding: 0.45rem !important;
+}
+
+.filter-scripts-button {
+  padding: 0;
+  background: none;
+  border: none;
+  color: #007bff;
+  padding: .5rem 1rem;
+}
+
+.filter-scripts-button.active {
+  color: #ffffff;
+  background-color: #007bff;
+  border-radius: 0.25rem;
+}
+
+.filter-scripts-button.active:hover {
+  background-color: #007bff;
+  color: #ffffff;
+}
+
+.filter-scripts-button:hover {
+  color: #0050a5;
+  background: none;
+}
+
+.square-btn {
+  width: 2rem;
+  height: 2rem;
 }
 
 /** end of CSS wrote by @gabryon99 */
