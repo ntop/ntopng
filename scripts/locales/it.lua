@@ -378,6 +378,7 @@ local lang = {
     ["select_interface"] = "Seleziona interfacce",
     ["select_network"] = "Seleziona reti",
     ["type_targets"] = "Digita i targets:",
+    ["no_targets_applied"] = "questa configurazione non è applicata a nesusn target specifico!"
     ["type_targets_example"] = "Digita i targets separati da virgola, ad esempio: 192.168.1.20,192.168.0.0/16",
     ["granularities"] = {
       ["flow"] = "Flussi",

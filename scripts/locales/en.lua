@@ -496,6 +496,7 @@ local lang = {
     ["config_rename_message"] = "Type the new name for the configurarion",
     ["config_setting"] = "Config Settings",
     ["config_x"] = "Config %{product}",
+    ["no_targets_applied"] = "this config is not applied to any specific target!",
     ["select_interface"] = "Select Interfaces",
     ["select_network"] = "Select Networks",
     ["type_targets"] = "Type targets",
@@ -3083,6 +3084,9 @@ local lang = {
     ["restart"] = "Restart",
     ["restart_now"] = "Restart now",
     ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
+  },
+  ["scripts_list"] = {
+    ["scripts_x"] = "Scripts %{subdir} - %{config}",
   },
   ["sflows_stats"] = {
     ["active_flows"] = "Active Flows",

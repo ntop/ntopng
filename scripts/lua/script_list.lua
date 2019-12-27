@@ -13,14 +13,15 @@ local os_utils = require "os_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("about.about_x", { product=info.product }))
-
-active_page = "script_list"
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+active_page = "scripts_list"
 
 local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
 local confset_name = _GET["confset_name"]
+
+page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=script_subdir, config=confset_name }))
+
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local titles = {
    ["host"] = i18n("config_scripts.granularities.host"),
@@ -56,10 +57,10 @@ else
                      <table id='hostsScripts' class="table w-100 table-striped table-hover table-bordered mt-3">
                         <thead>
                            <tr>
-                              <th>Name</th>
+                              <th>]].. i18n("name", {}) ..[[</th>
                               <th>Description</th>
                               <th>Enabled</th>
-                              <th>Actions</th>
+                              <th>Action</th>
                            </tr>
                         </thead>
                         <tbody>
@@ -93,7 +94,7 @@ else
                </div>
                <div class="modal-footer">
                   <button id='btn-reset' title='Reset Default ntonpng values' type='button' class='btn btn-danger mr-auto'>Reset Default</button>
-                  <button type="button" title='Cancel' class="btn btn-secondary" data-dismiss="modal">]].. i18n("abort", {}) ..[[</button>
+                  <button type="button" title='Cancel' class="btn btn-secondary" data-dismiss="modal">]].. i18n("cancel", {}) ..[[</button>
                   <button id="btn-apply" title='Apply' type="button" class="btn btn-primary" data-dismiss="modal">]].. i18n("apply", {}) ..[[</button>
                </div>
             </div>
@@ -282,6 +283,7 @@ else
                   const result = confirm("The changes will not be saved. Are you sure?");
                   if (!result) e.preventDefault();
                   
+                  $('#edit-form').removeClass('dirty')
                }
             });
 

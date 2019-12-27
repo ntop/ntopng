@@ -289,7 +289,7 @@ print([[
                             return flat.join(', ');
                         }
                         else if(type == 'display' && data.length == 0 && row.id != 0) {
-                            return "<div class='text-warning'><i class='fas fa-exclamation-triangle'></i> <b>Warning</b>: this config is not applied to any specific target!<div>"
+                            return "<div class='text-warning'><i class='fas fa-exclamation-triangle'></i> <b>]].. i18n("warning", {}) ..[[</b>: ]].. i18n("config_scripts.no_targets_applied", {}) ..[[<div>"
                         }
 
                         const flat = data.map((f) => f.label);
