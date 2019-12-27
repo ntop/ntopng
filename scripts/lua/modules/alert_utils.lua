@@ -2539,7 +2539,8 @@ end
 -- ##############################################
 
 -- Global function
--- Check for alerts pushed by the datapath to an internal queue (from C).
+-- Check for alerts pushed by the datapath to an internal queue (from C)
+-- and store them (push them to the SQLite and Notification queues).
 -- NOTE: this is executed in a system VM, with no interfaces references
 function checkStoreAlertsFromC(deadline)
   if(not areAlertsEnabled()) then
@@ -2571,6 +2572,7 @@ end
 
 -- ##############################################
 
+-- Check for alerts in the notification queue and process them.
 -- NOTE: this is executed in a system VM, with no interfaces references
 function processAlertNotifications(now, periodic_frequency, force_export)
    if(not areAlertsEnabled()) then

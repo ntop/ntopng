@@ -19,12 +19,17 @@ local now = os.time()
 local periodicity = 3
 local deadline = now + periodicity
 
+-- Check for alerts from the datapath
 checkStoreAlertsFromC(deadline-1)
+
+-- Check for alerts to be stored to SQLite
 alerts_api.checkPendingStoreAlerts(deadline)
+
 lists_utils.checkReloadLists()
 
 if recording_utils.isAvailable() then
   recording_utils.checkExtractionJobs()
 end
 
+-- Check for alerts to be notified
 processAlertNotifications(now, periodicity)
