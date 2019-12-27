@@ -97,11 +97,10 @@ end
 --! @return true if the alert was successfully stored, false otherwise
 function alerts_api.store(entity_info, type_info, when)
   local force = false
-  local alert_json = json.encode(type_info.alert_type_params)
   local ifid = interface.getId()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or -1
-  local alert_json = plain_message or json.encode(type_info.alert_type_params)
+  local alert_json = json.encode(type_info.alert_type_params)
   local subtype = type_info.alert_subtype or ""
   when = when or os.time()
 

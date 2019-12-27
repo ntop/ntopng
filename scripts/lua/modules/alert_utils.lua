@@ -2539,6 +2539,7 @@ end
 -- ##############################################
 
 -- Global function
+-- Check for alerts pushed by the datapath to an internal queue (from C).
 -- NOTE: this is executed in a system VM, with no interfaces references
 function checkStoreAlertsFromC(deadline)
   if(not areAlertsEnabled()) then
