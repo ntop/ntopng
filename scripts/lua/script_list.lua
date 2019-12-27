@@ -93,8 +93,8 @@ else
                </div>
                <div class="modal-footer">
                   <button id='btn-reset' title='Reset Default ntonpng values' type='button' class='btn btn-danger mr-auto'>Reset Default</button>
-                  <button type="button" title='Cancel' class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                  <button id="btn-apply" title='Apply' type="button" class="btn btn-primary" data-dismiss="modal">Apply</button>
+                  <button type="button" title='Cancel' class="btn btn-secondary" data-dismiss="modal">]].. i18n("abort", {}) ..[[</button>
+                  <button id="btn-apply" title='Apply' type="button" class="btn btn-primary" data-dismiss="modal">]].. i18n("apply", {}) ..[[</button>
                </div>
             </div>
          </div>
@@ -103,7 +103,7 @@ else
 
    -- include datatable script and datatable plugin
    print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.js"></script> ]])
-   print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/plugin-script-datatable.js"></script> ]])
+   print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/plugin-script-datatable.min.js"></script> ]])
    print ([[
       <script type='text/javascript'>
 

@@ -89,3 +89,5 @@ prime/
 stage/
 parts/
 hooks/.enabled
+out-egrep.txt
+dump.rdb
