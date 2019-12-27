@@ -137,14 +137,20 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
    if i >= to_skip then
       local record = {}
       local htstats = ifaces_ht_stats[key]
+
       local active_entries = htstats.stats.hash_entry_states.hash_entry_state_active
       local idle_entries = htstats.stats.hash_entry_states.hash_entry_state_idle
+
+      if not htstats.ht then
+	 htstats.ht = "Unknown"
+      end
+      local htlabel = i18n("hash_table."..htstats.ht) or htstats.ht
 
       local warn = ""
       local idle_perc = idle_entries * 100 / (idle_entries + active_entries + 1)
 
       if(idle_perc >= 50) then
-         warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.high_idle_entries") .."\" style=\"color: #f0ad4e;\"></i> "
+         warn = "<i class=\"fas fa-exclamation-triangle\" title=\"".. i18n("internals.high_idle_entries") .."\"></i> "
       end
 
       record["column_key"] = key
@@ -153,7 +159,7 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
       record["column_idle_entries"] = ternary(idle_entries > 0, format_utils.formatValue(idle_entries), '')
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=hash_tables">%s</a>', htstats.ifid, getHumanReadableInterfaceName(getInterfaceName(htstats.ifid)))
-      record["column_hash_table_name"] = warn .. i18n("hash_table."..htstats.ht)
+      record["column_hash_table_name"] = warn .. htlabel
 
       if iffilter then
 	 if ts_utils.exists("ht:state", {ifid = iffilter, hash_table = htstats.ht}) then
