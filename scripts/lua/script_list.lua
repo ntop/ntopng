@@ -14,10 +14,14 @@ local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 local template = require "template_utils"
 
-
 sendHTTPContentTypeHeader('text/html')
 
 active_page = "scripts_list"
+
+-- set timeout timeout time to reload the page
+-- to prevent csrf expirations
+local timeout_csrf = 300000
+
 
 -- get config parameters like the id and name
 local script_subdir = _GET["subdir"]
@@ -43,12 +47,13 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- print config_list.html template
 print(template.gen("script_list.html", {
    script_list = {
-       subdir = subdir,
+       subdir = script_subdir,
        template_utils = template,
        hooks_localizated = titles,
        confset_id = confset_id,
        script_subdir = script_subdir,
-       confset_name = confset_name
+       confset_name = confset_name,
+       timeout_csrf = timeout_csrf
    }
 }))
 

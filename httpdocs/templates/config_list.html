@@ -198,72 +198,72 @@
 
         $('#config-list').on('click', 'button[data-target="#applied-modal"]', function(e) {
 
-        const row_data = $config_table.row($(this).parent().parent()).data();
-        const conf_id = row_data.id;
-
-        {% if config_list.subdir == "flow" or config_list.subdir == "interface" then %}
-                $("#applied-interfaces").val(row_data.targets.map(d => d.key.toString()))
-        {% elseif config_list.subdir == "network" then %}
-                $("#applied-networks").val(row_data.targets.map(d => d.key.toString()))
-        {% else %}
-                $("#applied-input").val(row_data.targets.map(d => d.key.toString()).join(','))
-        {% end %}
-
-
-        $("#apply-name").html(`<b>${row_data.name}</b>`);
-
-        $("#applied-modal form").off("submit");
-
-        $('#btn-confirm-apply').off('click');
-        $('#btn-confirm-apply').click(function(e) {
-
-            const $button = $(this);
+            const row_data = $config_table.row($(this).parent().parent()).data();
+            const conf_id = row_data.id;
 
             {% if config_list.subdir == "flow" or config_list.subdir == "interface" then %}
-                const applied_value = $("#applied-interfaces").val().join(','); 
+                    $("#applied-interfaces").val(row_data.targets.map(d => d.key.toString()))
             {% elseif config_list.subdir == "network" then %}
-                const applied_value = $("#applied-networks").val().join(',');
+                    $("#applied-networks").val(row_data.targets.map(d => d.key.toString()))
             {% else %}
-                const applied_value = $("#applied-input").val();
+                    $("#applied-input").val(row_data.targets.map(d => d.key.toString()).join(','))
             {% end %}
 
 
-            // show error message if the input is empty
-            if (applied_value == "" || applied_value == null || applied_value == undefined) {
-                $("#apply-error").text("The targets cannot be empty!").show();
-                return;
-            }
+            $("#apply-name").html(`<b>${row_data.name}</b>`);
 
-            $button.attr("disabled");
+            $("#applied-modal form").off("submit");
 
-            $.when(
-                $.post('{{ ntop.getHttpPrefix() }}/lua/edit_scripts_configsets.lua', {
-                    action: 'set_targets',
-                    confset_id: conf_id,
-                    confset_targets: applied_value,
-                    script_subdir: '{{ config_list.subdir }}',
-                    csrf: apply_csrf
-                })
-            )
-            .then((data, status, xhr) => {
+            $('#btn-confirm-apply').off('click');
+            $('#btn-confirm-apply').click(function(e) {
 
-                $button.removeAttr("disabled");
+                const $button = $(this);
 
-                if (!data.success) {
-                    apply_csrf = data.csrf;
-                    $("#apply-error").text(data.error).show();
+                {% if config_list.subdir == "flow" or config_list.subdir == "interface" then %}
+                    const applied_value = $("#applied-interfaces").val().join(','); 
+                {% elseif config_list.subdir == "network" then %}
+                    const applied_value = $("#applied-networks").val().join(',');
+                {% else %}
+                    const applied_value = $("#applied-input").val();
+                {% end %}
+
+
+                // show error message if the input is empty
+                if (applied_value == "" || applied_value == null || applied_value == undefined) {
+                    $("#apply-error").text("The targets cannot be empty!").show();
                     return;
                 }
 
-                // hide errors and clean modal
-                $("#apply-error").hide(); $("#apply-input").val("");
-                // reload table
-                $config_table.ajax.reload();
-                // hide modal
-                $("#applied-modal").modal('hide');
-                location.reload();
+                $button.attr("disabled");
 
-            })
+                $.when(
+                    $.post('{{ ntop.getHttpPrefix() }}/lua/edit_scripts_configsets.lua', {
+                        action: 'set_targets',
+                        confset_id: conf_id,
+                        confset_targets: applied_value,
+                        script_subdir: '{{ config_list.subdir }}',
+                        csrf: apply_csrf
+                    })
+                )
+                .then((data, status, xhr) => {
+
+                    $button.removeAttr("disabled");
+
+                    if (!data.success) {
+                        apply_csrf = data.csrf;
+                        $("#apply-error").text(data.error).show();
+                        return;
+                    }
+
+                    // hide errors and clean modal
+                    $("#apply-error").hide(); $("#apply-input").val("");
+                    // reload table
+                    $config_table.ajax.reload();
+                    // hide modal
+                    $("#applied-modal").modal('hide');
+                    location.reload();
+
+                })
 
 
         });
@@ -388,4 +388,7 @@
         });
 
     });
+</script>
+<script type="text/javascript">
+setTimeout(location.reload, {{ config_list.timeout_csrf }});
 </script>

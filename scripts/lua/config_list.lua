@@ -16,6 +16,10 @@ local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
+-- set timeout timeout time to reload the page
+-- to prevent csrf expirations
+local timeout_csrf = 300000
+
 -- get subdir form url
 local subdir = _GET["subdir"]
 -- set default value for subdir if its empty
@@ -48,7 +52,8 @@ print(template.gen("config_list.html", {
         user_scripts = user_scripts,
         subdir = subdir,
         template_utils = template,
-        hooks_localizated = titles
+        hooks_localizated = titles,
+        timeout_csrf = timeout_csrf
     }
 }))
 
