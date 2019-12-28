@@ -246,9 +246,6 @@ print([[
     </div>
 ]])
 
--- add datatable script to config list page
-print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.js"></script> ]])
-
 print([[
 <script type='text/javascript'>
 

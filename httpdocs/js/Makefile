@@ -2,7 +2,7 @@
 JQUERY_BOOTSTRAP_MIN_JS=jquery_bootstrap.min.js
 JQUERY_BOOTSTRAP_MIN_JS_SRC=jquery.js jquery-ui.js \
 			    bootstrap-datatable.js bootstrap3-typeahead.js\
-			    d3.v3.js jquery.peity.js bootstrap-slider.js			    
+			    d3.v3.js jquery.peity.js bootstrap-slider.js datatables_sprymedia.min.js	    
 
 DEP_MIN_JS=deps.min.js
 DEP_MIN_JS_SRC=ie_fix.js rickshaw.js pie-chart.js gauge.js \
@@ -12,7 +12,7 @@ DEP_MIN_JS_SRC=ie_fix.js rickshaw.js pie-chart.js gauge.js \
 
 NTOP_MIN_JS=ntop.min.js
 NTOP_MIN_JS_SRC=datatable_utils.js ays_utils.js ntopng_utils.js graph_utils.js \
-		  ebpf_utils.js ntopng_validators.js
+		  ebpf_utils.js ntopng_validators.js plugin-script-datatable.js
 
 minify: $(JQUERY_BOOTSTRAP_MIN_JS) $(DEP_MIN_JS) $(NTOP_MIN_JS)
 

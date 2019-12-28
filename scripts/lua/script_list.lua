@@ -104,8 +104,6 @@ else
    ]])
 
    -- include datatable script and datatable plugin
-   print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.js"></script> ]])
-   print ([[ <script type="text/javascript" src="]].. ntop.getHttpPrefix() ..[[/datatables/plugin-script-datatable.min.js"></script> ]])
    print ([[
       <script type='text/javascript'>
 
