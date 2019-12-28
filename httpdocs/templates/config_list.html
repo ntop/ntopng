@@ -50,7 +50,9 @@
 <script type='text/javascript'>
 
     // hold a csrf token for apply targets
-    let apply_csrf = '{{ntop.getRandomCSRFValue()}}';
+    let apply_csrf = '{{ ntop.getRandomCSRFValue() }}';
+    let clone_csrf = '{{ ntop.getRandomCSRFValue() }}';
+    let rename_csrf = '{{ ntop.getRandomCSRFValue() }}';
 
     $(document).ready(function() {
 
@@ -128,68 +130,69 @@
 
         $('#config-list').on('click', 'button[data-target="#clone-modal"]', function(e) {
 
-        const row_data = $config_table.row($(this).parent().parent()).data();
-        const conf_name = `${row_data.name}`;
-        const conf_id = row_data.id;
+            const row_data = $config_table.row($(this).parent().parent()).data();
+            const conf_name = `${row_data.name}`;
+            const conf_id = row_data.id;
 
-        // set title to modal
-        $("#clone-name").html(`<b>${conf_name}</b>`)
-        // set a placeholder for the clone input
-        $("#clone-input").attr("placeholder", `i.e. ${conf_name} (Clone)`);
-        $("#clone-error").hide();
+            // set title to modal
+            $("#clone-name").html(`<b>${conf_name}</b>`)
+            // set a placeholder for the clone input
+            $("#clone-input").attr("placeholder", `i.e. ${conf_name} (Clone)`);
+            $("#clone-error").hide();
 
-        // unbind events from button and form to prevent older events attached
-        $("#btn-confirm-clone").off("click");
-        $("#clone-modal form").off("submit");
+            // unbind events from button and form to prevent older events attached
+            $("#btn-confirm-clone").off("click");
+            $("#clone-modal form").off("submit");
 
-        $("#btn-confirm-clone").click(function(e) {
+            $("#btn-confirm-clone").click(function(e) {
 
-            // get the new name for the clonation
-            const clonation_name = $("#clone-input").val();
-            const $button = $(this);
+                // get the new name for the clonation
+                const clonation_name = $("#clone-input").val();
+                const $button = $(this);
 
-            if (clonation_name == null || clonation_name == "" || clonation_name == undefined) {
-                $("#clone-error").text("The name cannot be empty!").show();
-                return;
-            }
-
-            // disable button until request hasn't finished
-            $button.attr("disabled", "");
-
-            $.when(
-                $.post('{{ ntop.getHttpPrefix() }}/lua/edit_scripts_configsets.lua', {
-                    action: 'clone',
-                    confset_id: conf_id,
-                    script_subdir: '{{ config_list.subdir }}',
-                    csrf: '{{ ntop.getRandomCSRFValue() }}',
-                    confset_name: clonation_name    
-                })
-            )
-            .then((data, status, xhr) => {
-                
-                // re-enable button
-                $button.removeAttr("disabled");
-                // if the operation was not successful then show an error
-                if (!data.success) {
-                    $("#clone-error").text(data.error).show();
+                if (clonation_name == null || clonation_name == "" || clonation_name == undefined) {
+                    $("#clone-error").text("The name cannot be empty!").show();
                     return;
                 }
-                // hide errors and clean modal
-                $("#clone-error").hide(); $("#clone-input").val("");
-                // reload table
-                $config_table.ajax.reload();
-                // hide modal
-                $("#clone-modal").modal('hide');
-                location.reload();
 
+                // disable button until request hasn't finished
+                $button.attr("disabled", "");
+
+                $.when(
+                    $.post('{{ ntop.getHttpPrefix() }}/lua/edit_scripts_configsets.lua', {
+                        action: 'clone',
+                        confset_id: conf_id,
+                        script_subdir: '{{ config_list.subdir }}',
+                        csrf: clone_csrf,
+                        confset_name: clonation_name    
+                    })
+                )
+                .then((data, status, xhr) => {
+                    
+                    // re-enable button
+                    $button.removeAttr("disabled");
+                    // if the operation was not successful then show an error
+                    if (!data.success) {
+                        $("#clone-error").text(data.error).show();
+                        clone_csrf = data.csrf;
+                        return;
+                    }
+                    // hide errors and clean modal
+                    $("#clone-error").hide(); $("#clone-input").val("");
+                    // reload table
+                    $config_table.ajax.reload();
+                    // hide modal
+                    $("#clone-modal").modal('hide');
+                    location.reload();
+
+                });
+            })
+
+            $("#clone-modal").on("submit", "form", function (e) {
+                // prevent default form submit
+                e.preventDefault();
+                $("#btn-confirm-clone").trigger("click");
             });
-        })
-
-        $("#clone-modal").on("submit", "form", function (e) {
-            // prevent default form submit
-            e.preventDefault();
-            $("#btn-confirm-clone").trigger("click");
-        });
 
         });
 
@@ -275,65 +278,62 @@
 
         $('#config-list').on('click', 'button[data-target="#rename-modal"]', function(e) {
 
-        const row_data = $config_table.row($(this).parent().parent()).data();
-        const conf_id = row_data.id;
+            const row_data = $config_table.row($(this).parent().parent()).data();
+            const conf_id = row_data.id;
 
-        $("#config-name").html(`<b>${row_data.name}</b>`);
-        $("#rename-input").attr('placeholder', row_data.name);
+            $("#config-name").html(`<b>${row_data.name}</b>`);
+            $("#rename-input").attr('placeholder', row_data.name);
 
-        // bind rename click event
-        $("#rename-modal form").off("submit");
-        $("#btn-confirm-rename").off('click');
+            // bind rename click event
+            $("#rename-modal form").off("submit");
+            $("#btn-confirm-rename").off('click');
 
-        $("#btn-confirm-rename").click(function(e) {
+            $("#btn-confirm-rename").click(function(e) {
 
-            const $button = $(this);
-            const input_value = $("#rename-input").val();
+                const $button = $(this);
+                const input_value = $("#rename-input").val();
 
-            // show error message if the input is empty
-            if (input_value == "" || input_value == null || input_value == undefined) {
-                $("#rename-error").text("The new name cannot be empty!").show();
-                return;
-            }
-
-            $button.attr("disabled");
-
-            $.when(
-                $.post('{{ ntop.getHttpPrefix() }}/lua/edit_scripts_configsets.lua', {
-                    action: 'rename',
-                    confset_id: conf_id,
-                    csrf: '{{ ntop.getRandomCSRFValue() }}',
-                    confset_name: input_value
-                })
-            )
-            .then((data, status, xhr) => {
-
-                $button.removeAttr("disabled");
-
-                if (!data.success) {
-                    $("#rename-error").text(data.error).show();
+                // show error message if the input is empty
+                if (input_value == "" || input_value == null || input_value == undefined) {
+                    $("#rename-error").text("The new name cannot be empty!").show();
                     return;
                 }
 
-                // hide errors and clean modal
-                $("#rename-error").hide(); $("#rename-input").val("");
-                // reload table
-                $config_table.ajax.reload();
-                // hide modal
-                $("#rename-modal").modal('hide');
-                location.reload();
+                $button.attr("disabled");
 
+                $.when(
+                    $.post('{{ ntop.getHttpPrefix() }}/lua/edit_scripts_configsets.lua', {
+                        action: 'rename',
+                        confset_id: conf_id,
+                        csrf: rename_csrf,
+                        confset_name: input_value
+                    })
+                )
+                .then((data, status, xhr) => {
+
+                    $button.removeAttr("disabled");
+
+                    if (!data.success) {
+                        $("#rename-error").text(data.error).show();
+                        rename_csrf = data.csrf;
+                        return;
+                    }
+
+                    // hide errors and clean modal
+                    $("#rename-error").hide(); $("#rename-input").val("");
+                    // reload table
+                    $config_table.ajax.reload();
+                    // hide modal
+                    $("#rename-modal").modal('hide');
+                    location.reload();
+
+                })
             })
 
-
-        })
-
-
-        $("#rename-modal").on("submit", "form", function (e) {
-            
-            e.preventDefault();
-            $("#btn-confirm-rename").trigger("click");
-        });
+            $("#rename-modal").on("submit", "form", function (e) {                
+                e.preventDefault();
+                $("#btn-confirm-rename").trigger("click");
+            });
 
         });
 
