@@ -9,7 +9,7 @@ IFACE="2-0"
 # Lan Interface
 #IFACE="1-lan"
 
-# Required: You must create & switch your Fritz!Box to usernamed-based login authentification!
+# If you use password-only authentication use 'dslf-config' as username.
 FRITZUSER=$1
 FRITZPWD=$2
 
