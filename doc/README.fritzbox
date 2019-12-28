@@ -21,9 +21,7 @@ Example usage:
 ntopng/tools/fritzdump.sh <username> <password>
 ```
 
-*NOTE:* Please enable username-based authentification instead of the default
-password-only authentification. This setting can be found in the FRITZ!Box Web-UI
-at _"System > FRITZ!Box-Benutzer > Anmeldung im Heimnetz"._
+*NOTE:* If you use password-only authentification pass "dslf-config" as username
 
 As you can see in the script, it will connect to the Fritz!Box via http://fritz.box,
 authenticate with the user and password you passed and capture the traffic on the
