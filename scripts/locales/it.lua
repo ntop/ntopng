@@ -375,10 +375,10 @@ local lang = {
     ["config_rename_message"] = "Digita il nuovo nome per la configurazione",
     ["config_setting"] = "Impostazioni Configurazione",
     ["config_x"] = "Config %{product}",
+    ["no_targets_applied"] = "questa configurazione non è applicata a nesusn target specifico!",
     ["select_interface"] = "Seleziona interfacce",
     ["select_network"] = "Seleziona reti",
     ["type_targets"] = "Digita i targets:",
-    ["no_targets_applied"] = "questa configurazione non è applicata a nesusn target specifico!"
     ["type_targets_example"] = "Digita i targets separati da virgola, ad esempio: 192.168.1.20,192.168.0.0/16",
     ["granularities"] = {
       ["flow"] = "Flussi",
@@ -389,12 +389,6 @@ local lang = {
       ["syslog"] = "Syslog",
       ["system"] = "Sistema",
     },
-  },
-  ["scripts_list"] = {
-    ["scripts_x"] = "Scripts %{subdir} - %{config}",
-    ["are_you_sure"] = "Le modifiche non sono ancora state salvate. Sei veramente sicuro di volere chiudere la finestra?",
-    ["config"] = "Configurazione",
-    ["reset_default"] = "Ripristina Default"
   },
   ["contacts_page"] = {
     ["client_address"] = "Indirizzo client",
@@ -2298,6 +2292,12 @@ local lang = {
     ["total_traffic"] = "Traffico Totale",
     ["traffic_report"] = "Report di Traffico",
     ["use_server_timezone"] = "Utilizza la Timezone del Server",
+  },
+  ["scripts_list"] = {
+    ["are_you_sure"] = "Le modifiche non sono ancora state salvate. Sei veramente sicuro di volere chiudere la finestra?",
+    ["config"] = "Configurazione",
+    ["reset_default"] = "Ripristina Default",
+    ["scripts_x"] = "Scripts %{subdir} - %{config}",
   },
   ["sflows_stats"] = {
     ["active_flows"] = "Flussi Attivi",
