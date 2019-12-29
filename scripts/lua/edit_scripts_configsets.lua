@@ -55,6 +55,8 @@ elseif(action == "rename") then
 
   if not success then
     result.error = err
+     -- Can be used to trigger a new request
+     result.csrf = ntop.getRandomCSRFValue()
   end
 elseif(action == "clone") then
   local new_name = _POST["confset_name"]
@@ -69,6 +71,8 @@ elseif(action == "clone") then
 
   if not success then
     result.error = err
+    -- Can be used to trigger a new request
+    result.csrf = ntop.getRandomCSRFValue()
   else
     result.config_id = err
   end
