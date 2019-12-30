@@ -1258,7 +1258,16 @@ end
 function user_scripts.loadDefaultConfig()
    local ifid = getSystemInterfaceId()
    local configsets = user_scripts.getConfigsets()
-   local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
+   local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
+
+   if default_conf then
+      default_conf = default_conf.config or {}
+
+      -- Drop possible nested values due to a previous bug
+      default_conf.config = nil
+   else
+      default_conf = {}
+   end
 
    for type_id, script_type in pairs(user_scripts.script_types) do
       for _, subdir in pairs(script_type.subdirs) do
