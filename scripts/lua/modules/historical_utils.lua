@@ -235,7 +235,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
    local container_params = ' epoch_begin="" epoch_end="" host="" peer="" l7_proto_id="" l7_proto="" l4_proto_id="" l4_proto="" '
    local host_talkers_url_params = ""
    local interface_talkers_url_params = ""
-   local isv6 = isIPv6Address(host)
+   local isv6 = isIPv6(host)
 
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_begin="..epoch_begin
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_end="..epoch_end
@@ -659,7 +659,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host, vlan
    local breadcrumb_root = "interface"
    local container_params = ' epoch_begin="" epoch_end="" host="" peer="" l7_proto_id="" l7_proto="" l4_proto_id="" l4_proto="" '
    local top_apps_url_params=""
-   local isv6 = isIPv6Address(host)
+   local isv6 = isIPv6(host)
 
    top_apps_url_params = top_apps_url_params.."&epoch_begin="..epoch_begin
    top_apps_url_params = top_apps_url_params.."&epoch_end="..epoch_end

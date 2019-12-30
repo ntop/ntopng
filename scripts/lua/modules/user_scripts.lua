@@ -1070,10 +1070,10 @@ local function validateConfigsets(configsets)
 
    -- Ensure that no duplicate target is set
    for _, configset in pairs(configsets) do
-      for _, subdir in pairs(configset.targets) do
+      for subdir, subdir_table in pairs(configset.targets) do
 	 cur_targets[subdir] = cur_targets[subdir] or {}
 
-	 for _, conf_target in ipairs(subdir) do
+	 for _, conf_target in ipairs(subdir_table) do
 	    local is_v4 = isIPv4(conf_target)
 	    local is_v6 = isIPv6(conf_target)
 	    local conf_target_normalized = nil

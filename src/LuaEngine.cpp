@@ -1984,6 +1984,28 @@ static int ntop_get_tls_version_name(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_ipv6(lua_State* vm) {
+  char *ip;
+  struct in6_addr addr6;
+  bool rv;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  ip = (char*)lua_tostring(vm, 1);
+
+  if(!ip || (inet_pton(AF_INET6, ip, &addr6) != 1))
+    rv = false;
+  else
+    rv = true;
+
+  lua_pushboolean(vm, rv);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_gainWriteCapabilities(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushnil(vm);
@@ -11461,6 +11483,7 @@ static const luaL_Reg ntop_reg[] = {
   { "ipCmp",                ntop_ip_cmp               },
   { "matchCustomCategory",    ntop_match_custom_category },
   { "getTLSVersionName",    ntop_get_tls_version_name },
+  { "isIPv6",               ntop_is_ipv6              },
 
   /* JA3 */
   { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
