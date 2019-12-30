@@ -38,7 +38,7 @@ local totals = { ["count"] = {}, ["timespan"] = timediff, ["status"] = "ok" }
 local versions  = { [4] = 'IPv4', [6] = 'IPv6' }
 
 if host ~= "" then
-   local isv6 = isIPv6Address(host)
+   local isv6 = isIPv6(host)
 
    if(isv6) then
       versions  = { [6] = 'IPv6' }

@@ -26,7 +26,7 @@ if distr == "ipver" then
     for _, host in pairs(mac_hosts.hosts) do
       local host_packets = host["packets.sent"] + host["packets.rcvd"]
 
-      if isIPv6Address(host.ip) then
+      if isIPv6(host.ip) then
         ipv6_packets = ipv6_packets + host_packets
       else
         ipv4_packets = ipv4_packets + host_packets

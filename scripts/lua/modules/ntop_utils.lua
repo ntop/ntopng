@@ -94,10 +94,7 @@ end
 -- ##############################################
 
 function isIPv6(ip)
-   if((string.find(ip, ":")) and (not isMacAddress(ip))) then
-     return true
-  end
-  return false
+  return((not isEmptyString(ip)) and ntop.isIPv6(ip))
 end
 
 -- ##############################################
