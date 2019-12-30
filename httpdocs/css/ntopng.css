@@ -541,3 +541,7 @@ path.link {
   height: 2rem;
 }
 
+.responsive-dropdown {
+  height: 16rem;
+  overflow-y: auto;
+}
