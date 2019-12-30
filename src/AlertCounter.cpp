@@ -60,7 +60,6 @@ void AlertCounter::inc(time_t when, AlertableEntity *alertable) {
     }
     trailing_window_min = tmp_min;
 
-
     /* Update the overall maximum of minima since reset */
     if(trailing_window_min > trailing_window_max_since_hits_reset)
       trailing_window_max_since_hits_reset = trailing_window_min;
@@ -80,7 +79,7 @@ void AlertCounter::inc(time_t when, AlertableEntity *alertable) {
 			       "stats [host: %s][when: %u][time_last_hit: %u][trailing_window_max_since_hits_reset: %u][trailing_window_min: %u]"
 			       "[trailing_window[cur]: %u][trailing_window[cur-1]: %u][trailing_window[cur-2]: %u]",
 			       h->get_ip()->print(buf, sizeof(buf)),
-             alertable->getEntityValue()->c_str(),
+			       alertable->getEntityValue()->c_str(),
 			       when,
 			       time_last_hit,
 			       trailing_window_max_since_hits_reset,
