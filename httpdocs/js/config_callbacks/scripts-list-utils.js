@@ -269,7 +269,7 @@
                                    min='${field_min == undefined ? '' : field_min}'
                                    max='${field_max == undefined ? '' : field_max}'>`)
                     .append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit}</span>`)
-                    .append(`<div class="invalid-feedback"></div></div>`)
+                    .append(`<div class="invalid-feedback"></div>`)
               }
 
            }
