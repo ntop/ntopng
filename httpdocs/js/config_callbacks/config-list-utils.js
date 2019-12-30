@@ -133,11 +133,24 @@ $(document).ready(function() {
         $("#btn-confirm-clone").off("click").click(function(e) {
 
             // get the new name for the clonation
-            const clonation_name = $("#clone-input").val();
+            let clonation_name = $("#clone-input").val();
             const $button = $(this);
+
+            clonation_name = clonation_name.trim();
 
             if (clonation_name == null || clonation_name == "" || clonation_name == undefined) {
                 $("#clone-error").text(`${i18n.empty_value_message}`).show();
+                return;
+            }
+
+            if (clonation_name.length > 16) {
+                $("#clone-error").text(`${i18n.max_input_length}`).show();
+                return;
+            }
+
+            // check if there is any special characters
+            if (/[\@\#\<\>\\\/\?\'\"\`\~\|\,\.\:\;\,\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/.test(clonation_name)) {
+                $("#clone-error").text(`${i18n.invalid_characters}`).show();
                 return;
             }
 
@@ -175,6 +188,11 @@ $(document).ready(function() {
             })
             .fail(({status, statusText}) => {
                 check_status_code(status, statusText, $("#clone-error"));
+
+                if (status == 200) {
+                    $("#clone-error").text(`${i18n.expired_csrf}`).show();
+                }
+
                 // re-enable button
                 $button.removeAttr("disabled");
             })
@@ -223,13 +241,6 @@ $(document).ready(function() {
                 applied_value = $("#applied-input").val();
             } 
 
-
-            // show error message if the input is empty
-            if (applied_value == "" || applied_value == null || applied_value == undefined) {
-                $("#apply-error").text(`${i18n.empty_target_message}`).show();
-                return;
-            }
-
             $button.attr("disabled");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
@@ -247,9 +258,9 @@ $(document).ready(function() {
                 $button.removeAttr("disabled");
 
                 if (!data.success) {
-                apply_csrf = data.csrf;
-                $("#apply-error").text(data.error).show();
-                return;
+                    apply_csrf = data.csrf;
+                    $("#apply-error").text(data.error).show();
+                    return;
                 }
 
                 // hide errors and clean modal
@@ -264,6 +275,11 @@ $(document).ready(function() {
             .fail(({status, statusText}) => {
 
                 check_status_code(status, statusText, $("#apply-error"));
+
+                if (status == 200) {
+                    $("#apply-error").text(`${i18n.expired_csrf}`).show();
+                }
+
                 // re-enable button
                 $button.removeAttr("disabled");
             })
@@ -284,18 +300,30 @@ $(document).ready(function() {
         const {config_id, config_name} = get_configuration_data($config_table, $(this));
 
         $("#config-name").html(`<b>${config_name}</b>`);
-        $("#rename-input").attr('placeholder', config_name);
+        $("#rename-input").attr('value', config_name);
 
         // bind rename click event
         $("#rename-modal form").off("submit");
         $("#btn-confirm-rename").off('click').click(function(e) {
 
             const $button = $(this);
-            const input_value = $("#rename-input").val();
+            let input_value = $("#rename-input").val();
+
+            input_value = input_value.trim();
 
             // show error message if the input is empty
             if (input_value == "" || input_value == null || input_value == undefined) {
                 $("#rename-error").text(`${i18n.empty_value_message}`).show();
+                return;
+            }
+
+            if (input_value.length > 16) {
+                $("#rename-error").text(`${i18n.max_input_length}`).show();
+                return;
+            }
+
+            if (/[\@\#\<\>\\\/\?\'\"\`\~\|\,\.\:\;\,\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/.test(input_value)) {
+                $("#rename-error").text(`${i18n.invalid_characters}`).show();
                 return;
             }
 
@@ -329,9 +357,14 @@ $(document).ready(function() {
                 location.reload();
 
             })
-            .fail(({status, statusText}) => {
+            .fail(({status, statusText}, st, xhr) => {
 
                 check_status_code(status, statusText, $("#rename-error"));
+
+                if (status == 200) {
+                    $("#rename-error").text(`${i18n.expired_csrf}`).show();
+                }
+
                 // re-enable button
                 $button.removeAttr("disabled");
             })
@@ -365,27 +398,32 @@ $(document).ready(function() {
             })
             .done((data, status, xhr) => {
                 
-                    // check if the status code is successfull
-                    if (check_status_code(xhr.status, xhr.statusText, $("#delete-error"))) return;
+                // check if the status code is successfull
+                if (check_status_code(xhr.status, xhr.statusText, $("#delete-error"))) return;
 
-                    $button.removeAttr("disabled");
+                $button.removeAttr("disabled");
 
-                    if (!data.success) {
-                        $("#delete-error").text(data.error).show();
-                        return;
-                    }
+                if (!data.success) {
+                    $("#delete-error").text(data.error).show();
+                    return;
+                }
 
-                    $("#delete-error").hide(); 
-                    // reload table
-                    $config_table.ajax.reload();
-                    // hide modal
-                    $("#delete-modal").modal('hide');
+                $("#delete-error").hide(); 
+                // reload table
+                $config_table.ajax.reload();
+                // hide modal
+                $("#delete-modal").modal('hide');
 
-                    location.reload();
+                location.reload();
 
-                })
+            })
             .fail(({status, statusText}) => {
+
                 check_status_code(status, statusText, $("#delete-error"));
+
+                if (status == 200) {
+                    $("#delete-error").text(`${i18n.expired_csrf}`).show();
+                }
                 // re-enable button
                 $button.removeAttr("disabled");
             })

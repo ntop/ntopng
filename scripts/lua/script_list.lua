@@ -18,11 +18,6 @@ sendHTTPContentTypeHeader('text/html')
 
 active_page = "scripts_list"
 
--- set timeout timeout time to reload the page
--- to prevent csrf expirations
-local timeout_csrf = 300000
-
-
 -- get config parameters like the id and name
 local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
