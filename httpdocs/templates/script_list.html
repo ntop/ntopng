@@ -1,457 +1,501 @@
 {% if script_list.confset_id == nil or script_list.confset_id == "" then %}
-<div class='alert alert-danger'>
-    <b>Attention!</b>
-    The page was not found!
-    <a class='text-danger' href='#' onclick='history.back()'>Click here to return to the previous page!</a>
+<div class="alert alert-danger">
+  <b>Attention!</b>
+  The page was not found!
+  <a class="text-danger" href="#" onclick="history.back()"
+    >Click here to return to the previous page!</a
+  >
 </div>
 {% else %}
 
-<div class='container-fluid mt-3'>
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item" aria-current="page">
-                <a href='/lua/config_list.lua'>{{ i18n("config_scripts.config_list", {}) }}</a>
-            </li>
-            <li class="breadcrumb-item" aria-current="page">
-                <a href='/lua/config_list.lua?subdir={{ script_list.script_subdir }}'>
-                    {{ script_list.hooks_localizated[script_list.script_subdir] }}
-                </a>
-            </li>
-            <li class="breadcrumb-item active" aria-current="page">
-                {{ i18n("scripts_list.config", {}) }} <b>{{ script_list.confset_name }}</b>
-            </li>
-        </ol>
-    </nav>
-    <div class='row'>
-        <div class='col-md-12 col-lg-12 mt-3'>
-            <table id='hostsScripts' class="table w-100 table-striped table-hover table-bordered mt-3">
-                <thead>
-                    <tr>
-                        <th>{{ i18n("name", {}) }}</th>
-                        <th>{{ i18n("description", {}) }}</th>
-                        <th>{{ i18n("enabled", {}) }}</th>
-                        <th>{{ i18n("action", {})}}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
+<div class="container-fluid mt-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item" aria-current="page">
+        <a href="/lua/config_list.lua"
+          >{{ i18n("config_scripts.config_list", {}) }}</a
+        >
+      </li>
+      <li class="breadcrumb-item" aria-current="page">
+        <a href="/lua/config_list.lua?subdir={{ script_list.script_subdir }}">
+          {{ script_list.hooks_localizated[script_list.script_subdir] }}
+        </a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        {{ i18n("scripts_list.config", {}) }}
+        <b>{{ script_list.confset_name }}</b>
+      </li>
+    </ol>
+  </nav>
+  <div class="row">
+    <div class="col-md-12 col-lg-12 mt-3">
+      <table
+        id="scripts-config"
+        class="table w-100 table-striped table-hover table-bordered mt-3">
+        <thead>
+          <tr>
+            <th>{{ i18n("name", {}) }}</th>
+            <th>{{ i18n("description", {}) }}</th>
+            <th>{{ i18n("enabled", {}) }}</th>
+            <th>{{ i18n("action", {})}}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
+  </div>
 </div>
 
-{# include modals for script_list.lua #}
-{* script_list.template_utils.gen("script_list_components/edit_config_modal.html") *}
+{# include modals for script_list.lua #} {*
+script_list.template_utils.gen("script_list_components/edit_config_modal.html")
+*} {# add css, js files #}
+<link
+  href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css"
+  rel="stylesheet"
+/>
+<script type="text/javascript">
 
-{# add css, js files #}
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet">
-<script type='text/javascript'>
+  /**
+  *  This function true if the status code is different from 200
+  */
+  const check_status_code = (status_code, status_text, $error_label) => {
 
-    $(document).ready(function() {
+     const is_different = status_code != 200;
 
-       const $script_table = $("#hostsScripts").DataTable({
-          dom: "Bfrtip",
-          language: {
-             paginate: {
-                previous: '&lt;',
-                next: '&gt;'
-             }
-          },
-          lengthChange: false,
-          ajax: {
-             'url': '{{ ntop.getHttpPrefix() }}/lua/get_user_scripts.lua?confset_id={{ script_list.confset_id }}&script_subdir={{ script_list.script_subdir }}',
-             'type': 'GET',
-             dataSrc: ''
-          },
-          stateSave: true,
-          initComplete: function(settings, json) {
-             // select the correct tab
-             (() => {
-                
-                // get hash from url
-                const hash = window.location.hash;
+     if (is_different && $error_label != null) {
+        $error_label.text(`The request has failed! Response: ${status_text}`).show();
+     }
+     else if (is_different && $error_label == null) {
+        alert(`The request has failed! Response: ${status_text}`);
+     }
 
-                // redirect to correct tab
-                if (hash == undefined || hash == null || hash == "" || hash == "#enabled") {
-                   $(`#enabled-scripts`).addClass("active").trigger("click");
-                }
-                else if (hash == "#disabled") {
-                   $(`#disabled-scripts`).addClass("active").trigger("click");
-                }
-                else {
-                   $(`#all-scripts`).addClass("active").trigger("click");
-                }
+     return is_different;
+  }
 
-             })();
+  $(document).ready(function() {
 
-             // clean searchbox
-             $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
+      const $script_table = $("#scripts-config").DataTable({
+         dom: "Bfrtip",
+         language: {
+            paginate: {
+               previous: '&lt;',
+               next: '&gt;'
+            }
+         },
+         lengthChange: false,
+         ajax: {
+            'url': '{{ ntop.getHttpPrefix() }}/lua/get_user_scripts.lua?confset_id={{ script_list.confset_id }}&script_subdir={{ script_list.script_subdir }}',
+            'type': 'GET',
+            dataSrc: ''
+         },
+         stateSave: true,
+         initComplete: function(settings, json) {
+            // select the correct tab
+            (() => {
 
-             // counts scripts inside table
-             count_scripts();
-          },
-          order: [ [0, "asc"] ],
-          buttons: [
-             {
-                extend: "filterScripts",
-                attr: {
-                   id: "all-scripts",
-                },
-                text: "All"
-             },
-             {
-                extend: "filterScripts",
-                attr: {
-                   id: "enabled-scripts"
-                },
-                text: "Enabled"
-             },
-             {
-                extend: "filterScripts",
-                attr: {
-                   id: "disabled-scripts"
-                },
-                text: "Disabled"
-             }
-          ],
-          columns: [
-             { 
-                data: 'title',
-                render: function (data, type, row) {
-                   
-                   if (type == 'display') {
-                      return `<b>${data}</b>`
-                   }
+               // get hash from url
+               const hash = window.location.hash;
 
-                   return data;
-                }
-             },
-             { data: 'description' },
-             { 
-                data: 'enabled_hooks',
-                sortable: false,
-                className: 'text-center',
-                render: function (data, type, row) {
+               // redirect to correct tab
+               if (hash == undefined || hash == null || hash == "" || hash == "#enabled") {
+                  $(`#enabled-scripts`).addClass("active").trigger("click");
+               }
+               else if (hash == "#disabled") {
+                  $(`#disabled-scripts`).addClass("active").trigger("click");
+               }
+               else {
+                  $(`#all-scripts`).addClass("active").trigger("click");
+               }
 
-                   if (data.length <= 0 && type != "display") {
-                      return false;
-                   }
-                   if (data.length > 0 && type != "display") {
-                      return true;
-                   }
+            })();
 
-                   if (data.length >= 0 && type == "display" && row.all_hooks.length > 0 && row.input_handler == undefined) {
+            // clean searchbox
+            $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
 
-                      $('#hostsScripts').on('click', `input[name='${row.key}-check']`, function(e) {
+            // counts scripts inside table
+            count_scripts();
+         },
+         order: [ [0, "asc"] ],
+         buttons: [
+            {
+               extend: "filterScripts",
+               attr: {
+                  id: "all-scripts",
+               },
+               text: "All"
+            },
+            {
+               extend: "filterScripts",
+               attr: {
+                  id: "enabled-scripts"
+               },
+               text: "Enabled"
+            },
+            {
+               extend: "filterScripts",
+               attr: {
+                  id: "disabled-scripts"
+               },
+               text: "Disabled"
+            }
+         ],
+         columns: [
+            {
+               data: 'title',
+               render: function (data, type, row) {
 
-                         const $this = $(this);
-                         const value = $this.val();
-                         const hooks = row.all_hooks;
-                         const data = {};
+                  if (type == 'display') {
+                     return `<b>${data}</b>`
+                  }
 
-                         hooks.forEach(d => {
-                            data[d] = {
-                               enabled: (value == "true")
-                            }
-                         })
+                  return data;
+               }
+            },
+            { data: 'description' },
+            {
+               data: 'enabled_hooks',
+               sortable: false,
+               className: 'text-center',
+               render: function (data, type, row) {
 
-                         $.when(
-                            $.post('{{ ntop.getHttpPrefix() }}/lua/edit_user_script_config.lua', {
-                               script_subdir: '{{ script_list.script_subdir }}',
-                               script_key: row.key,
-                               csrf: '{{ ntop.getRandomCSRFValue() }}',
-                               JSON: JSON.stringify(data),
-                               confset_id: '{{ script_list.confset_id }}'
-                            })
-                         )
-                         .then((d, status, xhr) => {
-                            location.reload();
-                         })
+                  if (data.length <= 0 && type != "display") {
+                     return false;
+                  }
+                  if (data.length > 0 && type != "display") {
+                     return true;
+                  }
 
-                      });
+                  if (data.length >= 0 && type == "display" && row.all_hooks.length > 0 && row.input_handler == undefined) {
 
-                      return `
-                      <form type='post'>
-                         <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                            <label class="btn btn-sm btn-secondary ${row.is_enabled ? "active" : ""}">
-                               <input value='true' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> On
-                            </label>
-                            <label class="btn btn-sm btn-secondary ${!row.is_enabled ? "active" : ""}">
-                               <input value='false' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> Off
-                            </label>
-                         </div>
-                      </form>`;
+                     $('#scripts-config').on('click', `input[name='${row.key}-check']`, function(e) {
 
-                   }
-                  
-                   return data.join(', ')
-                }
-             },
-             {
-                targets: -1,
-                data: null,
-                className: 'text-center',
-                render: function (data, type, row) {
-                   return `
-                      <div class='btn-group'>
-                         <button ${row.input_handler == undefined ? "disabled" : ""} 
-                            data-toggle="modal"
-                            title='Edit Script'
-                            data-target="#modal-script"
-                            class="btn btn-square btn-sm btn-primary">
+                        const $this = $(this);
+                        const value = $this.val();
+                        const hooks = row.all_hooks;
+                        const data = {};
 
-                            <i class='fas fa-edit'></i>
+                        hooks.forEach(d => {
+                           data[d] = {
+                              enabled: (value == "true")
+                           }
+                        })
 
-                         </button>
-                         <a 
-                            href='${data.edit_url}'
-                            title='View Source Script'
-                            class='btn btn-square btn-sm btn-secondary'>
-                                <i class='fas fa-scroll'></i>
-                         </a>
-                      </div>
-                   `;
-                },
-                sortable: false
-             }
-          ]
-       });
+                        $.when(
+                           $.post('{{ ntop.getHttpPrefix() }}/lua/edit_user_script_config.lua', {
+                              script_subdir: '{{ script_list.script_subdir }}',
+                              script_key: row.key,
+                              csrf: '{{ ntop.getRandomCSRFValue() }}',
+                              JSON: JSON.stringify(data),
+                              confset_id: '{{ script_list.confset_id }}'
+                           })
+                        )
+                        .then((d, status, xhr) => {
+                           location.reload();
+                        })
 
-       // initialize are you sure
-       $("#edit-form").areYouSure({
-          'message':'{{ i18n("scripts_list.are_you_sure", {}) }}'
-       });
+                     });
 
-       // handle modal-script close event
-       $("#modal-script").on("hide.bs.modal", function(e) {
+                     return `
+                     <form type='post'>
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                           <label class="btn btn-sm btn-secondary ${row.is_enabled ? "active" : ""}">
+                              <input value='true' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> On
+                           </label>
+                           <label class="btn btn-sm btn-secondary ${!row.is_enabled ? "active" : ""}">
+                              <input value='false' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> Off
+                           </label>
+                        </div>
+                     </form>`;
 
-          // if the forms is dirty then ask to the user
-          // if he wants save edits
-          if ($('#edit-form').hasClass('dirty')) {
-             
-             // ask to user if he REALLY wants close modal
-             const result = confirm("The changes will not be saved. Are you sure?");
-             if (!result) e.preventDefault();
-             
-             // remove dirty class from form
-             $('#edit-form').removeClass('dirty');
-          }
-       });
+                  }
 
-       // load templates for the script
-       $('#hostsScripts').on('click', 'button[data-target="#modal-script"]', function(e) {
-          
-          // get script key and script name
-          const row_data = $script_table.row($(this).parent().parent()).data();
-          const script_key = row_data.key;
-          const script_title = row_data.title;
-          
-          // change title to modal
-          $("#script-name").html(`<b>${script_title}</b>`);
+                  return data.join(', ')
+               }
+            },
+            {
+               targets: -1,
+               data: null,
+               className: 'text-center',
+               render: function (data, type, row) {
+                  return `
+                     <div class='btn-group'>
+                        <button ${row.input_handler == undefined ? "disabled" : ""}
+                           data-toggle="modal"
+                           title='Edit Script'
+                           data-target="#modal-script"
+                           class="btn btn-square btn-sm btn-primary">
 
-          $("#modal-script form").off('submit');
+                           <i class='fas fa-edit'></i>
 
-          $("#modal-script").on("submit", "form", function (e) {
-        
-             e.preventDefault();
-             $('#edit-form').trigger('reinitialize.areYouSure');
+                        </button>
+                        <a
+                           href='${data.edit_url}'
+                           title='View Source Script'
+                           class='btn btn-square btn-sm btn-secondary'>
+                               <i class='fas fa-scroll'></i>
+                        </a>
+                     </div>
+                  `;
+               },
+               sortable: false
+            }
+         ]
+      });
 
-             $('#edit-form').removeClass('dirty');
-             $("#btn-apply").trigger("click");
-          });
+      // initialize are you sure
+      $("#edit-form").areYouSure({
+         'message':'{{ i18n("scripts_list.are_you_sure", {}) }}'
+      });
 
-          $.when(
-             $.get('{{ ntop.getHttpPrefix() }}/lua/get_user_script_config.lua', {
-                   script_subdir: '{{ script_list.script_subdir }}',
-                   confset_id: '{{ script_list.confset_id }}',
-                   script_key: script_key
-                }
-             )
-          )
-          .then((data, status, x) => {
+      // handle modal-script close event
+      $("#modal-script").on("hide.bs.modal", function(e) {
 
-             // clean table editor
-             const $table_editor = $("#script-config-editor > tbody");
-             $table_editor.empty();
+         // if the forms is dirty then ask to the user
+         // if he wants save edits
+         if ($('#edit-form').hasClass('dirty')) {
 
-             // destructure gui and hooks from data
-             const {gui, hooks} = data;
+            // ask to user if he REALLY wants close modal
+            const result = confirm("The changes will not be saved. Are you sure?");
+            if (!result) e.preventDefault();
 
-             // create build_gui()
-             {* script_list.template_utils.gen("script_list_components/build_gui.html") *}
+            // remove dirty class from form
+            $('#edit-form').removeClass('dirty');
+         }
+      });
 
-             // append gui on the edit modal
-             build_gui(gui, hooks);
-          
-             // bind event to modal_button
-             const on_apply = (e) => {
+      // load templates for the script
+      $('#scripts-config').on('click', 'button[data-target="#modal-script"]', function(e) {
 
-                const $button = $(this);
-                // prepare request to save config
-                const data = {}
-                // variable for checking errors
-                let error = false;
+         // get script key and script name
+         const row_data = $script_table.row($(this).parent().parent()).data();
+         const script_key = row_data.key;
+         const script_title = row_data.title;
 
-                // iterate over granularities
-                $table_editor.children("tr").each(function (index) {
+         // change title to modal
+         $("#script-name").html(`<b>${script_title}</b>`);
 
-                   const id = $(this).attr("id");
-                
-                   const enabled = $(this).find("input[type='checkbox']").is(":checked");
-                   const $template = $(this).find(".template");
+         $("#modal-script form").off('submit');
 
-                   const operator = $template.find("select").val();
-                   const threshold = $template.find("input").val();
+         $("#modal-script").on("submit", "form", function (e) {
 
-                   // hide before errors
-                   $template.find(`.invalid-feedback`).hide();
+            e.preventDefault();
+            $('#edit-form')
+               .trigger('reinitialize.areYouSure')
+               .removeClass('dirty');
 
-                   // if operator is empty then alert the user
-                   if (enabled && (operator == "" || operator == undefined || operator == null)) {
+            $("#btn-apply").trigger("click");
+         });
 
-                      $template.find(`.invalid-feedback`).text("Please select an operator!").show();
-                      error = true;
-                      return;
-                   }
+         $.get('{{ ntop.getHttpPrefix() }}/lua/get_user_script_config.lua', {
+               script_subdir: '{{ script_list.script_subdir }}',
+               confset_id: '{{ script_list.confset_id }}',
+               script_key: script_key
+            }
+         )
+         .then((data, status, xhr) => {
 
-                   // if the value is empty then alert the user (only for checked granularities)
-                   if (enabled && (threshold == null || threshold == undefined || threshold == "")) {
-                      $template.find(`.invalid-feedback`).text("Please fill the input box!").show();
-                      error = true;
-                      return;
-                   }
+           // check status code
+           if (check_status_code(xhr.status, xhr.statusText, null)) return;
 
-                   // save data into dictonary
-                   data[id] = {
-                      'enabled': enabled,
-                      'script_conf': {
-                         'operator': operator,
-                         'threshold': threshold
-                      }
-                   }
-                });        
-                
-                // check if there are any errors on input values
-                if (error) return;
-                // remove dirty class from form
-                $('#edit-form').removeClass('dirty')
-                // disable button
-                $button.attr("disabled", "");
+           // clean table editor
+           const $table_editor = $("#script-config-editor > tbody");
+           $table_editor.empty();
 
-                // make post request
-                $.when(
-                   $.post('{{ ntop.getHttpPrefix() }}/lua/edit_user_script_config.lua', {
-                      script_subdir: '{{ script_list.script_subdir }}',
-                      script_key: script_key,
-                      csrf: '{{ ntop.getRandomCSRFValue() }}',
-                      JSON: JSON.stringify(data),
-                      confset_id: '{{ script_list.confset_id }}'
-                   })
-                )
-                .then((d, status, xhr) => {
-                   location.reload();
-                })
+           // destructure gui and hooks from data
+           const {gui, hooks} = data;
 
-             };
+           // create build_gui()
+           {* script_list.template_utils.gen("script_list_components/build_gui.html") *}
 
-             // bind event on reset defaults button
-             const on_reset = (e) => {
+           // append gui on the edit modal
+           build_gui(gui, hooks);
 
-                // get default values for config
-                $.when(
-                   $.get('{{ ntop.getHttpPrefix() }}/lua/get_user_script_config.lua', {
-                      script_subdir: '{{ script_list.script_subdir }}',
-                      script_key: script_key
-                   })
-                )
-                .then((data, status, xhr) => {
+           // bind event to modal_button
+           const on_apply = (e) => {
 
-                   const {hooks} = data;
+               const $button = $(this);
+               // prepare request to save config
+               const data = {}
+               // variable for checking errors
+               let error = false;
 
-                   // reset default values
-                   for (key in hooks) {
-                      
-                      const granularity = hooks[key];
+               // iterate over granularities
+               $table_editor.children("tr").each(function (index) {
 
-                      $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
+                  const id = $(this).attr("id");
 
-                      if (granularity.script_conf.threshold === undefined) {
-                         $(`input[name='${key}-input']`).val('');
-                      }
-                      else {
-                         $(`input[name='${key}-input']`).val(granularity.script_conf.threshold);
-                      }
+                  const enabled = $(this).find("input[type='checkbox']").is(":checked");
+                  const $template = $(this).find(".template");
+                  const $error_label = $template.find(`.invalid-feedback`);
 
-                      if (granularity.enabled) {
-                         $(`select[name='${key}-select']`).removeAttr("disabled");
-                         $(`input[name='${key}-input']`).removeAttr("readonly");
-                      }
-                      else {
-                         $(`input[name='${key}-input']`).attr("readonly", "");
-                         $(`select[name='${key}-select']`).attr("disabled", "");
-                      }                  
+                  const operator = $template.find("select").val();
+                  const threshold = $template.find("input").val();
 
-                      $(`select[name='${key}-select']`).val(granularity.script_conf.operator);
+                  // hide before errors
+                  $error_label.hide();
 
-                   }
+                  // if operator is empty then alert the user
+                  if (enabled && (operator == "" || operator == undefined || operator == null)) {
 
-                   // remove dirty class from form
-                   $('#edit-form').removeClass('dirty')
-                });
+                     $error_label.text("Please select an operator!").show();
+                     error = true;
+                     return;
+                  }
 
-             }
+                  // if the value is empty then alert the user (only for checked granularities)
+                  if (enabled && (threshold == null || threshold == undefined || threshold == "")) {
+                     $error_label.text("Please fill the input box!").show();
+                     error = true;
+                     return;
+                  }
 
-             // bind click event to btn-apply
-             $("#btn-apply").off("click").click(on_apply);
+                  // save data into dictonary
+                  data[id] = {
+                     'enabled': enabled,
+                     'script_conf': {
+                        'operator': operator,
+                        'threshold': threshold
+                     }
+                  }
+               });
 
-             // bind reset default click event
-             $("#btn-reset").off("click").click(on_reset);
+               const $error_label = $("#apply-error");
+               
+               // check if there are any errors on input values
+               if (error) return;
+               // remove dirty class from form
+               $('#edit-form').removeClass('dirty')
+               // disable button
+               $button.attr("disabled", "");
 
-             // bind are you sure to form
-             $('#edit-form').trigger('rescan.areYouSure');
-             $('#edit-form').trigger('reinitialize.areYouSure');
+               $.post('{{ ntop.getHttpPrefix() }}/lua/edit_user_script_config.lua', {
+                  script_subdir: '{{ script_list.script_subdir }}',
+                  script_key: script_key,
+                  csrf: '{{ ntop.getRandomCSRFValue() }}',
+                  JSON: JSON.stringify(data),
+                  confset_id: '{{ script_list.confset_id }}'
+               })
+               .done((d, status, xhr) => {
 
-          });
+                  if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+                  // if the operation was successfull then reload the page
+                  location.reload();
+               })
+               .fail(({status, statusText}) => {
 
+                  check_status_code(status, statusText, $error_label);
+                  // hide modal if there is error
+                  $("#modal-script").modal("toggle");
+               })
 
-       });
+            };
 
-       /**
+           // bind event on reset defaults button
+           const on_reset = (e) => {
+
+               // get default values for config
+               $.get('{{ ntop.getHttpPrefix() }}/lua/get_user_script_config.lua', {
+                  script_subdir: '{{ script_list.script_subdir }}',
+                  script_key: script_key
+               })
+               .done((data, status, xhr) => {
+
+                  const {hooks} = data;
+
+                  // reset default values
+                  for (key in hooks) {
+
+                     const granularity = hooks[key];
+
+                     $(`input[name='${key}-check']`).prop('checked', granularity.enabled);
+
+                     if (granularity.script_conf.threshold === undefined) {
+                        $(`input[name='${key}-input']`).val('');
+                     }
+                     else {
+                        $(`input[name='${key}-input']`).val(granularity.script_conf.threshold);
+                     }
+
+                     if (granularity.enabled) {
+                        $(`select[name='${key}-select']`).removeAttr("disabled");
+                        $(`input[name='${key}-input']`).removeAttr("readonly");
+                     }
+                     else {
+                        $(`input[name='${key}-input']`).attr("readonly", "");
+                        $(`select[name='${key}-select']`).attr("disabled", "");
+                     }
+
+                     $(`select[name='${key}-select']`).val(granularity.script_conf.operator);
+
+                  }
+
+                  // remove dirty class from form
+                  $('#edit-form').removeClass('dirty')
+               })
+               .fail(({status, statusText}) => {
+
+                  check_status_code(status, statusText, null);
+                  // hide modal if there is error
+                  $("#modal-script").modal("toggle");
+               })
+            }
+
+           // bind click event to btn-apply
+           $("#btn-apply").off("click").click(on_apply);
+
+           // bind reset default click event
+           $("#btn-reset").off("click").click(on_reset);
+
+           // bind are you sure to form
+           $('#edit-form')
+              .trigger('rescan.areYouSure')
+              .trigger('reinitialize.areYouSure');
+
+         })
+         .fail(({status, statusText}) => {
+
+            check_status_code(status, statusText, null);
+            // hide modal if there is error
+            $("#modal-script").modal("toggle");
+         })
+
+      });
+
+      /**
        * Count the scripts that are enabled, disabled inside the script table
        */
-       const count_scripts = () => {
+      const count_scripts = () => {
 
-          // count scripts
-          const $disabled_button = $(`#disabled-scripts`);
-          const $all_button = $("#all-scripts");
-          const $enabled_button = $(`#enabled-scripts`);
+         // count scripts
+         const $disabled_button = $(`#disabled-scripts`);
+         const $all_button = $("#all-scripts");
+         const $enabled_button = $(`#enabled-scripts`);
 
-          let enabled_count = 0;
-          let disabled_count = 0;
-          
-          $script_table.data().each(d => {
+         let enabled_count = 0;
+         let disabled_count = 0;
 
-             if (d.is_enabled) {
-                enabled_count++;
-             }
-             else {
-                disabled_count++;
-             }
+         $script_table.data().each(d => {
 
-          });
+            if (d.is_enabled) {
+               enabled_count++;
+               return;
+            }
 
-          $all_button.html(`{{ i18n("all", {}) }} (${enabled_count + disabled_count})`)
-          $enabled_button.html(`{{ i18n("enabled", {}) }} (${enabled_count})`);
-          $disabled_button.html(`{{ i18n("disabled", {}) }} (${disabled_count})`);
-       }
+            disabled_count++;
+         });
 
-    });
- </script>
+         $all_button.html(`{{ i18n("all", {}) }} (${enabled_count + disabled_count})`)
+         $enabled_button.html(`{{ i18n("enabled", {}) }} (${enabled_count})`);
+         $disabled_button.html(`{{ i18n("disabled", {}) }} (${disabled_count})`);
+      }
+
+   });
+</script>
 
 <script type="text/javascript">
-   setTimeout(() => {
-      document.location.reload()
-   }, {{ script_list.timeout_csrf }});
+  setTimeout(() => {
+     document.location.reload()
+  }, {{ script_list.timeout_csrf }});
 </script>
 
 {% end %}
