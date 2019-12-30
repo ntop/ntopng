@@ -57,12 +57,11 @@ const script_subdir = "{{ script_list.script_subdir }}";
 const csrf_toggle_buttons = "{{ ntop.getRandomCSRFValue() }}";
 const csrf_edit_config = "{{ ntop.getRandomCSRFValue() }}";
 
-const i18_scripts_list = {
-   are_you_sure: '{{ i18n("scripts_list.are_you_sure", {}) }}',
-   all: '{{ i18n("all", {}) }}',
-   enabled: '{{ i18n("enabled", {}) }}',
-   disabled: '{{ i18n("disabled", {}) }}',
-}
+i18n.are_you_sure = '{{ i18n("scripts_list.are_you_sure", {}) }}'
+i18n.all = '{{ i18n("all", {}) }}'
+i18n.enabled = '{{ i18n("enabled", {}) }}'
+i18n.disabled = '{{ i18n("disabled", {}) }}'
+i18n.request_failed_message = '{{ i18n("request_failed_message") }}'
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/config_callbacks/scripts-list-utils.js"></script>

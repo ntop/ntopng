@@ -56,10 +56,10 @@ const delete_csrf = '{{ ntop.getRandomCSRFValue() }}';
 
 const subdir = '{{ config_list.subdir }}';
 
-const i18n_config_list = {
-    warning: "{{ i18n('warning', {}) }}",
-    no_targets_applied: "{{ i18n('config_scripts.no_targets_applied', {}) }}",
-}
+i18n.warning ="{{ i18n('warning', {}) }}"
+i18n.no_targets_applied = "{{ i18n('config_scripts.no_targets_applied', {}) }}"
+i18n.empty_value_message = "{{ i18n('config_scripts.empty_value_message', {}) }}"
+i18n.empty_target_message = "{{ i18n('config_scripts.empty_target_message', {}) }}"
 
 </script>
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/config_callbacks/config-list-utils.js'></script>

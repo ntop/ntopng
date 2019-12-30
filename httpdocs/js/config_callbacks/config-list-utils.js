@@ -4,10 +4,10 @@ const check_status_code = (status_code, status_text, $error_label) => {
     const is_different = status_code != 200;
 
     if (is_different && $error_label != null) {
-        $error_label.text(`The request has failed! Response: ${status_code} - ${status_text}`).show();
+        $error_label.text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
     }
     else if (is_different && $error_label == null) {
-        alert(`The request has failed! Response: ${status_text}`);
+        alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
     }
 
     return is_different;
@@ -63,7 +63,9 @@ $(document).ready(function() {
                         return flat.join(', ');
                     }
                     else if(type == 'display' && data.length == 0 && row.id != 0) {
-                        return `<div class='text-warning'><i class='fas fa-exclamation-triangle'></i> <b>${i18n_config_list.warning}</b>: ${i18n_config_list.no_targets_applied}<div>`
+                        return `<div class='text-warning'>
+                                    <i class='fas fa-exclamation-triangle'></i> <b>${i18n.warning}</b>: ${i18n.no_targets_applied}
+                                </div>`
                     }
 
                     // return targets as a string
@@ -135,7 +137,7 @@ $(document).ready(function() {
             const $button = $(this);
 
             if (clonation_name == null || clonation_name == "" || clonation_name == undefined) {
-                $("#clone-error").text("The name cannot be empty!").show();
+                $("#clone-error").text(`${i18n.empty_value_message}`).show();
                 return;
             }
 
@@ -224,7 +226,7 @@ $(document).ready(function() {
 
             // show error message if the input is empty
             if (applied_value == "" || applied_value == null || applied_value == undefined) {
-                $("#apply-error").text("The targets cannot be empty!").show();
+                $("#apply-error").text(`${i18n.empty_target_message}`).show();
                 return;
             }
 
@@ -293,7 +295,7 @@ $(document).ready(function() {
 
             // show error message if the input is empty
             if (input_value == "" || input_value == null || input_value == undefined) {
-                $("#rename-error").text("The new name cannot be empty!").show();
+                $("#rename-error").text(`${i18n.empty_value_message}`).show();
                 return;
             }
 

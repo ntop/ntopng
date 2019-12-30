@@ -7,10 +7,10 @@
     const is_different = status_code != 200;
 
     if (is_different && $error_label != null) {
-       $error_label.text(`The request has failed! Response: ${status_text}`).show();
+       $error_label.text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
     }
     else if (is_different && $error_label == null) {
-       alert(`The request has failed! Response: ${status_text}`);
+       alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
     }
 
     return is_different;
@@ -189,7 +189,7 @@
 
      // initialize are you sure
      $("#edit-form").areYouSure({
-        'message': i18_scripts_list.are_you_sure
+        'message': i18n.are_you_sure
      });
 
      // handle modal-script close event
@@ -200,7 +200,7 @@
         if ($('#edit-form').hasClass('dirty')) {
 
            // ask to user if he REALLY wants close modal
-           const result = confirm("The changes will not be saved. Are you sure?");
+           const result = confirm(`${i18n.are_you_sure}`);
            if (!result) e.preventDefault();
 
            // remove dirty class from form
@@ -269,7 +269,7 @@
                                    min='${field_min == undefined ? '' : field_min}'
                                    max='${field_max == undefined ? '' : field_max}'>`)
                     .append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit}</span>`)
-                    .append(`<div class="invalid-feedback">{message}</div>`)
+                    .append(`<div class="invalid-feedback"></div>`)
               }
 
            }
@@ -523,9 +523,9 @@
            disabled_count++;
         });
 
-        $all_button.html(`${i18_scripts_list.all} (${enabled_count + disabled_count})`)
-        $enabled_button.html(`${i18_scripts_list.enabled} (${enabled_count})`);
-        $disabled_button.html(`${i18_scripts_list.disabled} (${disabled_count})`);
+        $all_button.html(`${i18n.all} (${enabled_count + disabled_count})`)
+        $enabled_button.html(`${i18n.enabled} (${enabled_count})`);
+        $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
      }
 
   });
