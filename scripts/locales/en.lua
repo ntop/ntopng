@@ -3633,6 +3633,7 @@ local lang = {
     ["install"] = "Install update",
     ["install_confirm"] = "Do you want to update and restart ntopng now?",
     ["installing"] = "Installing update..",
+    ["maintenance_expired"] = "Please note that maintenance for this product has expired, you need to renew the license after the upgrade.",
     ["no_updates"] = "No updates available",
     ["upgrade_failure_message"] = "Something went wrong during the update, please retry or try manually",
   },

@@ -449,7 +449,12 @@ print[[
 
   /* Install latest update */
   var installUpdate = function() {
-    if (confirm(']] print(i18n("updates.install_confirm")) print[[')) {
+    if (confirm(']] print(i18n("updates.install_confirm")) 
+      if info["pro.license_days_left"] ~= nil and info["pro.license_days_left"] <= 0 then
+        -- License is valid, however maintenance is expired: warning the user
+        print(" "..i18n("updates.maintenance_expired"))
+      end
+      print[[')) {
       $.ajax({
         type: 'POST',
         url: ']] print (ntop.getHttpPrefix()) print [[/lua/install_update.lua',
