@@ -400,13 +400,13 @@ end
 local function printEntry(idx, entry)
    local parts = {}
 
-   parts[#parts + 1] = [[<li><a href="]] .. entry.url .. [[" ]]
+   parts[#parts + 1] = [[<a class='dropdown-item' href="]] .. entry.url .. [[" ]]
 
    if not isEmptyString(entry.tab_id) then
       parts[#parts + 1] = [[id="]] .. entry.tab_id .. [[" ]]
    end
 
-   parts[#parts + 1] = [[> ]] .. entry.label .. [[</a></li>]]
+   parts[#parts + 1] = [[> ]] .. entry.label .. [[</a>]]
 
    print(table.concat(parts, ""))
 end
@@ -887,18 +887,18 @@ local page_params = {
 
 if(options.timeseries) then
    print [[
-<div class="btn-group">
-  <button class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
-  <ul class="dropdown-menu">
-]]
+   <div class="dropdown d-inline">
+      <button class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
+      <div class="dropdown-menu responsive-dropdown">
+   ]]
 
    printSeries(options, tags, start_time, end_time, baseurl, page_params)
    printGraphMenuEntries(printEntry, nil, start_time, end_time)
 
    print [[
-  </ul>
-</div><!-- /btn-group -->
-]]
+      </div>
+   </div><!-- /btn-group -->
+   ]]
 end -- options.timeseries
 
 print('&nbsp;Timeframe:  <div class="btn-group btn-group-toggle" data-toggle="buttons" id="graph_zoom">\n')
