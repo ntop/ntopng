@@ -3291,6 +3291,21 @@ static int ntop_get_flow_device_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_scanners(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  } else {
+    lua_newtable(vm);
+    ntop_interface->lua_scanners(vm);
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
 static int ntop_discover_iface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int timeout = 3; /* sec */
@@ -11040,6 +11055,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getFlowDevices",                   ntop_get_flow_devices                  },
   { "getFlowDeviceInfo",                ntop_get_flow_device_info              },
 
+  /* SNMP */
+  { "getScanners",                      ntop_get_interface_scanners            },
+
 #ifdef HAVE_NEDGE
   /* L7 */
   { "reloadL7Rules",                    ntop_reload_l7_rules                   },
@@ -11122,10 +11140,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "checkHostsAlertsDay",        ntop_check_hosts_alerts_day         },
 
   /* Network Alerts */
-  { "checkNetworksAlertsMin",     ntop_check_networks_alerts_min   },
-  { "checkNetworksAlerts5Min",    ntop_check_networks_alerts_5min  },
-  { "checkNetworksAlertsHour",    ntop_check_networks_alerts_hour  },
-  { "checkNetworksAlertsDay",     ntop_check_networks_alerts_day   },
+  { "checkNetworksAlertsMin",     ntop_check_networks_alerts_min      },
+  { "checkNetworksAlerts5Min",    ntop_check_networks_alerts_5min     },
+  { "checkNetworksAlertsHour",    ntop_check_networks_alerts_hour     },
+  { "checkNetworksAlertsDay",     ntop_check_networks_alerts_day      },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },

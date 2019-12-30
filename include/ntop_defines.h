@@ -432,6 +432,9 @@
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
 
+#define SCANNERS_ADDRESS_TREE_HIGH_WATERMARK  1024
+#define SCANNERS_ADDRESS_TREE_LOW_WATERMARK    512
+
 /* NOTE: keep in sync with nf_config.lua */
 #define DNS_MAPPING_PORT            3003
 #define CAPTIVE_PORTAL_PORT         3004

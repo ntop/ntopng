@@ -39,6 +39,8 @@ AddressTree::AddressTree(const AddressTree &at) {
   
   macs = at.macs;
   numAddresses = at.numAddresses;
+  numAddressesIPv4 = at.numAddressesIPv4;
+  numAddressesIPv6 = at.numAddressesIPv6;
 }
 
 /* **************************************** */
@@ -50,7 +52,7 @@ static void free_ptree_data(void *data) {
 /* **************************************** */
 
 void AddressTree::init(bool handleIPv6) {
-  numAddresses = 0;
+  numAddresses = numAddressesIPv4 = numAddressesIPv6 = 0;
   ptree_v4 = New_Patricia(32), macs.clear();
 
   if(handleIPv6)
@@ -80,8 +82,23 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa) {
     int cur_family = is_v4 ? AF_INET : AF_INET6;
     int cur_bits = is_v4 ? 32 : 128;
     void *cur_addr = is_v4 ? (void*)&ipa->getIP()->ipType.ipv4 : (void*)&ipa->getIP()->ipType.ipv6;
-    
-    return Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
+    patricia_node_t *res;
+
+    res = Utils::ptree_match(cur_ptree, cur_family, cur_addr, cur_bits);
+
+    if(!res) {
+      res = Utils::add_to_ptree(cur_ptree, cur_family, cur_addr, cur_bits);
+
+      if(res) {
+	numAddresses++;
+	if(is_v4)
+	  numAddressesIPv4++;
+	else
+	  numAddressesIPv6++;
+      }
+    }
+
+    return res;
   }
 }
 
@@ -140,11 +157,8 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
 	patricia_walk_inorder(res, compact_tree_funct, &compact);
 
 	for(std::vector<prefix_t*>::const_iterator it = compact.larger_bitlens.begin();
-	    it != compact.larger_bitlens.end(); ++it) {
-	  patricia_node_t *compacted = patricia_search_exact(cur_ptree, *it);
-	  assert(compacted);
-	  patricia_remove(cur_ptree, compacted);
-	}
+	    it != compact.larger_bitlens.end(); ++it)
+	  removePrefix(is_v4, *it);
       }
     }
 
@@ -359,12 +373,45 @@ void AddressTree::getAddresses(lua_State* vm) const {
 }
 /* **************************************************** */
 
+void AddressTree::removePrefix(bool isV4, prefix_t* prefix) {
+  if(removePrefix(getTree(isV4), prefix)) {
+    numAddresses--;
+
+    if(isV4)
+      numAddressesIPv4--;
+    else
+      numAddressesIPv6--;
+  }
+}
+
+/* **************************************************** */
+
+bool AddressTree::removePrefix(patricia_tree_t *ptree, prefix_t* prefix) {
+  if(!ptree || !prefix)
+    return false;
+
+  patricia_node_t *candidate = patricia_search_exact(ptree, prefix);
+
+  if(!candidate)
+    return false;
+
+  patricia_remove(ptree, candidate);
+  return true;
+}
+
+/* **************************************************** */
+
+void AddressTree::walk(const patricia_tree_t *ptree, void_fn3_t func, void * const user_data) {
+  if(ptree && ptree->head)
+    patricia_walk_inorder(ptree->head, func, user_data);
+}
+
+
+/* **************************************************** */
+
 void AddressTree::walk(void_fn3_t func, void * const user_data) const {
-  if(ptree_v4->head)
-    patricia_walk_inorder(ptree_v4->head, func, user_data);
-  
-  if(ptree_v6 && ptree_v6->head)
-    patricia_walk_inorder(ptree_v6->head, func, user_data);
+  walk(ptree_v4, func, user_data);
+  walk(ptree_v6, func, user_data);
 }
 
 /* **************************************************** */

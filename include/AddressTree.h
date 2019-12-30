@@ -27,24 +27,28 @@
 class IpAddress;
 
 class AddressTree {
- private:
-  u_int16_t numAddresses;
+ protected:
+  u_int16_t numAddresses, numAddressesIPv4, numAddressesIPv6;
+  patricia_tree_t* getPatricia(char* what);
   patricia_tree_t *ptree_v4, *ptree_v6;
   std::map<u_int64_t, int16_t> macs;
-  
-  patricia_tree_t* getPatricia(char* what);
-  
+  void removePrefix(bool isV4, prefix_t* prefix);
+  static void walk(const patricia_tree_t *ptree, void_fn3_t func, void * const user_data);
+  static bool removePrefix(patricia_tree_t *ptree, prefix_t* prefix);
+
  public:
   AddressTree(bool handleIPv6 = true);
   AddressTree(const AddressTree &at);
-  ~AddressTree();
+  virtual ~AddressTree();
 
   void init(bool handleIPv6);
   void cleanup();
 
-  inline u_int16_t getNumAddresses() { return(numAddresses); }
+  inline u_int16_t getNumAddresses()     const { return(numAddresses);     }
+  inline u_int16_t getNumAddressesIPv4() const { return(numAddressesIPv4); }
+  inline u_int16_t getNumAddressesIPv6() const { return(numAddressesIPv6); }
 
-  inline const patricia_tree_t * getTree(bool isV4) const { return(isV4 ? ptree_v4 : ptree_v6); }
+  inline patricia_tree_t * getTree(bool isV4) const { return(isV4 ? ptree_v4 : ptree_v6); }
   bool addAddress(const char * const _net, const int16_t user_data = -1);
   patricia_node_t* addAddress(const IpAddress * const ipa);
   patricia_node_t* addAddress(const IpAddress * const ipa, int network_bits, bool compact_after_add);
