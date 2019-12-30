@@ -16,10 +16,6 @@ local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
--- set timeout timeout time to reload the page
--- to prevent csrf expirations
-local timeout_csrf = 300000
-
 -- get subdir form url
 local subdir = _GET["subdir"]
 -- set default value for subdir if its empty
