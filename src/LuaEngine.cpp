@@ -11692,8 +11692,8 @@ int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
     if(ntop->getPro()->has_valid_license())
       rc = __ntop_lua_handlefile(L, script_path, false /* Do not execute */);
     else
-      rc = luaL_loadfile(L, script_path);
 #endif
+      rc = luaL_loadfile(L, script_path);
 
     if(rc != 0) {
       const char *err = lua_tostring(L, -1);
@@ -12222,14 +12222,12 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   if(is_interface_allowed)
     getLuaVMUservalue(L, allowed_ifname) = iface->get_name();
 
-#ifndef NTOPNG_PRO
-  rc = luaL_dofile(L, script_path);
-#else
+#ifdef NTOPNG_PRO
   if(ntop->getPro()->has_valid_license())
     rc = __ntop_lua_handlefile(L, script_path, true);
   else
-    rc = luaL_dofile(L, script_path);
 #endif
+    rc = luaL_dofile(L, script_path);
 
   if(rc != 0) {
     const char *err = lua_tostring(L, -1);
