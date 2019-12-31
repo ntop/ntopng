@@ -42,6 +42,7 @@ class FlowAlertCheckLuaEngine : public AlertCheckLuaEngine {
   void incSkippedPcalls(FlowLuaCall flow_lua_call);
   void incPendingPcalls(FlowLuaCall flow_lua_call);
   void incSuccessfulPcalls(FlowLuaCall flow_lua_call);
+  virtual void reset_stats();
 };
 
 #endif

@@ -24,12 +24,11 @@
 /* ****************************************** */
 
 AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *_iface) : LuaEngine() {
-  num_calls = 0;
-  total_ticks = 0;
   const char *lua_file = NULL;
   iface = _iface;
   tps = Utils::gettickspersec();
   script_ok = false;
+  reset_stats();
 
   p = script_periodicity;
 
@@ -106,6 +105,13 @@ AlertCheckLuaEngine::~AlertCheckLuaEngine() {
       pcall(1 /* 1 argument */, 0);
     }
   }
+}
+
+/* ****************************************** */
+
+void AlertCheckLuaEngine::reset_stats() {
+  num_calls = 0;
+  total_ticks = 0;
 }
 
 /* ****************************************** */

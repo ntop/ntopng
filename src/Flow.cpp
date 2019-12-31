@@ -1881,7 +1881,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 
 /* *************************************** */
 
-void Flow::periodic_hash_entry_state_update(void *user_data, bool skip_user_scripts) {
+void Flow::periodic_hash_entry_state_update(void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   struct timeval *tv = periodic_ht_state_update_user_data->tv;
 
@@ -1910,10 +1910,10 @@ void Flow::periodic_hash_entry_state_update(void *user_data, bool skip_user_scri
 
   /* Now that the states in the finite state machine have been moved forward, it is time to check and 
      possibly perform lua calls on the flow. */
-  if(!skip_user_scripts)
+  if(!periodic_ht_state_update_user_data->skip_user_scripts)
     performLuaCalls(tv, periodic_ht_state_update_user_data);
 
-  GenericHashEntry::periodic_hash_entry_state_update(user_data, skip_user_scripts);
+  GenericHashEntry::periodic_hash_entry_state_update(user_data);
 }
 
 /* *************************************** */
@@ -4277,18 +4277,17 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 
 /* ***************************************************** */
 
-bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
+bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv,
+	  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
   const char *lua_call_fn_name = NULL;
+  FlowAlertCheckLuaEngine *acle = getLuaVMUservalue(periodic_ht_state_update_user_data->vm, flow_acle);
 
   if(flow_lua_call != flow_lua_call_idle
      && ntop->getGlobals()->isShutdownRequested())
     return false; /* Only flow_lua_call_idle go through during a shutdown */
 
-  if(!periodic_ht_state_update_user_data->acle
-     && !(periodic_ht_state_update_user_data->acle = new (std::nothrow) FlowAlertCheckLuaEngine(getInterface())))
-    return false; /* Cannot allocate memory */
-
-  FlowAlertCheckLuaEngine *acle = (FlowAlertCheckLuaEngine*)periodic_ht_state_update_user_data->acle;
+  if(!acle)
+    return false;
 
   lua_State *L = acle->getState();
   acle->setFlow(this);

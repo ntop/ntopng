@@ -95,7 +95,7 @@ bool GenericHashEntry::is_hash_entry_state_idle_transition_possible() const {
 
 /* ***************************************** */
 
-void GenericHashEntry::periodic_hash_entry_state_update(void *user_data, bool skip_user_scripts)  {
+void GenericHashEntry::periodic_hash_entry_state_update(void *user_data)  {
   if(get_state() == hash_entry_state_idle) {
     if(!idle() && !ntop->getGlobals()->isShutdown()) {
       /* This should never happen */

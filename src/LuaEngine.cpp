@@ -153,6 +153,9 @@ LuaEngine::~LuaEngine() {
       if(ctx->addr_tree != NULL)
         delete ctx->addr_tree;
 
+      if(ctx->flow_acle)
+        delete ctx->flow_acle;
+
       free(ctx);
     }
 

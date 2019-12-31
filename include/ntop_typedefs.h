@@ -56,6 +56,7 @@ typedef enum {
 /* Struct used to pass parameters when walking hosts and flows periodically to update their stats */
 class AlertCheckLuaEngine;
 typedef struct {
+  lua_State *vm;
   NetworkInterface *iface;
   AlertCheckLuaEngine *acle;
   struct timeval *tv;
@@ -569,6 +570,7 @@ typedef struct {
 class NetworkStats;
 class Host;
 class Flow;
+class FlowAlertCheckLuaEngine;
 
 struct ntopngLuaContext {
   char *allowed_ifname, *user, *group;
@@ -586,6 +588,7 @@ struct ntopngLuaContext {
   Host *host;
   NetworkStats *network;
   Flow *flow;
+  FlowAlertCheckLuaEngine *flow_acle;
   bool localuser;
 
   /* Packet capture */

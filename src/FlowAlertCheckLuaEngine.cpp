@@ -24,14 +24,22 @@
 /* ****************************************** */
 
 FlowAlertCheckLuaEngine::FlowAlertCheckLuaEngine(NetworkInterface *iface) : AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, iface) {
-  num_skipped_idle = num_skipped_periodic_update = num_skipped_proto_detected = 0;
-  num_pending_proto_detected = num_pending_periodic_update = 0;
-  num_successful = 0;
+  reset_stats();
 }
 
 /* ****************************************** */
 
 FlowAlertCheckLuaEngine::~FlowAlertCheckLuaEngine() {
+}
+
+/* ****************************************** */
+
+void FlowAlertCheckLuaEngine::reset_stats() {
+  AlertCheckLuaEngine::reset_stats();
+
+  num_skipped_idle = num_skipped_periodic_update = num_skipped_proto_detected = 0;
+  num_pending_proto_detected = num_pending_periodic_update = 0;
+  num_successful = 0;
 }
 
 /* ****************************************** */

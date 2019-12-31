@@ -44,6 +44,7 @@ class AlertCheckLuaEngine : public LuaEngine {
   const char * getGranularity() const;
 
   void lua_stats(const char * key, lua_State *vm);
+  virtual void reset_stats();
 };
 
 #endif

@@ -2696,9 +2696,8 @@ void NetworkInterface::periodicStatsUpdate() {
 bool NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   NetworkInterface *iface = periodic_ht_state_update_user_data->iface;
-  bool skip_user_scripts = periodic_ht_state_update_user_data->skip_user_scripts;
 
-  node->periodic_hash_entry_state_update(user_data, skip_user_scripts);
+  node->periodic_hash_entry_state_update(user_data);
 
   /* If this is a viewed interface, it is necessary to also call this method
      for the overlying view interface to make sure its counters (e.g., hosts, ases, vlans)
@@ -2740,6 +2739,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
     periodic_ht_state_update_user_data.deadline = deadline,
     periodic_ht_state_update_user_data.tv = &tv;
     periodic_ht_state_update_user_data.skip_user_scripts = skip_user_scripts;
+    periodic_ht_state_update_user_data.vm = vm;
 
   if(vm)
     lua_newtable(vm);
