@@ -342,7 +342,7 @@ print [[/lua/flows_stats.lua?flow_status=alerted\">"
                 if(rsp.ts_alerts && rsp.ts_alerts.influxdb) {
                   msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/system/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=alerts#tab-table-engaged-alerts\">"
+print [[/plugins/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=alerts#tab-table-engaged-alerts\">"
                   msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-database\"></i></span></A>";
                 }
 

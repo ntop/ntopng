@@ -122,6 +122,7 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 /* ************************************ */
 
+/* This method updates the hash entries state and purges idle entries. */
 void GenericHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
   vector<GenericHashEntry*> *cur_idle = NULL;
   u_int new_walk_idle_start_hash_id = 0;

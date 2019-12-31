@@ -2728,6 +2728,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 			ases_hash,
 			countries_hash,
 			hasSeenVlanTaggedPackets() ? vlans_hash : NULL,
+			arp_hash_matrix,
 			macs_hash
   };
   time_t update_end;
@@ -4976,7 +4977,8 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans(bool force_idle) {
       + (macs_hash ? macs_hash->purgeIdle(force_idle) : 0)
       + (ases_hash ? ases_hash->purgeIdle(force_idle) : 0)
       + (countries_hash ? countries_hash->purgeIdle(force_idle) : 0)
-      + (vlans_hash ? vlans_hash->purgeIdle(force_idle) : 0);
+      + (vlans_hash ? vlans_hash->purgeIdle(force_idle) : 0)
+      + (arp_hash_matrix ? arp_hash_matrix->purgeIdle(force_idle) : 0);
 
     if(arp_hash_matrix)
       n += arp_hash_matrix->purgeIdle(force_idle);

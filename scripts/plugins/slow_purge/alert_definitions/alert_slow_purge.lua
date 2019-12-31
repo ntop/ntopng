@@ -8,7 +8,8 @@ local function formatSlowPurge(ifid, alert, threshold_info)
   local max_idle_perc = threshold_info.threshold or 0
 
   return(i18n("alert_messages.slow_purge", {
-    iface = entity, max_idle = max_idle_perc
+    iface = entity, max_idle = max_idle_perc,
+    url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=internals",
   }))
 end
 
