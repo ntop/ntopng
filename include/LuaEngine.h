@@ -39,6 +39,7 @@
 class LuaEngine {
  protected:
   lua_State *L; /**< The LuaEngine state.*/
+  char *loaded_script_path;
   
   void lua_register_classes(lua_State *L, bool http_mode);
 
@@ -66,17 +67,8 @@ class LuaEngine {
   inline NetworkInterface* getNetworkInterface() { return(getLuaVMContext(L)->iface); }
   NetworkStats* getNetwork() { return(getLuaVMContext(L)->network); }
 
-  /**
-   * @brief Run a Lua script.
-   * @details Run a script from within ntopng. No HTTP GUI.
-   * 
-   * @param script_path Full path of lua script.
-   * @param iface Select the specified interface (if not NULL)
-   * @param load_only Load the Lua script but does not execute it
-   *
-   * @return 0 if the script has been executed successfully.
-   */
-  int run_script(char *script_path, NetworkInterface *iface, bool load_only = false, time_t deadline = 0, bool no_pcall = false);
+  int load_script(char *script_path, NetworkInterface *iface);
+  int run_loaded_script();
 
   /**
    * @brief Handling of request info of script.

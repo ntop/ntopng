@@ -29,6 +29,7 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
   const char *lua_file = NULL;
   iface = _iface;
   tps = Utils::gettickspersec();
+  script_ok = false;
 
   p = script_periodicity;
 
@@ -64,14 +65,24 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
 	     lua_file);
     ntop->fixPath(script_path);
 
-    if(run_script(script_path, iface, true /* Load only */) < 0)
+    if(load_script(script_path, iface) < 0)
       return;
+
+    /* Execute the script so that the "setup" function will be exposed */
+    if(lua_pcall(L, 0, 0, 0)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure[%s] [%s]", script_path, lua_tostring(L, -1));
+      return;
+    }
 
     lua_getglobal(L, "setup");         /* Called function   */
     lua_pushstring(L, Utils::periodicityToScriptName(p)); /* push 1st argument */
 
-    if(!pcall(1 /* 1 argument */, 0))
+    if(lua_pcall(L, 1 /* 1 argument */, 0, 0)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure[%s] [%s]", script_path, lua_tostring(L, -1));
       return;
+    }
+
+    script_ok = true;
   } else {
     /* Possibly handle a generic entity */
     script_path[0] = '\0';
@@ -87,7 +98,7 @@ AlertCheckLuaEngine::~AlertCheckLuaEngine() {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[elapsed time: %.4f sec][num calls: %u][calls/sec: %.4f][%s][clocks/sec: %llu]", elapsed_time, num_calls, num_calls / elapsed_time, script_path, tps);
 #endif
 
-  if(script_path[0] != '\0') {
+  if(script_ok) {
     lua_getglobal(L, "teardown"); /* Called function */
 
     if(lua_isfunction(L, -1)) {
@@ -138,6 +149,9 @@ const char * AlertCheckLuaEngine::getGranularity() const {
 
 bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
   ticks t_begin;
+
+  if(!script_ok)
+    return(false);
 
   t_begin = Utils::getticks();
   if(lua_pcall(L, num_args, num_results, 0)) {

@@ -32,7 +32,7 @@ SyslogLuaEngine::SyslogLuaEngine(NetworkInterface *iface) : LuaEngine() {
 
   ntop->fixPath(script_path);
 
-  if (run_script(script_path, iface, true /* Load only */) < 0) {
+  if(load_script(script_path, iface) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure loading %s", script_path);
     return;
   }

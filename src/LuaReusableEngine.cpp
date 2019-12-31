@@ -59,7 +59,7 @@ void LuaReusableEngine::reloadVm(time_t now) {
     return;
   }
 
-  if(vm->run_script(script_path, iface, true /* load only */, 0, true /* no_pcall */) == 0) {
+  if(vm->load_script(script_path, iface) == 0) {
     next_reload = now + reload_interval;
   } else {
     /* Retry next time */
@@ -70,41 +70,9 @@ void LuaReusableEngine::reloadVm(time_t now) {
 
 /* ******************************* */
 
-bool LuaReusableEngine::pcall(time_t deadline) {
-  time_t now = time(NULL);
-  int top;
-  bool rv = true;
-
+LuaEngine* LuaReusableEngine::getVm(time_t now) {
   if((vm == NULL) || (now >= next_reload))
     reloadVm(now);
 
-  if(vm == NULL)
-    return(false);
-
-  if(deadline) {
-    lua_pushinteger(vm->getState(), deadline);
-    lua_setglobal(vm->getState(), "deadline");
-  }
-
-  top = lua_gettop(vm->getState());
-
-  /* Copy the lua_chunk to be able to run it again next time */
-  lua_pushvalue(vm->getState(), -1);
-
-  /* Perform the actual call */
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%p: pcall(%s, %s)", this, script_path, iface->get_name());
-
-  if(lua_pcall(vm->getState(), 0, 0, 0) != 0) {
-    if(lua_type(vm->getState(), -1) == LUA_TSTRING) {
-      const char *err = lua_tostring(vm->getState(), -1);
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err ? err : "");
-    }
-
-    rv = false;
-  }
-
-  /* Reset the stack */
-  lua_settop(vm->getState(), top);
-
-  return(rv);
+  return(vm);
 }

@@ -27,6 +27,7 @@ class AlertCheckLuaEngine : public LuaEngine {
   ScriptPeriodicity p;
   char script_path[MAX_PATH];
   u_int num_calls;
+  bool script_ok;
   ticks total_ticks, tps /* Ticks per second */;
   virtual void lua_stats_detail(lua_State *vm) const {};
 

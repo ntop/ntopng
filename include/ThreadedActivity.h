@@ -44,8 +44,8 @@ class ThreadedActivity {
   ThreadedActivityStats **threaded_activity_stats;
   Mutex vms_mutex;
 
-  /* iface -> engine */
-  std::map<std::string, LuaReusableEngine*> vms;
+  /* ifid -> engine */
+  std::map<int, LuaReusableEngine*> vms;
 
   void periodicActivityBody();
   void aperiodicActivityBody();
@@ -55,6 +55,7 @@ class ThreadedActivity {
   bool isInterfaceTaskRunning(NetworkInterface *iface);
   void updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration);
   void reloadVm(const char *ifname);
+  LuaEngine* loadVm(char *script_path, NetworkInterface *iface, time_t when);
 
  public:
   ThreadedActivity(const char* _path,		   

@@ -59,7 +59,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 /* ******************************************* */
 
 ThreadedActivity::~ThreadedActivity() {
-  std::map<std::string, LuaReusableEngine*>::iterator it;
+  std::map<int, LuaReusableEngine*>::iterator it;
 
   /* NOTE: terminateEnqueueLoop should have already been called by the PeriodicActivities
    * destructor. */
@@ -211,7 +211,7 @@ void ThreadedActivity::runScript() {
 
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, time_t deadline) {
-  LuaEngine *l = NULL;
+  LuaEngine *l;
   u_long max_duration_ms = periodicity * 1e3;
   u_long msec_diff;
   struct timeval begin, end;
@@ -226,43 +226,17 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_path, iface);
 
-  if(reuse_vm) {
-    LuaReusableEngine *engine;
-    std::map<std::string, LuaReusableEngine*>::iterator it;
+  l = loadVm(script_path, iface, time(NULL));
+  if(l == NULL)
+    return;
 
-    /* Reuse an existing engine or allocate a new one */
-    vms_mutex.lock(__FILE__, __LINE__);
+  /* Set the global deadline parameter */
+  lua_pushinteger(l->getState(), deadline);
+  lua_setglobal(l->getState(), "deadline");
 
-    if((it = vms.find(iface->get_name())) != vms.end())
-      engine = it->second;
-    else {
-      engine = new LuaReusableEngine(script_path, iface, 300 /* Reload every 5 minutes */);
-      vms[iface->get_name()] = engine;
-    }
-
-    vms_mutex.unlock(__FILE__, __LINE__);
-
-    gettimeofday(&begin, NULL);
-    engine->pcall(deadline);
-    gettimeofday(&end, NULL);
-  } else {
-    try {
-      l = new LuaEngine();
-    } catch(std::bad_alloc& ba) {
-      static bool oom_warning_sent = false;
-
-      if(!oom_warning_sent) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "[ThreadedActivity] Unable to start a Lua interpreter.");
-        oom_warning_sent = true;
-      }
-
-      return;
-    }
-
-    gettimeofday(&begin, NULL);
-    l->run_script(script_path, iface, false /* Execute */, deadline);
-    gettimeofday(&end, NULL);
-  }
+  gettimeofday(&begin, NULL);
+  l->run_loaded_script();
+  gettimeofday(&end, NULL);
 
   msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
   updateThreadedActivityStats(iface, msec_diff);
@@ -286,8 +260,49 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   else
     setInterfaceTaskRunning(iface, false);
 
-  if(l)
+  if(!reuse_vm)
     delete l;
+}
+
+/* ******************************************* */
+
+LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, time_t when) {
+  LuaEngine *l;
+
+  if(reuse_vm) {
+    /* Reuse an existing engine or allocate a new one */
+    LuaReusableEngine *engine;
+    std::map<int, LuaReusableEngine*>::iterator it;
+
+    vms_mutex.lock(__FILE__, __LINE__);
+
+    if((it = vms.find(iface->get_id())) != vms.end())
+      engine = it->second;
+    else {
+      engine = new LuaReusableEngine(script_path, iface, 300 /* reload interval */);
+
+      /* Save the VM for later use */
+      vms[iface->get_id()] = engine;
+    }
+
+    vms_mutex.unlock(__FILE__, __LINE__);
+
+    l = engine->getVm(when);
+  } else {
+    try {
+      /* NOTE: this needs to be deallocated by the caller */
+      l = new LuaEngine();
+
+      if(l->load_script(script_path, iface) != 0) {
+        delete l;
+        l = NULL;
+      }
+    } catch(std::bad_alloc& ba) {
+      l = NULL;
+    }
+  }
+
+  return(l);
 }
 
 /* ******************************************* */
@@ -432,7 +447,7 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
 /* ******************************************* */
 
 void ThreadedActivity::setNextVmReload(time_t t) {
-  std::map<std::string, LuaReusableEngine*>::iterator it;
+  std::map<int, LuaReusableEngine*>::iterator it;
 
   vms_mutex.lock(__FILE__, __LINE__);
 

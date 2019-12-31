@@ -89,6 +89,7 @@ static void stackDump(lua_State *L) {
 LuaEngine::LuaEngine() {
   std::bad_alloc bax;
   void *ctx;
+  loaded_script_path = NULL;
 
 #ifdef HAVE_NEDGE
   if(!ntop->getPro()->has_valid_license()) {
@@ -157,6 +158,8 @@ LuaEngine::~LuaEngine() {
 
     lua_close(L);
   }
+
+  if(loaded_script_path) free(loaded_script_path);
 }
 
 /* ******************************* */
@@ -11667,13 +11670,14 @@ static int post_iterator(void *cls,
 
 /* ****************************************** */
 
-/*
-  Run a Lua script from within ntopng (no HTTP GUI)
-*/
-int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_only, time_t deadline, bool no_pcall) {
+/* Loads a script into the engine from within ntopng (no HTTP GUI). */
+int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
   int rc = 0;
 
   if(!L) return(-1);
+
+  if(loaded_script_path)
+    free(loaded_script_path);
 
   try {
     luaL_openlibs(L); /* Load base libraries */
@@ -11684,22 +11688,12 @@ int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_
       getLuaVMUservalue(L, iface) = iface;
     }
 
-    /* An optional deadline can be passed to the script so actions
-       can be taken from lua to stop the execution of the dealine is approaching */
-    if(deadline) {
-      lua_pushinteger(L, deadline);
-      lua_setglobal(L, "deadline");
-    }
-
 #ifdef NTOPNG_PRO
     if(ntop->getPro()->has_valid_license())
-      rc = __ntop_lua_handlefile(L, script_path, !load_only /* Execute? */);
+      rc = __ntop_lua_handlefile(L, script_path, false /* Do not execute */);
     else
+      rc = luaL_loadfile(L, script_path);
 #endif
-      rc = !load_only ? luaL_dofile(L, script_path) : luaL_loadfile(L, script_path);
-
-    if(rc == 0 && load_only && !no_pcall)
-      rc = lua_pcall(L, 0, 0, 0); /* Prevents loaded scripts from failing silently by showing possible syntax errors */
 
     if(rc != 0) {
       const char *err = lua_tostring(L, -1);
@@ -11707,13 +11701,47 @@ int LuaEngine::run_script(char *script_path, NetworkInterface *iface, bool load_
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err ? err : "");
       rc = -1;
     }
-
   } catch(...) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", script_path);
     rc = -2;
   }
 
+  loaded_script_path = strdup(script_path);
+
   return(rc);
+}
+
+/* ****************************************** */
+
+/*
+  Run a loaded Lua script (via LuaEngine::load_script) from within ntopng (no HTTP GUI).
+  The script is invoked without any additional parameters. run_loaded_script can be called
+  multiple times to run the same script again.
+*/
+int LuaEngine::run_loaded_script() {
+  int top = lua_gettop(L);
+  int rv = 0;
+
+  if(!loaded_script_path)
+    return(-1);
+
+  /* Copy the lua_chunk to be able to possibly run it again next time */
+  lua_pushvalue(L, -1);
+
+  /* Perform the actual call */
+  if(lua_pcall(L, 0, 0, 0) != 0) {
+    if(lua_type(L, -1) == LUA_TSTRING) {
+      const char *err = lua_tostring(L, -1);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", loaded_script_path, err ? err : "");
+    }
+
+    rv = -2;
+  }
+
+  /* Reset the stack */
+  lua_settop(L, top);
+
+  return(rv);
 }
 
 /* ****************************************** */
