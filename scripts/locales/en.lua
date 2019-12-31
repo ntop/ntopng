@@ -1959,6 +1959,7 @@ local lang = {
     ["interface_speed_popup_msg"] = "Specify the maximum interface speed",
     ["interface_top_talkers_creation"] = "Create Interface Top Talkers",
     ["is_mirrored_traffic"] = "Mirrored Traffic",
+    ["discard_probing_traffic"] = "Discard Probing Traffic",
     ["refresh_rate"] = "Realtime Stats Refresh Rate (sec)",
     ["refresh_rate_popup_msg"] = "Specify the stats refresh rate for the interface",
     ["scaling_factor"] = "Ingress Packets Sampling Rate",

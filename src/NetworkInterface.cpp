@@ -222,7 +222,7 @@ NetworkInterface::NetworkInterface(const char *name,
   updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
   updateLbdIdentifier();
-  //  updateDiscardProbingTraffic();
+  updateDiscardProbingTraffic();
 }
 
 /* **************************************************** */
@@ -238,6 +238,7 @@ void NetworkInterface::init() {
     running = false, customIftype = NULL, 
     is_dynamic_interface = false, show_dynamic_interface_traffic = false,
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
+    discard_probing_traffic = false;
     numSubInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -431,7 +432,9 @@ bool NetworkInterface::getInterfaceBooleanPref(const char *pref_key, bool defaul
     }
   }
 
+#if 0 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading pref [%s][ifid: %i][rsp: %s][actual_value: %d]", pref_buf, get_id(), rsp, interface_pref ? 1 : 0);
+#endif
 
   return interface_pref;
 }
@@ -458,6 +461,12 @@ void NetworkInterface::updateFlowDumpDisabled() {
 
 void NetworkInterface::updateLbdIdentifier() {
   lbd_serialize_by_mac = getInterfaceBooleanPref(CONST_LBD_SERIALIZATION_PREFS, CONST_DEFAULT_LBD_SERIALIZE_AS_MAC);
+}
+
+/* **************************************** */
+
+void NetworkInterface::updateDiscardProbingTraffic() {
+  discard_probing_traffic = getInterfaceBooleanPref(CONST_DISCARD_PROBING_TRAFFIC, CONST_DEFAULT_DISCARD_PROBING_TRAFFIC);
 }
 
 /* **************************************************** */

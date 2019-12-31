@@ -1244,6 +1244,7 @@ local known_parameters = {
    ["interface_top_talkers_creation"]              = validateBool,
    ["interface_flow_dump"]                         = validateBool,
    ["is_mirrored_traffic"]                         = validateBool,
+   ["discard_probing_traffic"]                     = validateBool,
    ["show_dyn_iface_traffic"]                      = validateBool,
    ["interface_network_discovery"]                 = validateBool,
    ["dynamic_iface_vlan_creation"]                 = validateBool,

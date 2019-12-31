@@ -510,12 +510,13 @@
 #define ALERTS_NOTIFICATIONS_QUEUE_SIZE    4096
 #define INTERNAL_ALERTS_QUEUE_SIZE         1024
 #define CONST_REMOTE_TO_REMOTE_MAX_QUEUE   32
-#define CONST_SQL_QUEUE                    "ntopng.sql_queue"
-#define CONST_SQL_BATCH_SIZE               32
-#define CONST_MAX_SQL_QUERY_LEN            8192
-#define CONST_DEFAULT_MIRRORED_TRAFFIC     false
-#define CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC false
-#define CONST_DEFAULT_LBD_SERIALIZE_AS_MAC false
+#define CONST_SQL_QUEUE                        "ntopng.sql_queue"
+#define CONST_SQL_BATCH_SIZE                      32
+#define CONST_MAX_SQL_QUERY_LEN                 8192
+#define CONST_DEFAULT_MIRRORED_TRAFFIC         false
+#define CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC   false
+#define CONST_DEFAULT_LBD_SERIALIZE_AS_MAC     false
+#define CONST_DEFAULT_DISCARD_PROBING_TRAFFIC  false
 #define CONST_ALERT_DISABLED_PREFS         NTOPNG_PREFS_PREFIX".disable_alerts_generation"
 #define CONST_PREFS_ENABLE_ACCESS_LOG      NTOPNG_PREFS_PREFIX".enable_access_log"
 #define CONST_PREFS_ENABLE_SQL_LOG         NTOPNG_PREFS_PREFIX".enable_sql_log"
@@ -524,6 +525,7 @@
 #define CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS NTOPNG_PREFS_PREFIX".ifid_%d.show_dynamic_interface_traffic"
 #define CONST_DISABLED_FLOW_DUMP_PREFS     NTOPNG_PREFS_PREFIX".ifid_%d.is_flow_dump_disabled"
 #define CONST_LBD_SERIALIZATION_PREFS      NTOPNG_PREFS_PREFIX".ifid_%d.serialize_local_broadcast_hosts_as_macs"
+#define CONST_DISCARD_PROBING_TRAFFIC      NTOPNG_PREFS_PREFIX".ifid_%d.discard_probing_traffic"
 #define CONST_USE_NINDEX                   NTOPNG_PREFS_PREFIX".use_nindex"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       NTOPNG_PREFS_PREFIX".nagios_nsca_host"

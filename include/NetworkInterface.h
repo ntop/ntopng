@@ -132,6 +132,7 @@ class NetworkInterface : public AlertableEntity {
   bool bridge_interface;
   bool is_dynamic_interface, show_dynamic_interface_traffic;
   bool is_traffic_mirrored, is_loopback;
+  bool discard_probing_traffic;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #ifndef HAVE_NEDGE
@@ -425,8 +426,9 @@ class NetworkInterface : public AlertableEntity {
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
   bool isRunning() const;
-  inline bool isTrafficMirrored()  { return is_traffic_mirrored; };
-  inline bool showDynamicInterfaceTraffic() { return show_dynamic_interface_traffic; };
+  inline bool isTrafficMirrored()           const { return is_traffic_mirrored;            };
+  inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };
+  inline bool discardProbingTraffic()       const { return discard_probing_traffic;        };
   void updateTrafficMirrored();
   void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();

@@ -1578,6 +1578,37 @@ elseif(page == "config") then
       </tr>]]
    end
 
+   -- Discard Probing Traffic
+   if not ntop.isnEdge() and not interface.isPacketInterface() then
+      local discard_probing_traffic = false
+      local discard_probing_traffic_checked = ""
+      local discard_probing_traffic_pref = string.format("ntopng.prefs.ifid_%d.discard_probing_traffic", ifId)
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+	 if _POST["discard_probing_traffic"] == "1" then
+	    discard_probing_traffic = true
+	    discard_probing_traffic_checked = "checked"
+	 end
+
+	 ntop.setPref(discard_probing_traffic_pref,
+		      ternary(discard_probing_traffic == true, '1', '0'))
+	 interface.updateDiscardProbingTraffic()
+      else
+	 discard_probing_traffic = ternary(ntop.getPref(discard_probing_traffic_pref) == '1', true, false)
+
+	 if discard_probing_traffic then
+	    discard_probing_traffic_checked = "checked"
+	 end
+      end
+
+      print [[<tr>
+	 <th>]] print(i18n("if_stats_config.discard_probing_traffic")) print[[</th>
+	 <td>
+      <input type="checkbox" name="discard_probing_traffic" value="1" ]] print(discard_probing_traffic_checked) print[[>
+	 </td>
+      </tr>]]
+   end
+
    -- per-interface Network Discovery
    if interface.isDiscoverableInterface() then
       local discover = require "discover_utils"
