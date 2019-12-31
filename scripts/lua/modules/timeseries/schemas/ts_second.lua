@@ -80,6 +80,20 @@ schema:addMetric("packets")
 
 -- ##############################################
 
+-- Discarded Probing bytes
+schema = ts_utils.newSchema("iface:disc_prob_bytes", {step = 1, rrd_fname = "disc_prob_bytes"})
+schema:addTag("ifid")
+schema:addMetric("bytes")
+
+-- ##############################################
+
+-- Discarded Probing packets
+schema = ts_utils.newSchema("iface:disc_prob_pkts", {step = 1, rrd_fname = "disc_prob_pkts"})
+schema:addTag("ifid")
+schema:addMetric("packets")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("system:cpu_load", {step=1, metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addMetric("load_percentage")

@@ -128,6 +128,30 @@ u_int32_t ViewInterface::getNumPacketDrops() {
 
 /* **************************************************** */
 
+u_int64_t ViewInterface::getNumDiscardedProbingPackets() const {
+  u_int64_t tot = 0;
+
+  for(u_int8_t s = 0; s<num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumDiscardedProbingPackets();
+
+  return(tot);
+};
+
+
+/* **************************************************** */
+
+u_int64_t ViewInterface::getNumDiscardedProbingBytes() const {
+  u_int64_t tot = 0;
+
+  for(u_int8_t s = 0; s<num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumDiscardedProbingBytes();
+
+  return(tot);
+};
+
+
+/* **************************************************** */
+
 u_int64_t ViewInterface::getNumNewFlows() {
   u_int64_t tot = 0;
 
@@ -216,6 +240,28 @@ u_int32_t ViewInterface::getCheckPointNumPacketDrops() {
 
 /* **************************************************** */
 
+u_int64_t ViewInterface::getCheckPointNumDiscardedProbingPackets() const {
+  u_int64_t tot = 0;
+
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumDiscardedProbingPackets();
+
+  return(tot);
+};
+
+/* **************************************************** */
+
+u_int64_t ViewInterface::getCheckPointNumDiscardedProbingBytes() const {
+  u_int64_t tot = 0;
+
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumDiscardedProbingBytes();
+
+  return(tot);
+};
+
+/* **************************************************** */
+
 void ViewInterface::checkPointCounters(bool drops_only) {
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
     viewed_interfaces[s]->checkPointCounters(drops_only);
@@ -260,9 +306,10 @@ Flow* ViewInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, Addres
 
 void ViewInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			     LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
-			     PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats) const {
+			     PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
+			     ProtoStats *_discardedProbingStats) const {
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    viewed_interfaces[s]->sumStats(_tcpFlowStats, _ethStats, _localStats, _ndpiStats, _pktStats, _tcpPacketStats);
+    viewed_interfaces[s]->sumStats(_tcpFlowStats, _ethStats, _localStats, _ndpiStats, _pktStats, _tcpPacketStats, _discardedProbingStats);
 }
 
 /* **************************************************** */

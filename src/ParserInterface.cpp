@@ -48,8 +48,11 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   IpAddress srcIP, dstIP;
 
   if(discardProbingTraffic()) {
-    if(isProbingFlow(zflow))
+    if(isProbingFlow(zflow)) {
+      discardedProbingStats.inc(zflow->pkt_sampling_rate * (zflow->in_pkts + zflow->out_pkts),
+				zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
       return;
+    }
   }
 
   if(!isSubInterface()) {

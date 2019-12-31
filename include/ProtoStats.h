@@ -33,8 +33,8 @@ class ProtoStats {
 
   inline void reset()                              { numPkts = 0, numBytes = 0; };
   inline void inc(u_int32_t pkts, u_int32_t bytes) { numPkts += pkts, numBytes += bytes; };
-  inline u_int64_t getPkts()                       { return(numPkts);  };
-  inline u_int64_t getBytes()                      { return(numBytes); };
+  inline u_int64_t getPkts()                 const { return(numPkts);  };
+  inline u_int64_t getBytes()                const { return(numBytes); };
   inline void setPkts(u_int64_t v)                 { numPkts = v;  };
   inline void setBytes(u_int64_t v)                { numBytes = v; };
   void lua(lua_State *vm, const char *prefix);

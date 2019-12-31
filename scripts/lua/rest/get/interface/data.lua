@@ -73,6 +73,11 @@ function dumpInterfaceStats(ifid)
       res["bytes"]   = ifstats.stats_since_reset.bytes
       res["drops"]   = ifstats.stats_since_reset.drops
 
+      if ifstats.stats_since_reset.discarded_probing_packets then
+	 res["discarded_probing_packets"] = ifstats.stats_since_reset.discarded_probing_packets
+	 res["discarded_probing_bytes"]   = ifstats.stats_since_reset.discarded_probing_bytes
+      end
+
       res["throughput_bps"] = ifstats.stats.throughput_bps;
       res["throughput_pps"] = ifstats.stats.throughput_pps;
 

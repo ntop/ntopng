@@ -252,6 +252,7 @@ void NetworkInterface::init() {
     arp_requests = arp_replies = 0,
     has_mac_addresses = false,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
+    checkpointDiscardedProbingPktCount = checkpointDiscardedProbingBytesCount = 0,
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
@@ -4912,6 +4913,18 @@ u_int64_t NetworkInterface::getNumNewFlows() {
 
 /* **************************************************** */
 
+u_int64_t NetworkInterface::getNumDiscardedProbingPackets() const {
+  return discardedProbingStats.getPkts();
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getNumDiscardedProbingBytes() const {
+  return discardedProbingStats.getBytes();
+}
+
+/* **************************************************** */
+
 u_int NetworkInterface::getNumFlows() {
   return(flows_hash ? flows_hash->getNumEntries() : 0);
 };
@@ -5146,9 +5159,11 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 				LocalTrafficStats *_localStats,
 				nDPIStats *_ndpiStats,
 				PacketStats *_pktStats,
-				TcpPacketStats *_tcpPacketStats) const {
+				TcpPacketStats *_tcpPacketStats,
+				ProtoStats *_discardedProbingStats) const {
   tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats), localStats.sum(_localStats),
-    pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats);
+    pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats),
+    discardedProbingStats.sum(_discardedProbingStats);
 
   if(ndpiStats)
     ndpiStats->sum(_ndpiStats);
@@ -5163,6 +5178,7 @@ void NetworkInterface::lua(lua_State *vm) {
   nDPIStats _ndpiStats;
   PacketStats _pktStats;
   TcpPacketStats _tcpPacketStats;
+  ProtoStats _discardedProbingStats;
 
   lua_newtable(vm);
 
@@ -5220,6 +5236,11 @@ void NetworkInterface::lua(lua_State *vm) {
 
   if(db) db->lua(vm, true /* Since last checkpoint */);
 
+  if(discardProbingTraffic()) {
+    lua_push_uint64_table_entry(vm, "discarded_probing_packets", getNumDiscProbingPktsSinceReset());
+    lua_push_uint64_table_entry(vm, "discarded_probing_bytes",   getNumDiscProbingBytesSinceReset());
+  }
+
   lua_pushstring(vm, "stats_since_reset");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -5246,7 +5267,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_settable(vm, -3);
 
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
-	   &_ndpiStats, &_pktStats, &_tcpPacketStats);
+	   &_ndpiStats, &_pktStats, &_tcpPacketStats, &_discardedProbingStats);
 
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
@@ -5254,6 +5275,9 @@ void NetworkInterface::lua(lua_State *vm) {
   _ndpiStats.lua(this, vm, true);
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
+
+  if(discardProbingTraffic())
+    _discardedProbingStats.lua(vm, "discarded_probing_");
 
   if(!isView()) {
 #ifdef NTOPNG_PRO
@@ -6002,6 +6026,8 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
       checkpointBytesCount = getNumBytes();
   }
   checkpointPktDropCount = getNumPacketDrops();
+  checkpointDiscardedProbingPktCount = getNumDiscardedProbingPackets();
+  checkpointDiscardedProbingBytesCount = getNumDiscardedProbingBytes();
 
   if(db) db->checkPointCounters(drops_only);
 }
@@ -6023,6 +6049,18 @@ u_int64_t NetworkInterface::getCheckPointNumBytes() {
 u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
   return(checkpointPktDropCount);
 };
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointNumDiscardedProbingPackets() const {
+  return checkpointDiscardedProbingPktCount;
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointNumDiscardedProbingBytes() const {
+  return checkpointDiscardedProbingBytesCount;
+}
 
 /* **************************************** */
 
@@ -6967,9 +7005,10 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
   /* unused */
   TcpFlowStats _tcpFlowStats;
   EthStats _ethStats;
+  ProtoStats _discardedProbingStats;
 
   sumStats(&_tcpFlowStats, &_ethStats, &pt->local_stats,
-	   &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats);
+	   &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats, &_discardedProbingStats);
 
   pt->engaged_alerts = getNumEngagedAlerts();
   pt->hosts = getNumHosts();

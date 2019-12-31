@@ -685,6 +685,14 @@ if((page == "overview") or (page == nil)) then
       print("</tr>")
    end
 
+   if ifstats.stats.discarded_probing_packets then
+      local discarded_probing_traffic_chart_available = ts_utils.exists("iface:disc_prob_pkts", tags)
+
+      print("<tr><td colspan=2></td><th nowrap> <i class='fas fa-trash' aria-hidden='true'></i> "..i18n("if_stats_overview.discarded_probing_traffic")..ternary(discarded_probing_traffic_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:disc_prob_pkts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=4width=20%><span id=if_discarded_probing_bytes>"..bytesToSize(ifstats.stats.discarded_probing_bytes).."</span> [<span id=if_discarded_probing_pkts>".. formatPackets(ifstats.stats.discarded_probing_packets) .."</span>] ")
+
+      print("<span id=if_discarded_probing_trend></span></td></tr>\n")
+   end
+
    if isAdministrator() and ifstats.isView == false then
       local storage_info = storage_utils.interfaceStorageInfo(ifid)
       local storage_items = {}
@@ -1154,6 +1162,9 @@ elseif(page == "historical") then
          {schema="iface:packets",               label=i18n("packets")},
          {schema="iface:drops",                 label=i18n("graphs.packet_drops")},
          {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
+
+	 {schema="iface:disc_prob_bytes",       label=i18n("graphs.discarded_probing_bytes"), nedge_exclude=1},
+	 {schema="iface:disc_prob_pkts",        label=i18n("graphs.discarded_probing_packets"), nedge_exclude=1},
 
          {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
 	 {schema="custom:zmq_msg_rcvd_vs_drops",label=i18n("graphs.zmq_msg_rcvd_vs_drops"), check={"iface:zmq_rcvd_msgs", "iface:zmq_msg_drops"}, metrics_labels = {i18n("if_stats_overview.zmq_message_rcvd"), i18n("if_stats_overview.zmq_message_drops")}, value_formatter = {"fmsgs", "formatMessages"}},
@@ -2009,6 +2020,10 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("var last_probe_zmq_exported_flows = ".. (ifstats["zmq.num_flow_exports"] or 0) .. ";\n")
 end
 
+if ifstats.stats.discarded_probing_packets then
+   print("var last_discarded_probing_pkts  = " .. ifstats.stats.discarded_probing_packets .. ";\n")
+end
+
 print [[
 
 var resetInterfaceCounters = function(drops_only) {
@@ -2110,6 +2125,15 @@ if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
 ]]
 end
 
+if ifstats.stats.discarded_probing_packets then
+      print[[
+	$('#if_discarded_probing_bytes').html(bytesToVolume(rsp.discarded_probing_bytes));
+	$('#if_discarded_probing_pkts').html(formatPackets(rsp.discarded_probing_packets));
+        $('#if_discarded_probing_trend').html(get_trend(last_discarded_probing_pkts, rsp.discarded_probing_packets));
+        last_discarded_probing_pkts = rsp.discarded_probing_packets;
+]]
+end
+
 print [[
 	var pctg = 0;
 	var drops = "";
@@ -2117,7 +2141,7 @@ print [[
 	var last_pkt_ooo =  ]] print(tostring(ifstats.tcpPacketStats.out_of_order)) print [[;
 	var last_pkt_lost = ]] print(tostring(ifstats.tcpPacketStats.lost)) print [[;
 
-	$('#pkt_retransmissions').html(fint(rsp.tcpPacketStats.retransmissions)+" Pkts"); $('#pkt_retransmissions_trend').html(get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
+	$('#pkt_retransmissions').html(fint(rsp.tcpPacketStats.retransmissions)+" Pkts");  $('#pkt_retransmissions_trend').html(get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
 	$('#pkt_ooo').html(fint(rsp.tcpPacketStats.out_of_order)+" Pkts");  $('#pkt_ooo_trend').html(get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
 	$('#pkt_lost').html(fint(rsp.tcpPacketStats.lost)+" Pkts"); $('#pkt_lost_trend').html(get_trend(last_pkt_lost, rsp.tcpPacketStats.lost));
 	last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;

@@ -32,7 +32,8 @@ class ViewInterface : public NetworkInterface {
 
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
-			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats) const;
+			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
+			ProtoStats *_discardedProbingStats) const;
 
  public:
   ViewInterface(const char *_endpoint);
@@ -58,6 +59,8 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getNumPackets();
   virtual u_int64_t getNumBytes();
   virtual u_int     getNumPacketDrops();
+  virtual u_int64_t getNumDiscardedProbingPackets() const;
+  virtual u_int64_t getNumDiscardedProbingBytes()   const;
   virtual u_int64_t getNumNewFlows();
   virtual u_int     getNumFlows();
   virtual u_int32_t getNumDroppedFlowScriptsCalls();
@@ -66,6 +69,8 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
+  virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
+  virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
   virtual void checkPointCounters(bool drops_only);
 
   virtual bool hasSeenVlanTaggedPackets() const;

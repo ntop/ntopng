@@ -1850,6 +1850,7 @@ void Flow::set_hash_entry_state_idle() {
 /* *************************************** */
 
 bool Flow::is_hash_entry_state_idle_transition_ready() const {
+  return false; /* TODO: remove */
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());

@@ -133,6 +133,7 @@ class NetworkInterface : public AlertableEntity {
   bool is_dynamic_interface, show_dynamic_interface_traffic;
   bool is_traffic_mirrored, is_loopback;
   bool discard_probing_traffic;
+  ProtoStats discardedProbingStats;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #ifndef HAVE_NEDGE
@@ -155,7 +156,9 @@ class NetworkInterface : public AlertableEntity {
   bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool slow_stats_update, flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
-  u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
+  /* Those will hold counters at checkpoints */
+  u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount;
+  u_int64_t checkpointDiscardedProbingPktCount, checkpointDiscardedProbingBytesCount;
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
   nDPIStats *ndpiStats;
@@ -379,6 +382,8 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
+  virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
+  virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
 
   inline void _incStats(bool ingressPacket, time_t when,
 			u_int16_t eth_proto,
@@ -420,7 +425,8 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
-			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats) const;
+			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
+			ProtoStats *_discardedProbingStats) const;
 
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };
@@ -565,6 +571,8 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t getNumDroppedFlowScriptsCalls() { return num_dropped_flow_scripts_calls; };
   virtual u_int     getNumPacketDrops();
   virtual u_int64_t getNumNewFlows();
+  virtual u_int64_t getNumDiscardedProbingPackets() const;
+  virtual u_int64_t getNumDiscardedProbingBytes()   const;
   virtual u_int     getNumFlows();
   u_int             getNumL2Devices();
   u_int             getNumHosts();
@@ -576,6 +584,12 @@ class NetworkInterface : public AlertableEntity {
   inline u_int64_t  getNumPacketsSinceReset()     { return getNumPackets() - getCheckPointNumPackets(); }
   inline u_int64_t  getNumBytesSinceReset()       { return getNumBytes() - getCheckPointNumBytes(); }
   inline u_int64_t  getNumPacketDropsSinceReset() { return getNumPacketDrops() - getCheckPointNumPacketDrops(); }
+  inline u_int64_t  getNumDiscProbingPktsSinceReset() const {
+    return getNumDiscardedProbingPackets() - getCheckPointNumDiscardedProbingPackets();
+  };
+  inline u_int64_t getNumDiscProbingBytesSinceReset() const {
+    return getNumDiscardedProbingBytes() - getCheckPointNumDiscardedProbingBytes();
+  }
 
   void runHousekeepingTasks();
   void runShutdownTasks();

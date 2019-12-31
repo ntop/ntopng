@@ -51,6 +51,14 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       ts_utils.append("iface:drops", {ifid=ifstats.id, packets=ifstats.stats.drops}, when)
    end
 
+   -- Discarded probing stats
+   if ifstats.discarded_probing_packets then
+      ts_utils.append("iface:disc_prob_bytes", {ifid = ifstats.id,
+						bytes = ifstats.discarded_probing_bytes}, when)
+      ts_utils.append("iface:disc_prob_pkts", {ifid = ifstats.id,
+					       packets = ifstats.discarded_probing_packets}, when)
+   end
+
    -- Flow export stats
    if(ifstats.stats.flow_export_count ~= nil) then
       ts_utils.append("iface:exported_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_count}, when)
