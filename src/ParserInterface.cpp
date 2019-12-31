@@ -425,7 +425,9 @@ bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
   case IPPROTO_TCP:
     {
       u_int8_t flags = zflow->tcp.client_tcp_flags | zflow->tcp.server_tcp_flags | zflow->tcp.tcp_flags;
-      if((flags & (TH_SYN | TH_ACK))  != (TH_SYN | TH_ACK))
+
+      if(((flags & (TH_SYN | TH_ACK)) != (TH_SYN | TH_ACK))
+	 ||((flags & TH_RST) && (zflow->in_pkts < 2 || zflow->out_pkts < 2)))
 	is_probing = true;
     }
     break;
