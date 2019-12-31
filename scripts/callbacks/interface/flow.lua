@@ -5,6 +5,9 @@
 -- See user_scripts.load() documentation for information
 -- on adding custom scripts.
 --
+-- NOTE: this script is loaded once and cached into the vm and then invoked
+-- multiple times. The setup() function is only called with the first load.
+--
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path

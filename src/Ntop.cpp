@@ -554,7 +554,7 @@ void Ntop::start() {
             read(inotify_fd, buffer, sizeof(buffer));
 
             ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
-            pa->reloadVMs();
+            reloadPeriodicScripts();
           }
 #endif
         }

@@ -489,6 +489,9 @@ function plugins_utils.loadPlugins()
   persistence.store(plugins_utils.PLUGINS_RUNTIME_METADATA, plugins_metadata)
   ntop.setDefaultFilePermissions(plugins_utils.PLUGINS_RUNTIME_METADATA)
 
+  -- Reload the periodic scripts to load the new plugins
+  ntop.reloadPeriodicScripts()
+
   return(true)
 end
 

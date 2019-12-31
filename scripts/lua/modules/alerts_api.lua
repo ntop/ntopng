@@ -990,6 +990,9 @@ function alerts_api.setEntityAlertsDisabledBitmap(ifid, entity_type, entity_val,
 
   -- Invalidate the disabled alerts cache
   ntop.delCache(getInterfaceHasDisabledAlertsKey(ifid))
+
+  -- Reload the periodic scripts as the configuration has changed
+  ntop.reloadPeriodicScripts()
 end
 
 -- ##############################################
@@ -1111,6 +1114,9 @@ function alerts_api.setHostDisabledStatusBitmap(ifid, hostkey, bitmap)
   else
     ntop.setHashCache(hash, hostkey, string.format("%u", bitmap))
   end
+
+  -- Reload the periodic scripts as the configuration has changed
+  ntop.reloadPeriodicScripts()
 end
 
 -- ##############################################

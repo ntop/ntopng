@@ -2012,6 +2012,17 @@ static int ntop_is_ipv6(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_periodic_scripts(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->reloadPeriodicScripts();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_gainWriteCapabilities(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushnil(vm);
@@ -11505,6 +11516,7 @@ static const luaL_Reg ntop_reg[] = {
   { "matchCustomCategory",    ntop_match_custom_category },
   { "getTLSVersionName",    ntop_get_tls_version_name },
   { "isIPv6",               ntop_is_ipv6              },
+  { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
 
   /* JA3 */
   { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },

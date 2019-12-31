@@ -411,6 +411,9 @@ local function saveConfiguration(subdir, config)
       local value = json.encode(config)
       ntop.setPref(key, value)
    end
+
+   -- Reload the periodic scripts as the configuration has changed
+   ntop.reloadPeriodicScripts()
 end
 
 -- ##############################################
@@ -1118,6 +1121,9 @@ local function saveConfigsets(configsets)
    local confjson = json.encode(configsets)
 
    ntop.setPref(CONFIGSETS_KEY, confjson)
+
+   -- Reload the periodic scripts as the configuration has changed
+   ntop.reloadPeriodicScripts()
 
    return true
 end
