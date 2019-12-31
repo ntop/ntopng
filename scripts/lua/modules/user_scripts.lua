@@ -362,7 +362,7 @@ function user_scripts.getLastBenchmark(ifid, subdir)
    if(not isEmptyString(scripts_benchmarks)) then
       scripts_benchmarks = json.decode(scripts_benchmarks)
    else
-      scripts_benchmarks = nil
+      scripts_benchmarks = {}
    end
 
    return(scripts_benchmarks)

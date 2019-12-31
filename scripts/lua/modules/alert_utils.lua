@@ -1070,7 +1070,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
 	    print[[<tr><td colspan=5>]] print(i18n("flow_callbacks.no_callbacks_available_disabled_alerts", {url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=alerts"})) print[[.</td></tr>]]
 	 end
       else
-	 local benchmarks = user_scripts.getLastBenchmark(ifid, entity_type) or {}
+	 local benchmarks = user_scripts.getLastBenchmark(ifid, entity_type)
 
 	 for mod_k, user_script in pairsByKeys(available_modules.modules, asc) do
 	    local key = user_script.key
