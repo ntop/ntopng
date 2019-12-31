@@ -109,9 +109,6 @@ class NetworkInterface : public AlertableEntity {
   bool reload_hosts_bcast_domain, lbd_serialize_by_mac;
   time_t hosts_bcast_domain_last_update;
 
-  /* Scanner hosts */
-  Scanners *scanners;
-
   u_int16_t next_compq_insert_idx;
   u_int16_t next_compq_remove_idx;
   ParsedFlow **companionQueue;
@@ -484,7 +481,6 @@ class NetworkInterface : public AlertableEntity {
   virtual void lua(lua_State* vm);
   void lua_hash_tables_stats(lua_State* vm);
   void lua_periodic_activities_stats(lua_State* vm);
-  void lua_scanners(lua_State *vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
   void processAllActiveFlows();
   void guessAllBroadcastDomainHosts();

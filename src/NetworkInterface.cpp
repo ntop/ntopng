@@ -182,7 +182,6 @@ NetworkInterface::NetworkInterface(const char *name,
 
   host_pools = new HostPools(this);
   bcast_domains = new BroadcastDomains(this);
-  scanners = new Scanners();
 
 #ifdef __linux__
   /*
@@ -297,7 +296,6 @@ void NetworkInterface::init() {
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   host_pools = NULL;
   bcast_domains = NULL;
-  scanners = NULL;
   checkIdle();
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
@@ -550,7 +548,6 @@ NetworkInterface::~NetworkInterface() {
   }
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   if(bcast_domains)  delete bcast_domains;
-  if(scanners)       delete scanners;
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
   if(statsManager)   delete statsManager;
@@ -4866,7 +4863,6 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
 
   pollQueuedeCompanionEvents();
   bcast_domains->inlineReloadBroadcastDomains();
-  scanners->inlineRefreshScanners();
 
   if(!purge_idle_flows_hosts) return(0);
 
@@ -5323,13 +5319,6 @@ void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
 
   /* Periodic activities stats */
   ntop->lua_periodic_activities_stats(this, vm);
-}
-
-/* **************************************************** */
-
-void NetworkInterface::lua_scanners(lua_State *vm) {
-  if(scanners)
-    scanners->getScanners(vm);
 }
 
 /* **************************************************** */

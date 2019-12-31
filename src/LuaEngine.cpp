@@ -3291,21 +3291,6 @@ static int ntop_get_flow_device_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_scanners(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(!ntop_interface) {
-    lua_pushnil(vm);
-    return(CONST_LUA_ERROR);
-  } else {
-    lua_newtable(vm);
-    ntop_interface->lua_scanners(vm);
-    return(CONST_LUA_OK);
-  }
-}
-
-/* ****************************************** */
-
 static int ntop_discover_iface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int timeout = 3; /* sec */
@@ -11069,9 +11054,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Flow Devices */
   { "getFlowDevices",                   ntop_get_flow_devices                  },
   { "getFlowDeviceInfo",                ntop_get_flow_device_info              },
-
-  /* SNMP */
-  { "getScanners",                      ntop_get_interface_scanners            },
 
 #ifdef HAVE_NEDGE
   /* L7 */
