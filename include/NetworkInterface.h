@@ -271,6 +271,7 @@ class NetworkInterface : public AlertableEntity {
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
   bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeCompanionEvents();
+  bool getInterfaceBooleanPref(const char *pref_key, bool default_pref_value) const;
 
  public:
   /**
@@ -426,9 +427,11 @@ class NetworkInterface : public AlertableEntity {
   bool isRunning() const;
   inline bool isTrafficMirrored()  { return is_traffic_mirrored; };
   inline bool showDynamicInterfaceTraffic() { return show_dynamic_interface_traffic; };
-  void  updateTrafficMirrored();
+  void updateTrafficMirrored();
   void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();
+  void updateLbdIdentifier();
+  void updateDiscardProbingTraffic();
   bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
@@ -674,9 +677,8 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void reloadCompanions() {};
   void reloadHideFromTop(bool refreshHosts=true);
-  void updateLbdIdentifier();
-  inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
 
+  inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
   void checkReloadHostsBroadcastDomain();
   inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }
   void reloadHostsBlacklist();

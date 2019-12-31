@@ -217,10 +217,12 @@ NetworkInterface::NetworkInterface(const char *name,
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
   reloadHideFromTop(false);
+
   updateTrafficMirrored();
   updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
   updateLbdIdentifier();
+  //  updateDiscardProbingTraffic();
 }
 
 /* **************************************************** */
@@ -415,61 +417,47 @@ bool NetworkInterface::isRunning() const {
 
 /* **************************************************** */
 
-void NetworkInterface::updateTrafficMirrored() {
-  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
-  bool is_mirrored = CONST_DEFAULT_MIRRORED_TRAFFIC;
+bool NetworkInterface::getInterfaceBooleanPref(const char *pref_key, bool default_pref_value) const {
+  char pref_buf[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
+  bool interface_pref = default_pref_value;
 
-  if(!ntop->getRedis()) return;
-
-  snprintf(key, sizeof(key), CONST_MIRRORED_TRAFFIC_PREFS, get_id());
-  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
-    if(rsp[0] == '1')
-      is_mirrored = true;
-    else if(rsp[0] == '0')
-      is_mirrored = false;
+  if(ntop->getRedis()) {
+    snprintf(pref_buf, sizeof(pref_buf), pref_key, get_id());
+    if((ntop->getRedis()->get(pref_buf, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
+      if(rsp[0] == '1')
+	interface_pref = true;
+      else if(rsp[0] == '0')
+	interface_pref = false;
+    }
   }
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating mirrored traffic [ifid: %i][rsp: %s][actual_value: %d]", get_id(), rsp, is_mirrored ? 1 : 0);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading pref [%s][ifid: %i][rsp: %s][actual_value: %d]", pref_buf, get_id(), rsp, interface_pref ? 1 : 0);
 
-  is_traffic_mirrored = is_mirrored;
+  return interface_pref;
+}
+
+/* **************************************************** */
+
+void NetworkInterface::updateTrafficMirrored() {
+  is_traffic_mirrored = getInterfaceBooleanPref(CONST_MIRRORED_TRAFFIC_PREFS, CONST_DEFAULT_MIRRORED_TRAFFIC);
 }
 
 /* **************************************************** */
 
 void NetworkInterface::updateDynIfaceTrafficPolicy() {
-  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
-  bool show_traffic = CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC;
-
-  if(!ntop->getRedis()) return;
-
-  snprintf(key, sizeof(key), CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS, get_id());
-  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
-    if(rsp[0] == '1')
-      show_traffic = true;
-    else if(rsp[0] == '0')
-      show_traffic = false;
-  }
-
-  show_dynamic_interface_traffic = show_traffic;
+  show_dynamic_interface_traffic = getInterfaceBooleanPref(CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS, CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC);
 }
 
 /* **************************************************** */
 
 void NetworkInterface::updateFlowDumpDisabled() {
-  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
-  bool is_disabled = false;
+  flow_dump_disabled = getInterfaceBooleanPref(CONST_DISABLED_FLOW_DUMP_PREFS, false);
+}
 
-  if(!ntop->getRedis()) return;
+/* **************************************** */
 
-  snprintf(key, sizeof(key), CONST_DISABLED_FLOW_DUMP_PREFS, get_id());
-  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
-    if(rsp[0] == '1')
-      is_disabled = true;
-    else if(rsp[0] == '0')
-      is_disabled = false;
-  }
-
-  flow_dump_disabled = is_disabled;
+void NetworkInterface::updateLbdIdentifier() {
+  lbd_serialize_by_mac = getInterfaceBooleanPref(CONST_LBD_SERIALIZATION_PREFS, CONST_DEFAULT_LBD_SERIALIZE_AS_MAC);
 }
 
 /* **************************************************** */
@@ -6096,27 +6084,6 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
     bool walk_all = true;
     walker(&begin_slot, walk_all,  walker_hosts, host_reload_hide_from_top, NULL);
   }
-}
-
-/* **************************************** */
-
-void NetworkInterface::updateLbdIdentifier() {
-  char key[CONST_MAX_LEN_REDIS_KEY], rsp[2] = { 0 };
-  bool as_macs = CONST_DEFAULT_LBD_SERIALIZE_AS_MAC;
-
-  if(!ntop->getRedis()) return;
-
-  snprintf(key, sizeof(key), CONST_LBD_SERIALIZATION_PREFS, get_id());
-  if((ntop->getRedis()->get(key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
-    if(rsp[0] == '1')
-      as_macs = true;
-    else if(rsp[0] == '0')
-      as_macs = false;
-  }
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating lbd_serialize_by_mac [ifid: %i][rsp: %s][actual_value: %d]", get_id(), rsp, as_macs ? 1 : 0);
-
-  lbd_serialize_by_mac = as_macs;
 }
 
 /* **************************************** */
