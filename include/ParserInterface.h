@@ -30,6 +30,7 @@ class ParserInterface : public NetworkInterface {
   u_int8_t num_companion_interfaces;
   NetworkInterface **companion_interfaces;
 
+  static bool isProbingFlow(const ParsedFlow * zflow);
   virtual void reloadCompanions();
 
  public:

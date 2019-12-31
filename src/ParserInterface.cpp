@@ -47,6 +47,11 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
 
+  if(discardProbingTraffic()) {
+    if(isProbingFlow(zflow))
+      return;
+  }
+
   if(!isSubInterface()) {
     /* Deliver eBPF info to companion queues */
     if(zflow->process_info_set || 
@@ -409,6 +414,28 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
+}
+
+/* **************************************************** */
+
+bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
+  bool is_probing = false;
+
+  switch(zflow->l4_proto) {
+  case IPPROTO_TCP:
+    {
+      u_int8_t flags = zflow->tcp.client_tcp_flags | zflow->tcp.server_tcp_flags | zflow->tcp.tcp_flags;
+      if((flags & (TH_SYN | TH_ACK))  != (TH_SYN | TH_ACK))
+	is_probing = true;
+    }
+    break;
+  case IPPROTO_UDP:
+    break;
+  default:
+    break;
+  }
+
+  return is_probing;
 }
 
 /* **************************************************** */
