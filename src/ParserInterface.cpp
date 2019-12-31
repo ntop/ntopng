@@ -432,6 +432,10 @@ bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
     }
     break;
   case IPPROTO_UDP:
+    {
+      if(zflow->in_pkts + zflow->out_pkts <= 1)
+	is_probing = true;
+    }
     break;
   default:
     break;
