@@ -4989,9 +4989,6 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans(bool force_idle) {
       + (vlans_hash ? vlans_hash->purgeIdle(force_idle) : 0)
       + (arp_hash_matrix ? arp_hash_matrix->purgeIdle(force_idle) : 0);
 
-    if(arp_hash_matrix)
-      n += arp_hash_matrix->purgeIdle(force_idle);
-
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
   }
