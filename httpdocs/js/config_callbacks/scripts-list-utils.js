@@ -141,6 +141,12 @@
                           }
                        })
 
+                       // hide alert
+                       $("#alert-row-buttons").hide();
+
+                       // disable all buttons to prevent more requests
+                       $("#scripts-config input[name$='-check']").attr("disabled", "").parent().addClass("disabled");
+
                        $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
                           script_subdir: script_subdir,
                           script_key: row.key,
@@ -149,10 +155,26 @@
                           confset_id: confset_id
                        })
                        .done((d, status, xhr) => {
-                          location.reload();
+
+                          if (!d.success) {
+                              $("#alert-row-buttons").text(data.error).removeClass('d-none').show();
+                              // update csrf
+                              csrf_toggle_buttons = d.csrf;
+                          }
+                          
+                          if (d.success) location.reload();
+
                        })
                        .fail(({status, statusText}) => {
                           check_status_code(status, statusText, null);
+
+                          // if the csrf has expired 
+                          if (status == 200) {
+                              $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
+                          }
+
+                          // re eanble buttons
+                          $("#scripts-config input[name$='-check']").removeAttr("disabled").parent().removeClass("disabled");
                        })
 
                     });
@@ -265,6 +287,9 @@
 
           // destructure gui and hooks from data
           const {gui, hooks} = data;
+
+          // hide previous error
+          $("#apply-error").hide();
 
           const build_gui = (gui, hooks) => {
 
@@ -438,8 +463,16 @@
               .done((d, status, xhr) => {
 
                  if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+
+                 if (!d.success) {
+
+                     $error_label.text(d.error).show();
+                     // update token
+                     csrf_edit_config = d.csrf;
+                 }
+
                  // if the operation was successfull then reload the page
-                 location.reload();
+                 if (d.success) location.reload();
               })
               .fail(({status, statusText}) => {
 
