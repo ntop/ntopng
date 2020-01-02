@@ -62,6 +62,7 @@ result.success = success
 
 if not success then
   result.error = err
+  result.csrf = ntop.getRandomCSRFValue()
 end
 
 -- ################################################
