@@ -29,6 +29,8 @@
   </nav>
   <div class="row">
     <div class="col-md-12 col-lg-12 mt-3">
+      <div class="alert alert-danger d-none" id='alert-row-buttons' role="alert">
+      </div>
       <table
         id="scripts-config"
         class="table w-100 table-striped table-hover table-bordered mt-3">
@@ -54,8 +56,8 @@
 
 const confset_id = {{ script_list.confset_id }};
 const script_subdir = "{{ script_list.script_subdir }}";
-const csrf_toggle_buttons = "{{ ntop.getRandomCSRFValue() }}";
-const csrf_edit_config = "{{ ntop.getRandomCSRFValue() }}";
+let csrf_toggle_buttons = "{{ ntop.getRandomCSRFValue() }}";
+let csrf_edit_config = "{{ ntop.getRandomCSRFValue() }}";
 
 i18n.are_you_sure = '{{ i18n("scripts_list.are_you_sure", {}) }}'
 i18n.all = '{{ i18n("all", {}) }}'
