@@ -63,7 +63,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
-  json_info = NULL, tlv_info = NULL, cli2srv_direction = true, twh_over = twh_ok = false,
+  json_info = NULL, tlv_info = NULL, twh_over = twh_ok = false,
     dissect_next_http_packet = false,
     host_server_name = NULL;
     bt_hash = NULL;
@@ -2504,10 +2504,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 
   if(!twh_over) {
     if(flags == TH_SYN) {
-      cli2srv_direction = src2dst_direction;
       if(synTime.tv_sec == 0) memcpy(&synTime, when, sizeof(struct timeval));
     } else if(flags == (TH_SYN|TH_ACK)) {
-      cli2srv_direction = !src2dst_direction;
       if((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
 	memcpy(&synAckTime, when, sizeof(struct timeval));
 	timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);

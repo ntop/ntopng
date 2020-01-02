@@ -54,7 +54,7 @@ class Flow : public GenericHashEntry {
   u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
 
   bool detection_completed, protocol_processed, fully_processed,
-    cli2srv_direction, twh_over, twh_ok, dissect_next_http_packet, passVerdict,
+    twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
     good_tls_hs, update_flow_port_stats,
     quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
