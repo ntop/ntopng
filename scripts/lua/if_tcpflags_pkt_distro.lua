@@ -6,20 +6,30 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
 
-interface.select(ifname)
 local host_info = url2hostinfo(_GET)
+local ifid = _GET["ifid"]
+local what = {}
+
+interface.select(ifid)
+
+local pkt_distribution = {
+   ['syn'] = 'SYN',
+   ['synack'] = 'SYN/ACK',
+   ['finack'] = 'FIN/ACK',
+   ['rst'] = 'RST',
+}
 
 if(host_info["host"] ~= nil) then
    local stats = interface.getHostInfo(host_info["host"],host_info["vlan"])
    if stats == nil then return end
 
    -- join sent and rcvd
-   local sent_stats = stats["pktStats.sent"]
-   local rcvd_stats = stats["pktStats.recv"]
-   what = {}
+   local sent_stats = stats["pktStats.sent"]["tcp_flags"]
+   local rcvd_stats = stats["pktStats.recv"]["tcp_flags"]
 
    for k, _ in pairs(sent_stats) do
       what[k] = sent_stats[k] + rcvd_stats[k]
@@ -28,33 +38,18 @@ else
    local stats = interface.getStats()
    if stats == nil then return end
 
-   what = stats["pktSizeDistribution"]
+   what = stats["pktSizeDistribution"]["tcp_flags"]
 end
 
-local pkt_distribution = {
-   ['syn'] = 'SYN',
-   ['synack'] = 'SYN/ACK',
-   ['finack'] = 'FIN/ACK',
-   ['rst'] = 'RST',
-}
-print "[\n"
-local num = 0
+local res = {}
 for key, value in pairs(what) do
-   if(pkt_distribution[key] ~= nil) then
-      if value > 0 then
-	 if(num > 0) then
-	    print ",\n"
-	 end
-
-	 print("\t { \"label\": \"" .. pkt_distribution[key] .."\", \"value\": ".. value .." }") 
-	 num = num + 1
-      end
+   if value > 0 then
+      res[#res + 1] = {label = pkt_distribution[key], value = value}
    end
 end
 
-if(num == 0) then
-   print("\t, { \"label\": \"Other\", \"value\": 100 }") 
+if table.len(res) == 0 then
+   res[#res + 1] = {label = "Other", value = 100}
 end
 
-print "\n]"
-
+print(json.encode(res))

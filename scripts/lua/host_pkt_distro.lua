@@ -1,32 +1,35 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-19 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local json  = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
-
-interface.select(ifname)
 
 local mode = _GET["direction"]
 local type = _GET["distr"]
 local host_info = url2hostinfo(_GET)
-local host = interface.getHostInfo(host_info["host"],host_info["vlan"])
+local ifid = _GET["ifid"]
 
+interface.select(ifid)
+
+local host = interface.getHostInfo(host_info["host"],host_info["vlan"])
+local what = {}
+local res = {}
 
 if(host == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> This flow cannot be found (expired ?)</div>")
 else
 
    if((type == nil) or (type == "size")) then
-
       if((mode == nil) or (mode == "sent")) then
-	 what = host["pktStats.sent"]
+	 what = host["pktStats.sent"]["size"]
       else
-	 what = host["pktStats.recv"]
+	 what = host["pktStats.recv"]["size"]
       end
    end
 
@@ -37,26 +40,17 @@ else
 
    local threshold = (5 * tot) / 100
 
-   print "[\n"
-   local num = 0
    local s = 0
    for key, value in pairs(what) do
       if(value > threshold) then
-	 if(num > 0) then
-	    print ",\n"
-	 end
-
-	 print("\t { \"label\": \"" .. key .."\", \"value\": ".. value .." }")
-	 num = num + 1
+	 res[#res + 1] = {label = key, value = value}
 	 s = s + value
       end
    end
 
-   if(tot > s) then
-      print(",\t { \"label\": \"Other\", \"value\": ".. (tot-s) .." }")
+   if tot > s then
+      res[#res + 1] = {label = "Other", value = (tot - s)}
    end
-
-
-   print "\n]"
-
 end
+
+print(json.encode(res))
