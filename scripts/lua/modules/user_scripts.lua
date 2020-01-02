@@ -1134,7 +1134,7 @@ end
 -- ##############################################
 
 function user_scripts.getConfigsets()
-   local configsets = ntop.getHashAllCache(CONFIGSETS_KEY)
+   local configsets = ntop.getHashAllCache(CONFIGSETS_KEY) or {}
    local rv = {}
 
    for _, confset_json in pairs(configsets) do
