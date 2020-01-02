@@ -43,7 +43,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p = Flow::ndpiUnknownProtocol;
-  time_t now = time(NULL);
+  time_t now;
   bpf_timeval now_tv = { 0 };
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
