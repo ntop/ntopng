@@ -2424,16 +2424,48 @@ void Flow::addFlowStats(bool cli2srv_direction,
       pkts_thpt = (get_packets_cli2srv() + get_packets_srv2cli()) / (float)(last_seen - first_seen);
   }
 }
+
 /* *************************************** */
 
-void Flow::setTcpFlags(u_int8_t flags, bool src2dst_direction) {
-  if(iface->isPacketInterface())
-    return; /* Use updateTcpFlags for packet interfaces */
+void Flow::updateTcpFlags(const struct bpf_timeval *when,
+			  u_int8_t flags, bool src2dst_direction) {
+  NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
+  /* Only packet-interfaces see every segment. Non-packet-interfaces
+     have cumulative flags */
+  bool cumulative_flags = !getInterface()->isPacketInterface();
 
-  iface->incFlagsStats(flags);
+  iface->incFlagStats(flags, cumulative_flags);
 
-  if(cli_host) cli_host->incFlagStats(src2dst_direction, flags);
-  if(srv_host) srv_host->incFlagStats(!src2dst_direction, flags);
+  if(cli_host) {
+    cli_host->incFlagStats(src2dst_direction, flags, cumulative_flags);
+    cli_network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
+  }
+  if(srv_host) {
+    srv_host->incFlagStats(!src2dst_direction, flags, cumulative_flags);
+    srv_network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
+  }
+
+  /* Update syn alerts counters. In case of cumulative flags, it is also important
+     to check the direction to make sure syns are only counted when the client-to-server cumulative flags
+     are processed. */
+  if((!cumulative_flags && flags == TH_SYN)
+     || (cumulative_flags && src2dst_direction && (flags & TH_SYN) == TH_SYN)) {
+    if(cli_host) cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
+    if(srv_host) srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
+    if(cli_network_stats) cli_network_stats->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
+    if(srv_network_stats) srv_network_stats->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
+  }
+
+  /* Update synack alerts counter. Again, in case of cumulative flags, it is mandatory to check
+     the direction and make sure synacks are only counted when processing server-to-client cumulative flags.
+   */
+  if((!cumulative_flags && (flags == (TH_SYN|TH_ACK)))
+     || (cumulative_flags && !src2dst_direction && ((flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))) {
+    if(cli_host) cli_host->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
+    if(srv_host) srv_host->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
+    if(cli_network_stats) cli_network_stats->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
+    if(srv_network_stats) srv_network_stats->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
+  }
 
   if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
     iface->getTcpFlowStats()->incSyn();
@@ -2450,104 +2482,57 @@ void Flow::setTcpFlags(u_int8_t flags, bool src2dst_direction) {
   else
     dst2src_tcp_flags |= flags;
 
-  if(!twh_over) {
-    if((src2dst_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)
-       && ((dst2src_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))
-      twh_ok = twh_over = true,
-	iface->getTcpFlowStats()->incEstablished();
-  }
+  if(cumulative_flags) {
+    if(!twh_over) {
+      if((src2dst_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)
+	 && ((dst2src_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))
+	twh_ok = twh_over = true,
+	  iface->getTcpFlowStats()->incEstablished();
+    }
+  } else {
+    if(!twh_over) {
+      if(flags == TH_SYN) {
+	if(synTime.tv_sec == 0) memcpy(&synTime, when, sizeof(struct timeval));
+      } else if(flags == (TH_SYN|TH_ACK)) {
+	if((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
+	  memcpy(&synAckTime, when, sizeof(struct timeval));
+	  timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
+	  /* Sanity check */
+	  if(serverNwLatency.tv_sec > 5)
+	    memset(&serverNwLatency, 0, sizeof(serverNwLatency));
+	  else if(srv_host)
+	    srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
+	}
+      } else if(flags == TH_ACK) {
+	if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
+	  memcpy(&ackTime, when, sizeof(struct timeval));
+	  timeval_diff(&synAckTime, (struct timeval*)when, &clientNwLatency, 1);
 
-  /* Can't set these guys for non-packet interfaces */
-  memset(&synTime, 0, sizeof(synTime)),
-    memset(&synAckTime, 0, sizeof(synAckTime)),
-    memset(&ackTime, 0, sizeof(ackTime));
-}
+	  /* Sanity check */
+	  if(clientNwLatency.tv_sec > 5)
+	    memset(&clientNwLatency, 0, sizeof(clientNwLatency));
+	  else if(cli_host)
+	    cli_host->updateRoundTripTime(Utils::timeval2ms(&clientNwLatency));
 
-/* *************************************** */
+	  setRtt();
 
-void Flow::updateTcpFlags(const struct bpf_timeval *when,
-			  u_int8_t flags, bool src2dst_direction) {
-  NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
+	  twh_ok = true;
+	  iface->getTcpFlowStats()->incEstablished();
+	}
+	goto not_yet;
+      } else {
+      not_yet:
+	twh_over = true;
 
-  if(!iface->isPacketInterface())
-    return; /* Use setTcpFlags for non-packet interfaces */
-
-  iface->incFlagsStats(flags);
-  if(cli_host) {
-    cli_host->incFlagStats(src2dst_direction, flags);
-    cli_network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
-  }
-  if(srv_host) {
-    srv_host->incFlagStats(!src2dst_direction, flags);
-    srv_network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
-  }
-
-  if(flags == TH_SYN) {
-    if(cli_host) cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
-    if(srv_host) srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
-    if(cli_network_stats) cli_network_stats->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
-    if(srv_network_stats) srv_network_stats->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
-  }
-
-  if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
-    iface->getTcpFlowStats()->incSyn();
-  else if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST))
-    iface->getTcpFlowStats()->incReset();
-  else if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN))
-    iface->getTcpFlowStats()->incFin();
-
-  /* The update below must be after the above check */
-  if(src2dst_direction)
-    src2dst_tcp_flags |= flags;
-  else
-    dst2src_tcp_flags |= flags;
-
-  if(!twh_over) {
-    if(flags == TH_SYN) {
-      if(synTime.tv_sec == 0) memcpy(&synTime, when, sizeof(struct timeval));
-    } else if(flags == (TH_SYN|TH_ACK)) {
-      if((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
-	memcpy(&synAckTime, when, sizeof(struct timeval));
-	timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
-	/* Sanity check */
-	if(serverNwLatency.tv_sec > 5)
-	  memset(&serverNwLatency, 0, sizeof(serverNwLatency));
-	else if(srv_host)
-	  srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
+	/*
+	  Sometimes nDPI detects the protocol at the first packet
+	  so we're already on the protocol detected slot. This is
+	  is not a good news as we might have protocol detected
+	  when 3WH is not yet completed.
+	*/
+	if(get_state() == hash_entry_state_allocated)
+	  set_hash_entry_state_flow_notyetdetected();
       }
-      if(cli_host) cli_host->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
-      if(srv_host) srv_host->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
-      if(cli_network_stats) cli_network_stats->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
-      if(srv_network_stats) srv_network_stats->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
-    } else if(flags == TH_ACK) {
-      if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
-	memcpy(&ackTime, when, sizeof(struct timeval));
-	timeval_diff(&synAckTime, (struct timeval*)when, &clientNwLatency, 1);
-
-	/* Sanity check */
-	if(clientNwLatency.tv_sec > 5)
-	  memset(&clientNwLatency, 0, sizeof(clientNwLatency));
-	else if(cli_host)
-	  cli_host->updateRoundTripTime(Utils::timeval2ms(&clientNwLatency));
-
-	setRtt();
-
-	twh_ok = true;
-      }
-
-      goto not_yet;
-    } else {
-    not_yet:
-      twh_over = true, iface->getTcpFlowStats()->incEstablished();
-
-      /*
-	Sometimes nDPI detects the protocol at the first packet
-	so we're already on the protocol detected slot. This is
-	is not a good news as we might have protocol detected
-	when 3WH is not yet completed.
-       */
-      if(get_state() == hash_entry_state_allocated)
-	set_hash_entry_state_flow_notyetdetected();
     }
   }
 }
