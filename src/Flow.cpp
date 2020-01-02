@@ -2515,10 +2515,10 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	else if(srv_host)
 	  srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
       }
-      if(cli_host) cli_host->update3WHSCompletedAlertsCounter(when->tv_sec, src2dst_direction);
-      if(srv_host) srv_host->update3WHSCompletedAlertsCounter(when->tv_sec, !src2dst_direction);
-      if(cli_network_stats) cli_network_stats->update3WHSCompletedAlertsCounter(when->tv_sec, src2dst_direction);
-      if(srv_network_stats) srv_network_stats->update3WHSCompletedAlertsCounter(when->tv_sec, !src2dst_direction);
+      if(cli_host) cli_host->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
+      if(srv_host) srv_host->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
+      if(cli_network_stats) cli_network_stats->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
+      if(srv_network_stats) srv_network_stats->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
     } else if(flags == TH_ACK) {
       if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
 	memcpy(&ackTime, when, sizeof(struct timeval));

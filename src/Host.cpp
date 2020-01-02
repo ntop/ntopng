@@ -106,7 +106,7 @@ void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
 
 /* *************************************** */
 
-void Host::update3WHSCompletedAlertsCounter(time_t when, bool synack_sent) {
+void Host::updateSynAckAlertsCounter(time_t when, bool synack_sent) {
   if(synack_sent)
     synack_sent_last_min++;
   else

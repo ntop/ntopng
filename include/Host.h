@@ -267,7 +267,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynAlertsCounter(time_t when, bool syn_sent);
-  void update3WHSCompletedAlertsCounter(time_t when, bool synack_sent);
+  void updateSynAckAlertsCounter(time_t when, bool synack_sent);
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }

@@ -117,7 +117,7 @@ void NetworkStats::updateSynAlertsCounter(time_t when, bool syn_sent) {
 
 /* *************************************** */
 
-void NetworkStats::update3WHSCompletedAlertsCounter(time_t when, bool synack_sent) {
+void NetworkStats::updateSynAckAlertsCounter(time_t when, bool synack_sent) {
   if(synack_sent)
     synack_sent_last_min++;
 }

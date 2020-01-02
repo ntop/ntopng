@@ -92,7 +92,7 @@ class NetworkStats : public AlertableEntity, public GenericTrafficElement {
   void housekeepAlerts(ScriptPeriodicity p);
 
   void updateSynAlertsCounter(time_t when, bool syn_sent);
-  void update3WHSCompletedAlertsCounter(time_t when, bool synack_sent);
+  void updateSynAckAlertsCounter(time_t when, bool synack_sent);
   void incNumFlows(time_t t, bool as_client);
 };
 
