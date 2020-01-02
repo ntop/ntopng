@@ -34,14 +34,25 @@
         },
         stateSave: true,
         initComplete: function(settings, json) {
+           const [enabled_count, disabled_count] = count_scripts();
+
            // select the correct tab
            (() => {
 
               // get hash from url
-              const hash = window.location.hash;
+              var hash = window.location.hash;
+
+              if(hash == undefined || hash == null || hash == "") {
+                // if no tab is active, show the "enabled" tab if there are any enabled
+                // scripts, otherwise show the "all-scripts" tab
+                if(enabled_count)
+                  hash = "#enabled";
+                else
+                  hash = "#all-scripts";
+              }
 
               // redirect to correct tab
-              if (hash == undefined || hash == null || hash == "" || hash == "#enabled") {
+              if (hash == "#enabled") {
                  $(`#enabled-scripts`).addClass("active").trigger("click");
               }
               else if (hash == "#disabled") {
@@ -56,8 +67,14 @@
            // clean searchbox
            $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
 
-           // counts scripts inside table
-           count_scripts();
+           // update the tabs counters
+           const $disabled_button = $(`#disabled-scripts`);
+           const $all_button = $("#all-scripts");
+           const $enabled_button = $(`#enabled-scripts`);
+
+           $all_button.html(`${i18n.all} (${enabled_count + disabled_count})`)
+           $enabled_button.html(`${i18n.enabled} (${enabled_count})`);
+           $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
         },
         order: [ [0, "asc"] ],
         buttons: [
@@ -111,7 +128,7 @@
 
                  if (data.length >= 0 && type == "display" && row.all_hooks.length > 0 && row.input_handler == undefined) {
 
-                    $('#scripts-config').on('click', `input[name='${row.key}-check']`, function(e) {
+                    $(`#scripts-config input[name='${row.key}-check']`).off('click').on('click', function(e) {
 
                        const $this = $(this);
                        const value = $this.val();
@@ -508,12 +525,6 @@
       * Count the scripts that are enabled, disabled inside the script table
       */
      const count_scripts = () => {
-
-        // count scripts
-        const $disabled_button = $(`#disabled-scripts`);
-        const $all_button = $("#all-scripts");
-        const $enabled_button = $(`#enabled-scripts`);
-
         let enabled_count = 0;
         let disabled_count = 0;
 
@@ -527,9 +538,7 @@
            disabled_count++;
         });
 
-        $all_button.html(`${i18n.all} (${enabled_count + disabled_count})`)
-        $enabled_button.html(`${i18n.enabled} (${enabled_count})`);
-        $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
+        return [enabled_count, disabled_count];
      }
 
   });

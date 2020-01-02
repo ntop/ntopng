@@ -498,7 +498,6 @@ local lang = {
     ["config_name"] = "Configuration Name",
     ["config_rename"] = "Configuration Rename",
     ["config_rename_message"] = "Type the new name for the configurarion",
-    ["config_setting"] = "Config Settings",
     ["config_x"] = "Config %{product}",
     ["empty_target_message"] = "Select one or more targets!",
     ["empty_value_message"] = "The input box cannot be empty!",
