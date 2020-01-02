@@ -23,7 +23,11 @@ const get_configuration_data = ($config_table, $button_caller) => {
         config_name: row_data.name,
         config_targets: row_data.targets
     }
-} 
+}
+
+function can_clone_config() {
+    return((subdir != "system") && (subdir != "syslog"));
+}
 
 $(document).ready(function() {
 
@@ -79,39 +83,30 @@ $(document).ready(function() {
                 data: null,
                 className: 'text-center',
                 render: function(data, type, row) {
-
-
-                    // if the subdir is system then don't render the button applied_to
-                    const render_applied_to_btn = () => {
-
-                            if (subdir == "system") return ``;
-
-                            return `
-                            <button title='Applied to'
-                                data-toggle='modal' data-target='#applied-modal' ${data.name == 'Default' ? 'disabled' : ''} 
-                                class='btn btn-sm btn-secondary square-btn' 
-                                type='button'>
-                                    <i class='fas fa-server'></i>
-                            </button>
-                            `;
-                    }
-
-                    return `
+                    var rv = `
                             <div class='btn-group'>
                                 <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' 
                                     title='Edit' 
                                     class='btn btn-sm btn-info square-btn'>
                                         <i class='fas fa-edit'></i>
-                                </a>
+                                </a>`
+                    if(can_clone_config())
+                        rv += `
                                 <button title='Clone' data-toggle="modal" data-target="#clone-modal" class='btn btn-sm btn-secondary square-btn' type='button'>
                                 <i class='fas fa-clone'></i>
                                 </button>
-                               ${render_applied_to_btn()}
+                                <button title='Applied to'
+                                    data-toggle='modal' data-target='#applied-modal' ${data.name == 'Default' ? 'disabled' : ''} 
+                                    class='btn btn-sm btn-secondary square-btn' 
+                                    type='button'>
+                                        <i class='fas fa-server'></i>
+                                </button>
                                 <button title='Rename' data-toggle="modal" data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary square-btn' type='button'><i class='fas fa-i-cursor'></i></button>
                                 <button title='Delete' data-toggle="modal" data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-danger square-btn' type='button'><i class='fas fa-times'></i></button>
                             </div>
                     `;
-                    
+
+                    return rv;
                 }
             }
         ]

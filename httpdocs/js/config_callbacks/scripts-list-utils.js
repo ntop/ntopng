@@ -257,13 +257,17 @@
                  return $("<p>Not enabled!</p>")
               }
               else if (input_builder == 'threshold_cross') {
+                 var operators = ["gt", "lt"];
+                 var select = $(`<select class='btn btn-outline-secondary'></select>`);
+
+                 operators.forEach((op) => {
+                   /* If a field_operator is set, only show that operator */
+                   if((!field_operator) || (field_operator == op))
+                     select.append($(`<option value="${op}">&${op}</option>`))
+                 });
+
                  return $(`<div class='input-group template w-75'></div>`)
-                    .append(`<div class='input-group-prepend'>
-                          <select class='btn btn-outline-secondary'>
-                                <option selected value="gt">&gt</option>
-                                <option value="lt">&lt;</option>
-                          </select>
-                    </div>`)
+                    .append(`<div class='input-group-prepend'></div>`).html(select)
                     .append(`<input type='number' 
                                    class='form-control'
                                    min='${field_min == undefined ? '' : field_min}'
