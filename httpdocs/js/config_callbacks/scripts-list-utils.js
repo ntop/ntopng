@@ -193,7 +193,7 @@
                        <a
                           href='${data.edit_url}'
                           title='View Source Script'
-                          class='btn btn-square btn-sm btn-secondary'>
+                          class='btn btn-square btn-sm btn-secondary ${!data.edit_url ? "disabled" : ""}'>
                               <i class='fas fa-scroll'></i>
                        </a>
                     </div>
