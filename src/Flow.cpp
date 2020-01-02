@@ -279,8 +279,9 @@ Flow::~Flow() {
     if(protos.ssh.hassh.client_hash) free(protos.ssh.hassh.client_hash);
     if(protos.ssh.hassh.server_hash) free(protos.ssh.hassh.server_hash);
   } else if(isTLS()) {
-    if(protos.tls.certificate)         free(protos.tls.certificate);
-    if(protos.tls.server_certificate)  free(protos.tls.server_certificate);
+    if(protos.tls.client_requested_server_name)
+      free(protos.tls.client_requested_server_name);
+    if(protos.tls.server_names)        free(protos.tls.server_names);
     if(protos.tls.ja3.client_hash)     free(protos.tls.ja3.client_hash);
     if(protos.tls.ja3.server_hash)     free(protos.tls.ja3.server_hash);
   }
@@ -384,16 +385,10 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_TLS:
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> [client: %s][server: %s]",
-				 ndpiFlow->protos.stun_ssl.ssl.client_certificate,
-				 ndpiFlow->protos.stun_ssl.ssl.server_certificate);
-#endif
-
-    if(protos.tls.certificate
+    if(protos.tls.client_requested_server_name
        && cli_host
        && cli_host->isLocalHost())
-      cli_host->incrVisitedWebSite(protos.tls.certificate);
+      cli_host->incrVisitedWebSite(protos.tls.client_requested_server_name);
 
     protocol_processed = true;
     break;
@@ -458,15 +453,17 @@ void Flow::processFullyDissectedProtocol() {
     case NDPI_PROTOCOL_TLS:
       protos.tls.tls_version = ndpiFlow->protos.stun_ssl.ssl.ssl_version;
 
-      if((protos.tls.server_certificate == NULL)
-	 && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
-	protos.tls.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
+      protos.tls.notBefore = ndpiFlow->protos.stun_ssl.ssl.notBefore,
+	protos.tls.notAfter = ndpiFlow->protos.stun_ssl.ssl.notAfter;
+      
+      if((protos.tls.client_requested_server_name == NULL)
+	 && (ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name[0] != '\0')) {
+	protos.tls.client_requested_server_name = strdup(ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name);
       }
 
-      if((protos.tls.certificate == NULL)
-	 && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] != '\0')) {
-	protos.tls.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
-      }
+      if((protos.tls.server_names == NULL)
+	 && (ndpiFlow->protos.stun_ssl.ssl.server_names != NULL))
+	protos.tls.server_names = strdup(ndpiFlow->protos.stun_ssl.ssl.server_names);      
 
       if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
 	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
@@ -854,9 +851,9 @@ char* Flow::print(char *buf, u_int buf_len) const {
 	   (long long unsigned) get_bytes_cli2srv(), (long long unsigned) get_bytes_srv2cli(),
 	   printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
 	   printTCPflags(dst2src_tcp_flags, buf4, sizeof(buf4)),
-	   (isTLS() && protos.tls.certificate) ? "[" : "",
-	   (isTLS() && protos.tls.certificate) ? protos.tls.certificate : "",
-	   (isTLS() && protos.tls.certificate) ? "]" : ""
+	   (isTLS() && protos.tls.server_names) ? "[" : "",
+	   (isTLS() && protos.tls.server_names) ? protos.tls.server_names : "",
+	   (isTLS() && protos.tls.server_names) ? "]" : ""
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   , shapers
 #endif
@@ -2142,8 +2139,9 @@ json_object* Flow::flow2json() {
   if(bt_hash)
     json_object_object_add(my_object, "BITTORRENT_HASH", json_object_new_string(bt_hash));
 
-  if(isTLS() && protos.tls.certificate)
-    json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.tls.certificate));
+  if(isTLS() && protos.tls.client_requested_server_name)
+    json_object_object_add(my_object, "TLS_SERVER_NAME",
+			   json_object_new_string(protos.tls.client_requested_server_name));
 
 #ifdef HAVE_NEDGE
   if(iface && iface->is_bridge_interface())
@@ -2590,8 +2588,8 @@ const char* Flow::getFlowInfo() {
     else if(isHTTP() && protos.http.last_url)
       return protos.http.last_url;
 
-    else if(isTLS() && protos.tls.certificate)
-      return protos.tls.certificate;
+    else if(isTLS() && protos.tls.client_requested_server_name)
+      return protos.tls.client_requested_server_name;
 
     else if(bt_hash)
       return bt_hash;
@@ -3735,107 +3733,6 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
 
 /* ***************************************************** */
 
-void Flow::dissectTLS(char *payload, u_int16_t payload_len) {
-  if(!protos.tls.certificate_dissected) {
-    u_int16_t _payload_len = payload_len + protos.tls.certificate_leftover;
-    u_char *_payload       = (u_char*)malloc(_payload_len);
-    bool find_initial_pattern = true;
-
-    if(!_payload)
-      return;
-    else {
-      int i = 0;
-
-      if(protos.tls.certificate_leftover > 0) {
-	memcpy(_payload, protos.tls.certificate_buf_leftover, (i = protos.tls.certificate_leftover));
-	free(protos.tls.certificate_buf_leftover);
-	protos.tls.certificate_buf_leftover = NULL, protos.tls.certificate_leftover = 0;
-	find_initial_pattern = false;
-      }
-
-      memcpy(&_payload[i], payload, payload_len);
-    }
-
-    if(_payload_len > 4) {
-      for(int i = (find_initial_pattern ? 9 : 0); i < _payload_len - 4 && !protos.tls.certificate_dissected; i++) {
-
-	/* Look for the Subject Alternative Name Extension with OID 55 1D 11 */
-	if((find_initial_pattern && (_payload[i] == 0x55) && (_payload[i+1] == 0x1d) && (_payload[i+2] == 0x11))
-	   || (!find_initial_pattern)) {
-
-	  if(find_initial_pattern) {
-	    i += 3 /* skip the initial patten 55 1D 11 */;
-	    i++; /* skip the first type, 0x04 == BIT STRING, and jump to it's length */
-	    i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0; /* skip BIT STRING length */
-	    i += 2; /* skip the second type, 0x30 == SEQUENCE, and jump to it's length */
-	    i += _payload[i] & 0x80 ? _payload[i] & 0x7F : 0; /* skip SEQUENCE length */
-	    i++;
-	  }
-
-	  while(i < _payload_len) {
-	    if(_payload[i] == 0x82) {
-	      u_int8_t len;
-
-	      if((i < (_payload_len - 1))
-		 && (len = _payload[i + 1])
-		 && ((i + len + 2) < _payload_len)) {
-		i += 2;
-
-		if(!isalpha(_payload[i]) && _payload[i] != '*') {
-		  protos.tls.certificate_dissected = true;
-		  break;
-		}
-		else {
-		  char buf[256];
-
-		  strncpy(buf, (const char*)&_payload[i], len);
-		  buf[len] = '\0';
-
-#if 0
-		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Len %u][sizeof(buf): %u][tls cert: %s]", buf, len, sizeof(buf), getTLSCertificate());
-#endif
-
-		  /*
-		    CNs are NOT case sensitive as per RFC 5280
-		  */
-		  if (protos.tls.certificate
-		      && ((buf[0] != '*' && !strncasecmp(protos.tls.certificate, buf, sizeof(buf)))
-			  || (buf[0] == '*' && strcasestr(protos.tls.certificate, &buf[1])))) {
-		    protos.tls.subject_alt_name_match = true;
-		    protos.tls.certificate_dissected = true;
-		    break;
-		  }
-
-		  i += len;
-		}
-	      } else {
-#if 0
-		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leftover %u bytes [%u len]", _payload_len - i, len);
-#endif
-		protos.tls.certificate_leftover = _payload_len - i;
-
-		if((protos.tls.certificate_buf_leftover = (char*)malloc(protos.tls.certificate_leftover)) != NULL)
-		  memcpy(protos.tls.certificate_buf_leftover, &_payload[i], protos.tls.certificate_leftover);
-		else
-		  protos.tls.certificate_leftover = 0;
-
-		break;
-	      }
-	    } else {
-	      protos.tls.certificate_dissected = true;
-	      break;
-	    }
-	  } /* while */
-	}
-      } /* for */
-    }
-
-    free(_payload);
-  }
-}
-
-/* ***************************************************** */
-
 void Flow::lua_get_status(lua_State* vm) const {
   lua_push_bool_table_entry(vm, "flow.idle", idle());
   lua_push_uint64_table_entry(vm, "flow.status", getPredominantStatus());
@@ -4134,15 +4031,20 @@ void Flow::lua_get_unicast_info(lua_State* vm) const {
 
 void Flow::lua_get_tls_info(lua_State *vm) const {
   if(isTLS()) {
-    lua_push_bool_table_entry(vm, "protos.tls.subject_alt_name_match", protos.tls.subject_alt_name_match);
     lua_push_int32_table_entry(vm, "protos.tls_version", protos.tls.tls_version);
 
-    if(protos.tls.certificate)
-      lua_push_str_table_entry(vm, "protos.tls.certificate", protos.tls.certificate);
+    if(protos.tls.server_names)
+      lua_push_str_table_entry(vm, "protos.tls.server_names", protos.tls.server_names);
 
-    if(protos.tls.server_certificate)
-      lua_push_str_table_entry(vm, "protos.tls.server_certificate", protos.tls.server_certificate);
+    if(protos.tls.client_requested_server_name)
+      lua_push_str_table_entry(vm, "protos.tls.client_requested_server_name",
+			       protos.tls.client_requested_server_name);
 
+    if(protos.tls.notBefore && protos.tls.notAfter) {
+      lua_push_int32_table_entry(vm, "protos.tls.notBefore", protos.tls.notBefore);
+      lua_push_int32_table_entry(vm, "protos.tls.notAfter", protos.tls.notAfter);
+    }
+      
     if(protos.tls.ja3.client_hash) {
       lua_push_str_table_entry(vm, "protos.tls.ja3.client_hash", protos.tls.ja3.client_hash);
 

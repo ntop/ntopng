@@ -9374,17 +9374,6 @@ static int ntop_flow_has_malicious_tls_sign(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_check_tls_certificate(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, f->shouldCheckTLSCertificate());
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_flow_is_client_unicast(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -11263,7 +11252,6 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getDnsQuery",              ntop_flow_get_dns_query              },
   { "getProtoBreed",            ntop_flow_get_proto_breed            },
   { "hasMaliciousTlsSignature", ntop_flow_has_malicious_tls_sign     },
-  { "shouldCheckTlsCertificate", ntop_flow_check_tls_certificate     },
 
   /* TODO document */
   { "isLocal",                  ntop_flow_is_local                   },

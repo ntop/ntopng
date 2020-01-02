@@ -1551,11 +1551,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if(discovery && iph)
 	discovery->queueMDNSRespomse(iph->saddr, payload, trusted_payload_len);
       break;
-
-    case NDPI_PROTOCOL_TLS:
-      if(trusted_payload_len > 0)
-	flow->dissectTLS((char *)payload, trusted_payload_len);
-      break;
     }
 
     flow->processDetectedProtocol();

@@ -127,11 +127,9 @@ class Flow : public GenericHashEntry {
 
     struct {
       u_int16_t tls_version;
-      char *certificate, *server_certificate;
+      u_int32_t notBefore, notAfter;
+      char *client_requested_server_name, *server_names;
       /* Certificate dissection */
-      char *certificate_buf_leftover;
-      u_int certificate_leftover;
-      bool certificate_dissected, subject_alt_name_match;
       struct {
 	/* https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967 */
 	char *client_hash, *server_hash;
@@ -316,7 +314,7 @@ class Flow : public GenericHashEntry {
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
   const char* getFlowInfo();
   inline char* getFlowServerInfo() {
-    return (isTLS() && protos.tls.certificate) ? protos.tls.certificate : host_server_name;
+    return (isTLS() && protos.tls.client_requested_server_name) ? protos.tls.client_requested_server_name : host_server_name;
   }
   inline char* getBitTorrentHash() { return(bt_hash);          };
   inline void  setBTHash(char *h)  { if(!h) return; if(bt_hash) free(bt_hash); bt_hash = h; }
@@ -526,8 +524,6 @@ class Flow : public GenericHashEntry {
   }
   inline bool hasInvalidDNSQueryChars() { return(isDNS() && protos.dns.invalid_chars_in_query); }
   inline bool hasMaliciousSignature() { return(has_malicious_cli_signature || has_malicious_srv_signature); }
-  inline bool shouldCheckTLSCertificate() { return(isTLS() && !protos.tls.subject_alt_name_match
-              && protos.tls.server_certificate && protos.tls.certificate); }
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = v; } }
   inline void  setDNSQueryType(u_int16_t t) { if(isDNS()) { protos.dns.last_query_type = t; } }
@@ -539,7 +535,6 @@ class Flow : public GenericHashEntry {
   inline void  setHTTPMethod(char *v)  { if(isHTTP()) { if(protos.http.last_method) free(protos.http.last_method);  protos.http.last_method = v; } }
   inline void  setHTTPRetCode(u_int16_t c) { if(isHTTP()) { protos.http.last_return_code = c; } }
   inline char* getHTTPContentType() { return(isHTTP() ? protos.http.last_content_type : (char*)"");   }
-  inline char* getTLSCertificate()  { return(isTLS() ? protos.tls.certificate : (char*)""); }
   bool isTLSProto();
 
   void setExternalAlert(json_object *a);

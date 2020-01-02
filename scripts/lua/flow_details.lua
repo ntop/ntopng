@@ -845,17 +845,26 @@ else
        end
     end
 
-   if(flow["protos.tls.certificate"] ~= nil) then
+   if(flow["protos.tls.client_requested_server_name"] ~= nil) then
       print("<tr><th width=30%><i class='fas fa-lock fa-lg'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
-      print(i18n("flow_details.client_requested")..": <A HREF=\"http://"..flow["protos.tls.certificate"].."\">"..flow["protos.tls.certificate"].."</A> <i class=\"fas fa-external-link-alt\"></i>")
-      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.certificate"], flow["category"])) end
-      historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.tls.certificate"])
-      printAddCustomHostRule(flow["protos.tls.certificate"])
+      print(i18n("flow_details.client_requested")..":<br>")
+      print("<A HREF=\"http://"..flow["protos.tls.client_requested_server_name"].."\">"..flow["protos.tls.client_requested_server_name"].."</A> <i class=\"fas fa-external-link-alt\"></i>")
+      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"])) end
+      historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.tls.client_requested_server_name"])
+      printAddCustomHostRule(flow["protos.tls.client_requested_server_name"])
       print("</td>")
 
       print("<td>")
-      if(flow["protos.tls.server_certificate"] ~= nil) then
-	 print(i18n("flow_details.server_certificate")..": <A HREF=\"http://"..flow["protos.tls.server_certificate"].."\">"..flow["protos.tls.server_certificate"].."</A>")
+      if(flow["protos.tls.server_names"] ~= nil) then
+	 local servers = string.split(flow["protos.tls.server_names"], "%,")
+	 print(i18n("flow_details.tls_server_names")..":<br>")
+	 for _,server in pairs(servers) do
+	    if(starts(server, '*')) then
+		  print("<li>"..server.."\n")
+	    else
+	       print("<li><A HREF=\"http://"..server.."\">"..server.."</A> <i class=\"fas fa-external-link-alt\"></i>\n")
+	    end
+	 end
 
 	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_tls_certificate_mismatch.status_id)) then
 	    print("\n<br><i class=\"fas fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
@@ -865,6 +874,14 @@ else
       print("</tr>\n")
    end
 
+   if((flow["protos.tls.notBefore"] ~= nil) or (flow["protos.tls.notAfter"] ~= nil)) then
+      print('<tr><th width=30%>'..i18n("flow_details.tls_certificate_validity").."</th><td>")
+      print(formatEpoch(flow["protos.tls.notBefore"]))
+      print(" - ")
+      print(formatEpoch(flow["protos.tls.notAfter"]))
+      print("</td></tr>\n")
+   end
+   
    if((flow["protos.tls.ja3.client_hash"] ~= nil) or (flow["protos.tls.ja3.server_hash"] ~= nil)) then
       print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
       if(flow["protos.tls.ja3.client_malicious"]) then
