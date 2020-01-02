@@ -37,6 +37,12 @@ SyslogLuaEngine::SyslogLuaEngine(NetworkInterface *iface) : LuaEngine() {
     return;
   }
 
+  /* Execute the script so that the "setup" function will be exposed */
+  if(lua_pcall(L, 0, 0, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure[%s] [%s]", script_path, lua_tostring(L, -1));
+    return;
+  }
+
   initialized = true;
 
   /* Calling setup() */

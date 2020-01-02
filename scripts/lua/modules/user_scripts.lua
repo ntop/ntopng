@@ -30,7 +30,7 @@ user_scripts.field_units = {
 local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
-local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets"
+local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets_v1"
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- NOTE: the subdir id must be unique
@@ -1118,9 +1118,12 @@ local function saveConfigsets(configsets)
       return rv, err
    end
 
-   local confjson = json.encode(configsets)
+   for _, configset in pairs(configsets) do
+      local k = string.format("%d", configset.id)
+      local v = json.encode(configset)
 
-   ntop.setPref(CONFIGSETS_KEY, confjson)
+      ntop.setHashCache(CONFIGSETS_KEY, k, v)
+   end
 
    -- Reload the periodic scripts as the configuration has changed
    ntop.reloadPeriodicScripts()
@@ -1131,14 +1134,15 @@ end
 -- ##############################################
 
 function user_scripts.getConfigsets()
-   local configsets = ntop.getPref(CONFIGSETS_KEY) or ""
+   local configsets = ntop.getHashAllCache(CONFIGSETS_KEY) or {}
    local rv = {}
 
-   configsets = json.decode(configsets) or {}
+   for _, confset_json in pairs(configsets) do
+      local confset = json.decode(confset_json)
 
-   -- Convert the ID keys to number
-   for _, confset in pairs(configsets) do
-      rv[confset.id] = confset
+      if confset then
+	 rv[confset.id] = confset
+      end
    end
 
    return(rv)
