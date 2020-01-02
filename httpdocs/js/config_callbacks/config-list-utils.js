@@ -216,6 +216,8 @@ $(document).ready(function() {
             $("#applied-input").val(config_targets.map(d => d.key.toString()).join(','))
         }
 
+        // hide previous errors
+        $("#apply-error").hide();
 
         $("#apply-name").html(`<b>${config_name}</b>`);
         $("#applied-modal form").off("submit");
@@ -378,6 +380,7 @@ $(document).ready(function() {
         const {config_id, config_name} = get_configuration_data($config_table, $(this));
 
         $("#delete-name").html(`<b>${config_name}</b>`)
+        $("#delete-error").hide(); 
 
         $("#delete-modal form").off('submit');
         $("#btn-confirm-delete").off("click").click(function(e) {
