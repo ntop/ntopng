@@ -58,7 +58,12 @@ class HostStats: public TimeseriesStats {
 			bool peer_is_unicast);
   void checkpoint(lua_State* vm);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
-  inline void incFlagStats(bool as_client, u_int8_t flags)  { if (as_client) sent_stats.incFlagStats(flags); else recv_stats.incFlagStats(flags); };
+  inline void incFlagStats(bool as_client, u_int8_t flags, bool cumulative_flags)  {
+    if (as_client)
+      sent_stats.incFlagStats(flags, cumulative_flags);
+    else
+      recv_stats.incFlagStats(flags, cumulative_flags);
+  };
 
   virtual void computeAnomalyIndex(time_t when) {};
 

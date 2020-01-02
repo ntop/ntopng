@@ -14,7 +14,7 @@ local ifstats = interface.getStats()
 local distr_type = _GET["distr"]
 
 if((distr_type == nil) or (distr_type == "size")) then
-   what = ifstats["pktSizeDistribution"]
+   what = ifstats["pktSizeDistribution"]["size"]
 elseif distr_type == "ipver" then
    print "[\n"
    print("\t { \"label\": \"IPv6\", \"value\": ".. ifstats.eth.IPv6_packets .." },")

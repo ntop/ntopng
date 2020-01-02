@@ -267,7 +267,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynAlertsCounter(time_t when, bool syn_sent);
-  void update3WHSCompletedAlertsCounter(time_t when, bool synack_sent);
+  void updateSynAckAlertsCounter(time_t when, bool synack_sent);
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
@@ -280,8 +280,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); }
   inline void incNumHostUnreachableFlows(bool as_server) { if(stats) stats->incNumHostUnreachableFlows(as_server); };
   inline void incnDPIFlows(u_int16_t l7_protocol)    { if(stats) stats->incnDPIFlows(l7_protocol); }
- 
-  inline void incFlagStats(bool as_client, u_int8_t flags)  { stats->incFlagStats(as_client, flags); };
+  inline void incFlagStats(bool as_client, u_int8_t flags, bool cumulative_flags)  {
+    stats->incFlagStats(as_client, flags, cumulative_flags);
+  };
   virtual void luaHTTP(lua_State *vm)              const { };
   virtual void luaDNS(lua_State *vm, bool verbose) const { };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { };

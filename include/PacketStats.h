@@ -32,11 +32,20 @@ class PacketStats {
     above9000;
   u_int64_t syn, synack, finack, rst;
 
+  /* Function to increase TCP flag stats when the flags are
+     read from a single TCP segment. Call this for packet interfaces */
+  void incFlagStatsSingleSegment(u_int8_t flags);
+  /* Function to increase TCP flag stats when the flags are cumulative,
+     i.e., when they are the logical OR among the flags detected across
+     multiple TCP segments. Call this for non-packet interfaces such
+     the ZMQ */
+  void incFlagStatsCumulative(u_int8_t flags);
+
  public:
   PacketStats();
 
   void resetStats();
-  void incFlagStats(u_int8_t flags);
+  void incFlagStats(u_int8_t flags, bool cumulative_flags);
   void incStats(u_int num_pkts, u_int pkt_len);
   char* serialize();
   void deserialize(json_object *o);
@@ -49,7 +58,9 @@ class PacketStats {
       s->upTo1518 += upTo1518, s->upTo2500 += upTo2500,
       s->upTo6500 += upTo6500, s->upTo9000 += upTo9000,
       s->above9000 += above9000,
-      s->syn += syn, s->synack += synack, s->finack += finack, s->rst += rst;
+      s->syn += syn, s->synack += synack,
+      s->finack += finack,
+      s->rst += rst;
   };
 };
 

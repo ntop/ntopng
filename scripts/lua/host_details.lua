@@ -741,8 +741,8 @@ end
       <table class="table table-bordered table-striped">
 	 ]]
 
-   tots = 0 for key, value in pairs(host["pktStats.sent"]) do tots = tots + value end
-   totr = 0 for key, value in pairs(host["pktStats.recv"]) do totr = totr + value end
+      local tots = 0 for key, value in pairs(host["pktStats.sent"]["size"]) do tots = tots + value end
+      local totr = 0 for key, value in pairs(host["pktStats.recv"]["size"]) do totr = totr + value end
    
    if((tots > 0) or (totr > 0)) then
      print('<tr><th class="text-left">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')

@@ -43,9 +43,12 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p = Flow::ndpiUnknownProtocol;
-  time_t now = time(NULL);
+  time_t now;
+  bpf_timeval now_tv = { 0 };
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
+  now = time(NULL);
+  now_tv.tv_sec = now;
 
   if(discardProbingTraffic()) {
     if(isProbingFlow(zflow)) {
@@ -268,12 +271,14 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
     if(zflow->tcp.client_tcp_flags || zflow->tcp.server_tcp_flags) {
       /* There's a breadown between client and server TCP flags */
       if(zflow->tcp.client_tcp_flags)
-	flow->setTcpFlags(zflow->tcp.client_tcp_flags, src2dst_direction);
+	flow->updateTcpFlags(&now_tv, zflow->tcp.client_tcp_flags, src2dst_direction);
       if(zflow->tcp.server_tcp_flags)
-	flow->setTcpFlags(zflow->tcp.server_tcp_flags, !src2dst_direction);
-    } else if(zflow->tcp.tcp_flags)
-      /* TCP flags are cumulated client + server */
-      flow->setTcpFlags(zflow->tcp.tcp_flags, src2dst_direction);
+	flow->updateTcpFlags(&now_tv, zflow->tcp.server_tcp_flags, !src2dst_direction);
+    } else if(zflow->tcp.tcp_flags) {
+      /* TCP flags are cumulated client + server, set to both directions */
+      flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction);
+      flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, !src2dst_direction);
+    }
 
     Flow::incTcpBadStats(true,
 			 flow->get_cli_host(), flow->get_srv_host(),

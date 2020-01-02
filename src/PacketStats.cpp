@@ -31,10 +31,10 @@ PacketStats::PacketStats() {
 
 void PacketStats::resetStats() {
     upTo64 = 0, upTo128 = 0, upTo256 = 0,
-    upTo512 = 0, upTo1024 = 0, upTo1518 = 0,
-    upTo2500 = 0, upTo6500 = 0, upTo9000 = 0,
-    above9000 = 0, syn = 0, synack = 0,
-    finack = 0, rst = 0;
+      upTo512 = 0, upTo1024 = 0, upTo1518 = 0,
+      upTo2500 = 0, upTo6500 = 0, upTo9000 = 0,
+      above9000 = 0, syn = 0, synack = 0,
+      finack = 0, rst = 0;
 }
 
 /* *************************************** */
@@ -54,11 +54,33 @@ void PacketStats::incStats(u_int num_pkts, u_int pkt_len) {
 
 /* *************************************** */
 
-void PacketStats::incFlagStats(u_int8_t flags) { 
-  if(flags == TH_SYN)                 syn++;
-  else if(flags == (TH_SYN|TH_ACK))   synack++;
-  else if(flags == (TH_FIN|TH_ACK))   finack++;
-  else if((flags & TH_RST) == TH_RST) rst++;
+void PacketStats::incFlagStatsSingleSegment(u_int8_t flags) {
+  switch(flags) {
+  case TH_SYN:        syn++;    break;
+  case TH_SYN|TH_ACK: synack++; break;
+  case TH_FIN|TH_ACK: finack++; break;
+  default:                      break;
+  }
+
+  if((flags & TH_RST) == TH_RST) rst++;
+}
+
+/* *************************************** */
+
+void PacketStats::incFlagStatsCumulative(u_int8_t flags) {
+  if((flags & TH_SYN) == TH_SYN)                   syn++;
+  if((flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)) synack++;
+  if((flags & (TH_FIN|TH_ACK)) == (TH_FIN|TH_ACK)) finack++;
+  if((flags & TH_RST) == TH_RST)                   rst++;
+}
+
+/* *************************************** */
+
+void PacketStats::incFlagStats(u_int8_t flags, bool cumulative_flags) {
+  if(cumulative_flags)
+    incFlagStatsCumulative(flags);
+  else
+    incFlagStatsSingleSegment(flags);
 }
 
 /* *************************************** */
@@ -125,7 +147,8 @@ json_object* PacketStats::getJSONObject() {
 
 void PacketStats::lua(lua_State* vm, const char *label) {
   lua_newtable(vm);
-  
+
+  lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "upTo64", upTo64);
   lua_push_uint64_table_entry(vm, "upTo128", upTo128);
   lua_push_uint64_table_entry(vm, "upTo256", upTo256);
@@ -136,11 +159,18 @@ void PacketStats::lua(lua_State* vm, const char *label) {
   lua_push_uint64_table_entry(vm, "upTo6500", upTo6500);
   lua_push_uint64_table_entry(vm, "upTo9000", upTo9000);
   lua_push_uint64_table_entry(vm, "above9000", above9000);
+  lua_pushstring(vm, "size");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
+  lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "syn", syn);
   lua_push_uint64_table_entry(vm, "synack", synack);
   lua_push_uint64_table_entry(vm, "finack", finack);
   lua_push_uint64_table_entry(vm, "rst", rst);
+  lua_pushstring(vm, "tcp_flags");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
   
   lua_pushstring(vm, label);
   lua_insert(vm, -2);

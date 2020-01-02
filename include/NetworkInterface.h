@@ -397,7 +397,9 @@ class NetworkInterface : public AlertableEntity {
       !ingressPacket ? num_pkts : 0, !ingressPacket ? pkt_len : 0);
   };
 
-  inline void incFlagsStats(u_int8_t flags) { pktStats.incFlagStats(flags); };
+  inline void incFlagStats(u_int8_t flags, bool cumulative_flags) {
+    pktStats.incFlagStats(flags, cumulative_flags);
+  };
   inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto,
 		       u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
 		       u_int8_t l4proto, u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
