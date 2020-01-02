@@ -205,7 +205,7 @@
                     <div class='btn-group'>
                        <button ${row.input_handler == undefined ? "disabled" : ""}
                           data-toggle="modal"
-                          title='Edit Script'
+                          title='${i18n.edit_script}'
                           data-target="#modal-script"
                           class="btn btn-square btn-sm btn-primary">
 
@@ -214,7 +214,7 @@
                        </button>
                        <a
                           href='${data.edit_url}'
-                          title='View Source Script'
+                          title='${i18n.view_src_script}'
                           class='btn btn-square btn-sm btn-secondary ${!data.edit_url ? "disabled" : ""}'>
                               <i class='fas fa-scroll'></i>
                        </a>
@@ -296,7 +296,7 @@
            const build_input_box = ({ input_builder, field_max, field_min, fields_unit, field_operator }) => {
 
               if (input_builder == '' || input_builder == undefined || input_builder == null) {
-                 return $("<p>Not enabled!</p>")
+                 return $(`<p>${i18n.template_not_found}</p>`)
               }
               else if (input_builder == 'threshold_cross') {
                  var operators = ["gt", "lt"];
@@ -422,14 +422,14 @@
                  // if operator is empty then alert the user
                  if (enabled && (operator == "" || operator == undefined || operator == null)) {
 
-                    $error_label.text("Please select an operator!").show();
+                    $error_label.text(i18n.select_operator).show();
                     error = true;
                     return;
                  }
 
                  // if the value is empty then alert the user (only for checked granularities)
                  if (enabled && (threshold == null || threshold == undefined || threshold == "")) {
-                    $error_label.text("Please fill the input box!").show();
+                    $error_label.text(i18n.empty_input_box).show();
                     error = true;
                     return;
                  }
