@@ -30,7 +30,8 @@ user_scripts.field_units = {
 local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
-local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets_v1"
+local ALL_HOOKS_CONFIG_KEY = "all"
+local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets_v2"
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- NOTE: the subdir id must be unique
@@ -82,6 +83,7 @@ user_scripts.script_types = {
     parent_dir = "interface",
     hooks = {"min", "5mins", "hour", "day"},
     subdirs = {"interface", "host", "network"},
+    has_per_hook_config = true, -- Each hook has a separate configuration
   }, snmp_device = {
     parent_dir = "system",
     hooks = {"snmpDevice", "snmpDeviceInterface"},
@@ -90,6 +92,7 @@ user_scripts.script_types = {
     parent_dir = "system",
     hooks = {"min", "5mins", "hour", "day"},
     subdirs = {"system"},
+    has_per_hook_config = true, -- Each hook has a separate configuration
   }, syslog = {
     parent_dir = "system",
     hooks = {"handleEvent"},
@@ -1288,8 +1291,9 @@ function user_scripts.loadDefaultConfig()
 	       default_conf[subdir] = default_conf[subdir] or {}
 	       default_conf[subdir][key] = default_conf[subdir][key] or {}
 	       local script_config = default_conf[subdir][key]
+	       local hooks = ternary(script_type.has_per_hook_config, usermod.hooks, {[ALL_HOOKS_CONFIG_KEY]=1})
 
-	       for hook in pairs(usermod.hooks) do
+	       for hook in pairs(hooks) do
 		  -- Do not override an existing configuration
 		  if(script_config[hook] == nil) then
 		     script_config[hook] = {
@@ -1327,6 +1331,7 @@ function user_scripts.getScriptConfig(configset, script, subdir)
 
    -- Default
    local rv = {}
+   local hooks = ternary(script_type.has_per_hook_config, script.hooks, {[ALL_HOOKS_CONFIG_KEY]=1})
 
    for hook in pairs(script.hooks) do
       rv[hook] = {
