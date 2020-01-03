@@ -780,9 +780,9 @@ void Ntop::loadLocalInterfaceAddress() {
 
 /* ******************************************* */
 
-void Ntop::loadGeolocation(char *dir) {
+void Ntop::loadGeolocation() {
   if(geo != NULL) delete geo;
-  geo = new Geolocation(dir);
+  geo = new Geolocation();
 }
 
 /* ******************************************* */
