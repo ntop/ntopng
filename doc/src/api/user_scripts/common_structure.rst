@@ -96,7 +96,6 @@ A user script can provide some gui configuration items. These are specified via 
     gui = {
       i18n_title = "config_title",
       i18n_description = "config_description",
-      input_builder = user_scripts.checkbox_input_builder,
     }
 
     ...
@@ -112,7 +111,7 @@ The mandatory gui attributes are:
 Additional parameters can be specified based on the input_builder function. Here is
 a list of built-in input_builder functions:
 
-  - `user_scripts.threshold_cross_input_builder`: contains an input field with an operator
+  - `threshold_cross`: contains an input field with an operator
     and a unit. Suitable to speficy thresholds like "bytes > 512". Here is a list of additional
     supported parameters:
 
@@ -120,5 +119,3 @@ a list of built-in input_builder functions:
     - `field_min`: min value for the input field
     - `field_step`: step value for the input field
     - `i18n_field_unit`: localization string for the unit of the field. Should be one of `user_scripts.field_units`.
-
-  - `user_scripts.checkbox_input_builder`: a simple checkbox

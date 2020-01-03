@@ -12,12 +12,12 @@
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item" aria-current="page">
-        <a href="/lua/config_list.lua"
-          >{{ i18n("config_scripts.config_list", {}) }}</a
+        <a href="/lua/admin/scripts_config.lua"
+          >{{ i18n("about.user_scripts", {}) }}</a
         >
       </li>
       <li class="breadcrumb-item" aria-current="page">
-        <a href="/lua/config_list.lua?subdir={{ script_list.script_subdir }}">
+        <a href="/lua/admin/scripts_config.lua?subdir={{ script_list.script_subdir }}">
           {{ script_list.hooks_localizated[script_list.script_subdir] }}
         </a>
       </li>
@@ -48,7 +48,7 @@
   </div>
 </div>
 
-{# include modals for script_list.lua #} 
+{# include modals for edit_configset.lua #} 
 {* script_list.template_utils.gen("script_list_components/edit_config_modal.html") *} 
 {# add css, js files #}
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>

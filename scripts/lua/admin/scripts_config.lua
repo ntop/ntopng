@@ -16,6 +16,10 @@ local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
+if not haveAdminPrivileges() then
+  return
+end
+
 -- get subdir form url
 local subdir = _GET["subdir"]
 -- set default value for subdir if its empty

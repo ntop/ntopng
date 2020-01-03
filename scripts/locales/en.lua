@@ -494,7 +494,6 @@ local lang = {
     ["config_clone_message"] = "Type a name for the clonation",
     ["config_delete"] = "Deleting Config",
     ["config_delete_message"] = "Do you want really remove this configuration?",
-    ["config_list"] = "Config List",
     ["config_name"] = "Configuration Name",
     ["config_rename"] = "Configuration Rename",
     ["config_rename_message"] = "Type the new name for the configurarion",

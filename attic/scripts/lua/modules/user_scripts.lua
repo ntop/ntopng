@@ -180,3 +180,187 @@ function user_scripts.handlePOST(subdir, available_modules, hook, entity_value, 
    reload_scripts_config(available_modules)
    saveConfiguration(subdir, scripts_conf)
 end
+
+-- ##############################################
+
+-- Get the configuration to use for a specific entity
+-- @param user_script the user script, loaded with user_scripts.load
+-- @param (optional) hook the hook function
+-- @param (optional) entity_value the entity value
+-- @param (optional) is_remote_host, for hosts only, indicates if the entity is a remote host
+-- @return the script configuration as a table
+function user_scripts.getConfiguration(user_script, hook, entity_value, is_remote_host)
+   local rv = nil
+   hook = hook or NON_TRAFFIC_ELEMENT_CONF_KEY
+   entity_value = entity_value or NON_TRAFFIC_ELEMENT_ENTITY
+   local conf = user_script.conf[hook]
+
+   -- A configuration may not exist for the given hook
+   if(conf ~= nil) then
+      -- Search for this specific entity config
+      rv = conf[entity_value]
+   end
+
+   if(rv == nil) then
+      -- Search for a global/default configuration
+      rv = user_scripts.getGlobalConfiguration(user_script, hook, is_remote_host)
+   end
+
+   if(rv.script_conf == nil) then
+      -- Use the default
+      rv.script_conf = user_script.default_value or {}
+   end
+
+   return(rv)
+end
+
+-- ##############################################
+
+local function get_global_conf_key(is_remote_host)
+  return(ternary(is_remote_host, "global_remote", "global"))
+end
+
+-- ##############################################
+
+-- Get the global configuration to use for a all the entities of this user_script
+-- @param user_script the user script, loaded with user_scripts.load
+-- @param hook the hook function
+-- @param is_remote_host, for hosts only, indicates if the entity is a remote host
+-- @return the script configuration as a table
+function user_scripts.getGlobalConfiguration(user_script, hook, is_remote_host)
+   local conf = user_script.conf[hook]
+   local rv = nil
+
+   if(conf ~= nil) then
+      rv = conf[get_global_conf_key(is_remote_host)]
+   end
+
+   if(rv == nil) then
+      -- No Specific/Global configuration found, try defaults
+      rv = user_scripts.getDefaultConfig(user_script, hook)
+   end
+
+   return(rv)
+end
+
+-- ##############################################
+
+-- Delete the configuration of a specific element (e.g. a specific host)
+function user_scripts.deleteSpecificConfiguration(subdir, available_modules, hook, entity_value)
+   hook = hook or NON_TRAFFIC_ELEMENT_CONF_KEY
+   entity_value = entity_value or NON_TRAFFIC_ELEMENT_ENTITY
+
+   local scripts_conf = available_modules.conf
+
+   for _, script in pairs(available_modules.modules) do
+      delete_script_conf(scripts_conf, script.key, hook, entity_value)
+   end
+
+   reload_scripts_config(available_modules)
+   saveConfiguration(subdir, scripts_conf)
+end
+
+-- ##############################################
+
+-- Delete the configuration for all the elements in subdir (e.g. all the hosts)
+function user_scripts.deleteGlobalConfiguration(subdir, available_modules, hook, remote_host)
+   return(user_scripts.deleteSpecificConfiguration(subdir, available_modules, hook, get_global_conf_key(remote_host)))
+end
+
+-- ##############################################
+
+-- For built-in input_builders, return the _POST handler to use
+local input_builder_to_post_handler = {
+   [user_scripts.threshold_cross_input_builder] = user_scripts.threshold_cross_post_handler,
+}
+
+function user_scripts.getDefaultPostHandler(input_builder)
+   return(input_builder_to_post_handler[input_builder])
+end
+
+-- ##############################################
+
+function user_scripts.checkbox_input_builder(gui_conf, submit_field, active)
+   local on_value = "on"
+   local off_value = "off"
+   local value
+   local on_color = "success"
+   local off_color = "danger"
+   submit_field = "enabled_" .. submit_field
+
+   local on_active
+   local off_active
+
+   if active then
+
+      value = on_value
+      on_active  = "btn-"..on_color.." active"
+      off_active = "btn-secondary"
+   else
+      value = off_value
+      on_active  = "btn-secondary"
+      off_active = "btn-"..off_color.." active"
+   end
+
+   return [[
+  <div class="btn-group btn-toggle">
+  <button type="button" onclick="]]..submit_field..[[_on_fn()" id="]]..submit_field..[[_on_id" class="btn btn-sm ]]..on_active..[[">On</button>
+  <button type="button" onclick="]]..submit_field..[[_off_fn()" id="]]..submit_field..[[_off_id" class="btn btn-sm ]]..off_active..[[">Off</button>
+  </div>
+  <input type=hidden id="]]..submit_field..[[_input" name="]]..submit_field..[[" value="]]..value..[["/>
+<script>
+
+
+function ]]..submit_field..[[_on_fn() {
+  var class_on = document.getElementById("]]..submit_field..[[_on_id");
+  var class_off = document.getElementById("]]..submit_field..[[_off_id");
+  class_on.removeAttribute("class");
+  class_off.removeAttribute("class");
+  class_on.setAttribute("class", "btn btn-sm btn-]]..on_color..[[ active");
+  class_off.setAttribute("class", "btn btn-sm btn-secondary");
+  $("#]]..submit_field..[[_input").val("]]..on_value..[[").trigger('change');
+}
+
+function ]]..submit_field..[[_off_fn() {
+  var class_on = document.getElementById("]]..submit_field..[[_on_id");
+  var class_off = document.getElementById("]]..submit_field..[[_off_id");
+  class_on.removeAttribute("class");
+  class_off.removeAttribute("class");
+  class_on.setAttribute("class", "btn btn-sm btn-secondary");
+  class_off.setAttribute("class", "btn btn-sm btn-]]..off_color..[[ active");
+  $("#]]..submit_field..[[_input").val("]]..off_value..[[").trigger('change');
+}
+</script>
+]]
+end
+
+-- ##############################################
+
+function user_scripts.threshold_cross_input_builder(gui_conf, input_id, value)
+  value = value or {}
+  local gt_selected = ternary((value.operator or gui_conf.field_operator) == "gt", ' selected="selected"', '')
+  local lt_selected = ternary((value.operator or gui_conf.field_operator) == "lt", ' selected="selected"', '')
+  local input_op = "op_" .. input_id
+  local input_val = "value_" .. input_id
+
+  return(string.format([[<select name="%s">
+  <option value="gt"%s ]] .. (ternary(gui_conf.field_operator == "lt", "hidden", "")) .. [[>&gt;</option>
+  <option value="lt"%s ]] .. (ternary(gui_conf.field_operator == "gt", "hidden", "")) .. [[>&lt;</option>
+</select> <input type="number" class="text-right form-control" min="%s" max="%s" step="%s" style="display:inline; width:12em;" name="%s" value="%s"/> <span>%s</span>]],
+    input_op, gt_selected, lt_selected,
+    gui_conf.field_min or "0", gui_conf.field_max or "", gui_conf.field_step or "1",
+    input_val, value.threshold, i18n(gui_conf.i18n_field_unit))
+  )
+end
+
+function user_scripts.threshold_cross_post_handler(input_id)
+  local input_op = _POST["op_" .. input_id]
+  local input_val = tonumber(_POST["value_" .. input_id])
+
+  if(input_val ~= nil) then
+    return {
+      operator = input_op,
+      threshold = input_val,
+    }
+  end
+end
