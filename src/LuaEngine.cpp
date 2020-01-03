@@ -9284,7 +9284,7 @@ static int ntop_flow_is_connection_refused(lua_State* vm) {
 
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushboolean(vm, (f->isTCPReset() && !f->hasTCP3WHSCompleted()));
+  lua_pushboolean(vm, (f->isTCPRefused()));
   return(CONST_LUA_OK);
 }
 
