@@ -37,7 +37,7 @@ local titles = {
 -- append headers to config_list
 page_utils.print_header(i18n("config_scripts.config_x", { product=titles[subdir] }))
 
-active_page = "config_scripts"
+active_page = "admin"
 
 -- append menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

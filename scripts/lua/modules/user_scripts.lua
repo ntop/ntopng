@@ -154,26 +154,6 @@ end
 
 -- ##############################################
 
--- @brief Get the default configuration for the given user script
--- and granularity.
--- @param user_script a user_script returned by user_scripts.load
--- @param granularity_str the target granularity
--- @return a table with the default configuration
-function user_scripts.getDefaultConfig(user_script, granularity_str)
-   local conf = {script_conf = {}, enabled = user_script.default_enabled}
-
-  if((user_script.default_values ~= nil) and (user_script.default_values[granularity_str] ~= nil)) then
-    -- granularity specific default
-    conf.script_conf = user_script.default_values[granularity_str] or {}
-  else
-    conf.script_conf = user_script.default_value or {}
-  end
-
-  return(conf)
-end
-
--- ##############################################
-
 -- @brief Wrap any hook function to compute its execution time which is then added
 -- to the benchmarks table.
 --
@@ -373,90 +353,7 @@ end
 
 -- ##############################################
 
-local function getConfigurationKey(subdir)
-   -- NOTE: strings needed by user_scripts.deleteConfigurations
-   -- NOTE: The configuration must not be saved under a specific ifid, since we
-   -- allow global interfaces configurations
-   return(string.format("ntopng.prefs.user_scripts.conf.%s", subdir))
-end
-
--- ##############################################
-
--- Get the user scripts configuration
--- @param subdir: the subdir
--- @return a table
--- {[hook] = {entity_value -> {enabled=true, script_conf = {a = 1}, }, ..., default -> {enabled=false, script_conf = {}, }}, ...}
--- @note debug with: redis-cli get ntopng.prefs.user_scripts.conf.interface | python -m json.tool
-local function loadConfiguration(subdir)
-   local key = getConfigurationKey(subdir)
-   local value = ntop.getPref(key)
-
-   if(not isEmptyString(value)) then
-      value = json.decode(value) or {}
-   else
-      value = {}
-   end
-
-   return(value)
-end
-
--- ##############################################
-
--- Save the user scripts configuration.
--- @param subdir: the subdir
--- @param config: the configuration to save
-local function saveConfiguration(subdir, config)
-   local key = getConfigurationKey(subdir)
-
-   if(table.empty(config)) then
-      ntop.delCache(key)
-   else
-      local value = json.encode(config)
-      ntop.setPref(key, value)
-   end
-
-   -- Reload the periodic scripts as the configuration has changed
-   ntop.reloadPeriodicScripts()
-end
-
--- ##############################################
-
-function user_scripts.deleteConfigurations()
-   deleteCachePattern(getConfigurationKey("*"))
-end
-
--- ##############################################
-
--- This needs to be called whenever the available_modules.conf changes
--- It updates the single scripts config
-local function reload_scripts_config(available_modules)
-   local scripts_conf = available_modules.conf
-
-   for _, script in pairs(available_modules.modules) do
-      script.conf = scripts_conf[script.key] or {}
-   end
-end
-
--- ##############################################
-
-local function delete_script_conf(scripts_conf, key, hook, conf_key)
-   if(scripts_conf[key] and scripts_conf[key][hook]) then
-      scripts_conf[key][hook][conf_key] = nil
-
-      -- Cleanup empty tables
-      if table.empty(scripts_conf[key][hook]) then
-	 scripts_conf[key][hook] = nil
-
-	 if table.empty(scripts_conf[key]) then
-	    scripts_conf[key] = nil
-	 end
-      end
-   end
-end
-
--- ##############################################
-
-local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, configs)
+local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
    user_script.key = mod_fname
    user_script.path = full_path
    user_script.subdir = subdir
@@ -465,9 +362,6 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.plugin = plugin
    user_script.script_type = script_type
    user_script.edition = plugin.edition
-
-   -- Load the configuration
-   user_script.conf = configs[user_script.key] or {}
 
    -- TODO remove after gui migration
    if(user_script.gui and (user_script.gui.input_builder == nil)) then
@@ -539,7 +433,6 @@ function user_scripts.load(ifid, script_type, subdir, options)
    end
 
    local check_dirs = getScriptsDirectories(script_type, subdir)
-   rv.conf = loadConfiguration(subdir)
 
    for _, checks_dir in pairs(check_dirs) do
       for fname in pairs(ntop.readdir(checks_dir)) do
@@ -698,9 +591,7 @@ function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
 	 local user_script = dofile(full_path)
 
 	 if(user_script ~= nil) then
-	    local configs = loadConfiguration(subdir)
-
-	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, configs)
+	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
 
 	    return(user_script)
 	 end
@@ -937,85 +828,6 @@ function user_scripts.teardown(available_modules, do_benchmark, do_print_benchma
       local ifid = interface.getId()
       user_scripts.benchmark_dump(ifid, do_print_benchmark)
    end
-end
-
--- ##############################################
-
-function user_scripts.handlePOST(subdir, available_modules, hook, entity_value, remote_host)
-   if(table.empty(_POST)) then
-      return
-   end
-
-   hook = hook or NON_TRAFFIC_ELEMENT_CONF_KEY
-   entity_value = entity_value or NON_TRAFFIC_ELEMENT_ENTITY
-
-   local scripts_conf = available_modules.conf
-
-   for _, user_script in pairs(available_modules.modules) do
-      -- There are 3 different configurations:
-      --  - specific_config: the configuration specific of an host/interface/network
-      --  - global_config: the configuration specific for all the (local/remote) hosts, interfaces, networks
-      --  - default_config: the default configuration, specified by the user script
-      -- They follow the follwing priorities:
-      -- 	[lower] specific_config > global_config > default [upper]
-      --
-      -- Moreover:
-      --   - specific_config is only set if it differs from the global_config
-      --   - global_config is only set if it differs from the default_config
-      --
-
-      -- This is used to represent the previous config in order of priority in order
-      -- to determine if the current config differs from its default.
-      local upper_config = user_scripts.getDefaultConfig(user_script, hook)
-
-      -- NOTE: we must process the global_config before the specific_config
-      for _, prefix in ipairs({"global_", ""}) do
-	 local k = prefix .. user_script.key
-	 local is_global = (prefix == "global_")
-	 local enabled_k = "enabled_" .. k
-	 local is_enabled = _POST[enabled_k]
-	 local conf_key = ternary(is_global, get_global_conf_key(remote_host), entity_value)
-	 local script_conf = nil
-
-	 if(user_script.gui and (user_script.gui.post_handler ~= nil)) then
-	    script_conf = user_script.gui.post_handler(k)
-	 end
-
-	 if(is_enabled == nil) then
-	    -- TODO remove this after changing the gui to support a separate on/off field
-	    -- For backward compatibility, an empty configuration means that the script is disabled
-
-	    if(user_script.gui and (user_script.gui.post_handler ~= nil) and (subdir ~= "flow")) then
-	       is_enabled = not table.empty(script_conf)
-	    else
-	       is_enabled = user_script.default_enabled
-	    end
-	 else
-	    is_enabled = (is_enabled == "on")
-	 end
-
-	 local cur_config = {
-	    enabled = is_enabled,
-	    script_conf = script_conf,
-	 }
-
-	 if(not table.compare(upper_config, cur_config)) then
-	    -- Configuration differs
-	    scripts_conf[user_script.key] = scripts_conf[user_script.key] or {}
-	    scripts_conf[user_script.key][hook] = scripts_conf[user_script.key][hook] or {}
-	    scripts_conf[user_script.key][hook][conf_key] = cur_config
-	 else
-	    -- Use the default
-	    delete_script_conf(scripts_conf, user_script.key, hook, conf_key)
-	 end
-
-	 -- Needed for specific_config vs global_config comparison
-	 upper_config = cur_config
-      end
-   end
-
-   reload_scripts_config(available_modules)
-   saveConfiguration(subdir, scripts_conf)
 end
 
 -- ##############################################
@@ -1319,6 +1131,11 @@ end
 
 -- ##############################################
 
+local default_config = {
+   enabled = false,
+   script_conf = {},
+}
+
 -- @brief Retrieves the configuration of a specific script
 function user_scripts.getScriptConfig(configset, script, subdir)
    local script_key = script.key
@@ -1334,13 +1151,30 @@ function user_scripts.getScriptConfig(configset, script, subdir)
    local hooks = ternary(script_type.has_per_hook_config, script.hooks, {[ALL_HOOKS_CONFIG_KEY]=1})
 
    for hook in pairs(script.hooks) do
-      rv[hook] = {
-	 enabled = false,
-	 script_conf = {},
-      }
+      rv[hook] = default_config
    end
 
    return(rv)
+end
+
+-- ##############################################
+
+-- @brief Retrieves the configuration of a specific hook of the target
+-- @param target_config target configuration as returned by
+-- user_scripts.getTargetConfig/user_scripts.getHostTargetConfigset
+function user_scripts.getTargetHookConfig(target_config, script, hook)
+   local script_conf = target_config[script.key]
+
+   if not hook then
+      -- See has_per_hook_config
+      hook = ALL_HOOKS_CONFIG_KEY
+   end
+
+   if(not script_conf) then
+      return(default_config)
+   end
+
+   return(script_conf[hook] or default_config)
 end
 
 -- ##############################################
@@ -1370,6 +1204,18 @@ end
 
 -- ##############################################
 
+function user_scripts.getDefaultConfig(configsets, subdir)
+   local conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
+
+   if(conf == nil) then
+      return({})
+   end
+
+   return(conf.config[subdir] or {})
+end
+
+-- ##############################################
+
 local host_confsets_ptree_initialized = false
 
 -- Performs an IP based match by using a patricia tree
@@ -1388,7 +1234,13 @@ function user_scripts.getHostTargetConfigset(configsets, subdir, ip_target)
    end
 
    local match_id = ntop.ptreeMatch(ip_target) or user_scripts.DEFAULT_CONFIGSET_ID
-   return(configsets[match_id])
+   local conf = configsets[match_id]
+
+   if(conf == nil) then
+      return({})
+   end
+
+   return(conf.config[subdir] or {})
 end
 
 -- ##############################################

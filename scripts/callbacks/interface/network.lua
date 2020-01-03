@@ -67,11 +67,10 @@ function runScripts(granularity)
    local cur_alerts = network.getAlerts(granularity_id)
    local entity_info = alerts_api.networkAlertEntity(network_key)
    local subnet_conf = user_scripts.getTargetConfig(configsets, "network", network_key)
-   -- TODO use subnet_conf
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
       local user_script = available_modules.modules[mod_key]
-      local conf = user_scripts.getConfiguration(user_script, granularity, network_key)
+      local conf = user_scripts.getTargetHookConfig(subnet_conf, user_script, granularity)
 
       if(conf.enabled) then
 	 if((not user_script.is_alert) or (not suppressed_alerts)) then

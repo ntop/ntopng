@@ -103,11 +103,10 @@ function runScripts(granularity)
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
   local host_conf = user_scripts.getHostTargetConfigset(configsets, "host", host_ip.ip)
-  -- TODO use host_conf
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
     local user_script = available_modules.modules[mod_key]
-    local conf = user_scripts.getConfiguration(user_script, granularity, host_key, not is_localhost)
+    local conf = user_scripts.getTargetHookConfig(host_conf, user_script, granularity)
 
     if(conf.enabled) then
       if((not user_script.is_alert) or (not suppressed_alerts)) then

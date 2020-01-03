@@ -71,7 +71,7 @@ end
 local function skip_disabled_flow_scripts(user_script)
    -- NOTE: this filter can only be applied here because there is no
    -- concept of entity_value for a flow.
-   return(user_scripts.getConfiguration(user_script).enabled)
+   return(user_scripts.getTargetHookConfig(flows_config, user_script).enabled)
 end
 
 -- The function below is called once (#pragma once)
@@ -79,6 +79,9 @@ function setup()
    if do_trace then print("flow.lua:setup() called\n") end
 
    local ifid = interface.getId()
+   local configsets = user_scripts.getConfigsets()
+
+   flows_config = user_scripts.getTargetConfig(configsets, "flow", getInterfaceName(ifid))
 
    -- Load the disabled hosts status
    hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
@@ -118,9 +121,6 @@ function setup()
          end
       end
    end
-
-   local configsets = user_scripts.getConfigsets()
-   flows_config = user_scripts.getTargetConfig(configsets, "flow", getInterfaceName(ifid))
 end
 
 -- #################################################################
@@ -340,8 +340,7 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
 	 print(string.format("%s() [check: %s]: %s\n", mod_fn, mod_key, shortFlowLabel(info)))
       end
 
-      local conf = user_scripts.getConfiguration(script)
-
+      local conf = user_scripts.getTargetHookConfig(flows_config, script)
       hook_fn(now, conf.script_conf)
 
       ::continue::

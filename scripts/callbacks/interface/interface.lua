@@ -70,8 +70,7 @@ function runScripts(granularity)
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
      local user_script = available_modules.modules[mod_key]
-     local conf = user_scripts.getConfiguration(user_script, granularity, interface_key)
-     -- TODO use iface_config
+     local conf = user_scripts.getTargetHookConfig(iface_config, user_script, granularity)
 
      if(conf.enabled) then
         if((not user_script.is_alert) or (not suppressed_alerts)) then
