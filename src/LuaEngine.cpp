@@ -9279,12 +9279,23 @@ static int ntop_flow_is_dp_not_allowed(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_is_connection_refused(lua_State* vm) {
+static int ntop_flow_is_tcp_connection_refused(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
 
   lua_pushboolean(vm, (f->isTCPRefused()));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_is_tcp_connecting(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, (f->isTCPConnecting()));
   return(CONST_LUA_OK);
 }
 
@@ -11244,7 +11255,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getServerTCPIssues",       ntop_flow_get_srv_tcp_issues         },
   { "canTriggerAlert",          ntop_flow_can_trigger_alert          },
   { "isDeviceProtocolNotAllowed", ntop_flow_is_dp_not_allowed        },
-  { "isConnectionRefused",      ntop_flow_is_connection_refused      },
+  { "isTCPConnectionRefused",   ntop_flow_is_tcp_connection_refused  },
+  { "isTCPConnecting",          ntop_flow_is_tcp_connecting          },
   { "getServerCipherClass",     ntop_flow_get_ssl_cipher_class       },
   { "getICMPType",              ntop_flow_get_icmp_type              },
   { "getMaxSeenIcmpPayloadSize", ntop_flow_get_max_seen_icmp_size    },
