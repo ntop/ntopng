@@ -23,7 +23,7 @@
             <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
                    <thead>
                         <tr>
-                            <th width="25%">{{ i18n("config_scripts.config_name", {}) }}</th>
+                            <th class='w-25'>{{ i18n("config_scripts.config_name", {}) }}</th>
                             <th>{{ i18n("config_scripts.applied_to", {}) }}</th>
                             <th>{{ i18n("actions", {}) }}</th>
                         </tr>
@@ -63,6 +63,11 @@ i18n.empty_target_message = "{{ i18n('config_scripts.empty_target_message', {}) 
 i18n.expired_csrf = "{{ i18n('expired_csrf') }}"
 i18n.invalid_characters = "{{ i18n('config_scripts.invalid_characters') }}"
 i18n.max_input_length = "{{ i18n('config_scripts.max_input_length') }}"
+i18n.rename = "{{ i18n('config_scripts.actions.rename') }}"
+i18n.delete = "{{ i18n('config_scripts.actions.delete') }}"
+i18n.clone = "{{ i18n('config_scripts.actions.clone') }}"
+i18n.edit = "{{ i18n('config_scripts.actions.edit') }}"
+i18n.apply_to = "{{ i18n('config_scripts.actions.apply_to') }}"
 
 </script>
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/config_callbacks/config-list-utils.js'></script>

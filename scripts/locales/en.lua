@@ -508,6 +508,13 @@ local lang = {
     ["select_network"] = "Select Networks",
     ["type_targets"] = "Type targets",
     ["type_targets_example"] = "Type targets separated by a comma. i.e: 192.168.1.20,192.168.0.0/16",
+    ["actions"] = {
+      ["apply_to"] = "Applied to",
+      ["clone"] = "Clone",
+      ["delete"] = "Delete",
+      ["edit"] = "Edit",
+      ["rename"] = "Rename",
+    },
     ["granularities"] = {
       ["flow"] = "Flows",
       ["host"] = "Hosts",
@@ -3102,6 +3109,12 @@ local lang = {
     ["config"] = "Config",
     ["reset_default"] = "Reset Default",
     ["scripts_x"] = "Scripts %{subdir} - %{config}",
+    ["select_operator"] = "Please select an operator!",
+    ["template_not_found"] = "The template was not found!",
+    ["actions"] = {
+      ["edit_script"] = "Edit Script",
+      ["view_src_script"] = "View Source Script",
+    },
   },
   ["sflows_stats"] = {
     ["active_flows"] = "Active Flows",

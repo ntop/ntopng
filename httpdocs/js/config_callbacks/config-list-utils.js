@@ -86,23 +86,32 @@ $(document).ready(function() {
                     var rv = `
                             <div class='btn-group'>
                                 <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' 
-                                    title='Edit' 
-                                    class='btn btn-sm btn-info square-btn'>
+                                    title='${i18n.edit}' 
+                                    class='btn btn-sm btn-primary square-btn'>
                                         <i class='fas fa-edit'></i>
                                 </a>`
                     if(can_clone_config())
                         rv += `
-                                <button title='Clone' data-toggle="modal" data-target="#clone-modal" class='btn btn-sm btn-secondary square-btn' type='button'>
+                                <button title='${i18n.clone}' 
+                                        data-toggle="modal"
+                                        data-target="#clone-modal"
+                                        class='btn btn-sm btn-secondary square-btn' type='button'>
                                 <i class='fas fa-clone'></i>
                                 </button>
-                                <button title='Applied to'
+                                <button title='${i18n.apply_to}'
                                     data-toggle='modal' data-target='#applied-modal' ${data.name == 'Default' ? 'disabled' : ''} 
                                     class='btn btn-sm btn-secondary square-btn' 
                                     type='button'>
                                         <i class='fas fa-server'></i>
                                 </button>
-                                <button title='Rename' data-toggle="modal" data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-secondary square-btn' type='button'><i class='fas fa-i-cursor'></i></button>
-                                <button title='Delete' data-toggle="modal" data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} class='btn btn-sm btn-danger square-btn' type='button'><i class='fas fa-times'></i></button>
+                                <button title='${i18n.rename}' 
+                                        data-toggle="modal"
+                                        data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} 
+                                        class='btn btn-sm btn-secondary square-btn' type='button'><i class='fas fa-i-cursor'></i></button>
+                                <button title='${i18n.delete}'
+                                        data-toggle="modal"
+                                        data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} 
+                                        class='btn btn-sm btn-danger square-btn' type='button'><i class='fas fa-times'></i></button>
                             </div>
                     `;
 
