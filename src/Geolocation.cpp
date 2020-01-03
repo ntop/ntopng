@@ -123,13 +123,35 @@ void Geolocation::testme() {
 
 /* *************************************** */
 
-Geolocation::Geolocation(const char * const db_home) {
-  char path[MAX_PATH];
-  snprintf(path, sizeof(path), "%s/geoip", db_home);
+Geolocation::Geolocation() {
+  mmdbs_ok = false;
 
 #ifdef HAVE_MAXMINDDB
-  mmdbs_ok = loadMaxMindDB(path, "GeoLite2-ASN.mmdb",  &geo_ip_asn_mmdb)
-    && loadMaxMindDB(path, "GeoLite2-City.mmdb", &geo_ip_city_mmdb);
+  char docs_path[MAX_PATH];
+  snprintf(docs_path, sizeof(docs_path), "%s/geoip", ntop->getPrefs()->get_docs_dir());
+  ntop->fixPath(docs_path);
+
+  const char *lookup_paths[] = {
+    docs_path
+#ifndef WIN32
+    ,
+    "/var/lib/GeoIP",   // `geoipupdate` default install dir on Ubuntu 16,18 and Debian 10,9
+    "/usr/share/GeoIP"  // `geoipupdate` default install dir on Ubuntu 14 and Centos 7,8
+#endif
+  };
+
+  for(u_int i = 0; i < sizeof(lookup_paths) / sizeof(lookup_paths[0]) && !mmdbs_ok; i++) {
+    mmdbs_ok = loadMaxMindDB(lookup_paths[i], "GeoLite2-ASN.mmdb",  &geo_ip_asn_mmdb)
+      && loadMaxMindDB(lookup_paths[i], "GeoLite2-City.mmdb", &geo_ip_city_mmdb);
+  }
+#endif
+
+#ifndef WIN32
+  if(!mmdbs_ok) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running without geolocation support.");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "To enable geolocation follow the instructions at");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md");
+  }
 #endif
 }
 
@@ -159,8 +181,8 @@ bool Geolocation::loadMaxMindDB(const char * const base_path, const char * const
 
     return false;
   } else {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Loaded database %s [ip_version: %d]",
-				 db_name, mmdb->metadata.ip_version);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded database %s [%s][ip_version: %d]",
+				 db_name, path, mmdb->metadata.ip_version);
 
     return true;
   }
