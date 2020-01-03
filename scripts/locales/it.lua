@@ -751,7 +751,7 @@ local lang = {
     ["suspicious_client_device_protocol"] = "Protocollo client \"%{proto}\" non permesso dalla <a href=\"%{url}\">politica del protocollo per %{devtype}</a> configurata",
     ["suspicious_server_device_protocol"] = "Protocollo server \"%{proto}\" non permesso dalla <a href=\"%{url}\">politica del protocollo per %{devtype}</a> configurata",
     ["suspicious_tcp_probing"] = "Probing TCP Sospetto",
-    ["suspicious_tcp_syn_probing"] = "Probing TCP SYN sospetto (oppure la porta del server è inattiva)",
+    ["suspicious_tcp_syn_probing"] = "Probing TCP SYN sospetto",
     ["sync_source_id"] = "Sincronizza Sorgente ID",
     ["tcp_connection_issues"] = "Problemi di Connesione TCP (Ritrasmissioni, OOO, Persi)",
     ["tcp_connection_refused"] = "Connessione TCP rifiutata",

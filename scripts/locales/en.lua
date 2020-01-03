@@ -1078,7 +1078,7 @@ local lang = {
     ["suspicious_device_protocol"] = "Suspicious Device Protocol",
     ["suspicious_server_device_protocol"] = "Server application \"%{proto}\" is not allowed by the configured <a href=\"%{url}\">%{devtype} application policy</a>",
     ["suspicious_tcp_probing"] = "Suspicious TCP Probing",
-    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN Probing (or server port down)",
+    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN probing",
     ["sync_source_id"] = "Sync Source ID",
     ["tcp_connection_issues"] = "TCP Connection Issues (Retransmission, OOO, Lost)",
     ["tcp_connection_refused"] = "TCP connection refused",
