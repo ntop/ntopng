@@ -14,7 +14,7 @@ local script = {
   is_alert = true,
 
   -- The default threshold value. The format is specific of the
-  -- user_scripts.threshold_cross_input_builder
+  -- "threshold_cross" input builder
   default_value = {
     -- "> 50"
     operator = "gt",
@@ -31,7 +31,7 @@ local script = {
     i18n_description = "syn_scan_alert.syn_scan_attacker_description",
 
     -- The input builder to use to draw the gui
-    input_builder = user_scripts.threshold_cross_input_builder,
+    input_builder = "threshold_cross",
 
     -- Specific parameters of this input builder
     i18n_field_unit = user_scripts.field_units.syn_min,

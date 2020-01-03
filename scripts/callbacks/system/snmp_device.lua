@@ -57,6 +57,7 @@ local function snmp_device_run_user_scripts(snmp_device)
    local device = snmp_device.get_device()
    local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
    local device_interfaces = snmp_device.merge_interfaces_data()
+   local all_modules = available_modules.modules
 
    local info = {
       granularity = granularity,
@@ -67,25 +68,26 @@ local function snmp_device_run_user_scripts(snmp_device)
    }
 
    local device_conf = user_scripts.getHostTargetConfigset(configsets, "snmp_device", device_ip)
-  -- TODO use device_conf
 
    -- Run callback for each device
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDevice"] or {}) do
-      local check = available_modules.modules[mod_key]
+      local script = all_modules[mod_key]
+      local conf = user_scripts.getTargetHookConfig(device_conf, script)
 
-      hook_fn(device_ip, info)
+      hook_fn(device_ip, info, conf)
    end
 
    -- Run callback for each interface
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDeviceInterface"] or {}) do
-      local check = available_modules.modules[mod_key]
+      local script = all_modules[mod_key]
+      local conf = user_scripts.getTargetHookConfig(device_conf, script)
 
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(device_interfaces) do
 	 local if_type = snmp_iftype(snmp_interface.type)
 	 local do_call = true
 
-	 if(check.skip_virtual_interfaces and
+	 if(script.skip_virtual_interfaces and
 	       ((if_type == "propVirtual") or (if_type == "softwareLoopback"))) then
 	    do_call = false
 	 end
@@ -96,7 +98,8 @@ local function snmp_device_run_user_scripts(snmp_device)
 	    hook_fn(device_ip, snmp_interface_index, table.merge(snmp_interface, {
 	       granularity = granularity,
 	       alert_entity = iface_entity,
-	       user_script = check,
+	       user_script = script,
+	       conf = conf,
 	    }))
 	 end
       end

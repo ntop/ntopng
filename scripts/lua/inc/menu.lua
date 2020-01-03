@@ -410,6 +410,7 @@ if(is_admin) then
 
 
    print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fas fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
+   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/scripts_config.lua\"><i class=\"fab fa-superpowers\"></i> ") print(i18n("about.user_scripts")) print("</a></li>\n")
 end
 
 if _SESSION["localuser"] or is_admin then

@@ -494,7 +494,6 @@ local lang = {
     ["config_clone_message"] = "Type a name for the clonation",
     ["config_delete"] = "Deleting Config",
     ["config_delete_message"] = "Do you want really remove this configuration?",
-    ["config_list"] = "Config List",
     ["config_name"] = "Configuration Name",
     ["config_rename"] = "Configuration Rename",
     ["config_rename_message"] = "Type the new name for the configurarion",
@@ -508,6 +507,13 @@ local lang = {
     ["select_network"] = "Select Networks",
     ["type_targets"] = "Type targets",
     ["type_targets_example"] = "Type targets separated by a comma. i.e: 192.168.1.20,192.168.0.0/16",
+    ["actions"] = {
+      ["apply_to"] = "Applied to",
+      ["clone"] = "Clone",
+      ["delete"] = "Delete",
+      ["edit"] = "Edit",
+      ["rename"] = "Rename",
+    },
     ["granularities"] = {
       ["flow"] = "Flows",
       ["host"] = "Hosts",
@@ -1073,7 +1079,7 @@ local lang = {
     ["suspicious_device_protocol"] = "Suspicious Device Protocol",
     ["suspicious_server_device_protocol"] = "Server application \"%{proto}\" is not allowed by the configured <a href=\"%{url}\">%{devtype} application policy</a>",
     ["suspicious_tcp_probing"] = "Suspicious TCP Probing",
-    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN Probing (or server port down)",
+    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN probing",
     ["sync_source_id"] = "Sync Source ID",
     ["tcp_connection_issues"] = "TCP Connection Issues (Retransmission, OOO, Lost)",
     ["tcp_connection_refused"] = "TCP connection refused",
@@ -3105,6 +3111,12 @@ local lang = {
     ["config"] = "Config",
     ["reset_default"] = "Reset Default",
     ["scripts_x"] = "Scripts %{subdir} - %{config}",
+    ["select_operator"] = "Please select an operator!",
+    ["template_not_found"] = "The template was not found!",
+    ["actions"] = {
+      ["edit_script"] = "Edit Script",
+      ["view_src_script"] = "View Source Script",
+    },
   },
   ["sflows_stats"] = {
     ["active_flows"] = "Active Flows",

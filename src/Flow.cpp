@@ -2503,7 +2503,9 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	  else if(srv_host)
 	    srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
 	}
-      } else if(flags == TH_ACK) {
+      } else if((flags == TH_ACK)
+		|| (flags == (TH_ACK|TH_PUSH)) /* TCP Fast Open may contain data and PSH in the final TWH ACK */
+		) {
 	if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
 	  memcpy(&ackTime, when, sizeof(struct timeval));
 	  timeval_diff(&synAckTime, (struct timeval*)when, &clientNwLatency, 1);
@@ -2523,6 +2525,13 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
       } else {
       not_yet:
 	twh_over = true;
+
+#if 0
+	if(!twh_ok) {
+	  char buf[256];
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[flags: %u][src2dst: %u] not ok %s", flags, src2dst_direction ? 1 : 0, print(buf, sizeof(buf)));
+	}
+#endif
 
 	/*
 	  Sometimes nDPI detects the protocol at the first packet

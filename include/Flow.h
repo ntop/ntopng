@@ -552,15 +552,14 @@ class Flow : public GenericHashEntry {
   inline InterarrivalStats* getCli2SrvIATStats() const { return cli2srvPktTime; }
   inline InterarrivalStats* getSrv2CliIATStats() const { return srv2cliPktTime; }
 
-  inline bool hasTCP3WHSCompleted() const { return (((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))
-						    && ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))); }
-  inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset() && hasTCP3WHSCompleted()); }
+  inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset() && isThreeWayHandshakeOK()); }
   inline bool isTCPConnecting()  const { return (src2dst_tcp_flags == TH_SYN
 						 && (!dst2src_tcp_flags || (dst2src_tcp_flags == (TH_SYN | TH_ACK)))); }
   inline bool isTCPClosed()      const { return (((src2dst_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN))
 						 && ((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN))); }
   inline bool isTCPReset()       const { return (!isTCPClosed()
-						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); }
+						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); };
+  inline bool isTCPRefused()     const { return (!isThreeWayHandshakeOK() && (dst2src_tcp_flags & TH_RST) == TH_RST); };
   inline bool isFlowAlerted() const         { return(is_alerted); };
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
 

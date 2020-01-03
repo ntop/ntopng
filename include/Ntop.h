@@ -170,10 +170,8 @@ class Ntop {
   /**
    * @brief Load the @ref Geolocation module.
    * @details Initialize the variable @ref geo with the input directory.
-   *
-   * @param dir Path to database home directory.
    */
-  void loadGeolocation(const char * const dir);
+  void loadGeolocation();
   /**
    * @brief Load the @ref MacManufacturers module.
    * @details Initialize the variable @ref dir with the input directory.

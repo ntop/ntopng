@@ -8,6 +8,7 @@ PWD=@PWD@
 GPP=@CXX@
 INSTALL_DIR=$(DESTDIR)$(prefix)
 MAN_DIR=$(DESTDIR)@MAN_DIR@
+GEOIPUPDATE_UTIL = geoipupdate
 
 # FreeBSD does not include wget by default, but the base system
 # includes fetch, which provides similar functionality.
@@ -184,16 +185,7 @@ veryclean: clean
 	-rm -rf nDPI
 
 geoip:
-	if test -d ../dat_files/; then \
-		cp ../dat_files/*.mmdb httpdocs/geoip; \
-	else \
-		$(GET_UTIL) https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz; \
-		$(GET_UTIL) https://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz; \
-		tar xfvz GeoLite2-ASN.tar.gz ; \
-		tar xfvz GeoLite2-City.tar.gz; \
-		mv GeoLite2-*/*.mmdb httpdocs/geoip; \
-		rm -rf GeoLite2-*; \
-	fi
+	$(GEOIPUPDATE_UTIL) -v -d httpdocs/geoip;
 
 trackers:
 	./tools/download_trackers.sh httpdocs/other/trackers.txt
@@ -233,7 +225,8 @@ dist:
 	cd ntopng-@NTOPNG_VERSION@; git clone https://github.com/ntop/ntopng.git; cd ntopng; git clone https://github.com/ntop/nDPI.git; cd ..; find ntopng -name .git | xargs rm -rf ; mv ntopng ntopng-@NTOPNG_VERSION@; tar cvfz ../ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
 
 install: ntopng
-	@echo "Make sure you have already run 'make geoip' to also install geoip dat files"
+	@echo "Make sure you have already run 'make geoip' to also install geolocation files"
+	@echo "'make geoip' requires a MaxMind account as explained in https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md"
 	@echo "While we provide you an install make target, we encourage you"
 	@echo "to create a package and install that"
 	@echo "rpm - do 'make build-rpm'"

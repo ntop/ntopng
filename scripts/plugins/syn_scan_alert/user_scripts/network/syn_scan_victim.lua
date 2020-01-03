@@ -26,7 +26,7 @@ local script = {
     i18n_description = "syn_scan_alert.syn_scan_victim_description",
 
     -- The input builder to use to draw the gui
-    input_builder = user_scripts.threshold_cross_input_builder,
+    input_builder = "threshold_cross",
 
     -- Specific parameters of this input builder
     i18n_field_unit = user_scripts.field_units.syn_min,
