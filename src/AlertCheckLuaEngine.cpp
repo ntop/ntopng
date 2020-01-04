@@ -156,8 +156,11 @@ const char * AlertCheckLuaEngine::getGranularity() const {
 bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
   ticks t_begin;
 
-  if(!script_ok)
+  if(!script_ok) {
+    /* Remove possibly pushed values on the lua stack to avoid overflow */
+    lua_settop(L, 0);
     return(false);
+  }
 
   t_begin = Utils::getticks();
   if(lua_pcall(L, num_args, num_results, 0)) {

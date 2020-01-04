@@ -66,8 +66,11 @@ SyslogLuaEngine::~SyslogLuaEngine() {
 /* ****************************************** */
 
 bool SyslogLuaEngine::pcall(int num_args, int num_results) {
-  if (!initialized)
+  if (!initialized) {
+    /* Remove possibly pushed values on the lua stack to avoid overflow */
+    lua_settop(L, 0);
     return false;
+  }
 
   if (lua_pcall(L, num_args, num_results, 0)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", lua_tostring(L, -1));
