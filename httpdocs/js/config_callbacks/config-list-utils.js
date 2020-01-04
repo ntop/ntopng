@@ -85,7 +85,7 @@ $(document).ready(function() {
                 render: function(data, type, row) {
                     var rv = `
                             <div class='btn-group'>
-                                <a href='script_list.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' 
+                                <a href='edit_configset.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' 
                                     title='${i18n.edit}' 
                                     class='btn btn-sm btn-primary square-btn'>
                                         <i class='fas fa-edit'></i>

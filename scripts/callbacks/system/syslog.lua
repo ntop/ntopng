@@ -38,9 +38,17 @@ end
 
 -- The function below ia called once (#pragma once)
 function teardown()
+   local all_modules = syslog_modules.modules
+
    for mod_name, syslog_module in pairs(syslog_modules) do
+      local script = all_modules[mod_name]
+
       if syslog_module.teardown ~= nil then
-          syslog_module.teardown()
+          local conf = user_scripts.getTargetHookConfig(syslog_conf, script)
+
+          if conf.enabled then
+            syslog_module.teardown(conf.script_conf)
+          end
       end
    end
 end

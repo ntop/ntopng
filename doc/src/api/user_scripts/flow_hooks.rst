@@ -42,7 +42,6 @@ To make sure ntopng will execute it, `suspicious_countries.lua` must be placed u
      gui = {
         i18n_title = "Suspicious Countries",
         i18n_description = "Trigger an alert when at least one among the client and server is from a suspicious country",
-        input_builder = user_scripts.flow_checkbox_input_builder,
      }
   }
 

@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
   ntop->createExportInterface();
 #endif
 
-  ntop->loadGeolocation(prefs->get_docs_dir());
+  ntop->loadGeolocation();
   ntop->loadMacManufacturers(prefs->get_docs_dir());
   ntop->loadTrackers();
   ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir(), ntop->get_runtime_dir()));

@@ -708,7 +708,7 @@ local lang = {
     ["suspicious_client_device_protocol"] = "クライアント プロトコル \"%{proto}\" は設定された<a href=\"%{url}\">%{devtype} プロトコル policyにより許可されません</a>",
     ["suspicious_server_device_protocol"] = "サーバ プロトコル \"%{proto}\" は設定された<a href=\"%{url}\">%{devtype} プロトコル policyにより許可されません</a>",
     ["suspicious_tcp_probing"] = "Suspicious TCP Probing",
-    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN Probing (or サーバ port down)",
+    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN probing",
     ["sync_source_id"] = "Sync Source ID",
     ["tcp_connection_issues"] = "TCP Connection Issues (Retransmission, OOO, Lost)",
     ["tcp_connection_refused"] = "TCP connection refused",

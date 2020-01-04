@@ -38,7 +38,7 @@ function setup(str_granularity)
    })
 
    local configsets = user_scripts.getConfigsets("system")
-   system_config = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
+   system_config = user_scripts.getDefaultConfig(configsets, "system")
 end
 
 -- #################################################################
@@ -63,11 +63,10 @@ function runScripts(granularity)
   local suppressed_alerts = false
   local when = os.time()
   --~ local cur_alerts = host.getAlerts(granularity_id)
-  -- TODO use system_config
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
     local user_script = available_modules.modules[mod_key]
-    local conf = user_scripts.getConfiguration(user_script, granularity)
+    local conf = user_scripts.getTargetHookConfig(system_config, user_script, granularity)
 
     if(conf.enabled) then
       if((not user_script.is_alert) or (not suppressed_alerts)) then

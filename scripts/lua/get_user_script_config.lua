@@ -53,7 +53,7 @@ local result = {
 }
 
 if(script.gui) then
-  local known_fields = {i18n_title=1, i18n_description=1, i18n_field_unit=1, input_builder=1, post_handler=1}
+  local known_fields = {i18n_title=1, i18n_description=1, i18n_field_unit=1, input_builder=1}
 
   for field, val in pairs(script.gui) do
     if not known_fields[field] then
@@ -65,9 +65,7 @@ if(script.gui) then
     result.gui.fields_unit = i18n(script.gui.i18n_field_unit)
   end
 
-  if(script.gui.input_builder == user_scripts.threshold_cross_input_builder) then -- TODO make generic
-    result.gui.input_builder = "threshold_cross"
-  end
+  result.gui.input_builder = script.gui.input_builder
 end
 
 local hooks_config = user_scripts.getScriptConfig(config_set, script, subdir)

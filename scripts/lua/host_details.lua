@@ -348,12 +348,6 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 page_name = "config",
 				 label = "<i class=\"fas fa-lg fa-cog\"></i></a></li>",
 			      },
-			      {
-				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
-				 active = page == "callbacks",
-				 page_name = "callbacks",
-				 label = "<i class=\"fab fa-lg fa-superpowers\"></i>",
-			      },
 			   }
    )
 
@@ -1830,16 +1824,6 @@ print("</table>\n")
 else
    print(i18n("contacts_page.no_contacts_message"))
 end
-
-elseif(page == "callbacks") then
-   if(not isAdministrator()) then
-      return
-   end
-
-   drawAlertSourceSettings("host", hostkey,
-      i18n("show_alerts.host_delete_config_btn", {host=host_name}), "show_alerts.host_delete_config_confirm",
-      "host_details.lua", {ifid=ifId, host=hostkey},
-      host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"])})
 
 elseif(page == "alerts") then
    printAlertTables("host", hostkey,

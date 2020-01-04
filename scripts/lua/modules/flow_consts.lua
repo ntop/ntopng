@@ -89,6 +89,8 @@ end
 function flow_consts.loadDefinition(def_script, mod_fname, script_path)
     local required_fields = {"status_id", "relevance", "prio", "alert_severity", "alert_type", "i18n_title"}
 
+    -- print("Loading "..script_path.."\n")
+    
     -- Check the required fields
     for _, k in pairs(required_fields) do
         if(def_script[k] == nil) then
@@ -1147,7 +1149,19 @@ flow_consts.mobile_country_code = {
 
 -- ################################################################################
 
+local function dumpStatusDefs()
+   for _, a in pairsByKeys(status_by_id) do
+      print("[status_id: ".. a.status_id .."][relevance: ".. a.relevance .."][prio: ".. a.prio .."][title: ".. a.i18n_title.."]\n")
+      -- tprint(k)
+   end
+end
+
+-- ################################################################################
+
 -- Load definitions now
 loadStatusDefs()
+
+-- Print definitions: enable for debugging
+-- dumpStatusDefs()
 
 return flow_consts

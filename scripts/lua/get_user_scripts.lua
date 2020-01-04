@@ -67,11 +67,7 @@ for script_name, script in pairs(scripts.modules) do
       edit_url = ntop.getHttpPrefix() .. '/lua/code_viewer.lua?lua_script_path='.. path
     end
 
-    local input_handler = nil
-
-    if(script.gui.input_builder == user_scripts.threshold_cross_input_builder) then -- TODO make generic
-      input_handler = "threshold_cross"
-    end
+    local input_handler = script.gui.input_builder
 
     result[#result + 1] = {
       key = script_name,

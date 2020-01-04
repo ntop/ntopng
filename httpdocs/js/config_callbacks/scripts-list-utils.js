@@ -439,7 +439,7 @@
                     'enabled': enabled,
                     'script_conf': {
                        'operator': operator,
-                       'threshold': threshold
+                       'threshold': parseInt(threshold)
                     }
                  }
               });

@@ -156,8 +156,11 @@ const char * AlertCheckLuaEngine::getGranularity() const {
 bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
   ticks t_begin;
 
-  if(!script_ok)
+  if(!script_ok) {
+    /* Remove possibly pushed values on the lua stack to avoid overflow */
+    lua_settop(L, 0);
     return(false);
+  }
 
   t_begin = Utils::getticks();
   if(lua_pcall(L, num_args, num_results, 0)) {
@@ -181,3 +184,40 @@ bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
 
   return(true);
 }
+
+/* ****************************************** */
+
+#ifdef TEST_CHECK_ENGINE
+
+AfterShutdownAction afterShutdownAction = after_shutdown_nop;
+
+int main() {
+  const int num_runs = 1000;
+  ntop = new Ntop((char*)"test");
+  Prefs *prefs = new Prefs(ntop);
+  ntop->registerPrefs(prefs, false);
+
+  NetworkInterface *iface = new PcapInterface("lo");
+  ntop->registerInterface(iface);
+
+  /* Calls interface.lua for interface lo */
+  AlertCheckLuaEngine *engine = new AlertCheckLuaEngine(alert_entity_interface, minute_script, iface);
+  lua_State *L = engine->getState();
+
+  /* Tip: try with a mix of lua compilation/runtime errors in interface.lua/required modules
+   * to ensure that no crash occurs in any situation. */
+  for(int i=0; i<num_runs; i++) {
+    //printf("Run: %d/%d\n", i+1, num_runs);
+    engine->reset_stats();
+
+    lua_getglobal(L, USER_SCRIPTS_RUN_CALLBACK);
+    lua_pushstring(L, engine->getGranularity());
+
+    engine->pcall(1 /* num args */, 0);
+  }
+
+  delete engine;
+  delete ntop;
+}
+
+#endif

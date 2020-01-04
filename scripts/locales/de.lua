@@ -558,7 +558,7 @@ local lang = {
     ["son_of_father_process"] = "son of <a href ='%{url}'>%{proc_father_pid}/%{proc_father_name}</a>",
     ["ssh_signature"] = "SSH Unterschrift",
     ["suspicious_tcp_probing"] = "Suspicious TCP Probing",
-    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN Probing (or server port down)",
+    ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN probing",
     ["sync_source_id"] = "Sync Source ID",
     ["tcp_connection_issues"] = "TCP Connection Issues (Retransmission, OOO, Lost)",
     ["tcp_connection_refused"] = "TCP Verbingung verweigert",

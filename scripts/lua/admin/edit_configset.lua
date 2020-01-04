@@ -23,6 +23,10 @@ local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
 local confset_name = _GET["confset_name"]
 
+if not haveAdminPrivileges() then
+  return
+end
+
 -- create a table that holds localization about hooks name
 local titles = {
    ["host"] = i18n("config_scripts.granularities.host"),

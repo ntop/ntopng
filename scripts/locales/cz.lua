@@ -978,7 +978,7 @@ local lang = {
     ["suspicious_device_protocol"] = "Protokol podezřelého zařízení",
     ["suspicious_server_device_protocol"] = "Serverová aplikace \"%{proto}\"není konfigurovaným povolena <a href=\"%{url}\">%{devtype} aplikační politiku</a>",
     ["suspicious_tcp_probing"] = "Podezřelá sonda TCP",
-    ["suspicious_tcp_syn_probing"] = "Podezřelá sonda TCP SYN (nebo port serveru dolů)",
+    ["suspicious_tcp_syn_probing"] = "Podezřelá sonda TCP SYN",
     ["sync_source_id"] = "Sync Source ID",
     ["tcp_connection_issues"] = "Problémy s připojením TCP (Opakovaný přenos, OOO, Ztraceno)",
     ["tcp_connection_refused"] = "TCP spojení odmítnuto",

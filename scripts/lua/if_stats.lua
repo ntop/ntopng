@@ -294,12 +294,6 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = "<i class=\"fas fa-lg fa-cog\"></i></a></li>",
 			      },
 			      {
-				 hidden = not isAdministrator() or is_pcap_dump,
-				 active = page == "callbacks",
-				 page_name = "callbacks",
-				 label = "<i class=\"fab fa-lg fa-superpowers\"></i>",
-			      },
-			      {
 				 active = page == "internals",
 				 page_name = "internals",
 				 label = "<i class=\"fas fa-lg fa-wrench\"></i>",
@@ -1814,16 +1808,6 @@ elseif(page == "config") then
       aysHandleForm("#iface_config");
    </script>]]
 
-elseif(page == "callbacks") then
-   if(not isAdministrator()) then
-      return
-   end
-
-   local alias = getHumanReadableInterfaceName(if_name)
-
-   drawAlertSourceSettings("interface", ifname_clean,
-      i18n("show_alerts.iface_delete_config_btn", {iface=alias}), "show_alerts.iface_delete_config_confirm",
-      "if_stats.lua", {ifid=ifid}, alias, "interface")
 elseif(page == "internals") then
    internals_utils.printInternals(ifid)
 print [[

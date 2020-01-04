@@ -52,8 +52,10 @@ int16_t AddressResolution::findAddress(int family, void *addr, u_int8_t *network
 
 AddressResolution::~AddressResolution() {
   if(ntop->getPrefs() && ntop->getPrefs()->is_dns_resolution_enabled()) {
-    for(int i = 0; i < num_resolvers; i++)
-      pthread_join(resolveThreadLoop[i], NULL);
+    for(int i = 0; i < num_resolvers; i++) {
+      if(resolveThreadLoop[i])
+        pthread_join(resolveThreadLoop[i], NULL);
+    }
   }
 
   free(resolveThreadLoop);

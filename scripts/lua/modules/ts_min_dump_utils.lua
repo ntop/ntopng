@@ -134,10 +134,10 @@ function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
 end
 
 function ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
-  ts_utils.append("iface:tcp_syn", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.syn}, when, verbose)
-  ts_utils.append("iface:tcp_synack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.synack}, when, verbose)
-  ts_utils.append("iface:tcp_finack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.finack}, when, verbose)
-  ts_utils.append("iface:tcp_rst", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.rst}, when, verbose)
+  ts_utils.append("iface:tcp_syn", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.syn}, when, verbose)
+  ts_utils.append("iface:tcp_synack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.synack}, when, verbose)
+  ts_utils.append("iface:tcp_finack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.finack}, when, verbose)
+  ts_utils.append("iface:tcp_rst", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.rst}, when, verbose)
 end
 
 -- ########################################################

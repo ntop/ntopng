@@ -78,12 +78,6 @@ page_utils.print_navbar(title, nav_url,
 			      page_name = "config",
 			      label = "<i class=\"fas fa-cog fa-lg\"></i>",
 			   },
-			   {
-			      hidden = not network or not isAdministrator(),
-			      active = page == "callbacks",
-			      page_name = "callbacks",
-			      label = "<i class=\"fab fa-superpowers fa-lg\"></i>",
-			   },
 			}
 )
 
@@ -140,15 +134,6 @@ elseif (page == "config") then
    <script>
      aysHandleForm("#network_config");
    </script>]]
-
-elseif(page == "callbacks") then
-   if(not isAdministrator()) then
-      return
-   end
-
-   drawAlertSourceSettings("network", network_name,
-      i18n("show_alerts.network_delete_config_btn", {network=network_name}), "show_alerts.network_delete_config_confirm",
-      "network_details.lua", {network=network}, network_name, "network")
 
 elseif(page == "alerts") then
 

@@ -160,7 +160,8 @@ int Ping::ping(char *_addr, bool use_v6) {
 		 sizeof(addr));
 
   if(res == -1)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send ping [address: %s][v6: %u][reason: %s]", _addr, use_v6 ? 1 : 0, strerror(errno));
+    /* NOTE: This also happens when network is unreachable */
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to send ping [address: %s][v6: %u][reason: %s]", _addr, use_v6 ? 1 : 0, strerror(errno));
 
   return res;
 }

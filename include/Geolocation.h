@@ -49,7 +49,7 @@ class Geolocation {
   void testme();
 #endif
  public:
-  Geolocation(const char * const db_home);
+  Geolocation();
   ~Geolocation();
 
   void getAS(IpAddress *addr, u_int32_t *asn, char **asname);

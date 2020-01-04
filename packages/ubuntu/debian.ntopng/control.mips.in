@@ -9,8 +9,8 @@ Build-Conflicts:
 Depends: libsqlite3-0, redis-server, @LIBRRD@ logrotate, libcurl3, libldap-2.4-2, libglib2.0-0, libmysqlclient18
 Package: ntopng
 Architecture: @EXTN@
-Recommends: ntopng-data
-Suggests: ntopng-data
+Recommends:
+Suggests:
 Pre-Depends:
 Conflicts:
 Provides:
