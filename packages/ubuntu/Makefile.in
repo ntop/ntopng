@@ -9,7 +9,7 @@ all: clean @DEFAULT_TARGET@ ntopng-data
 ntopng-prep:
 	if test -e "./debian"; then @SUDO@ /bin/rm -f debian; fi
 	ln -s ./debian.ntopng ./debian
-	@SUDO@ /bin/rm -rf ./usr ./debian/@APP@
+	@SUDO@ /bin/rm -rf ./usr ./etc/ ./debian/@APP@
 	\mkdir -p ${NTOPNG_BUILD}/usr/bin ${NTOPNG_BUILD}/usr/share/man/man8 ${NTOPNG_BUILD}/usr/share/ntopng ./debian/@APP@
 	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/bin/
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8
@@ -29,8 +29,6 @@ ntopng-prep:
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
 	fi
 	if hash systemctl 2>/dev/null; then \
-		mkdir -p ${NTOPNG_BUILD}/etc/systemd/system/; \
-		cp -r $(NTOPNG_HOME)/packages/etc/systemd/system/ntopng.service ${NTOPNG_BUILD}/etc/systemd/system/; \
 		rm -rf ${NTOPNG_BUILD}/etc/init.d; \
 	fi
 	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/
@@ -86,13 +84,7 @@ nedge: nedge-prep
 ntopng-data:
 	if test -e "./debian"; then @SUDO@ /bin/rm -f debian; fi
 	ln -s ./debian.ntopng-data ./debian
-	@SUDO@ \rm -rf ./usr ./debian/ntopng-data
-	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/ntopng-data
-	cd ../../ ; ./configure; make geoip
-#       old .dat GeoLite databases are superseded by GeoLite2 .mmdb
-#	cp ../../httpdocs/geoip/*.dat  ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
-	cp ../../httpdocs/geoip/*.mmdb ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
-	find ${NTOPNG_BUILD}/usr/share/ntopng -type f -not -name "*.mmdb" | xargs /bin/rm -rf
+	@SUDO@ \rm -rf ./usr ./etc/ ./debian/ntopng-data
 	@echo
 	@find . -name "*~" -exec /bin/rm {} ';'
 	@/bin/rm -f ../ntopng-data_*deb
@@ -116,4 +108,4 @@ install:
 	echo "dummy install"
 
 clean:
-	-@SUDO@ rm -rf *~ *deb debian.ntopng/ntopng-data  debian.ntopng/ntopng  debian.ntopng/nedge debian.ntopng-data/ntopng ./usr
+	-@SUDO@ rm -rf *~ *deb debian.ntopng/ntopng-data  debian.ntopng/ntopng  debian.ntopng/nedge debian.ntopng-data/ntopng ./usr ./etc
