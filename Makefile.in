@@ -194,7 +194,7 @@ trackers:
 #	mkdir -p $(HOME)/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 #	echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
 
-build-rpm: geoip build-rpm-ntopng build-rpm-ntopng-data
+build-rpm: build-rpm-ntopng build-rpm-ntopng-data
 
 
 protools:
@@ -208,7 +208,7 @@ build-rpm-ntopng: ntopng protools
 	@rpm -qpl $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
 	@echo "The package is now available in $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)"
 
-build-rpm-ntopng-data: geoip
+build-rpm-ntopng-data:
 	rpmbuild -bb ./packages/ntopng-data.spec
 	@@RPM_SIGN_CMD@ $(HOME)/rpmbuild/RPMS/noarch/$(RPM_DATA_PKG)
 	@echo ""
