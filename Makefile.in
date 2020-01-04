@@ -157,6 +157,11 @@ test_fifo_queue: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_FIFO_QUEUE -DDEBUG_FIFO_QUEUE" src/FifoStringsQueue.o
 	$(GPP) $(OBJECTS_NO_MAIN) -Wall $(NLIBS) -o $@
 
+test_alert_engine: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
+	rm src/AlertCheckLuaEngine.o
+	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_CHECK_ENGINE" src/AlertCheckLuaEngine.o
+	$(GPP) $(OBJECTS_NO_MAIN) -Wall $(NLIBS) -o $@
+
 $(LUA_LIB):
 	cd $(LUA_HOME); @GMAKE@ $(LUA_PLATFORM)
 
