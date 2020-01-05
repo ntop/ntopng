@@ -19,6 +19,13 @@ Package providing a geolocation databases download helper for ntopng and other n
 
 %build
 
+%post
+if ! geoipupdate -v; then
+    >&2 echo ""
+    >&2 echo "To use geolocation in ntop products, follow the instructions at"
+    >&2 echo "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md"
+fi
+
 %clean
 
 %files
