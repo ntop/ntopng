@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-19 - ntop.org
+ * (C) 2013-20 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -145,7 +145,7 @@ NetworkInterface::NetworkInterface(const char *name,
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       bridge_interface = false;
-    next_idle_flow_purge = next_idle_host_purge = 0;
+    next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
       has_vlan_packets = has_ebpf_events = false;
 
@@ -1594,7 +1594,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   if(purge_idle_flows_hosts) {
-    u_int n, m;
+    u_int n, m, o;
 
     last_pkt_rcvd = when;
 
@@ -1602,9 +1602,13 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
 				   n, getNumFlows(), ifname);
 
-    if((m = purgeIdleHostsMacsASesVlans(force_idle)) > 0)
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts/macs on %s",
-				   m, getNumHosts()+getNumMacs(), ifname);
+    if((m = purgeIdleHosts(force_idle)) > 0)
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts on %s",
+				   m, getNumHosts(), ifname);
+
+    if((o = purgeIdleMacsASesCountriesVlansArpMatrix(force_idle)) > 0)      
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s",
+				   o, ifname);
   }
 
   if(flowHashing) {
@@ -4958,7 +4962,7 @@ u_int NetworkInterface::getNumArpStatsMatrixElements() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleHostsMacsASesVlans(bool force_idle) {
+u_int NetworkInterface::purgeIdleHosts(bool force_idle) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   if(!purge_idle_flows_hosts) return(0);
@@ -4969,22 +4973,41 @@ u_int NetworkInterface::purgeIdleHostsMacsASesVlans(bool force_idle) {
     /* Time to purge hosts */
     u_int n;
     /* If the interface is no longer running it is safe to force all entries as idle */
-
+    
 #if 0
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Purging idle hosts [ifname: %s] [ifid: %i] [current size: %i]",
-				   ifname, id, hosts_hash->getNumEntries());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Purging idle hosts [ifname: %s] [ifid: %i] [current size: %i]",
+				 ifname, id, hosts_hash->getNumEntries());
 #endif
-
+    
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
-    n = (hosts_hash ? hosts_hash->purgeIdle(force_idle) : 0)
-      + (macs_hash ? macs_hash->purgeIdle(force_idle) : 0)
+    n = (hosts_hash ? hosts_hash->purgeIdle(force_idle) : 0);
+    
+    next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
+    return(n);
+  }
+}
+
+/* **************************************************** */
+
+u_int NetworkInterface::purgeIdleMacsASesCountriesVlansArpMatrix(bool force_idle) {
+  time_t last_packet_time = getTimeLastPktRcvd();
+
+  if(!force_idle && last_packet_time < next_idle_other_purge)
+    return(0); /* Too early */
+  else {
+    /* Time to purge hosts */
+    u_int n;
+    /* If the interface is no longer running it is safe to force all entries as idle */
+
+    n = (macs_hash ? macs_hash->purgeIdle(force_idle) : 0)
       + (ases_hash ? ases_hash->purgeIdle(force_idle) : 0)
       + (countries_hash ? countries_hash->purgeIdle(force_idle) : 0)
       + (vlans_hash ? vlans_hash->purgeIdle(force_idle) : 0)
       + (arp_hash_matrix ? arp_hash_matrix->purgeIdle(force_idle) : 0);
 
-    next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
+    next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
+    
     return(n);
   }
 }
@@ -5936,13 +5959,13 @@ void NetworkInterface::allocateStructures() {
 	num_hashes     = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
 	hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 	/* The number of ASes cannot be greater than the number of hosts */
-	ases_hash      = new AutonomousSystemHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-	countries_hash = new CountriesHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-	vlans_hash     = new VlanHash(this, num_hashes, max_val(ntop->getPrefs()->get_max_num_hosts() / 2, (u_int16_t)-1));
-	macs_hash      = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+	ases_hash      = new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
+	countries_hash = new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
+	vlans_hash     = new VlanHash(this, 1024, 2048);
+	macs_hash      = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
 
 	if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
-	  arp_hash_matrix = new ArpStatsHashMatrix(this, num_hashes, (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
+	  arp_hash_matrix = new ArpStatsHashMatrix(this, ndpi_min(num_hashes, 32768), (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
       }
     }
 
@@ -7075,7 +7098,7 @@ void NetworkInterface::reloadDhcpRanges() {
     if(new_ranges) {
       char *cur_pos = rsp;
 
-      /* E.g. 192.168.1.2-192.168.1.150,10.0.0.50-10.0.0.60 */
+      /* E.g. 192.168.1.2-202.168.1.150,10.0.0.50-10.0.0.60 */
       for(i=0; i<num_ranges; i++) {
 	char *end = strchr(cur_pos, ',');
 	char *delim = strchr(cur_pos, '-');

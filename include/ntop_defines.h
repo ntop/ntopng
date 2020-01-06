@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-19 - ntop.org
+ * (C) 2013-20 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -162,7 +162,8 @@
 #define NUM_HOSTS_RESOLVED_BITS   2 << 19 /* ~1 million */
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
-#define HOST_PURGE_FREQUENCY      2 /* sec */
+#define HOST_PURGE_FREQUENCY      3 /* sec */
+#define OTHER_PURGE_FREQUENCY     5 /* sec - Other = ASs, MAC, Countries, VLANs, ARP Matrix */
 #define MAX_TCP_FLOW_IDLE        15 /* sec - how long to wait before idling a TCP flow with FIN/RST set or with incomplete TWH */
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
@@ -177,9 +178,10 @@
 #define OTHER_RRD_1D_DAYS        365
 #define CONST_DEFAULT_TOP_TALKERS_ENABLED        false
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
+#define MIN_NUM_VISITED_ENTRIES  1024
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT          "(C) 1998-19 ntop.org"
+#define NTOP_COPYRIGHT          "(C) 1998-20 ntop.org"
 #define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define SYSTEM_INTERFACE_NAME   "__system__"
 #define SYSTEM_INTERFACE_ID     -1

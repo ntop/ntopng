@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-19 - ntop.org
+ * (C) 2013-20 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -613,9 +613,9 @@ static void redirect_to_login(struct mg_connection *conn,
 
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
-	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
-	      "Set-Cookie: user=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
-	      "Set-Cookie: password=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
+	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-2070 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+	      "Set-Cookie: user=; path=/; expires=Thu, 01-Jan-2070 00:00:01 GMT; max-age=0;\r\n"
+	      "Set-Cookie: password=; path=/; expires=Thu, 01-Jan-2070 00:00:01 GMT; max-age=0;\r\n"
 	      "Location: %s%s%s%s\r\n\r\n",
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
@@ -879,7 +879,7 @@ static int handle_lua_request(struct mg_connection *conn) {
       mg_printf(conn,
 		"HTTP/1.1 403 Forbidden\r\n"
 		"Content-Type: text/html\r\n"
-		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-2070 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 		"Connection: close\r\n"
 		"\r\n\r\n%s", session_id,
 		get_secure_cookie_attributes(request_info),
