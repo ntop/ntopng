@@ -7098,7 +7098,7 @@ void NetworkInterface::reloadDhcpRanges() {
     if(new_ranges) {
       char *cur_pos = rsp;
 
-      /* E.g. 192.168.1.2-202.168.1.150,10.0.0.50-10.0.0.60 */
+      /* E.g. 192.168.1.2-192.168.1.150,10.0.0.50-10.0.0.60 */
       for(i=0; i<num_ranges; i++) {
 	char *end = strchr(cur_pos, ',');
 	char *delim = strchr(cur_pos, '-');
