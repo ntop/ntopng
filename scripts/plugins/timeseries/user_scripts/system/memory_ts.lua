@@ -13,6 +13,11 @@ local script = {
 
   -- See below
   hooks = {},
+
+  gui = {
+    i18n_title = "alerts_dashboard.memory_ts",
+    i18n_description = "alerts_dashboard.memory_ts_description",
+  },
 }
 
 -- ##############################################

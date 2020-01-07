@@ -11,6 +11,11 @@ local script = {
   -- No default configuration is provided
   default_value = {},
 
+  gui = {
+    i18n_title = "alerts_dashboard.influxdb_monitor",
+    i18n_description = "alerts_dashboard.influxdb_monitor_description",
+  },
+
   -- See below
   hooks = {},
 }

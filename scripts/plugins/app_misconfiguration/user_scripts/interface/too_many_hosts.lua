@@ -14,7 +14,12 @@ local script = {
 
   hooks = {
     min = alerts_api.anomaly_check_function,
-  }
+  },
+
+  gui = {
+    i18n_title = "alerts_dashboard.too_many_hosts",
+    i18n_description = "alerts_dashboard.too_many_hosts_description",
+  },
 }
 
 -- #################################################################

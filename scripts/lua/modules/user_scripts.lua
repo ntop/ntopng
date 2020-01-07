@@ -478,7 +478,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	    end
 
 	    if((not user_script.gui) or (not user_script.gui.i18n_title) or (not user_script.gui.i18n_description)) then
-	       traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Module '%s' does not define a gui", mod_fname))
+	       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' does not define a gui", mod_fname))
 	    end
 
             -- Augument with additional attributes
@@ -751,7 +751,13 @@ end
 
 -- ##############################################
 
+local cached_config_sets = nil
+
 function user_scripts.getConfigsets()
+   if cached_config_sets then
+      return(cached_config_sets)
+   end
+
    local configsets = ntop.getHashAllCache(CONFIGSETS_KEY) or {}
    local rv = {}
 
@@ -762,6 +768,9 @@ function user_scripts.getConfigsets()
 	 rv[confset.id] = confset
       end
    end
+
+   -- Cache to avoid loading them again
+   cached_config_sets = rv
 
    return(rv)
 end
@@ -930,6 +939,25 @@ function user_scripts.loadDefaultConfig()
    }
 
    saveConfigsets(configsets)
+end
+
+-- ##############################################
+
+-- Returns true if a system script is enabled for some hook
+function user_scripts.isSystemScriptEnabled(script_key)
+   local configsets = user_scripts.getConfigsets()
+   local default_config = user_scripts.getDefaultConfig(configsets, "system")
+   local script_config = default_config[script_key]
+
+   if(script_config) then
+      for _, hook in pairs(script_config) do
+	 if(hook.enabled) then
+	    return(true)
+	 end
+      end
+   end
+
+   return(false)
 end
 
 -- ##############################################

@@ -23,6 +23,11 @@ local script = {
 
   -- See below
   hooks = {},
+
+  gui = {
+    i18n_title = "host_config.rtt_monitor",
+    i18n_description = "host_config.rtt_monitor_description",
+  },
 }
 
 -- #################################################################

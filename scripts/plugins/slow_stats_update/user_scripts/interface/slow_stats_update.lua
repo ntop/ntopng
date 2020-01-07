@@ -15,6 +15,11 @@ local script = {
   hooks = {
     min = alerts_api.anomaly_check_function,
   },
+
+  gui = {
+    i18n_title = "alerts_dashboard.slow_stats_update",
+    i18n_description = "alerts_dashboard.slow_stats_update_description",
+  },
 }
 
 -- #################################################################
