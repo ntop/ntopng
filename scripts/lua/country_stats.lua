@@ -16,6 +16,12 @@ page_utils.print_header(i18n("countries"))
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+if not ntop.hasGeoIP() then
+  print('<div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+  print(i18n("geolocation_unavailable"))
+  print('</div>')
+else
+
 print [[
       <div id="table-country"></div>
 	 <script>
@@ -145,5 +151,7 @@ print [[
        </script>
 
 ]]
+
+end -- not ntop.hasGeoIP 
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

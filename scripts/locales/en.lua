@@ -81,6 +81,7 @@ local lang = {
   ["free"] = "Free",
   ["from"] = "from",
   ["gateway"] = "Gateway",
+  ["geolocation_unavailable"] = "Geolocation support is not enabled, please follow the instructions in the <a href='https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md'>documentation</a> to enable it.",
   ["hassh_fingerprint"] = "HASSH Fingerprint",
   ["host"] = "Host %{host}",
   ["host_address"] = "Host Address",
