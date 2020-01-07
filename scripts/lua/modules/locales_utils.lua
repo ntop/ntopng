@@ -25,16 +25,32 @@ local supported_locales = {
 
 -- ##############################################
 
+local function loadfile_to_data(file_path)
+  local data = {}
+  -- `loadfile` opens the named `file_path`, parses it and returns the compiled chunk as a function.
+  -- Does not execute it.
+  local chunk = assert(loadfile(file_path))
+
+  data = chunk()
+
+  -- Execution can return nil when the parsed `file_path` does not end with a return statement
+  if not data then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Execution of loaded chunk returned nil for %s", file_path))
+  end
+
+  return data or {}
+end
+
+-- ##############################################
+
 function locales.loadLocaleFile(path, locale)
-  local chunk = assert(loadfile(path))
-  local data = chunk()
+  local data = loadfile_to_data(path)
 
   -- Check if plugin specific locales exist
   local plugins_locales = dirs.workingdir .. "/plugins/locales/" .. locale .. ".lua"
 
   if ntop.exists(plugins_locales) then
-    local chunk = assert(loadfile(plugins_locales))
-    local plugins_data = chunk()
+     local plugins_data = loadfile_to_data(plugins_locales)
 
     -- Add the plugins localized strings
     for k, v in pairs(plugins_data) do
@@ -112,9 +128,7 @@ end
 -- ##############################################
 
 function locales.readDefaultLocale()
-  local path = default_locale_path
-  local chunk = assert(loadfile(path))
-  local data = chunk()
+  local data = loadfile_to_data(default_locale_path)
 
   return(data)
 end
