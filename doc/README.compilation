@@ -69,7 +69,7 @@ On Windows you can download the redis server from
 Note that:
 - you can use zmq 4.x in addition to 3.x (but not 2.x)
 - make sure nobody owns /var/lib/ntopng
-- make sure to have uglify-es to minify javascript code, just type, in the command line, `npm install -g uglify-es` to install it
+- make sure to have uglify-es to minify javascript code, just type, in the command line, `npm install -g uglify-es` to install it (`./autogen.sh && ./configure` is required after installing uglify-es, before running `make minify`)
 
 Source Code Compilation
 -----------------------

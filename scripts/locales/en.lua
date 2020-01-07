@@ -2558,6 +2558,13 @@ local lang = {
     ["note_overlapping_networks"] = "<b>NOTE</b>: In case you have defined overlapping networks:",
     ["note_see_both_network_entries"] = "You will see both network entries in the above table.",
   },
+  ["nindex"] = {
+    ["max_results"] = "Max Results",
+    ["run_query"] = "Run query",
+    ["select_note"] = "Use * for all fields or a comma-separated list of fields (<field1>,<field2>,...)",
+    ["time_range"] = "Time Range",
+    ["where_note"] = "Use &lt;field&gt; &lt;operator&gt; &lt;value&gt; conditions, where &lt;operator&gt; could be &lt;, &gt;, =, !=. AND/OR operators are also allowed to combine conditions.",
+  },
   ["os_stats"] = {
     ["hosts_by_operating_system"] = "Hosts by Operating System",
   },
