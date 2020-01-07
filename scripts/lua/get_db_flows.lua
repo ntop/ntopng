@@ -12,6 +12,7 @@ require "flow_aggregation_utils"
 require "template"
 
 local ifstats = interface.getStats()
+local now = os.time()
 
 local ifId = _GET["ifid"]
 local host = _GET["peer1"]
@@ -50,6 +51,9 @@ if(ip_version == nil) then ip_version = "4" end
 
 local ip_version = tonumber(ip_version)
 
+if(ifId == nil) then ifId = interface.getId() end
+if(epoch_begin == nil) then epoch_begin = 0 end
+if(epoch_end == nil) then epoch_end = now end 
 if((currentPage == nil) or (currentPage == "")) then currentPage = 1 end
 if((perPage == nil) or (perPage == "")) then perPage = 5 end
 if((sortOrder == nil) or (sortOrder == "")) then sortOrder = "asc" end

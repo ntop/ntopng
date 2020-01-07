@@ -724,6 +724,7 @@ end
 -- ##############################################
 
 local function saveConfigsets(configsets)
+   local to_delete = ntop.getHashKeysCache(CONFIGSETS_KEY) or {}
    local rv, err = validateConfigsets(configsets)
 
    if(not rv) then
@@ -735,6 +736,11 @@ local function saveConfigsets(configsets)
       local v = json.encode(configset)
 
       ntop.setHashCache(CONFIGSETS_KEY, k, v)
+      to_delete[k] = nil
+   end
+
+   for confid in pairs(to_delete) do
+      ntop.delHashCache(CONFIGSETS_KEY, confid)
    end
 
    -- Reload the periodic scripts as the configuration has changed

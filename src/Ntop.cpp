@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-19 - ntop.org
+ * (C) 2013-20 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -404,7 +404,7 @@ void Ntop::start() {
   int i = 0;
 
   getTrace()->traceEvent(TRACE_NORMAL,
-			 "Welcome to %s %s v.%s - (C) 1998-19 ntop.org",
+			 "Welcome to %s %s v.%s - (C) 1998-20 ntop.org",
 #ifdef HAVE_NEDGE
 			 "ntopng edge",
 #else

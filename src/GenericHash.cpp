@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-19 - ntop.org
+ * (C) 2013-20 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -296,7 +296,18 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 			       name, iface->get_name(), last_purged_hash, visit_fraction, getNumEntries(), force_idle ? 1 : 0);
 #endif
 
-  for(u_int j = 0; j < visit_fraction; j++) {
+  /* Visit at least MIN_NUM_VISITED_ENTRIES entries at each iteration regardless of the hash size */
+  u_int j;
+  
+  for(j = 0; j < num_hashes; j++) {
+    /*
+      Initially visit the visit_fraction of the hash, but it we have
+      visited too few elements we keep visiting until a minimum number
+      of entries is reached
+    */
+    if((j > visit_fraction) && (buckets_checked > MIN_NUM_VISITED_ENTRIES))
+      break;
+    
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
     i = last_purged_hash;
 
@@ -362,6 +373,11 @@ u_int GenericHash::purgeIdle(bool force_idle) {
     }
   }
 
+#ifdef WALK_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][current_size: %u][visit_fraction: %u/%u (visited %u)][buckets_checked: %u]",
+			       name, current_size, visit_fraction, num_hashes, j, buckets_checked);
+#endif
+  
   /* Actual idling can be performed when the hash table is no longer locked. */
   if(num_detached) {
     it = idle_entries_shadow->begin();

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-19 - ntop.org
+ * (C) 2013-20 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -203,7 +203,7 @@ class NetworkInterface : public AlertableEntity {
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
-    next_idle_flow_purge, next_idle_host_purge;
+    next_idle_flow_purge, next_idle_host_purge, next_idle_other_purge;
   bool running, is_idle;
   NetworkStats **networkStats;
   InterfaceStatsHash *interfaceStats;
@@ -559,7 +559,8 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void purgeIdle(time_t when, bool force_idle = false);
   u_int purgeIdleFlows(bool force_idle);
-  u_int purgeIdleHostsMacsASesVlans(bool force_idle);
+  u_int purgeIdleHosts(bool force_idle);
+  u_int purgeIdleMacsASesCountriesVlansArpMatrix(bool force_idle);
 
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getNumPackets();
