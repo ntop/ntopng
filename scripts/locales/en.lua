@@ -2581,7 +2581,7 @@ local lang = {
     ["run_query"] = "Run query",
     ["select_note"] = "Use * for all fields or a comma-separated list of fields (<field1>,<field2>,...)",
     ["time_range"] = "Time Range",
-    ["where_note"] = "Use &lt;field&gt; &lt;operator&gt; &lt;value&gt; conditions, where &lt;operator&gt; could be &lt;, &gt;, =, !=. AND/OR operators are also allowed to combine conditions.",
+    ["where_note"] = "Use &lt;field&gt; &lt;operator&gt; &lt;value&gt; conditions, where &lt;operator&gt; could be &lt;, &gt;, =, !=. AND/OR operators are also allowed to combine conditions. Please use quotes for string fields (e.g. INFO='www.ntop.org')",
   },
   ["os_stats"] = {
     ["hosts_by_operating_system"] = "Hosts by Operating System",
