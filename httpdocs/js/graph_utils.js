@@ -1186,16 +1186,16 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
     nindex_buttons += '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
     nindex_buttons += "IP Version";
     nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
-    nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick(null, 4)">4</a></li>';
-    nindex_buttons += '<li><a href="#" onclick="return onGraphMenuClick(null, 6)">6</a></li>';
+    nindex_buttons += '<li><a class="dropdown-item" href="#" onclick="return onGraphMenuClick(null, 4)">4</a></li>';
+    nindex_buttons += '<li><a class="dropdown-item" href="#" onclick="return onGraphMenuClick(null, 6)">6</a></li>';
     nindex_buttons += '</span></div>';
   }
 
   nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
   nindex_buttons += "Explorer";
   nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
-  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/pro/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
-  nindex_buttons += '<li><a href="'+ http_prefix +'/lua/pro/nindex.lua'+ nindex_query +'">Flows</a></li>';
+  nindex_buttons += '<li><a class="dropdown-item" href="'+ http_prefix +'/lua/pro/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
+  nindex_buttons += '<li><a class="dropdown-item" href="'+ http_prefix +'/lua/pro/nindex.lua'+ nindex_query +'">Flows</a></li>';
   nindex_buttons += '</span></div>';
 
   if(view.columns) {
