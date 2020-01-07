@@ -877,7 +877,8 @@ else
    if((flow["protos.tls.notBefore"] ~= nil) or (flow["protos.tls.notAfter"] ~= nil)) then
       local now = os.time()
       print('<tr><th width=30%>'..i18n("flow_details.tls_certificate_validity").."</th><td colspan=2>")
-            if(flow["protos.tls.notAfter"] > now) then
+
+      if((flow["protos.tls.notBefore"] > now) or (flow["protos.tls.notAfter"] < now)) then
 	 print(" <i class=\"fas fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i>")
       end
 
