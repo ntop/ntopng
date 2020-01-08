@@ -4234,3 +4234,10 @@ void Utils::tlv2lua(lua_State *vm, ndpi_serializer *serializer) {
 }
 
 /* ****************************************************** */
+  
+u_int16_t Utils::country2u16(const char *country_code) {
+  if (country_code == NULL || strlen(country_code) < 2) return 0;
+  return ((((u_int16_t) country_code[0]) << 8) | ((u_int16_t) country_code[1]));
+}
+
+/* ****************************************************** */
