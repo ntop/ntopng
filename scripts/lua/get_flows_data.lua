@@ -112,10 +112,8 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
       src_key = src_key .. "</A>"
 
-      if(value["cli.port"] > 0) then
+      if value["cli.port"] > 0 then
 	 src_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
-      else
-	 src_port=""
       end
 
       --record["column_client_process"] = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
@@ -123,7 +121,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       src_container = flowinfo2container(value["client_container"])
    else
       src_key = shortenString(stripVlan(cli_name))
-      src_port=value["cli.port"]
+
+      if value["cli.port"] > 0 then
+	 src_port = value["cli.port"]..''
+      end
    end
 
    if value["srv.allowed_host"] and not ifstats.isViewed then
@@ -131,7 +132,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fas fa-flag'></i>" end
       dst_key = dst_key .. "</A>"
 
-      if(value["srv.port"] > 0) then
+      if value["srv.port"] > 0 then
 	 dst_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
       else
 	 dst_port=""
@@ -150,7 +151,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       end
    else
       dst_key = shortenString(stripVlan(srv_name))
-      dst_port=value["srv.port"]
+
+      if value["srv.port"] > 0 then
+	 dst_port = value["srv.port"]..""
+      end
    end
 
    if(value["client_tcp_info"] ~= nil) then
@@ -197,6 +201,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 				 column_client,
 				 ternary(src_port ~= '', ':', ''),
 				 src_port, src_process, src_container)
+
    if(value["verdict.pass"] == false) then
       column_client = "<strike>"..column_client.."</strike>"
    end
