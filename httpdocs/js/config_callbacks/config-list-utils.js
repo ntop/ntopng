@@ -33,6 +33,7 @@ $(document).ready(function() {
 
     const $config_table = $("#config-list").DataTable({
         lengthChange: false,
+        pagingType: 'full_numbers',
         stateSave: true,
         initComplete: function() {
             // clear searchbox datatable
@@ -41,7 +42,9 @@ $(document).ready(function() {
         language: {
             paginate: {
                previous: '&lt;',
-               next: '&gt;'
+               next: '&gt;',
+               first: '«',
+                last: '»'
             }
         },
         ajax: {

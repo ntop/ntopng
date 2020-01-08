@@ -20,10 +20,13 @@ $(document).ready(function() {
 
     const $script_table = $("#scripts-config").DataTable({
        dom: "Bfrtip",
+       pagingType: 'full_numbers',
        language: {
           paginate: {
              previous: '&lt;',
-             next: '&gt;'
+             next: '&gt;',
+             first: '«',
+             last: '»'
           }
        },
        lengthChange: false,
@@ -111,9 +114,21 @@ $(document).ready(function() {
                 }
 
                 return data;
-             }
+             },
+             className: 'w-25',
           },
-          { data: 'description' },
+          { 
+             data: 'description',
+             render: function (data, type, row) {
+               
+               if (type == "display") {
+                  return `<abbr title='${data}'>${data.substr(0, 64)}...</abbr>`
+               }
+
+               return data;
+
+             },
+          },
           {
              data: 'enabled_hooks',
              sortable: false,
@@ -134,10 +149,10 @@ $(document).ready(function() {
               if (row.all_hooks.length > 0 && row.input_handler == undefined) {        
 
                  const $toggle_buttons = $(`<div class="btn-group btn-group-toggle" data-toggle="buttons">
-                 <label class="btn btn-sm btn-secondary ${row.is_enabled ? "active" : ""}">
+                 <label class="btn btn-sm btn-secondary ${row.is_enabled ? "active btn-success" : ""}">
                     <input value='true' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> On
                  </label>
-                 <label class="btn btn-sm btn-secondary ${!row.is_enabled ? "active" : ""}">
+                 <label class="btn btn-sm btn-secondary ${!row.is_enabled ? "active btn-danger" : ""}">
                     <input value='false' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> Off
                  </label>
                  </div>`);
@@ -202,17 +217,20 @@ $(document).ready(function() {
              data: null,
              className: 'text-center',
              render: function (data, type, row) {
+
+               const edit_script_btn = `
+                  <button ${row.input_handler == undefined ? "disabled" : ""}
+                     data-toggle="modal"
+                     title='${i18n.edit_script}'
+                     data-target="#modal-script"
+                     class="btn btn-square btn-sm btn-primary">
+                        <i class='fas fa-edit'></i>
+                  </button>
+               `;
+
                 return `
                    <div class='btn-group'>
-                      <button ${row.input_handler == undefined ? "disabled" : ""}
-                         data-toggle="modal"
-                         title='${i18n.edit_script}'
-                         data-target="#modal-script"
-                         class="btn btn-square btn-sm btn-primary">
-
-                         <i class='fas fa-edit'></i>
-
-                      </button>
+                      ${row.all_hooks.length > 0 && row.input_handler == undefined ? '' : edit_script_btn}
                       <a
                          href='${data.edit_url}'
                          title='${i18n.view_src_script}'
@@ -378,6 +396,9 @@ $(document).ready(function() {
 
 
              // append hooks to table
+             if ("min" in hooks) {
+               $table_editor.append(build_hook(hooks["min"], "min"));
+             }
              if ("5mins" in hooks) {
                 $table_editor.append(build_hook(hooks["5mins"], "5mins"));
              }
@@ -387,10 +408,7 @@ $(document).ready(function() {
              if ("day" in hooks) {
                 $table_editor.append(build_hook(hooks["day"], "day"));
              }
-             if ("min" in hooks) {
-                $table_editor.append(build_hook(hooks["min"], "min"));
-             }
-
+            
           }
 
          // append gui on the edit modal
