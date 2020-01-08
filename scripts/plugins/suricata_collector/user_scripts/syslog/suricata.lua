@@ -11,7 +11,14 @@ local alert_consts = require("alert_consts")
 
 local syslog_module = {
   key = "suricata",
+
+  -- See below
   hooks = {},
+
+  gui = {
+    i18n_title = "external_stats.suricata",
+    i18n_description = "external_stats.suricata_description",
+  },
 }
 
 local external_stats_key = getRedisIfacePrefix(interface.getId())..'.external_stats'

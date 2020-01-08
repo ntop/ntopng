@@ -22,7 +22,27 @@ Subsequent updates of the `ntopng-data` package will check for the availability 
 
 If you prefer to handle updates manually, you may skip `ntopng-data` installation and direcly use `geoipupdate`. Instructions to use `geoipupdate` are available at https://dev.maxmind.com/geoip/geoipupdate/
 
+### Using geolocation when `ntopng-data` is not available
+
 In case package `ntopng-data` or `geoipupdate` is not available on your platform:
 
 0. Manually download database files `GeoLite2-ASN.mmdb` and `GeoLite2-City.mmdb` from the download section of your MaxMind account page
 1. Place downloaded files under `/var/lib/GeoIP/` or `/usr/share/GeoIP/`.
+
+### Upgrading from a previous version of `ntopng-data`
+
+In case an old `ntopng-data` package was already installed in the system, you may receive the message _The following packages have been kept back_ with reference to it. 
+
+```
+# sudo apt-get update
+[...]
+Calculating upgrade... Done
+The following packages have been kept back:
+  ntopng-data
+```
+
+This occurs usually on debian because the dependencies have changed on the `ntopng-data` you have installed so that a the package `geoipupdate` must be installed to perform the upgrade. If this case, to resolve it suffices to run
+
+```
+sudo apt-get --with-new-pkgs upgrade
+```

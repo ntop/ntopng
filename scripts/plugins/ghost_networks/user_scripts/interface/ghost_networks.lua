@@ -35,6 +35,11 @@ script = {
   hooks = {
     min = check_ghost_networks,
   },
+
+  gui = {
+    i18n_title = "alerts_dashboard.ghost_networks",
+    i18n_description = "alerts_dashboard.ghost_networks_description",
+  },
 }
 
 -- #################################################################

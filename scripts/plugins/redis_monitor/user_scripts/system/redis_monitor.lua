@@ -13,6 +13,11 @@ local script = {
 
   -- See below
   hooks = {},
+
+  gui = {
+    i18n_title = "system_stats.redis.redis_monitor",
+    i18n_description = "system_stats.redis.redis_monitor_description",
+  },
 }
 
 -- ##############################################

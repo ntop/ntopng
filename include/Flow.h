@@ -212,7 +212,7 @@ class Flow : public GenericHashEntry {
   void setBittorrentHash(char *hash);
   static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when, bool update_iat);
   bool isReadyToBeMarkedAsIdle();
-  char* printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const;
+  char * printTCPState(char * const buf, u_int buf_len) const;
   void update_pools_stats(NetworkInterface *iface,
 			  Host *cli_host, Host *srv_host,
 			  const struct timeval *tv,
@@ -449,6 +449,7 @@ class Flow : public GenericHashEntry {
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;
 
+  static char* printTCPflags(u_int8_t flags, char * const buf, u_int buf_len);
   char* print(char *buf, u_int buf_len) const;
     
   u_int32_t key();

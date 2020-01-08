@@ -757,26 +757,39 @@ u_int64_t Flow::get_current_packets_srv2cli() const {
 
 /* ****************************************************** */
 
-char* Flow::printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) const {
-  snprintf(buf, buf_len, "%s%s%s%s%s%s%s%s%s",
+char* Flow::printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) {
+  snprintf(buf, buf_len, "%s%s%s%s%s",
 	   (flags & TH_SYN) ? " SYN" : "",
 	   (flags & TH_ACK) ? " ACK" : "",
 	   (flags & TH_FIN) ? " FIN" : "",
 	   (flags & TH_RST) ? " RST" : "",
-	   (flags & TH_PUSH) ? " PUSH" : "",
-	   isTCPEstablished() ? " est" : "",
-	   isTCPConnecting() ? " conn" : "",
-	   isTCPClosed() ? " closed" : "",
-	   isTCPReset() ? " reset" : "");
+	   (flags & TH_PUSH) ? " PUSH" : "");
+
   if(buf[0] == ' ')
     return(&buf[1]);
   else
     return(buf);
 }
+
+/* ****************************************************** */
+
+char * Flow::printTCPState(char * const buf, u_int buf_len) const {
+  snprintf(buf, buf_len, "%s%s%s%s",
+	   isTCPEstablished() ? " est" : "",
+	   isTCPConnecting() ? " conn" : "",
+	   isTCPClosed() ? " closed" : "",
+	   isTCPReset() ? " reset" : "");
+  
+  if(buf[0] == ' ')
+    return(&buf[1]);
+  else
+    return(buf);
+}
+
 /* *************************************** */
 
 char* Flow::print(char *buf, u_int buf_len) const {
-  char buf1[32], buf2[32], buf3[32], buf4[32], pbuf[32], tcp_buf[64];
+  char buf1[32], buf2[32], buf3[32], buf4[32], buf5[32], pbuf[32], tcp_buf[64];
   buf[0] = '\0';
 
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
@@ -832,7 +845,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
   }
 
   snprintf(buf, buf_len,
-	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][src2dst: %s][dst2stc: %s]"
+	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][flags src2dst: %s][flags dst2stc: %s][state: %s]"
 	   "%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
@@ -851,6 +864,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
 	   (long long unsigned) get_bytes_cli2srv(), (long long unsigned) get_bytes_srv2cli(),
 	   printTCPflags(src2dst_tcp_flags, buf3, sizeof(buf3)),
 	   printTCPflags(dst2src_tcp_flags, buf4, sizeof(buf4)),
+	   printTCPState(buf5, sizeof(buf5)),
 	   (isTLS() && protos.tls.server_names) ? "[" : "",
 	   (isTLS() && protos.tls.server_names) ? protos.tls.server_names : "",
 	   (isTLS() && protos.tls.server_names) ? "]" : ""

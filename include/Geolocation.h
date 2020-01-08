@@ -36,12 +36,6 @@ class Geolocation {
   MMDB_s geo_ip_asn_mmdb, geo_ip_city_mmdb;
   bool loadMaxMindDB(const char * const base_path, const char * const db_name, MMDB_s * const mmdb) const;
   bool mmdbs_ok;
-
-#elif defined(HAVE_GEOIP)
-  GeoIP *geo_ip_asn_db, *geo_ip_asn_db_v6;
-  GeoIP *geo_ip_city_db, *geo_ip_city_db_v6;
-
-  GeoIP* loadGeoDB(char *base_path, const char *db_name);
 #endif
 
 #define TEST_GEOLOCATION 1
@@ -52,6 +46,7 @@ class Geolocation {
   Geolocation();
   ~Geolocation();
 
+  inline bool isAvailable() { return mmdbs_ok; };
   void getAS(IpAddress *addr, u_int32_t *asn, char **asname);
   void getInfo(IpAddress *addr, char **continent_code, char **country_code, char **city, float *latitude, float *longitude);
   static void freeInfo(char **continent_code, char **country_code, char **city);
