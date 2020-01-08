@@ -90,7 +90,7 @@ function setup()
    local ifid = interface.getId()
    local configsets = user_scripts.getConfigsets()
 
-   flows_config = user_scripts.getTargetConfig(configsets, "flow", getInterfaceName(ifid))
+   flows_config = user_scripts.getTargetConfig(configsets, "flow", ifid..'')
 
    -- Load the disabled hosts status
    hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
