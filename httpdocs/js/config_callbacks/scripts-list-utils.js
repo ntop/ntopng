@@ -18,7 +18,7 @@
 
 $(document).ready(function() {
 
-    const $script_table = $("#scripts-config").DataTable({
+   const $script_table = $("#scripts-config").DataTable({
        dom: "Bfrtip",
        pagingType: 'full_numbers',
        language: {
@@ -71,6 +71,11 @@ $(document).ready(function() {
           // clean searchbox
           $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
 
+          // delagate tooltips
+          $(`span[data-toggle='popover'`).popover({
+             trigger: 'hover'
+          });
+
           // update the tabs counters
           const $disabled_button = $(`#disabled-scripts`);
           const $all_button = $("#all-scripts");
@@ -82,7 +87,7 @@ $(document).ready(function() {
        },
        order: [ [0, "asc"] ],
        buttons: [
-          {
+         {
              extend: "filterScripts",
              attr: {
                 id: "all-scripts",
@@ -122,7 +127,14 @@ $(document).ready(function() {
              render: function (data, type, row) {
                
                if (type == "display") {
-                  return `<abbr title='${data}'>${data.substr(0, 64)}...</abbr>`
+                  return `<span 
+                           data-toggle='popover'
+                           data-placement='top'
+                           data-html='true'
+                           title="${row.title}"
+                           data-content="${data}" >
+                              ${data.substr(0, 64)}...
+                           </span>`;
                }
 
                return data;
@@ -243,7 +255,7 @@ $(document).ready(function() {
              sortable: false
           }
        ]
-    });
+   });
 
     // initialize are you sure
     $("#edit-form").areYouSure({
@@ -251,7 +263,8 @@ $(document).ready(function() {
     });
 
     // handle modal-script close event
-    $("#modal-script").on("hide.bs.modal", function(e) {
+    $("#modal-script")
+    .on("hide.bs.modal", function(e) {
 
        // if the forms is dirty then ask to the user
        // if he wants save edits
@@ -264,6 +277,11 @@ $(document).ready(function() {
           // remove dirty class from form
           $('#edit-form').removeClass('dirty');
        }
+    })
+    .on("shown.bs.modal", function(e) {
+      // add focus to btn apply to enable focusing on the modal hence user can press escape button to
+      // close the modal
+      $("#btn-apply").trigger('focus');
     });
 
     // load templates for the script
