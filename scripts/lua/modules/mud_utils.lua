@@ -1,5 +1,5 @@
 --
--- (C) 2019 - ntop.org
+-- (C) 2019-20 - ntop.org
 --
 -- MUD - Manufacturer Usage Description
 -- https://tools.ietf.org/id/draft-ietf-opsawg-mud-22.html

@@ -1,5 +1,5 @@
 --
--- (C) 2017-19 - ntop.org
+-- (C) 2017-20 - ntop.org
 --
 
 local json = require "dkjson"
