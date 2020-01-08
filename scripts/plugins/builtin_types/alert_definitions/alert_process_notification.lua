@@ -7,6 +7,8 @@ local function processNotificationFormatter(ifid, alert, info)
     return string.format("%s %s", i18n("alert_messages.ntopng_start"), info.msg_details)
   elseif info.event_type == "stop" then
     return string.format("%s %s", i18n("alert_messages.ntopng_stop"), info.msg_details)
+  elseif info.event_type == "update" then
+    return string.format("%s %s", i18n("alert_messages.ntopng_update"), info.msg_details)
   elseif info.event_type == "anomalous_termination" then
     return string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), info.msg_details)
   end

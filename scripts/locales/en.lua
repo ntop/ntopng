@@ -288,6 +288,7 @@ local lang = {
     ["ntopng_anomalous_termination"] = "Started after anomalous termination (<a href=\"%{url}\">bug report</a>)",
     ["ntopng_start"] = "Started",
     ["ntopng_stop"] = "Stopped",
+    ["ntopng_update"] = "Started after software update",
     ["open_files_limit_too_small"] = "Ntopng detected that the maximum number of files MySQL can open is potentially too small. This can result in flow data loss due to errors such as [Out of resources when opening file './ntopng/flowsv6#P#p22.MYD' (Errcode: 24 - Too many open files)][23]. Make sure to increase open_files_limit or, if you just want to ignore this warning, disable the check from the preferences.",
     ["ping_host_unreachable"] = "Host %{ip_label} %{numeric_ip} is unreachable.",
     ["ping_rtt_too_slow"] = "RTT too high for host %{ip_label} %{numeric_ip}. Measued RTT %{rtt_value} ms, maximum expected RTT %{maximum_rtt} ms.",
