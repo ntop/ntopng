@@ -96,8 +96,10 @@ Flow::Flow(NetworkInterface *_iface,
     cli_host->incNumFlows(last_seen, true, srv_host);
     if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
-  } else /* Client host has not been allocated, let's keep the info in an IpAddress */
-    cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip);
+  } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
+    if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
+      cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
+  }
 
   if(srv_host) {
     NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
@@ -105,9 +107,10 @@ Flow::Flow(NetworkInterface *_iface,
     srv_host->incNumFlows(last_seen, false, cli_host);
     if(network_stats) network_stats->incNumFlows(last_seen, false);
     srv_ip_addr = srv_host->get_ip();
-  } else /* Server host has not been allocated, let's keep the info in an IpAddress */
-    srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip);
-
+  } else { /* Server host has not been allocated, let's keep the info in an IpAddress */
+    if((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
+      srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
+  }
 
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -608,7 +611,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       print(buf, sizeof(buf));
       snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf),
 	       "Malware category detected. [cli_blacklisted: %u][srv_blacklisted: %u][category: %s]",
-	       cli_host->isBlacklisted(), srv_host->isBlacklisted(), get_protocol_category_name());
+	       isBlacklistedClient(), isBlacklistedServer(), get_protocol_category_name());
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
     }
 #endif
@@ -2207,21 +2210,22 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   ndpi_serialize_string_int64(s, "srv2cli_bytes", get_bytes_srv2cli());
   ndpi_serialize_string_int64(s, "srv2cli_packets", get_packets_srv2cli());
 
+  ndpi_serialize_string_string(s, "cli_addr", get_cli_ip_addr()->print(buf, sizeof(buf)));
+  ndpi_serialize_string_boolean(s, "cli_blacklisted", isBlacklistedClient());
   if(cli_host) {
-    ndpi_serialize_string_string(s, "cli_addr", cli_host->get_ip()->print(buf, sizeof(buf)));
     ndpi_serialize_string_string(s, "cli_country", cli_host->get_country(buf, sizeof(buf)));
     ndpi_serialize_string_string(s, "cli_os", cli_host->getOSDetail(buf, sizeof(buf)));
     ndpi_serialize_string_int32(s, "cli_asn", cli_host->get_asn());
     ndpi_serialize_string_boolean(s, "cli_localhost", cli_host->isLocalHost());
-    ndpi_serialize_string_boolean(s, "cli_blacklisted", cli_host->isBlacklisted());
   }
+
+  ndpi_serialize_string_string(s, "srv_addr", get_srv_ip_addr()->print(buf, sizeof(buf)));
+  ndpi_serialize_string_boolean(s, "srv_blacklisted", isBlacklistedServer());
   if(srv_host) {
-    ndpi_serialize_string_string(s, "srv_addr", srv_host->get_ip()->print(buf, sizeof(buf)));
     ndpi_serialize_string_string(s, "srv_country", srv_host->get_country(buf, sizeof(buf)));
     ndpi_serialize_string_string(s, "srv_os", srv_host->getOSDetail(buf, sizeof(buf)));
     ndpi_serialize_string_int32(s, "srv_asn", srv_host->get_asn());
     ndpi_serialize_string_boolean(s, "srv_localhost", srv_host->isLocalHost());
-    ndpi_serialize_string_boolean(s, "srv_blacklisted", srv_host->isBlacklisted());
   }
 }
 
@@ -2327,21 +2331,39 @@ void Flow::updatePacketStats(InterarrivalStats *stats,
 /* *************************************** */
 
 bool Flow::isBlacklistedFlow() const {
-  bool res = ((cli_host && cli_host->isBlacklisted())
-	      || (srv_host && srv_host->isBlacklisted())
-	      || (get_protocol_category() == CUSTOM_CATEGORY_MALWARE));
+  bool res = (isBlacklistedClient()
+	      || isBlacklistedServer()
+	      || get_protocol_category() == CUSTOM_CATEGORY_MALWARE);
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
   if(res) {
     char buf[512];
     print(buf, sizeof(buf));
-    snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf), "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s]", cli_host->isBlacklisted(), srv_host->isBlacklisted(), get_protocol_category_name());
+    snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf), "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s]", isBlacklistedClient(), isBlacklistedServer(), get_protocol_category_name());
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
   }
 #endif
 
   return res;
 };
+
+/* *************************************** */
+
+bool Flow::isBlacklistedClient() const {
+  if(cli_host)
+    return cli_host->isBlacklisted();
+  else
+    return get_cli_ip_addr()->isBlacklistedAddress();
+}
+
+/* *************************************** */
+
+bool Flow::isBlacklistedServer() const {
+  if(srv_host)
+    return srv_host->isBlacklisted();
+  else
+    return get_srv_ip_addr()->isBlacklistedAddress();
+}
 
 /* *************************************** */
 
@@ -3916,7 +3938,7 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
       lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
       lua_push_bool_table_entry(vm, client ? "cli.localhost" : "srv.localhost", h->isLocalHost());
       lua_push_bool_table_entry(vm, client ? "cli.systemhost" : "srv.systemhost", h->isSystemHost());
-      lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted", h->isBlacklisted());
+      lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted", client ? isBlacklistedClient() : isBlacklistedServer());
       lua_push_int32_table_entry(vm, client ? "cli.network_id" : "srv.network_id", h->get_local_network_id());
       lua_push_uint64_table_entry(vm, client ? "cli.pool_id" : "srv.pool_id", h->get_host_pool());
       lua_push_uint64_table_entry(vm, client ? "cli.asn" : "srv.asn", h->get_asn());
@@ -3942,8 +3964,8 @@ void Flow::lua_get_min_info(lua_State *vm) {
 
   lua_newtable(vm);
 
-  if(cli_ip) lua_push_str_table_entry(vm, "cli.ip", cli_ip->print(buf, sizeof(buf)));
-  if(srv_ip) lua_push_str_table_entry(vm, "srv.ip", srv_ip->print(buf, sizeof(buf)));
+  if(cli_ip) lua_push_str_table_entry(vm, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
+  if(srv_ip) lua_push_str_table_entry(vm, "srv.ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
   lua_push_int32_table_entry(vm, "cli.port", get_cli_port());
   lua_push_int32_table_entry(vm, "srv.port", get_srv_port());
   lua_push_bool_table_entry(vm, "cli.localhost", cli_host ? cli_host->isLocalHost() : false);

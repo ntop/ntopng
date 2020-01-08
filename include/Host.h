@@ -64,7 +64,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   AutonomousSystem *as;
   Country *country;
   Vlan *vlan;
-  bool blacklisted_host;
 
   Mutex m;
   u_int32_t mac_last_seen;
@@ -169,7 +168,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline bool isIPv4()                        const { return ip.isIPv4();            };
   inline bool isIPv6()                        const { return ip.isIPv6();            };
   void set_mac(Mac  *m);
-  inline bool isBlacklisted()                 const { return(blacklisted_host);      };
+  inline bool isBlacklisted()                 const { return(ip.isBlacklistedAddress()); };
   void reloadHostBlacklist();
   inline const u_int8_t* const get_mac() const { return(mac ? mac->get_mac() : NULL);}
   inline Mac* getMac() const                   { return(mac);              }

@@ -9068,18 +9068,14 @@ static int ntop_flow_get_tcp_stats(lua_State* vm) {
 
 static int ntop_flow_get_blacklisted_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
-  Host *cli_host, *srv_host;
 
   if(!f) return(CONST_LUA_ERROR);
 
-  cli_host = f->get_cli_host();
-  srv_host = f->get_srv_host();
-
   lua_newtable(vm);
 
-  if(cli_host && cli_host->isBlacklisted())
+  if(f->isBlacklistedClient())
     lua_push_bool_table_entry(vm, "blacklisted.cli", true);
-  if(srv_host && srv_host->isBlacklisted())
+  if(f->isBlacklistedServer())
     lua_push_bool_table_entry(vm, "blacklisted.srv", true);
   if(f->get_protocol_category() == CUSTOM_CATEGORY_MALWARE)
     lua_push_bool_table_entry(vm, "blacklisted.cat", true);
@@ -12260,7 +12256,9 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 void LuaEngine::setHost(Host* h) {
   struct ntopngLuaContext *c = getLuaVMContext(L);
 
-  if(c) c->host = h;
+  if(c) {
+    c->host = h;
+  }
 }
 
 /* ****************************************** */
@@ -12268,7 +12266,9 @@ void LuaEngine::setHost(Host* h) {
 void LuaEngine::setNetwork(NetworkStats* ns) {
   struct ntopngLuaContext *c = getLuaVMContext(L);
 
-  if(c) c->network = ns;
+  if(c) {
+    c->network = ns;
+  }
 }
 
 /* ****************************************** */
@@ -12276,5 +12276,7 @@ void LuaEngine::setNetwork(NetworkStats* ns) {
 void LuaEngine::setFlow(Flow* f) {
   struct ntopngLuaContext *c = getLuaVMContext(L);
 
-  if(c) c->flow = f;
+  if(c) {
+    c->flow = f;
+  }
 }
