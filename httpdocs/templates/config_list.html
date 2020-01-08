@@ -4,12 +4,16 @@
         <div class='col-md-12 col-lg-12'>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item">{{ i18n("about.user_scripts", {}) }}</li>
+                    <li class="breadcrumb-item">
+                        <i class="fab fa-superpowers"></i>
+                        {{ i18n("about.user_scripts", {}) }}
+                    </li>
                     {# print current page on the breadcrumb #}
                     <li class="breadcrumb-item active">{{ config_list.hooks_localizated[config_list.subdir] }}</li>
                 </ol>
             </nav>
             <ul class="nav nav-pills">
+                <li class='nav-item pt-2 pb-2 pr-1'>Script Subdirs:</li>
                 {% for _, hooks_subdir in ipairs(config_list.user_scripts.listSubdirs()) do %}
         
                         <li class="nav-item">
