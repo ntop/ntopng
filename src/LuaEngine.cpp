@@ -12258,6 +12258,7 @@ void LuaEngine::setHost(Host* h) {
 
   if(c) {
     c->host = h;
+    c->iface = h->getInterface();
   }
 }
 
@@ -12278,5 +12279,6 @@ void LuaEngine::setFlow(Flow* f) {
 
   if(c) {
     c->flow = f;
+    c->iface = f->getInterface();
   }
 }
