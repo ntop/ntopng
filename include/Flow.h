@@ -260,7 +260,9 @@ class Flow : public GenericHashEntry {
   inline FlowStatus getPredominantStatus() const      { return(predominant_status); }
   inline const char* getStatusInfo() const      { return(alert_status_info);    }
 
-  bool isBlacklistedFlow() const;
+  bool isBlacklistedFlow()   const;
+  bool isBlacklistedClient() const;
+  bool isBlacklistedServer() const;
   struct site_categories* getFlowCategory(bool force_categorization);
   void freeDPIMemory();
   static const ndpi_protocol ndpiUnknownProtocol;

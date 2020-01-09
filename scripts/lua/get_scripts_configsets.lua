@@ -1,5 +1,5 @@
 --
--- (C) 2019 - ntop.org
+-- (C) 2019-20 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -18,7 +18,6 @@ if(subdir == nil) then
 end
 
 local target_type = user_scripts.getSubdirTargetType(subdir)
-
 local config_sets = user_scripts.getConfigsets()
 local rv = {}
 

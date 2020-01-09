@@ -3693,8 +3693,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->dhcpOnly && !h->isDhcpHost())                ||
      (r->cidr_filter && !h->match(r->cidr_filter))    ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
-     (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())       ||
-     (r->traffic_type == traffic_type_bidirectional && h->isOneWayTraffic())  ||
+     (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())         ||
+     (r->traffic_type == traffic_type_bidirectional && !h->isTwoWaysTraffic())  ||
      (r->dhcpHostsOnly && (!h->isDhcpHost())) ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||

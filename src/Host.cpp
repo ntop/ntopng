@@ -185,7 +185,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
-  blacklisted_host = false;
   reloadHostBlacklist();
   is_dhcp_host = false;
 
@@ -1142,12 +1141,7 @@ void Host::splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16
 /* *************************************** */
 
 void Host::reloadHostBlacklist() {
-  char ipbuf[64];
-  char *ip_str = ip.print(ipbuf, sizeof(ipbuf));
-  unsigned long category;
-
-  blacklisted_host = ((ndpi_get_custom_category_match(iface->get_ndpi_struct(),
-    ip_str, strlen(ip_str), &category) == 0) && (category == CUSTOM_CATEGORY_MALWARE));
+  ip.reloadBlacklist(iface->get_ndpi_struct());
 }
 
 /* *************************************** */
@@ -1267,6 +1261,21 @@ void Host::get_geocoordinates(float *latitude, float *longitude) {
   *latitude = 0, *longitude = 0;
   ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, latitude, longitude);
   ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
+}
+
+/* *************************************** */
+
+bool Host::isOneWayTraffic() const {
+  /* When both directions are at zero, it means no periodic update has visited the host yet,
+     so nothing can be said about its traffic directions. One way is only returned when 
+     exactly one direction is greater than zero. */
+  return stats->getNumBytes() && !(stats->getNumBytesRcvd() && stats->getNumBytesSent());
+};
+
+/* *************************************** */
+
+bool Host::isTwoWaysTraffic() const {
+  return stats->getNumBytesRcvd() && stats->getNumBytesSent();
 }
 
 /* *************************************** */

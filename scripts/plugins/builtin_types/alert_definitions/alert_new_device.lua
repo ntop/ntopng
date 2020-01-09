@@ -1,5 +1,5 @@
 --
--- (C) 2019 - ntop.org
+-- (C) 2019-20 - ntop.org
 --
 
 local function formatNewDeviceConnectionAlert(ifid, alert, info)

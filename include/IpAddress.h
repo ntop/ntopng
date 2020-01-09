@@ -27,6 +27,7 @@
 struct ipAddress {
   u_int8_t ipVersion:3 /* Either 4 or 6 */,
     loopbackIP:1, privateIP:1, multicastIP:1, broadcastIP:1,
+    blacklistedIP:1,
     notUsed:1 /* Future use */;
 
   union {
@@ -69,10 +70,12 @@ class IpAddress {
   inline void set(const struct ipAddress * const ip)  { memcpy(&addr, ip, sizeof(struct ipAddress)); compute_key(); };
   void set(union usa *ip);
   void set(const char * const ip);
-  inline bool isLoopbackAddress()        const        { return(addr.loopbackIP);  };
-  inline bool isPrivateAddress()         const        { return(addr.privateIP);   };
-  inline bool isMulticastAddress()       const        { return(addr.multicastIP); };
-  inline bool isBroadcastAddress()       const        { return(addr.broadcastIP); };
+  void reloadBlacklist(ndpi_detection_module_struct* ndpi_struct);
+  inline bool isLoopbackAddress()        const        { return(addr.loopbackIP);    };
+  inline bool isPrivateAddress()         const        { return(addr.privateIP);     };
+  inline bool isMulticastAddress()       const        { return(addr.multicastIP);   };
+  inline bool isBroadcastAddress()       const        { return(addr.broadcastIP);   };
+  inline bool isBlacklistedAddress()     const        { return(addr.blacklistedIP); };
   inline bool isBroadMulticastAddress()  const        { return(addr.broadcastIP || addr.multicastIP); };
   inline bool isNonEmptyUnicastAddress() const        { return(!isMulticastAddress() && !isBroadcastAddress() && !isEmpty()); };
   inline u_int8_t getVersion()                        { return(addr.ipVersion); };

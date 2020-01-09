@@ -14,8 +14,10 @@
             <label for='apply-interfaces'>{{i18n("config_scripts.select_interface", {}) }}:</label>
             <select multiple id='applied-interfaces' class='form-control'>
 
-
-    {% for key, ifname in pairsByKeys(interface.getIfNames()) do %}
+    <!-- In case of flows, viewed interfaces are not shown as we want flow configurations to only -->
+    <!-- be applied to the view interface which stays on top of the viewed ones. -->
+    <!-- Viewed interfaces are excluded using the boolean parameter passed to interface.getIfNames -->
+    {% for key, ifname in pairsByKeys(interface.getIfNames(ternary(subdir == "flow", true, false))) do %}
         {% local label = getHumanReadableInterfaceName(ifname) %}
         <option value='{{key}}'>{{ label }}</option>
     {% end %}

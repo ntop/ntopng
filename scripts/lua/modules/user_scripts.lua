@@ -1,5 +1,5 @@
 --
--- (C) 2019 - ntop.org
+-- (C) 2019-20 - ntop.org
 --
 
 -- User scripts provide a scriptable way to interact with the ntopng
@@ -771,7 +771,6 @@ function user_scripts.getConfigsets()
 
    -- Cache to avoid loading them again
    cached_config_sets = rv
-
    return(rv)
 end
 

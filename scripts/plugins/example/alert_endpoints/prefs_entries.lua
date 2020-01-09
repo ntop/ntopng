@@ -1,5 +1,5 @@
 --
--- (C) 2019 - ntop.org
+-- (C) 2019-20 - ntop.org
 --
 
 -- This file contains extends the "Alert Endpoints" preferences menu with

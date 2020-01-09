@@ -97,6 +97,7 @@ class Prefs {
   InterfaceInfo *ifNames;
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs;
+  u_int32_t num_simulated_ips;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *prefs_dir, *pcap_dir, *export_endpoint;
   char *categorization_key;
@@ -188,6 +189,7 @@ class Prefs {
   inline char* get_user()                               { return(user);                   };
   inline void set_user(const char *u)                   { if(user) free(user); user = strdup(u); user_set = true; };
   inline bool is_user_set()                             { return user_set; };
+  inline u_int32_t get_num_simulated_ips()        const { return(num_simulated_ips);      };
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline bool  do_read_flows_from_nprobe_mysql()        { return(read_flows_from_mysql);  };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };

@@ -1,5 +1,5 @@
 --
--- (C) 2013-18 - ntop.org
+-- (C) 2013-20 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -79,7 +79,7 @@ for _key,_value in ipairs(alerts) do
    local record = {}
    local alert_entity
    local alert_entity_val
-   local column_duration = "-"
+   local column_duration = ""
    local tdiff = os.time()-_value["alert_tstamp"]
    local column_date = os.date("%c", _value["alert_tstamp"])
 
@@ -105,7 +105,8 @@ for _key,_value in ipairs(alerts) do
 
    if engaged == true then
       column_duration = secondsToTime(os.time() - tonumber(_value["alert_tstamp"]))
-   elseif tonumber(_value["alert_tstamp_end"]) ~= nil then
+   elseif tonumber(_value["alert_tstamp_end"]) ~= nil 
+        and (tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"])) ~= 0 then
       column_duration = secondsToTime(tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"]))
    end
 

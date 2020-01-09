@@ -1,5 +1,5 @@
 --
--- (C) 2014-19 - ntop.org
+-- (C) 2014-20 - ntop.org
 --
 
 -- This file contains the description of all functions
@@ -2348,11 +2348,18 @@ local function notify_ntopng_status(started)
    local info = ntop.getInfo()
    local severity = alertSeverity("info")
    local msg
-   local msg_details = string.format("%s v.%s (%s) [pid: %s][options: %s]", info.product, info.version, info.OS, info.pid, info.command_line)
+   local msg_details = string.format("%s v.%s (%s) [OS: %s][pid: %s][options: %s]", info.product, info.version, info.revision, info.OS, info.pid, info.command_line)
    local anomalous = false
    local event
    
    if(started) then
+
+      -- reading current version and last version to check if it has been updated
+      local last_version_key = "ntopng.updates.last_version"
+      local last_version = ntop.getCache(last_version_key)
+      local curr_version = info["version"].."-"..info["revision"]
+      ntop.setCache(last_version_key, curr_version)
+
       -- let's check if we are restarting from an anomalous termination
       -- e.g., from a crash
       if not recovery_utils.check_clean_shutdown() then
@@ -2361,8 +2368,12 @@ local function notify_ntopng_status(started)
         severity = alertSeverity("error")
         anomalous = true
         event = "anomalous_termination"
+      elseif not isEmptyString(last_version) and last_version ~= curr_version then
+	-- software update
+        msg = string.format("%s %s", i18n("alert_messages.ntopng_update"), msg_details)
+        event = "update"
       else
-	 -- normal termination
+	-- normal termination
         msg = string.format("%s %s", i18n("alert_messages.ntopng_start"), msg_details)
         event = "start"
       end

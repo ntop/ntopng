@@ -328,6 +328,10 @@ static inline bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
 // ***API***
 static int ntop_get_interface_names(lua_State* vm) {
   char *allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
+  bool exclude_viewed_interfaces = false;
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    exclude_viewed_interfaces = lua_toboolean(vm, 1) ? true : false;
 
   lua_newtable(vm);
 
@@ -344,7 +348,8 @@ static int ntop_get_interface_names(lua_State* vm) {
     if((iface = ntop->getInterface(i)) != NULL) {
       char num[8], *ifname = iface->get_name();
 
-      if(matches_allowed_ifname(allowed_ifname, ifname))	{
+      if(matches_allowed_ifname(allowed_ifname, ifname)
+	 && (!exclude_viewed_interfaces || !iface->isViewed()))	{
 	ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name [%d][%s]", i, ifname);
 	snprintf(num, sizeof(num), "%d", iface->get_id());
 	lua_push_str_table_entry(vm, num, ifname);
@@ -8920,7 +8925,7 @@ static int ntop_flow_get_icmp_status_info(lua_State* vm) {
 
   if(!f) return(CONST_LUA_ERROR);
 
-  if(f->getICMPInfo()) {
+  if(f->isICMP()) {
     u_int8_t icmp_type, icmp_code;
 
     f->getICMP(&icmp_type, &icmp_code);
@@ -9068,18 +9073,14 @@ static int ntop_flow_get_tcp_stats(lua_State* vm) {
 
 static int ntop_flow_get_blacklisted_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
-  Host *cli_host, *srv_host;
 
   if(!f) return(CONST_LUA_ERROR);
 
-  cli_host = f->get_cli_host();
-  srv_host = f->get_srv_host();
-
   lua_newtable(vm);
 
-  if(cli_host && cli_host->isBlacklisted())
+  if(f->isBlacklistedClient())
     lua_push_bool_table_entry(vm, "blacklisted.cli", true);
-  if(srv_host && srv_host->isBlacklisted())
+  if(f->isBlacklistedServer())
     lua_push_bool_table_entry(vm, "blacklisted.srv", true);
   if(f->get_protocol_category() == CUSTOM_CATEGORY_MALWARE)
     lua_push_bool_table_entry(vm, "blacklisted.cat", true);
@@ -12260,7 +12261,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 void LuaEngine::setHost(Host* h) {
   struct ntopngLuaContext *c = getLuaVMContext(L);
 
-  if(c) c->host = h;
+  if(c) {
+    c->host = h;
+    c->iface = h->getInterface();
+  }
 }
 
 /* ****************************************** */
@@ -12268,7 +12272,9 @@ void LuaEngine::setHost(Host* h) {
 void LuaEngine::setNetwork(NetworkStats* ns) {
   struct ntopngLuaContext *c = getLuaVMContext(L);
 
-  if(c) c->network = ns;
+  if(c) {
+    c->network = ns;
+  }
 }
 
 /* ****************************************** */
@@ -12276,5 +12282,8 @@ void LuaEngine::setNetwork(NetworkStats* ns) {
 void LuaEngine::setFlow(Flow* f) {
   struct ntopngLuaContext *c = getLuaVMContext(L);
 
-  if(c) c->flow = f;
+  if(c) {
+    c->flow = f;
+    c->iface = f->getInterface();
+  }
 }

@@ -1,5 +1,5 @@
 --
--- (C) 2019 - ntop.org
+-- (C) 2019-20 - ntop.org
 --
 -- The functions below are called with a LuaC "flow" context set.
 -- See user_scripts.load() documentation for information
@@ -56,6 +56,15 @@ local stats = {
 
 -- #################################################################
 
+local function trace_f(trace_msg)
+   if do_trace then
+      local fmt = string.format("[ifid: %i] %s\n", interface.getId(), trace_msg or '')
+      print(fmt)
+   end
+end
+
+-- #################################################################
+
 local function addL4Callaback(l4_proto, hook_name, script_key, callback)
    local l4_scripts = available_modules.l4_hooks[l4_proto]
 
@@ -76,12 +85,12 @@ end
 
 -- The function below is called once (#pragma once)
 function setup()
-   if do_trace then print("flow.lua:setup() called\n") end
+   trace_f(string.format("flow.lua:setup() called"))
 
    local ifid = interface.getId()
    local configsets = user_scripts.getConfigsets()
 
-   flows_config = user_scripts.getTargetConfig(configsets, "flow", getInterfaceName(ifid))
+   flows_config = user_scripts.getTargetConfig(configsets, "flow", ifid..'')
 
    -- Load the disabled hosts status
    hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
@@ -128,9 +137,7 @@ end
 -- The function below is called once (#pragma once) right before
 -- the lua virtual machine is destroyed
 function teardown()
-   if do_trace then
-      print("flow.lua:teardown() called\n")
-   end
+   trace_f("flow.lua:teardown() called")
 
    if available_modules then
       user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
@@ -170,19 +177,15 @@ local function triggerFlowAlert(now, l4_proto)
    if (cli_disabled_status ~= 0 and ntop.bitmapIsSet(cli_disabled_status, status_id)) or
        (srv_disabled_status ~= 0 and ntop.bitmapIsSet(srv_disabled_status, status_id)) then
 
-      if do_trace then
-         traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format(
-            "Not triggering flow alert for status %u [cli_bitmap: %s/%d][srv_bitmap: %s/%d]",
-            status_id, cli_key, cli_disabled_status, srv_key, srv_disabled_status))
-      end
+	  trace_f(string.format("Not triggering flow alert for status %u [cli_bitmap: %s/%d][srv_bitmap: %s/%d]",
+				status_id, cli_key, cli_disabled_status, srv_key, srv_disabled_status))
 
       return(false)
    end
 
-   if do_trace then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("flow.triggerAlert(type=%s, severity=%s)",
-         alertTypeRaw(alerted_status.alert_type.alert_id), alertSeverityRaw(alerted_status.alert_severity.severity_id)))
-   end
+   trace_f(string.format("flow.triggerAlert(type=%s, severity=%s)",
+			 alertTypeRaw(alerted_status.alert_type.alert_id),
+			 alertSeverityRaw(alerted_status.alert_severity.severity_id)))
 
    alerted_status_msg = alerted_status_msg or {}
 
@@ -277,19 +280,13 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
    end
 
    if not hooks then
-      if do_trace then print(string.format("No flow.lua modules, skipping %s(%d) for %s\n", mod_fn, l4_proto, shortFlowLabel(flow.getInfo()))) end
+      trace_f(string.format("No flow.lua modules, skipping %s(%d) for %s", mod_fn, l4_proto, shortFlowLabel(flow.getInfo())))
       return true
    end
 
-   if do_trace then print(string.format("%s()[START]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), prev_predominant_status.status_id)) end
+   trace_f(string.format("%s()[START]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), prev_predominant_status.status_id))
 
    local now = os.time()
-   local info = nil
-
-   if do_trace then
-      info = flow.getInfo()
-   end
-
    local twh_in_progress = l4_proto == 6 --[[TCP]] and not flow.isTwhOK()
 
    for mod_key, hook_fn in pairs(hooks) do
@@ -298,10 +295,8 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       if mod_fn == "periodicUpdate" then
 	 -- Check if the script should be invoked
 	 if (update_ctr % script.periodic_update_divisor) ~= 0 then
-	    if do_trace then
-	       print(string.format("%s() [check: %s]: skipping periodicUpdate [ctr: %s, divisor: %s, frequency: %s]\n",
-		  mod_fn, mod_key, update_ctr, script.periodic_update_divisor, script.periodic_update_seconds))
-	    end
+	    trace_f(string.format("%s() [check: %s]: skipping periodicUpdate [ctr: %s, divisor: %s, frequency: %s]",
+				  mod_fn, mod_key, update_ctr, script.periodic_update_divisor, script.periodic_update_seconds))
 
 	    goto continue
 	 end
@@ -310,9 +305,7 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       -- Check if the script requires the flow to have successfully completed the three-way handshake
       if script.three_way_handshake_ok and twh_in_progress then
 	 -- Check if the script wants the three way handshake completed
-	 if do_trace then
-	    print(string.format("%s() [check: %s]: skipping flow with incomplete three way handshake\n", mod_fn, mod_key))
-	 end
+	 trace_f(string.format("%s() [check: %s]: skipping flow with incomplete three way handshake", mod_fn, mod_key))
 
 	 goto continue
       end
@@ -320,9 +313,7 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       local script_l7 = script.l7_proto_id
 
       if script_l7 and master_id ~= script_l7 and app_id ~= script_l7 then
-	 if do_trace then
-	    print(string.format("%s() [check: %s]: skipping flow with proto=%s/%s [wants: %s]\n", mod_fn, mod_key, master_id, app_id, script_l7))
-	 end
+	 trace_f(string.format("%s() [check: %s]: skipping flow with proto=%s/%s [wants: %s]", mod_fn, mod_key, master_id, app_id, script_l7))
 
 	 goto continue
       end
@@ -337,7 +328,8 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       end
 
       if do_trace then
-	 print(string.format("%s() [check: %s]: %s\n", mod_fn, mod_key, shortFlowLabel(info)))
+	 local info = flow.getInfo()
+	 trace_f(string.format("%s() [check: %s]: %s", mod_fn, mod_key, shortFlowLabel(info)))
       end
 
       local conf = user_scripts.getTargetHookConfig(flows_config, script)
@@ -352,7 +344,7 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       predominant_status = flow_consts.getPredominantStatus(flow.getStatus())
    end
 
-   if do_trace then print(string.format("%s()[END]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), predominant_status.status_id)) end
+   trace_f(string.format("%s()[END]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), predominant_status.status_id))
 
    if prev_predominant_status ~= predominant_status then
       -- The predominant status has changed, updated the flow
