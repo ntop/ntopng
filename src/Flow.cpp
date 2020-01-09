@@ -2481,22 +2481,18 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
     srv_network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
   }
 
-  /* Update syn alerts counters. In case of cumulative flags, it is also important
-     to check the direction to make sure syns are only counted when the client-to-server cumulative flags
-     are processed. */
+  /* Update syn alerts counters. In case of cumulative flags, the AND is used as possibly other flags can be present  */
   if((!cumulative_flags && flags == TH_SYN)
-     || (cumulative_flags && src2dst_direction && (flags & TH_SYN) == TH_SYN)) {
+     || (cumulative_flags && (flags & TH_SYN) == TH_SYN)) {
     if(cli_host) cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
     if(srv_host) srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
     if(cli_network_stats) cli_network_stats->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
     if(srv_network_stats) srv_network_stats->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
   }
 
-  /* Update synack alerts counter. Again, in case of cumulative flags, it is mandatory to check
-     the direction and make sure synacks are only counted when processing server-to-client cumulative flags.
-   */
+  /* Update synack alerts counter. In case of cumulative flags, the AND is used as possibly other flags can be present */
   if((!cumulative_flags && (flags == (TH_SYN|TH_ACK)))
-     || (cumulative_flags && !src2dst_direction && ((flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))) {
+     || (cumulative_flags && ((flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))) {
     if(cli_host) cli_host->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
     if(srv_host) srv_host->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
     if(cli_network_stats) cli_network_stats->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
