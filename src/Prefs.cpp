@@ -28,6 +28,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ntop = _ntop,
     ignore_vlans = false, simulate_vlans = false, ignore_macs = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
+  num_simulated_ips = 0;
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
@@ -391,6 +392,7 @@ void usage() {
 #endif
 	 "--ignore-vlans                      | Ignore VLAN tags from traffic\n"
 	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
+	 "--simulate-ips <num>                | Simulate IPs by choosing clients and servers among <num> random addresses\n"
 	 "[--help|-h]                         | Help\n",
 #ifdef HAVE_NEDGE
 	 "edge "
@@ -724,6 +726,7 @@ static const struct option long_options[] = {
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
+  { "simulate-ips",                      required_argument, NULL, 221 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
 #ifndef HAVE_NEDGE
   { "ignore-macs",                       no_argument,       NULL, 216 },
@@ -1358,6 +1361,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 214:
     simulate_vlans = true;
+    break;
+
+  case 221:
+    num_simulated_ips = atoi(optarg);
     break;
 
   case 215:

@@ -50,6 +50,15 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   now = time(NULL);
   now_tv.tv_sec = now;
 
+  if(unlikely(ntop->getPrefs()->get_num_simulated_ips())) {
+    u_int32_t num_sim_ips = ntop->getPrefs()->get_num_simulated_ips();
+    u_int32_t base_ip = 167772161; /* 10.0.0.1 */
+
+    zflow->src_ip.set(ntohl(base_ip + rand() % num_sim_ips));
+    zflow->dst_ip.set(ntohl(base_ip + rand() % num_sim_ips));
+    zflow->vlan_id = 0;
+  }
+
   if(discardProbingTraffic()) {
     if(isProbingFlow(zflow)) {
       discardedProbingStats.inc(zflow->pkt_sampling_rate * (zflow->in_pkts + zflow->out_pkts),
