@@ -426,8 +426,6 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 /* **************************************************** */
 
 bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
-  bool is_probing = false;
-
   switch(zflow->l4_proto) {
   case IPPROTO_TCP:
     {
@@ -437,9 +435,9 @@ bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
 
       /* A SYN only seen by the client is very likely a scan. Any established TCP connection involves at least
          an ACK from both parties as this is also part of the initial three-way-handshake. */
-      if(zflow->tcp.client_tcp_flags == TH_SYN
-	 || zflow->tcp.tcp_flags == TH_SYN)
-	is_probing = true;
+      if((zflow->tcp.client_tcp_flags & TCP_SCAN_MASK) == TH_SYN
+	 || (zflow->tcp.tcp_flags & TCP_SCAN_MASK) == TH_SYN)
+	return true;
 
       /* A client SYN+RST can be found when a scan finds the destination port OPEN. For example,
          using nmap, a scan which finds destination port 22 open involves the following 3 packets:
@@ -448,37 +446,36 @@ bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
          3. client immediately closes the connection with RST
 
          See: https://nmap.org/book/synscan.html */
-      if(zflow->tcp.client_tcp_flags == (TH_SYN | TH_RST)
-	 || zflow->tcp.tcp_flags == (TH_SYN | TH_RST))
-	is_probing = true;
+      if((zflow->tcp.client_tcp_flags & TCP_SCAN_MASK) == (TH_SYN | TH_RST)
+	 || (zflow->tcp.tcp_flags & TCP_SCAN_MASK) == (TH_SYN | TH_RST))
+	return true;
 
       /* A server RST+ACK can be found when a scan finds the destination port CLOSED. For example,
          using nmap, a scan which finds destination port 22 closed involves the following 2 packets:
          1. client sends SYN to server port 22
          2. server responds with SYN+RST because either its port is closed or is not willing to establish the connection */
-      if(zflow->tcp.server_tcp_flags == (TH_RST | TH_ACK)
-	 || zflow->tcp.tcp_flags == (TH_RST | TH_ACK))
-	is_probing = true;
+      if((zflow->tcp.server_tcp_flags & TCP_SCAN_MASK) == (TH_RST | TH_ACK)
+	 || (zflow->tcp.tcp_flags & TCP_SCAN_MASK) == (TH_RST | TH_ACK))
+	return true;
 
       /* When only a RST is seen from the server, it means no data has been exchanged and the server is not
          willing to communicate with the client which is very likely a scanner */
-      if(zflow->tcp.server_tcp_flags == TH_RST
-	 || zflow->tcp.tcp_flags == TH_RST)
-	is_probing = true;
+      if((zflow->tcp.server_tcp_flags & TCP_SCAN_MASK) == TH_RST
+	 || (zflow->tcp.tcp_flags &TCP_SCAN_MASK) == TH_RST)
+	return true;
     }
     break;
   case IPPROTO_UDP:
     {
       if(zflow->in_pkts + zflow->out_pkts <= 1)
-	is_probing = true;
+	return true;
     }
     break;
   default:
     break;
   }
 
-
-  return is_probing;
+  return false;
 }
 
 /* **************************************************** */

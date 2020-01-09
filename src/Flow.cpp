@@ -761,12 +761,15 @@ u_int64_t Flow::get_current_packets_srv2cli() const {
 /* ****************************************************** */
 
 char* Flow::printTCPflags(u_int8_t flags, char * const buf, u_int buf_len) {
-  snprintf(buf, buf_len, "%s%s%s%s%s",
+  snprintf(buf, buf_len, "%s%s%s%s%s%s%s%s",
 	   (flags & TH_SYN) ? " SYN" : "",
 	   (flags & TH_ACK) ? " ACK" : "",
 	   (flags & TH_FIN) ? " FIN" : "",
 	   (flags & TH_RST) ? " RST" : "",
-	   (flags & TH_PUSH) ? " PUSH" : "");
+	   (flags & TH_PUSH) ? " PUSH" : "",
+	   (flags & TH_URG) ? " URG" : "",
+	   (flags & TH_ECE) ? " ECE" : "",
+	   (flags & TH_CWR) ? " CWR" : "");
 
   if(buf[0] == ' ')
     return(&buf[1]);

@@ -377,6 +377,16 @@
 #ifndef TH_URG
 #define	TH_URG	0x20
 #endif
+#ifndef TH_ECE
+#define	TH_ECE	0x40
+#endif
+#ifndef TH_CWR
+#define	TH_CWR	0x80
+#endif
+
+/* Prepare a mask to only consider flags SYN-ACK-FIN-RST-PSH-URG as certain scanners
+   set higher bits such as ECE or CRW. For example we have seen scans with SYN set along with ECE and CWR */
+#define TCP_SCAN_MASK 0xFF & (TH_FIN | TH_SYN | TH_RST | TH_PUSH | TH_ACK | TH_URG)
 
 #define MAX_NUM_DB_SPINS            5 /* sec */
 
