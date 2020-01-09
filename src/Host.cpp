@@ -1265,6 +1265,21 @@ void Host::get_geocoordinates(float *latitude, float *longitude) {
 
 /* *************************************** */
 
+bool Host::isOneWayTraffic() const {
+  /* When both directions are at zero, it means no periodic update has visited the host yet,
+     so nothing can be said about its traffic directions. One way is only returned when 
+     exactly one direction is greater than zero. */
+  return stats->getNumBytes() && !(stats->getNumBytesRcvd() && stats->getNumBytesSent());
+};
+
+/* *************************************** */
+
+bool Host::isTwoWaysTraffic() const {
+  return stats->getNumBytesRcvd() && stats->getNumBytesSent();
+}
+
+/* *************************************** */
+
 DeviceProtoStatus Host::getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client) {
   if(getMac() && !getMac()->isSpecialMac()
 #ifdef HAVE_NEDGE

@@ -323,7 +323,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
   inline void reloadDhcpHost()    { is_dhcp_host = iface->isInDhcpRange(get_ip()); }
   inline bool isHiddenFromTop() { return hidden_from_top; }
-  inline bool isOneWayTraffic() { return !(stats->getNumBytesRcvd() > 0 && stats->getNumBytesSent() > 0); };
+  bool isOneWayTraffic()  const;
+  bool isTwoWaysTraffic() const;
   virtual void tsLua(lua_State* vm) { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
 
