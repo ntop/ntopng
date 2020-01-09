@@ -19,24 +19,11 @@ print [[
         <div class="container-fluid">
         <div class="row">
         <div class="col-xs-6 col-sm-4">]]
-print(info["product"])
 
 local iface_id = interface.name2id(ifname)
 
 interface.select(ifname)
 local _ifstats = interface.getStats()
-
-printntopngRelease(info)
-
-print(" v."..info["version"])
-
-print("</br> ") print(i18n("please_wait_page.user")) print(" ")
-print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="badge badge-primary">'.._SESSION["user"].. '</span></a> ' .. i18n("interface") .. ' <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="badge badge-primary" title="'..ifname..'">')
-
-local alias = getHumanReadableInterfaceName(ifname)
-print(alias)
-
-print('</span></a>')
 
 if have_nedge then
   print[[<form id="powerOffForm" method="post">
@@ -76,7 +63,7 @@ end
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    local do_show = false
 
-   print('<br><A HREF="https://shop.ntop.org"> <span class="badge badge-warning">')
+   print('<br><a href="https://shop.ntop.org"> <span class="badge badge-warning">')
    if(info["pro.release"]) then
       if(info["pro.demo_ends_at"] ~= nil) then
          local rest = info["pro.demo_ends_at"] - os.time()
@@ -88,7 +75,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       print(i18n("about.upgrade_to_professional"))
       do_show = true
    end
-   print('</span></A>')
+   print('</span></a>')
 
    if(info["pro.out_of_maintenance"] == true) then
       print('<span class="badge badge-error">') print(i18n("about.maintenance_expired", {product=info["product"]})) print('</span>')
@@ -99,7 +86,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    end
 end
 
-print [[</font>
+print [[
 
 </div> <!-- End column 1 -->
         <div class="col-xs-4 v col-sm-4">
@@ -130,38 +117,11 @@ if not interface.isPcapDumpInterface() and not have_nedge then
       maxSpeed = tonumber(maxSpeed)*1000000
    end
 
-   addGauge('networkload', ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..getInterfaceId(ifname).."&page=config", 100, 100, 50)
-   print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div> ]]
 
    print [[
         </div>
         <div>]]
 end -- closes interface.isPcapDumpInterface() == false
-
-if not interface.isPcapDumpInterface() then
-   if _ifstats.has_traffic_directions then
-      print [[  <a href="]]
-      print (ntop.getHttpPrefix())
-      print [[/lua/if_stats.lua">
-            <table style="border-collapse:collapse; !important">
-            <tr><td><i class="fas fa-arrow-up" title="]] print(i18n("iface_upload", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-upload-text"></td></tr>
-            <tr><td><i class="fas fa-arrow-down" title="]] print(i18n("iface_download", {iface=_ifstats.name})) print[["></i>&nbsp;</td><td class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-download-text"></td></tr>
-            </table>
-            </div>
-            <div class="col-xs-6 col-sm-4">
-            </a>]]
-   else
-      print [[  <a href="]]
-      print (ntop.getHttpPrefix())
-      print [[/lua/if_stats.lua">
-            <table style="border-collapse:collapse; !important">
-            <tr><td class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-total-text"></td></tr>
-            </table>
-            </div>
-            <div class="col-xs-6 col-sm-4">
-            </a>]]
-   end
-end
 
 print [[
       </div>
@@ -534,8 +494,8 @@ else
 end
 print[[
 </script>
+]]
 
-    </div> <!-- / header main container -->
-
+print[[
   </body>
 </html> ]]

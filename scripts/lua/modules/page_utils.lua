@@ -64,7 +64,6 @@ function page_utils.print_header(title)
   </head>
 <body>
 
-  <div class="container-narrow">
 ]]
 end
 
@@ -78,32 +77,32 @@ function page_utils.print_header_minimal(title)
     page_title = info.product .. " - " .. title
   end
 
-  print [[<!DOCTYPE html>
-<html>
-  <head>
-    <title>]] print(page_title) print[[</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
-    <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/fontawesome.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/brands.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/solid.css" rel="stylesheet">
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
-    <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
-    <script src="]] print(http_prefix) print[[/js/validator.js"></script>
-<style>
-.flag {
-	width: 16px;
-	height: 11px;
-	margin-top: -5px;
-	background:url(]] print(http_prefix) print[[/img/flags.png) no-repeat
-}
-</style>
-    <link href="]] print(http_prefix) print[[/css/ntopng.css" rel="stylesheet">
-  </head>
-<body>
+  print [[
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>]] print(page_title) print[[</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
+        <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/fontawesome.css" rel="stylesheet">
+        <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/brands.css" rel="stylesheet">
+        <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/solid.css" rel="stylesheet">
+        <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
+        <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
+        <script src="]] print(http_prefix) print[[/js/validator.js"></script>
+        <style>
+        .flag {
+          width: 16px;
+          height: 11px;
+          margin-top: -5px;
+          background:url(]] print(http_prefix) print[[/img/flags.png) no-repeat
+        }
+        </style>
+        <link href="]] print(http_prefix) print[[/css/ntopng.css" rel="stylesheet">
+      </head>
+      <body>
 
-  <div class="container-narrow">
 ]]
 end
 

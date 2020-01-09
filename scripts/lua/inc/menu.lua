@@ -15,9 +15,9 @@ local ts_utils = require("ts_utils_core")
 local is_admin = isAdministrator()
 
 print[[
-<script>
+<script type='text/javascript'>
    /* Some localization strings to pass from lua to javacript */
-   var i18n = {
+   let i18n = {
       "no_results_found": "]] print(i18n("no_results_found")) print[[",
       "change_number_of_rows": "]] print(i18n("change_number_of_rows")) print[[",
       "no_data_available": "]] print(i18n("no_data_available")) print[[",
@@ -27,7 +27,7 @@ print[[
       "exports": "]] print(i18n("system_stats.exports_label")) print[[",
    };
 
-   var http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
+   let http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
 </script>]]
 
 if ntop.isnEdge() then
@@ -49,12 +49,24 @@ end
 
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
-print("<div class=\"\" style=\"margin: 20px\">")
+print ([[
+      <div id='n-sidebar' class="bg-light active p-2">
 
-print [[
-      <div class="masthead">
-	<ul class="nav nav-pills float-right">
-   ]]
+         <h3 class='muted'>
+            <a href='/'>
+               ]].. addLogoSvg() ..[[
+               ]].. addSquaredLogo() .. [[   
+            </a>
+         </h3>
+
+         <button data-toggle='sidebar' class='btn float-right d-md-none d-lg-none d-xs-block d-sm-block'>
+            <i class='fas fa-times'></i>
+         </button>
+        
+         <script type="text/javascript" src="/js/sidebar.js"></script>
+
+	      <ul class="nav flex-column">
+]])
 
 
 
@@ -79,7 +91,7 @@ if not is_pcap_dump then
    end
 
    print [[
-	<i class="fas fa-tachometer-alt fa-lg"></i> <b class="caret"></b>
+	<i class="fas fa-tachometer-alt fa-lg"></i> Dashboard
       </a>
 
     <ul class="dropdown-menu">
@@ -117,57 +129,53 @@ end
 -- Alerts
 
 if ntop.getPrefs().are_alerts_enabled == true then
+
    local active = ""
-   local style = ""
+   local is_shown = not ifs["has_alerts"] and not alerts_api.hasEntitiesWithAlertsDisabled(ifId)
    local color = ""
 
    -- if alert_cache["num_alerts_engaged"] > 0 then
    -- color = 'style="color: #B94A48;"' -- bootstrap danger red
    -- end
 
-   if not ifs["has_alerts"] and not alerts_api.hasEntitiesWithAlertsDisabled(ifId) then
-      style = ' style="display: none;"'
-   end
+   print([[
+      <li class='nav-item ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
+         <a data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
+            <i class='fas  fa-exclamation-triangle'></i> <span class='title'>Alerts</span>
+         </a>
+         <div class='collapse' id='alerts-submenu'>
+            <ul class='nav flex-column'>
+               <li>
+                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/show_alerts.lua'>
+                     <i class="fas fa-exclamation-triangle" id="alerts-menu-triangle"></i> ]].. i18n("show_alerts.detected_alerts") ..[[
+                  </a>
+               </li>
+               ]]..
+               (function()
 
-   if active_page == "alerts" then
-      active = ' active'
-   end
-
-   -- local color = "#F0AD4E" -- bootstrap warning orange
-   print [[
-      <li class="nav-item dropdown]] print(active) print[[" id="alerts-id"]] print(style) print[[>
-      <a class="nav-link dropdown-toggle]] print(active) print[[" data-toggle="dropdown" href="#">
-	 <i class="fas fa-exclamation-triangle fa-lg "]] print(color) print[["></i> <b class="caret"></b>
-      </a>
-    <ul class="dropdown-menu">
-      <li class="nav-item">
-	<a class="dropdown-item"  href="]]
-   print(ntop.getHttpPrefix())
-   print [[/lua/show_alerts.lua">
-	  <i class="fas fa-exclamation-triangle" id="alerts-menu-triangle"></i> ]] print(i18n("show_alerts.detected_alerts")) print[[
-	</a>
+                  if ntop.isEnterprise() then
+                     return ([[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/enterprise/alerts_dashboard.lua'>
+                              ]].. i18n("alerts_dashboard.alerts_dashboard") ..[[
+                           </a>
+                        </li>
+                        <li class="dropdown-divider"></li>
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/enterprise/flow_alerts_explorer.lua'>
+                              ]].. i18n("flow_alerts_explorer.label") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+            </ul>
+         </div>
       </li>
-]]
-   if ntop.isEnterprise() then
-      print[[
-      <li class="nav-item">
-	<a class="dropdown-item" href="]]
-      print(ntop.getHttpPrefix())
-      print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fas fa-tachometer-alt"></i> ]] print(i18n("alerts_dashboard.alerts_dashboard")) print[[
-	</a>
-     </li>
-     <li class="dropdown-divider"></li>
-     <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix())
-      print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fas fa-history"></i> ]] print(i18n("flow_alerts_explorer.label")) print[[
-	</a>
-     </li>
-]]
-   end
-
-   print[[
-    </ul>
-  </li>
-   ]]
+   ]])
 end
 
 -- ##############################################
@@ -175,90 +183,188 @@ end
 
 url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
-if(active_page == "flows") then
-   print('<li class="nav-item active"><a class="nav-link active" href="'..url..'">') print(i18n("flows")) print('</a></li>')
-else
-   print('<li class="nav-item"><a class="nav-link" href="'..url..'">') print(i18n("flows")) print('</a></li>')
-end
+print([[
+   <li class='nav-item'>
+      <a class=']].. (active_page == 'flows' and 'active' or '') ..[[' href=']].. url ..[['>
+         <i class='fas fa-stream '></i> <span class='title'>]].. i18n("flows") ..[[</span>
+      </a>
+   </li> 
+]])
 
 -- ##############################################
 -- Hosts
 
 if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces, only for their view
-   if active_page == "hosts" then
-      print [[ <li class="nav-item dropdown active">
-      <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
-]]
-   else
-      print [[ <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
-]]
-   end
 
-   print(i18n("flows_page.hosts")) print[[ <b class="caret"></b>
-      </a>
-    <ul class="dropdown-menu">
-      <li class="nav-item"><a class="dropdown-item" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/hosts_stats.lua">]] print(i18n("flows_page.hosts")) print[[</a></li>
-      ]]
+   print([[
+      <li class='nav-item'>
+         <a data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
+            <i class='fas fa-server '></i> <span class='title'>]].. i18n("flows_page.hosts") ..[[</span>
+         </a>
+         <div class='collapse' id='hosts-submenu'>
+            <ul class='nav flex-column'>
+               <li>
+                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/hosts_stats.lua'>
+                     ]].. i18n("flows_page.hosts") ..[[
+                  </a>
+               </li>
+               ]].. 
+               (function()
+                  if ifs.has_macs then
+                     return ([[
+                        <li>
+                           <a href="]]..ntop.getHttpPrefix()..[[/lua/macs_stats.lua?devices_mode=source_macs_only">
+                              ]].. i18n("users.devices") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               <li>
+                  <a href="]].. ntop.getHttpPrefix() ..[[/lua/network_stats.lua">
+                     ]] .. i18n("networks") ..[[
+                  </a>
+               </li>
+               <li>
+                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/pool_stats.lua">
+                     ]].. i18n("host_pools.host_pools") ..[[
+                  </a>
+               </li>
+               <li>
+                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/as_stats.lua">
+                     ]].. i18n("prefs.toggle_asn_rrds_title") ..[[
+                  </a>
+               </li>
+               <li>
+                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/country_stats.lua">
+                     ]].. i18n("countries") ..[[
+                  </a>
+               </li>
+               <li>
+                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/os_stats.lua.lua">
+                     ]].. i18n("operating_systems") ..[[
+                  </a>
+               </li>
 
+               ]].. 
+               (function()
+                  if interface.hasVLANs() then
+                     return ([[
+                        <li>
+                           <a href="]]..ntop.getHttpPrefix()..[[/lua/vlan_stats.lua">
+                              ]].. i18n("vlan_stats.vlans") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               ]].. 
+               (function()
+                  if ifs.has_seen_pods then
+                     return ([[
+                        <li>
+                           <a href="]]..ntop.getHttpPrefix()..[[/lua/pods_stats.lua">
+                              ]].. i18n("containers_stats.pods") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               ]].. 
+               (function()
+                  if ifs.has_seen_containers then
+                     return ([[
+                        <li>
+                           <a href="]]..ntop.getHttpPrefix()..[[/lua/containers_stats.lua">
+                              ]].. i18n("containers_stats.containers") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               
+               <li class="dropdown-divider"></li>
+               
+               <li>
+                  <a href="]]..ntop.getHttpPrefix()..[[/lua/http_servers_stats.lua">
+                     ]].. i18n("http_servers_stats.http_servers") ..[[
+                  </a>
+               </li>
+               ]].. 
+               (function()
+                  if not is_pcap_dump then
+                     return ([[
+                        <li>
+                           <a href="]]..ntop.getHttpPrefix()..[[/lua/top_hosts.lua">
+                              ]].. i18n("processes_stats.top_hosts") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
 
-if ifs["has_macs"] == true then
-   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/macs_stats.lua?devices_mode=source_macs_only">') print(i18n("users.devices")) print('</a></li>')
-end
+               <li class="dropdown-divider"></li>
 
-print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">') print(i18n("networks")) print('</a></li>')
+               ]].. 
+               (function()
+                  if not interface.isLoopback() then
+                     return ([[
+                        <li>
+                           <a href="]]..ntop.getHttpPrefix()..[[/lua/hosts_geomap.lua">
+                              ]].. i18n("geo_map.geo_map") ..[[
+                           </a>
+                        </li>
+                        <li>
+                           <a href="]]..ntop.getHttpPrefix()..[[/lua/hosts_treemap.lua">
+                              ]].. i18n("tree_map.hosts_treemap") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               ]].. 
+               (function()
+                  if ntop.getPrefs().is_arp_matrix_generation_enabled then
+                     return ([[
+                        <li>
+                           <a href="]]..ntop.getHttpPrefix()..[[/lua/arp_matrix_graph.lua.lua">
+                              ]].. i18n("arp_top_talkers") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               <li>
+                  <a href="]].. ntop.getHttpPrefix() ..[[/lua/bubble.lua">
+                     </i> Host Explorer
+                  </a>
+               </li>
+            </ul>
+         </div>
+      </li> 
+   ]])
 
-print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">') print(i18n("host_pools.host_pools")) print('</a></li>')
-
-print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">') print(i18n("prefs.toggle_asn_rrds_title")) print('</a></li>')
-print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">') print(i18n("countries")) print('</a></li>')
-print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/os_stats.lua">') print(i18n("operating_systems")) print('</a></li>')
-
-if(interface.hasVLANs()) then
-   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">') print(i18n("vlan_stats.vlans")) print('</a></li>')
-end
-
-if ifs.has_seen_pods then
-   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pods_stats.lua">') print(i18n("containers_stats.pods")) print('</a></li>')
-end
-if ifs.has_seen_containers then
-   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/containers_stats.lua">') print(i18n("containers_stats.containers")) print('</a></li>')
-end
-
-print('<li class="dropdown-divider"></li>')
-print('<li class="dropdown-header">') print(i18n("local_traffic")) print('</li>')
-
-print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">') print(i18n("http_servers_stats.http_servers")) print('</a></li>')
-
-if not is_pcap_dump then
-   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fas fa-trophy"></i> ') print(i18n("processes_stats.top_hosts")) print('</a></li>')
-end
-
-print('<li class="dropdown-divider"></li>')
-
-if not interface.isLoopback() then
-   print [[
-	    <li class="nav-item"><a class="dropdown-item" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/hosts_geomap.lua"><i class="fas fa-map-marker"></i> ]] print(i18n("geo_map.geo_map")) print[[</a></li>]]
-
-   print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix())
-   print [[/lua/hosts_treemap.lua"><i class="fas fa-sitemap"></i> ]] print(i18n("tree_map.hosts_treemap")) print[[</a></li>]]
-end
-
-if(ntop.getPrefs().is_arp_matrix_generation_enabled) then
-   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/arp_matrix_graph.lua"><i class="fas fa-th-large"></i> ') print(i18n("arp_top_talkers")) print('</a></li>')
-end
-
-print [[
-      <li class="nav-item"><a class="dropdown-item" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/bubble.lua"><i class="fas fa-circle"></i> Host Explorer</a></li>
-   ]]
-
-print("</ul> </li>")
 
 end -- closes not ifs.isViewed
 
@@ -313,11 +419,13 @@ if(num_ifaces > 0) then
 
 url = ntop.getHttpPrefix().."/lua/if_stats.lua"
 
-if(active_page == "if_stats") then
-   print('<li class="nav-item active"><a class="nav-link active" href="'..url..'">') print(i18n("interface")) print('</a></li>')
-else
-   print('<li class="nav-item"><a class="nav-link" href="'..url..'">') print(i18n("interface")) print('</a></li>')
-end
+print([[
+   <li class='nav-item'>
+      <a class=']].. (active_page == 'if_stats' and 'active' or '') ..[[' href=']].. url ..[['>
+         <i class='fas fa-ethernet '></i> <span class='title'>]].. i18n("interface") ..[[</span>
+      </a>
+   </li> 
+]])
 
 -- ##############################################
 -- System
@@ -376,7 +484,7 @@ else
 end
 
 print [[
-	<i class="fas fa-cog fa-lg"></i> <b class="caret"></b>
+	<i class="fas fa-cog fa-lg"></i> Settings
       </a>
     <ul class="dropdown-menu">]]
 
@@ -545,16 +653,96 @@ print[[
     </ul>
   </li>]]
 
+end -- num_ifaces > 0
+
+
+-- CLOSE NEW SIDEBAR
+
+print([[
+   </ul>
+   
+   <div class='sidebar-info'>
+      <small>
+         ]].. info.product .. ' ' .. getNtopngRelease() ..[[ Edition v.]].. info.version ..[[
+      </small>
+   </div>
+
+   </div>
+]])
+
+
+-- select the original interface back to prevent possible issues
+interface.select(ifname)
+
+if(dirs.workingdir == "/var/tmp/ntopng") then
+   print('<br><div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
+   print(i18n("about.datadir_warning"))
+   print('</a></div>')
+end
+
+local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifs.id)) == "1")
+
+if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet_interface) then
+   if(not lbd_serialize_by_mac) then
+      if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
+	 print('<br><div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+	 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+	 print(i18n("about.host_identifier_warning", {name=i18n("prefs.toggle_host_tskey_title"), url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"}))
+	 print('</a></div>')
+      end
+   elseif isEmptyString(_POST["dhcp_ranges"]) then
+      local dhcp_utils = require("dhcp_utils")
+      local ranges = dhcp_utils.listRanges(ifs.id)
+
+      if(table.empty(ranges)) then
+	 print('<br><div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+	 print(i18n("about.dhcp_range_missing_warning", {
+	    name = i18n("prefs.toggle_host_tskey_title"),
+	    url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
+	    dhcp_url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=dhcp"}))
+	 print('</a></div>')
+      end
+   end
+end
+
+-- Hidden by default, will be shown by the footer if necessary
+print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
+print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+print('</div>')
+
+-- Hidden by default, will be shown by the footer if necessary
+print('<div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
+print('</div>')
+
+if(_SESSION["INVALID_CSRF"]) then
+  print('<div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+  print(i18n("expired_csrf"))
+  print('</div>')
+end
+
+------ NEW SIDEBAR ------
+
+
+
+print("<div class='p-md-4 p-xs-1 p-sm-2' id='n-container'>")
+
+print([[
+   <nav class="navbar justify-content-start navbar-light">
+      <button data-toggle='sidebar' class='btn'>
+         <i class='fas fa-bars'></i>
+      </button>
+      <div class='dropdown mr-2'>
+         <a class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" href="#">
+            { ]] .. (getHumanReadableInterfaceName(ifname)) .. [[ }
+         </a>
+         <ul class='dropdown-menu'>
+]])
+       
 -- ##############################################
 -- Interfaces Selector
-
-print [[ <li class="nav-item dropdown"> ]]
-
-print [[
-      <a class="nav-link dropdown-toggle " data-toggle="dropdown" href="#"> { ]] print(getHumanReadableInterfaceName(ifname)) print[[ }<b class="caret"></b>
-      </a>
-      <ul class="dropdown-menu">
-]]
 
 local views = {}
 local drops = {}
@@ -653,33 +841,91 @@ for round = 1, 2 do
    end
 end
 
-print [[
 
-      </ul>
-    </li>
-]]
-end -- num_ifaces > 0
+print([[
+         </ul>
+         </div>
+         
+]])
 
-print("<li><span style=\"margin: 26px\"></span></li>")
+-- append searchbox
+
+print(
+  template.gen("typeahead_input.html", {
+    typeahead={
+      base_id     = "host_search",
+      action      = "", -- see makeFindHostBeforeSubmitCallback
+      json_key    = "ip",
+      query_field = "host",
+      class       = "typeahead-dropdown-right",
+      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
+      query_title = i18n("search_host"),
+      style       = "width: 16em;",
+      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
+      max_items   = "'all'" --[[ let source script decide ]],
+    }
+  })
+)
+
+-- ##############################################
+-- Up/Down info
+if not interface.isPcapDumpInterface() then
+
+   print([[
+      <div class='info-stats'>
+         ]].. 
+         (function()
+            
+            local _ifstats = interface.getStats()
+
+            if _ifstats.has_traffic_directions then
+               return ([[
+                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
+                     <div class='up'>
+                        <i class="fas fa-arrow-up"></i>
+                        <span class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                        <span class="text-right" id="chart-upload-text"></span>
+                     </div>
+                     <div class='down'>
+                        <i class="fas fa-arrow-down"></i>
+                        <span class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                        <span class="text-right" id="chart-download-text"></span>
+                     </div>
+                  </a>
+               ]])
+            else
+               return ([[
+                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
+                     <span class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                     <span class="text-right" id="chart-total-text"></span>
+                  </a>
+               ]])
+            end
+
+         end)() ..[[
+      </div>
+   ]])
+
+end
 
 
 -- ##############################################
 -- Info
 
 if active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories" then
-   print [[ <li class="nav-item dropdown active">
-	    <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
+   print [[ <div class="dropdown ml-auto">
+	    <a class="dark-gray nav-link dropdown-toggle" data-toggle="dropdown" href="#">
 ]]
 else
-   print [[ <li class="nav-item dropdown">
-	    <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
+   print [[ <div class="dropdown ml-auto">
+	    <a class="dark-gray nav-link dropdown-toggle" data data-toggle="dropdown" href="#">
 ]]
 end
 
 print [[
-	<i class="fas fa-life-ring fa-lg"></i> <b class="caret"></b>
+	   <i class="fas fa-life-ring fa-lg"></i>
       </a>
-    <ul class="dropdown-menu">
+    <ul class="dropdown-menu dropdown-menu-right">
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fas fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
       <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fas fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
       <li class="nav-item"><a class="dropdown-item" href="http://blog.ntop.org/" target="_blank"><i class="fas fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fas fa-external-link-alt"></i></a></li>
@@ -697,141 +943,74 @@ print [[
 
 print [[
 </ul>
+</div>
 ]]
 
--- ##############################################
--- Search
+-- add logout button
 
-print("<li>")
-print(
-  template.gen("typeahead_input.html", {
-    typeahead={
-      base_id     = "host_search",
-      action      = "", -- see makeFindHostBeforeSubmitCallback
-      json_key    = "ip",
-      query_field = "host",
-      class       = "typeahead-dropdown-right",
-      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
-      query_title = i18n("search_host"),
-      style       = "width:16em;",
-      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
-      max_items   = "'all'" --[[ let source script decide ]],
-    }
-  })
-)
-print("</li>")
+print([[
 
--- ##############################################
--- Logout / Restart
-
-print [[ <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-power-off fa-lg"></i> <b class="caret"></b></a>
-  <ul class="dropdown-menu dropdown-menu-right float-right">]]
-
+   <div class="dropdown">
+      <a href='#' class="nav-link dropdown-toggle dark-gray" data-toggle="dropdown">
+         <i class='fas fa-user'></i> ]].. _SESSION["user"] ..[[
+      </a>
+      <ul class="dropdown-menu dropdown-menu-right">
+         <a class='dropdown-item' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua'>
+            Web Users
+         </a>
+      
+      ]])
 -- Logout
 
 if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
-  print[[
-
-<li class="nav-item"><a class="dropdown-item" href="]]
-  print(ntop.getHttpPrefix())
-  print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"> <i class="fas fa-sign-out-alt fa-lg"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
-end
-
+   print[[
+ 
+ <li class="nav-item">
+   <a class="dropdown-item" href="]]
+   print(ntop.getHttpPrefix())
+   print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"><i class="fas fa-sign-out-alt fa-lg"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
+ end
+ 
 if(not is_admin) then
-  dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
+   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
-
--- Restart
+ 
+ -- Restart
 if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
-  print [[
-      <li class="dropdown-divider"></li>
-      <li class="nav-item"><a class="dropdown-item" id="restart-service-li" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
-  ]]
-
-print[[
-<script>
-  var restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
-  var restartService = function() {
-    if (confirm(']] print(i18n("restart.confirm")) print[[')) {
-      $.ajax({
-        type: 'POST',
-        url: ']] print (ntop.getHttpPrefix()) print [[/lua/admin/service_restart.lua',
-        data: {
-          csrf: restart_csrf
-        },
-        success: function(rsp) {
-          restart_csrf = rsp.csrf;
-          alert("]] print(i18n("restart.restarting")) print[[");
-        }
-      });
-    }
-  }
-  $('#restart-service-li').click(restartService);
-</script>
-]]
+   print [[
+       <li class="dropdown-divider"></li>
+       <li class="nav-item"><a class="dropdown-item" id="restart-service-li" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
+   ]]
+ 
+ print[[
+  <script>
+   let restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
+   let restartService = function() {
+     if (confirm(']] print(i18n("restart.confirm")) print[[')) {
+       $.ajax({
+         type: 'POST',
+         url: ']] print (ntop.getHttpPrefix()) print [[/lua/admin/service_restart.lua',
+         data: {
+           csrf: restart_csrf
+         },
+         success: function(rsp) {
+           restart_csrf = rsp.csrf;
+           alert("]] print(i18n("restart.restarting")) print[[");
+         }
+       });
+     }
+   }
+   $('#restart-service-li').click(restartService);
+ </script>
+ ]]
 end
+ 
+print([[
+      </ul>
+   </div>
+   
+   </nav>
+]])
 
-print[[
-    </ul>
-  </li>]]
-
-print("</ul>\n<h3 class=\"muted\"><A href=\""..ntop.getHttpPrefix().."/\">")
-
-addLogoSvg()
-
-print("</A></h3>\n</div>\n")
-
--- select the original interface back to prevent possible issues
-interface.select(ifname)
-
-if(dirs.workingdir == "/var/tmp/ntopng") then
-   print('<br><div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
-   print(i18n("about.datadir_warning"))
-   print('</a></div>')
-end
-
-local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifs.id)) == "1")
-
-if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet_interface) then
-   if(not lbd_serialize_by_mac) then
-      if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
-	 print('<br><div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-	 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-	 print(i18n("about.host_identifier_warning", {name=i18n("prefs.toggle_host_tskey_title"), url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"}))
-	 print('</a></div>')
-      end
-   elseif isEmptyString(_POST["dhcp_ranges"]) then
-      local dhcp_utils = require("dhcp_utils")
-      local ranges = dhcp_utils.listRanges(ifs.id)
-
-      if(table.empty(ranges)) then
-	 print('<br><div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-	 print(i18n("about.dhcp_range_missing_warning", {
-	    name = i18n("prefs.toggle_host_tskey_title"),
-	    url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
-	    dhcp_url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=dhcp"}))
-	 print('</a></div>')
-      end
-   end
-end
-
--- Hidden by default, will be shown by the footer if necessary
-print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
-print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-print('</div>')
-
--- Hidden by default, will be shown by the footer if necessary
-print('<div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
-print('</div>')
-
-if(_SESSION["INVALID_CSRF"]) then
-  print('<div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-  print(i18n("expired_csrf"))
-  print('</div>')
-end
 
 telemetry_utils.show_notice()
