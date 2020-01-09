@@ -786,7 +786,7 @@ print("</A></h3>\n</div>\n")
 interface.select(ifname)
 
 if(dirs.workingdir == "/var/tmp/ntopng") then
-   print('<br><div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
+   print('<div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
    print(i18n("about.datadir_warning"))
    print('</a></div>')
 end
@@ -796,7 +796,7 @@ local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPre
 if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet_interface) then
    if(not lbd_serialize_by_mac) then
       if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
-	 print('<br><div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+	 print('<div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
 	 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
 	 print(i18n("about.host_identifier_warning", {name=i18n("prefs.toggle_host_tskey_title"), url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"}))
 	 print('</a></div>')
@@ -806,7 +806,7 @@ if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet
       local ranges = dhcp_utils.listRanges(ifs.id)
 
       if(table.empty(ranges)) then
-	 print('<br><div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+	 print('<div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
 	 print(i18n("about.dhcp_range_missing_warning", {
 	    name = i18n("prefs.toggle_host_tskey_title"),
 	    url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
