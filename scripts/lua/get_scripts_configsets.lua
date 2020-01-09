@@ -18,7 +18,6 @@ if(subdir == nil) then
 end
 
 local target_type = user_scripts.getSubdirTargetType(subdir)
-
 local config_sets = user_scripts.getConfigsets()
 local rv = {}
 
