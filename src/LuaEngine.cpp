@@ -328,6 +328,10 @@ static inline bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
 // ***API***
 static int ntop_get_interface_names(lua_State* vm) {
   char *allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
+  bool exclude_viewed_interfaces = false;
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    exclude_viewed_interfaces = lua_toboolean(vm, 1) ? true : false;
 
   lua_newtable(vm);
 
@@ -344,7 +348,8 @@ static int ntop_get_interface_names(lua_State* vm) {
     if((iface = ntop->getInterface(i)) != NULL) {
       char num[8], *ifname = iface->get_name();
 
-      if(matches_allowed_ifname(allowed_ifname, ifname))	{
+      if(matches_allowed_ifname(allowed_ifname, ifname)
+	 && (!exclude_viewed_interfaces || !iface->isViewed()))	{
 	ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name [%d][%s]", i, ifname);
 	snprintf(num, sizeof(num), "%d", iface->get_id());
 	lua_push_str_table_entry(vm, num, ifname);
