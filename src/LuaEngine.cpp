@@ -8925,7 +8925,7 @@ static int ntop_flow_get_icmp_status_info(lua_State* vm) {
 
   if(!f) return(CONST_LUA_ERROR);
 
-  if(f->getICMPInfo()) {
+  if(f->isICMP()) {
     u_int8_t icmp_type, icmp_code;
 
     f->getICMP(&icmp_type, &icmp_code);
