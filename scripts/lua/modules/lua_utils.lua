@@ -2386,17 +2386,26 @@ function printTCPFlags(flags)
    if(hasbit(flags,0x08)) then print('<span class="badge badge-info">PUSH</span> ') end
    if(hasbit(flags,0x10)) then print('<span class="badge badge-info">ACK</span> ')  end
    if(hasbit(flags,0x20)) then print('<span class="badge badge-info">URG</span> ')  end
+   if(hasbit(flags,0x40)) then print('<span class="badge badge-info">ECE</span> ')  end
+   if(hasbit(flags,0x80)) then print('<span class="badge badge-info">CWR</span> ')  end
 end
 
 -- convert the integer carrying TCP flags in a more convenient lua table
 function TCPFlags2table(flags)
-   local res = {["FIN"] = 0, ["SYN"] = 0, ["RST"] = 0, ["PSH"] = 0, ["ACK"] = 0, ["URG"] = 0}
+   local res = {
+      ["FIN"] = 0, ["SYN"] = 0, ["RST"] = 0,
+      ["PSH"] = 0, ["ACK"] = 0, ["URG"] = 0,
+      ["ECE"] = 0, ["CWR"] = 0,
+   }
+
    if(hasbit(flags,0x01)) then res["FIN"] = 1 end
    if(hasbit(flags,0x02)) then res["SYN"] = 1 end
    if(hasbit(flags,0x04)) then res["RST"] = 1 end
    if(hasbit(flags,0x08)) then res["PSH"] = 1 end
    if(hasbit(flags,0x10)) then res["ACK"] = 1 end
    if(hasbit(flags,0x20)) then res["URG"] = 1 end
+   if(hasbit(flags,0x40)) then res["ECE"] = 1 end
+   if(hasbit(flags,0x80)) then res["CWR"] = 1 end
    return res
 end
 
