@@ -2348,7 +2348,7 @@ local function notify_ntopng_status(started)
    local info = ntop.getInfo()
    local severity = alertSeverity("info")
    local msg
-   local msg_details = string.format("%s v.%s (%s) [pid: %s][options: %s]", info.product, info.version, info.OS, info.pid, info.command_line)
+   local msg_details = string.format("%s v.%s (%s) [OS: %s][pid: %s][options: %s]", info.product, info.version, info.revision, info.OS, info.pid, info.command_line)
    local anomalous = false
    local event
    
