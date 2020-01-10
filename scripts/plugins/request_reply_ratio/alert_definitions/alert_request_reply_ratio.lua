@@ -40,5 +40,5 @@ return {
   alert_id = 44,
   i18n_title = "entity_thresholds.request_reply_ratio_title",
   i18n_description = requestReplyRatioFormatter,
-  icon = "fa-exclamation",
+  icon = "fas fa-exclamation",
 }

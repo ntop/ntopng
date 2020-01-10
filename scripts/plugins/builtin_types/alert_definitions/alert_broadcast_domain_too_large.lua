@@ -21,5 +21,5 @@ return {
   alert_id = 34,
   i18n_title = "alerts_dashboard.broadcast_domain_too_large",
   i18n_description = formatBroadcastDomainAlert,
-  icon = "fa-sitemap",
+  icon = "fas fa-sitemap",
 }

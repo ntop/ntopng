@@ -86,7 +86,7 @@ function alertTypeLabel(v, nohtml)
       if(nohtml) then
         return(title)
       else
-        return(string.format('<i class="fas %s"></i> %s', type_info.icon, title))
+        return(string.format('<i class="%s"></i> %s', type_info.icon, title))
       end
    end
 

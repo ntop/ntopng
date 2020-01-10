@@ -9375,12 +9375,42 @@ static int ntop_flow_get_proto_breed(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_has_malicious_tls_sign(lua_State* vm) {
+static int ntop_flow_has_malicious_tls_signature(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
 
   lua_pushboolean(vm, f->hasMaliciousSignature());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_client_country(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  if(!f->get_cli_host() || !f->get_cli_host()->getCountryStats())
+    lua_pushnil(vm);
+  else
+    lua_pushstring(vm, f->get_cli_host()->getCountryStats()->get_country_name());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_server_country(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  if(!f->get_srv_host() || !f->get_srv_host()->getCountryStats())
+    lua_pushnil(vm);
+  else
+    lua_pushstring(vm, f->get_srv_host()->getCountryStats()->get_country_name());
+
   return(CONST_LUA_OK);
 }
 
@@ -11264,7 +11294,9 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "dnsQueryHasInvalidChars",  ntop_flow_dns_query_invalid_chars    },
   { "getDnsQuery",              ntop_flow_get_dns_query              },
   { "getProtoBreed",            ntop_flow_get_proto_breed            },
-  { "hasMaliciousTlsSignature", ntop_flow_has_malicious_tls_sign     },
+  { "hasMaliciousTlsSignature", ntop_flow_has_malicious_tls_signature },
+  { "getClientCountry",         ntop_flow_get_client_country         },
+  { "getServerCountry",         ntop_flow_get_server_country         },
 
   /* TODO document */
   { "isLocal",                  ntop_flow_is_local                   },
