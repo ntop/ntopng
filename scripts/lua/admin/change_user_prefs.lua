@@ -12,6 +12,7 @@ local username  = _POST["username"]
 local host_role = _POST["user_role"]
 local networks  = _POST["allowed_networks"]
 local allowed_interface = _POST["allowed_interface"]
+local allow_pcap_download = _POST["allow_pcap_download"]
 local language  = _POST["user_language"]
 
 -- for captive portal users
@@ -50,11 +51,13 @@ if(networks ~= nil) then
   end
 end
 
-if(allowed_interface ~= nil) then
-   if(not ntop.changeAllowedIfname(username, getInterfaceName(allowed_interface))) then
-      print ("{ \"result\" : -1, \"message\" : \"Error in changing the allowed interface\" }")
-      return
-   end
+local allow_pcap_download_enabled = false
+if allow_pcap_download and allow_pcap_download == "1" then
+  allow_pcap_download_enabled = true;
+end
+if(not ntop.changeUserPermission(username, allow_pcap_download_enabled)) then
+   print ("{ \"result\" : -1, \"message\" : \"Error in changing user permission\" }")
+   return
 end
 
 if(language ~= nil) then

@@ -1064,6 +1064,7 @@ local known_parameters = {
    ["select_keys_clause"]      = validateUnquoted,
    ["select_values_clause"]    = validateUnquoted,
    ["approx_search"]           = validateBool,
+
    ["where_clause"]            = { whereCleanup, validateUnquoted },
    ["where_clause_unck"]       = { whereCleanup, validateUnchecked },
    ["begin_time_clause"]       = validateUnquoted,
@@ -1100,6 +1101,7 @@ local known_parameters = {
    ["confirm_password"]        = { passwordCleanup, validatePassword },              -- Confirm user password
    ["user_role"]               = validateUserRole,              -- User role
    ["user_language"]           = validateUserLanguage,          -- User language
+   ["allow_pcap_download"]     = validateEmptyOr(validateBool),
 
 -- NDPI
    ["application"]             = validateApplication,           -- An nDPI application protocol name

@@ -966,6 +966,10 @@ void Ntop::getUsers(lua_State* vm) {
     else
       lua_push_str_table_entry(vm, "language", (char*)"");
 
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_ALLOW_PCAP, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
+      lua_push_bool_table_entry(vm, "allow_pcap_download", true);
+
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_NETS, username);
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, CONST_ALLOWED_NETS, val);
@@ -1692,14 +1696,35 @@ bool Ntop::changeUserLanguage(const char * const username, const char * const la
   char key[64];
   snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
 
-  if(language != NULL && language[0] != '\0') {
+  if(language != NULL && language[0] != '\0')
     return (ntop->getRedis()->set(key, (char*)language, 0) >= 0);
-  } else {
+  else
     ntop->getRedis()->del(key);
-  }
 
   return(true);
 }
+
+/* ******************************************* */
+
+bool Ntop::changeUserPermission(const char * const username, bool allow_pcap_download) const {
+  if (username == NULL || username[0] == '\0')
+    return false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Changing user permission [allow-pcap-download: %s] for %s",
+			       allow_pcap_download ? "true" : "false", username);
+
+  char key[64];
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, username);
+
+  if(allow_pcap_download)
+    return (ntop->getRedis()->set(key, "1", 0) >= 0);
+  else
+    ntop->getRedis()->del(key);
+
+  return(true);
+}
+
 /* ******************************************* */
 
 bool Ntop::existsUser(const char * const username) const {
@@ -1716,7 +1741,7 @@ bool Ntop::existsUser(const char * const username) const {
 
 bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
 		   char *allowed_networks, char *allowed_ifname, char *host_pool_id,
-		   char *language) {
+		   char *language, bool allow_pcap_download) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
 
@@ -1739,6 +1764,11 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
   if(language && language[0] != '\0') {
     snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
     ntop->getRedis()->set(key, language, 0);
+  }
+
+  if(allow_pcap_download) {
+    snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, username);
+    ntop->getRedis()->set(key, "1", 0);
   }
 
   if(allowed_ifname && allowed_ifname[0] != '\0'){
@@ -1841,6 +1871,9 @@ bool Ntop::deleteUser(char *username) {
   ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, username);
   ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);

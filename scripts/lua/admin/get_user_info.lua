@@ -48,6 +48,9 @@ if(haveAdminPrivileges()) then
 	    end
 	 end
 	 print(' "language": "'..value["language"]..'",\n')
+         if value["allow_pcap_download"] then
+           print(' "allow_pcap_download": true,\n')
+         end
 
 	 print(' "username": "'..key..'",\n')
 	 print(' "password": "'..value["password"]..'",\n')

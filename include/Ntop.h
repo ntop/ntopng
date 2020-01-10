@@ -388,10 +388,11 @@ class Ntop {
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
   bool changeUserHostPool(const char * const username, const char * const host_pool_id) const;
   bool changeUserLanguage(const char * const username, const char * const language) const;
+  bool changeUserPermission(const char * const username, bool allow_pcap_download) const;
   bool existsUser(const char * const username) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
-	       char *language);
+	       char *language, bool allow_pcap_download);
   bool addUserLifetime(const char * const username, u_int32_t lifetime_secs); /* Captive portal users may expire */
   bool clearUserLifetime(const char * const username);
   bool isCaptivePortalUser(const char * const username);
