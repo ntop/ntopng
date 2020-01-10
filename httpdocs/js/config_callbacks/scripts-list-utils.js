@@ -120,7 +120,7 @@ $(document).ready(function() {
 
                 return data;
              },
-             className: 'w-25',
+             width: '15%'
           },
           { 
              data: 'description',
@@ -140,6 +140,7 @@ $(document).ready(function() {
                return data;
 
              },
+             width: '35%'
           },
           {
              data: 'enabled_hooks',
@@ -154,7 +155,9 @@ $(document).ready(function() {
                  return true;
               }
 
-              return data.join(', ');
+              return data.map(enabled_hook => {
+                  return row.all_hooks.find( (current) => current.key === enabled_hook ).label
+              }).join(', ');
              },
              createdCell: function(td, cellData, row, rowIndex, col) {
                 
@@ -177,7 +180,7 @@ $(document).ready(function() {
                     const $this = $(this); const value = $this.val();
                     const hooks = row.all_hooks; const data = {};
 
-                    hooks.forEach(d => data[d] = { enabled: (value == "true")})
+                    hooks.forEach(d => data[d.key] = { enabled: (value == "true")})
 
                     // hide alert
                     $("#alert-row-buttons").hide();
@@ -222,7 +225,8 @@ $(document).ready(function() {
 
               }
 
-             }
+             },
+             width: '25%'
           },
           {
              targets: -1,
@@ -252,7 +256,8 @@ $(document).ready(function() {
                    </div>
                 `;
              },
-             sortable: false
+             sortable: false,
+             width: '10%'
           }
        ]
    });
