@@ -653,7 +653,6 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       ["vlan"] = record["vlan_id"]}
 
    flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds, host_page) or "").."] "
-
    local l4_proto_label = l4_proto_to_string(record["proto"] or 0) or ""
 
    if not isEmptyString(l4_proto_label) then
@@ -2138,7 +2137,6 @@ function formatAlertMessage(ifid, alert)
     msg = formatRawFlow(alert, alert["alert_json"])
   else
     msg = alert["alert_json"]
-
     if isEmptyString(msg) then
       msg = {}
     elseif(string.sub(msg, 1, 1) == "{") then

@@ -1092,6 +1092,7 @@ function hostVisualization(ip, name, vlan)
         name = name.."@"..vlan
       end
    end
+
    return name
 end
 
@@ -1356,14 +1357,12 @@ function host2name(name, vlan)
    name = getHostAltName(name)
 
    if(name == orig_name) then
-      rname = getResolvedAddress({host=name, vlan=vlan})
+      local rname = getResolvedAddress({host=name, vlan=vlan})
 
       if((rname ~= nil) and (rname ~= "")) then
 	 name = rname
       end
-   end
-
-   if(vlan > 0) then
+   elseif(vlan > 0) then
       name = name .. '@' .. vlan
    end
 

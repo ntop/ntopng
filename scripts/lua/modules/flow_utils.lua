@@ -1202,7 +1202,7 @@ function getRTPTableRows(info)
       if isFlowValueDefined(info, "RTP_IN_MOS") then		 
 	 local rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")
 	 local rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")
-tprint(rtp_in_mos)
+
 	 if(rtp_in_mos == nil or rtp_in_mos == "") and (rtp_out_mos == nil or rtp_out_mos == "") then
 	    quality_mos_hide = "style=\"display: none;\""
 	 else
