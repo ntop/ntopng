@@ -86,6 +86,7 @@ class NetworkStats : public AlertableEntity, public GenericTrafficElement {
   inline u_int32_t getNumHosts() const { return numHosts; };
 
   void setNetworkId(u_int8_t id);
+  bool match(const AddressTree * const tree) const;
   void lua(lua_State* vm);
   bool serialize(json_object *my_object);
   void deserialize(json_object *obj);

@@ -3069,7 +3069,7 @@ static int ntop_get_interface_networks_stats(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(ntop_interface)
-    ntop_interface->getNetworksStats(vm);
+    ntop_interface->getNetworksStats(vm, get_allowed_nets(vm));
   else
     lua_pushnil(vm);
 
@@ -3091,7 +3091,7 @@ static int ntop_get_interface_network_stats(lua_State* vm) {
 
   if(ntop_interface) {
     lua_newtable(vm);
-    ntop_interface->getNetworkStats(vm, network_id);
+    ntop_interface->getNetworkStats(vm, network_id, get_allowed_nets(vm));
   } else
     lua_pushnil(vm);
 

@@ -579,7 +579,7 @@ bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id, u_int8_t 
 
 void Ntop::getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix) {
   char *network_address, *slash;
-  *network_ip = new IpAddress();
+  *network_ip = new (std::nothrow) IpAddress();
   *network_prefix = 0;
 
   if (local_network_id >= 0)
