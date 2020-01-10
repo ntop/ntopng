@@ -4828,10 +4828,12 @@ void NetworkInterface::getFlowsStats(lua_State* vm) {
 
 /* **************************************************** */
 
-void NetworkInterface::getNetworkStats(lua_State* vm, u_int8_t network_id) const {
+void NetworkInterface::getNetworkStats(lua_State* vm, u_int16_t network_id, AddressTree *allowed_hosts) const {
   NetworkStats *network_stats;
 
-  if((network_stats = getNetworkStats(network_id)) && network_stats->trafficSeen()) {
+  if((network_stats = getNetworkStats(network_id))
+     && network_stats->trafficSeen()
+     && network_stats->match(allowed_hosts)) {
     lua_newtable(vm);
 
     network_stats->lua(vm);
@@ -4845,13 +4847,13 @@ void NetworkInterface::getNetworkStats(lua_State* vm, u_int8_t network_id) const
 
 /* **************************************************** */
 
-void NetworkInterface::getNetworksStats(lua_State* vm) const {
+void NetworkInterface::getNetworksStats(lua_State* vm, AddressTree *allowed_hosts) const {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
   lua_newtable(vm);
 
   for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++)
-    getNetworkStats(vm, network_id);
+    getNetworkStats(vm, network_id, allowed_hosts);
 }
 
 /* **************************************************** */

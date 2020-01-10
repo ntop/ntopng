@@ -33,6 +33,31 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : Aler
 
 /* *************************************** */
 
+bool NetworkStats::match(const AddressTree * const tree) const {
+  IpAddress *network_address = NULL;
+  u_int8_t network_prefix;
+  bool res = true;
+
+  if(!tree)
+    return res;
+
+  ntop->getLocalNetworkIp(network_id, &network_address, &network_prefix);
+
+  if(network_address) {
+#if 0
+    char buf[64];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to match %s", network_address->print(buf, sizeof(buf)));
+#endif
+
+    res = tree->match(network_address, network_prefix);
+    delete network_address;
+  }
+
+  return res;
+}
+
+/* *************************************** */
+
 void NetworkStats::lua(lua_State* vm) {
   int hits;
 

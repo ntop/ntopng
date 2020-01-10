@@ -16,7 +16,7 @@ local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-active_page = "scripts_list"
+active_page = "admin"
 
 -- get config parameters like the id and name
 local script_subdir = _GET["subdir"]

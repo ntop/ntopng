@@ -543,8 +543,8 @@ class NetworkInterface : public AlertableEntity {
 			   u_int8_t location_filter);
   int getMacsIpAddresses(lua_State *vm, int idx);
   void getFlowsStats(lua_State* vm);
-  void getNetworkStats(lua_State* vm, u_int8_t network_id) const;
-  void getNetworksStats(lua_State* vm) const;
+  void getNetworkStats(lua_State* vm, u_int16_t network_id, AddressTree *allowed_hosts) const;
+  void getNetworksStats(lua_State* vm, AddressTree *allowed_hosts) const;
   int getFlows(lua_State* vm,
 	       u_int32_t *begin_slot,
 	       bool walk_all,

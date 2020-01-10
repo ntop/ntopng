@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
+local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 
 local dirs = ntop.getDirs()
@@ -55,11 +56,22 @@ for script_name, script in pairs(scripts.modules) do
     local edit_url = nil
 
     for hook, conf in pairs(hooks) do
+      local label
+
       if(conf.enabled) then
         enabled_hooks[#enabled_hooks + 1] = hook
       end
 
-      all_hooks[#all_hooks + 1] = hook
+      local granularity_info = alert_consts.alerts_granularities[hook]
+
+      if(granularity_info) then
+        label = i18n(granularity_info.i18n_title)
+      end
+
+      all_hooks[#all_hooks + 1] = {
+        key = hook,
+        label = label,
+      }
     end
 
     if(script.edition == "community") then
