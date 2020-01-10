@@ -958,26 +958,32 @@ else
    end
 
    -- ######################################
-   
+
    local icmp = flow["icmp"]
 
    if(icmp ~= nil) then
       local icmp_utils = require "icmp_utils"
       local icmp_label = icmp_utils.get_icmp_label(ternary(isIPv4(flow["cli.ip"]), 4, 6), flow["icmp"]["type"], flow["icmp"]["code"])
-      icmp_label = icmp_label..string.format(" (<b>%s</b>: %u <b>%s</b>: %u)", i18n("icmp_page.icmp_type"), flow["icmp"]["type"], i18n("icmp_page.icmp_code"), flow["icmp"]["code"])
+      icmp_label = icmp_label..string.format(" [%s: %u %s: %u]", i18n("icmp_page.icmp_type"), flow["icmp"]["type"], i18n("icmp_page.icmp_code"), flow["icmp"]["code"])
 
       print("<tr><th width=30%>"..i18n("flow_details.icmp_info").."</th><td colspan=2>"..icmp_label)
 
       if icmp["unreach"] then
 	 local unreachable_flow = interface.findFlowByTuple(flow["cli.ip"], flow["srv.ip"], flow["vlan"], icmp["unreach"]["dst_port"], icmp["unreach"]["src_port"], icmp["unreach"]["protocol"])
 
+	 print(" ["..i18n("flow")..": ")
 	 if unreachable_flow then
-	    print(" ["..i18n("flow")..": ")
 	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."&flow_hash_id="..unreachable_flow["hash_entry_id"].."'><span class='badge badge-info'>Info</span></A>")
 	    print(" "..getFlowLabel(unreachable_flow, true, true))
-	    print("]")
 	 else
+	    -- The flow hasn't been found so very likely it is no longer active or it hasn't been seen.
+	    -- Still print the flow using data found in the original datagram found in the icmp packet
+	    print(getFlowLabel({
+			["cli.ip"] = icmp["unreach"]["src_ip"], ["srv.ip"] = icmp["unreach"]["dst_ip"],
+			["cli.port"] = icmp["unreach"]["src_port"], ["srv.port"] = icmp["unreach"]["dst_port"]},
+		     false, true))
 	 end
+	 print("]")
       end
 
       print("</td></tr>")
