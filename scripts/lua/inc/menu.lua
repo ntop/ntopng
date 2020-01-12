@@ -15,6 +15,7 @@ local ts_utils = require("ts_utils_core")
 local is_admin = isAdministrator()
 
 print[[
+<script type="text/javascript" src="/js/sidebar.js"></script>
 <script type='text/javascript'>
    /* Some localization strings to pass from lua to javacript */
    let i18n = {
@@ -63,7 +64,6 @@ print ([[
             <i class='fas fa-times'></i>
          </button>
         
-         <script type="text/javascript" src="/js/sidebar.js"></script>
 
 	      <ul class="nav flex-column">
 ]])
@@ -80,49 +80,69 @@ ifId = ifs.id
 -- Dashboard
 
 if not is_pcap_dump then
-   if(active_page == "dashboard") then
-      print [[ <li class="nav-item dropdown active">
-	       <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
-]]
-   else
-      print [[ <li class="dropdown">
-	       <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
-]]
-   end
 
-   print [[
-	<i class="fas fa-tachometer-alt fa-lg"></i> Dashboard
-      </a>
+   print ([[ 
+      <li class="nav-item ]].. (active_page == "dashboard" and 'active' or '') ..[[">
+	      <a class="submenu ]].. (active_page == "dashboard" and 'active' or '') ..[[" data-toggle="collapse" href="#dashboard-submenu">
+	         <i class="fas fa-tachometer-alt fa-lg"></i> <span class='title'>Dashboard</span>
+         </a>
+         <div class='collapse' id='dashboard-submenu'>
+            <ul class='nav flex-column'>
+               <li>
+                  <a href="]].. ntop.getHttpPrefix() .. (ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua') .. [[">
+                     ]].. i18n("dashboard.traffic_dashboard") ..[[
+                  </a>
+               </li>
+               ]]..
+               (function()
+                  if interface.isDiscoverableInterface() and not interface.isLoopback() then
+                     return ([[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/discover.lua'>
+                              ]] .. i18n("prefs.network_discovery") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return ([[]])
+                  end
+               end)()
+               ..[[
+               ]]..
+               (function()
+                  if ntop.isPro() then
+                     return ([[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/report.lua'>
+                              ]].. i18n("report.traffic_report") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               ]]..
+               (function()
+                  if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled and not ifs.isViewed then
+                     return ([[
+                        <li class="dropdown-divider"></li>
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/db_explorer.lua?ifid=]]..ifId..[['>
+                              ]].. i18n("db_explorer.historical_data_explorer") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+            </ul>
+         </div>
+   ]])
 
-    <ul class="dropdown-menu">
-<li class="nav-item"><a class="dropdown-item" href="]]
-
-print(ntop.getHttpPrefix())
-if ntop.isPro() then
-   print("/lua/pro/dashboard.lua")
-else
-   print("/lua/index.lua")
-end
-
-print [["><i class="fas fa-tachometer-alt"></i> ]] print(i18n("dashboard.traffic_dashboard")) print[[</a></li>]]
-
-if interface.isDiscoverableInterface() and not interface.isLoopback() then
-    print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/discover.lua"><i class="fas fa-lightbulb"></i> ') print(i18n("prefs.network_discovery")) print('</a></li>')
-  end
-
-if(ntop.isPro()) then
-  print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fas fa-chart-area"></i> ') print(i18n("report.traffic_report")) print('</a></li>')
-end
-
-if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled and not ifs.isViewed then
-  print('<li class="dropdown-divider"></li>')
-  print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifid='..ifId..'"><i class="fas fa-history"></i> ') print(i18n("db_explorer.historical_data_explorer")) print('</a></li>')
-end
-
-
-print [[
-    </ul>
-   ]]
 end
 
 -- ##############################################
@@ -141,7 +161,7 @@ if ntop.getPrefs().are_alerts_enabled == true then
    print([[
       <li class='nav-item ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
          <a data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
-            <i class='fas  fa-exclamation-triangle'></i> <span class='title'>Alerts</span>
+            <i class='fas fa-exclamation-triangle'></i> <span class='title'>Alerts</span>
          </a>
          <div class='collapse' id='alerts-submenu'>
             <ul class='nav flex-column'>
@@ -373,43 +393,55 @@ end -- closes not ifs.isViewed
 
 local info = ntop.getInfo()
 
-if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
-  if active_page == "exporters" then
-    print [[ <li class="nav-item dropdown active">
-   <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
-]]
-  else
-    print [[ <li class="nav-item dropdown">
-   <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
-]]
-  end
+if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
+   print ([[ 
+      <li class="nav-item dropdown ]].. (active_page == "exporters" and 'active' or '') ..[[">
+         <a class="submenu ]].. (active_page == "exporters" and 'active' or '') ..[[" data-toggle="collapse" href="#exporters-submenu">
+            <i class='fas fa-file-export'></i> <span class='title'>]].. i18n("flow_devices.exporters") ..[[</span>
+         </a>
+         <div id='exporters-submenu' class="collapse">
+            <ul class='nav flex-column'>
+               ]]..
+               (function()
 
-   print(i18n("flow_devices.exporters")) print[[ <b class="caret"></b>
-      </a>
-      <ul class="dropdown-menu">
-]]
+                  local elements = [[]]
+                  local has_ebpf_events, has_sflow_devs = false, false
 
-   local has_ebpf_events, has_sflow_devs = false, false
-   if ifs.has_seen_ebpf_events then
-      has_ebpf_events = true
-      print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/event_exporters.lua ">') print(i18n("event_exporters.event_exporters")) print('</a></li>')
-   elseif table.len(interface.getSFlowDevices() or {}) > 0 then
-      has_sflow_devs = true
-      print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">') print(i18n("flows_page.sflow_devices")) print('</a></li>')
+                  if ifs.has_seen_ebpf_events then
+                     has_ebpf_events = true
+                     elements = [[
+                        <li>
+                           <a href="]].. ntop.getHttpPrefix()..[[/lua/pro/enterprise/event_exporters.lua">
+                           ]] .. i18n("event_exporters.event_exporters") ..[[
+                           </a>
+                        </li>
+                     ]] .. elements
+                  elseif table.len(interface.getSFlowDevices() or {}) > 0 then
+                     has_sflow_devs = true
+                     elements = [[
+                        <li>
+                           <a href="]].. ntop.getHttpPrefix()..[[/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All">
+                           ]] .. i18n("flows_page.sflow_devices") ..[[
+                           </a>
+                        </li>
+                     ]] .. elements
+                  end
+                  
+                  return elements
 
-   end
+               end)()
+               ..[[
+                  <li>
+                     <a href="]].. ntop.getHttpPrefix()..[[/lua/pro/enterprise/flowdevices_stats.lua">
+                        ]] .. i18n("flows_page.flow_exporters") ..[[
+                     </a>
+                  </li>
+               </ul>
+         </div>
+      </li>
+]])
 
-   if has_ebpf_events or has_sflow_devs then
-      print('<li class="dropdown-divider"></li>')
-      print('<li class="nav-item" class="dropdown-header">') print(i18n("flows")) print('</li>')
-   end
-
-   print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
-
-  print [[
-
-      </ul>
-    </li>]]
+  
 end
 
 -- ##############################################
@@ -431,124 +463,236 @@ print([[
 -- System
 
 if isAllowedSystemInterface() then
+   
    local plugins_utils = require("plugins_utils")
 
-   if active_page == "system_stats" or active_page == "system_interfaces_stats" then
-     print [[ <li class="nav-item dropdown active">
-      <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
-]]
-   else
-     print [[ <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
-]]
-   end
-   print(i18n("system")) print[[ <b class="caret"></b>
-	 </a>
-       <ul class="dropdown-menu">]]
+   print ([[ 
+      <li class="nav-item ]].. ((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[">
+         <a class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
+            <i class='fas fa-desktop'></i> <span class='title'>]].. i18n("system") ..[[</span>
+         </a>
+         <div class="collapse" id='system-submenu'>
+            <ul class='nav flex-column'>
+               ]]..
+               (function()
+                  if ntop.isEnterprise() then
+                     return ([[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix()  ..[[/lua/pro/enterprise/snmpdevices_stats.lua'>
+                              ]].. i18n("prefs.snmp") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               <li>
+                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/system_stats.lua'>
+                     ]].. i18n("system_status") ..[[
+                  </a>
+               </li>
+               ]]..
+               (function()
+                  if num_ifaces > 1 then
+                     return ([[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix()  ..[[/lua/system_interfaces_stats.lua'>
+                              ]].. i18n("system_interfaces_status") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return [[]]
+                  end
+               end)()
+               ..[[
+               ]]..
+               (function()
+                 
+                  local menu = plugins_utils.getMenuEntries() or {}
 
-   if ntop.isEnterprise() then
-      print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">') print(i18n("prefs.snmp")) print('</a></li>')
-   end
+                  if not table.empty(menu) then
 
-   print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/system_stats.lua">]] print(i18n("system_status")) print[[</a></li>]]
+                     local elements = ""
 
-   if num_ifaces > 1 then
-      print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/system_interfaces_stats.lua">]] print(i18n("system_interfaces_status")) print[[</a></li>]]
-   end
+                     for _, entry in pairsByField(menu, "sort_order", rev) do
 
-   local menu = plugins_utils.getMenuEntries() or {}
+                        elements = ([[
+                           <li>
+                              <a href=']].. entry.url ..[['>
+                                 ]].. (i18n(entry.label) or entry.label) ..[[
+                              </a>
+                           </li>
+                        ]]) .. elements
+                     end
 
-   if not table.empty(menu) then
-      print('<li class="divider"></li>')
+                     return elements
+                  else 
+                     return ""
+                  end
 
-      for _, entry in pairsByField(menu, "sort_order", rev) do
-         print[[<li class="nav-item"><a class="dropdown-item" href="]] print(entry.url) print[[">]] print(i18n(entry.label) or entry.label) print[[</a></li>]]
-      end
-   end
+               end)()
+               ..[[
+            </ul>
+         </div>  
+   ]])
 
-   print[[</ul>]]
 end
 
 -- ##############################################
 -- Admin
 
-if active_page == "admin" then
-  print [[ <li class="nav-item dropdown active">
-      <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">
-]]
-else
-  print [[ <li class="nav-item dropdown">
-      <span class="badge badge-pill badge-danger" id="admin-badge" style="float:right;margin-right:20px;display:none"></span>
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">
-]]
-end
-
-print [[
-	<i class="fas fa-cog fa-lg"></i> Settings
+print ([[ 
+   <li class="nav-item ]].. (active_page == "admin" and 'active' or '') ..[[">
+      <a class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
+         <i class="fas fa-cog"></i> <span class='title'>Settings</span>
       </a>
-    <ul class="dropdown-menu">]]
+      <div class="collapse" id='admin-submenu'>
+         <ul class='nav flex-column'>
+            ]]..
+            (function()
+               if _SESSION["localuser"] then
 
-if _SESSION["localuser"] then
-   if(is_admin) then
-     print[[<li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix())
-     print[[/lua/admin/users.lua"><i class="fas fa-user"></i> ]] print(i18n("manage_users.manage_users")) print[[</a></li>]]
-   else
-     print [[<li class="nav-item"><a class="dropdown-item" href="#password_dialog"  data-toggle="modal"><i class="fas fa-user"></i> ]] print(i18n("login.change_password")) print[[</a></li>]]
-   end
-end
+                  if is_admin then
+                     return ([[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua'>
+                              ]].. i18n("manage_users.manage_users") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  else
+                     return ([[
+                        <li>
+                           <a href='#password_dialog' data-toggle='modal'>
+                              ]].. i18n("login.change_password") ..[[
+                           </a>
+                        </li>
+                     ]])
+                  end
 
-if(is_admin) then
-   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fas fa-flask\"></i> ") print(i18n("prefs.preferences")) print("</a></li>\n")
+               end
 
-   if remote_assistance.isAvailable() then
-      print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/remote_assistance.lua\"><i class=\"fas fa-comment-dots\"></i> ") print(i18n("remote_assistance.remote_assistance")) print("</a></li>\n")
-   end
+               return [[]]
+            end)()
+            ..[[
+            ]]..
+            (function()
+               if is_admin then
 
-   if(ntop.isPro()) then
-      print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\"><i class=\"fas fa-user-md\"></i> ") print(i18n("traffic_profiles.traffic_profiles")) print("</a></li>\n")
-      if(false) then
-	 print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/pro/admin/list_reports.lua\"><i class=\"fas fa-archive\"></i> Reports Archive</a></li>\n")
-      end
-   end
+                  local elements = [[]]
+                  elements = [[
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/prefs.lua'>
+                           ]] .. i18n("prefs.preferences") .. [[
+                        </a>
+                     </li>
+                  ]] .. elements
 
-   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_categories.lua\"><i class=\"fas fa-tags\"></i> ") print(i18n("custom_categories.apps_and_categories")) print("</a></li>\n")
-   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua\"><i class=\"fas fa-sticky-note\"></i> ") print(i18n("category_lists.category_lists")) print("</a></li>\n")
+                  if remote_assistance.isAvailable() then
+                     elements = [[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/remote_assistance.lua'>
+                              ]] .. i18n("remote_assistance.remote_assistance") .. [[
+                           </a>
+                        </li>
+                     ]] .. elements
+                  end
 
+                  if ntop.isPro() then
+                     elements = [[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/admin/edit_profiles.lua'>
+                              ]] .. i18n("traffic_profiles.traffic_profiles") .. [[
+                           </a>
+                        </li>
+                     ]] .. elements
+                  end
 
-   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua\"><i class=\"fas fa-tablet\"></i> ") print(i18n("device_protocols.device_protocols")) print("</a></li>\n")
-   print("<li class=\"nav-item\"><a class=\"dropdown-item\" href=\""..ntop.getHttpPrefix().."/lua/admin/scripts_config.lua\"><i class=\"fab fa-superpowers\"></i> ") print(i18n("about.user_scripts")) print("</a></li>\n")
-end
+                  elements = [[
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_categories.lua'>
+                           ]] .. i18n("custom_categories.apps_and_categories") .. [[
+                        </a>
+                     </li>
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_category_lists.lua'>
+                           ]] .. i18n("category_lists.category_lists") .. [[
+                        </a>
+                     </li>
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_device_protocols.lua'>
+                           ]] .. i18n("device_protocols.device_protocols") .. [[
+                        </a>
+                     </li>
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/scripts_config.lua'>
+                           ]] .. i18n("about.user_scripts") .. [[
+                        </a>
+                     </li>
+                  ]] .. elements
 
-if _SESSION["localuser"] or is_admin then
-   print [[
-      <li class="dropdown-divider"></li>]]
-end
+                  return elements
+               end
 
-print [[
-      <li class="nav-item"><a class="dropdown-item" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/manage_data.lua"><i class="fas fa-hdd"></i> ]] print(i18n("manage_data.manage_data")) print[[</a></li>]]
+               return [[]]
+            end)()
+            ..[[
+            <li>
+               <a href=']].. ntop.getHttpPrefix() ..[[/lua/manage_data.lua'>
+                  ]] .. i18n("manage_data.manage_data") .. [[
+               </a>
+            </li>
+            ]]..
+            (function()
+               if is_admin then
+                  return ([[
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/get_config.lua'>
+                           ]] .. i18n("conf_backup.conf_backup") .. [[
+                        </a>
+                     </li>
+                     <li>
+                        <a target='_blank' href='https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration'>
+                           ]] .. i18n("conf_backup.conf_restore") .. [[
+                        </a>
+                     </li>
+                  ]])
+               else
+                  return [[]]
+               end
+            end)()
+            ..[[
+            ]]..
 
-if(is_admin) then
-  print [[
-      <li class="nav-item"><a class="dropdown-item" href="]]
-  print(ntop.getHttpPrefix())
-  print [[/lua/get_config.lua"><i class="fas fa-download"></i> ]] print(i18n("conf_backup.conf_backup")) print[[</a></li>]]
+            (function()
 
-  print[[ <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration" target="_blank"><i class="fas fa-upload"></i> ]] print(i18n("conf_backup.conf_restore")) print[[ <i class="fas fa-external-link-alt"></i></a></li>]]
-end
+               if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
+                  return ([[
+                     <li class="dropdown-header" id="updates-info-li"></li>
+                     <li><a id="updates-install-li" href="#"></a></li>
+                  ]])
+               end
+
+               return [[]]
+            end)()
+            
+            ..[[
+
+         </ul>
+      </div>
+   </li>
+]])
+
 
 -- Updates submenu
-if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
-  print [[
-      <li class="dropdown-divider"></li>
-      <li class="dropdown-header" id="updates-info-li"></li>
-      <li class="nav-item"><a class="dropdown-item" id="updates-install-li" href="#"></a></li>
-  ]]
+if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
 
 -- Updates check
 print[[
-<script>
+<script type='text/javascript'>
   $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
   $('#updates-install-li').hide();
 
@@ -649,9 +793,7 @@ print[[
 ]]
 end
 
-print[[
-    </ul>
-  </li>]]
+
 
 end -- num_ifaces > 0
 
