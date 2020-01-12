@@ -2,11 +2,13 @@ $(document).ready(function() {
 
     $("button[data-toggle='sidebar']").click(function(){
 
+        
+
         $("#n-container").toggleClass("extended")
         $("#n-sidebar, #ntop-logo").toggleClass("active")
 
         if (!window.matchMedia('(max-width: 575.98px)').matches) {
-            $(`div[id$='-submenu']`).toggleClass('side-collapse');
+            $(`div[id$='-submenu']`).toggleClass('side-collapse').toggleClass('fade');
         }
         else {
 

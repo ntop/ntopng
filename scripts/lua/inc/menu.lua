@@ -52,7 +52,6 @@ end
 --print("<div class=\"container\">")
 print ([[
       <div id='n-sidebar' class="bg-light active p-2">
-
          <h3 class='muted'>
             <a href='/'>
                ]].. addLogoSvg() ..[[
@@ -65,7 +64,7 @@ print ([[
          </button>
         
 
-	      <ul class="nav flex-column">
+	      <ul class="nav flex-column" id='sidebar'>
 ]])
 
 
@@ -84,9 +83,9 @@ if not is_pcap_dump then
    print ([[ 
       <li class="nav-item ]].. (active_page == "dashboard" and 'active' or '') ..[[">
 	      <a class="submenu ]].. (active_page == "dashboard" and 'active' or '') ..[[" data-toggle="collapse" href="#dashboard-submenu">
-	         <i class="fas fa-tachometer-alt fa-lg"></i> <span class='title'>Dashboard</span>
+	         <i class="fas fa-tachometer-alt"></i> <span class='title'>Dashboard</span>
          </a>
-         <div class='collapse' id='dashboard-submenu'>
+         <div data-parent='#sidebar'  class='collapse' id='dashboard-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href="]].. ntop.getHttpPrefix() .. (ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua') .. [[">
@@ -160,10 +159,10 @@ if ntop.getPrefs().are_alerts_enabled == true then
 
    print([[
       <li class='nav-item ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
-         <a data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
+         <a  data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
             <i class='fas fa-exclamation-triangle'></i> <span class='title'>Alerts</span>
          </a>
-         <div class='collapse' id='alerts-submenu'>
+         <div data-parent='#sidebar' class='collapse' id='alerts-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href=']].. ntop.getHttpPrefix() ..[[/lua/show_alerts.lua'>
@@ -218,10 +217,10 @@ if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces,
 
    print([[
       <li class='nav-item'>
-         <a data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
+         <a  data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
             <i class='fas fa-server '></i> <span class='title'>]].. i18n("flows_page.hosts") ..[[</span>
          </a>
-         <div class='collapse' id='hosts-submenu'>
+         <div data-parent='#sidebar' class='collapse ' id='hosts-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href=']].. ntop.getHttpPrefix() ..[[/lua/hosts_stats.lua'>
@@ -399,7 +398,7 @@ if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
          <a class="submenu ]].. (active_page == "exporters" and 'active' or '') ..[[" data-toggle="collapse" href="#exporters-submenu">
             <i class='fas fa-file-export'></i> <span class='title'>]].. i18n("flow_devices.exporters") ..[[</span>
          </a>
-         <div id='exporters-submenu' class="collapse">
+         <div data-parent='#sidebar' id='exporters-submenu' class="collapse ">
             <ul class='nav flex-column'>
                ]]..
                (function()
@@ -468,10 +467,10 @@ if isAllowedSystemInterface() then
 
    print ([[ 
       <li class="nav-item ]].. ((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[">
-         <a class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
+         <a  class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
             <i class='fas fa-desktop'></i> <span class='title'>]].. i18n("system") ..[[</span>
          </a>
-         <div class="collapse" id='system-submenu'>
+         <div data-parent='#sidebar' class="collapse " id='system-submenu'>
             <ul class='nav flex-column'>
                ]]..
                (function()
@@ -546,10 +545,10 @@ end
 
 print ([[ 
    <li class="nav-item ]].. (active_page == "admin" and 'active' or '') ..[[">
-      <a class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
+      <a  class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
          <i class="fas fa-cog"></i> <span class='title'>Settings</span>
       </a>
-      <div class="collapse" id='admin-submenu'>
+      <div data-parent='#sidebar' class="collapse" id='admin-submenu'>
          <ul class='nav flex-column'>
             ]]..
             (function()
