@@ -27,5 +27,5 @@ return {
   alert_id = 40,
   i18n_title = "alerts_dashboard.slow_periodic_activity",
   i18n_description = slowPeriodicActivityFormatter,
-  icon = "fa-undo",
+  icon = "fas fa-undo",
 }

@@ -18,7 +18,7 @@ return {
 
   -- An icon (css class name) associated to this alert. ntopng supports icons
   -- from https://fontawesome.com .
-  icon = "fa-exclamation",
+  icon = "fas fa-exclamation",
 
   -- An optional alert message to show when the alert is triggered. For flow
   -- alerts, however, the alert message is defined into the status associated

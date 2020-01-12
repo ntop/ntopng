@@ -5,5 +5,5 @@
 return {
   alert_id = 19,
   i18n_title = "alerts_dashboard.unresponsive_device",
-  icon = "fa-exclamation",
+  icon = "fas fa-exclamation",
 }

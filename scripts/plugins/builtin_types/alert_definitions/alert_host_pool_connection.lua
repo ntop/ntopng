@@ -15,5 +15,5 @@ return {
   alert_id = 12,
   i18n_title = "alerts_dashboard.host_pool_connection",
   i18n_description = poolConnectionFormat,
-  icon = "fa-sign-in",
+  icon = "fas fa-sign-in",
 }

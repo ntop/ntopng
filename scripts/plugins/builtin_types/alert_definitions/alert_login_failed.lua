@@ -14,5 +14,5 @@ return {
   alert_id = 42,
   i18n_title = "alerts_dashboard.login_failed",
   i18n_description = loginFailedFormatter,
-  icon = "fa-sign-in",
+  icon = "fas fa-sign-in",
 }

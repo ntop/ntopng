@@ -218,5 +218,5 @@ return {
   alert_id = 25,
   i18n_title = "alerts_dashboard.user_activity",
   i18n_description = userActivityFormatter,
-  icon = "fa-user",
+  icon = "fas fa-user",
 }

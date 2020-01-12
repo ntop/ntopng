@@ -38,5 +38,5 @@ return {
   alert_id = 39,
   i18n_title = "alerts_dashboard.ping_issues",
   i18n_description = pingIssuesFormatter,
-  icon = "fa-exclamation",
+  icon = "fas fa-exclamation",
 }

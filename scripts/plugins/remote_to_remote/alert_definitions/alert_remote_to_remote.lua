@@ -18,5 +18,5 @@ return {
   alert_id = 6,
   i18n_title = "alerts_dashboard.remote_to_remote",
   i18n_description = remoteToRemoteFormatter,
-  icon = "fa-exclamation",
+  icon = "fas fa-exclamation",
 }
