@@ -95,12 +95,12 @@ print [[
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
 
-    <!--div class="input-group mb-6">
+    <div class="input-group mb-6">
       <div class="form-check">
         <input id="allow_pcap_download_input" type="checkbox" name="allow_pcap_download" value="1" class="form-check-input">
         <label for="allow_pcap_download_input" class="form-check-label">]] print(i18n("manage_users.allow_pcap_download_descr")) print[[</label>
       </div>
-    </div-->
+    </div>
 
     </div>
 

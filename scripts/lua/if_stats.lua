@@ -731,7 +731,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if (isAdministrator() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
+   if (ntop.isPcapDownloadAllowed() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
