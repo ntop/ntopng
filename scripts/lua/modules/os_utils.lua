@@ -36,6 +36,23 @@ end
 
 -- ########################################################
 
+--! @brief Copy a `source` file to `dest`
+function os_utils.copyFile(source, dest)
+   if not ntop.exists(source) then
+      return
+   end
+
+   local inp = assert(io.open(source, "rb"))
+   local out = assert(io.open(dest, "wb"))
+
+   local data = inp:read("*all")
+   out:write(data)
+
+   assert(out:close())
+end
+
+-- ########################################################
+
 --! @brief Execute a system command and return its output
 --! @return the pair (output, ret_code). output will be nil on error.
 --! @note error condition is determined from the command exit status

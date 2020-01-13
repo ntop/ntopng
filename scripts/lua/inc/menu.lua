@@ -778,7 +778,17 @@ print[[
 
 print("</ul>\n<h3 class=\"muted\"><A href=\""..ntop.getHttpPrefix().."/\">")
 
-addLogoSvg()
+local logo_path
+
+if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.png") then
+   logo_path = ntop.getHttpPrefix().."/img/custom_logo.png"
+end
+
+if logo_path then
+   print("<img class=\"logo-brand\" height=\"50px\" src=\""..logo_path.."\">")
+else
+   addLogoSvg()
+end
 
 print("</A></h3>\n</div>\n")
 

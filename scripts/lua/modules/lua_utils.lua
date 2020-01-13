@@ -879,6 +879,7 @@ function addGoogleMapsScript()
 end
 
 function addLogoSvg()
+
    print [[
 <svg width="103px" height="50px" viewBox="0 0 103 50" version="1.1" xmlns="http://www.w3.org/2000/svg">
 <path fill="#fbfbfb" d=" M 0.00 0.00 L 103.00 0.00 L 103.00 50.00 L 0.00 50.00 L 0.00 0.00 Z" />
