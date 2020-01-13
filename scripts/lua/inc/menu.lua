@@ -51,15 +51,14 @@ end
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
 print ([[
-      <div id='n-sidebar' class="bg-light active p-2">
+      <div id='n-sidebar' class="bg-dark active p-2">
          <h3 class='muted'>
             <a href='/'>
                ]].. addLogoSvg() ..[[
-               ]].. addSquaredLogo() .. [[   
             </a>
          </h3>
 
-         <button data-toggle='sidebar' class='btn float-right d-md-none d-lg-none d-xs-block d-sm-block'>
+         <button data-toggle='sidebar' class='btn text-right float-right d-md-none d-lg-none d-xs-block d-sm-block'>
             <i class='fas fa-times'></i>
          </button>
         
@@ -929,7 +928,7 @@ for round = 1, 2 do
 
 	 local page_params = table.clone(_GET)
 	 page_params.ifid = k
-	 -- ntop.getHttpPrefix()
+	 -- ntop.g`tHttpPrefix()
 	 local url = getPageUrl("", page_params)
 
 	 print("      <li class=\"nav-item\">")
@@ -1049,6 +1048,9 @@ if not interface.isPcapDumpInterface() then
 
 end
 
+print([[
+   <div class="text-center mx-sm-0 mx-xs-0 mx-md-3" title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div>
+]])
 
 -- ##############################################
 -- Info

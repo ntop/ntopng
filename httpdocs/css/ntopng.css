@@ -578,6 +578,49 @@ path.link {
   padding-right: 0!important;
 }
 
+/** Dark theme for sidebar **/
+
+#n-sidebar.bg-dark {
+  background-color: #1f1f1f !important;
+  color: #e2e2e2;
+}
+
+#n-sidebar.active.bg-dark .sidebar-info {
+  color: #e2e2e2 !important;
+}
+
+#n-sidebar.bg-dark ul>li.nav-item div.collapse,
+#n-sidebar.bg-dark ul>li.nav-item div.collapsing {
+  background-color: #353535;
+  color: #e2e2e2;
+}
+
+#n-sidebar.bg-dark .dropdown-divider {
+  border-top: 1px solid #1f1f1f;
+}
+
+#n-sidebar.bg-dark ul>li.nav-item div.collapse>ul li>a:hover,
+#n-sidebar.bg-dark ul>li.nav-item div.collapsing>ul li>a:hover {
+  background-color: #272727;
+
+}
+
+#n-sidebar.bg-dark li,
+#n-sidebar.bg-dark ul>li.nav-item>a,
+#n-sidebar.bg-dark ul>li.nav-item div.collapse>ul li>a,
+#n-sidebar.bg-dark ul>li.nav-item div.collapsing>ul li>a {
+  color: #e2e2e2;
+}
+
+#n-sidebar.bg-dark li:hover, #n-sidebar.bg-dark ul>li.nav-item>a:hover,
+#n-sidebar.bg-dark li:active, #n-sidebar.bg-dark ul>li.nav-item>a:active,
+#n-sidebar.bg-dark ul>li.nav-item>a:focus
+{
+  background-color: #353535;
+}
+
+/** end dark theme **/
+
 #n-sidebar .dropdown-divider {
   border-top: 1px solid #c5c5c5;
 }
@@ -674,9 +717,15 @@ path.link {
 	margin-left: 4rem;
 }
 
-svg#ntop-logo {
+#ntop-logo {
   height: 3.2rem;
   width: 8rem;
+  margin-bottom: 1rem;
+  margin-left: 0.5rem;
+}
+#ntop-logo>svg {
+  width: 100%;
+  height: 4rem;
 }
 
 .squared-logo {
@@ -685,8 +734,8 @@ svg#ntop-logo {
 
 .side-collapse {
   position: fixed;
-  left: 4.2rem;
-  z-index: 100000016;
+  left: 4rem;
+  z-index: 1000;
   width: 16rem;
   top: 10.8rem;
   box-shadow:rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
