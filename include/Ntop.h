@@ -372,10 +372,13 @@ class Ntop {
   void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm);
   void getUsers(lua_State* vm);
   bool isUserAdministrator(lua_State* vm);
+  void getAllowedInterface(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);
   bool getInterfaceAllowed(lua_State* vm, char *ifname)         const;
   bool isInterfaceAllowed(lua_State* vm, const char *ifname)    const;
   bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
+  bool isPcapDownloadAllowed(lua_State* vm, const char *ifname);
+  char *preparePcapDownloadFilter(lua_State* vm, char *filter);
   bool isLocalUser(lua_State* vm);
   bool checkCaptiveUserPassword(const char * const user, const char * const password, char *group) const;
   bool checkGuiUserPassword(struct mg_connection *conn, const char * const user, const char * const password, char *group, bool *localuser) const;
@@ -388,10 +391,12 @@ class Ntop {
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
   bool changeUserHostPool(const char * const username, const char * const host_pool_id) const;
   bool changeUserLanguage(const char * const username, const char * const language) const;
+  bool changeUserPermission(const char * const username, bool allow_pcap_download) const;
+  bool getUserPermission(const char * const username, bool *allow_pcap_download) const;
   bool existsUser(const char * const username) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
-	       char *language);
+	       char *language, bool allow_pcap_download);
   bool addUserLifetime(const char * const username, u_int32_t lifetime_secs); /* Captive portal users may expire */
   bool clearUserLifetime(const char * const username);
   bool isCaptivePortalUser(const char * const username);

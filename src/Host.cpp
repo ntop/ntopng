@@ -822,7 +822,7 @@ void Host::periodic_hash_entry_state_update(void *user_data) {
 
 /* *************************************** */
 
-void Host::periodic_stats_update(void *user_data, bool quick) {
+void Host::periodic_stats_update(void *user_data) {
   periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*) user_data;
   struct timeval *tv = periodic_stats_update_user_data->tv;
   Mac *cur_mac = getMac();
@@ -851,7 +851,7 @@ void Host::periodic_stats_update(void *user_data, bool quick) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
 #endif
 
-  GenericHashEntry::periodic_stats_update(user_data, quick);
+  GenericHashEntry::periodic_stats_update(user_data);
 }
 
 /* *************************************** */

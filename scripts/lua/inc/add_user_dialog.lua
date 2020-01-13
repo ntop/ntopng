@@ -66,7 +66,6 @@ print [[
       <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
 
-
     <label for="user_role">]] print(i18n("manage_users.user_role")) print[[</label>
     <div class="input-group mb-6">
 	<select id="user_role" name="user_role" class="form-control" style="width:100%;">
@@ -75,9 +74,11 @@ print [[
 	</select>
     </div>
 
-    <label for="allowed_interface">]] print(i18n("manage_users.allowed_interface")) print[[</labe>l
+    <div id="unprivileged_input">
+
+    <label for="allowed_interface_input">]] print(i18n("manage_users.allowed_interface")) print[[</labe>
     <div class="input-group mb-6">
-	<select name="allowed_interface" class="form-control">
+	<select id="allowed_interface_input" name="allowed_interface" class="form-control">
 	  <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
 ]]
 
@@ -93,6 +94,25 @@ print [[
       <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
+
+    <div class="input-group mb-6">
+      <div class="form-check">
+        <input id="allow_pcap_download_input" type="checkbox" name="allow_pcap_download" value="1" class="form-check-input">
+        <label for="allow_pcap_download_input" class="form-check-label">]] print(i18n("manage_users.allow_pcap_download_descr")) print[[</label>
+      </div>
+    </div>
+
+    </div>
+
+    <script>
+    $("#user_role").change(function() {
+      if ($(this).val() == "unprivileged")
+        $('#unprivileged_input').show();
+      else
+        $('#unprivileged_input').hide();
+    });
+    $("#user_role").trigger("change");
+    </script>
 ]]
 
 if not ntop.isnEdge() then

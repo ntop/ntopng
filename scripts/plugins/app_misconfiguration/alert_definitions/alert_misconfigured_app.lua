@@ -20,6 +20,6 @@ end
 return {
   alert_id = 15,
   i18n_title = "alerts_dashboard.misconfigured_app",
-  icon = "fa-cog",
+  icon = "fas fa-cog",
   i18n_description = formatMisconfiguredApp,
 }

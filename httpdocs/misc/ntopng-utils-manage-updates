@@ -228,6 +228,12 @@ function handle_upgrade_requests() {
 	fi
 }
 
+# Run this cron script when the ntopng service is enabled only
+SERVICE_ENABLED=$(/bin/systemctl is-enabled ntopng 2>/dev/null)
+if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
+	exit 0
+fi
+
 if [ $ACTION == "check-updates" ]; then
 
 	check_updates

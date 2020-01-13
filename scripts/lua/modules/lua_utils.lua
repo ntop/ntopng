@@ -879,6 +879,7 @@ function addGoogleMapsScript()
 end
 
 function addLogoSvg()
+
    print [[
 <svg width="103px" height="50px" viewBox="0 0 103 50" version="1.1" xmlns="http://www.w3.org/2000/svg">
 <path fill="#fbfbfb" d=" M 0.00 0.00 L 103.00 0.00 L 103.00 50.00 L 0.00 50.00 L 0.00 0.00 Z" />
@@ -1092,6 +1093,7 @@ function hostVisualization(ip, name, vlan)
         name = name.."@"..vlan
       end
    end
+
    return name
 end
 
@@ -1356,14 +1358,12 @@ function host2name(name, vlan)
    name = getHostAltName(name)
 
    if(name == orig_name) then
-      rname = getResolvedAddress({host=name, vlan=vlan})
+      local rname = getResolvedAddress({host=name, vlan=vlan})
 
       if((rname ~= nil) and (rname ~= "")) then
 	 name = rname
       end
-   end
-
-   if(vlan > 0) then
+   elseif(vlan > 0) then
       name = name .. '@' .. vlan
    end
 

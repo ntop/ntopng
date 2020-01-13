@@ -243,6 +243,14 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     end
   end
 
+  if extra.step ~= nil then
+    if extra.tformat ~= nil then
+      attributes["data-step"] = extra.step
+    else
+      attributes["step"] = extra.step
+    end
+  end
+
   if extra.disabled == true then attributes["disabled"] = "disabled" end
   if extra.required == true then attributes["required"] = "" end
   if extra.pattern ~= nil then attributes["pattern"] = extra.pattern end

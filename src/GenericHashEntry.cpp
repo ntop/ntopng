@@ -107,7 +107,7 @@ void GenericHashEntry::periodic_hash_entry_state_update(void *user_data)  {
 
 /* ***************************************** */
 
-void GenericHashEntry::periodic_stats_update(void *user_data, bool quick)  {
+void GenericHashEntry::periodic_stats_update(void *user_data)  {
 }
 
 /* ***************************************** */

@@ -139,6 +139,16 @@ function recording_utils.isAvailable()
   return false
 end
 
+--! @brief Check if traffic recording and extraction is allowed for the current user on an interface
+--! @return true if extraction is available, false otherwise
+function recording_utils.isExtractionAvailable()
+  if ntop.isPcapDownloadAllowed() and (ntop.getCache(is_available_key) == "1") then
+    return true
+  end
+
+  return false
+end
+
 --! @brief Return information about the recording service (n2disk) including systemid and version
 --! @return a table with the information
 function recording_utils.getN2diskInfo()
@@ -632,14 +642,7 @@ function recording_utils.isEnabled(ifid)
    return false
 end
 
---! @brief Check if the traffic recording service is running
---! @param ifid the interface identifier 
---! @return true if the service is running, false otherwise
-function recording_utils.isActive(ifid)
-   if not recording_utils.isAvailable() then
-      return false
-   end
-
+local function isRecordingServiceActive(ifid)
    local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
    local confifname = getConfigInterfaceName(ifid)
 
@@ -648,9 +651,30 @@ function recording_utils.isActive(ifid)
    else
       return os_utils.isActive("n2disk", confifname)
    end
-
-   return false
 end
+
+--! @brief Check if the traffic recording service is running
+--! @param ifid the interface identifier 
+--! @return true if the service is running, false otherwise
+function recording_utils.isActive(ifid)
+   if not recording_utils.isAvailable() then
+      return false
+   end
+
+   return isRecordingServiceActive(ifid)
+end
+
+--! @brief Check if traffic recording is running and extraction is allowed for the current user on an interface
+--! @param ifid the interface identifier 
+--! @return true if the service is running and extraction available, false otherwise
+function recording_utils.isExtractionActive(ifid)
+   if not recording_utils.isExtractionAvailable() then
+      return false
+   end
+
+   return isRecordingServiceActive(ifid)
+end
+
 
 function recording_utils.getAvailableTrafficRecordingProviders()
    local res = {}

@@ -159,6 +159,7 @@
 #endif
 
 #define MAX_INTERFACE_NAME_LEN    512
+#define MAX_USER_NETS_VAL_LEN     255
 #define NUM_HOSTS_RESOLVED_BITS   2 << 19 /* ~1 million */
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
@@ -249,6 +250,7 @@
 #define CONST_STR_USER_ALLOWED_IFNAME  "ntopng.user.%s.allowed_ifname"
 #define CONST_STR_USER_HOST_POOL_ID    "ntopng.user.%s.host_pool_id"
 #define CONST_STR_USER_LANGUAGE        "ntopng.user.%s.language"
+#define CONST_STR_USER_ALLOW_PCAP      "ntopng.user.%s.allow_pcap"
 #define CONST_STR_USER_EXPIRE          "ntopng.user.%s.expire"
 #define CONST_ALLOWED_NETS             "allowed_nets"
 #define CONST_ALLOWED_IFNAME           "allowed_ifname"
@@ -848,7 +850,7 @@
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v14.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v15.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"

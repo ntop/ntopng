@@ -27,9 +27,7 @@ end
 
 interface.select(ifname)
 
-local granted = true
-
-if not granted then
+if not ntop.isPcapDownloadAllowed() then
    send_error("not_granted")
 else
    local host       = _GET["host"]

@@ -22,5 +22,5 @@ return {
   alert_id = 20,
   i18n_title = "alerts_dashboard.process",
   i18n_description = processNotificationFormatter,
-  icon = "fa-truck",
+  icon = "fas fa-truck",
 }

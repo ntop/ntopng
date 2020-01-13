@@ -121,6 +121,8 @@ print [[
         </select>
   </div>
 
+  <div id="unprivileged_manage_input">
+
   <label for="allowed_interface">]] print(i18n("manage_users.allowed_interface")) print[[</label>
   <div class='input-group mb-6'>
         <select name="allowed_interface" id="allowed_interface" class="form-control">
@@ -139,6 +141,26 @@ print [[
       <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required>
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[ 192.168.1.0/24,172.16.0.0/16</small>
     </div>
+
+    <div class="input-group mb-6">
+      <div class="form-check">
+        <input id="allow_pcap_input" type="checkbox" name="allow_pcap_download" value="1" class="form-check-input">
+        <label for="allow_pcap_input" class="form-check-label">]] print(i18n("manage_users.allow_pcap_download_descr")) print[[</label>
+      </div>
+    </div>
+
+    </div>
+
+    <script>
+    $("#host_role_select").change(function() {
+      if ($(this).val() == "unprivileged")
+        $('#unprivileged_manage_input').show();
+      else
+        $('#unprivileged_manage_input').hide();
+    });
+    $("#host_role_select").trigger("change");
+    </script>
+
 ]]
 
 if not ntop.isnEdge() then
@@ -288,9 +310,9 @@ function reset_pwd_dialog(user) {
       $('#networks_input').val(data.allowed_nets);
       $('#allowed_interface option[value="' + data.allowed_if_id + '"]').attr('selected','selected');
 
-      if(data.language !== "") {
-      $('#user_language option[value="' + data.language + '"]').attr('selected','selected');
-      }
+      if(data.language !== "")
+        $('#user_language option[value="' + data.language + '"]').attr('selected','selected');
+      $('#allow_pcap_input').prop('checked', data.allow_pcap_download === true ? true : false);
       if(data.host_pool_id) {
         $('#old_host_pool_id').val(data.host_pool_id);
         $('#host_pool_id option[value = '+data.host_pool_id+']').attr('selected','selected');

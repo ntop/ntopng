@@ -5,5 +5,5 @@
 return {
   alert_id = 4,
   i18n_title = "alerts_dashboard.connection_issues",
-  icon = "fa-exclamation",
+  icon = "fas fa-exclamation",
 }

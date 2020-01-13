@@ -18,6 +18,6 @@ end
 return {
   alert_id = 23,
   i18n_title = "alerts_dashboard.slow_stats_update",
-  icon = "fa-exclamation",
+  icon = "fas fa-exclamation",
   i18n_description = formatSlowStatsUpdate,
 }

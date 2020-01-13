@@ -15,7 +15,7 @@ local function send_error(msg)
   print(json.encode(res))
 end
 
-if not recording_utils.isAvailable() then
+if not recording_utils.isExtractionAvailable() then
   send_error(i18n("traffic_recording.not_granted"))
 else
   if _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
