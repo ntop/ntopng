@@ -332,10 +332,7 @@ $(document).ready(function() {
 
           const build_input_box = ({ input_builder, field_max, field_min, fields_unit, field_operator }) => {
 
-             if (input_builder == '' || input_builder == undefined || input_builder == null) {
-                return $(`<p>${i18n.template_not_found}</p>`)
-             }
-             else if (input_builder == 'threshold_cross') {
+             if (input_builder == 'threshold_cross') {
                 var operators = ["gt", "lt"];
                 var select = $(`<select class='btn btn-outline-secondary'></select>`);
 
@@ -353,8 +350,13 @@ $(document).ready(function() {
                                   max='${field_max == undefined ? '' : field_max}'>`)
                    .append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit}</span>`)
                    .append(`<div class="invalid-feedback"></div>`)
-             }
-
+             } else if (input_builder == 'items_list') {
+               /* The user can specify a list of items via a textarea. */
+               return $(`<div class='input-group template w-75'></div>`)
+                   .append(`<textarea class="w-100" style="height: 5em;"></textarea>`)
+                   .append(`<div class="invalid-feedback"></div>`); // TODO: this is common between the input builders
+             } else
+                return $(`<p>${i18n.template_not_found}</p>`);
           }
 
           const build_hook = ({ label, enabled, script_conf }, granularity) => {
@@ -368,10 +370,14 @@ $(document).ready(function() {
              </td>`);
 
              // create label for hook
-             $element.append(`<td><label>${label}</label></td>`);
+             $element.append(`<td><label>${label ? label : ""}</label></td>`);
 
              // create input_box
              const $input_box = build_input_box(gui);
+
+             // TODO: since the following logic is specific of the "threshold_cross" input_builder,
+             // it must be moved to a specialized section containing both the input building function
+             // and the input logic.
 
              // enable readonly in inputboxes and selects if enabled field is false
              if (!enabled) {
@@ -381,10 +387,11 @@ $(document).ready(function() {
 
              // select the right operator
              if (script_conf.operator != undefined) {
-                $input_box.find("select").attr("name", `${granularity}-select`).val(script_conf.operator)
+                $input_box.find("select").attr("name", `${granularity}-select`).val(script_conf.operator);
              }
+
              // set input name
-             $input_box.find("input[type='number']").attr("name", `${granularity}-input`)
+             $input_box.find("input[type='number'],textarea").attr("name", `${granularity}-input`)
              // set script conf params
              $input_box.find("input[type='number']").val(script_conf.threshold);
              // set placeholder
@@ -426,11 +433,15 @@ $(document).ready(function() {
              if ("day" in hooks) {
                 $table_editor.append(build_hook(hooks["day"], "day"));
              }
-            
+             if ("all" in hooks) {
+                $table_editor.append(build_hook(hooks["all"], "all"));
+             }
           }
 
          // append gui on the edit modal
          build_gui(gui, hooks);
+
+         var input_builder = gui.input_builder;
 
          // bind event to modal_button
          const on_apply = (e) => {
@@ -455,29 +466,48 @@ $(document).ready(function() {
 
                 // hide before errors
                 $error_label.hide();
+                var new_conf = {};
 
-                // if operator is empty then alert the user
-                if (enabled && (operator == "" || operator == undefined || operator == null)) {
+                if(enabled) {
+                  // TODO: move to the input_builder specific section
 
-                   $error_label.text(i18n.select_operator).show();
-                   error = true;
-                   return;
-                }
+                  // if operator is empty then alert the user
+                  if(input_builder == 'threshold_cross') {
+                    if (operator == "" || operator == undefined || operator == null) {
 
-                // if the value is empty then alert the user (only for checked granularities)
-                if (enabled && (threshold == null || threshold == undefined || threshold == "")) {
-                   $error_label.text(i18n.empty_input_box).show();
-                   error = true;
-                   return;
+                       $error_label.text(i18n.select_operator).show();
+                       error = true;
+                       return;
+                    }
+
+                    // if the value is empty then alert the user (only for checked granularities)
+                    if (threshold == null || threshold == undefined || threshold == "") {
+                       $error_label.text(i18n.empty_input_box).show();
+                       error = true;
+                       return;
+                    }
+
+                    new_conf = {
+                      'operator': operator,
+                      'threshold': parseInt(threshold)
+                    };
+                  } else if(input_builder == "items_list") {
+                    const items_val = $template.find("textarea").val();
+                    const items_list = items_val ? (items_val.split(",")
+                      .map((x) => {
+                        return(x.trim().toUpperCase())
+                      })) : [];
+
+                    new_conf = {
+                      items: items_list
+                    };
+                  }
                 }
 
                 // save data into dictonary
                 data[id] = {
                    'enabled': enabled,
-                   'script_conf': {
-                      'operator': operator,
-                      'threshold': parseInt(threshold)
-                   }
+                   'script_conf': new_conf,
                 }
              });
 

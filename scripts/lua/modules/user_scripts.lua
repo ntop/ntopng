@@ -876,15 +876,36 @@ end
 -- @brief Update the configuration of a specific script in a configset
 function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
    local configsets = user_scripts.getConfigsets()
+   new_config = new_config or {}
+   local applied_config = {}
 
    if(configsets[confid] == nil) then
       return false, i18n("configsets.unknown_id", {confid=confid})
    end
 
+   local script_type = user_scripts.getScriptType(subdir)
+   local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
+
+   if(script) then
+      -- Try to validate the configuration
+      local http_lint = require("http_lint")
+
+      for hook, conf in pairs(new_config) do
+	 local valid, rv = http_lint.validateHookConfig(script, hook, conf)
+
+	 if(not valid) then
+	    return false, rv
+	 end
+
+	 -- The validator may have changed the configuration
+	 applied_config[hook] = rv
+      end
+   end
+
    local config = configsets[confid].config
 
    config[subdir] = config[subdir] or {}
-   config[subdir][script_key] = new_config
+   config[subdir][script_key] = applied_config
 
    return saveConfigsets(configsets)
 end

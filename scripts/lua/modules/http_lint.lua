@@ -1024,6 +1024,67 @@ end
 
 -- #################################################################
 
+function http_lint.validateHookConfig(script, hook, value)
+   if(value.enabled == nil) then
+      return false, "Missing 'enabled' item"
+   end
+
+   if(value.script_conf == nil) then
+      return false, "Missing 'script_conf' item"
+   end
+
+   local conf = value.script_conf
+
+   if script.gui and script.gui.input_builder then
+      local input_builder = script.gui.input_builder
+      local mandatory_fields = {}
+
+      if(input_builder == "threshold_cross") then
+         if(not validateOperator(conf.operator)) then
+            return false, "bad operator"
+         end
+
+         if(tonumber(conf.threshold) == nil) then
+            return false, "bad threshold"
+         end
+      elseif(input_builder == "items_list") then
+         local item_type = script.gui.item_list_type or ""
+         local item_validator = validateUnchecked
+         local existing_items = {}
+         local validated_items = {}
+
+         if(item_type == "country") then
+            item_validator = validateCountry
+         end
+
+         if(type(conf.items) == "table") then
+            for _, item in ipairs(conf.items) do
+               if existing_items[item] then
+                  -- Ignore duplicated items
+                  goto next_item
+               end
+
+               if not item_validator(item) then
+                  return false, "bad " .. item_type .. ": " .. string.format("%s", item)
+               end
+
+               existing_items[item] = true
+               validated_items[#validated_items + 1] = item
+
+               ::next_item::
+            end
+
+            conf.items = validated_items
+         end
+      end
+   end
+
+   -- Assume valid by default
+   return true, value
+end
+
+-- #################################################################
+
 -- NOTE: Put here all the parameters to validate
 
 local known_parameters = {
