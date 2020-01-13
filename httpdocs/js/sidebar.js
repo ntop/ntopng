@@ -1,5 +1,10 @@
 $(window).ready(function() {
 
+    const sidebar_dark = localStorage.getItem('sidebar-dark');
+    if (sidebar_dark) {
+        $('#n-sidebar').removeClass('bg-light').addClass('bg-dark');
+    }
+
     if (window.matchMedia('(max-width: 575.98px)').matches) return;
 
     // get collapsing sidebar info from local storage
@@ -33,7 +38,19 @@ $(window).resize(function() {
 
 $(document).ready(function() {
 
-    
+    $("#toggle-theme").click(function() {
+
+        $('#n-sidebar').toggleClass('bg-light').toggleClass('bg-dark');
+
+        const is_dark = $('#n-sidebar').hasClass('bg-dark');
+        if (is_dark) {
+            localStorage.setItem('sidebar-dark', is_dark);
+        }
+        else {
+            localStorage.removeItem('sidebar-dark');
+        }
+    })
+
     $("button[data-toggle='sidebar']").click(function(){
 
         const ntop_logo = {

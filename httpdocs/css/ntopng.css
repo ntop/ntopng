@@ -578,11 +578,23 @@ path.link {
   padding-right: 0!important;
 }
 
+#n-sidebar #toggle-theme {
+  font-size: 0.8rem;
+  color:#363943;
+  text-decoration: none;
+  display: block;
+}
+
+
 /** Dark theme for sidebar **/
 
 #n-sidebar.bg-dark {
   background-color: #1f1f1f !important;
   color: #e2e2e2;
+}
+
+#n-sidebar.bg-dark #toggle-theme {
+  color: #ccc;
 }
 
 #n-sidebar.active.bg-dark .sidebar-info {
@@ -663,6 +675,11 @@ path.link {
   border-radius: 3px;
   color:#363943;
   white-space: nowrap;
+}
+
+
+#n-sidebar.active ul>li.nav-item>a {
+  padding: 0.8rem;
 }
 
 #n-sidebar.active .submenu::after {

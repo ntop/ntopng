@@ -51,7 +51,7 @@ end
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
 print ([[
-      <div id='n-sidebar' class="bg-dark active p-2">
+      <div id='n-sidebar' class="bg-light active p-2">
          <h3 class='muted'>
             <a href='/'>
                ]].. addLogoSvg() ..[[
@@ -802,6 +802,9 @@ print([[
    </ul>
    
    <div class='sidebar-info'>
+      <a href='#' id='toggle-theme'>
+         <i class='fas fa-sun'></i> Toogle Theme
+      </a>
       <small>
          ]].. info.product .. ' ' .. getNtopngRelease() ..[[ Edition v.]].. info.version ..[[
       </small>
