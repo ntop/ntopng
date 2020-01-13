@@ -296,8 +296,21 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
 const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
+   const $table_editor = $("#script-config-editor");
+
    const render_template = () => {
 
+      const $component_container = $(`<td></td>`);
+      const $text_area = $(`
+         <div class='input-group template w-100'>
+            <label>Digit countries(?):</label>
+            <textarea class="w-100 form-control" style="height: 5em;"></textarea>
+            <div class="invalid-feedback"></div>
+         </div>
+      `);
+
+      $component_container.append($text_area);
+      $table_editor.append($component_container);
    }
 
    return {
@@ -319,7 +332,6 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    // get template name
    const template_name = gui.input_builder;
-   console.log(template_name);
 
    const templates = {
       threshold_cross: ThresholdCross(gui, hooks, script_subdir, script_key),
@@ -337,6 +349,8 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 }
 
 $(document).ready(function() {
+
+   $.get(`${http_prefix}/lua/get_user_scripts.lua?confset_id=${confset_id}&script_subdir=${script_subdir}`, d => console.log(d));
 
    // initialize script table 
    const $script_table = $("#scripts-config").DataTable({
