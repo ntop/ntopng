@@ -4141,13 +4141,14 @@ static int ntop_interface_live_capture(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
   if(!iface) return(CONST_LUA_ERROR);
 
   c = getLuaVMContext(vm);
 
   if((!ntop_interface) || (!c))
+    return(CONST_LUA_ERROR);
+
+  if(!ntop->isPcapDownloadAllowed(vm, ntop_interface->get_name()))
     return(CONST_LUA_ERROR);
 
   if(lua_type(vm, 1) == LUA_TSTRING) /* Host */ {
@@ -4176,7 +4177,16 @@ static int ntop_interface_live_capture(lua_State* vm) {
   c->live_capture.stopped = c->live_capture.pcaphdr_sent = false;
   c->live_capture.bpfFilterSet = false;
 
-  if(bpf && (bpf[0] != '\0')) {
+  bpf = ntop->preparePcapDownloadFilter(vm, bpf);
+
+  if (bpf == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure building the capture filter");
+    return(CONST_LUA_ERROR);
+  }
+
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using capture filter '%s'", bpf);
+
+  if(bpf[0] != '\0') {
     if(pcap_compile_nopcap(65535,   /* snaplen */
 			   iface->get_datalink(), /* linktype */
 			   &c->live_capture.fcode, /* program */
@@ -4184,7 +4194,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
 			   0,       /* optimize */
 			   PCAP_NETMASK_UNKNOWN) == -1)
       ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Unable to set capturefilter %s. Filter ignored.", bpf);
+				   "Unable to set capture filter %s. Filter ignored.", bpf);
     else
       c->live_capture.bpfFilterSet = true;
   }
@@ -4201,6 +4211,8 @@ static int ntop_interface_live_capture(lua_State* vm) {
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Capture completed");
   }
+
+  free(bpf);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -5496,6 +5508,16 @@ static int ntop_get_users(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_get_allowed_interface(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->getAllowedInterface(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_get_allowed_networks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5505,11 +5527,23 @@ static int ntop_get_allowed_networks(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
+static int ntop_is_pcap_download_allowed(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ntop->isPcapDownloadAllowed(vm, ntop_interface->get_name()));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_is_administrator(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_pushboolean(vm, ntop->isUserAdministrator(vm));
-
   return(CONST_LUA_OK);
 }
 
@@ -11495,6 +11529,8 @@ static const luaL_Reg ntop_reg[] = {
   { "getNologinUser",       ntop_get_nologin_username },
   { "getUsers",             ntop_get_users },
   { "isAdministrator",      ntop_is_administrator },
+  { "isPcapDownloadAllowed",ntop_is_pcap_download_allowed },
+  { "getAllowedInterface",  ntop_get_allowed_interface },
   { "getAllowedNetworks",   ntop_get_allowed_networks },
   { "resetUserPassword",    ntop_reset_user_password },
   { "changeUserRole",       ntop_change_user_role },
@@ -12262,7 +12298,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   lua_setglobal(L, "_SESSION"); /* Like in php */
 
   if(user[0] != '\0') {
-    char val[255];
+    char val[MAX_USER_NETS_VAL_LEN];
 
     getLuaVMUservalue(L, user) = (char*)user;
 

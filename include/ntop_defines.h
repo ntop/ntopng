@@ -159,6 +159,7 @@
 #endif
 
 #define MAX_INTERFACE_NAME_LEN    512
+#define MAX_USER_NETS_VAL_LEN     255
 #define NUM_HOSTS_RESOLVED_BITS   2 << 19 /* ~1 million */
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
