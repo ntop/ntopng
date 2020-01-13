@@ -2215,6 +2215,7 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
 
   ndpi_serialize_string_string(s, "cli_addr", get_cli_ip_addr()->print(buf, sizeof(buf)));
   ndpi_serialize_string_boolean(s, "cli_blacklisted", isBlacklistedClient());
+  ndpi_serialize_string_int32(s, "cli_port", get_cli_port());
   if(cli_host) {
     ndpi_serialize_string_string(s, "cli_country", cli_host->get_country(buf, sizeof(buf)));
     ndpi_serialize_string_string(s, "cli_os", cli_host->getOSDetail(buf, sizeof(buf)));
@@ -2224,6 +2225,7 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
 
   ndpi_serialize_string_string(s, "srv_addr", get_srv_ip_addr()->print(buf, sizeof(buf)));
   ndpi_serialize_string_boolean(s, "srv_blacklisted", isBlacklistedServer());
+  ndpi_serialize_string_int32(s, "srv_port", get_srv_port());
   if(srv_host) {
     ndpi_serialize_string_string(s, "srv_country", srv_host->get_country(buf, sizeof(buf)));
     ndpi_serialize_string_string(s, "srv_os", srv_host->getOSDetail(buf, sizeof(buf)));
