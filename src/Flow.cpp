@@ -1213,7 +1213,7 @@ if(cli_host && srv_host) {
 
 /* *************************************** */
 
-void Flow::periodic_stats_update(void *user_data, bool quick) {
+void Flow::periodic_stats_update(void *user_data) {
   periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*) user_data;
   struct timeval *tv = periodic_stats_update_user_data->tv;
   bool first_partial;
@@ -1470,7 +1470,7 @@ void Flow::periodic_stats_update(void *user_data, bool quick) {
   }
 
   memcpy(&last_update_time, tv, sizeof(struct timeval));
-  GenericHashEntry::periodic_stats_update(user_data, quick);
+  GenericHashEntry::periodic_stats_update(user_data);
 }
 
 /* *************************************** */

@@ -2482,19 +2482,10 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
 /* **************************************************** */
 
-static bool perform_quick_update(const struct timeval *tv, GenericHashEntry *ghe) {
-  /* NOTE: the line below nees to be optimized as it is very inefficient in the current state */
-  return !(time(NULL) - tv->tv_sec + 3 < ntop->getPrefs()->get_housekeeping_frequency() || ghe->getInterface()->read_from_pcap_dump());
-}
-
-/* **************************************************** */
-
 static bool host_flow_update_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*)user_data;
-  struct timeval *tv = periodic_stats_update_user_data->tv;
-  bool quick_update = perform_quick_update(tv, node);
 
-  node->periodic_stats_update(periodic_stats_update_user_data, quick_update);
+  node->periodic_stats_update(periodic_stats_update_user_data);
 
   *matched = true;
 
