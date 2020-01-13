@@ -6649,14 +6649,11 @@ static int ntop_run_live_extraction(lua_State *vm) {
   TimelineExtract timeline;
   int ifid;
   time_t time_from, time_to;
-  char *filter;
+  char *bpf;
   bool allow = false, success = false;
   char * timeline_path = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop->isUserAdministrator(vm))
-    return(CONST_LUA_ERROR);
 
   c = getLuaVMContext(vm);
 
@@ -6675,12 +6672,14 @@ static int ntop_run_live_extraction(lua_State *vm) {
   ifid = lua_tointeger(vm, 1);
   time_from = lua_tointeger(vm, 2);
   time_to = lua_tointeger(vm, 3);
-  if ((filter = (char *) lua_tostring(vm, 4)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+  if ((bpf = (char *) lua_tostring(vm, 4)) == NULL)  return(CONST_LUA_PARAM_ERROR);
   if(lua_tostring(vm, 5)) timeline_path = (char *)lua_tostring(vm, 5);
-
 
   iface = ntop->getInterfaceById(ifid);
   if(!iface) return(CONST_LUA_ERROR);
+
+  if(!ntop->isPcapDownloadAllowed(vm, iface->get_name()))
+    return(CONST_LUA_ERROR);
 
   live_extraction_num_lock.lock(__FILE__, __LINE__);
   if (live_extraction_num < CONST_MAX_NUM_LIVE_EXTRACTIONS) {
@@ -6690,11 +6689,16 @@ static int ntop_run_live_extraction(lua_State *vm) {
   live_extraction_num_lock.unlock(__FILE__, __LINE__);
 
   if (allow) {
-    success = timeline.extractLive(c->conn, iface, time_from, time_to, filter, timeline_path);
+
+    bpf = ntop->preparePcapDownloadFilter(vm, bpf);
+
+    success = timeline.extractLive(c->conn, iface, time_from, time_to, bpf, timeline_path);
 
     live_extraction_num_lock.lock(__FILE__, __LINE__);
     live_extraction_num--;
     live_extraction_num_lock.unlock(__FILE__, __LINE__);
+
+    free(bpf);
   }
 
   lua_pushboolean(vm, success);
