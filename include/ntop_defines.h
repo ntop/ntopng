@@ -493,7 +493,6 @@
 #define CONST_OLD_DEFAULT_NTOP_USER  "nobody"
 #define CONST_DEFAULT_NTOP_USER      "ntopng"
 #define CONST_TOO_EARLY              "(Too Early)"
-#define CONST_NO_SCORE_SET            ((u_int16_t)(-1))
 
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
@@ -678,7 +677,6 @@
 
 /* Flow Lua Calls */
 #define FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME  "protocolDetected"
-#define FLOW_LUA_CALL_FLOW_STATUS_CHANGE_FN_NAME "statusChanged"
 #define FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME    "periodicUpdate"
 #define FLOW_LUA_CALL_IDLE_FN_NAME               "flowEnd"
 #define FLOW_LUA_CALL_PERIODIC_UPDATE_SECS       30

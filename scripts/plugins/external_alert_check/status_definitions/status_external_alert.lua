@@ -21,7 +21,7 @@ end
 
 -- #################################################################
 
-local function formatExternalAlert(status, flowstatus_info)
+local function formatExternalAlert(flowstatus_info)
    local res = i18n("alerts_dashboard.external_alert")
 
    if not flowstatus_info then
@@ -44,7 +44,8 @@ end
 
 return {
   status_id = 21,
-  relevance = 0,
+  cli_score = 0,
+  srv_score = 0,
   prio = 680,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.external_alert,

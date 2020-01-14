@@ -2015,6 +2015,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    tskey = tskey,
    timeseries = table.merge({
       {schema="host:traffic",                label=i18n("traffic")},
+      {schema="host:score",                  label=i18n("score"), enterprise_only=true},
       {schema="host:active_flows",           label=i18n("graphs.active_flows")},
       {schema="host:total_flows",            label=i18n("db_explorer.total_flows")},
       {schema="host:misbehaving_flows",        label=i18n("graphs.total_misbehaving_flows")},

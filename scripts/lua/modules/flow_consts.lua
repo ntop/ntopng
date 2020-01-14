@@ -25,13 +25,6 @@ end
 
 -- ################################################################################
 
--- Each entry must contain the following information
---  relevance: is used to calculate a score
---  prio: when a flow has multiple status set, the most important status is the one with highest priority
---  alert_type: the alert type associated to this status
---  alert_severity: the alert severity associated to this status
---  i18n_title: a localization string for the status
---  i18n_description (optional): a localization string / function for the description
 -- See flow_consts.resetDefinitions()
 flow_consts.status_types = {}
 local status_by_id = {}
@@ -87,7 +80,7 @@ end
 -- ################################################################################
 
 function flow_consts.loadDefinition(def_script, mod_fname, script_path)
-    local required_fields = {"status_id", "relevance", "prio", "alert_severity", "alert_type", "i18n_title"}
+    local required_fields = {"status_id", "cli_score", "srv_score", "prio", "alert_severity", "alert_type", "i18n_title"}
 
     -- print("Loading "..script_path.."\n")
     
@@ -137,7 +130,7 @@ function flow_consts.getStatusDescription(status_id, flowstatus_info)
 
     if(type(status_def.i18n_description) == "function") then
         -- formatter function
-        return(status_def.i18n_description(status_id, flowstatus_info))
+        return(status_def.i18n_description(flowstatus_info))
     elseif(status_def.i18n_description ~= nil) then
         return(i18n(status_def.i18n_description) or status_def.i18n_description)
     else
@@ -1151,7 +1144,13 @@ flow_consts.mobile_country_code = {
 
 local function dumpStatusDefs()
    for _, a in pairsByKeys(status_by_id) do
-      print("[status_id: ".. a.status_id .."][relevance: ".. a.relevance .."][prio: ".. a.prio .."][title: ".. a.i18n_title.."]\n")
+      local score = ""
+
+      if((type(a.cli_score) == "number") and (type(a.srv_score) == "number")) then
+        score = a.cli_score + a.srv_score
+      end
+
+      print("[status_id: ".. a.status_id .."][score: ".. score .."][prio: ".. a.prio .."][title: ".. a.i18n_title.."]\n")
       -- tprint(k)
    end
 end

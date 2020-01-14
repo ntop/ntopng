@@ -40,7 +40,7 @@ class Flow : public GenericHashEntry {
   u_int16_t cli_port, srv_port, vlanId;
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
-  u_int16_t alert_score;
+  u_int16_t cli_score, srv_score;
   struct ndpi_flow_struct *ndpiFlow;
 
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
@@ -594,8 +594,10 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
 
-  inline void setScore(u_int16_t score)    { alert_score = score; };
-  inline u_int16_t getScore()              { return(alert_score); };
+  void incScore(u_int16_t cli_inc, u_int16_t srv_inc);
+  inline u_int16_t getCliScore()           { return(cli_score); };
+  inline u_int16_t getSrvScore()           { return(srv_score); };
+  inline u_int16_t getScore()              { return(max(cli_score, srv_score)); };
 
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }

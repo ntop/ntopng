@@ -6,7 +6,7 @@ local alert_consts = require("alert_consts")
 
 -- #################################################################
 
-local function formatBlacklistedFlow(status, info)
+local function formatBlacklistedFlow(info)
    if not info then
       return i18n("alerts_dashboard.blacklisted_country")
    end
@@ -29,7 +29,20 @@ end
 
 return {
   status_id = 1,
-  relevance = 100,
+  cli_score = function(info)
+    if(info and info["srv_blacklisted"]) then
+      return(60)
+    else
+      return(10)
+    end
+  end,
+  srv_score = function(info)
+    if(info and info["cli_blacklisted"]) then
+      return(60)
+    else
+      return(10)
+    end
+  end,
   prio = 650,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_blacklisted_country,
