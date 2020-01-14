@@ -6,7 +6,7 @@ const check_status_code = (status_code, status_text, $error_label) => {
    const is_different = status_code != 200;
 
    if (is_different && $error_label != null) {
-      $error_label.text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
+      $error_label.text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).fadeIn();
    }
    else if (is_different && $error_label == null) {
       alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
@@ -18,10 +18,10 @@ const check_status_code = (status_code, status_text, $error_label) => {
 /**
  * This function select the correct tab for script filtering 
  */
-const select_script_filter = () => {
+const select_script_filter = (enabled_count) => {
 
    // get hash from url
-   const hash = window.location.hash;
+   let hash = window.location.hash;
 
    if (hash == undefined || hash == null || hash == "") {
       // if no tab is active, show the "enabled" tab if there are any enabled
@@ -231,7 +231,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
          check_status_code(status, statusText, $error_label);
          // hide modal if there is error
-         $("#modal-script").modal("toggle");
+         // $("#modal-script").modal("toggle");
       })
 
 
@@ -300,22 +300,170 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
    const render_template = () => {
 
-      const $component_container = $(`<td></td>`);
-      const $text_area = $(`
-         <div class='input-group template w-100'>
-            <label>Digit countries(?):</label>
-            <textarea class="w-100 form-control" style="height: 5em;"></textarea>
-            <div class="invalid-feedback"></div>
-         </div>
+      const $component_container = $(`<tr></tr>`);
+      const $checkbox_enabled = $(`
+         <input 
+            id='itemslist-checkbox'
+            name='enabled' 
+            type="checkbox" 
+            ${hooks.all.enabled ? "checked" : ""} />
       `);
 
-      $component_container.append($text_area);
+      const items_list = hooks.all.script_conf.items;
+      const $text_area = $(`
+         <td>
+            <div class='form-group template w-100'>
+               <textarea 
+                  ${!hooks.all.enabled ? "readonly" : ""} 
+                  name='threshold' 
+                  id='itemslist-textarea' 
+                  class="w-100 form-control" 
+                  style="height: 5rem;">${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
+               <div class="invalid-feedback"></div>
+            </div>
+         </td>
+      `);
+
+      // bind check event on checkboxes
+      $checkbox_enabled.change(function (e) {
+
+         const checked = $(this).prop('checked');
+
+         // if the checked option is false the disable the elements
+         if (!checked) {
+            $text_area.find(`#itemslist-textarea`).attr("readonly", "").val('');
+            return;
+         }
+
+         $text_area.find(`#itemslist-textarea`).removeAttr("readonly", "");
+      });
+
+      $component_container.append($(`<td class='text-center'></td>`).append($checkbox_enabled), $text_area);
+
+      $table_editor.empty();
+
+      $table_editor.append(`<tr><th class='text-center w-25'>Enabled</th><th>Content</th></tr>`)
       $table_editor.append($component_container);
    }
 
+   const apply_event = (event) => {
+
+      const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
+
+      let $error_label = $('#itemslist-textarea').parent().find('.invalid-feedback');
+      $error_label.fadeOut();
+
+      const textarea_value = $('#itemslist-textarea').val();
+
+      // if the textarea value is not valid then alert the user
+      if (textarea_value == undefined || textarea_value == null || textarea_value == '') {
+         $error_label.fadeIn().text(i18n.empty_input_box);
+         return;
+      } 
+
+      // if the textarea value contains special characters such as #, @, ... then alert the user
+      if (special_char_regexp.test(textarea_value)) {
+         $error_label.fadeIn().text(`Special characters are not allowed except for ,`);
+         return;
+      }
+
+      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
+
+      const template_data = {
+         all: {
+            enabled: $('#itemslist-checkbox').prop('checked'),
+            script_conf: {
+               items: items_list
+            } 
+         } 
+      };
+
+      const $apply_btn = $('#btn-apply');
+
+      // hide label
+      $error_label.hide();
+      $error_label = $("#apply-error");
+
+      // remove dirty class from form
+      $('#edit-form').removeClass('dirty')
+      $apply_btn.attr('disabled', '');
+
+      $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
+         script_subdir: script_subdir,
+         script_key: script_key,
+         csrf: csrf_edit_config,
+         JSON: JSON.stringify(template_data),
+         confset_id: confset_id
+      })
+      .done((d, status, xhr) => {
+
+         if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+
+         if (!d.success) {
+
+            $error_label.text(d.error).show();
+            // update token
+            csrf_edit_config = d.csrf;
+            // re enable button
+            $apply_btn.removeAttr('disabled');
+         }
+
+         // if the operation was successfull then reload the page
+         if (d.success) location.reload();
+      })
+      .fail(({ status, statusText }) => {
+
+         check_status_code(status, statusText, $error_label);
+
+         if (status == 200) {
+            $error_label.text(`${i18n.expired_csrf}`).show();
+         }
+
+         $apply_btn.removeAttr('disabled');
+      });
+
+   }
+
+   const reset_event = (event) => {
+
+      const $error_label = $('#apply-error');
+
+      $.get(`${http_prefix}/lua/get_user_script_config.lua`, {
+         script_subdir: script_subdir,
+         script_key: script_key
+      })
+      .done((data, status, xhr) => {
+
+         // if there is an error about the http request
+         if (check_status_code(status, statusText, $error_label)) return;
+
+         const items_list = data.hooks.all.script_conf.items;
+         const enabled = data.hooks.all.enabled;
+
+         // set textarea value with default's one
+         $('#itemslist-textarea').val(items_list.join(','));
+         $('#itemslist-checkbox').prop('checked', enabled);
+
+         // turn on readonly to textarea if enabled is false
+         if (!enabled) {
+            $('#itemslist-textarea').attr('readonly', '');
+         }
+
+         // add dirty class to form
+         $('#edit-form').addClass('dirty');
+      })
+      .fail(({ status, statusText }) => {
+
+         check_status_code(status, statusText, $error_label);
+         // hide modal if there is error
+         $("#modal-script").modal("toggle");
+      })
+
+   }
+
    return {
-      apply_click_event: function() {},
-      reset_click_event: function() {},
+      apply_click_event: apply_event,
+      reset_click_event: reset_event,
       render: render_template,
    }
 }
@@ -350,8 +498,6 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
 $(document).ready(function() {
 
-   $.get(`${http_prefix}/lua/get_user_scripts.lua?confset_id=${confset_id}&script_subdir=${script_subdir}`, d => console.log(d));
-
    // initialize script table 
    const $script_table = $("#scripts-config").DataTable({
       dom: "Bfrtip",
@@ -376,7 +522,7 @@ $(document).ready(function() {
          const [enabled_count, disabled_count] = count_scripts();
 
          // select the correct tab
-         select_script_filter();
+         select_script_filter(enabled_count);
 
          // clean searchbox
          $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
@@ -466,14 +612,16 @@ $(document).ready(function() {
 
                if (row.all_hooks.length > 0 && row.input_handler == undefined) {
 
-                  const $toggle_buttons = $(`<div class="btn-group btn-group-toggle" data-toggle="buttons">
-                 <label class="btn btn-sm btn-secondary ${row.is_enabled ? "active btn-success" : ""}">
-                    <input value='true' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> On
-                 </label>
-                 <label class="btn btn-sm btn-secondary ${!row.is_enabled ? "active btn-danger" : ""}">
-                    <input value='false' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> Off
-                 </label>
-                 </div>`);
+                  const $toggle_buttons = $(`
+                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-sm btn-secondary ${row.is_enabled ? "active btn-success" : ""}">
+                           <input value='true' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> On
+                        </label>
+                        <label class="btn btn-sm btn-secondary ${!row.is_enabled ? "active btn-danger" : ""}">
+                           <input value='false' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> Off
+                        </label>
+                     </div>
+                 `);
 
                   // remove text inside cell
                   $(td).text('');
@@ -498,20 +646,20 @@ $(document).ready(function() {
                         JSON: JSON.stringify(data),
                         confset_id: confset_id
                      })
-                        .done((d, status, xhr) => {
+                     .done((d, status, xhr) => {
 
                            if (!d.success) {
-                              $("#alert-row-buttons").text(data.error).removeClass('d-none').show();
+                              $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
                               // update csrf
                               csrf_toggle_buttons = d.csrf;
                            }
 
                            if (d.success) location.reload();
 
-                        })
-                        .fail(({ status, statusText }) => {
+                     })
+                     .fail(({ status, statusText }) => {
 
-                           check_status_code(status, statusText, null);
+                           check_status_code(status, statusText, $("#alert-row-buttons"));
 
                            // if the csrf has expired 
                            if (status == 200) {
@@ -520,7 +668,7 @@ $(document).ready(function() {
 
                            // re eanble buttons
                            $("#scripts-config input[name$='-check']").removeAttr("disabled").parent().removeClass("disabled");
-                        })
+                     })
 
                   });
 
