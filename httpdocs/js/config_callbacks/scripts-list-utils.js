@@ -597,11 +597,18 @@ $(document).ready(function() {
             className: 'text-center',
             render: function (data, type, row) {
 
+               // if the type is flter return true if the data length is greather or equal
+               // than 0 so the script table can detect if a plugin is enabled
                if (data.length <= 0 && type == "filter") {
                   return false;
                }
                if (data.length > 0 && type == "filter") {
                   return true;
+               }
+
+               // it means there is only all
+               if (data.length == 1) {
+                  return data[0];
                }
 
                return data.map(enabled_hook => {
