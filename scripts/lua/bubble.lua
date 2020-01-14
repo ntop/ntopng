@@ -34,7 +34,7 @@ local modes = {
    { mode = 5, label = "SYN vs RST" },
    { mode = 6, label = "SYN vs SYNACK" },
    { mode = 7, label = "TCP Packets Sent/Received" },
-   { mode = 8, label = "TCP bytes Sent/Received" }
+   { mode = 8, label = "TCP Bytes Sent/Received" }
 }
 
 
