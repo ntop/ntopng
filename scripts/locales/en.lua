@@ -3141,7 +3141,9 @@ local lang = {
   },
   ["scripts_list"] = {
     ["are_you_sure"] = "Your edits are not saved yet! Do you really want to close this dialog?",
+    ["blacklisted_country"] = "Please write country code values separated by comma. (i.e.: IT,FR,DE,UK)",
     ["config"] = "Config",
+    ["items_list_comma"] = "Special characters are not allowed except for ,",
     ["reset_default"] = "Reset Default",
     ["scripts_x"] = "Scripts %{subdir} - %{config}",
     ["select_operator"] = "Please select an operator!",

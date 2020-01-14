@@ -1,3 +1,5 @@
+const special_characters_regex = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\,\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
+
 // return true if the status code is different from 200
 const check_status_code = (status_code, status_text, $error_label) => {
         
@@ -25,7 +27,7 @@ const get_configuration_data = ($config_table, $button_caller) => {
     }
 }
 
-function can_clone_config() {
+const can_clone_config = () => {
     return((subdir != "system") && (subdir != "syslog"));
 }
 
@@ -125,6 +127,7 @@ $(document).ready(function() {
 
     });
 
+    // handle clone modal
     $('#config-list').on('click', 'button[data-target="#clone-modal"]', function(e) {
 
         const {config_id, config_name} = get_configuration_data($config_table, $(this));
@@ -156,7 +159,7 @@ $(document).ready(function() {
             }
 
             // check if there is any special characters
-            if (/[\@\#\<\>\\\/\?\'\"\`\~\|\,\.\:\;\,\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/.test(clonation_name)) {
+            if (special_characters_regex.test(clonation_name)) {
                 $("#clone-error").text(`${i18n.invalid_characters}`).show();
                 return;
             }
@@ -194,6 +197,7 @@ $(document).ready(function() {
 
             })
             .fail(({status, statusText}) => {
+
                 check_status_code(status, statusText, $("#clone-error"));
 
                 if (status == 200) {
@@ -214,6 +218,7 @@ $(document).ready(function() {
 
     });
 
+    // handle apply modal
     $('#config-list').on('click', 'button[data-target="#applied-modal"]', function(e) {
 
         const {config_id, config_name, config_targets} = get_configuration_data($config_table, $(this));
@@ -304,6 +309,7 @@ $(document).ready(function() {
 
     });
 
+    // handle rename modal
     $('#config-list').on('click', 'button[data-target="#rename-modal"]', function(e) {
 
         const {config_id, config_name} = get_configuration_data($config_table, $(this));
@@ -331,7 +337,7 @@ $(document).ready(function() {
                 return;
             }
 
-            if (/[\@\#\<\>\\\/\?\'\"\`\~\|\,\.\:\;\,\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/.test(input_value)) {
+            if (special_characters_regex.test(input_value)) {
                 $("#rename-error").text(`${i18n.invalid_characters}`).show();
                 return;
             }
@@ -387,6 +393,7 @@ $(document).ready(function() {
 
     });
 
+    // handle delete modal
     $('#config-list').on('click', 'button[data-target="#delete-modal"]', function(e) {
 
         const {config_id, config_name} = get_configuration_data($config_table, $(this));

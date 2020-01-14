@@ -315,10 +315,11 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
             <div class='form-group template w-100'>
                <textarea 
                   ${!hooks.all.enabled ? "readonly" : ""} 
-                  name='threshold' 
+                  name='items-list' 
                   id='itemslist-textarea' 
                   class="w-100 form-control" 
                   style="height: 5rem;">${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
+                  <small>${i18n.blacklisted_country}</small>
                <div class="invalid-feedback"></div>
             </div>
          </td>
@@ -342,13 +343,14 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
       $table_editor.empty();
 
-      $table_editor.append(`<tr><th class='text-center w-25'>Enabled</th><th>Content</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center w-25'>Enabled</th><th>Blacklisted Countries list:</th></tr>`)
       $table_editor.append($component_container);
    }
 
    const apply_event = (event) => {
 
       const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
+      const hook_enabled = $('#itemslist-checkbox').prop('checked');
 
       let $error_label = $('#itemslist-textarea').parent().find('.invalid-feedback');
       $error_label.fadeOut();
@@ -356,14 +358,14 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       const textarea_value = $('#itemslist-textarea').val();
 
       // if the textarea value is not valid then alert the user
-      if (textarea_value == undefined || textarea_value == null || textarea_value == '') {
+      if (hook_enabled && (textarea_value == undefined || textarea_value == null || textarea_value == '')) {
          $error_label.fadeIn().text(i18n.empty_input_box);
          return;
       } 
 
       // if the textarea value contains special characters such as #, @, ... then alert the user
       if (special_char_regexp.test(textarea_value)) {
-         $error_label.fadeIn().text(`Special characters are not allowed except for ,`);
+         $error_label.fadeIn().text(`${i18n.items_list_comma}`);
          return;
       }
 
@@ -371,7 +373,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
       const template_data = {
          all: {
-            enabled: $('#itemslist-checkbox').prop('checked'),
+            enabled: hook_enabled,
             script_conf: {
                items: items_list
             } 
@@ -435,7 +437,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       .done((data, status, xhr) => {
 
          // if there is an error about the http request
-         if (check_status_code(status, statusText, $error_label)) return;
+         if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
          const items_list = data.hooks.all.script_conf.items;
          const enabled = data.hooks.all.enabled;
