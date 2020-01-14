@@ -319,6 +319,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
                   id='itemslist-textarea' 
                   class="w-100 form-control" 
                   style="height: 5rem;">${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
+                  <small>${i18n.blacklisted_country}</small>
                <div class="invalid-feedback"></div>
             </div>
          </td>
@@ -342,7 +343,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
       $table_editor.empty();
 
-      $table_editor.append(`<tr><th class='text-center w-25'>Enabled</th><th>Content</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center w-25'>Enabled</th><th>Blacklisted Countries list:</th></tr>`)
       $table_editor.append($component_container);
    }
 
