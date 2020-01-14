@@ -3142,6 +3142,7 @@ local lang = {
   ["scripts_list"] = {
     ["are_you_sure"] = "Your edits are not saved yet! Do you really want to close this dialog?",
     ["config"] = "Config",
+    ["items_list_comma"] = "Special characters are not allowed except for ,",
     ["reset_default"] = "Reset Default",
     ["scripts_x"] = "Scripts %{subdir} - %{config}",
     ["select_operator"] = "Please select an operator!",
