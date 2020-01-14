@@ -244,7 +244,7 @@ with a new `host:low_goodput_flows` metric:
       timeseries = {
          {schema="host:traffic",                label=i18n("traffic")},
          {schema="host:flows",                  label=i18n("graphs.active_flows")},
-         {schema="host:anomalous_flows",        label=i18n("graphs.total_anomalous_flows")},
+         {schema="host:misbehaving_flows",        label=i18n("graphs.total_misbehaving_flows")},
 
          -- The new metric is added here in order to be shown into the charts
          {schema="host:low_goodput_flows",      label="Low Goodput Flows"},

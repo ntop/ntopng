@@ -138,13 +138,13 @@ void ICMPstats::lua(bool isV4, lua_State *vm, bool verbose) {
 /* *************************************** */
 
 bool ICMPstats::hasAnomalies(time_t when) {
-  return num_destination_unreachable.is_anomalous(when);
+  return num_destination_unreachable.is_misbehaving(when);
 }
 
 /* *************************************** */
 
 void ICMPstats::luaAnomalies(lua_State *vm, time_t when) {
-  if(num_destination_unreachable.is_anomalous(when))
+  if(num_destination_unreachable.is_misbehaving(when))
     num_destination_unreachable.lua(vm, "icmp.num_destination_unreachable");
 }
 

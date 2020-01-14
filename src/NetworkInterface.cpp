@@ -3769,8 +3769,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_traffic_unknown: r->elems[r->actNumEntries++].numericValue = h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN); break;
   case column_num_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getNumOutgoingFlows(); break;
   case column_num_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getNumIncomingFlows(); break;
-  case column_total_num_anomalous_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousOutgoingFlows(); break;
-  case column_total_num_anomalous_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAnomalousIncomingFlows(); break;
+  case column_total_num_misbehaving_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumMisbehavingOutgoingFlows(); break;
+  case column_total_num_misbehaving_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumMisbehavingIncomingFlows(); break;
   case column_total_num_unreachable_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableOutgoingFlows(); break;
   case column_total_num_unreachable_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableIncomingFlows(); break;
   case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
@@ -4357,8 +4357,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_traffic_unknown")) retriever->sorter = column_traffic_unknown, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_num_flows_as_client")) retriever->sorter = column_num_flows_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_num_flows_as_server")) retriever->sorter = column_num_flows_as_server, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_total_num_anomalous_flows_as_client")) retriever->sorter = column_total_num_anomalous_flows_as_client, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_total_num_anomalous_flows_as_server")) retriever->sorter = column_total_num_anomalous_flows_as_server, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_misbehaving_flows_as_client")) retriever->sorter = column_total_num_misbehaving_flows_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_misbehaving_flows_as_server")) retriever->sorter = column_total_num_misbehaving_flows_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_num_unreachable_flows_as_client")) retriever->sorter = column_total_num_unreachable_flows_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_num_unreachable_flows_as_server")) retriever->sorter = column_total_num_unreachable_flows_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_alerts")) retriever->sorter = column_total_alerts, sorter = numericSorter;

@@ -294,8 +294,8 @@ void Host::set_mac(Mac *_mac) {
 bool Host::hasAnomalies() const {
   time_t now = time(0);
 
-  return num_active_flows_as_client.is_anomalous(now)
-    || num_active_flows_as_server.is_anomalous(now)
+  return num_active_flows_as_client.is_misbehaving(now)
+    || num_active_flows_as_server.is_misbehaving(now)
     || stats->hasAnomalies(now);
 }
 
@@ -309,9 +309,9 @@ void Host::lua_get_anomalies(lua_State* vm) const {
     time_t now = time(0);
     lua_newtable(vm);
 
-    if(num_active_flows_as_client.is_anomalous(now))
+    if(num_active_flows_as_client.is_misbehaving(now))
       num_active_flows_as_client.lua(vm, "num_active_flows_as_client");
-    if(num_active_flows_as_server.is_anomalous(now))
+    if(num_active_flows_as_server.is_misbehaving(now))
       num_active_flows_as_server.lua(vm, "num_active_flows_as_server");
 
     stats->luaAnomalies(vm, now);
@@ -557,10 +557,10 @@ void Host::lua_get_num_total_flows(lua_State* vm) const {
 void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "active_flows.as_client", getNumOutgoingFlows());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
-  lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalNumAnomalousIncomingFlows());
-  lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalNumAnomalousOutgoingFlows());
-  lua_push_uint64_table_entry(vm, "anomalous_flows_status_map.as_server", getAnomalousIncomingFlowsStatusMap().get());
-  lua_push_uint64_table_entry(vm, "anomalous_flows_status_map.as_client", getAnomalousOutgoingFlowsStatusMap().get());
+  lua_push_uint64_table_entry(vm, "misbehaving_flows.as_server", getTotalNumMisbehavingIncomingFlows());
+  lua_push_uint64_table_entry(vm, "misbehaving_flows.as_client", getTotalNumMisbehavingOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "misbehaving_flows_status_map.as_server", getMisbehavingIncomingFlowsStatusMap().get());
+  lua_push_uint64_table_entry(vm, "misbehaving_flows_status_map.as_client", getMisbehavingOutgoingFlowsStatusMap().get());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", getTotalNumUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
@@ -844,10 +844,10 @@ void Host::periodic_stats_update(void *user_data) {
 #ifdef MONITOREDGAUGE_DEBUG
   char buf[64], buf2[128];
 
-  if(num_active_flows_as_client.is_anomalous(tv->tv_sec))
+  if(num_active_flows_as_client.is_misbehaving(tv->tv_sec))
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_client] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_client.print(buf2, sizeof(buf2)));
 
-  if(num_active_flows_as_server.is_anomalous(tv->tv_sec))
+  if(num_active_flows_as_server.is_misbehaving(tv->tv_sec))
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
 #endif
 
