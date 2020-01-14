@@ -22,8 +22,13 @@ standard users.
 
   The Manage Users Settings Page
 
-Password and other preferences such as role and allowed networks can be changed by clicking on
-button Manage, which causes a new window to pop out.
+Password and other preferences can be set during user creation and changed later on by clicking
+on the Manage button. User preferences include:
+
+- The user role (Administrator or Not Privileged)
+- Allowed interface
+- Allowed networks in traffic visualization
+- Permission to download live traffic and PCAPs (honoring the interface and networks restrictions)
 
 Preferences
 -----------
