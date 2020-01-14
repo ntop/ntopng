@@ -295,7 +295,7 @@ if((ifs["type"] == "zmq") and ntop.isEnterprise()) then
 
    if has_ebpf_events or has_sflow_devs then
       print('<li class="dropdown-divider"></li>')
-      print('<li class="nav-item" class="dropdown-header">') print(i18n("flows")) print('</li>')
+      print('<li class="dropdown-header">') print(i18n("flows")) print('</li>')
    end
 
    print('<li class="nav-item"><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">') print(i18n("flows_page.flow_exporters")) print('</a></li>')
