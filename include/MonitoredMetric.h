@@ -46,7 +46,7 @@ template <typename METRICTYPE> class MonitoredMetric {
 #ifdef MONITOREDMETRIC_DEBUG
     if((anomaly_index > 0) && ((anomaly_index < 25) || (anomaly_index > 75)) && (gains > 0))
       printf("%s[%s] [RSI: %u][gains: %lu][losses: %lu][delta: %" PRId64 "][last_update: %u]\n",
-	     is_anomalous(when) ? "<<<***>>> Anomaly " : "",
+	     is_misbehaving(when) ? "<<<***>>> Anomaly " : "",
 	     __FUNCTION__, (unsigned int)anomaly_index, (unsigned long)gains, (unsigned long)losses,
 	     delta, (unsigned int)last_update);
 #endif
@@ -69,7 +69,7 @@ public:
   inline METRICTYPE get()             const { return(value);         }
   inline METRICTYPE getAnomalyIndex() const { return(anomaly_index); }
   virtual void computeAnomalyIndex(time_t when) = 0;
-  inline bool is_anomalous(time_t when, u_int8_t low_threshold = 25, u_int8_t high_threshold = 75) const {
+  inline bool is_misbehaving(time_t when, u_int8_t low_threshold = 25, u_int8_t high_threshold = 75) const {
     return(last_update
 	   && ((anomaly_index > 0 && anomaly_index < low_threshold) || (anomaly_index > high_threshold)) ? true : false);
   }
@@ -87,7 +87,7 @@ public:
   const char * const print(char * const buf, ssize_t buf_size) {
     if(buf && buf_size) {
       snprintf(buf, buf_size, "%s[value: %lu][last_value: %lu][RSI: %lu][gains: %lu][losses: %lu][last_update: %u]\n",
-	       this->is_anomalous(0) ? "<<<***>>> Anomaly " : "",
+	       this->is_misbehaving(0) ? "<<<***>>> Anomaly " : "",
 	       (unsigned long)this->value, (unsigned long)this->last_value,
 	       (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses,
 	       (unsigned int)this->last_update);

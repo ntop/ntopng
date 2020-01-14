@@ -38,7 +38,7 @@ template <typename METRICTYPE> class MonitoredCounter : public MonitoredMetric<M
 
 #ifdef MONITOREDCOUNTER_DEBUG
       printf("%s[MonitoredCounter][value: %lu][diff: %lu][last_diff: %lu][delta: %ld][RSI: %lu][gains: %lu][losses: %lu]\n",
-	     this->is_anomalous(when) ? "<<<***>>> Anomaly " : "",
+	     this->is_misbehaving(when) ? "<<<***>>> Anomaly " : "",
              (unsigned long)this->value, (unsigned long)diff, (unsigned long)last_diff, (long)delta,
 	     (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses);
 #endif

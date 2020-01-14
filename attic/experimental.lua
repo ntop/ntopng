@@ -49,9 +49,9 @@ local function check_misbehaving_flows_ratio(params)
   local bad_ratio_threshold = 30 -- 30%
 
   local cli_flows = alerts_api.host_delta_val(key .. "_cli_flows", params.granularity, info["total_flows.as_client"], true --[[ skip first]])
-  local cli_bad_flows = alerts_api.host_delta_val(key .. "_cli_bad_flows", params.granularity, info["anomalous_flows.as_server"], true --[[ skip first]])
+  local cli_bad_flows = alerts_api.host_delta_val(key .. "_cli_bad_flows", params.granularity, info["misbehaving_flows.as_server"], true --[[ skip first]])
   local srv_flows = alerts_api.host_delta_val(key .. "_srv_flows", params.granularity, info["total_flows.as_client"], true --[[ skip first]])
-  local srv_bad_flows = alerts_api.host_delta_val(key .. "_srv_bad_flows", params.granularity, info["anomalous_flows.as_server"], true --[[ skip first]])
+  local srv_bad_flows = alerts_api.host_delta_val(key .. "_srv_bad_flows", params.granularity, info["misbehaving_flows.as_server"], true --[[ skip first]])
 
   local bad_cli_ratio = math.min((cli_bad_flows * 100) / (cli_flows+1), 100)
   local bad_srv_ratio = math.min((srv_bad_flows * 100) / (srv_flows+1), 100)

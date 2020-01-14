@@ -84,10 +84,10 @@ function processHost(hostname, host)
 	 line = { link = hostname, label = label, x = host["unreachable_flows.as_server"], y = host["unreachable_flows.as_client"], r = host["bytes.sent"]+host["bytes.rcvd"] }
       end
    elseif(bubble_mode == 2) then
-      if((host["anomalous_flows.as_server"] ~= nil)
-	    and (host["anomalous_flows.as_client"] ~= nil)
-	 and (host["anomalous_flows.as_server"] + host["anomalous_flows.as_client"] > 0)) then
-	 line = { link = hostname, label = label, x = host["anomalous_flows.as_server"], y = host["anomalous_flows.as_client"], r = host["anomalous_flows.as_server"] + host["anomalous_flows.as_client"] }
+      if((host["misbehaving_flows.as_server"] ~= nil)
+	    and (host["misbehaving_flows.as_client"] ~= nil)
+	 and (host["misbehaving_flows.as_server"] + host["misbehaving_flows.as_client"] > 0)) then
+	 line = { link = hostname, label = label, x = host["misbehaving_flows.as_server"], y = host["misbehaving_flows.as_client"], r = host["misbehaving_flows.as_server"] + host["misbehaving_flows.as_client"] }
 	 -- if(label == "74.125.20.109") then tprint(line) end
       end
    elseif(bubble_mode == 3) then
