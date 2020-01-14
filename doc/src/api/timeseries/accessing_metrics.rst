@@ -64,7 +64,7 @@ exemplified below:
 
    ndpi_categories table
    ndpi_categories.Cloud number 2880
-   anomalous_flows.as_server number 0
+   misbehaving_flows.as_server number 0
    active_flows.as_client number 0
    bytes.rcvd number 2880
    icmp.bytes.rcvd number 0
@@ -74,7 +74,7 @@ exemplified below:
    icmp.bytes.sent number 0
    other_ip.bytes.rcvd number 0
    other_ip.bytes.sent number 0
-   anomalous_flows.as_client number 0
+   misbehaving_flows.as_client number 0
    contacts.as_server number 1
    bytes.sent number 0
    instant number 1550836500

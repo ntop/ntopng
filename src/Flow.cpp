@@ -3713,8 +3713,8 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
     printf("%s status=%d\n", print(buf, sizeof(buf)), status);
 #endif
 
-    if(cli_host) cli_host->incNumAnomalousFlows(true);
-    if(srv_host) srv_host->incNumAnomalousFlows(false);
+    if(cli_host) cli_host->incNumMisbehavingFlows(true);
+    if(srv_host) srv_host->incNumMisbehavingFlows(false);
   }
 
   if(isFlowAlerted()) {
@@ -4313,8 +4313,8 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
     performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data);
 
     /* Update the hosts status */
-    if(cli_host) cli_host->setAnomalousFlowsStatusMap(status_map, true);
-    if(srv_host) srv_host->setAnomalousFlowsStatusMap(status_map, false);
+    if(cli_host) cli_host->setMisbehavingFlowsStatusMap(status_map, true);
+    if(srv_host) srv_host->setMisbehavingFlowsStatusMap(status_map, false);
   }
 }
 

@@ -139,6 +139,16 @@ function recording_utils.isAvailable()
   return false
 end
 
+--! @brief Check if traffic recording and extraction is allowed for the current user on an interface
+--! @return true if extraction is available, false otherwise
+function recording_utils.isExtractionAvailable()
+  if ntop.isPcapDownloadAllowed() and (ntop.getCache(is_available_key) == "1") then
+    return true
+  end
+
+  return false
+end
+
 --! @brief Return information about the recording service (n2disk) including systemid and version
 --! @return a table with the information
 function recording_utils.getN2diskInfo()
@@ -611,25 +621,54 @@ function recording_utils.createConfig(ifid, params)
   return true
 end
 
+local function isRecordingEnabled(ifid)
+  local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+
+  if cur_provider == "ntopng" then
+    local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
+    if record_traffic == "true" then
+      return true
+    end
+  else
+    -- if the user has specified a custom provider different than ntopng, it is
+    -- assumed that he/she wants the recording so the service is considered enabled
+    return true
+  end
+
+  return false
+end 
+
 --! @brief Check if traffic recording is available and enabled on an interface
 --! @param ifid the interface identifier 
 --! @return true if recording is enabled, false otherwise
 function recording_utils.isEnabled(ifid)
-   if recording_utils.isAvailable() then
-      local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+  if recording_utils.isAvailable() then
+    return isRecordingEnabled(ifid)
+  end
 
-      if cur_provider == "ntopng" then
-	 local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
-	 if record_traffic == "true" then
-	    return true
-	 end
-      else
-	 -- if the user has specified a custom provider different than ntopng, it is
-	 -- assumed that he/she wants the recording so the service is considered enabled
-	 return true
-      end
+  return false
+end
+
+--! @brief Check if traffic extraction is available and recording is enabled on an interface
+--! @param ifid the interface identifier 
+--! @return true if extraction is available and recording is enabled, false otherwise
+function recording_utils.isExtractionEnabled(ifid)
+  if recording_utils.isExtractionAvailable() then
+    return isRecordingEnabled(ifid)
+  end
+
+  return false
+end
+
+local function isRecordingServiceActive(ifid)
+   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
+   local confifname = getConfigInterfaceName(ifid)
+
+   if cur_provider == "ntopng" then
+      return os_utils.isActive("n2disk-ntopng", confifname)
+   else
+      return os_utils.isActive("n2disk", confifname)
    end
-   return false
 end
 
 --! @brief Check if the traffic recording service is running
@@ -640,17 +679,20 @@ function recording_utils.isActive(ifid)
       return false
    end
 
-   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
-   local confifname = getConfigInterfaceName(ifid)
+   return isRecordingServiceActive(ifid)
+end
 
-   if cur_provider == "ntopng" then
-      return os_utils.isActive("n2disk-ntopng", confifname)
-   else
-      return os_utils.isActive("n2disk", confifname)
+--! @brief Check if traffic recording is running and extraction is allowed for the current user on an interface
+--! @param ifid the interface identifier 
+--! @return true if the service is running and extraction available, false otherwise
+function recording_utils.isExtractionActive(ifid)
+   if not recording_utils.isExtractionAvailable() then
+      return false
    end
 
-   return false
+   return isRecordingServiceActive(ifid)
 end
+
 
 function recording_utils.getAvailableTrafficRecordingProviders()
    local res = {}
@@ -837,7 +879,7 @@ function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
    local info = {}
    info.available = false
 
-   if recording_utils.isEnabled(ifid) then
+   if recording_utils.isExtractionEnabled(ifid) then
       local stats = recording_utils.stats(ifid)
 
       if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then

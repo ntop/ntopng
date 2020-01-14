@@ -8,14 +8,9 @@
             <div class="modal-body">
                 <form id='edit-form' method='post'>
                     <table class='table table-borderless' id='script-config-editor'>
-                        <thead>
-                            <tr>
-                                <th class='text-center'>{{ i18n("enabled", {}) }}</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
                     </table>
                 </form>
+                <span class='invalid-feedback' id='apply-error'></span>
             </div>
             <div class="modal-footer">
                 <button id='btn-reset' title='Reset Default ntopng values' type='button' class='btn btn-danger mr-auto'>

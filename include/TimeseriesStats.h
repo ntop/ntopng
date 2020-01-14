@@ -32,7 +32,7 @@ class Host;
  *  1. Add the metric to this class
  *  2. Edit TimeseriesStats::luaStats to push the metric to lua
  *  3. Possibly serialize in HostStats and deserialize in LocalHostStats
- *  4. The value is updated in HostStats. Usually the method is exposed by the Host (e.g. incNumAnomalousFlows)
+ *  4. The value is updated in HostStats. Usually the method is exposed by the Host (e.g. incNumMisbehavingFlows)
  *
  * In order to export a simple metric which does result in a class member (e.g. number of alerts of an Host):
  *  1. Add the metric to HostTimeseriesPoint
@@ -46,7 +46,7 @@ class TimeseriesStats: public GenericTrafficElement {
   Host *host;
   std::map<AlertType,u_int32_t> total_alerts;
   u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;
-  u_int32_t anomalous_flows_as_client, anomalous_flows_as_server;
+  u_int32_t misbehaving_flows_as_client, misbehaving_flows_as_server;
   u_int32_t host_unreachable_flows_as_client, host_unreachable_flows_as_server;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_flow_alerts;
@@ -59,14 +59,14 @@ class TimeseriesStats: public GenericTrafficElement {
   virtual ~TimeseriesStats() {}
 
   inline Host* getHost() const { return(host); }
-  inline void incNumAnomalousFlows(bool as_client)   { if(as_client) anomalous_flows_as_client++; else anomalous_flows_as_server++; };
+  inline void incNumMisbehavingFlows(bool as_client)   { if(as_client) misbehaving_flows_as_client++; else misbehaving_flows_as_server++; };
   inline void incNumUnreachableFlows(bool as_server) { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
   inline void incNumHostUnreachableFlows(bool as_server) { if(as_server) host_unreachable_flows_as_server++; else host_unreachable_flows_as_client++; };
   inline void incNumFlowAlerts()                     { num_flow_alerts++; }
   inline void incTotalAlerts(AlertType alert_type)   { total_alerts[alert_type]++; };
 
-  inline u_int32_t getTotalAnomalousNumFlowsAsClient() const { return(anomalous_flows_as_client);  };
-  inline u_int32_t getTotalAnomalousNumFlowsAsServer() const { return(anomalous_flows_as_server);  };
+  inline u_int32_t getTotalMisbehavingNumFlowsAsClient() const { return(misbehaving_flows_as_client);  };
+  inline u_int32_t getTotalMisbehavingNumFlowsAsServer() const { return(misbehaving_flows_as_server);  };
   inline u_int32_t getTotalUnreachableNumFlowsAsClient() const { return(unreachable_flows_as_client);  };
   inline u_int32_t getTotalUnreachableNumFlowsAsServer() const { return(unreachable_flows_as_server);  };
   inline u_int32_t getTotalHostUnreachableNumFlowsAsClient() const { return(host_unreachable_flows_as_client);  };

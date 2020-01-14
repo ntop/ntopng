@@ -15,7 +15,6 @@ local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local page_utils = require("page_utils")
 
--- ##############################################
 -- TODO: replace those globals with locals everywhere
 
 secondsToTime   = format_utils.secondsToTime

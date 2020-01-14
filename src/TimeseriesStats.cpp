@@ -25,7 +25,7 @@
 
 TimeseriesStats::TimeseriesStats(Host * _host) : GenericTrafficElement() {
   host = _host;
-  anomalous_flows_as_client = anomalous_flows_as_server = 0;
+  misbehaving_flows_as_client = misbehaving_flows_as_server = 0;
   unreachable_flows_as_client = unreachable_flows_as_server = 0;
   host_unreachable_flows_as_client = host_unreachable_flows_as_server = 0;
   udp_sent_unicast = udp_sent_non_unicast = 0;
@@ -50,8 +50,8 @@ void TimeseriesStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host
   }
 
   if(host_details) {
-    lua_push_uint64_table_entry(vm, "anomalous_flows.as_client", getTotalAnomalousNumFlowsAsClient());
-    lua_push_uint64_table_entry(vm, "anomalous_flows.as_server", getTotalAnomalousNumFlowsAsServer());
+    lua_push_uint64_table_entry(vm, "misbehaving_flows.as_client", getTotalMisbehavingNumFlowsAsClient());
+    lua_push_uint64_table_entry(vm, "misbehaving_flows.as_server", getTotalMisbehavingNumFlowsAsServer());
     lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", unreachable_flows_as_client);
     lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", unreachable_flows_as_server);
     lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", host_unreachable_flows_as_client);

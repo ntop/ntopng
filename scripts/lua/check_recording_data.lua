@@ -12,7 +12,7 @@ local json = require("dkjson")
 
 sendHTTPHeader('application/json')
 
-if not recording_utils.isAvailable() then
+if not recording_utils.isExtractionAvailable() then
   return
 end
 

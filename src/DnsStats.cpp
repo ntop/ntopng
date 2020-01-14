@@ -100,29 +100,29 @@ void DnsStats::lua(lua_State *vm, bool verbose ) {
 /* *************************************** */
 
 bool DnsStats::hasAnomalies(time_t when) {
-  return sent_stats.num_queries.is_anomalous(when)
-    || sent_stats.num_replies_ok.is_anomalous(when)
-    || sent_stats.num_replies_error.is_anomalous(when)
-    || rcvd_stats.num_queries.is_anomalous(when)
-    || rcvd_stats.num_replies_ok.is_anomalous(when)
-    || rcvd_stats.num_replies_error.is_anomalous(when);
+  return sent_stats.num_queries.is_misbehaving(when)
+    || sent_stats.num_replies_ok.is_misbehaving(when)
+    || sent_stats.num_replies_error.is_misbehaving(when)
+    || rcvd_stats.num_queries.is_misbehaving(when)
+    || rcvd_stats.num_replies_ok.is_misbehaving(when)
+    || rcvd_stats.num_replies_error.is_misbehaving(when);
 }
 
 /* *************************************** */
 
 void DnsStats::luaAnomalies(lua_State *vm, time_t when) {
-  if(sent_stats.num_queries.is_anomalous(when))
+  if(sent_stats.num_queries.is_misbehaving(when))
     sent_stats.num_queries.lua(vm, "dns.sent.num_queries");
-  if(sent_stats.num_replies_ok.is_anomalous(when))
+  if(sent_stats.num_replies_ok.is_misbehaving(when))
     sent_stats.num_replies_ok.lua(vm, "dns.sent.num_replies_ok");
-  if(sent_stats.num_replies_error.is_anomalous(when))
+  if(sent_stats.num_replies_error.is_misbehaving(when))
     sent_stats.num_replies_error.lua(vm, "dns.sent.num_replies_error");
 
-  if(rcvd_stats.num_queries.is_anomalous(when))
+  if(rcvd_stats.num_queries.is_misbehaving(when))
     rcvd_stats.num_queries.lua(vm, "dns.rcvd.num_queries");
-  if(rcvd_stats.num_replies_ok.is_anomalous(when))
+  if(rcvd_stats.num_replies_ok.is_misbehaving(when))
     rcvd_stats.num_replies_ok.lua(vm, "dns.rcvd.num_replies_ok");
-  if(rcvd_stats.num_replies_error.is_anomalous(when))
+  if(rcvd_stats.num_replies_error.is_misbehaving(when))
     rcvd_stats.num_replies_error.lua(vm, "dns.rcvd.num_replies_error");  
 }
 
