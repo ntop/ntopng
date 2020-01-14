@@ -641,6 +641,13 @@ path.link {
   padding: 0 0.5rem; 
 }
 
+#n-sidebar h3.muted div>a, #n-sidebar h3.muted div>button {
+  display: inline-block;
+}
+#n-sidebar.bg-dark button[data-toggle='sidebar']>i {
+  color: white;
+}
+
 #n-sidebar.active {
   width: 16rem;
 }

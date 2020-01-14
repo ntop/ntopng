@@ -53,9 +53,14 @@ end
 print ([[
       <div id='n-sidebar' class="bg-light active p-2">
          <h3 class='muted'>
-            <a href='/'>
-               ]].. addLogoSvg() ..[[
-            </a>
+            <div class='d-flex'>
+               <a href='/'>
+                  ]].. addLogoSvg() ..[[
+               </a>
+               <button data-toggle='sidebar' class='btn ml-auto'>
+                  <i class='fas fa-bars'></i>
+               </button>
+            </div>
          </h3>
 
          <button data-toggle='sidebar' class='btn text-right float-right d-md-none d-lg-none d-xs-block d-sm-block'>
@@ -544,7 +549,7 @@ end
 
 print ([[ 
    <li class="nav-item ]].. (active_page == "admin" and 'active' or '') ..[[">
-      <a  class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
+      <a class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
          <i class="fas fa-cog"></i> <span class='title'>Settings</span>
       </a>
       <div data-parent='#sidebar' class="collapse" id='admin-submenu'>
@@ -867,14 +872,12 @@ if(_SESSION["INVALID_CSRF"]) then
 end
 
 ------ NEW SIDEBAR ------
-
-
-
+ 
 print("<div class='p-md-4 p-xs-1 p-sm-2' id='n-container'>")
 
 print([[
    <nav class="navbar justify-content-start navbar-light">
-      <button data-toggle='sidebar' class='btn'>
+      <button data-toggle='sidebar' class='btn d-none'>
          <i class='fas fa-bars'></i>
       </button>
       <div class='dropdown mr-2'>
@@ -1117,10 +1120,6 @@ if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
    print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"><i class="fas fa-sign-out-alt fa-lg"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
  end
  
-if(not is_admin) then
-   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
-end
- 
  -- Restart
 if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
    print [[
@@ -1158,5 +1157,9 @@ print([[
    </nav>
 ]])
 
+-- append password change modal
+if(not is_admin) then
+   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
+end
 
 telemetry_utils.show_notice()

@@ -17,6 +17,8 @@ $(window).ready(function() {
             $("#n-container").addClass("extended")
             $('#ntop-logo-t,#ntop-logo-o,#ntop-logo-p').hide();
             $(`div[id$='-submenu']`).toggleClass('side-collapse').toggleClass('fade');
+            $(`#n-sidebar button[data-toggle='sidebar']`).hide();
+            $(`#n-container button[data-toggle='sidebar']`).removeClass('d-none').fadeIn();
         }
         else {
             $("#n-sidebar").addClass('active');
@@ -58,11 +60,12 @@ $(document).ready(function() {
             't': $('#ntop-logo-t'),
             'o': $('#ntop-logo-o'),
             'p': $('#ntop-logo-p'),
-        }
+        };
+
         const fade_delay = 100;
 
-        $("#n-container").toggleClass("extended")
-        $("#n-sidebar, #ntop-logo").toggleClass("active")
+        $("#n-container").toggleClass("extended");
+        $("#n-sidebar, #ntop-logo").toggleClass("active");
 
         // handle locale storage for collapsing
         const collapsed = !$('#n-sidebar').hasClass('active');
@@ -74,7 +77,6 @@ $(document).ready(function() {
             localStorage.removeItem('sidebar-collapsed');
         }
 
-
         if (!window.matchMedia('(max-width: 575.98px)').matches) {
             $(`div[id$='-submenu']`).toggleClass('side-collapse').toggleClass('fade');
         }
@@ -82,28 +84,35 @@ $(document).ready(function() {
 
             if (!$('#n-sidebar').hasClass('active')) {
             
-                $('#n-sidebar').css('width', $(window).width())
-                $('#n-sidebar').css('height', $(window).height())
-                $('html, body').css('overflow', 'hidden')
-
+                $('#n-sidebar').css('width', $(window).width());
+                $('#n-sidebar').css('height', $(window).height());
+                $('html, body').css('overflow', 'hidden');
             }
             else {
 
-                $('#n-sidebar').css('width', 0)
-                $('html, body').css('overflow', '')
-
+                $('#n-sidebar').css('width', 0);
+                $('html, body').css('overflow', '');
             }
         }
 
         if (!$('#n-sidebar').hasClass('active')) {
+
+            $(`#n-sidebar button[data-toggle='sidebar']`).hide();
+            $(`#n-container button[data-toggle='sidebar']`).removeClass('d-none').fadeIn();
+
             ntop_logo.p.fadeOut(fade_delay, 
                 () => ntop_logo.o.fadeOut(fade_delay, 
                     () => ntop_logo.t.fadeOut(fade_delay)));
         }
         else {
+
+            $(`#n-container button[data-toggle='sidebar']`).hide();
+
             ntop_logo.t.fadeIn(fade_delay, 
                 () => ntop_logo.o.fadeIn(fade_delay, 
-                    () => ntop_logo.p.fadeIn(fade_delay)));
+                    () => ntop_logo.p.fadeIn(fade_delay, () => {
+                        $(`#n-sidebar button[data-toggle='sidebar']`).fadeIn();
+            })));
         }
 
     });
