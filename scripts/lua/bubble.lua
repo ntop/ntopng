@@ -31,6 +31,10 @@ local modes = {
    { mode = 2, label = "Misbehaving Flows" },
    { mode = 3, label = "DNS Queries vs Replies" },
    { mode = 4, label = "SYN Distribution" },
+   { mode = 5, label = "SYN vs RST" },
+   { mode = 6, label = "SYN vs SYNACK" },
+   { mode = 7, label = "TCP Packets Sent/Received" },
+   { mode = 8, label = "TCP bytes Sent/Received" }
 }
 
 
@@ -59,6 +63,18 @@ elseif(bubble_mode == 3) then
 elseif(bubble_mode == 4) then
    x_label = '# of SYN Sent'
    y_label = '# of SYN Received'
+elseif(bubble_mode == 5) then
+   x_label = '# of SYN Sent'
+   y_label = '# of RST Received'
+elseif(bubble_mode == 6) then
+   x_label = '# of SYN Sent'
+   y_label = '# of SYNACK Received'
+elseif(bubble_mode == 7) then
+   x_label = 'TCP Packets Sent'
+   y_label = 'TCP Packets Received'
+elseif(bubble_mode == 8) then
+   x_label = 'TCP Bytes Sent'
+   y_label = 'TCP Bytes Received'	
 end
 
 function string.starts(String,Start)
@@ -99,7 +115,23 @@ function processHost(hostname, host)
 
       line = { link = hostname, label = label, x = stats["pktStats.sent"]["syn"], y = stats["pktStats.recv"]["syn"],
 	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }
-
+   elseif(bubble_mode == 5) then
+      local stats = interface.getHostInfo(host["ip"],host["vlan"])
+      line = { link = hostname, label = label, x = stats["pktStats.sent"]["syn"], y = stats["pktStats.recv"]["rst"],
+	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }	
+   elseif(bubble_mode == 6) then
+      local stats = interface.getHostInfo(host["ip"],host["vlan"])
+      line = { link = hostname, label = label, x = stats["pktStats.sent"]["syn"], y = stats["pktStats.recv"]["synack"],
+	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }	
+   elseif(bubble_mode == 7) then
+      local stats = interface.getHostInfo(host["ip"],host["vlan"])
+      line = { link = hostname, label = label, x = stats["tcp.packets.sent"], y = stats["tcp.packets.rcvd"],
+	       r = stats["tcp.bytes.sent"]+stats["tcp.bytes.rcvd"] }
+   elseif(bubble_mode == 8) then
+      local stats = interface.getHostInfo(host["ip"],host["vlan"])
+    
+      line = { link = hostname, label = label, x = stats["tcp.bytes.sent"], y = stats["tcp.bytes.rcvd"],
+	       r = stats["tcp.bytes.sent"]+stats["tcp.bytes.rcvd"] }
       -- io.write("--------------------------\n")
       -- tprint(host)
    end
