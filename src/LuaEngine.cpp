@@ -8946,8 +8946,8 @@ static int ntop_host_refresh_score(lua_State* vm) {
   if(!h)
     return(CONST_LUA_ERROR);
 
-  h->refreshScore();
   lua_pushinteger(vm, h->getScore());
+  h->refreshScore();
 
   return(CONST_LUA_OK);
 }
