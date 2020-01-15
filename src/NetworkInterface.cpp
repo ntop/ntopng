@@ -3603,10 +3603,16 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 
     switch(retriever->sorter) {
       case column_client:
-	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
+	if(f->getInterface()->isViewed())
+	  retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_cli_ip_addr();
+	else
+	  retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
       case column_server:
-	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
+	if(f->getInterface()->isViewed())
+	  retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_srv_ip_addr();
+	else
+	  retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
 	break;
       case column_vlan:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_vlan_id();
@@ -4022,6 +4028,16 @@ int ipNetworkSorter(const void *_a, const void *_b) {
   else return(0);
 }
 
+int ipSorter(const void *_a, const void *_b) {
+  struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
+  struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
+
+  if(!a || !b || !a->ipValue || !b->ipValue)
+    return(true);
+
+  return(a->ipValue->compare(b->ipValue));
+}
+
 int numericSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
@@ -4063,9 +4079,9 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
     return(-1);
   }
 
-  if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = hostSorter;
+  if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = isViewed() ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
