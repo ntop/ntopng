@@ -579,10 +579,10 @@ $(document).ready(function() {
 
                if (type == "display") {
                   return `<span 
-                           ${data.length > 64 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
+                           ${data.length >= 64 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
                            title="${row.title}"
                            data-content="${data}" >
-                              ${data.substr(0, 64)}${data.length > 64 ? '...' : ''}
+                              ${data.substr(0, 64)}${data.length >= 64 ? '...' : ''}
                            </span>`;
                }
 
