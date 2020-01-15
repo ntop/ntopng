@@ -14,8 +14,6 @@ local NfConfig = nil
 local flow_consts = require "flow_consts"
 require "flow_utils"
 
-local debug_score = (ntop.getPref("ntopng.prefs.beta_score") == "1")
-
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
@@ -1023,10 +1021,8 @@ else
       print("</td></tr>\n")
    end
 
-   if debug_score then
-     if(flow["score"] > 0) then
-       print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
-     end
+   if isScoreEnabled() then
+      print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
    end
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then

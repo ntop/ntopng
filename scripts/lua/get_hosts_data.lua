@@ -11,8 +11,6 @@ local format_utils = require "format_utils"
 local json = require "dkjson"
 local have_nedge = ntop.isnEdge()
 
-local debug_score = (ntop.getPref("ntopng.prefs.beta_score") == "1")
-
 sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters
@@ -297,12 +295,6 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    if value["has_blocking_quota"] or value["has_blocking_shaper"] then
       column_name = column_name .. " <i class='fas fa-ban' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
-   end
-
-   if debug_score then
-     if(value["score"] > 0) then
-       column_name = column_name .. string.format(" [<b>score: %u</b>]", value["score"])
-     end
    end
 
    record["column_name"] = column_name

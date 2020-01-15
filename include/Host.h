@@ -38,7 +38,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   HostStats *stats, *stats_shadow;
   OperatingSystem os;
   time_t last_stats_reset;
-  u_int16_t old_score, new_score;
+  u_int32_t old_score, new_score;
   u_int32_t active_alerted_flows;
   Bitmap misbehaving_flows_as_client_status, misbehaving_flows_as_server_status;
  
@@ -361,8 +361,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline MudRecording getMUDRecording()    { return(mud_pref); };
 
   inline void incScore(u_int16_t score)    { new_score += score; };
-  inline u_int16_t getScore() const        { return(old_score); };
-  inline void refreshScore()               { old_score = new_score; new_score = 0; };
+  inline u_int16_t getScore() const        { return(new_score - old_score); };
+  inline void refreshScore()               { old_score = new_score; };
 
   inline void setOS(OperatingSystem _os) {
     Mac *mac = getMac();

@@ -368,6 +368,7 @@ typedef enum {
   column_total_num_unreachable_flows_as_server,
   column_total_alerts,
   column_pool_id,
+  column_score,
   /* Macs */
   column_num_hosts,
   column_manufacturer,

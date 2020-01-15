@@ -133,7 +133,7 @@ function setup()
       end
    end
 
-   if(ntop.isEnterprise() and (ntop.getPref("ntopng.prefs.beta_score") == "1")) then
+   if(ntop.isEnterprise() and (ntop.getPref("ntopng.prefs.enable_score") == "1")) then
       score_utils = require("score_utils")
    end
 end
