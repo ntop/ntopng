@@ -8910,6 +8910,48 @@ static int ntop_host_get_http_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_host_refresh_score(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  if(!h)
+    return(CONST_LUA_ERROR);
+
+  h->refreshScore();
+  lua_pushinteger(vm, h->getScore());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_is_local(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  if(!h)
+    return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, h->isLocalHost());
+
+  return(CONST_LUA_OK);
+}
+
+
+/* ****************************************** */
+
+static int ntop_host_get_ts_key(lua_State* vm) {
+  char buf_id[64];
+  Host *h = ntop_host_get_context_host(vm);
+
+  if(!h)
+    return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, h->get_tskey(buf_id, sizeof(buf_id)));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static Flow* ntop_flow_get_context_flow(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
 
@@ -9018,16 +9060,21 @@ static int ntop_flow_is_local(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_set_score(lua_State* vm) {
+#ifdef NTOPNG_PRO
+
+static int ntop_flow_inc_score(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
-  u_int16_t score;
+  u_int16_t cli_score, srv_score;
 
   if(!f) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  score = (u_int16_t)lua_tonumber(vm, 1);
+  cli_score = (u_int16_t)lua_tonumber(vm, 1);
 
-  f->setScore(score);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  srv_score = (u_int16_t)lua_tonumber(vm, 2);
+
+  f->incScore(cli_score, srv_score);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -9048,55 +9095,21 @@ static int ntop_flow_get_score(lua_State* vm) {
 
 static int ntop_flow_get_score_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
-  Host *cli_host, *srv_host;
   const char *status_info;
 
   if(!f) return(CONST_LUA_ERROR);
 
-  cli_host = f->get_cli_host();
-  srv_host = f->get_srv_host();
   status_info = f->getStatusInfo();
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "status_map", f->getStatusBitmap().get());
   lua_push_int32_table_entry(vm, "score", f->getScore());
-  lua_push_int32_table_entry(vm, "cli.score", ((cli_host && cli_host->getScore() != CONST_NO_SCORE_SET) ? cli_host->getScore() : 0));
-  lua_push_int32_table_entry(vm, "srv.score", ((srv_host && srv_host->getScore() != CONST_NO_SCORE_SET) ? srv_host->getScore() : 0));
   if(status_info) lua_push_str_table_entry(vm, "status_info", status_info);
 
   return(CONST_LUA_OK);
 }
 
-/* ****************************************** */
-
-static int ntop_flow_set_peer_score(lua_State* vm, bool client) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-  int score;
-  Host *host;
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  score = lua_tonumber(vm, 1);
-
-  host = client ? f->get_cli_host() : f->get_srv_host();
-
-  if(!host)
-    return(CONST_LUA_ERROR);
-
-  host->setScore(max(min(score, (int)CONST_NO_SCORE_SET - 1), 0));
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-static int ntop_flow_set_client_score(lua_State* vm) {
-  return(ntop_flow_set_peer_score(vm, true /* client */));
-}
-
-static int ntop_flow_set_server_score(lua_State* vm) {
-  return(ntop_flow_set_peer_score(vm, false /* server */));
-}
+#endif
 
 /* ****************************************** */
 
@@ -11285,6 +11298,9 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getSynScan",             ntop_host_get_syn_scan            },
   { "getDNSInfo",             ntop_host_get_dns_info            },
   { "getHTTPInfo",            ntop_host_get_http_info           },
+  { "refreshScore",           ntop_host_refresh_score           },
+  { "isLocal",                ntop_host_is_local                },
+  { "getTsKey",               ntop_host_get_ts_key              },
 
   { NULL,                     NULL }
 };
@@ -11362,11 +11378,11 @@ static const luaL_Reg ntop_flow_reg[] = {
 
   /* TODO document */
   { "isLocal",                  ntop_flow_is_local                   },
-  { "setScore",                 ntop_flow_set_score                  },
+#ifdef NTOPNG_PRO
+  { "incScore",                 ntop_flow_inc_score                  },
   { "getScore",                 ntop_flow_get_score                  },
   { "getScoreInfo",             ntop_flow_get_score_info             },
-  { "setClientScore",           ntop_flow_set_client_score           },
-  { "setServerScore",           ntop_flow_set_server_score           },
+#endif
   { "getMUDInfo",               ntop_flow_get_mud_info               },
   { "isNotPurged",              ntop_flow_is_not_purged              },
   { "getTLSVersion",            ntop_flow_get_tls_version            },

@@ -20,7 +20,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 2,
   i18n_title = "alerts_dashboard.threashold_cross",
   i18n_description = formatThresholdCross,
   icon = "fas fa-arrow-circle-up",

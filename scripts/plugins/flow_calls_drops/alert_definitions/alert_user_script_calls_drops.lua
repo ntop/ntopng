@@ -16,7 +16,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 52,
   i18n_title = "alerts_dashboard.user_scripts_calls_drops",
   icon = "fas fa-tint",
   i18n_description = formatUserScriptsCallsDrops,

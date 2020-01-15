@@ -13,7 +13,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 22,
   i18n_title = "alerts_dashboard.nfq_flushed",
   i18n_description = nfwFlushedFormatter,
   icon = "fas fa-angle-double-down",

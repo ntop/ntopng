@@ -840,7 +840,6 @@ local lang = {
     ["mud_description"] = "Handle host Manufacturer usage descriptions (MUD)",
     ["no_input"] = "Není nutná žádná konfigurace",
     ["score"] = "Skóre toku",
-    ["score_description"] = "Vyhodnoťte tok a vypočítejte jeho skóre",
     ["suspicious_countries"] = "Podezřelé země / Státy",
     ["suspicious_countries_description"] = "Spustit upozornění, když alespoň jeden z klientů a serverů je z podezřelé země",
     ["udp_unidirectional"] = "Jednosměrný tok UDP",

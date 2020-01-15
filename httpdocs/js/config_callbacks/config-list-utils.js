@@ -18,7 +18,7 @@ const check_status_code = (status_code, status_text, $error_label) => {
 const get_configuration_data = ($config_table, $button_caller) => {
 
     // get row data
-    const row_data = $config_table.row($button_caller.parent().parent()).data();
+    const row_data = $config_table.row($button_caller.parent()).data();
 
     return {
         config_id: row_data.id,
@@ -89,36 +89,39 @@ $(document).ready(function() {
                 className: 'text-center',
                 render: function(data, type, row) {
                     var rv = `
-                            <div class='btn-group'>
-                                <a href='edit_configset.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' 
-                                    title='${i18n.edit}' 
-                                    class='btn btn-sm btn-primary square-btn'>
-                                        <i class='fas fa-edit'></i>
+                                <a href='edit_configset.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' title='${i18n.edit}'>
+                                        <span class="badge badge-info">${i18n.edit}</span>
                                 </a>`
                     if(can_clone_config())
                         rv += `
-                                <button title='${i18n.clone}' 
+                                <a href='#'
+                                        title='${i18n.clone}' 
                                         data-toggle="modal"
-                                        data-target="#clone-modal"
-                                        class='btn btn-sm btn-secondary square-btn' type='button'>
-                                <i class='fas fa-clone'></i>
-                                </button>
-                                <button title='${i18n.apply_to}'
-                                    data-toggle='modal' data-target='#applied-modal' ${data.name == 'Default' ? 'disabled' : ''} 
-                                    class='btn btn-sm btn-secondary square-btn' 
-                                    type='button'>
-                                        <i class='fas fa-server'></i>
-                                </button>
-                                <button title='${i18n.rename}' 
+                                        data-target="#clone-modal">
+                                    <span class="badge badge-info">${i18n.clone}</span>
+                                </a>
+                        `;
+                    if(data.name !== 'Default')
+                        rv += `
+                                <a href='#'
+                                        title='${i18n.apply_to}'
+                                        data-toggle='modal'
+                                        data-target='#applied-modal'>
+                                    <span class="badge badge-info">${i18n.apply_to}</span>
+                                </a>
+                                <a href='#'
+                                        title='${i18n.rename}' 
                                         data-toggle="modal"
-                                        data-target="#rename-modal" ${data.name == 'Default' ? 'disabled' : ''} 
-                                        class='btn btn-sm btn-secondary square-btn' type='button'><i class='fas fa-i-cursor'></i></button>
-                                <button title='${i18n.delete}'
+                                        data-target="#rename-modal">
+                                    <span class="badge badge-info">${i18n.rename}</span>
+                                </a>
+                                <a href='#'
+                                        title='${i18n.delete}'
                                         data-toggle="modal"
-                                        data-target="#delete-modal" ${data.name == 'Default' ? 'disabled' : ''} 
-                                        class='btn btn-sm btn-danger square-btn' type='button'><i class='fas fa-times'></i></button>
-                            </div>
-                    `;
+                                        data-target="#delete-modal">
+                                    <span class="badge badge-danger">${i18n.delete}</span>
+                                </a>
+                        `;
 
                     return rv;
                 }
@@ -128,7 +131,7 @@ $(document).ready(function() {
     });
 
     // handle clone modal
-    $('#config-list').on('click', 'button[data-target="#clone-modal"]', function(e) {
+    $('#config-list').on('click', 'a[data-target="#clone-modal"]', function(e) {
 
         const {config_id, config_name} = get_configuration_data($config_table, $(this));
 
@@ -165,7 +168,7 @@ $(document).ready(function() {
             }
 
             // disable button until request hasn't finished
-            $button.attr("disabled", "");
+            $button.removeAttr("href");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'clone',
@@ -180,7 +183,7 @@ $(document).ready(function() {
                 if (check_status_code(xhr.status, xhr.statusText, $("#clone-error"))) return;
 
                 // re-enable button
-                $button.removeAttr("disabled");
+                $button.attr("href", "#");
                 // if the operation was not successful then show an error
                 if (!data.success) {
                     $("#clone-error").text(data.error).show();
@@ -205,7 +208,7 @@ $(document).ready(function() {
                 }
 
                 // re-enable button
-                $button.removeAttr("disabled");
+                $button.attr("href", "#");
             })
 
         })
@@ -219,7 +222,7 @@ $(document).ready(function() {
     });
 
     // handle apply modal
-    $('#config-list').on('click', 'button[data-target="#applied-modal"]', function(e) {
+    $('#config-list').on('click', 'a[data-target="#applied-modal"]', function(e) {
 
         const {config_id, config_name, config_targets} = get_configuration_data($config_table, $(this));
 
@@ -255,7 +258,7 @@ $(document).ready(function() {
                 applied_value = $("#applied-input").val();
             } 
 
-            $button.attr("disabled");
+            $button.removeAttr("href");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'set_targets',
@@ -269,7 +272,7 @@ $(document).ready(function() {
                 // check if the status code is successfull
                 if (check_status_code(xhr.status, xhr.statusText, $("#rename-error"))) return;
 
-                $button.removeAttr("disabled");
+                $button.attr("href", "#");
 
                 if (!data.success) {
                     apply_csrf = data.csrf;
@@ -295,7 +298,7 @@ $(document).ready(function() {
                 }
 
                 // re-enable button
-                $button.removeAttr("disabled");
+                $button.attr("href", "#");
             })
 
 
@@ -310,7 +313,7 @@ $(document).ready(function() {
     });
 
     // handle rename modal
-    $('#config-list').on('click', 'button[data-target="#rename-modal"]', function(e) {
+    $('#config-list').on('click', 'a[data-target="#rename-modal"]', function(e) {
 
         const {config_id, config_name} = get_configuration_data($config_table, $(this));
 
@@ -342,7 +345,7 @@ $(document).ready(function() {
                 return;
             }
 
-            $button.attr("disabled");
+            $button.removeAttr("href");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'rename',
@@ -355,7 +358,7 @@ $(document).ready(function() {
                 // check if the status code is successfull
                 if (check_status_code(xhr.status, xhr.statusText, $("#rename-error"))) return;
 
-                $button.removeAttr("disabled");
+                $button.attr("href", "#");
 
                 if (!data.success) {
                     $("#rename-error").text(data.error).show();
@@ -381,7 +384,7 @@ $(document).ready(function() {
                 }
 
                 // re-enable button
-                $button.removeAttr("disabled");
+                $button.attr("href", "#");
             })
             
         })
@@ -394,7 +397,7 @@ $(document).ready(function() {
     });
 
     // handle delete modal
-    $('#config-list').on('click', 'button[data-target="#delete-modal"]', function(e) {
+    $('#config-list').on('click', 'a[data-target="#delete-modal"]', function(e) {
 
         const {config_id, config_name} = get_configuration_data($config_table, $(this));
 
@@ -406,7 +409,7 @@ $(document).ready(function() {
 
             const $button = $(this);
 
-            $button.attr("disabled", "");
+            $button.removeAttr("href");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'delete',
@@ -418,7 +421,7 @@ $(document).ready(function() {
                 // check if the status code is successfull
                 if (check_status_code(xhr.status, xhr.statusText, $("#delete-error"))) return;
 
-                $button.removeAttr("disabled");
+                $button.attr("href", "#");
 
                 if (!data.success) {
                     $("#delete-error").text(data.error).show();
@@ -442,7 +445,7 @@ $(document).ready(function() {
                     $("#delete-error").text(`${i18n.expired_csrf}`).show();
                 }
                 // re-enable button
-                $button.removeAttr("disabled");
+                $button.attr("href", "#");
             })
             
         })

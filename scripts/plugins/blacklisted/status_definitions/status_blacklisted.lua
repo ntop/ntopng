@@ -6,7 +6,7 @@ local alert_consts = require("alert_consts")
 
 -- #################################################################
 
-local function formatBlacklistedFlow(status, flowstatus_info)
+local function formatBlacklistedFlow(flowstatus_info)
    local who = {}
 
    if not flowstatus_info then
@@ -41,8 +41,21 @@ end
 -- #################################################################
 
 return {
-  status_id = 13,
-  relevance = 100,
+  cli_score = function(info)
+    if(info and info["blacklisted.srv"]) then
+      -- client has a malware?
+      return(100)
+    else
+      return(5)
+    end
+  end,
+  srv_score = function(info)
+    if(info and info["blacklisted.cli"]) then
+      return(10)
+    else
+      return(5)
+    end
+  end,
   prio = 700,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_flow_blacklisted,

@@ -316,7 +316,6 @@ typedef uint8_t FlowStatus;
 
 typedef enum {
   flow_lua_call_protocol_detected = 0,
-  flow_lua_call_flow_status_changed,
   flow_lua_call_periodic_update,
   flow_lua_call_idle,
 } FlowLuaCall;

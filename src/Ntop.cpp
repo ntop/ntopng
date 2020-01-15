@@ -466,6 +466,11 @@ void Ntop::start() {
 
     snprintf(path, sizeof(path), "%s/lua/modules", prefs->get_scripts_dir());
     inotify_add_watch(inotify_fd, path, mask);
+
+#ifdef NTOPNG_PRO
+    snprintf(path, sizeof(path), "%s/lua/pro/modules", prefs->get_scripts_dir());
+    inotify_add_watch(inotify_fd, path, mask);
+#endif
   }
 #endif
 

@@ -12,7 +12,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 9,
   i18n_title = "alerts_dashboard.new_device",
   i18n_description = formatNewDeviceConnectionAlert,
   icon = "fas fa-asterisk",

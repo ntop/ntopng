@@ -16,7 +16,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 46,
   i18n_title = "alerts_dashboard.misbehaving_flows_ratio",
   i18n_description = misbehavingFlowsRatioFormatter,
   icon = "fas fa-exclamation",

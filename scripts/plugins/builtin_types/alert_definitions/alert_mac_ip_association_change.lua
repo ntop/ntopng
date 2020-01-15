@@ -12,7 +12,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 17,
   i18n_title = "alerts_dashboard.mac_ip_association_change",
   icon = "fas fa-exchange-alt",
   i18n_description = macIpAssociationChangedFormatter,

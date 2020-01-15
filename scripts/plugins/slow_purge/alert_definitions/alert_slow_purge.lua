@@ -16,7 +16,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 51,
   i18n_title = "alerts_dashboard.slow_purge",
   icon = "fas fa-exclamation",
   i18n_description = formatSlowPurge,

@@ -24,7 +24,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 1,
   i18n_title = "alerts_dashboard.flows_flood",
   i18n_description = formatFlowsFlood,
   icon = "fas fa-life-ring",

@@ -3,7 +3,6 @@
 --
 
 return {
-  alert_id = 19,
   i18n_title = "alerts_dashboard.unresponsive_device",
   icon = "fas fa-exclamation",
 }

@@ -2339,7 +2339,7 @@ end
 
 -- ###############################################
 
-function formatElephantFlowStatus(status, flowstatus_info, local2remote)
+function formatElephantFlowStatus(flowstatus_info, local2remote)
    local threshold = ""
    local res = ""
 

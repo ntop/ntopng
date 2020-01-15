@@ -13,7 +13,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 47,
   i18n_title = "alerts_dashboard.ghost_network_detected",
   i18n_description = ghostNetworkFormatter,
   icon = "fas fa-ghost",
