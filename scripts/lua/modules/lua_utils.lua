@@ -617,6 +617,10 @@ function areAlertsEnabled()
   return (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1")
 end
 
+function isScoreEnabled()
+  return(ntop.isEnterprise() and (ntop.getPref("ntopng.prefs.enable_score") == "1"))
+end
+
 function mustScanAlerts(ifstats)
    return areAlertsEnabled()
 end
@@ -2465,7 +2469,7 @@ end
 
 -- ###############################################
 
-function formatElephantFlowStatus(status, flowstatus_info, local2remote)
+function formatElephantFlowStatus(flowstatus_info, local2remote)
    local threshold = ""
    local res = ""
 

@@ -20,6 +20,7 @@ local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")
 local json = require("dkjson")
 local alerts_api = require("alerts_api")
+local score_utils = nil
 
 if ntop.isPro() then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -30,6 +31,7 @@ local do_print_benchmark = false   -- Print benchmarks results to standard outpu
 local do_trace = false             -- Trace lua calls
 local calculate_stats = false
 local flows_config = nil
+local score_enabled = nil
 
 local available_modules = nil
 
@@ -129,6 +131,10 @@ function setup()
             end
          end
       end
+   end
+
+   if(ntop.isEnterprise() and (ntop.getPref("ntopng.prefs.enable_score") == "1")) then
+      score_utils = require("score_utils")
    end
 end
 
@@ -369,6 +375,8 @@ end
 -- saved for later use.
 function flow.triggerStatus(status_id, status_json, custom_severity)
    local new_status = flow_consts.getStatusInfo(status_id)
+   local cli_score = 0
+   local srv_score = 0
 
    if not alerted_status or new_status.prio > alerted_status.prio then
       -- The new alerted status as an higher priority
@@ -377,16 +385,21 @@ function flow.triggerStatus(status_id, status_json, custom_severity)
       alerted_custom_severity = custom_severity -- possibly nil
    end
 
-   -- Call the function below to handle the predominant status and update
-   -- the flow status
-   flow.setStatus(status_id)
+   local is_new_status = flow.setStatus(status_id)
+
+   if(is_new_status and score_utils) then
+      score_utils.updateScore(flow, status_id, status_json, new_status)
+   end
 end
 
 -- #################################################################
 
+-- TODO change
 -- NOTE: overrides the C flow.setStatus (now saved in c_flow_set_status)
 function flow.setStatus(status_id)
-   if c_flow_set_status(status_id) then
+   local changed = c_flow_set_status(status_id)
+
+   if changed then
       -- The status has actually changed
       local new_status = flow_consts.getStatusInfo(status_id)
 
@@ -395,6 +408,8 @@ function flow.setStatus(status_id)
          predominant_status = new_status
       end
    end
+
+   return(changed)
 end
 
 -- #################################################################

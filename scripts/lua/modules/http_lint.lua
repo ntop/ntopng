@@ -1044,7 +1044,7 @@ function http_lint.validateHookConfig(script, hook, value)
             return false, "bad operator"
          end
 
-         if(tonumber(conf.threshold) == nil) then
+         if(value.enabled and tonumber(conf.threshold) == nil) then
             return false, "bad threshold"
          end
       elseif(input_builder == "items_list") then
@@ -1314,6 +1314,7 @@ local known_parameters = {
    ["dynamic_iface_vlan_creation"]                 = validateBool,
    ["toggle_mysql_check_open_files_limit"]         = validateBool,
    ["disable_alerts_generation"]                   = validateBool,
+   ["enable_score"]                                = validateBool,
    ["toggle_alert_probing"]                        = validateBool,
    ["toggle_flow_alerts_iface"]                    = validateBool,
    ["toggle_tls_alerts"]                           = validateBool,

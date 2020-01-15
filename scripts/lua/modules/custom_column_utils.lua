@@ -28,6 +28,10 @@ custom_column_utils.available_custom_columns = {
 }
 local available_custom_columns = custom_column_utils.available_custom_columns
 
+if isScoreEnabled() then
+   available_custom_columns[#available_custom_columns + 1] = { "score", i18n("score"), "score", format_utils.formatValue, "center" }
+end
+
 -- ###########################################
 
 function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatted)

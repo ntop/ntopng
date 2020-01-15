@@ -7,11 +7,6 @@
 -- directory of the plugin.
 
 return {
-  -- The unique alert ID. Currently used/available IDs can be reviewed by visiting
-  -- http://127.0.0.1:3000/lua/defs_overview.lua .
-  -- Third party users can safely use the dedicated IDs in range 59-63 .
-  alert_id = 59,
-
   -- The name associated to this alert. Localized strings are defined in
   -- example/locales/en.lua
   i18n_title = "example.alert_title",

@@ -41,7 +41,7 @@ Flow::Flow(NetworkInterface *_iface,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli_host = srv_host = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
-  alert_score = CONST_NO_SCORE_SET;
+  cli_score = srv_score = 0;
   alert_status_info = NULL;
   alert_type = alert_none;
   alert_level = alert_level_none;
@@ -992,6 +992,10 @@ void Flow::incFlowDroppedCounters() {
 
 /* *************************************** */
 
+/* NOTE: this function is periodically executed both on normal interfaces
+ * and ViewInterface. On ViewInterface, the cli_host and srv_host *do not*
+ * correspond to the flow hosts (which remain NULL). This is the correct
+ * place to increment stats on cli/srv hosts and make them work with ViewInterfaces. */
 void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
   update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
 		     partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
@@ -1312,8 +1316,7 @@ void Flow::periodic_stats_update(void *user_data) {
 
   stats_protocol = getStatsProtocol();
 
-  if(diff_sent_bytes || diff_rcvd_bytes)
-    hosts_periodic_stats_update(getInterface(), cli_host, srv_host, &partial, first_partial, tv);
+  hosts_periodic_stats_update(getInterface(), cli_host, srv_host, &partial, first_partial, tv);
 
   if(cli_host && srv_host) {
     if(diff_sent_bytes || diff_rcvd_bytes) {
@@ -1674,7 +1677,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_get_dir_traffic(vm, true /* Client to Server */);
     lua_get_dir_traffic(vm, false /* Server to Client */);
 
-    lua_push_int32_table_entry(vm, "score", alert_score != CONST_NO_SCORE_SET ? alert_score : -1);
+#ifdef NTOPNG_PRO
+    lua_push_int32_table_entry(vm, "score", getScore());
+#endif
 
     if(isICMP()) {
       lua_newtable(vm);
@@ -3713,8 +3718,17 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
     printf("%s status=%d\n", print(buf, sizeof(buf)), status);
 #endif
 
-    if(cli_host) cli_host->incNumMisbehavingFlows(true);
-    if(srv_host) srv_host->incNumMisbehavingFlows(false);
+    if(cli_host) {
+      cli_host->setMisbehavingFlowsStatusMap(status_map, true);
+      cli_host->incNumMisbehavingFlows(true);
+      cli_host->incScore(cli_score);
+    }
+
+    if(srv_host) {
+      srv_host->setMisbehavingFlowsStatusMap(status_map, false);
+      srv_host->incNumMisbehavingFlows(false);
+      srv_host->incScore(srv_score);
+    }
   }
 
   if(isFlowAlerted()) {
@@ -4226,9 +4240,6 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv,
   case flow_lua_call_protocol_detected:
     lua_call_fn_name = FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME;
     break;
-  case flow_lua_call_flow_status_changed:
-    lua_call_fn_name = FLOW_LUA_CALL_FLOW_STATUS_CHANGE_FN_NAME;
-    break;
   case flow_lua_call_periodic_update:
     lua_call_fn_name = FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME;
     break;
@@ -4283,7 +4294,6 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv,
 /* ***************************************************** */
 
 void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
-  Bitmap prev_status = status_map;
   HashEntryState cur_state = get_state();
 
   /* Check if it is time to call the protocol detected */
@@ -4306,16 +4316,6 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
      the call has been performed: each flow in idle state is visited exactly once. */
   if(cur_state == hash_entry_state_idle)
     performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data);
-
-  /* Regardless of the calls performed previously, if someone of them has changed the state of the flow,
-     thi extra status_changed lua function is executed. */
-  if(prev_status.get() != status_map.get()) {
-    performLuaCall(flow_lua_call_flow_status_changed, tv, periodic_ht_state_update_user_data);
-
-    /* Update the hosts status */
-    if(cli_host) cli_host->setMisbehavingFlowsStatusMap(status_map, true);
-    if(srv_host) srv_host->setMisbehavingFlowsStatusMap(status_map, false);
-  }
 }
 
 /* ***************************************************** */
@@ -4416,3 +4416,12 @@ void Flow::luaRetrieveExternalAlert(lua_State *vm) {
   } else
     lua_pushnil(vm);
 }
+
+/* *************************************** */
+
+void Flow::incScore(u_int16_t cli_inc, u_int16_t srv_inc) {
+  cli_score += cli_inc;
+  srv_score += srv_inc;
+};
+
+/* *************************************** */

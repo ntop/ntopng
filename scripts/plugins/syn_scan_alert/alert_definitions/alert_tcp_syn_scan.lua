@@ -24,7 +24,6 @@ end
 -- ##############################################
 
 return {
-  alert_id = 50,
   i18n_title = "syn_scan_alert.tcp_syn_scan",
   i18n_description = formatSynScan,
   icon = "fas fa-life-ring",

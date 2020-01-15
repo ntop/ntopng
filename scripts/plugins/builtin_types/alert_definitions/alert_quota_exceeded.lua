@@ -29,7 +29,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 14,
   i18n_title = "alerts_dashboard.quota_exceeded",
   i18n_description = quotaExceededFormatter,
   icon = "fas fa-thermometer-full",

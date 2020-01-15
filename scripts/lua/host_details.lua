@@ -34,7 +34,6 @@ local info = ntop.getInfo()
 local have_nedge = ntop.isnEdge()
 
 local debug_hosts = false
-local debug_score = (ntop.getPref("ntopng.prefs.beta_score") == "1")
 
 local page        = _GET["page"]
 local protocol_id = _GET["protocol"]
@@ -501,10 +500,15 @@ if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li> <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'><span id=num_alerts>"..host["num_alerts"] .. "</span></a> <span id=alerts_trend></span></td></tr>\n")
 end
 
-if debug_score then
-  if(host["score"] > 0) then
-    print("<tr><th>"..i18n("score").."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
-  end
+if isScoreEnabled() then
+   local score_chart = ""
+
+   if ts_utils.exists("host:score", {ifid=ifid, host=tskey}) then
+      score_chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/host_details.lua?page=historical&ifid='.. ifId ..
+	 '&host='.. hostinfo2hostkey(host_info) .. '&tskey=' .. tskey ..'&ts_schema=host:score"><i class="fas fa-chart-area fa-sm"></i></a>'
+   end
+
+   print("<tr><th>"..i18n("score").." " .. score_chart .."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
 end
 
 if(host["active_alerted_flows"] > 0) then
@@ -570,7 +574,7 @@ end
    print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
    print("</td></tr>")
 
-   if debug_score then
+   if(false) then
       print("<tr><th>"..i18n("details.misbehaving_flows_reasons").."</th><td nowrap><span id=misbehaving_flows_status_map_as_client>")
       for _, t in pairs(flow_consts.status_types) do
          local id = t.status_id
@@ -2015,6 +2019,7 @@ drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    tskey = tskey,
    timeseries = table.merge({
       {schema="host:traffic",                label=i18n("traffic")},
+      {schema="host:score",                  label=i18n("score"), enterprise_only=true},
       {schema="host:active_flows",           label=i18n("graphs.active_flows")},
       {schema="host:total_flows",            label=i18n("db_explorer.total_flows")},
       {schema="host:misbehaving_flows",        label=i18n("graphs.total_misbehaving_flows")},

@@ -316,7 +316,6 @@ typedef uint8_t FlowStatus;
 
 typedef enum {
   flow_lua_call_protocol_detected = 0,
-  flow_lua_call_flow_status_changed,
   flow_lua_call_periodic_update,
   flow_lua_call_idle,
 } FlowLuaCall;
@@ -369,6 +368,7 @@ typedef enum {
   column_total_num_unreachable_flows_as_server,
   column_total_alerts,
   column_pool_id,
+  column_score,
   /* Macs */
   column_num_hosts,
   column_manufacturer,

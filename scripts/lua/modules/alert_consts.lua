@@ -7,6 +7,7 @@ local alert_consts = {}
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
 local plugins_utils = require("plugins_utils")
+local plugins_consts_utils = require("plugins_consts_utils")
 require("ntop_utils")
 
 if(ntop.isPro()) then
@@ -207,7 +208,7 @@ end
 -- ##############################################
 
 function alert_consts.loadDefinition(def_script, mod_fname, script_path)
-   local required_fields = {"alert_id", "i18n_title", "icon"}
+   local required_fields = {"i18n_title", "icon"}
 
    -- Check the required fields
    for _, k in pairs(required_fields) do
@@ -217,7 +218,8 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
       end
    end
 
-   local def_id = tonumber(def_script.alert_id)
+   -- local def_id = tonumber(def_script.alert_id)
+   local def_id = plugins_consts_utils.get_assigned_id("alert", mod_fname)
 
    if(def_id == nil) then
        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing alert ID %d", script_path, def_id))
@@ -229,6 +231,7 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
       return(false)
    end
 
+   def_script.alert_id = def_id
    alert_consts.alert_types[mod_fname] = def_script
    alerts_by_id[def_id] = mod_fname
 

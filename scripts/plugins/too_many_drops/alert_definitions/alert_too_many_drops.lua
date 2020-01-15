@@ -13,7 +13,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 16,
   i18n_title = "alerts_dashboard.too_many_drops",
   icon = "fas fa-tint",
   i18n_description = formatTooManyPacketDrops,

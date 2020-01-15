@@ -103,6 +103,7 @@ function runScripts(granularity)
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
   local host_conf = user_scripts.getHostTargetConfigset(configsets, "host", host_ip.ip)
+  local when = os.time()
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
     local user_script = available_modules.modules[mod_key]
@@ -117,6 +118,8 @@ function runScripts(granularity)
            cur_alerts = cur_alerts,
            alert_config = conf.script_conf,
            user_script = user_script,
+           when = when,
+           ifid = ifid,
         })
       end
     end

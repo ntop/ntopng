@@ -493,7 +493,6 @@
 #define CONST_OLD_DEFAULT_NTOP_USER  "nobody"
 #define CONST_DEFAULT_NTOP_USER      "ntopng"
 #define CONST_TOO_EARLY              "(Too Early)"
-#define CONST_NO_SCORE_SET            ((u_int16_t)(-1))
 
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
@@ -678,7 +677,6 @@
 
 /* Flow Lua Calls */
 #define FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME  "protocolDetected"
-#define FLOW_LUA_CALL_FLOW_STATUS_CHANGE_FN_NAME "statusChanged"
 #define FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME    "periodicUpdate"
 #define FLOW_LUA_CALL_IDLE_FN_NAME               "flowEnd"
 #define FLOW_LUA_CALL_PERIODIC_UPDATE_SECS       30
@@ -850,7 +848,7 @@
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v15.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v16.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"

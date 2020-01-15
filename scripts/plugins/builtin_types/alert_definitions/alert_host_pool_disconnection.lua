@@ -12,7 +12,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 13,
   i18n_title = "alerts_dashboard.host_pool_disconnection",
   i18n_description = poolDisconnectionFormat,
   icon = "fas fa-sign-out",
