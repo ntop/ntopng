@@ -638,15 +638,23 @@ $(document).ready(function() {
                   $toggle_buttons.find(`input[name='${row.key}-check']`).on('click', function (e) {
 
                      const $this = $(this); const value = $this.val();
-                     const hooks = row.all_hooks; const data = {};
+                     const hooks = row.all_hooks;
 
-                     hooks.forEach(d => data[d.key] = { enabled: (value == "true") })
+                     const data = {
+                        all: {
+                           script_conf: {
+                           },
+                           enabled: (value == "true")
+                        }
+                     };
 
                      // hide alert
                      $("#alert-row-buttons").hide();
 
                      // disable all buttons to prevent more requests
                      $("#scripts-config input[name$='-check']").attr("disabled", "").parent().addClass("disabled");
+
+                     console.info(data)
 
                      $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
                         script_subdir: script_subdir,
@@ -697,15 +705,17 @@ $(document).ready(function() {
                const edit_script_btn = `
                       <a href='#'
                          title='${i18n.edit_script}'
+                         class='badge badge-info'
                          data-toggle="modal"
                          data-target="#modal-script">
-                             <span class='badge badge-info'>${i18n.edit}</span>
+                           ${i18n.edit}
                      </a>
                `;
                const edit_url_btn = `
                       <a href='${data.edit_url}'
-                         title='${i18n.view_src_script}'>
-                             <span class='badge badge-secondary'>${i18n.view}</span>
+                        class='badge badge-secondary'
+                        title='${i18n.view_src_script}'>
+                           ${i18n.view}
                       </a>
                `;
 
