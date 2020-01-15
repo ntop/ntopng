@@ -53,7 +53,8 @@ print(template.gen("config_list.html", {
         subdir = subdir,
         template_utils = template,
         hooks_localizated = titles,
-        timeout_csrf = timeout_csrf
+        timeout_csrf = timeout_csrf,
+        import_csrf = ntop.getRandomCSRFValue(),
     }
 }))
 

@@ -34,8 +34,19 @@
                     </thead>
                     <tbody></tbody>
             </table>
+
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-2">
+            <form action="/lua/rest/get/scripts/config.lua" class="form-inline" method="GET">
+                <button type="submit" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_export') }}</span></button>
+            </form>
+
+        </div>
+    </div>
+
 </div>
 
 {# include modals for config_list.lua #}
