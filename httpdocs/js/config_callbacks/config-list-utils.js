@@ -88,17 +88,18 @@ $(document).ready(function() {
                 data: null,
                 className: 'text-center',
                 render: function(data, type, row) {
-                    var rv = `
-                                <a href='edit_configset.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' title='${i18n.edit}'>
-                                        <span class="badge badge-info">${i18n.edit}</span>
+                    let rv = `
+                                <a class="badge badge-info" href='edit_configset.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' title='${i18n.edit}'>
+                                    ${i18n.edit}
                                 </a>`
                     if(can_clone_config())
                         rv += `
                                 <a href='#'
                                         title='${i18n.clone}' 
+                                        class="badge badge-info"
                                         data-toggle="modal"
                                         data-target="#clone-modal">
-                                    <span class="badge badge-info">${i18n.clone}</span>
+                                    ${i18n.clone}
                                 </a>
                         `;
                     if(data.name !== 'Default')
@@ -106,20 +107,23 @@ $(document).ready(function() {
                                 <a href='#'
                                         title='${i18n.apply_to}'
                                         data-toggle='modal'
+                                        class="badge badge-info"
                                         data-target='#applied-modal'>
-                                    <span class="badge badge-info">${i18n.apply_to}</span>
+                                    ${i18n.apply_to}
                                 </a>
                                 <a href='#'
                                         title='${i18n.rename}' 
+                                        class="badge badge-info"
                                         data-toggle="modal"
                                         data-target="#rename-modal">
-                                    <span class="badge badge-info">${i18n.rename}</span>
+                                    ${i18n.rename}
                                 </a>
                                 <a href='#'
                                         title='${i18n.delete}'
+                                        class="badge badge-danger"
                                         data-toggle="modal"
                                         data-target="#delete-modal">
-                                    <span class="badge badge-danger">${i18n.delete}</span>
+                                    ${i18n.delete}
                                 </a>
                         `;
 
