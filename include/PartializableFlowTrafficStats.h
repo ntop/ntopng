@@ -75,6 +75,9 @@ class PartializableFlowTrafficStats {
   inline u_int64_t get_cli2srv_goodput_bytes() const { return cli2srv_goodput_bytes;      };
   inline u_int64_t get_srv2cli_goodput_bytes() const { return srv2cli_goodput_bytes;      };
 
+  inline u_int32_t get_packets()               const { return get_cli2srv_packets() + get_srv2cli_packets(); };
+  inline u_int64_t get_bytes()                 const { return get_cli2srv_bytes() + get_srv2cli_bytes();     };
+
   inline u_int32_t get_cli2srv_tcp_retr()      const { return cli2srv_tcp_stats.pktRetr;      };
   inline u_int32_t get_cli2srv_tcp_ooo()       const { return cli2srv_tcp_stats.pktOOO;       };
   inline u_int32_t get_cli2srv_tcp_lost()      const { return cli2srv_tcp_stats.pktLost;      };

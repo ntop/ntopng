@@ -1873,6 +1873,12 @@ void Flow::set_hash_entry_state_idle() {
 /* *************************************** */
 
 bool Flow::is_hash_entry_state_idle_transition_ready() const {
+  if(!periodic_stats_update_partial /* waiting for Flow::periodic_stats_update first execution... */
+     /* ... and sure all traffic has been seen by Flow::periodic_stats_update */
+     || periodic_stats_update_partial->get_packets() < stats.get_packets()
+     || periodic_stats_update_partial->get_bytes() < stats.get_bytes())
+    return false;
+
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());
