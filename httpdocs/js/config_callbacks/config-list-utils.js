@@ -92,7 +92,7 @@ $(document).ready(function() {
                                 <a href='edit_configset.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' title='${i18n.edit}'>
                                         <span class="badge badge-info">${i18n.edit}</span>
                                 </a>`
-                    if(can_clone_config() && data.name !== 'Default')
+                    if(can_clone_config())
                         rv += `
                                 <a href='#'
                                         title='${i18n.clone}' 
@@ -100,6 +100,9 @@ $(document).ready(function() {
                                         data-target="#clone-modal">
                                     <span class="badge badge-info">${i18n.clone}</span>
                                 </a>
+                        `;
+                    if(data.name !== 'Default')
+                        rv += `
                                 <a href='#'
                                         title='${i18n.apply_to}'
                                         data-toggle='modal'
@@ -118,7 +121,7 @@ $(document).ready(function() {
                                         data-target="#delete-modal">
                                     <span class="badge badge-danger">${i18n.delete}</span>
                                 </a>
-                    `;
+                        `;
 
                     return rv;
                 }
