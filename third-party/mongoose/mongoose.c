@@ -1608,6 +1608,10 @@ static int pull(FILE *fp, struct mg_connection *conn, char *buf, int len) {
   return conn->ctx->stop_flag ? -1 : nread;
 }
 
+int64_t mg_get_content_len(struct mg_connection *conn) {
+  return conn->content_len;
+}
+
 int mg_read(struct mg_connection *conn, void *buf, size_t len) {
   int n, buffered_len, nread;
   const char *body;
