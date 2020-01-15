@@ -654,8 +654,6 @@ $(document).ready(function() {
                      // disable all buttons to prevent more requests
                      $("#scripts-config input[name$='-check']").attr("disabled", "").parent().addClass("disabled");
 
-                     console.info(data)
-
                      $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
                         script_subdir: script_subdir,
                         script_key: row.key,
