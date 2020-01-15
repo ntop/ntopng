@@ -56,10 +56,7 @@ print ([[
             <div class='d-flex'>
                <a href='/'>
                   ]].. addLogoSvg() ..[[
-               </a>
-               <button data-toggle='sidebar' class='btn ml-auto'>
-                  <i class='fas fa-bars'></i>
-               </button>
+               </a>              
             </div>
          </h3>
 
@@ -873,11 +870,9 @@ end
 
 ------ NEW SIDEBAR ------
  
-print("<div class='p-md-4 p-xs-1 p-sm-2' id='n-container'>")
-
 print([[
-   <nav class="navbar justify-content-start navbar-light">
-      <button data-toggle='sidebar' class='btn d-none'>
+   <nav class="navbar justify-content-start bg-light navbar-light" id='n-navbar'>
+      <button data-toggle='sidebar' class='btn'>
          <i class='fas fa-bars'></i>
       </button>
       <div class='dropdown mr-2'>
@@ -1156,6 +1151,10 @@ print([[
    
    </nav>
 ]])
+
+print("<div class='p-md-4 p-xs-1 mt-5 p-sm-2' id='n-container'>")
+
+
 
 -- append password change modal
 if(not is_admin) then

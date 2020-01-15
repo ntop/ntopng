@@ -14,15 +14,13 @@ $(window).ready(function() {
         // if the sidebar is collapsed then remove the active class from the sidebar
         if (sidebar_collapsed) {
             $("#n-sidebar").removeClass('active');
-            $("#n-container").addClass("extended")
+            $("#n-container, #n-navbar").addClass("extended")
             $('#ntop-logo-t,#ntop-logo-o,#ntop-logo-p').hide();
             $(`div[id$='-submenu']`).toggleClass('side-collapse').toggleClass('fade');
-            $(`#n-sidebar button[data-toggle='sidebar']`).hide();
-            $(`#n-container button[data-toggle='sidebar']`).removeClass('d-none').fadeIn();
         }
         else {
             $("#n-sidebar").addClass('active');
-            $("#n-container").removeClass("extended")
+            $("#n-container, #n-navbar").removeClass("extended")
         }
     }
 
@@ -64,7 +62,7 @@ $(document).ready(function() {
 
         const fade_delay = 100;
 
-        $("#n-container").toggleClass("extended");
+        $("#n-container, #n-navbar").toggleClass("extended");
         $("#n-sidebar, #ntop-logo").toggleClass("active");
 
         // handle locale storage for collapsing
@@ -97,22 +95,15 @@ $(document).ready(function() {
 
         if (!$('#n-sidebar').hasClass('active')) {
 
-            $(`#n-sidebar button[data-toggle='sidebar']`).hide();
-            $(`#n-container button[data-toggle='sidebar']`).removeClass('d-none').fadeIn();
-
             ntop_logo.p.fadeOut(fade_delay, 
                 () => ntop_logo.o.fadeOut(fade_delay, 
                     () => ntop_logo.t.fadeOut(fade_delay)));
         }
         else {
 
-            $(`#n-container button[data-toggle='sidebar']`).hide();
-
             ntop_logo.t.fadeIn(fade_delay, 
                 () => ntop_logo.o.fadeIn(fade_delay, 
-                    () => ntop_logo.p.fadeIn(fade_delay, () => {
-                        $(`#n-sidebar button[data-toggle='sidebar']`).fadeIn();
-            })));
+                    () => ntop_logo.p.fadeIn(fade_delay)));
         }
 
     });

@@ -779,8 +779,31 @@ path.link {
   text-decoration: none;
 }
 
+#n-navbar {
+  position: fixed;
+  top:0;
+  right: 0;
+  left: 16rem;
+  z-index: 1020;
+  transition: 0.5s all;
+  box-shadow: 8px 1px 3px rgba(0,0,0,0.10), 2px 1px 2px rgba(0,0,0,0.15);
+
+}
+
+#n-navbar.extended {
+  left: 4rem;
+}
+
 @media (max-width: 575.98px) {
 
+  #n-navbar {
+    left: 0rem;
+  }
+  
+  #n-navbar.extended {
+    left: 0rem;
+    z-index: 0;
+  }
 
   #n-container { 
     margin-left: 0;
