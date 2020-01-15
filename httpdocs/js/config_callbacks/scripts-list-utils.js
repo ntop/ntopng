@@ -695,25 +695,23 @@ $(document).ready(function() {
             render: function (data, type, row) {
 
                const edit_script_btn = `
-                  <button ${row.input_handler == undefined ? "disabled" : ""}
-                     data-toggle="modal"
-                     title='${i18n.edit_script}'
-                     data-target="#modal-script"
-                     class="btn btn-square btn-sm btn-primary">
-                        <i class='fas fa-edit'></i>
-                  </button>
+                      <a href='#'
+                         title='${i18n.edit_script}'
+                         data-toggle="modal"
+                         data-target="#modal-script">
+                             <span class='badge badge-info'>${i18n.edit}</span>
+                     </a>
+               `;
+               const edit_url_btn = `
+                      <a href='${data.edit_url}'
+                         title='${i18n.view_src_script}'>
+                             <span class='badge badge-secondary'>${i18n.view}</span>
+                      </a>
                `;
 
                return `
-                   <div class='btn-group'>
-                      ${row.all_hooks.length > 0 && row.input_handler == undefined ? '' : edit_script_btn}
-                      <a
-                         href='${data.edit_url}'
-                         title='${i18n.view_src_script}'
-                         class='btn btn-square btn-sm btn-secondary ${!data.edit_url ? "disabled" : ""}'>
-                             <i class='fas fa-scroll'></i>
-                      </a>
-                   </div>
+                      ${row.input_handler == undefined ? '' : edit_script_btn}
+                      ${!data.edit_url ? '' : edit_url_btn}
                 `;
             },
             sortable: false,
@@ -747,10 +745,10 @@ $(document).ready(function() {
    });
 
    // load templates for the script
-   $('#scripts-config').on('click', 'button[data-target="#modal-script"]', function(e) {
+   $('#scripts-config').on('click', 'a[data-target="#modal-script"]', function(e) {
 
       // get script key and script name
-      const row_data = $script_table.row($(this).parent().parent()).data();
+      const row_data = $script_table.row($(this).parent()).data();
       const script_key = row_data.key;
       const script_title = row_data.title;
 

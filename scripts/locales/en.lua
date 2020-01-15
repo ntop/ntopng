@@ -529,7 +529,7 @@ local lang = {
     ["type_targets"] = "Type targets",
     ["type_targets_example"] = "Type targets separated by a comma. i.e: 192.168.1.20,192.168.0.0/16",
     ["actions"] = {
-      ["apply_to"] = "Applied to",
+      ["apply_to"] = "Apply to",
       ["clone"] = "Clone",
       ["delete"] = "Delete",
       ["edit"] = "Edit",
@@ -3149,7 +3149,9 @@ local lang = {
     ["select_operator"] = "Please select an operator!",
     ["template_not_found"] = "The template was not found!",
     ["actions"] = {
+      ["edit"] = "Edit",
       ["edit_script"] = "Edit Script",
+      ["view"] = "View",
       ["view_src_script"] = "View Source Script",
     },
   },
