@@ -184,7 +184,8 @@ class Flow : public GenericHashEntry {
   } last_db_dump;
 
   /* Lazily initialized and used by a possible view interface */
-  PartializableFlowTrafficStats *last_partial;
+  ViewInterfaceFlowStats *viewFlowStats;
+
   /* Partial used to periodically update stats out of flows */
   PartializableFlowTrafficStats *periodic_stats_update_partial;
 
@@ -431,6 +432,12 @@ class Flow : public GenericHashEntry {
   }
   static inline ndpi_protocol get_ndpi_unknown_protocol() { return ndpiUnknownProtocol; };
 
+  /* NOTE: the caller must ensure that the hosts returned by these methods are not used
+   * concurrently by subinterfaces since hosts are shared between all the subinterfaces of the same
+   * ViewInterface. */
+  inline Host* unsafeGetClient() { return(viewFlowStats ? viewFlowStats->unsafeGetClient() : get_cli_host()); };
+  inline Host* unsafeGetServer() { return(viewFlowStats ? viewFlowStats->unsafeGetServer() : get_srv_host()); };
+
   u_int32_t get_packetsLost();
   u_int32_t get_packetsRetr();
   u_int32_t get_packetsOOO();
@@ -565,6 +572,7 @@ class Flow : public GenericHashEntry {
   inline bool isTCPRefused()     const { return (!isThreeWayHandshakeOK() && (dst2src_tcp_flags & TH_RST) == TH_RST); };
   inline bool isFlowAlerted() const         { return(is_alerted); };
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
+  inline ViewInterfaceFlowStats* getViewInterfaceFlowStats() { return(viewFlowStats); }
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
     if(client) {

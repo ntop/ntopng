@@ -816,6 +816,7 @@ class NetworkInterface : public AlertableEntity {
   void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value, std::set<int> *entity_excludes);
   void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity, std::set<int> *entity_excludes);
   inline void incNumDroppedFlowScriptsCalls()             { num_dropped_flow_scripts_calls++; }
+  void runMinFlowsTasks();
 
   /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
   AlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);

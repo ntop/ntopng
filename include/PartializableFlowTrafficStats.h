@@ -64,7 +64,7 @@ class PartializableFlowTrafficStats {
   virtual void incStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len);
   virtual void setStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len);
 
-  void get_partial(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *fts) const;
+  void get_partial(PartializableFlowTrafficStats *dst, PartializableFlowTrafficStats *fts) const;
   inline const FlowHTTPStats *get_flow_http_stats() const { return &protos.http; };
   inline const FlowDNSStats *get_flow_dns_stats()   const { return &protos.dns;  };
 

@@ -361,8 +361,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline MudRecording getMUDRecording()    { return(mud_pref); };
 
   inline void incScore(u_int16_t score)    { new_score += score; };
-  inline u_int16_t getScore() const        { return(new_score - old_score); };
-  inline void refreshScore()               { old_score = new_score; };
+  inline u_int16_t getScore() const        { return(old_score); };
+  inline void refreshScore()               { old_score = new_score; new_score = 0; };
 
   inline void setOS(OperatingSystem _os) {
     Mac *mac = getMac();

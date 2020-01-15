@@ -7734,3 +7734,29 @@ void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
 struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
   return(ntop->get_ndpi_struct());
 };
+
+/* *************************************** */
+
+static bool run_min_flows_tasks(GenericHashEntry *f, void *user_data, bool *matched) {
+  Flow *flow = (Flow*)f;
+
+  /* Update the peers score */
+  if(flow->unsafeGetClient()) flow->unsafeGetClient()->incScore(flow->getCliScore());
+  if(flow->unsafeGetServer()) flow->unsafeGetServer()->incScore(flow->getSrvScore());
+
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+void NetworkInterface::runMinFlowsTasks() {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  /* This function accesses shared host data via unsafeGetClient/unsafeGetServer
+   * so cannot be called concurrently on subinterfaces. */
+  if(isSubInterface())
+    return;
+
+  if(flows_hash)
+    walker(&begin_slot, walk_all, walker_flows, run_min_flows_tasks, NULL);
+}

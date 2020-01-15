@@ -37,7 +37,8 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
-  last_partial = periodic_stats_update_partial = NULL;
+  periodic_stats_update_partial = NULL;
+  viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli_host = srv_host = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
@@ -244,7 +245,7 @@ Flow::~Flow() {
   else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
 
-  if(last_partial)                  delete(last_partial);
+  if(viewFlowStats)                 delete(viewFlowStats);
   if(periodic_stats_update_partial) delete(periodic_stats_update_partial);
   if(last_db_dump.partial)          delete(last_db_dump.partial);
 
@@ -2301,15 +2302,29 @@ bool Flow::get_partial_traffic_stats(PartializableFlowTrafficStats **dst, Partia
   } else
     *first_partial = false;
 
-  stats.get_partial(dst, fts);
+  stats.get_partial(*dst, fts);
 
   return(true);
 }
 
 /* *************************************** */
 
+/* NOTE: this is only called by the ViewInterface */
 bool Flow::get_partial_traffic_stats_view(PartializableFlowTrafficStats *fts, bool *first_partial) {
-  return get_partial_traffic_stats(&last_partial, fts, first_partial);
+  if(!fts)
+    return(false);
+
+  if(!viewFlowStats) {
+    if(!(viewFlowStats = new (std::nothrow) ViewInterfaceFlowStats()))
+      return(false);
+
+    *first_partial = true;
+  } else
+    *first_partial = false;
+
+  stats.get_partial(viewFlowStats->getPartializableStats(), fts);
+
+  return(true);
 }
   
 /* *************************************** */

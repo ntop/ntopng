@@ -349,6 +349,7 @@ using namespace std;
 #include "MacStats.h"
 #include "Mac.h"
 #include "PartializableFlowTrafficStats.h"
+#include "ViewInterfaceFlowStats.h"
 #include "FlowTrafficStats.h"
 #include "TimeseriesStats.h"
 #include "HostStats.h"
