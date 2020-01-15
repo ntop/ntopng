@@ -1044,7 +1044,7 @@ function http_lint.validateHookConfig(script, hook, value)
             return false, "bad operator"
          end
 
-         if(tonumber(conf.threshold) == nil) then
+         if(value.enabled and tonumber(conf.threshold) == nil) then
             return false, "bad threshold"
          end
       elseif(input_builder == "items_list") then
