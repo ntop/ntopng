@@ -24,11 +24,6 @@ end
 -- #################################################################
 
 return {
-  -- The unique status ID. Currently used/available IDs can be reviewed by visiting
-  -- http://127.0.0.1:3000/lua/defs_overview.lua .
-  -- Third party users can safely use the dedicated IDs in range 59-63 .
-  status_id = 62,
-
   -- score: the score of this status
   -- prio: when a flow has multiple status set, the most important status is the one with highest priority
   -- alert_type: the alert type associated to this status

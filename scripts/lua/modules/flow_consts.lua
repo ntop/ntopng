@@ -8,6 +8,7 @@ local locales_utils = require "locales_utils"
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
 local plugins_utils = require("plugins_utils")
+local plugins_consts_utils = require("plugins_consts_utils")
 
 -- Custom User Status
 flow_consts.custom_status_1 = 59
@@ -80,7 +81,7 @@ end
 -- ################################################################################
 
 function flow_consts.loadDefinition(def_script, mod_fname, script_path)
-    local required_fields = {"status_id", "cli_score", "srv_score", "prio", "alert_severity", "alert_type", "i18n_title"}
+    local required_fields = {"cli_score", "srv_score", "prio", "alert_severity", "alert_type", "i18n_title"}
 
     -- print("Loading "..script_path.."\n")
     
@@ -92,7 +93,8 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
         end
     end
 
-    local def_id = tonumber(def_script.status_id)
+    -- local def_id = tonumber(def_script.status_id)
+    local def_id = plugins_consts_utils.get_assigned_id("flow", mod_fname)
 
     if(def_id == nil) then
         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing status ID %d", script_path, def_id))
@@ -110,6 +112,7 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
     end
 
     -- Success
+    def_script.status_id = def_id
     status_by_id[def_id] = def_script
     status_key_by_id[def_id] = mod_fname
     max_prio = math.max(max_prio, def_script.prio)

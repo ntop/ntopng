@@ -24,7 +24,6 @@ end
 -- ##############################################
 
 return {
-  alert_id = 0,
   i18n_title = "alerts_dashboard.tcp_syn_flood",
   i18n_description = formatSynFlood,
   icon = "fas fa-life-ring",

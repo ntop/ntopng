@@ -12,7 +12,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 10,
   i18n_title = "alerts_dashboard.device_connection",
   i18n_description = formatDeviceConnectionAlert,
   icon = "fas fa-sign-in",

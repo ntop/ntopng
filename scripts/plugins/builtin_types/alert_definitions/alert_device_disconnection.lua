@@ -12,7 +12,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 11,
   i18n_title = "alerts_dashboard.device_disconnection",
   i18n_description = formatDeviceDisconnectionAlert,
   icon = "fas fa-sign-out",

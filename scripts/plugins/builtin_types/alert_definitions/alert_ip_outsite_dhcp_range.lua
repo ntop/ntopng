@@ -24,7 +24,6 @@ end
 -- #######################################################
 
 return {
-  alert_id = 36,
   i18n_title = "alerts_dashboard.misconfigured_dhcp_range",
   i18n_description = outsideDhcpRangeFormatter,
   icon = "fas fa-exclamation",

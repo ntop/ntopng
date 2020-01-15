@@ -41,7 +41,6 @@ end
 -- #################################################################
 
 return {
-  status_id = 13,
   cli_score = function(info)
     if(info and info["blacklisted.srv"]) then
       -- client has a malware?

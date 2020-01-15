@@ -7,7 +7,6 @@ local alert_consts = require("alert_consts")
 -- #################################################################
 
 return {
-  status_id = 15,
   cli_score = 50,
   srv_score = 10,
   prio = 350,

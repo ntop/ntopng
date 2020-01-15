@@ -28,7 +28,6 @@ end
 -- #################################################################
 
 return {
-  status_id = 1,
   cli_score = function(info)
     if(info and info["srv_blacklisted"]) then
       return(60)

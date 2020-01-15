@@ -9,10 +9,13 @@ local dirs = ntop.getDirs()
 
 local AVAILABLE_CONSTS = {
    flow = {
-      min_id = 0, max_id = 63, reuse_ids = true,
+      min_id = 1, max_id = 63, reuse_ids = true,
+      reserved_ids = {
+	 status_normal = 0,
+      },
    },
    alert = {
-      min_id = 0, max_id = 255, reuse_ids = false
+      min_id = 0, max_id = 255, reuse_ids = false,
    }
 }
 
@@ -129,7 +132,9 @@ function plugins_consts_utils.assign_requested_ids(const_type)
    end
 
    for _, req in ipairs(id_requests[const_type]) do
-      if cur_key_to_id[req] then
+      if AVAILABLE_CONSTS[const_type]["reserved_ids"] and AVAILABLE_CONSTS[const_type]["reserved_ids"][req] then
+	 -- Id among those reserved, so id is already assigned and there is nothing to do
+      elseif cur_key_to_id[req] then
 	 -- Id found: already assigned, nothing to do
 	 found_ids[#found_ids + 1] = cur_key_to_id[req]
       elseif #available_ids > 0 then
@@ -185,6 +190,10 @@ function plugins_consts_utils.get_assigned_id(const_type, const_key)
    if not AVAILABLE_CONSTS[const_type] then
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Unknown const type '%s'", const_type))
       return
+   end
+
+   if AVAILABLE_CONSTS[const_type]["reserved_ids"] and AVAILABLE_CONSTS[const_type]["reserved_ids"][const_key] then
+      return AVAILABLE_CONSTS[const_type]["reserved_ids"][const_key]
    end
 
    -- Avoid reading the whole hash, just read the single key to re-use also ntopng internal caching mechanism

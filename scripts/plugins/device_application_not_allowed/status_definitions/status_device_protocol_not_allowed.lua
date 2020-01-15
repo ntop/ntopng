@@ -37,7 +37,6 @@ end
 -- #################################################################
 
 return {
-  status_id = 16,
   cli_score = function(info)
     if(info and (info["devproto_forbidden_peer"] == "cli")) then
       return(80)
