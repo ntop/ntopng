@@ -803,7 +803,11 @@ function user_scripts.createOrReplaceConfigset(configset)
       configsets[existing.id] = nil
    end
 
-   local new_confid = getNewConfigSetId(configsets)
+   local new_confid = 0
+   if configset.id ~= 0 then
+      new_confid = getNewConfigSetId(configsets)
+   end
+
    configsets[new_confid] = table.clone(configset)
    configsets[new_confid].id = new_confid
 

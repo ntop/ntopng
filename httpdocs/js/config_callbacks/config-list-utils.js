@@ -102,7 +102,7 @@ $(document).ready(function() {
                                     ${i18n.clone}
                                 </a>
                         `;
-                    if(data.name !== 'Default')
+                    if(data.id != 0)
                         rv += `
                                 <a href='#'
                                         title='${i18n.apply_to}'
