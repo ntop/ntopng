@@ -619,7 +619,7 @@ function areAlertsEnabled()
 end
 
 function isScoreEnabled()
-  return(ntop.isEnterprise() and (ntop.getPref("ntopng.prefs.enable_score") == "1"))
+  return(ntop.isEnterprise())
 end
 
 function mustScanAlerts(ifstats)

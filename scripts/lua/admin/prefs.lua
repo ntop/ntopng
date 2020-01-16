@@ -276,11 +276,6 @@ function printAlerts()
     off_value = "1",    -- Off for enabled alerts implies 1 for disable_alerts_generation
   })
 
-  prefsToggleButton(subpage_active, {
-    field = "enable_score",
-    default = "0",
-  })
-
   if ntop.getPrefs().are_alerts_enabled == true then
      showElements = true
   else
