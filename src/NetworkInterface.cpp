@@ -7759,6 +7759,7 @@ static bool run_min_flows_tasks(GenericHashEntry *f, void *user_data, bool *matc
   /* Update the peers score */
   if(flow->unsafeGetClient()) flow->unsafeGetClient()->incScore(flow->getCliScore());
   if(flow->unsafeGetServer()) flow->unsafeGetServer()->incScore(flow->getSrvScore());
+  flow->setPeersScoreAccounted();
 
   *matched = true;
   return(false); /* false = keep on walking */

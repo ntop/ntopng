@@ -48,6 +48,7 @@ Flow::Flow(NetworkInterface *_iface,
   alert_level = alert_level_none;
   alerted_status = status_normal;
   predominant_status = status_normal;
+  peers_score_accounted = false;
 
   detection_completed = update_flow_port_stats = false;
   fully_processed = false;
@@ -1103,6 +1104,13 @@ if(cli_host && srv_host) {
 	srv_country_stats->incEgress(tv->tv_sec, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(),
 				     cli_host->get_ip()->isBroadcastAddress());
       }
+    }
+
+    if(!peers_score_accounted && idle()) {
+      /* The flow went idle to quickly as the run_min_flows_tasks was not
+       * called. Account the score using a separate counter. */
+      cli_host->incIdleFlowScore(getCliScore());
+      srv_host->incIdleFlowScore(getSrvScore());
     }
   }
 

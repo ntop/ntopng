@@ -41,6 +41,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t cli_score, srv_score;
+  bool peers_score_accounted;
   struct ndpi_flow_struct *ndpiFlow;
 
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
@@ -603,9 +604,10 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
 
   void incScore(u_int16_t cli_inc, u_int16_t srv_inc);
-  inline u_int16_t getCliScore()           { return(cli_score); };
-  inline u_int16_t getSrvScore()           { return(srv_score); };
-  inline u_int16_t getScore()              { return(max(cli_score, srv_score)); };
+  inline u_int16_t getCliScore() const     { return(cli_score); };
+  inline u_int16_t getSrvScore() const     { return(srv_score); };
+  inline u_int16_t getScore() const        { return(max(cli_score, srv_score)); };
+  inline void setPeersScoreAccounted()     { peers_score_accounted = true; };
 
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }
