@@ -795,6 +795,29 @@ end
 
 -- ##############################################
 
+function user_scripts.createOrReplaceConfigset(configset)
+   local configsets = user_scripts.getConfigsets()
+
+   local existing = findConfigSet(configsets, configset.name)
+   if existing then
+      configsets[existing.id] = nil
+   end
+
+   local new_confid = getNewConfigSetId(configsets)
+   configsets[new_confid] = table.clone(configset)
+   configsets[new_confid].id = new_confid
+
+   local rv, err = saveConfigsets(configsets)
+
+   if not rv then
+      return rv, err
+   end
+
+   return true, new_confid
+end
+
+-- ##############################################
+
 function user_scripts.renameConfigset(confid, new_name)
    if(confid == user_scripts.DEFAULT_CONFIGSET_ID) then
       return false, "Cannot rename default configset"

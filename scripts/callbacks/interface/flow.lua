@@ -90,13 +90,21 @@ function setup()
    trace_f(string.format("flow.lua:setup() called"))
 
    local ifid = interface.getId()
+   local view_ifid
+   if interface.isViewed() then
+      view_ifid = interface.viewedBy()
+   end
+
    local configsets = user_scripts.getConfigsets()
 
-   flows_config = user_scripts.getTargetConfig(configsets, "flow", ifid..'')
+   -- In case of viewed interfaces, the configuration retrieved is the one belonging to the
+   -- view.
+   flows_config = user_scripts.getTargetConfig(configsets, "flow", (view_ifid or ifid)..'')
 
-   -- Load the disabled hosts status
-   hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
+   -- Load the disabled hosts status. As hosts stay in the view, the correct disabled status needs to look there
+   hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(view_ifid or ifid)
 
+   -- To execute flows, the viewed interface id is used instead, as flows reside in the viewed interface, not in the view
    available_modules = user_scripts.load(ifid, user_scripts.script_types.flow, "flow", {
       do_benchmark = true,
       scripts_filter = skip_disabled_flow_scripts,
@@ -133,7 +141,7 @@ function setup()
       end
    end
 
-   if(ntop.isEnterprise() and (ntop.getPref("ntopng.prefs.beta_score") == "1")) then
+   if(ntop.isEnterprise() and (ntop.getPref("ntopng.prefs.enable_score") == "1")) then
       score_utils = require("score_utils")
    end
 end

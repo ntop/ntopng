@@ -213,17 +213,17 @@ void PartializableFlowTrafficStats::incDNSResp(u_int16_t resp_code) {
 
 /* *************************************** */
 
-void PartializableFlowTrafficStats::get_partial(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *fts) const {
+void PartializableFlowTrafficStats::get_partial(PartializableFlowTrafficStats *dst, PartializableFlowTrafficStats *fts) const {
   /* Set temp to the current value */
   PartializableFlowTrafficStats tmp(*this); 
 
   /* Compute the differences between the snapshot tmp and the values found in dst, and put them in the argument fts */
-  *fts = tmp - **dst;
+  *fts = tmp - *dst;
 
   /* Finally, update dst with the values snapshotted in tmp.
      Use the copy constructor to snapshot the value of tmp to dst
   */
-  **dst = tmp;
+  *dst = tmp;
 }
 
 /* *************************************** */

@@ -18,7 +18,6 @@ local have_nedge = ntop.isnEdge()
 sendHTTPContentTypeHeader('text/html')
 local debug = false
 local debug_process = false -- Show flow processed information
-local debug_score = (ntop.getPref("ntopng.prefs.beta_score") == "1")
 
 local ifstats = interface.getStats()
 
@@ -305,9 +304,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    local info = value["info"]
 
-   if debug_score then
+   if isScoreEnabled() then
       if(value["score"] > 0) then
-	 info = info .. string.format(" [<b>score: %u</b>]", value["score"])
+         info = info .. string.format(" [<b>".. string.lower(i18n("score")) ..": %u</b>]", value["score"])
       end
    end
 

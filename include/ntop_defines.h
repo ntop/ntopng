@@ -975,7 +975,7 @@
 
 #define HTTP_MAX_CONTENT_TYPE_LENGTH    63
 #define HTTP_MAX_HEADER_LINES           20
-#define HTTP_MAX_POST_DATA_LEN          8192
+#define HTTP_MAX_POST_DATA_LEN          65536
 #define HTTP_CONTENT_TYPE_HEADER        "Content-Type: "
 #define CONST_HELLO_HOST                "hello"
 

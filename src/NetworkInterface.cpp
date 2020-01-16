@@ -3603,10 +3603,16 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 
     switch(retriever->sorter) {
       case column_client:
-	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
+	if(f->getInterface()->isViewed())
+	  retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_cli_ip_addr();
+	else
+	  retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
       case column_server:
-	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
+	if(f->getInterface()->isViewed())
+	  retriever->elems[retriever->actNumEntries++].ipValue = (IpAddress*)f->get_srv_ip_addr();
+	else
+	  retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
 	break;
       case column_vlan:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_vlan_id();
@@ -3774,6 +3780,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_total_num_unreachable_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableOutgoingFlows(); break;
   case column_total_num_unreachable_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableIncomingFlows(); break;
   case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
+  case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore(); break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
@@ -4021,6 +4028,16 @@ int ipNetworkSorter(const void *_a, const void *_b) {
   else return(0);
 }
 
+int ipSorter(const void *_a, const void *_b) {
+  struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
+  struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
+
+  if(!a || !b || !a->ipValue || !b->ipValue)
+    return(true);
+
+  return(a->ipValue->compare(b->ipValue));
+}
+
 int numericSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
@@ -4062,9 +4079,9 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
     return(-1);
   }
 
-  if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = hostSorter;
+  if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = isViewed() ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
@@ -4362,6 +4379,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_total_num_unreachable_flows_as_client")) retriever->sorter = column_total_num_unreachable_flows_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_num_unreachable_flows_as_server")) retriever->sorter = column_total_num_unreachable_flows_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_alerts")) retriever->sorter = column_total_alerts, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score")) retriever->sorter = column_score, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
@@ -7732,3 +7750,30 @@ void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
 struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
   return(ntop->get_ndpi_struct());
 };
+
+/* *************************************** */
+
+static bool run_min_flows_tasks(GenericHashEntry *f, void *user_data, bool *matched) {
+  Flow *flow = (Flow*)f;
+
+  /* Update the peers score */
+  if(flow->unsafeGetClient()) flow->unsafeGetClient()->incScore(flow->getCliScore());
+  if(flow->unsafeGetServer()) flow->unsafeGetServer()->incScore(flow->getSrvScore());
+  flow->setPeersScoreAccounted();
+
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+void NetworkInterface::runMinFlowsTasks() {
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  /* This function accesses shared host data via unsafeGetClient/unsafeGetServer
+   * so cannot be called concurrently on subinterfaces. */
+  if(isSubInterface())
+    return;
+
+  if(flows_hash)
+    walker(&begin_slot, walk_all, walker_flows, run_min_flows_tasks, NULL);
+}

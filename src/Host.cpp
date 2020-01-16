@@ -176,6 +176,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   num_resolve_attempts = 0, ssdpLocation = NULL;
   num_active_flows_as_client.reset(), num_active_flows_as_server.reset();
   old_score = new_score = 0;
+  old_idle_flow_score = new_idle_flow_score = 0;
   active_alerted_flows = 0;
 
   flow_alert_counter = NULL;
@@ -1381,4 +1382,16 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
     k = get_hostkey(buf, bufsize);
 
   return(k);
+}
+
+/* *************************************** */
+
+void Host::refreshScore() {
+  /* Add the score calculated on the idle flows */
+  new_score += (new_idle_flow_score - old_idle_flow_score);
+  old_idle_flow_score = new_idle_flow_score;
+
+  /* Account the new_score and prepare the counter for the next run */
+  old_score = new_score;
+  new_score = 0;
 }

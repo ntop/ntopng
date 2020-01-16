@@ -1314,6 +1314,7 @@ local known_parameters = {
    ["dynamic_iface_vlan_creation"]                 = validateBool,
    ["toggle_mysql_check_open_files_limit"]         = validateBool,
    ["disable_alerts_generation"]                   = validateBool,
+   ["enable_score"]                                = validateBool,
    ["toggle_alert_probing"]                        = validateBool,
    ["toggle_flow_alerts_iface"]                    = validateBool,
    ["toggle_tls_alerts"]                           = validateBool,

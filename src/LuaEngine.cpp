@@ -1259,6 +1259,21 @@ static int ntop_set_host_operating_system(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_run_min_flows_tasks(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->runMinFlowsTasks();
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_set_mac_device_type(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4044,6 +4059,36 @@ static int ntop_interface_is_view(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(ntop_interface) rv = ntop_interface->isView();
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_interface_viewed_by(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(ntop_interface && ntop_interface->isViewed())
+    lua_pushinteger(vm, ntop_interface->viewedBy()->get_id());
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_interface_is_viewed(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool rv = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(ntop_interface) rv = ntop_interface->isViewed();
 
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
@@ -11113,6 +11158,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "isBridgeInterface",                ntop_interface_is_bridge_interface },
   { "isPcapDumpInterface",              ntop_interface_is_pcap_dump_interface },
   { "isView",                           ntop_interface_is_view },
+  { "isViewed",                         ntop_interface_is_viewed },
+  { "viewedBy",                         ntop_interface_viewed_by },
   { "isLoopback",                       ntop_interface_is_loopback },
   { "isRunning",                        ntop_interface_is_running },
   { "isIdle",                           ntop_interface_is_idle },
@@ -11123,6 +11170,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
   { "reloadHostPrefs",                  ntop_reload_host_prefs },
   { "setHostOperatingSystem",           ntop_set_host_operating_system },
+  { "runMinFlowsTasks",                 ntop_run_min_flows_tasks },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
@@ -12165,11 +12213,16 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
-    if((post_data = (char*)malloc(HTTP_MAX_POST_DATA_LEN * sizeof(char))) == NULL
-       || (post_data_len = mg_read(conn, post_data, HTTP_MAX_POST_DATA_LEN)) == 0) {
+    int content_len = mg_get_content_len(conn)+1;
+
+    if (content_len > HTTP_MAX_POST_DATA_LEN)
+      content_len = HTTP_MAX_POST_DATA_LEN;
+
+    if((post_data = (char*)malloc(content_len * sizeof(char))) == NULL
+       || (post_data_len = mg_read(conn, post_data, content_len)) == 0) {
       valid_csrf = 0;
 
-    } else if(post_data_len > HTTP_MAX_POST_DATA_LEN - 1) {
+    } else if(post_data_len > content_len - 1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Too much data submitted with the form. [post_data_len: %u]",
 				   post_data_len);
