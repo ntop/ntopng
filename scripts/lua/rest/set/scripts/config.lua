@@ -52,8 +52,6 @@ end
 
 -- ################################################
 
-result.error = "success"
-
 for config_id, configset in pairs(data) do
   if configset.name ~= nil then
     local success, err = user_scripts.createOrReplaceConfigset(configset)
@@ -63,6 +61,10 @@ for config_id, configset in pairs(data) do
       result.description = err
     end
   end
+end
+
+if result.error == nil then
+   result.success = true
 end
 
 -- ################################################

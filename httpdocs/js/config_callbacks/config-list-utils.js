@@ -172,7 +172,7 @@ $(document).ready(function() {
             }
 
             // disable button until request hasn't finished
-            $button.removeAttr("href");
+            $button.attr("disabled", "");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'clone',
@@ -187,7 +187,7 @@ $(document).ready(function() {
                 if (check_status_code(xhr.status, xhr.statusText, $("#clone-error"))) return;
 
                 // re-enable button
-                $button.attr("href", "#");
+                $button.removeAttr("disabled");
                 // if the operation was not successful then show an error
                 if (!data.success) {
                     $("#clone-error").text(data.error).show();
@@ -212,7 +212,7 @@ $(document).ready(function() {
                 }
 
                 // re-enable button
-                $button.attr("href", "#");
+                $button.removeAttr("disabled");
             })
 
         })
@@ -262,7 +262,7 @@ $(document).ready(function() {
                 applied_value = $("#applied-input").val();
             } 
 
-            $button.removeAttr("href");
+            $button.attr("disabled", "");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'set_targets',
@@ -276,7 +276,7 @@ $(document).ready(function() {
                 // check if the status code is successfull
                 if (check_status_code(xhr.status, xhr.statusText, $("#rename-error"))) return;
 
-                $button.attr("href", "#");
+                $button.removeAttr("disabled");
 
                 if (!data.success) {
                     apply_csrf = data.csrf;
@@ -302,7 +302,7 @@ $(document).ready(function() {
                 }
 
                 // re-enable button
-                $button.attr("href", "#");
+                $button.removeAttr("disabled");
             })
 
 
@@ -349,7 +349,7 @@ $(document).ready(function() {
                 return;
             }
 
-            $button.removeAttr("href");
+            $button.attr("disabled", "");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'rename',
@@ -362,7 +362,7 @@ $(document).ready(function() {
                 // check if the status code is successfull
                 if (check_status_code(xhr.status, xhr.statusText, $("#rename-error"))) return;
 
-                $button.attr("href", "#");
+                $button.removeAttr("disabled");
 
                 if (!data.success) {
                     $("#rename-error").text(data.error).show();
@@ -388,7 +388,7 @@ $(document).ready(function() {
                 }
 
                 // re-enable button
-                $button.attr("href", "#");
+                $button.removeAttr("disabled");
             })
             
         })
@@ -413,7 +413,7 @@ $(document).ready(function() {
 
             const $button = $(this);
 
-            $button.removeAttr("href");
+            $button.attr("disabled", "");
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'delete',
@@ -425,7 +425,7 @@ $(document).ready(function() {
                 // check if the status code is successfull
                 if (check_status_code(xhr.status, xhr.statusText, $("#delete-error"))) return;
 
-                $button.attr("href", "#");
+                $button.removeAttr("disabled");
 
                 if (!data.success) {
                     $("#delete-error").text(data.error).show();
@@ -449,7 +449,7 @@ $(document).ready(function() {
                     $("#delete-error").text(`${i18n.expired_csrf}`).show();
                 }
                 // re-enable button
-                $button.attr("href", "#");
+                $button.removeAttr("disabled");
             })
             
         })
@@ -458,6 +458,77 @@ $(document).ready(function() {
             
             e.preventDefault();
             $("#btn-confirm-delete").trigger("click");
+        });
+
+    });
+
+    // handle import modal
+    $('#import-modal-btn').on("click", function(e) { 
+
+        // hide previous errors
+        $("#import-error").hide();
+
+        $("#import-modal form").off("submit");
+
+        $('#btn-confirm-import').off('click').click(function(e) {
+
+            const $button = $(this);
+
+            let applied_value = null;
+
+            $button.attr("disabled", "");
+
+            // Read configuration file file
+            var file = $('#import-input')[0].files[0];
+
+            if (!file) {
+                 $("#import-error").text(`${i18n.no_file}`).show();
+
+                 // re-enable button
+                 $button.removeAttr("disabled");
+             } else {
+                var reader = new FileReader();
+                reader.onload = function () {
+                    // Client-side configuration file format check
+                    let json_conf = null
+                    try { json_conf = JSON.parse(reader.result); } catch (e) {}
+
+                    if (!json_conf || !json_conf['0']) {
+                        $("#import-error").text(`${i18n.invalid_file}`).show();
+                        // re-enable button
+                        $button.removeAttr("disabled");
+                    } else {
+                        // Submit configuration file
+                        $.post(`${http_prefix}/lua/rest/set/scripts/config.lua`, {
+                            csrf: import_csrf,
+                            JSON: JSON.stringify(json_conf)
+                        })
+                        .done((d, status, xhr) => {
+                            if (check_status_code(xhr.status, xhr.statusText, $("#import-error"))) return;
+                            if (!d.success) {
+                                $("#import-error").text(d.error).show();
+                                // update token
+                                import_csrf = d.csrf;
+                            } else {
+                                location.reload();
+                            }
+                        })
+                        .fail(({ status, statusText }) => {
+                            check_status_code(status, statusText, $("#import-error"));
+
+                            // re-enable button
+                            $button.removeAttr("disabled");
+                        });
+
+                     };
+                 }
+                 reader.readAsText(file, "UTF-8");
+             }
+        });
+
+        $("#import-modal").on("submit", "form", function (e) {
+            e.preventDefault();
+            $("#btn-import").trigger("click");
         });
 
     });
