@@ -3626,6 +3626,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
       case column_duration:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
 	break;
+    case column_score:
+        retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
+        break;
       case column_thpt:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
 	break;
@@ -4085,6 +4088,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score")) retriever->sorter = column_score, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_client_rtt")) retriever->sorter = column_client_rtt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server_rtt")) retriever->sorter = column_server_rtt, sorter = numericSorter;
