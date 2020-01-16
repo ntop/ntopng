@@ -21,7 +21,20 @@ local script = {
 
 function script.hooks.protocolDetected(now)
    if flow.isBlacklisted() then
-      flow.triggerStatus(flow_consts.status_types.status_blacklisted.status_id, flow.getBlacklistedInfo())
+      local info = flow.getBlacklistedInfo()
+      local flow_score = 100
+      local cli_score, srv_score
+
+      if info["blacklisted.srv"] then
+         cli_score = 100
+         srv_score = 5
+      else
+         cli_score = 5
+         srv_score = 10
+      end
+
+      flow.triggerStatus(flow_consts.status_types.status_blacklisted.status_id, info,
+         flow_score, cli_score, srv_score)
    end
 end
 

@@ -41,21 +41,6 @@ end
 -- #################################################################
 
 return {
-  cli_score = function(info)
-    if(info and info["blacklisted.srv"]) then
-      -- client has a malware?
-      return(100)
-    else
-      return(5)
-    end
-  end,
-  srv_score = function(info)
-    if(info and info["blacklisted.cli"]) then
-      return(10)
-    else
-      return(5)
-    end
-  end,
   prio = 700,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_flow_blacklisted,

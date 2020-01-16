@@ -104,7 +104,7 @@ function script.hooks.protocolDetected(now, config)
     -- Set an invalid status on the flow and trigger the corresponding alert
     flow.triggerStatus(flow_consts.status_types.status_example.status_id, {
       bad_port = flow_info["srv.port"]
-    })
+    }, 60--[[ flow score]], 50--[[ cli score ]], 10--[[ srv score ]])
   else
     -- A previosly set status can be cleared
     -- flow.clearStatus(flow_consts.status_types.status_example.status_id)

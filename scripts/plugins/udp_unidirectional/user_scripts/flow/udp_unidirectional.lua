@@ -29,7 +29,8 @@ function script.hooks.all(now)
    if(flow.getPacketsRcvd() == 0) then
       -- Now check if the recipient isn't a broadcast/multicast address
       if(flow.isServerUnicast()) then
-         flow.setStatus(flow_consts.status_types.status_udp_unidirectional.status_id)
+         flow.setStatus(flow_consts.status_types.status_udp_unidirectional.status_id,
+            50--[[ flow score]], 50--[[ cli score ]], 10--[[ srv score ]])
       end
    else
       flow.clearStatus(flow_consts.status_types.status_udp_unidirectional.status_id)

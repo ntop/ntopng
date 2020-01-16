@@ -381,10 +381,8 @@ end
 -- @brief This provides an API that flow user_scripts can call in order to
 -- set a flow status bit. The status_json of the predominant status is
 -- saved for later use.
-function flow.triggerStatus(status_id, status_json, custom_severity)
+function flow.triggerStatus(status_id, status_json, flow_score, cli_score, srv_score, custom_severity)
    local new_status = flow_consts.getStatusInfo(status_id)
-   local cli_score = 0
-   local srv_score = 0
 
    if not alerted_status or new_status.prio > alerted_status.prio then
       -- The new alerted status as an higher priority
@@ -396,15 +394,14 @@ function flow.triggerStatus(status_id, status_json, custom_severity)
    local is_new_status = flow.setStatus(status_id)
 
    if(is_new_status and score_utils) then
-      score_utils.updateScore(flow, status_id, status_json, new_status)
+      score_utils.updateScore(flow, status_id, status_json, new_status, flow_score, cli_score, srv_score)
    end
 end
 
 -- #################################################################
 
--- TODO change
 -- NOTE: overrides the C flow.setStatus (now saved in c_flow_set_status)
-function flow.setStatus(status_id)
+function flow.setStatus(status_id, flow_score, cli_score, srv_score)
    local changed = c_flow_set_status(status_id)
 
    if changed then
