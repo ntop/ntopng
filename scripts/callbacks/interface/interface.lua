@@ -19,6 +19,7 @@ local ifid = nil
 local available_modules = nil
 local interface_entity = alert_consts.alert_entities.interface.entity_id
 local iface_config = nil
+local confset_id = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -33,7 +34,7 @@ function setup(str_granularity)
    })
 
    local configsets = user_scripts.getConfigsets()
-   iface_config = user_scripts.getTargetConfig(configsets, "interface", ifname)
+   iface_config, confset_id = user_scripts.getTargetConfig(configsets, "interface", ifname)
 end
 
 -- #################################################################
@@ -74,7 +75,7 @@ function runScripts(granularity)
 
      if(conf.enabled) then
         if((not user_script.is_alert) or (not suppressed_alerts)) then
-           hook_fn({
+           alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
               granularity = granularity,
               alert_entity = entity_info,
               entity_info = info,

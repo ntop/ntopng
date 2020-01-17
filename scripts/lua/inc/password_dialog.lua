@@ -27,7 +27,7 @@ print [[
 ]]
 
 if(is_admin) then
-   print[[<li class="nav-item"><a class="nav-link" href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
+   print[[<li class="nav-item" id="li_change_prefs"><a class="nav-link" href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
 end
    print[[
   </ul>
@@ -311,6 +311,8 @@ function reset_pwd_dialog(user) {
       $('#networks_input').val(data.allowed_nets);
       $('#allowed_interface option[value="' + data.allowed_if_id + '"]').attr('selected','selected');
 
+      if(data.username === "admin")
+        $('#li_change_prefs').hide();
       if(data.language !== "")
         $('#user_language option[value="' + data.language + '"]').attr('selected','selected');
       $('#allow_pcap_input').prop('checked', data.allow_pcap_download === true ? true : false);

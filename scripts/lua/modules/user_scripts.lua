@@ -1078,7 +1078,7 @@ function user_scripts.getTargetConfig(configsets, subdir, target)
       return({})
    end
 
-   return(conf.config[subdir] or {})
+   return conf.config[subdir] or {}, conf.id
 end
 
 -- ##############################################
@@ -1090,7 +1090,7 @@ function user_scripts.getDefaultConfig(configsets, subdir)
       return({})
    end
 
-   return(conf.config[subdir] or {})
+   return conf.config[subdir] or {}, conf.id
 end
 
 -- ##############################################
@@ -1119,7 +1119,7 @@ function user_scripts.getHostTargetConfigset(configsets, subdir, ip_target)
       return({})
    end
 
-   return(conf.config[subdir] or {})
+   return conf.config[subdir] or {}, conf.id
 end
 
 -- ##############################################
