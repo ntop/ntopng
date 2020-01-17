@@ -394,7 +394,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
          // if the checked option is false the disable the elements
          if (!checked) {
-            $text_area.find(`#itemslist-textarea`).attr("readonly", "").val('');
+            $text_area.find(`#itemslist-textarea`).attr("readonly", "");
             return;
          }
 
@@ -437,13 +437,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       let $error_label = $('#itemslist-textarea').parent().find('.invalid-feedback');
       $error_label.fadeOut();
 
-      const textarea_value = $('#itemslist-textarea').val();
-
-      // if the textarea value is not valid then alert the user
-      if (hook_enabled && (textarea_value == undefined || textarea_value == null || textarea_value == '')) {
-         $error_label.fadeIn().text(i18n.empty_input_box);
-         return;
-      } 
+      const textarea_value = $('#itemslist-textarea').val().trim();
 
       // if the textarea value contains special characters such as #, @, ... then alert the user
       if (special_char_regexp.test(textarea_value)) {
