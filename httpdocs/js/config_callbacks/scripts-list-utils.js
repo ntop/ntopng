@@ -69,20 +69,20 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
 
 const generate_input_box = (input_settings, has_container, change_callback) => {
    
-   const $input_box = $(`
-      <input 
-         ${input_settings.enabled ? '' : 'readonly'}
-         min='${input_settings.min}' max='${input_settings.max}'
-         type='number'
-         value='${input_settings.current_value}'
-         name='${input_settings.name}'
-         class='form-control' />
-   `);
+   const $input_box = $(`<input type='number' name='${input_settings.name}' class='form-control' />`);
+
+   // set attributes and values
+   if (input_settings.max != undefined) $input_box.attr("max", input_settings.max);
+   if (input_settings.min != undefined) $input_box.attr("min", input_settings.min);
+   if (input_settings.current_value != undefined) $input_box.val(input_settings.current_value);
+
+   if (input_settings.enabled != undefined && !input_settings.enabled) {
+      $input_box.attr("readonly", "");
+   }
 
    if (has_container) {
-      
       const $input_container = $(`<div class='form-row'></div>`);
-      return $input_container.append($(`<div class='col-2'></div>`).append($input_box));
+      return $input_container.append($(`<div class='col-2'></div>`).append($input_box, $(`<div class='invalid-feedback'></div>`)));
    }
 
    return $input_box;
@@ -90,21 +90,57 @@ const generate_input_box = (input_settings, has_container, change_callback) => {
 
 /* ******************************************************* */
 
-const generate_radio_buttons = (name, enabled, settings, has_container, change_callback) => {
+const generate_radio_buttons = (params, settings, has_container) => {
+
+   const active_first_button = params.granularity == settings[0].label;
+   const active_second_button = params.granularity == settings[1].label;
+   const active_third_button = params.granularity == settings[2].label;
 
    const $radio_buttons = $(`
       <div class="btn-group float-right btn-group-toggle" data-toggle="buttons">
-         <label class="btn btn-secondary ${enabled ? '' : 'disabled'}">
-            <input ${enabled ? '' : 'disabled'} value="${settings[0].value}" type="radio" name="${name}"> ${settings[0].label}
+         <label 
+            class="btn ${active_first_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
+            <input 
+               ${params.enabled ? '' : 'disabled'}
+               ${active_first_button ? 'checked' : ''}
+               id='first-radio'
+               value="${settings[0].value}"
+               type="radio"
+               name="${params.name}"> ${settings[0].label}
          </label>
-         <label class="btn btn-secondary ${enabled ? '' : 'disabled'}">
-            <input ${enabled ? '' : 'disabled'} value="${settings[0].value}" type="radio" name="${name}"> ${settings[1].label}
+         <label 
+            class="btn ${active_second_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
+            <input 
+               ${params.enabled ? '' : 'disabled'}
+               ${active_second_button ? 'checked' : ''}
+               id='second-radio'
+               value="${settings[1].value}"
+               type="radio" 
+               name="${params.name}"> ${settings[1].label}
          </label>
-         <label class="btn btn-secondary ${enabled ? '' : 'disabled'}">
-            <input ${enabled ? '' : 'disabled'} value="${settings[0].value}" type="radio" name="${name}"> ${settings[2].label}
+         <label 
+            class="btn ${active_third_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
+            <input 
+               ${params.enabled ? '' : 'disabled'} 
+               ${active_third_button ? 'checked' : ''}
+               id='third-radio'
+               value="${settings[2].value}" 
+               type="radio" 
+               name="${params.name}"> ${settings[2].label}
          </label>
       </div>
    `);
+
+   $radio_buttons.find(`input[type='radio']`).on('click', function(e) {
+
+      // remove active class from every button
+      $radio_buttons.find('label').removeClass('active').removeClass('btn-primary').addClass('btn-secondary');
+      // remove checked from buttons
+      $radio_buttons.find('input').removeAttr('checked');
+
+      // add active class and btn-primary to the new one
+      $(this).prop('checked', '').parent().addClass('active btn-primary').removeClass('btn-secondary');
+   });
 
    if (has_container) {
 
@@ -235,6 +271,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          $field.append(`<input 
                            type='number'
                            class='form-control'
+                           required
                            name='${key}-input'
                            ${hook.enabled ? '' : 'readonly'}
                            value='${hook.script_conf.threshold == undefined ? '' : hook.script_conf.threshold}'
@@ -313,15 +350,31 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          const $error_label = $template.find(`.invalid-feedback`);
 
          const operator = $template.find("select").val();
-         const threshold = $template.find("input").val();
+         const $input_box = $template.find("input");
+
+         let threshold = parseInt($input_box.val());
+
+         const max_threshold = parseInt($input_box.attr('max'));
+         const min_threshold = parseInt($input_box.attr('min'));
 
          // hide before errors
          $error_label.hide();
+         
+         // remove class error
+         $input_box.removeClass('is-invalid');
 
          // if operator is empty then alert the user
          if (enabled && (operator == "" || operator == undefined || operator == null)) {
 
             $error_label.text(i18n.select_operator).show();
+            $input_box.addClass('is-invalid');
+            error = true;
+            return;
+         }
+
+         if (threshold > max_threshold || threshold < min_threshold) {
+            $error_label.text("Input not valid!").show();
+            $input_box.addClass('is-invalid');
             error = true;
             return;
          }
@@ -521,6 +574,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       const input_settings = {
          name: 'script_value',
+         current_value: 0,
          min: 0,
          max: 0,
          enabled: enabled,
@@ -646,12 +700,11 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const enabled = hooks.all.enabled;
       const granularity = hooks.all.script_conf.granularity;
       const items_list = hooks.all.script_conf.items;
-
       const current_value = hooks.all.current_value;
 
       const input_settings = {
-         max: 0,
-         min: 0,
+         min: 1,
+         current_value: current_value,
          name: 'script_value',
          enabled: enabled
       };
@@ -662,34 +715,23 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
             <label>Excluded applications and categories:</label>
             <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${(items_list || []).join(',')}</textarea>
             <small>Examples...</small>
+            <div class="invalid-feedback"></div>
          </div>
       `);
 
+      const radio_values = [
+         {label: 'KB', value: 1024},
+         {label: 'MB', value: 1048576},
+         {label: 'GB', value: 1073741824}
+      ];
       const $bytes_radio_buttons = generate_radio_buttons(
-         'bytes', enabled, 
-         [
-            {label: 'KB', value: 60}, {label: 'MB', value: 3600}, {label: 'GB', value: 860400}
-         ], 
-         true, null
+         {
+            name: 'bytes', 
+            enabled: enabled,
+            granularity: granularity
+         },
+         radio_values, true
       );
-
-      // clamp values on radio change
-      $bytes_radio_buttons.find(`input[type='radio']`).on('change', function() {
-
-         const bytes_selected = $(this).val();
-     
-         // set min/max bounds to input box
-         if (bytes_selected == 60) {
-            $time_input_box.find('input').attr("max", 60);
-         }
-         else if (bytes_selected == 3600) {
-            $bytes_selected.find('input').attr("max", 24);
-         }
-         else {
-            $time_input_box.find('input').attr("max", 365);
-         }
-
-      });
 
       const callback_checkbox = function (e) {
 
@@ -729,22 +771,45 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
    const apply_event = (event) => {
 
       const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
-      const textarea_value = $(`textarea[name='items_list']`).val();
+      const hook_enabled = $('#elephant-flows-checkbox').prop('checked');
       
-      let $error_label = null;
+      let $error_label = $(`textarea[name='items_list']`).parent().find('.invalid-feedback');
+      $error_label.fadeOut();
 
-      // TODO: data logic
+      const textarea_value = $(`textarea[name='items_list']`).val().trim();
+
+      // check if textarea contains special characters
+      if (textarea_value != "" && special_char_regexp.test(textarea_value)) {
+         $error_label.fadeIn().text(`${i18n.items_list_comma}`);
+         return;
+      }
+
+      // if the textarea has valid content then
+      // glue the strings into in array
+      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
+      
+      // get the granularity
+      const bytes_value = $(`input[name='bytes']`).val();
+      const input_value = $(`input[name='script_value']`).val();
+
+      $error_label = $(`input[name='script_value']`).parent().find('.invalid-feedback');
+      $error_label.fadeOut();
+
+      if (input_value == undefined || input_value == null || input_value == "") {
+         $error_label.fadeIn().text(`${i18n.empty_input_box}`);
+         return;
+      }
 
       const template_data = {
          all: {
-            enabled: $(`#elephant-flows-checkbox`).prop('checked'),
+            enabled: hook_enabled,
             script_conf: {
-               
+               items: items_list,
+               bytes_value: parseInt(bytes_value),
+               script_value: parseInt(input_value)
             }
          }
       }
-
-      return;
 
       apply_edits_script(template_data, script_subdir, script_key);
 
@@ -754,7 +819,25 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
       reset_script_defaults(script_key, script_subdir, (reset_data) => {
 
-         // TODO: reset button logic
+         const items_list = reset_data.hooks.all.script_conf.items;
+         const script_value = reset_data.hooks.all.script_conf.script_value;
+
+         const enabled = reset_data.hooks.all.enabled;
+
+         // set textarea value with default's one
+         $(`textarea[name='items_list']`).val(items_list.join(','));
+         $('#elephant-flows-checkbox').prop('checked', enabled);
+
+         // turn on readonly to textarea if enabled is false
+         if (!enabled) {
+            $('#itemslist-textarea').attr('readonly', '');
+         }
+
+         $(`input[name='script_value']`).val(script_value);
+
+         // remove classes and set default inside radio button
+         $(`input[name='bytes']`).removeAttr('checked').parent().removeClass('btn-primary');
+         console.log($(`input[name='bytes']`));
 
       });
 
@@ -1093,7 +1176,7 @@ $(document).ready(function() {
 
          // data.gui.input_builder = 'elephant_flows';
          // data.hooks.all.script_conf.enabled = true;
-         // data.hooks.all.script_conf.granularity = "gb";
+         // data.hooks.all.script_conf.granularity = "GB";
          // data.hooks.all.current_value = 5;
 
          const template = TemplateBuilder(data, script_subdir, script_key);
@@ -1102,8 +1185,8 @@ $(document).ready(function() {
          template.render();
 
          // bind on_apply event on apply button
-         $("#btn-apply").off("click").click(template.apply_click_event);
-         $("#btn-reset").off("click").click(template.reset_click_event);
+         $("#btn-apply").off("click").on('click', template.apply_click_event);
+         $("#btn-reset").off("click").on('click', template.reset_click_event);
 
          // bind are you sure to form
          $('#edit-form').trigger('rescan.areYouSure').trigger('reinitialize.areYouSure');

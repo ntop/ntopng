@@ -1,28 +1,28 @@
 <div class="modal fade" role="dialog" id='modal-script'>
     <div class="modal-dialog modal-lg ">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Script / {{ i18n("scripts_list.config", {}) }} <span id='script-name'></span>
-                </h5>
-            </div>
-            <div class="modal-body">
-                <form id='edit-form' method='post'>
-                    <table class='table table-borderless' id='script-config-editor'>
-                    </table>
-                </form>
-                <span class='invalid-feedback' id='apply-error'></span>
-            </div>
-            <div class="modal-footer">
-                <button id='btn-reset' title='Reset Default ntopng values' type='button' class='btn btn-danger mr-auto'>
-                    {{ i18n("scripts_list.reset_default") }}
-                </button>
-                <button type="button" title='{{ i18n("cancel", {}) }}' class="btn btn-secondary" data-dismiss="modal">
-                    {{ i18n("cancel", {}) }}
-                </button>
-                <button id="btn-apply" title='{{ i18n("apply", {}) }}' type="button" class="btn btn-primary">
-                    {{ i18n("apply", {}) }}
-                </button>
-            </div>
+            <form id='edit-form' method='post'>
+                <div class="modal-header">
+                    <h5 class="modal-title">Script / {{ i18n("scripts_list.config", {}) }} <span id='script-name'></span>
+                    </h5>
+                </div>
+                <div class="modal-body">
+                        <table class='table table-borderless' id='script-config-editor'>
+                        </table>
+                    <span class='invalid-feedback' id='apply-error'></span>
+                </div>
+                <div class="modal-footer">
+                    <button id='btn-reset' title='Reset Default ntopng values' type='button' class='btn btn-danger mr-auto'>
+                        {{ i18n("scripts_list.reset_default") }}
+                    </button>
+                    <button type="button" title='{{ i18n("cancel", {}) }}' class="btn btn-secondary" data-dismiss="modal">
+                        {{ i18n("cancel", {}) }}
+                    </button>
+                    <button id="btn-apply" title='{{ i18n("apply", {}) }}' type="button" class="btn btn-primary">
+                        {{ i18n("apply", {}) }}
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
