@@ -111,7 +111,6 @@ print [[
       else
         $('#unprivileged_input').hide();
     });
-    $("#user_role").trigger("change");
     </script>
 ]]
 

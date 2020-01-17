@@ -8961,8 +8961,8 @@ static int ntop_host_refresh_score(lua_State* vm) {
   if(!h)
     return(CONST_LUA_ERROR);
 
-  h->refreshScore();
-  lua_pushinteger(vm, h->getScore());
+  h->getScore()->refreshValue();
+  lua_pushinteger(vm, h->getScore()->getValue());
 
   return(CONST_LUA_OK);
 }
@@ -9109,17 +9109,20 @@ static int ntop_flow_is_local(lua_State* vm) {
 
 static int ntop_flow_inc_score(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
-  u_int16_t cli_score, srv_score;
+  u_int16_t flow_score, cli_score, srv_score;
 
   if(!f) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli_score = (u_int16_t)lua_tonumber(vm, 1);
+  flow_score = (u_int16_t)lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv_score = (u_int16_t)lua_tonumber(vm, 2);
+  cli_score = (u_int16_t)lua_tonumber(vm, 2);
 
-  f->incScore(cli_score, srv_score);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  srv_score = (u_int16_t)lua_tonumber(vm, 3);
+
+  f->incScore(flow_score, cli_score, srv_score);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);

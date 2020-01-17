@@ -28,20 +28,6 @@ end
 -- #################################################################
 
 return {
-  cli_score = function(info)
-    if(info and info["srv_blacklisted"]) then
-      return(60)
-    else
-      return(10)
-    end
-  end,
-  srv_score = function(info)
-    if(info and info["cli_blacklisted"]) then
-      return(60)
-    else
-      return(10)
-    end
-  end,
   prio = 650,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_blacklisted_country,

@@ -47,6 +47,10 @@ else
       print ("\", \"column_thpt\" : \"0 "..throughput_type.." \"")
    end
 
+   if isScoreEnabled() then
+      print(", \"column_score\" : \""..formatValue(flow["score"]).."\"")
+   end
+
    cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
    print (", \"column_breakdown\" : \"<div class='progress'><div class='progress-bar bg-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar bg-info' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>")
 

@@ -81,7 +81,7 @@ end
 -- ################################################################################
 
 function flow_consts.loadDefinition(def_script, mod_fname, script_path)
-    local required_fields = {"cli_score", "srv_score", "prio", "alert_severity", "alert_type", "i18n_title"}
+    local required_fields = {"prio", "alert_severity", "alert_type", "i18n_title"}
 
     -- print("Loading "..script_path.."\n")
     
@@ -1147,13 +1147,7 @@ flow_consts.mobile_country_code = {
 
 local function dumpStatusDefs()
    for _, a in pairsByKeys(status_by_id) do
-      local score = ""
-
-      if((type(a.cli_score) == "number") and (type(a.srv_score) == "number")) then
-        score = a.cli_score + a.srv_score
-      end
-
-      print("[status_id: ".. a.status_id .."][score: ".. score .."][prio: ".. a.prio .."][title: ".. a.i18n_title.."]\n")
+      print("[status_id: ".. a.status_id .."][prio: ".. a.prio .."][title: ".. a.i18n_title.."]\n")
       -- tprint(k)
    end
 end

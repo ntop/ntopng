@@ -355,6 +355,7 @@ using namespace std;
 #include "HostStats.h"
 #include "LocalHostStats.h"
 #include "PortContactStats.h"
+#include "HostScore.h"
 #include "Host.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

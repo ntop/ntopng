@@ -2732,8 +2732,6 @@ local lang = {
     ["email_notification_username_title"] = "Username",
     ["email_send_error"] = "Email send error. Please check out <a href='%{url}'>the online documentation</a> for more details.",
     ["email_sent_successfully"] = "Email sent successfully",
-    ["enable_score_computation"] = "Enable Score",
-    ["enable_score_computation_description"] = "Toggle the computation of an anomaly score on hosts and flows (experimental feature)",
     ["errors"] = "Errors",
     ["errors_and_warnings"] = "Errors and Warnings",
     ["ewma_alpha_percent_description"] = "Exponentially Weighted Moving Average (EWMA) alpha coefficient, expressed as a percentage. Used to estimate Autonomous Systems round-trip time.",

@@ -37,9 +37,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
   OperatingSystem os;
+  HostScore score;
   time_t last_stats_reset;
-  u_int32_t old_score, new_score;
-  u_int32_t old_idle_flow_score, new_idle_flow_score; /* Necessary to handle short idle flows */
   u_int32_t active_alerted_flows;
   Bitmap misbehaving_flows_as_client_status, misbehaving_flows_as_server_status;
  
@@ -360,14 +359,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
     }
   }
   inline MudRecording getMUDRecording()    { return(mud_pref); };
-
-  inline void incScore(u_int16_t score)    { new_score += score; };
-  inline u_int16_t getScore() const        { return(old_score); };
-  void refreshScore();
-
-  /* This call is not performed into the same thread as the incScore, so
-   * it needs a separate counter to avoid contention. */
-  inline void incIdleFlowScore(u_int16_t score) { new_idle_flow_score += score; };
+  inline HostScore* getScore()             { return(&score);   };
 
   inline void setOS(OperatingSystem _os) {
     Mac *mac = getMac();

@@ -43,8 +43,6 @@ end
 -- #################################################################
 
 return {
-  cli_score = 0,
-  srv_score = 0,
   prio = 680,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.external_alert,

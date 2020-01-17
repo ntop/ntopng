@@ -305,9 +305,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local info = value["info"]
 
    if isScoreEnabled() then
-      if(value["score"] > 0) then
-         info = info .. string.format(" [<b>".. string.lower(i18n("score")) ..": %u</b>]", value["score"])
-      end
+      record["column_score"] = format_utils.formatValue(value["score"])
    end
 
    record["column_info"] = info

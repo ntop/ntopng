@@ -3626,6 +3626,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
       case column_duration:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
 	break;
+    case column_score:
+        retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
+        break;
       case column_thpt:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
 	break;
@@ -3780,7 +3783,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_total_num_unreachable_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableOutgoingFlows(); break;
   case column_total_num_unreachable_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableIncomingFlows(); break;
   case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
-  case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore(); break;
+  case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore()->getValue(); break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
@@ -4085,6 +4088,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score")) retriever->sorter = column_score, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_client_rtt")) retriever->sorter = column_client_rtt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server_rtt")) retriever->sorter = column_server_rtt, sorter = numericSorter;
@@ -7757,8 +7761,8 @@ static bool run_min_flows_tasks(GenericHashEntry *f, void *user_data, bool *matc
   Flow *flow = (Flow*)f;
 
   /* Update the peers score */
-  if(flow->unsafeGetClient()) flow->unsafeGetClient()->incScore(flow->getCliScore());
-  if(flow->unsafeGetServer()) flow->unsafeGetServer()->incScore(flow->getSrvScore());
+  if(flow->unsafeGetClient()) flow->unsafeGetClient()->getScore()->incValue(flow->getCliScore());
+  if(flow->unsafeGetServer()) flow->unsafeGetServer()->getScore()->incValue(flow->getSrvScore());
   flow->setPeersScoreAccounted();
 
   *matched = true;
