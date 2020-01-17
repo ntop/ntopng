@@ -240,7 +240,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
             // if the checked option is false the disable the elements
             if (!checked) {
-               $field.find(`input[type='number']`).attr("readonly", "").val('');
+               $field.find(`input[type='number']`).attr("readonly", "");
                $select.attr("disabled", "");
                return;
             }
@@ -334,8 +334,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
       if (error) return;
 
       apply_edits_script(data, script_subdir, script_key);
-
-
    };
 
    const reset_event = (event) => {
