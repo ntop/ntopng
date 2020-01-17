@@ -572,7 +572,7 @@ path.link {
   display: flex;
   flex-direction: column;
   color: white;
-  transition: all .5s;
+  transition: width .5s;
   overflow-x: hidden;
   z-index: 1050;
   box-shadow: 0px 0px 6px #2f2f2f52;
@@ -692,7 +692,7 @@ path.link {
   display: block;
   padding: 0.8rem 0rem;
   text-decoration: none; 
-  transition: all 0.5s;
+  transition: padding 0.5s linear;
   color:#363943;
   white-space: nowrap;
   font-size: 0.75rem;
@@ -757,9 +757,7 @@ path.link {
   color:#363943;
   text-decoration: none;
 }
-#n-sidebar ul>li.nav-item div.collapse>ul li>a:hover {
-  background-color: rgb(216, 216, 216);
-}
+
 
 #n-container.extended {
 	margin-left: 4rem;
@@ -789,6 +787,7 @@ path.link {
   overflow-y: auto;
   box-shadow:rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 } 
+
 .side-collapse a {
   text-align: left;
 }

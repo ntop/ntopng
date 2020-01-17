@@ -65,7 +65,7 @@ print ([[
          </button>
         
 
-	      <ul class="nav flex-column" id='sidebar'>
+	      <ul class="nav flex-column mb-4" id='sidebar'>
 ]])
 
 
@@ -805,7 +805,7 @@ print ([[
       <a class="]].. (is_help_page and 'active' or '' ) ..[[ submenu" data-toggle="collapse" href="#help-submenu">
          <span class='fas fa-life-ring'></span> Help
       </a>   
-   <div data-parent='#sidebar' class='collapse' id='help-submenu'>
+   <div data-parent='#sidebar' class='collapse ' id='help-submenu'>
       <ul class='nav flex-column'>
 
          <li>
