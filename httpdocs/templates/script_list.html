@@ -76,6 +76,6 @@ i18n.items_list_comma = "{{ i18n('scripts_list.items_list_comma') }}";
 i18n.blacklisted_country = "{{ i18n('scripts_list.blacklisted_country') }}";
 
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/config_callbacks/scripts-list-utils.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/config_callbacks/scripts-list-utils.js?{{ ntop.getStartupEpoch() }}"></script>
 
 {% end %}
