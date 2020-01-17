@@ -24,6 +24,8 @@ local script = {
 function script.hooks.protocolDetected(now)
   if(flow.isDeviceProtocolNotAllowed()) then
     local proto_info = flow.getDeviceProtoAllowedInfo()
+    local flow_score = 80
+    local cli_score, srv_score
 
     local alert_info = {
       ["cli.devtype"] = proto_info["cli.devtype"],
@@ -33,12 +35,17 @@ function script.hooks.protocolDetected(now)
     if(not proto_info["cli.allowed"]) then
       alert_info["devproto_forbidden_peer"] = "cli"
       alert_info["devproto_forbidden_id"] = proto_info["cli.disallowed_proto"]
+      cli_score = 80
+      srv_score = 5
     else
       alert_info["devproto_forbidden_peer"] = "srv"
       alert_info["devproto_forbidden_id"] = proto_info["srv.disallowed_proto"]
+      cli_score = 5
+      srv_score = 80
     end
 
-    flow.triggerStatus(flow_consts.status_types.status_device_protocol_not_allowed.status_id, alert_info)
+    flow.triggerStatus(flow_consts.status_types.status_device_protocol_not_allowed.status_id, alert_info,
+      flow_score, cli_score, srv_score)
   end
 end
 

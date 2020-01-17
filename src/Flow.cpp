@@ -37,16 +37,18 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
-  last_partial = periodic_stats_update_partial = NULL;
+  periodic_stats_update_partial = NULL;
+  viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli_host = srv_host = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
-  cli_score = srv_score = 0;
+  flow_score = cli_score = srv_score = 0;
   alert_status_info = NULL;
   alert_type = alert_none;
   alert_level = alert_level_none;
   alerted_status = status_normal;
   predominant_status = status_normal;
+  peers_score_accounted = false;
 
   detection_completed = update_flow_port_stats = false;
   fully_processed = false;
@@ -244,7 +246,7 @@ Flow::~Flow() {
   else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
 
-  if(last_partial)                  delete(last_partial);
+  if(viewFlowStats)                 delete(viewFlowStats);
   if(periodic_stats_update_partial) delete(periodic_stats_update_partial);
   if(last_db_dump.partial)          delete(last_db_dump.partial);
 
@@ -995,8 +997,12 @@ void Flow::incFlowDroppedCounters() {
 /* NOTE: this function is periodically executed both on normal interfaces
  * and ViewInterface. On ViewInterface, the cli_host and srv_host *do not*
  * correspond to the flow hosts (which remain NULL). This is the correct
- * place to increment stats on cli/srv hosts and make them work with ViewInterfaces. */
-void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
+ * place to increment stats on cli/srv hosts and make them work with ViewInterfaces.
+ *
+ * const is *required* here as the flow must not be modified (as it could go in concuncurrency
+ * with the subinterfaces). */
+void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host,
+    PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
   update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
 		     partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
  
@@ -1102,6 +1108,13 @@ if(cli_host && srv_host) {
 	srv_country_stats->incEgress(tv->tv_sec, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(),
 				     cli_host->get_ip()->isBroadcastAddress());
       }
+    }
+
+    if(!peers_score_accounted && idle()) {
+      /* The flow went idle to quickly as the run_min_flows_tasks was not
+       * called. Account the score using a separate counter. */
+      cli_host->getScore()->incIdleFlowScore(getCliScore());
+      srv_host->getScore()->incIdleFlowScore(getSrvScore());
     }
   }
 
@@ -1872,6 +1885,12 @@ void Flow::set_hash_entry_state_idle() {
 /* *************************************** */
 
 bool Flow::is_hash_entry_state_idle_transition_ready() const {
+  if(!periodic_stats_update_partial /* waiting for Flow::periodic_stats_update first execution... */
+     /* ... and sure all traffic has been seen by Flow::periodic_stats_update */
+     || periodic_stats_update_partial->get_packets() < stats.get_packets()
+     || periodic_stats_update_partial->get_bytes() < stats.get_bytes())
+    return false;
+
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());
@@ -2301,15 +2320,29 @@ bool Flow::get_partial_traffic_stats(PartializableFlowTrafficStats **dst, Partia
   } else
     *first_partial = false;
 
-  stats.get_partial(dst, fts);
+  stats.get_partial(*dst, fts);
 
   return(true);
 }
 
 /* *************************************** */
 
+/* NOTE: this is only called by the ViewInterface */
 bool Flow::get_partial_traffic_stats_view(PartializableFlowTrafficStats *fts, bool *first_partial) {
-  return get_partial_traffic_stats(&last_partial, fts, first_partial);
+  if(!fts)
+    return(false);
+
+  if(!viewFlowStats) {
+    if(!(viewFlowStats = new (std::nothrow) ViewInterfaceFlowStats()))
+      return(false);
+
+    *first_partial = true;
+  } else
+    *first_partial = false;
+
+  stats.get_partial(viewFlowStats->getPartializableStats(), fts);
+
+  return(true);
 }
   
 /* *************************************** */
@@ -3721,13 +3754,13 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
     if(cli_host) {
       cli_host->setMisbehavingFlowsStatusMap(status_map, true);
       cli_host->incNumMisbehavingFlows(true);
-      cli_host->incScore(cli_score);
+      cli_host->getScore()->incValue(cli_score);
     }
 
     if(srv_host) {
       srv_host->setMisbehavingFlowsStatusMap(status_map, false);
       srv_host->incNumMisbehavingFlows(false);
-      srv_host->incScore(srv_score);
+      srv_host->getScore()->incValue(srv_score);
     }
   }
 
@@ -4419,9 +4452,10 @@ void Flow::luaRetrieveExternalAlert(lua_State *vm) {
 
 /* *************************************** */
 
-void Flow::incScore(u_int16_t cli_inc, u_int16_t srv_inc) {
+void Flow::incScore(u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc) {
+  flow_score += flow_inc;
   cli_score += cli_inc;
   srv_score += srv_inc;
-};
+}
 
 /* *************************************** */

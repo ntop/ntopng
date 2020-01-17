@@ -35,6 +35,7 @@ function flow_table_setID (row) {
   if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_client");
   if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_server");
   if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_duration");
+  if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_score");
   // flows_stats_bottom
   if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_breakdown");
   if ((type == 'flow') || (type == 'host')) row.find("td").eq(index++).attr('id', row_id + "_throughput");
@@ -58,6 +59,7 @@ function row_update(flow_key, flow_hash_id) {
       // console.log(data);
       $("#"+ row_id +'_duration').html(data.column_duration);
       $("#"+ row_id +'_breakdown').html(data.column_breakdown);
+      $("#"+ row_id +'_score').html(data.column_score);
       $("#"+ row_id +'_throughput').html(data.column_thpt);
       $("#"+ row_id +'_bytes').html(data.column_bytes);
 

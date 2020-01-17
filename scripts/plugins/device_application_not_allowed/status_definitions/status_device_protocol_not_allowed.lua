@@ -37,20 +37,6 @@ end
 -- #################################################################
 
 return {
-  cli_score = function(info)
-    if(info and (info["devproto_forbidden_peer"] == "cli")) then
-      return(80)
-    else
-      return(5)
-    end
-  end,
-  srv_score = function(info)
-    if(info and (info["devproto_forbidden_peer"] == "srv")) then
-      return(80)
-    else
-      return(5)
-    end
-  end,
   prio = 600,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_device_protocol_not_allowed,

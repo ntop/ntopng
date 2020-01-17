@@ -503,7 +503,7 @@ end
 if isScoreEnabled() then
    local score_chart = ""
 
-   if ts_utils.exists("host:score", {ifid=ifid, host=tskey}) then
+   if ts_utils.exists("host:score", {ifid=ifId, host=tskey}) then
       score_chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/host_details.lua?page=historical&ifid='.. ifId ..
 	 '&host='.. hostinfo2hostkey(host_info) .. '&tskey=' .. tskey ..'&ts_schema=host:score"><i class="fas fa-chart-area fa-sm"></i></a>'
    end
@@ -1616,6 +1616,15 @@ print [[
                              {
                              title: "]] print(i18n("duration")) print[[",
                                  field: "column_duration",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'center'
+                               }
+                               },
+                             {
+                             title: "]] print(i18n("score")) print[[",
+                                 field: "column_score",
+                                 hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
                                  sortable: true,
                              css: {
                                 textAlign: 'center'

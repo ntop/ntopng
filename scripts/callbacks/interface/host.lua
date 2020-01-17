@@ -26,6 +26,7 @@ local script_benchmark_tot_calls = 0
 local available_modules = nil
 local confisets = nil
 local ifid = nil
+local ts_enabled = nil
 local host_entity = alert_consts.alert_entities.host.entity_id
 
 -- #################################################################
@@ -60,6 +61,7 @@ function setup(str_granularity)
    })
 
    configsets = user_scripts.getConfigsets()
+   ts_enabled = (ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "0")
 end
 
 -- #################################################################
@@ -120,6 +122,7 @@ function runScripts(granularity)
            user_script = user_script,
            when = when,
            ifid = ifid,
+           ts_enabled = ts_enabled,
         })
       end
     end

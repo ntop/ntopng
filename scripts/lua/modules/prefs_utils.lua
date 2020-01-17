@@ -577,7 +577,9 @@ end
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
                                   javascriptAfterSwitch, showElement, initialValue, toggleElementArray)
-   local value
+  local value
+  local disabled_attr
+
   if not skip_redis then
    if(_POST[submit_field] ~= nil) then
     local old_v = ntop.getPref(redis_key)
@@ -603,8 +605,10 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
 
   if (disabled == true) then
     disabled = "disabled"
+    disabled_attr = ' disabled="disabled"'
   else
     disabled = ""
+    disabled_attr = ""
   end
 
   local objRow = ""
@@ -628,7 +632,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         end
         type_button = "btn-"..color.."  active"
       end
-      print('<button id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..' ' .. disabled .. '" data-toggle="button">'..array_labels[nameCount]..'</button>\n')
+      print('<button id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..' ' .. disabled .. '"'.. disabled_attr ..' data-toggle="button">'..array_labels[nameCount]..'</button>\n')
     end
     print('</div>\n')
     print('<input type="hidden" id="id-toggle-'..submit_field..'" name="'..submit_field..'" value="'..value..'" />\n')

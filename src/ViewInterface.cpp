@@ -372,6 +372,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 	  cli_host->incNumFlows(f->get_last_seen(), true, srv_host), cli_host->incUses();
 	  network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), true);
+	  if(f->getViewInterfaceFlowStats()) f->getViewInterfaceFlowStats()->setClientHost(cli_host);
 	}
 
 	if(f->idle())
@@ -383,6 +384,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 	  srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false, cli_host);
 	  network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
 	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), false);
+	  if(f->getViewInterfaceFlowStats()) f->getViewInterfaceFlowStats()->setServerHost(srv_host);
 	}
 
 	if(f->idle())

@@ -22,6 +22,13 @@ local _ifname = ifstats.name
 
 -- ########################################################
 
+-- Perform flow tasks on the active flows. Currently the only implemented task
+-- is for the score update logic. It "copies" the flow score into its peers score.
+-- The host score is then consolidated via host.refreshScore()
+if isScoreEnabled() then
+   interface.runMinFlowsTasks()
+end
+
 ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
 if interface.hasHighResTs() then

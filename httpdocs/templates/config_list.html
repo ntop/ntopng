@@ -34,8 +34,21 @@
                     </thead>
                     <tbody></tbody>
             </table>
+
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-2">
+            <form action="/lua/rest/get/scripts/config.lua" class="form-inline" method="GET">
+                <button type="submit" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_export') }}</span></button>
+            </form>
+        </div>
+        <div class="col-md-2">
+          <button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_import') }}</span></button>
+        </div>
+    </div>
+
 </div>
 
 {# include modals for config_list.lua #}
@@ -46,6 +59,7 @@
 {* config_list.template_utils.gen("config_list_components/apply_modal.html", {
     subdir = config_list.subdir
 }) *}
+{* config_list.template_utils.gen("config_list_components/import_modal.html") *}
 
 {# include css and javascript code for the page #}
 
@@ -53,6 +67,7 @@
 <script type='text/javascript'>
 
 // hold a csrf token for apply targets
+let import_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let apply_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let clone_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let rename_csrf = '{{ ntop.getRandomCSRFValue() }}';
@@ -72,6 +87,8 @@ i18n.delete = "{{ i18n('config_scripts.actions.delete') }}"
 i18n.clone = "{{ i18n('config_scripts.actions.clone') }}"
 i18n.edit = "{{ i18n('config_scripts.actions.edit') }}"
 i18n.apply_to = "{{ i18n('config_scripts.actions.apply_to') }}"
+i18n.invalid_file = "{{ i18n('config_scripts.invalid_file') }}"
+i18n.no_file = "{{ i18n('config_scripts.no_file') }}"
 
 </script>
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/config_callbacks/config-list-utils.js'></script>

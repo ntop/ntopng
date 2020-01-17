@@ -43,7 +43,7 @@ interface.select(getSystemInterfaceId())
 local script = user_scripts.loadModule(getSystemInterfaceId(), script_type, subdir, script_key)
 
 if(script == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Unkown user script: " .. script_key)
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown user script: " .. script_key)
   return
 end
 

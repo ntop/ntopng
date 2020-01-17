@@ -267,6 +267,14 @@ print[[
             textAlign: 'center'
          }
       }, {
+         title: "]] print(i18n("score")) print[[",
+         field: "column_score",
+         hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
+         sortable: true,
+         css: {
+            textAlign: 'center'
+         }
+      }, {
          title: "]] print(i18n("breakdown")) print[[",
          field: "column_breakdown",
          sortable: false,

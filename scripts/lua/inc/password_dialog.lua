@@ -152,13 +152,13 @@ print [[
     </div>
 
     <script>
-    $("#host_role_select").change(function() {
-      if ($(this).val() == "unprivileged")
+    function toggleUserSettings() { 
+      if ($("#host_role_select").val() == "unprivileged")
         $('#unprivileged_manage_input').show();
       else
         $('#unprivileged_manage_input').hide();
-    });
-    $("#host_role_select").trigger("change");
+    }
+    $("#host_role_select").change(function() { toggleUserSettings(); })
     </script>
 
 ]]
@@ -307,6 +307,7 @@ function reset_pwd_dialog(user) {
       $('#new_password_input').val('');
       $('#confirm_password_input').val('');
       $('#host_role_select option[value = '+data.group+']').attr('selected','selected');
+      toggleUserSettings();
       $('#networks_input').val(data.allowed_nets);
       $('#allowed_interface option[value="' + data.allowed_if_id + '"]').attr('selected','selected');
 

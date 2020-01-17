@@ -22,7 +22,7 @@ if not haveAdminPrivileges() then
   return
 end
 
-sendHTTPHeader('application/json')
+sendHTTPContentTypeHeader('application/json', 'attachment; filename="scripts_configuration.json"')
 
 local conf = user_scripts.getConfigsets()
 

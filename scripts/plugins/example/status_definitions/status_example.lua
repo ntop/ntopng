@@ -24,14 +24,11 @@ end
 -- #################################################################
 
 return {
-  -- score: the score of this status
   -- prio: when a flow has multiple status set, the most important status is the one with highest priority
   -- alert_type: the alert type associated to this status
   -- alert_severity: the alert severity associated to this status
   -- i18n_title: a localization string for the status
   -- i18n_description (optional): a localization string / function for the description
-  cli_score = 100,
-  srv_score = 100,
 
   -- A flow can have multiple statuses set. The predominant status is the one with the
   -- histest "prio"
