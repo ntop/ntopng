@@ -20,6 +20,7 @@ can be obtained from the traffic captured by the server.
    advanced_features/index
    operating_ntopng_on_large_networks
    faq
+   plugins/index
    api/index
 
 .. Indices and tables
