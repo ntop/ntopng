@@ -1,3 +1,5 @@
+// 2020 - ntop.org
+
 /**
   *  This function return true if the status code is different from 200
   */
@@ -14,6 +16,8 @@
 
    return is_different;
 }
+
+/* ******************************************************* */
 
 /**
  * This function select the correct tab for script filtering 
@@ -41,6 +45,8 @@ const select_script_filter = (enabled_count) => {
    }
 }
 
+/* ******************************************************* */
+
 // Templates and template builder
 
 const generate_checkbox_enabled = (id, enabled, callback) => {
@@ -58,6 +64,8 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
 
    return $checkbox_enabled;
 }
+
+/* ******************************************************* */
 
 const generate_input_box = (input_settings, has_container, change_callback) => {
    
@@ -79,6 +87,8 @@ const generate_input_box = (input_settings, has_container, change_callback) => {
 
    return $input_box;
 }
+
+/* ******************************************************* */
 
 const generate_radio_buttons = (name, enabled, settings, has_container, change_callback) => {
 
@@ -103,8 +113,9 @@ const generate_radio_buttons = (name, enabled, settings, has_container, change_c
    }
 
    return $radio_buttons;
-
 }
+
+/* ******************************************************* */
 
 const apply_edits_script = (template_data, script_subdir, script_key) => {
 
@@ -176,6 +187,8 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
       $("#modal-script").modal("toggle");
    })
 }
+
+/* ******************************************************* */
 
 const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
@@ -379,6 +392,8 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
    }
 }
 
+/* ******************************************************* */
+
 const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
    const $table_editor = $("#script-config-editor");
@@ -488,6 +503,8 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       render: render_template,
    }
 }
+
+/* ******************************************************* */
 
 const LongLived = (gui, hooks, script_subdir, script_key) => {
 
@@ -616,6 +633,8 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       render: render_template,
    }
 }
+
+/* ******************************************************* */
 
 const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
@@ -748,6 +767,8 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
    }
 }
 
+/* ******************************************************* */
+
 const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_key = null) => {
    return {
       apply_click_event: function() {},
@@ -755,6 +776,8 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
       render: function() {},
    }
 }
+
+/* ******************************************************* */
 
 const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
@@ -777,6 +800,8 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    return template_chosen;
 }
+
+/* ******************************************************* */
 
 // End templates and template builder
 
