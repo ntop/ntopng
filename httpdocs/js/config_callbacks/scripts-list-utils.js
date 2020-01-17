@@ -698,13 +698,15 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
    const render_template = () => {
 
       const enabled = hooks.all.enabled;
-      const granularity = hooks.all.script_conf.granularity;
-      const items_list = hooks.all.script_conf.items;
-      const current_value = hooks.all.current_value;
+      const l2r_bytes_unit = hooks.all.script_conf.l2r_bytes_unit || "KB"; // TODO compute by using l2r_bytes_value
+      const r2l_bytes_unit = hooks.all.script_conf.r2l_bytes_unit || "KB"; // TODO compute by using r2l_bytes_value
+      const items_list = hooks.all.script_conf.items || [];
+      const l2r_bytes_value = hooks.all.l2r_bytes_value; // TODO divide by unit
+      const r2l_bytes_value = hooks.all.r2l_bytes_value; // TODO divide by unit
 
       const input_settings = {
          min: 1,
-         current_value: current_value,
+         current_value: bytes_value,
          name: 'script_value',
          enabled: enabled
       };
@@ -713,7 +715,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const $textarea_bytes = $(`
          <div class='form-group mt-3'>
             <label>Excluded applications and categories:</label>
-            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${(items_list || []).join(',')}</textarea>
+            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${items_list.join(',')}</textarea>
             <small>Examples...</small>
             <div class="invalid-feedback"></div>
          </div>
@@ -728,7 +730,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          {
             name: 'bytes', 
             enabled: enabled,
-            granularity: granularity
+            granularity: bytes_unit
          },
          radio_values, true
       );
@@ -787,8 +789,8 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       // if the textarea has valid content then
       // glue the strings into in array
       const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
-      
-      // get the granularity
+
+      // get the bytes_unit
       const bytes_value = $(`input[name='bytes']`).val();
       const input_value = $(`input[name='script_value']`).val();
 
@@ -805,8 +807,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
             enabled: hook_enabled,
             script_conf: {
                items: items_list,
-               bytes_value: parseInt(bytes_value),
-               script_value: parseInt(input_value)
+               bytes_value: parseInt(input_value) * parseInt(bytes_value),
             }
          }
       }
@@ -1176,8 +1177,8 @@ $(document).ready(function() {
 
          // data.gui.input_builder = 'elephant_flows';
          // data.hooks.all.script_conf.enabled = true;
-         // data.hooks.all.script_conf.granularity = "GB";
-         // data.hooks.all.current_value = 5;
+         // data.hooks.all.script_conf.bytes_unit = "GB";
+         // data.hooks.all.bytes_value = 5*1024*1024*1024;
 
          const template = TemplateBuilder(data, script_subdir, script_key);
          
