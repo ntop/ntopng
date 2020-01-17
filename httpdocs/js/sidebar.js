@@ -45,10 +45,6 @@ $(document).ready(function() {
 
         $(this).toggleClass('active');
 
-        $(this).find('i')
-        .toggleClass('fa-caret-square-left')
-        .toggleClass('fa-caret-square-right');
-
         if ($(this).hasClass('active')) {
             $(this).find('span').text('');
         }

@@ -876,7 +876,7 @@ print([[
    
    <div class='sidebar-info'>
       <a id='collapse-sidebar' href='#' data-toggle='sidebar' class='btn-collapse'>
-        <i class='fas fa-caret-square-left'></i>  <span>Collapse</span>
+        <i class='fas fa-bars'></i>  <span>Collapse</span>
       </a>
    </div>
 

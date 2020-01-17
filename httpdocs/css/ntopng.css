@@ -565,7 +565,7 @@ path.link {
 
 #n-sidebar {
   position: fixed;
-  width: 4rem;
+  width: 4.5rem;
   top: 0;
   left: 0;
   bottom: 0;
@@ -732,7 +732,7 @@ path.link {
   color:rgb(48, 48, 51);
   width: 100%;
   margin-top: auto;
-  padding: 0.5rem;
+  padding: 1rem;
   text-align: center;
 }
 
@@ -760,12 +760,12 @@ path.link {
 
 
 #n-container.extended {
-	margin-left: 4rem;
+	margin-left: 4.5rem;
 }
 
 #ntop-logo {
   height: 3.2rem;
-  width: 8rem;
+  width: 9rem;
   margin-bottom: 1rem;
   margin-left: 0.5rem;
 }
@@ -814,7 +814,7 @@ path.link {
 }
 
 #n-navbar.extended {
-  left: 4rem;
+  left: 4.5rem;
 }
 
 /* scrollbar theme */
