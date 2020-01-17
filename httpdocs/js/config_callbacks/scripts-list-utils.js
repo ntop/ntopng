@@ -222,6 +222,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          $field.append(`<input 
                            type='number'
                            class='form-control'
+                           required
                            name='${key}-input'
                            ${hook.enabled ? '' : 'readonly'}
                            value='${hook.script_conf.threshold == undefined ? '' : hook.script_conf.threshold}'
@@ -300,15 +301,31 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          const $error_label = $template.find(`.invalid-feedback`);
 
          const operator = $template.find("select").val();
-         const threshold = $template.find("input").val();
+         const $input_box = $template.find("input");
+
+         let threshold = parseInt($input_box.val());
+
+         const max_threshold = parseInt($input_box.attr('max'));
+         const min_threshold = parseInt($input_box.attr('min'));
 
          // hide before errors
          $error_label.hide();
+         
+         // remove class error
+         $input_box.removeClass('is-invalid');
 
          // if operator is empty then alert the user
          if (enabled && (operator == "" || operator == undefined || operator == null)) {
 
             $error_label.text(i18n.select_operator).show();
+            $input_box.addClass('is-invalid');
+            error = true;
+            return;
+         }
+
+         if (threshold > max_threshold || threshold < min_threshold) {
+            $error_label.text("Input not valid!").show();
+            $input_box.addClass('is-invalid');
             error = true;
             return;
          }
@@ -633,6 +650,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const input_settings = {
          max: 0,
          min: 0,
+         current_value: 0,
          name: 'script_value',
          eanbled: enabled
       };
