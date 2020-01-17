@@ -7757,7 +7757,7 @@ struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
 
 /* *************************************** */
 
-static bool run_min_flows_tasks(GenericHashEntry *f, void *user_data, bool *matched) {
+static bool run_compute_hosts_score(GenericHashEntry *f, void *user_data, bool *matched) {
   Flow *flow = (Flow*)f;
 
   /* Update the peers score */
@@ -7769,7 +7769,7 @@ static bool run_min_flows_tasks(GenericHashEntry *f, void *user_data, bool *matc
   return(false); /* false = keep on walking */
 }
 
-void NetworkInterface::runMinFlowsTasks() {
+void NetworkInterface::computeHostsScore() {
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
@@ -7779,5 +7779,5 @@ void NetworkInterface::runMinFlowsTasks() {
     return;
 
   if(flows_hash)
-    walker(&begin_slot, walk_all, walker_flows, run_min_flows_tasks, NULL);
+    walker(&begin_slot, walk_all, walker_flows, run_compute_hosts_score, NULL);
 }
