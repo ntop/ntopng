@@ -1,5 +1,21 @@
 // 2020 - ntop.org
 
+/* ******************************************************* */
+
+const reloadPageAfterPOST = () => {
+   // NOTE: don't use location.reload as we need to clear the possibly set
+   // "user_script" GET parameter
+   location.href = page_url + location.hash;
+}
+
+/* ******************************************************* */
+
+const hasConfigDialog = (item) => {
+   return !(item.all_hooks.length > 0 && item.input_handler == undefined);
+}
+
+/* ******************************************************* */
+
 /**
   *  This function return true if the status code is different from 200
   */
@@ -183,7 +199,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
          }
 
          // if the operation was successfull then reload the page
-         if (d.success) location.reload();
+         if (d.success) reloadPageAfterPOST();
       })
    .fail(({ status, statusText }) => {
 
@@ -863,6 +879,58 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
 
 /* ******************************************************* */
 
+// get script key and script name
+   
+
+const initScriptConfModal = (script_key, script_title) => {
+   // change title to modal
+   $("#script-name").html(`<b>${script_title}</b>`);
+
+   $("#modal-script form").off('submit');
+   $("#modal-script").on("submit", "form", function (e) {
+       e.preventDefault();
+
+       $('#edit-form').trigger('reinitialize.areYouSure').removeClass('dirty');
+       $("#btn-apply").trigger("click");
+   });
+
+   $.get(`${http_prefix}/lua/get_user_script_config.lua`, 
+      {
+         script_subdir: script_subdir,
+         confset_id: confset_id,
+         script_key: script_key
+      }
+   )
+   .then((data, status, xhr) => {
+
+      // check status code
+      if (check_status_code(xhr.status, xhr.statusText, null)) return;
+
+      // hide previous error
+      $("#apply-error").hide();
+
+      const template = TemplateBuilder(data, script_subdir, script_key);
+      
+      // render template
+      template.render();
+
+      // bind on_apply event on apply button
+      $("#btn-apply").off("click").on('click', template.apply_click_event);
+      $("#btn-reset").off("click").on('click', template.reset_click_event);
+
+      // bind are you sure to form
+      $('#edit-form').trigger('rescan.areYouSure').trigger('reinitialize.areYouSure');
+    })
+   .fail(({status, statusText}) => {
+
+      check_status_code(status, statusText, null);
+      // hide modal if there is error
+      $("#modal-script").modal("toggle");
+   })
+}
+
+/* ******************************************************* */
+
 const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    // get template name
@@ -928,7 +996,20 @@ $(document).ready(function() {
          $all_button.html(`${i18n.all} (${enabled_count + disabled_count})`)
          $enabled_button.html(`${i18n.enabled} (${enabled_count})`);
          $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
-         
+
+         if(script_key_filter) {
+            var elem = json.filter((x) => { return(x.key == script_key_filter); })[0];
+
+            if(elem) {
+               var title = elem.title;
+               this.DataTable().search(title).draw();
+
+               if(hasConfigDialog(elem)) {
+                  initScriptConfModal(script_key_filter, title);
+                  $("#modal-script").modal("show");
+               }
+            }
+         }
       },
       order: [[0, "asc"]],
       buttons: [
@@ -1008,7 +1089,7 @@ $(document).ready(function() {
             },
             createdCell: function (td, cellData, row, rowIndex, col) {
 
-               if (row.all_hooks.length > 0 && row.input_handler == undefined) {
+               if (!hasConfigDialog(row)) {
 
                   const $toggle_buttons = $(`
                      <div class="btn-group btn-group-toggle" data-toggle="buttons">
@@ -1058,7 +1139,7 @@ $(document).ready(function() {
                               csrf_toggle_buttons = d.csrf;
                            }
 
-                           if (d.success) location.reload();
+                           if (d.success) reloadPageAfterPOST();
 
                      })
                      .fail(({ status, statusText }) => {
@@ -1143,64 +1224,11 @@ $(document).ready(function() {
 
    // load templates for the script
    $('#scripts-config').on('click', 'a[data-target="#modal-script"]', function(e) {
-
-      // get script key and script name
       const row_data = $script_table.row($(this).parent()).data();
       const script_key = row_data.key;
       const script_title = row_data.title;
 
-      // change title to modal
-      $("#script-name").html(`<b>${script_title}</b>`);
-
-      $("#modal-script form").off('submit');
-      $("#modal-script").on("submit", "form", function (e) {
-          e.preventDefault();
-
-          $('#edit-form').trigger('reinitialize.areYouSure').removeClass('dirty');
-          $("#btn-apply").trigger("click");
-      });
-
-      $.get(`${http_prefix}/lua/get_user_script_config.lua`, 
-         {
-            script_subdir: script_subdir,
-            confset_id: confset_id,
-            script_key: script_key
-         }
-      )
-      .then((data, status, xhr) => {
-
-         // check status code
-         if (check_status_code(xhr.status, xhr.statusText, null)) return;
-
-         // hide previous error
-         $("#apply-error").hide();
-
-         // data.gui.input_builder = 'elephant_flows';
-         // data.hooks.all.script_conf.enabled = true;
-         // data.hooks.all.script_conf.bytes_unit = "GB";
-         // data.hooks.all.bytes_value = 5*1024*1024*1024;
-
-         const template = TemplateBuilder(data, script_subdir, script_key);
-         
-         // render template
-         template.render();
-
-         // bind on_apply event on apply button
-         $("#btn-apply").off("click").on('click', template.apply_click_event);
-         $("#btn-reset").off("click").on('click', template.reset_click_event);
-
-         // bind are you sure to form
-         $('#edit-form').trigger('rescan.areYouSure').trigger('reinitialize.areYouSure');
-
-
-       })
-      .fail(({status, statusText}) => {
-
-         check_status_code(status, statusText, null);
-         // hide modal if there is error
-         $("#modal-script").modal("toggle");
-      })
-
+      initScriptConfModal(script_key, script_title);
    });
 
    /**

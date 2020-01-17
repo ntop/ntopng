@@ -13,6 +13,7 @@ local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 local template = require "template_utils"
+local user_scripts = require "user_scripts"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -21,11 +22,14 @@ active_page = "admin"
 -- get config parameters like the id and name
 local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
-local confset_name = _GET["confset_name"]
+local script_filter = _GET["user_script"]
+local configset = user_scripts.getConfigsets()[tonumber(confset_id)]
 
-if not haveAdminPrivileges() then
+if not haveAdminPrivileges() or not configset then
   return
 end
+
+local confset_name = configset.name
 
 -- create a table that holds localization about hooks name
 local titles = {
@@ -52,7 +56,9 @@ print(template.gen("script_list.html", {
        confset_id = confset_id,
        script_subdir = script_subdir,
        confset_name = confset_name,
-       timeout_csrf = timeout_csrf
+       timeout_csrf = timeout_csrf,
+       script_filter = script_filter,
+       page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
    }
 }))
 

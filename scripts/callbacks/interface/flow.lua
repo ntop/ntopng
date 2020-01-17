@@ -42,6 +42,9 @@ local alerted_custom_severity
 local predominant_status
 local recalculate_predominant_status
 local hosts_disabled_status
+local confset_id
+local alerted_user_script
+local cur_user_script
 
 -- Save them as they are overridden
 local c_flow_set_status = flow.setStatus
@@ -99,7 +102,8 @@ function setup()
 
    -- In case of viewed interfaces, the configuration retrieved is the one belonging to the
    -- view.
-   flows_config = user_scripts.getTargetConfig(configsets, "flow", (view_ifid or ifid)..'')
+   flows_config, confset_id = user_scripts.getTargetConfig(configsets, "flow", (view_ifid or ifid)..'')
+   alerted_user_script = nil
 
    -- Load the disabled hosts status. As hosts stay in the view, the correct disabled status needs to look there
    hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(view_ifid or ifid)
@@ -207,6 +211,7 @@ local function triggerFlowAlert(now, l4_proto)
       -- NOTE: porting this to C is not feasable as the lua table can contain
       -- arbitrary data
       augumentFlowStatusInfo(l4_proto, alerted_status_msg)
+      alerts_api.addAlertGenerationInfo(alerted_status_msg, alerted_user_script, confset_id)
 
       -- Need to convert to JSON
       alerted_status_msg = json.encode(alerted_status_msg)
@@ -347,6 +352,8 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       end
 
       local conf = user_scripts.getTargetHookConfig(flows_config, script)
+
+      cur_user_script = script
       hook_fn(now, conf.script_conf)
 
       ::continue::
@@ -389,6 +396,7 @@ function flow.triggerStatus(status_id, status_json, flow_score, cli_score, srv_s
       alerted_status = new_status
       alerted_status_msg = status_json
       alerted_custom_severity = custom_severity -- possibly nil
+      alerted_user_script = cur_user_script
    end
 
    flow.setStatus(status_id, flow_score, cli_score, srv_score)

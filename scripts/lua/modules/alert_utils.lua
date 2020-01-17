@@ -621,7 +621,13 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       time_bounds = {getAlertTimeBounds(record)}
    end
 
-   local decoded = json.decode(flow_json) or {}
+   local decoded
+
+   if(type(flow_json) == "table") then
+     decoded = flow_json
+   else
+     decoded = json.decode(flow_json) or {}
+   end
 
    if((type(decoded["status_info"]) == "string") and
          (string.sub(decoded["status_info"], 1, 1) == "{")) then
@@ -2132,17 +2138,19 @@ end
 
 function formatAlertMessage(ifid, alert)
   local msg
+  local alert_json = alert["alert_json"]
+  local configsets = user_scripts.getConfigsets()
+
+  if isEmptyString(alert_json) then
+    alert_json = {}
+  elseif(string.sub(alert_json, 1, 1) == "{") then
+    alert_json = json.decode(alert_json)
+  end
 
   if(alert.alert_entity == alert_consts.alertEntity("flow") or (alert.alert_entity == nil)) then
-    msg = formatRawFlow(alert, alert["alert_json"])
+    msg = formatRawFlow(alert, alert_json)
   else
-    msg = alert["alert_json"]
-    if isEmptyString(msg) then
-      msg = {}
-    elseif(string.sub(msg, 1, 1) == "{") then
-      msg = json.decode(msg)
-    end
-
+    msg = alert_json
     local description = alertTypeDescription(alert.alert_type)
 
     if(type(description) == "string") then
@@ -2155,6 +2163,17 @@ function formatAlertMessage(ifid, alert)
 
   if(type(msg) == "table") then
    return("")
+  end
+
+  local info = alert_json.alert_generation or (alert_json.status_info and alert_json.status_info.alert_generation)
+
+  if(info and msg and isAdministrator()) then
+    -- Ensure that the configset still exists
+    if configsets[info.confset_id] then
+      msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?confset_id='..
+	info.confset_id ..'&subdir='.. info.subdir ..'&user_script='.. info.script_key ..'#all">'..
+	'<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+    end
   end
 
   return(msg)

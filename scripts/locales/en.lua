@@ -57,6 +57,7 @@ local lang = {
   ["drilldown"] = "Drilldown",
   ["duplexstatus"] = "Duplex Status",
   ["duration"] = "Duration",
+  ["edit_configuration"] = "Edit Configuration",
   ["egress"] = "Egress",
   ["empty"] = "Empty",
   ["enabled"] = "Enabled",
