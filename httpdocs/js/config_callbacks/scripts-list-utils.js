@@ -634,14 +634,14 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          max: 0,
          min: 0,
          name: 'script_value',
-         eanbled: enabled
+         enabled: enabled
       };
       const $bytes_input_box = generate_input_box(input_settings, true, null);
 
       const $textarea_bytes = $(`
          <div class='form-group mt-3'>
             <label>Excluded applications and categories:</label>
-            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${items_list.join(',')}</textarea>
+            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${(items_list || []).join(',')}</textarea>
             <small>Examples...</small>
          </div>
       `);
