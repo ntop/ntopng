@@ -15,11 +15,21 @@ local empty_string_dump = "00000600CB7634C0FA2A9E49"
 
 -- ###########################################
 
+local function set_admin_prefs()
+   -- User admin is always an administrator, let's make sure serialized values are correct
+   ntop.setCache("ntopng.user.admin.group", "administrator")
+   ntop.setCache("ntopng.user.admin.allowed_nets", "0.0.0.0/0,::/0")
+end
+
+-- ###########################################
+
 local debug = false
 
 function prefs_dump_utils.savePrefsToDisk()
    local dirs = ntop.getDirs()
    local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
+
+   set_admin_prefs()
 
    local patterns = {"ntopng.prefs.*", "ntopng.user.*"}
 
@@ -84,6 +94,8 @@ function prefs_dump_utils.readPrefsFromDisk()
 	 end
       end
    end
+
+   set_admin_prefs()
 end
 
 return prefs_dump_utils
