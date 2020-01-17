@@ -595,7 +595,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       
       let $error_label = null;
 
-      // FIXME: wait for emanuele
+      // TODO: data logic
       const template_data = {
          all: {
             enabled: $(`#ds-checkbox`).prop('checked'),
@@ -613,7 +613,8 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
    const reset_event = (event) => {
 
       reset_script_defaults(script_key, script_subdir, (data_reset) => {
-         // FIXME
+         // TODO: reset button logic
+
       });
    }
 
@@ -721,6 +722,8 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       
       let $error_label = null;
 
+      // TODO: data logic
+
       const template_data = {
          all: {
             enabled: $(`#elephant-flows-checkbox`).prop('checked'),
@@ -739,6 +742,8 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
    const reset_event = (event) => {
 
       reset_script_defaults(script_key, script_subdir, (reset_data) => {
+
+         // TODO: reset button logic
 
       });
 
