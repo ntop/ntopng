@@ -67,7 +67,7 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
 
 /* ******************************************************* */
 
-const generate_input_box = (input_settings, has_container, change_callback) => {
+const generate_input_box = (input_settings, has_container = true) => {
    
    const $input_box = $(`<input type='number' name='${input_settings.name}' class='form-control' />`);
 
@@ -81,7 +81,7 @@ const generate_input_box = (input_settings, has_container, change_callback) => {
    }
 
    if (has_container) {
-      const $input_container = $(`<div class='form-row'></div>`);
+      const $input_container = $(`<div class='form-row mb-2'></div>`);
       return $input_container.append($(`<div class='col-2'></div>`).append($input_box, $(`<div class='invalid-feedback'></div>`)));
    }
 
@@ -90,11 +90,31 @@ const generate_input_box = (input_settings, has_container, change_callback) => {
 
 /* ******************************************************* */
 
-const generate_radio_buttons = (params, settings, has_container) => {
+const generate_textarea = (textarea_settings) => {
 
-   const active_first_button = params.granularity == settings[0].label;
-   const active_second_button = params.granularity == settings[1].label;
-   const active_third_button = params.granularity == settings[2].label;
+   const $textarea = $(`
+         <div class='form-group mt-3'>
+            <label>${textarea_settings.label}</label>
+            <textarea 
+               ${textarea_settings.enabled ? '' : 'readonly'}
+               name='${textarea_settings.name}'
+               class='form-control'>${textarea_settings.value}</textarea>
+            <small>Examples...</small>
+            <div class="invalid-feedback"></div>
+         </div>
+   `);
+
+   return $textarea;
+};
+
+
+/* ******************************************************* */
+
+const generate_radio_buttons = (params, has_container = true) => {
+
+   const active_first_button = params.granularity.labels[0] == params.granularity.label;
+   const active_second_button = params.granularity.labels[1] == params.granularity.label;
+   const active_third_button = params.granularity.labels[2] == params.granularity.label;
 
    const $radio_buttons = $(`
       <div class="btn-group float-right btn-group-toggle" data-toggle="buttons">
@@ -103,30 +123,30 @@ const generate_radio_buttons = (params, settings, has_container) => {
             <input 
                ${params.enabled ? '' : 'disabled'}
                ${active_first_button ? 'checked' : ''}
+               value='${params.granularity.values[0]}'
                id='first-radio'
-               value="${settings[0].value}"
                type="radio"
-               name="${params.name}"> ${settings[0].label}
+               name="${params.name}"> ${params.granularity.labels[0]}
          </label>
          <label 
             class="btn ${active_second_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
             <input 
                ${params.enabled ? '' : 'disabled'}
                ${active_second_button ? 'checked' : ''}
+               value='${params.granularity.values[1]}'
                id='second-radio'
-               value="${settings[1].value}"
                type="radio" 
-               name="${params.name}"> ${settings[1].label}
+               name="${params.name}"> ${params.granularity.labels[1]}
          </label>
          <label 
             class="btn ${active_third_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
             <input 
                ${params.enabled ? '' : 'disabled'} 
                ${active_third_button ? 'checked' : ''}
+               value='${params.granularity.values[2]}'
                id='third-radio'
-               value="${settings[2].value}" 
                type="radio" 
-               name="${params.name}"> ${settings[2].label}
+               name="${params.name}"> ${params.granularity.labels[2]}
          </label>
       </div>
    `);
@@ -144,12 +164,29 @@ const generate_radio_buttons = (params, settings, has_container) => {
 
    if (has_container) {
 
-      const $radio_container = $(`<div class='col-10'></div>`);
+      const $radio_container = $(`<div class='col-3'></div>`);
       return $radio_container.append($radio_buttons);
    }
 
    return $radio_buttons;
 }
+
+/* ******************************************************* */
+
+const get_unit_bytes = (bytes) => {
+
+   if (bytes < 1048576 || bytes == undefined || bytes == null) {
+      return ["KB", bytes / 1024];
+   }
+   else if (bytes >= 1048576 && bytes <= 1073741824) {
+      return ["MB", bytes / 1048576];
+   }
+   else {
+      return ["GB", bytes / 1073741824];
+   }
+
+};
+
 
 /* ******************************************************* */
 
@@ -698,72 +735,109 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
    const render_template = () => {
 
       const enabled = hooks.all.enabled;
-      const granularity = hooks.all.script_conf.granularity;
-      const items_list = hooks.all.script_conf.items;
-      const current_value = hooks.all.current_value;
+      const items_list = hooks.all.script_conf.items || [];
 
-      const input_settings = {
+      let l2r_bytes_value = hooks.all.script_conf.l2r_bytes_value; 
+      let r2l_bytes_value = hooks.all.script_conf.r2l_bytes_value; 
+
+      // get units and values
+      const l2r_unit = get_unit_bytes(l2r_bytes_value);
+      const r2l_unit = get_unit_bytes(r2l_bytes_value);
+
+      // configure local to remote input
+      const input_settings_l2r = {
          min: 1,
-         current_value: current_value,
-         name: 'script_value',
+         current_value: l2r_unit[1],
+         name: 'l2r_value',
          enabled: enabled
       };
-      const $bytes_input_box = generate_input_box(input_settings, true, null);
+      const $input_box_l2r = generate_input_box(input_settings_l2r);
 
-      const $textarea_bytes = $(`
-         <div class='form-group mt-3'>
-            <label>Excluded applications and categories:</label>
-            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${(items_list || []).join(',')}</textarea>
-            <small>Examples...</small>
-            <div class="invalid-feedback"></div>
-         </div>
-      `);
+      // configure remote to locale input
+      const input_settings_r2l = {
+         min: 1,
+         current_value: r2l_unit[1],
+         name: 'r2l_value',
+         enabled: enabled
+      };
+      const $input_box_r2l = generate_input_box(input_settings_r2l);
 
-      const radio_values = [
-         {label: 'KB', value: 1024},
-         {label: 'MB', value: 1048576},
-         {label: 'GB', value: 1073741824}
-      ];
-      const $bytes_radio_buttons = generate_radio_buttons(
-         {
-            name: 'bytes', 
-            enabled: enabled,
-            granularity: granularity
-         },
-         radio_values, true
-      );
+      // create textarea to append
+      const $textarea_bytes = generate_textarea({
+         enabled: enabled,
+         value: items_list.join(','),
+         name: 'item_list',
+         label: 'Excluded applications and categories:'
+      });
 
-      const callback_checkbox = function (e) {
-
-         const checked = $(this).prop('checked');
-
-         // if the checked option is false the disable the elements
-         if (!checked) {
-            $bytes_input_box.find(`input[name='script_value']`).attr("readonly", "").val('');
-            $bytes_radio_buttons.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
-            $textarea_bytes.find('textarea').attr("readonly", "");
-            return;
-         }
-
-         $bytes_input_box.find(`input[name='script_value']`).removeAttr("readonly");
-         $bytes_radio_buttons.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
-         $textarea_bytes.find('textarea').removeAttr("readonly");
+      // create radio button with its own values
+      const radio_values_l2r = {
+         labels: ["KB", "MB", "GB"],
+         label: l2r_unit[0],
+         values: [1024, 1048576, 1073741824]
+      };
+      const radio_values_r2l = {
+         labels: ["KB", "MB", "GB"],
+         label: r2l_unit[0],
+         values: [1024, 1048576, 1073741824]
       };
 
+      const $radio_button_l2r = generate_radio_buttons({
+            name: 'bytes_l2r', 
+            enabled: enabled,
+            granularity: radio_values_l2r
+         }
+      );
+      const $radio_button_r2l = generate_radio_buttons({
+            name: 'bytes_r2l', 
+            enabled: enabled,
+            granularity: radio_values_r2l
+         }
+      );
+
       const $checkbox_enabled = generate_checkbox_enabled(
-         'elephant-flows-checkbox', enabled, callback_checkbox
+         'elephant-flows-checkbox', enabled, function (e) {
+
+            const checked = $(this).prop('checked');
+   
+            // if the checked option is false the disable the elements
+            if (!checked) {
+               $input_box_r2l.find(`input`).attr("readonly", "");
+               $input_box_l2r.find(`input`).attr("readonly", "");
+               $radio_button_l2r.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
+               $radio_button_r2l.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
+               $textarea_bytes.find('textarea').attr("readonly", "");
+               return;
+            }
+            $input_box_r2l.find(`input`).removeAttr("readonly", "");
+            $input_box_l2r.find(`input`).removeAttr("readonly", "");
+            $radio_button_l2r.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
+            $radio_button_r2l.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
+            $textarea_bytes.find('textarea').removeAttr("readonly");
+         }
       );
 
       // append elements on table
       const $input_container = $(`<td></td>`);
-      $input_container.append($bytes_input_box.prepend($bytes_radio_buttons), $textarea_bytes);
+      $input_container.append(
+         $input_box_l2r.prepend($radio_button_l2r).prepend($(`<div class='col-7'><label><b>Elephant Flows Threshold (Local To Remote)</b></label></div>`)), 
+         $input_box_r2l.prepend($radio_button_r2l).prepend($(`<div class='col-7'><label><b>Elephant Flows Threshold (Remote To Local)</b></label></div>`)), 
+         $textarea_bytes
+      );
 
+      // initialize table row
       const $container = $(`<tr></tr>`).append(
          $(`<td class='text-center'></td>`).append($checkbox_enabled),
          $input_container
       );
 
-      $table_editor.append(`<tr class='text-center'><th>Enabled</th></tr>`)
+      $table_editor.append(`
+         <tr class='text-center'>
+            <th>${i18n.enabled}</th>
+         </tr>
+      `);
+
+      // append all inside the table
       $table_editor.append($container);
 
    }
@@ -773,10 +847,10 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
       const hook_enabled = $('#elephant-flows-checkbox').prop('checked');
       
-      let $error_label = $(`textarea[name='items_list']`).parent().find('.invalid-feedback');
+      let $error_label = $(`textarea[name='item_list']`).parent().find('.invalid-feedback');
       $error_label.fadeOut();
 
-      const textarea_value = $(`textarea[name='items_list']`).val().trim();
+      const textarea_value = $(`textarea[name='item_list']`).val().trim();
 
       // check if textarea contains special characters
       if (textarea_value != "" && special_char_regexp.test(textarea_value)) {
@@ -787,15 +861,26 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       // if the textarea has valid content then
       // glue the strings into in array
       const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
-      
-      // get the granularity
-      const bytes_value = $(`input[name='bytes']`).val();
-      const input_value = $(`input[name='script_value']`).val();
 
-      $error_label = $(`input[name='script_value']`).parent().find('.invalid-feedback');
+      // get the bytes_unit
+      const unit_l2r = $(`input[name='bytes_l2r']:checked`).val();
+      const unit_r2l = $(`input[name='bytes_r2l']:checked`).val();
+
+      const input_l2r = $(`input[name='l2r_value']`).val();
+      const input_r2l = $(`input[name='r2l_value']`).val();
+
+      $error_label = $(`input[name='l2r_value']`).parent().find('.invalid-feedback');
       $error_label.fadeOut();
 
-      if (input_value == undefined || input_value == null || input_value == "") {
+      if (input_l2r == undefined || input_l2r == null || input_l2r == "") {
+         $error_label.fadeIn().text(`${i18n.empty_input_box}`);
+         return;
+      }
+
+      $error_label = $(`input[name='r2l_value']`).parent().find('.invalid-feedback');
+      $error_label.fadeOut();
+
+      if (input_r2l == undefined || input_r2l == null || input_r2l == "") {
          $error_label.fadeIn().text(`${i18n.empty_input_box}`);
          return;
       }
@@ -805,8 +890,8 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
             enabled: hook_enabled,
             script_conf: {
                items: items_list,
-               bytes_value: parseInt(bytes_value),
-               script_value: parseInt(input_value)
+               l2r_bytes_value: parseInt(unit_l2r) * parseInt(input_l2r),
+               r2l_bytes_value: parseInt(unit_r2l) * parseInt(input_r2l)
             }
          }
       }
@@ -819,25 +904,15 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
       reset_script_defaults(script_key, script_subdir, (reset_data) => {
 
-         const items_list = reset_data.hooks.all.script_conf.items;
-         const script_value = reset_data.hooks.all.script_conf.script_value;
-
          const enabled = reset_data.hooks.all.enabled;
 
          // set textarea value with default's one
-         $(`textarea[name='items_list']`).val(items_list.join(','));
          $('#elephant-flows-checkbox').prop('checked', enabled);
 
          // turn on readonly to textarea if enabled is false
          if (!enabled) {
-            $('#itemslist-textarea').attr('readonly', '');
+            // $('#itemslist-textarea').attr('readonly', '');
          }
-
-         $(`input[name='script_value']`).val(script_value);
-
-         // remove classes and set default inside radio button
-         $(`input[name='bytes']`).removeAttr('checked').parent().removeClass('btn-primary');
-         console.log($(`input[name='bytes']`));
 
       });
 
@@ -1173,11 +1248,6 @@ $(document).ready(function() {
 
          // hide previous error
          $("#apply-error").hide();
-
-         // data.gui.input_builder = 'elephant_flows';
-         // data.hooks.all.script_conf.enabled = true;
-         // data.hooks.all.script_conf.granularity = "GB";
-         // data.hooks.all.current_value = 5;
 
          const template = TemplateBuilder(data, script_subdir, script_key);
          

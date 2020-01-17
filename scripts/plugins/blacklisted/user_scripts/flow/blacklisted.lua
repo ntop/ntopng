@@ -3,7 +3,6 @@
 --
 
 local flow_consts = require("flow_consts")
-local user_scripts = require("user_scripts")
 
 -- #################################################################
 
@@ -14,6 +13,7 @@ local script = {
    gui = {
       i18n_title = "flow_callbacks_config.blacklisted",
       i18n_description = "flow_callbacks_config.blacklisted_description",
+      input_builder = 'elephant_flows'
    }
 }
 
