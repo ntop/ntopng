@@ -521,6 +521,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       const input_settings = {
          name: 'script_value',
+         current_value: 0,
          min: 0,
          max: 0,
          enabled: enabled,
@@ -650,6 +651,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const input_settings = {
          max: 0,
          min: 0,
+         current_value: 0,
          name: 'script_value',
          enabled: enabled
       };
