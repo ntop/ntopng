@@ -38,6 +38,28 @@ $(window).resize(function() {
 
 $(document).ready(function() {
 
+    // toggle button collapse visibility
+    $('#collapse-sidebar').on('click', function() {
+       // hide span
+       $(this).fadeOut(250, function(e) {
+
+        $(this).toggleClass('active');
+
+        $(this).find('i')
+        .toggleClass('fa-caret-square-left')
+        .toggleClass('fa-caret-square-right');
+
+        if ($(this).hasClass('active')) {
+            $(this).find('span').text('');
+        }
+        else {
+            $(this).find('span').text('Collapse');
+        }
+
+        $(this).fadeIn(250);
+       });
+    });
+
     $("#toggle-theme").click(function() {
 
         $('#n-sidebar').toggleClass('bg-light').toggleClass('bg-dark');
@@ -51,7 +73,7 @@ $(document).ready(function() {
         }
     })
 
-    $("button[data-toggle='sidebar']").click(function(){
+    $("[data-toggle='sidebar']").click(function(){
 
         const ntop_logo = {
             'n': $('#ntop-logo-n'),
@@ -120,6 +142,7 @@ $(document).ready(function() {
         }
         
         const {y} = $(this)[0].getBoundingClientRect();
+        const height_submenu = $submenu.height();
         $submenu.css({top: `${y}px`});
 
 

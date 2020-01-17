@@ -51,7 +51,7 @@ end
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
 print ([[
-      <div id='n-sidebar' class="bg-light active p-2">
+      <div id='n-sidebar' class="bg-dark active py-0 px-2">
          <h3 class='muted'>
             <div class='d-flex'>
                <a href='/'>
@@ -84,7 +84,7 @@ if not is_pcap_dump then
    print ([[ 
       <li class="nav-item ]].. (active_page == "dashboard" and 'active' or '') ..[[">
 	      <a class="submenu ]].. (active_page == "dashboard" and 'active' or '') ..[[" data-toggle="collapse" href="#dashboard-submenu">
-	         <i class="fas fa-tachometer-alt"></i> <span class='title'>Dashboard</span>
+	         <span class="fas fa-tachometer-alt"></span> Dashboard
          </a>
          <div data-parent='#sidebar'  class='collapse' id='dashboard-submenu'>
             <ul class='nav flex-column'>
@@ -161,7 +161,7 @@ if ntop.getPrefs().are_alerts_enabled == true then
    print([[
       <li class='nav-item ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
          <a  data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
-            <i class='fas fa-exclamation-triangle'></i> <span class='title'>Alerts</span>
+            <span class='fas fa-exclamation-triangle'></span> Alerts
          </a>
          <div data-parent='#sidebar' class='collapse' id='alerts-submenu'>
             <ul class='nav flex-column'>
@@ -206,7 +206,7 @@ url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 print([[
    <li class='nav-item'>
       <a class=']].. (active_page == 'flows' and 'active' or '') ..[[' href=']].. url ..[['>
-         <i class='fas fa-stream '></i> <span class='title'>]].. i18n("flows") ..[[</span>
+         <span class='fas fa-stream '></span> ]].. i18n("flows") ..[[
       </a>
    </li> 
 ]])
@@ -219,7 +219,7 @@ if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces,
    print([[
       <li class='nav-item'>
          <a  data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
-            <i class='fas fa-server '></i> <span class='title'>]].. i18n("flows_page.hosts") ..[[</span>
+            <span class='fas fa-server '></span> ]].. i18n("flows_page.hosts") ..[[
          </a>
          <div data-parent='#sidebar' class='collapse ' id='hosts-submenu'>
             <ul class='nav flex-column'>
@@ -397,7 +397,7 @@ if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
    print ([[ 
       <li class="nav-item dropdown ]].. (active_page == "exporters" and 'active' or '') ..[[">
          <a class="submenu ]].. (active_page == "exporters" and 'active' or '') ..[[" data-toggle="collapse" href="#exporters-submenu">
-            <i class='fas fa-file-export'></i> <span class='title'>]].. i18n("flow_devices.exporters") ..[[</span>
+            <span class='fas fa-file-export'></span> ]].. i18n("flow_devices.exporters") ..[[
          </a>
          <div data-parent='#sidebar' id='exporters-submenu' class="collapse ">
             <ul class='nav flex-column'>
@@ -454,7 +454,7 @@ url = ntop.getHttpPrefix().."/lua/if_stats.lua"
 print([[
    <li class='nav-item'>
       <a class=']].. (active_page == 'if_stats' and 'active' or '') ..[[' href=']].. url ..[['>
-         <i class='fas fa-ethernet '></i> <span class='title'>]].. i18n("interface") ..[[</span>
+         <span class='fas fa-ethernet '></span> ]].. i18n("interface") ..[[
       </a>
    </li> 
 ]])
@@ -469,7 +469,7 @@ if isAllowedSystemInterface() then
    print ([[ 
       <li class="nav-item ]].. ((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[">
          <a  class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
-            <i class='fas fa-desktop'></i> <span class='title'>]].. i18n("system") ..[[</span>
+            <span class='fas fa-desktop'></span> ]].. i18n("system") ..[[
          </a>
          <div data-parent='#sidebar' class="collapse " id='system-submenu'>
             <ul class='nav flex-column'>
@@ -547,7 +547,7 @@ end
 print ([[ 
    <li class="nav-item ]].. (active_page == "admin" and 'active' or '') ..[[">
       <a class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
-         <i class="fas fa-cog"></i> <span class='title'>Settings</span>
+         <span class="fas fa-cog"></span> Settings
       </a>
       <div data-parent='#sidebar' class="collapse" id='admin-submenu'>
          <ul class='nav flex-column'>
@@ -793,28 +793,95 @@ print[[
 ]]
 end
 
-
-
 end -- num_ifaces > 0
 
+-- ##############################################
+-- Info
 
--- CLOSE NEW SIDEBAR
+local is_help_Page = (active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories")
+
+print ([[ 
+   <li class="nav-item ]].. (is_help_page and 'active' or '' ) ..[[">
+      <a class="]].. (is_help_page and 'active' or '' ) ..[[ submenu" data-toggle="collapse" href="#help-submenu">
+         <span class='fas fa-life-ring'></span> Help
+      </a>   
+   <div data-parent='#sidebar' class='collapse' id='help-submenu'>
+      <ul class='nav flex-column'>
+
+         <li>
+            <a href="]].. ntop.getHttpPrefix() ..[[/lua/about.lua">
+               ]].. i18n("about.about_ntopng") ..[[
+            </a>
+         </li>
+         <li>
+            <a href="]].. ntop.getHttpPrefix() ..[[/lua/telemetry.lua">
+               ]].. i18n("telemetry") ..[[
+            </a>
+         </li>
+         <li>
+            <a href="http://blog.ntop.org/" target="_blank">
+               ]].. i18n("about.ntop_blog") ..[[
+            </a>
+         </li>
+         <li>
+            <a href="https://t.me/ntop_community" target="_blank">
+               ]].. i18n("about.telegram") ..[[
+            </a>
+         </li>
+         <li>
+            <a  href="https://github.com/ntop/ntopng/issues" target="_blank">
+               ]].. i18n("about.report_issue") ..[[
+            </a>
+         </li>
+         <li class="dropdown-divider"></li>
+
+         <li>
+            <a href="]].. ntop.getHttpPrefix() ..[[/lua/directories.lua">
+               ]].. i18n("about.directories") ..[[
+            </a>
+         </li>
+         <li>
+            <a href="]].. ntop.getHttpPrefix() ..[[/lua/plugins_overview.lua">
+               ]].. i18n("plugins") ..[[
+            </a>
+         </li>
+         <li>
+            <a href="]].. ntop.getHttpPrefix() ..[[/lua/user_scripts_overview.lua">
+               ]].. i18n("about.user_scripts") ..[[
+            </a>
+         </li>
+         <li>
+            <a href="]].. ntop.getHttpPrefix() ..[[/lua/defs_overview.lua">
+               ]].. i18n("about.alert_defines") ..[[
+            </a>
+         </li>
+         <li>
+            <a href="https://www.ntop.org/guides/ntopng/" target="_blank">
+               ]].. i18n("about.readme_and_manual") ..[[
+            </a>
+         </li>
+         <li>
+            <a href="https://www.ntop.org/guides/ntopng/api/" target="_blank">
+               Lua/C API
+            </a>
+         </li>
+      </ul>
+   </div>
+</li>
+]])
+
 
 print([[
    </ul>
    
    <div class='sidebar-info'>
-      <a href='#' id='toggle-theme'>
-         <i class='fas fa-sun'></i> Toogle Theme
+      <a id='collapse-sidebar' href='#' data-toggle='sidebar' class='btn-collapse'>
+        <i class='fas fa-caret-square-left'></i>  <span>Collapse</span>
       </a>
-      <small>
-         ]].. info.product .. ' ' .. getNtopngRelease() ..[[ Edition v.]].. info.version ..[[
-      </small>
    </div>
 
    </div>
 ]])
-
 
 -- select the original interface back to prevent possible issues
 interface.select(ifname)
@@ -871,13 +938,10 @@ end
 ------ NEW SIDEBAR ------
  
 print([[
-   <nav class="navbar justify-content-start bg-light navbar-light" id='n-navbar'>
-      <button data-toggle='sidebar' class='btn'>
-         <i class='fas fa-bars'></i>
-      </button>
+   <nav class="navbar justify-content-start bg-light navbar-light" id='n-navbar'>    
       <div class='dropdown mr-2'>
          <a class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" href="#">
-            { ]] .. (getHumanReadableInterfaceName(ifname)) .. [[ }
+            ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
          </a>
          <ul class='dropdown-menu'>
 ]])
@@ -989,25 +1053,6 @@ print([[
          
 ]])
 
--- append searchbox
-
-print(
-  template.gen("typeahead_input.html", {
-    typeahead={
-      base_id     = "host_search",
-      action      = "", -- see makeFindHostBeforeSubmitCallback
-      json_key    = "ip",
-      query_field = "host",
-      class       = "typeahead-dropdown-right",
-      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
-      query_title = i18n("search_host"),
-      style       = "width: 16em;",
-      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
-      max_items   = "'all'" --[[ let source script decide ]],
-    }
-  })
-)
-
 -- ##############################################
 -- Up/Down info
 if not interface.isPcapDumpInterface() then
@@ -1053,56 +1098,50 @@ print([[
    <div class="text-center mx-sm-0 mx-xs-0 mx-md-3" title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div>
 ]])
 
--- ##############################################
--- Info
+-- ########################################
+-- Network Load 
 
-if active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories" then
-   print [[ <div class="dropdown ml-auto">
-	    <a class="dark-gray nav-link dropdown-toggle" data-toggle="dropdown" href="#">
-]]
-else
-   print [[ <div class="dropdown ml-auto">
-	    <a class="dark-gray nav-link dropdown-toggle" data data-toggle="dropdown" href="#">
-]]
-end
+print([[
+   <div id="network-load"></div>
+]])
 
-print [[
-	   <i class="fas fa-life-ring fa-lg"></i>
-      </a>
-    <ul class="dropdown-menu dropdown-menu-right">
-      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/about.lua"><i class="fas fa-question-circle"></i> ]] print(i18n("about.about_ntopng")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/telemetry.lua"><i class="fas fa-rss"></i> ]] print(i18n("telemetry")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="http://blog.ntop.org/" target="_blank"><i class="fas fa-bullhorn"></i> ]] print(i18n("about.ntop_blog")) print[[ <i class="fas fa-external-link-alt"></i></a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://t.me/ntop_community" target="_blank"><i class="fab fa-telegram"></i> ]] print(i18n("about.telegram")) print[[ <i class="fas fa-external-link-alt"></i></a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fas fa-bug"></i> ]] print(i18n("about.report_issue")) print[[ <i class="fas fa-external-link-alt"></i></a></li>
+-- ########################################
+-- Searchbox josts
+-- append searchbox
 
-      <li class="dropdown-divider"></li>
-      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print [[/lua/directories.lua"><i class="fas fa-folder"></i> ]] print(i18n("about.directories")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/plugins_overview.lua"><i class="fas fa-puzzle-piece"></i> ]] print(i18n("plugins")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/user_scripts_overview.lua"><i class="fab fa-superpowers"></i> ]] print(i18n("about.user_scripts")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="]] print(ntop.getHttpPrefix()) print[[/lua/defs_overview.lua"><i class="fas fa-exclamation-triangle"></i> ]] print(i18n("about.alert_defines")) print[[</a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/" target="_blank"><i class="fas fa-book"></i> ]] print(i18n("about.readme_and_manual")) print[[ <i class="fas fa-external-link-alt"></i></a></li>
-      <li class="nav-item"><a class="dropdown-item" href="https://www.ntop.org/guides/ntopng/api/" target="_blank"><i class="fas fa-book"></i> ]] print("Lua/C API") print[[ <i class="fas fa-external-link-alt"></i></a></li>
-]]
+print(
+  template.gen("typeahead_input.html", {
+    typeahead={
+      base_id     = "host_search",
+      action      = "", -- see makeFindHostBeforeSubmitCallback
+      json_key    = "ip",
+      query_field = "host",
+      class       = "typeahead-dropdown-right",
+      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
+      query_title = i18n("search_host"),
+      style       = "width: 16em;",
+      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
+      max_items   = "'all'" --[[ let source script decide ]],
+    }
+  })
+)
 
-print [[
-</ul>
-</div>
-]]
-
--- add logout button
+-- #########################################
+-- User Navbar Menu
 
 print([[
 
    <div class="dropdown">
       <a href='#' class="nav-link dropdown-toggle dark-gray" data-toggle="dropdown">
-         <i class='fas fa-user'></i> ]].. _SESSION["user"] ..[[
+         <i class='fas fa-user'></i>
       </a>
       <ul class="dropdown-menu dropdown-menu-right">
-         <a class='dropdown-item' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua'>
+         <li class='dropdown-item'>
+            ]].. _SESSION['user'] ..[[
+         </li>
+         <a class='dropdown-item dark-gray' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua'>
             Web Users
          </a>
-      
       ]])
 -- Logout
 

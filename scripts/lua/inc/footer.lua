@@ -123,19 +123,20 @@ if not interface.isPcapDumpInterface() and not have_nedge then
         <div>]]
 end -- closes interface.isPcapDumpInterface() == false
 
-print [[
+print ([[
       </div>
     </div>
   </div><!-- End column 2 -->
-  <!-- Optional: clear the XS cols if their content doesn't match in height -->
   <div class="clearfix visible-xs"></div>
-  <div class="col-xs-6 col-sm-4">
-    <div id="network-load">
-  </div> <!-- End column 3 -->
+  <div class='col'>
+  <small class='float-right'>
+         ]].. info.product .. ' ' .. getNtopngRelease() ..[[ Edition v.]].. info.version ..[[
+  </small>
+  </div>
 </div>
 </div>
 <script>
-]]
+]])
 
 local traffic_peity_width = ternary(have_nedge, "140", "64")
 
@@ -250,7 +251,7 @@ print [[/lua/logout.lua");  }, */
 
 print[[
 
-                var msg = "&nbsp;<i class=\"fas fa-clock-o\"></i> <small>"+rsp.localtime+" | ]] print(i18n("about.uptime")) print[[: "+rsp.uptime+"</small>";
+                var msg = "&nbsp;<i class=\"fas fa-clock\"></i> <small>"+rsp.localtime+" | ]] print(i18n("about.uptime")) print[[: "+rsp.uptime+"</small>";
 
                 if(rsp.system_host_stats.mem_total !== undefined) {
                    var mem_total = rsp.system_host_stats.mem_total;
