@@ -60,11 +60,6 @@ print ([[
             </div>
          </h3>
 
-         <button data-toggle='sidebar' class='btn text-right float-right d-md-none d-lg-none d-xs-block d-sm-block'>
-            <i class='fas fa-times'></i>
-         </button>
-        
-
 	      <ul class="nav flex-column mb-4" id='sidebar'>
 ]])
 
@@ -159,8 +154,8 @@ if ntop.getPrefs().are_alerts_enabled == true then
    -- end
 
    print([[
-      <li class='nav-item ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
-         <a  data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
+      <li class='nav-item ]].. (active_page == 'alerts' and 'active' or '') ..[[ ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
+         <a data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
             <span class='fas fa-exclamation-triangle'></span> Alerts
          </a>
          <div data-parent='#sidebar' class='collapse' id='alerts-submenu'>
@@ -204,7 +199,7 @@ end
 url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
 print([[
-   <li class='nav-item'>
+   <li class=']].. (active_page == 'flows' and 'active' or '') ..[[ nav-item'>
       <a class=']].. (active_page == 'flows' and 'active' or '') ..[[' href=']].. url ..[['>
          <span class='fas fa-stream '></span> ]].. i18n("flows") ..[[
       </a>
@@ -217,7 +212,7 @@ print([[
 if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces, only for their view
 
    print([[
-      <li class='nav-item'>
+      <li class='nav-item ]].. (active_page == 'hosts' and 'active' or '') ..[['>
          <a  data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
             <span class='fas fa-server '></span> ]].. i18n("flows_page.hosts") ..[[
          </a>
@@ -938,12 +933,16 @@ end
 ------ NEW SIDEBAR ------
  
 print([[
-   <nav class="navbar justify-content-start bg-light navbar-light" id='n-navbar'>    
-      <div class='dropdown mr-2'>
-         <a class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" href="#">
-            ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
-         </a>
-         <ul class='dropdown-menu'>
+   <nav class="navbar navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
+      <button data-toggle='sidebar' class='btn d-md-none d-lg-none'>
+        <i class='fas fa-bars'></i>
+      </button>
+      <ul class='navbar-nav mr-auto'>    
+         <li class='nav-item dropdown'>
+               <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
+                  ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
+               </a>
+               <ul class='dropdown-menu'>
 ]])
        
 -- ##############################################
@@ -1048,9 +1047,8 @@ end
 
 
 print([[
-         </ul>
-         </div>
-         
+         </ul>         
+      </li>
 ]])
 
 -- ##############################################
@@ -1058,55 +1056,66 @@ print([[
 if not interface.isPcapDumpInterface() then
 
    print([[
-      <div class='info-stats'>
-         ]].. 
-         (function()
-            
-            local _ifstats = interface.getStats()
+      <li class='nav-item'>
+         <div class='info-stats'>
+            ]].. 
+            (function()
+               
+               local _ifstats = interface.getStats()
 
-            if _ifstats.has_traffic_directions then
-               return ([[
-                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
-                     <div class='up'>
-                        <i class="fas fa-arrow-up"></i>
-                        <span class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                        <span class="text-right" id="chart-upload-text"></span>
-                     </div>
-                     <div class='down'>
-                        <i class="fas fa-arrow-down"></i>
-                        <span class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                        <span class="text-right" id="chart-download-text"></span>
-                     </div>
-                  </a>
-               ]])
-            else
-               return ([[
-                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
-                     <span class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                     <span class="text-right" id="chart-total-text"></span>
-                  </a>
-               ]])
-            end
+               if _ifstats.has_traffic_directions then
+                  return ([[
+                     <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
+                        <div class='up'>
+                           <i class="fas fa-arrow-up"></i>
+                           <span class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                           <span class="text-right" id="chart-upload-text"></span>
+                        </div>
+                        <div class='down'>
+                           <i class="fas fa-arrow-down"></i>
+                           <span class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                           <span class="text-right" id="chart-download-text"></span>
+                        </div>
+                     </a>
+                  ]])
+               else
+                  return ([[
+                     <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
+                        <span class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                        <span class="text-right" id="chart-total-text"></span>
+                     </a>
+                  ]])
+               end
 
-         end)() ..[[
-      </div>
+            end)() ..[[
+         </div>
+      </li>
    ]])
 
 end
 
 print([[
-   <div class="text-center mx-sm-0 mx-xs-0 mx-md-3" title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div>
+   <li class='nav-item py-2 px-3'>
+      <div class="text-center mx-sm-0 mx-xs-0 mx-md-3" 
+         title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div>
+   </li>
 ]])
 
 -- ########################################
 -- Network Load 
 
 print([[
-   <div id="network-load"></div>
+   <li class='nav-item'>
+      <div id="network-load"></div>
+   </li>
 ]])
 
 -- ########################################
--- Searchbox josts
+-- end of navbar-nav
+print('</ul>')
+
+-- ########################################
+-- Searchbox hosts
 -- append searchbox
 
 print(
@@ -1130,8 +1139,8 @@ print(
 -- User Navbar Menu
 
 print([[
-
-   <div class="dropdown">
+<ul class='navbar-nav'>
+   <li class="nav-item">
       <a href='#' class="nav-link dropdown-toggle dark-gray" data-toggle="dropdown">
          <i class='fas fa-user'></i>
       </a>
@@ -1182,11 +1191,13 @@ if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
    $('#restart-service-li').click(restartService);
  </script>
  ]]
+
 end
  
 print([[
       </ul>
-   </div>
+   </li>
+</ul>
    
    </nav>
 ]])
