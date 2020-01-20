@@ -389,6 +389,10 @@
 /* Prepare a mask to only consider flags SYN-ACK-FIN-RST-PSH-URG as certain scanners
    set higher bits such as ECE or CRW. For example we have seen scans with SYN set along with ECE and CWR */
 #define TCP_SCAN_MASK 0xFF & (TH_FIN | TH_SYN | TH_RST | TH_PUSH | TH_ACK | TH_URG)
+/* Prepare a mask used when analyzing tcp twh. Currently, it is necessary to exclude ECE and CWR
+   bits as they may be contained in the handshake as explained in 
+   https://github.com/ntop/ntopng/issues/3255 */
+#define TCP_3WH_MASK  0xFF & ~(TH_ECE | TH_CWR)
 
 #define MAX_NUM_DB_SPINS            5 /* sec */
 
