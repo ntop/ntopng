@@ -15,6 +15,7 @@ local ts_utils = require("ts_utils_core")
 local is_admin = isAdministrator()
 
 local collapsed_sidebar = ntop.getPref('ntopng.prefs.sidebar_collapsed')
+local bool_collapsed_sidebar = (collapsed_sidebar == "1") and true or false
 
 -- tprint(collapsed_sidebar)
 
@@ -80,12 +81,14 @@ ifId = ifs.id
 
 if not is_pcap_dump then
 
+   local show_submenu = (active_page == "dashboard" and not bool_collapsed_sidebar)
+
    print ([[ 
       <li class="nav-item ]].. (active_page == "dashboard" and 'active' or '') ..[[">
 	      <a class="submenu ]].. (active_page == "dashboard" and 'active' or '') ..[[" data-toggle="collapse" href="#dashboard-submenu">
 	         <span class="fas fa-tachometer-alt"></span> Dashboard
          </a>
-         <div data-parent='#sidebar' class='collapse' id='dashboard-submenu'>
+         <div data-parent='#sidebar' class='collapse ]].. (show_submenu and 'show' or '') ..[[' id='dashboard-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href="]].. ntop.getHttpPrefix() .. (ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua') .. [[">
@@ -156,13 +159,15 @@ if ntop.getPrefs().are_alerts_enabled == true then
    -- if alert_cache["num_alerts_engaged"] > 0 then
    -- color = 'style="color: #B94A48;"' -- bootstrap danger red
    -- end
+   local show_submenu = (active_page == "alerts" and not bool_collapsed_sidebar)
+
 
    print([[
       <li class='nav-item ]].. (active_page == 'alerts' and 'active' or '') ..[[ ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
          <a data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
             <span class='fas fa-exclamation-triangle'></span> Alerts
          </a>
-         <div data-parent='#sidebar' class='collapse' id='alerts-submenu'>
+         <div data-parent='#sidebar' class='collapse ]].. (show_submenu and 'show' or '') ..[[' id='alerts-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href=']].. ntop.getHttpPrefix() ..[[/lua/show_alerts.lua'>
@@ -215,12 +220,14 @@ print([[
 
 if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces, only for their view
 
+   local show_submenu = (active_page == "hosts" and not bool_collapsed_sidebar)
+
    print([[
       <li class='nav-item ]].. (active_page == 'hosts' and 'active' or '') ..[['>
-         <a  data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
+         <a data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
             <span class='fas fa-server '></span> ]].. i18n("flows_page.hosts") ..[[
          </a>
-         <div data-parent='#sidebar' class='collapse' id='hosts-submenu'>
+         <div data-parent='#sidebar' class='collapse ]].. (show_submenu and 'show' or '') ..[[' id='hosts-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href=']].. ntop.getHttpPrefix() ..[[/lua/hosts_stats.lua'>
@@ -391,6 +398,7 @@ end -- closes not ifs.isViewed
 -- Exporters
 
 local info = ntop.getInfo()
+local show_submenu = (active_page == "exporters" and not bool_collapsed_sidebar)
 
 if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
    print ([[ 
@@ -398,7 +406,7 @@ if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
          <a class="submenu ]].. (active_page == "exporters" and 'active' or '') ..[[" data-toggle="collapse" href="#exporters-submenu">
             <span class='fas fa-file-export'></span> ]].. i18n("flow_devices.exporters") ..[[
          </a>
-         <div data-parent='#sidebar' id='exporters-submenu' class="collapse">
+         <div data-parent='#sidebar' id='exporters-submenu' class="collapse ]].. (show_submenu and 'show' or '') ..[[">
             <ul class='nav flex-column'>
                ]]..
                (function()
@@ -464,13 +472,14 @@ print([[
 if isAllowedSystemInterface() then
    
    local plugins_utils = require("plugins_utils")
+   local show_submenu = ((active_page == "system_stats" or active_page == "system_interfaces_stats") and not bool_collapsed_sidebar)
 
    print ([[ 
       <li class="nav-item ]].. ((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[">
          <a  class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
             <span class='fas fa-desktop'></span> ]].. i18n("system") ..[[
          </a>
-         <div data-parent='#sidebar' class="collapse" id='system-submenu'>
+         <div data-parent='#sidebar' class="collapse ]].. (show_submenu and 'show' or '') ..[[" id='system-submenu'>
             <ul class='nav flex-column'>
                ]]..
                (function()
@@ -542,13 +551,14 @@ end
 
 -- ##############################################
 -- Admin
+local show_submenu = (active_page == "admin" and not bool_collapsed_sidebar)
 
 print ([[ 
    <li class="nav-item ]].. (active_page == "admin" and 'active' or '') ..[[">
       <a class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
          <span class="fas fa-cog"></span> Settings
       </a>
-      <div data-parent='#sidebar' class="collapse" id='admin-submenu'>
+      <div data-parent='#sidebar' class="collapse ]].. (show_submenu and 'show' or '' ) ..[[" id='admin-submenu'>
          <ul class='nav flex-column'>
             ]]..
             (function()
@@ -804,7 +814,7 @@ print ([[
       <a class="]].. (is_help_page and 'active' or '' ) ..[[ submenu" data-toggle="collapse" href="#help-submenu">
          <span class='fas fa-life-ring'></span> Help
       </a>   
-   <div data-parent='#sidebar' class='collapse' id='help-submenu'>
+   <div data-parent='#sidebar' class='collapse ]].. ((is_help_page and not collapsed_sidebar) and 'active' or '' ) ..[[' id='help-submenu'>
       <ul class='nav flex-column'>
 
          <li>

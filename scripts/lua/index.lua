@@ -6,10 +6,12 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
+active_page = "dashboard"
 
 local page_utils = require("page_utils")
 
 interface.select(ifname)
+
 
 if(ntop.isnEdge()) then
   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
