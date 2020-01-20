@@ -2,7 +2,10 @@
 
 /* ******************************************************* */
 
-const reloadPageAfterPOST = () => {
+const reloadPageAfterPOST = (force_reload = false) => {
+
+   if (force_reload) location.reload();
+
    // NOTE: don't use location.reload as we need to clear the possibly set
    // "user_script" GET parameter
    location.href = page_url + location.hash;
@@ -210,6 +213,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
 
    const $apply_btn = $('#btn-apply');
    const $error_label = $("#apply-error");
+   console.log(template_data, script_subdir, script_key)
 
    // remove dirty class from form
    $('#edit-form').removeClass('dirty')
@@ -224,6 +228,8 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
    })
    .done((d, status, xhr) => {
 
+         console.log(d);
+
          if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
          if (!d.success) {
@@ -236,7 +242,8 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
          }
 
          // if the operation was successfull then reload the page
-         if (d.success) reloadPageAfterPOST();
+         if (d.success) reloadPageAfterPOST(true);
+         
       })
    .fail(({ status, statusText }) => {
 
@@ -451,6 +458,8 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
       // check if there are any errors on input values
       if (error) return;
+
+      console.info(data);
 
       apply_edits_script(data, script_subdir, script_key);
    };
@@ -1037,6 +1046,7 @@ $(document).ready(function() {
    const $script_table = $("#scripts-config").DataTable({
       dom: "Bfrtip",
       pagingType: 'full_numbers',
+      autoWidth: true,
       language: {
          paginate: {
             previous: '&lt;',
