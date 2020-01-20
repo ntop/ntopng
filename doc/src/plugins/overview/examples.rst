@@ -1,3 +1,5 @@
+.. _Plugin Examples:
+
 Examples
 ========
 

@@ -6,10 +6,11 @@ Writing Plugins
     :numbered:
 
     structure
+    alert_definitions
+    flow_definitions
     user_scripts
     localization
     web_ui
-    alert_definitions
-    flow_definitions
+
     
 
