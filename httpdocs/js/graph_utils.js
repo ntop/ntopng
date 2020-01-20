@@ -588,7 +588,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         .removeClass("btn-warning");
       $graph_zoom.find(".custom-zoom-btn").css("visibility", "visible");
 
-      var zoom_link = $graph_zoom.find(".custom-zoom-btn input");
+      var zoom_link = $graph_zoom.find(".custom-zoom-btn");
       var link = zoom_link.val().replace(/&epoch_begin=.*/, "");
       link += "&epoch_begin=" + params.epoch_begin + "&epoch_end=" + params.epoch_end;
       zoom_link.val(link);
