@@ -12,6 +12,8 @@ local alerts_api = require("alerts_api")
 
 -- ##############################################
 
+local trace_level = TRACE_INFO -- TRACE_NORMAL
+
 local CUSTOM_CATEGORY_MINING = 99
 local CUSTOM_CATEGORY_MALWARE = 100
 local CUSTOM_CATEGORY_ADVERTISEMENT = 101
@@ -49,7 +51,7 @@ local BUILTIN_LISTS = {
    }, ["ntop Host Malware Meltdown"] = {
       url = "http://blacklists.ntop.org/blacklist-hostnames.txt",
       category = CUSTOM_CATEGORY_MALWARE,
-      format = "hosts",
+      format = "domain",
       enabled = false,
       update_interval = DEFAULT_UPDATE_INTERVAL,
    }, ["Emerging Threats"] = {
@@ -343,7 +345,7 @@ local function checkListsUpdate(timeout)
       if lists_utils.shouldUpdate(list_name, list, now) then
 	 local temp_fname = getListCacheFile(list_name, true)
 
-	 traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Updating list '%s'...", list_name))
+	 traceError(trace_level, TRACE_CONSOLE, string.format("Updating list '%s'...", list_name))
 	 local started_at = os.time()
 	 local res = ntop.httpFetch(list.url, temp_fname, timeout)
 
@@ -542,7 +544,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
       return(false)
    end
 
-   traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Loading list '%s'...", list_fname))
+   traceError(trace_level, TRACE_CONSOLE, string.format("Loading '%s' [%s]...", list_name, list.format))
 
    for line in f:lines() do
       if ntop.isShutdown() then
@@ -588,6 +590,12 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
    list.status.num_hosts = num_rules
    f:close()
 
+   traceError(trace_level, TRACE_CONSOLE, string.format("\tRead '%d' rules", num_rules))
+
+   if((num_rules == 0) and (not limit_exceeded)) then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("List '%s' has 0 rules. Please report this to https://github.com/ntop/ntopng", list_name))
+   end
+
    return(limit_exceeded)
 end
 
@@ -602,11 +610,11 @@ local function reloadListsNow()
 
    if(not ntop.startCustomCategoriesReload()) then
       -- Too early, need to retry later
-      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("custom categories: too early reload"))
+      traceError(trace_level, TRACE_CONSOLE, string.format("custom categories: too early reload"))
       return(false)
    end
 
-   traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("custom categories: reloading now"))
+   traceError(trace_level, TRACE_CONSOLE, string.format("custom categories: reloading now"))
 
    -- Load hosts from cached URL lists
    for list_name, list in pairsByKeys(lists) do
@@ -634,6 +642,8 @@ local function reloadListsNow()
 	 if(limit_reached_error) then
 	    -- Set the invalid status to show it into the gui
 	    list.status.last_error = limit_reached_error
+
+	    traceError(trace_level, TRACE_CONSOLE, limit_reached_error)
 	 end
       end
    end
@@ -658,7 +668,7 @@ local function reloadListsNow()
    -- Calculate stats
    stats.duration = (os.time() - stats.begin)
 
-   traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Lists (%u hosts, %u IPs, %u JA3) loaded in %d seconds",
+   traceError(trace_level, TRACE_CONSOLE, string.format("Lists (%u hosts, %u IPs, %u JA3) loaded in %d seconds",
       stats.num_hosts, stats.num_ips, stats.num_ja3, stats.duration))
 
    -- Save the stats
