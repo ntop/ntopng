@@ -56,6 +56,8 @@ $(document).ready(function() {
     
     $("#n-sidebar a[data-toggle='collapse']").click(function() {
 
+        if (is_mobile_device())  return;
+
         if (is_collapsed && !has_open_collapsed) {
             $("#n-container, #n-navbar").toggleClass("extended");
             $("#n-sidebar, #ntop-logo").toggleClass("active");
