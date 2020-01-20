@@ -14,6 +14,10 @@ local ts_utils = require("ts_utils_core")
 
 local is_admin = isAdministrator()
 
+local collapsed_sidebar = ntop.getPref('ntopng.prefs.sidebar_collapsed')
+
+-- tprint(collapsed_sidebar)
+
 print[[
 <script type="text/javascript" src="/js/sidebar.js"></script>
 <script type='text/javascript'>
@@ -51,16 +55,16 @@ end
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
 print ([[
-      <div id='n-sidebar' class="bg-dark active py-0 px-2">
+      <div id='n-sidebar' class="bg-dark ]].. (collapsed_sidebar == "1" and '' or 'active') ..[[ py-0 px-2">
          <h3 class='muted'>
             <div class='d-flex'>
                <a href='/'>
-                  ]].. addLogoSvg() ..[[
+                  ]].. addLogoSvg(collapsed_sidebar) ..[[
                </a>              
             </div>
          </h3>
 
-	      <ul class="nav flex-column mb-4" id='sidebar'>
+	      <ul class="nav-side mb-4" id='sidebar'>
 ]])
 
 
@@ -81,7 +85,7 @@ if not is_pcap_dump then
 	      <a class="submenu ]].. (active_page == "dashboard" and 'active' or '') ..[[" data-toggle="collapse" href="#dashboard-submenu">
 	         <span class="fas fa-tachometer-alt"></span> Dashboard
          </a>
-         <div data-parent='#sidebar'  class='collapse' id='dashboard-submenu'>
+         <div data-parent='#sidebar' class='collapse' id='dashboard-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href="]].. ntop.getHttpPrefix() .. (ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua') .. [[">
@@ -216,7 +220,7 @@ if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces,
          <a  data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
             <span class='fas fa-server '></span> ]].. i18n("flows_page.hosts") ..[[
          </a>
-         <div data-parent='#sidebar' class='collapse ' id='hosts-submenu'>
+         <div data-parent='#sidebar' class='collapse' id='hosts-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href=']].. ntop.getHttpPrefix() ..[[/lua/hosts_stats.lua'>
@@ -394,7 +398,7 @@ if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
          <a class="submenu ]].. (active_page == "exporters" and 'active' or '') ..[[" data-toggle="collapse" href="#exporters-submenu">
             <span class='fas fa-file-export'></span> ]].. i18n("flow_devices.exporters") ..[[
          </a>
-         <div data-parent='#sidebar' id='exporters-submenu' class="collapse ">
+         <div data-parent='#sidebar' id='exporters-submenu' class="collapse">
             <ul class='nav flex-column'>
                ]]..
                (function()
@@ -466,7 +470,7 @@ if isAllowedSystemInterface() then
          <a  class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
             <span class='fas fa-desktop'></span> ]].. i18n("system") ..[[
          </a>
-         <div data-parent='#sidebar' class="collapse " id='system-submenu'>
+         <div data-parent='#sidebar' class="collapse" id='system-submenu'>
             <ul class='nav flex-column'>
                ]]..
                (function()
@@ -800,7 +804,7 @@ print ([[
       <a class="]].. (is_help_page and 'active' or '' ) ..[[ submenu" data-toggle="collapse" href="#help-submenu">
          <span class='fas fa-life-ring'></span> Help
       </a>   
-   <div data-parent='#sidebar' class='collapse ' id='help-submenu'>
+   <div data-parent='#sidebar' class='collapse' id='help-submenu'>
       <ul class='nav flex-column'>
 
          <li>
@@ -871,12 +875,15 @@ print([[
    
    <div class='sidebar-info'>
       <a id='collapse-sidebar' href='#' data-toggle='sidebar' class='btn-collapse'>
-        <i class='fas fa-bars'></i>  <span>Collapse</span>
+        <i class='fas fa-bars'></i>  <span>]].. (collapsed_sidebar == "1" and '' or 'Collapse') ..[[</span>
       </a>
    </div>
 
    </div>
 ]])
+
+-- end of n-sidebar
+
 
 -- select the original interface back to prevent possible issues
 interface.select(ifname)
@@ -933,7 +940,7 @@ end
 ------ NEW SIDEBAR ------
  
 print([[
-   <nav class="navbar navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
+   <nav class="navbar ]].. (collapsed_sidebar == "1" and 'extended' or '') ..[[ navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
       <button data-toggle='sidebar' class='btn d-sm-none d-md-none d-lg-none'>
         <i class='fas fa-bars'></i>
       </button>
@@ -1202,7 +1209,7 @@ print([[
    </nav>
 ]])
 
-print("<div class='p-md-4 p-xs-1 mt-5 p-sm-2' id='n-container'>")
+print([[<div class='p-md-4 p-xs-1 mt-5 p-sm-2 ]].. (collapsed_sidebar == "1" and 'extended' or '') ..[[' id='n-container'>]])
 
 
 

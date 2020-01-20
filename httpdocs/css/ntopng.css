@@ -560,7 +560,7 @@ path.link {
   -webkit-transition: all .5s;
   -o-transition: all .5s;
   transition: margin-left .5s;
-	margin-left: 14rem;
+	margin-left: 13.5rem;
 }
 
 #n-sidebar {
@@ -580,8 +580,13 @@ path.link {
   padding-right: 0 !important;
 }
 
+.nav-side {
+  padding: 0;
+  list-style: none;
+}
+
 #n-sidebar.active {
-  width: 14rem;
+  width: 13.5rem;
 }
 
 /** Dark theme for sidebar **/
@@ -755,13 +760,13 @@ path.link {
 
 #ntop-logo {
   height: 3.2rem;
-  width: 9rem;
-  margin-bottom: 1rem;
-  margin-left: 0.5rem;
+  width: 6rem;
+  margin-left: 1rem;
 }
 #ntop-logo>svg {
   width: 100%;
   height: 4rem;
+  margin-top: -4px;
 }
 
 .squared-logo {
@@ -778,8 +783,8 @@ path.link {
 } 
 
 /* disable animation to speed up the showing */
-.side-collapse.collapse, .side-collapse.collapsing {
-  transition: opacity 0.1s ease-in-out;
+#n-sidebar:not(.active) .side-collapse.collapse, #n-sidebar:not(.active) .side-collapse.collapsing {
+  transition: none;
   animation: none;
 }
 
@@ -799,9 +804,9 @@ path.link {
 }
 
 #n-navbar {
-  left: 14rem;
+  left: 13.5rem;
   z-index: 1020;
-  transition: 0.5s width;
+  transition: 0.5s left;
   box-shadow: 8px 1px 3px rgba(0,0,0,0.10), 2px 1px 2px rgba(0,0,0,0.15);
 }
 
@@ -852,6 +857,12 @@ path.link {
   overflow-y: hidden;
 }
 
+@media (min-width: 768px) and (max-width: 1024px) {
+  #n-container {
+    padding-top: 10rem !important;
+  }
+}
+
 @media (min-width: 320px) and (max-width: 480px) {
 
   #n-sidebar.active .submenu::after {
@@ -870,6 +881,8 @@ path.link {
   #n-container { 
     margin-left: 0;
     padding: 0rem 0.2rem;
+    padding-top: 16rem !important;
+
   }
   #n-container.extended { margin-left: 0; }
 
