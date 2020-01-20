@@ -30,20 +30,7 @@ $(window).ready(function() {
 
 $(window).resize(function() {   
 
-    // handle resize of submenu oustide the sidebar if it is collapsed
-    const sidebar_collapsed = !$('#n-sidebar').hasClass('active');
-    const $current_submenu = $('.side-collapse.show');
-
-    if (sidebar_collapsed && $current_submenu != undefined) {
-
-        const $submenu_parent = $current_submenu.parent().find('a');
-        if ($submenu_parent[0] == undefined) return;
-
-        const delta_menu_button = $submenu_parent[0].getBoundingClientRect().y;
-        console.log(delta_menu_button);
-        handle_submenu_height($current_submenu, delta_menu_button);
-    }
-
+    fix_current_submenu_position();
 })
 
 $(document).ready(function() {
@@ -56,10 +43,10 @@ $(document).ready(function() {
             $(this).toggleClass('active');
             
             if (!$('#n-sidebar').hasClass('active')) {
-                $(this).find('span').text('');
+                $(this).find('span').text('').hide();
             }
             else {
-                $(this).find('span').text('Collapse');
+                $(this).find('span').text('Collapse').show();
             }
             
             $(this).fadeIn(250);
@@ -94,6 +81,7 @@ $(document).ready(function() {
         }
         else {
             $(`div[id$='-submenu']`).toggleClass('side-collapse').toggleClass('fade');
+            fix_current_submenu_position();
         }
 
 
@@ -138,6 +126,22 @@ const toggle_logo_animation = () => {
     }
 }
 
+const fix_current_submenu_position = () => {
+    
+    // handle resize of submenu oustide the sidebar if it is collapsed
+    const sidebar_collapsed = !$('#n-sidebar').hasClass('active');
+    const $current_submenu = $('.side-collapse.show');
+
+    if (sidebar_collapsed && $current_submenu != undefined) {
+
+        const $submenu_parent = $current_submenu.parent().find('a');
+        if ($submenu_parent[0] == undefined) return;
+
+        const delta_menu_button = $submenu_parent[0].getBoundingClientRect().y;
+        handle_submenu_height($current_submenu, delta_menu_button);
+    }
+}
+
 const handle_submenu_height = ($submenu, delta_menu_button) => {
 
     const height_submenu = $submenu.height();
@@ -146,7 +150,6 @@ const handle_submenu_height = ($submenu, delta_menu_button) => {
     $submenu.css({ top: `${delta_menu_button}px` });
     
     const is_greater_than_page = delta_menu_button + height_submenu > $(window).height();
-    console.warn(is_greater_than_page)
 
     if ($submenu.hasClass('show') && is_greater_than_page) {
         $submenu.css({'overflow-y': `auto`,'height': `${delta_between}px`});
@@ -156,17 +159,14 @@ const handle_submenu_height = ($submenu, delta_menu_button) => {
         $submenu.css({'overflow-y': `visible`, 'height': `auto`});
         return;
     }
-
+    
+    // action to execute once the collapsible area is expanded
+    // if the sidebar menu is more tall than the page height,
+    // then apply an overflow on submenu
     $submenu.on('shown.bs.collapse', function (e) {
-        // action to execute once the collapsible area is expanded
-        // if the sidebar menu is more tall than the page height,
-        // then apply an overflow on submenu
+        
         if (is_greater_than_page) {
-            console.warn('! overflow');
-            $submenu.css({
-                'overflow-y': `auto`,
-                'height': `${delta_between}px`
-            });
+            $submenu.css({'overflow-y': `auto`,'height': `${delta_between}px`});
         }
     });
 }
@@ -181,9 +181,9 @@ const handle_collapse_info = () => {
     
     if (collapsed) {
         localStorage.setItem('sidebar-collapsed', collapsed);
+        return;
     }
-    else {
-        localStorage.removeItem('sidebar-collapsed');
-    }
+
+    localStorage.removeItem('sidebar-collapsed');
 }
 
