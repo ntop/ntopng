@@ -934,7 +934,7 @@ end
  
 print([[
    <nav class="navbar navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
-      <button data-toggle='sidebar' class='btn d-md-none d-lg-none'>
+      <button data-toggle='sidebar' class='btn d-sm-none d-md-none d-lg-none'>
         <i class='fas fa-bars'></i>
       </button>
       <ul class='navbar-nav mr-auto'>    

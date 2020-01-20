@@ -523,7 +523,7 @@ path.link {
 .filter-scripts-button.active {
   color: #ffffff;
   background-color: #007bff;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
 }
 
 .filter-scripts-button.active:hover {
@@ -583,14 +583,6 @@ path.link {
 #n-sidebar.active {
   width: 14rem;
 }
-
-#n-sidebar #toggle-theme {
-  font-size: 0.8rem;
-  color:#363943;
-  text-decoration: none;
-  display: block;
-}
-
 
 /** Dark theme for sidebar **/
 
@@ -664,7 +656,6 @@ path.link {
   color: white;
 }
 
-
 #n-sidebar.active ul {
   width: 100%;
 }
@@ -692,7 +683,7 @@ path.link {
   display: block;
   padding: 0.8rem 0rem;
   text-decoration: none; 
-  transition: padding 0.5s linear;
+  /* transition: padding 0.5s linear; */
   color:#363943;
   white-space: nowrap;
   font-size: 0.75rem;
@@ -704,7 +695,7 @@ path.link {
 
 
 #n-sidebar.active ul>li.nav-item>a {
-  padding: 0.6rem;
+  padding: 0.8rem;
   font-size: 1rem;
 }
 #n-sidebar.active ul>li.nav-item>a>span {
@@ -804,7 +795,7 @@ path.link {
 #n-navbar {
   left: 14rem;
   z-index: 1020;
-  transition: 0.5s all;
+  transition: 0.5s width;
   box-shadow: 8px 1px 3px rgba(0,0,0,0.10), 2px 1px 2px rgba(0,0,0,0.15);
 }
 
@@ -851,8 +842,15 @@ path.link {
   background: transparent;
 }
 
+.no-scroll {
+  overflow-y: hidden;
+}
 
 @media (min-width: 320px) and (max-width: 480px) {
+
+  #n-sidebar.active .submenu::after {
+    display: none;
+  }
 
   #n-navbar {
     left: 0rem;
@@ -870,6 +868,10 @@ path.link {
   #n-container.extended { margin-left: 0; }
 
   #n-sidebar.active { width: 0; }
+  #n-sidebar { 
+    height: 100vh;
+    width: 100%;
+  }
 
   #n-sidebar > h3.muted {
     display: none;
@@ -885,10 +887,10 @@ path.link {
 
   #n-sidebar ul li {
     width: 100%;
-    padding: 0.6rem;
+    padding: 0.8rem;
     font-size: 1.05rem;
     text-align: left;
-    transition: all 0.5s;
+    transition: background 0.5s;
   }
 
   #n-sidebar ul li:hover>a, #n-sidebar ul li:active>a {
@@ -916,22 +918,17 @@ path.link {
 
   #n-sidebar ul li.nav-item {
     padding: 0.8rem;
-    transition: all 0.5s;
+    transition: background-color 0.5s;
   }
 
-  #n-sidebar ul li.nav-item:hover,  #n-sidebar ul li.nav-item:focus  {
+  #n-sidebar ul li.nav-item:hover,
+  #n-sidebar ul li.nav-item:focus  {
     background-color: #ededed;
   }
 
-  #n-sidebar ul li.nav-item:hover > a,  #n-sidebar ul li.nav-item:focus > a {
+  #n-sidebar ul li.nav-item:hover > a,
+  #n-sidebar ul li.nav-item:focus > a {
     background: none;
   }
 
 }
-
-/* Medium devices (tablets, 768px and up) */
-
-
-/* Large devices (desktops, 992px and up) */
-
-/* Extra large devices (large desktops, 1200px and up) */

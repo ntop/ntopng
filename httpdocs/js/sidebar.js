@@ -1,6 +1,7 @@
 $(window).ready(function() {
     
     const sidebar_dark = localStorage.getItem('sidebar-dark');
+
     if (sidebar_dark) {
         $('#n-sidebar').removeClass('bg-light').addClass('bg-dark');
     }
@@ -17,6 +18,7 @@ $(window).ready(function() {
             $("#n-container, #n-navbar").addClass("extended")
             $('#ntop-logo-t,#ntop-logo-o,#ntop-logo-p').hide();
             $(`div[id$='-submenu']`).toggleClass('side-collapse').toggleClass('fade');
+            $('#collapse-sidebar').find('span').text('');
         }
         else {
             $("#n-sidebar").addClass('active');
@@ -26,22 +28,11 @@ $(window).ready(function() {
     
 })
 
-$(window).resize(function() {
-    
-    if (window.matchMedia('(max-width: 575.98px)').matches) {
-        if (!$('#n-sidebar').hasClass('active')) {
-            $('#n-sidebar').css('width', $(window).width());
-            $('#n-sidebar').css('height', $(window).height());
-            return;
-        }
-    }
-    
-
+$(window).resize(function() {   
 
     // handle resize of submenu oustide the sidebar if it is collapsed
     const sidebar_collapsed = !$('#n-sidebar').hasClass('active');
     const $current_submenu = $('.side-collapse.show');
-
 
     if (sidebar_collapsed && $current_submenu != undefined) {
 
@@ -64,7 +55,7 @@ $(document).ready(function() {
             
             $(this).toggleClass('active');
             
-            if ($(this).hasClass('active')) {
+            if (!$('#n-sidebar').hasClass('active')) {
                 $(this).find('span').text('');
             }
             else {
@@ -91,37 +82,20 @@ $(document).ready(function() {
     
     $("[data-toggle='sidebar']").click(function(){
         
-        
         $("#n-container, #n-navbar").toggleClass("extended");
         $("#n-sidebar, #ntop-logo").toggleClass("active");
         
         // handle locale storage for collapsing
-        const collapsed = !$('#n-sidebar').hasClass('active');
+        handle_collapse_info();
         
-        if (collapsed) {
-            localStorage.setItem('sidebar-collapsed', collapsed);
+        // disable overflow when the sidebar is open in mobile device
+        if (is_mobile_device()) {
+            $('html,body').toggleClass('no-scroll');
         }
         else {
-            localStorage.removeItem('sidebar-collapsed');
-        }
-        
-        if (!window.matchMedia('(max-width: 575.98px)').matches) {
             $(`div[id$='-submenu']`).toggleClass('side-collapse').toggleClass('fade');
         }
-        else {
-            
-            if (!$('#n-sidebar').hasClass('active')) {
-                
-                $('#n-sidebar').css('width', $(window).width());
-                $('#n-sidebar').css('height', $(window).height());
-                $('html, body').css('overflow', 'hidden');
-            }
-            else {
-                
-                $('#n-sidebar').css('width', 0);
-                $('html, body').css('overflow', '');
-            }
-        }
+
 
         toggle_logo_animation();
         
@@ -195,5 +169,21 @@ const handle_submenu_height = ($submenu, delta_menu_button) => {
             });
         }
     });
+}
+
+const is_mobile_device = () => {
+    return window.matchMedia('(min-width: 320px) and (max-width: 480px) ').matches;
+}
+
+const handle_collapse_info = () => {
+
+    const collapsed = !$('#n-sidebar').hasClass('active');
+    
+    if (collapsed) {
+        localStorage.setItem('sidebar-collapsed', collapsed);
+    }
+    else {
+        localStorage.removeItem('sidebar-collapsed');
+    }
 }
 
