@@ -417,7 +417,9 @@ function flow.setStatus(status_id, flow_score, cli_score, srv_score)
          predominant_status = new_status
       end
 
-      score_utils.updateScore(flow, status_id, status_json, new_status, flow_score, cli_score, srv_score)
+      if score_utils then
+        score_utils.updateScore(flow, status_id, status_json, new_status, flow_score, cli_score, srv_score)
+      end
    end
 
    return(changed)
