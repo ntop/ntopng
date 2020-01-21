@@ -77,7 +77,7 @@ $(document).ready(function() {
                                 </div>`
                     }
                     else if (type == "display" && row.id == 0) {
-                        return `${i18n.default}`;
+                        return `<i>${i18n.default}</i>`;
                     }
 
                     // return targets as a string
