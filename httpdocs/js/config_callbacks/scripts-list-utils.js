@@ -111,7 +111,7 @@ const generate_input_box = (input_settings, has_container = true) => {
 
    if (has_container) {
       const $input_container = $(`<div class='form-row mb-2'></div>`);
-      return $input_container.append($(`<div class='col-2'></div>`).append($input_box, $(`<div class='invalid-feedback'></div>`)));
+      return $input_container.append($(`<div class='col-2'></div>`).append($input_box));
    }
 
    return $input_box;
@@ -207,7 +207,7 @@ const get_unit_bytes = (bytes) => {
    if (bytes < 1048576 || bytes == undefined || bytes == null) {
       return ["KB", bytes / 1024];
    }
-   else if (bytes >= 1048576 && bytes <= 1073741824) {
+   else if (bytes >= 1048576 && bytes < 1073741824) {
       return ["MB", bytes / 1048576];
    }
    else {
@@ -216,6 +216,21 @@ const get_unit_bytes = (bytes) => {
 
 };
 
+/* ******************************************************* */
+
+const get_unit_times = (seconds) => {
+
+   if (seconds < 3600 || seconds == undefined || seconds == null) {
+      return ["Minutes", seconds / 60];
+   }
+   else if (seconds >= 3600 && seconds < 86400) {
+      return ["Hours", seconds / 3600];
+   }
+   else if (seconds >= 86400) {
+      return ["Days", seconds / 86400];
+   }
+
+};
 
 /* ******************************************************* */
 
@@ -434,37 +449,11 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
          let threshold = parseInt($input_box.val());
 
-         const max_threshold = parseInt($input_box.attr('max'));
-         const min_threshold = parseInt($input_box.attr('min'));
-
          // hide before errors
          $error_label.hide();
          
          // remove class error
          $input_box.removeClass('is-invalid');
-
-         // if operator is empty then alert the user
-         if (enabled && (operator == "" || operator == undefined || operator == null)) {
-            $error_label.text(i18n.select_operator).show();
-            $input_box.addClass('is-invalid');
-            error = true;
-            return;
-         }
-
-         if (threshold > max_threshold || threshold < min_threshold) {
-            $error_label.text("Input not valid!").show();
-            $input_box.addClass('is-invalid');
-            error = true;
-            return;
-         }
-
-         // if the value is empty then alert the user (only for checked granularities)
-         if (enabled && (threshold == null || threshold == undefined || threshold == "" || isNaN(threshold))) {
-            $error_label.text(i18n.empty_input_box).show();
-            $input_box.addClass('is-invalid');
-            error = true;
-            return;
-         }
 
          // save data into dictonary
          data[id] = {
@@ -647,36 +636,38 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
    const render_template = () => {
 
       const enabled = hooks.all.enabled;
-      const granularity = hooks.all.script_conf.granularity;
-      const items_list = hooks.all.script_conf.items;
-
-      const current_value = hooks.all.current_value;
+      const items_list = hooks.all.script_conf.items || []; 
+      const current_value = hooks.all.script_conf.min_duration || 60;
+      const times_unit = get_unit_times(current_value);
 
       const input_settings = {
-         name: 'script_value',
-         current_value: 0,
-         min: 0,
-         max: 0,
+         name: 'duration_value',
+         current_value: times_unit[1],
+         min: 1,
+         max: (times_unit[0] == "Minutes" ? 60 : (times_unit[0] == "Hours" ? 24 : 365)),
          enabled: enabled,
       };
-      const $time_input_box = generate_input_box(input_settings, true, null);
 
-      const $textarea_ds = $(`
-         <div class='form-group mt-3'>
-            <label>Excluded applications and categories:</label>
-            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${items_list.join(',')}</textarea>
-            <small>Examples...</small>
-         </div>
-      `);
+      const $time_input_box = generate_input_box(input_settings);
+
+      const $textarea_ds = generate_textarea({
+         enabled: enabled,
+         value: items_list.join(','),
+         name: 'item_list',
+         label: 'Excluded applications and categories:'
+      });
 
       // time-ds stands for: time duration selection
-      const $time_radio_buttons = generate_radio_buttons(
-         'granularities', enabled, 
-         [
-            {label: 'Mins', value: 60}, {label: 'Hours', value: 3600}, {label: 'Days', value: 860400}
-         ], 
-         true, null
-      );
+      const radio_values = {
+         labels: ["Minutes", "Hours", "Days"], 
+         label: times_unit[0],
+         values: [60, 3600, 86400]
+      }
+      const $time_radio_buttons = generate_radio_buttons({
+         name: 'ds_time',
+         enabled: enabled,
+         granularity: radio_values
+      });
 
       // clamp values on radio change
       $time_radio_buttons.find(`input[type='radio']`).on('change', function() {
@@ -720,30 +711,62 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       // append elements on table
       const $input_container = $(`<td></td>`);
-      $input_container.append($time_input_box.prepend($time_radio_buttons), $textarea_ds);
+      $input_container.append(
+         $time_input_box.prepend($time_radio_buttons).prepend(
+            $(`<div class='col-7'><label><b>Flow Duration Threshold:</b></label></div>`)
+         ), 
+         $textarea_ds
+      );
 
+      // initialize table row
       const $container = $(`<tr></tr>`).append(
          $(`<td class='text-center'></td>`).append($checkbox_enabled),
          $input_container
       );
 
-      $table_editor.append(`<tr class='text-center'><th>Enabled</th></tr>`)
+      $table_editor.append(`
+         <tr class='text-center'>
+            <th>${i18n.enabled}</th>
+         </tr>
+      `);
+
       $table_editor.append($container);
+
    }
 
    const apply_event = (event) => {
 
       const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
-      const textarea_value = $(`textarea[name='items_list']`).val();
+      const hook_enabled = $('#ds-checkbox').prop('checked');
       
-      let $error_label = null;
+      let $error_label = $(`textarea[name='item_list']`).parent().find('.invalid-feedback');
+      $error_label.fadeOut();
 
-      // TODO: data logic
+      const textarea_value = $(`textarea[name='item_list']`).removeClass('is-invalid').val().trim();
+
+      // check if textarea contains special characters
+      if (textarea_value != "" && special_char_regexp.test(textarea_value)) {
+         $error_label.fadeIn().text(`${i18n.items_list_comma}`);
+         $(`textarea[name='item_list']`).addClass('is-invalid');
+         return;
+      }
+
+      // if the textarea has valid content then
+      // glue the strings into in array
+      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
+
+      // get the bytes_unit
+      const times_unit = $(`input[name='ds_time']:checked`).val();
+      const min_duration_input = $(`input[name='duration_value']`).val();
+
+      const parsed_duration = parseInt(min_duration_input);
+
       const template_data = {
          all: {
-            enabled: $(`#ds-checkbox`).prop('checked'),
+            enabled: hook_enabled,
             script_conf: {
-               
+               items: items_list,
+               min_duration: parseInt(times_unit) * parsed_duration,
             }
          }
       }
@@ -852,6 +875,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
                $textarea_bytes.find('textarea').attr("readonly", "");
                return;
             }
+
             $input_box_r2l.find(`input`).removeAttr("readonly", "");
             $input_box_l2r.find(`input`).removeAttr("readonly", "");
             $radio_button_l2r.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
@@ -1016,7 +1040,7 @@ const initScriptConfModal = (script_key, script_title) => {
       template.render();
 
       // bind on_apply event on apply button
-      $("#btn-apply").off("click").on('click', template.apply_click_event);
+      $("#edit-form").off("submit").on('submit', template.apply_click_event);
       $("#btn-reset").off("click").on('click', template.reset_click_event);
 
       // bind are you sure to form
