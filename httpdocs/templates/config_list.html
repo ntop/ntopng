@@ -13,15 +13,13 @@
                 </ol>
             </nav>
             <ul class="nav nav-pills">
-                <li class='nav-item pt-2 pb-2 pr-1'>Script Subdirs:</li>
+                <li class='nav-item pt-2 pb-2 pr-1'>{{ i18n('config_scripts.config_entities') }}:</li>
                 {% for _, hooks_subdir in ipairs(config_list.user_scripts.listSubdirs()) do %}
-        
                         <li class="nav-item">
                             <a class="nav-link {{ (hooks_subdir.id == config_list.subdir and 'active' or '') }}" href="?subdir={{hooks_subdir.id}}">
                                 {{hooks_subdir.label}}
                             </a>
                         </li>
-    
                 {% end %}
             </ul>
             <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
