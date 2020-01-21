@@ -854,13 +854,18 @@ else
 
       print("<td>")
       if(flow["protos.tls.server_names"] ~= nil) then
-	 local servers = string.split(flow["protos.tls.server_names"], "%,")
+	 local servers = string.split(flow["protos.tls.server_names"], ",") or {flow["protos.tls.server_names"]}
+
 	 print(i18n("flow_details.tls_server_names")..":<br>")
-	 for _,server in pairs(servers) do
-	    if(starts(server, '*')) then
-		  print("<li>"..server.."\n")
+	 for i, server in ipairs(servers) do
+	    if i > 1 then
+	       print("<br>")
+	    end
+
+	    if starts(server, '*') then
+	       print(server)
 	    else
-	       print("<li><A HREF=\"http://"..server.."\">"..server.."</A> <i class=\"fas fa-external-link-alt\"></i>\n")
+	       print("<A HREF=\"http://"..server.."\">"..server.."</A> <i class=\"fas fa-external-link-alt\"></i>")
 	    end
 	 end
 
