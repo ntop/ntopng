@@ -22,7 +22,7 @@ local script = {
 
 function script.hooks.periodicUpdate(now)
    if flow.isNotPurged() then
-      flow.triggerStatus(flow_consts.status_types.status_not_purged.status_id)
+      flow.triggerStatus(flow_consts.status_types.status_not_purged)
    end
 end
 

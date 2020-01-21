@@ -102,12 +102,12 @@ function script.hooks.protocolDetected(now, config)
   -- Check if the server port is not in the configured exclusion list
   if not config["exclude_ports"][flow_info["srv.port"]] then
     -- Set an invalid status on the flow and trigger the corresponding alert
-    flow.triggerStatus(flow_consts.status_types.status_example.status_id, {
+    flow.triggerStatus(flow_consts.status_types.status_example, {
       bad_port = flow_info["srv.port"]
     }, 60--[[ flow score]], 50--[[ cli score ]], 10--[[ srv score ]])
   else
     -- A previosly set status can be cleared
-    -- flow.clearStatus(flow_consts.status_types.status_example.status_id)
+    -- flow.clearStatus(flow_consts.status_types.status_example)
   end
 end
 

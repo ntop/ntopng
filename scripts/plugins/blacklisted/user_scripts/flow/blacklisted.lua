@@ -32,7 +32,7 @@ function script.hooks.protocolDetected(now)
          srv_score = 10
       end
 
-      flow.triggerStatus(flow_consts.status_types.status_blacklisted.status_id, info,
+      flow.triggerStatus(flow_consts.status_types.status_blacklisted, info,
          flow_score, cli_score, srv_score)
    end
 end

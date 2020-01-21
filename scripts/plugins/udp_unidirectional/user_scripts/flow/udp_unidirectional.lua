@@ -32,11 +32,11 @@ function script.hooks.all(now)
          -- TODO some UDP protocols are inherently unidirectional (e.g. Netflow/sflow)
          -- they should be excluded
 
-         flow.setStatus(flow_consts.status_types.status_udp_unidirectional.status_id,
+         flow.setStatus(flow_consts.status_types.status_udp_unidirectional,
             5--[[ flow score]], 5--[[ cli score ]], 1--[[ srv score ]])
       end
    else
-      flow.clearStatus(flow_consts.status_types.status_udp_unidirectional.status_id)
+      flow.clearStatus(flow_consts.status_types.status_udp_unidirectional)
    end
 end
 

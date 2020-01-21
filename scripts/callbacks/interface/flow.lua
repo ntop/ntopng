@@ -388,7 +388,8 @@ end
 -- @brief This provides an API that flow user_scripts can call in order to
 -- set a flow status bit. The status_json of the predominant status is
 -- saved for later use.
-function flow.triggerStatus(status_id, status_json, flow_score, cli_score, srv_score, custom_severity)
+function flow.triggerStatus(flow_status_type, status_json, flow_score, cli_score, srv_score, custom_severity)
+   local status_id = flow_status_type.status_id
    local new_status = flow_consts.getStatusInfo(status_id)
 
    if not alerted_status or new_status.prio > alerted_status.prio then
@@ -399,13 +400,14 @@ function flow.triggerStatus(status_id, status_json, flow_score, cli_score, srv_s
       alerted_user_script = cur_user_script
    end
 
-   flow.setStatus(status_id, flow_score, cli_score, srv_score)
+   flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
 end
 
 -- #################################################################
 
 -- NOTE: overrides the C flow.setStatus (now saved in c_flow_set_status)
-function flow.setStatus(status_id, flow_score, cli_score, srv_score)
+function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
+   local status_id = flow_status_type.status_id
    local changed = c_flow_set_status(status_id)
 
    if changed then
@@ -428,7 +430,9 @@ end
 -- #################################################################
 
 -- NOTE: overrides the C flow.clearStatus (now saved in c_flow_clear_status)
-function flow.clearStatus(status_id)
+function flow.clearStatus(flow_status_type)
+   local status_id = flow_status_type.status_id
+
    if c_flow_clear_status(status_id) then
       -- The status has actually changed
       if predominant_status.id == status_id then
