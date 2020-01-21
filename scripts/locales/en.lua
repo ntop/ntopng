@@ -325,6 +325,7 @@ local lang = {
     ["client_and_server_countries_blacklisted"] = "Client country %{cli_country} and server country %{srv_country} are blacklisted",
     ["client_country_blacklisted"] = "Client country %{country} is blacklisted",
     ["connection_issues"] = "Connection Issues",
+    ["internal_issues"] = "Internal Issues",
     ["custom_period"] = "Custom Period",
     ["device_connection"] = "Device Connection",
     ["device_disconnection"] = "Device Disconnection",
