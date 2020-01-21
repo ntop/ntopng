@@ -125,11 +125,11 @@ end
 print [[</button>
   <ul class="dropdown-menu ">
 ]]
-print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=5000" >5 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=10000" >10 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=30000" >30 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=60000" >1 '..i18n("index_page.minute")..'</a></li>\n')
-print('<li class="nav-item" style="text-align: left;"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=0" >'..i18n("index_page.never")..'</a></li>\n')
+print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=5000" >5 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=10000" >10 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=30000" >30 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=60000" >1 '..i18n("index_page.minute")..'</a></li>\n')
+print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=0" >'..i18n("index_page.never")..'</a></li>\n')
 print [[
   </ul>
 </div><!-- /btn-group -->
@@ -146,7 +146,7 @@ else
   print [[
          &nbsp;]] print(i18n("index_page.refresh")) print[[:  <div class="btn-group btn-small">
           <button id="topflow_graph_refresh" class="btn btn-secondary btn-xs">
-            <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print [[" class="glyphicon glyphicon-refresh"></i></button>
+            <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print [[" class="fas fa-sync"></i></button>
           </div>
   ]]
   end

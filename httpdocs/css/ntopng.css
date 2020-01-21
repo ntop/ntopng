@@ -541,7 +541,35 @@ path.link {
   height: 2rem;
 }
 
-.responsive-dropdown {
-  height: 16rem;
+.scrollable-dropdown {
+  max-height: 16rem;
+  height: auto;
   overflow-y: auto;
+}
+
+.chips-container {
+  display: block;
+  width: 100%;
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+}
+.chips-container > input[type='text'] {
+  border: none;
+  outline: none;
+  display: inline-block;
+  width: auto;
+  min-width: 100%;
+}
+.chips-container > input[type='text']:focus {
+  border: none !important;
+  outline: none !important;
+}
+.input-group.template input.form-control {
+  border-top-right-radius: .25rem !important;
+  border-bottom-right-radius: .25rem !important;
 }

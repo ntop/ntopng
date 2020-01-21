@@ -203,7 +203,7 @@ end
 
 print [[",
          showPagination: true,
-         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
+         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" id="flow_dropdown">]]
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows_page.all_proto")..'</a></li>')
 for key, value in pairsByKeys(stats["ndpi"], asc) do

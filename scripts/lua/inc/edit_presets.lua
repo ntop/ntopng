@@ -301,7 +301,7 @@ local function printDeviceProtocolsPage()
    -- 'Filter Policies' button
    print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
          i18n("nedge.filter_policies") .. ternary(not isEmptyString(policy_filter), '<span class="fas fa-filter"></span>', '') ..
-         '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+         '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 
    -- 'Filter Policies' dropdown menu
    local entries = { {text=i18n("all"), id=""} }

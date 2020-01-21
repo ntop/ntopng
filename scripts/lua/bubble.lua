@@ -173,7 +173,7 @@ print [[
 	 <div class="dropdown">
 	 <button class="btn btn-light dropdown-toggle" type="button" data-toggle="dropdown">Visualization
 	 <span class="caret"></span></button>
-	 <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+	 <ul class="dropdown-menu scrollable-dropdown" role="menu" aria-labelledby="menu1">
 	 ]]
 
 for i,v in pairs(modes) do

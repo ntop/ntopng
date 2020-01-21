@@ -45,9 +45,11 @@
 
 {% else %}
     
-        <div class='form-group'>
+        <div class='form-group' data-chips='addresses'>
             <label for='input-applied'>{{i18n("config_scripts.type_targets", {}) }}:</label>
-            <input type='text' id='applied-input' class='form-control'/>
+            <div class="chips-container">
+                <input type='text' id='applied-input' autocomplete="no"/>
+            </div>
             <small>{{i18n("config_scripts.type_targets_example", {}) }}</small>
             <div class="invalid-feedback" id='apply-error'>
             </div>
