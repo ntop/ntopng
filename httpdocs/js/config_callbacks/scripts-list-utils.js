@@ -1,5 +1,14 @@
 // 2020 - ntop.org
 
+String.prototype.titleCase = function () {
+
+   return this.toLowerCase().split(' ').map(function(word) {
+
+     return word.replace(word[0], word[0].toUpperCase());
+   }).join(' ');
+
+ }
+
 /* ******************************************************* */
 
 const reloadPageAfterPOST = () => {
@@ -287,6 +296,27 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
    const $table_editor = $("#script-config-editor");
 
+   const render_select_operator = (operators, key, hook) => {
+
+      const $select = $(`
+      <select 
+         name='${key}-select'
+         ${hook.enabled ? '' : 'disabled'} 
+         class='btn btn-outline-secondary'></select>
+      `);
+
+      operators.forEach((op) => {
+         $select.append($(`<option selected value="${op}">&${op}</option>`));
+      });
+
+      // select the right operator
+      if (hook.script_conf.operator != undefined) {
+         $select.val(hook.script_conf.operator)
+      }
+
+      return $select;
+   }
+
    const render_template = () => {
 
       const { field_operator, fields_unit, field_min, field_max } = gui;
@@ -302,29 +332,17 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
          // get hook
          const hook = hooks[key];
-
-         // enable readonly in inputboxes and selects if enabled field is false
-         const $select = $(`
-               <select 
-                  name='${key}-select'
-                  ${hook.enabled ? '' : 'disabled'} 
-                  class='btn btn-outline-secondary'></select>
-            `);
-
-         // select the right operator
-         if (hook.script_conf.operator != undefined) {
-            $select.val(hook.script_conf.operator)
+         
+         let $select = null;
+         if (field_operator == undefined) {
+            $select = render_select_operator(operators, key, hook);
+         }
+         else {
+            $select = $(`<span class='input-group-text'>&${field_operator}</span>`).data('value', field_operator);
          }
 
-         operators.forEach((op) => {
-            /* If a field_operator is set, only show that operator */
-            if ((!field_operator) || (field_operator == op)) {
-               $select.append($(`<option value="${op}">&${op}</option>`))
-            }
-         });
-
-         const $field = $(`<div class='input-group template w-75'></div>`);
-         $field.append(`<div class='input-group-prepend'></div>`).html($select);
+         const $field = $(`<div class='input-group template w-50'></div>`);
+         $field.append($(`<div class='input-group-prepend'></div>`).append($select));
          $field.append(`<input 
                            type='number'
                            class='form-control'
@@ -334,7 +352,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
                            value='${hook.script_conf.threshold == undefined ? '' : hook.script_conf.threshold}'
                            min='${field_min == undefined ? '' : field_min}' 
                            max='${field_max == undefined ? '' : field_max}'>`);
-         $field.append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit ? fields_unit : ""}</span>`);
+         $field.append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit ? fields_unit.titleCase() : ""}</span>`);
          $field.append(`<div class='invalid-feedback'></div>`);
 
          const $input_container = $(`<tr id='${key}'></tr>`);
@@ -359,7 +377,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          // append label and checkbox inside the row
          $input_container.append(
             $(`<td class='text-center'></td>`).append($checkbox),
-            $(`<td>${hook.label}</td>`),
+            $(`<td>${hook.label.titleCase()}</td>`),
             $(`<td></td>`).append($field)
          );
 
@@ -406,7 +424,12 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          const $template = $(this).find(".template");
          const $error_label = $template.find(`.invalid-feedback`);
 
-         const operator = $template.find("select").val();
+         let operator = $template.find("select").val();
+         // if operator is undefined it means there isn't any select, so take the value from span
+         if (operator == undefined) {
+            operator = $template.find('span.input-group-text').data('value');
+         }
+
          const $input_box = $template.find("input");
 
          let threshold = parseInt($input_box.val());
@@ -422,7 +445,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
          // if operator is empty then alert the user
          if (enabled && (operator == "" || operator == undefined || operator == null)) {
-
             $error_label.text(i18n.select_operator).show();
             $input_box.addClass('is-invalid');
             error = true;
@@ -437,8 +459,9 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          }
 
          // if the value is empty then alert the user (only for checked granularities)
-         if (enabled && (threshold == null || threshold == undefined || threshold == "")) {
+         if (enabled && (threshold == null || threshold == undefined || threshold == "" || isNaN(threshold))) {
             $error_label.text(i18n.empty_input_box).show();
+            $input_box.addClass('is-invalid');
             error = true;
             return;
          }
@@ -1140,7 +1163,7 @@ $(document).ready(function() {
                return data;
 
             },
-            width: '16%'
+            width: '17%'
          },
          {
             data: 'enabled_hooks',
