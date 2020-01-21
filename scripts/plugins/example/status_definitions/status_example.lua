@@ -11,7 +11,6 @@ local alert_consts = require("alert_consts")
 -- #################################################################
 
 -- @brief This function is called each time this status should be formatted
--- @param status the status_id
 -- @param flowstatus_info: the data passed in flow.triggerStatus by
 -- the triggering user_script (user_scripts/flow/example.lua in this plugin).
 -- @return a descriptive string of the flow status

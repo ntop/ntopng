@@ -130,6 +130,7 @@ class NetworkInterface : public AlertableEntity {
   bool is_dynamic_interface, show_dynamic_interface_traffic;
   bool is_traffic_mirrored, is_loopback;
   bool discard_probing_traffic;
+  bool flows_only_interface; /* Only allocates flows for the interface (e.g., no hosts, ases, etc) */
   ProtoStats discardedProbingStats;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
@@ -434,11 +435,13 @@ class NetworkInterface : public AlertableEntity {
   inline bool isTrafficMirrored()           const { return is_traffic_mirrored;            };
   inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };
   inline bool discardProbingTraffic()       const { return discard_probing_traffic;        };
+  inline bool flowsOnlyInterface()          const { return flows_only_interface;           };
   void updateTrafficMirrored();
   void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();
   void updateLbdIdentifier();
   void updateDiscardProbingTraffic();
+  void updateFlowsOnlyInterface();
   bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
@@ -816,7 +819,7 @@ class NetworkInterface : public AlertableEntity {
   void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value, std::set<int> *entity_excludes);
   void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity, std::set<int> *entity_excludes);
   inline void incNumDroppedFlowScriptsCalls()             { num_dropped_flow_scripts_calls++; }
-  void runMinFlowsTasks();
+  void computeHostsScore();
 
   /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
   AlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);

@@ -67,14 +67,14 @@ local function snmp_device_run_user_scripts(snmp_device)
       system = device["system"],
    }
 
-   local device_conf = user_scripts.getHostTargetConfigset(configsets, "snmp_device", device_ip)
+   local device_conf, confset_id = user_scripts.getHostTargetConfigset(configsets, "snmp_device", device_ip)
 
    -- Run callback for each device
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDevice"] or {}) do
       local script = all_modules[mod_key]
       local conf = user_scripts.getTargetHookConfig(device_conf, script)
 
-      hook_fn(device_ip, info, conf)
+      alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, info, conf)
    end
 
    -- Run callback for each interface
@@ -95,7 +95,7 @@ local function snmp_device_run_user_scripts(snmp_device)
 	 if(do_call) then
 	    local iface_entity = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
 
-	    hook_fn(device_ip, snmp_interface_index, table.merge(snmp_interface, {
+	    alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
 	       granularity = granularity,
 	       alert_entity = iface_entity,
 	       user_script = script,

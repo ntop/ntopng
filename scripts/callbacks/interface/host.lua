@@ -28,6 +28,7 @@ local confisets = nil
 local ifid = nil
 local ts_enabled = nil
 local host_entity = alert_consts.alert_entities.host.entity_id
+local confset_id = nil
 
 -- #################################################################
 
@@ -104,7 +105,7 @@ function runScripts(granularity)
   benchmark_end()
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
-  local host_conf = user_scripts.getHostTargetConfigset(configsets, "host", host_ip.ip)
+  local host_conf, confset_id = user_scripts.getHostTargetConfigset(configsets, "host", host_ip.ip)
   local when = os.time()
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
@@ -113,7 +114,7 @@ function runScripts(granularity)
 
     if(conf.enabled) then
       if((not user_script.is_alert) or (not suppressed_alerts)) then
-        hook_fn({
+        alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
            granularity = granularity,
            alert_entity = entity_info,
            entity_info = host_ip,

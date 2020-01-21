@@ -1,7 +1,29 @@
+// 2020 - ntop.org
+
+/* ******************************************************* */
+
+const reloadPageAfterPOST = () => {
+   if(location.href.indexOf("user_script=") > 0) {
+      /* Remove the "user_script" _GET parameter */
+      location.href = page_url + location.hash;
+   } else {
+      /* The URL is still the same as before, need to force a reload */
+      location.reload();
+   }
+}
+
+/* ******************************************************* */
+
+const hasConfigDialog = (item) => {
+   return !(item.all_hooks.length > 0 && item.input_handler == undefined);
+}
+
+/* ******************************************************* */
+
 /**
   *  This function return true if the status code is different from 200
   */
-const check_status_code = (status_code, status_text, $error_label) => {
+ const check_status_code = (status_code, status_text, $error_label) => {
 
    const is_different = status_code != 200;
 
@@ -14,6 +36,8 @@ const check_status_code = (status_code, status_text, $error_label) => {
 
    return is_different;
 }
+
+/* ******************************************************* */
 
 /**
  * This function select the correct tab for script filtering 
@@ -40,6 +64,187 @@ const select_script_filter = (enabled_count) => {
       $(`#all-scripts`).addClass("active").trigger("click");
    }
 }
+
+/* ******************************************************* */
+
+// Templates and template builder
+
+const generate_checkbox_enabled = (id, enabled, callback) => {
+
+   const $checkbox_enabled = $(`
+      <input 
+         id='${id}'
+         name='enabled' 
+         type="checkbox" 
+         ${enabled ? "checked" : ""} />
+   `);
+
+   // bind check event on checkboxes
+   $checkbox_enabled.change(callback);
+
+   return $checkbox_enabled;
+}
+
+/* ******************************************************* */
+
+const generate_input_box = (input_settings, has_container, change_callback) => {
+   
+   const $input_box = $(`<input type='number' name='${input_settings.name}' class='form-control' />`);
+
+   // set attributes and values
+   if (input_settings.max != undefined) $input_box.attr("max", input_settings.max);
+   if (input_settings.min != undefined) $input_box.attr("min", input_settings.min);
+   if (input_settings.current_value != undefined) $input_box.val(input_settings.current_value);
+
+   if (input_settings.enabled != undefined && !input_settings.enabled) {
+      $input_box.attr("readonly", "");
+   }
+
+   if (has_container) {
+      const $input_container = $(`<div class='form-row'></div>`);
+      return $input_container.append($(`<div class='col-2'></div>`).append($input_box, $(`<div class='invalid-feedback'></div>`)));
+   }
+
+   return $input_box;
+}
+
+/* ******************************************************* */
+
+const generate_radio_buttons = (params, settings, has_container) => {
+
+   const active_first_button = params.granularity == settings[0].label;
+   const active_second_button = params.granularity == settings[1].label;
+   const active_third_button = params.granularity == settings[2].label;
+
+   const $radio_buttons = $(`
+      <div class="btn-group float-right btn-group-toggle" data-toggle="buttons">
+         <label 
+            class="btn ${active_first_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
+            <input 
+               ${params.enabled ? '' : 'disabled'}
+               ${active_first_button ? 'checked' : ''}
+               id='first-radio'
+               value="${settings[0].value}"
+               type="radio"
+               name="${params.name}"> ${settings[0].label}
+         </label>
+         <label 
+            class="btn ${active_second_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
+            <input 
+               ${params.enabled ? '' : 'disabled'}
+               ${active_second_button ? 'checked' : ''}
+               id='second-radio'
+               value="${settings[1].value}"
+               type="radio" 
+               name="${params.name}"> ${settings[1].label}
+         </label>
+         <label 
+            class="btn ${active_third_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
+            <input 
+               ${params.enabled ? '' : 'disabled'} 
+               ${active_third_button ? 'checked' : ''}
+               id='third-radio'
+               value="${settings[2].value}" 
+               type="radio" 
+               name="${params.name}"> ${settings[2].label}
+         </label>
+      </div>
+   `);
+
+   $radio_buttons.find(`input[type='radio']`).on('click', function(e) {
+
+      // remove active class from every button
+      $radio_buttons.find('label').removeClass('active').removeClass('btn-primary').addClass('btn-secondary');
+      // remove checked from buttons
+      $radio_buttons.find('input').removeAttr('checked');
+
+      // add active class and btn-primary to the new one
+      $(this).prop('checked', '').parent().addClass('active btn-primary').removeClass('btn-secondary');
+   });
+
+   if (has_container) {
+
+      const $radio_container = $(`<div class='col-10'></div>`);
+      return $radio_container.append($radio_buttons);
+   }
+
+   return $radio_buttons;
+}
+
+/* ******************************************************* */
+
+const apply_edits_script = (template_data, script_subdir, script_key) => {
+
+   const $apply_btn = $('#btn-apply');
+   const $error_label = $("#apply-error");
+
+   // remove dirty class from form
+   $('#edit-form').removeClass('dirty')
+   $apply_btn.attr('disabled', '');
+
+   $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
+      script_subdir: script_subdir,
+      script_key: script_key,
+      csrf: csrf_edit_config,
+      JSON: JSON.stringify(template_data),
+      confset_id: confset_id
+   })
+   .done((d, status, xhr) => {
+
+         if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+
+         if (!d.success) {
+
+            $error_label.text(d.error).show();
+            // update token
+            csrf_edit_config = d.csrf;
+            // re enable button
+            $apply_btn.removeAttr('disabled');
+         }
+
+         // if the operation was successfull then reload the page
+         if (d.success) reloadPageAfterPOST();
+      })
+   .fail(({ status, statusText }) => {
+
+      check_status_code(status, statusText, $error_label);
+
+      if (status == 200) {
+         $error_label.text(`${i18n.expired_csrf}`).show();
+      }
+
+      $apply_btn.removeAttr('disabled');
+   });
+}
+
+const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
+
+   const $error_label = $('#apply-error');
+
+   $.get(`${http_prefix}/lua/get_user_script_config.lua`, {
+      script_subdir: script_subdir,
+      script_key: script_key
+   })
+   .done((reset_data, status, xhr) => {
+
+      // if there is an error about the http request
+      if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+
+      // call callback function to reset fields
+      callback_reset(reset_data);
+
+      // add dirty class to form
+      $('#edit-form').addClass('dirty');
+   })
+   .fail(({ status, statusText }) => {
+
+      check_status_code(status, statusText, $error_label);
+      // hide modal if there is error
+      $("#modal-script").modal("toggle");
+   })
+}
+
+/* ******************************************************* */
 
 const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
@@ -86,6 +291,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          $field.append(`<input 
                            type='number'
                            class='form-control'
+                           required
                            name='${key}-input'
                            ${hook.enabled ? '' : 'readonly'}
                            value='${hook.script_conf.threshold == undefined ? '' : hook.script_conf.threshold}'
@@ -104,7 +310,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
             // if the checked option is false the disable the elements
             if (!checked) {
-               $field.find(`input[type='number']`).attr("readonly", "").val('');
+               $field.find(`input[type='number']`).attr("readonly", "");
                $select.attr("disabled", "");
                return;
             }
@@ -149,7 +355,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
    const apply_event = (event) => {
 
-      const $button = $(this);
       // prepare request to save config
       const data = {};
       // variable for checking errors
@@ -165,15 +370,31 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          const $error_label = $template.find(`.invalid-feedback`);
 
          const operator = $template.find("select").val();
-         const threshold = $template.find("input").val();
+         const $input_box = $template.find("input");
+
+         let threshold = parseInt($input_box.val());
+
+         const max_threshold = parseInt($input_box.attr('max'));
+         const min_threshold = parseInt($input_box.attr('min'));
 
          // hide before errors
          $error_label.hide();
+         
+         // remove class error
+         $input_box.removeClass('is-invalid');
 
          // if operator is empty then alert the user
          if (enabled && (operator == "" || operator == undefined || operator == null)) {
 
             $error_label.text(i18n.select_operator).show();
+            $input_box.addClass('is-invalid');
+            error = true;
+            return;
+         }
+
+         if (threshold > max_threshold || threshold < min_threshold) {
+            $error_label.text("Input not valid!").show();
+            $input_box.addClass('is-invalid');
             error = true;
             return;
          }
@@ -195,56 +416,15 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          }
       });
 
-      // get error label from modal
-      const $error_label = $("#apply-error");
-
       // check if there are any errors on input values
       if (error) return;
-      // remove dirty class from form
-      $('#edit-form').removeClass('dirty')
-      // disable button
-      $button.attr("disabled", "");
 
-      // make post request with data
-      $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
-         script_subdir: script_subdir,
-         script_key: script_key,
-         csrf: csrf_edit_config,
-         JSON: JSON.stringify(data),
-         confset_id: confset_id
-      })
-      .done((d, status, xhr) => {
-
-         if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
-
-         if (!d.success) {
-
-            $error_label.text(d.error).show();
-            // update token
-            csrf_edit_config = d.csrf;
-         }
-
-         // if the operation was successfull then reload the page
-         if (d.success) location.reload();
-      })
-      .fail(({ status, statusText }) => {
-
-         check_status_code(status, statusText, $error_label);
-         // hide modal if there is error
-         // $("#modal-script").modal("toggle");
-      })
-
-
+      apply_edits_script(data, script_subdir, script_key);
    };
 
    const reset_event = (event) => {
 
-      // get default values for config
-      $.get(`${http_prefix}/lua/get_user_script_config.lua`, {
-         script_subdir: script_subdir,
-         script_key: script_key
-      })
-      .done((data, status, xhr) => {
+      reset_script_defaults(script_key, script_subdir, (data) => {
 
          const { hooks } = data;
 
@@ -274,16 +454,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
             $(`select[name='${key}-select']`).val(granularity.script_conf.operator);
 
          }
-
-         // remove dirty class from form
-         $('#edit-form').removeClass('dirty')
-      })
-      .fail(({ status, statusText }) => {
-
-         check_status_code(status, statusText, null);
-         // hide modal if there is error
-         $("#modal-script").modal("toggle");
-      })
+      });
 
    }
 
@@ -294,6 +465,8 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
    }
 }
 
+/* ******************************************************* */
+
 const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
    const $table_editor = $("#script-config-editor");
@@ -301,13 +474,22 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
    const render_template = () => {
 
       const $component_container = $(`<tr></tr>`);
-      const $checkbox_enabled = $(`
-         <input 
-            id='itemslist-checkbox'
-            name='enabled' 
-            type="checkbox" 
-            ${hooks.all.enabled ? "checked" : ""} />
-      `);
+      const callback_checkbox = function(e) {
+
+         const checked = $(this).prop('checked');
+
+         // if the checked option is false the disable the elements
+         if (!checked) {
+            $text_area.find(`#itemslist-textarea`).attr("readonly", "");
+            return;
+         }
+
+         $text_area.find(`#itemslist-textarea`).removeAttr("readonly", "");
+      };
+
+      const $checkbox_enabled = generate_checkbox_enabled(
+         'itemslist-checkbox', hooks.all.enabled, callback_checkbox
+      );
 
       const items_list = hooks.all.script_conf.items;
       const $text_area = $(`
@@ -325,20 +507,6 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
          </td>
       `);
 
-      // bind check event on checkboxes
-      $checkbox_enabled.change(function (e) {
-
-         const checked = $(this).prop('checked');
-
-         // if the checked option is false the disable the elements
-         if (!checked) {
-            $text_area.find(`#itemslist-textarea`).attr("readonly", "").val('');
-            return;
-         }
-
-         $text_area.find(`#itemslist-textarea`).removeAttr("readonly", "");
-      });
-
       $component_container.append($(`<td class='text-center'></td>`).append($checkbox_enabled), $text_area);
 
       $table_editor.empty();
@@ -355,19 +523,16 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       let $error_label = $('#itemslist-textarea').parent().find('.invalid-feedback');
       $error_label.fadeOut();
 
-      const textarea_value = $('#itemslist-textarea').val();
-
-      // if the textarea value is not valid then alert the user
-      if (hook_enabled && (textarea_value == undefined || textarea_value == null || textarea_value == '')) {
-         $error_label.fadeIn().text(i18n.empty_input_box);
-         return;
-      } 
+      const textarea_value = $('#itemslist-textarea').val().trim();
 
       // if the textarea value contains special characters such as #, @, ... then alert the user
       if (special_char_regexp.test(textarea_value)) {
          $error_label.fadeIn().text(`${i18n.items_list_comma}`);
          return;
       }
+
+      // hide label
+      $error_label.hide();
 
       const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
 
@@ -380,67 +545,17 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
          } 
       };
 
-      const $apply_btn = $('#btn-apply');
-
-      // hide label
-      $error_label.hide();
-      $error_label = $("#apply-error");
-
-      // remove dirty class from form
-      $('#edit-form').removeClass('dirty')
-      $apply_btn.attr('disabled', '');
-
-      $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
-         script_subdir: script_subdir,
-         script_key: script_key,
-         csrf: csrf_edit_config,
-         JSON: JSON.stringify(template_data),
-         confset_id: confset_id
-      })
-      .done((d, status, xhr) => {
-
-         if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
-
-         if (!d.success) {
-
-            $error_label.text(d.error).show();
-            // update token
-            csrf_edit_config = d.csrf;
-            // re enable button
-            $apply_btn.removeAttr('disabled');
-         }
-
-         // if the operation was successfull then reload the page
-         if (d.success) location.reload();
-      })
-      .fail(({ status, statusText }) => {
-
-         check_status_code(status, statusText, $error_label);
-
-         if (status == 200) {
-            $error_label.text(`${i18n.expired_csrf}`).show();
-         }
-
-         $apply_btn.removeAttr('disabled');
-      });
+      // make post request to save edits
+      apply_edits_script(template_data, script_subdir, script_key);
 
    }
 
    const reset_event = (event) => {
 
-      const $error_label = $('#apply-error');
+      reset_script_defaults(script_key, script_subdir, (reset_data) => {
 
-      $.get(`${http_prefix}/lua/get_user_script_config.lua`, {
-         script_subdir: script_subdir,
-         script_key: script_key
-      })
-      .done((data, status, xhr) => {
-
-         // if there is an error about the http request
-         if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
-
-         const items_list = data.hooks.all.script_conf.items;
-         const enabled = data.hooks.all.enabled;
+         const items_list = reset_data.hooks.all.script_conf.items;
+         const enabled = reset_data.hooks.all.enabled;
 
          // set textarea value with default's one
          $('#itemslist-textarea').val(items_list.join(','));
@@ -451,15 +566,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
             $('#itemslist-textarea').attr('readonly', '');
          }
 
-         // add dirty class to form
-         $('#edit-form').addClass('dirty');
-      })
-      .fail(({ status, statusText }) => {
-
-         check_status_code(status, statusText, $error_label);
-         // hide modal if there is error
-         $("#modal-script").modal("toggle");
-      })
+      });
 
    }
 
@@ -470,6 +577,302 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
    }
 }
 
+/* ******************************************************* */
+
+const LongLived = (gui, hooks, script_subdir, script_key) => {
+
+   const $table_editor = $("#script-config-editor");
+   $("#script-config-editor").empty();
+   
+   const render_template = () => {
+
+      const enabled = hooks.all.enabled;
+      const granularity = hooks.all.script_conf.granularity;
+      const items_list = hooks.all.script_conf.items;
+
+      const current_value = hooks.all.current_value;
+
+      const input_settings = {
+         name: 'script_value',
+         current_value: 0,
+         min: 0,
+         max: 0,
+         enabled: enabled,
+      };
+      const $time_input_box = generate_input_box(input_settings, true, null);
+
+      const $textarea_ds = $(`
+         <div class='form-group mt-3'>
+            <label>Excluded applications and categories:</label>
+            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${items_list.join(',')}</textarea>
+            <small>Examples...</small>
+         </div>
+      `);
+
+      // time-ds stands for: time duration selection
+      const $time_radio_buttons = generate_radio_buttons(
+         'granularities', enabled, 
+         [
+            {label: 'Mins', value: 60}, {label: 'Hours', value: 3600}, {label: 'Days', value: 860400}
+         ], 
+         true, null
+      );
+
+      // clamp values on radio change
+      $time_radio_buttons.find(`input[type='radio']`).on('change', function() {
+
+         const time_selected = $(this).val();
+     
+         // set min/max bounds to input box
+         if (time_selected == 60) {
+            $time_input_box.find('input').attr("max", 60);
+         }
+         else if (time_selected == 3600) {
+            $time_input_box.find('input').attr("max", 24);
+         }
+         else {
+            $time_input_box.find('input').attr("max", 365);
+         }
+
+      });
+
+      const callback_checkbox = function (e) {
+
+         const checked = $(this).prop('checked');
+
+         // if the checked option is false the disable the elements
+         if (!checked) {
+            $time_input_box.find(`input[name='script_value']`).attr("readonly", "").val('');
+            $time_radio_buttons.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
+            $textarea_ds.find('textarea').attr("readonly", "");
+            return;
+         }
+
+         $time_input_box.find(`input[name='script_value']`).removeAttr("readonly");
+         $time_radio_buttons.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
+         $textarea_ds.find('textarea').removeAttr("readonly");
+
+      };
+
+      const $checkbox_enabled = generate_checkbox_enabled(
+         'ds-checkbox', hooks.all.enabled, callback_checkbox
+      );
+
+      // append elements on table
+      const $input_container = $(`<td></td>`);
+      $input_container.append($time_input_box.prepend($time_radio_buttons), $textarea_ds);
+
+      const $container = $(`<tr></tr>`).append(
+         $(`<td class='text-center'></td>`).append($checkbox_enabled),
+         $input_container
+      );
+
+      $table_editor.append(`<tr class='text-center'><th>Enabled</th></tr>`)
+      $table_editor.append($container);
+   }
+
+   const apply_event = (event) => {
+
+      const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
+      const textarea_value = $(`textarea[name='items_list']`).val();
+      
+      let $error_label = null;
+
+      // TODO: data logic
+      const template_data = {
+         all: {
+            enabled: $(`#ds-checkbox`).prop('checked'),
+            script_conf: {
+               
+            }
+         }
+      }
+
+      // make post request to save data
+      apply_edits_script(template_data, script_subdir, script_key);
+
+   }
+
+   const reset_event = (event) => {
+
+      reset_script_defaults(script_key, script_subdir, (data_reset) => {
+         // TODO: reset button logic
+
+      });
+   }
+
+   return {
+      apply_click_event: apply_event,
+      reset_click_event: reset_event,
+      render: render_template,
+   }
+}
+
+/* ******************************************************* */
+
+const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
+
+   const $table_editor = $("#script-config-editor");
+   $("#script-config-editor").empty();
+
+   const render_template = () => {
+
+      const enabled = hooks.all.enabled;
+      const l2r_bytes_unit = hooks.all.script_conf.l2r_bytes_unit || "KB"; // TODO compute by using l2r_bytes_value
+      const r2l_bytes_unit = hooks.all.script_conf.r2l_bytes_unit || "KB"; // TODO compute by using r2l_bytes_value
+      const items_list = hooks.all.script_conf.items || [];
+      const l2r_bytes_value = hooks.all.l2r_bytes_value; // TODO divide by unit
+      const r2l_bytes_value = hooks.all.r2l_bytes_value; // TODO divide by unit
+
+      const input_settings = {
+         min: 1,
+         current_value: bytes_value,
+         name: 'script_value',
+         enabled: enabled
+      };
+      const $bytes_input_box = generate_input_box(input_settings, true, null);
+
+      const $textarea_bytes = $(`
+         <div class='form-group mt-3'>
+            <label>Excluded applications and categories:</label>
+            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${items_list.join(',')}</textarea>
+            <small>Examples...</small>
+            <div class="invalid-feedback"></div>
+         </div>
+      `);
+
+      const radio_values = [
+         {label: 'KB', value: 1024},
+         {label: 'MB', value: 1048576},
+         {label: 'GB', value: 1073741824}
+      ];
+      const $bytes_radio_buttons = generate_radio_buttons(
+         {
+            name: 'bytes', 
+            enabled: enabled,
+            granularity: bytes_unit
+         },
+         radio_values, true
+      );
+
+      const callback_checkbox = function (e) {
+
+         const checked = $(this).prop('checked');
+
+         // if the checked option is false the disable the elements
+         if (!checked) {
+            $bytes_input_box.find(`input[name='script_value']`).attr("readonly", "").val('');
+            $bytes_radio_buttons.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
+            $textarea_bytes.find('textarea').attr("readonly", "");
+            return;
+         }
+
+         $bytes_input_box.find(`input[name='script_value']`).removeAttr("readonly");
+         $bytes_radio_buttons.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
+         $textarea_bytes.find('textarea').removeAttr("readonly");
+      };
+
+      const $checkbox_enabled = generate_checkbox_enabled(
+         'elephant-flows-checkbox', enabled, callback_checkbox
+      );
+
+      // append elements on table
+      const $input_container = $(`<td></td>`);
+      $input_container.append($bytes_input_box.prepend($bytes_radio_buttons), $textarea_bytes);
+
+      const $container = $(`<tr></tr>`).append(
+         $(`<td class='text-center'></td>`).append($checkbox_enabled),
+         $input_container
+      );
+
+      $table_editor.append(`<tr class='text-center'><th>Enabled</th></tr>`)
+      $table_editor.append($container);
+
+   }
+
+   const apply_event = (event) => {
+
+      const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
+      const hook_enabled = $('#elephant-flows-checkbox').prop('checked');
+      
+      let $error_label = $(`textarea[name='items_list']`).parent().find('.invalid-feedback');
+      $error_label.fadeOut();
+
+      const textarea_value = $(`textarea[name='items_list']`).val().trim();
+
+      // check if textarea contains special characters
+      if (textarea_value != "" && special_char_regexp.test(textarea_value)) {
+         $error_label.fadeIn().text(`${i18n.items_list_comma}`);
+         return;
+      }
+
+      // if the textarea has valid content then
+      // glue the strings into in array
+      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
+
+      // get the bytes_unit
+      const bytes_value = $(`input[name='bytes']`).val();
+      const input_value = $(`input[name='script_value']`).val();
+
+      $error_label = $(`input[name='script_value']`).parent().find('.invalid-feedback');
+      $error_label.fadeOut();
+
+      if (input_value == undefined || input_value == null || input_value == "") {
+         $error_label.fadeIn().text(`${i18n.empty_input_box}`);
+         return;
+      }
+
+      const template_data = {
+         all: {
+            enabled: hook_enabled,
+            script_conf: {
+               items: items_list,
+               bytes_value: parseInt(input_value) * parseInt(bytes_value),
+            }
+         }
+      }
+
+      apply_edits_script(template_data, script_subdir, script_key);
+
+   }
+
+   const reset_event = (event) => {
+
+      reset_script_defaults(script_key, script_subdir, (reset_data) => {
+
+         const items_list = reset_data.hooks.all.script_conf.items;
+         const script_value = reset_data.hooks.all.script_conf.script_value;
+
+         const enabled = reset_data.hooks.all.enabled;
+
+         // set textarea value with default's one
+         $(`textarea[name='items_list']`).val(items_list.join(','));
+         $('#elephant-flows-checkbox').prop('checked', enabled);
+
+         // turn on readonly to textarea if enabled is false
+         if (!enabled) {
+            $('#itemslist-textarea').attr('readonly', '');
+         }
+
+         $(`input[name='script_value']`).val(script_value);
+
+         // remove classes and set default inside radio button
+         $(`input[name='bytes']`).removeAttr('checked').parent().removeClass('btn-primary');
+         console.log($(`input[name='bytes']`));
+
+      });
+
+   }
+
+   return {
+      apply_click_event: apply_event,
+      reset_click_event: reset_event,
+      render: render_template,
+   }
+}
+
+/* ******************************************************* */
+
 const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_key = null) => {
    return {
       apply_click_event: function() {},
@@ -478,6 +881,60 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
    }
 }
 
+/* ******************************************************* */
+
+// get script key and script name
+   
+
+const initScriptConfModal = (script_key, script_title) => {
+   // change title to modal
+   $("#script-name").html(`<b>${script_title}</b>`);
+
+   $("#modal-script form").off('submit');
+   $("#modal-script").on("submit", "form", function (e) {
+       e.preventDefault();
+
+       $('#edit-form').trigger('reinitialize.areYouSure').removeClass('dirty');
+       $("#btn-apply").trigger("click");
+   });
+
+   $.get(`${http_prefix}/lua/get_user_script_config.lua`, 
+      {
+         script_subdir: script_subdir,
+         confset_id: confset_id,
+         script_key: script_key
+      }
+   )
+   .then((data, status, xhr) => {
+
+      // check status code
+      if (check_status_code(xhr.status, xhr.statusText, null)) return;
+
+      // hide previous error
+      $("#apply-error").hide();
+
+      const template = TemplateBuilder(data, script_subdir, script_key);
+      
+      // render template
+      template.render();
+
+      // bind on_apply event on apply button
+      $("#btn-apply").off("click").on('click', template.apply_click_event);
+      $("#btn-reset").off("click").on('click', template.reset_click_event);
+
+      // bind are you sure to form
+      $('#edit-form').trigger('rescan.areYouSure').trigger('reinitialize.areYouSure');
+    })
+   .fail(({status, statusText}) => {
+
+      check_status_code(status, statusText, null);
+      // hide modal if there is error
+      $("#modal-script").modal("toggle");
+   })
+}
+
+/* ******************************************************* */
+
 const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    // get template name
@@ -485,7 +942,9 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    const templates = {
       threshold_cross: ThresholdCross(gui, hooks, script_subdir, script_key),
-      items_list: ItemsList(gui, hooks, script_subdir, script_key)
+      items_list: ItemsList(gui, hooks, script_subdir, script_key),
+      long_lived: LongLived(gui, hooks, script_subdir, script_key),
+      elephant_flows: ElephantFlows(gui, hooks, script_subdir, script_key)
    }
 
    const template_chosen = templates[template_name];
@@ -497,6 +956,10 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    return template_chosen;
 }
+
+/* ******************************************************* */
+
+// End templates and template builder
 
 $(document).ready(function() {
 
@@ -537,7 +1000,20 @@ $(document).ready(function() {
          $all_button.html(`${i18n.all} (${enabled_count + disabled_count})`)
          $enabled_button.html(`${i18n.enabled} (${enabled_count})`);
          $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
-         
+
+         if(script_key_filter) {
+            var elem = json.filter((x) => { return(x.key == script_key_filter); })[0];
+
+            if(elem) {
+               var title = elem.title;
+               this.DataTable().search(title).draw();
+
+               if(hasConfigDialog(elem)) {
+                  initScriptConfModal(script_key_filter, title);
+                  $("#modal-script").modal("show");
+               }
+            }
+         }
       },
       order: [[0, "asc"]],
       buttons: [
@@ -579,10 +1055,10 @@ $(document).ready(function() {
 
                if (type == "display") {
                   return `<span 
-                           ${data.length > 64 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
+                           ${data.length >= 64 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
                            title="${row.title}"
                            data-content="${data}" >
-                              ${data.substr(0, 64)}${data.length > 64 ? '...' : ''}
+                              ${data.substr(0, 64)}${data.length >= 64 ? '...' : ''}
                            </span>`;
                }
 
@@ -617,7 +1093,7 @@ $(document).ready(function() {
             },
             createdCell: function (td, cellData, row, rowIndex, col) {
 
-               if (row.all_hooks.length > 0 && row.input_handler == undefined) {
+               if (!hasConfigDialog(row)) {
 
                   const $toggle_buttons = $(`
                      <div class="btn-group btn-group-toggle" data-toggle="buttons">
@@ -667,7 +1143,7 @@ $(document).ready(function() {
                               csrf_toggle_buttons = d.csrf;
                            }
 
-                           if (d.success) location.reload();
+                           if (d.success) reloadPageAfterPOST();
 
                      })
                      .fail(({ status, statusText }) => {
@@ -752,59 +1228,11 @@ $(document).ready(function() {
 
    // load templates for the script
    $('#scripts-config').on('click', 'a[data-target="#modal-script"]', function(e) {
-
-      // get script key and script name
       const row_data = $script_table.row($(this).parent()).data();
       const script_key = row_data.key;
       const script_title = row_data.title;
 
-      // change title to modal
-      $("#script-name").html(`<b>${script_title}</b>`);
-
-      $("#modal-script form").off('submit');
-      $("#modal-script").on("submit", "form", function (e) {
-          e.preventDefault();
-
-          $('#edit-form').trigger('reinitialize.areYouSure').removeClass('dirty');
-          $("#btn-apply").trigger("click");
-      });
-
-      $.get(`${http_prefix}/lua/get_user_script_config.lua`, 
-         {
-            script_subdir: script_subdir,
-            confset_id: confset_id,
-            script_key: script_key
-         }
-      )
-      .then((data, status, xhr) => {
-
-         // check status code
-         if (check_status_code(xhr.status, xhr.statusText, null)) return;
-
-         // hide previous error
-         $("#apply-error").hide();
-
-         const template = TemplateBuilder(data, script_subdir, script_key);
-         
-         // render template
-         template.render();
-
-         // bind on_apply event on apply button
-         $("#btn-apply").off("click").click(template.apply_click_event);
-         $("#btn-reset").off("click").click(template.reset_click_event);
-
-         // bind are you sure to form
-         $('#edit-form').trigger('rescan.areYouSure').trigger('reinitialize.areYouSure');
-
-
-       })
-      .fail(({status, statusText}) => {
-
-         check_status_code(status, statusText, null);
-         // hide modal if there is error
-         $("#modal-script").modal("toggle");
-      })
-
+      initScriptConfModal(script_key, script_title);
    });
 
    /**

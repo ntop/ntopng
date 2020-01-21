@@ -89,7 +89,7 @@ $(document).ready(function() {
                 className: 'text-center',
                 render: function(data, type, row) {
                     let rv = `
-                                <a class="badge badge-info" href='edit_configset.lua?confset_id=${data.id}&confset_name=${data.name}&subdir=${subdir}' title='${i18n.edit}'>
+                                <a class="badge badge-info" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
                                     ${i18n.edit}
                                 </a>`
                     if(can_clone_config())

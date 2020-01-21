@@ -1259,13 +1259,13 @@ static int ntop_set_host_operating_system(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_run_min_flows_tasks(lua_State* vm) {
+static int ntop_compute_hosts_score(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ntop_interface->runMinFlowsTasks();
+  ntop_interface->computeHostsScore();
 
   lua_pushnil(vm);
 
@@ -3936,6 +3936,20 @@ static int ntop_update_discard_probing_traffic(lua_State* vm) {
 
   if(ntop_interface)
     ntop_interface->updateDiscardProbingTraffic();
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+static int ntop_update_flows_only_interface(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->updateFlowsOnlyInterface();
 
   lua_pushnil(vm);
   return CONST_LUA_OK;
@@ -11155,6 +11169,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "updateLbdIdentifier",              ntop_update_lbd_identifier                   },
   { "updateHostTrafficPolicy",          ntop_update_host_traffic_policy              },
   { "updateDiscardProbingTraffic",      ntop_update_discard_probing_traffic          },
+  { "updateFlowsOnlyInterface",         ntop_update_flows_only_interface             },
   { "getEndpoint",                      ntop_get_interface_endpoint },
   { "isPacketInterface",                ntop_interface_is_packet_interface },
   { "isDiscoverableInterface",          ntop_interface_is_discoverable_interface },
@@ -11173,7 +11188,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
   { "reloadHostPrefs",                  ntop_reload_host_prefs },
   { "setHostOperatingSystem",           ntop_set_host_operating_system },
-  { "runMinFlowsTasks",                 ntop_run_min_flows_tasks },
+  { "computeHostsScore",                ntop_compute_hosts_score },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },

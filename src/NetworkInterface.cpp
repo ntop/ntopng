@@ -222,6 +222,7 @@ NetworkInterface::NetworkInterface(const char *name,
   updateFlowDumpDisabled();
   updateLbdIdentifier();
   updateDiscardProbingTraffic();
+  updateFlowsOnlyInterface();
 }
 
 /* **************************************************** */
@@ -238,6 +239,7 @@ void NetworkInterface::init() {
     is_dynamic_interface = false, show_dynamic_interface_traffic = false,
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
     discard_probing_traffic = false;
+    flows_only_interface = false;
     numSubInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -466,6 +468,12 @@ void NetworkInterface::updateLbdIdentifier() {
 
 void NetworkInterface::updateDiscardProbingTraffic() {
   discard_probing_traffic = getInterfaceBooleanPref(CONST_DISCARD_PROBING_TRAFFIC, CONST_DEFAULT_DISCARD_PROBING_TRAFFIC);
+}
+
+/* **************************************** */
+
+void NetworkInterface::updateFlowsOnlyInterface() {
+  flows_only_interface = getInterfaceBooleanPref(CONST_FLOWS_ONLY_INTERFACE, CONST_DEFAULT_FLOWS_ONLY_INTERFACE);
 }
 
 /* **************************************************** */
@@ -5970,7 +5978,9 @@ void NetworkInterface::allocateStructures() {
 
       flows_hash     = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
 
-      if(!isViewed()) { /* Do not allocate HTs when the interface is viewed, HTs are allocated in the corresponding ViewInterface */
+      if(!flowsOnlyInterface() /* Do not allocate HTs when the interface should only have flows */
+	 && !isViewed() /* Do not allocate HTs when the interface is viewed, HTs are allocated in the corresponding ViewInterface */)
+	{ 
 	num_hashes     = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
 	hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 	/* The number of ASes cannot be greater than the number of hosts */
@@ -7757,7 +7767,7 @@ struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
 
 /* *************************************** */
 
-static bool run_min_flows_tasks(GenericHashEntry *f, void *user_data, bool *matched) {
+static bool run_compute_hosts_score(GenericHashEntry *f, void *user_data, bool *matched) {
   Flow *flow = (Flow*)f;
 
   /* Update the peers score */
@@ -7769,7 +7779,7 @@ static bool run_min_flows_tasks(GenericHashEntry *f, void *user_data, bool *matc
   return(false); /* false = keep on walking */
 }
 
-void NetworkInterface::runMinFlowsTasks() {
+void NetworkInterface::computeHostsScore() {
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
@@ -7779,5 +7789,5 @@ void NetworkInterface::runMinFlowsTasks() {
     return;
 
   if(flows_hash)
-    walker(&begin_slot, walk_all, walker_flows, run_min_flows_tasks, NULL);
+    walker(&begin_slot, walk_all, walker_flows, run_compute_hosts_score, NULL);
 }

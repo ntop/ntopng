@@ -19,6 +19,7 @@ local available_modules = nil
 local ifid = nil
 local network_entity = alert_consts.alert_entities.network.entity_id
 local configsets = nil
+local confset_id = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -70,18 +71,18 @@ function runScripts(granularity)
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
       local user_script = available_modules.modules[mod_key]
-      local conf = user_scripts.getTargetHookConfig(subnet_conf, user_script, granularity)
+      local conf, confset_id = user_scripts.getTargetHookConfig(subnet_conf, user_script, granularity)
 
       if(conf.enabled) then
 	 if((not user_script.is_alert) or (not suppressed_alerts)) then
-	    hook_fn({
+	    alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
 	      granularity = granularity,
 	      alert_entity = entity_info,
 	      entity_info = info,
 	      cur_alerts = cur_alerts,
 	      alert_config = conf.script_conf,
 	      user_script = user_script,
-	   })
+	    })
 	 end
       end
    end

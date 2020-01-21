@@ -2512,6 +2512,10 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   /* Only packet-interfaces see every segment. Non-packet-interfaces
      have cumulative flags */
   bool cumulative_flags = !getInterface()->isPacketInterface();
+  /* Flags used for the analysis of the 3WH. Original flags are masked for this analysis
+     to ignore certain bits such as ECE or CWR which may be present during a valid 3WH.
+     See https://github.com/ntop/ntopng/issues/3255 */
+  u_int8_t flags_3wh = flags & TCP_3WH_MASK;
 
   iface->incFlagStats(flags, cumulative_flags);
 
@@ -2525,8 +2529,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   }
 
   /* Update syn alerts counters. In case of cumulative flags, the AND is used as possibly other flags can be present  */
-  if((!cumulative_flags && flags == TH_SYN)
-     || (cumulative_flags && (flags & TH_SYN) == TH_SYN)) {
+  if((!cumulative_flags && flags_3wh == TH_SYN)
+     || (cumulative_flags && (flags_3wh & TH_SYN) == TH_SYN)) {
     if(cli_host) cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
     if(srv_host) srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
     if(cli_network_stats) cli_network_stats->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
@@ -2534,8 +2538,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   }
 
   /* Update synack alerts counter. In case of cumulative flags, the AND is used as possibly other flags can be present */
-  if((!cumulative_flags && (flags == (TH_SYN|TH_ACK)))
-     || (cumulative_flags && ((flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))) {
+  if((!cumulative_flags && (flags_3wh == (TH_SYN|TH_ACK)))
+     || (cumulative_flags && ((flags_3wh & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))) {
     if(cli_host) cli_host->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
     if(srv_host) srv_host->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
     if(cli_network_stats) cli_network_stats->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
@@ -2566,9 +2570,9 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
     }
   } else {
     if(!twh_over) {
-      if(flags == TH_SYN) {
+      if(flags_3wh == TH_SYN) {
 	if(synTime.tv_sec == 0) memcpy(&synTime, when, sizeof(struct timeval));
-      } else if(flags == (TH_SYN|TH_ACK)) {
+      } else if(flags_3wh == (TH_SYN|TH_ACK)) {
 	if((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
 	  memcpy(&synAckTime, when, sizeof(struct timeval));
 	  timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
@@ -2578,8 +2582,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	  else if(srv_host)
 	    srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
 	}
-      } else if((flags == TH_ACK)
-		|| (flags == (TH_ACK|TH_PUSH)) /* TCP Fast Open may contain data and PSH in the final TWH ACK */
+      } else if((flags_3wh == TH_ACK)
+		|| (flags_3wh == (TH_ACK|TH_PUSH)) /* TCP Fast Open may contain data and PSH in the final TWH ACK */
 		) {
 	if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
 	  memcpy(&ackTime, when, sizeof(struct timeval));

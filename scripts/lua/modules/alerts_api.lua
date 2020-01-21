@@ -22,6 +22,8 @@ local str_2_periodicity = {
 }
 
 local known_alerts = {}
+local current_script = nil
+local current_configset_id = nil
 
 -- ##############################################
 
@@ -94,6 +96,27 @@ end
 
 -- ##############################################
 
+function alerts_api.addAlertGenerationInfo(alert_json, current_script, current_configset_id)
+  if alert_json and current_script and current_configset_id then
+    -- Add information about the script who generated this alert
+    alert_json.alert_generation = {
+      script_key = current_script.key,
+      subdir = current_script.subdir,
+      confset_id = current_configset_id,
+    }
+  else
+    -- NOTE: there are currently some internally generated alerts which
+    -- do not use the user_scripts api (e.g. the ntopng startup)
+    --tprint(debug.traceback())
+  end
+end
+
+local function addAlertGenerationInfo(alert_json)
+  alerts_api.addAlertGenerationInfo(alert_json, current_script, current_configset_id)
+end
+
+-- ##############################################
+
 --! @brief Stores a single alert (or event) into the alerts database
 --! @param entity_info data returned by one of the entity_info building functions
 --! @param type_info data returned by one of the type_info building functions
@@ -104,6 +127,10 @@ function alerts_api.store(entity_info, type_info, when)
   local ifid = interface.getId()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or -1
+
+  type_info.alert_type_params = type_info.alert_type_params or {}
+  addAlertGenerationInfo(type_info.alert_type_params)
+
   local alert_json = json.encode(type_info.alert_type_params)
   local subtype = type_info.alert_subtype or ""
   when = when or os.time()
@@ -230,6 +257,9 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   end
 
   when = when or os.time()
+
+  type_info.alert_type_params = type_info.alert_type_params or {}
+  addAlertGenerationInfo(type_info.alert_type_params)
 
   local alert_json = json.encode(type_info.alert_type_params)
   local triggered
@@ -1202,6 +1232,15 @@ function alerts_api.purgeAlertsPrefs()
   deleteCachePattern(getSuppressedSetKey("*", "*"))
   deleteCachePattern(getInterfaceHasDisabledAlertsKey("*"))
   deleteCachePattern(getHostDisabledStatusBitmapHash("*"))
+end
+
+-- ##############################################
+
+function alerts_api.invokeScriptHook(user_script, configset_id, hook_fn, p1, p2, p3)
+  current_script = user_script
+  current_configset_id = configset_id
+
+  return(hook_fn(p1, p2, p3))
 end
 
 -- ##############################################

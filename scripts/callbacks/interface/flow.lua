@@ -42,6 +42,9 @@ local alerted_custom_severity
 local predominant_status
 local recalculate_predominant_status
 local hosts_disabled_status
+local confset_id
+local alerted_user_script
+local cur_user_script
 
 -- Save them as they are overridden
 local c_flow_set_status = flow.setStatus
@@ -99,7 +102,8 @@ function setup()
 
    -- In case of viewed interfaces, the configuration retrieved is the one belonging to the
    -- view.
-   flows_config = user_scripts.getTargetConfig(configsets, "flow", (view_ifid or ifid)..'')
+   flows_config, confset_id = user_scripts.getTargetConfig(configsets, "flow", (view_ifid or ifid)..'')
+   alerted_user_script = nil
 
    -- Load the disabled hosts status. As hosts stay in the view, the correct disabled status needs to look there
    hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(view_ifid or ifid)
@@ -207,6 +211,7 @@ local function triggerFlowAlert(now, l4_proto)
       -- NOTE: porting this to C is not feasable as the lua table can contain
       -- arbitrary data
       augumentFlowStatusInfo(l4_proto, alerted_status_msg)
+      alerts_api.addAlertGenerationInfo(alerted_status_msg, alerted_user_script, confset_id)
 
       -- Need to convert to JSON
       alerted_status_msg = json.encode(alerted_status_msg)
@@ -347,6 +352,8 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       end
 
       local conf = user_scripts.getTargetHookConfig(flows_config, script)
+
+      cur_user_script = script
       hook_fn(now, conf.script_conf)
 
       ::continue::
@@ -381,7 +388,8 @@ end
 -- @brief This provides an API that flow user_scripts can call in order to
 -- set a flow status bit. The status_json of the predominant status is
 -- saved for later use.
-function flow.triggerStatus(status_id, status_json, flow_score, cli_score, srv_score, custom_severity)
+function flow.triggerStatus(flow_status_type, status_json, flow_score, cli_score, srv_score, custom_severity)
+   local status_id = flow_status_type.status_id
    local new_status = flow_consts.getStatusInfo(status_id)
 
    if not alerted_status or new_status.prio > alerted_status.prio then
@@ -389,19 +397,17 @@ function flow.triggerStatus(status_id, status_json, flow_score, cli_score, srv_s
       alerted_status = new_status
       alerted_status_msg = status_json
       alerted_custom_severity = custom_severity -- possibly nil
+      alerted_user_script = cur_user_script
    end
 
-   local is_new_status = flow.setStatus(status_id)
-
-   if(is_new_status and score_utils) then
-      score_utils.updateScore(flow, status_id, status_json, new_status, flow_score, cli_score, srv_score)
-   end
+   flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
 end
 
 -- #################################################################
 
 -- NOTE: overrides the C flow.setStatus (now saved in c_flow_set_status)
-function flow.setStatus(status_id, flow_score, cli_score, srv_score)
+function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
+   local status_id = flow_status_type.status_id
    local changed = c_flow_set_status(status_id)
 
    if changed then
@@ -412,6 +418,10 @@ function flow.setStatus(status_id, flow_score, cli_score, srv_score)
          -- The new status as an higher priority
          predominant_status = new_status
       end
+
+      if score_utils then
+        score_utils.updateScore(flow, status_id, status_json, new_status, flow_score, cli_score, srv_score)
+      end
    end
 
    return(changed)
@@ -420,7 +430,9 @@ end
 -- #################################################################
 
 -- NOTE: overrides the C flow.clearStatus (now saved in c_flow_clear_status)
-function flow.clearStatus(status_id)
+function flow.clearStatus(flow_status_type)
+   local status_id = flow_status_type.status_id
+
    if c_flow_clear_status(status_id) then
       -- The status has actually changed
       if predominant_status.id == status_id then

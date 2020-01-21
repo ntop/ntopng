@@ -79,7 +79,7 @@ function format_utils.msToTime(ms)
       if(ms < 1) then
 	 return("< 1 ms")
       else
-	 return(round(ms, 4).." ms")
+	 return(round(ms, 2).." ms")
       end
    end
 end

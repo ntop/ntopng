@@ -1,3 +1,5 @@
+.. _Category Lists:
+
 Category Lists / Blacklists
 ===========================
 

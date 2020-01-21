@@ -52,20 +52,20 @@ function plugins_utils.listPlugins()
 
     for plugin_name in pairs(ntop.readdir(source_dir)) do
       local plugin_dir = os_utils.fixPath(source_dir .. "/" .. plugin_name)
-      local plugin_info = os_utils.fixPath(plugin_dir .. "/plugin.lua")
+      local plugin_info = os_utils.fixPath(plugin_dir .. "/manifest.lua")
 
       if ntop.exists(plugin_info) then
         local metadata = dofile(plugin_info)
         local mandatory_fields = {"title", "description", "author", "version"}
 
         if(metadata == nil) then
-          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load plugin.lua in '%s'", plugin_name))
+          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load manifest.lua in '%s'", plugin_name))
           goto continue
         end
 
         for _, field in pairs(mandatory_fields) do
           if(metadata[field] == nil) then
-            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing mandatory field '%s' in plugin.lua of '%s'", field, plugin_name))
+            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing mandatory field '%s' in manifest.lua of '%s'", field, plugin_name))
             goto continue
           end
         end
@@ -87,7 +87,7 @@ function plugins_utils.listPlugins()
           rv[#rv + 1] = metadata
         end
       else
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing plugin.lua in '%s'", plugin_name))
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing manifest.lua in '%s'", plugin_name))
       end
 
       ::continue::
