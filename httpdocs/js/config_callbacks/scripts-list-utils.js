@@ -1040,6 +1040,7 @@ $(document).ready(function() {
    // initialize script table 
    const $script_table = $("#scripts-config").DataTable({
       dom: "Bfrtip",
+      autoWidth: true,
       pagingType: 'full_numbers',
       language: {
          paginate: {
@@ -1121,7 +1122,7 @@ $(document).ready(function() {
                if (type == 'display') return `<b>${data}</b>`
                return data;
             },
-            width: '15%'
+            width: '8%'
          },
          {
             data: 'description',
@@ -1139,7 +1140,7 @@ $(document).ready(function() {
                return data;
 
             },
-            width: '35%'
+            width: '16%'
          },
          {
             data: 'enabled_hooks',

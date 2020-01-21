@@ -960,7 +960,7 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifid: "]] print(ifId.."") p
   end
 
   print('<div class="dt-toolbar btn-toolbar pull-right">')
-  print('<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="direction_dropdown">')
+  print('<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="direction_dropdown">')
   print('<li><a href="'..base_url..'">All</a></li>')
   print('<li><a href="'..base_url..'&direction=sent">Sent only</a></li>')
   print('<li><a href="'..base_url..'&direction=recv">Received only</a></li>')
@@ -2178,7 +2178,7 @@ print [[
           <div class="btn-group">
             <button id="aggregation_users_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
             Traffic <span class="caret"></span></button>
-            <ul class="dropdown-menu" id="aggregation_users">
+            <ul class="dropdown-menu scrollable-dropdown" id="aggregation_users">
             <li><a>Traffic</a></li>
             <li><a>Active memory</a></li>
             <!-- <li><a>Latency</a></li> -->
@@ -2210,7 +2210,7 @@ print [[
         Aggregated by :
           <div class="btn-group">
             <button id="aggregation_processes_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Traffic <span class="caret"></span></button>
-            <ul class="dropdown-menu" id="aggregation_processes">
+            <ul class="dropdown-menu scrollable-dropdown" id="aggregation_processes">
             <li><a>Traffic</a></li>
             <li><a>Active memory</a></li>
             <!-- <li><a>Latency</a></li> -->
@@ -2243,7 +2243,7 @@ print [[
         Aggregated by :
           <div class="btn-group">
             <button id="aggregation_tree_displayed" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Traffic <span class="caret"></span></button>
-            <ul class="dropdown-menu" id="aggregation_tree">
+            <ul class="dropdown-menu scrollable-dropdown" id="aggregation_tree">
             <li><a>Traffic</a></li>
             <li><a>Active memory</a></li>
             <!-- <li><a>Latency</a></li> -->

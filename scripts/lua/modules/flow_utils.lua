@@ -1436,7 +1436,7 @@ function printL4ProtoDropdown(base_url, page_params, l4_protocols)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.l4_protocol")) print[[]] print(l4proto_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, l4proto_params_non_tcp)) print[[">]] print(i18n("flows_page.all_l4_protocols")) print[[</a></li>]]
 
     if l4_protocols then
@@ -1497,7 +1497,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print[['\
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(getParamFilter(page_params, "flowhosts_type")) print[[<span class="caret"></span></button>\
-	  <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+	  <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">\
 	     <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
        printDropdownEntries({
 	  {"local_only", i18n("flows_page.local_only")},
@@ -1517,7 +1517,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print[[, '\
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("status")) print(getParamFilter(page_params, "flow_status")) print[[<span class="caret"></span></button>\
-	  <ul class="dropdown-menu" role="menu">\
+	  <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu">\
 	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flow_status_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
        local entries = {
@@ -1562,7 +1562,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	  print[[, '\
 	   <div class="btn-group">\
 	      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.tcp_state")) print(getParamFilter(page_params, "tcp_flow_state")) print[[<span class="caret"></span></button>\
-	      <ul class="dropdown-menu" role="menu">\
+	      <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu">\
 	      <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
 	  local entries = {}
@@ -1584,7 +1584,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	print[[, '\
 	   <div class="btn-group">\
 	      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(getParamFilter(page_params, "traffic_type")) print[[<span class="caret"></span></button>\
-	      <ul class="dropdown-menu" role="menu">\
+	      <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu">\
 		 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 	printDropdownEntries({
 	      {"unicast", i18n("flows_page.non_multicast")},
@@ -1607,7 +1607,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 		print[[, '\
 	       <div class="btn-group">\
 		  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.pod")) print(getParamFilter(page_params, "pod")) print[[<span class="caret"></span></button>\
-		  <ul class="dropdown-menu" role="menu">\
+		  <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu">\
 		  ]]
 		local entries = {}
 
@@ -1635,7 +1635,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 		print[[, '\
 	       <div class="btn-group">\
 		  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.container")) print(getParamFilter(page_params, "container")) print[[<span class="caret"></span></button>\
-		  <ul class="dropdown-menu" role="menu">\
+		  <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu">\
 		  ]]
 		local entries = {}
 
@@ -1655,7 +1655,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     end
 
     -- L7 Application
-    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">')
     print('<li><a class="dropdown-item" href="')
 
     local application_filter_params = table.clone(page_params)
@@ -1678,7 +1678,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print("</ul> </div>'")
 
     -- L7 Application Category
-    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">')
     print('<li><a class="dropdown-item" href="')
     local category_filter_params = table.clone(page_params)
     category_filter_params["category"] = nil
@@ -1735,7 +1735,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
       if profiles_defined then
         -- Traffic Profiles
-        print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("traffic_profiles.traffic_profiles")..' ' .. getParamFilter(page_params, "traffic_profile") .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="flow_dropdown">')
+        print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("traffic_profiles.traffic_profiles")..' ' .. getParamFilter(page_params, "traffic_profile") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">')
         print('<li><a class="dropdown-item" href="')
         local traffic_profile_filter_params = table.clone(page_params)
         traffic_profile_filter_params["traffic_profile"] = nil

@@ -107,7 +107,7 @@ print('buttons: [')
    -- Filter MACS
    local macs_params = table.clone(page_params)
    macs_params.devices_mode = nil
-   print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a class="dropdown-item" href="')
+   print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;"><li><a class="dropdown-item" href="')
    print(getPageUrl(base_url, macs_params))
    print('">'..i18n("mac_stats.all_devices")..'</a></li>')
 
@@ -127,7 +127,7 @@ print('buttons: [')
    print[[, '\
        <div class="btn-group float-right">\
        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("mac_stats.manufacturer")) print(manufacturer_filter) print[[<span class="caret"></span></button>\
-       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
           <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, manufacturer_params)) print[[">]] print(i18n("mac_stats.all_manufacturers")) print[[</a></li>\
    ]]
 
@@ -149,7 +149,7 @@ for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_t
    print[[, '\
        <div class="btn-group float-right">\
        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("details.device_type")) print(devtype_filter) print[[<span class="caret"></span></button>\
-       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
           <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, devicetype_params)) print[[">]] print(i18n("mac_stats.all_devices")) print[[</a></li>\
    ]]
 
