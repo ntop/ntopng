@@ -28,7 +28,7 @@ The complete structure of the plugin is as follows:
 .. code:: bash
 
 	  blacklisted
-	      |-- plugin.lua
+	      |-- manifest.lua
 	      |-- user_scripts
 		  `-- flow
 		      `-- blacklisted.lua
@@ -42,7 +42,7 @@ files, placed in pre-defined sub-directories.
 
 The root directory, :code:`blacklisted`, should carry a name which is
 representative for the plugin. This directory contains other
-sub-directories and a :code:`plugin.lua` file, a sort of plugin
+sub-directories and a :code:`manifest.lua` file, a plugin
 manifest containing basic plugin information:
 
 .. code:: lua
@@ -191,7 +191,7 @@ The complete structure of the plugin is as follows:
 .. code:: bash
 
 	  flow_flood/
-	      |-- plugin.lua
+	      |-- manifest.lua
 	      |-- alert_definitions
 	      |   `-- alert_flows_flood.lua
 	      `-- user_scripts
@@ -204,7 +204,7 @@ The complete structure of the plugin is as follows:
 
 From the file system tree, it can be seen that the plugin is
 self-contained in :code:`flow_flood`, a directory which carries a name
-representative for the plugin. The :code:`plugin.lua` script, a sort
+representative for the plugin. The :code:`manifest.lua` script, a sort
 of manifest for the plugin, contains basic information and description
 
 .. code:: lua

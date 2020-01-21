@@ -17,7 +17,7 @@ The most complete example of plugin structure is the following
    |-- http_lint.lua
    |-- locales
    |   `-- en.lua
-   |-- plugin.lua
+   |-- manifest.lua
    |-- status_definitions
    |   `-- status_example.lua
    |-- user_scripts
