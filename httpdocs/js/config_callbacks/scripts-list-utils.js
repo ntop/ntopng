@@ -98,7 +98,7 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
 
 const generate_input_box = (input_settings, has_container = true) => {
    
-   const $input_box = $(`<input type='number' name='${input_settings.name}' class='form-control' />`);
+   const $input_box = $(`<input required type='number' name='${input_settings.name}' class='form-control' />`);
 
    // set attributes and values
    if (input_settings.max != undefined) $input_box.attr("max", input_settings.max);
@@ -153,7 +153,6 @@ const generate_radio_buttons = (params, has_container = true) => {
                ${params.enabled ? '' : 'disabled'}
                ${active_first_button ? 'checked' : ''}
                value='${params.granularity.values[0]}'
-               id='first-radio'
                type="radio"
                name="${params.name}"> ${params.granularity.labels[0]}
          </label>
@@ -163,7 +162,6 @@ const generate_radio_buttons = (params, has_container = true) => {
                ${params.enabled ? '' : 'disabled'}
                ${active_second_button ? 'checked' : ''}
                value='${params.granularity.values[1]}'
-               id='second-radio'
                type="radio" 
                name="${params.name}"> ${params.granularity.labels[1]}
          </label>
@@ -173,7 +171,6 @@ const generate_radio_buttons = (params, has_container = true) => {
                ${params.enabled ? '' : 'disabled'} 
                ${active_third_button ? 'checked' : ''}
                value='${params.granularity.values[2]}'
-               id='third-radio'
                type="radio" 
                name="${params.name}"> ${params.granularity.labels[2]}
          </label>
