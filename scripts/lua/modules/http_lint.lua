@@ -1246,6 +1246,7 @@ local known_parameters = {
    ["hash_table"]              = validateSingleWord,            -- An internal ntopng hash_table
    ["periodic_script"]         = validateSingleWord,            -- A script under callbacks/interface executed by ntopng
    ["user_script"]             = validateSingleWord,            -- A user script key
+   ["user_script_target"]      = validateSingleWord,            -- A user script target, e.g., Flow, Host, Interface
    ["subdir"]                  = validateSingleWord,            -- A user script subdir
    ["profile"]                 = http_lint.validateTrafficProfile,        -- Traffic Profile name
    ["delete_profile"]          = http_lint.validateTrafficProfile,        -- A Traffic Profile to delete
