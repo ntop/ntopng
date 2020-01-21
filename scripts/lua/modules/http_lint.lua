@@ -675,7 +675,7 @@ local function validateApplication(app)
    end
 end
 
-local function validateProtocolId(p)
+local function validateProtocolIdOrName(p)
    return validateChoice(ndpi_protos, p) or
       validateChoiceByKeys(L4_PROTO_KEYS, p) or
       validateChoiceByKeys(ndpi_protos, p)
@@ -800,6 +800,11 @@ local function validateCategory(cat)
    end
 
    return false
+end
+
+
+local function validateProtocolOrCategory(p)
+   return validateProtocolIdOrName(p) or validateCategory(p)
 end
 
 local function validateShapedElement(elem_id)
@@ -1024,7 +1029,49 @@ end
 
 -- #################################################################
 
+local function validateListItems(script, value)
+   local item_type = script.gui.item_list_type or ""
+   local item_validator = validateUnchecked
+   local existing_items = {}
+   local validated_items = {}
+   local conf = value.script_conf
+
+   if(item_type == "country") then
+      item_validator = validateCountry
+      err_label = "Bad country"
+   elseif(item_type == "proto_or_category") then
+      item_validator = validateProtocolOrCategory
+      err_label = "Bad protocol/category"
+   end
+
+   if(type(conf.items) == "table") then
+      for _, item in ipairs(conf.items) do
+         if existing_items[item] then
+            -- Ignore duplicated items
+            goto next_item
+         end
+
+         if not item_validator(item) then
+            return false, err_label .. ": " .. string.format("%s", item)
+         end
+
+         existing_items[item] = true
+         validated_items[#validated_items + 1] = item
+
+         ::next_item::
+      end
+
+      conf.items = validated_items
+   end
+
+   return true, value
+end
+
+-- #################################################################
+
 function http_lint.validateHookConfig(script, hook, value)
+   local rv = true
+
    if(value.enabled == nil) then
       return false, "Missing 'enabled' item"
    end
@@ -1048,39 +1095,22 @@ function http_lint.validateHookConfig(script, hook, value)
             return false, "bad threshold"
          end
       elseif(input_builder == "items_list") then
-         local item_type = script.gui.item_list_type or ""
-         local item_validator = validateUnchecked
-         local existing_items = {}
-         local validated_items = {}
-
-         if(item_type == "country") then
-            item_validator = validateCountry
+         rv, value = validateListItems(script)
+      elseif(input_builder == "elephant_flows") then
+         if(value.enabled and tonumber(conf.l2r_bytes_value) == nil) then
+            return false, "bad l2r_bytes_value value"
          end
 
-         if(type(conf.items) == "table") then
-            for _, item in ipairs(conf.items) do
-               if existing_items[item] then
-                  -- Ignore duplicated items
-                  goto next_item
-               end
-
-               if not item_validator(item) then
-                  return false, "bad " .. item_type .. ": " .. string.format("%s", item)
-               end
-
-               existing_items[item] = true
-               validated_items[#validated_items + 1] = item
-
-               ::next_item::
-            end
-
-            conf.items = validated_items
+         if(value.enabled and tonumber(conf.r2l_bytes_value) == nil) then
+            return false, "bad r2l_bytes_value value"
          end
+
+         rv, value = validateListItems(script, value)
       end
    end
 
    -- Assume valid by default
-   return true, value
+   return rv, value
 end
 
 -- #################################################################
@@ -1170,11 +1200,11 @@ local known_parameters = {
    ["breed"]                   = validateBool,                  -- True if nDPI breed should be shown
    ["ndpi_category"]           = validateBool,                  -- True if nDPI category should be shown
    ["ndpistats_mode"]          = validateNdpiStatsMode,         -- A mode for iface_ndpi_stats.lua
-   ["l4_proto_id"]             = validateProtocolId,            -- get_historical_data.lua
-   ["l7_proto_id"]             = validateProtocolId,            -- get_historical_data.lua
-   ["l4proto"]                 = validateProtocolId,            -- An nDPI application protocol ID, layer 4
-   ["l7proto"]                 = validateProtocolId,            -- An nDPI application protocol ID, layer 7
-   ["protocol"]                = validateProtocolId,            -- An nDPI application protocol ID or name
+   ["l4_proto_id"]             = validateProtocolIdOrName,            -- get_historical_data.lua
+   ["l7_proto_id"]             = validateProtocolIdOrName,            -- get_historical_data.lua
+   ["l4proto"]                 = validateProtocolIdOrName,            -- An nDPI application protocol ID, layer 4
+   ["l7proto"]                 = validateProtocolIdOrName,            -- An nDPI application protocol ID, layer 7
+   ["protocol"]                = validateProtocolIdOrName,            -- An nDPI application protocol ID or name
    ["ndpi"]                    = validateApplicationsList,      -- a list applications
    ["ndpi_new_cat_id"]         = validateNumber,                -- An ndpi category id after change
    ["ndpi_old_cat_id"]         = validateNumber,                -- An ndpi category id before change
@@ -1705,10 +1735,10 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    ["op_"]                     = { validateAlertDescriptor,   validateOperator },    -- key: an alert descriptor, value: alert operator
    ["value_"]                  = { validateAlertDescriptor,   validateAlertValue },  -- key: an alert descriptor, value: alert value
    ["slack_ch_"]               = { validateNumber, validateSingleWord },             -- slack channel name
-   ["enabled_"]                  = { validateAlertDescriptor,   validateAlertValue },  -- key: a check module key, value: alert value
+   ["enabled_"]                = { validateAlertDescriptor,   validateAlertValue },  -- key: a check module key, value: alert value
 
 -- Protocol to categories match
-   ["proto_"]                  = { validateProtocolId, validateCategory },
+   ["proto_"]                  = { validateProtocolIdOrName, validateCategory },
 
 --
    ["static_route_address_"]        = { validateStaticRouteName, validateIPV4 },

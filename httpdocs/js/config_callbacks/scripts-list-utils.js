@@ -124,11 +124,11 @@ const generate_textarea = (textarea_settings) => {
    const $textarea = $(`
          <div class='form-group mt-3'>
             <label>${textarea_settings.label}</label>
-            <textarea 
+            <textarea ${textarea_settings.class}
                ${textarea_settings.enabled ? '' : 'readonly'}
                name='${textarea_settings.name}'
+               placeholder='${textarea_settings.placeholder}'
                class='form-control'>${textarea_settings.value}</textarea>
-            <small>Examples...</small>
             <div class="invalid-feedback"></div>
          </div>
    `);
@@ -207,7 +207,7 @@ const get_unit_bytes = (bytes) => {
    if (bytes < 1048576 || bytes == undefined || bytes == null) {
       return ["KB", bytes / 1024];
    }
-   else if (bytes >= 1048576 && bytes <= 1073741824) {
+   else if (bytes >= 1048576 && bytes < 1073741824) {
       return ["MB", bytes / 1048576];
    }
    else {
@@ -790,6 +790,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       // configure local to remote input
       const input_settings_l2r = {
          min: 1,
+         max: 1023,
          current_value: l2r_unit[1],
          name: 'l2r_value',
          enabled: enabled
@@ -799,6 +800,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       // configure remote to locale input
       const input_settings_r2l = {
          min: 1,
+         max: 1023,
          current_value: r2l_unit[1],
          name: 'r2l_value',
          enabled: enabled
@@ -810,7 +812,9 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          enabled: enabled,
          value: items_list.join(','),
          name: 'item_list',
-         label: 'Excluded applications and categories:'
+         label: 'Excluded applications and categories:',
+         placeholder: 'E.g. YouTube, SocialNetwork',
+         class: 'text-right',
       });
 
       // create radio button with its own values
@@ -903,7 +907,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
       // if the textarea has valid content then
       // glue the strings into in array
-      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
+      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
 
       // get the bytes_unit
       const unit_l2r = $(`input[name='bytes_l2r']:checked`).val();
