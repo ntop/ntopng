@@ -3943,6 +3943,20 @@ static int ntop_update_discard_probing_traffic(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_update_flows_only_interface(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->updateFlowsOnlyInterface();
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_update_host_traffic_policy(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -11155,6 +11169,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "updateLbdIdentifier",              ntop_update_lbd_identifier                   },
   { "updateHostTrafficPolicy",          ntop_update_host_traffic_policy              },
   { "updateDiscardProbingTraffic",      ntop_update_discard_probing_traffic          },
+  { "updateFlowsOnlyInterface",         ntop_update_flows_only_interface             },
   { "getEndpoint",                      ntop_get_interface_endpoint },
   { "isPacketInterface",                ntop_interface_is_packet_interface },
   { "isDiscoverableInterface",          ntop_interface_is_discoverable_interface },

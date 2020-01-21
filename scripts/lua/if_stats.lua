@@ -1583,6 +1583,37 @@ elseif(page == "config") then
       </tr>]]
    end
 
+   -- Flows-Only Interface
+   if not ntop.isnEdge() and not interface.isView() and not interface.isViewed() then
+      local flows_only_interface = false
+      local flows_only_interface_checked = ""
+      local flows_only_interface_pref = string.format("ntopng.prefs.ifid_%d.flows_only_interface", ifId)
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+	 if _POST["flows_only_interface"] == "1" then
+	    flows_only_interface = true
+	    flows_only_interface_checked = "checked"
+	 end
+
+	 ntop.setPref(flows_only_interface_pref,
+		      ternary(flows_only_interface == true, '1', '0'))
+	 interface.updateDiscardProbingTraffic()
+      else
+	 flows_only_interface = ternary(ntop.getPref(flows_only_interface_pref) == '1', true, false)
+
+	 if flows_only_interface then
+	    flows_only_interface_checked = "checked"
+	 end
+      end
+
+      print [[<tr>
+	 <th>]] print(i18n("if_stats_config.flows_only_interface")) print[[</th>
+	 <td>
+      <input type="checkbox" name="flows_only_interface" value="1" ]] print(flows_only_interface_checked) print[[>
+	 </td>
+      </tr>]]
+   end
+
    -- Discard Probing Traffic
    if not ntop.isnEdge() and not interface.isPacketInterface() then
       local discard_probing_traffic = false
