@@ -71,10 +71,13 @@ $(document).ready(function() {
                         const flat = data.map((f) => f.label);
                         return flat.join(', ');
                     }
-                    else if(type == 'display' && data.length == 0 && row.id != 0) {
+                    else if (type == 'display' && data.length == 0 && row.id != 0) {
                         return `<div class='text-warning'>
                                     <i class='fas fa-exclamation-triangle'></i> <b>${i18n.warning}</b>: ${i18n.no_targets_applied}
                                 </div>`
+                    }
+                    else if (type == "display" && row.id == 0) {
+                        return `${i18n.default}`;
                     }
 
                     // return targets as a string
