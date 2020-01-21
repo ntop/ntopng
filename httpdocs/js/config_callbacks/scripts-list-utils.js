@@ -3,9 +3,13 @@
 /* ******************************************************* */
 
 const reloadPageAfterPOST = () => {
-   // NOTE: don't use location.reload as we need to clear the possibly set
-   // "user_script" GET parameter
-   location.href = page_url + location.hash;
+   if(location.href.indexOf("user_script=") > 0) {
+      /* Remove the "user_script" _GET parameter */
+      location.href = page_url + location.hash;
+   } else {
+      /* The URL is still the same as before, need to force a reload */
+      location.reload();
+   }
 }
 
 /* ******************************************************* */
