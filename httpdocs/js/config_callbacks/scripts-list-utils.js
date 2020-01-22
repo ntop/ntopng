@@ -450,7 +450,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          // append label and checkbox inside the row
          $input_container.append(
             $(`<td class='text-center'></td>`).append($checkbox),
-            $(`<td>${hook.label.titleCase()}</td>`),
+            $(`<td>${(hook.label ? hook.label.titleCase() : "")}</td>`),
             $(`<td></td>`).append($field)
          );
 
@@ -464,21 +464,37 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
       // append each hooks to the table
       $table_editor.append(`<tr><th class='text-center'>Enabled</th></tr>`)
-      
+
       if ("min" in $input_fields) {
          $table_editor.append($input_fields['min']);
+         delete $input_fields['min'];
       }
       if ("5mins" in $input_fields) {
          $table_editor.append($input_fields['5mins']);
+         delete $input_fields['5mins'];
       }
       if ("hour" in $input_fields) {
          $table_editor.append($input_fields['hour']);
+         delete $input_fields['hour'];
       }
       if ("day" in $input_fields) {
          $table_editor.append($input_fields['day']);
+         delete $input_fields['day'];
       }
 
+      var other_keys = [];
 
+      for(var key in $input_fields)
+         other_keys.push(key);
+
+      /* Guarantees the sort order */
+      other_keys.sort();
+
+      $.each(other_keys, function(idx, item) {
+         $table_editor.append($input_fields[item]);
+      });
+
+      console.log($input_fields);
    };
 
    const apply_event = (event) => {

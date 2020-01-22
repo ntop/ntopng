@@ -79,7 +79,7 @@ for hook, config in pairs(hooks_config) do
   end
 
   result.hooks[hook] = table.merge(config, {
-    label = label,
+    label = label or "",
   })
 end
 

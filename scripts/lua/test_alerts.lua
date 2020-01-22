@@ -36,7 +36,7 @@ ntop.checkSystemScriptsMin()
 --require "snmp_utils"
 --run_5min_snmp_caching(600)
 --dofile(dirs.installdir .. "/pro/scripts/callbacks/system/5min.lua")
---ntop.checkSNMPDeviceAlerts5Min()
+ntop.checkSNMPDeviceAlerts5Min()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 

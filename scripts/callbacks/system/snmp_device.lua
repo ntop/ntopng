@@ -99,7 +99,7 @@ local function snmp_device_run_user_scripts(snmp_device)
 	       granularity = granularity,
 	       alert_entity = iface_entity,
 	       user_script = script,
-	       conf = conf,
+	       conf = conf.script_conf,
 	    }))
 	 end
       end
