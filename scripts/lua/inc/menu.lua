@@ -1112,8 +1112,8 @@ if not interface.isPcapDumpInterface() then
 end
 
 print([[
-   <li class='nav-item py-2 px-3'>
-      <div class="text-center mx-sm-0 mx-xs-0 mx-md-3" 
+   <li class='nav-item p-2'>
+      <div class="text-center mx-sm-0 mx-xs-0 w-100" 
          title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div>
    </li>
 ]])
@@ -1122,7 +1122,7 @@ print([[
 -- Network Load 
 
 print([[
-   <li class='nav-item'>
+   <li class='nav-item p-2'>
       <div id="network-load"></div>
    </li>
 ]])
