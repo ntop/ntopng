@@ -59,6 +59,7 @@ let csrf_toggle_buttons = "{{ ntop.getRandomCSRFValue() }}";
 let csrf_edit_config = "{{ ntop.getRandomCSRFValue() }}";
 let script_key_filter = "{{ script_list.script_filter }}";
 let page_url = "{* script_list.page_url *}";
+let apps_and_categories = {* script_list.apps_and_categories *};
 
 i18n.are_you_sure = '{{ i18n("scripts_list.are_you_sure", {}) }}'
 i18n.all = '{{ i18n("all", {}) }}'

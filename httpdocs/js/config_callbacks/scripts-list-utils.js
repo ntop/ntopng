@@ -104,7 +104,7 @@ const generate_multi_select = (params, has_container = true) => {
    const $select = $(`<select multiple class='form-control h-16'></select>`);
 
    // add groups and items
-   params.categories.forEach((category) => {
+   params.groups.forEach((category) => {
 
       const $group = $(`<optgroup label='${category.label}'></optgroup>`);
       category.elements.forEach((element) => {
@@ -690,7 +690,6 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       const enabled = hooks.all.enabled;
       const items_list = hooks.all.script_conf.items || []; 
-      const categories = hooks.all.script_conf.categories || [];
       const current_value = hooks.all.script_conf.min_duration || 60;
       const times_unit = get_unit_times(current_value);
 
@@ -709,7 +708,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          name: 'item_list',
          label: 'Excluded applications and categories:',
          selected_values: items_list,
-         categories: categories
+         groups: apps_and_categories
       });
 
       // time-ds stands for: time duration selection
@@ -864,7 +863,6 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
       const enabled = hooks.all.enabled;
       const items_list = hooks.all.script_conf.items || []; 
-      const categories = hooks.all.script_conf.categories || [];
 
       let l2r_bytes_value = hooks.all.script_conf.l2r_bytes_value; 
       let r2l_bytes_value = hooks.all.script_conf.r2l_bytes_value; 
@@ -899,7 +897,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          name: 'item_list',
          label: 'Excluded applications and categories:',
          selected_values: items_list,
-         categories: categories
+         groups: apps_and_categories
       });
 
       // create radio button with its own values
