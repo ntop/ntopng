@@ -98,7 +98,7 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
 
 const generate_input_box = (input_settings, has_container = true) => {
    
-   const $input_box = $(`<input type='number' name='${input_settings.name}' class='form-control' />`);
+   const $input_box = $(`<input required type='number' name='${input_settings.name}' class='form-control' />`);
 
    // set attributes and values
    if (input_settings.max != undefined) $input_box.attr("max", input_settings.max);
@@ -111,7 +111,7 @@ const generate_input_box = (input_settings, has_container = true) => {
 
    if (has_container) {
       const $input_container = $(`<div class='form-row mb-2'></div>`);
-      return $input_container.append($(`<div class='col-2'></div>`).append($input_box, $(`<div class='invalid-feedback'></div>`)));
+      return $input_container.append($(`<div class='col-2'></div>`).append($input_box));
    }
 
    return $input_box;
@@ -123,12 +123,12 @@ const generate_textarea = (textarea_settings) => {
 
    const $textarea = $(`
          <div class='form-group mt-3'>
-            <label>${textarea_settings.label}</label>
+            <label class='pl-2'>${textarea_settings.label}</label>
             <textarea ${textarea_settings.class}
                ${textarea_settings.enabled ? '' : 'readonly'}
                name='${textarea_settings.name}'
                placeholder='${textarea_settings.placeholder}'
-               class='form-control'>${textarea_settings.value}</textarea>
+               class='form-control ml-2'>${textarea_settings.value}</textarea>
             <div class="invalid-feedback"></div>
          </div>
    `);
@@ -153,7 +153,6 @@ const generate_radio_buttons = (params, has_container = true) => {
                ${params.enabled ? '' : 'disabled'}
                ${active_first_button ? 'checked' : ''}
                value='${params.granularity.values[0]}'
-               id='first-radio'
                type="radio"
                name="${params.name}"> ${params.granularity.labels[0]}
          </label>
@@ -163,7 +162,6 @@ const generate_radio_buttons = (params, has_container = true) => {
                ${params.enabled ? '' : 'disabled'}
                ${active_second_button ? 'checked' : ''}
                value='${params.granularity.values[1]}'
-               id='second-radio'
                type="radio" 
                name="${params.name}"> ${params.granularity.labels[1]}
          </label>
@@ -173,7 +171,6 @@ const generate_radio_buttons = (params, has_container = true) => {
                ${params.enabled ? '' : 'disabled'} 
                ${active_third_button ? 'checked' : ''}
                value='${params.granularity.values[2]}'
-               id='third-radio'
                type="radio" 
                name="${params.name}"> ${params.granularity.labels[2]}
          </label>
@@ -202,20 +199,54 @@ const generate_radio_buttons = (params, has_container = true) => {
 
 /* ******************************************************* */
 
+const reset_radio_button = (name, value) => {
+
+   $(`input[name='${name}']`)
+      .removeAttr('checked')
+      .parent()
+      .removeClass('btn-primary')
+      .removeClass('active')
+      .addClass('btn-secondary');
+
+   $(`input[name='${name}'][value='${value}']`)
+      .attr('checked', '')
+      .parent()
+      .toggleClass('btn-secondary')
+      .toggleClass('btn-primary')
+      .toggleClass('active');
+}
+
+/* ******************************************************* */
+
 const get_unit_bytes = (bytes) => {
 
    if (bytes < 1048576 || bytes == undefined || bytes == null) {
-      return ["KB", bytes / 1024];
+      return ["KB", bytes / 1024, 1048576];
    }
    else if (bytes >= 1048576 && bytes < 1073741824) {
-      return ["MB", bytes / 1048576];
+      return ["MB", bytes / 1048576, 1048576];
    }
    else {
-      return ["GB", bytes / 1073741824];
+      return ["GB", bytes / 1073741824, 1073741824];
    }
 
 };
 
+/* ******************************************************* */
+
+const get_unit_times = (seconds) => {
+
+   if (seconds < 3600 || seconds == undefined || seconds == null) {
+      return ["Minutes", seconds / 60, 60];
+   }
+   else if (seconds >= 3600 && seconds < 86400) {
+      return ["Hours", seconds / 3600, 3600];
+   }
+   else if (seconds >= 86400) {
+      return ["Days", seconds / 86400, 86400];
+   }
+
+};
 
 /* ******************************************************* */
 
@@ -301,6 +332,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
       const $select = $(`
       <select 
          name='${key}-select'
+         required
          ${hook.enabled ? '' : 'disabled'} 
          class='btn btn-outline-secondary'></select>
       `);
@@ -412,8 +444,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
       // prepare request to save config
       const data = {};
-      // variable for checking errors
-      let error = false;
 
       // iterate over granularities
       $table_editor.find("tr[id]").each(function (index) {
@@ -434,37 +464,11 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
          let threshold = parseInt($input_box.val());
 
-         const max_threshold = parseInt($input_box.attr('max'));
-         const min_threshold = parseInt($input_box.attr('min'));
-
          // hide before errors
          $error_label.hide();
          
          // remove class error
          $input_box.removeClass('is-invalid');
-
-         // if operator is empty then alert the user
-         if (enabled && (operator == "" || operator == undefined || operator == null)) {
-            $error_label.text(i18n.select_operator).show();
-            $input_box.addClass('is-invalid');
-            error = true;
-            return;
-         }
-
-         if (threshold > max_threshold || threshold < min_threshold) {
-            $error_label.text("Input not valid!").show();
-            $input_box.addClass('is-invalid');
-            error = true;
-            return;
-         }
-
-         // if the value is empty then alert the user (only for checked granularities)
-         if (enabled && (threshold == null || threshold == undefined || threshold == "" || isNaN(threshold))) {
-            $error_label.text(i18n.empty_input_box).show();
-            $input_box.addClass('is-invalid');
-            error = true;
-            return;
-         }
 
          // save data into dictonary
          data[id] = {
@@ -475,9 +479,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
             }
          }
       });
-
-      // check if there are any errors on input values
-      if (error) return;
 
       apply_edits_script(data, script_subdir, script_key);
    };
@@ -647,36 +648,39 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
    const render_template = () => {
 
       const enabled = hooks.all.enabled;
-      const granularity = hooks.all.script_conf.granularity;
-      const items_list = hooks.all.script_conf.items;
-
-      const current_value = hooks.all.current_value;
+      const items_list = hooks.all.script_conf.items || []; 
+      const current_value = hooks.all.script_conf.min_duration || 60;
+      const times_unit = get_unit_times(current_value);
 
       const input_settings = {
-         name: 'script_value',
-         current_value: 0,
-         min: 0,
-         max: 0,
+         name: 'duration_value',
+         current_value: times_unit[1],
+         min: 1,
+         max: (times_unit[0] == "Minutes" ? 59 : (times_unit[0] == "Hours" ? 23 : 365)),
          enabled: enabled,
       };
-      const $time_input_box = generate_input_box(input_settings, true, null);
 
-      const $textarea_ds = $(`
-         <div class='form-group mt-3'>
-            <label>Excluded applications and categories:</label>
-            <textarea ${enabled ? '' : 'readonly'} name='items_list' class='form-control'>${items_list.join(',')}</textarea>
-            <small>Examples...</small>
-         </div>
-      `);
+      const $time_input_box = generate_input_box(input_settings);
+
+      const $textarea_ds = generate_textarea({
+         enabled: enabled,
+         value: items_list.join(','),
+         name: 'item_list',
+         label: 'Excluded applications and categories:',
+         placeholder: 'Examples...'
+      });
 
       // time-ds stands for: time duration selection
-      const $time_radio_buttons = generate_radio_buttons(
-         'granularities', enabled, 
-         [
-            {label: 'Mins', value: 60}, {label: 'Hours', value: 3600}, {label: 'Days', value: 860400}
-         ], 
-         true, null
-      );
+      const radio_values = {
+         labels: ["Minutes", "Hours", "Days"], 
+         label: times_unit[0],
+         values: [60, 3600, 86400]
+      }
+      const $time_radio_buttons = generate_radio_buttons({
+         name: 'ds_time',
+         enabled: enabled,
+         granularity: radio_values
+      });
 
       // clamp values on radio change
       $time_radio_buttons.find(`input[type='radio']`).on('change', function() {
@@ -685,10 +689,10 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
      
          // set min/max bounds to input box
          if (time_selected == 60) {
-            $time_input_box.find('input').attr("max", 60);
+            $time_input_box.find('input').attr("max", 59);
          }
          else if (time_selected == 3600) {
-            $time_input_box.find('input').attr("max", 24);
+            $time_input_box.find('input').attr("max", 23);
          }
          else {
             $time_input_box.find('input').attr("max", 365);
@@ -702,13 +706,13 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
          // if the checked option is false the disable the elements
          if (!checked) {
-            $time_input_box.find(`input[name='script_value']`).attr("readonly", "").val('');
+            $time_input_box.find(`input[name='duration_value']`).attr("readonly", "");
             $time_radio_buttons.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
             $textarea_ds.find('textarea').attr("readonly", "");
             return;
          }
 
-         $time_input_box.find(`input[name='script_value']`).removeAttr("readonly");
+         $time_input_box.find(`input[name='duration_value']`).removeAttr("readonly");
          $time_radio_buttons.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
          $textarea_ds.find('textarea').removeAttr("readonly");
 
@@ -720,30 +724,62 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       // append elements on table
       const $input_container = $(`<td></td>`);
-      $input_container.append($time_input_box.prepend($time_radio_buttons), $textarea_ds);
+      $input_container.append(
+         $time_input_box.prepend($time_radio_buttons).prepend(
+            $(`<div class='col-7'><label class='p-2'>Flow Duration Threshold:</label></div>`)
+         ), 
+         $textarea_ds
+      );
 
+      // initialize table row
       const $container = $(`<tr></tr>`).append(
          $(`<td class='text-center'></td>`).append($checkbox_enabled),
          $input_container
       );
 
-      $table_editor.append(`<tr class='text-center'><th>Enabled</th></tr>`)
+      $table_editor.append(`
+         <tr class='text-center'>
+            <th>${i18n.enabled}</th>
+         </tr>
+      `);
+
       $table_editor.append($container);
+
    }
 
    const apply_event = (event) => {
 
       const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
-      const textarea_value = $(`textarea[name='items_list']`).val();
+      const hook_enabled = $('#ds-checkbox').prop('checked');
       
-      let $error_label = null;
+      let $error_label = $(`textarea[name='item_list']`).parent().find('.invalid-feedback');
+      $error_label.fadeOut();
 
-      // TODO: data logic
+      const textarea_value = $(`textarea[name='item_list']`).removeClass('is-invalid').val().trim();
+
+      // check if textarea contains special characters
+      if (textarea_value != "" && special_char_regexp.test(textarea_value)) {
+         $error_label.fadeIn().text(`${i18n.items_list_comma}`);
+         $(`textarea[name='item_list']`).addClass('is-invalid');
+         return;
+      }
+
+      // if the textarea has valid content then
+      // glue the strings into in array
+      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
+
+      // get the bytes_unit
+      const times_unit = $(`input[name='ds_time']:checked`).val();
+      const min_duration_input = $(`input[name='duration_value']`).val();
+
+      const parsed_duration = parseInt(min_duration_input);
+
       const template_data = {
          all: {
-            enabled: $(`#ds-checkbox`).prop('checked'),
+            enabled: hook_enabled,
             script_conf: {
-               
+               items: items_list,
+               min_duration: parseInt(times_unit) * parsed_duration,
             }
          }
       }
@@ -756,7 +792,30 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
    const reset_event = (event) => {
 
       reset_script_defaults(script_key, script_subdir, (data_reset) => {
-         // TODO: reset button logic
+         
+         // reset textarea content
+         const textarea_content = data_reset.hooks.all.script_conf.items || [];
+         $(`textarea[name='item_list']`).val(textarea_content.join(','));
+
+         // get min_duration value
+         const min_duration = data_reset.hooks.all.script_conf.min_duration || 60;
+         const times_unit = get_unit_times(min_duration);
+         $(`input[name='duration_value']`).val(times_unit[1]);
+
+         // select the correct radio button
+         reset_radio_button('ds_time', times_unit[2]);
+
+         const enabled = data_reset.hooks.all.enabled || false;
+         $('#ds-checkbox').prop('checked', enabled);
+         
+         if (!enabled) {
+            $(`textarea[name='item_list'],input[name='duration_value']`).attr('readonly', '');
+            $(`input[name='ds_time']`).attr('disabled', '').parent().addClass('disabled');
+         }
+         else {
+            $(`textarea[name='item_list'],input[name='duration_value']`).removeAttr('readonly');
+            $(`input[name='ds_time']`).removeAttr('disabled').parent().removeClass('disabled');
+         }
 
       });
    }
@@ -856,6 +915,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
                $textarea_bytes.find('textarea').attr("readonly", "");
                return;
             }
+
             $input_box_r2l.find(`input`).removeAttr("readonly", "");
             $input_box_l2r.find(`input`).removeAttr("readonly", "");
             $radio_button_l2r.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
@@ -867,8 +927,8 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       // append elements on table
       const $input_container = $(`<td></td>`);
       $input_container.append(
-         $input_box_l2r.prepend($radio_button_l2r).prepend($(`<div class='col-7'><label><b>Elephant Flows Threshold (Local To Remote)</b></label></div>`)), 
-         $input_box_r2l.prepend($radio_button_r2l).prepend($(`<div class='col-7'><label><b>Elephant Flows Threshold (Remote To Local)</b></label></div>`)), 
+         $input_box_l2r.prepend($radio_button_l2r).prepend($(`<div class='col-7'><label class='pl-2'>Elephant Flows Threshold (Local To Remote)</label></div>`)), 
+         $input_box_r2l.prepend($radio_button_r2l).prepend($(`<div class='col-7'><label class='pl-2'>Elephant Flows Threshold (Remote To Local)</label></div>`)), 
          $textarea_bytes
       );
 
@@ -916,22 +976,6 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const input_l2r = $(`input[name='l2r_value']`).val();
       const input_r2l = $(`input[name='r2l_value']`).val();
 
-      $error_label = $(`input[name='l2r_value']`).parent().find('.invalid-feedback');
-      $error_label.fadeOut();
-
-      if (input_l2r == undefined || input_l2r == null || input_l2r == "") {
-         $error_label.fadeIn().text(`${i18n.empty_input_box}`);
-         return;
-      }
-
-      $error_label = $(`input[name='r2l_value']`).parent().find('.invalid-feedback');
-      $error_label.fadeOut();
-
-      if (input_r2l == undefined || input_r2l == null || input_r2l == "") {
-         $error_label.fadeIn().text(`${i18n.empty_input_box}`);
-         return;
-      }
-
       const template_data = {
          all: {
             enabled: hook_enabled,
@@ -949,16 +993,39 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
    const reset_event = (event) => {
 
-      reset_script_defaults(script_key, script_subdir, (reset_data) => {
+      reset_script_defaults(script_key, script_subdir, (data_reset) => {
 
-         const enabled = reset_data.hooks.all.enabled;
+         console.log(data_reset);
+         // reset textarea content
+         const textarea_content = data_reset.hooks.all.script_conf.items || [];
+         $(`textarea[name='item_list']`).val(textarea_content.join(','));
+ 
+         // get min_duration value
+         const bytes_l2r = data_reset.hooks.all.script_conf.l2r_bytes_value || 1024;
+         const bytes_r2l = data_reset.hooks.all.script_conf.r2l_bytes_value || 1024;
 
-         // set textarea value with default's one
+         const bytes_unit_l2r = get_unit_bytes(bytes_l2r);
+         const bytes_unit_r2l = get_unit_bytes(bytes_r2l);
+
+         $(`input[name='l2r_value']`).val(bytes_unit_l2r[1]);
+         $(`input[name='r2l_value']`).val(bytes_unit_r2l[1]);
+ 
+         // select the correct radio button
+         reset_radio_button('bytes_l2r', bytes_unit_l2r[2]);
+         reset_radio_button('bytes_r2l', bytes_unit_r2l[2]);
+          
+         const enabled = data_reset.hooks.all.enabled || false;
          $('#elephant-flows-checkbox').prop('checked', enabled);
-
-         // turn on readonly to textarea if enabled is false
+          
          if (!enabled) {
-            // $('#itemslist-textarea').attr('readonly', '');
+            $(`textarea[name='item_list'],input[name='l2r_value'],input[name='r2l_value']`).attr('readonly', '');
+            $(`input[name='bytes_l2r']`).attr('disabled', '').parent().addClass('disabled');
+            $(`input[name='bytes_r2l']`).attr('disabled', '').parent().addClass('disabled');
+         }
+         else {
+            $(`textarea[name='item_list'],input[name='l2r_value'],input[name='r2l_value']`).removeAttr('readonly');
+            $(`input[name='bytes_l2r']`).removeAttr('disabled').parent().removeClass('disabled');
+            $(`input[name='bytes_r2l']`).removeAttr('disabled').parent().removeClass('disabled');
          }
 
       });
@@ -1020,7 +1087,7 @@ const initScriptConfModal = (script_key, script_title) => {
       template.render();
 
       // bind on_apply event on apply button
-      $("#btn-apply").off("click").on('click', template.apply_click_event);
+      $("#edit-form").off("submit").on('submit', template.apply_click_event);
       $("#btn-reset").off("click").on('click', template.reset_click_event);
 
       // bind are you sure to form
@@ -1048,7 +1115,7 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
       elephant_flows: ElephantFlows(gui, hooks, script_subdir, script_key)
    }
 
-   const template_chosen = templates[template_name];
+   let template_chosen = templates[template_name];
 
    if (template_chosen == null || template_chosen == undefined) {
       template_chosen = EmptyTemplate();
@@ -1079,8 +1146,8 @@ $(document).ready(function() {
       },
       lengthChange: false,
       ajax: {
-         'url': `${http_prefix}/lua/get_user_scripts.lua?confset_id=${confset_id}&script_subdir=${script_subdir}`,
-         'type': 'GET',
+         url: `${http_prefix}/lua/get_user_scripts.lua?confset_id=${confset_id}&script_subdir=${script_subdir}`,
+         type: 'get',
          dataSrc: ''
       },
       stateSave: true,
@@ -1149,7 +1216,6 @@ $(document).ready(function() {
                if (type == 'display') return `<b>${data}</b>`
                return data;
             },
-            width: '8%'
          },
          {
             data: 'description',
@@ -1167,7 +1233,6 @@ $(document).ready(function() {
                return data;
 
             },
-            width: '17%'
          },
          {
             data: 'enabled_hooks',
@@ -1268,12 +1333,13 @@ $(document).ready(function() {
                }
 
             },
-            width: '25%'
          },
          {
             targets: -1,
             data: null,
+            name: 'actions',
             className: 'text-center',
+            sortable: false,
             render: function (data, type, row) {
 
                const edit_script_btn = `
@@ -1298,8 +1364,6 @@ $(document).ready(function() {
                       ${!data.edit_url ? '' : edit_url_btn}
                 `;
             },
-            sortable: false,
-            width: '10%'
          }
       ]
    });
@@ -1330,6 +1394,7 @@ $(document).ready(function() {
 
    // load templates for the script
    $('#scripts-config').on('click', 'a[data-target="#modal-script"]', function(e) {
+
       const row_data = $script_table.row($(this).parent()).data();
       const script_key = row_data.key;
       const script_title = row_data.title;
