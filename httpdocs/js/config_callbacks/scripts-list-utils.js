@@ -123,12 +123,12 @@ const generate_textarea = (textarea_settings) => {
 
    const $textarea = $(`
          <div class='form-group mt-3'>
-            <label>${textarea_settings.label}</label>
+            <label class='pl-2'>${textarea_settings.label}</label>
             <textarea ${textarea_settings.class}
                ${textarea_settings.enabled ? '' : 'readonly'}
                name='${textarea_settings.name}'
                placeholder='${textarea_settings.placeholder}'
-               class='form-control'>${textarea_settings.value}</textarea>
+               class='form-control ml-2'>${textarea_settings.value}</textarea>
             <div class="invalid-feedback"></div>
          </div>
    `);
@@ -726,7 +726,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       const $input_container = $(`<td></td>`);
       $input_container.append(
          $time_input_box.prepend($time_radio_buttons).prepend(
-            $(`<div class='col-7'><label>Flow Duration Threshold:</label></div>`)
+            $(`<div class='col-7'><label class='p-2'>Flow Duration Threshold:</label></div>`)
          ), 
          $textarea_ds
       );
@@ -798,7 +798,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          $(`textarea[name='item_list']`).val(textarea_content.join(','));
 
          // get min_duration value
-         const min_duration = data_reset.hooks.all.script_conf.min_duration || 1;
+         const min_duration = data_reset.hooks.all.script_conf.min_duration || 60;
          const times_unit = get_unit_times(min_duration);
          $(`input[name='duration_value']`).val(times_unit[1]);
 
@@ -927,8 +927,8 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       // append elements on table
       const $input_container = $(`<td></td>`);
       $input_container.append(
-         $input_box_l2r.prepend($radio_button_l2r).prepend($(`<div class='col-7'><label>Elephant Flows Threshold (Local To Remote)</label></div>`)), 
-         $input_box_r2l.prepend($radio_button_r2l).prepend($(`<div class='col-7'><label>Elephant Flows Threshold (Remote To Local)</label></div>`)), 
+         $input_box_l2r.prepend($radio_button_l2r).prepend($(`<div class='col-7'><label class='pl-2'>Elephant Flows Threshold (Local To Remote)</label></div>`)), 
+         $input_box_r2l.prepend($radio_button_r2l).prepend($(`<div class='col-7'><label class='pl-2'>Elephant Flows Threshold (Remote To Local)</label></div>`)), 
          $textarea_bytes
       );
 
