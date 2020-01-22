@@ -1095,7 +1095,7 @@ function http_lint.validateHookConfig(script, hook, value)
             return false, "bad threshold"
          end
       elseif(input_builder == "items_list") then
-         rv, value = validateListItems(script)
+         rv, value = validateListItems(script, value)
       elseif(input_builder == "elephant_flows") then
          if(value.enabled and tonumber(conf.l2r_bytes_value) == nil) then
             return false, "bad l2r_bytes_value value"

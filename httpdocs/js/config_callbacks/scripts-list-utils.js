@@ -595,7 +595,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       // hide label
       $error_label.hide();
 
-      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
+      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
 
       const template_data = {
          all: {
@@ -766,7 +766,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       // if the textarea has valid content then
       // glue the strings into in array
-      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim().toUpperCase()) : [];
+      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
 
       // get the bytes_unit
       const times_unit = $(`input[name='ds_time']:checked`).val();
