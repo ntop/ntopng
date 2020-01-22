@@ -96,6 +96,47 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
 
 /* ******************************************************* */
 
+/**
+ * Generate a multi select with groups 
+ */
+const generate_multi_select = (params, has_container = true) => {
+
+   const $select = $(`<select multiple class='form-control h-16'></select>`);
+
+   // add groups and items
+   params.categories.forEach((category) => {
+
+      const $group = $(`<optgroup label='${category.label}'></optgroup>`);
+      category.elements.forEach((element) => {
+         $group.append($(`<option value='${element}'>${element.titleCase()}</option>`))
+      });
+
+      $select.append($group);
+   });
+
+   // add attributes
+   if (params.name != undefined) $select.attr('name', params.name);
+   if (params.enabled != undefined && !params.enabled) $select.attr('disabled', '');
+   if (params.id != undefined) $select.attr('id', params.id);
+
+   if (params.selected_values != undefined) {
+      $select.val(params.selected_values);
+   }
+
+   if (has_container) {
+      return $(`
+         <div class='form-group mt-3'>
+            <label>${params.label || 'Default Label'}</label>
+         </div>
+      `).append($select);
+   }
+
+   return $select;
+}
+
+
+/* ******************************************************* */
+
 const generate_input_box = (input_settings, has_container = true) => {
    
    const $input_box = $(`<input required type='number' name='${input_settings.name}' class='form-control' />`);
@@ -221,7 +262,7 @@ const reset_radio_button = (name, value) => {
 const get_unit_bytes = (bytes) => {
 
    if (bytes < 1048576 || bytes == undefined || bytes == null) {
-      return ["KB", bytes / 1024, 1048576];
+      return ["KB", bytes / 1024, 1024];
    }
    else if (bytes >= 1048576 && bytes < 1073741824) {
       return ["MB", bytes / 1048576, 1048576];
@@ -649,6 +690,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       const enabled = hooks.all.enabled;
       const items_list = hooks.all.script_conf.items || []; 
+      const categories = hooks.all.script_conf.categories || [];
       const current_value = hooks.all.script_conf.min_duration || 60;
       const times_unit = get_unit_times(current_value);
 
@@ -662,12 +704,12 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       const $time_input_box = generate_input_box(input_settings);
 
-      const $textarea_ds = generate_textarea({
+      const $multiselect_ds = generate_multi_select({
          enabled: enabled,
-         value: items_list.join(','),
          name: 'item_list',
          label: 'Excluded applications and categories:',
-         placeholder: 'Examples...'
+         selected_values: items_list,
+         categories: categories
       });
 
       // time-ds stands for: time duration selection
@@ -708,13 +750,13 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          if (!checked) {
             $time_input_box.find(`input[name='duration_value']`).attr("readonly", "");
             $time_radio_buttons.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
-            $textarea_ds.find('textarea').attr("readonly", "");
+            $multiselect_ds.find('select').attr("disabled", "");
             return;
          }
 
          $time_input_box.find(`input[name='duration_value']`).removeAttr("readonly");
          $time_radio_buttons.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
-         $textarea_ds.find('textarea').removeAttr("readonly");
+         $multiselect_ds.find('select').removeAttr("disabled");
 
       };
 
@@ -728,7 +770,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          $time_input_box.prepend($time_radio_buttons).prepend(
             $(`<div class='col-7'><label class='p-2'>Flow Duration Threshold:</label></div>`)
          ), 
-         $textarea_ds
+         $multiselect_ds
       );
 
       // initialize table row
@@ -749,24 +791,8 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
    const apply_event = (event) => {
 
-      const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
       const hook_enabled = $('#ds-checkbox').prop('checked');
-      
-      let $error_label = $(`textarea[name='item_list']`).parent().find('.invalid-feedback');
-      $error_label.fadeOut();
-
-      const textarea_value = $(`textarea[name='item_list']`).removeClass('is-invalid').val().trim();
-
-      // check if textarea contains special characters
-      if (textarea_value != "" && special_char_regexp.test(textarea_value)) {
-         $error_label.fadeIn().text(`${i18n.items_list_comma}`);
-         $(`textarea[name='item_list']`).addClass('is-invalid');
-         return;
-      }
-
-      // if the textarea has valid content then
-      // glue the strings into in array
-      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
+      const items_list = $(`select[name='item_list']`).val();
 
       // get the bytes_unit
       const times_unit = $(`input[name='ds_time']:checked`).val();
@@ -794,8 +820,8 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       reset_script_defaults(script_key, script_subdir, (data_reset) => {
          
          // reset textarea content
-         const textarea_content = data_reset.hooks.all.script_conf.items || [];
-         $(`textarea[name='item_list']`).val(textarea_content.join(','));
+         const items_list = data_reset.hooks.all.script_conf.items || [];
+         $(`select[name='item_list']`).val(items_list);
 
          // get min_duration value
          const min_duration = data_reset.hooks.all.script_conf.min_duration || 60;
@@ -809,12 +835,12 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          $('#ds-checkbox').prop('checked', enabled);
          
          if (!enabled) {
-            $(`textarea[name='item_list'],input[name='duration_value']`).attr('readonly', '');
-            $(`input[name='ds_time']`).attr('disabled', '').parent().addClass('disabled');
+            $(`input[name='duration_value']`).attr('readonly', '');
+            $(`select[name='item_list'],input[name='ds_time']`).attr('disabled', '').parent().addClass('disabled');
          }
          else {
-            $(`textarea[name='item_list'],input[name='duration_value']`).removeAttr('readonly');
-            $(`input[name='ds_time']`).removeAttr('disabled').parent().removeClass('disabled');
+            $(`input[name='duration_value']`).removeAttr('readonly');
+            $(`select[name='item_list'],input[name='ds_time']`).removeAttr('disabled').parent().removeClass('disabled');
          }
 
       });
@@ -837,7 +863,8 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
    const render_template = () => {
 
       const enabled = hooks.all.enabled;
-      const items_list = hooks.all.script_conf.items || [];
+      const items_list = hooks.all.script_conf.items || []; 
+      const categories = hooks.all.script_conf.categories || [];
 
       let l2r_bytes_value = hooks.all.script_conf.l2r_bytes_value; 
       let r2l_bytes_value = hooks.all.script_conf.r2l_bytes_value; 
@@ -867,13 +894,12 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const $input_box_r2l = generate_input_box(input_settings_r2l);
 
       // create textarea to append
-      const $textarea_bytes = generate_textarea({
+      const $multiselect_bytes = generate_multi_select({
          enabled: enabled,
-         value: items_list.join(','),
          name: 'item_list',
          label: 'Excluded applications and categories:',
-         placeholder: 'E.g. YouTube, SocialNetwork',
-         class: 'text-right',
+         selected_values: items_list,
+         categories: categories
       });
 
       // create radio button with its own values
@@ -912,7 +938,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
                $input_box_l2r.find(`input`).attr("readonly", "");
                $radio_button_l2r.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
                $radio_button_r2l.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
-               $textarea_bytes.find('textarea').attr("readonly", "");
+               $multiselect_bytes.find('select').attr("disabled", "");
                return;
             }
 
@@ -920,7 +946,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
             $input_box_l2r.find(`input`).removeAttr("readonly", "");
             $radio_button_l2r.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
             $radio_button_r2l.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
-            $textarea_bytes.find('textarea').removeAttr("readonly");
+            $multiselect_bytes.find('select').removeAttr("disabled");
          }
       );
 
@@ -929,7 +955,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       $input_container.append(
          $input_box_l2r.prepend($radio_button_l2r).prepend($(`<div class='col-7'><label class='pl-2'>Elephant Flows Threshold (Local To Remote)</label></div>`)), 
          $input_box_r2l.prepend($radio_button_r2l).prepend($(`<div class='col-7'><label class='pl-2'>Elephant Flows Threshold (Remote To Local)</label></div>`)), 
-         $textarea_bytes
+         $multiselect_bytes
       );
 
       // initialize table row
@@ -951,23 +977,9 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
    const apply_event = (event) => {
 
-      const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
       const hook_enabled = $('#elephant-flows-checkbox').prop('checked');
-      
-      let $error_label = $(`textarea[name='item_list']`).parent().find('.invalid-feedback');
-      $error_label.fadeOut();
 
-      const textarea_value = $(`textarea[name='item_list']`).val().trim();
-
-      // check if textarea contains special characters
-      if (textarea_value != "" && special_char_regexp.test(textarea_value)) {
-         $error_label.fadeIn().text(`${i18n.items_list_comma}`);
-         return;
-      }
-
-      // if the textarea has valid content then
-      // glue the strings into in array
-      const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
+      const items_list = $(`select[name='item_list']`).val();
 
       // get the bytes_unit
       const unit_l2r = $(`input[name='bytes_l2r']:checked`).val();
@@ -995,10 +1007,9 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
       reset_script_defaults(script_key, script_subdir, (data_reset) => {
 
-         console.log(data_reset);
          // reset textarea content
-         const textarea_content = data_reset.hooks.all.script_conf.items || [];
-         $(`textarea[name='item_list']`).val(textarea_content.join(','));
+         const items_list = data_reset.hooks.all.script_conf.items || [];
+         $(`select[name='item_list']`).val(items_list);
  
          // get min_duration value
          const bytes_l2r = data_reset.hooks.all.script_conf.l2r_bytes_value || 1024;
@@ -1006,7 +1017,6 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
          const bytes_unit_l2r = get_unit_bytes(bytes_l2r);
          const bytes_unit_r2l = get_unit_bytes(bytes_r2l);
-
          $(`input[name='l2r_value']`).val(bytes_unit_l2r[1]);
          $(`input[name='r2l_value']`).val(bytes_unit_r2l[1]);
  
@@ -1018,13 +1028,13 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          $('#elephant-flows-checkbox').prop('checked', enabled);
           
          if (!enabled) {
-            $(`textarea[name='item_list'],input[name='l2r_value'],input[name='r2l_value']`).attr('readonly', '');
-            $(`input[name='bytes_l2r']`).attr('disabled', '').parent().addClass('disabled');
+            $(`input[name='l2r_value'],input[name='r2l_value']`).attr('readonly', '');
+            $(`select[name='item_list'],input[name='bytes_l2r']`).attr('disabled', '').parent().addClass('disabled');
             $(`input[name='bytes_r2l']`).attr('disabled', '').parent().addClass('disabled');
          }
          else {
-            $(`textarea[name='item_list'],input[name='l2r_value'],input[name='r2l_value']`).removeAttr('readonly');
-            $(`input[name='bytes_l2r']`).removeAttr('disabled').parent().removeClass('disabled');
+            $(`input[name='l2r_value'],input[name='r2l_value']`).removeAttr('readonly');
+            $(`select[name='item_list'],input[name='bytes_l2r']`).removeAttr('disabled').parent().removeClass('disabled');
             $(`input[name='bytes_r2l']`).removeAttr('disabled').parent().removeClass('disabled');
          }
 
