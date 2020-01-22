@@ -201,6 +201,7 @@ const generate_radio_buttons = (params, has_container = true) => {
 
 const get_unit_bytes = (bytes) => {
 
+   // TODO: samet hing as unit times
    if (bytes < 1048576 || bytes == undefined || bytes == null) {
       return ["KB", bytes / 1024];
    }
@@ -218,13 +219,13 @@ const get_unit_bytes = (bytes) => {
 const get_unit_times = (seconds) => {
 
    if (seconds < 3600 || seconds == undefined || seconds == null) {
-      return ["Minutes", seconds / 60];
+      return ["Minutes", seconds / 60, 60];
    }
    else if (seconds >= 3600 && seconds < 86400) {
-      return ["Hours", seconds / 3600];
+      return ["Hours", seconds / 3600, 3600];
    }
    else if (seconds >= 86400) {
-      return ["Days", seconds / 86400];
+      return ["Days", seconds / 86400, 86400];
    }
 
 };
@@ -313,6 +314,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
       const $select = $(`
       <select 
          name='${key}-select'
+         required
          ${hook.enabled ? '' : 'disabled'} 
          class='btn btn-outline-secondary'></select>
       `);
@@ -424,8 +426,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
       // prepare request to save config
       const data = {};
-      // variable for checking errors
-      let error = false;
 
       // iterate over granularities
       $table_editor.find("tr[id]").each(function (index) {
@@ -461,9 +461,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
             }
          }
       });
-
-      // check if there are any errors on input values
-      if (error) return;
 
       apply_edits_script(data, script_subdir, script_key);
    };
@@ -651,7 +648,8 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          enabled: enabled,
          value: items_list.join(','),
          name: 'item_list',
-         label: 'Excluded applications and categories:'
+         label: 'Excluded applications and categories:',
+         placeholder: 'Examples...'
       });
 
       // time-ds stands for: time duration selection
@@ -690,13 +688,13 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
          // if the checked option is false the disable the elements
          if (!checked) {
-            $time_input_box.find(`input[name='script_value']`).attr("readonly", "").val('');
+            $time_input_box.find(`input[name='duration_value']`).attr("readonly", "");
             $time_radio_buttons.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
             $textarea_ds.find('textarea').attr("readonly", "");
             return;
          }
 
-         $time_input_box.find(`input[name='script_value']`).removeAttr("readonly");
+         $time_input_box.find(`input[name='duration_value']`).removeAttr("readonly");
          $time_radio_buttons.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
          $textarea_ds.find('textarea').removeAttr("readonly");
 
@@ -776,7 +774,43 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
    const reset_event = (event) => {
 
       reset_script_defaults(script_key, script_subdir, (data_reset) => {
-         // TODO: reset button logic
+         
+         console.log(data_reset);
+
+         // reset textarea content
+         const textarea_content = data_reset.hooks.all.script_conf.items || [];
+         $(`textarea[name='item_list']`).val(textarea_content.join(','));
+
+         // get min_duration value
+         const min_duration = data_reset.hooks.all.script_conf.min_duration || 1;
+         const times_unit = get_unit_times(min_duration);
+         $(`input[name='duration_value']`).val(times_unit[1]);
+
+         // select the correct radio button
+         $(`input[name='ds_time']`)
+            .removeAttr('checked')
+            .parent()
+            .removeClass('btn-primary')
+            .removeClass('active')
+            .addClass('btn-secondary');
+         $(`input[name='ds_time'][value='${times_unit[2]}']`)
+            .attr('checked', '')
+            .parent()
+            .toggleClass('btn-secondary')
+            .toggleClass('btn-primary')
+            .toggleClass('active');
+
+         const enabled = data_reset.hooks.all.enabled || false;
+         $('#ds-checkbox').prop('checked', enabled);
+         
+         if (!enabled) {
+            $(`textarea[name='item_list'],input[name='duration_value']`).attr('readonly', '');
+            $(`input[name='ds_time']`).attr('disabled', '').parent().addClass('disabled');
+         }
+         else {
+            $(`textarea[name='item_list'],input[name='duration_value']`).removeAttr('readonly');
+            $(`input[name='ds_time']`).removeAttr('disabled').parent().removeClass('disabled');
+         }
 
       });
    }
@@ -937,22 +971,6 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const input_l2r = $(`input[name='l2r_value']`).val();
       const input_r2l = $(`input[name='r2l_value']`).val();
 
-      $error_label = $(`input[name='l2r_value']`).parent().find('.invalid-feedback');
-      $error_label.fadeOut();
-
-      if (input_l2r == undefined || input_l2r == null || input_l2r == "") {
-         $error_label.fadeIn().text(`${i18n.empty_input_box}`);
-         return;
-      }
-
-      $error_label = $(`input[name='r2l_value']`).parent().find('.invalid-feedback');
-      $error_label.fadeOut();
-
-      if (input_r2l == undefined || input_r2l == null || input_r2l == "") {
-         $error_label.fadeIn().text(`${i18n.empty_input_box}`);
-         return;
-      }
-
       const template_data = {
          all: {
             enabled: hook_enabled,
@@ -1100,8 +1118,8 @@ $(document).ready(function() {
       },
       lengthChange: false,
       ajax: {
-         'url': `${http_prefix}/lua/get_user_scripts.lua?confset_id=${confset_id}&script_subdir=${script_subdir}`,
-         'type': 'GET',
+         url: `${http_prefix}/lua/get_user_scripts.lua?confset_id=${confset_id}&script_subdir=${script_subdir}`,
+         type: 'get',
          dataSrc: ''
       },
       stateSave: true,
@@ -1170,7 +1188,6 @@ $(document).ready(function() {
                if (type == 'display') return `<b>${data}</b>`
                return data;
             },
-            width: '8%'
          },
          {
             data: 'description',
@@ -1188,7 +1205,6 @@ $(document).ready(function() {
                return data;
 
             },
-            width: '17%'
          },
          {
             data: 'enabled_hooks',
@@ -1289,12 +1305,13 @@ $(document).ready(function() {
                }
 
             },
-            width: '25%'
          },
          {
             targets: -1,
             data: null,
+            name: 'actions',
             className: 'text-center',
+            sortable: false,
             render: function (data, type, row) {
 
                const edit_script_btn = `
@@ -1319,8 +1336,6 @@ $(document).ready(function() {
                       ${!data.edit_url ? '' : edit_url_btn}
                 `;
             },
-            sortable: false,
-            width: '10%'
          }
       ]
    });
@@ -1351,6 +1366,7 @@ $(document).ready(function() {
 
    // load templates for the script
    $('#scripts-config').on('click', 'a[data-target="#modal-script"]', function(e) {
+
       const row_data = $script_table.row($(this).parent()).data();
       const script_key = row_data.key;
       const script_title = row_data.title;
