@@ -74,7 +74,9 @@ local function snmp_device_run_user_scripts(snmp_device)
       local script = all_modules[mod_key]
       local conf = user_scripts.getTargetHookConfig(device_conf, script)
 
-      alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, info, conf)
+      if(conf.enabled) then
+        alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, info, conf)
+      end
    end
 
    -- Run callback for each interface
@@ -92,7 +94,7 @@ local function snmp_device_run_user_scripts(snmp_device)
 	    do_call = false
 	 end
 
-	 if(do_call) then
+	 if(do_call and conf.enabled) then
 	    local iface_entity = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
 
 	    alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
