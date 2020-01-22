@@ -37,6 +37,10 @@ $(document).ready(function() {
         lengthChange: false,
         pagingType: 'full_numbers',
         stateSave: true,
+        stateSaveParams: function(settings, data) {
+            // fix for column visisbility
+            data.columns[1].visible = !(subdir == 'system' || subdir == 'syslog');
+        },
         initComplete: function() {
             // clear searchbox datatable
             $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
@@ -57,12 +61,13 @@ $(document).ready(function() {
         columns: [
             {
                 data: 'name',
-                render: function(data, type, row) {
-                    return `<b>${data}</b>`
-                }
+                defaultContent: '{Config Name}',
+                render: (data, type, row) => `<b>${data}</b>`
             },
             {
                 data: 'targets',
+                visible: false,
+                visible: !(subdir == 'system' || subdir == 'syslog'),
                 render: function(data, type, row) {
 
                     // show targets as a string into display mode
