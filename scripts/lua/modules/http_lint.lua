@@ -1087,7 +1087,7 @@ function http_lint.validateHookConfig(script, hook, value)
       local mandatory_fields = {}
 
       if(input_builder == "threshold_cross") then
-         if(not validateOperator(conf.operator)) then
+         if(value.enabled and (not validateOperator(conf.operator))) then
             return false, "bad operator"
          end
 
