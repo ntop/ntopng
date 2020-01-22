@@ -319,19 +319,7 @@ local menu_subpages = {
     }, toggle_snmp_debug = {
        title       = i18n("prefs.toggle_snmp_debug_title"),
        description = i18n("prefs.toggle_snmp_debug_description"),
-    }, toggle_snmp_alerts_port_status_change = {
-       title       = i18n("prefs.toggle_snmp_alerts_port_status_change_title"),
-       description = i18n("prefs.toggle_snmp_alerts_port_status_change_description"),
-    }, toggle_snmp_alerts_port_duplexstatus_change = {
-       title       = i18n("prefs.toggle_snmp_alerts_port_duplexstatus_change_title"),
-       description = i18n("prefs.toggle_snmp_alerts_port_duplexstatus_change_description"),
-    }, toggle_snmp_alerts_port_errors = {
-       title       = i18n("prefs.toggle_snmp_alerts_port_errors_title"),
-       description = i18n("prefs.toggle_snmp_alerts_port_errors_description"),
-    }, snmp_port_load_threshold = {
-      title       = i18n("prefs.snmp_port_load_threshold_title"),
-      description = i18n("prefs.snmp_port_load_threshold_description"),
-    },
+    }
   }}, {id="discovery",     label=i18n("prefs.network_discovery"), advanced=false,  pro_only=false,   hidden=false, entries={
     toggle_network_discovery = {
       title       = i18n("prefs.toggle_network_discovery_title"),

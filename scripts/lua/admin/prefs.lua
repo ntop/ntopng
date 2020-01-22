@@ -1320,35 +1320,6 @@ function printSnmp()
     pref = "snmp_debug",
   })
 
-  print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.snmp_alerts")..'</th></tr></thead>')
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_snmp_alerts_port_status_change",
-    default = "1",
-    pref = "alerts.snmp_port_status_change",
-    disabled = disabled,
-  })
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_snmp_alerts_port_duplexstatus_change",
-    default = "1",
-    pref = "alerts.snmp_port_duplexstatus_change",
-    disabled = disabled,
-  })
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_snmp_alerts_port_errors",
-    default = "1",
-    pref = "alerts.snmp_port_errors",
-    disabled = disabled,
-  })
-
-  prefsInputFieldPrefs(subpage_active.entries["snmp_port_load_threshold"].title, 
-                       subpage_active.entries["snmp_port_load_threshold"].description,
-                       "ntopng.prefs.alerts.", 
-                       "snmp_port_load_threshold", 
-                       "100", "number", nil, false, nil, {min=0, disabled=disabled})
-
   if(disabled) then
     prefsInformativeField(i18n("notes"), i18n("enterpriseOnly"))
   end
