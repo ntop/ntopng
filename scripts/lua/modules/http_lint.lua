@@ -1106,6 +1106,12 @@ function http_lint.validateHookConfig(script, hook, value)
          end
 
          rv, value = validateListItems(script, value)
+      elseif(input_builder == "long_lived") then
+         if(value.enabled and tonumber(conf.min_duration) == nil) then
+            return false, "bad min_duration value"
+         end
+
+         rv, value = validateListItems(script, value)
       end
    end
 
