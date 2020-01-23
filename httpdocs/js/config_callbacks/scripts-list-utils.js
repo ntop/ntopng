@@ -1216,6 +1216,42 @@ const create_enabled_button = (row_data) => {
 
 $(document).ready(function() {
 
+   const add_filter_categories_dropdown = () => {
+
+      const $dropdown = $(`
+         <div class='dropdown d-inline'>
+            <button class='btn btn-link dropdown-toggle' data-toggle='dropdown' type='button'>
+               <i class='fas fa-filter'></i> <span>${i18n.filter_categories}</span>
+            </button>
+            <div id='category-filter' class='dropdown-menu'>
+            </div>
+         </div>
+      `);
+
+      $dropdown.find('#category-filter').append(
+
+         scripts_categories.map(c => {
+            
+            const $list_element = $(`<li class='dropdown-item pointer'>${c}</li>`);
+            $list_element.click(function() {
+
+               if (c == 'All') {
+                  $script_table.column(1).search('').draw();
+                  $dropdown.find('button span').text(`${i18n.filter_categories}`);
+                  return $list_element;
+               }
+
+               $dropdown.find('button span').text(`${i18n.filter_categories}: ${c}`);
+               $script_table.column(1).search(c).draw();
+            });
+
+            return $list_element;
+         })
+      );
+
+      $('#scripts-config_filter').prepend($dropdown);
+
+   }
 
    // initialize script table 
    const $script_table = $("#scripts-config").DataTable({
@@ -1237,6 +1273,9 @@ $(document).ready(function() {
       },
       stateSave: true,
       initComplete: function (settings, json) {
+
+         // add categories dropdown 
+         add_filter_categories_dropdown();
 
          const [enabled_count, disabled_count] = count_scripts();
 

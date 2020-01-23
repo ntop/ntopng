@@ -578,3 +578,7 @@ path.link {
   height: 12rem;
   max-height: 20rem;
 }
+
+.pointer {
+  cursor: pointer;
+}
