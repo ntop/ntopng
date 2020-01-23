@@ -75,8 +75,9 @@ for script_name, script in pairs(scripts.modules) do
     end
 
     if(script.edition == "community") then
-      local path = string.sub(script.source_path, string.len(dirs.scriptdir)+1)
-      edit_url = ntop.getHttpPrefix() .. '/lua/code_viewer.lua?lua_script_path='.. path
+       local plugin_file_path = string.sub(script.source_path, string.len(dirs.scriptdir) + 1)
+       local plugin_path = string.sub(script.plugin.path, string.len(dirs.scriptdir) + 1)
+       edit_url = string.format("%s/lua/code_viewer.lua?plugin_file_path=%s&plugin_path=%s", ntop.getHttpPrefix(), plugin_file_path, plugin_path)
     end
 
     local input_handler = script.gui.input_builder
@@ -90,6 +91,7 @@ for script_name, script in pairs(scripts.modules) do
       is_enabled = not table.empty(enabled_hooks),
       edit_url = edit_url,
       input_handler = input_handler,
+      value_description = script.template:describeConfig(hooks)
     }
   end
 end

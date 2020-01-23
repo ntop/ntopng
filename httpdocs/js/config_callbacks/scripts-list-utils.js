@@ -463,7 +463,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
       $table_editor.empty();
 
       // append each hooks to the table
-      $table_editor.append(`<tr><th class='text-center'>Enabled</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center'>${i18n.enabled}</th></tr>`)
 
       if ("min" in $input_fields) {
          $table_editor.append($input_fields['min']);
@@ -982,11 +982,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          $input_container
       );
 
-      $table_editor.append(`
-         <tr class='text-center'>
-            <th>${i18n.enabled}</th>
-         </tr>
-      `);
+      $table_editor.append(`<tr class='text-center'><th>${i18n.enabled}</th></tr>`);
 
       // append all inside the table
       $table_editor.append($container);
@@ -1035,6 +1031,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
          const bytes_unit_l2r = get_unit_bytes(bytes_l2r);
          const bytes_unit_r2l = get_unit_bytes(bytes_r2l);
+
          $(`input[name='l2r_value']`).val(bytes_unit_l2r[1]);
          $(`input[name='r2l_value']`).val(bytes_unit_r2l[1]);
  

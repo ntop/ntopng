@@ -2,7 +2,7 @@
 -- (C) 2013-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 
@@ -17,6 +17,6 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-code_editor.editor(_GET["lua_script_path"])
+code_editor.editor(_GET["plugin_file_path"], _GET["plugin_path"])
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

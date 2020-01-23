@@ -249,6 +249,8 @@ local function validateOperator(mode)
    return validateChoice(modes, mode)
 end
 
+http_lint.validateOperator = validateOperator
+
 local function validateAlertValue(value)
   return validateEmpty(value) or
     validateNumber(value) or
@@ -1029,12 +1031,11 @@ end
 
 -- #################################################################
 
-local function validateListItems(script, value)
+local function validateListItems(script, conf)
    local item_type = script.gui.item_list_type or ""
    local item_validator = validateUnchecked
    local existing_items = {}
    local validated_items = {}
-   local conf = value.script_conf
 
    if(item_type == "country") then
       item_validator = validateCountry
@@ -1064,60 +1065,10 @@ local function validateListItems(script, value)
       conf.items = validated_items
    end
 
-   return true, value
+   return true, conf
 end
 
--- #################################################################
-
-function http_lint.validateHookConfig(script, hook, value)
-   local rv = true
-
-   if(value.enabled == nil) then
-      return false, "Missing 'enabled' item"
-   end
-
-   if(value.script_conf == nil) then
-      return false, "Missing 'script_conf' item"
-   end
-
-   local conf = value.script_conf
-
-   if script.gui and script.gui.input_builder then
-      local input_builder = script.gui.input_builder
-      local mandatory_fields = {}
-
-      if(input_builder == "threshold_cross") then
-         if(value.enabled and (not validateOperator(conf.operator))) then
-            return false, "bad operator"
-         end
-
-         if(value.enabled and tonumber(conf.threshold) == nil) then
-            return false, "bad threshold"
-         end
-      elseif(input_builder == "items_list") then
-         rv, value = validateListItems(script, value)
-      elseif(input_builder == "elephant_flows") then
-         if(value.enabled and tonumber(conf.l2r_bytes_value) == nil) then
-            return false, "bad l2r_bytes_value value"
-         end
-
-         if(value.enabled and tonumber(conf.r2l_bytes_value) == nil) then
-            return false, "bad r2l_bytes_value value"
-         end
-
-         rv, value = validateListItems(script, value)
-      elseif(input_builder == "long_lived") then
-         if(value.enabled and tonumber(conf.min_duration) == nil) then
-            return false, "bad min_duration value"
-         end
-
-         rv, value = validateListItems(script, value)
-      end
-   end
-
-   -- Assume valid by default
-   return rv, value
-end
+http_lint.validateListItems = validateListItems
 
 -- #################################################################
 
@@ -1336,7 +1287,8 @@ local known_parameters = {
    ["script_key"]              = validateSingleWord,
 
 -- Script editor
-   ["lua_script_path"]         = validateLuaScriptPath,
+   ["plugin_file_path"]         = validateLuaScriptPath,
+   ["plugin_path"]              = validateLuaScriptPath,
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons

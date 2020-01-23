@@ -1,10 +1,9 @@
 {% if script_list.confset_id == nil or script_list.confset_id == "" then %}
 <div class="alert alert-danger">
-  <b>Attention!</b>
-  The page was not found!
-  <a class="text-danger" href="#" onclick="history.back()"
-    >Click here to return to the previous page!</a
-  >
+  <b>{{ i18n("scripts_list.attention", {}) }}!</b> {{ i18n("scripts_list.missing_configset", {}) }}
+  <a class="text-danger" href="#" onclick="history.back()">
+    {{ i18n("scripts_list.previous_page", {}) }}
+  </a>
 </div>
 {% else %}
 

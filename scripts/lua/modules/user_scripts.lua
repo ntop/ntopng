@@ -93,10 +93,12 @@ user_scripts.script_types = {
     hooks = {"min", "5mins", "hour", "day"},
     subdirs = {"system"},
     has_per_hook_config = true, -- Each hook has a separate configuration
+    default_config_only = true, -- Only the default configset can be used
   }, syslog = {
     parent_dir = "system",
     hooks = {"handleEvent"},
     subdirs = {"syslog"},
+    default_config_only = true, -- Only the default configset can be used
   }
 }
 
@@ -354,6 +356,8 @@ end
 -- ##############################################
 
 local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
+   local user_scripts_templates = require("user_scripts_templates")
+
    user_script.key = mod_fname
    user_script.path = full_path
    user_script.subdir = subdir
@@ -362,6 +366,18 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.plugin = plugin
    user_script.script_type = script_type
    user_script.edition = plugin.edition
+
+   if(user_script.gui and user_script.gui.input_builder) then
+      user_script.template = user_scripts_templates[user_script.gui.input_builder]
+
+      if(user_script.template == nil) then
+	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown template '%s' for user script '%s'", user_script.gui.input_builder, mod_fname))
+      end
+   end
+
+   if(user_script.template == nil) then
+      user_script.template = user_scripts_templates.default
+   end
 
    -- Expand hooks
    if(user_script.hooks["all"] ~= nil) then
@@ -915,17 +931,29 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
 
    if(script) then
       -- Try to validate the configuration
-      local http_lint = require("http_lint")
-
       for hook, conf in pairs(new_config) do
-	 local valid, rv = http_lint.validateHookConfig(script, hook, conf)
+	 local valid = true
+	 local rv_or_err = ""
+
+	 if(conf.enabled == nil) then
+	    return false, "Missing 'enabled' item"
+	 end
+
+	 if(conf.script_conf == nil) then
+	    return false, "Missing 'script_conf' item"
+	 end
+
+	 if conf.enabled then
+	    valid, rv_or_err = script.template:parseConfig(script, conf.script_conf)
+	 end
 
 	 if(not valid) then
-	    return false, rv
+	    return false, rv_or_err
 	 end
 
 	 -- The validator may have changed the configuration
-	 applied_config[hook] = rv
+	 conf.script_conf = rv_or_err
+	 applied_config[hook] = conf
       end
    end
 
