@@ -3779,6 +3779,9 @@ local lang = {
     ["elephant_flows_descr"] = "> %{l2r_bytes} (L2R), > %{r2l_bytes} (R2L)",
     ["exceptions"] = "Exceptions: %{exceptions}",
     ["long_lived_flows_descr"] = "> %{duration}",
+    ["note_what_are_user_scripts"] = "<a href=\"%{user_scripts_url}\">User scripts</a> %{user_scripts_external} are executed periodically or when a certain event occurs. ",
+    ["note_configsets"] = "User scripts are configured and enabled/disabled on a per-configuration basis. Multiple configurations can be created and each configuration can be 'Applied To' different targets.",
+    ["note_apply_to_default"] = "The <b>Default</b> configuration is 'Applied to' any target which is not included in any other configuration.",
   },
   ["users"] = {
     ["add_new_user"] = "Add New User",

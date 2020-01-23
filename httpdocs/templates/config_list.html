@@ -48,8 +48,19 @@
           <button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_import') }}</span></button>
         </div>
     </div>
-
+<br>
+    <div>
+      <b>{{ i18n('notes') }}</b>
+      <ul>
+	<li>{* i18n('user_scripts.note_what_are_user_scripts',
+	  {user_scripts_url = "https://www.ntop.org/guides/ntopng/api/user_scripts/index.html#user-scripts-api",
+	  user_scripts_external = "<i class=\"fas fa-external-link-alt\"></i>"}) *}</li>
+	<li>{* i18n('user_scripts.note_configsets') *}</li>
+	<li>{* i18n('user_scripts.note_apply_to_default') *}</li>
+      </ul>
+    </div>
 </div>
+
 
 {# include modals for config_list.lua #}
 
