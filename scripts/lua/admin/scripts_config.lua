@@ -34,7 +34,7 @@ local titles = {
     ["system"] = i18n("config_scripts.granularities.system"),
     ["flow"] = i18n("config_scripts.granularities.flow"),
     ["interface"] = i18n("config_scripts.granularities.interface"),
-    ["network"] = i18n("config_scripts.granularities.network"),
+    ["network"] = i18n("report.local_networks"),
     ["syslog"] = i18n("config_scripts.granularities.syslog")
  }
 
