@@ -1336,7 +1336,8 @@ local known_parameters = {
    ["script_key"]              = validateSingleWord,
 
 -- Script editor
-   ["lua_script_path"]         = validateLuaScriptPath,
+   ["plugin_file_path"]         = validateLuaScriptPath,
+   ["plugin_path"]              = validateLuaScriptPath,
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
