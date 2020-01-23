@@ -51,8 +51,11 @@ function DefaultTemplate:parseConfig(script, conf)
 end
 
 function DefaultTemplate:describeConfig(script, hooks_conf)
-  if(hooks_conf.all and hooks_conf.all.enabled) then
-    return i18n("enabled")
+  -- Assumption: table length is 1
+  for _, hook in pairs(hooks_conf) do
+    if hook.enabled then
+      return i18n("enabled")
+    end
   end
 
   return i18n("disabled")
