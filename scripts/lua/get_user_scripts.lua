@@ -93,7 +93,7 @@ for script_name, script in pairs(scripts.modules) do
       is_enabled = not table.empty(enabled_hooks),
       edit_url = edit_url,
       input_handler = input_handler,
-      value_description = script.template:describeConfig(hooks)
+      value_description = script.template:describeConfig(script, hooks)
     }
   end
 end

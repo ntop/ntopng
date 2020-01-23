@@ -3776,6 +3776,9 @@ local lang = {
     ["category_other"] = "Other",
     ["category_security"] = "Security",
     ["category_system"] = "System",
+    ["elephant_flows_descr"] = "> %{l2r_bytes} (L2R), > %{r2l_bytes} (R2L)",
+    ["exceptions"] = "Exceptions: %{exceptions}",
+    ["long_lived_flows_descr"] = "> %{duration}",
   },
   ["users"] = {
     ["add_new_user"] = "Add New User",
