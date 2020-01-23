@@ -954,12 +954,6 @@ function user_scripts.toggleScript(confid, script_key, subdir, enable)
       return false, i18n("configsets.unknown_user_script", {user_script=script_key})
    end
 
-   if script_type.has_per_hook_config and enable then
-      -- Cannot enable all the hooks on a per-hook script automatically
-      -- as some required config field could be missing
-      return false, "Enabling a per-hook script is not supported"
-   end
-
    local config = user_scripts.getScriptConfig(configset, script, subdir)
 
    if(config == nil) then
