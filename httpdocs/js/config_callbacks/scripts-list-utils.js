@@ -101,7 +101,7 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
  */
 const generate_multi_select = (params, has_container = true) => {
 
-   const $select = $(`<select multiple class='form-control h-16'></select>`);
+   const $select = $(`<select id='multiple-select' multiple class='form-control'></select>`);
 
    // add groups and items
    params.groups.forEach((category) => {
@@ -839,6 +839,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          // get min_duration value
          const min_duration = data_reset.hooks.all.script_conf.min_duration || 60;
          const times_unit = get_unit_times(min_duration);
+
          $(`input[name='duration_value']`).val(times_unit[1]);
 
          // select the correct radio button
@@ -1219,7 +1220,6 @@ $(document).ready(function() {
    // initialize script table 
    const $script_table = $("#scripts-config").DataTable({
       dom: "Bfrtip",
-      autoWidth: true,
       pagingType: 'full_numbers',
       language: {
          paginate: {
@@ -1317,10 +1317,10 @@ $(document).ready(function() {
 
                if (type == "display") {
                   return `<span 
-                           ${data.length >= 64 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
+                           ${data.length >= 72 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
                            title="${row.title}"
                            data-content="${data}" >
-                              ${data.substr(0, 64)}${data.length >= 64 ? '...' : ''}
+                              ${data.substr(0, 72)}${data.length >= 72 ? '...' : ''}
                            </span>`;
                }
 
@@ -1336,19 +1336,10 @@ $(document).ready(function() {
 
                // if the type is flter return true if the data length is greather or equal
                // than 0 so the script table can detect if a plugin is enabled
-               if (data.length <= 0 && type == "filter") {
-                  return false;
-               }
-               if (data.length > 0 && type == "filter") {
-                  return true;
-               }
+               if (data.length <= 0 && type == "filter") return false;
+               if (data.length > 0 && type == "filter") return true;
 
-               // it means there is only all
-               if (data.length == 1) return data[0];
-
-               return data.map(enabled_hook => {
-                  return row.all_hooks.find((current) => current.key === enabled_hook).label
-               }).join(', ');
+               return (type == "display") ? row.value_description : '';
             },
          },
          {

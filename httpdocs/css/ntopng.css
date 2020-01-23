@@ -573,3 +573,8 @@ path.link {
   border-top-right-radius: .25rem !important;
   border-bottom-right-radius: .25rem !important;
 }
+
+#multiple-select {
+  height: 12rem;
+  max-height: 20rem;
+}
