@@ -314,7 +314,7 @@ $(document).ready(function() {
         $("#applied-modal").on("submit", "form", function (e) {
             
             e.preventDefault();
-            //$("#btn-confirm-apply").trigger("click");
+            $("#btn-confirm-apply").trigger("click");
         });
 
     });

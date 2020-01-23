@@ -1117,7 +1117,7 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    let template_chosen = templates[template_name];
 
-   if (template_chosen == null || template_chosen == undefined) {
+   if (!template_chosen) {
       template_chosen = EmptyTemplate();
       throw(`the template ${template_name} was not implemented yet!`);
    }
@@ -1129,7 +1129,76 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
 // End templates and template builder
 
+const create_enabled_button = (row_data) => {
+
+   const {is_enabled} = row_data;
+
+   const $button = $(`<button type='button' class='badge border-0'></button>`);
+
+   if (!is_enabled) {   
+      
+      const has_all_hook = row_data.all_hooks.find(e => e.key == 'all');
+
+      if (has_all_hook == undefined) $button.css('visibility', 'hidden');
+
+      $button.text(`${i18n.disable || 'Enable'}`);
+      $button.addClass('badge-success');
+
+   }
+   else {
+
+      if (row_data.enabled_hooks.length < 1) $button.css('visibility', 'hidden');
+
+      $button.text(`${i18n.disable || 'Disable'}`);
+      $button.addClass('badge-danger');
+   }
+
+   $button.off('click').on('click', function() {
+
+      const data = {
+         all: {
+            enabled: !is_enabled,
+            script_conf: {}
+         }
+      };
+
+      $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
+         script_subdir: script_subdir,
+         script_key: row_data.key,
+         csrf: csrf_toggle_buttons,
+         JSON: JSON.stringify(data),
+         confset_id: confset_id
+      })
+      .done((d, status, xhr) => {
+   
+         if (!d.success) {
+            $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
+            // update csrf
+            csrf_toggle_buttons = d.csrf;
+         }
+   
+         if (d.success) reloadPageAfterPOST();
+   
+      })
+      .fail(({ status, statusText }) => {
+   
+         check_status_code(status, statusText, $("#alert-row-buttons"));
+   
+         // if the csrf has expired 
+         if (status == 200) {
+            $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
+         }
+   
+            // re eanble buttons
+         $button.removeAttr("disabled").removeClass('disabled');
+      });
+   })
+
+   return $button;
+};
+
 $(document).ready(function() {
+
 
    // initialize script table 
    const $script_table = $("#scripts-config").DataTable({
@@ -1170,11 +1239,11 @@ $(document).ready(function() {
          $enabled_button.html(`${i18n.enabled} (${enabled_count})`);
          $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
 
-         if(script_key_filter) {
-            var elem = json.filter((x) => { return(x.key == script_key_filter); })[0];
+         if (script_key_filter) {
+            let elem = json.filter((x) => { return(x.key == script_key_filter); })[0];
 
-            if(elem) {
-               var title = elem.title;
+            if (elem) {
+               let title = elem.title;
                this.DataTable().search(title).draw();
 
                if(hasConfigDialog(elem)) {
@@ -1213,7 +1282,7 @@ $(document).ready(function() {
             data: 'title',
             render: function (data, type, row) {
 
-               if (type == 'display') return `<b>${data}</b>`
+               if (type == 'display') return `<b>${data}</b>`;
                return data;
             },
          },
@@ -1250,88 +1319,11 @@ $(document).ready(function() {
                }
 
                // it means there is only all
-               if (data.length == 1) {
-                  return data[0];
-               }
+               if (data.length == 1) return data[0];
 
                return data.map(enabled_hook => {
                   return row.all_hooks.find((current) => current.key === enabled_hook).label
                }).join(', ');
-            },
-            createdCell: function (td, cellData, row, rowIndex, col) {
-
-               if (!hasConfigDialog(row)) {
-
-                  const $toggle_buttons = $(`
-                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                        <label class="btn btn-sm btn-secondary ${row.is_enabled ? "active btn-success" : ""}">
-                           <input value='true' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> On
-                        </label>
-                        <label class="btn btn-sm btn-secondary ${!row.is_enabled ? "active btn-danger" : ""}">
-                           <input value='false' type="radio" name="${row.key}-check" ${row.is_enabled ? "checked" : ""}> Off
-                        </label>
-                     </div>
-                 `);
-
-                  // remove text inside cell
-                  $(td).text('');
-
-                  $toggle_buttons.find(`input[name='${row.key}-check']`).on('click', function (e) {
-
-                     const $this = $(this); const value = $this.val();
-                     const hooks = row.all_hooks;
-
-                     const data = {
-                        all: {
-                           script_conf: {
-                           },
-                           enabled: (value == "true")
-                        }
-                     };
-
-                     // hide alert
-                     $("#alert-row-buttons").hide();
-
-                     // disable all buttons to prevent more requests
-                     $("#scripts-config input[name$='-check']").attr("disabled", "").parent().addClass("disabled");
-
-                     $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
-                        script_subdir: script_subdir,
-                        script_key: row.key,
-                        csrf: csrf_toggle_buttons,
-                        JSON: JSON.stringify(data),
-                        confset_id: confset_id
-                     })
-                     .done((d, status, xhr) => {
-
-                           if (!d.success) {
-                              $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
-                              // update csrf
-                              csrf_toggle_buttons = d.csrf;
-                           }
-
-                           if (d.success) reloadPageAfterPOST();
-
-                     })
-                     .fail(({ status, statusText }) => {
-
-                           check_status_code(status, statusText, $("#alert-row-buttons"));
-
-                           // if the csrf has expired 
-                           if (status == 200) {
-                              $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
-                           }
-
-                           // re eanble buttons
-                           $("#scripts-config input[name$='-check']").removeAttr("disabled").parent().removeClass("disabled");
-                     })
-
-                  });
-
-                  $(td).append($toggle_buttons);
-
-               }
-
             },
          },
          {
@@ -1346,8 +1338,10 @@ $(document).ready(function() {
                       <a href='#'
                          title='${i18n.edit_script}'
                          class='badge badge-info'
+                         style="visibility: ${row.input_handler == undefined ? 'hidden' : 'visible'}"
                          data-toggle="modal"
                          data-target="#modal-script">
+                         
                            ${i18n.edit}
                      </a>
                `;
@@ -1360,10 +1354,15 @@ $(document).ready(function() {
                `;
 
                return `
-                      ${row.input_handler == undefined ? '' : edit_script_btn}
+                      ${edit_script_btn}
                       ${!data.edit_url ? '' : edit_url_btn}
                 `;
             },
+            createdCell: function(td, cellData, row) {
+                       
+               const enabled_button = create_enabled_button(row);
+               $(td).prepend(enabled_button);
+            }
          }
       ]
    });
