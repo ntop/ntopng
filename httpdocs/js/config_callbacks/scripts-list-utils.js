@@ -1309,8 +1309,8 @@ $(document).ready(function() {
             sortable: true,
             searchable: true,
             render: function (data, type, row) {
-               console.log
-               return `${!row.category_icon ? '' : row.category_icon} ${!row.category_title ? '' : row.category_title}`;
+               const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}></i>'`;
+               return `${icon}${!row.category_title ? '' : ' ' + row.category_title}`;
             }
          },
          {
