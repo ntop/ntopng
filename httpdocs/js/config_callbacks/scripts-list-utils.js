@@ -1166,7 +1166,7 @@ const create_enabled_button = (row_data) => {
 
       if (!has_all_hook && hasConfigDialog(row_data)) $button.css('visibility', 'hidden');
 
-      $button.text(`${i18n.enable || 'Enable'}`);
+      $button.text(`${i18n.enable}`);
       $button.addClass('badge-success');
 
    }
@@ -1174,7 +1174,7 @@ const create_enabled_button = (row_data) => {
 
       if (row_data.enabled_hooks.length < 1) $button.css('visibility', 'hidden');
 
-      $button.text(`${i18n.disable || 'Disable'}`);
+      $button.text(`${i18n.disable}`);
       $button.addClass('badge-danger');
    }
 
