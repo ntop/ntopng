@@ -1338,19 +1338,10 @@ $(document).ready(function() {
 
                // if the type is flter return true if the data length is greather or equal
                // than 0 so the script table can detect if a plugin is enabled
-               if (data.length <= 0 && type == "filter") {
-                  return false;
-               }
-               if (data.length > 0 && type == "filter") {
-                  return true;
-               }
+               if (data.length <= 0 && type == "filter") return false;
+               if (data.length > 0 && type == "filter") return true;
 
-               // it means there is only all
-               if (data.length == 1) return data[0];
-
-               return data.map(enabled_hook => {
-                  return row.all_hooks.find((current) => current.key === enabled_hook).label
-               }).join(', ');
+               return (type == "display") ? row.value_description : '';
             },
          },
          {
