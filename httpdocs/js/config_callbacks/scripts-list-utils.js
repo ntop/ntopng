@@ -493,7 +493,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          $table_editor.append($input_fields[item]);
       });
 
-      console.log($input_fields);
    };
 
    const apply_event = (event) => {
