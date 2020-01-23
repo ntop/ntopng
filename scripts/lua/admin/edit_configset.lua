@@ -64,6 +64,7 @@ end
 
 apps_and_categories = {cat_groups, app_groups}
 
+
 -- print config_list.html template
 print(template.gen("script_list.html", {
    script_list = {
@@ -73,7 +74,6 @@ print(template.gen("script_list.html", {
        confset_id = confset_id,
        script_subdir = script_subdir,
        confset_name = confset_name,
-       timeout_csrf = timeout_csrf,
        script_filter = script_filter,
        page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
        apps_and_categories = json.encode(apps_and_categories),

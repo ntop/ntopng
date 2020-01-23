@@ -46,6 +46,12 @@ active_page = "admin"
 -- append menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local default_config_only = user_scripts.getScriptType(subdir).default_config_only
+
+if default_config_only == nil then
+    default_config_only = false
+end
+
 -- print config_list.html template
 print(template.gen("config_list.html", {
     config_list = {
@@ -53,7 +59,7 @@ print(template.gen("config_list.html", {
         subdir = subdir,
         template_utils = template,
         hooks_localizated = titles,
-        timeout_csrf = timeout_csrf,
+        default_config_only_subdir = default_config_only,
         import_csrf = ntop.getRandomCSRFValue(),
     }
 }))
