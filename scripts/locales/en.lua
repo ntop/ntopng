@@ -3168,6 +3168,13 @@ local lang = {
       ["view"] = "View",
       ["view_src_script"] = "View Source Script",
     },
+    ["templates"] = {
+      ["elephant_flows_l2r"] = "Elephant Flows Threshold (Local To Remote)",
+      ["elpehant_flows_r2l"] = "Elephant Flows Threshold (Remote To Local)",
+      ["excluded_applications"] = "Excluded applications and categories",
+      ["flow_duration_threshold"] = "Flow Duration Threshold",
+      ["template_not_implemented"] = "The template  was not implemented yet!",
+    },
   },
   ["sflows_stats"] = {
     ["active_flows"] = "Active Flows",

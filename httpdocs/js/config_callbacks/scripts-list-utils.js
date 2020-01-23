@@ -418,7 +418,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          $field.append($(`<div class='input-group-prepend'></div>`).append($select));
          $field.append(`<input 
                            type='number'
-                           class='form-control'
+                           class='form-control text-right'
                            required
                            name='${key}-input'
                            ${hook.enabled ? '' : 'readonly'}
@@ -722,7 +722,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       const $multiselect_ds = generate_multi_select({
          enabled: enabled,
          name: 'item_list',
-         label: 'Excluded applications and categories:',
+         label: `${i18n.scripts_list.templates.excluded_applications}:`,
          selected_values: items_list,
          groups: apps_and_categories
       });
@@ -783,7 +783,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       const $input_container = $(`<td></td>`);
       $input_container.append(
          $time_input_box.prepend($time_radio_buttons).prepend(
-            $(`<div class='col-7'><label class='p-2'>Flow Duration Threshold:</label></div>`)
+            $(`<div class='col-7'><label class='p-2'>${i18n.scripts_list.templates.flow_duration_threshold}:</label></div>`)
          ), 
          $multiselect_ds
       );
@@ -911,7 +911,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       const $multiselect_bytes = generate_multi_select({
          enabled: enabled,
          name: 'item_list',
-         label: 'Excluded applications and categories:',
+         label: `${i18n.scripts_list.templates.excluded_applications}:`,
          selected_values: items_list,
          groups: apps_and_categories
       });
@@ -967,8 +967,12 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       // append elements on table
       const $input_container = $(`<td></td>`);
       $input_container.append(
-         $input_box_l2r.prepend($radio_button_l2r).prepend($(`<div class='col-7'><label class='pl-2'>Elephant Flows Threshold (Local To Remote)</label></div>`)), 
-         $input_box_r2l.prepend($radio_button_r2l).prepend($(`<div class='col-7'><label class='pl-2'>Elephant Flows Threshold (Remote To Local)</label></div>`)), 
+         $input_box_l2r
+            .prepend($radio_button_l2r)
+            .prepend($(`<div class='col-7'><label class='pl-2'>${i18n.scripts_list.templates.elephant_flows_l2r}</label></div>`)), 
+         $input_box_r2l
+            .prepend($radio_button_r2l)
+            .prepend($(`<div class='col-7'><label class='pl-2'>${i18n.scripts_list.templates.elephant_flows_r2l}</label></div>`)), 
          $multiselect_bytes
       );
 
@@ -1143,7 +1147,7 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    if (!template_chosen) {
       template_chosen = EmptyTemplate();
-      throw(`the template ${template_name} was not implemented yet!`);
+      throw(`${i18n.scripts_list.templates.template_not_implemented}`);
    }
 
    return template_chosen;
@@ -1165,7 +1169,7 @@ const create_enabled_button = (row_data) => {
 
       if (has_all_hook == undefined) $button.css('visibility', 'hidden');
 
-      $button.text(`${i18n.disable || 'Enable'}`);
+      $button.text(`${i18n.enable || 'Enable'}`);
       $button.addClass('badge-success');
 
    }
