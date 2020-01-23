@@ -542,7 +542,7 @@ path.link {
 }
 
 .scrollable-dropdown {
-  max-height: 16rem;
+  max-height: 20rem;
   height: auto;
   overflow-y: auto;
 }
