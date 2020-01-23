@@ -27,10 +27,6 @@ const get_configuration_data = ($config_table, $button_caller) => {
     }
 }
 
-const can_clone_config = () => {
-    return((subdir != "system") && (subdir != "syslog"));
-}
-
 $(document).ready(function() {
 
     const add_columns = () => {
