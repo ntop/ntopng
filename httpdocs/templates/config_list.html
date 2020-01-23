@@ -17,7 +17,7 @@
                 {% for _, hooks_subdir in ipairs(config_list.user_scripts.listSubdirs()) do %}
                         <li class="nav-item">
                             <a class="nav-link {{ (hooks_subdir.id == config_list.subdir and 'active' or '') }}" href="?subdir={{hooks_subdir.id}}">
-                                {{hooks_subdir.label}}
+                                {{config_list.hooks_localizated[hooks_subdir.id]}}
                             </a>
                         </li>
                 {% end %}
