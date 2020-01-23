@@ -22,13 +22,13 @@ end
 -- @brief Validates and parses the given configuration.
 -- @return (true,conf) if configuration is valid, (false,errmsg) otherwise
 function Template:parseConfig(script, conf)
-  traceError(TRACE_WARNING, TRACE_CONSOLE, "Template:validateConfig implementation is missing: " .. self.key)
+  traceError(TRACE_WARNING, TRACE_CONSOLE, "Template:parseConfig implementation is missing: " .. self.key)
   return true, conf
 end
 
 -- @brief Get a short string describing the current configuration
 -- @return a descriptive string
-function Template:describeConfig(enabled, conf)
+function Template:describeConfig(hooks_conf)
   traceError(TRACE_WARNING, TRACE_CONSOLE, "Template:describeConfig implementation is missing: " .. self.key)
   return ""
 end
@@ -38,14 +38,19 @@ end
 local DefaultTemplate = {}
 
 function DefaultTemplate:new()
-  return Template:new("default")
+  local obj = Template:new("default")
+
+  setmetatable(obj, self)
+  self.__index = self
+
+  return obj
 end
 
 function DefaultTemplate:parseConfig(script, conf)
   return true, conf
 end
 
-function DefaultTemplate:describeConfig(enabled, conf)
+function DefaultTemplate:describeConfig(hooks_conf)
   -- TODO
   return ""
 end
@@ -59,7 +64,12 @@ end
 local ThresholdCrossTemplate = {}
 
 function ThresholdCrossTemplate:new()
-  return Template:new("threshold_cross")
+  local obj = Template:new("threshold_cross")
+
+  setmetatable(obj, self)
+  self.__index = self
+
+  return obj
 end
 
 function ThresholdCrossTemplate:parseConfig(script, conf)
@@ -74,7 +84,7 @@ function ThresholdCrossTemplate:parseConfig(script, conf)
   return true, conf
 end
 
-function ThresholdCrossTemplate:describeConfig(enabled, conf)
+function ThresholdCrossTemplate:describeConfig(hooks_conf)
   -- TODO
   return ""
 end
@@ -88,14 +98,19 @@ end
 local ItemsList = {}
 
 function ItemsList:new()
-  return Template:new("items_list")
+  local obj = Template:new("items_list")
+
+  setmetatable(obj, self)
+  self.__index = self
+
+  return obj
 end
 
 function ItemsList:parseConfig(script, conf)
   return http_lint.validateListItems(script, conf)
 end
 
-function ItemsList:describeConfig(enabled, conf)
+function ItemsList:describeConfig(hooks_conf)
   -- TODO
   return ""
 end
@@ -109,7 +124,12 @@ end
 local ElephantFlowsTemplate = {}
 
 function ElephantFlowsTemplate:new()
-  return Template:new("elephant_flows")
+  local obj = Template:new("elephant_flows")
+
+  setmetatable(obj, self)
+  self.__index = self
+
+  return obj
 end
 
 function ElephantFlowsTemplate:parseConfig(script, conf)
@@ -124,7 +144,7 @@ function ElephantFlowsTemplate:parseConfig(script, conf)
   return http_lint.validateListItems(script, conf)
 end
 
-function ThresholdCrossTemplate:describeConfig(enabled, conf)
+function ThresholdCrossTemplate:describeConfig(hooks_conf)
   -- TODO
   return ""
 end
@@ -138,7 +158,12 @@ end
 local LongLivedTemplate = {}
 
 function LongLivedTemplate:new()
-  return Template:new("elephant_flows")
+  local obj = Template:new("long_lived")
+
+  setmetatable(obj, self)
+  self.__index = self
+
+  return obj
 end
 
 function LongLivedTemplate:parseConfig(script, conf)
@@ -149,7 +174,7 @@ function LongLivedTemplate:parseConfig(script, conf)
   return http_lint.validateListItems(script, conf)
 end
 
-function LongLivedTemplate:describeConfig(enabled, conf)
+function LongLivedTemplate:describeConfig(hooks_conf)
   -- TODO
   return ""
 end

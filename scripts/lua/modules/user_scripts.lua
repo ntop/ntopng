@@ -935,16 +935,16 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
 	 local valid = true
 	 local rv_or_err = ""
 
-	 if(value.enabled == nil) then
+	 if(conf.enabled == nil) then
 	    return false, "Missing 'enabled' item"
 	 end
 
-	 if(value.script_conf == nil) then
+	 if(conf.script_conf == nil) then
 	    return false, "Missing 'script_conf' item"
 	 end
 
-	 if value.enabled then
-	    valid, rv_or_err = script.template:parseConfig(script, value.script_conf)
+	 if conf.enabled then
+	    valid, rv_or_err = script.template:parseConfig(script, conf.script_conf)
 	 end
 
 	 if(not valid) then
@@ -952,7 +952,8 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
 	 end
 
 	 -- The validator may have changed the configuration
-	 applied_config[hook] = rv_or_err
+	 conf.script_conf = rv_or_err
+	 applied_config[hook] = conf
       end
    end
 

@@ -1031,12 +1031,11 @@ end
 
 -- #################################################################
 
-local function validateListItems(script, value)
+local function validateListItems(script, conf)
    local item_type = script.gui.item_list_type or ""
    local item_validator = validateUnchecked
    local existing_items = {}
    local validated_items = {}
-   local conf = value.script_conf
 
    if(item_type == "country") then
       item_validator = validateCountry
@@ -1066,7 +1065,7 @@ local function validateListItems(script, value)
       conf.items = validated_items
    end
 
-   return true, value
+   return true, conf
 end
 
 http_lint.validateListItems = validateListItems
