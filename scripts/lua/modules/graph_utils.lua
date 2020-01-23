@@ -891,7 +891,7 @@ if(options.timeseries) then
    print [[
    <div class="dropdown d-inline">
       <button class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
-      <div class="dropdown-menu responsive-dropdown">
+      <div class="dropdown-menu scrollable-dropdown">
    ]]
 
    printSeries(options, tags, start_time, end_time, baseurl, page_params)
@@ -1412,7 +1412,7 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
    -- 'Category' button
    print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
          i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="fas fa-filter"></span>', '') ..
-         '<span class="caret"></span></div> <ul class="dropdown-menu" role="menu" style="min-width: 90px;">')
+         '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 
    -- 'Category' dropdown menu
    local entries = { {text=i18n("all"), id="", cat_id=""} }

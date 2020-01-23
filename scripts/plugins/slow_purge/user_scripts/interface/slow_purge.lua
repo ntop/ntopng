@@ -38,6 +38,9 @@ end
 -- #################################################################
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.Internals,
+
   default_enabled = true,
   default_value = {
     -- "> 50%"

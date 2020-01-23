@@ -48,6 +48,9 @@ end
 -- #################################################################
 
 script = {
+  -- Script category
+  category = user_scripts.script_categories.network,
+
   local_only = true,
   nedge_exclude = true,
   default_enabled = true,

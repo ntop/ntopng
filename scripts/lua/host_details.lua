@@ -1107,7 +1107,7 @@ elseif((page == "ndpi")) then
       end
 
       print('<div class="dt-toolbar btn-toolbar float-right">')
-      print('<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="direction_dropdown">')
+      print('<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="direction_dropdown">')
       print('<li><a href="'..base_url..'">'..i18n("all")..'</a></li>')
       print('<li><a href="'..base_url..'&direction=sent">'..i18n("ndpi_page.sent_only")..'</a></li>')
       print('<li><a href="'..base_url..'&direction=recv">'..i18n("ndpi_page.received_only")..'</a></li>')

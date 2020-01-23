@@ -27,11 +27,96 @@ const get_configuration_data = ($config_table, $button_caller) => {
     }
 }
 
-const can_clone_config = () => {
-    return((subdir != "system") && (subdir != "syslog"));
-}
-
 $(document).ready(function() {
+
+    const add_columns = () => {
+
+        const targets_column = {
+            data: 'targets',
+            render: function(data, type, row) {
+
+                // show targets as a string into display mode
+                // if there aren't ant targets then show an alert
+                if (type == "display" && data.length > 0) {
+                    const flat = data.map((f) => f.label);
+                    return flat.join(', ');
+                }
+                else if (type == 'display' && data.length == 0 && row.id != 0) {
+                    return `<div class='text-warning'>
+                                <i class='fas fa-exclamation-triangle'></i> <b>${i18n.warning}</b>: ${i18n.no_targets_applied}
+                            </div>`
+                }
+                else if (type == "display" && row.id == 0) {
+                    return `<i>${i18n.default}</i>`;
+                }
+
+                // return targets as a string
+                const flat = data.map((f) => f.label);
+                return flat.join(', ');
+            }
+        }
+        
+        const name_column = {
+            data: 'name',
+            defaultContent: '{Config Name}',
+            render: (data, type, row) => `<b>${data}</b>`
+        }
+
+        const action_column = {
+            targets: -1,
+            width: '10%',
+            data: null,
+            className: 'text-center',
+            render: function(data, type, row) {
+
+                let rv = `
+                    <a class="badge badge-info" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
+                        ${i18n.edit}
+                    </a>
+                `;
+                if(!default_config_only)
+                    rv += `
+                        <a href='#'
+                            title='${i18n.clone}' 
+                            class="badge badge-info"
+                            data-toggle="modal"
+                            data-target="#clone-modal">
+                                ${i18n.clone}
+                        </a>
+                    `;
+                if(data.id != 0)
+                    rv += `
+                        <a href='#'
+                            title='${i18n.apply_to}'
+                            data-toggle='modal'
+                            class="badge badge-info"
+                            data-target='#applied-modal'>
+                                ${i18n.apply_to}
+                         </a>
+                         <a href='#'
+                            title='${i18n.rename}' 
+                            class="badge badge-info"
+                            data-toggle="modal"
+                            data-target="#rename-modal">
+                            ${i18n.rename}
+                            </a>
+                        <a href='#'
+                            title='${i18n.delete}'
+                            class="badge badge-danger"
+                            data-toggle="modal"
+                            data-target="#delete-modal">
+                                ${i18n.delete}
+                        </a>
+                    `;
+
+                return rv;
+            }
+        }
+
+        if (default_config_only) return [name_column, action_column];
+
+        return [name_column, targets_column, action_column];
+    }
 
     const $config_table = $("#config-list").DataTable({
         lengthChange: false,
@@ -54,84 +139,7 @@ $(document).ready(function() {
             type: 'GET',
             dataSrc: ''
         },
-        columns: [
-            {
-                data: 'name',
-                render: function(data, type, row) {
-                    return `<b>${data}</b>`
-                }
-            },
-            {
-                data: 'targets',
-                render: function(data, type, row) {
-
-                    // show targets as a string into display mode
-                    // if there aren't ant targets then show an alert
-                    if (type == "display" && data.length > 0) {
-                        const flat = data.map((f) => f.label);
-                        return flat.join(', ');
-                    }
-                    else if(type == 'display' && data.length == 0 && row.id != 0) {
-                        return `<div class='text-warning'>
-                                    <i class='fas fa-exclamation-triangle'></i> <b>${i18n.warning}</b>: ${i18n.no_targets_applied}
-                                </div>`
-                    }
-
-                    // return targets as a string
-                    const flat = data.map((f) => f.label);
-                    return flat.join(', ');
-                }
-            },
-            {
-                targets: -1,
-                width: '10%',
-                data: null,
-                className: 'text-center',
-                render: function(data, type, row) {
-                    let rv = `
-                                <a class="badge badge-info" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
-                                    ${i18n.edit}
-                                </a>`
-                    if(can_clone_config())
-                        rv += `
-                                <a href='#'
-                                        title='${i18n.clone}' 
-                                        class="badge badge-info"
-                                        data-toggle="modal"
-                                        data-target="#clone-modal">
-                                    ${i18n.clone}
-                                </a>
-                        `;
-                    if(data.id != 0)
-                        rv += `
-                                <a href='#'
-                                        title='${i18n.apply_to}'
-                                        data-toggle='modal'
-                                        class="badge badge-info"
-                                        data-target='#applied-modal'>
-                                    ${i18n.apply_to}
-                                </a>
-                                <a href='#'
-                                        title='${i18n.rename}' 
-                                        class="badge badge-info"
-                                        data-toggle="modal"
-                                        data-target="#rename-modal">
-                                    ${i18n.rename}
-                                </a>
-                                <a href='#'
-                                        title='${i18n.delete}'
-                                        class="badge badge-danger"
-                                        data-toggle="modal"
-                                        data-target="#delete-modal">
-                                    ${i18n.delete}
-                                </a>
-                        `;
-
-                    return rv;
-                }
-            }
-        ]
-
+        columns: add_columns()
     });
 
     // handle clone modal
@@ -259,7 +267,7 @@ $(document).ready(function() {
                 applied_value = $("#applied-networks").val().join(',');
             }
             else {
-                applied_value = $("#applied-input").val();
+                applied_value = $("#applied-input").val().trim();
             } 
 
             $button.attr("disabled", "");

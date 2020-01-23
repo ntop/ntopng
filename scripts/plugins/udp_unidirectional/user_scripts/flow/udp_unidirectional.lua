@@ -12,6 +12,9 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
+   -- Script category
+   category = user_scripts.script_categories.network,
+
    l4_proto = "udp",
 
    -- NOTE: hooks defined below

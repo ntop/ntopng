@@ -248,7 +248,7 @@ preference = tablePreferences("rows_number", _GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 print [[ showPagination: true,
-         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
+         buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("applications")) print[[<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" id="flow_dropdown">]]
 
 if (pid_key ~= nil) then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_process_info.lua?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows_page.all_proto")..'</a></li>')

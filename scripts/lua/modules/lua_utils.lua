@@ -315,7 +315,7 @@ function printIpVersionDropdown(base_url, page_params)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.ip_version")) print[[]] print(ipversion_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, ipversion_params)) print[[">]] print(i18n("flows_page.all_ip_versions")) print[[</a></li>\
          <li]] if ipversion == "4" then print(' class="active"') end print[[><a class="dropdown-item" href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv4_only")) print[[</a></li>\
          <li]] if ipversion == "6" then print(' class="active"') end print[[><a class="dropdown-item" href="]] ipversion_params["version"] = "6"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv6_only")) print[[</a></li>\
@@ -346,7 +346,7 @@ function printVLANFilterDropdown(base_url, page_params)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.vlan")) print[[]] print(vlan_id_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">]] print(i18n("flows_page.all_vlan_ids")) print[[</a></li>\]]
    for _, vid in ipairs(ids) do
       vlan_id_params["vlan"] = vid
@@ -373,7 +373,7 @@ function printTrafficTypeFilterDropdown(base_url, page_params)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print[[]] print(traffic_type_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_all")) print[[</a></li>\]]
 
    -- now forthe one-way
@@ -422,7 +422,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
 
    print[[, '<div class="btn-group float-right">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
    for _, dip in ipairs(devips) do
       dev_params["deviceIP"] = dip
@@ -462,7 +462,7 @@ function printFlowDevicesFilterDropdown(base_url, page_params)
 	 if_params[direction] = nil
 	    print[[, '<div class="btn-group float-right">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page."..direction)) print[[]] print(cur_if_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page.all_"..direction)) print[[</a></li>\]]
 
 	    for portidx, _ in pairsByKeys(ports, asc) do

@@ -93,7 +93,7 @@ if(show_aggregation) then
    print [[
 <div class="btn-group">
   <button class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
-  <ul class="dropdown-menu">
+  <ul class="dropdown-menu scrollable-dropdown">
 ]]
 
 print('<li><a  href="'..url .. '&aggregation=ndpi">'.. i18n("application") ..'</a></li>\n')
@@ -147,7 +147,7 @@ if(show_aggregation) then
    print [[
 <div class="btn-group">
   <button id="aggregation_bubble_displayed" class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">]] print(i18n("aggregation")) print[[ <span class="caret"></span></button>
-  <ul class="dropdown-menu" id="aggregation_bubble">
+  <ul class="dropdown-menu scrollable-dropdown" id="aggregation_bubble">
     <li><a>]] print(i18n("application")) print[[</a></li>
     <li><a>]] print(i18n("protocol")) print[[</a></li>
     <li><a>]] print(i18n("port")) print[[</a></li>

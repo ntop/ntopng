@@ -6,6 +6,7 @@ local format_utils = require("format_utils")
 local internals_utils = {}
 local json = require "dkjson"
 local dirs = ntop.getDirs()
+local user_scripts = require "user_scripts"
 
 -- ###########################################
 
@@ -34,7 +35,7 @@ local function printHashTablesDropdown(base_url, page_params)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.hash_table")) print[[]] print(hash_table_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\]]
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\]]
 
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, hash_table_params)) print[[">]] print(i18n("internals.all_hash_tables")) print[[</a></li>\]]
 
@@ -153,7 +154,7 @@ local function printPeriodicactivityDropdown(base_url, page_params)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.periodic_activity")) print[[]] print(periodic_activity_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\]]
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\]]
 
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, periodic_activity_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
 
@@ -252,6 +253,126 @@ end
 
 -- ###########################################
 
+local function printUserScriptsDropdown(base_url, page_params)
+   local user_script_target = _GET["user_script_target"]
+   local user_script_target_filter
+   if not isEmptyString(user_script_target) then
+      user_script_target_filter = '<span class="fas fa-filter"></span>'
+   else
+      user_script_target_filter = ''
+   end
+   local user_script_target_params = table.clone(page_params)
+   user_script_target_params["user_script_target"] = nil
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.user_script_target")) print[[]] print(user_script_target_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu" role="menu" id="flow_dropdown">\]]
+
+   print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, user_script_target_params)) print[[">]] print(i18n("internals.all_user_script_targets")) print[[</a></li>\]]
+
+   for _, subdir in pairsByKeys(user_scripts.listSubdirs(), asc) do
+      print[[ <li]] if user_script_target == subdir["label"] then print(' class="active"') end print[[><a class="dropdown-item" href="]] user_script_target_params["user_script_target"] = subdir["label"]; print(getPageUrl(base_url, user_script_target_params)); print[[">]] print(subdir["label"]) print[[</a></li>\]]
+   end
+end
+
+-- ###########################################
+
+local function printUserScriptsTable(base_url, ifid, ts_creation)
+   local page_params = {user_script_target = _GET["user_script_target"], tab = _GET["tab"], iffilter = ifid}
+
+   print[[
+<div id="table-internals-periodic-activities"></div>
+<script type='text/javascript'>
+
+$("#table-internals-periodic-activities").datatable({
+   title: "]] print(i18n("internals.user_scripts")) print[[",]]
+
+   local preference = tablePreferences("rows_number",_GET["perPage"])
+   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
+
+   print[[
+   showPagination: true,
+   buttons: [ ]]
+
+   -- Ip version selector
+   print[['<div class="btn-group float-right">]]
+   printUserScriptsDropdown(base_url, page_params)
+   print[[</div>']]
+
+   print[[ ],
+   url: "]] print(getPageUrl(ntop.getHttpPrefix().."/lua/get_internals_user_scripts_stats.lua", page_params)) print[[",
+   columns: [
+     {
+       field: "column_key",
+       hidden: true,
+     }, {
+       field: "column_ifid",
+       hidden: true,
+     }, {
+       title: "]] print(i18n("interface")) print[[",
+       field: "column_name",
+       hidden: ]] if ifid then print('true') else print('false') end print[[,
+       sortable: true,
+       css: {
+	 textAlign: 'left',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("internals.user_script")) print[[",
+       field: "column_user_script_name",
+       sortable: true,
+       css: {
+	 textAlign: 'left',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("internals.user_script_target")) print[[",
+       field: "column_user_script_target",
+       sortable: true,
+       css: {
+	 textAlign: 'left',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("flow_callbacks.callback_function")) print[[",
+       field: "column_hook",
+       sortable: true,
+       css: {
+	 textAlign: 'left',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("internals.last_num_calls")) print[[",
+       field: "column_last_num_calls",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("internals.last_duration_ms")) print[[",
+       field: "column_last_duration",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '5%',
+       }
+     }
+   ], tableCallback: function() {
+      datatableInitRefreshRows($("#table-internals-periodic-activities"),
+			       "column_key", 5000,
+			       {
+                  "column_last_duration": fmillis,
+                  "column_last_num_calls": fint,
+               });
+   },
+});
+</script>
+ ]]
+end
+
+-- ###########################################
+
 local function printTab(tab, content, sel_tab)
    if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
    print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=alerts&tab="..tab)
@@ -274,6 +395,9 @@ function internals_utils.printInternals(ifid)
   <li class="nav-item ]] if tab == "periodic_activities" then print[[active]] end print[[">
     <a class="nav-link ]] if tab == "periodic_activities" then print[[active]] end print[[" href="?page=internals&tab=periodic_activities"]] print[[">]] print(i18n("internals.periodic_activities")) print[[</a>
   </li>
+  <li class="nav-item ]] if tab == "user_scripts" then print[[active]] end print[[">
+    <a class="nav-link ]] if tab == "user_scripts" then print[[active]] end print[[" href="?page=internals&tab=user_scripts"]] print[[">]] print(i18n("internals.user_scripts")) print[[</a>
+  </li>
 </ul>
 
 <div class="tab-content clearfix">]]
@@ -283,6 +407,8 @@ function internals_utils.printInternals(ifid)
       printHashTablesTable(base_url.."&tab=hash_tables", ifid, ts_creation)
    elseif tab == "periodic_activities" then
       printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid, ts_creation)
+   elseif tab == "user_scripts" then
+      printUserScriptsTable(base_url.."&tab=user_scripts", ifid, ts_creation)
    end
    print[[</div>]]
 end

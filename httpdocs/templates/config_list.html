@@ -13,22 +13,22 @@
                 </ol>
             </nav>
             <ul class="nav nav-pills">
-                <li class='nav-item pt-2 pb-2 pr-1'>Script Subdirs:</li>
+                <li class='nav-item pt-2 pb-2 pr-1'>{{ i18n('config_scripts.config_entities') }}:</li>
                 {% for _, hooks_subdir in ipairs(config_list.user_scripts.listSubdirs()) do %}
-        
                         <li class="nav-item">
                             <a class="nav-link {{ (hooks_subdir.id == config_list.subdir and 'active' or '') }}" href="?subdir={{hooks_subdir.id}}">
-                                {{hooks_subdir.label}}
+                                {{config_list.hooks_localizated[hooks_subdir.id]}}
                             </a>
                         </li>
-    
                 {% end %}
             </ul>
             <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
                    <thead>
                         <tr>
                             <th class='w-25'>{{ i18n("config_scripts.config_name", {}) }}</th>
+                            {% if config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
                             <th>{{ i18n("config_scripts.applied_to", {}) }}</th>
+                            {% end %}
                             <th class='w-25'>{{ i18n("actions", {}) }}</th>
                         </tr>
                     </thead>
@@ -48,8 +48,19 @@
           <button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_import') }}</span></button>
         </div>
     </div>
-
+<br>
+    <div>
+      <b>{{ i18n('notes') }}</b>
+      <ul>
+	<li>{* i18n('user_scripts.note_what_are_user_scripts',
+	  {user_scripts_url = "https://www.ntop.org/guides/ntopng/api/user_scripts/index.html#user-scripts-api",
+	  user_scripts_external = "<i class=\"fas fa-external-link-alt\"></i>"}) *}</li>
+	<li>{* i18n('user_scripts.note_configsets') *}</li>
+	<li>{* i18n('user_scripts.note_apply_to_default') *}</li>
+      </ul>
+    </div>
 </div>
+
 
 {# include modals for config_list.lua #}
 
@@ -72,23 +83,24 @@ let apply_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let clone_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let rename_csrf = '{{ ntop.getRandomCSRFValue() }}';
 const delete_csrf = '{{ ntop.getRandomCSRFValue() }}';
-
+const default_config_only = {{ config_list.default_config_only_subdir }};
 const subdir = '{{ config_list.subdir }}';
 
-i18n.warning ="{{ i18n('warning', {}) }}"
-i18n.no_targets_applied = "{{ i18n('config_scripts.no_targets_applied', {}) }}"
-i18n.empty_value_message = "{{ i18n('config_scripts.empty_value_message', {}) }}"
-i18n.empty_target_message = "{{ i18n('config_scripts.empty_target_message', {}) }}"
-i18n.expired_csrf = "{{ i18n('expired_csrf') }}"
-i18n.invalid_characters = "{{ i18n('config_scripts.invalid_characters') }}"
-i18n.max_input_length = "{{ i18n('config_scripts.max_input_length') }}"
-i18n.rename = "{{ i18n('config_scripts.actions.rename') }}"
-i18n.delete = "{{ i18n('config_scripts.actions.delete') }}"
-i18n.clone = "{{ i18n('config_scripts.actions.clone') }}"
-i18n.edit = "{{ i18n('config_scripts.actions.edit') }}"
-i18n.apply_to = "{{ i18n('config_scripts.actions.apply_to') }}"
-i18n.invalid_file = "{{ i18n('config_scripts.invalid_file') }}"
-i18n.no_file = "{{ i18n('config_scripts.no_file') }}"
+i18n.warning ="{{ i18n('warning', {}) }}";
+i18n.no_targets_applied = "{{ i18n('config_scripts.no_targets_applied', {}) }}";
+i18n.empty_value_message = "{{ i18n('config_scripts.empty_value_message', {}) }}";
+i18n.empty_target_message = "{{ i18n('config_scripts.empty_target_message', {}) }}";
+i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
+i18n.invalid_characters = "{{ i18n('config_scripts.invalid_characters') }}";
+i18n.max_input_length = "{{ i18n('config_scripts.max_input_length') }}";
+i18n.rename = "{{ i18n('config_scripts.actions.rename') }}";
+i18n.delete = "{{ i18n('config_scripts.actions.delete') }}";
+i18n.clone = "{{ i18n('config_scripts.actions.clone') }}";
+i18n.edit = "{{ i18n('config_scripts.actions.edit') }}";
+i18n.apply_to = "{{ i18n('config_scripts.actions.apply_to') }}";
+i18n.invalid_file = "{{ i18n('config_scripts.invalid_file') }}";
+i18n.no_file = "{{ i18n('config_scripts.no_file') }}";
+i18n.default = "{{ i18n('policy_presets.default') }}";
 
 </script>
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/config_callbacks/config-list-utils.js?{{ ntop.getStartupEpoch() }}'></script>

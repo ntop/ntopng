@@ -7,6 +7,9 @@ local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.network,
+
   default_enabled = false,
 
   -- This script is only for alerts generation

@@ -7,6 +7,9 @@ local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.security,
+
   -- This module is disabled by default
   default_enabled = false,
 

@@ -26,6 +26,9 @@ end
 -- #################################################################
 
 script = {
+  -- Script category
+  category = user_scripts.script_categories.system,
+
   default_enabled = true,
   default_value = {
     -- "> 5%"

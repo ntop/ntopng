@@ -150,6 +150,15 @@ function dumpInterfaceStats(ifid)
       end
 
       if(ifstats.zmqRecvStats ~= nil) then
+
+         if ifstats.zmqRecvStats_since_reset then
+            -- override stats with the values calculated from the latest user reset 
+            -- for consistency with if_stats.lua
+            for k, v in pairs(ifstats.zmqRecvStats_since_reset) do
+               ifstats.zmqRecvStats[k] = v
+            end
+         end
+
          res["zmqRecvStats"] = {}
          res["zmqRecvStats"]["flows"] = ifstats.zmqRecvStats.flows
 	 res["zmqRecvStats"]["events"] = ifstats.zmqRecvStats.events

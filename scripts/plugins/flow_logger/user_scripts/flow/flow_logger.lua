@@ -8,6 +8,9 @@ local user_scripts = require("user_scripts")
 local f = nil
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.system, 
+
   -- This module is disabled by default
   default_enabled = false,
 

@@ -18,6 +18,7 @@ if(subdir == nil) then
 end
 
 local target_type = user_scripts.getSubdirTargetType(subdir)
+local script_type = user_scripts.script_types[subdir]
 local config_sets = user_scripts.getConfigsets()
 local rv = {}
 
@@ -47,6 +48,11 @@ for _, configset in pairs(config_sets) do
     name = configset.name,
     targets = targets,
   }
+
+  if(script_type and script_type.default_config_only) then
+    -- Only return the default
+    break
+  end
 end
 
 print(json.encode(rv))

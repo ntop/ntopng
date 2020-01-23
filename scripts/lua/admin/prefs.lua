@@ -261,7 +261,6 @@ function printAlerts()
 			   "row_toggle_remote_to_remote_alerts",
 			   "row_toggle_ip_reassignment_alerts", "row_alerts_informative_header",
 			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert",
-			   "longlived_flow_duration", "elephant_flow_local_to_remote_bytes", "elephant_flow_remote_to_local_bytes"
 			}
  
  if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
@@ -306,21 +305,6 @@ function printAlerts()
     default = "0",
     hidden = not showElements,
   })
-
-  prefsInputFieldPrefs(subpage_active.entries["longlived_flow_duration"].title, 
-		       subpage_active.entries["longlived_flow_duration"].description,
-		       "ntopng.prefs.", "longlived_flow_duration", 12 * 60 * 60 --[[ 12 hours --]],
-		       "number", showElements, nil, nil, {min=1, max=60*60*24*7, tformat="mhd"})
-
-  prefsInputFieldPrefs(subpage_active.entries["elephant_flow_local_to_remote_bytes"].title, 
-		       subpage_active.entries["elephant_flow_local_to_remote_bytes"].description,
-		       "ntopng.prefs.", "elephant_flow_local_to_remote_bytes", 1024 * 1024 * 1024 --[[ 1 GB --]],
-		       "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
-
-  prefsInputFieldPrefs(subpage_active.entries["elephant_flow_remote_to_local_bytes"].title, 
-		       subpage_active.entries["elephant_flow_remote_to_local_bytes"].description,
-		       "ntopng.prefs.", "elephant_flow_remote_to_local_bytes",  1024 * 1024 * 1024 --[[ 1 GB --]],
-		       "number", showElements, nil, nil, {min=1024, format_spec = FMT_TO_DATA_BYTES, tformat="kmg"})
 
   print('<thead class="thead-light"><tr id="row_alerts_informative_header" ')
   if (showElements == false) then print(' style="display:none;"') end
@@ -1335,35 +1319,6 @@ function printSnmp()
     default = "0",
     pref = "snmp_debug",
   })
-
-  print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.snmp_alerts")..'</th></tr></thead>')
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_snmp_alerts_port_status_change",
-    default = "1",
-    pref = "alerts.snmp_port_status_change",
-    disabled = disabled,
-  })
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_snmp_alerts_port_duplexstatus_change",
-    default = "1",
-    pref = "alerts.snmp_port_duplexstatus_change",
-    disabled = disabled,
-  })
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_snmp_alerts_port_errors",
-    default = "1",
-    pref = "alerts.snmp_port_errors",
-    disabled = disabled,
-  })
-
-  prefsInputFieldPrefs(subpage_active.entries["snmp_port_load_threshold"].title, 
-                       subpage_active.entries["snmp_port_load_threshold"].description,
-                       "ntopng.prefs.alerts.", 
-                       "snmp_port_load_threshold", 
-                       "100", "number", nil, false, nil, {min=0, disabled=disabled})
 
   if(disabled) then
     prefsInformativeField(i18n("notes"), i18n("enterpriseOnly"))

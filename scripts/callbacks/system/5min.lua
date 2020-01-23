@@ -10,5 +10,4 @@ if ntop.isPro() then
    require "5min"
 end
 
--- Run hourly scripts
 ntop.checkSystemScripts5Min()

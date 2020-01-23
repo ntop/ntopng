@@ -9650,6 +9650,51 @@ static int ntop_flow_get_ndpi_cat_name(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_ndpi_protocol_name(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+  char buf[64];
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, f->get_detected_protocol_name(buf, sizeof(buf)));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_ndpi_category_id(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_protocol_category());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_ndpi_master_proto_id(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_detected_protocol().master_protocol);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_ndpi_app_proto_id(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_detected_protocol().app_protocol);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_cli_tcp_issues(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -11426,6 +11471,10 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "isLocalToRemote",          ntop_flow_is_local_to_remote         },
   { "isRemoteToLocal",          ntop_flow_is_remote_to_local         },
   { "getnDPICategoryName",      ntop_flow_get_ndpi_cat_name          },
+  { "getnDPIProtocolName",      ntop_flow_get_ndpi_protocol_name     },
+  { "getnDPICategoryId",        ntop_flow_get_ndpi_category_id       },
+  { "getnDPIMasterProtoId",     ntop_flow_get_ndpi_master_proto_id   },
+  { "getnDPIAppProtoId",        ntop_flow_get_ndpi_app_proto_id      },
   { "getClientTCPIssues",       ntop_flow_get_cli_tcp_issues         },
   { "getServerTCPIssues",       ntop_flow_get_srv_tcp_issues         },
   { "canTriggerAlert",          ntop_flow_can_trigger_alert          },

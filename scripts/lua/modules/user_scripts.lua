@@ -72,6 +72,30 @@ local available_subdirs = {
    }
 }
 
+-- User scripts category consts
+user_scripts.script_categories = {
+   other = {
+      icon = "",
+      i18n_title = "user_scripts.category_other",
+   },
+   security = {
+      icon = "fas fa-shield-alt",
+      i18n_title = "user_scripts.category_security",
+   },
+   internals = {
+      icon = "fas fa-wrench",
+      i18n_title = "user_scripts.category_internals",
+   },
+   network = {
+      icon = "fas fa-network-wired",
+      i18n_title = "user_scripts.category_network",
+   },
+   system = {
+      icon = "fas fa-server",
+      i18n_title = "user_scripts.category_system",
+   }
+}
+
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
 user_scripts.script_types = {
@@ -93,10 +117,12 @@ user_scripts.script_types = {
     hooks = {"min", "5mins", "hour", "day"},
     subdirs = {"system"},
     has_per_hook_config = true, -- Each hook has a separate configuration
+    default_config_only = true, -- Only the default configset can be used
   }, syslog = {
     parent_dir = "system",
     hooks = {"handleEvent"},
     subdirs = {"syslog"},
+    default_config_only = true, -- Only the default configset can be used
   }
 }
 
@@ -354,6 +380,8 @@ end
 -- ##############################################
 
 local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
+   local user_scripts_templates = require("user_scripts_templates")
+
    user_script.key = mod_fname
    user_script.path = full_path
    user_script.subdir = subdir
@@ -362,6 +390,18 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.plugin = plugin
    user_script.script_type = script_type
    user_script.edition = plugin.edition
+
+   if(user_script.gui and user_script.gui.input_builder) then
+      user_script.template = user_scripts_templates[user_script.gui.input_builder]
+
+      if(user_script.template == nil) then
+	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown template '%s' for user script '%s'", user_script.gui.input_builder, mod_fname))
+      end
+   end
+
+   if(user_script.template == nil) then
+      user_script.template = user_scripts_templates.default
+   end
 
    -- Expand hooks
    if(user_script.hooks["all"] ~= nil) then
@@ -439,11 +479,19 @@ function user_scripts.load(ifid, script_type, subdir, options)
             traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
 
             local user_script = dofile(full_path)
-
+	    
             if(type(user_script) ~= "table") then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))
                goto next_module
             end
+
+	    if not user_script["category"] then
+	       -- Assign the default category other
+	       user_script.category = user_scripts.script_categories.other
+	    elseif not user_script["category"]["icon"] or not user_script["category"]["i18n_title"] then
+	       -- Category is found but not among the available categories. Let's reset it to other and print an error
+	       user_script.category = user_scripts.script_categories.other
+	    end
 
             if(rv.modules[mod_fname]) then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
@@ -915,17 +963,29 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
 
    if(script) then
       -- Try to validate the configuration
-      local http_lint = require("http_lint")
-
       for hook, conf in pairs(new_config) do
-	 local valid, rv = http_lint.validateHookConfig(script, hook, conf)
+	 local valid = true
+	 local rv_or_err = ""
+
+	 if(conf.enabled == nil) then
+	    return false, "Missing 'enabled' item"
+	 end
+
+	 if(conf.script_conf == nil) then
+	    return false, "Missing 'script_conf' item"
+	 end
+
+	 if conf.enabled then
+	    valid, rv_or_err = script.template:parseConfig(script, conf.script_conf)
+	 end
 
 	 if(not valid) then
-	    return false, rv
+	    return false, rv_or_err
 	 end
 
 	 -- The validator may have changed the configuration
-	 applied_config[hook] = rv
+	 conf.script_conf = rv_or_err
+	 applied_config[hook] = conf
       end
    end
 
@@ -933,6 +993,36 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
 
    config[subdir] = config[subdir] or {}
    config[subdir][script_key] = applied_config
+
+   return saveConfigsets(configsets)
+end
+
+-- ##############################################
+
+function user_scripts.toggleScript(confid, script_key, subdir, enable)
+   local configsets = user_scripts.getConfigsets()
+   local configset = configsets[confid]
+
+   if(configset == nil) then
+      return false, i18n("configsets.unknown_id", {confid=confid})
+   end
+
+   local script_type = user_scripts.getScriptType(subdir)
+   local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
+
+   if(script == nil) then
+      return false, i18n("configsets.unknown_user_script", {user_script=script_key})
+   end
+
+   local config = user_scripts.getScriptConfig(configset, script, subdir)
+
+   if(config == nil) then
+      return false
+   end
+
+   for _, hook in pairs(config) do
+      hook.enabled = enable
+   end
 
    return saveConfigsets(configsets)
 end

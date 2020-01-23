@@ -158,7 +158,7 @@ function custom_column_utils.printCustomColumnDropdown(base_url, page_params)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown"><i class="fas fa-columns" aria-hidden="true"></i><span class="caret"></span></button>\
-      <ul class="dropdown-menu" role="menu" id="custom_column_dropdown">]]
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="custom_column_dropdown">]]
 
    for _, lg in ipairs(custom_column_utils.available_custom_columns) do
       local key = lg[1]

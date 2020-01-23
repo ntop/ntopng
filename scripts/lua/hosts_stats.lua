@@ -320,7 +320,7 @@ if (_GET["page"] ~= "historical") then
    -- Hosts filter
    local hosts_filter_params = table.clone(page_params)
 
-   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("hosts_stats.filter_hosts")..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li"><a class="dropdown-item" href="')
+   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("hosts_stats.filter_hosts")..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;"><li"><a class="dropdown-item" href="')
 
    hosts_filter_params.mode = nil
    hosts_filter_params.pool = nil
