@@ -278,13 +278,13 @@ const get_unit_bytes = (bytes) => {
 const get_unit_times = (seconds) => {
 
    if (seconds < 3600 || seconds == undefined || seconds == null) {
-      return ["Minutes", seconds / 60, 60];
+      return [`${i18n.metrics.minutes}`, seconds / 60, 60];
    }
    else if (seconds >= 3600 && seconds < 86400) {
-      return ["Hours", seconds / 3600, 3600];
+      return [`${i18n.metrics.hours}`, seconds / 3600, 3600];
    }
    else if (seconds >= 86400) {
-      return ["Days", seconds / 86400, 86400];
+      return [`${i18n.metrics.days}`, seconds / 86400, 86400];
    }
 
 };
@@ -463,7 +463,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
       $table_editor.empty();
 
       // append each hooks to the table
-      $table_editor.append(`<tr><th class='text-center'>Enabled</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center'>${i18n.enabled}</th></tr>`)
 
       if ("min" in $input_fields) {
          $table_editor.append($input_fields['min']);
@@ -629,7 +629,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
       $table_editor.empty();
 
-      $table_editor.append(`<tr><th class='text-center w-25'>Enabled</th><th>Blacklisted Countries list:</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center w-25'>${i18n.enabled}</th><th>${i18n.scripts_list.templates.blacklisted_country_list}:</th></tr>`)
       $table_editor.append($component_container);
    }
 
@@ -713,7 +713,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          name: 'duration_value',
          current_value: times_unit[1],
          min: 1,
-         max: (times_unit[0] == "Minutes" ? 59 : (times_unit[0] == "Hours" ? 23 : 365)),
+         max: (times_unit[0] == `${i18n.metrics.minutes}` ? 59 : (times_unit[0] == `${i18n.metrics.hours}` ? 23 : 365)),
          enabled: enabled,
       };
 
@@ -729,7 +729,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       // time-ds stands for: time duration selection
       const radio_values = {
-         labels: ["Minutes", "Hours", "Days"], 
+         labels: [`${i18n.metrics.minutes}`, `${i18n.metrics.hours}`, `${i18n.metrics.days}`], 
          label: times_unit[0],
          values: [60, 3600, 86400]
       }
@@ -982,11 +982,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          $input_container
       );
 
-      $table_editor.append(`
-         <tr class='text-center'>
-            <th>${i18n.enabled}</th>
-         </tr>
-      `);
+      $table_editor.append(`<tr class='text-center'><th>${i18n.enabled}</th></tr>`);
 
       // append all inside the table
       $table_editor.append($container);
@@ -1035,6 +1031,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
          const bytes_unit_l2r = get_unit_bytes(bytes_l2r);
          const bytes_unit_r2l = get_unit_bytes(bytes_r2l);
+
          $(`input[name='l2r_value']`).val(bytes_unit_l2r[1]);
          $(`input[name='r2l_value']`).val(bytes_unit_r2l[1]);
  

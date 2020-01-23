@@ -1,10 +1,9 @@
 {% if script_list.confset_id == nil or script_list.confset_id == "" then %}
 <div class="alert alert-danger">
-  <b>Attention!</b>
-  The page was not found!
-  <a class="text-danger" href="#" onclick="history.back()"
-    >Click here to return to the previous page!</a
-  >
+  <b>{{ i18n("scripts_list.attention", {}) }}!</b> {{ i18n("scripts_list.missing_configset", {}) }}
+  <a class="text-danger" href="#" onclick="history.back()">
+    {{ i18n("scripts_list.previous_page", {}) }}
+  </a>
 </div>
 {% else %}
 
@@ -87,6 +86,11 @@ i18n.scripts_list.templates.template_not_implemented = "{{ i18n('scripts_list.te
 
 i18n.enable = "{{ i18n('show_alerts.enable_alerts') }}";
 i18n.disable = "{{ i18n('show_alerts.disable_alerts') }}";
+
+i18n.metrics = {};
+i18n.metrics.hours = "{{ i18n('metrics.hours') }}";
+i18n.metrics.days = "{{ i18n('metrics.days') }}";
+i18n.metrics.minutes = "{{ i18n('metrics.minutes') }}";
 
 
 </script>
