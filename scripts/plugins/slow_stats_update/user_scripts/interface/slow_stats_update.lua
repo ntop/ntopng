@@ -4,8 +4,12 @@
 
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
+local user_scripts = require("user_scripts")
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.internals,
+
   default_enabled = true,
   anomaly_type_builder = alerts_api.slowStatsUpdateType,
 

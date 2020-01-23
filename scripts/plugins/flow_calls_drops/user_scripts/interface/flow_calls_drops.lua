@@ -25,6 +25,9 @@ end
 -- #################################################################
 
 script = {
+  -- Script category
+  category = user_scripts.script_categories.internals,
+
   default_enabled = true,
   hooks = {
     min = check_interface_drops,

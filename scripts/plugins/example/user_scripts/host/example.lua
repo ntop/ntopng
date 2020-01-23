@@ -14,6 +14,9 @@ local global_state = nil
 -- #################################################################
 
 local script = {
+  -- Script category, see user_scripts.script_categories for all available categories
+  category = user_scripts.script_categories.other,
+
   -- This module is enabled by default
   default_enabled = true,
 

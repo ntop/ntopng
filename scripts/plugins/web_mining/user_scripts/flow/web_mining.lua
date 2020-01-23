@@ -8,6 +8,9 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.security,
+
   -- NOTE: hooks defined below
   hooks = {},
 

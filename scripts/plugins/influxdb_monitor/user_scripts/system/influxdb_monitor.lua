@@ -2,9 +2,13 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local user_scripts = require("user_scripts")
 local ts_utils = require("ts_utils_core")
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.system,
+
   -- This module is enabled by default
   default_enabled = true,
 

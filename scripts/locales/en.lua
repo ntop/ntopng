@@ -563,6 +563,13 @@ local lang = {
     ["unknown_id"] = "No configuration found with id %{confid}",
     ["unknown_user_script"] = "Unknown user script \"%{user_script}\"",
   },
+  ["user_scripts"] = {
+     ["category_other"] = "Other",
+     ["category_security"] = "Security",
+     ["category_internals"] = "Internals",
+     ["category_network"] = "Network",
+     ["category_system"] = "System",
+  },
   ["contacts_page"] = {
     ["client_address"] = "Client Address",
     ["client_contacts_initiator"] = "Client Contacts (Initiator)",

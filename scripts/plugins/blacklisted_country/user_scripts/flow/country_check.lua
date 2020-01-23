@@ -6,6 +6,9 @@ local user_scripts = require("user_scripts")
 local flow_consts = require("flow_consts")
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.security, 
+
   -- This module is disabled by default
   default_enabled = false,
 

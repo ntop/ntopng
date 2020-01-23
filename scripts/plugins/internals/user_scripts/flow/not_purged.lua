@@ -8,6 +8,9 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local script = {
+   -- Script category
+   category = user_scripts.script_categories.internals,
+
    -- NOTE: hooks defined below
    hooks = {},
    periodic_update_seconds = 600,
@@ -15,7 +18,7 @@ local script = {
    gui = {
       i18n_title = "flow_callbacks_config.not_purged",
       i18n_description = "flow_callbacks_config.not_purged_description",
-  }
+   }
 }
 
 -- #################################################################

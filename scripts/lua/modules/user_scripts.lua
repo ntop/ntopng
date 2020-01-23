@@ -72,6 +72,30 @@ local available_subdirs = {
    }
 }
 
+-- User scripts category consts
+user_scripts.script_categories = {
+   other = {
+      icon = "",
+      i18n_title = "user_scripts.category_other",
+   },
+   security = {
+      icon = "fas fa-shield-alt",
+      i18n_title = "user_scripts.category_security",
+   },
+   internals = {
+      icon = "fas fa-wrench",
+      i18n_title = "user_scripts.category_internals",
+   },
+   network = {
+      icon = "fas fa-network-wired",
+      i18n_title = "user_scripts.category_network",
+   },
+   system = {
+      icon = "fas fa-server",
+      i18n_title = "user_scripts.category_system",
+   }
+}
+
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
 user_scripts.script_types = {
@@ -455,11 +479,19 @@ function user_scripts.load(ifid, script_type, subdir, options)
             traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
 
             local user_script = dofile(full_path)
-
+	    
             if(type(user_script) ~= "table") then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))
                goto next_module
             end
+
+	    if not user_script["category"] then
+	       -- Assign the default category other
+	       user_script.category = user_scripts.script_categories.other
+	    elseif not user_script["category"]["icon"] or not user_script["category"]["i18n_title"] then
+	       -- Category is found but not among the available categories. Let's reset it to other and print an error
+	       user_script.category = user_scripts.script_categories.other
+	    end
 
             if(rv.modules[mod_fname]) then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))

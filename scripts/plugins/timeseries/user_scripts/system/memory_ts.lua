@@ -3,8 +3,12 @@
 --
 
 local ts_utils = require("ts_utils_core")
+local user_scripts = require("user_scripts")
 
 local script = {
+  -- Script category
+  category = user_scripts.script_categories.system,
+
   -- This module is enabled by default
   default_enabled = true,
 

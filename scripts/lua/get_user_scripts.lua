@@ -86,6 +86,8 @@ for script_name, script in pairs(scripts.modules) do
       key = script_name,
       title = i18n(script.gui.i18n_title) or script.gui.i18n_title,
       description = i18n(script.gui.i18n_description) or script.gui.i18n_description,
+      category_title = i18n(script.category.i18n_title),
+      category_icon = script.category.icon,
       enabled_hooks = enabled_hooks,
       all_hooks = all_hooks,
       is_enabled = not table.empty(enabled_hooks),
