@@ -267,7 +267,7 @@ $(document).ready(function() {
                 applied_value = $("#applied-networks").val().join(',');
             }
             else {
-                applied_value = $("#applied-input").val();
+                applied_value = $("#applied-input").val().trim();
             } 
 
             $button.attr("disabled", "");

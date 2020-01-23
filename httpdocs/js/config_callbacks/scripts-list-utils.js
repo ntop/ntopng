@@ -1331,7 +1331,7 @@ $(document).ready(function() {
          {
             data: 'enabled_hooks',
             sortable: false,
-            className: 'text-center',
+            className: 'text-left',
             render: function (data, type, row) {
 
                // if the type is flter return true if the data length is greather or equal
