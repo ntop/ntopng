@@ -1167,7 +1167,7 @@ const create_enabled_button = (row_data) => {
       
       const has_all_hook = row_data.all_hooks.find(e => e.key == 'all');
 
-      if (has_all_hook == undefined) $button.css('visibility', 'hidden');
+      if (!has_all_hook && hasConfigDialog(row_data)) $button.css('visibility', 'hidden');
 
       $button.text(`${i18n.enable || 'Enable'}`);
       $button.addClass('badge-success');
@@ -1359,7 +1359,7 @@ $(document).ready(function() {
                       <a href='#'
                          title='${i18n.edit_script}'
                          class='badge badge-info'
-                         style="visibility: ${row.input_handler == undefined ? 'hidden' : 'visible'}"
+                         style="visibility: ${!row.input_handler ? 'hidden' : 'visible'}"
                          data-toggle="modal"
                          data-target="#modal-script">
                          
@@ -1369,15 +1369,13 @@ $(document).ready(function() {
                const edit_url_btn = `
                       <a href='${data.edit_url}'
                         class='badge badge-secondary'
+                        style="visibility: ${!data.edit_url ? 'hidden' : 'visible'}"
                         title='${i18n.view_src_script}'>
                            ${i18n.view}
                       </a>
                `;
 
-               return `
-                      ${edit_script_btn}
-                      ${!data.edit_url ? '' : edit_url_btn}
-                `;
+               return `${edit_script_btn}${edit_url_btn}`;
             },
             createdCell: function(td, cellData, row) {
                        
