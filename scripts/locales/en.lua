@@ -563,13 +563,6 @@ local lang = {
     ["unknown_id"] = "No configuration found with id %{confid}",
     ["unknown_user_script"] = "Unknown user script \"%{user_script}\"",
   },
-  ["user_scripts"] = {
-     ["category_other"] = "Other",
-     ["category_security"] = "Security",
-     ["category_internals"] = "Internals",
-     ["category_network"] = "Network",
-     ["category_system"] = "System",
-  },
   ["contacts_page"] = {
     ["client_address"] = "Client Address",
     ["client_contacts_initiator"] = "Client Contacts (Initiator)",
@@ -3775,6 +3768,14 @@ local lang = {
     ["processes_overview"] = "Processes Overview",
     ["top_l4_protocols"] = "Top Protocols",
     ["top_l7_protocols"] = "Top Applications",
+  },
+  ["user_scripts"] = {
+    ["category"] = "Category",
+    ["category_internals"] = "Internals",
+    ["category_network"] = "Network",
+    ["category_other"] = "Other",
+    ["category_security"] = "Security",
+    ["category_system"] = "System",
   },
   ["users"] = {
     ["add_new_user"] = "Add New User",

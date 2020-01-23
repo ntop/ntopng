@@ -1,3 +1,5 @@
+const INDEX_SEARCH_COLUMN = 3;
+
 $.fn.dataTable.ext.buttons.filterScripts = {
     className: "filter-scripts-button",
     init: function (dt, node, config) {
@@ -49,12 +51,12 @@ $.fn.dataTable.ext.buttons.filterScripts = {
         }
         else if (button_id == "enabled-scripts") {
             // draw all enabled scripts
-            dt.columns(2).search("true").draw();
+            dt.columns(INDEX_SEARCH_COLUMN).search("true").draw();
             window.history.replaceState(undefined, undefined, "#enabled");
         }
         else if (button_id == "disabled-scripts") {
             // draw all disabled scripts
-            dt.columns(2).search("false").draw();
+            dt.columns(INDEX_SEARCH_COLUMN).search("false").draw();
             window.history.replaceState(undefined, undefined, "#disabled");
         }
 

@@ -1305,6 +1305,15 @@ $(document).ready(function() {
             },
          },
          {
+            data: null,
+            sortable: true,
+            searchable: true,
+            render: function (data, type, row) {
+               console.log
+               return `${!row.category_icon ? '' : row.category_icon} ${!row.category_title ? '' : row.category_title}`;
+            }
+         },
+         {
             data: 'description',
             render: function (data, type, row) {
 
