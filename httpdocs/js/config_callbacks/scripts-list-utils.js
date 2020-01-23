@@ -278,13 +278,13 @@ const get_unit_bytes = (bytes) => {
 const get_unit_times = (seconds) => {
 
    if (seconds < 3600 || seconds == undefined || seconds == null) {
-      return ["Minutes", seconds / 60, 60];
+      return [`${i18n.metrics.minutes}`, seconds / 60, 60];
    }
    else if (seconds >= 3600 && seconds < 86400) {
-      return ["Hours", seconds / 3600, 3600];
+      return [`${i18n.metrics.hours}`, seconds / 3600, 3600];
    }
    else if (seconds >= 86400) {
-      return ["Days", seconds / 86400, 86400];
+      return [`${i18n.metrics.days}`, seconds / 86400, 86400];
    }
 
 };
@@ -629,7 +629,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
       $table_editor.empty();
 
-      $table_editor.append(`<tr><th class='text-center w-25'>Enabled</th><th>Blacklisted Countries list:</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center w-25'>${i18n.enabled}</th><th>${i18n.scripts_list.templates.blacklisted_country_list}:</th></tr>`)
       $table_editor.append($component_container);
    }
 
@@ -713,7 +713,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          name: 'duration_value',
          current_value: times_unit[1],
          min: 1,
-         max: (times_unit[0] == "Minutes" ? 59 : (times_unit[0] == "Hours" ? 23 : 365)),
+         max: (times_unit[0] == `${i18n.metrics.minutes}` ? 59 : (times_unit[0] == `${i18n.metrics.hours}` ? 23 : 365)),
          enabled: enabled,
       };
 
@@ -729,7 +729,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
       // time-ds stands for: time duration selection
       const radio_values = {
-         labels: ["Minutes", "Hours", "Days"], 
+         labels: [`${i18n.metrics.minutes}`, `${i18n.metrics.hours}`, `${i18n.metrics.days}`], 
          label: times_unit[0],
          values: [60, 3600, 86400]
       }
@@ -1169,7 +1169,7 @@ const create_enabled_button = (row_data) => {
 
       if (!has_all_hook && hasConfigDialog(row_data)) $button.css('visibility', 'hidden');
 
-      $button.text(`${i18n.enable || 'Enable'}`);
+      $button.text(`${i18n.enable}`);
       $button.addClass('badge-success');
 
    }
@@ -1177,7 +1177,7 @@ const create_enabled_button = (row_data) => {
 
       if (row_data.enabled_hooks.length < 1) $button.css('visibility', 'hidden');
 
-      $button.text(`${i18n.disable || 'Disable'}`);
+      $button.text(`${i18n.disable}`);
       $button.addClass('badge-danger');
    }
 

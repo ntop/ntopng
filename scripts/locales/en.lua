@@ -2291,6 +2291,7 @@ local lang = {
     ["days"] = "Days",
     ["hours"] = "Hours",
     ["mins"] = "Mins",
+    ["minutes"] = "Minutes",
     ["secs"] = "Secs",
   },
   ["ndpi_page"] = {
@@ -3169,8 +3170,9 @@ local lang = {
       ["view_src_script"] = "View Source Script",
     },
     ["templates"] = {
+      ["blacklisted_country_list"] = "Blacklisted Countries list",
       ["elephant_flows_l2r"] = "Elephant Flows Threshold (Local To Remote)",
-      ["elpehant_flows_r2l"] = "Elephant Flows Threshold (Remote To Local)",
+      ["elephant_flows_r2l"] = "Elephant Flows Threshold (Remote To Local)",
       ["excluded_applications"] = "Excluded applications and categories",
       ["flow_duration_threshold"] = "Flow Duration Threshold",
       ["template_not_implemented"] = "The template  was not implemented yet!",
