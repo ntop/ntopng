@@ -27,10 +27,6 @@ const get_configuration_data = ($config_table, $button_caller) => {
     }
 }
 
-const can_clone_config = () => {
-    return((subdir != "system") && (subdir != "syslog"));
-}
-
 $(document).ready(function() {
 
     const add_columns = () => {
@@ -72,50 +68,52 @@ $(document).ready(function() {
             data: null,
             className: 'text-center',
             render: function(data, type, row) {
+
                 let rv = `
-                            <a class="badge badge-info" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
-                                ${i18n.edit}
-                            </a>`
-                if(can_clone_config())
+                    <a class="badge badge-info" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
+                        ${i18n.edit}
+                    </a>
+                `;
+                if(!default_config_only)
                     rv += `
-                            <a href='#'
-                                    title='${i18n.clone}' 
-                                    class="badge badge-info"
-                                    data-toggle="modal"
-                                    data-target="#clone-modal">
+                        <a href='#'
+                            title='${i18n.clone}' 
+                            class="badge badge-info"
+                            data-toggle="modal"
+                            data-target="#clone-modal">
                                 ${i18n.clone}
-                            </a>
+                        </a>
                     `;
                 if(data.id != 0)
                     rv += `
-                            <a href='#'
-                                    title='${i18n.apply_to}'
-                                    data-toggle='modal'
-                                    class="badge badge-info"
-                                    data-target='#applied-modal'>
+                        <a href='#'
+                            title='${i18n.apply_to}'
+                            data-toggle='modal'
+                            class="badge badge-info"
+                            data-target='#applied-modal'>
                                 ${i18n.apply_to}
+                         </a>
+                         <a href='#'
+                            title='${i18n.rename}' 
+                            class="badge badge-info"
+                            data-toggle="modal"
+                            data-target="#rename-modal">
+                            ${i18n.rename}
                             </a>
-                            <a href='#'
-                                    title='${i18n.rename}' 
-                                    class="badge badge-info"
-                                    data-toggle="modal"
-                                    data-target="#rename-modal">
-                                ${i18n.rename}
-                            </a>
-                            <a href='#'
-                                    title='${i18n.delete}'
-                                    class="badge badge-danger"
-                                    data-toggle="modal"
-                                    data-target="#delete-modal">
+                        <a href='#'
+                            title='${i18n.delete}'
+                            class="badge badge-danger"
+                            data-toggle="modal"
+                            data-target="#delete-modal">
                                 ${i18n.delete}
-                            </a>
+                        </a>
                     `;
 
                 return rv;
             }
         }
 
-        if (subdir == "system" || subdir == "syslog") return [name_column, action_column];
+        if (default_config_only) return [name_column, action_column];
 
         return [name_column, targets_column, action_column];
     }

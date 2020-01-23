@@ -72,7 +72,7 @@ let apply_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let clone_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let rename_csrf = '{{ ntop.getRandomCSRFValue() }}';
 const delete_csrf = '{{ ntop.getRandomCSRFValue() }}';
-
+const default_config_only = {{ config_list.default_config_only_subdir }};
 const subdir = '{{ config_list.subdir }}';
 
 i18n.warning ="{{ i18n('warning', {}) }}";
