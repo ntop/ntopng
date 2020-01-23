@@ -558,6 +558,7 @@ local lang = {
     ["duplicate_target"] = "Target \"%{target}\" is assigned to both configuration \"%{confname1}\" and \"%{confname2}\"",
     ["error_exists"] = "The configuration name \"%{name}\" is already in use",
     ["unknown_id"] = "No configuration found with id %{confid}",
+    ["unknown_user_script"] = "Unknown user script \"%{user_script}\"",
   },
   ["contacts_page"] = {
     ["client_address"] = "Client Address",
@@ -2130,9 +2131,6 @@ local lang = {
     ["pending_proto_detected"] = "Pending Proto Detected",
     ["periodic_activities"] = "Periodic Activities",
     ["periodic_activity"] = "Periodic Activity",
-    ["user_scripts"] = "User Scripts",
-    ["user_script"] = "User Script",
-    ["user_script_target"] = "Target",
     ["script_deadline_exceeded"] = "The script has taken too much time to complete",
     ["script_duration"] = "%{script} Duration",
     ["script_num_calls"] = "%{script} Num Calls",
@@ -2146,6 +2144,9 @@ local lang = {
     ["total_flow_duration"] = "Total Duration",
     ["total_num_calls"] = "Total %{subdir} Scripts Num Calls",
     ["total_stats"] = "Total %{subdir} Scripts Stats",
+    ["user_script"] = "User Script",
+    ["user_script_target"] = "Target",
+    ["user_scripts"] = "User Scripts",
   },
   ["live_capture"] = {
     ["active_live_captures"] = "Live Captures",

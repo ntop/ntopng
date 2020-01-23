@@ -939,6 +939,42 @@ end
 
 -- ##############################################
 
+function user_scripts.toggleScript(confid, script_key, subdir, enable)
+   local configsets = user_scripts.getConfigsets()
+   local configset = configsets[confid]
+
+   if(configset == nil) then
+      return false, i18n("configsets.unknown_id", {confid=confid})
+   end
+
+   local script_type = user_scripts.getScriptType(subdir)
+   local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
+
+   if(script == nil) then
+      return false, i18n("configsets.unknown_user_script", {user_script=script_key})
+   end
+
+   if script_type.has_per_hook_config and enable then
+      -- Cannot enable all the hooks on a per-hook script automatically
+      -- as some required config field could be missing
+      return false, "Enabling a per-hook script is not supported"
+   end
+
+   local config = user_scripts.getScriptConfig(configset, script, subdir)
+
+   if(config == nil) then
+      return false
+   end
+
+   for _, hook in pairs(config) do
+      hook.enabled = enable
+   end
+
+   return saveConfigsets(configsets)
+end
+
+-- ##############################################
+
 function user_scripts.loadDefaultConfig()
    local ifid = getSystemInterfaceId()
    local configsets = user_scripts.getConfigsets()
