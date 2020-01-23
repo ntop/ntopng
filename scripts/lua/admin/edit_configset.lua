@@ -14,6 +14,7 @@ local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 local template = require "template_utils"
 local user_scripts = require "user_scripts"
+local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -47,6 +48,22 @@ page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_su
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+-- Initialize apps_and_categories
+-- Check out generate_multi_select in scripts-list-utils.js for the format
+local cat_groups = {label = i18n("categories"), elements = {}}
+local app_groups = {label = i18n("applications"), elements = {}}
+local elems = {}
+
+for cat, _ in pairsByKeys(interface.getnDPICategories(), asc_insensitive) do
+  cat_groups.elements[#cat_groups.elements + 1] = cat
+end
+
+for app, _ in pairsByKeys(interface.getnDPIProtocols(), asc_insensitive) do
+  app_groups.elements[#app_groups.elements + 1] = app
+end
+
+apps_and_categories = {cat_groups, app_groups}
+
 -- print config_list.html template
 print(template.gen("script_list.html", {
    script_list = {
@@ -59,6 +76,7 @@ print(template.gen("script_list.html", {
        timeout_csrf = timeout_csrf,
        script_filter = script_filter,
        page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
+       apps_and_categories = json.encode(apps_and_categories),
    }
 }))
 

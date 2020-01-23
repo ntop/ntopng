@@ -1087,7 +1087,7 @@ function http_lint.validateHookConfig(script, hook, value)
       local mandatory_fields = {}
 
       if(input_builder == "threshold_cross") then
-         if(not validateOperator(conf.operator)) then
+         if(value.enabled and (not validateOperator(conf.operator))) then
             return false, "bad operator"
          end
 
@@ -1103,6 +1103,12 @@ function http_lint.validateHookConfig(script, hook, value)
 
          if(value.enabled and tonumber(conf.r2l_bytes_value) == nil) then
             return false, "bad r2l_bytes_value value"
+         end
+
+         rv, value = validateListItems(script, value)
+      elseif(input_builder == "long_lived") then
+         if(value.enabled and tonumber(conf.min_duration) == nil) then
+            return false, "bad min_duration value"
          end
 
          rv, value = validateListItems(script, value)
