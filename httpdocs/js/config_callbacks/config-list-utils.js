@@ -117,7 +117,7 @@ $(document).ready(function() {
             }
         }
 
-        if (subdir == "system" || subdir == "syslog") return [name_column, action_column];
+        if (default_config_only) return [name_column, action_column];
 
         return [name_column, targets_column, action_column];
     }
