@@ -1309,7 +1309,7 @@ $(document).ready(function() {
             sortable: true,
             searchable: true,
             render: function (data, type, row) {
-               const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}></i>'`;
+               const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}'></i>`;
                return `${icon}${!row.category_title ? '' : ' ' + row.category_title}`;
             }
          },
