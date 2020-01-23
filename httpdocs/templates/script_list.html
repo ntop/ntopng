@@ -61,21 +61,33 @@ let script_key_filter = "{{ script_list.script_filter }}";
 let page_url = "{* script_list.page_url *}";
 let apps_and_categories = {* script_list.apps_and_categories *};
 
-i18n.are_you_sure = '{{ i18n("scripts_list.are_you_sure", {}) }}'
-i18n.all = '{{ i18n("all", {}) }}'
-i18n.enabled = '{{ i18n("enabled", {}) }}'
-i18n.disabled = '{{ i18n("disabled", {}) }}'
-i18n.request_failed_message = '{{ i18n("request_failed_message") }}'
+i18n.are_you_sure = '{{ i18n("scripts_list.are_you_sure", {}) }}';
+i18n.all = '{{ i18n("all", {}) }}';
+i18n.enabled = '{{ i18n("enabled", {}) }}';
+i18n.disabled = '{{ i18n("disabled", {}) }}';
+i18n.request_failed_message = '{{ i18n("request_failed_message") }}';
 i18n.select_operator = "{{ i18n('scripts_list.select_operator') }}";
-i18n.empty_input_box = "{{ i18n('config_scripts.empty_value_message') }}"
-i18n.template_not_found = "{{ i18n('scripts_list.template_not_found') }}"
-i18n.view = "{{ i18n('scripts_list.actions.view') }}"
-i18n.view_src_script = "{{ i18n('scripts_list.actions.view_src_script') }}"
-i18n.edit = "{{ i18n('scripts_list.actions.edit') }}"
-i18n.edit_script = "{{ i18n('scripts_list.actions.edit_script') }}"
+i18n.empty_input_box = "{{ i18n('config_scripts.empty_value_message') }}";
+i18n.template_not_found = "{{ i18n('scripts_list.template_not_found') }}";
+i18n.view = "{{ i18n('scripts_list.actions.view') }}";
+i18n.view_src_script = "{{ i18n('scripts_list.actions.view_src_script') }}";
+i18n.edit = "{{ i18n('scripts_list.actions.edit') }}";
+i18n.edit_script = "{{ i18n('scripts_list.actions.edit_script') }}";
 i18n.items_list_comma = "{{ i18n('scripts_list.items_list_comma') }}";
 i18n.blacklisted_country = "{{ i18n('scripts_list.blacklisted_country') }}";
 i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
+
+i18n.scripts_list = {};
+i18n.scripts_list.templates = {};
+i18n.scripts_list.templates.excluded_applications = "{{ i18n('scripts_list.templates.excluded_applications') }}";
+i18n.scripts_list.templates.flow_duration_threshold = "{{ i18n('scripts_list.templates.flow_duration_threshold') }}";
+i18n.scripts_list.templates.elephant_flows_l2r = "{{ i18n('scripts_list.templates.elephant_flows_l2r') }}";
+i18n.scripts_list.templates.elephant_flows_r2l = "{{ i18n('scripts_list.templates.elephant_flows_r2l') }}";
+i18n.scripts_list.templates.template_not_implemented = "{{ i18n('scripts_list.templates.template_not_implemented') }}";
+
+i18n.enable = "{{ i18n('show_alerts.enable_alerts') }}";
+i18n.disable = "{{ i18n('show_alerts.disable_alerts') }}";
+
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/config_callbacks/scripts-list-utils.js?{{ ntop.getStartupEpoch() }}"></script>
