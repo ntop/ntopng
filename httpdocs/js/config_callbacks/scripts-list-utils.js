@@ -1186,10 +1186,11 @@ const create_enabled_button = (row_data) => {
          }
       };
 
-      $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
+      $.post(`${http_prefix}/lua/toggle_user_script.lua`, {
          script_subdir: script_subdir,
          script_key: row_data.key,
          csrf: csrf_toggle_buttons,
+         action: (is_enabled) ? 'disable' : 'enable',
          JSON: JSON.stringify(data),
          confset_id: confset_id
       })
