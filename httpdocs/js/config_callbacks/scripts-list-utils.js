@@ -379,7 +379,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
       `);
 
       operators.forEach((op) => {
-         $select.append($(`<option selected value="${op}">&${op}</option>`));
+         $select.append($(`<option value="${op}">&${op}</option>`));
       });
 
       // select the right operator
@@ -482,10 +482,9 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          delete $input_fields['day'];
       }
 
-      var other_keys = [];
+      let other_keys = [];
 
-      for(var key in $input_fields)
-         other_keys.push(key);
+      for (let key in $input_fields) other_keys.push(key);
 
       /* Guarantees the sort order */
       other_keys.sort();
@@ -494,7 +493,6 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          $table_editor.append($input_fields[item]);
       });
 
-      console.log($input_fields);
    };
 
    const apply_event = (event) => {
