@@ -1342,7 +1342,15 @@ $(document).ready(function() {
                if (data.length <= 0 && type == "filter") return false;
                if (data.length > 0 && type == "filter") return true;
 
-               return (type == "display") ? row.value_description : '';
+               return (type == 'display') ? `
+                  <span 
+                     title="${i18n.values}"
+                     ${row.value_description.length >= 32 ? `data-toggle='popover'  data-placement='top'` : ``}
+                     data-content='${row.value_description}'>
+                     ${row.value_description.substr(0, 32)}${row.value_description.length >= 32 ? '...' : ''}
+                  </span>
+               ` : '';;
+
             },
          },
          {
