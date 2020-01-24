@@ -1243,8 +1243,6 @@ $(document).ready(function() {
          </div>
       `);
  
-      console.log(scripts_categories);
-
       $dropdown.find('#category-filter').append(
 
          scripts_categories.map((c, index) => {
@@ -1302,9 +1300,6 @@ $(document).ready(function() {
          dataSrc: ''
       },
       stateSave: true,
-      stateSaveParams: function(settings, data) {
-         console.log(data);
-      },
       initComplete: function (settings, json) {
 
          // add categories dropdown 
