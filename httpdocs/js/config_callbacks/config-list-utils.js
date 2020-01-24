@@ -27,6 +27,15 @@ const get_configuration_data = ($config_table, $button_caller) => {
     }
 }
 
+const resetConfig = () => {
+    var params = {};
+    params.csrf = reset_csrf;
+    params.action = "reset_config";
+
+    var form = paramsToForm('<form method="post"></form>', params);
+    form.appendTo('body').submit();
+}
+
 $(document).ready(function() {
 
     const add_columns = () => {

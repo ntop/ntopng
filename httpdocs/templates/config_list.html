@@ -38,15 +38,11 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-2">
-            <form action="/lua/rest/get/scripts/config.lua" class="form-inline" method="GET">
-                <button type="submit" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_export') }}</span></button>
-            </form>
-        </div>
-        <div class="col-md-2">
-          <button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_import') }}</span></button>
-        </div>
+    <div>
+        <form action="/lua/rest/get/scripts/config.lua" class="form-inline" method="GET">
+            <button type="submit" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_export') }}</span></button>
+        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_import') }}</span></button>
+        <button id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_reset') }}</span></button>
     </div>
 <br>
     <div>
@@ -67,6 +63,15 @@
 {* config_list.template_utils.gen("config_list_components/clone_modal.html") *}
 {* config_list.template_utils.gen("config_list_components/rename_modal.html") *}
 {* config_list.template_utils.gen("config_list_components/delete_modal.html") *}
+{* config_list.template_utils.gen("modal_confirm_dialog.html", {
+    dialog={
+        id      = "reset-modal",
+        action  = "resetConfig()",
+        title   = i18n("config_scripts.config_reset"),
+        message = i18n("config_scripts.config_reset_confirm"),
+        confirm = i18n("reset")
+     }
+}) *}
 {* config_list.template_utils.gen("config_list_components/apply_modal.html", {
     subdir = config_list.subdir
 }) *}
@@ -82,6 +87,7 @@ let import_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let apply_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let clone_csrf = '{{ ntop.getRandomCSRFValue() }}';
 let rename_csrf = '{{ ntop.getRandomCSRFValue() }}';
+let reset_csrf = '{{ ntop.getRandomCSRFValue() }}';
 const delete_csrf = '{{ ntop.getRandomCSRFValue() }}';
 const default_config_only = {{ config_list.default_config_only_subdir }};
 const subdir = '{{ config_list.subdir }}';
