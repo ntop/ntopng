@@ -306,13 +306,16 @@ function reset_pwd_dialog(user) {
       $('#old_password_input').val('');
       $('#new_password_input').val('');
       $('#confirm_password_input').val('');
-      $('#host_role_select option[value = '+data.group+']').attr('selected','selected');
+      $('#host_role_select').val(data.group);
+      if(data.username === "admin")
+        $('#host_role_select').attr("disabled", "disabled");
+      else
+        $('#host_role_select').removeAttr("disabled");
       toggleUserSettings();
       $('#networks_input').val(data.allowed_nets);
       $('#allowed_interface option[value="' + data.allowed_if_id + '"]').attr('selected','selected');
 
-      if(data.username === "admin")
-        $('#li_change_prefs').hide();
+
       if(data.language !== "")
         $('#user_language option[value="' + data.language + '"]').attr('selected','selected');
       $('#allow_pcap_input').prop('checked', data.allow_pcap_download === true ? true : false);
