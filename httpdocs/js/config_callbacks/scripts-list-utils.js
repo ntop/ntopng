@@ -1076,8 +1076,6 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
 /* ******************************************************* */
 
 // get script key and script name
-   
-
 const initScriptConfModal = (script_key, script_title, script_desc) => {
 
    // change title to modal
@@ -1126,6 +1124,18 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
       $("#modal-script").modal("toggle");
    })
 }
+
+/* ******************************************************* */
+
+/**
+ * This function return the search criteria for the datatable
+ * 'true': apply filter categories criteria only on enabled scripts
+ * 'false': apply filter categories criteria only on disabled scripts
+ * '': apply filter categories criteria for all scripts
+ * 
+ * @returns {string} 'true'|'false'|''
+ */
+const get_search_toggle_value = hash => hash == "#enabled" ? 'true' : (hash == "#disabled" ? 'false' : ''); 
 
 /* ******************************************************* */
 
@@ -1220,6 +1230,9 @@ $(document).ready(function() {
 
    const add_filter_categories_dropdown = () => {
 
+      const CATEGORY_COLUMN_INDEX = 1;
+      const VALUES_COLUMN_INDEX = 3;
+
       const $dropdown = $(`
          <div class='dropdown d-inline'>
             <button class='btn btn-link dropdown-toggle' data-toggle='dropdown' type='button'>
@@ -1229,22 +1242,32 @@ $(document).ready(function() {
             </div>
          </div>
       `);
-
+ 
       $dropdown.find('#category-filter').append(
 
          scripts_categories.map(c => {
             
+            // list element to append inside the dropdown selector
             const $list_element = $(`<li class='dropdown-item pointer'>${c}</li>`);
+            
+            // when a user click the filter category then the datatable
+            // will be filtered
             $list_element.click(function() {
 
                if (c == 'All') {
-                  $script_table.column(1).search('').draw();
+                  $script_table
+                     .column(CATEGORY_COLUMN_INDEX).search('')
+                     .column(VALUES_COLUMN_INDEX).search(get_search_toggle_value(location.hash))
+                     .draw();
                   $dropdown.find('button span').text(`${i18n.filter_categories}`);
                   return $list_element;
                }
 
                $dropdown.find('button span').text(`${i18n.filter_categories}: ${c}`);
-               $script_table.column(1).search(c).draw();
+               $script_table
+                  .column(CATEGORY_COLUMN_INDEX).search(c)
+                  .column(VALUES_COLUMN_INDEX).search(get_search_toggle_value(location.hash))
+                  .draw();
             });
 
             return $list_element;
