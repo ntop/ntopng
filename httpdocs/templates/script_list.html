@@ -57,12 +57,10 @@ const confset_id = {{ script_list.confset_id }};
 const script_subdir = "{{ script_list.script_subdir }}";
 
 const scripts_categories = [
-  "{{ i18n('scripts_list.all') }}",
-  "{{ i18n('user_scripts.category_internals') }}",
-  "{{ i18n('user_scripts.category_network') }}",
-  "{{ i18n('user_scripts.category_other') }}",
-  "{{ i18n('user_scripts.category_security') }}",
-  "{{ i18n('user_scripts.category_system') }}",
+"{{ i18n('scripts_list.all') }}",
+{% for _, cat in pairsByKeys(script_categories) do %}
+  "{{ i18n(cat.i18n_title) }}",
+{% end %}
 ];
 
 let csrf_toggle_buttons = "{{ ntop.getRandomCSRFValue() }}";

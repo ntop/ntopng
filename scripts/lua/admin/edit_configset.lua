@@ -64,21 +64,24 @@ end
 
 apps_and_categories = {cat_groups, app_groups}
 
+local context = {
+   script_list = {
+      subdir = script_subdir,
+      template_utils = template,
+      hooks_localizated = titles,
+      confset_id = confset_id,
+      script_subdir = script_subdir,
+      confset_name = confset_name,
+      script_filter = script_filter,
+      page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
+      apps_and_categories = json.encode(apps_and_categories),
+   },
+   script_categories = user_scripts.script_categories,
+
+}
 
 -- print config_list.html template
-print(template.gen("script_list.html", {
-   script_list = {
-       subdir = script_subdir,
-       template_utils = template,
-       hooks_localizated = titles,
-       confset_id = confset_id,
-       script_subdir = script_subdir,
-       confset_name = confset_name,
-       script_filter = script_filter,
-       page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
-       apps_and_categories = json.encode(apps_and_categories),
-   }
-}))
+print(template.gen("script_list.html", context))
 
 -- append the menu below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

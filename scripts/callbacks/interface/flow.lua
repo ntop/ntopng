@@ -354,7 +354,7 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       local conf = user_scripts.getTargetHookConfig(flows_config, script)
 
       cur_user_script = script
-      hook_fn(now, conf.script_conf)
+      hook_fn(now, conf.script_conf or {})
 
       ::continue::
    end
