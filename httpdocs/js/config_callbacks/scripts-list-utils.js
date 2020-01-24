@@ -607,7 +607,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
          'itemslist-checkbox', hooks.all.enabled, callback_checkbox
       );
 
-      const items_list = hooks.all.script_conf.items;
+      const items_list = hooks.all.script_conf.items || [];
       const $text_area = $(`
          <td>
             <div class='form-group template w-100'>
@@ -617,7 +617,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
                   id='itemslist-textarea' 
                   class="w-100 form-control" 
                   style="height: 5rem;">${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
-                  <small>${i18n.blacklisted_country}</small>
+                  <small>${gui.input_description || i18n.blacklisted_country}</small>
                <div class="invalid-feedback"></div>
             </div>
          </td>
@@ -627,13 +627,13 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
       $table_editor.empty();
 
-      $table_editor.append(`<tr><th class='text-center w-25'>${i18n.enabled}</th><th>${i18n.scripts_list.templates.blacklisted_country_list}:</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center w-25'>${i18n.enabled}</th><th>${gui.input_title || i18n.scripts_list.templates.blacklisted_country_list}:</th></tr>`)
       $table_editor.append($component_container);
    }
 
    const apply_event = (event) => {
 
-      const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
+      const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
       const hook_enabled = $('#itemslist-checkbox').prop('checked');
 
       let $error_label = $('#itemslist-textarea').parent().find('.invalid-feedback');
