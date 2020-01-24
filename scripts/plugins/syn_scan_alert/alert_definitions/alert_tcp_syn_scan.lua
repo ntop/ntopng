@@ -7,13 +7,13 @@ local function formatSynScan(ifid, alert, threshold_info)
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
 
   if(alert.alert_subtype == "syn_scan_attacker") then
-    return i18n("syn_scan_alert.syn_scan_attacker", {
+    return i18n("alert_messages.syn_scan_attacker", {
       entity = firstToUpper(entity),
       value = string.format("%u", math.ceil(threshold_info.value)),
       threshold = threshold_info.threshold,
     })
   else
-    return i18n("syn_scan_alert.syn_scan_victim", {
+    return i18n("alert_messages.syn_scan_victim", {
       entity = firstToUpper(entity),
       value = string.format("%u", math.ceil(threshold_info.value)),
       threshold = threshold_info.threshold,
@@ -24,7 +24,7 @@ end
 -- ##############################################
 
 return {
-  i18n_title = "syn_scan_alert.tcp_syn_scan",
+  i18n_title = "alerts_dashboard.tcp_syn_scan",
   i18n_description = formatSynScan,
   icon = "fas fa-life-ring",
 }

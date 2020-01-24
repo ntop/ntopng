@@ -26,8 +26,8 @@ local script = {
   -- Allow user script configuration from the GUI
   gui = {
     -- Localization strings, from the "locales" directory of the plugin
-    i18n_title = "flow_logger.title",
-    i18n_description = "flow_logger.description",
+    i18n_title = "alerts_dashboard.flow_logger",
+    i18n_description = "alerts_dashboard.flow_logger_descr",
 
     -- TODO: draw config gui
   }
