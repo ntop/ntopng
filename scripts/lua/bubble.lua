@@ -113,15 +113,15 @@ function processHost(hostname, host)
    elseif(bubble_mode == 4) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])
 
-      line = { link = hostname, label = label, x = stats["pktStats.sent"]["syn"], y = stats["pktStats.recv"]["syn"],
+      line = { link = hostname, label = label, x = stats["pktStats.sent"]["tcp_flags"]["syn"], y = stats["pktStats.recv"]["tcp_flags"]["syn"],
 	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }
    elseif(bubble_mode == 5) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])
-      line = { link = hostname, label = label, x = stats["pktStats.sent"]["syn"], y = stats["pktStats.recv"]["rst"],
+      line = { link = hostname, label = label, x = stats["pktStats.sent"]["tcp_flags"]["syn"], y = stats["pktStats.recv"]["tcp_flags"]["rst"],
 	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }	
    elseif(bubble_mode == 6) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])
-      line = { link = hostname, label = label, x = stats["pktStats.sent"]["syn"], y = stats["pktStats.recv"]["synack"],
+      line = { link = hostname, label = label, x = stats["pktStats.sent"]["tcp_flags"]["syn"], y = stats["pktStats.recv"]["tcp_flags"]["synack"],
 	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }	
    elseif(bubble_mode == 7) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])

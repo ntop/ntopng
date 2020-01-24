@@ -1043,6 +1043,9 @@ local function validateListItems(script, conf)
    elseif(item_type == "proto_or_category") then
       item_validator = validateProtocolOrCategory
       err_label = "Bad protocol/category"
+   elseif(item_type == "string") then
+      item_validator = validateSingleWord
+      err_label = "Bad string"
    end
 
    if(type(conf.items) == "table") then

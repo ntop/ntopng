@@ -75,24 +75,29 @@ local available_subdirs = {
 -- User scripts category consts
 user_scripts.script_categories = {
    other = {
-      icon = "",
+      icon = "fas fa-scroll",
       i18n_title = "user_scripts.category_other",
+      i18n_descr = "user_scripts.category_other_descr",
    },
    security = {
       icon = "fas fa-shield-alt",
       i18n_title = "user_scripts.category_security",
+      i18n_descr = "user_scripts.category_security_descr",
    },
    internals = {
       icon = "fas fa-wrench",
       i18n_title = "user_scripts.category_internals",
+      i18n_descr = "user_scripts.category_internals_descr",
    },
    network = {
       icon = "fas fa-network-wired",
       i18n_title = "user_scripts.category_network",
+      i18n_descr = "user_scripts.category_network_descr",
    },
    system = {
       icon = "fas fa-server",
       i18n_title = "user_scripts.category_system",
+      i18n_descr = "user_scripts.category_system_descr",
    }
 }
 
@@ -396,6 +401,14 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
 
       if(user_script.template == nil) then
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown template '%s' for user script '%s'", user_script.gui.input_builder, mod_fname))
+      end
+
+      -- Possibly localize the input title/description
+      if user_script.gui.input_title then
+	 user_script.gui.input_title = i18n(user_script.gui.input_title) or user_script.gui.input_title
+      end
+      if user_script.gui.input_description then
+	 user_script.gui.input_description = i18n(user_script.gui.input_description) or user_script.gui.input_description
       end
    end
 

@@ -45,6 +45,19 @@
       </table>
     </div>
   </div>
+  <br>
+  <div>
+    <b>{{ i18n('notes') }}</b>
+    <ul>
+      <li> {{ i18n('user_scripts.categories') }}
+	<ul>
+	  {% for _, cat in pairsByKeys(script_categories) do %}
+	  <li> {* string.format("<i class='fa %s'></i> %s: %s", cat.icon, i18n(cat.i18n_title), i18n(cat.i18n_descr)) *} </li>
+	  {% end %}
+	</ul>
+      </li>
+    </ul>
+  </div>
 </div>
 
 {# include modals for edit_configset.lua #} 
@@ -57,10 +70,16 @@ const confset_id = {{ script_list.confset_id }};
 const script_subdir = "{{ script_list.script_subdir }}";
 
 const scripts_categories = [
-"{{ i18n('scripts_list.all') }}",
-{% for _, cat in pairsByKeys(script_categories) do %}
-  "{{ i18n(cat.i18n_title) }}",
-{% end %}
+  { 
+    label: "{{ i18n('scripts_list.all') }}",
+    disableFilter: true
+  },
+  {% for _, cat in pairsByKeys(script_categories) do %}
+    {
+      label: "{{ i18n(cat.i18n_title) }}",
+      disableFilter: false
+    },
+  {% end %}
 ];
 
 let csrf_toggle_buttons = "{{ ntop.getRandomCSRFValue() }}";
