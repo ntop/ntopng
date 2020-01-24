@@ -1078,9 +1078,11 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
 // get script key and script name
    
 
-const initScriptConfModal = (script_key, script_title) => {
+const initScriptConfModal = (script_key, script_title, script_desc) => {
+
    // change title to modal
    $("#script-name").html(`<b>${script_title}</b>`);
+   $('#script-description').text(script_desc);
 
    $("#modal-script form").off('submit');
    $("#modal-script").on("submit", "form", function (e) {
@@ -1260,10 +1262,11 @@ $(document).ready(function() {
 
             if (elem) {
                let title = elem.title;
+               let desc = elem.description;
                this.DataTable().search(title).draw();
 
                if(hasConfigDialog(elem)) {
-                  initScriptConfModal(script_key_filter, title);
+                  initScriptConfModal(script_key_filter, title, desc);
                   $("#modal-script").modal("show");
                }
             }
@@ -1411,8 +1414,9 @@ $(document).ready(function() {
       const row_data = $script_table.row($(this).parent()).data();
       const script_key = row_data.key;
       const script_title = row_data.title;
+      const script_desc = row_data.description;
 
-      initScriptConfModal(script_key, script_title);
+      initScriptConfModal(script_key, script_title, script_desc);
    });
 
    /**
