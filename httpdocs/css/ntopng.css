@@ -804,7 +804,7 @@ path.link {
 }
 
 .info-stats {
-  margin-left: 0.8rem;
+  width: 11rem;
 }
 .info-stats div.down {
   margin-top: -9px;
@@ -939,7 +939,7 @@ path.link {
   }
 
   #n-sidebar ul li.nav-item.active {
-    background-color: #ff7500;
+    background-color: #353535;
   }
 
   #n-sidebar ul li.nav-item {

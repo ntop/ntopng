@@ -1073,7 +1073,7 @@ print([[
 if not interface.isPcapDumpInterface() then
 
    print([[
-      <li class='nav-item'>
+      <li class='nav-item mx-2'>
          <div class='info-stats'>
             ]].. 
             (function()

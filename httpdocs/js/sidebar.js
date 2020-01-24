@@ -36,15 +36,16 @@ $(document).ready(function() {
         const sidebar_collapsed = !$('#n-sidebar').hasClass('active');
         is_collapsed = sidebar_collapsed;
      
-        //$.post(`${http_prefix}/lua/sidebar-handler.lua`, sidebar_collapsed);
+        if (!is_mobile_device()) {
+            $.ajax({
+                data: {
+                    'sidebar_collapsed': sidebar_collapsed ? "1" : "0"
+                },
+                type: 'get',
+                url: `${http_prefix}/lua/sidebar-handler.lua`
+            });
+        }
 
-        $.ajax({
-            data: {
-                'sidebar_collapsed': sidebar_collapsed ? "1" : "0"
-            },
-            type: 'get',
-            url: `${http_prefix}/lua/sidebar-handler.lua`
-        });
 
         if (latest_submenu_open.length > 0 && !sidebar_collapsed) {
             latest_submenu_open.collapse('show');
@@ -59,13 +60,17 @@ $(document).ready(function() {
         
     });
     
-    $("#n-sidebar a[data-toggle='collapse']").click(function() {
+    $("#n-sidebar a[data-toggle='collapse']").click(function(e) {
 
         if (is_mobile_device())  return;
 
         if (is_collapsed && !$('#n-sidebar').hasClass('active')) {
+
             toggle_sidebar_and_container();
             toggle_logo_animation();
+
+            // fill collapse button
+            $('#collapse-sidebar').find('span').text('Collapse').show();
         }
     });
     
