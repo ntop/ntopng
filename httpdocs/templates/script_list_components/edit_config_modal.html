@@ -5,12 +5,11 @@
                 <div class="modal-header">
                     <h5 class="modal-title">Script / {{ i18n("scripts_list.config", {}) }} <span id='script-name'></span>
                     </h5>
+
                 </div>
                 <div class="modal-body">
-                    <h6 class="h6"><b>Script {{ i18n("description") }}:</b></h6>
-                    <div id='script-description' class='p-2'>
+                    <div id='script-description' class='alert alert-light' role='alert'>
                     </div>
-                    <hr>
                     <table class='table table-borderless' id='script-config-editor'>
                     </table>                  
                     <span class='invalid-feedback' id='apply-error'></span>
@@ -30,3 +29,4 @@
         </div>
     </div>
 </div>
+
