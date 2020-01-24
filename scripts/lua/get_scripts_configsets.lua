@@ -26,6 +26,11 @@ local rv = {}
 for _, configset in pairs(config_sets) do
   local targets = {}
 
+  if(script_type and script_type.default_config_only and (configset.id ~= user_scripts.DEFAULT_CONFIGSET_ID)) then
+    -- Only return the default
+    goto continue
+  end
+
   for _, target in ipairs(configset.targets[subdir] or {}) do
     local label = target
 
@@ -49,10 +54,7 @@ for _, configset in pairs(config_sets) do
     targets = targets,
   }
 
-  if(script_type and script_type.default_config_only) then
-    -- Only return the default
-    break
-  end
+  ::continue::
 end
 
 print(json.encode(rv))

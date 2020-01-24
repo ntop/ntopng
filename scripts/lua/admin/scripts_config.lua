@@ -20,6 +20,10 @@ if not haveAdminPrivileges() then
   return
 end
 
+if(_POST["action"] == "reset_config") then
+    user_scripts.resetConfigsets()
+end
+
 -- get subdir form url
 local subdir = _GET["subdir"]
 -- set default value for subdir if its empty

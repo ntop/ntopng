@@ -55,6 +55,16 @@
 
 const confset_id = {{ script_list.confset_id }};
 const script_subdir = "{{ script_list.script_subdir }}";
+
+const scripts_categories = [
+  "{{ i18n('scripts_list.all') }}",
+  "{{ i18n('user_scripts.category_internals') }}",
+  "{{ i18n('user_scripts.category_network') }}",
+  "{{ i18n('user_scripts.category_other') }}",
+  "{{ i18n('user_scripts.category_security') }}",
+  "{{ i18n('user_scripts.category_system') }}",
+];
+
 let csrf_toggle_buttons = "{{ ntop.getRandomCSRFValue() }}";
 let csrf_edit_config = "{{ ntop.getRandomCSRFValue() }}";
 let script_key_filter = "{{ script_list.script_filter }}";
@@ -76,6 +86,7 @@ i18n.edit_script = "{{ i18n('scripts_list.actions.edit_script') }}";
 i18n.items_list_comma = "{{ i18n('scripts_list.items_list_comma') }}";
 i18n.blacklisted_country = "{{ i18n('scripts_list.blacklisted_country') }}";
 i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
+i18n.filter_categories = "{{ i18n('scripts_list.filter_dropdown') }}";
 
 i18n.scripts_list = {};
 i18n.scripts_list.templates = {};
@@ -95,6 +106,7 @@ i18n.metrics.minutes = "{{ i18n('metrics.minutes') }}";
 i18n.metrics.hours = "{{ i18n('metrics.hours') }}";
 i18n.metrics.days = "{{ i18n('metrics.days') }}";
 
+i18n.values = "{{ i18n('values', {}) }}";
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/config_callbacks/scripts-list-utils.js?{{ ntop.getStartupEpoch() }}"></script>

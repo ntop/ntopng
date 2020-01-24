@@ -3,12 +3,15 @@
         <div class="modal-content">
             <form id='edit-form' method='post'>
                 <div class="modal-header">
-                    <h5 class="modal-title">Script / {{ i18n("scripts_list.config", {}) }} <span id='script-name'></span>
+                    <h5 class="modal-title"><span id='script-name'></span>
                     </h5>
+
                 </div>
                 <div class="modal-body">
-                        <table class='table table-borderless' id='script-config-editor'>
-                        </table>
+                    <div id='script-description' class='alert alert-light' role='alert'>
+                    </div>
+                    <table class='table table-borderless' id='script-config-editor'>
+                    </table>                  
                     <span class='invalid-feedback' id='apply-error'></span>
                 </div>
                 <div class="modal-footer">
@@ -26,3 +29,4 @@
         </div>
     </div>
 </div>
+

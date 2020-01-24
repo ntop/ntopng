@@ -433,6 +433,10 @@ path.link {
   margin-left: 20px;
 }
 
+.form-inline {
+  display: inline;
+}
+
 /* /\* ntop fix: Keep old behaviour after commit https://github.com/twbs/bootstrap/commit/a15c24410be8b94671dcfc3b154e0034a3aaf35f *\/ */
 /* .form-inline .input-group .input-group-addon { */
 /*   width: 1% !important; */
@@ -542,7 +546,7 @@ path.link {
 }
 
 .scrollable-dropdown {
-  max-height: 16rem;
+  max-height: 20rem;
   height: auto;
   overflow-y: auto;
 }
@@ -983,4 +987,8 @@ path.link {
 #multiple-select {
   height: 12rem;
   max-height: 20rem;
+}
+
+.pointer {
+  cursor: pointer;
 }

@@ -1080,6 +1080,16 @@ end
 
 -- ##############################################
 
+function user_scripts.resetConfigsets()
+   cached_config_sets = nil
+   ntop.delCache(CONFIGSETS_KEY)
+   user_scripts.loadDefaultConfig()
+
+   return(true)
+end
+
+-- ##############################################
+
 -- Returns true if a system script is enabled for some hook
 function user_scripts.isSystemScriptEnabled(script_key)
    local configsets = user_scripts.getConfigsets()

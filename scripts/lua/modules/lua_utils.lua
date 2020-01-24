@@ -1268,7 +1268,7 @@ function getApplicationIcon(name)
   local icon = ""
   if(name == nil) then name = "" end
 
-  if(findString(name, "Skype")) then icon = '<i class=\'fas fa-skype\'></i>'
+  if(findString(name, "Skype")) then icon = '<i class=\'fab fa-skype\'></i>'
   elseif(findString(name, "Unknown")) then icon = '<i class=\'fas fa-question\'></i>'
   elseif(findString(name, "Twitter")) then icon = '<i class=\'fab fa-twitter\'></i>'
   elseif(findString(name, "DropBox")) then icon = '<i class=\'fab fa-dropbox\'></i>'

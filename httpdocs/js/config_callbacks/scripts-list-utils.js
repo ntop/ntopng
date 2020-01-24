@@ -425,7 +425,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
                            value='${hook.script_conf.threshold == undefined ? '' : hook.script_conf.threshold}'
                            min='${field_min == undefined ? '' : field_min}' 
                            max='${field_max == undefined ? '' : field_max}'>`);
-         $field.append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit ? fields_unit.titleCase() : ""}</span>`);
+         $field.append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit ? fields_unit : ""}</span>`);
          $field.append(`<div class='invalid-feedback'></div>`);
 
          const $input_container = $(`<tr id='${key}'></tr>`);
@@ -1078,9 +1078,11 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
 // get script key and script name
    
 
-const initScriptConfModal = (script_key, script_title) => {
+const initScriptConfModal = (script_key, script_title, script_desc) => {
+
    // change title to modal
    $("#script-name").html(`<b>${script_title}</b>`);
+   $('#script-description').text(script_desc);
 
    $("#modal-script form").off('submit');
    $("#modal-script").on("submit", "form", function (e) {
@@ -1216,6 +1218,42 @@ const create_enabled_button = (row_data) => {
 
 $(document).ready(function() {
 
+   const add_filter_categories_dropdown = () => {
+
+      const $dropdown = $(`
+         <div class='dropdown d-inline'>
+            <button class='btn btn-link dropdown-toggle' data-toggle='dropdown' type='button'>
+               <i class='fas fa-filter'></i> <span>${i18n.filter_categories}</span>
+            </button>
+            <div id='category-filter' class='dropdown-menu'>
+            </div>
+         </div>
+      `);
+
+      $dropdown.find('#category-filter').append(
+
+         scripts_categories.map(c => {
+            
+            const $list_element = $(`<li class='dropdown-item pointer'>${c}</li>`);
+            $list_element.click(function() {
+
+               if (c == 'All') {
+                  $script_table.column(1).search('').draw();
+                  $dropdown.find('button span').text(`${i18n.filter_categories}`);
+                  return $list_element;
+               }
+
+               $dropdown.find('button span').text(`${i18n.filter_categories}: ${c}`);
+               $script_table.column(1).search(c).draw();
+            });
+
+            return $list_element;
+         })
+      );
+
+      $('#scripts-config_filter').prepend($dropdown);
+
+   }
 
    // initialize script table 
    const $script_table = $("#scripts-config").DataTable({
@@ -1237,6 +1275,9 @@ $(document).ready(function() {
       },
       stateSave: true,
       initComplete: function (settings, json) {
+
+         // add categories dropdown 
+         add_filter_categories_dropdown();
 
          const [enabled_count, disabled_count] = count_scripts();
 
@@ -1260,10 +1301,11 @@ $(document).ready(function() {
 
             if (elem) {
                let title = elem.title;
+               let desc = elem.description;
                this.DataTable().search(title).draw();
 
                if(hasConfigDialog(elem)) {
-                  initScriptConfModal(script_key_filter, title);
+                  initScriptConfModal(script_key_filter, title, desc);
                   $("#modal-script").modal("show");
                }
             }
@@ -1339,7 +1381,15 @@ $(document).ready(function() {
                if (data.length <= 0 && type == "filter") return false;
                if (data.length > 0 && type == "filter") return true;
 
-               return (type == "display") ? row.value_description : '';
+               return (type == 'display') ? `
+                  <span 
+                     title="${i18n.values}"
+                     ${row.value_description.length >= 32 ? `data-toggle='popover'  data-placement='top'` : ``}
+                     data-content='${row.value_description}'>
+                     ${row.value_description.substr(0, 32)}${row.value_description.length >= 32 ? '...' : ''}
+                  </span>
+               ` : '';;
+
             },
          },
          {
@@ -1411,8 +1461,9 @@ $(document).ready(function() {
       const row_data = $script_table.row($(this).parent()).data();
       const script_key = row_data.key;
       const script_title = row_data.title;
+      const script_desc = row_data.description;
 
-      initScriptConfModal(script_key, script_title);
+      initScriptConfModal(script_key, script_title, script_desc);
    });
 
    /**
