@@ -1227,11 +1227,11 @@ const create_enabled_button = (row_data) => {
 };
 
 $(document).ready(function() {
+   
+   const CATEGORY_COLUMN_INDEX = 1;
+   const VALUES_COLUMN_INDEX = 3;
 
    const add_filter_categories_dropdown = () => {
-
-      const CATEGORY_COLUMN_INDEX = 1;
-      const VALUES_COLUMN_INDEX = 3;
 
       const $dropdown = $(`
          <div class='dropdown d-inline'>
@@ -1243,29 +1243,33 @@ $(document).ready(function() {
          </div>
       `);
  
+      console.log(scripts_categories);
+
       $dropdown.find('#category-filter').append(
 
-         scripts_categories.map(c => {
+         scripts_categories.map((c, index) => {
             
             // list element to append inside the dropdown selector
-            const $list_element = $(`<li class='dropdown-item pointer'>${c}</li>`);
+            const $list_element = $(`<li class='dropdown-item pointer'>${c.label}</li>`);
             
             // when a user click the filter category then the datatable
             // will be filtered
             $list_element.click(function() {
 
-               if (c == i18n.all) {
+               // if the category is not inside the array
+               // it means the filter category is `All`
+               if (c.disableFilter) {
                   $script_table
                      .column(CATEGORY_COLUMN_INDEX).search('')
                      .column(VALUES_COLUMN_INDEX).search(get_search_toggle_value(location.hash))
                      .draw();
                   $dropdown.find('button span').text(`${i18n.filter_categories}`);
-                  return $list_element;
+                  return;
                }
 
-               $dropdown.find('button span').html(`<i class='fas fa-filter'></i> ${c}`);
+               $dropdown.find('button span').html(`<i class='fas fa-filter'></i> ${c.label}`);
                $script_table
-                  .column(CATEGORY_COLUMN_INDEX).search(c)
+                  .column(CATEGORY_COLUMN_INDEX).search(c.label)
                   .column(VALUES_COLUMN_INDEX).search(get_search_toggle_value(location.hash))
                   .draw();
             });
@@ -1276,6 +1280,7 @@ $(document).ready(function() {
 
       $('#scripts-config_filter').prepend($dropdown);
 
+      return $dropdown;
    }
 
    // initialize script table 
@@ -1297,10 +1302,17 @@ $(document).ready(function() {
          dataSrc: ''
       },
       stateSave: true,
+      stateSaveParams: function(settings, data) {
+         console.log(data);
+      },
       initComplete: function (settings, json) {
 
          // add categories dropdown 
-         add_filter_categories_dropdown();
+         const $categories_filter = add_filter_categories_dropdown();
+
+         // check if there is a previous filter
+         const loaded_filter = settings.oLoadedState.columns[CATEGORY_COLUMN_INDEX].search.search;
+         if (loaded_filter != "") $categories_filter.find('button span').html(`<i class='fas fa-filter'></i> ${loaded_filter}`);
 
          const [enabled_count, disabled_count] = count_scripts();
 

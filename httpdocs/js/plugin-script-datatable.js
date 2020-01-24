@@ -46,7 +46,7 @@ $.fn.dataTable.ext.buttons.filterScripts = {
         $("#all-scripts, #enabled-scripts, #disabled-scripts").removeClass('active');
 
         if (button_id == "all-scripts") {
-            dt.columns().search("").draw();
+            dt.columns(INDEX_SEARCH_COLUMN).search("").draw();
             window.history.replaceState(undefined, undefined, "#all");
         }
         else if (button_id == "enabled-scripts") {
