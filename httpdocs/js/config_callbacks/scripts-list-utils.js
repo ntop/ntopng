@@ -1236,7 +1236,7 @@ $(document).ready(function() {
       const $dropdown = $(`
          <div class='dropdown d-inline'>
             <button class='btn btn-link dropdown-toggle' data-toggle='dropdown' type='button'>
-               <i class='fas fa-filter'></i> <span>${i18n.filter_categories}</span>
+               <span>${i18n.filter_categories}</span>
             </button>
             <div id='category-filter' class='dropdown-menu'>
             </div>
@@ -1254,7 +1254,7 @@ $(document).ready(function() {
             // will be filtered
             $list_element.click(function() {
 
-               if (c == 'All') {
+               if (c == i18n.all) {
                   $script_table
                      .column(CATEGORY_COLUMN_INDEX).search('')
                      .column(VALUES_COLUMN_INDEX).search(get_search_toggle_value(location.hash))
@@ -1263,7 +1263,7 @@ $(document).ready(function() {
                   return $list_element;
                }
 
-               $dropdown.find('button span').text(`${i18n.filter_categories}: ${c}`);
+               $dropdown.find('button span').html(`<i class='fas fa-filter'></i> ${c}`);
                $script_table
                   .column(CATEGORY_COLUMN_INDEX).search(c)
                   .column(VALUES_COLUMN_INDEX).search(get_search_toggle_value(location.hash))
