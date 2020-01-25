@@ -51,14 +51,7 @@ function DefaultTemplate:parseConfig(script, conf)
 end
 
 function DefaultTemplate:describeConfig(script, hooks_conf)
-  -- Assumption: table length is 1
-  for _, hook in pairs(hooks_conf) do
-    if hook.enabled then
-      return i18n("enabled")
-    end
-  end
-
-  return i18n("disabled")
+  return ''
 end
 
 -- ##############################################
@@ -94,14 +87,13 @@ function ThresholdCrossTemplate:describeConfig(script, hooks_conf)
   local alert_consts = require("alert_consts")
   local granularities_order = {"min", "5mins", "hour", "day"}
   local items = {}
-  local is_enabled = false
 
   -- E.g. "> 50 Sec (Minute), > 300 Sec (Hourly)"
   for _, granularity in ipairs(granularities_order) do
     local hook = hooks_conf[granularity]
     local granularity = alert_consts.alerts_granularities[granularity]
 
-    if granularity and hook and hook.enabled then
+    if granularity and hook and hook.script_conf.threshold then
       local unit = ""
       local op = ternary(hook.script_conf.operator == "gt", ">", "<")
 
@@ -111,16 +103,10 @@ function ThresholdCrossTemplate:describeConfig(script, hooks_conf)
 
       items[#items + 1] = string.format("%s %s%s (%s)", op,
         hook.script_conf.threshold, unit, i18n(granularity.i18n_title) or granularity.i18n_title)
-
-      is_enabled = true
     end
   end
 
-  if is_enabled then
-    return table.concat(items, ", ")
-  else
-    return i18n("disabled")
-  end
+  return table.concat(items, ", ")
 end
 
 -- ##############################################
@@ -145,8 +131,8 @@ function ItemsList:parseConfig(script, conf)
 end
 
 function ItemsList:describeConfig(script, hooks_conf)
-  if(not hooks_conf.all) or (not hooks_conf.all.enabled) then
-    return i18n("disabled")
+  if not hooks_conf.all then
+    return '' -- disabled, nothing to show
   end
 
   local items = hooks_conf.all.script_conf.items or {}
@@ -184,8 +170,8 @@ function ElephantFlowsTemplate:parseConfig(script, conf)
 end
 
 function ElephantFlowsTemplate:describeConfig(script, hooks_conf)
-  if(not hooks_conf.all) or (not hooks_conf.all.enabled) then
-    return i18n("disabled")
+  if not hooks_conf.all then
+    return '' -- disabled, nothing to show
   end
 
   -- E.g. '> 1 GB (L2R), > 2 GB (R2L), except: Datatransfer, Git'
@@ -195,8 +181,8 @@ function ElephantFlowsTemplate:describeConfig(script, hooks_conf)
     r2l_bytes = bytesToSize(conf.r2l_bytes_value),
   })
 
-  if(not table.empty(conf.items)) then
-    msg = msg .. ". " .. i18n("user_scripts.exceptions", {exceptions = table.concat(conf.items)})
+  if not table.empty(conf.items) then
+    msg = msg .. ". " .. i18n("user_scripts.exceptions", {exceptions = table.concat(conf.items, ', ')})
   end
 
   return(msg)
@@ -228,8 +214,8 @@ function LongLivedTemplate:parseConfig(script, conf)
 end
 
 function LongLivedTemplate:describeConfig(script, hooks_conf)
-  if(not hooks_conf.all) or (not hooks_conf.all.enabled) then
-    return i18n("disabled")
+  if not hooks_conf.all then
+    return '' -- disabled, nothing to show
   end
 
   local conf = hooks_conf.all.script_conf
@@ -238,7 +224,7 @@ function LongLivedTemplate:describeConfig(script, hooks_conf)
   })
 
   if(not table.empty(conf.items)) then
-    msg = msg .. ". " .. i18n("user_scripts.exceptions", {exceptions = table.concat(conf.items)})
+    msg = msg .. ". " .. i18n("user_scripts.exceptions", {exceptions = table.concat(conf.items, ', ')})
   end
 
   return(msg)
