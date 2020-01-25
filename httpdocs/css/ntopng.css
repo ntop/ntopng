@@ -585,6 +585,8 @@ path.link {
   padding-right: 0 !important;
 }
 
+
+
 .nav-side {
   padding: 0;
   list-style: none;
@@ -641,13 +643,14 @@ path.link {
   color: #e2e2e2;
 }
 
-#n-sidebar.bg-dark li:hover, #n-sidebar.bg-dark ul>li.nav-item>a:hover,
-#n-sidebar.bg-dark li:active, #n-sidebar.bg-dark ul>li.nav-item>a:active,
-#n-sidebar.bg-dark ul>li.nav-item>a.active,
-#n-sidebar.bg-dark ul>li.nav-item>a:focus
+#n-sidebar.bg-dark li:hover, #n-sidebar.bg-dark ul>li.nav-item>a:hover
 {
   background-color: #353535;
 }
+#n-sidebar.bg-dark ul>li.nav-item>a:focus {
+  background-color: #1f1f1f;
+}
+
 
 /** end dark theme **/
 
@@ -656,7 +659,8 @@ path.link {
 }
 
 #n-sidebar h3.muted {
-  padding: 0.1rem 0.5rem; 
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 2px; 
 }
 
 #n-sidebar h3.muted div>a, #n-sidebar h3.muted div>button {
@@ -693,7 +697,7 @@ path.link {
   display: block;
   padding: 0.8rem 0rem;
   text-decoration: none; 
-  /* transition: padding 0.5s linear; */
+  transition: background 0.5s;
   color:#363943;
   white-space: nowrap;
   font-size: 0.75rem;
@@ -702,7 +706,6 @@ path.link {
   display: block;
   font-size: 1rem;
 }
-
 
 #n-sidebar.active ul>li.nav-item>a {
   padding: 0.8rem;
@@ -793,16 +796,9 @@ path.link {
   box-shadow:rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 } 
 
-/* disable animation to speed up the showing */
-#n-sidebar:not(.active) .side-collapse.collapse, #n-sidebar:not(.active) .side-collapse.collapsing {
-  transition: none;
-  animation: none;
-}
-
 .side-collapse a {
   text-align: left;
 }
-
 .info-stats {
   width: 11rem;
 }
@@ -812,6 +808,14 @@ path.link {
 .info-stats a {
   color:rgb(56, 59, 69);
   text-decoration: none;
+}
+
+#network-load {
+  display: contents;
+}
+
+.w-10em {
+  width: 10em;
 }
 
 #n-navbar {
