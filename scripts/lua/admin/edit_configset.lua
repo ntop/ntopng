@@ -2,7 +2,7 @@
 -- (C) 2019-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -25,6 +25,9 @@ local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
 local script_filter = _GET["user_script"]
 local configset = user_scripts.getConfigsets()[tonumber(confset_id)]
+local script_type = user_scripts.getScriptType(script_subdir)
+interface.select(getSystemInterfaceId())
+local scripts = user_scripts.load(getSystemInterfaceId(), script_type, script_subdir)
 
 if not haveAdminPrivileges() or not configset then
   return
@@ -64,6 +67,17 @@ end
 
 apps_and_categories = {cat_groups, app_groups}
 
+--tprint(user_scripts.script_categories)
+local script_categories = {}
+for script_name, script in pairs(scripts.modules) do
+   for cat_k, cat_v in pairs(user_scripts.script_categories) do
+      if script["category"]["id"] == cat_v["id"] and not script_categories[cat_k] then
+	 script_categories[cat_k] = cat_v
+	 break
+      end
+   end
+end
+
 local context = {
    script_list = {
       subdir = script_subdir,
@@ -76,7 +90,7 @@ local context = {
       page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
       apps_and_categories = json.encode(apps_and_categories),
    },
-   script_categories = user_scripts.script_categories,
+   script_categories = script_categories,
 
 }
 

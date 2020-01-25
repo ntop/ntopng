@@ -101,6 +101,13 @@ user_scripts.script_categories = {
    }
 }
 
+-- Auto-assign an id to the categories
+local cat_id = 1
+for cat_k, cat_v in pairs(user_scripts.script_categories) do
+   cat_v["id"] = cat_id
+   cat_id = cat_id + 1
+end
+
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
 user_scripts.script_types = {
@@ -130,6 +137,24 @@ user_scripts.script_types = {
     default_config_only = true, -- Only the default configset can be used
   }
 }
+
+-- ##############################################
+
+-- @brief Given a category found in a user script, this method checks whether the category is valid
+-- and, if not valid, it assigns to the plugin a default category
+local function checkCategory(category)
+   if not category or not category["id"] then
+      return user_scripts.script_categories.other
+   end
+
+   for cat_k, cat_v in pairs(user_scripts.script_categories) do
+      if category["id"] == cat_v["id"] then
+	 return cat_v
+      end
+   end
+
+   return user_scripts.script_categories.other
+end
 
 -- ##############################################
 
@@ -498,13 +523,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
                goto next_module
             end
 
-	    if not user_script["category"] then
-	       -- Assign the default category other
-	       user_script.category = user_scripts.script_categories.other
-	    elseif not user_script["category"]["icon"] or not user_script["category"]["i18n_title"] then
-	       -- Category is found but not among the available categories. Let's reset it to other and print an error
-	       user_script.category = user_scripts.script_categories.other
-	    end
+	    user_script["category"] = checkCategory(user_script["category"])
 
             if(rv.modules[mod_fname]) then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
