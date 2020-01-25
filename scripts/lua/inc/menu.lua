@@ -829,17 +829,17 @@ print ([[
          </li>
          <li>
             <a href="http://blog.ntop.org/" target="_blank">
-               ]].. i18n("about.ntop_blog") ..[[
+               ]].. i18n("about.ntop_blog") ..[[ <i class="fas fa-external-link-alt"></i>
             </a>
          </li>
          <li>
             <a href="https://t.me/ntop_community" target="_blank">
-               ]].. i18n("about.telegram") ..[[
+               ]].. i18n("about.telegram") ..[[ <i class="fas fa-external-link-alt"></i>
             </a>
          </li>
          <li>
             <a  href="https://github.com/ntop/ntopng/issues" target="_blank">
-               ]].. i18n("about.report_issue") ..[[
+               ]].. i18n("about.report_issue") ..[[ <i class="fas fa-external-link-alt"></i>
             </a>
          </li>
          <li class="dropdown-divider"></li>
@@ -866,12 +866,12 @@ print ([[
          </li>
          <li>
             <a href="https://www.ntop.org/guides/ntopng/" target="_blank">
-               ]].. i18n("about.readme_and_manual") ..[[
+               ]].. i18n("about.readme_and_manual") ..[[ <i class="fas fa-external-link-alt"></i>
             </a>
          </li>
          <li>
             <a href="https://www.ntop.org/guides/ntopng/api/" target="_blank">
-               Lua/C API
+               Lua/C API <i class="fas fa-external-link-alt"></i>
             </a>
          </li>
       </ul>

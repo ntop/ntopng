@@ -651,6 +651,9 @@ path.link {
   background-color: #1f1f1f;
 }
 
+#n-sidebar.bg-dark ul>li.nav-item>a[aria-expanded="true"] {
+  background-color: #353535 !important;
+}
 
 /** end dark theme **/
 
@@ -813,10 +816,14 @@ path.link {
 #network-load {
   display: contents;
 }
+#network-load div.d-flex a {
+  margin: 0 0.1em;
+}
 
 .w-10em {
   width: 10em;
 }
+
 
 #n-navbar {
   left: 13.5rem;
@@ -868,11 +875,22 @@ path.link {
   overflow-y: hidden;
 }
 
-@media (min-width: 768px) and (max-width: 1024px) {
+@media (min-width: 480px) and (max-width: 800px) {
   #n-container {
-    padding-top: 10rem !important;
+    padding-top: 12rem !important;
   }
 }
+@media (min-width: 800px) and (max-width: 992px) {
+  #n-container {
+    padding-top: 12rem !important;
+  }
+}
+@media (min-width: 992px) and (max-width: 1500px) {
+  #n-container {
+    padding-top: 4rem !important;
+  }
+}
+
 
 @media (min-width: 320px) and (max-width: 480px) {
 
