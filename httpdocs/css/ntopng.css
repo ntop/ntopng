@@ -877,7 +877,7 @@ path.link {
 
 @media (min-width: 480px) and (max-width: 800px) {
   #n-container {
-    padding-top: 12rem !important;
+    padding-top: 16rem !important;
   }
 }
 @media (min-width: 800px) and (max-width: 992px) {
@@ -935,7 +935,6 @@ path.link {
 
   #n-sidebar ul li {
     width: 100%;
-    padding: 0.8rem;
     font-size: 1.05rem;
     text-align: left;
     transition: background 0.5s;
@@ -960,13 +959,15 @@ path.link {
     font-size: inherit;
   }
 
-  #n-sidebar ul li.nav-item.active {
-    background-color: #353535;
+  #n-sidebar ul>li.nav-item>a {
+    padding: 1.2rem;  
+  }
+  #n-sidebar ul>li.nav-item div.collapse>ul li>a {
+    padding: 1.2rem 1.2rem 1.2rem 1.8rem;  
   }
 
-  #n-sidebar ul li.nav-item {
-    padding: 0.8rem;
-    transition: background-color 0.5s;
+  #n-sidebar ul li.nav-item.active {
+    background-color: #ff7500;
   }
 
   #n-sidebar ul li.nav-item:hover,
