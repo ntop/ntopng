@@ -9,13 +9,26 @@ package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.p
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 local page_utils = require("page_utils")
-local  code_editor = require("code_editor")
+local code_editor = require("code_editor")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+local title = i18n("plugin_browser", {plugin_name = _GET["plugin_path"]})
+local url = ntop.getHttpPrefix().."/lua/code_viewer.lua"
+
+page_utils.print_header(title)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+page_utils.print_navbar(title, url,
+			{
+			   {
+			      active = true,
+			      page_name = "overview",
+			      label = "<i class=\"fas fa-lg fa-home\"></i>",
+			   },
+			}
+)
 
 code_editor.editor(_GET["plugin_file_path"], _GET["plugin_path"])
 

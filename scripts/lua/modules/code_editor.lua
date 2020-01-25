@@ -70,7 +70,8 @@ end
 
 local function plugin_files_dropdown(plugin_file_path, plugin_path)
    print[[
-<div class="dropdown">
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
   <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     ]] print(i18n("plugin_contents")) print[[
   </button>
@@ -81,8 +82,9 @@ local function plugin_files_dropdown(plugin_file_path, plugin_path)
    plugin_subdir_files_dropdown(plugin_file_path, plugin_path, plugin_path, 1)
 
    print[[
-
+    </div>
   </div>
+ <span class="input-group-text" id="">]] print(plugin_file_path) print[[</span>
 </div>
 ]]
 end
@@ -91,8 +93,6 @@ end
 
 function code_editor.editor(plugin_file_path, plugin_path)
    local plugin_file_url
-
-   print [[<H3>]] print(i18n("plugin_browser", {plugin_name = plugin_path})) print [[</H3>]]
 
    if starts(plugin_file_path, "/plugins/") then
       plugin_file_url = string.gsub(plugin_file_path, "/plugins/", "/plugins-src/")
@@ -108,9 +108,6 @@ function code_editor.editor(plugin_file_path, plugin_path)
    plugin_files_dropdown(plugin_file_path, plugin_path)
 
    print[[
-<br>
-<p><i class="fas fa-lg fa-binoculars"></i> ]] print(plugin_file_path) print [[</p>
-<p>
 <script>var require = { paths: { 'vs': ']] print(ntop.getHttpPrefix()) print[[/monaco-editor/min/vs' } };</script>
 <script src="]] print(ntop.getHttpPrefix()) print[[/monaco-editor/min/vs/loader.js"></script>
 <script src="]] print(ntop.getHttpPrefix()) print[[/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
