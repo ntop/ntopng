@@ -1080,9 +1080,9 @@ else
    if(flow["protos.dns.last_query"] ~= nil) then
       print("<tr><th width=30%>"..i18n("flow_details.dns_query").."</th><td colspan=2>")
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
-	 print(flow["protos.dns.last_query"])
+	 print(shortHostName(flow["protos.dns.last_query"]))
       else
-	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..flow["protos.dns.last_query"].."</A> <i class='fas fa-external-link-alt'></i>")
+	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..shortHostName(flow["protos.dns.last_query"]).."</A> <i class='fas fa-external-link-alt'></i>")
       end
 
       if(flow["category"] ~= nil) then
