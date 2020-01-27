@@ -70,7 +70,7 @@ $.fn.dataTable.ext.buttons.filterScripts = {
             let self = this;
             $(this).popover("show");
             $(".popover").on('mouseleave', function () {
-                jQuery(self).popover('hide');
+                $(self).popover('hide');
             });
         })
         .on('mouseleave', function () {
