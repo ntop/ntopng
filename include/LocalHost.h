@@ -31,11 +31,11 @@ class LocalHost : public Host, public SerializableElement {
   time_t initialization_time;
   HostTimeseriesPoint *initial_ts_point;
   std::map<u_int16_t,PortContactStats> udp_client_ports, tcp_client_ports, udp_server_ports, tcp_server_ports;
-  
+
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   OperatingSystem os;
   char *os_detail;
-  bool drop_all_host_traffic; 
+  bool drop_all_host_traffic;
   /* END Host data: */
 
   void initialize();
@@ -89,7 +89,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void tsLua(lua_State* vm);
-  void luaPortsDump(lua_State* vm);  
+  void luaPortsDump(lua_State* vm);
   void setFlowPort(bool as_server, Host *peer, u_int8_t proto, u_int16_t port,
 		   u_int16_t l7_proto, const char *info, time_t when);
 };

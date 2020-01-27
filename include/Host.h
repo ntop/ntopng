@@ -41,7 +41,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   time_t last_stats_reset;
   u_int32_t active_alerted_flows;
   Bitmap misbehaving_flows_as_client_status, misbehaving_flows_as_server_status;
- 
+  NewFlowFrequencyBin clientFrequencyBin, serverFrequencyBin;
+  FlowDurationBin clientDurationBin,  serverDurationBin;
+  
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
     char * mdns, * mdns_txt;
@@ -224,6 +226,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement);
 
+  void lua_get_bins(lua_State* vm)          const;
   void lua_get_min_info(lua_State* vm)      const;
   void lua_get_ip(lua_State* vm)            const;
   void lua_get_localhost_info(lua_State* vm) const;
@@ -271,8 +274,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
 
-  void incNumFlows(time_t t, bool as_client, Host *peer);
-  void decNumFlows(time_t t, bool as_client, Host *peer);
+  void incNumFlows(time_t t, bool as_client, Host *peer, Flow *f);
+  void decNumFlows(time_t t, bool as_client, Host *peer, Flow *f);
   inline void incNumAlertedFlows()            { active_alerted_flows++; }
   inline void decNumAlertedFlows()            { active_alerted_flows--; }
   inline u_int32_t getNumAlertedFlows() const { return(active_alerted_flows); }
