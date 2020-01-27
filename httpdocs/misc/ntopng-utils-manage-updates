@@ -102,6 +102,12 @@ if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $A
 	exit 1
 fi
 
+INSTANCES=$(ps aux | grep $0 | grep -v grep | grep ${ACTION} | wc -l)
+if [ $INSTANCES -gt 2 ]; then
+	echo "Another instance is running with the same action"
+	exit 1
+fi
+
 # Check if the user requested a ntopng update, and upgrade it in case
 function run_upgrade() {
 	RESULT=1
