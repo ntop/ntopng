@@ -956,10 +956,10 @@ print([[
       </button>
       <ul class='navbar-nav mr-auto'>    
          <li class='nav-item dropdown'>
-               <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
+            <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
                   <i class='fas fa-ethernet '></i> ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
-               </a>
-               <ul class='dropdown-menu'>
+            </a>
+            <ul class='dropdown-menu'>
 ]])
        
 -- ##############################################
@@ -1111,12 +1111,6 @@ if not interface.isPcapDumpInterface() then
 
 end
 
-print([[
-   <li class='nav-item py-2 px-0 w-10em'>
-      <div class="text-center mx-sm-0 mx-xs-0 w-100" 
-         title="All traffic detected by NTOP: Local2Local, download, upload" id="gauge_text_allTraffic"></div>
-   </li>
-]])
 
 -- ########################################
 -- Network Load 
@@ -1124,6 +1118,7 @@ print([[
 print([[
    <div id="network-load"></div>
 ]])
+
 
 -- ########################################
 -- end of navbar-nav

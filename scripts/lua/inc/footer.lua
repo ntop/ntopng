@@ -119,6 +119,7 @@ if not interface.isPcapDumpInterface() and not have_nedge then
 
 
    print [[
+
         </div>
         <div>]]
 end -- closes interface.isPcapDumpInterface() == false
@@ -129,9 +130,13 @@ print ([[
   </div><!-- End column 2 -->
   <div class="clearfix visible-xs"></div>
   <div class='col'>
-  <small class='float-right'>
-         ]].. info.product .. ' ' .. getNtopngRelease() ..[[ Edition v.]].. info.version ..[[
-  </small>
+  <div class='float-right'>
+    <div id='network-load-clock'></div>
+    <small>
+          ]].. info.product .. ' ' .. getNtopngRelease() ..[[ Edition v.]].. info.version ..[[
+    </small>
+  </div>
+ 
   </div>
 </div>
 </div>
@@ -235,7 +240,6 @@ print [[/lua/logout.lua");  }, */
    if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
       print[[
 
-                $('#gauge_text_allTraffic').html("<small class='px-1'>"+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000) + " [" + fpackets(pps) + "]</small>");
                 var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
                 //$('#networkload').css("width", v+"%")
                 $('#networkload').html(v+"%");
@@ -251,12 +255,16 @@ print [[/lua/logout.lua");  }, */
 
 print[[
 
-                var msg = `
-                  <li class='nav-item px-1 py-2'>
-                    <small>
+                let clock_msg = `
+                  <small>
                       <i class=\"fas fa-clock\"></i>
-                      ${rsp.localtime} - ]] print(i18n("about.uptime")) print[[: ${rsp.uptime}</small>
-                   </li>
+                      ${rsp.localtime} - ]] print(i18n("about.uptime")) print[[: ${rsp.uptime}
+                  </small>
+                `;
+
+                $('#network-load-clock').html(clock_msg);
+
+                var msg = `
                    <li class='nav-item py-2 px-1'>
                    <div class='d-flex'>`;
 
