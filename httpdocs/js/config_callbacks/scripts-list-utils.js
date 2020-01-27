@@ -707,11 +707,13 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       const current_value = hooks.all.script_conf.min_duration || 60;
       const times_unit = get_unit_times(current_value);
 
+      const max_time = (times_unit[0] == `${i18n.metrics.minutes}` ? 59 : (times_unit[0] == `${i18n.metrics.hours}` ? 23 : 365));
+
       const input_settings = {
          name: 'duration_value',
          current_value: times_unit[1],
          min: 1,
-         max: (times_unit[0] == `${i18n.metrics.minutes}` ? 59 : (times_unit[0] == `${i18n.metrics.hours}` ? 23 : 365)),
+         max: max_time,
          enabled: enabled,
       };
 
@@ -761,9 +763,20 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
          // if the checked option is false the disable the elements
          if (!checked) {
-            $time_input_box.find(`input[name='duration_value']`).attr("readonly", "");
+
+            const $duration_input = $time_input_box.find(`input[name='duration_value']`);
+
+            $duration_input.attr("readonly", "");
             $time_radio_buttons.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
             $multiselect_ds.find('select').attr("disabled", "");
+
+            // if the user left the input box empty then reset previous values
+            if ($duration_input.val() == "") {
+               $duration_input.val(times_unit[1]);
+               $duration_input.attr('max', max_time);
+               reset_radio_button('ds_time', times_unit[2]);
+            }
+
             return;
          }
 
@@ -944,19 +957,32 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          'elephant-flows-checkbox', enabled, function (e) {
 
             const checked = $(this).prop('checked');
-   
+            const $r2l_input = $input_box_r2l.find(`input[name='r2l_value']`);
+            const $l2r_input = $input_box_l2r.find(`input[name='l2r_value']`);
+
             // if the checked option is false the disable the elements
             if (!checked) {
-               $input_box_r2l.find(`input`).attr("readonly", "");
-               $input_box_l2r.find(`input`).attr("readonly", "");
+               $r2l_input.attr("readonly", "");
+               $l2r_input.attr("readonly", "");
                $radio_button_l2r.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
                $radio_button_r2l.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
                $multiselect_bytes.find('select').attr("disabled", "");
+               
+               // if the user left the input box empty then reset previous values
+               if ($r2l_input.val() == "") {
+                  $r2l_input.val(r2l_unit[1]);
+                  reset_radio_button('bytes_r2l', r2l_unit[2]);
+               }
+               if ($l2r_input.val() == "") {
+                  $l2r_input.val(l2r_unit[1]);
+                  reset_radio_button('bytes_l2r', l2r_unit[2]);
+               }
+               
                return;
             }
 
-            $input_box_r2l.find(`input`).removeAttr("readonly", "");
-            $input_box_l2r.find(`input`).removeAttr("readonly", "");
+            $r2l_input.removeAttr("readonly", "");
+            $l2r_input.removeAttr("readonly", "");
             $radio_button_l2r.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
             $radio_button_r2l.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
             $multiselect_bytes.find('select').removeAttr("disabled");
