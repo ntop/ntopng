@@ -998,7 +998,9 @@ else
 
    if flow["flow.alerted"] then
       alerted_status = flow["alerted_status"]
-      local message = flow_consts.getStatusDescription(alerted_status, flow2statusinfo(flow))
+      local alert_info = flow2statusinfo(flow)
+      local message = flow_consts.getStatusDescription(alerted_status, alert_info)
+      message = message .. getConfigsetAlertLink(alert_info)
 
       print("<tr><th width=30%><i class='fas fa-exclamation-triangle' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
@@ -1080,9 +1082,9 @@ else
    if(flow["protos.dns.last_query"] ~= nil) then
       print("<tr><th width=30%>"..i18n("flow_details.dns_query").."</th><td colspan=2>")
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
-	 print(flow["protos.dns.last_query"])
+	 print(shortHostName(flow["protos.dns.last_query"]))
       else
-	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..flow["protos.dns.last_query"].."</A> <i class='fas fa-external-link-alt'></i>")
+	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..shortHostName(flow["protos.dns.last_query"]).."</A> <i class='fas fa-external-link-alt'></i>")
       end
 
       if(flow["category"] ~= nil) then

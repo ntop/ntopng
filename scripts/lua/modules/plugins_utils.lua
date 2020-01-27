@@ -418,7 +418,7 @@ end
 
 -- @brief Loads the ntopng plugins into a single directory tree.
 -- @notes This should be called at startup
-function plugins_utils.loadPlugins()
+function plugins_utils.loadPlugins(community_plugins_only)
   local locales_utils = require("locales_utils")
   local plugins = plugins_utils.listPlugins()
   local loaded_plugins = {}
@@ -467,16 +467,20 @@ function plugins_utils.loadPlugins()
 
   -- Load the plugins following the dependecies order
   for _, plugin in ipairs(plugins) do
+    if community_plugins_only and plugin.edition ~= "community" then
+       goto continue
+    end
+
     -- Ensure that the depencies has been loaded as well
     for _, dep in pairs(plugin.dependencies or {}) do
-      if not loaded_plugins[dep] then
-        traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping plugin %s due to missing dependency '%s'", plugin.key, dep))
-        goto continue
-      end
+       if not loaded_plugins[dep] then
+	  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping plugin %s due to missing dependency '%s'", plugin.key, dep))
+	  goto continue
+       end
     end
 
     if do_trace then
-      io.write(string.format("Loading plugin %s\n", plugin.key))
+      io.write(string.format("Loading plugin %s [edition: %s]\n", plugin.key, plugin.edition))
     end
 
     if load_plugin_definitions(plugin) and
@@ -565,6 +569,33 @@ function plugins_utils.loadSchemas(granularity)
   end
 
   schemas_loaded[granularity or "all"] = true
+end
+
+-- ##############################################
+
+function plugins_utils.checkReloadPlugins(when)
+   local demo_ends_at = ntop.getInfo()["pro.demo_ends_at"]
+   local time_delta = demo_ends_at - when
+   local plugins_reloaded = false
+
+   -- tprint({time_delta = time_delta, demo_ends_at = demo_ends_at, when = when, is_pro = ntop.isPro()})
+
+   if ntop.getCache('ntopng.cache.force_reload_plugins') == '1' then
+      -- Check and possibly reload plugins after a user has changed (e.g., applied or removed) a license
+      -- from the web user interface (page about.lua)
+      plugins_utils.loadPlugins(not ntop.isPro() --[[ reload only community if license is not pro --]])
+      ntop.delCache('ntopng.cache.force_reload_plugins')
+      plugins_reloaded = true
+   elseif demo_ends_at and demo_ends_at > 0 and time_delta <= 10 and ntop.isPro() and not ntop.hasPluginsReloaded() then
+      -- Checks and possibly reload plugins for demo licenses. In case of demo licenses,
+      -- if within 10 seconds from the license expirations, a plugin reload is executed only for the community plugins
+      plugins_utils.loadPlugins(true --[[ reload only community plugins --]])
+      plugins_reloaded = true
+   end
+
+   if plugins_reloaded then
+      ntop.reloadPlugins()
+   end
 end
 
 -- ##############################################

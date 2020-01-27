@@ -2653,6 +2653,29 @@ static int ntop_reload_preferences(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
+static int ntop_reload_plugins(lua_State* vm) {
+#ifdef NTOPNG_PRO
+  ntop->getPro()->set_plugins_reloaded();
+#endif
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_has_plugins_reloaded(lua_State* vm) {
+#ifdef NTOPNG_PRO
+  lua_pushboolean(vm, ntop->getPro()->has_plugins_reloaded());
+#endif
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_check_hosts_alerts(lua_State* vm, ScriptPeriodicity p) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -11586,6 +11609,8 @@ static const luaL_Reg ntop_reg[] = {
   { "zmq_receive",      ntop_zmq_receive },
 #endif
   { "reloadPreferences",   ntop_reload_preferences },
+  { "reloadPlugins",       ntop_reload_plugins        },
+  { "hasPluginsReloaded",  ntop_has_plugins_reloaded  },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
   { "setDefaultFilePermissions",  ntop_set_default_file_permissions },
   

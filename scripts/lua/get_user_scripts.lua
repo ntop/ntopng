@@ -49,8 +49,9 @@ local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir)
 local result = {}
 
 for script_name, script in pairs(scripts.modules) do
-  if script.gui and script.gui.i18n_title and script.gui.i18n_description then
+   if script.gui and script.gui.i18n_title and script.gui.i18n_description then
     local hooks = user_scripts.getScriptConfig(config_set, script, subdir)
+
     local enabled_hooks = {}
     local all_hooks = {}
     local edit_url = nil

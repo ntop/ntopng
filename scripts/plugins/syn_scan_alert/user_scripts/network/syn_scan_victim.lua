@@ -25,8 +25,8 @@ local script = {
   -- Allow user script configuration from the GUI
   gui = {
     -- Localization strings, from the "locales" directory of the plugin
-    i18n_title = "syn_scan_alert.syn_scan_victim_title",
-    i18n_description = "syn_scan_alert.syn_scan_victim_description",
+    i18n_title = "entity_thresholds.syn_scan_victim_title",
+    i18n_description = "entity_thresholds.syn_scan_victim_description",
 
     -- The input builder to use to draw the gui
     input_builder = "threshold_cross",

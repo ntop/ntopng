@@ -95,7 +95,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
     cli_host->incUses();
-    cli_host->incNumFlows(last_seen, true, srv_host);
+    cli_host->incNumFlows(last_seen, true, srv_host, this);
     if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
   } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
@@ -106,7 +106,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) {
     NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
     srv_host->incUses();
-    srv_host->incNumFlows(last_seen, false, cli_host);
+    srv_host->incNumFlows(last_seen, false, cli_host, this);
     if(network_stats) network_stats->incNumFlows(last_seen, false);
     srv_ip_addr = srv_host->get_ip();
   } else { /* Server host has not been allocated, let's keep the info in an IpAddress */
@@ -1867,10 +1867,10 @@ u_int Flow::get_hash_entry_id() const {
 
 void Flow::set_hash_entry_state_idle() {
   if(cli_host)
-    cli_host->decNumFlows(last_seen, true, srv_host);
+    cli_host->decNumFlows(last_seen, true, srv_host, this);
 
   if(srv_host)
-    srv_host->decNumFlows(last_seen, false, cli_host);
+    srv_host->decNumFlows(last_seen, false, cli_host, this);
 
   if(isFlowAlerted()) {
     iface->decNumAlertedFlows(this);
