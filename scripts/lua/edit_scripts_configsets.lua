@@ -99,6 +99,7 @@ elseif(action == "set_targets") then
 
     if not success then
       result.error = err
+      result.csrf = ntop.getRandomCSRFValue()
     end
   else
     -- Validation error
