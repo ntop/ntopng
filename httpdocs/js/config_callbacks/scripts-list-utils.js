@@ -13,8 +13,9 @@ String.prototype.titleCase = function () {
 
 const reloadPageAfterPOST = () => {
    if(location.href.indexOf("user_script=") > 0) {
-      /* Remove the "user_script" _GET parameter */
-      location.href = page_url + location.hash;
+      /* Go back to the alerts page */
+      //location.href = page_url + location.hash;
+      window.history.back();
    } else {
       /* The URL is still the same as before, need to force a reload */
       location.reload();

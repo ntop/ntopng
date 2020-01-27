@@ -1,3 +1,4 @@
+// 2020 - ntop.org
 const special_characters_regex = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\,\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
 
 // return true if the status code is different from 200
