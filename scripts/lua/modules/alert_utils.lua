@@ -2136,10 +2136,27 @@ end
 
 -- #################################
 
+function getConfigsetAlertLink(alert_json)
+   local configsets = user_scripts.getConfigsets()
+   local info = alert_json.alert_generation or (alert_json.status_info and alert_json.status_info.alert_generation)
+
+   if(info and isAdministrator()) then
+      -- Ensure that the configset still exists
+      if configsets[info.confset_id] then
+	 return(' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?confset_id='..
+	    info.confset_id ..'&subdir='.. info.subdir ..'&user_script='.. info.script_key ..'#all">'..
+	    '<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
+    end
+  end
+
+  return('')
+end
+
+-- #################################
+
 function formatAlertMessage(ifid, alert)
   local msg
   local alert_json = alert["alert_json"]
-  local configsets = user_scripts.getConfigsets()
 
   if isEmptyString(alert_json) then
     alert_json = {}
@@ -2165,15 +2182,8 @@ function formatAlertMessage(ifid, alert)
    return("")
   end
 
-  local info = alert_json.alert_generation or (alert_json.status_info and alert_json.status_info.alert_generation)
-
-  if(info and msg and isAdministrator()) then
-    -- Ensure that the configset still exists
-    if configsets[info.confset_id] then
-      msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?confset_id='..
-	info.confset_id ..'&subdir='.. info.subdir ..'&user_script='.. info.script_key ..'#all">'..
-	'<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
-    end
+  if(msg) then
+    msg = msg .. getConfigsetAlertLink(alert_json)
   end
 
   return(msg)
