@@ -18,9 +18,10 @@ local collapsed_sidebar = ntop.getPref('ntopng.prefs.sidebar_collapsed')
 local bool_collapsed_sidebar = (collapsed_sidebar == "1") and true or false
 
 -- tprint(collapsed_sidebar)
+-- <script type="text/javascript" src="/js/sidebar.js"></script>
+
 
 print[[
-<script type="text/javascript" src="/js/sidebar.js"></script>
 <script type='text/javascript'>
    /* Some localization strings to pass from lua to javacript */
    let i18n = {
