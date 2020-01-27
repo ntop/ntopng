@@ -78,6 +78,7 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
   u_int64_t num_active_alerted_flows, num_idle_alerted_flows;
+  u_int64_t num_active_misbehaving_flows, num_idle_misbehaving_flows;
   u_int32_t num_dropped_alerts, num_dropped_flow_scripts_calls;
   u_int64_t num_new_flows;
   bool has_stored_alerts;
@@ -809,6 +810,9 @@ class NetworkInterface : public AlertableEntity {
   void incNumAlertedFlows(Flow *f);
   void decNumAlertedFlows(Flow *f);
   virtual u_int64_t getNumActiveAlertedFlows()      const;
+  inline void incNumMisbehavingFlows()		 	  { num_active_misbehaving_flows++; }
+  inline void decNumMisbehavingFlows() 			  { num_idle_misbehaving_flows++;   }
+  virtual u_int64_t getNumActiveMisbehavingFlows()      const;
   inline void setHasAlerts(bool has_stored_alerts)        { this->has_stored_alerts = has_stored_alerts; }
   inline void incNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]++; }
   inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }

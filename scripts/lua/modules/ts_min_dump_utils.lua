@@ -113,6 +113,8 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
   ts_utils.append("iface:flows", {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when, verbose)
   ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
   ts_utils.append("iface:engaged_alerts", {ifid=ifstats.id, alerts=ifstats.stats.engaged_alerts}, when, verbose)
+  ts_utils.append("iface:alerted_flows", {ifid=ifstats.id, num_flows=ifstats.stats.num_alerted_flows}, when, verbose)
+  ts_utils.append("iface:misbehaving_flows", {ifid=ifstats.id, num_flows=ifstats.stats.num_misbehaving_flows}, when, verbose)
 end
 
 function ts_dump.iface_update_l4_stats(when, ifstats, verbose)

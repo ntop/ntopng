@@ -266,6 +266,7 @@ void NetworkInterface::init() {
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
+  num_active_misbehaving_flows = num_idle_misbehaving_flows = 0;
 
 #ifdef NTOPNG_PRO
   aggregated_flows_dump_updates = aggregated_flows_dump_max_updates = 0;
@@ -5236,6 +5237,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
   lua_push_int32_table_entry(vm, "num_alerted_flows", getNumActiveAlertedFlows());
+  lua_push_int32_table_entry(vm, "num_misbehaving_flows", getNumActiveMisbehavingFlows());
   lua_push_int32_table_entry(vm, "num_dropped_alerts", num_dropped_alerts);
   lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
 
@@ -7044,6 +7046,8 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
   pt->local_hosts = getNumLocalHosts();
   pt->devices = getNumL2Devices();
   pt->flows = getNumFlows();
+  pt->num_misbehaving_flows = getNumActiveMisbehavingFlows();
+  pt->num_alerted_flows = getNumActiveAlertedFlows();
   pt->http_hosts = getNumHTTPHosts();
   pt->l4Stats = l4Stats;
 }
@@ -7402,6 +7406,17 @@ u_int64_t NetworkInterface::getNumActiveAlertedFlows() const {
     return num_active_alerted_flows - num_idle_alerted_flows;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error, active alerted flows less than idle alerted flows");
+    return 0;
+  }
+};
+
+/* *************************************** */
+
+u_int64_t NetworkInterface::getNumActiveMisbehavingFlows() const {
+  if(num_active_misbehaving_flows >= num_idle_misbehaving_flows)
+    return num_active_misbehaving_flows - num_idle_misbehaving_flows;
+  else {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error, active misbehaving flows less than idle misbehaving flows");
     return 0;
   }
 };

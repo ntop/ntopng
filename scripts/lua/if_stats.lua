@@ -1140,6 +1140,9 @@ elseif(page == "historical") then
       timeseries = {
          {schema="iface:flows",                 label=i18n("graphs.active_flows")},
 	 {schema="iface:new_flows",             label=i18n("graphs.new_flows"), value_formatter = {"fflows", "formatFlows"}},
+	 {schema="custom:flow_misbehaving_vs_alerted", label=i18n("graphs.misbehaving_vs_alerted"),
+	    value_formatter = {"formatFlows", "formatFlows"},
+	    metrics_labels = {i18n("flow_details.mibehaving_flows"), i18n("flow_details.alerted_flows")}},
          {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
          {schema="iface:engaged_alerts",        label=i18n("show_alerts.engaged_alerts")},
          {schema="custom:flows_vs_local_hosts", label=i18n("graphs.flows_vs_local_hosts"), check={"iface:flows", "iface:local_hosts"}, step=60},

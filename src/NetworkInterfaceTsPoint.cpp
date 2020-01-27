@@ -36,6 +36,8 @@ void NetworkInterfaceTsPoint::lua(lua_State* vm, NetworkInterface *iface) {
   lua_push_uint64_table_entry(vm, "flows", flows);
   lua_push_uint64_table_entry(vm, "http_hosts", http_hosts);
   lua_push_uint64_table_entry(vm, "engaged_alerts", engaged_alerts);
+  lua_push_uint64_table_entry(vm, "num_alerted_flows", num_alerted_flows);
+  lua_push_uint64_table_entry(vm, "num_misbehaving_flows", num_misbehaving_flows);
   l4Stats.luaStats(vm);
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);

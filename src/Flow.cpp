@@ -3766,6 +3766,8 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
       srv_host->incNumMisbehavingFlows(false);
       srv_host->getScore()->incValue(srv_score);
     }
+
+    iface->decNumMisbehavingFlows();
   }
 
   if(isFlowAlerted()) {
@@ -4424,6 +4426,23 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 
   /* Success - alert is dumped/notified from lua */
   return(true);
+}
+
+/* *************************************** */
+
+void Flow::setStatus(FlowStatus status) {
+  if(status_map.get() == status_normal) {
+    /* First misbehaving status */
+    iface->incNumMisbehavingFlows();
+  }
+
+  status_map.setBit(status);
+}
+
+/* *************************************** */
+
+void Flow::clearStatus(FlowStatus status) {
+  status_map.clearBit(status);
 }
 
 /* *************************************** */

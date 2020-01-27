@@ -188,6 +188,18 @@ schema:addMetric("num_flows")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:misbehaving_flows", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addMetric("num_flows")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("iface:alerted_flows", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addMetric("num_flows")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("iface:http_hosts", {step=60, rrd_fname="num_http_hosts", metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addMetric("num_hosts")
