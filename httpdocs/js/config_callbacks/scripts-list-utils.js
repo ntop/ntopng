@@ -1451,10 +1451,12 @@ $(document).ready(function() {
          {
             data: null,
             sortable: true,
-            searchable: true,
+             searchable: true,
+	     className: 'text-center',
             render: function (data, type, row) {
                const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}'></i>`;
-               return `${icon}${!row.category_title ? '' : ' ' + row.category_title}`;
+		if (type == "display") return `${icon}`;
+		return row.category_title;
             }
          },
          {
@@ -1500,7 +1502,8 @@ $(document).ready(function() {
             targets: -1,
             data: null,
             name: 'actions',
-            className: 'text-center',
+             className: 'text-center',
+	     width: '200px',
             sortable: false,
             render: function (data, type, row) {
 
