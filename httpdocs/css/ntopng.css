@@ -979,6 +979,8 @@ path.link {
   #n-sidebar ul li.nav-item:focus > a {
     background: none;
   }
+}
+
 
 .chips-container {
   display: block;
@@ -1014,4 +1016,8 @@ path.link {
 
 .pointer {
   cursor: pointer;
+}
+
+.p-btn {
+  padding: .375rem .75rem;
 }

@@ -265,7 +265,7 @@ print[[
                 $('#network-load-clock').html(clock_msg);
 
                 var msg = `
-                   <li class='nav-item py-2 px-1'>
+                   <li class='nav-item p-btn'>
                    <div class='d-flex'>`;
 
 
