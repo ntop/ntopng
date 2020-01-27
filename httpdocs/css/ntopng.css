@@ -824,6 +824,13 @@ path.link {
   width: 10em;
 }
 
+#collapse-sidebar {
+  position: relative;
+}
+#collapse-sidebar span{
+  position: absolute;
+  margin-left: 0.5rem;
+}
 
 #n-navbar {
   left: 13.5rem;

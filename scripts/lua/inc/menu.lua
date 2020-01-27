@@ -19,8 +19,6 @@ local bool_collapsed_sidebar = (collapsed_sidebar == "1") and true or false
 
 -- tprint(collapsed_sidebar)
 -- <script type="text/javascript" src="/js/sidebar.js"></script>
-
-
 print[[
 <script type='text/javascript'>
    /* Some localization strings to pass from lua to javacript */
@@ -886,7 +884,7 @@ print([[
    
    <div class='sidebar-info'>
       <a id='collapse-sidebar' href='#' data-toggle='sidebar' class='btn-collapse'>
-        <i class='fas fa-bars'></i>  <span>]].. (collapsed_sidebar == "1" and '' or 'Collapse') ..[[</span>
+        <i class='fas fa-bars'></i><span ]].. (collapsed_sidebar == "1" and 'style="display: none"' or '') ..[[>Collapse</span>
       </a>
    </div>
 
