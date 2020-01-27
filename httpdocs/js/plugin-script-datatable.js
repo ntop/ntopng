@@ -62,7 +62,24 @@ $.fn.dataTable.ext.buttons.filterScripts = {
 
         // delagate tooltips
         $(`span[data-toggle='popover']`).popover({
-            trigger: 'hover click',
+            trigger: 'manual',
+            html: true,
+            animation: false,
+        })
+        .on('mouseenter', function () {
+            let self = this;
+            $(this).popover("show");
+            $(".popover").on('mouseleave', function () {
+                jQuery(self).popover('hide');
+            });
+        })
+        .on('mouseleave', function () {
+            let self = this;
+            setTimeout(function () {
+                if (!$('.popover:hover').length) {
+                    $(self).popover('hide');
+                }
+            }, 600);
         });
 
         $(`#${button_id}`).addClass("active");
