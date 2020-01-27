@@ -732,12 +732,12 @@ if((page == "overview") or (page == nil)) then
    end
 
    if (ntop.isPcapDownloadAllowed() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=5>")
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=2>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(ifId)
 
-      print("</td></tr>\n")
+      print("</td><td colspan=3></td></tr>\n")
    end
 
    if isAdministrator() then
