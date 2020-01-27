@@ -2,7 +2,7 @@
 -- (C) 2013-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local ts_utils = require("ts_utils")
@@ -21,6 +21,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 if(_POST["ntopng_license"] ~= nil) then
    ntop.setCache('ntopng.license', trimSpace(_POST["ntopng_license"]))
    ntop.checkLicense()
+   ntop.setCache('ntopng.cache.force_reload_plugins', '1') -- housekeeping.lua will reload plugins
 end
 
 print("<hr /><h2>"..i18n("about.about_x", {product=info["product"]}).."</h2>")
