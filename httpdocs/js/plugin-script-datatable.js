@@ -61,7 +61,9 @@ $.fn.dataTable.ext.buttons.filterScripts = {
         }
 
         // delagate tooltips
-        $(`span[data-toggle='popover']`).popover({trigger: 'hover'});
+        $(`span[data-toggle='popover']`).popover({
+            trigger: 'hover click',
+        });
 
         $(`#${button_id}`).addClass("active");
     }

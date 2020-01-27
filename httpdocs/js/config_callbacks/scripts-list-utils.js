@@ -1309,7 +1309,9 @@ $(document).ready(function() {
 
    const hide_categories_dropdown = () => {
 
+      // get current category filter
       const current_category_filter = $script_table.column(CATEGORY_COLUMN_INDEX).search();
+      // get alla categories from current datatable instance
       const data_rows = $script_table
                               .column(CATEGORY_COLUMN_INDEX)
                               .search('')
@@ -1345,6 +1347,15 @@ $(document).ready(function() {
 
       });
 
+   }
+
+   const truncate_string = (str, lim, strip_html = false) => {
+
+      if (strip_html) {
+         return str.replace(/(<([^>]+)>)/ig,"").substr(0, lim) + '...';
+      }
+
+      return (str.length > lim) ? str.substr(0, lim) + '...': str;
    }
 
    // initialize script table 
@@ -1388,8 +1399,6 @@ $(document).ready(function() {
          $('#all-scripts,#enabled-scripts,#disabled-scripts').click(function() {
             hide_categories_dropdown();
          });
-
-
 
          // update the tabs counters
          const $disabled_button = $(`#disabled-scripts`);
@@ -1462,11 +1471,12 @@ $(document).ready(function() {
             render: function (data, type, row) {
 
                if (type == "display") {
+
                   return `<span 
                            ${data.length >= 72 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
                            title="${row.title}"
                            data-content="${data}" >
-                              ${data.substr(0, 72)}${data.length >= 72 ? '...' : ''}
+                              ${truncate_string(data, 72, true)}
                            </span>`;
                }
 
@@ -1511,7 +1521,6 @@ $(document).ready(function() {
                          style="visibility: ${!row.input_handler ? 'hidden' : 'visible'}"
                          data-toggle="modal"
                          data-target="#modal-script">
-                         
                            ${i18n.edit}
                      </a>
                `;
