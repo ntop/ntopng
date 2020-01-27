@@ -1234,7 +1234,7 @@ $(document).ready(function() {
    const add_filter_categories_dropdown = () => {
 
       const $dropdown = $(`
-         <div class='dropdown d-inline'>
+         <div id='category-filter-menu' class='dropdown d-inline'>
             <button class='btn btn-link dropdown-toggle' data-toggle='dropdown' type='button'>
                <span>${i18n.filter_categories}</span>
             </button>
@@ -1281,6 +1281,46 @@ $(document).ready(function() {
       return $dropdown;
    }
 
+   const hide_categories_dropdown = () => {
+
+      const current_category_filter = $script_table.column(CATEGORY_COLUMN_INDEX).search();
+      const data_rows = $script_table
+                              .column(CATEGORY_COLUMN_INDEX)
+                              .search('')
+                              .rows({filter: 'applied'}).data();
+      const categories_set = new Set();
+
+      for (let i = 0; i < data_rows.length; i++) {
+         categories_set.add(data_rows[i].category_title);
+      }
+      
+      const enabled_categories = [...categories_set];
+
+      if (enabled_categories.indexOf(current_category_filter) == -1) {
+
+         $('#category-filter-menu button span').text(`${i18n.filter_categories}`);
+         $script_table.column(CATEGORY_COLUMN_INDEX).search('').draw();
+      }
+
+      $('#category-filter li').each(function(index, element) {
+         
+         const value = $(this).text();
+         
+         // all filter must be always enabled
+         if (scripts_categories.find(e => e.label == value).disableFilter) return;
+
+         // hide category
+         if (enabled_categories.indexOf(value) == -1) {
+            $(this).hide();
+            return;
+         }
+
+         $(this).show();
+
+      });
+
+   }
+
    // initialize script table 
    const $script_table = $("#scripts-config").DataTable({
       dom: "Bfrtip",
@@ -1316,6 +1356,14 @@ $(document).ready(function() {
 
          // clean searchbox
          $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
+
+         // hide category in base selected pill
+         hide_categories_dropdown();
+         $('#all-scripts,#enabled-scripts,#disabled-scripts').click(function() {
+            hide_categories_dropdown();
+         });
+
+
 
          // update the tabs counters
          const $disabled_button = $(`#disabled-scripts`);
