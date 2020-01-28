@@ -74,7 +74,7 @@ $(document).ready(function () {
     };
 
 
-    if (is_mobile_device) {
+    if (is_mobile_device()) {
         $(`div[id$='submenu']`).removeClass('side-collapse');
     }
 

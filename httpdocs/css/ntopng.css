@@ -817,9 +817,10 @@ path.link {
 }
 
 #n-sidebar ul>li.nav-item div.collapse>ul li>a, #n-sidebar ul>li.nav-item div.collapsing>ul li>a {
-  padding: 1.12rem;
+  padding: 0.5rem;
   transition: all 0.5s;
   display: block;
+  font-size: 0.75rem;
   color:#363943;
   text-decoration: none;
 }
