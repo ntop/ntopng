@@ -46,6 +46,7 @@ local template = require "template_utils"
 prefs = ntop.getPrefs()
 local iface_names = interface.getIfNames()
 
+-- tprint(prefs)
 -- tprint(iface_names)
 
 num_ifaces = 0
@@ -55,8 +56,12 @@ end
 
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
-print ([[
-      <div id='n-sidebar' class="bg-dark py-0 px-2">
+
+local navbar_style = _POST["toggle_navbar_style"] or ntop.getPref("ntopng.prefs.navbar_style") or "light"
+
+print('<div id="n-sidebar" class="bg-'.. navbar_style ..'" py-0 px-2">')
+
+print([[
          <h3 class='muted'>
             <div class='d-flex'>
                <a href='/'>
@@ -80,9 +85,6 @@ ifId = ifs.id
 -- Dashboard
 
 if not is_pcap_dump then
-
-   local show_submenu = (active_page == "dashboard" and not bool_collapsed_sidebar)
-
    print ([[ 
       <li class="nav-item ]].. (active_page == "dashboard" and 'active' or '') ..[[">
 	      <a class="submenu ]].. (active_page == "dashboard" and 'active' or '') ..[[" data-toggle="collapse" href="#dashboard-submenu">
@@ -159,8 +161,6 @@ if ntop.getPrefs().are_alerts_enabled == true then
    -- if alert_cache["num_alerts_engaged"] > 0 then
    -- color = 'style="color: #B94A48;"' -- bootstrap danger red
    -- end
-   local show_submenu = (active_page == "alerts" and not bool_collapsed_sidebar)
-
 
    print([[
       <li class='nav-item ]].. (active_page == 'alerts' and 'active' or '') ..[[ ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
@@ -219,9 +219,6 @@ print([[
 -- Hosts
 
 if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces, only for their view
-
-   local show_submenu = (active_page == "hosts" and not bool_collapsed_sidebar)
-
    print([[
       <li class='nav-item ]].. (active_page == 'hosts' and 'active' or '') ..[['>
          <a data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
@@ -398,7 +395,6 @@ end -- closes not ifs.isViewed
 -- Exporters
 
 local info = ntop.getInfo()
-local show_submenu = (active_page == "exporters" and not bool_collapsed_sidebar)
 
 if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
    print ([[ 
@@ -472,7 +468,6 @@ print([[
 if isAllowedSystemInterface() then
    
    local plugins_utils = require("plugins_utils")
-   local show_submenu = ((active_page == "system_stats" or active_page == "system_interfaces_stats") and not bool_collapsed_sidebar)
 
    print ([[ 
       <li class="nav-item ]].. ((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[">
@@ -551,14 +546,13 @@ end
 
 -- ##############################################
 -- Admin
-local show_submenu = (active_page == "admin" and not bool_collapsed_sidebar)
 
 print ([[ 
    <li class="nav-item ]].. (active_page == "admin" and 'active' or '') ..[[">
       <a class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
          <span class="fas fa-cog"></span> Settings
       </a>
-      <div data-parent='#sidebar' class="collapse side-collapse ]].. (show_submenu and 'show' or '' ) ..[[" id='admin-submenu'>
+      <div data-parent='#sidebar' class="collapse side-collapse" id='admin-submenu'>
          <ul class='nav flex-column'>
             ]]..
             (function()
@@ -947,10 +941,11 @@ print([[
       <button data-toggle='sidebar' class='btn d-sm-none d-md-none d-lg-none'>
         <i class='fas fa-bars'></i>
       </button>
+<i class="fas fa-ethernet"></i>&nbsp;
       <ul class='navbar-nav mr-auto'>    
          <li class='nav-item dropdown'>
             <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
-                  <i class='fas fa-ethernet '></i> ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
+                  ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
             </a>
             <ul class='dropdown-menu'>
 ]])
@@ -1143,7 +1138,7 @@ print(
 
 print([[
 <ul class='navbar-nav'>
-   <li class="nav-item">
+   &nbsp;&nbsp;<li class="nav-item">
       <a href='#' class="nav-link dropdown-toggle dark-gray" data-toggle="dropdown">
          <i class='fas fa-user'></i>
       </a>
@@ -1151,16 +1146,13 @@ print([[
          <li class='dropdown-item disabled'>
             <i class='fas fa-user'></i> ]].. _SESSION['user'] ..[[
          </li>
-         <li class="dropdown-divider"></li>
-         <a class='dropdown-item dark-gray' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua'>
-            ]]..i18n("login.web_users")..[[
-         </a>
       ]])
 -- Logout
 
 if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
    print[[
  
+         <li class='dropdown-divider'></li>
  <li class="nav-item">
    <a class="dropdown-item" href="]]
    print(ntop.getHttpPrefix())

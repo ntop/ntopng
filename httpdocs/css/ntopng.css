@@ -892,7 +892,7 @@ path.link {
 
 /* scrollbar theme */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
   height: 4px;
 }
 ::-webkit-scrollbar-button {
@@ -905,7 +905,7 @@ path.link {
   border-radius: 50px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f5811b;
+  background: #f5811b; /* orange */
 }
 ::-webkit-scrollbar-thumb:active {
   background: #ea6f02;
