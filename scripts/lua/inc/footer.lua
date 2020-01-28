@@ -515,6 +515,8 @@ print[[
 </script>
 ]]
 
+-- close wrapper
 print[[
+  </div>
   </body>
 </html> ]]
