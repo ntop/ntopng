@@ -562,7 +562,6 @@ print ([[
             ]]..
             (function()
                if _SESSION["localuser"] then
-
                   if is_admin then
                      return ([[
                         <li>
@@ -1154,11 +1153,12 @@ print([[
          <i class='fas fa-user'></i>
       </a>
       <ul class="dropdown-menu dropdown-menu-right">
-         <li class='dropdown-item'>
-            ]].. _SESSION['user'] ..[[
+         <li class='dropdown-item disabled'>
+            <i class='fas fa-user'></i> ]].. _SESSION['user'] ..[[
          </li>
+         <li class="dropdown-divider"></li>
          <a class='dropdown-item dark-gray' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua'>
-            Web Users
+            ]]..i18n("login.web_users")..[[
          </a>
       ]])
 -- Logout

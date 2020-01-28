@@ -4,9 +4,6 @@ local users_type = {ntopng=ternary(ntop.isnEdge(), i18n("nedge.system_users"), i
 local title = users_type["ntopng"]
 
 print [[
-
-      <hr>
-
       <div id="table-users"></div>
 	 <script>
 	 $("#table-users").datatable({
