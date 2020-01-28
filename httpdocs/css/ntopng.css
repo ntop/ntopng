@@ -657,12 +657,12 @@ path.link {
 }
 
 #n-sidebar.bg-dark #sidebar li::after {
-  background-color: #4444443b; 
+  background-color: #42424236; 
   content: '';
   display: block;
   height: 1px;
-  width: 2.5rem;
-  right: calc(50% - 1.25rem);
+  width: 3rem;
+  right: calc(50% - 1.5rem);
   position: absolute;
 }
 
