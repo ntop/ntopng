@@ -663,7 +663,7 @@ print ([[
                      </li>
                      <li>
                         <a target='_blank' href='https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration'>
-                           ]] .. i18n("conf_backup.conf_restore") .. [[
+                           ]] .. i18n("conf_backup.conf_restore") .. [[ <i class="fas fa-external-link-alt"></i>
                         </a>
                      </li>
                   ]])
