@@ -15,7 +15,6 @@ local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local page_utils = require("page_utils")
 
--- ##############################################
 -- TODO: replace those globals with locals everywhere
 
 secondsToTime   = format_utils.secondsToTime
@@ -882,28 +881,167 @@ function addGoogleMapsScript()
    print("<script src=\"https://maps.googleapis.com/maps/api/js?v=3.exp"..g_maps_key.."\"></script>\n")
 end
 
-function addLogoSvg()
+function addLogoSvg(collapsed_sidebar)
+   return ([[
+      <div id='ntop-logo'>
+      <svg
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:cc="http://creativecommons.org/ns#"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns="http://www.w3.org/2000/svg"
+         id="svg8"
+         version="1.1"
+         viewBox="0 0 21.695834 10.054166"
+         height="38"
+         width="82">
+         <defs
+            id="defs2" />
+         <defs>
+            <linearGradient id="ntopGradient" x1=0% y1=50% >
+                  <stop offset=0% stop-color=#ff9b43 >
+                     <animate id=a1 attributeName="stop-color" values="#ff9b43; #ff7500" begin="0; a2.end" dur="3s" />
+                     <animate id=a2 attributeName="stop-color" values="#ff7500; #ff9b43" begin="a1.end" dur="3s" />
+                  </stop>
+                  <stop offset=100% stop-color=#ff7500 >
+                     <animate id=a3 attributeName="stop-color" values="#ff7500; #ff9b43" begin="0; a4.end" dur="3s" />
+                     <animate id=a4 attributeName="stop-color" values="#ff9b43; #ff7500" begin="a3.end" dur="3s" />
+                  </stop>
+            </linearGradient>
+         </defs>
+         <metadata
+            id="metadata5">
+            <rdf:RDF>
+               <cc:Work
+                  rdf:about="">
+               <dc:format>image/svg+xml</dc:format>
+               <dc:type
+                  rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+               <dc:title></dc:title>
+               </cc:Work>
+            </rdf:RDF>
+         </metadata>
+         <g
+            style="display:inline"
+            transform="translate(0,-286.94585)"
+            id="layer1">
+            <g
+               id="text1368"
+               style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ff7500;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+               aria-label="ntop">
+               <path
+                  id="ntop-logo-n"
+                  style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:url(#ntopGradient);fill-opacity:1;stroke-width:0.26458332"
+                  d="m 0.12764118,293.41728 v -3.3538 q 0,-0.61495 0.20153808,-0.90951 0.20670573,-0.29972 0.63045246,-0.29972 0.25321448,0 0.44958498,0.13436 0.1963704,0.12919 0.3462321,0.39791 0.2687174,-0.29456 0.6201171,-0.42892 0.3513997,-0.13436 0.8526611,-0.13436 0.9870199,0 1.5089518,0.56328 0.521932,0.56327 0.521932,1.63814 v 2.39262 q 0,0.61495 -0.2067058,0.91467 -0.2067057,0.29972 -0.6304524,0.29972 -0.4237468,0 -0.6304525,-0.29972 -0.2067057,-0.29972 -0.2067057,-0.91467 v -1.88619 q 0,-0.69763 -0.2118734,-0.99219 -0.2067057,-0.29972 -0.6872965,-0.29972 -0.4547526,0 -0.6717936,0.31006 -0.217041,0.30489 -0.217041,0.96118 v 1.90686 q 0,0.61495 -0.2067057,0.91467 -0.2067057,0.29972 -0.63045248,0.29972 -0.42374673,0 -0.63045246,-0.29972 -0.20153808,-0.29972 -0.20153808,-0.91467 z" />
+               <path
+                  id="ntop-logo-t"
+                  style="]].. (collapsed_sidebar == "1" and 'display: none;' or '') ..[[font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:#ff7500;fill-opacity:1;stroke-width:0.26458332"
+                  d="M 6.6957157,290.46139 H 6.633704 q -0.4392497,0 -0.6924642,-0.19121 -0.2480468,-0.19637 -0.2480468,-0.5271 0,-0.34106 0.2480468,-0.5271 0.2532145,-0.18603 0.7544759,-0.21187 v -0.73381 q 0,-0.61494 0.2067057,-0.91467 0.2067058,-0.29972 0.6304525,-0.29972 0.4185791,0 0.6201172,0.29972 0.2067057,0.29973 0.2067057,0.91467 v 0.73381 h 0.144694 q 0.4960937,0 0.7699788,0.19637 0.2790527,0.19637 0.2790527,0.5426 0,0.35657 -0.2687174,0.53744 -0.2635498,0.18087 -0.7906494,0.18087 H 8.3596968 v 2.95589 q 0,0.62011 -0.2015381,0.91984 -0.2015381,0.29455 -0.6252848,0.29455 -0.4237467,0 -0.6304525,-0.29972 -0.2067057,-0.29972 -0.2067057,-0.91467 z" />
+               <path
+                  id="ntop-logo-o"
+                  style="]].. (collapsed_sidebar == "1" and 'display: none;' or '') ..[[font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:#ff7500;fill-opacity:1;stroke-width:0.26458332"
+                  d="m 11.279415,291.72229 q 0,0.64079 0.304891,1.03353 0.30489,0.38757 0.795817,0.38757 0.490926,0 0.795817,-0.39274 0.304891,-0.39274 0.304891,-1.02836 0,-0.61495 -0.315227,-1.00252 -0.310058,-0.39274 -0.785481,-0.39274 -0.485759,0 -0.795817,0.38757 -0.304891,0.38757 -0.304891,1.00769 z m -1.7259932,0.0207 q 0,-1.30225 0.7958172,-2.1394 0.800985,-0.84233 2.030884,-0.84233 1.235066,0 2.025716,0.83716 0.790649,0.83716 0.790649,2.14457 0,1.30741 -0.790649,2.14974 -0.79065,0.83716 -2.025716,0.83716 -1.229899,0 -2.030884,-0.84233 -0.7958172,-0.84232 -0.7958172,-2.14457 z" />
+               <path
+                  id="ntop-logo-p"
+                  style="]].. (collapsed_sidebar == "1" and 'display: none;' or '') ..[[font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:#ff7500;fill-opacity:1;stroke-width:0.26458332"
+                  d="m 17.661454,291.76363 q 0,0.64079 0.304891,1.03353 0.304891,0.38757 0.795817,0.38757 0.490926,0 0.795817,-0.39274 0.304891,-0.39274 0.304891,-1.02836 0,-0.61495 -0.315226,-1.00252 -0.310059,-0.39274 -0.785482,-0.39274 -0.480591,0 -0.790649,0.38757 -0.310059,0.38757 -0.310059,1.00769 z m 0.03101,3.90674 q 0,0.62012 -0.206706,0.91984 -0.206706,0.29972 -0.630452,0.29972 -0.423747,0 -0.630453,-0.29972 -0.201538,-0.29972 -0.201538,-0.91984 v -5.60689 q 0,-0.61495 0.201538,-0.90951 0.206706,-0.29972 0.630453,-0.29972 0.253214,0 0.449585,0.13436 0.19637,0.12919 0.346232,0.39791 0.258382,-0.28422 0.604614,-0.42892 0.3514,-0.14469 0.769979,-0.14469 1.07487,0 1.808675,0.83716 0.733805,0.83715 0.733805,2.09289 0,1.25057 -0.754476,2.1239 -0.749308,0.87333 -1.808675,0.87333 -0.377238,0 -0.702799,-0.12402 -0.320394,-0.11886 -0.609782,-0.36173 z" />
+            </g>
+         </g>
+      </svg>
+   
+      </div>
+   ]])
+end
 
-   print [[
-<svg width="103px" height="50px" viewBox="0 0 103 50" version="1.1" xmlns="http://www.w3.org/2000/svg">
-<path fill="#fbfbfb" d=" M 0.00 0.00 L 103.00 0.00 L 103.00 50.00 L 0.00 50.00 L 0.00 0.00 Z" />
-<path fill="#e0dfdf" d=" M 4.85 1.48 C 6.22 1.31 7.60 1.22 8.98 1.21 C 37.00 1.18 65.02 1.25 93.03 1.19 C 95.53 1.45 98.91 1.02 100.31 3.63 C 101.57 5.50 101.41 7.84 101.46 9.98 C 101.41 20.66 101.49 31.34 101.42 42.02 C 101.47 44.44 100.55 47.12 98.30 48.31 C 95.68 49.45 92.76 48.78 90.01 48.81 C 65.02 48.80 40.02 48.83 15.02 48.80 C 11.70 48.82 8.35 49.28 5.04 48.72 L 5.39 47.64 C 8.24 47.83 11.09 48.07 13.95 48.13 C 39.31 48.15 64.66 48.12 90.02 48.15 C 92.91 48.15 95.79 47.82 98.63 47.31 C 98.05 46.60 97.37 45.99 96.61 45.49 L 95.99 45.06 C 96.80 44.80 98.40 44.30 99.21 44.04 L 99.36 44.03 C 99.50 44.03 99.79 44.02 99.93 44.01 C 100.48 31.44 100.36 18.75 100.14 6.16 C 99.85 5.82 99.28 5.16 99.00 4.83 L 98.05 4.18 C 97.44 3.75 96.83 3.33 96.22 2.91 C 95.08 1.78 93.46 1.86 91.98 1.84 C 65.31 2.00 38.64 1.81 11.97 1.92 C 9.59 1.93 7.19 1.95 4.85 1.48 Z" />
-<path fill="#fdc28e" d=" M 2.40 4.64 C 3.22 4.02 4.05 3.42 4.88 2.81 C 35.32 2.80 65.78 2.61 96.22 2.91 C 96.83 3.33 97.44 3.75 98.05 4.18 C 97.94 10.99 97.98 17.80 98.03 24.61 C 94.33 24.55 90.63 24.55 86.93 24.61 C 87.03 20.61 85.58 16.14 81.83 14.17 C 79.15 12.57 75.83 13.14 73.29 14.71 C 72.19 14.27 71.09 13.86 69.98 13.48 C 68.39 13.87 67.26 15.25 67.53 16.92 C 67.45 19.53 67.54 22.13 67.52 24.74 C 67.13 24.69 66.35 24.59 65.97 24.55 C 65.86 21.70 65.76 18.50 63.66 16.31 C 60.13 12.15 52.85 12.14 49.37 16.37 C 47.35 18.58 46.81 21.64 46.81 24.53 C 45.41 24.56 44.01 24.59 42.61 24.62 C 42.59 22.97 42.57 21.32 42.60 19.68 C 43.90 19.29 45.26 19.07 46.53 18.57 C 47.29 17.40 47.41 15.65 46.54 14.51 C 45.32 14.03 44.05 13.72 42.73 13.58 C 42.78 10.95 42.74 6.67 38.89 7.30 C 36.49 8.54 37.22 11.38 36.92 13.57 C 34.23 13.50 32.07 16.35 34.12 18.59 C 34.83 18.84 36.25 19.33 36.97 19.58 C 37.12 21.25 37.06 22.92 37.06 24.59 C 35.75 24.59 34.44 24.59 33.14 24.61 C 32.96 21.36 33.89 17.35 31.15 14.90 C 28.35 12.51 24.15 12.89 21.14 14.66 C 19.28 13.73 16.40 12.75 15.43 15.37 C 15.10 18.44 15.36 21.53 15.28 24.61 C 11.08 24.54 6.88 24.58 2.69 24.58 C 2.10 17.97 2.69 11.28 2.40 4.64 Z" />
-<path fill="#fde2cb" d=" M 98.05 4.18 L 99.00 4.83 C 99.13 17.89 98.72 31.00 99.36 44.03 L 99.21 44.04 L 97.99 43.66 C 98.18 37.32 98.14 30.96 98.03 24.61 C 97.98 17.80 97.94 10.99 98.05 4.18 Z" />
-<path fill="#919191" d=" M 99.00 4.83 C 99.28 5.16 99.85 5.82 100.14 6.16 C 100.36 18.75 100.48 31.44 99.93 44.01 C 99.79 44.02 99.50 44.03 99.36 44.03 C 98.72 31.00 99.13 17.89 99.00 4.83 Z" />
-<path fill="#ffffff" d=" M 36.92 13.57 C 37.22 11.38 36.49 8.54 38.89 7.30 C 42.74 6.67 42.78 10.95 42.73 13.58 C 44.05 13.72 45.32 14.03 46.54 14.51 C 47.41 15.65 47.29 17.40 46.53 18.57 C 45.26 19.07 43.90 19.29 42.60 19.68 C 42.57 21.32 42.59 22.97 42.61 24.62 C 42.16 27.60 44.14 33.15 39.86 33.86 C 35.40 33.43 37.57 27.54 37.06 24.59 C 37.06 22.92 37.12 21.25 36.97 19.58 C 36.25 19.33 34.83 18.84 34.12 18.59 C 32.07 16.35 34.23 13.50 36.92 13.57 Z" />
-<path fill="#ffffff" d=" M 21.14 14.66 C 24.15 12.89 28.35 12.51 31.15 14.90 C 33.89 17.35 32.96 21.36 33.14 24.61 C 33.05 27.07 33.29 29.54 32.95 31.99 C 32.16 34.62 27.92 34.40 27.34 31.72 C 27.19 29.35 27.31 26.98 27.29 24.61 C 27.51 22.14 27.48 18.11 24.05 18.23 C 20.81 18.41 20.90 22.23 21.02 24.62 C 20.99 27.08 21.12 29.55 20.95 32.01 C 20.07 34.59 15.97 34.42 15.33 31.76 C 15.20 29.38 15.32 26.99 15.28 24.61 C 15.36 21.53 15.10 18.44 15.43 15.37 C 16.40 12.75 19.28 13.73 21.14 14.66 Z" />
-<path fill="#ffffff" d=" M 49.37 16.37 C 52.85 12.14 60.13 12.15 63.66 16.31 C 65.76 18.50 65.86 21.70 65.97 24.55 C 66.06 29.16 62.74 33.71 57.98 34.13 C 52.20 35.30 46.89 30.21 46.81 24.53 C 46.81 21.64 47.35 18.58 49.37 16.37 Z" />
-<path fill="#ffffff" d=" M 73.29 14.71 C 75.83 13.14 79.15 12.57 81.83 14.17 C 85.58 16.14 87.03 20.61 86.93 24.61 C 86.64 28.43 84.48 32.37 80.78 33.78 C 78.26 34.69 75.60 34.08 73.23 33.05 C 73.25 35.33 73.62 37.68 73.06 39.92 C 72.06 42.49 67.59 41.88 67.55 39.02 C 67.45 34.26 67.54 29.50 67.52 24.74 C 67.54 22.13 67.45 19.53 67.53 16.92 C 67.26 15.25 68.39 13.87 69.98 13.48 C 71.09 13.86 72.19 14.27 73.29 14.71 Z" />
-<path fill="#fdc28e" d=" M 21.02 24.62 C 20.90 22.23 20.81 18.41 24.05 18.23 C 27.48 18.11 27.51 22.14 27.29 24.61 C 25.20 24.57 23.11 24.57 21.02 24.62 Z" />
-<path fill="#fdc28e" d=" M 52.65 24.61 C 52.24 21.99 53.91 18.42 57.03 18.94 C 59.66 19.25 60.63 22.31 60.35 24.61 C 57.79 24.56 55.22 24.56 52.65 24.61 Z" />
-<path fill="#fdc28e" d=" M 72.96 25.45 C 73.30 22.95 73.64 19.11 76.92 18.92 C 80.68 18.62 81.33 23.07 81.11 25.88 L 80.87 25.48 L 80.33 24.57 C 78.09 24.72 75.61 24.01 73.55 25.17 L 72.96 25.45 Z" />
-<path fill="#fc8a21" d=" M 2.69 24.58 C 6.88 24.58 11.08 24.54 15.28 24.61 C 15.32 26.99 15.20 29.38 15.33 31.76 C 15.97 34.42 20.07 34.59 20.95 32.01 C 21.12 29.55 20.99 27.08 21.02 24.62 C 23.11 24.57 25.20 24.57 27.29 24.61 C 27.31 26.98 27.19 29.35 27.34 31.72 C 27.92 34.40 32.16 34.62 32.95 31.99 C 33.29 29.54 33.05 27.07 33.14 24.61 C 34.44 24.59 35.75 24.59 37.06 24.59 C 37.57 27.54 35.40 33.43 39.86 33.86 C 44.14 33.15 42.16 27.60 42.61 24.62 C 44.01 24.59 45.41 24.56 46.81 24.53 C 46.89 30.21 52.20 35.30 57.98 34.13 C 62.74 33.71 66.06 29.16 65.97 24.55 C 66.35 24.59 67.13 24.69 67.52 24.74 C 67.54 29.50 67.45 34.26 67.55 39.02 C 67.59 41.88 72.06 42.49 73.06 39.92 C 73.62 37.68 73.25 35.33 73.23 33.05 C 75.60 34.08 78.26 34.69 80.78 33.78 C 84.48 32.37 86.64 28.43 86.93 24.61 C 90.63 24.55 94.33 24.55 98.03 24.61 C 98.14 30.96 98.18 37.32 97.99 43.66 L 99.21 44.04 C 98.40 44.30 96.80 44.80 95.99 45.06 C 65.83 44.97 35.66 44.94 5.50 45.07 L 4.31 45.05 C 3.90 44.64 3.08 43.80 2.67 43.38 C 2.79 37.12 2.76 30.84 2.69 24.58 Z" />
-<path fill="#fc8a21" d=" M 52.65 24.61 C 55.22 24.56 57.79 24.56 60.35 24.61 C 60.25 27.09 57.56 29.61 55.11 28.23 C 53.54 27.78 53.08 25.97 52.65 24.61 Z" />
-<path fill="#fc8a21" d=" M 73.55 25.17 C 75.61 24.01 78.09 24.72 80.33 24.57 L 80.87 25.48 C 80.22 29.65 73.76 29.42 73.55 25.17 Z" />
-<path fill="#fdb26d" d=" M 5.50 45.07 C 35.66 44.94 65.83 44.97 95.99 45.06 L 96.61 45.49 C 94.20 46.38 91.57 45.86 89.06 46.00 C 60.87 45.86 32.65 46.28 4.48 45.79 L 5.50 45.07 Z" />
-<path fill="#a2a2a2" d=" M 2.04 44.37 L 4.48 45.79 C 32.65 46.28 60.87 45.86 89.06 46.00 C 91.57 45.86 94.20 46.38 96.61 45.49 C 97.37 45.99 98.05 46.60 98.63 47.31 C 95.79 47.82 92.91 48.15 90.02 48.15 C 64.66 48.12 39.31 48.15 13.95 48.13 C 11.09 48.07 8.24 47.83 5.39 47.64 C 4.55 46.82 2.87 45.19 2.04 44.37 Z" />
+function addSquaredLogo()
+return [[
+   <div class='squared-logo'>
+
+   <svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="48"
+   height="48"
+   viewBox="0 0 12.7 12.7"
+   version="1.1"
+   id="svg4694"
+   inkscape:version="0.92.4 (unknown)"
+   sodipodi:docname="logo-square.svg">
+  <defs
+     id="defs4688">
+    <linearGradient
+       id="linearGradient5305"
+       inkscape:collect="always"
+       osb:paint="gradient">
+      <stop
+         id="stop5311"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         id="stop5313"
+         offset="1"
+         style="stop-color:#f9f9f9;stop-opacity:0;" />
+    </linearGradient>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="3.959798"
+     inkscape:cx="35.373468"
+     inkscape:cy="56.705194"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1023"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata4691">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-284.29998)">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.91316032px;line-height:1.25;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';letter-spacing:0px;word-spacing:0px;fill:#ff7500;fill-opacity:1;stroke:none;stroke-width:0.20991984"
+       x="1.0931334"
+       y="292.86954"
+       id="text4698"
+       transform="scale(0.99114531,1.0089338)"><tspan
+         sodipodi:role="line"
+         id="tspan4696"
+         x="1.0931334"
+         y="292.86954"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.91316032px;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:#ff7500;fill-opacity:1;stroke-width:0.20991984">n</tspan></text>
+  </g>
 </svg>
+
+   </div>
 ]]
 end
 
@@ -2997,6 +3135,27 @@ function printntopngRelease(info)
    end
 
    print(" Edition</td></tr>\n")
+end
+
+function getNtopngRelease()
+
+   if info.oem or info["version.nedge_edition"] then
+      return ""
+   end
+
+   if(info["version.enterprise_edition"]) or (info["version.nedge_enterprise_edition"]) then
+      return "Enterprise"
+   elseif(info["pro.release"]) then
+      return "Professional"
+   else
+      return "Community"
+   end
+
+   if(info["version.embedded_edition"] == true) then
+      return"/Embedded"
+   end
+
+   return ""
 end
 
 -- ###########################################

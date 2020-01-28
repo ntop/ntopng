@@ -1282,6 +1282,7 @@ local known_parameters = {
    ["re_arm_minutes"]          = validateEmptyOr(validateNumber),                -- Number of minute before alert re-arm check
    ["device_type"]             = validateNumber,
    ["ewma_alpha_percent"]      = validateNumber,
+   ["sidebar_collapsed"]      = validateNumber,
    ["senders_receivers"]       = validateSendersReceivers,      -- Used in top scripts
    ["fingerprint_type"]        = validateFingerprintType,
    ["granularity"]             = validateSingleWord,
