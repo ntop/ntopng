@@ -269,7 +269,7 @@ if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces,
                   </a>
                </li>
                <li>
-                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/os_stats.lua.lua">
+                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/os_stats.lua">
                      ]].. i18n("operating_systems") ..[[
                   </a>
                </li>
