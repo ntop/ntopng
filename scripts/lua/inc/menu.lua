@@ -171,7 +171,7 @@ if ntop.getPrefs().are_alerts_enabled == true then
             <ul class='nav flex-column'>
                <li>
                   <a href=']].. ntop.getHttpPrefix() ..[[/lua/show_alerts.lua'>
-                     <i class="fas fa-exclamation-triangle" id="alerts-menu-triangle"></i> ]].. i18n("show_alerts.detected_alerts") ..[[
+                     ]].. i18n("show_alerts.detected_alerts") ..[[
                   </a>
                </li>
                ]]..
