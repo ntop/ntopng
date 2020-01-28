@@ -41,12 +41,15 @@ print [[
 
 
         <div class="col-4 text-left">
-          <small>]] print(info.product .. ' ' .. getNtopngRelease() .." Edition v.".. info.version) print [[
+          <small><A HREF="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">]] print(info.product .. ' ' .. getNtopngRelease() .." Edition v.".. info.version) print [[ <i class="fas fa-external-link-alt"></i></A>
             | <A HREF="https://github.com/ntop/ntopng"> <i class="fab fa-github"></i> <i class="fas fa-external-link-alt"></i> </A></small>
         </div>
 
-        <div class="col-4">
+        <div class="col-4 text-center">
 ]]
+
+local info = ntop.getInfo() 
+print("<small>"..info["copyright"].."</small>")
 
 -- center element
 
