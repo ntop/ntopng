@@ -897,18 +897,6 @@ function addLogoSvg(collapsed_sidebar)
          width="82">
          <defs
             id="defs2" />
-         <defs>
-            <linearGradient id="ntopGradient" x1=0% y1=50% >
-                  <stop offset=0% stop-color=#ff9b43 >
-                     <animate id=a1 attributeName="stop-color" values="#ff9b43; #ff7500" begin="0; a2.end" dur="3s" />
-                     <animate id=a2 attributeName="stop-color" values="#ff7500; #ff9b43" begin="a1.end" dur="3s" />
-                  </stop>
-                  <stop offset=100% stop-color=#ff7500 >
-                     <animate id=a3 attributeName="stop-color" values="#ff7500; #ff9b43" begin="0; a4.end" dur="3s" />
-                     <animate id=a4 attributeName="stop-color" values="#ff9b43; #ff7500" begin="a3.end" dur="3s" />
-                  </stop>
-            </linearGradient>
-         </defs>
          <metadata
             id="metadata5">
             <rdf:RDF>
