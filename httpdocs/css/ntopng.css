@@ -656,6 +656,10 @@ path.link {
   background-color: #353535 !important;
 }
 
+#n-sidebar.bg-dark.active #sidebar li::after {
+  display: none;
+}
+
 #n-sidebar.bg-dark #sidebar li::after {
   background-color: #42424236; 
   content: '';
