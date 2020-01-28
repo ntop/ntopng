@@ -570,6 +570,7 @@ path.link {
 
 #n-sidebar {
   position: fixed;
+  scrollbar-width: none;
   width: 4.5rem;
   top: 0;
   left: 0;
@@ -653,6 +654,20 @@ path.link {
 
 #n-sidebar.bg-dark ul>li.nav-item>a[aria-expanded="true"] {
   background-color: #353535 !important;
+}
+
+#n-sidebar.bg-dark #sidebar li::after {
+  background-color: #4444443b; 
+  content: '';
+  display: block;
+  height: 1px;
+  width: 2.5rem;
+  right: calc(50% - 1.25rem);
+  position: absolute;
+}
+
+#n-sidebar.bg-dark #sidebar li:last-child::after {
+  display: none;
 }
 
 /** end dark theme **/
@@ -802,11 +817,8 @@ path.link {
 .side-collapse a {
   text-align: left;
 }
-.info-stats {
-  width: 11rem;
-}
 .info-stats div.down {
-  margin-top: -9px;
+  margin-top: -.55rem;
 }
 .info-stats a {
   color:rgb(56, 59, 69);
@@ -900,6 +912,10 @@ path.link {
 
 
 @media (min-width: 320px) and (max-width: 480px) {
+
+  #n-sidebar.bg-dark #sidebar li::after {
+    display: none;
+  }
 
   #n-sidebar.active .submenu::after {
     display: none;

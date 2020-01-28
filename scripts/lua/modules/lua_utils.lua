@@ -897,6 +897,18 @@ function addLogoSvg(collapsed_sidebar)
          width="82">
          <defs
             id="defs2" />
+         <defs>
+            <linearGradient id="ntopGradient" x1=0% y1=50% >
+                  <stop offset=0% stop-color=#ff9b43 >
+                     <animate id=a1 attributeName="stop-color" values="#ff9b43; #ff7500" begin="0; a2.end" dur="3s" />
+                     <animate id=a2 attributeName="stop-color" values="#ff7500; #ff9b43" begin="a1.end" dur="3s" />
+                  </stop>
+                  <stop offset=100% stop-color=#ff7500 >
+                     <animate id=a3 attributeName="stop-color" values="#ff7500; #ff9b43" begin="0; a4.end" dur="3s" />
+                     <animate id=a4 attributeName="stop-color" values="#ff9b43; #ff7500" begin="a3.end" dur="3s" />
+                  </stop>
+            </linearGradient>
+         </defs>
          <metadata
             id="metadata5">
             <rdf:RDF>
@@ -919,7 +931,7 @@ function addLogoSvg(collapsed_sidebar)
                aria-label="ntop">
                <path
                   id="ntop-logo-n"
-                  style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:#ff7500;fill-opacity:1;stroke-width:0.26458332"
+                  style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:url(#ntopGradient);fill-opacity:1;stroke-width:0.26458332"
                   d="m 0.12764118,293.41728 v -3.3538 q 0,-0.61495 0.20153808,-0.90951 0.20670573,-0.29972 0.63045246,-0.29972 0.25321448,0 0.44958498,0.13436 0.1963704,0.12919 0.3462321,0.39791 0.2687174,-0.29456 0.6201171,-0.42892 0.3513997,-0.13436 0.8526611,-0.13436 0.9870199,0 1.5089518,0.56328 0.521932,0.56327 0.521932,1.63814 v 2.39262 q 0,0.61495 -0.2067058,0.91467 -0.2067057,0.29972 -0.6304524,0.29972 -0.4237468,0 -0.6304525,-0.29972 -0.2067057,-0.29972 -0.2067057,-0.91467 v -1.88619 q 0,-0.69763 -0.2118734,-0.99219 -0.2067057,-0.29972 -0.6872965,-0.29972 -0.4547526,0 -0.6717936,0.31006 -0.217041,0.30489 -0.217041,0.96118 v 1.90686 q 0,0.61495 -0.2067057,0.91467 -0.2067057,0.29972 -0.63045248,0.29972 -0.42374673,0 -0.63045246,-0.29972 -0.20153808,-0.29972 -0.20153808,-0.91467 z" />
                <path
                   id="ntop-logo-t"
