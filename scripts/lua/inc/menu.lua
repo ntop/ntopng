@@ -65,7 +65,7 @@ print ([[
             </div>
          </h3>
 
-	      <ul class="nav-side mb-4" id='sidebar'>
+         <ul class="nav-side mb-4" id='sidebar'>
 ]])
 
 
@@ -88,7 +88,7 @@ if not is_pcap_dump then
 	      <a class="submenu ]].. (active_page == "dashboard" and 'active' or '') ..[[" data-toggle="collapse" href="#dashboard-submenu">
 	         <span class="fas fa-tachometer-alt"></span> Dashboard
          </a>
-         <div data-parent='#sidebar' class='collapse side-collapse side-collapse' id='dashboard-submenu'>
+         <div data-parent='#sidebar' class='collapse side-collapse' id='dashboard-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href="]].. ntop.getHttpPrefix() .. (ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua') .. [[">
