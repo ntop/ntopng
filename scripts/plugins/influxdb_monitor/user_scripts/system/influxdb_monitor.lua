@@ -4,6 +4,8 @@
 
 local user_scripts = require("user_scripts")
 local ts_utils = require("ts_utils_core")
+local alerts_api = require("alerts_api")
+local alert_consts = require("alert_consts")
 
 local script = {
   -- Script category
@@ -37,11 +39,32 @@ end
 script.hooks["5mins"] = function(params)
   if params.ts_enabled then
     local influxdb = ts_utils.getQueryDriver()
+    local when = params.when
 
     script._exportStats(when, influxdb)
     script._measureRtt(when, influxdb)
     script._exportStorageSize(when, influxdb)
   end
+end
+
+-- ##############################################
+
+-- Defines an hook which is executed every minute
+script.hooks["min"] = function(params)
+  local last_error = ntop.getCache("ntopng.cache.influxdb.last_error")
+
+   -- Note: last_error is automatically cleared once the error is gone
+   if(not isEmptyString(last_error)) then
+      local influxdb = ts_utils.getQueryDriver()
+
+      alerts_api.store(
+         alerts_api.influxdbEntity(influxdb.url), {
+            alert_type = alert_consts.alert_types.alert_influxdb_error,
+            alert_severity = alert_consts.alert_severities.error,
+            alert_granularity = alert_consts.alerts_granularities.min,
+            alert_type_params = {error_msg = last_error},
+      }, params.when)
+   end
 end
 
 -- ##############################################

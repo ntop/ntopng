@@ -2186,7 +2186,7 @@ function formatAlertMessage(ifid, alert)
     msg = msg .. getConfigsetAlertLink(alert_json)
   end
 
-  return(msg)
+  return(msg or "")
 end
 
 -- #################################

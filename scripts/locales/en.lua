@@ -362,6 +362,7 @@ local lang = {
     ["icmp_anomaly"] = "ICMP Anomaly",
     ["inactivity"] = "Inactivity",
     ["influxdb_dropped_points"] = "InfluxDB Dropped Points",
+    ["influxdb_error"] = "InfluxDB Error",
     ["influxdb_export_failure"] = "InfluxDB Export Failure",
     ["influxdb_monitor"] = "InfluxDB monitor",
     ["influxdb_monitor_description"] = "Monitor the InfluxDB health",
