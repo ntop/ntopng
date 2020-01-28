@@ -6331,14 +6331,19 @@ static int ntop_interface_delete_mac_data(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_is_package(lua_State *vm) {
+  bool is_package = false;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
 #ifdef NTOPNG_PRO
-  /* This assumes that pro version is available from packages only.
-   * Please consider changing this check if this is no longer the case. */
-  lua_pushboolean(vm, true);
+#ifndef WIN32
+  is_package = (getppid() == 1 /* parent is systemd */);
 #else
-  lua_pushboolean(vm, false);
+  is_package = true;
 #endif
+#endif
+
+  lua_pushboolean(vm, is_package);
   return(CONST_LUA_OK);
 }
 
@@ -11054,8 +11059,6 @@ static int ntop_is_gui_access_restricted(lua_State* vm) {
 
 static int ntop_service_restart(lua_State* vm) {
 #if defined(__linux__) && defined(NTOPNG_PRO)
-  /* This assumes that pro version is available from packages only (this is not 
-   * true during development actually). Please consider changing this check if needed. */
   extern AfterShutdownAction afterShutdownAction;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -11063,10 +11066,12 @@ static int ntop_service_restart(lua_State* vm) {
   if(!ntop->isUserAdministrator(vm))
     return(CONST_LUA_ERROR);
 
-  /* See also ntop_shutdown (used by nEdge) */
-  afterShutdownAction = after_shutdown_restart_self;
-  ntop->getGlobals()->requestShutdown();
-  lua_pushnil(vm);
+  if (getppid() == 1 /* parent is systemd */) {
+    /* See also ntop_shutdown (used by nEdge) */
+    afterShutdownAction = after_shutdown_restart_self;
+    ntop->getGlobals()->requestShutdown();
+    lua_pushnil(vm);
+  }
 
   return(CONST_LUA_OK);
 #else
