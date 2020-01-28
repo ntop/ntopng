@@ -5,99 +5,14 @@
 require "os"
 local ts_utils = require("ts_utils")
 
-print [[
-      <div id="footer"> <hr>
-      <p id="ntopng_update_available"></p>
-   ]]
-
 local template = require "template_utils"
 
 local have_nedge = ntop.isnEdge()
-info = ntop.getInfo(true)
-
-print [[
-        <div class="container-fluid">
-        <div class="row">
-        <div class="col-xs-6 col-sm-4">]]
-
-local iface_id = interface.name2id(ifname)
+local info = ntop.getInfo(true)
 
 interface.select(ifname)
+local iface_id = interface.name2id(ifname)
 local _ifstats = interface.getStats()
-
-if have_nedge then
-  print[[<form id="powerOffForm" method="post">
-    <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden" />
-    <input name="poweroff" value="" type="hidden" />
-  </form>
-  <form id="rebootForm" method="post">
-    <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden" />
-    <input name="reboot" value="" type="hidden" />
-  </form>]]
-
-  print(
-    template.gen("modal_confirm_dialog.html", {
-      dialog={
-        id      = "poweroff_dialog",
-        action  = "$('#powerOffForm').submit()",
-        title   = i18n("nedge.power_off"),
-        message = i18n("nedge.power_off_confirm"),
-        confirm = i18n("nedge.power_off"),
-      }
-    })
-  )
-
-  print(
-    template.gen("modal_confirm_dialog.html", {
-      dialog={
-        id      = "reboot_dialog",
-        action  = "$('#rebootForm').submit()",
-        title   = i18n("nedge.reboot"),
-        message = i18n("nedge.reboot_corfirm"),
-        confirm = i18n("nedge.reboot"),
-      }
-    })
-  )
-end
-
-if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
-   local do_show = false
-
-   print('<br><a href="https://shop.ntop.org"> <span class="badge badge-warning">')
-   if(info["pro.release"]) then
-      if(info["pro.demo_ends_at"] ~= nil) then
-         local rest = info["pro.demo_ends_at"] - os.time()
-         if(rest > 0) then
-            print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
-         end
-      end
-   else
-      print(i18n("about.upgrade_to_professional"))
-      do_show = true
-   end
-   print('</span></a>')
-
-   if(info["pro.out_of_maintenance"] == true) then
-      print('<span class="badge badge-error">') print(i18n("about.maintenance_expired", {product=info["product"]})) print('</span>')
-   end
-
-   if(do_show) then
-      print('<br><iframe src="https://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>')
-   end
-end
-
-print [[
-
-</div> <!-- End column 1 -->
-        <div class="col-xs-4 v col-sm-4">
-        <div class="row">
-]]
-
-if not have_nedge then
-  print[[        <div class="col-xs-6 col-sm-6"> ]]
-else
-  print[[        <div class="col-md-12"> ]]
-end
 
 if not interface.isPcapDumpInterface() and not have_nedge then
    if(ifname ~= nil) then
@@ -116,32 +31,58 @@ if not interface.isPcapDumpInterface() and not have_nedge then
       -- use the user-specified custom value for the speed
       maxSpeed = tonumber(maxSpeed)*1000000
    end
-
-
-   print [[
-
-        </div>
-        <div>]]
 end -- closes interface.isPcapDumpInterface() == false
 
-print ([[
-      </div>
-    </div>
-  </div><!-- End column 2 -->
-  <div class="clearfix visible-xs"></div>
-  <div class='col'>
-  <div class='float-right'>
-    <div id='network-load-clock'></div>
-    <small>
-          ]].. info.product .. ' ' .. getNtopngRelease() ..[[ Edition v.]].. info.version ..[[
-    </small>
-  </div>
- 
-  </div>
+print [[
+      <div id="footer">
+      <hr>
+        <div class="container-fluid"> <!-- occupy the whole row -->
+        <div class="row">
+
+
+        <div class="col-4 text-left">
+          <small>]] print(info.product .. ' ' .. getNtopngRelease() .." Edition v.".. info.version) print [[
+            | <A HREF="https://github.com/ntop/ntopng"> <i class="fab fa-github"></i> <i class="fas fa-external-link-alt"></i> </A></small>
+        </div>
+
+        <div class="col-4">
+]]
+
+-- center element
+
+if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
+   print('<a href="https://shop.ntop.org"> <span class="badge badge-warning">')
+   if(info["pro.release"]) then
+      if(info["pro.demo_ends_at"] ~= nil) then
+         local rest = info["pro.demo_ends_at"] - os.time()
+         if(rest > 0) then
+            print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
+         end
+      end
+   else
+      print(i18n("about.upgrade_to_professional"))
+   end
+   print(' <i class="fas fa-external-link-alt"></i></span></a>')
+
+   if(info["pro.out_of_maintenance"] == true) then
+      print('<span class="badge badge-error">') print(i18n("about.maintenance_expired", {product=info["product"]})) print('</span>')
+   end
+end
+
+
+      print [[
+        </div>
+
+        <div class="col-4 text-right">
+         <small><div class="d-inline" id='network-load-clock'></div></small>
+        </div>
+     </div>
+   </div>
+
+   <p id="ntopng_update_available"></p>
 </div>
-</div>
-<script>
-]])
+]]
+
 
 local traffic_peity_width = ternary(have_nedge, "140", "64")
 
@@ -166,7 +107,7 @@ local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= "")) and
   (ts_utils.getDriverName() ~= "influxdb") and
   (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
 
-print('var is_historical = false;')
+print('<script>\nvar is_historical = false;')
 print [[
 function checkMigrationMessage(data) {
   var max_local_hosts = 500;
@@ -255,11 +196,8 @@ print [[/lua/logout.lua");  }, */
 
 print[[
 
-                let clock_msg = `
-                  <small>
-                      <i class=\"fas fa-clock\"></i>
-                      ${rsp.localtime} - ]] print(i18n("about.uptime")) print[[: ${rsp.uptime}
-                  </small>
+                let clock_msg = `<i class=\"fas fa-clock\"></i>
+                     ${rsp.localtime} | ]] print(i18n("about.uptime")) print[[: ${rsp.uptime}
                 `;
 
                 $('#network-load-clock').html(clock_msg);
@@ -511,6 +449,48 @@ if not _ifstats.isView or ntop.getPrefs().are_alerts_enabled == false then
 else
    print("$('#alerts-li').show();")
 end
+
+
+-- ######################################
+
+if have_nedge then
+  print[[<form id="powerOffForm" method="post">
+    <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden" />
+    <input name="poweroff" value="" type="hidden" />
+  </form>
+  <form id="rebootForm" method="post">
+    <input name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" type="hidden" />
+    <input name="reboot" value="" type="hidden" />
+  </form>]]
+
+  print(
+    template.gen("modal_confirm_dialog.html", {
+      dialog={
+        id      = "poweroff_dialog",
+        action  = "$('#powerOffForm').submit()",
+        title   = i18n("nedge.power_off"),
+        message = i18n("nedge.power_off_confirm"),
+        confirm = i18n("nedge.power_off"),
+      }
+    })
+  )
+
+  print(
+    template.gen("modal_confirm_dialog.html", {
+      dialog={
+        id      = "reboot_dialog",
+        action  = "$('#rebootForm').submit()",
+        title   = i18n("nedge.reboot"),
+        message = i18n("nedge.reboot_corfirm"),
+        confirm = i18n("nedge.reboot"),
+      }
+    })
+  )
+end
+
+-- ######################################
+
+
 print[[
 </script>
 ]]
