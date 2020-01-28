@@ -4834,6 +4834,7 @@ static void ssl_locking_callback(int mode, int mutex_num, const char *file,
 
 // #endif /* UNUSED_CODE */
 
+#if !defined(NO_SSL)
 // Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
 static int set_ssl_option(struct mg_context *ctx) {
   int i, size;
@@ -4855,7 +4856,6 @@ static int set_ssl_option(struct mg_context *ctx) {
   SSL_library_init();
   SSL_load_error_strings();
 
-  
   if ((ctx->ssl_ctx = SSL_CTX_new(SSLv23_server_method())) == NULL) {
     cry(fc(ctx), "SSL_CTX_new (server) error: %s", ssl_error());
     return 0;
@@ -4924,6 +4924,7 @@ static int set_ssl_option(struct mg_context *ctx) {
 
   return 1;
 }
+#endif
 
 static void uninitialize_ssl(struct mg_context *ctx) {
   int i;
