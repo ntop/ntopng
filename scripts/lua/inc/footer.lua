@@ -60,9 +60,9 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
          end
       end
    else
-      print(i18n("about.upgrade_to_professional"))
+      print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
    end
-   print(' <i class="fas fa-external-link-alt"></i></span></a>')
+   print('</span></a>')
 
    if(info["pro.out_of_maintenance"] == true) then
       print('<span class="badge badge-error">') print(i18n("about.maintenance_expired", {product=info["product"]})) print('</span>')
