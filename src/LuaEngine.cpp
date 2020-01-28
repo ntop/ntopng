@@ -7926,7 +7926,7 @@ static int ntop_list_reports(lua_State* vm) {
     struct dirent *ent;
 
     while ((ent = readdir(dir)) != NULL) {
-      char filepath[MAX_PATH+3];
+      char filepath[MAX_PATH+16];
 #ifdef WIN32
 	  struct _stat64 buf;
 #else

@@ -399,7 +399,7 @@ void Ntop::createExportInterface() {
 void Ntop::start() {
   struct timeval begin, end;
   u_long usec_diff;
-  char daybuf[64], buf[32];
+  char daybuf[64], buf[128];
   time_t when = time(NULL);
   int i = 0;
 
@@ -742,7 +742,7 @@ void Ntop::loadLocalInterfaceAddress() {
 #else
   struct ifaddrs *local_addresses, *ifa;
   /* buf must be big enough for an IPv6 address(e.g. 3ffe:2fa0:1010:ca22:020a:95ff:fe8a:1cf8) */
-  char buf_orig[bufsize];
+  char buf_orig[bufsize+16];
   int sock = socket(AF_INET, SOCK_STREAM, 0);
 
   if(getifaddrs(&local_addresses) != 0) {
