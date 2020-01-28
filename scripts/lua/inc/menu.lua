@@ -269,7 +269,7 @@ if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces,
                   </a>
                </li>
                <li>
-                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/os_stats.lua.lua">
+                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/os_stats.lua">
                      ]].. i18n("operating_systems") ..[[
                   </a>
                </li>
@@ -562,7 +562,6 @@ print ([[
             ]]..
             (function()
                if _SESSION["localuser"] then
-
                   if is_admin then
                      return ([[
                         <li>
@@ -664,7 +663,7 @@ print ([[
                      </li>
                      <li>
                         <a target='_blank' href='https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration'>
-                           ]] .. i18n("conf_backup.conf_restore") .. [[
+                           ]] .. i18n("conf_backup.conf_restore") .. [[ <i class="fas fa-external-link-alt"></i>
                         </a>
                      </li>
                   ]])
@@ -1154,11 +1153,12 @@ print([[
          <i class='fas fa-user'></i>
       </a>
       <ul class="dropdown-menu dropdown-menu-right">
-         <li class='dropdown-item'>
-            ]].. _SESSION['user'] ..[[
+         <li class='dropdown-item disabled'>
+            <i class='fas fa-user'></i> ]].. _SESSION['user'] ..[[
          </li>
+         <li class="dropdown-divider"></li>
          <a class='dropdown-item dark-gray' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua'>
-            Web Users
+            ]]..i18n("login.web_users")..[[
          </a>
       ]])
 -- Logout
