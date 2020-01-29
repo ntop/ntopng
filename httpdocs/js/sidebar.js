@@ -84,7 +84,7 @@ $(document).ready(function () {
     $(`#n-sidebar a.submenu`).mouseenter(function() {
 
         const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.collapse('show').css('max-height', 'auto');
+        $submenu.collapse('show').css('max-height', 'fit-content');
         fix_submenu_height($submenu, $(this));
 
         $(this).attr('aria-expanded', true);
@@ -94,11 +94,11 @@ $(document).ready(function () {
         $(this).addClass('show');
     });
     $(`div[id$='submenu']`).mouseleave(function() {
-        $(this).removeClass('show');
+        $(this).removeClass('show').css('max-height', 'fit-content');
     });
     $(`#n-sidebar a.submenu`).mouseleave(function() {
         const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.removeClass('show').css('max-height', 'auto');
+        $submenu.removeClass('show').css('max-height', 'fit-content');
         $(this).attr('aria-expanded', false);
     });
 
