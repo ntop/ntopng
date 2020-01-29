@@ -211,6 +211,7 @@ end
 
 url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
+if(true) then
 print([[
    <li class=']].. (active_page == 'flows' and 'active' or '') ..[[ nav-item'>
       <a class=']].. (active_page == 'flows' and 'active' or '') ..[[' href=']].. url ..[['>
@@ -218,6 +219,23 @@ print([[
       </a>
    </li> 
 ]])
+else
+   print([[
+      <li class='nav-item ]].. (active_page == 'flows' and 'active' or '') ..[[ ]] ..[[' id='flows-id'>
+         <a data-toggle='collapse' class=']].. (active_page == 'flows' and 'active' or '') ..[[ submenu' href='#flows-submenu'>
+            <span class='fas fa-exclamation-triangle'></span> Flows
+         </a>
+         <div data-parent='#sidebar' class='collapse side-collapse ' id='flows-submenu'>
+            <ul class='nav flex-column'>
+               <li>
+                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/flows_stats.lua'>]].. i18n("active_flows") ..[[
+                  </a>
+               </li>
+            </ul>
+         </div>
+      </li>
+   ]])
+end
 
 -- ##############################################
 -- Hosts
