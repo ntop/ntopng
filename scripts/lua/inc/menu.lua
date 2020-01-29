@@ -1083,8 +1083,8 @@ print(
 
 print([[
 <ul class='navbar-nav'>
-   &nbsp;&nbsp;<li class="nav-item">
-      <a href='#' class="nav-link dropdown-toggle dark-gray" data-toggle="dropdown">
+   <li class="nav-item">
+      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" data-toggle="dropdown">
          <i class='fas fa-user'></i>
       </a>
       <ul class="dropdown-menu dropdown-menu-right">

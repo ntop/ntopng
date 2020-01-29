@@ -941,7 +941,7 @@ path.link {
 }
 @media (min-width: 992px) and (max-width: 1500px) {
   #n-container {
-    padding-top: 4rem !important;
+    padding-top: 2rem !important;
   }
 }
 
