@@ -41,8 +41,10 @@ print [[
 
 
         <div class="col-4 text-left">
-          <small><A HREF="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">]] print(info.product .. ' ' .. getNtopngRelease() .." Edition v.".. info.version) print [[ <i class="fas fa-external-link-alt"></i></A>
-            | <A HREF="https://github.com/ntop/ntopng"> <i class="fab fa-github"></i> <i class="fas fa-external-link-alt"></i> </A></small>
+          <small><a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">]]
+           print(info.product .. ' ' .. getNtopngRelease() .." Edition v.".. info.version) 
+           print [[ <i class="fas fa-external-link-alt"></i></a>
+            | <a href="https://github.com/ntop/ntopng"> <i class="fab fa-github"></i> <i class="fas fa-external-link-alt"></i> </A></small>
         </div>
 
         <div class="col-4 text-center">
@@ -134,9 +136,9 @@ print [[/lua/update_prefs.lua',
     });
 });
 
-var updatingChart_upload = $(".network-load-chart-upload").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
-var updatingChart_download = $(".network-load-chart-download").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
-var updatingChart_total = $(".network-load-chart-total").peity("line", { width: ]] print(traffic_peity_width) print[[, max: null});
+var updatingChart_upload = $(".network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
+var updatingChart_download = $(".network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
+var updatingChart_total = $(".network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null});
 
 var footerRefresh = function() {
     $.ajax({
@@ -206,7 +208,7 @@ print[[
                 $('#network-load-clock').html(clock_msg);
 
                 var msg = `
-                   <li class='nav-item p-btn'>
+                   <li class='nav-item p-btn mx-2'>
                    <div class='d-flex'>`;
 
 

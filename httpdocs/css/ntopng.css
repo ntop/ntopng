@@ -820,7 +820,7 @@ path.link {
   padding: 0.5rem;
   transition: all 0.5s;
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   color:#363943;
   text-decoration: none;
 }
@@ -874,8 +874,8 @@ path.link {
   margin: 0 0.1em;
 }
 
-.w-10em {
-  width: 10em;
+.w-10 {
+  max-width: 12rem;
 }
 
 
@@ -911,15 +911,15 @@ path.link {
   background: #ea6f02;
 }
 ::-webkit-scrollbar-track {
-  background: #181818;
+  background: transparent;
   border: 0px none #ffffff;
   border-radius: 50px;
 }
 ::-webkit-scrollbar-track:hover {
-  background: #1d1d1d;
+  background: transparent;
 }
 ::-webkit-scrollbar-track:active {
-  background: #333333;
+  background: transparent;
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
@@ -1077,5 +1077,5 @@ path.link {
 }
 
 .p-btn {
-  padding: .375rem .75rem;
+  padding: .375rem 0rem;
 }

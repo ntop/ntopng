@@ -886,9 +886,9 @@ print([[
       <button data-toggle='sidebar' class='btn d-sm-none d-md-none d-lg-none'>
         <i class='fas fa-bars'></i>
       </button>
-<i class="fas fa-ethernet"></i>&nbsp;
       <ul class='navbar-nav mr-auto'>    
          <li class='nav-item dropdown'>
+            <span class='mr-1'><i class="fas fa-ethernet"></i></span>
             <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
                   ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
             </a>
@@ -1006,7 +1006,7 @@ print([[
 if not interface.isPcapDumpInterface() then
 
    print([[
-      <li class='nav-item mx-2'>
+      <li class='nav-item w-10 mx-2'>
          <div class='info-stats'>
             ]].. 
             (function()
@@ -1018,12 +1018,12 @@ if not interface.isPcapDumpInterface() then
                      <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
                         <div class='up'>
                            <i class="fas fa-arrow-up"></i>
-                           <span class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                           <span style='display: none;' class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
                            <span class="text-right" id="chart-upload-text"></span>
                         </div>
                         <div class='down'>
                            <i class="fas fa-arrow-down"></i>
-                           <span class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                           <span style='display: none;' class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
                            <span class="text-right" id="chart-download-text"></span>
                         </div>
                      </a>
@@ -1031,7 +1031,7 @@ if not interface.isPcapDumpInterface() then
                else
                   return ([[
                      <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
-                        <span class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                        <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
                         <span class="text-right" id="chart-total-text"></span>
                      </a>
                   ]])
