@@ -84,7 +84,7 @@ local r = _GET["referer"]
 print(r or "")
 
 print [[">
-    <button class="btn btn-lg btn-primary btn-block" type="submit">]] print(i18n("login.login")) print[[</button>
+    <button class="btn btn-lg btn-primary btn-block" type="submit" style="background-color: #ff7500; border-color: #ff7500">]] print(i18n("login.login")) print[[</button>
   	<div class="row">
       <div >&nbsp;</div>
       <div class="col-lg-12">]]
