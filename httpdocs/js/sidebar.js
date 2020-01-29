@@ -84,9 +84,8 @@ $(document).ready(function () {
     $(`#n-sidebar a.submenu`).mouseenter(function() {
 
         const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.collapse('show').css('max-height', 'fit-content');
+        $submenu.collapse('show');
         fix_submenu_height($submenu, $(this));
-
         $(this).attr('aria-expanded', true);
 
     });
@@ -94,11 +93,12 @@ $(document).ready(function () {
         $(this).addClass('show');
     });
     $(`div[id$='submenu']`).mouseleave(function() {
-        $(this).removeClass('show').css('max-height', 'fit-content');
+        $(this).removeClass('show').css('max-height', 'initial');
     });
+   
     $(`#n-sidebar a.submenu`).mouseleave(function() {
         const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.removeClass('show').css('max-height', 'fit-content');
+        $submenu.removeClass('show');
         $(this).attr('aria-expanded', false);
     });
 
@@ -108,6 +108,7 @@ $(window).resize(function() {
 
     // re-calc submenu height
     const $current_submenu = $('#n-sidebar').find(`div.show[id$='submenu']`);
+    console.info($current_submenu);
 
     if ($current_submenu.length > 0) {
 
