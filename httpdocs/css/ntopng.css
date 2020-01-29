@@ -767,6 +767,7 @@ path.link {
 }
 #n-sidebar ul>li.nav-item>a>span {
   display: block;
+  margin-bottom: 0.2rem;
   font-size: 1rem;
 }
 

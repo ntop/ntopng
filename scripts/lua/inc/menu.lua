@@ -800,7 +800,7 @@ end -- num_ifaces > 0
 -- ##############################################
 -- Info
 
-local is_help_Page = (active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories")
+local is_help_page = (active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories")
 
 print ([[ 
    <li class="nav-item ]].. (is_help_page and 'active' or '' ) ..[[">
