@@ -15,7 +15,9 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print[[
+print("<H2>".. i18n("about.alert_defines") .."</H2>")
+print [[
+<p>
 <div class="row">
 <div class="col col-md-4 offset-1">
 <table class="table table-bordered table-sm">

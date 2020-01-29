@@ -586,6 +586,7 @@ function printMisc()
   print('<table class="table">')
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.web_user_interface")..'</th></tr></thead>')
+
   if prefs.is_autologout_enabled == true then
     prefsToggleButton(subpage_active, {
       field = "toggle_autologout",
@@ -594,6 +595,19 @@ function printMisc()
     })
   end
 
+  -- ###################### 
+  
+  local t_labels = {i18n("light"), i18n("dark")}
+  local t_values = {"light", "dark"}
+  local label = "toggle_navbar_style"
+
+  multipleTableButtonPrefs(subpage_active.entries[label].title,
+			   subpage_active.entries[label].description,
+			   t_labels, t_values, "light", "primary",
+			   label, "ntopng.prefs.navbar_style")
+
+  -- ######################
+  
   prefsInputFieldPrefs(subpage_active.entries["max_ui_strlen"].title, subpage_active.entries["max_ui_strlen"].description,
 		       "ntopng.prefs.", "max_ui_strlen", prefs.max_ui_strlen, "number", nil, nil, nil, {min=3, max=128})
 

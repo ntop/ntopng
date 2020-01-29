@@ -24,7 +24,7 @@ if(_POST["ntopng_license"] ~= nil) then
    ntop.setCache('ntopng.cache.force_reload_plugins', '1') -- housekeeping.lua will reload plugins
 end
 
-print("<hr /><h2>"..i18n("about.about_x", {product=info["product"]}).."</h2>")
+print("<h2>"..i18n("about.about_x", {product=info["product"]}).."</h2>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th>") print(i18n("about.copyright")) print("</th><td colspan=2>"..info["copyright"].."</td></tr>\n")

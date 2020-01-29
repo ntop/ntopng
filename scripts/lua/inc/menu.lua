@@ -14,11 +14,12 @@ local ts_utils = require("ts_utils_core")
 
 local is_admin = isAdministrator()
 
-local collapsed_sidebar = ntop.getPref('ntopng.prefs.sidebar_collapsed')
-local bool_collapsed_sidebar = (collapsed_sidebar == "1") and true or false
-
 -- tprint(collapsed_sidebar)
--- <script type="text/javascript" src="/js/sidebar.js"></script>
+
+print([[
+   <div id='wrapper'>
+]])
+
 print[[
 <script type='text/javascript'>
    /* Some localization strings to pass from lua to javacript */
@@ -45,6 +46,7 @@ local template = require "template_utils"
 prefs = ntop.getPrefs()
 local iface_names = interface.getIfNames()
 
+-- tprint(prefs)
 -- tprint(iface_names)
 
 num_ifaces = 0
@@ -54,17 +56,21 @@ end
 
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
-print ([[
-      <div id='n-sidebar' class="bg-dark ]].. (collapsed_sidebar == "1" and '' or 'active') ..[[ py-0 px-2">
+
+local navbar_style = _POST["toggle_navbar_style"] or ntop.getPref("ntopng.prefs.navbar_style") or "light"
+
+print('<div id="n-sidebar" class="bg-'.. navbar_style ..'" py-0 px-2">')
+
+print([[
          <h3 class='muted'>
             <div class='d-flex'>
                <a href='/'>
-                  ]].. addLogoSvg(collapsed_sidebar) ..[[
+                  ]].. addLogoSvg() ..[[
                </a>              
             </div>
          </h3>
 
-	      <ul class="nav-side mb-4" id='sidebar'>
+         <ul class="nav-side mb-4" id='sidebar'>
 ]])
 
 
@@ -79,15 +85,12 @@ ifId = ifs.id
 -- Dashboard
 
 if not is_pcap_dump then
-
-   local show_submenu = (active_page == "dashboard" and not bool_collapsed_sidebar)
-
    print ([[ 
       <li class="nav-item ]].. (active_page == "dashboard" and 'active' or '') ..[[">
 	      <a class="submenu ]].. (active_page == "dashboard" and 'active' or '') ..[[" data-toggle="collapse" href="#dashboard-submenu">
 	         <span class="fas fa-tachometer-alt"></span> Dashboard
          </a>
-         <div data-parent='#sidebar' class='collapse ]].. (show_submenu and 'show' or '') ..[[' id='dashboard-submenu'>
+         <div data-parent='#sidebar' class='collapse side-collapse' id='dashboard-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href="]].. ntop.getHttpPrefix() .. (ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua') .. [[">
@@ -158,19 +161,17 @@ if ntop.getPrefs().are_alerts_enabled == true then
    -- if alert_cache["num_alerts_engaged"] > 0 then
    -- color = 'style="color: #B94A48;"' -- bootstrap danger red
    -- end
-   local show_submenu = (active_page == "alerts" and not bool_collapsed_sidebar)
-
 
    print([[
       <li class='nav-item ]].. (active_page == 'alerts' and 'active' or '') ..[[ ]].. (is_shown and 'd-none' or '') ..[[' id='alerts-id'>
          <a data-toggle='collapse' class=']].. (active_page == 'alerts' and 'active' or '') ..[[ submenu' href='#alerts-submenu'>
             <span class='fas fa-exclamation-triangle'></span> Alerts
          </a>
-         <div data-parent='#sidebar' class='collapse ]].. (show_submenu and 'show' or '') ..[[' id='alerts-submenu'>
+         <div data-parent='#sidebar' class='collapse side-collapse ' id='alerts-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href=']].. ntop.getHttpPrefix() ..[[/lua/show_alerts.lua'>
-                     <i class="fas fa-exclamation-triangle" id="alerts-menu-triangle"></i> ]].. i18n("show_alerts.detected_alerts") ..[[
+                     ]].. i18n("show_alerts.detected_alerts") ..[[
                   </a>
                </li>
                ]]..
@@ -218,15 +219,12 @@ print([[
 -- Hosts
 
 if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces, only for their view
-
-   local show_submenu = (active_page == "hosts" and not bool_collapsed_sidebar)
-
    print([[
       <li class='nav-item ]].. (active_page == 'hosts' and 'active' or '') ..[['>
          <a data-toggle='collapse' class=']].. (active_page == 'hosts' and 'active' or '') ..[[ submenu' href='#hosts-submenu'>
             <span class='fas fa-server '></span> ]].. i18n("flows_page.hosts") ..[[
          </a>
-         <div data-parent='#sidebar' class='collapse ]].. (show_submenu and 'show' or '') ..[[' id='hosts-submenu'>
+         <div data-parent='#sidebar' class='collapse side-collapse ' id='hosts-submenu'>
             <ul class='nav flex-column'>
                <li>
                   <a href=']].. ntop.getHttpPrefix() ..[[/lua/hosts_stats.lua'>
@@ -269,7 +267,7 @@ if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces,
                   </a>
                </li>
                <li>
-                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/os_stats.lua.lua">
+                  <a href="]] ..ntop.getHttpPrefix()..[[/lua/os_stats.lua">
                      ]].. i18n("operating_systems") ..[[
                   </a>
                </li>
@@ -397,7 +395,6 @@ end -- closes not ifs.isViewed
 -- Exporters
 
 local info = ntop.getInfo()
-local show_submenu = (active_page == "exporters" and not bool_collapsed_sidebar)
 
 if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
    print ([[ 
@@ -405,7 +402,7 @@ if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
          <a class="submenu ]].. (active_page == "exporters" and 'active' or '') ..[[" data-toggle="collapse" href="#exporters-submenu">
             <span class='fas fa-file-export'></span> ]].. i18n("flow_devices.exporters") ..[[
          </a>
-         <div data-parent='#sidebar' id='exporters-submenu' class="collapse ]].. (show_submenu and 'show' or '') ..[[">
+         <div data-parent='#sidebar' id='exporters-submenu' class="collapse ">
             <ul class='nav flex-column'>
                ]]..
                (function()
@@ -471,14 +468,13 @@ print([[
 if isAllowedSystemInterface() then
    
    local plugins_utils = require("plugins_utils")
-   local show_submenu = ((active_page == "system_stats" or active_page == "system_interfaces_stats") and not bool_collapsed_sidebar)
 
    print ([[ 
       <li class="nav-item ]].. ((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[">
-         <a  class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
+         <a class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
             <span class='fas fa-desktop'></span> ]].. i18n("system") ..[[
          </a>
-         <div data-parent='#sidebar' class="collapse ]].. (show_submenu and 'show' or '') ..[[" id='system-submenu'>
+         <div data-parent='#sidebar' class="collapse side-collapse " id='system-submenu'>
             <ul class='nav flex-column'>
                ]]..
                (function()
@@ -550,19 +546,17 @@ end
 
 -- ##############################################
 -- Admin
-local show_submenu = (active_page == "admin" and not bool_collapsed_sidebar)
 
 print ([[ 
    <li class="nav-item ]].. (active_page == "admin" and 'active' or '') ..[[">
       <a class="submenu ]].. (active_page == "admin" and 'active' or '') ..[[" data-toggle="collapse" href="#admin-submenu">
          <span class="fas fa-cog"></span> Settings
       </a>
-      <div data-parent='#sidebar' class="collapse ]].. (show_submenu and 'show' or '' ) ..[[" id='admin-submenu'>
+      <div data-parent='#sidebar' class="collapse side-collapse" id='admin-submenu'>
          <ul class='nav flex-column'>
             ]]..
             (function()
                if _SESSION["localuser"] then
-
                   if is_admin then
                      return ([[
                         <li>
@@ -664,7 +658,7 @@ print ([[
                      </li>
                      <li>
                         <a target='_blank' href='https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration'>
-                           ]] .. i18n("conf_backup.conf_restore") .. [[
+                           ]] .. i18n("conf_backup.conf_restore") .. [[ <i class="fas fa-external-link-alt"></i>
                         </a>
                      </li>
                   ]])
@@ -813,7 +807,7 @@ print ([[
       <a class="]].. (is_help_page and 'active' or '' ) ..[[ submenu" data-toggle="collapse" href="#help-submenu">
          <span class='fas fa-life-ring'></span> Help
       </a>   
-   <div data-parent='#sidebar' class='collapse ]].. ((is_help_page and not collapsed_sidebar) and 'active' or '' ) ..[[' id='help-submenu'>
+   <div data-parent='#sidebar' class='collapse side-collapse ]].. ((is_help_page and not collapsed_sidebar) and 'active' or '' ) ..[[' id='help-submenu'>
       <ul class='nav flex-column'>
 
          <li>
@@ -882,81 +876,21 @@ print ([[
 print([[
    </ul>
    
-   <div class='sidebar-info'>
-      <a id='collapse-sidebar' href='#' data-toggle='sidebar' class='btn-collapse'>
-        <i class='fas fa-bars'></i><span ]].. (collapsed_sidebar == "1" and 'style="display: none"' or '') ..[[>Collapse</span>
-      </a>
-   </div>
-
    </div>
 ]])
 
 -- end of n-sidebar
-
-
--- select the original interface back to prevent possible issues
-interface.select(ifname)
-
-if(dirs.workingdir == "/var/tmp/ntopng") then
-   print('<br><div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
-   print(i18n("about.datadir_warning"))
-   print('</a></div>')
-end
-
-local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifs.id)) == "1")
-
-if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet_interface) then
-   if(not lbd_serialize_by_mac) then
-      if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
-	 print('<br><div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-	 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-	 print(i18n("about.host_identifier_warning", {name=i18n("prefs.toggle_host_tskey_title"), url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"}))
-	 print('</a></div>')
-      end
-   elseif isEmptyString(_POST["dhcp_ranges"]) then
-      local dhcp_utils = require("dhcp_utils")
-      local ranges = dhcp_utils.listRanges(ifs.id)
-
-      if(table.empty(ranges)) then
-	 print('<br><div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-	 print(i18n("about.dhcp_range_missing_warning", {
-	    name = i18n("prefs.toggle_host_tskey_title"),
-	    url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
-	    dhcp_url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=dhcp"}))
-	 print('</a></div>')
-      end
-   end
-end
-
--- Hidden by default, will be shown by the footer if necessary
-print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
-print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-print('</div>')
-
--- Hidden by default, will be shown by the footer if necessary
-print('<div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
-print('</div>')
-
-if(_SESSION["INVALID_CSRF"]) then
-  print('<div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-  print(i18n("expired_csrf"))
-  print('</div>')
-end
-
------- NEW SIDEBAR ------
  
 print([[
-   <nav class="navbar ]].. (collapsed_sidebar == "1" and 'extended' or '') ..[[ navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
+   <nav class="navbar extended navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
       <button data-toggle='sidebar' class='btn d-sm-none d-md-none d-lg-none'>
         <i class='fas fa-bars'></i>
       </button>
       <ul class='navbar-nav mr-auto'>    
          <li class='nav-item dropdown'>
+            <span class='mr-1'><i class="fas fa-ethernet"></i></span>
             <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
-                  <i class='fas fa-ethernet '></i> ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
+                  ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
             </a>
             <ul class='dropdown-menu'>
 ]])
@@ -1072,7 +1006,7 @@ print([[
 if not interface.isPcapDumpInterface() then
 
    print([[
-      <li class='nav-item mx-2'>
+      <li class='nav-item w-10 mx-2'>
          <div class='info-stats'>
             ]].. 
             (function()
@@ -1084,12 +1018,12 @@ if not interface.isPcapDumpInterface() then
                      <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
                         <div class='up'>
                            <i class="fas fa-arrow-up"></i>
-                           <span class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                           <span style='display: none;' class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
                            <span class="text-right" id="chart-upload-text"></span>
                         </div>
                         <div class='down'>
                            <i class="fas fa-arrow-down"></i>
-                           <span class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                           <span style='display: none;' class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
                            <span class="text-right" id="chart-download-text"></span>
                         </div>
                      </a>
@@ -1097,7 +1031,7 @@ if not interface.isPcapDumpInterface() then
                else
                   return ([[
                      <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
-                        <span class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                        <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
                         <span class="text-right" id="chart-total-text"></span>
                      </a>
                   ]])
@@ -1150,22 +1084,20 @@ print(
 print([[
 <ul class='navbar-nav'>
    <li class="nav-item">
-      <a href='#' class="nav-link dropdown-toggle dark-gray" data-toggle="dropdown">
+      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" data-toggle="dropdown">
          <i class='fas fa-user'></i>
       </a>
       <ul class="dropdown-menu dropdown-menu-right">
-         <li class='dropdown-item'>
-            ]].. _SESSION['user'] ..[[
+         <li class='dropdown-item disabled'>
+            <i class='fas fa-user'></i> ]].. _SESSION['user'] ..[[
          </li>
-         <a class='dropdown-item dark-gray' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua'>
-            Web Users
-         </a>
       ]])
 -- Logout
 
 if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
    print[[
  
+         <li class='dropdown-divider'></li>
  <li class="nav-item">
    <a class="dropdown-item" href="]]
    print(ntop.getHttpPrefix())
@@ -1211,8 +1143,59 @@ print([[
    </nav>
 ]])
 
-print([[<div class='p-md-4 p-xs-1 mt-5 p-sm-2 ]].. (collapsed_sidebar == "1" and 'extended' or '') ..[[' id='n-container'>]])
+print([[<div class='p-md-4 extended p-xs-1 mt-5 p-sm-2' id='n-container'>]])
 
+-- select the original interface back to prevent possible issues
+interface.select(ifname)
+
+if(dirs.workingdir == "/var/tmp/ntopng") then
+   print('<div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
+   print(i18n("about.datadir_warning"))
+   print('</a></div>')
+end
+
+local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifs.id)) == "1")
+
+if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet_interface) then
+   if(not lbd_serialize_by_mac) then
+      if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
+	 print('<div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+	 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+	 print(i18n("about.host_identifier_warning", {name=i18n("prefs.toggle_host_tskey_title"), url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"}))
+	 print('</a></div>')
+      end
+   elseif isEmptyString(_POST["dhcp_ranges"]) then
+      local dhcp_utils = require("dhcp_utils")
+      local ranges = dhcp_utils.listRanges(ifs.id)
+
+      if(table.empty(ranges)) then
+	 print('<div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+	 print(i18n("about.dhcp_range_missing_warning", {
+	    name = i18n("prefs.toggle_host_tskey_title"),
+	    url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
+	    dhcp_url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=dhcp"}))
+	 print('</a></div>')
+      end
+   end
+end
+
+-- Hidden by default, will be shown by the footer if necessary
+print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
+print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+print('</div>')
+
+-- Hidden by default, will be shown by the footer if necessary
+print('<div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+print(i18n("about.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
+print('</div>')
+
+if(_SESSION["INVALID_CSRF"]) then
+  print('<div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+  print(i18n("expired_csrf"))
+  print('</div>')
+end
 
 
 -- append password change modal

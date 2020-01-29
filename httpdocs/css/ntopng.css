@@ -1,3 +1,7 @@
+:root {
+  --sidebar-width: 4.5rem;
+}
+
 /*
 NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  
 
@@ -561,17 +565,29 @@ path.link {
 
 /* New Sidebar and container */
 
+#wrapper {
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: hidden;
+}
+
+#n-sidebar #sidebar li {
+  position: relative;
+}
+
 #n-container {
   -webkit-transition: all .5s;
   -o-transition: all .5s;
   transition: margin-left .5s;
-	margin-left: 13.5rem;
+  margin-left: 13.5rem;
+  height: calc(100% - 56px);
+  overflow-y: auto;
+  max-height: fit-content;
 }
 
 #n-sidebar {
   position: fixed;
-  scrollbar-width: none;
-  width: 4.5rem;
+  width: var(--sidebar-width);
   top: 0;
   left: 0;
   bottom: 0;
@@ -579,14 +595,11 @@ path.link {
   flex-direction: column;
   color: white;
   transition: width .5s;
-  overflow-x: hidden;
   z-index: 1050;
   box-shadow: 0px 0px 6px #2f2f2f52;
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-
-
 
 .nav-side {
   padding: 0;
@@ -597,13 +610,41 @@ path.link {
   width: 13.5rem;
 }
 
+
+#n-sidebar .sidebar-info, 
+#n-sidebar.active .sidebar-info {
+  background-color: #ececec;
+  color: #363943;
+  position: fixed;
+  bottom: 0;
+  width: inherit;
+  padding: 1rem;
+  text-align: center;
+}
+
+#n-sidebar .sidebar-info a {
+  background-color: #ececec;
+  color: #363943;
+  text-decoration: none;
+}
+
+#collapse-sidebar {
+  position: relative;
+}
+
+#collapse-sidebar span{
+  position: absolute;
+  margin-left: 0.5rem;
+  color: #363943;
+}
+
 /** Dark theme for sidebar **/
 
-#n-sidebar .sidebar-info {
+#n-sidebar.bg-dark .sidebar-info {
   background-color: #353535;
   color: #e2e2e2;
 }
-#n-sidebar .sidebar-info>a {
+#n-sidebar.bg-dark .sidebar-info a {
   background-color: #353535;
   color: #e2e2e2;
   text-decoration: none;
@@ -754,13 +795,6 @@ path.link {
   display: block;
   text-align: left;
 }
-#n-sidebar .sidebar-info {
-  color:rgb(48, 48, 51);
-  width: 100%;
-  margin-top: auto;
-  padding: 1rem;
-  text-align: center;
-}
 
 
 #n-sidebar ul>li.nav-item a:focus, #n-sidebar ul>li.nav-item a:hover {
@@ -783,15 +817,16 @@ path.link {
 }
 
 #n-sidebar ul>li.nav-item div.collapse>ul li>a, #n-sidebar ul>li.nav-item div.collapsing>ul li>a {
-  padding: 0.8rem 0.8rem 0.8rem 1.5rem;
+  padding: 0.5rem;
   transition: all 0.5s;
   display: block;
+  font-size: 0.95rem;
   color:#363943;
   text-decoration: none;
 }
 
 #n-container.extended {
-	margin-left: 4.5rem;
+	margin-left: var(--sidebar-width);
 }
 
 #ntop-logo {
@@ -810,10 +845,13 @@ path.link {
 }
 
 .side-collapse {
-  position: fixed;
-  left: 4.5rem;
+  animation: none;
+  transition: none;
+  left: var(--sidebar-width);
   z-index: 1050;
   width: 16rem;
+  top: 0;
+  position: absolute;
   overflow-y: auto;
   box-shadow:rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 } 
@@ -836,17 +874,10 @@ path.link {
   margin: 0 0.1em;
 }
 
-.w-10em {
-  width: 10em;
+.w-10 {
+  max-width: 12rem;
 }
 
-#collapse-sidebar {
-  position: relative;
-}
-#collapse-sidebar span{
-  position: absolute;
-  margin-left: 0.5rem;
-}
 
 #n-navbar {
   left: 13.5rem;
@@ -856,12 +887,12 @@ path.link {
 }
 
 #n-navbar.extended {
-  left: 4.5rem;
+  left: var(--sidebar-width);
 }
 
 /* scrollbar theme */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
   height: 4px;
 }
 ::-webkit-scrollbar-button {
@@ -874,21 +905,21 @@ path.link {
   border-radius: 50px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f5811b;
+  background: #f5811b; /* orange */
 }
 ::-webkit-scrollbar-thumb:active {
   background: #ea6f02;
 }
 ::-webkit-scrollbar-track {
-  background: #181818;
+  background: transparent;
   border: 0px none #ffffff;
   border-radius: 50px;
 }
 ::-webkit-scrollbar-track:hover {
-  background: #1d1d1d;
+  background: transparent;
 }
 ::-webkit-scrollbar-track:active {
-  background: #333333;
+  background: transparent;
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
@@ -910,7 +941,7 @@ path.link {
 }
 @media (min-width: 992px) and (max-width: 1500px) {
   #n-container {
-    padding-top: 4rem !important;
+    padding-top: 2rem !important;
   }
 }
 
@@ -1046,5 +1077,5 @@ path.link {
 }
 
 .p-btn {
-  padding: .375rem .75rem;
+  padding: .375rem 0rem;
 }
