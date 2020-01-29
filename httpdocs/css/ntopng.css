@@ -756,6 +756,11 @@ path.link {
   display: block;
 }
 
+#n-sidebar.bg-light ul>li.nav-item div.collapse>ul li>a:hover,
+#n-sidebar.bg-light ul>li.nav-item div.collapsing>ul li>a:hover {
+  background-color: #dedede;
+}
+
 #n-sidebar ul>li.nav-item>a {
   display: block;
   padding: 0.8rem 0rem;
