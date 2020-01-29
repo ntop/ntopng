@@ -3113,21 +3113,20 @@ function printntopngRelease(info)
    print(" Edition</td></tr>\n")
 end
 
-function getNtopngRelease()
-
-   if info.oem or info["version.nedge_edition"] then
+function getNtopngRelease(ntopng_info)
+   if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
       return ""
    end
 
-   if(info["version.enterprise_edition"]) or (info["version.nedge_enterprise_edition"]) then
+   if(ntopng_info["version.enterprise_edition"]) or (ntopng_info["version.nedge_enterprise_edition"]) then
       return "Enterprise"
-   elseif(info["pro.release"]) then
+   elseif(ntopng_info["pro.release"]) then
       return "Professional"
    else
       return "Community"
    end
 
-   if(info["version.embedded_edition"] == true) then
+   if(ntopng_info["version.embedded_edition"] == true) then
       return"/Embedded"
    end
 
