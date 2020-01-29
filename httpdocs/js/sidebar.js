@@ -6,7 +6,7 @@ const fix_submenu_height = ($submenu, $hover_button) => {
     
     if (delta_y + submenu_height > document_height) {
         $submenu.css('overflow-y', 'auto');
-        $submenu.css({'max-height': `${document_height - delta_y}px`});
+        $submenu.css({'max-height': `${document_height - delta_y - 32}px`});
     }
 
 };
@@ -21,7 +21,7 @@ $(document).ready(function () {
     const highlighit_current_page = () => {
     
         // get current page name
-        const current_subpage_open = location.pathname.match(/[a-zA-Z0-9\s_\\.\-\(\):]+\.lua/g);
+        const current_subpage_open = location.pathname.match(/[a-zA-Z0-9\s\_\\.\-\(\):]+\.lua/g);
         // check if there is an element with that file name
         const $link = $(`#n-sidebar li a[href*='${current_subpage_open}']`);
     

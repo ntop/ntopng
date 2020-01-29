@@ -57,7 +57,11 @@ end
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
 
-local navbar_style = _POST["toggle_navbar_style"] or ntop.getPref("ntopng.prefs.navbar_style") or "light"
+local navbar_style = _POST["toggle_navbar_style"] or ntop.getPref("ntopng.prefs.navbar_style")
+
+if((navbar_style == nil) or (navbar_style == "")) then
+      navbar_style = "light"
+end
 
 print('<div id="n-sidebar" class="bg-'.. navbar_style ..'" py-0 px-2">')
 

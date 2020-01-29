@@ -43,8 +43,8 @@ print [[
         <div class="col-4 text-left">
           <small><a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">]]
            print(info.product .. ' ' .. getNtopngRelease() .." Edition v.".. info.version) 
-           print [[ <i class="fas fa-external-link-alt"></i></a>
-            | <a href="https://github.com/ntop/ntopng"> <i class="fab fa-github"></i> <i class="fas fa-external-link-alt"></i> </A></small>
+           print [[ </a>
+            | <a href="https://github.com/ntop/ntopng"> <i class="fab fa-github"></i> </A></small>
         </div>
 
         <div class="col-4 text-center">

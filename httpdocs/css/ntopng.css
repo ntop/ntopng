@@ -803,9 +803,6 @@ path.link {
 }
 
 
-#n-sidebar ul>li.nav-item a:focus, #n-sidebar ul>li.nav-item a:hover {
-  background-color:rgb(237, 237, 237);
-}
 #n-sidebar ul>li.nav-item a.active {
   color: #ffffff;
   background-color: #ff7500;
