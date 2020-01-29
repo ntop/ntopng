@@ -585,56 +585,51 @@ print ([[
                if is_admin then
 
                   local elements = [[]]
-                  elements = [[
+                  elements = elements .. [[
                      <li>
                         <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/prefs.lua'>
                            ]] .. i18n("prefs.preferences") .. [[
                         </a>
                      </li>
-                  ]] .. elements
 
-                  if remote_assistance.isAvailable() then
-                     elements = [[
-                        <li>
-                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/remote_assistance.lua'>
-                              ]] .. i18n("remote_assistance.remote_assistance") .. [[
-                           </a>
-                        </li>
-                     ]] .. elements
-                  end
-
-                  if ntop.isPro() then
-                     elements = [[
-                        <li>
-                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/admin/edit_profiles.lua'>
-                              ]] .. i18n("traffic_profiles.traffic_profiles") .. [[
-                           </a>
-                        </li>
-                     ]] .. elements
-                  end
-
-                  elements = [[
-                     <li>
-                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_categories.lua'>
-                           ]] .. i18n("custom_categories.apps_and_categories") .. [[
-                        </a>
-                     </li>
-                     <li>
-                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_category_lists.lua'>
-                           ]] .. i18n("category_lists.category_lists") .. [[
-                        </a>
-                     </li>
-                     <li>
-                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_device_protocols.lua'>
-                           ]] .. i18n("device_protocols.device_protocols") .. [[
-                        </a>
-                     </li>
                      <li>
                         <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/scripts_config.lua'>
                            ]] .. i18n("about.user_scripts") .. [[
                         </a>
                      </li>
-                  ]] .. elements
+
+                     <li class="dropdown-divider"></li>
+                  ]]
+
+                  if ntop.isPro() then
+                     elements = elements .. [[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/admin/edit_profiles.lua'>
+                              ]] .. i18n("traffic_profiles.traffic_profiles") .. [[
+                           </a>
+                        </li>
+                     ]]
+                  end
+
+                  elements = elements .. [[
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_categories.lua'>
+                           ]] .. i18n("custom_categories.apps_and_categories") .. [[
+                        </a>
+                     </li>
+
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_category_lists.lua'>
+                           ]] .. i18n("category_lists.category_lists") .. [[
+                        </a>
+                     </li>
+
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_device_protocols.lua'>
+                           ]] .. i18n("device_protocols.device_protocols") .. [[
+                        </a>
+                     </li>
+                  ]]
 
                   return elements
                end
@@ -642,6 +637,8 @@ print ([[
                return [[]]
             end)()
             ..[[
+            <li class="dropdown-divider"></li>
+
             <li>
                <a href=']].. ntop.getHttpPrefix() ..[[/lua/manage_data.lua'>
                   ]] .. i18n("manage_data.manage_data") .. [[
@@ -650,21 +647,40 @@ print ([[
             ]]..
             (function()
                if is_admin then
-                  return ([[
+                  local elements = [[]]
+
+                  elements = elements .. [[
+                     <li class="dropdown-divider"></li>
+                  ]]
+
+                  if remote_assistance.isAvailable() then
+                     elements = elements .. [[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/remote_assistance.lua'>
+                              ]] .. i18n("remote_assistance.remote_assistance") .. [[
+                           </a>
+                        </li>
+                     ]]
+                  end
+
+                  elements = elements .. [[
                      <li>
                         <a href=']].. ntop.getHttpPrefix() ..[[/lua/get_config.lua'>
                            ]] .. i18n("conf_backup.conf_backup") .. [[
                         </a>
                      </li>
+
                      <li>
                         <a target='_blank' href='https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration'>
                            ]] .. i18n("conf_backup.conf_restore") .. [[ <i class="fas fa-external-link-alt"></i>
                         </a>
                      </li>
-                  ]])
-               else
-                  return [[]]
+                  ]]
+
+                  return elements
                end
+
+               return [[]]
             end)()
             ..[[
             ]]..
