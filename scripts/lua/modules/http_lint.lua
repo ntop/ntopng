@@ -1462,7 +1462,6 @@ local known_parameters = {
    ["edition"]                                     = validateEmptyOr(validateChoiceInline({"community", "pro", "enterprise"})),
    ["ts_high_resolution"]                          = validateNumber,
    ["lbd_hosts_as_macs"]                           = validateBool,
-   ["toggle_arp_matrix_generation"]                = validateBool,
    ["toggle_send_telemetry_data"]                  = validateBool,
    ["telemetry_email"]                             = validateSingleWord,
 

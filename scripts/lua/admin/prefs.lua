@@ -670,13 +670,6 @@ function printMisc()
      multipleTableButtonPrefs(subpage_active.entries["toggle_host_mask"].title,
 			      subpage_active.entries["toggle_host_mask"].description,
 			      h_labels, h_values, "0", "primary", "toggle_host_mask", "ntopng.prefs.host_mask")
-
-    prefsToggleButton(subpage_active, {
-			 field = "toggle_arp_matrix_generation",
-			 default = "0",
-			 pref = "arp_matrix_generation",
-			 to_switch = nil,
-    })
   end
 
   -- #####################

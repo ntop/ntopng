@@ -43,8 +43,6 @@ class CountriesHash;
 class DB;
 class Paginator;
 class NetworkInterfaceTsPoint;
-class ArpStatsMatrixElement;
-class ArpStatsHashMatrix;
 class ViewInterface;
 
 #ifdef NTOPNG_PRO
@@ -187,10 +185,6 @@ class NetworkInterface : public AlertableEntity {
   /* Countries */
   CountriesHash *countries_hash;
 
-  /* ARP Matrix Hash */
-  ArpStatsHashMatrix *arp_hash_matrix;/**<Hash used to store ARP pkts counters related to pkt_src and pkt_dst */
-
-
   /* Vlans */
   VlanHash *vlans_hash; /**< Hash used to store Vlans information. */
 
@@ -293,7 +287,6 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t getVLANsHashSize();
   u_int32_t getMacsHashSize();
   u_int32_t getHostsHashSize();
-  u_int32_t getArpHashMatrixSize();
   virtual u_int32_t getFlowsHashSize();
   void reloadCustomCategories();
 
@@ -564,7 +557,7 @@ class NetworkInterface : public AlertableEntity {
   virtual void purgeIdle(time_t when, bool force_idle = false);
   u_int purgeIdleFlows(bool force_idle);
   u_int purgeIdleHosts(bool force_idle);
-  u_int purgeIdleMacsASesCountriesVlansArpMatrix(bool force_idle);
+  u_int purgeIdleMacsASesCountriesVlans(bool force_idle);
 
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getNumPackets();
@@ -582,7 +575,6 @@ class NetworkInterface : public AlertableEntity {
   u_int             getNumLocalHosts();
   u_int             getNumMacs();
   u_int             getNumHTTPHosts();
-  u_int             getNumArpStatsMatrixElements();
 
   inline u_int64_t  getNumPacketsSinceReset()     { return getNumPackets() - getCheckPointNumPackets(); }
   inline u_int64_t  getNumBytesSinceReset()       { return getNumBytes() - getCheckPointNumBytes(); }
@@ -596,9 +588,6 @@ class NetworkInterface : public AlertableEntity {
 
   void runHousekeepingTasks();
   void runShutdownTasks();
-  ArpStatsMatrixElement* getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
-						 const u_int32_t _src_ip, const u_int32_t _dst_ip,
-						 bool * const src2dst);
   Vlan* getVlan(u_int16_t vlanId, bool create_if_not_present, bool is_inline_call);
   AutonomousSystem *getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call);
   Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
@@ -719,7 +708,6 @@ class NetworkInterface : public AlertableEntity {
   bool getASInfo(lua_State* vm, u_int32_t asn);
   bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
-  bool getArpStatsMatrixInfo(lua_State* vm);
   inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };
   inline void decNumHosts(bool local) { if(local) numLocalHosts--; numHosts--; };
   inline void incNumL2Devices()       { numL2Devices++; }

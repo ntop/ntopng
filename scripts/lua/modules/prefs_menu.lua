@@ -376,10 +376,7 @@ local menu_subpages = {
     }
     }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
 
-    toggle_arp_matrix_generation = {
-      title       = i18n("prefs.toggle_arp_matrix_generation_title"),
-      description = i18n("prefs.toggle_arp_matrix_generation_description", { product = info.product}),
-    }, toggle_send_telemetry_data = {
+    toggle_send_telemetry_data = {
       title       = i18n("prefs.toggle_send_telemetry_data_title"),
       description = i18n("prefs.toggle_send_telemetry_data_description", { product = info.product}),
     }, toggle_thpt_content = {

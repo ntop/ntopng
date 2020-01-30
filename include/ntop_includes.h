@@ -367,8 +367,6 @@ using namespace std;
 #include "AutonomousSystemHash.h"
 #include "CountriesHash.h"
 #include "HostHash.h"
-#include "ArpStatsHashMatrix.h"
-#include "ArpStatsMatrixElement.h"
 #ifdef NTOPNG_PRO
 #include "AggregatedFlow.h"
 #include "AggregatedFlowHash.h"

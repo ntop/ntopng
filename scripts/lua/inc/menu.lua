@@ -385,21 +385,6 @@ if not ifs.isViewed then -- Currently, hosts are not kept for viewed interfaces,
                   end
                end)()
                ..[[
-               ]].. 
-               (function()
-                  if ntop.getPrefs().is_arp_matrix_generation_enabled then
-                     return ([[
-                        <li>
-                           <a href="]]..ntop.getHttpPrefix()..[[/lua/arp_matrix_graph.lua.lua">
-                              ]].. i18n("arp_top_talkers") ..[[
-                           </a>
-                        </li>
-                     ]])
-                  else
-                     return [[]]
-                  end
-               end)()
-               ..[[
                <li>
                   <a href="]].. ntop.getHttpPrefix() ..[[/lua/bubble.lua">
                      </i> Host Explorer

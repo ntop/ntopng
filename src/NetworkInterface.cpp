@@ -262,7 +262,7 @@ void NetworkInterface::init() {
 
   flows_hash = NULL, hosts_hash = NULL;
   macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
-  countries_hash = NULL, arp_hash_matrix = NULL;
+  countries_hash = NULL;
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -505,7 +505,6 @@ void NetworkInterface::deleteDataStructures() {
   if(countries_hash)        { delete(countries_hash);  countries_hash = NULL;  }
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
-  if(arp_hash_matrix)       { delete(arp_hash_matrix); arp_hash_matrix = NULL; }
 
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
@@ -775,12 +774,6 @@ u_int32_t NetworkInterface::getFlowsHashSize() {
 
 u_int32_t NetworkInterface::getMacsHashSize() {
   return(macs_hash ? macs_hash->getNumEntries() : 0);
-}
-
-/* **************************************************** */
-
-u_int32_t NetworkInterface::getArpHashMatrixSize() {
-  return(arp_hash_matrix ? arp_hash_matrix->getNumEntries() : 0);
 }
 
 /* **************************************************** */
@@ -1615,7 +1608,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts on %s",
 				   m, getNumHosts(), ifname);
 
-    if((o = purgeIdleMacsASesCountriesVlansArpMatrix(force_idle)) > 0)      
+    if((o = purgeIdleMacsASesCountriesVlans(force_idle)) > 0)      
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s",
 				   o, ifname);
   }
@@ -2163,9 +2156,6 @@ decode_packet_eth:
     if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header) + sizeof(struct ndpi_ethhdr)))) {
       struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
       u_int16_t arp_opcode = ntohs(arpp->ar_op);
-      bool src2dst_element = false;
-      ArpStatsMatrixElement* e;
-
       u_int32_t src = ntohl(arpp->arp_spa);
       u_int32_t dst = ntohl(arpp->arp_tpa);
       u_int32_t net = src & dst;
@@ -2237,20 +2227,14 @@ decode_packet_eth:
 	setSeenMacAddresses();
 	srcMac->setSourceMac();
 	
-	e = getArpHashMatrixElement(srcMac->get_mac(), dstMac->get_mac(),
-				    src, dst,
-				    &src2dst_element);
-
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
 	  dstMac->incRcvdArpRequests();
-	  if(e) e->incArpRequests(src2dst_element);
 	} else if(arp_opcode == 0x2 /* ARP reply */) {
 	  arp_replies++;
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
-	  if(e) e->incArpReplies(src2dst_element);
 
 	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
 	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
@@ -2390,7 +2374,6 @@ void NetworkInterface::cleanup() {
   if(countries_hash)  countries_hash->cleanup();
   if(vlans_hash)      vlans_hash->cleanup();
   if(macs_hash)       macs_hash->cleanup();
-  if(arp_hash_matrix) arp_hash_matrix->cleanup();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
 }
@@ -2724,7 +2707,6 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 			ases_hash,
 			countries_hash,
 			hasSeenVlanTaggedPackets() ? vlans_hash : NULL,
-			arp_hash_matrix,
 			macs_hash
   };
   time_t update_end;
@@ -3015,14 +2997,6 @@ struct mac_find_info {
   Mac *m;
   DeviceType dtype;
   lua_State *vm;
-};
-
-/* **************************************************** */
-
-struct arp_stats_element_find_info {
-  u_int8_t src_mac[6];
-  u_int8_t dst_mac[6];
-  ArpStatsMatrixElement *elem;
 };
 
 /* **************************************************** */
@@ -4980,12 +4954,6 @@ u_int NetworkInterface::getNumMacs() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumArpStatsMatrixElements() {
-  return(arp_hash_matrix ? arp_hash_matrix->getNumEntries() : 0);
-};
-
-/* **************************************************** */
-
 u_int NetworkInterface::purgeIdleHosts(bool force_idle) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
@@ -5014,7 +4982,7 @@ u_int NetworkInterface::purgeIdleHosts(bool force_idle) {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleMacsASesCountriesVlansArpMatrix(bool force_idle) {
+u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   if(!force_idle && last_packet_time < next_idle_other_purge)
@@ -5027,8 +4995,7 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVlansArpMatrix(bool force_idle
     n = (macs_hash ? macs_hash->purgeIdle(force_idle) : 0)
       + (ases_hash ? ases_hash->purgeIdle(force_idle) : 0)
       + (countries_hash ? countries_hash->purgeIdle(force_idle) : 0)
-      + (vlans_hash ? vlans_hash->purgeIdle(force_idle) : 0)
-      + (arp_hash_matrix ? arp_hash_matrix->purgeIdle(force_idle) : 0);
+      + (vlans_hash ? vlans_hash->purgeIdle(force_idle) : 0);
 
     next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
     
@@ -5337,10 +5304,9 @@ void NetworkInterface::lua(lua_State *vm) {
 void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
   /* Hash tables stats */
   GenericHash *gh[] = {flows_hash, hosts_hash, macs_hash,
-		       vlans_hash, ases_hash, countries_hash,
-		       arp_hash_matrix
+		       vlans_hash, ases_hash, countries_hash
 #ifdef NTOPNG_PRO
-		       ,aggregated_flows_hash
+		       , aggregated_flows_hash
 #endif
   };
 
@@ -5418,56 +5384,6 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool create_if_not_present, bool
   }
 
   return(ret);
-}
-
-/* **************************************************** */
-
-ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6], const u_int8_t _dst_mac[6],
-								 const u_int32_t _src_ip, const u_int32_t _dst_ip,
-								 bool * const src2dst) {
-  ArpStatsMatrixElement *ret = NULL;
-
-  if(arp_hash_matrix == NULL)
-    return NULL;
-
-  ret = arp_hash_matrix->get(_src_mac, _src_ip, _dst_ip, src2dst);
-
-  if(ret == NULL) {
-
-    if (!arp_hash_matrix->hasEmptyRoom())
-      return(NULL);
-
-    try{
-      if((ret = new ArpStatsMatrixElement(this, _src_mac, _dst_mac, _src_ip, _dst_ip)) != NULL)
-
-        if(!arp_hash_matrix->add(ret, false /* No need to lock, we're inline with the purgeIdle */)){
-          /* Note: this should never happen as we are checking hasEmptyRoom() */
-          delete ret;
-          return(NULL);
-        }
-    } catch(std::bad_alloc& ba) {
-      static bool oom_warning_sent = false;
-
-      if(!oom_warning_sent) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	oom_warning_sent = true;
-      }
-      return(NULL);
-    }
-  }
-
-  return ret;
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm){
-  if(getNumArpStatsMatrixElements() > 0) {
-    lua_newtable(vm);
-    arp_hash_matrix->lua(vm);
-    return true;
-  } else
-    return false;
 }
 
 /* **************************************************** */
@@ -5990,10 +5906,6 @@ void NetworkInterface::allocateStructures() {
 	countries_hash = new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
 	vlans_hash     = new VlanHash(this, 1024, 2048);
 	macs_hash      = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
-
-	if(ntop->getPrefs()->is_arp_matrix_generation_enabled())
-	  arp_hash_matrix = new ArpStatsHashMatrix(this, ndpi_min(num_hashes, 32768), (ntop->getPrefs()->get_max_num_hosts() ^ 2) / 2);
-      }
     }
 
     networkStats     = new NetworkStats*[numNetworks];
@@ -6007,6 +5919,7 @@ void NetworkInterface::allocateStructures() {
 
     for(u_int8_t i = 0; i < numNetworks; i++)
       networkStats[i] = new NetworkStats(this, i);
+    }
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 

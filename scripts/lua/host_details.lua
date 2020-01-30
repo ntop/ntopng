@@ -651,43 +651,6 @@ end
    <button class="btn btn-secondary" onclick="$('#reset_host_stats_dialog').modal('show')">]] print(i18n("host_details.reset_host_stats")) print[[</button>
    </td></tr>]]
 
-   local am_enabled = (ntop.getPrefs()).is_arp_matrix_generation_enabled
-
-   if am_enabled then
-      local arp_matrix_utils = require "arp_matrix_utils"
-
-      if (arp_matrix_utils.arpCheck(host_ip)) then
-         print[[<tr><th width=30% >]] print("ARP Requests")
-         print[[<a href="arp_matrix_graph.lua?host=]]print(host_ip)print[["> [See in Map]</a>]]
-         print[[</th><td colspan=2 id="arp_req_td">
-
-         <script>
-
-         var printText = function(){
-            $.getJSON("]]print (ntop.getHttpPrefix())print[[/lua/get_arp_matrix_data.lua?host=]]print(host_ip)print[[", function(data){
-
-
-               if (data.talkers_num == 1)
-                  $("#arp_req_td").text( "Sent "+ data.req_num+ " Requests to " + data.talkers_num +" Host" );
-               else
-                  $("#arp_req_td").text( "Sent "+ data.req_num+ " Requests to " + data.talkers_num +" different Hosts" );
-
-               $("#arp_req_td").prop("href", "arp_matrix_graph.lua?host=]]print(host_ip)print[[");
-            } );
-         };
-
-         printText();
-
-         setInterval(function() {
-            printText();
-         }, 3000);
-
-         </script>
-
-         </td></tr>]]
-      end
-   end
-
    local num_extra_names = 0
    local extra_names = host["names"]
    local num_extra_names = table.len(extra_names)

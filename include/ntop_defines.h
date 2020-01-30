@@ -164,7 +164,7 @@
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      2 /* sec */
 #define HOST_PURGE_FREQUENCY      3 /* sec */
-#define OTHER_PURGE_FREQUENCY     5 /* sec - Other = ASs, MAC, Countries, VLANs, ARP Matrix */
+#define OTHER_PURGE_FREQUENCY     5 /* sec - Other = ASs, MAC, Countries, VLANs */
 #define MAX_TCP_FLOW_IDLE        15 /* sec - how long to wait before idling a TCP flow with FIN/RST set or with incomplete TWH */
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
