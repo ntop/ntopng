@@ -101,8 +101,10 @@ if ts_utils.getDriverName() == "influxdb" then
 
   if not isEmptyString(msg) then
     print[[
+<script>
 $("#influxdb-error-msg-text").html("]] print(msg:gsub('"', '\\"')) print[[");
 $("#influxdb-error-msg").show();
+</script>
 ]]
   end
 end
