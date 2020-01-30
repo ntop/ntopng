@@ -356,22 +356,11 @@ local menu_subpages = {
       title       = i18n("prefs.data_retention"),
       description = i18n("prefs.data_retention_descr"),
     },
-  }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
+  }}, {id="gui",          label=i18n("prefs.gui"),                 advanced=false, pro_only=false,  hidden=false, entries={
+
     toggle_autologout = {
       title       = i18n("prefs.toggle_autologout_title"),
       description = i18n("prefs.toggle_autologout_description"),
-    }, toggle_arp_matrix_generation = {
-      title       = i18n("prefs.toggle_arp_matrix_generation_title"),
-      description = i18n("prefs.toggle_arp_matrix_generation_description", { product = info.product}),
-    }, toggle_send_telemetry_data = {
-      title       = i18n("prefs.toggle_send_telemetry_data_title"),
-      description = i18n("prefs.toggle_send_telemetry_data_description", { product = info.product}),
-    }, google_apis_browser_key = {
-      title       = i18n("prefs.google_apis_browser_key_title"),
-      description = i18n("prefs.google_apis_browser_key_description", {url="https://maps-apis.googleblog.com/2016/06/building-for-scale-updates-to-google.html"}),
-    }, toggle_thpt_content = {
-      title       = i18n("prefs.toggle_thpt_content_title"),
-      description = i18n("prefs.toggle_thpt_content_description"),
     }, toggle_navbar_style = {
       title       = i18n("prefs.toggle_navbar_style_title"),
       description = i18n("prefs.toggle_navbar_style_description"),
@@ -381,6 +370,21 @@ local menu_subpages = {
     }, mgmt_acl = {
        title       = i18n("prefs.mgmt_acl_title"),
        description = i18n("prefs.mgmt_acl_description", {product=info.product}),
+    }, google_apis_browser_key = {
+      title       = i18n("prefs.google_apis_browser_key_title"),
+      description = i18n("prefs.google_apis_browser_key_description", {url="https://maps-apis.googleblog.com/2016/06/building-for-scale-updates-to-google.html"}),
+    }
+    }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
+
+    toggle_arp_matrix_generation = {
+      title       = i18n("prefs.toggle_arp_matrix_generation_title"),
+      description = i18n("prefs.toggle_arp_matrix_generation_description", { product = info.product}),
+    }, toggle_send_telemetry_data = {
+      title       = i18n("prefs.toggle_send_telemetry_data_title"),
+      description = i18n("prefs.toggle_send_telemetry_data_description", { product = info.product}),
+    }, toggle_thpt_content = {
+      title       = i18n("prefs.toggle_thpt_content_title"),
+      description = i18n("prefs.toggle_thpt_content_description"),
     }, toggle_host_mask = {
       title       = i18n("prefs.toggle_host_mask_title"),
       description = i18n("prefs.toggle_host_mask_description"),

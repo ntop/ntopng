@@ -581,7 +581,7 @@ end
 
 -- ================================================================================
 
-function printMisc()
+function printGUI()
   print('<form method="post">')
   print('<table class="table">')
 
@@ -622,7 +622,19 @@ function printMisc()
 		       "google_apis_browser_key",
 		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
-  -- ######################
+  -- #####################
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+    </form>]]
+end
+
+-- ######################
+
+function printMisc()
+  print('<form method="post">')
+  print('<table class="table">')
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.report")..'</th></tr></thead>')
 
@@ -673,7 +685,6 @@ function printMisc()
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
     </form>]]
-
 end
 
 -- ================================================================================
@@ -1503,6 +1514,10 @@ end
 
 if(tab == "misc") then
    printMisc()
+end
+
+if(tab == "gui") then
+   printGUI()
 end
 
 if(tab == "updates") then

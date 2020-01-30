@@ -1230,9 +1230,7 @@ function drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, h
 
    for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
       if not alt_nav_tabs then
-      if not options.dont_nest_alerts then
-        print("<br>")
-      end
+
 	 print[[
 <ul class="nav nav-tabs" role="tablist" id="alert-tabs" style="]] print(ternary(options.dont_nest_alerts, 'display:none', '')) print[[">
 <!-- will be populated later with javascript -->
@@ -2106,7 +2104,6 @@ function flushAlertsData()
    if(verbose) then io.write("[Alerts] Flushing Redis configuration...\n") end
    deleteCachePattern("ntopng.prefs.*alert*")
    deleteCachePattern("ntopng.alerts.*")
-   user_scripts.deleteConfigurations()
    alerts_api.purgeAlertsPrefs()
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 

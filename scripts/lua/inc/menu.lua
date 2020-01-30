@@ -57,7 +57,11 @@ end
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
 
-local navbar_style = _POST["toggle_navbar_style"] or ntop.getPref("ntopng.prefs.navbar_style") or "light"
+local navbar_style = _POST["toggle_navbar_style"] or ntop.getPref("ntopng.prefs.navbar_style")
+
+if((navbar_style == nil) or (navbar_style == "")) then
+      navbar_style = "light"
+end
 
 print('<div id="n-sidebar" class="bg-'.. navbar_style ..'" py-0 px-2">')
 
@@ -207,6 +211,7 @@ end
 
 url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
+if(true) then
 print([[
    <li class=']].. (active_page == 'flows' and 'active' or '') ..[[ nav-item'>
       <a class=']].. (active_page == 'flows' and 'active' or '') ..[[' href=']].. url ..[['>
@@ -214,6 +219,23 @@ print([[
       </a>
    </li> 
 ]])
+else
+   print([[
+      <li class='nav-item ]].. (active_page == 'flows' and 'active' or '') ..[[ ]] ..[[' id='flows-id'>
+         <a data-toggle='collapse' class=']].. (active_page == 'flows' and 'active' or '') ..[[ submenu' href='#flows-submenu'>
+            <span class='fas fa-exclamation-triangle'></span> Flows
+         </a>
+         <div data-parent='#sidebar' class='collapse side-collapse ' id='flows-submenu'>
+            <ul class='nav flex-column'>
+               <li>
+                  <a href=']].. ntop.getHttpPrefix() ..[[/lua/flows_stats.lua'>]].. i18n("active_flows") ..[[
+                  </a>
+               </li>
+            </ul>
+         </div>
+      </li>
+   ]])
+end
 
 -- ##############################################
 -- Hosts
@@ -585,56 +607,51 @@ print ([[
                if is_admin then
 
                   local elements = [[]]
-                  elements = [[
+                  elements = elements .. [[
                      <li>
                         <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/prefs.lua'>
                            ]] .. i18n("prefs.preferences") .. [[
                         </a>
                      </li>
-                  ]] .. elements
 
-                  if remote_assistance.isAvailable() then
-                     elements = [[
-                        <li>
-                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/remote_assistance.lua'>
-                              ]] .. i18n("remote_assistance.remote_assistance") .. [[
-                           </a>
-                        </li>
-                     ]] .. elements
-                  end
-
-                  if ntop.isPro() then
-                     elements = [[
-                        <li>
-                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/admin/edit_profiles.lua'>
-                              ]] .. i18n("traffic_profiles.traffic_profiles") .. [[
-                           </a>
-                        </li>
-                     ]] .. elements
-                  end
-
-                  elements = [[
-                     <li>
-                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_categories.lua'>
-                           ]] .. i18n("custom_categories.apps_and_categories") .. [[
-                        </a>
-                     </li>
-                     <li>
-                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_category_lists.lua'>
-                           ]] .. i18n("category_lists.category_lists") .. [[
-                        </a>
-                     </li>
-                     <li>
-                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_device_protocols.lua'>
-                           ]] .. i18n("device_protocols.device_protocols") .. [[
-                        </a>
-                     </li>
                      <li>
                         <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/scripts_config.lua'>
                            ]] .. i18n("about.user_scripts") .. [[
                         </a>
                      </li>
-                  ]] .. elements
+
+                     <li class="dropdown-divider"></li>
+                  ]]
+
+                  if ntop.isPro() then
+                     elements = elements .. [[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/pro/admin/edit_profiles.lua'>
+                              ]] .. i18n("traffic_profiles.traffic_profiles") .. [[
+                           </a>
+                        </li>
+                     ]]
+                  end
+
+                  elements = elements .. [[
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_categories.lua'>
+                           ]] .. i18n("custom_categories.apps_and_categories") .. [[
+                        </a>
+                     </li>
+
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_category_lists.lua'>
+                           ]] .. i18n("category_lists.category_lists") .. [[
+                        </a>
+                     </li>
+
+                     <li>
+                        <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/edit_device_protocols.lua'>
+                           ]] .. i18n("device_protocols.device_protocols") .. [[
+                        </a>
+                     </li>
+                  ]]
 
                   return elements
                end
@@ -642,6 +659,8 @@ print ([[
                return [[]]
             end)()
             ..[[
+            <li class="dropdown-divider"></li>
+
             <li>
                <a href=']].. ntop.getHttpPrefix() ..[[/lua/manage_data.lua'>
                   ]] .. i18n("manage_data.manage_data") .. [[
@@ -650,21 +669,40 @@ print ([[
             ]]..
             (function()
                if is_admin then
-                  return ([[
+                  local elements = [[]]
+
+                  elements = elements .. [[
+                     <li class="dropdown-divider"></li>
+                  ]]
+
+                  if remote_assistance.isAvailable() then
+                     elements = elements .. [[
+                        <li>
+                           <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/remote_assistance.lua'>
+                              ]] .. i18n("remote_assistance.remote_assistance") .. [[
+                           </a>
+                        </li>
+                     ]]
+                  end
+
+                  elements = elements .. [[
                      <li>
                         <a href=']].. ntop.getHttpPrefix() ..[[/lua/get_config.lua'>
                            ]] .. i18n("conf_backup.conf_backup") .. [[
                         </a>
                      </li>
+
                      <li>
                         <a target='_blank' href='https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration'>
                            ]] .. i18n("conf_backup.conf_restore") .. [[ <i class="fas fa-external-link-alt"></i>
                         </a>
                      </li>
-                  ]])
-               else
-                  return [[]]
+                  ]]
+
+                  return elements
                end
+
+               return [[]]
             end)()
             ..[[
             ]]..
@@ -800,7 +838,7 @@ end -- num_ifaces > 0
 -- ##############################################
 -- Info
 
-local is_help_Page = (active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories")
+local is_help_page = (active_page == "home" or active_page == "about" or active_page == "telemetry" or active_page == "directories")
 
 print ([[ 
    <li class="nav-item ]].. (is_help_page and 'active' or '' ) ..[[">
