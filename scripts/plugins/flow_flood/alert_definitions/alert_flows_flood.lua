@@ -5,17 +5,20 @@
 local function formatFlowsFlood(ifid, alert, threshold_info)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local value = threshold_info.value
 
+  if(value == nil) then value = 0 end
+  
   if(alert.alert_subtype == "flow_flood_attacker") then
     return i18n("alert_messages.flow_flood_attacker", {
       entity = firstToUpper(entity),
-      value = string.format("%u", math.ceil(threshold_info.value)),
+      value = string.format("%u", math.ceil(value)),
       threshold = threshold_info.threshold,
     })
   else
     return i18n("alert_messages.flow_flood_victim", {
       entity = firstToUpper(entity),
-      value = string.format("%u", math.ceil(threshold_info.value)),
+      value = string.format("%u", math.ceil(value)),
       threshold = threshold_info.threshold,
     })
   end
