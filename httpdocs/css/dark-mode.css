@@ -3,12 +3,15 @@ html, body {
   color: #eee;
 }
 
-a,
-.btn-link {
+a,.btn-link {
   color: #ff8a26;
 }
-.btn-link:hover {
-  color: #ff9539;
+a:hover, .btn-link:hover {
+  color: #f39f55;
+}
+
+.bg-primary {
+    background-color: #ff8a26 !important;
 }
 
 .bg-light {
@@ -17,7 +20,8 @@ a,
 }
 
 .bg-white {
-  background-color: #000 !important;
+  background-color: #1f1f1f !important;
+  color: #e2e2e2;
 }
 
 .bg-black {
@@ -28,8 +32,7 @@ a,
   color: #e2e2e2 !important;
 }
 
-.navbar-light, .navbar-light .navbar-brand,
-ul.navbar-nav li.nav-item > a {
+.navbar-light, .navbar-light .navbar-brand, ul.navbar-nav li.nav-item > a {
   color: #e2e2e2 !important;
 }
 
@@ -41,19 +44,32 @@ ul.navbar-nav li.nav-item.active > a.active {
 .breadcrumb {
   background-color: #1d1d1d !important;
 }
+.breadcrumb-item.active {
+    color: #a2a2a2;
+}
 
 .dropdown-menu {
   background-color: #1d1d1d !important;
+  color: #eee;
 }
 .dropdown-item {
   color: #e2e2e2;
 }
 .dropdown-menu .dropdown-item:hover {
   background-color: #2c2c2c !important;
+  color: #e2e2e2;
 }
 
+.popover {
+    background-color: #343434;
+}
+.popover-body {
+    color: #eee;
+}
 .popover-header {
-  color: #000 !important;
+    background-color: #323232;
+  color: #eee;
+  border-bottom: 1px solid #272727;
 }
 
 .table {
@@ -95,7 +111,7 @@ table.tablesorter tfoot tr th {
 .btn-outline-dark {
   border-color: #f8f9fa !important;
 }
-.btn-outline-dark:hover {
+.btn-outline-dark:hover,  ul.navbar-nav li.nav-item > a.btn-outline-dark:hover {
   color: #212529 !important;
   background-color: #f8f9fa !important;
   border-color: #f8f9fa !important;
@@ -127,5 +143,32 @@ table.tablesorter tfoot tr th {
     color: #eee;
     background-color: #262626;
     border-color: #2c2c2c #2c2c2c #212121;
+}
+.nav-tabs .nav-link:focus, .nav-tabs .nav-link:hover {
+    border-color: #2c2c2c #2c2c2c #212121;
+}
+
+.modal-header, .modal-footer {
+    border-color: #2c2c2c !important;
+}
+.modal-content {
+    background-color: #242424;
+}
+
+.alert-light {
+    background-color: #1f1f1f !important;
+    color: #eee;
+    border-color: #2c2c2c;
+}
+
+.filter-scripts-button {
+    color: #ff7500 !important;
+}
+.filter-scripts-button:hover {
+    color: #f39f55 !important;
+}
+.filter-scripts-button.active {
+    background-color: #ff7500 !important;
+    color: #eee !important;
 }
 
