@@ -146,14 +146,28 @@ if((ifname == nil) and (_GET ~= nil)) then
    end
 end
 
+-- See Utils::l4proto2name()
 l4_keys = {
-  { "TCP",    "tcp",     6 },
-  { "UDP",    "udp",    17 },
-  { "ICMP",   "icmp",    1 },
-  { "ICMPv6", "icmpv6", 58 },
-  { "IGMP",   "igmp",    2 },
-  { "Other IP", "other_ip", -1 }
+   { "IP",       "ip",          0 },
+   { "ICMP",     "icmp",        1 },
+   { "IGMP",     "igmp",        2 },
+   { "TCP",      "tcp",         6 },
+   { "UDP",      "udp",        17 },
+
+   { "IPv6",     "ipv6",       41 },
+   { "RSVP",     "rsvp",       46 },
+   { "GRE",      "gre",        47 },
+   { "ESP",      "esp",        50 },
+   { "IPv6-ICMP", "ipv6icmp",  58 },
+   { "OSPF",      "ospf",      89 },
+   { "PIM",      "pim",       103 },
+   { "VRRP",     "vrrp",      112 },
+   { "HIP",      "hip",       139 },
+   { "ICMPv6",   "icmpv6",     58 },
+   { "IGMP",     "igmp",        2 },
+   { "Other IP", "other_ip",   -1 }
 }
+
 
 L4_PROTO_KEYS = {tcp=6, udp=17, icmp=1, other_ip=-1}
 

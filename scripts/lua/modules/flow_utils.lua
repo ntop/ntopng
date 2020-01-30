@@ -389,15 +389,7 @@ l4_protocols = {
 }
 
 function getL4ProtoName(proto_id)
-  local proto_id = tonumber(proto_id)
-
-  for k,v in pairs(l4_protocols) do
-    if v == proto_id then
-      return k
-    end
-  end
-
-  return nil
+   return(l4_proto_to_string(proto_id))
 end
  
  -- #######################
@@ -1417,7 +1409,7 @@ end
 
 -- #######################
 
-function printL4ProtoDropdown(base_url, page_params, l4_protocols)
+function printL4ProtoDropdown(base_url, page_params, l4_proto)
    local l4proto = _GET["l4proto"]
    local l4proto_filter
    if not isEmptyString(l4proto) then
@@ -1439,11 +1431,12 @@ function printL4ProtoDropdown(base_url, page_params, l4_protocols)
       <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, l4proto_params_non_tcp)) print[[">]] print(i18n("flows_page.all_l4_protocols")) print[[</a></li>]]
 
-    if l4_protocols then
-       for key, value in pairsByKeys(l4_protocols, asc) do
+    if l4_proto then
+       for key, value in pairsByKeys(l4_proto, asc) do
+	  local num_proto = tonumber(key)
 	  print[[<li]]
 
-	  if tonumber(l4proto) == key then
+	  if tonumber(l4_proto) == key then
 	     print(' class="active"')
 	  end
 
@@ -1699,7 +1692,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     print("</ul> </div>'")
 
-    -- Ip version selector
+    -- IP version selector
     local ipversion_params = table.clone(page_params)
     ipversion_params["version"] = nil
 
