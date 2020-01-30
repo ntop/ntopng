@@ -172,3 +172,18 @@ table.tablesorter tfoot tr th {
     color: #eee !important;
 }
 
+.form-control {
+    background-color: #181818;
+    border: 1px solid #3c3c3c;
+}
+.form-control:focus {
+    border-color: #f39f55;
+    background-color: #333333;
+    color: #eee;
+    box-shadow: 0 0 0 0.2rem rgba(255, 118, 0, 0.25);
+}
+.input-group-text {
+    color: rgb(216, 216, 216);
+    background-color: #232323;
+    border: 1px solid #3c3c3c;
+}
