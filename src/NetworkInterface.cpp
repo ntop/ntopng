@@ -5899,13 +5899,14 @@ void NetworkInterface::allocateStructures() {
       if(!flowsOnlyInterface() /* Do not allocate HTs when the interface should only have flows */
 	 && !isViewed() /* Do not allocate HTs when the interface is viewed, HTs are allocated in the corresponding ViewInterface */)
 	{ 
-	num_hashes     = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
-	hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-	/* The number of ASes cannot be greater than the number of hosts */
-	ases_hash      = new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
-	countries_hash = new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
-	vlans_hash     = new VlanHash(this, 1024, 2048);
-	macs_hash      = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
+	  num_hashes     = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
+	  hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
+	  /* The number of ASes cannot be greater than the number of hosts */
+	  ases_hash      = new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
+	  countries_hash = new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
+	  vlans_hash     = new VlanHash(this, 1024, 2048);
+	  macs_hash      = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
+      }
     }
 
     networkStats     = new NetworkStats*[numNetworks];
@@ -5919,7 +5920,6 @@ void NetworkInterface::allocateStructures() {
 
     for(u_int8_t i = 0; i < numNetworks; i++)
       networkStats[i] = new NetworkStats(this, i);
-    }
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 
