@@ -418,11 +418,11 @@ local info = ntop.getInfo()
 
 if ((ifs["type"] == "zmq") and ntop.isEnterprise()) then
    print ([[ 
-      <li class="nav-item dropdown ]].. (active_page == "exporters" and 'active' or '') ..[[">
+      <li class="nav-item ]].. (active_page == "exporters" and 'active' or '') ..[[">
          <a class="submenu ]].. (active_page == "exporters" and 'active' or '') ..[[" data-toggle="collapse" href="#exporters-submenu">
             <span class='fas fa-file-export'></span> ]].. i18n("flow_devices.exporters") ..[[
          </a>
-         <div data-parent='#sidebar' id='exporters-submenu' class="collapse ">
+         <div data-parent='#sidebar' id='exporters-submenu' class="collapse side-collapse">
             <ul class='nav flex-column'>
                ]]..
                (function()
