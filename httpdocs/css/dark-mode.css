@@ -187,3 +187,8 @@ table.tablesorter tfoot tr th {
     background-color: #232323;
     border: 1px solid #3c3c3c;
 }
+
+.form-signin {
+    background-color: #242424 !important;
+    border: 1px solid #3c3c3c !important;
+}
