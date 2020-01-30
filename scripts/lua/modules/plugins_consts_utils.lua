@@ -35,7 +35,8 @@ end
 -- ##############################################
 
 local function assigned_id_key(const_type, const_key)
-   return string.format("ntopng.prefs.plugins_consts_utils.assigned_ids.const_type_%s.const_key_%s", const_type, const_key)
+   local hname = assigned_ids_hname(const_type)
+   return string.format("%s.const_key_%s", hname, const_key)
 end
 
 -- ##############################################
@@ -199,6 +200,14 @@ function plugins_consts_utils.get_assigned_id(const_type, const_key)
    -- Avoid reading the whole hash, just read the single key to re-use also ntopng internal caching mechanism
    local kname = assigned_id_key(const_type, const_key)
    local assigned_id = tonumber(ntop.getPref(kname))
+
+   if assigned_id == nil then
+     -- Not found in the internal cache, check the hash
+     local cur_id_to_key, cur_key_to_id = get_assigned_ids(const_type)
+     if cur_key_to_id[const_key] ~= nil then
+        return cur_key_to_id[const_key]
+     end
+   end
 
    -- Make sure the index is within the configured bounds
    if assigned_id then
