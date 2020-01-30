@@ -1082,6 +1082,15 @@ print([[
    <div id="network-load"></div>
 ]])
 
+print([[
+   <li class='nav-item p-2'>
+      <div class="custom-control custom-switch">
+         <input type="checkbox" class="custom-control-input" id="darkSwitch" />
+         <label class="custom-control-label" for="darkSwitch">Dark Mode</label>
+      </div>
+   </li>
+]])
+
 
 -- ########################################
 -- end of navbar-nav

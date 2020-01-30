@@ -79,7 +79,7 @@ $.fn.dataTable.ext.buttons.filterScripts = {
                 if (!$('.popover:hover').length) {
                     $(self).popover('hide');
                 }
-            }, 600);
+            }, 50);
         });
 
         $(`#${button_id}`).addClass("active");

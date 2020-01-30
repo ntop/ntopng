@@ -160,7 +160,7 @@ function page_utils.print_header(title)
     <!--[if lt IE 9]>
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
-
+    <link href="]] print(http_prefix) print[[/css/dark-mode.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/ntopng.css?]] print(startup_epoch) print[[" rel="stylesheet">
 
     <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
