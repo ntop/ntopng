@@ -499,9 +499,9 @@ end
 -- ######################################
 
 
-print[[
+print([[
 </script>
-]]
+]])
 
 -- close wrapper
 print[[

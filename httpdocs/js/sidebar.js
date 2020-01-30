@@ -108,7 +108,6 @@ $(window).resize(function() {
 
     // re-calc submenu height
     const $current_submenu = $('#n-sidebar').find(`div.show[id$='submenu']`);
-    console.info($current_submenu);
 
     if ($current_submenu.length > 0) {
 
