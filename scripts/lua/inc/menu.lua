@@ -73,7 +73,16 @@ print([[
          <h3 class='muted'>
             <div class='d-flex'>
                <a href='/'>
-                  ]].. addLogoSvg() ..[[
+                  ]])
+print(addLogoSvg())
+--[[
+if navbar_style == "light" then
+   print(addLogoDarkSvg())
+else
+   print(addLogoLightSvg())
+end
+--]]
+print([[
                </a>              
             </div>
          </h3>
