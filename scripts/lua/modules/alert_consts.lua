@@ -222,7 +222,7 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
    local def_id = plugins_consts_utils.get_assigned_id("alert", mod_fname)
 
    if(def_id == nil) then
-       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing alert ID %d", script_path, def_id))
+       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing alert ID", script_path))
        return(false)
    end
 
