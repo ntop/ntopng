@@ -11,8 +11,12 @@ local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 local telemetry_utils = require "telemetry_utils"
 local ts_utils = require("ts_utils_core")
+local page_utils = require("page_utils")
 
 local is_admin = isAdministrator()
+
+local active_page = page_utils.get_active_section()
+local active_subpage = page_utils.get_active_entry()
 
 -- tprint(collapsed_sidebar)
 
@@ -473,9 +477,6 @@ print([[
 -- System
 
 if isAllowedSystemInterface() then
-   
-   local plugins_utils = require("plugins_utils")
-
    print ([[ 
       <li class="nav-item ]].. ((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[">
          <a class="submenu ]]..((active_page == "system_stats" or active_page == "system_interfaces_stats") and 'active' or '') ..[[" data-toggle="collapse" href="#system-submenu">
@@ -520,14 +521,11 @@ if isAllowedSystemInterface() then
                ..[[
                ]]..
                (function()
-                 
-                  local menu = plugins_utils.getMenuEntries() or {}
-
-                  if not table.empty(menu) then
+                  if not table.empty(page_utils.plugins_menu) then
 
                      local elements = ""
 
-                     for _, entry in pairsByField(menu, "sort_order", rev) do
+                     for _, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
 
                         elements = ([[
                            <li>

@@ -18,7 +18,7 @@ local plugins_utils = require("plugins_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header("Example Page")
+page_utils.set_active_menu_entry(page_utils.menu_entries.example_plugin)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

@@ -17,7 +17,6 @@ require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 
-active_page = "hosts"
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
@@ -48,7 +47,6 @@ local always_show_hist = _GET["always_show_hist"]
 local top_sites, top_sites_old = {}, {}
 
 local ntopinfo    = ntop.getInfo()
-local active_page = "hosts"
 
 if not isEmptyString(_GET["ifid"]) then
   interface.select(_GET["ifid"])
@@ -136,7 +134,7 @@ if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
       if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
       sendHTTPContentTypeHeader('text/html')
-      page_utils.print_header()
+      page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
       if page == "alerts" then
 	 print('<script>window.location.href = "')
 	 print(ntop.getHttpPrefix())
@@ -163,7 +161,7 @@ if(host == nil) and (not only_historical) then
 else
    sendHTTPContentTypeHeader('text/html')
 
-   page_utils.print_header(i18n("host", { host = host_info["host"] }))
+   page_utils.set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", { host = host_info["host"] }))
 
    print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">\n")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

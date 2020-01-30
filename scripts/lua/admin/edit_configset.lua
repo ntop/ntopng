@@ -18,8 +18,6 @@ local json = require "dkjson"
 
 sendHTTPContentTypeHeader('text/html')
 
-active_page = "admin"
-
 -- get config parameters like the id and name
 local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
@@ -46,7 +44,8 @@ local titles = {
    ["syslog"] = i18n("config_scripts.granularities.syslog")
 }
 
-page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_subdir], config=confset_name }))
+page_utils.set_active_menu_entry(page_utils.menu_entries.user_scripts)
+--page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_subdir], config=confset_name }))
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

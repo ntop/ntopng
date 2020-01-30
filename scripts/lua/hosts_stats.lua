@@ -11,12 +11,11 @@ local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
 local custom_column_utils = require("custom_column_utils")
 local discover = require("discover_utils")
-active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("hosts"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
 
 local protocol     = _GET["protocol"]
 local asn          = _GET["asn"]
@@ -48,7 +47,6 @@ if ((mode ~= "all") or (not isEmptyString(pool))) then
    hosts_filter = '<span class="fas fa-filter"></span>'
 end
 
-local active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 prefs = ntop.getPrefs()

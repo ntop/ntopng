@@ -5,7 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
-active_page = "system_stats"
 
 require "lua_utils"
 local page_utils = require("page_utils")
@@ -21,7 +20,7 @@ local probe = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.scrip
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.influxdb)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

@@ -19,7 +19,6 @@ local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local ts_utils = require "ts_utils"
 
-active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 local pool_id     = _GET["pool"]
@@ -41,7 +40,7 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.host_pools)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

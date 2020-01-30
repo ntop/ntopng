@@ -18,7 +18,6 @@ if not isAdministrator() then
   return
 end
 
-active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- checks all the hosts of the current interface (TODO: iterate all interfaces)

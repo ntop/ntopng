@@ -12,9 +12,8 @@ local page = _GET["page"] or "overview"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("telemetry"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.telemetry)
 
-active_page = "telemetry"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 --[[

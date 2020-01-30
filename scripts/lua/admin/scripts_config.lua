@@ -42,10 +42,7 @@ local titles = {
     ["syslog"] = i18n("config_scripts.granularities.syslog")
  }
 
--- append headers to config_list
-page_utils.print_header(i18n("config_scripts.config_x", { product=titles[subdir] }))
-
-active_page = "admin"
+page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config, { product=titles[subdir] })
 
 -- append menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

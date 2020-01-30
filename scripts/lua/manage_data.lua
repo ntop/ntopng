@@ -9,7 +9,6 @@ require "lua_utils"
 local delete_data_utils = require "delete_data_utils"
 local template = require "template_utils"
 local page_utils = require("page_utils")
-active_page = "admin"
 
 local page        = _GET["page"] or _POST["page"]
 local info = ntop.getInfo()
@@ -18,7 +17,7 @@ local delete_data_utils = require "delete_data_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("manage_data.manage_data"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.manage_data)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

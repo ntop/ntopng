@@ -12,8 +12,6 @@ local page_utils = require("page_utils")
 local ifId = getInterfaceId(ifname)
 local refresh_button = '<small><a href="'..ntop.getHttpPrefix()..'/lua/discover.lua?request_discovery=true" title="Refresh"><i class="fas fa-sync fa-sm" aria-hidden="true"></i></a></small>'
 
-active_page = "dashboard"
-
 if _GET["request_discovery"] == "true" then
    refresh_button = ""
    discover.requestNetworkDiscovery(ifId)
@@ -47,7 +45,7 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("discover.network_discovery"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.network_discovery)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

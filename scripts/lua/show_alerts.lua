@@ -13,11 +13,10 @@ local alerts_api = require("alerts_api")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("show_alerts.detected_alerts"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.detected_alerts)
 
 checkDeleteStoredAlerts()
 
-active_page = "alerts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local has_engaged_alerts = hasAlerts("engaged", getTabParameters(_GET, "engaged"))

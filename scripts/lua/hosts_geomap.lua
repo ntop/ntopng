@@ -11,9 +11,8 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("geo_map.geo_map"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.geo_map)
 
-active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)

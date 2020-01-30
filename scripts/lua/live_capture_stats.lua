@@ -13,9 +13,7 @@ interface.select(ifname)
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
-
-active_page = "home"
+page_utils.set_active_menu_entry(page_utils.menu_entries.live_capture)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 

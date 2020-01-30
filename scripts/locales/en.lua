@@ -87,6 +87,7 @@ local lang = {
   ["hassh_fingerprint"] = "HASSH Fingerprint",
   ["host"] = "Host %{host}",
   ["host_address"] = "Host Address",
+  ["host_explorer"] = "Host Explorer",
   ["hosts"] = "Hosts",
   ["hour"] = "Hour",
   ["http"] = "HTTP",

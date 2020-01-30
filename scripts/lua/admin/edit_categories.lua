@@ -10,7 +10,6 @@ local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
 local page_utils = require("page_utils")
-active_page = "admin"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -23,7 +22,7 @@ end
 
 local tab = _GET["tab"] or "protocols"
 
-page_utils.print_header(i18n("custom_categories.apps_and_categories"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.categories)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

@@ -8,10 +8,9 @@ require "lua_utils"
 local plugins_utils = require("plugins_utils")
 local user_scripts = require("user_scripts")
 local page_utils = require("page_utils")
-active_page = "about"
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.print_header(i18n("plugins"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.plugins)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

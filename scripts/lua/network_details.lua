@@ -13,7 +13,6 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
-active_page = "hosts"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 
@@ -38,7 +37,7 @@ if network_vlan == nil then network_vlan = 0 end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.networks)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

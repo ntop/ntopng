@@ -20,7 +20,6 @@ require "mac_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 
-active_page = "hosts"
 local have_nedge = ntop.isnEdge()
 
 local info = ntop.getInfo()
@@ -75,7 +74,7 @@ if(vlanId == nil) then vlanId = 0 end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.devices)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

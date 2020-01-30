@@ -4,7 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-active_page = "system_stats"
 
 require "lua_utils"
 local page_utils = require("page_utils")
@@ -24,7 +23,7 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.rtt_monitor)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

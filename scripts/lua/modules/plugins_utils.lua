@@ -603,6 +603,7 @@ end
 function plugins_utils.getMenuEntries()
   init_runtime_paths()
   local menu = {}
+  local entries_data = {}
 
   for fname in pairs(ntop.readdir(RUNTIME_PATHS.menu_items)) do
     local full_path = os_utils.fixPath(RUNTIME_PATHS.menu_items .. "/" .. fname)
@@ -613,10 +614,14 @@ function plugins_utils.getMenuEntries()
     if(menu_entry and ((not menu_entry.is_shown) or menu_entry.is_shown())) then
       menu_entry.url = plugins_utils.getUrl(menu_entry.script)
       menu[plugin_key] = menu_entry
+
+      if menu_entry.menu_entry then
+        entries_data[menu_entry.menu_entry.key] = menu_entry.menu_entry
+      end
     end
   end
 
-  return(menu)
+  return menu, entries_data
 end
 
 -- ##############################################

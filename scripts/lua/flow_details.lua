@@ -337,8 +337,6 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("flow_details.flow_details"))
-
 warn_shown = 0
 
 local alert_banners = {}
@@ -543,7 +541,7 @@ local function displayProc(proc, label)
    end
 end
 
-active_page = "flows"
+page_utils.set_active_menu_entry(page_utils.menu_entries.flow_details)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 printMessageBanners(alert_banners)

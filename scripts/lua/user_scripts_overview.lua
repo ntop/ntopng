@@ -7,10 +7,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local user_scripts = require("user_scripts")
 local page_utils = require("page_utils")
-active_page = "about"
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.user_scripts)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

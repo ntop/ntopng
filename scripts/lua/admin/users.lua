@@ -13,9 +13,8 @@ sendHTTPContentTypeHeader('text/html')
 if(haveAdminPrivileges()) then
    interface.select(ifname)
 
-   page_utils.print_header(i18n("manage_users.manage_users"))
+   page_utils.set_active_menu_entry(page_utils.menu_entries.manage_users)
    
-   active_page = "admin"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    dofile(dirs.installdir .. "/scripts/lua/inc/users.lua")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

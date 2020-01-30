@@ -13,9 +13,8 @@ local alert_consts = require "alert_consts"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("about.directories"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.directories)
 
-active_page = "directories"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(_POST["ntopng_license"] ~= nil) then

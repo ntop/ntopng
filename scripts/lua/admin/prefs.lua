@@ -148,9 +148,8 @@ if(haveAdminPrivileges()) then
     end
    end
 
-   page_utils.print_header(i18n("prefs.preferences"))
+   page_utils.set_active_menu_entry(page_utils.menu_entries.preferences)
 
-   active_page = "admin"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
    prefs = ntop.getPrefs()

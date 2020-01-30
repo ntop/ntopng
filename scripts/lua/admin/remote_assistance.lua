@@ -8,7 +8,6 @@ require "lua_utils"
 local remote_assistance = require("remote_assistance")
 local template = require "template_utils"
 local page_utils = require("page_utils")
-active_page = "admin"
 
 if((not isAdministrator()) or (not remote_assistance.isAvailable())) then
   return
@@ -55,7 +54,7 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("remote_assistance.remote_assistance"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.remote_assistance)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

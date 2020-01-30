@@ -17,11 +17,10 @@ local page           = _GET["page"]
 interface.select(ifname)
 local ifId = getInterfaceId(ifname)
 local ts_utils = require("ts_utils")
-active_page = "hosts"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.pods)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

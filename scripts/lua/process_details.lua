@@ -11,7 +11,7 @@ local ebpf_utils = require "ebpf_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.flows)
 
 local page = _GET["page"]
 if isEmptyString(page) then page = "process_ndpi" end

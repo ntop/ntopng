@@ -18,6 +18,9 @@ return {
   -- before entries with lower sort order.
   sort_order = -1,
 
+  -- Information about the menu entry, see page_utils.menu_entries
+  menu_entry = {key = "example_plugin", i18n_title = "Example Page", section = "system_stats"},
+
   -- Conditionally show or hide the menu entry
   is_shown = function()
     return(true)

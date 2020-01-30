@@ -16,7 +16,7 @@ sendHTTPContentTypeHeader('text/html')
 local title = i18n("plugin_browser", {plugin_name = _GET["plugin_path"]})
 local url = ntop.getHttpPrefix().."/lua/code_viewer.lua"
 
-page_utils.print_header(title)
+page_utils.set_active_menu_entry(page_utils.menu_entries.plugin_browser, {plugin_name = _GET["plugin_path"]})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

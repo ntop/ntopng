@@ -15,9 +15,8 @@ if (group_col == nil) then
    group_col = "asn"
 end
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.vlans)
 
-active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print [[

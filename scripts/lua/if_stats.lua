@@ -5,7 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
-active_page = "if_stats"
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -165,7 +164,7 @@ if (isAdministrator()) then
    end
 end
 
-page_utils.print_header(i18n("interface_ifname", { ifname=if_name }))
+page_utils.set_active_menu_entry(page_utils.menu_entries.interface, { ifname=if_name })
 
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
 

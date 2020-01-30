@@ -15,8 +15,6 @@ require "graph_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
 
-active_page = "hosts"
-
 local asn         = tonumber(_GET["asn"])
 local page        = _GET["page"]
 
@@ -36,6 +34,7 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.autonomous_systems)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

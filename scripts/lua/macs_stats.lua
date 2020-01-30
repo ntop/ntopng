@@ -11,15 +11,13 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header(i18n("layer_2"))
+page_utils.set_active_menu_entry(page_utils.menu_entries.devices)
 
 if (group_col == nil) then
    group_col = "mac"
 end
 
 local have_nedge = ntop.isnEdge()
-
-active_page = "hosts"
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

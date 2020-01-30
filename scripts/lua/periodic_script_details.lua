@@ -23,10 +23,9 @@ local ifstats = interface.getStats()
 local ifId = ifstats.id
 local internals_utils = require("internals_utils")
 
-active_page = "if_stats"
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.print_header()
+page_utils.set_active_menu_entry(page_utils.menu_entries.interface)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
