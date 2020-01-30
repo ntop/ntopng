@@ -527,8 +527,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     if(cur_interval > 60) {
       var delta = cur_interval/4;
-      $("#period_begin").datetimepicker("viewDate", new Date((params.epoch_begin + delta) * 1000));
-      $("#period_end").datetimepicker("viewDate", new Date((params.epoch_end - delta) * 1000));
+      $("#period_begin").datetimepicker("date", new Date((params.epoch_begin + delta) * 1000));
+      $("#period_end").datetimepicker("date", new Date((params.epoch_end - delta) * 1000));
       updateChartFromPickers();
     }
   }
@@ -547,8 +547,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     //if((params.epoch_end + delta)*1000 <= $.now())
       //delta /= 2;
 
-    $("#period_begin").datetimepicker("viewDate", new Date((params.epoch_begin - delta) * 1000));
-    $("#period_end").datetimepicker("viewDate", new Date((params.epoch_end + delta) * 1000));
+    $("#period_begin").datetimepicker("date", new Date((params.epoch_begin - delta) * 1000));
+    $("#period_end").datetimepicker("date", new Date((params.epoch_end + delta) * 1000));
     updateChartFromPickers();
     //}
   }
@@ -722,8 +722,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       spinner.appendTo($chart.parent());
 
     // Update datetime selection
-    $("#period_begin").datetimepicker("viewDate", new Date(params.epoch_begin * 1000));
-    $("#period_end").datetimepicker("viewDate", new Date(Math.min(params.epoch_end * 1000, $.now())));
+    $("#period_begin").datetimepicker("date", new Date(params.epoch_begin * 1000));
+    $("#period_end").datetimepicker("date", new Date(Math.min(params.epoch_end * 1000, $.now())));
 
     if(query_timer)
       clearInterval(query_timer);

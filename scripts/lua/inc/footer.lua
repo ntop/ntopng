@@ -392,7 +392,7 @@ print [[/lua/if_stats.lua\"><i class=\"fas fa-exclamation-triangle\" style=\"col
             }
 
           } catch(e) {
-             console.log(e);
+             console.warn(e);
              /* alert("JSON Error (session expired?): logging out"); window.location.replace("]]
 print (ntop.getHttpPrefix())
 print [[/lua/logout.lua");  */
