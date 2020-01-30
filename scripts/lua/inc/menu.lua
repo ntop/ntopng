@@ -61,7 +61,7 @@ end
 -- Adding main container div for the time being
 --print("<div class=\"container\">")
 
-local navbar_style = _POST["toggle_navbar_style"] or ntop.getPref("ntopng.prefs.navbar_style")
+local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
 
 if((navbar_style == nil) or (navbar_style == "")) then
       navbar_style = "light"
@@ -1080,15 +1080,6 @@ end
 
 print([[
    <div id="network-load"></div>
-]])
-
-print([[
-   <li class='nav-item p-2'>
-      <div class="custom-control custom-switch">
-         <input type="checkbox" class="custom-control-input" id="darkSwitch" />
-         <label class="custom-control-label" for="darkSwitch">Dark Mode</label>
-      </div>
-   </li>
 ]])
 
 

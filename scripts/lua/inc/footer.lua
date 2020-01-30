@@ -500,7 +500,6 @@ end
 
 print([[
 </script>
-<script src="]].. ntop.getHttpPrefix() ..[[/js/dark-mode.js"></script>
 ]])
 
 -- close wrapper

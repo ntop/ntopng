@@ -123,6 +123,18 @@ function page_utils.print_header(title)
   local http_prefix = ntop.getHttpPrefix()
   local startup_epoch = ntop.getStartupEpoch()
 
+  local theme = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
+  
+  local dark_mode = false
+
+  if((theme == nil) or (theme == "")) then
+    dark_mode = false
+  end
+
+  if (theme == "dark") then
+    dark_mode = true
+  end
+
   local page_title = i18n("welcome_to", { product=info.product })
   if title ~= nil then
     page_title = info.product .. " - " .. title
@@ -155,17 +167,21 @@ function page_utils.print_header(title)
     <link href="]] print(http_prefix) print[[/css/rickshaw.css" rel="stylesheet">
     <!-- http://kamisama.github.io/cal-heatmap/v2/ -->
     <link href="]] print(http_prefix) print[[/css/cal-heatmap.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">]]
+    
+    if (dark_mode) then
+      print[[<link href="]] print(http_prefix) print[[/css/dark-mode.css" rel="stylesheet">]]
+    end
 
+    print[[
     <!--[if lt IE 9]>
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
-    <link href="]] print(http_prefix) print[[/css/dark-mode.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/ntopng.css?]] print(startup_epoch) print[[" rel="stylesheet">
-
+    
     <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
-
+    
     <script type="text/javascript" src="]] print(http_prefix) print[[/popper-1.12.9/js/popper.js?]] print(startup_epoch) print[[" crossorigin="anonymous"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/js/bootstrap.min.js?]] print(startup_epoch) print[[" integrity="sha384-3qaqj0lc6sV/qpzrc1N5DC6i1VRn/HyX4qdPaiEFbn54VjQBEU341pvjz7Dv3n6P" crossorigin="anonymous"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(startup_epoch) print[["></script>
@@ -173,9 +189,9 @@ function page_utils.print_header(title)
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/tempusdominus/js/tempusdominus-bootstrap-4.js?]] print(startup_epoch) print[["></script>
   </head>
-<body>
+  <body>
 
-]]
+  ]]
 end
 
 -- #################################
