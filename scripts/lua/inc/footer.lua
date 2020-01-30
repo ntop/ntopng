@@ -78,11 +78,11 @@ end
       print [[
         </div>
 
-        <div class="col-4">
+        <div class="col-4 text-right">
          <small>
-           <div style="width: 45em" class="text-right">
+           <div class="text-right">
             <i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock' style="width: 8em"></div> | ]]
-           print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime' style="width: 4em"></div>
+           print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime' style="width: 2em"></div>
          </div>
         </small>
         </div>
