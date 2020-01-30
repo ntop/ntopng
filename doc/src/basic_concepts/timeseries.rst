@@ -71,6 +71,15 @@ get more detailed historical data. This can be configured from the
   new data being rejected, it's necessary to set `max-values-per-tag = 0` in the
   InfluxDB configuration file, usually located at `/etc/influxdb/influxdb.conf`
 
+.. warning::
+
+  In order to avoid "max-series-per-database limit exceeded" errors with InfluxDB leading to
+  new data being rejected, it's necessary to set `max-series-per-database = 0` in the
+  InfluxDB configuration file, usually located at `/etc/influxdb/influxdb.conf`. Please note
+  that an high cardinality of timeseries may lead to writes/reads performance degradation.
+  You can reduce the cardinality by disabling some timeseries and decreasing the maximum
+  timeseries retention time.
+
 .. note::
 
   It is possible to review the current InfluxDB storage size used by ntopng from the
