@@ -2102,8 +2102,13 @@ function flushAlertsData()
    end)
 
    if(verbose) then io.write("[Alerts] Flushing Redis configuration...\n") end
-   deleteCachePattern("ntopng.prefs.*alert*")
    deleteCachePattern("ntopng.alerts.*")
+   deleteCachePattern("ntopng.prefs.alerts.*")
+
+   -- Avoid using 'alert' instead of 'alerts' if we do not want to touch user scripts configurations
+   -- as it also deletes ntopng.prefs.plugins_consts_utils.assigned_ids.const_type_alert and others
+   deleteCachePattern("ntopng.prefs.*alerts*")
+
    alerts_api.purgeAlertsPrefs()
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 
