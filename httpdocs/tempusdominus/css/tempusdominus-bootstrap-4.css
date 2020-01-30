@@ -20,7 +20,7 @@
     display: block;
     margin: 2px 0;
     padding: 4px;
-    width: 14rem; }
+    width: auto; }
     @media (min-width: 576px) {
       .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {
         width: 38em; } }
