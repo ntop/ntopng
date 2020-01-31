@@ -3,6 +3,11 @@ html, body {
   color: #eee;
 }
 
+svg {
+  background-color: #121212 !important;
+  color: #eee;
+}
+
 a,.btn-link {
   color: #ff8a26;
 }
@@ -103,7 +108,7 @@ table.tablesorter thead tr th,
 table.tablesorter tfoot tr th {
   background-color: #2c2c2c !important;
 }
-[data-theme="dark"]table.tablesorter tbody td {
+table.tablesorter tbody td {
   background-color: #121212 !important;
   color: #e2e2e2 !important;
 }
@@ -173,8 +178,9 @@ table.tablesorter tfoot tr th {
 }
 
 .form-control {
-    background-color: #181818;
-    border: 1px solid #3c3c3c;
+  color: #adadad;
+  background-color: #181818;
+  border: 1px solid #3c3c3c;
 }
 .form-control:focus {
     border-color: #f39f55;
@@ -191,4 +197,12 @@ table.tablesorter tfoot tr th {
 .form-signin {
     background-color: #242424 !important;
     border: 1px solid #3c3c3c !important;
+}
+
+.pie-chart circle {
+  fill: #121212 !important;
+}
+text, g text.tick {
+  fill: #eee;
+  text-shadow: none;
 }
