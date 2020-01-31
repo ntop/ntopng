@@ -683,7 +683,7 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   struct sockaddr_in sin;
   char msg[1024];
   u_int16_t ssdp_port = htons(1900);
-  struct timeval tv = { (time_t)timeout /* sec */, 0 };
+  struct timeval tv;
   fd_set fdset;
 
   char *ifname  = iface->altDiscoverableName();
@@ -696,7 +696,10 @@ void NetworkDiscovery::discover(lua_State* vm, u_int timeout) {
   if(udp_sock == -1) return;
 
   if(timeout < 1) timeout = 1;
-
+	
+  tv.tv_sec = timeout;
+  tv.tv_usec = 0;
+	
   /* SSDP */
   sin.sin_addr.s_addr = inet_addr("239.255.255.250"), sin.sin_family = AF_INET, sin.sin_port = ssdp_port;
 
