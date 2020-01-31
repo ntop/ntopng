@@ -79,7 +79,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
 
 NetworkDiscovery::~NetworkDiscovery() {
   if(pd)             pcap_close(pd);
-  if(udp_sock != -1) close(udp_sock);
+  if(udp_sock != -1) closesocket(udp_sock);
 
   if(has_bpf_filter) pcap_freecode(&fcode);
 }
