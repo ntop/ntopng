@@ -3594,9 +3594,11 @@ local lang = {
     },
   },
   ["traffic_page"] = {
+    ["client_flows_distribution"] = "Client Flows: Duration/Frequency Distribution",
     ["l4_proto_overview"] = "Protocol Overview",
     ["no_traffic_observed_message"] = "No traffic has been observed for the specified host",
     ["rcvd"] = "Rcvd",
+    ["server_flows_distribution"] = "Server Flows: Duration/Frequency Distribution",
   },
   ["traffic_profiles"] = {
     ["advanced_filter_examples"] = "Advanced Filters Examples",
