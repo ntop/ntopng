@@ -8,6 +8,10 @@ svg {
   color: #eee;
 }
 
+#ntop-logo > svg, svg.peity {
+  background: none;
+}
+
 a,.btn-link {
   color: #ff8a26;
 }
@@ -178,7 +182,7 @@ table.tablesorter tbody td {
 }
 
 .form-control {
-  color: #adadad;
+  color: #d1d1d1;
   background-color: #181818;
   border: 1px solid #3c3c3c;
 }
