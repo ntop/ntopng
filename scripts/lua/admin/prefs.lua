@@ -596,13 +596,13 @@ function printGUI()
 
   -- ###################### 
   
-  local t_labels = {i18n("light"), i18n("dark")}
-  local t_values = {"light", "dark"}
+  local t_labels = {i18n("default"), i18n("light"), i18n("dark")}
+  local t_values = {"default", "light", "dark"}
   local label = "toggle_theme"
 
   multipleTableButtonPrefs(subpage_active.entries[label].title,
 			   subpage_active.entries[label].description,
-			   t_labels, t_values, "light", "primary",
+			   t_labels, t_values, "default", "primary",
 			   label, "ntopng.prefs.theme")
 
   -- ######################

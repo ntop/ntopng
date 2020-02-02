@@ -41,6 +41,7 @@ local lang = {
   ["date_from"] = "Begin Date/Time:",
   ["date_to"] = "End Date/Time:",
   ["day"] = "Day",
+  ["default"] = "Default",
   ["define"] = "Define",
   ["delete"] = "Delete",
   ["description"] = "Description",
