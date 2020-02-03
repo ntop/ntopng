@@ -85,18 +85,8 @@ void LocalHost::initialize() {
 
   PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: local_host_cache", 16);
   if(ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
-    /* First try to deserialize with the mac based key */
-    is_in_broadcast_domain = true;
-
-    if(!deserializeFromRedis()) {
+    if(!deserializeFromRedis())
       deleteRedisSerialization();
-
-      /* Deserialize by IP */
-      is_in_broadcast_domain = false;
-
-      if(!deserializeFromRedis())
-        deleteRedisSerialization();
-    }
   }
   PROFILING_SUB_SECTION_EXIT(iface, 16);
 
@@ -164,8 +154,6 @@ void LocalHost::deserialize(json_object *o) {
 
   GenericHashEntry::deserialize(o);
   if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "broadcastDomainHost", &obj) && json_object_get_boolean(obj))
-    setBroadcastDomainHost();
 
   if(json_object_object_get_ex(o, "os_id", &obj))
     setOS((OperatingSystem)json_object_get_int(obj));
