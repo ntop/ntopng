@@ -2075,7 +2075,7 @@ char* Ntop::getValidPath(char *__path) {
 #ifdef WIN32
   const char *install_dir = (const char *)get_install_dir();
 #endif
-  int has_drive_colon = 0;
+  boolean has_drive_colon = 0;
 
   if(strncmp(__path, "./", 2) == 0) {
     snprintf(_path, sizeof(_path), "%s/%s", startup_dir, &__path[2]);
