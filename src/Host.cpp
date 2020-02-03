@@ -1038,7 +1038,7 @@ void Host::decNumFlows(time_t t, bool as_client, Host *peer, Flow *f) {
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
 
-    clientDurationBin.incDuration(f->get_duration());
+    serverDurationBin.incDuration(f->get_duration());
   }
 
   stats->decNumFlows(as_client, peer);

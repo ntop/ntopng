@@ -30,6 +30,7 @@ else
    elseif(mode == "server_duration") then
       bins = host.bins.server.duration
       postfix = " sec"
+      -- print((host["flows.as_server"]-host["active_flows.as_server"]).."\n")
    elseif(mode == "client_frequency") then
       bins = host.bins.client.frequency
       postfix = " sec"
