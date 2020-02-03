@@ -357,6 +357,8 @@ using namespace std;
 #include "PortContactStats.h"
 #include "HostScore.h"
 #include "Bin.h"
+#include "FlowDurationBin.h"
+#include "NewFlowFrequencyBin.h"
 #include "Host.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

@@ -19,37 +19,24 @@
  *
  */
 
-#ifndef _BIN_H_
-#define _BIN_H_
+#ifndef _NEW_FLOW_FREQUENCY_BIN_H_
+#define _NEW_FLOW_FREQUENCY_BIN_H_
 
 #include "ntop_includes.h"
 
-/* #define BIN_DEBUG 1 */
+class NewFlowFrequencyBin : public Bin {
+  u_int32_t lastFlowCreationEpoch;
 
-/* ******************************* */
+ public:
+  NewFlowFrequencyBin() { lastFlowCreationEpoch = 0; }
 
-#define MAX_NUM_BINS      8
-#define BIN_MASK          (MAX_NUM_BINS-1)
+  inline void incFrequency(u_int32_t epoch) {
+    if(lastFlowCreationEpoch != 0) {
+      incBin(epoch - lastFlowCreationEpoch);
+    }
 
-class Bin {
- private:
-  u_int32_t bins[MAX_NUM_BINS];
-
-protected:
-  inline void incBin(u_int32_t value) {
-    if(value <= 1)        bins[0]++;
-    else if(value <= 3)   bins[1]++;
-    else if(value <= 5)   bins[2]++;
-    else if(value <= 10)  bins[3]++;
-    else if(value <= 30)  bins[4]++;
-    else if(value <= 60)  bins[5]++;
-    else if(value <= 300) bins[6]++;
-    else                  bins[7]++;
+    lastFlowCreationEpoch = epoch;
   }
-
-public:
-  Bin() { memset(bins, 0, sizeof(bins)); }
-  void lua(lua_State* vm, const char *bin_label) const;
 };
 
-#endif /* _BIN_H_ */
+#endif /* _NEW_FLOW_FREQUENCY_BIN_H_ */

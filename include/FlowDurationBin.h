@@ -19,37 +19,16 @@
  *
  */
 
-#ifndef _BIN_H_
-#define _BIN_H_
+#ifndef _FLOW_DURATION_BIN_H_
+#define _FLOW_DURATION_BIN_H_
 
 #include "ntop_includes.h"
 
-/* #define BIN_DEBUG 1 */
+class FlowDurationBin : public Bin {
+ public:
+  FlowDurationBin() { ; }
 
-/* ******************************* */
-
-#define MAX_NUM_BINS      8
-#define BIN_MASK          (MAX_NUM_BINS-1)
-
-class Bin {
- private:
-  u_int32_t bins[MAX_NUM_BINS];
-
-protected:
-  inline void incBin(u_int32_t value) {
-    if(value <= 1)        bins[0]++;
-    else if(value <= 3)   bins[1]++;
-    else if(value <= 5)   bins[2]++;
-    else if(value <= 10)  bins[3]++;
-    else if(value <= 30)  bins[4]++;
-    else if(value <= 60)  bins[5]++;
-    else if(value <= 300) bins[6]++;
-    else                  bins[7]++;
-  }
-
-public:
-  Bin() { memset(bins, 0, sizeof(bins)); }
-  void lua(lua_State* vm, const char *bin_label) const;
+  inline void incDuration(u_int32_t durationSec) { incBin(durationSec); }
 };
 
-#endif /* _BIN_H_ */
+#endif /* _FLOW_DURATION_BIN_H_ */
