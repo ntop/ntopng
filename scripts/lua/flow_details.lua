@@ -746,8 +746,8 @@ else
       print("<tr><td colspan=2>")
       cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
 
-      cli_name = shortHostName(getResolvedAddress(hostkey2hostinfo(flow["cli.ip"])))
-      srv_name = shortHostName(getResolvedAddress(hostkey2hostinfo(flow["srv.ip"])))
+      local cli_name = shortHostName(flowinfo2hostname(flow, "cli"))
+      local srv_name = shortHostName(flowinfo2hostname(flow, "srv"))
 
       if(flow["cli.port"] > 0) then
 	 cli_name = cli_name .. ":" .. flow["cli.port"]
