@@ -65,8 +65,9 @@ int pthread_join (pthread_t threadId, void **_value_ptr) {
 
 /* ************************************ */
 
-int pthread_mutex_init(pthread_mutex_t *mutex, char* notused) {
+int pthread_mutex_init(pthread_mutex_t *mutex, void* notused) {
   (*mutex) = CreateMutex(NULL, FALSE, NULL);
+  (void) notused;	
   return(0);
 }
 
