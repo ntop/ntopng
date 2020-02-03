@@ -354,6 +354,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 			   }
    )
 
+   -- tprint(host.bins)
 local macinfo = interface.getMacInfo(host["mac"])
 local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
    and (info["version.enterprise_edition"]) and host_has_snmp_location(host["mac"])
@@ -954,21 +955,69 @@ end
       print [[
 
       <table class="table table-bordered table-striped">
-      	<tr><th class="text-left">]] print(i18n("traffic_page.l4_proto_overview")) print[[</th><td colspan=5><div class="pie-chart" id="topApplicationProtocols"></div></td></tr>
+      	<tr><th colspan="2" class="text-left">]] print(i18n("traffic_page.l4_proto_overview"))
+        print[[</th><td colspan=4><div class="pie-chart" id="topApplicationProtocols"></div></td></tr>
+
+]]
+
+	if(host["flows.as_client"] > 0) then
+        print [[
+        	<tr><th colspan="2" class="text-left">]] print(i18n("traffic_page.client_flows_distribution")) print[[</th>
+                <td colspan=2><div class="pie-chart" id="flowsDistributionClientDuration"></div></td>
+                <td colspan=2><div class="pie-chart" id="flowsDistributionClientFrequency"></div></td>
+               </tr>
+        ]]
+	end
+
+		if(host["flows.as_server"] > 0) then
+        print [[
+        	<tr><th colspan="2" class="text-left">]] print(i18n("traffic_page.server_flows_distribution")) print[[</th>
+                <td colspan=2><div class="pie-chart" id="flowsDistributionServerDuration"></div></td>
+                <td colspan=2><div class="pie-chart" id="flowsDistributionServerFrequency"></div></td>
+               </tr>
+        ]]
+	end
+
+	print [[
 	</div>
 
         <script type='text/javascript'>
-	       window.onload=function() {
+          window.onload=function() {
 
-				   do_pie("#topApplicationProtocols", ']]
+  	   do_pie("#topApplicationProtocols", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+
+
+	if(host["flows.as_client"] > 0) then
+print [[
+  	   do_pie("#flowsDistributionClientDuration", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/get_host_flow_stats.lua', { mode: "client_duration", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
   print [[
-				}
+  	   do_pie("#flowsDistributionClientFrequency", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/get_host_flow_stats.lua', { mode: "client_frequency", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+	end
 
-	    </script><p>
+	
+	if(host["flows.as_server"] > 0) then
+print [[
+  	   do_pie("#flowsDistributionServerDuration", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/get_host_flow_stats.lua', { mode: "server_duration", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+  print [[
+
+  	   do_pie("#flowsDistributionServerFrequency", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/get_host_flow_stats.lua', { mode: "server_frequency", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+	end
+
+	print [[
+         }
+	 </script>
 	]]
-
+  
      print("<tr><th>"..i18n("protocol").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr>\n")
 
      for id, _ in ipairs(l4_keys) do

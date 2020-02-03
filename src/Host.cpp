@@ -689,8 +689,8 @@ void Host::lua_get_bins(lua_State* vm) const {
 
   lua_newtable(vm);
 
-  clientFrequencyBin.lua(vm);
-  clientDurationBin.lua(vm);
+  clientFrequencyBin.lua(vm, "frequency");
+  clientDurationBin.lua(vm, "duration");
 
   lua_pushstring(vm, "client");  
   lua_insert(vm, -2);
@@ -700,8 +700,8 @@ void Host::lua_get_bins(lua_State* vm) const {
 
   lua_newtable(vm);
 
-  serverFrequencyBin.lua(vm);
-  serverDurationBin.lua(vm);
+  serverFrequencyBin.lua(vm, "frequency");
+  serverDurationBin.lua(vm, "duration");
 
   lua_pushstring(vm, "server");
   lua_insert(vm, -2);

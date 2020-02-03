@@ -44,19 +44,21 @@ protected:
     else if(value <= 30)  bins[4]++;
     else if(value <= 60)  bins[5]++;
     else if(value <= 300) bins[6]++;
-    else                        bins[7]++;
+    else                  bins[7]++;
   }
 
 public:
   Bin() { memset(bins, 0, sizeof(bins)); }
 
-  void lua(lua_State* vm) const {
+  void lua(lua_State* vm, const char *bin_label) const {
     u_int32_t total, i;
-    
+
     lua_newtable(vm);
 
     for(i=0, total=0; i<MAX_NUM_BINS; i++)
       total += bins[i];
+
+    if(total == 0) total = 1;
 
     for(i=0; i<MAX_NUM_BINS; i++) {
       const char *label;
@@ -97,10 +99,10 @@ public:
 
       lua_push_float_table_entry(vm, label, (float)bins[i]/(float)total);
     }
-    
-    lua_pushstring(vm, "label");  
+
+    lua_pushstring(vm, bin_label);
     lua_insert(vm, -2);
-    lua_settable(vm, -3);        
+    lua_settable(vm, -3);
   }
 };
 
@@ -115,13 +117,13 @@ class FlowDurationBin : public Bin {
 
 class NewFlowFrequencyBin : public Bin {
   u_int32_t lastFlowCreationEpoch;
-  
+
  public:
   NewFlowFrequencyBin() { lastFlowCreationEpoch = 0; }
 
   inline void incFrequency(u_int32_t epoch) {
     if(lastFlowCreationEpoch != 0) {
-      incBin(epoch - lastFlowCreationEpoch);      
+      incBin(epoch - lastFlowCreationEpoch);
     }
 
     lastFlowCreationEpoch = epoch;
