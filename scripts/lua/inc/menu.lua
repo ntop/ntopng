@@ -63,8 +63,12 @@ end
 
 local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
 
-if((navbar_style == nil) or (navbar_style == "")) then
-      navbar_style = "light"
+if ((navbar_style == nil) or (navbar_style == "")) then
+   navbar_style = "light"
+end
+
+if (navbar_style == "default") then
+   navbar_style = "dark"
 end
 
 print('<div id="n-sidebar" class="bg-'.. navbar_style ..'" py-0 px-2">')

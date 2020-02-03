@@ -19,6 +19,23 @@ a:hover, .btn-link:hover {
   color: #f39f55;
 }
 
+.btn-light {
+  color: #eee;
+  background-color: #232323;
+  border-color: #272727;
+}
+.btn-light:hover {
+  color: #eee;
+  background-color: #333333;
+  border-color: #272727;
+}
+.btn-light:not(:disabled):not(.disabled).active, .btn-light:not(:disabled):not(.disabled):active, .show>.btn-light.dropdown-toggle {
+  color: #eee;
+  background-color: #333333;
+  border-color: #272727;
+}
+
+
 .bg-primary {
     background-color: #ff8a26 !important;
 }
