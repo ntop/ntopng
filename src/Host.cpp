@@ -186,6 +186,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   as = NULL, country = NULL;
   reloadHostBlacklist();
   is_dhcp_host = false;
+  is_in_broadcast_domain = false;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
   syn_flood_attacker_alert  = new AlertCounter();
@@ -351,7 +352,7 @@ void Host::lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_siz
   getResolvedName(buf, buf_size);
   if(buf[0]) lua_push_str_table_entry(vm, "resolved", buf);
 
-  if(cur_mac) {
+  if(isBroadcastDomainHost() && cur_mac) {
     cur_mac->getDHCPName(buf, buf_size);
     if(buf[0]) lua_push_str_table_entry(vm, "dhcp", buf);
   }
