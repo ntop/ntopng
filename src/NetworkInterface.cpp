@@ -7099,10 +7099,9 @@ bool NetworkInterface::isInDhcpRange(IpAddress *ip) {
 /* *************************************** */
 
 bool NetworkInterface::isLocalBroadcastDomainHost(Host * const h, bool is_inline_call) {
-  IpAddress *i = h->get_ip();
+  bool res = bcast_domains->isLocalBroadcastDomainHost(h, is_inline_call);
 
-  return(bcast_domains->isLocalBroadcastDomainHost(h, is_inline_call)
-	 || (ntop->getLoadInterfaceAddresses() && i->match(ntop->getLoadInterfaceAddresses())));
+  return res;
 }
 
 /* *************************************** */
