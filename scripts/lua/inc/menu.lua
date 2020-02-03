@@ -64,7 +64,7 @@ end
 local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
 
 if ((navbar_style == nil) or (navbar_style == "")) then
-   navbar_style = "light"
+   navbar_style = "default"
 end
 
 if (navbar_style == "default") then
