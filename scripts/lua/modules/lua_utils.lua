@@ -60,6 +60,7 @@ end
 
 -- ##############################################
 
+-- See also getHumanReadableInterfaceName
 function getInterfaceName(interface_id, windows_skip_description)
    if(interface_id == getSystemInterfaceId()) then
       return(getSystemInterfaceName())
@@ -2157,6 +2158,11 @@ function shortenCollapse(s, max_len)
 end
 
 function getHumanReadableInterfaceName(interface_name)
+   if tonumber(interface_name) ~= nil then
+      -- convert ID to name
+      interface_name = getInterfaceName(interface_name)
+   end
+
    local key = 'ntopng.prefs.'..interface_name..'.name'
    local custom_name = ntop.getCache(key)
 

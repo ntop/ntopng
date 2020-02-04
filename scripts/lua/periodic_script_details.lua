@@ -25,12 +25,12 @@ local internals_utils = require("internals_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.interface)
+page_utils.set_active_menu_entry(page_utils.menu_entries.interface, {ifname=getHumanReadableInterfaceName(ifId)})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local nav_url = ntop.getHttpPrefix().."/lua/periodic_script_details.lua?ifid="..ifId
-local title = i18n("internals.iface_periodic_scripts", {iface = getHumanReadableInterfaceName(getInterfaceName(ifId))})
+local title = i18n("internals.iface_periodic_scripts", {iface = getHumanReadableInterfaceName(ifId)})
 
 page_utils.print_navbar(title, nav_url,
 			{
