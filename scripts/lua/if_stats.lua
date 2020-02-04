@@ -164,7 +164,7 @@ if (isAdministrator()) then
    end
 end
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.interface, { ifname=if_name })
+page_utils.set_active_menu_entry(page_utils.menu_entries.interface, { ifname=getHumanReadableInterfaceName(if_name) })
 
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
 

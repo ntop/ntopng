@@ -2075,6 +2075,7 @@ char* Ntop::getValidPath(char *__path) {
 #ifdef WIN32
   const char *install_dir = (const char *)get_install_dir();
 #endif
+  bool has_drive_colon = 0;
 
   if(strncmp(__path, "./", 2) == 0) {
     snprintf(_path, sizeof(_path), "%s/%s", startup_dir, &__path[2]);
@@ -2086,7 +2087,11 @@ char* Ntop::getValidPath(char *__path) {
     }
   }
 
-  if((__path[0] == '/') || (__path[0] == '\\')) {
+#ifdef WIN32
+  has_drive_colon = (isalpha((int)__path[0]) && (__path[1] == ':' && (__path[2] == '\\' || __path[2] == '/')));
+#endif
+
+  if((__path[0] == '/') || (__path[0] == '\\') || has_drive_colon) {
     /* Absolute paths */
 
     if(stat(__path, &buf) == 0) {

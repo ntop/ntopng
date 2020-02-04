@@ -94,8 +94,6 @@ print([[
          <ul class="nav-side mb-4" id='sidebar'>
 ]])
 
-
-
 interface.select(ifname)
 local ifs = interface.getStats()
 local is_pcap_dump = interface.isPcapDumpInterface()
@@ -1029,6 +1027,7 @@ for round = 1, 2 do
    end
 end
 
+interface.select(ifs.id.."")
 
 print([[
          </ul>         
@@ -1037,7 +1036,7 @@ print([[
 
 -- ##############################################
 -- Up/Down info
-if not interface.isPcapDumpInterface() then
+if not is_pcap_dump then
 
    print([[
       <li class='nav-item w-10 mx-2'>
@@ -1178,9 +1177,6 @@ print([[
 ]])
 
 print([[<div class='p-md-4 extended p-xs-1 mt-5 p-sm-2' id='n-container'>]])
-
--- select the original interface back to prevent possible issues
-interface.select(ifname)
 
 if(dirs.workingdir == "/var/tmp/ntopng") then
    print('<div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
