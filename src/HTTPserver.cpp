@@ -124,7 +124,10 @@ bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *con
 /* ****************************************** */
 
 void HTTPserver::traceLogin(const char *user, bool authorized) {
-  ntop->getSystemInterface()->getAlertsQueue()->pushLoginTrace(user, authorized);
+  if(ntop->getSystemInterface()
+     /* Can be NULL during startup so check is necessary */
+     && ntop->getSystemInterface()->getAlertsQueue())
+    ntop->getSystemInterface()->getAlertsQueue()->pushLoginTrace(user, authorized);
 }
 
 /* ****************************************** */
