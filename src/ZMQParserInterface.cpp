@@ -743,13 +743,14 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
       /* This lookup should be optimized */
       u_int16_t app_protocol = ndpi_get_proto_by_name(get_ndpi_struct(), value->string);
       return (flow->l7_proto.app_protocol == app_protocol);
-    }
-    break;
+    } else
+      return false;
 
   case DNS_QUERY:
     if (value->string && flow->dns_query)
       return (strcmp(flow->dns_query, value->string) == 0);
-    break;
+    else
+      return false;
 
   case DNS_QUERY_TYPE:
     if (value->string) return (flow->dns_query_type == atoi(value->string));
@@ -758,17 +759,20 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
   case HTTP_URL:
     if (value->string && flow->http_url)
       return (strcmp(flow->http_url, value->string) == 0);
-    break;
+    else
+      return false;
 
   case HTTP_SITE:
     if (value->string && flow->http_site)
       return (strcmp(flow->http_site, value->string) == 0);
-    break;
+    else
+      return false;
 
   case SSL_SERVER_NAME:
     if (value->string && flow->tls_server_name)
       return (strcmp(flow->tls_server_name, value->string) == 0);
-    break;
+    else
+      return false;
 
   case NPROBE_IPV4_ADDRESS:
     return (flow->deviceIP == ntohl(inet_addr(value->string)));
