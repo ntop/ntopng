@@ -327,8 +327,11 @@ void ZMQCollectorInterface::collect_flows() {
 
 	last_msg_id = source_id_last_msg_id[source_id];
 
-	// ntop->getTrace()->traceEvent(TRACE_WARNING, "[subscriber_id: %u][message source: %u][msg_id: %u][last_msg_id: %u][lost: %i]", subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
-
+#ifdef ZMQ_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "[subscriber_id: %u][message source: %u][msg_id: %u][last_msg_id: %u][lost: %i]",
+				     subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
+#endif
+	
 	if(msg_id > 0) {
 	  if(msg_id < last_msg_id) ; /* Start over */
 	  else if(last_msg_id > 0) {
@@ -336,8 +339,11 @@ void ZMQCollectorInterface::collect_flows() {
 
 	    if(diff > 1) {
 	      recvStats.zmq_msg_drops += diff - 1;
+
+#ifdef ZMQ_DEBUG
 	      ntop->getTrace()->traceEvent(TRACE_INFO, "[msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
 					   msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
+#endif
 	    }
 	  }
 
@@ -350,7 +356,7 @@ void ZMQCollectorInterface::collect_flows() {
           If not successful the function shall return -1 and set errno to one of the values defined below.
 	*/
 	size = zmq_recv(items[subscriber_id].socket, payload, payload_len, 0);
-
+	
 	if(size > 0 && (u_int32_t)size > payload_len)
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
 				       "ZMQ message truncated? [size: %u][payload_len: %u]",
@@ -399,9 +405,11 @@ void ZMQCollectorInterface::collect_flows() {
 	  if(ntop->getPrefs()->get_zmq_encryption_pwd())
 	    Utils::xor_encdec((u_char*)uncompressed, uncompressed_len, (u_char*)ntop->getPrefs()->get_zmq_encryption_pwd());
 
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[url: %s]", h->url);
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [msg_id=%u][url: %s]", uncompressed, msg_id, h->url);
-
+	  if(false) {
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[url: %s]", h->url);
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [msg_id=%u][url: %s]", uncompressed, msg_id, h->url);
+	  }
+	  
           switch(h->url[0]) {
           case 'e': /* event */
             recvStats.num_events++;

@@ -50,6 +50,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   now = time(NULL);
   now_tv.tv_sec = now;
 
+  // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s()", __FUNCTION__);
+  
   if(unlikely(ntop->getPrefs()->get_num_simulated_ips())) {
     u_int32_t num_sim_ips = ntop->getPrefs()->get_num_simulated_ips();
     u_int32_t base_ip = 167772161; /* 10.0.0.1 */
