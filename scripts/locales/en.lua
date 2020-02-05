@@ -1191,9 +1191,11 @@ local lang = {
     ["snmp_devname"] = "SNMP Device Name",
     ["snmp_location"] = "SNMP Location",
     ["snmp_ratio"] = "Flow/SNMP Ratio",
+    ["snmp_no_device_found"] = "No matching SNMP device found",
     ["snmp_ratio_descr"] = "The Flow/SNMP Ratio is calculated by dividing the total interface traffic obtained using flows, by the total traffic of the same interface read via SNMP. As in flow-based analysis non-IP and layer 2 headers are not accounted, <br>typical ratio values are in the 0.8..0.9 range (i.e. 0.9 means that 90%% of the received traffic as observed via SNMP has been reported in flows).<br>Ratio is computed hourly only if the following conditions are met",
     ["this_page_contains_couters"] = "This page contains interface counters as they have been collected via sFlow. If SNMP is configured, you can also see the <A HREF=\"%{url}\">SNMP view</A> of this device",
     ["timeseries_descr"] = "Flow devices timeseries can be enabled from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>. Few minutes are necessary to see the first data points",
+    ["note_snmp_device"] = "SNMP-related information is only shown when an SNMP device with the same IP of the Flow Exporter is found among the <a href=\"%{url}\">SNMP devices</a>.",
   },
   ["flow_fields_description"] = {
     ["appl_latency_ms"] = "Application latency (msec), a.k.a. server response time",
