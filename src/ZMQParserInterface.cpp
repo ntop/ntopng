@@ -1402,8 +1402,6 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payloa
   ndpi_deserializer deserializer;
   ndpi_serialization_type kt;
   int rc;
-
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", __FUNCTION__);
   
   rc = ndpi_init_deserializer_buf(&deserializer, (u_int8_t *) payload, payload_size);
 
