@@ -169,11 +169,6 @@ class NetworkInterface : public AlertableEntity {
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
   ThroughputStats bytes_thpt, pkts_thpt;
-
-  /* Frequent Items */
-  FrequentTrafficItems *frequentProtocols;
-  FrequentTrafficItems *frequentMacs;
-  struct timeval last_frequent_reset;
   struct timeval last_periodic_stats_update;
 
   /* Mac */
@@ -744,13 +739,9 @@ class NetworkInterface : public AlertableEntity {
     if(mdns) mdns->fetchResolveResponses(vm, timeout_sec);
   }
 
-  void topProtocolsAdd(u_int16_t pool_id, u_int16_t protocol, u_int32_t bytes);
-  inline void luaTopPoolsProtos(lua_State *vm) { frequentProtocols->luaTopPoolsProtocols(vm); }
-  void topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes);
   inline bool isSubInterface()                { return(is_dynamic_interface);            };
   inline void setSubInterface()               { is_dynamic_interface = true;             };
   bool isLocalBroadcastDomainHost(Host * const h, bool is_inline_call);
-  inline void luaTopMacsProtos(lua_State *vm) { frequentMacs->luaTopMacsProtocols(vm); }
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }
   inline void incPoolNumHosts(u_int16_t id, bool is_inline_call) {

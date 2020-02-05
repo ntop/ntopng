@@ -276,10 +276,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
 
-  gettimeofday(&last_frequent_reset, NULL);
-  memcpy(&last_periodic_stats_update, &last_frequent_reset, sizeof(last_periodic_stats_update));
-  frequentMacs = new FrequentTrafficItems(5);
-  frequentProtocols = new FrequentTrafficItems(5);
+  gettimeofday(&last_periodic_stats_update, NULL);
   num_live_captures = 0, num_dropped_alerts = 0;
   memset(live_captures, 0, sizeof(live_captures));
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
@@ -587,9 +584,6 @@ NetworkInterface::~NetworkInterface() {
 
     flowHashing = NULL;
   }
-
-  delete frequentProtocols;
-  delete frequentMacs;
 
 #ifdef NTOPNG_PRO
   if(policer)               delete(policer);
@@ -2608,8 +2602,6 @@ void NetworkInterface::periodicStatsUpdate() {
   pkts_thpt.updateStats(&tv, getNumPackets());
   ethStats.updateStats(&tv);
   ndpiStats->updateStats(&tv);
-
-  topItemsCommit(&tv);
 
 #ifdef NTOPNG_PRO
   if(is_aggregated_flows_dump_ready()) 
@@ -6578,35 +6570,6 @@ int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
     rv = CONST_LUA_ERROR;
 
   return rv;
-}
-
-/* *************************************** */
-
-void NetworkInterface::topItemsCommit(const struct timeval *tv) {
-  float tdiff_msec = ((float)(tv->tv_sec-last_frequent_reset.tv_sec)*1000)+((tv->tv_usec-last_frequent_reset.tv_usec)/(float)1000);
-
-  frequentProtocols->reset(tdiff_msec);
-  frequentMacs->reset(tdiff_msec);
-
-  last_frequent_reset = *tv;
-}
-
-/* *************************************** */
-
-void NetworkInterface::topProtocolsAdd(u_int16_t pool_id, u_int16_t protocol, u_int32_t bytes) {
-  if((bytes > 0) && (pool_id != 0)) {
-    // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
-    frequentProtocols->addPoolProtocol(pool_id, protocol, bytes);
-  }
-}
-
-/* *************************************** */
-
-void NetworkInterface::topMacsAdd(Mac *mac, u_int16_t protocol, u_int32_t bytes) {
-  if((bytes > 0) && (! mac->isSpecialMac()) && (mac->locate() == located_on_lan_interface)) {
-    // frequentProtocols->addPoolProtocol(pool_id, proto->master_protocol, bytes);
-    frequentMacs->addMacProtocol(mac->get_mac(), protocol, bytes);
-  }
 }
 
 /* *************************************** */

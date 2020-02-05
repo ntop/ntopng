@@ -304,10 +304,9 @@ class Flow : public GenericHashEntry {
   bool isPassVerdict() const;
   inline void setConntrackMarker(u_int32_t marker) 	{ this->marker = marker; }
   inline u_int32_t getConntrackMarker() 		{ return(marker); }
+  void incFlowDroppedCounters();
 #endif
   void setDropVerdict();
-  void incFlowDroppedCounters();
-
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);
   u_int32_t get_uid(bool client) const;

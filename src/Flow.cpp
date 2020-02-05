@@ -398,7 +398,6 @@ void Flow::processDetectedProtocol() {
     protocol_processed = true;
     break;
 
-    /* No break here !*/
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(ndpiFlow->host_server_name[0] != '\0') {
@@ -410,11 +409,13 @@ void Flow::processDetectedProtocol() {
       if((doublecol = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter)) != NULL)
 	doublecol[0] = '\0';
 
-      if(srv_host && (ndpiFlow->protos.http.detected_os[0] != '\0') && cli_host)
-	cli_host->inlineSetOSDetail((char*)ndpiFlow->protos.http.detected_os);
+      if(cli_host) {
+	if(ndpiFlow->protos.http.detected_os[0] != '\0')
+	  cli_host->inlineSetOSDetail((char*)ndpiFlow->protos.http.detected_os);
 
-      if(cli_host && cli_host->isLocalHost())
-	cli_host->incrVisitedWebSite(host_server_name);
+	if(cli_host->isLocalHost())
+	  cli_host->incrVisitedWebSite(host_server_name);
+      }
     }
     break;
   } /* switch */
@@ -966,6 +967,7 @@ void Flow::setDropVerdict() {
 
 /* *************************************** */
 
+#ifdef HAVE_NEDGE
 void Flow::incFlowDroppedCounters() {
   if(!flow_dropped_counts_increased) {
     if(cli_host) {
@@ -991,6 +993,7 @@ void Flow::incFlowDroppedCounters() {
     flow_dropped_counts_increased = true;
   }
 }
+#endif
 
 /* *************************************** */
 
@@ -1248,7 +1251,6 @@ void Flow::periodic_stats_update(void *user_data) {
   u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
   u_int64_t diff_pkts  = diff_sent_packets + diff_rcvd_packets;
   
-  int16_t stats_protocol; /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
   Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
   Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
 
@@ -1327,8 +1329,6 @@ void Flow::periodic_stats_update(void *user_data) {
     update_flow_port_stats = false;
   }
 
-  stats_protocol = getStatsProtocol();
-
   hosts_periodic_stats_update(getInterface(), cli_host, srv_host, &partial, first_partial, tv);
 
   if(cli_host && srv_host) {
@@ -1394,19 +1394,6 @@ void Flow::periodic_stats_update(void *user_data) {
       float goodput_bytes_msec_cli2srv = ((float)(diff_sent_goodput_bytes*1000))/tdiff_msec;
       float goodput_bytes_msec_srv2cli = ((float)(diff_rcvd_goodput_bytes*1000))/tdiff_msec;
       float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
-
-      if(isDetectionCompleted() && cli_host && srv_host) {
-	iface->topProtocolsAdd(cli_host->get_host_pool(), stats_protocol, diff_bytes);
-
-	if(cli_host->get_host_pool() != srv_host->get_host_pool())
-	  iface->topProtocolsAdd(srv_host->get_host_pool(), stats_protocol, diff_bytes);
-
-	if(cli_mac)
-	  iface->topMacsAdd(cli_mac, stats_protocol, diff_bytes);
-
-	if(srv_mac)
-	  iface->topMacsAdd(srv_mac, stats_protocol, diff_bytes);
-      }
 
       /* Just to be safe */
       if(bytes_msec < 0)                 bytes_msec                 = 0;

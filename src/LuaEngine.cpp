@@ -6543,30 +6543,6 @@ static int ntop_find_mac_pool(lua_State *vm) {
 
 /* *******************************************/
 
-static int ntop_get_top_pools_protos(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(ntop_interface) {
-    ntop_interface->luaTopPoolsProtos(vm);
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
-}
-
-/* *******************************************/
-
-static int ntop_get_top_macs_protos(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(ntop_interface) {
-    ntop_interface->luaTopMacsProtos(vm);
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
-}
-
-/* *******************************************/
-
 #ifdef HAVE_NEDGE
 
 static int ntop_reload_l7_rules(lua_State *vm) {
@@ -11256,7 +11232,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMacInfo",                       ntop_get_interface_mac_info  },
   { "getMacHosts",                      ntop_get_interface_mac_hosts },
   { "getMacManufacturers",              ntop_get_interface_macs_manufacturers },
-  { "getTopMacsProtos",                 ntop_get_top_macs_protos },
   { "setMacDeviceType",                 ntop_set_mac_device_type },
   { "getMacDeviceTypes",                ntop_get_mac_device_types },
 
@@ -11277,7 +11252,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadHostPools",                  ntop_reload_host_pools                },
   { "findMemberPool",                   ntop_find_member_pool                 },
   { "findMacPool",                      ntop_find_mac_pool                    },
-  { "getTopPoolsProtos",                ntop_get_top_pools_protos             },
   { "getHostPoolsInfo",                 ntop_get_host_pools_info              },
 
   /* InfluxDB */
