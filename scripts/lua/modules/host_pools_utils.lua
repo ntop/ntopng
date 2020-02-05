@@ -124,6 +124,27 @@ function host_pools_utils.exportJSON(ifid)
   return pools
 end
 
+function host_pools_utils.importJSON(pools, ifid)
+  local existing_pools = host_pools_utils.getPoolsList(ifid)
+
+  -- Import pools (unless they are already present, by name)
+  for _,pool in pairs(pools) do
+    local already_present = false
+
+    for k,existing_pool in pairs(existing_pools) do
+      if pool.name == existing_pool.name then
+        already_present = true
+      end
+    end
+
+    if not already_present then
+      host_pools_utils.createPool(ifid, pool.id, pool.name, pool.children_safe,
+        pool.enforce_quotas_per_pool_member, pool. enforce_shapers_per_pool_member,
+        true)
+    end
+  end
+end
+
 --------------------------------------------------------------------------------
 
 function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
