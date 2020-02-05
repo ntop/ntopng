@@ -61,6 +61,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   unlink(filePath);
   sprintf(&filePath[base_offset], "%s", "alerts_v15.db");
   unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v16.db");
+  unlink(filePath);
   filePath[base_offset] = 0;
 
   /* open the newest */
@@ -118,7 +120,8 @@ int AlertsManager::openStore() {
 	   "alert_severity   INTEGER NOT NULL, "
 	   "alert_tstamp     INTEGER NOT NULL, "
 	   "alert_tstamp_end INTEGER DEFAULT NULL, "
-	   "alert_json       TEXT DEFAULT NULL"
+	   "alert_json       TEXT DEFAULT NULL, "
+	   "ip               VARBINARY(16) NOT NULL DEFAULT 0"
 	   ");"
 	   "CREATE INDEX IF NOT EXISTS t2i_type     ON %s(alert_type); "
 	   "CREATE INDEX IF NOT EXISTS t2i_subtype  ON %s(alert_subtype); "
@@ -167,6 +170,8 @@ int AlertsManager::openStore() {
 	   "srv_blacklisted  INTEGER NOT NULL DEFAULT 0, "
 	   "cli_localhost    INTEGER NOT NULL DEFAULT 0, "
 	   "srv_localhost    INTEGER NOT NULL DEFAULT 0, "
+	   "cli_ip           VARBINARY(16) NOT NULL DEFAULT 0, "
+	   "srv_ip           VARBINARY(16) NOT NULL DEFAULT 0, "
 	   "flow_status      INTEGER NOT NULL DEFAULT 0  "
 	   ");"
 	   "CREATE INDEX IF NOT EXISTS t3i_tstamp    ON %s(alert_tstamp); "
@@ -300,6 +305,8 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); ",
        ALERTS_MANAGER_TABLE_NAME);
 
+      // TODO alert_entity_value -> ip
+
       if(sqlite3_prepare_v2(db, query, -1,  &stmt, 0)
 	 || sqlite3_bind_int(stmt,   1,  granularity)
 	 || sqlite3_bind_int64(stmt, 2,  static_cast<long int>(tstart))
@@ -360,6 +367,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
   int64_t rc = 0;
   u_int64_t cur_rowid = (u_int64_t)-1, cur_counter;
   u_int64_t cur_cli2srv_bytes, cur_srv2cli_bytes, cur_cli2srv_packets, cur_srv2cli_packets = 0;
+  struct in6_addr cli_ip_raw, srv_ip_raw;
+  int family = AF_INET;
 
   *rowid = 0;
 
@@ -383,8 +392,10 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
       case LUA_TSTRING:
         if(!strcmp(key, "alert_json"))
           alert_json = lua_tostring(L, -1);
-        else if(!strcmp(key, "cli_addr"))
+        else if(!strcmp(key, "cli_addr")) {
           cli_ip = lua_tostring(L, -1);
+	  family = (strchr(cli_ip, ':') != NULL) ? AF_INET6 : AF_INET;
+	}
         else if(!strcmp(key, "srv_addr"))
           srv_ip = lua_tostring(L, -1);
         else if(!strcmp(key, "cli_country"))
@@ -545,8 +556,10 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
 	     "cli2srv_bytes, srv2cli_bytes, "
 	     "cli2srv_packets, srv2cli_packets, "
 	     "cli_blacklisted, srv_blacklisted, "
-	     "cli_localhost, srv_localhost, flow_status) "
-	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	     "cli_localhost, srv_localhost, "
+	     "cli_ip, srv_ip, "
+	     "flow_status) "
+	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)) {
@@ -554,6 +567,16 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
       rc = -1;
       goto out;
     }
+
+    memset(&cli_ip_raw, 0, sizeof(cli_ip_raw));
+    memset(&srv_ip_raw, 0, sizeof(srv_ip_raw));
+
+    /* NOTE: IPv4 addresses are mapped into the IPv6 address space */
+    if(cli_ip && cli_ip[0])
+      inet_pton(family, cli_ip, (family == AF_INET6) ? (void*)&cli_ip_raw : ((char*)&cli_ip_raw)+12);
+
+    if(srv_ip && srv_ip[0])
+      inet_pton(family, srv_ip, (family == AF_INET6) ? (void*)&srv_ip_raw : ((char*)&srv_ip_raw)+12);
 
     if(sqlite3_bind_int64(stmt3,     1, static_cast<long int>(tstamp))
        || sqlite3_bind_int(stmt3,    2, (int)(alert_type))
@@ -581,7 +604,9 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
        || sqlite3_bind_int(stmt3,   24, srv_is_blacklisted ? 1 : 0)
        || sqlite3_bind_int(stmt3,   25, cli_is_localhost ? 1 : 0)
        || sqlite3_bind_int(stmt3,   26, srv_is_localhost ? 1 : 0)
-       || sqlite3_bind_int(stmt3,   27, (int) status)) {
+       || sqlite3_bind_blob(stmt3,  27, cli_ip_raw.s6_addr, sizeof(cli_ip_raw.s6_addr), SQLITE_STATIC)
+       || sqlite3_bind_blob(stmt3,  28, srv_ip_raw.s6_addr, sizeof(srv_ip_raw.s6_addr), SQLITE_STATIC)
+       || sqlite3_bind_int(stmt3,   29, (int) status)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
       rc = -1;
       goto out;
@@ -659,20 +684,32 @@ static int getAlertsCallback(void *data, int argc, char **argv, char **azColName
 /* ******************************************* */
 
 int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
-				  const char *filter, const char *group_by,
-				  const char *table_name, bool ignore_disabled) {
+				  const char *filter, const char *allowed_nets_filter,
+				  const char *group_by, const char *table_name,
+				  bool ignore_disabled) {
   if(!ntop->getPrefs()->are_alerts_disabled() || ignore_disabled) {
     alertsRetriever ar;
+    const char *where = filter;
+    char tmp_where[STORE_MANAGER_MAX_QUERY];
     char query[STORE_MANAGER_MAX_QUERY];
     char *zErrMsg = NULL;
     int rc;
+
+    if(allowed_nets_filter) {
+      if(filter && filter[0]) {
+	snprintf(tmp_where, sizeof(tmp_where), "((%s) AND (%s))",
+	  filter, allowed_nets_filter);
+	where = tmp_where;
+      } else
+	where = allowed_nets_filter;
+    }
 
     snprintf(query, sizeof(query),
 	     "%s FROM %s %s%s %s",
 	     selection,
 	     table_name ? table_name : "",
-	     (filter && filter[0]) ? "WHERE " : "",
-	     filter,
+	     (where && where[0]) ? "WHERE " : "",
+	     (where && where[0]) ? where : "",
 	     (group_by && group_by[0]) ? group_by : "");
 
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "queryAlertsRaw: %s", query);
@@ -703,3 +740,132 @@ int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
 }
 
 /* ******************************************* */
+
+static char* appendFilterString(char *filters, char *new_filter) {
+  if(!filters)
+    filters = strdup(new_filter);
+  else {
+    filters = (char*) realloc(filters, strlen(filters) + strlen(new_filter)
+      + sizeof(" OR "));
+
+    if(filters) {
+      strcat(filters, " OR ");
+      strcat(filters, new_filter);
+    }
+  }
+
+  return(filters);
+}
+
+/* ******************************************* */
+
+struct sqlite_filter_data {
+  bool match_all;
+  char *hosts_filter;
+  char *flows_filter;
+};
+
+static void allowed_nets_walker(patricia_node_t *node, void *data, void *user_data) {
+  static const char *hex = "0123456789ABCDEF";
+  struct sqlite_filter_data *filterdata = (sqlite_filter_data*)user_data;
+  struct in6_addr lower_addr;
+  struct in6_addr upper_addr;
+  int bitlen = node->prefix->bitlen;
+  char lower_hex[33], upper_hex[33];
+  char hosts_buf[512], flows_buf[512];
+
+  if(filterdata->match_all)
+    return;
+
+  if(bitlen == 0) {
+    /* Match all, no filter necessary */
+    filterdata->match_all = true;
+
+    if(filterdata->hosts_filter) {
+      free(filterdata->hosts_filter);
+      filterdata->flows_filter = NULL;
+    }
+
+    if(filterdata->flows_filter) {
+      free(filterdata->flows_filter);
+      filterdata->flows_filter = NULL;
+    }
+
+    return;
+  }
+
+  if(node->prefix->family == AF_INET) {
+    memset(&lower_addr, 0, sizeof(lower_addr)-4);
+    memcpy(((char*)&lower_addr) + 12, &node->prefix->add.sin.s_addr, 4);
+
+    bitlen += 96;
+  } else
+    memcpy(&lower_addr, &node->prefix->add.sin6, sizeof(lower_addr));
+
+  /* Calculate upper address */
+  memcpy(&upper_addr, &lower_addr, sizeof(upper_addr));
+
+  for(int i=0; i<(128 - bitlen); i++) {
+    u_char bit = 127-i;
+
+    upper_addr.s6_addr[bit / 8] |= (1 << (bit % 8));
+
+    /* Also normalize the lower address */
+    lower_addr.s6_addr[bit / 8] &= ~(1 << (bit % 8));
+  }
+
+  /* Convert to hex */
+  for(int i=0; i<16; i++) {
+    u_char lval = lower_addr.s6_addr[i];
+    u_char uval = upper_addr.s6_addr[i];
+
+    lower_hex[i*2]   = hex[(lval >> 4) & 0xF];
+    lower_hex[i*2+1] = hex[lval & 0xF];
+
+    upper_hex[i*2]   = hex[(uval >> 4) & 0xF];
+    upper_hex[i*2+1] = hex[uval & 0xF];
+  }
+
+  lower_hex[32] = '\0';
+  upper_hex[32] = '\0';
+
+#if 0
+    char lower_str[INET6_ADDRSTRLEN];
+    char upper_str[INET6_ADDRSTRLEN];
+
+    printf("\t%s (%s) - %s (%s)\n",
+      lower_hex, inet_ntop(AF_INET6, &lower_addr, lower_str, sizeof(lower_addr)),
+      upper_hex, inet_ntop(AF_INET6, &upper_addr, upper_str, sizeof(upper_addr)));
+#endif
+
+  /* Build filter strings */
+  snprintf(hosts_buf, sizeof(hosts_buf),
+	    "((ip >= x'%s') AND (ip <= x'%s'))",
+	    lower_hex, upper_hex);
+
+  snprintf(flows_buf, sizeof(flows_buf),
+	    "(((cli_ip >= x'%s') AND (cli_ip <= x'%s')) OR ((srv_ip >= x'%s') AND (srv_ip <= x'%s')))",
+	    lower_hex, upper_hex, lower_hex, upper_hex);
+
+  filterdata->hosts_filter = appendFilterString(filterdata->hosts_filter, hosts_buf);
+
+  filterdata->flows_filter = appendFilterString(filterdata->flows_filter, flows_buf);
+}
+
+/* ******************************************* */
+
+void AlertsManager::buildSqliteAllowedNetworksFilters(lua_State *vm) {
+  AddressTree *allowed_nets = getLuaVMUserdata(vm, allowedNets);
+
+  if(allowed_nets) {
+    struct sqlite_filter_data data;
+    memset(&data, 0, sizeof(data));
+
+    allowed_nets->walk(allowed_nets_walker, &data);
+
+    getLuaVMUservalue(vm, sqlite_hosts_filter) = data.hosts_filter;
+    getLuaVMUservalue(vm, sqlite_flows_filter) = data.flows_filter;
+  }
+
+  getLuaVMUservalue(vm, sqlite_filters_loaded) = true;
+}

@@ -574,6 +574,8 @@ class FlowAlertCheckLuaEngine;
 
 struct ntopngLuaContext {
   char *allowed_ifname, *user, *group;
+  char *sqlite_hosts_filter, *sqlite_flows_filter;
+  bool sqlite_filters_loaded;
   void *zmq_context, *zmq_subscriber;
   struct mg_connection *conn;
   AddressTree *allowedNets;

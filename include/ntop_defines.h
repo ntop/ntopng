@@ -845,7 +845,7 @@
 #define NUM_NSERIES                          (NSERIES_ID_5_MINUTES+1)
 
 // sqlite (StoreManager and subclasses) related fields
-#define STORE_MANAGER_MAX_QUERY              1024
+#define STORE_MANAGER_MAX_QUERY              2048
 #define STORE_MANAGER_MAX_KEY                20
 #define DEFAULT_GLOBAL_DNS                   ""
 #define DEFAULT_SAFE_SEARCH_DNS              "208.67.222.123" /* OpenDNS Family Shield */
@@ -854,7 +854,7 @@
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v16.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v17.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"

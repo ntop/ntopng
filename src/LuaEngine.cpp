@@ -156,6 +156,12 @@ LuaEngine::~LuaEngine() {
       if(ctx->flow_acle)
         delete ctx->flow_acle;
 
+      if(ctx->sqlite_hosts_filter)
+	free(ctx->sqlite_hosts_filter);
+
+      if(ctx->sqlite_flows_filter)
+	free(ctx->sqlite_flows_filter);
+
       free(ctx);
     }
 
@@ -386,6 +392,26 @@ static AddressTree* get_allowed_nets(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   return(ptree);
+}
+
+/* ****************************************** */
+
+static char *getAllowedNetworksHostsSqlFilter(lua_State* vm) {
+  /* Lazy initialization */
+  if(!getLuaVMUservalue(vm, sqlite_filters_loaded))
+    AlertsManager::buildSqliteAllowedNetworksFilters(vm);
+
+  return(getLuaVMUserdata(vm, sqlite_hosts_filter));
+}
+
+/* ****************************************** */
+
+static char *getAllowedNetworksFlowsSqlFilter(lua_State* vm) {
+  /* Lazy initialization */
+  if(!getLuaVMUservalue(vm, sqlite_filters_loaded))
+    AlertsManager::buildSqliteAllowedNetworksFilters(vm);
+
+  return(getLuaVMUserdata(vm, sqlite_flows_filter));
 }
 
 /* ****************************************** */
@@ -10549,7 +10575,8 @@ static int ntop_interface_query_alerts_raw(lua_State* vm) {
   if(lua_type(vm, 4) == LUA_TBOOLEAN)
     ignore_disabled = lua_toboolean(vm, 4);
 
-  if(am->queryAlertsRaw(vm, selection, filter, group_by, ignore_disabled))
+  if(am->queryAlertsRaw(vm, selection, filter,
+            getAllowedNetworksHostsSqlFilter(vm), group_by, ignore_disabled))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -10583,7 +10610,8 @@ static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
   if(lua_type(vm, 4) == LUA_TBOOLEAN)
     ignore_disabled = lua_toboolean(vm, 4);
 
-  if(am->queryFlowAlertsRaw(vm, selection, filter, group_by, ignore_disabled))
+  if(am->queryFlowAlertsRaw(vm, selection, filter,
+            getAllowedNetworksFlowsSqlFilter(vm), group_by, ignore_disabled))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);

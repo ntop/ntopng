@@ -36,7 +36,8 @@ class AlertsManager : public StoreManager {
   void markForMakeRoom(bool on_flows);
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
-  int queryAlertsRaw(lua_State *vm, const char *selection, const char *filter, const char *group_by,
+  int queryAlertsRaw(lua_State *vm, const char *selection, const char *filter,
+            const char *allowed_nets_filter, const char *group_by,
             const char *table_name, bool ignore_disabled);
 
   /* private methods to check the goodness of submitted inputs and possible return the input database string */
@@ -57,14 +58,17 @@ class AlertsManager : public StoreManager {
       bool ignore_disabled = false, bool check_maximum = true);
 
   int storeFlowAlert(lua_State *L, int index, u_int64_t *rowid);
+  static void buildSqliteAllowedNetworksFilters(lua_State *vm);
 
   bool hasAlerts();
 
-  inline int queryAlertsRaw(lua_State *vm, const char *selection, const char *filter, const char *group_by, bool ignore_disabled) {
-    return queryAlertsRaw(vm, selection, filter, group_by, ALERTS_MANAGER_TABLE_NAME, ignore_disabled);
+  inline int queryAlertsRaw(lua_State *vm, const char *selection, const char *filter,
+            const char *allowed_nets_filter, const char *group_by, bool ignore_disabled) {
+    return queryAlertsRaw(vm, selection, filter, allowed_nets_filter, group_by, ALERTS_MANAGER_TABLE_NAME, ignore_disabled);
   };
-  inline int queryFlowAlertsRaw(lua_State *vm, const char *selection, const char *filter, const char *group_by, bool ignore_disabled) {
-    return queryAlertsRaw(vm, selection, filter, group_by, ALERTS_MANAGER_FLOWS_TABLE_NAME, ignore_disabled);
+  inline int queryFlowAlertsRaw(lua_State *vm, const char *selection, const char *filter,
+            const char *allowed_nets_filter, const char *group_by, bool ignore_disabled) {
+    return queryAlertsRaw(vm, selection, filter, allowed_nets_filter, group_by, ALERTS_MANAGER_FLOWS_TABLE_NAME, ignore_disabled);
   };
 };
 
