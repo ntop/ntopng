@@ -174,63 +174,57 @@ print [[
 
 <div class="panel-heading">
   <h3 class="panel-title"> ]] print(i18n("manage_data.export")) print[[ </h3>
+  <br>
 </div>
 
 <div class="panel-body">
-
   <div id="search_panel">
     <div class='container'>
       <form class="host_data_form" id="host_data_form_export" action="]] print(ntop.getHttpPrefix()) print[[/lua/do_export_data.lua" method="GET">
       <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
-    
+
        <div class="row">
-         <div class='col-md-1'>
-         </div>
-    
-         <div class='col-md-10'>
-           <b>]] print(i18n("manage_data.hosts")) print[[:</b>
-           <br>
-    
-           <div class="form-group form-inline">
-             <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
-               <label class="btn btn-secondary active">
-                 <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("manage_data.all_hosts")) print[[
-               </label>
-               <label class="btn btn-secondary">
-                 <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.local_hosts")) print[[
-               </label>
-               <label class="btn btn-secondary">
-                 <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.remote_hosts")) print[[
-               </label>
-               <label class="btn btn-secondary">
-                 <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.single")) print[[
-               </label>
-             </div>
-    
-             <div class="form-group has-feedback" style="margin-bottom:0;">
-               <input type="text" id="export_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24" disabled required/>
-             </div>
-    
-             <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="export_vlan" name="vlan" class="form-control" value="" disabled/>
-    
-           </div>
-         </div>
-    
-         <div class='col-md-1'>
-         </div>
-    
+	 <div class='col-md-3'>
+	   <div class="form-group">
+	     <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
+	       <label class="btn btn-secondary active">
+		 <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("manage_data.all_hosts")) print[[
+	       </label>
+	       <label class="btn btn-secondary">
+		 <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.local_hosts")) print[[
+	       </label>
+	       <label class="btn btn-secondary">
+		 <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.remote_hosts")) print[[
+	       </label>
+	       <label class="btn btn-secondary">
+		 <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.single")) print[[
+	       </label>
+	     </div>
+	   </div>
+	 </div>
+	 <div class='col-md-3'>
+	   <div class="form-group" style="margin-bottom:0;">
+	     <input type="text" id="export_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24" disabled required/>
+	   </div>
+	 </div>
+	 <div class='col-md-2'>
+	   <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="export_vlan" name="vlan" class="form-control" value="" disabled/>
+	 </div>
+	 <div class='col-md-2'>
+	 </div>
        </div>
-    
+     </div>
+
        <div class="row">
-         <div class='col-md-10'>
-           <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-         </div>
-    
-         <div class='col-md-2'>
-           <div class="btn-group btn-group-toggle float-right">
-             <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary float-right">
-           </div>
-         </div>
+	 <div class='col-md-10'>
+	   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+	 </div>
+
+	 <div class='col-md-2'>
+	   <div class="btn-group btn-group-toggle float-right">
+	     <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary float-right">
+	   </div>
+	 </div>
        </div>
       </form>
     </div>
@@ -257,61 +251,57 @@ print [[
 
 <div class="panel-heading">
   <h3 class="panel-title"> ]] print(i18n("manage_data.delete")) print[[ </h3>
+  <br>
 </div>
 
 <div class="panel-body">
-
   <div id="search_panel">
     <div class='container'>
 
       <form class="host_data_form" id="host_data_form_delete" method="POST">
       <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
-    
+
        <div class="row">
-         <div class='col-md-1'>
-         </div>
-    
-         <div class='col-md-10'>
-           <br>
-    
-           <div class="form-group form-inline">
-             <div class="btn-group btn-group-toggle invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
-               <label class="btn btn-secondary active">
-                 <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle" checked="checked">]] print(i18n("manage_data.single")) print[[
-               </label>
-             </div>
-    
-             <div class="form-group has-feedback" style="margin-bottom:0;">
-               <input type="text" id="delete_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24" required/>
-             </div>
-    
-             <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="delete_vlan" name="vlan" class="form-control" value=""/>
-    
-           </div>
-         </div>
-    
-         <div class='col-md-1'>
-         </div>
-    
+	 <div class='col-md-1'>
+	   <div class="form-group">
+	     <div class="btn-group btn-group-toggle invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
+	       <label class="btn btn-secondary active">
+		 <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle" checked="checked">]] print(i18n("manage_data.single")) print[[
+	       </label>
+	     </div>
+	   </div>
+	 </div>
+	 <div class='col-md-3'>
+	     <div class="form-group" style="margin-bottom:0;">
+	       <input type="text" id="delete_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24" required/>
+	     </div>
+	 </div>
+	 <div class='col-md-3'>
+	     <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="delete_vlan" name="vlan" class="form-control" value=""/>
+	   </div>
+
+
+	 <div class='col-md-5'>
+	 </div>
        </div>
-    
+	 </div>
        <div class="row">
-         <div class='col-md-10'>
-         </div>
-    
-         <div class='col-md-2'>
-           <div class="btn-group btn-group-toggle float-right">
-           </div>
-         </div>
+	 <div class='col-md-10'>
+	 </div>
+
+	 <div class='col-md-2'>
+	   <div class="btn-group btn-group-toggle float-right">
+	   </div>
+	 </div>
        </div>
-          <button class="btn btn-secondary" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
-        </form>
-    
   </div>
+	  <button class="btn btn-secondary" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
+	</form>
+
 </div>
 
 </section>
-]] 
+]]
 
 print[[<div>]]
 
@@ -323,9 +313,9 @@ print[[
 
 if num_inactive_interfaces > 0 then
    print[[
-        <form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
-          <button class="btn btn-secondary" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
-        </form>
+	<form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
+	  <button class="btn btn-secondary" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
+	</form>
 ]]
 end
 
