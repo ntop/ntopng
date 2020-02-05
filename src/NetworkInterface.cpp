@@ -702,12 +702,6 @@ bool NetworkInterface::is_aggregated_flows_dump_ready() const {
   return aggregated_flows_dump_updates >= aggregated_flows_dump_max_updates;
 }
 
-/* **************************************************** */
-
-void NetworkInterface::flushFlowDump() {
-  if(db) db->flush();
-}
-
 #endif
 
 /* **************************************************** */
@@ -2629,7 +2623,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if(db) {
     db->updateStats(&tv);
-    db->flush();
+    db->flushAggregatedFlows();
   }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
@@ -2736,6 +2730,9 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
       }
     }
   }
+
+  if(db)
+    db->flushFlows();
 
   if((update_end = time(NULL)) > deadline) {
     char date_buf[32];
@@ -5343,9 +5340,8 @@ void NetworkInterface::runShutdownTasks() {
      e.g., all hosts and all flows can be marked as idle */
   periodicStatsUpdate();
 
-#ifdef NTOPNG_PRO
-  flushFlowDump();
-#endif
+  if(db)
+    db->flushFlows();
 }
 
 /* **************************************************** */

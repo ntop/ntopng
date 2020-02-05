@@ -359,7 +359,6 @@ class NetworkInterface : public AlertableEntity {
   bool is_aggregated_flows_dump_ready() const;
   void inc_aggregated_flows_dump_updates();
   bool check_aggregated_flows_dump_ready(const struct timeval *tv) const;
-  void flushFlowDump();
 #endif
   void checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
   int dumpLocalHosts2redis(bool disable_purge);
