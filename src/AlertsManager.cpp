@@ -659,7 +659,8 @@ static int getAlertsCallback(void *data, int argc, char **argv, char **azColName
 /* ******************************************* */
 
 int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
-				  const char *clauses, const char *table_name, bool ignore_disabled) {
+				  const char *filter, const char *group_by,
+				  const char *table_name, bool ignore_disabled) {
   if(!ntop->getPrefs()->are_alerts_disabled() || ignore_disabled) {
     alertsRetriever ar;
     char query[STORE_MANAGER_MAX_QUERY];
@@ -667,10 +668,12 @@ int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
     int rc;
 
     snprintf(query, sizeof(query),
-	     "%s FROM %s %s ",
+	     "%s FROM %s %s%s %s",
 	     selection,
-	     table_name ? table_name : (char*)"",
-	     clauses ? clauses : (char*)"");
+	     table_name ? table_name : "",
+	     (filter && filter[0]) ? "WHERE " : "",
+	     filter,
+	     (group_by && group_by[0]) ? group_by : "");
 
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "queryAlertsRaw: %s", query);
 

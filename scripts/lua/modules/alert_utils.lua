@@ -58,6 +58,8 @@ function alertSeverityLabel(v, nohtml)
         return(string.format('<span class="badge %s">%s</span>', severity_info.label, title))
       end
    end
+
+   return "(unknown severity)"
 end
 
 function alertSeverity(v)
@@ -193,7 +195,7 @@ end
 -- #################################
 
 function performAlertsQuery(statement, what, opts, force_query, group_by)
-   local wargs = {"WHERE", "1=1"}
+   local wargs = {"1=1"}
    local oargs = {}
 
    if(group_by ~= nil) then
@@ -310,17 +312,16 @@ function performAlertsQuery(statement, what, opts, force_query, group_by)
    end
 
    local query = table.concat(wargs, " ")
+   group_by = table.concat(oargs, " ") .. group_by
    local res
 
-   query = query .. " " .. table.concat(oargs, " ") .. group_by
-
    -- Uncomment to debug the queries
-   --~ tprint(statement.." (from "..what..") "..query)
+   --tprint(statement.." (from "..what..") WHERE "..query .. " ".. group_by)
 
    if((what == "engaged") or (what == "historical")) then
-      res = interface.queryAlertsRaw(statement, query, force_query)
+      res = interface.queryAlertsRaw(statement, query, group_by, force_query)
    elseif what == "historical-flows" then
-      res = interface.queryFlowAlertsRaw(statement, query, force_query)
+      res = interface.queryFlowAlertsRaw(statement, query, group_by, force_query)
    else
       error("Invalid alert subject: "..what)
    end
@@ -1062,7 +1063,7 @@ function housekeepingAlertsMakeRoom(ifId)
    if ntop.getCache(k["entities"]) == "1" then
       ntop.delCache(k["entities"])
       local res = interface.queryAlertsRaw(
-					   "SELECT alert_entity, alert_entity_val, count(*) count",
+					   "SELECT alert_entity, alert_entity_val, count(*) count", "",
 					   "GROUP BY alert_entity, alert_entity_val HAVING COUNT >= "..max_num_alerts_per_entity) or {}
 
       for _, e in pairs(res) do
@@ -1071,21 +1072,21 @@ function housekeepingAlertsMakeRoom(ifId)
 	 -- tprint({e=e, total=e.count, to_keep=to_keep, to_delete=to_delete, to_delete_not_discounted=(e.count - max_num_alerts_per_entity)})
 	 local cleanup = interface.queryAlertsRaw(
 						  "DELETE",
-						  "WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
+						  "alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
 						     .." AND rowid NOT IN (SELECT rowid FROM alerts WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
-						     .." ORDER BY alert_tstamp DESC LIMIT "..to_keep..")", false)
+						     ,"ORDER BY alert_tstamp DESC LIMIT "..to_keep..")", false)
       end
    end
 
    if ntop.getCache(k["flows"]) == "1" then
       ntop.delCache(k["flows"])
-      local res = interface.queryFlowAlertsRaw("SELECT count(*) count", "WHERE 1=1") or {}
+      local res = interface.queryFlowAlertsRaw("SELECT count(*) count") or {}
       local count = tonumber(res[1].count)
       if count ~= nil and count >= max_num_flow_alerts then
 	 local to_keep = (max_num_flow_alerts * 0.8)
 	 to_keep = round(to_keep, 0)
 	 local cleanup = interface.queryFlowAlertsRaw("DELETE",
-						      "WHERE rowid NOT IN (SELECT rowid FROM flows_alerts ORDER BY alert_tstamp DESC LIMIT "..to_keep..")")
+						      "rowid NOT IN (SELECT rowid FROM flows_alerts ORDER BY alert_tstamp DESC LIMIT "..to_keep..")")
 	 -- tprint({total=count, to_delete=to_delete, cleanup=cleanup})
 	 -- tprint(cleanup)
 	 -- TODO: possibly raise a too many flow alerts

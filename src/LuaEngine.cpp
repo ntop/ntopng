@@ -10526,7 +10526,7 @@ static int ntop_interface_optimize_alerts(lua_State* vm) {
 static int ntop_interface_query_alerts_raw(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
-  char *selection = NULL, *clauses = NULL;
+  char *selection = NULL, *filter = NULL, *group_by = NULL;
   bool ignore_disabled = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -10539,13 +10539,17 @@ static int ntop_interface_query_alerts_raw(lua_State* vm) {
       return(CONST_LUA_PARAM_ERROR);
 
   if(lua_type(vm, 2) == LUA_TSTRING)
-    if((clauses = (char*)lua_tostring(vm, 2)) == NULL)
+    if((filter = (char*)lua_tostring(vm, 2)) == NULL)
       return(CONST_LUA_PARAM_ERROR);
 
-  if(lua_type(vm, 3) == LUA_TBOOLEAN)
-    ignore_disabled = lua_toboolean(vm, 3);
+  if(lua_type(vm, 3) == LUA_TSTRING)
+    if((group_by = (char*)lua_tostring(vm, 3)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
 
-  if(am->queryAlertsRaw(vm, selection, clauses, ignore_disabled))
+  if(lua_type(vm, 4) == LUA_TBOOLEAN)
+    ignore_disabled = lua_toboolean(vm, 4);
+
+  if(am->queryAlertsRaw(vm, selection, filter, group_by, ignore_disabled))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -10556,7 +10560,7 @@ static int ntop_interface_query_alerts_raw(lua_State* vm) {
 static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
-  char *selection = NULL, *clauses = NULL;
+  char *selection = NULL, *filter = NULL, *group_by = NULL;
   bool ignore_disabled = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -10569,13 +10573,17 @@ static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
       return(CONST_LUA_PARAM_ERROR);
 
   if(lua_type(vm, 2) == LUA_TSTRING)
-    if((clauses = (char*)lua_tostring(vm, 2)) == NULL)
+    if((filter = (char*)lua_tostring(vm, 2)) == NULL)
       return(CONST_LUA_PARAM_ERROR);
 
-  if(lua_type(vm, 3) == LUA_TBOOLEAN)
-    ignore_disabled = lua_toboolean(vm, 3);
+  if(lua_type(vm, 3) == LUA_TSTRING)
+    if((group_by = (char*)lua_tostring(vm, 3)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
 
-  if(am->queryFlowAlertsRaw(vm, selection, clauses, ignore_disabled))
+  if(lua_type(vm, 4) == LUA_TBOOLEAN)
+    ignore_disabled = lua_toboolean(vm, 4);
+
+  if(am->queryFlowAlertsRaw(vm, selection, filter, group_by, ignore_disabled))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);

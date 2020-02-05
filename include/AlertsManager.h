@@ -36,7 +36,8 @@ class AlertsManager : public StoreManager {
   void markForMakeRoom(bool on_flows);
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
-  int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name, bool ignore_disabled);
+  int queryAlertsRaw(lua_State *vm, const char *selection, const char *filter, const char *group_by,
+            const char *table_name, bool ignore_disabled);
 
   /* private methods to check the goodness of submitted inputs and possible return the input database string */
   bool isValidHost(Host *h, char *host_string, size_t host_string_len);
@@ -59,11 +60,11 @@ class AlertsManager : public StoreManager {
 
   bool hasAlerts();
 
-  inline int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, bool ignore_disabled) {
-    return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_TABLE_NAME, ignore_disabled);
+  inline int queryAlertsRaw(lua_State *vm, const char *selection, const char *filter, const char *group_by, bool ignore_disabled) {
+    return queryAlertsRaw(vm, selection, filter, group_by, ALERTS_MANAGER_TABLE_NAME, ignore_disabled);
   };
-  inline int queryFlowAlertsRaw(lua_State *vm, const char *selection, const char *clauses, bool ignore_disabled) {
-    return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_FLOWS_TABLE_NAME, ignore_disabled);
+  inline int queryFlowAlertsRaw(lua_State *vm, const char *selection, const char *filter, const char *group_by, bool ignore_disabled) {
+    return queryAlertsRaw(vm, selection, filter, group_by, ALERTS_MANAGER_FLOWS_TABLE_NAME, ignore_disabled);
   };
 };
 
