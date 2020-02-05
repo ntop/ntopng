@@ -113,6 +113,19 @@ end
 
 --------------------------------------------------------------------------------
 
+function host_pools_utils.exportJSON(ifid)
+  local pools = {}
+
+  for _,pool in pairs(host_pools_utils.getPoolsList(ifid)) do
+    pool.members = host_pools_utils.getPoolMembers(ifid, pool.id)
+    pools[pool.id] = pool
+  end
+
+  return pools
+end
+
+--------------------------------------------------------------------------------
+
 function host_pools_utils.createPool(ifid, pool_id, pool_name, children_safe,
 				     enforce_quotas_per_pool_member, enforce_shapers_per_pool_member, ignore_exist)
   local details_key = get_pool_details_key(ifid, pool_id)
