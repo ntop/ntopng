@@ -6,7 +6,20 @@ $(document).ready(function () {
     // initialize alert api
     $('#geomap-alert').alert();
 
-  
+    // return true if the status code is different from 200
+    const check_status_code = (status_code, status_text, $error_label) => {
+
+        const is_different = status_code != 200;
+
+        if (is_different && $error_label != null) {
+            $error_label.find('p').text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
+        }
+        else if (is_different && $error_label == null) {
+            alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
+        }
+
+        return is_different;
+    }
 
     const display_errors = (errors) => {
 
@@ -75,6 +88,9 @@ $(document).ready(function () {
 
         $.get(`${http_prefix}/lua/get_geo_hosts.lua?${zoomIP || ''}`).then((data) => {
             draw_markers(data, map_markers, hosts_map);
+        })
+        .fail(({ status, statusText }) => {
+            check_status_code(status, statusText, $("#geomap-alert"));
         });
 
     }
