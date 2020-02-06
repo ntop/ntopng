@@ -269,14 +269,14 @@ Flow::~Flow() {
     if(protos.http.last_content_type) free(protos.http.last_content_type);
   } else if(isDNS()) {
     if(protos.dns.last_query)   free(protos.dns.last_query);
-  } else if (isMDNS()) {
+  } else if(isMDNS()) {
     if(protos.mdns.answer)           free(protos.mdns.answer);
     if(protos.mdns.name)             free(protos.mdns.name);
     if(protos.mdns.name_txt)         free(protos.mdns.name_txt);
     if(protos.mdns.ssid)             free(protos.mdns.ssid);
-  } else if (isSSDP()) {
+  } else if(isSSDP()) {
     if(protos.ssdp.location)         free(protos.ssdp.location);
-  } else if (isNetBIOS()) {
+  } else if(isNetBIOS()) {
     if(protos.netbios.name)          free(protos.netbios.name);
   } else if(isSSH()) {
     if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
@@ -384,9 +384,12 @@ void Flow::processDetectedProtocol() {
 	}
       }
 
-      /* See https://github.com/ntop/ntopng/issues/3106 */
-      ndpiFlow->protos.dns.num_answers = 0, ndpiFlow->host_server_name[0] = '\0';
-      ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10, fully_processed = detection_completed = false;
+      if(protocol == IPPROTO_UDP) {
+	/* See https://github.com/ntop/ntopng/issues/3106 */
+	ndpiFlow->protos.dns.num_answers = 0, ndpiFlow->host_server_name[0] = '\0';
+	ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10,
+	  fully_processed = /* detection_completed = */ false;
+      }
     }
     /* See Flow::processFullyDissectedProtocol for reply dissection */
     break;
@@ -439,7 +442,6 @@ void Flow::processFullyDissectedProtocol() {
     l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
     switch(l7proto) {
-
     case NDPI_PROTOCOL_SSH:
       if(protos.ssh.client_signature == NULL)
 	protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
@@ -579,7 +581,10 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
       processDetectedProtocol();
 
-      if(ndpi_get_lower_proto(ndpiDetectedProtocol) != NDPI_PROTOCOL_DNS)
+#ifndef HAVE_NEDGE
+      if((protocol == IPPROTO_UDP)
+	 && ndpi_get_lower_proto(ndpiDetectedProtocol) != NDPI_PROTOCOL_DNS)
+#endif
 	detection_completed = true; /* See https://github.com/ntop/ntopng/issues/3106 */
 
 #ifdef HAVE_NEDGE
@@ -1751,24 +1756,30 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(get_json_info()) {
       lua_push_str_table_entry(vm, "moreinfo.json", json_object_to_json_string(get_json_info()));
       has_json_info = true;
-    } else if (get_tlv_info()) {
+    } else if(get_tlv_info()) {
       ndpi_deserializer deserializer;
-      if (ndpi_init_deserializer(&deserializer, get_tlv_info()) == 0) {
+      
+      if(ndpi_init_deserializer(&deserializer, get_tlv_info()) == 0) {
         ndpi_serializer serializer;
-        if (ndpi_init_serializer(&serializer, ndpi_serialization_format_json) >= 0) {
+
+        if(ndpi_init_serializer(&serializer, ndpi_serialization_format_json) >= 0) {
           char *buffer;
           u_int32_t buffer_len;
-          ndpi_deserialize_clone_all(&deserializer, &serializer);
+
+	  ndpi_deserialize_clone_all(&deserializer, &serializer);
           buffer = ndpi_serializer_get_buffer(&serializer, &buffer_len);
-          if (buffer) {
+
+          if(buffer) {
             lua_push_str_table_entry(vm, "moreinfo.json", buffer);
             has_json_info = true;
           }
+	  
           ndpi_term_serializer(&serializer);
         }
       }
     }
-    if (!has_json_info)
+    
+    if(!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
     if(cli_ebpf) cli_ebpf->lua(vm, true);
@@ -2801,7 +2812,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet KeepAlive");
 	  cnt_keep_alive++;
 	} else if(tcp_seq_s2d.last == seq_num) {
-          if (tcp_seq_s2d.next != tcp_seq_s2d.last) {
+          if(tcp_seq_s2d.next != tcp_seq_s2d.last) {
 	    cnt_retx++;
 	    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet retransmission");
           }
@@ -2832,7 +2843,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet KeepAlive");
 	  cnt_keep_alive++;
 	} else if(tcp_seq_d2s.last == seq_num) {
-          if (tcp_seq_d2s.next != tcp_seq_d2s.last) {
+          if(tcp_seq_d2s.next != tcp_seq_d2s.last) {
 	    cnt_retx++;
 	    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet retransmission");
           }
