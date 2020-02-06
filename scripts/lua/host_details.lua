@@ -1746,42 +1746,59 @@ elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
    ebpf_utils.draw_processes_graph(host_info)
 elseif not host.privatehost and page == "geomap" then
-print("<center>")
 
+   print ([[
+      <div class="container-fluid">
+        <div class="row">
+          <div class='col-md-12 col-lg-12 col-xs-12'>
+            <div class='border-bottom pb-2 mb-3'> 
+              <h1 class='h2'>]].. i18n("geo_map.hosts_geomap").. [[</h1>
+            </div>
+            <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger'>
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              <p id='error-message'></p>
+            </div>
+            <div style="height: 720px" id="map-canvas"></div>
+            <div class='border-top mt-4'>
+              <p id='my-location'></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.css"/>
+      <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.Default.css"/>
+      <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.css"/>
+      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js" type="text/javascript"></script>
+      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js" type="text/javascript"></script>
+      <script type='text/javascript'>
+  
+        const zoomIP = "ifid=]]..ifId..[[&]].. hostinfo2url(host_info) ..[[";
+  
+        const display_localized_error = (error_code) => {
+          $('#geomap-alert p').html(`]].. i18n("geo_map.geolocation_error") ..[[[${error_code}]: ]].. i18n("geo_map.using_default_location") ..[[`);
+          $('#geomap-alert').removeClass('alert-info').addClass('alert-danger').show();
+        }
+  
+        const display_localized_position = (position) => {
+            $('#my-location').html(`
+            ]].. i18n("geo_map.browser_reported_home_map")..[[: 
+            <a href='https://www.openstreetmap.org/#map=6/${position[0]}/${position[1]}'>
+            ]]..i18n("geo_map.latitude").. [[: ${position[0]}, ]].. i18n("geo_map.longitude").. [[: ${position[1]} </a>
+          `);
+        }
+  
+        const display_localized_no_geolocation_msg = () => {
+  
+            $('#geomap-alert p').html(`]].. i18n("geo_map.unavailable_geolocation") .. ' ' .. i18n("geo_map.using_default_location") ..[[`);
+            $('#geomap-alert').addClass('alert-info').removeClass('alert-danger').show();
+  
+        }
+      </script>
+      <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js"  type='text/javascript'></script>
+   ]])
 
-print [[
-<style type="text/css">
-  #map-canvas { width: 100%; height: 480px; }
-</style>
-
-</center>
-]]
-
-addGoogleMapsScript()
-
-print[[
-
-    <script src="]] print(ntop.getHttpPrefix()) print [[/js/markerclusterer.js"></script>
-<div class="container-fluid">
-  <div class="row-fluid">
-    <div class="span8">
-      <div id="map-canvas"></div>
-]]
-
-dofile(dirs.installdir .. "/scripts/lua/show_geolocation_note.lua")
-
-print [[
-</div>
-</div>
-</div>
-
-<script type="text/javascript">
-/* IP Address to zoom */
-  var zoomIP = "]] print('ifid='..ifId.."&"..hostinfo2url(host_info)) print [[ ";
-  var url_prefix = "]] print(ntop.getHttpPrefix()) print [[";
-</script>
-    <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/googleMapJson.js" ></script>
-]]
 
 elseif(page == "contacts") then
 

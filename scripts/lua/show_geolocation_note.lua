@@ -1,4 +1,4 @@
-print("<script>")
+print("<script type='text/javascript'>")
 print [[
 function displayLocalizedError(error_code) {
   $('#mylocation').html("]] print(i18n("geo_map.geolocation_error") .. ' [\"+ error_code + \"]. ' .. i18n("geo_map.using_default_location")) print [[");
@@ -20,7 +20,9 @@ function displayLocalizedNoGeolocationMsg () {
 print("</script>")
 
 print [[
-<p>&nbsp;<p><small><b>]] print(i18n("geo_map.note")) print [[</b></small>
+<small>
+  <b>]] print(i18n("geo_map.note")) print [[</b>
+</small>
 <ol>
 <li> <small><i class="icon-map-marker"></i> <span id=mylocation></span></small>
 <li> <small>]] print(i18n("geo_map.note_requirements_visualize_maps")) print [[:</small>
