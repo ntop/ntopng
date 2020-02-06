@@ -9349,6 +9349,17 @@ static int ntop_flow_get_packets_rcvd(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_packets(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_packets_cli2srv() + f->get_packets_srv2cli());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_bytes_sent(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -11482,6 +11493,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "isBidirectional",          ntop_flow_is_bidirectional           },
   { "getPacketsSent",           ntop_flow_get_packets_sent           },
   { "getPacketsRcvd",           ntop_flow_get_packets_rcvd           },
+  { "getPackets",               ntop_flow_get_packets                },
   { "getBytesSent",             ntop_flow_get_bytes_sent             },
   { "getBytesRcvd",             ntop_flow_get_bytes_rcvd             },
   { "getBytes",                 ntop_flow_get_bytes                  },
