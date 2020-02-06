@@ -1063,7 +1063,7 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
   const char *username = getLuaVMUservalue(vm, user);
 
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username ? username : "");
-  lua_pushstring(vm, (ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : (char*)"");
+  lua_pushstring(vm, (ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : CONST_DEFAULT_ALL_NETS);
 }
 
 /* ******************************************* */

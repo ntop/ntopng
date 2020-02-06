@@ -615,12 +615,7 @@ function printGUI()
 		       "http_acl_management_port",
 		       "", false, nil, nil, nil, {style = {width = "25em;"},
 						  attributes = {spellcheck = "false", maxlength = 64, pattern = getACLPattern()}})
-
-  prefsInputFieldPrefs(subpage_active.entries["google_apis_browser_key"].title, subpage_active.entries["google_apis_browser_key"].description,
-		       "ntopng.prefs.",
-		       "google_apis_browser_key",
-		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
-
+ 
   -- #####################
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')

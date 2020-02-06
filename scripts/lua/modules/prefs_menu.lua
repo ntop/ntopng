@@ -370,10 +370,7 @@ local menu_subpages = {
     }, mgmt_acl = {
        title       = i18n("prefs.mgmt_acl_title"),
        description = i18n("prefs.mgmt_acl_description", {product=info.product}),
-    }, google_apis_browser_key = {
-      title       = i18n("prefs.google_apis_browser_key_title"),
-      description = i18n("prefs.google_apis_browser_key_description", {url="https://maps-apis.googleblog.com/2016/06/building-for-scale-updates-to-google.html"}),
-    }
+    },
     }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
 
     toggle_send_telemetry_data = {

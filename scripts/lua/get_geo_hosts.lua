@@ -28,7 +28,7 @@ print [[
        hosts_stats = hosts_stats["hosts"]
 
        for key, value in pairs(hosts_stats) do
-	  if((value["ip"] ~= nil) and (not value["privatehost"]) and (not isBroadMulticast(value["ip"]))) then
+	  if value["ip"] and not value["privatehost"] and not value["is_multicast"] and not value["is_broadcast"] and not isBroadMulticast(value["ip"]) then
 	     if(num > 0) then print(",") end
 	     print('{\n"host": [ { ')
 	     print('"lat": '..value["latitude"]..',\n')
