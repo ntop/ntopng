@@ -133,7 +133,7 @@ function hasAllowedNetworksSet()
       cached_allowed_networks_set = false
 
       for _, net in pairs(allowed_nets) do
-         if((net ~= "0.0.0.0/0") and (net ~= "::/0")) then
+         if((not isEmptyString(net)) and (net ~= "0.0.0.0/0") and (net ~= "::/0")) then
             cached_allowed_networks_set = true
             break
          end
