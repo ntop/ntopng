@@ -10477,6 +10477,7 @@ static int ntop_interface_get_engaged_alerts_count(lua_State* vm) {
   const char *entity_value = NULL;
   NetworkInterface *iface = getCurrentInterface(vm);
   std::set<int> entity_excludes;
+  AddressTree *allowed_nets = get_allowed_nets(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(!iface) return(CONST_LUA_ERROR);
@@ -10485,7 +10486,7 @@ static int ntop_interface_get_engaged_alerts_count(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TSTRING) entity_value = (char*)lua_tostring(vm, 2);
   if(lua_type(vm, 3) == LUA_TSTRING) parseEntityExcludes(lua_tostring(vm, 3), &entity_excludes);
 
-  iface->getEngagedAlertsCount(vm, entity_type, entity_value, &entity_excludes);
+  iface->getEngagedAlertsCount(vm, entity_type, entity_value, &entity_excludes, allowed_nets);
 
   return(CONST_LUA_OK);
 }
@@ -10517,6 +10518,7 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   AlertLevel alert_severity = alert_level_none;
   NetworkInterface *iface = getCurrentInterface(vm);
   std::set<int> entity_excludes;
+  AddressTree *allowed_nets = get_allowed_nets(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(!iface) return(CONST_LUA_ERROR);
@@ -10527,7 +10529,7 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   if(lua_type(vm, 4) == LUA_TNUMBER) alert_severity = (AlertLevel)lua_tointeger(vm, 4);
   if(lua_type(vm, 5) == LUA_TSTRING) parseEntityExcludes(lua_tostring(vm, 5), &entity_excludes);
 
-  iface->getEngagedAlerts(vm, entity_type, entity_value, alert_type, alert_severity, &entity_excludes);
+  iface->getEngagedAlerts(vm, entity_type, entity_value, alert_type, alert_severity, &entity_excludes, allowed_nets);
 
   return(CONST_LUA_OK);
 }

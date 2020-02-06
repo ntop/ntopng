@@ -797,9 +797,12 @@ class NetworkInterface : public AlertableEntity {
   inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
   inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
   inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
-  void walkAlertables(int entity_type, const char *entity_value, std::set<int> *entity_excludes, alertable_callback *callback, void *user_data);
-  void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value, std::set<int> *entity_excludes);
-  void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type, AlertLevel alert_severity, std::set<int> *entity_excludes);
+  void walkAlertables(int entity_type, const char *entity_value, std::set<int> *entity_excludes,
+	    AddressTree *allowed_nets, alertable_callback *callback, void *user_data);
+  void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value,
+	    std::set<int> *entity_excludes, AddressTree *allowed_nets);
+  void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type,
+	    AlertLevel alert_severity, std::set<int> *entity_excludes, AddressTree *allowed_nets);
   inline void incNumDroppedFlowScriptsCalls()             { num_dropped_flow_scripts_calls++; }
   void computeHostsScore();
 

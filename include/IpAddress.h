@@ -66,6 +66,8 @@ class IpAddress {
   inline void set(u_int32_t _ipv4)                    { addr.ipVersion = 4, addr.ipType.ipv4 = _ipv4; compute_key(); }
   inline void set(struct ndpi_in6_addr *_ipv6)        { addr.ipVersion = 6, memcpy(&addr.ipType.ipv6, _ipv6, sizeof(struct ndpi_in6_addr));
 							addr.privateIP = false; compute_key(); }
+  inline void set(struct in6_addr *_ipv6)             { addr.ipVersion = 6, memcpy(&addr.ipType.ipv6.u6_addr, _ipv6->s6_addr, sizeof(_ipv6->s6_addr));
+							addr.privateIP = false; compute_key(); }
   inline void set(const IpAddress * const ip)         { memcpy(&addr, &ip->addr, sizeof(struct ipAddress)); ip_key = ip->ip_key; };
   inline void set(const struct ipAddress * const ip)  { memcpy(&addr, ip, sizeof(struct ipAddress)); compute_key(); };
   void set(union usa *ip);

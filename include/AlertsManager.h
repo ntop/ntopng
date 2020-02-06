@@ -58,7 +58,9 @@ class AlertsManager : public StoreManager {
       bool ignore_disabled = false, bool check_maximum = true);
 
   int storeFlowAlert(lua_State *L, int index, u_int64_t *rowid);
+
   static void buildSqliteAllowedNetworksFilters(lua_State *vm);
+  static int parseEntityValueIp(const char *alert_entity_value, struct in6_addr *ip_raw);
 
   bool hasAlerts();
 

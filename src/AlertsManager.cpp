@@ -281,9 +281,15 @@ out:
 
 /* **************************************************** */
 
-static void parseEntityValueIp(const char *alert_entity_value, struct in6_addr *ip_raw) {
+int AlertsManager::parseEntityValueIp(const char *alert_entity_value, struct in6_addr *ip_raw) {
   char tmp_entity[128];
   char *sep;
+  int rv;
+
+  memset(ip_raw, 0, sizeof(*ip_raw));
+
+  if(!alert_entity_value)
+    return(-1);
 
   strncpy(tmp_entity, alert_entity_value, sizeof(tmp_entity));
 
@@ -297,9 +303,9 @@ static void parseEntityValueIp(const char *alert_entity_value, struct in6_addr *
 
   /* Try to parse as IP address */
   if(strchr(tmp_entity, ':'))
-    inet_pton(AF_INET6, tmp_entity, ip_raw);
+    rv = inet_pton(AF_INET6, tmp_entity, ip_raw);
   else
-    inet_pton(AF_INET, tmp_entity, ((char*)ip_raw)+12);
+    rv = inet_pton(AF_INET, tmp_entity, ((char*)ip_raw)+12);
 
 #if 0
   for(int i=0; i<16; i++) {
@@ -313,8 +319,9 @@ static void parseEntityValueIp(const char *alert_entity_value, struct in6_addr *
 
   printf("%s (%s) - %d\n", ip_hex, tmp_entity);
 #endif
-}
 
+  return(rv);
+}
 
 /* **************************************************** */
 
@@ -345,10 +352,7 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
        ALERTS_MANAGER_TABLE_NAME);
 
-    memset(&ip_raw, 0, sizeof(ip_raw));
-
-      if(alert_entity_value)
-	parseEntityValueIp(alert_entity_value, &ip_raw);
+      parseEntityValueIp(alert_entity_value, &ip_raw);
 
       if(sqlite3_prepare_v2(db, query, -1,  &stmt, 0)
 	 || sqlite3_bind_int(stmt,   1,  granularity)

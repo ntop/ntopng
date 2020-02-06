@@ -269,3 +269,29 @@ u_int AlertableEntity::getNumTriggeredAlerts(ScriptPeriodicity p) const {
 void AlertableEntity::syncReadonlyTriggeredAlerts() {
   updateNumTriggeredAlerts();
 }
+
+/* ****************************************** */
+
+bool AlertableEntity::matchesAllowedNetworks(AddressTree *allowed_nets) {
+  struct in6_addr ip_raw;
+  IpAddress addr;
+  int netbits;
+  const char *alert_entity_value = entity_val.c_str();
+
+  if(!allowed_nets)
+    return(true);
+
+  AlertsManager::parseEntityValueIp(alert_entity_value, &ip_raw);
+
+  if(strchr(alert_entity_value, ':')) {
+    // IPv6
+    addr.set(&ip_raw);
+    netbits = 128;
+  } else {
+    // IPv4
+    addr.set(*((u_int32_t*)&ip_raw.s6_addr[12]));
+    netbits = 32;
+  }
+
+  return(allowed_nets->match(&addr, netbits));
+}

@@ -92,6 +92,7 @@ public:
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, ScriptPeriodicity p, AlertType type_filter,
 		 AlertLevel severity_filter, u_int *idx);
+  bool matchesAllowedNetworks(AddressTree *allowed_nets);
 
   /* This must be called once per script and updates what the user see on the gui. */
   inline void refreshAlerts() {

@@ -7383,6 +7383,7 @@ u_int32_t NetworkInterface::getNumEngagedAlerts() {
 /* *************************************** */
 
 struct alertable_walker_data {
+  AddressTree *allowed_nets;
   alertable_callback *callback;
   void *user_data;
 };
@@ -7391,8 +7392,10 @@ static bool host_invoke_alertable_callback(GenericHashEntry *entity, void *user_
   AlertableEntity *alertable = dynamic_cast<AlertableEntity*>(entity);
   struct alertable_walker_data *data = (struct alertable_walker_data *) user_data;
 
-  data->callback(alertable, data->user_data);
-  *matched = true;
+  if(alertable->matchesAllowedNetworks(data->allowed_nets)) {
+    data->callback(alertable, data->user_data);
+    *matched = true;
+  }
 
   return(false); /* false = keep on walking */
 }
@@ -7404,8 +7407,8 @@ static bool host_invoke_alertable_callback(GenericHashEntry *entity, void *user_
  * parameter set to the provided user_data.
  */
 void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
-				      std::set<int> *entity_excludes,
-				      alertable_callback *callback, void *user_data) {
+	std::set<int> *entity_excludes, AddressTree *allowed_nets,
+	alertable_callback *callback, void *user_data) {
   std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
 
   /* Hosts */
@@ -7418,6 +7421,7 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
 
       data.callback = callback;
       data.user_data = user_data;
+      data.allowed_nets = allowed_nets;
 
       walker(&begin_slot, walk_all, walker_hosts, host_invoke_alertable_callback, &data);
     } else {
@@ -7429,7 +7433,8 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
 
       get_host_vlan_info((char*)entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
 
-      if(host_ip && (host = getHost(host_ip, vlan_id, false /* not inline */)))
+      if(host_ip && (host = getHost(host_ip, vlan_id, false /* not inline */)) &&
+	  host->matchesAllowedNetworks(allowed_nets))
         callback(host, user_data);
     }
   }
@@ -7441,7 +7446,8 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Interface filter does not correspond[type=%u]: expected %s, found %s",
         entity_type, entity_value, getEntityValue().c_str());
 
-    callback(this, user_data);
+    if(matchesAllowedNetworks(allowed_nets))
+      callback(this, user_data);
   }
 
   /* Networks */
@@ -7452,8 +7458,10 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
     for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
       NetworkStats *netstats = getNetworkStats(network_id);
 
-      if((entity_value == NULL) || (netstats->getEntityValue().compare(entity_value) == 0))
-        callback(netstats, user_data);
+      if((entity_value == NULL) || (netstats->getEntityValue().compare(entity_value) == 0)) {
+	if(netstats->matchesAllowedNetworks(allowed_nets))
+	  callback(netstats, user_data);
+      }
     }
   }
 
@@ -7465,7 +7473,8 @@ void NetworkInterface::walkAlertables(int entity_type, const char *entity_value,
     if(((entity_type == alert_entity_none) || (entity_type == it->second->getEntityType())) &&
        (!entity_excludes || !entity_excludes->count(it->second->getEntityType()))) {
       if((entity_value == NULL) || (it->second->getEntityValue().compare(entity_value) == 0)) {
-        callback(it->second, user_data);
+	if(it->second->matchesAllowedNetworks(allowed_nets))
+	  callback(it->second, user_data);
       }
     }
   }
@@ -7482,13 +7491,13 @@ static void count_alerts_callback(AlertableEntity *alertable, void *user_data) {
 }
 
 void NetworkInterface::getEngagedAlertsCount(lua_State *vm, int entity_type,
-					     const char *entity_value, std::set<int> *entity_excludes) {
+	  const char *entity_value, std::set<int> *entity_excludes, AddressTree *allowed_nets) {
   grouped_alerts_counters counters;
   u_int32_t tot_alerts = 0;
   std::map<AlertType, u_int32_t>::iterator it;
   std::map<AlertLevel, u_int32_t>::iterator it2;
 
-  walkAlertables(entity_type, entity_value, entity_excludes, count_alerts_callback, &counters);
+  walkAlertables(entity_type, entity_value, entity_excludes, allowed_nets, count_alerts_callback, &counters);
 
   /* Results */
   lua_newtable(vm);
@@ -7591,8 +7600,8 @@ static void get_engaged_alerts_callback(AlertableEntity *alertable, void *user_d
 }
 
 void NetworkInterface::getEngagedAlerts(lua_State *vm, int entity_type,
-					const char *entity_value, AlertType alert_type,
-					AlertLevel alert_severity, std::set<int> *entity_excludes) {
+	  const char *entity_value, AlertType alert_type, AlertLevel alert_severity,
+	  std::set<int> *entity_excludes, AddressTree *allowed_nets) {
   struct get_engaged_alerts_userdata data;
 
   data.vm = vm;
@@ -7602,7 +7611,7 @@ void NetworkInterface::getEngagedAlerts(lua_State *vm, int entity_type,
 
   lua_newtable(vm);
 
-  walkAlertables(entity_type, entity_value, entity_excludes, get_engaged_alerts_callback, &data);
+  walkAlertables(entity_type, entity_value, entity_excludes, allowed_nets, get_engaged_alerts_callback, &data);
 }
 
 /* *************************************** */
