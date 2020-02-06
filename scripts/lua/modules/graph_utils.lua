@@ -768,27 +768,27 @@ function drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, optio
       print[[
        <script>
        setInterval(function() {
-	 var talkers_loaded, protocols_loaded, flows_loaded;
-	 if($('a[href="#historical-top-talkers"]').length){
-	   talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
-	 }
-	 if($('a[href="#historical-top-apps"]').length){
-	   protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
-	 }
-	 if($('a[href="#historical-flows"]').length){
-	   flows_loaded = $('a[href="#historical-flows"]').attr("loaded");
-	 }
-	 if(typeof talkers_loaded == 'undefined'
-             && typeof protocols_loaded == 'undefined'
-             && typeof flows_loaded == 'undefined'){
-]] if not ntop.isPro() then print[[
-	   window.location.reload(); /* do not reload, it's annoying */
-]]
-end
-print[[
-	 }
-       }, 60*1000);
-       </script>]]
+            var talkers_loaded, protocols_loaded, flows_loaded;
+            if($('a[href="#historical-top-talkers"]').length){
+               talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
+            }
+            if($('a[href="#historical-top-apps"]').length){
+               protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
+            }
+            if($('a[href="#historical-flows"]').length){
+               flows_loaded = $('a[href="#historical-flows"]').attr("loaded");
+            }
+            if(typeof talkers_loaded == 'undefined'
+                     && typeof protocols_loaded == 'undefined'
+                     && typeof flows_loaded == 'undefined'){
+         ]] if not ntop.isPro() then print[[
+               window.location.reload(); /* do not reload, it's annoying */
+         ]]
+            end
+            print[[
+               }
+         }, 60*1000);
+         </script>]]
    end
 
    local min_zoom = getMinZoomResolution(schema)
@@ -954,7 +954,7 @@ print [[
 <div id="legend"></div>
 <div id="chart_legend"></div>
 <div id="chart" style="margin-right: 50px; margin-left: 10px; display: table-cell"></div>
-<p><font color=lightgray><small>NOTE: Click on the graph to zoom.</small></font>
+<p style='color: lightgray'><small>NOTE: Click on the graph to zoom.</small>
 
 </td>
 
@@ -971,7 +971,11 @@ local format_as_bps = true
 local formatter_fctn
 local label = data.series[1].label
 
-if string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") then
+if label == "load_percentage" then
+   formatter_fctn = "ffloat"
+elseif label == "resident_bytes" then
+   formatter_fctn = "bytesToSize"
+elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") then
    format_as_bps = false
    formatter_fctn = "fint"
 else
