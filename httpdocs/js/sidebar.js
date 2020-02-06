@@ -18,68 +18,9 @@ $(document).ready(function () {
         return window.matchMedia('(min-width: 320px) and (max-width: 480px) ').matches;
     }
     
-    const highlighit_current_page = () => {
-    
-        // get current page name
-        const current_subpage_open = location.pathname.match(/[a-zA-Z0-9\s\_\\.\-\(\):]+\.lua/g);
-        // check if there is an element with that file name
-        const $link = $(`#n-sidebar li a[href*='${current_subpage_open}']`);
-    
-        // a link was found, I save it inside the local storage for future purposes
-        localStorage.removeItem('root_subpage');
-        localStorage.setItem('root_subpage', current_subpage_open);
-        // active the link
-        $link.addClass('active');
-    
-    }
-
     if (is_mobile_device()) {
         $(`div[id$='submenu']`).removeClass('side-collapse');
     }
-
-    highlighit_current_page();
-
-    // toggle button collapse visibility
-    $('#collapse-sidebar').on('click', function () {
-        //const self = $(this);
-        //hide_collapse_text(self);
-    });
-
-    $("[data-toggle='sidebar']").click(function () {
-
-        // toggle_sidebar_and_container();
-
-        // // disable overflow when the sidebar is open in mobile device
-        // if (is_mobile_device()) {
-        //     $('html,body').toggleClass('no-scroll');
-        //     return;
-        // }
-
-        // const sidebar_collapsed = !$('#n-sidebar').hasClass('active');
-        // is_collapsed = sidebar_collapsed;
-
-        // if (!is_mobile_device()) {
-        //     $.ajax({
-        //         data: {
-        //             'sidebar_collapsed': sidebar_collapsed ? "1" : "0"
-        //         },
-        //         type: 'get',
-        //         url: `${http_prefix}/lua/sidebar-handler.lua`
-        //     });
-        // }
-
-        // if (latest_submenu_open.length > 0 && !sidebar_collapsed) {
-        //     latest_submenu_open.collapse('show');
-        // }
-
-        // // collapse submenu if there is one open
-        // if ($(`div[id$='-submenu'].show`).length > 0 && sidebar_collapsed) {
-        //     $(`div[id$='-submenu'].show`).collapse('hide');
-        // }
-
-        // toggle_logo_animation();
-
-    });
 
     $(`#n-sidebar a.submenu`).mouseenter(function() {
 
