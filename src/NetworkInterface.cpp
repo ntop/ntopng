@@ -673,6 +673,12 @@ void NetworkInterface::dumpAggregatedFlows(const struct timeval *tv) {
 			       aggregated_flows_hash->getNumEntries());
 #endif
 }
+/* **************************************************** */
+
+void NetworkInterface::flushAggregatedFlows() {
+  if(db)
+    db->flushAggregatedFlows();
+}
 
 /* **************************************************** */
 
@@ -2613,10 +2619,8 @@ void NetworkInterface::periodicStatsUpdate() {
   if(ntop->getGlobals()->isShutdownRequested())
     return;
 
-  if(db) {
+  if(db)
     db->updateStats(&tv);
-    db->flushAggregatedFlows();
-  }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "MySQL dump took %d seconds", time(NULL) - tdebug.tv_sec);

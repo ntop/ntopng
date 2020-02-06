@@ -351,6 +351,7 @@ class NetworkInterface : public AlertableEntity {
 #ifdef NTOPNG_PRO
   void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
   void dumpAggregatedFlows(const struct timeval *tv);
+  void flushAggregatedFlows();
   bool is_aggregated_flows_dump_ready() const;
   void inc_aggregated_flows_dump_updates();
   bool check_aggregated_flows_dump_ready(const struct timeval *tv) const;
