@@ -2792,8 +2792,6 @@ local lang = {
     ["flows_dump_limited_days"] = "The Flow dump is limited to %{days} days in this ntopng version. Upgrade to the enterprise version to remove this limit.",
     ["global_dns_description"] = "A DNS server to redirect the clients DNS requests to for non Child Safe host pools. If empty, the redirection is disabled and the default DNS is used.",
     ["global_dns_title"] = "Global Primary DNS",
-    ["google_apis_browser_key_description"] = "Graphical hosts geomaps are based on Google Maps APIs. Google recently changed Maps API access policies and now requires a browser API key to be submitted for every request. Detailed information on how to obtain an API key can be found <a href=\"%{url}\">here</a>. Once obtained, the API key can be placed in this field.",
-    ["google_apis_browser_key_title"] = "Google APIs Browser Key",
     ["gui"] = "User Interface",
     ["host_mask"] = "Mask Host IP Addresses",
     ["housekeeping_frequency_description"] = "Some host statistics such as throughputs are updated periodically. This timeout regulates how often %{product} will update these statistics. Larger values are less computationally intensive and tend to average out minor variations. Smaller values are more computationally intensive and tend to highlight minor variations. Values in the order of few seconds are safe. Only effective for packet interfaces. For ZMQ interfaces the timeout is determined automatically. Default: 5 seconds.",
