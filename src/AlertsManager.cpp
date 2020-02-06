@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+static const char *hex_chars = "0123456789ABCDEF";
+
 AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
   char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
 
@@ -279,6 +281,43 @@ out:
 
 /* **************************************************** */
 
+static void parseEntityValueIp(const char *alert_entity_value, struct in6_addr *ip_raw) {
+  char tmp_entity[128];
+  char *sep;
+
+  strncpy(tmp_entity, alert_entity_value, sizeof(tmp_entity));
+
+  /* Ignore VLAN */
+  if((sep = strchr(tmp_entity, '@')))
+    *sep = '\0';
+
+  /* Ignore subnet. Save the networks as a single IP. */
+  if((sep = strchr(tmp_entity, '/')))
+    *sep = '\0';
+
+  /* Try to parse as IP address */
+  if(strchr(tmp_entity, ':'))
+    inet_pton(AF_INET6, tmp_entity, ip_raw);
+  else
+    inet_pton(AF_INET, tmp_entity, ((char*)ip_raw)+12);
+
+#if 0
+  for(int i=0; i<16; i++) {
+    u_int8_t val = ip_raw.s6_addr[i];
+
+    ip_hex[i*2]   = hex_chars[(val >> 4) & 0xF];
+    ip_hex[i*2+1] = hex_chars[val & 0xF];
+  }
+
+  ip_hex[32] = '\0';
+
+  printf("%s (%s) - %d\n", ip_hex, tmp_entity);
+#endif
+}
+
+
+/* **************************************************** */
+
 /* NOTE: do not call this from C, use alert queues in LUA */
 int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, AlertType alert_type, const char *subtype,
       AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
@@ -288,6 +327,7 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
   if(ignore_disabled || !ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
+    struct in6_addr ip_raw;
     sqlite3_stmt *stmt = NULL;
 
     if(!store_initialized || !store_opened)
@@ -301,11 +341,14 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
     snprintf(query, sizeof(query),
        "INSERT INTO %s "
-       "(alert_granularity, alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, alert_subtype) "
-       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+       "(alert_granularity, alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, alert_subtype, ip) "
+       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
        ALERTS_MANAGER_TABLE_NAME);
 
-      // TODO alert_entity_value -> ip
+    memset(&ip_raw, 0, sizeof(ip_raw));
+
+      if(alert_entity_value)
+	parseEntityValueIp(alert_entity_value, &ip_raw);
 
       if(sqlite3_prepare_v2(db, query, -1,  &stmt, 0)
 	 || sqlite3_bind_int(stmt,   1,  granularity)
@@ -316,7 +359,8 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 	 || sqlite3_bind_int(stmt,   6,  static_cast<int>(alert_entity))
 	 || sqlite3_bind_text(stmt,  7,  alert_entity_value, -1, SQLITE_STATIC)
 	 || sqlite3_bind_text(stmt,  8,  alert_json, -1, SQLITE_STATIC)
-	 || sqlite3_bind_text(stmt,  9,  subtype, -1, SQLITE_STATIC)) {
+	 || sqlite3_bind_text(stmt,  9,  subtype, -1, SQLITE_STATIC)
+	 || sqlite3_bind_blob(stmt, 10,  ip_raw.s6_addr, sizeof(ip_raw.s6_addr), SQLITE_STATIC)) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
 	rc = -2;
 	goto out;
@@ -766,7 +810,6 @@ struct sqlite_filter_data {
 };
 
 static void allowed_nets_walker(patricia_node_t *node, void *data, void *user_data) {
-  static const char *hex = "0123456789ABCDEF";
   struct sqlite_filter_data *filterdata = (sqlite_filter_data*)user_data;
   struct in6_addr lower_addr;
   struct in6_addr upper_addr;
@@ -819,11 +862,11 @@ static void allowed_nets_walker(patricia_node_t *node, void *data, void *user_da
     u_char lval = lower_addr.s6_addr[i];
     u_char uval = upper_addr.s6_addr[i];
 
-    lower_hex[i*2]   = hex[(lval >> 4) & 0xF];
-    lower_hex[i*2+1] = hex[lval & 0xF];
+    lower_hex[i*2]   = hex_chars[(lval >> 4) & 0xF];
+    lower_hex[i*2+1] = hex_chars[lval & 0xF];
 
-    upper_hex[i*2]   = hex[(uval >> 4) & 0xF];
-    upper_hex[i*2+1] = hex[uval & 0xF];
+    upper_hex[i*2]   = hex_chars[(uval >> 4) & 0xF];
+    upper_hex[i*2+1] = hex_chars[uval & 0xF];
   }
 
   lower_hex[32] = '\0';

@@ -698,7 +698,14 @@ local function formatRawFlow(record, flow_json, skip_add_links)
                   and (not flow["srv.blacklisted"]) and (not flow["cli.blacklisted"]) then
             lb = " <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
          end
-         msg = msg.."["..i18n("info")..": "..decoded["info"]..lb.."] "
+	 local info
+
+	 if string.len(decoded["info"]) > 60 then
+	    info = "<abbr title=\"".. decoded["info"] .."\">".. shortenString(decoded["info"], 60)
+	 else
+	    info = decoded["info"]
+	 end
+         msg = msg.."["..i18n("info")..": " .. info ..lb.."] "
       end
 
       flow = msg
