@@ -31,6 +31,13 @@ $(document).ready(function () {
 
         const error_code = error_messages[errors.code];
 
+        show_positions({
+            coords: {
+                latitude: default_coords[0],
+                longitude: default_coords[1]
+            }
+        });
+
         display_localized_error(error_code);
     }
 
