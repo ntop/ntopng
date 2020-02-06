@@ -159,7 +159,7 @@ Flow::Flow(NetworkInterface *_iface,
   } else {
     cli2srvPktTime = NULL;
     srv2cliPktTime = NULL;
-  }    
+  }
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -370,7 +370,6 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_DNS:
     if(ndpiFlow->host_server_name[0] != '\0') {
-
       if(protos.dns.last_query) {
 	free(protos.dns.last_query);
 	protos.dns.invalid_chars_in_query = false;
@@ -384,6 +383,10 @@ void Flow::processDetectedProtocol() {
 	  protos.dns.invalid_chars_in_query = true;
 	}
       }
+
+      /* See https://github.com/ntop/ntopng/issues/3106 */
+      ndpiFlow->protos.dns.num_answers = 0, ndpiFlow->host_server_name[0] = '\0';
+      ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10, fully_processed = detection_completed = false;
     }
     /* See Flow::processFullyDissectedProtocol for reply dissection */
     break;
@@ -461,7 +464,7 @@ void Flow::processFullyDissectedProtocol() {
 
       protos.tls.notBefore = ndpiFlow->protos.stun_ssl.ssl.notBefore,
 	protos.tls.notAfter = ndpiFlow->protos.stun_ssl.ssl.notAfter;
-      
+
       if((protos.tls.client_requested_server_name == NULL)
 	 && (ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name[0] != '\0')) {
 	protos.tls.client_requested_server_name = strdup(ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name);
@@ -469,7 +472,7 @@ void Flow::processFullyDissectedProtocol() {
 
       if((protos.tls.server_names == NULL)
 	 && (ndpiFlow->protos.stun_ssl.ssl.server_names != NULL))
-	protos.tls.server_names = strdup(ndpiFlow->protos.stun_ssl.ssl.server_names);      
+	protos.tls.server_names = strdup(ndpiFlow->protos.stun_ssl.ssl.server_names);
 
       if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
 	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
@@ -575,7 +578,9 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
       processDetectedProtocol();
-      detection_completed = true;      
+
+      if(ndpi_get_lower_proto(ndpiDetectedProtocol) != NDPI_PROTOCOL_DNS)
+	detection_completed = true; /* See https://github.com/ntop/ntopng/issues/3106 */
 
 #ifdef HAVE_NEDGE
       updateFlowShapers(true);
@@ -599,7 +604,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 					 get_cli_ip_addr()->get_ipv4(), get_srv_ip_addr()->get_ipv4(),
 					 &ndpiDetectedProtocol);
 	  stats.setDetectedProtocol(&ndpiDetectedProtocol);
-	} 
+	}
 
 	break;
       }
@@ -636,7 +641,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 void Flow::setJSONInfo(json_object *json) {
   if(json == NULL) return;
 
-  if(json_info != NULL) 
+  if(json_info != NULL)
     json_object_put(json_info);
 
   json_info = json_object_get(json);
@@ -647,7 +652,7 @@ void Flow::setJSONInfo(json_object *json) {
 void Flow::setTLVInfo(ndpi_serializer *tlv) {
   if(tlv == NULL) return;
 
-  if(tlv_info != NULL) { 
+  if(tlv_info != NULL) {
     ndpi_term_serializer(tlv_info);
     free(tlv_info);
   }
@@ -788,7 +793,7 @@ char * Flow::printTCPState(char * const buf, u_int buf_len) const {
 	   isTCPConnecting() ? " conn" : "",
 	   isTCPClosed() ? " closed" : "",
 	   isTCPReset() ? " reset" : "");
-  
+
   if(buf[0] == ' ')
     return(&buf[1]);
   else
@@ -1008,7 +1013,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
   update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
 		     partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
- 
+
 if(cli_host && srv_host) {
     bool cli_and_srv_in_same_subnet = false;
     bool cli_and_srv_in_same_country = false;
@@ -1165,6 +1170,7 @@ if(cli_host && srv_host) {
 	cli_host->setOS(operating_system);
     }
     /* Don't break, let's process also HTTP_PROXY */
+
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(srv_host
        && srv_host->getHTTPstats()
@@ -1176,12 +1182,14 @@ if(cli_host && srv_host) {
 						      partial->get_srv2cli_bytes());
     }
     break;
+
   case NDPI_PROTOCOL_DNS:
     if(cli_host && cli_host->getDNSstats())
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
     if(srv_host && srv_host->getDNSstats())
       srv_host->getDNSstats()->incStats(false /* Server */, partial->get_flow_dns_stats());
     break;
+    
   case NDPI_PROTOCOL_MDNS:
     if(cli_host) {
       if(protos.mdns.answer)   cli_host->offlineSetMDNSInfo(protos.mdns.answer);
@@ -1189,16 +1197,19 @@ if(cli_host && srv_host) {
       if(protos.mdns.name_txt) cli_host->offlineSetMDNSTXTName(protos.mdns.name_txt);
     }
     break;
+
   case NDPI_PROTOCOL_SSDP:
     if(cli_host) {
       if(protos.ssdp.location) cli_host->offlineSetSSDPLocation(protos.ssdp.location);
     }
     break;
+
   case NDPI_PROTOCOL_NETBIOS:
     if(cli_host) {
       if(protos.netbios.name) cli_host->set_host_label(protos.netbios.name, true);
     }
     break;
+
   case NDPI_PROTOCOL_IP_ICMP:
   case NDPI_PROTOCOL_IP_ICMPV6:
     if(cli_host && cli_host->getICMPstats()) {
@@ -1250,31 +1261,9 @@ void Flow::periodic_stats_update(void *user_data) {
 
   u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
   u_int64_t diff_pkts  = diff_sent_packets + diff_rcvd_packets;
-  
+
   Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
   Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
-
-  if(isDNS()
-     && ((iface->isPacketInterface() && stats.get_num_dns_queries() > 1)
-	 || (!iface->isPacketInterface() && stats.get_srv2cli_packets() > 1))) {
-    /*
-      When the number of DNS queries for the same flow is greater than one,
-      nDPI can no longer reliably determine the application protocol as it just uses
-      the first request to determine it.
-      For example, if the same flow contains the first request for google.com and then other
-      requests, the flow would be marked ad DNS.Google but this would be inaccurate and only
-      representative for the first query.
-      For this reason, when the number of queries is greater than one, the application
-      protocol is reset to unknown.
-
-      See https://github.com/ntop/ntopng/issues/3106 and enclosed pcap for additional details.
-    */
-    if(get_detected_protocol().app_protocol != NDPI_PROTOCOL_UNKNOWN)
-      ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-
-    if(get_protocol_category() != NDPI_PROTOCOL_CATEGORY_NETWORK)
-      ndpiDetectedProtocol.category = NDPI_PROTOCOL_CATEGORY_NETWORK;
-  }
 
   if(update_flow_port_stats) {
     bool dump_flow = false;
@@ -1295,7 +1284,7 @@ void Flow::periodic_stats_update(void *user_data) {
 
 #if 0
     char buf[128];
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%u/%u] %s",
 				 dump_flow ? "DUMP" : "",
 				 get_packets_cli2srv(), get_packets_srv2cli(),
@@ -1935,7 +1924,7 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
     break;
   }
 
-  /* Now that the states in the finite state machine have been moved forward, it is time to check and 
+  /* Now that the states in the finite state machine have been moved forward, it is time to check and
      possibly perform lua calls on the flow. */
   if(!periodic_ht_state_update_user_data->skip_user_scripts)
     performLuaCalls(tv, periodic_ht_state_update_user_data);
@@ -1947,7 +1936,7 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
 
 void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
   ndpi_protocol detected_protocol = get_detected_protocol();
-  
+
   ndpi_stats->incStats(0, detected_protocol.master_protocol,
 		       get_packets_cli2srv(), get_bytes_cli2srv(),
 		       get_packets_srv2cli(), get_bytes_srv2cli());
@@ -2284,12 +2273,12 @@ bool Flow::isNetfilterIdleFlow() const {
 /* *************************************** */
 
 void Flow::housekeep(time_t t) {
-  if(((t - get_last_seen()) > 5 /* sec */)     
+  if(((t - get_last_seen()) > 5 /* sec */)
      && iface->get_ndpi_struct() && get_ndpi_flow()) {
     u_int8_t proto_guessed;
     ndpi_protocol givenup_protocol = ndpi_detection_giveup(iface->get_ndpi_struct(),
 							   get_ndpi_flow(), 1, &proto_guessed);
-    
+
     setDetectedProtocol(givenup_protocol, true);
   }
 }
@@ -2331,10 +2320,10 @@ bool Flow::get_partial_traffic_stats_view(PartializableFlowTrafficStats *fts, bo
 
   return(true);
 }
-  
+
 /* *************************************** */
 
-bool Flow::update_partial_traffic_stats_db_dump() {  
+bool Flow::update_partial_traffic_stats_db_dump() {
   bool first_partial;
 
   if(!get_partial_traffic_stats(&last_db_dump.partial, &last_db_dump.delta, &first_partial))
@@ -2415,7 +2404,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
                     u_int8_t l4_proto, u_int8_t is_fragment,
 		    u_int16_t tcp_flags, const struct timeval *when) {
   bool update_iat = true;
-  
+
   payload_len *= iface->getScalingFactor();
   updateSeen();
 
@@ -2425,7 +2414,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   */
   if((l4_proto == IPPROTO_TCP) && (tcp_flags & (TH_SYN|TH_FIN|TH_RST)))
     update_iat = false;
-  
+
   updatePacketStats(cli2srv_direction ? getCli2SrvIATStats() : getSrv2CliIATStats(), when, update_iat);
 
   stats.incStats(cli2srv_direction, 1, pkt_len, payload_len);
@@ -2662,7 +2651,7 @@ const char* Flow::getFlowInfo() {
 	return protos.ssh.client_signature;
     }
   }
-  
+
   return (char*)"";
 }
 
@@ -3779,13 +3768,16 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
   case NDPI_PROTOCOL_DNS:
     dst_name = zflow->dns_query;
     break;
+    
   case NDPI_PROTOCOL_HTTP_PROXY:
   case NDPI_PROTOCOL_HTTP:
     dst_name = zflow->http_site;
     break;
+    
   case NDPI_PROTOCOL_TLS:
     dst_name = zflow->tls_server_name;
     break;
+    
   default:
     break;
   }
@@ -3853,7 +3845,7 @@ void Flow::lua_get_bytes(lua_State* vm) const {
 
 /* ***************************************************** */
 
-void Flow::lua_get_throughput(lua_State* vm) const {  
+void Flow::lua_get_throughput(lua_State* vm) const {
   // overall throughput stats
   lua_push_float_table_entry(vm,  "top_throughput_bps",   top_bytes_thpt);
   lua_push_float_table_entry(vm,  "throughput_bps",       bytes_thpt);
@@ -3917,7 +3909,7 @@ void Flow::lua_get_dir_iat(lua_State* vm, bool cli2srv) const {
 
 /* ***************************************************** */
 
-void Flow::lua_get_packets(lua_State* vm) const {  
+void Flow::lua_get_packets(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "packets", get_packets_cli2srv() + get_packets_srv2cli());
   lua_push_uint64_table_entry(vm, "packets.sent", get_packets_cli2srv());
   lua_push_uint64_table_entry(vm, "packets.rcvd", get_packets_srv2cli());
@@ -4113,7 +4105,7 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
       lua_push_int32_table_entry(vm, "protos.tls.notBefore", protos.tls.notBefore);
       lua_push_int32_table_entry(vm, "protos.tls.notAfter", protos.tls.notAfter);
     }
-      
+
     if(protos.tls.ja3.client_hash) {
       lua_push_str_table_entry(vm, "protos.tls.ja3.client_hash", protos.tls.ja3.client_hash);
 
@@ -4136,7 +4128,7 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 
 /* ***************************************************** */
 
-void Flow::lua_get_ssh_info(lua_State *vm) const {  
+void Flow::lua_get_ssh_info(lua_State *vm) const {
   if(isSSH()) {
     if(protos.ssh.client_signature) lua_push_str_table_entry(vm, "protos.ssh.client_signature", protos.ssh.client_signature);
     if(protos.ssh.server_signature) lua_push_str_table_entry(vm, "protos.ssh.server_signature", protos.ssh.server_signature);
@@ -4178,7 +4170,7 @@ void Flow::lua_get_dns_info(lua_State *vm) const {
 
 /* ***************************************************** */
 
-void Flow::lua_get_tcp_info(lua_State *vm) const {  
+void Flow::lua_get_tcp_info(lua_State *vm) const {
   if(get_protocol() == IPPROTO_TCP) {
     lua_push_bool_table_entry(vm, "tcp.seq_problems",
 			      (stats.get_cli2srv_tcp_retr()
@@ -4367,7 +4359,7 @@ bool Flow::hasDissectedTooManyPackets() {
 /* ***************************************************** */
 
 bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char *alert_json) {
-  
+
   /* Triggering multiple alerts is not supported */
   if(isFlowAlerted())
     return(false);
@@ -4393,7 +4385,7 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   if(!idle()) {
     /* If idle() and not alerted, the interface
      * counter for active alerted flows is not incremented as
-     * it means the purgeIdle() has traversed this flow and marked 
+     * it means the purgeIdle() has traversed this flow and marked
      * it as state_idle before it was alerted */
     iface->incNumAlertedFlows(this);
 #ifdef ALERTED_FLOWS_DEBUG
