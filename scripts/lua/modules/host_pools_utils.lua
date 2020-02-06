@@ -113,36 +113,55 @@ end
 
 --------------------------------------------------------------------------------
 
-function host_pools_utils.exportJSON(ifid)
+function host_pools_utils.getPoolMembersRaw(ifid, pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
+  return ntop.getMembersCache(members_key) or {}
+end
+
+-- Export host pools
+function host_pools_utils.export(ifid)
   local pools = {}
 
   for _,pool in pairs(host_pools_utils.getPoolsList(ifid)) do
-    pool.members = host_pools_utils.getPoolMembers(ifid, pool.id)
+    pool.members = host_pools_utils.getPoolMembersRaw(ifid, pool.id)
     pools[pool.id] = pool
   end
 
   return pools
 end
 
-function host_pools_utils.importJSON(pools, ifid)
+-- Import host pools, in case of conflict (same name) the pool is replaced
+function host_pools_utils.import(pools, ifid)
   local existing_pools = host_pools_utils.getPoolsList(ifid)
+  local retval = true
 
-  -- Import pools (unless they are already present, by name)
+  -- Import pools
   for _,pool in pairs(pools) do
-    local already_present = false
 
     for k,existing_pool in pairs(existing_pools) do
       if pool.name == existing_pool.name then
-        already_present = true
+        -- Same name, delete the old pool and reuse the id
+        pool.id = existing_pool.id
+        host_pools_utils.emptyPool(ifid, existing_pool.id) 
+        host_pools_utils.deletePool(ifid, existing_pool.id)
       end
     end
 
-    if not already_present then
-      host_pools_utils.createPool(ifid, pool.id, pool.name, pool.children_safe,
-        pool.enforce_quotas_per_pool_member, pool. enforce_shapers_per_pool_member,
-        true)
+    -- Add pool
+    host_pools_utils.createPool(ifid, pool.id, pool.name, pool.children_safe,
+      pool.enforce_quotas_per_pool_member, pool. enforce_shapers_per_pool_member,
+      true)
+
+    -- Add members
+    for _,member in ipairs(pool.members) do
+      local success = addMemberToRedisPool(ifid, pool.id, member)
+      if not success then
+        retval = false
+      end
     end
   end
+
+  return retval
 end
 
 --------------------------------------------------------------------------------

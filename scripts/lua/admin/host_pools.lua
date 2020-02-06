@@ -376,6 +376,14 @@ print[[
         <br/><div id="table-create"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
+
+      <div style="float:left">
+        <form action="/lua/rest/get/host/pool.lua" class="form-inline" method="GET">
+          <button type="submit" class="btn btn-secondary"><span>]] print(i18n("host_pools.config_export")) print[[</span></button>
+        </form>
+        <button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>]] print(i18n("host_pools.config_import")) print[[</span></button>
+      </div>
+
       <br/><br/>
       ]] print(i18n("notes")) print[[
       <ul>
@@ -451,6 +459,95 @@ print(
     }
   })
 )
+
+-- Create import dialog
+
+print(
+  template.gen("import_modal.html", {
+    dialog={
+      title   = i18n("host_pools.config_import"),
+      label   = "",
+      message = i18n("host_pools.config_import_message"),
+      cancel  = i18n("cancel"),
+      apply   = i18n("apply"),
+    }
+  })
+)
+
+print[[
+  <script>
+    let import_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
+
+    $('#import-modal-btn').on("click", function(e) { 
+
+        // hide previous errors
+        $("#import-error").hide();
+
+        $("#import-modal form").off("submit");
+
+        $('#btn-confirm-import').off('click').click(function(e) {
+            const $button = $(this);
+
+            let applied_value = null;
+
+            $button.attr("disabled", "");
+
+            // Read configuration file file
+            var file = $('#import-input')[0].files[0];
+
+            if (!file) {
+                 $("#import-error").text(`${i18n.no_file}`).show();
+
+                 // re-enable button
+                 $button.removeAttr("disabled");
+             } else {
+                var reader = new FileReader();
+                reader.onload = function () {
+                    // Client-side configuration file format check
+                    let json_conf = null
+                    try { json_conf = JSON.parse(reader.result); } catch (e) {}
+
+                    if (!json_conf || !json_conf['0']) {
+                        $("#import-error").text(`${i18n.invalid_file}`).show();
+                        // re-enable button
+                        $button.removeAttr("disabled");
+                    } else {
+                        // Submit configuration file
+                        $.post(`${http_prefix}/lua/rest/set/host/pool.lua`, {
+                            csrf: import_csrf,
+                            JSON: JSON.stringify(json_conf)
+                        })
+                        .done((d, status, xhr) => {
+                            if (xhr.status != 200)
+                                $("#import-error").text("]] print(i18n("request_failed_message")) print [[" + xhr.statusText).show();
+                            if (!d.success) {
+                                $("#import-error").text(d.error).show();
+                                // update token
+                                import_csrf = d.csrf;
+                            } else {
+                                location.reload();
+                            }
+                        })
+                        .fail(({ status, statusText }) => {
+                            $("#import-error").text(status + ": " + statusText).show();
+
+                            // re-enable button
+                            $button.removeAttr("disabled");
+                        });
+
+                     };
+                 }
+                 reader.readAsText(file, "UTF-8");
+             }
+        });
+
+        $("#import-modal").on("submit", "form", function (e) {
+            e.preventDefault();
+            $("#btn-import").trigger("click");
+        });
+    });
+  </script>
+]]
 
 --------------------------------------------------------------------------------
 

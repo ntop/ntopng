@@ -57,7 +57,7 @@ end
 
 -- ################################################
 
-local success = host_pools_utils.importJSON(data, ifid)
+local success = host_pools_utils.import(data, ifid)
 
 interface.reloadHostPools()
 

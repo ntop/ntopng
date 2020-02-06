@@ -29,6 +29,6 @@ end
 
 sendHTTPContentTypeHeader('application/json', 'attachment; filename="pools_configuration.json"')
 
-local conf = host_pools_utils.exportJSON(ifid)
+local conf = host_pools_utils.export(ifid)
 
 print(json.encode(conf, nil))

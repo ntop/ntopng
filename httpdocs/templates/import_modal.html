@@ -1,0 +1,28 @@
+<!--import modal-->
+<div class="modal fade" id="import-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">{{ dialog.title }}</h5>
+        </div>
+        <div class="modal-body">
+            <form class='form'>
+                <div class='form-group'>
+                    <label class='form-label' for='#import-input'>{{ dialog.label }}</label>
+                    <input id="import-input" name="JSON" type="file" />
+                    <br/>
+                    <br/>
+                    <small>{{ dialog.message }}</small>
+                    <div class="invalid-feedback" id='import-error'>
+                        {message}
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ dialog.cancel }}</button>
+            <button type="button" id='btn-confirm-import' class="btn btn-primary">{{ dialog.apply }}</button>
+        </div>
+        </div>
+    </div>
+</div>
