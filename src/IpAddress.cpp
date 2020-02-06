@@ -144,6 +144,13 @@ void IpAddress::checkIP() {
     addr.loopbackIP = false; /* TODO: compute loopback for IPv6 */
 
     /*
+      Link-local addresses have the prefix fe80::/10, we mark them as private
+    */
+    if((addr.ipType.ipv6.u6_addr.u6_addr8[0] & 0xFF) == 0xFE
+       && (addr.ipType.ipv6.u6_addr.u6_addr8[1] & 0xC0) == 0x80)
+      addr.privateIP = true;
+
+    /*
      * https://tools.ietf.org/html/rfc2373#section-2.7
      *
      * 11111111 at the start of the address identifies the address as being a multicast address.
