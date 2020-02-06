@@ -392,6 +392,12 @@ function flow.triggerStatus(flow_status_type, status_json, flow_score, cli_score
    local status_id = flow_status_type.status_id
    local new_status = flow_consts.getStatusInfo(status_id)
 
+   if(tonumber(status_json) ~= nil) then
+      tprint("Invalid status_json")
+      tprint(debug.traceback())
+      return
+   end
+
    if not alerted_status or new_status.prio > alerted_status.prio then
       -- The new alerted status as an higher priority
       alerted_status = new_status
