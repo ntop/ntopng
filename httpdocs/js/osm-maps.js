@@ -33,8 +33,8 @@ $(document).ready(function () {
 
         show_positions({
             coords: {
-                latitude: default_coords[0],
-                longitude: default_coords[1]
+                latitude: 0,
+                longitude: 0
             }
         });
 
@@ -82,6 +82,7 @@ $(document).ready(function () {
 
         if (user_coords[0] == 0 && user_coords[1] == 0) {
             display_localized_no_geolocation_msg();
+            user_coords[0] = default_coords[0], user_coords[1] = default_coords[1];
         }
 
         const hosts_map = L.map('map-canvas').setView(user_coords || default_coords, zoom_level);
