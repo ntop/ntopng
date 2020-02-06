@@ -38,7 +38,7 @@ $(document).ready(function () {
             }
         });
 
-        display_localized_error(error_code);
+        if (errors.code != 2) display_localized_error(error_code);
     }
 
     const init_map = () => {
