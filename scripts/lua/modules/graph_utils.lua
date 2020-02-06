@@ -524,6 +524,7 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
    for _, serie in ipairs(series) do
       if ((have_nedge and serie.nedge_exclude) or (not have_nedge and serie.nedge_only)) or
          (serie.pro_skip and is_pro) or
+         (serie.skip) or
          (serie.enterprise_only and (not is_enterprise)) then
          goto continue
       end

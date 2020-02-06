@@ -230,7 +230,7 @@ print[[
                 if(rsp.system_host_stats.cpu_load !== undefined)
                   $('#cpu-load-pct').html(ffloat(rsp.system_host_stats.cpu_load));
 
-                if(rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) {
+                if((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[) {
                    var error_color = "#B94A48";  // bootstrap danger red
                    var error_label = "badge-danger";
                    var error_color = error_color;

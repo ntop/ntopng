@@ -86,7 +86,7 @@ end
 
 -- Convert bytes to human readable format
 function format_utils.bytesToSize(bytes)
-   if(bytes == nil) then
+   if(tonumber(bytes) == nil) then
       return("0")
    else
       local precision = 2

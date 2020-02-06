@@ -502,7 +502,7 @@ if((page == "overview") or (page == nil)) then
       print("</tr>")
    end
 
-   if((ifstats.num_alerts_engaged > 0) or (ifstats.num_dropped_alerts > 0)) then
+   if (not hasAllowedNetworksSet()) and ((ifstats.num_alerts_engaged > 0) or (ifstats.num_dropped_alerts > 0)) then
       print("<tr>")
       local warning = "<i class='fas fa-exclamation-triangle fa-lg' style='color: #B94A48;'></i> "
       local engaged_alerts_chart_available = ts_utils.exists("iface:engaged_alerts", tags)
@@ -1141,9 +1141,10 @@ elseif(page == "historical") then
 	 {schema="iface:new_flows",             label=i18n("graphs.new_flows"), value_formatter = {"fflows", "formatFlows"}},
 	 {schema="custom:flow_misbehaving_vs_alerted", label=i18n("graphs.misbehaving_vs_alerted"),
 	    value_formatter = {"formatFlows", "formatFlows"},
+	    skip = hasAllowedNetworksSet(),
 	    metrics_labels = {i18n("flow_details.mibehaving_flows"), i18n("flow_details.alerted_flows")}},
          {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
-         {schema="iface:engaged_alerts",        label=i18n("show_alerts.engaged_alerts")},
+         {schema="iface:engaged_alerts",        label=i18n("show_alerts.engaged_alerts"), skip=hasAllowedNetworksSet()},
          {schema="custom:flows_vs_local_hosts", label=i18n("graphs.flows_vs_local_hosts"), check={"iface:flows", "iface:local_hosts"}, step=60},
          {schema="custom:flows_vs_traffic",     label=i18n("graphs.flows_vs_traffic"), check={"iface:flows", "iface:traffic"}, step=60},
          {schema="custom:memory_vs_flows_hosts", label=i18n("graphs.memory_vs_hosts_flows"), check={"process:resident_memory", "iface:flows", "iface:hosts"}},

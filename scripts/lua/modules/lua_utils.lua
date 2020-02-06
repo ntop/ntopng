@@ -124,6 +124,27 @@ end
 
 -- ##############################################
 
+local cached_allowed_networks_set = nil
+
+function hasAllowedNetworksSet()
+   if(cached_allowed_networks_set == nil) then
+      local nets = ntop.getAllowedNetworks()
+      local allowed_nets = string.split(nets, ",") or {nets}
+      cached_allowed_networks_set = false
+
+      for _, net in pairs(allowed_nets) do
+         if((net ~= "0.0.0.0/0") and (net ~= "::/0")) then
+            cached_allowed_networks_set = true
+            break
+         end
+      end
+   end
+   
+   return(cached_allowed_networks_set)
+end
+
+-- ##############################################
+
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
    ifname = _GET["ifid"]
