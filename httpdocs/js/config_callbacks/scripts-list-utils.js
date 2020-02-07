@@ -1384,8 +1384,10 @@ $(document).ready(function() {
          const $categories_filter = add_filter_categories_dropdown();
 
          // check if there is a previous filter
-         const loaded_filter = settings.oLoadedState.columns[CATEGORY_COLUMN_INDEX].search.search;
-         if (loaded_filter != "") $categories_filter.find('button span').html(`<i class='fas fa-filter'></i> ${loaded_filter}`);
+         if (settings.oLoadedState != null) {
+            const loaded_filter = settings.oLoadedState.columns[CATEGORY_COLUMN_INDEX].search.search;
+            if (loaded_filter != "") $categories_filter.find('button span').html(`<i class='fas fa-filter'></i> ${loaded_filter}`);
+         }
 
          const [enabled_count, disabled_count] = count_scripts();
 
