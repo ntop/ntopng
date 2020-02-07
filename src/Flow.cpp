@@ -43,7 +43,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli_host = srv_host = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
   flow_score = cli_score = srv_score = 0;
-  alert_status_info = NULL;
+  alert_status_info = alert_status_info_shadow = NULL;
   alert_type = alert_none;
   alert_level = alert_level_none;
   alerted_status = status_normal;
@@ -131,7 +131,6 @@ Flow::Flow(NetworkInterface *_iface,
 
   passVerdict = true, quota_exceeded = false;
   has_malicious_cli_signature = has_malicious_srv_signature = false;
-  is_alerted = false;
 #ifdef ALERTED_FLOWS_DEBUG
   iface_alert_inc = iface_alert_dec = false;
 #endif
@@ -305,6 +304,7 @@ Flow::~Flow() {
   if(icmp_info) delete(icmp_info);
   if(external_alert) free(external_alert);
   if(alert_status_info) free(alert_status_info);
+  if(alert_status_info_shadow) free(alert_status_info_shadow);
 }
 
 /* *************************************** */
@@ -2215,6 +2215,8 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
 
   ndpi_serialize_string_int32(s, "ifid", iface->get_id());
   ndpi_serialize_string_string(s, "action", "store");
+  ndpi_serialize_string_int64(s, "first_seen", get_first_seen());
+  ndpi_serialize_string_int32(s, "score", getScore());
 
   ndpi_serialize_string_boolean(s, "is_flow_alert", true);
   ndpi_serialize_string_int64(s, "alert_tstamp", now);
@@ -3815,7 +3817,7 @@ void Flow::lua_get_status(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "flow.status", getPredominantStatus());
   lua_push_uint64_table_entry(vm, "status_map", status_map.get());
 
-  if(is_alerted) {
+  if(isFlowAlerted()) {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
     lua_push_uint64_table_entry(vm, "alerted_status", alerted_status);
   }
@@ -4375,48 +4377,54 @@ bool Flow::hasDissectedTooManyPackets() {
 /* ***************************************************** */
 
 bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char *alert_json) {
-  
-  /* Triggering multiple alerts is not supported */
-  if(isFlowAlerted())
-    return(false);
+  bool first_alert = !isFlowAlerted();
+
+  /* Note: triggerAlert is called by flow.lua only after all the flow
+   * status are processed (once every 5 seconds), so it is safe to use the shadow */
+  if(alert_status_info_shadow)
+    free(alert_status_info_shadow);
+
+  alert_status_info_shadow = alert_status_info;
 
   alert_status_info = alert_json ? strdup(alert_json) : NULL;
   alerted_status = status;
   alert_level = severity;
-  alert_type = atype; /* set this as the last thing to avoid concurrency issues */
+  alert_type = atype;
 
-  if(cli_host && srv_host) {
-    bool cli_thresh, srv_thresh;
-    time_t when = time(0);
+  if(first_alert) {
+    /* This is the first alert for the flow, increment the counters */
 
-    /* Check per-host thresholds */
-    cli_thresh = cli_host->incFlowAlertHits(when);
-    srv_thresh = srv_host->incFlowAlertHits(when);
-    if((cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump())
-      return(false);
-  }
+    if(cli_host && srv_host) {
+      bool cli_thresh, srv_thresh;
+      time_t when = time(0);
 
-  is_alerted = true;
+      /* Check per-host thresholds */
+      cli_thresh = cli_host->incFlowAlertHits(when);
+      srv_thresh = srv_host->incFlowAlertHits(when);
+      if((cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump())
+	return(false);
+    }
 
   if(!idle()) {
     /* If idle() and not alerted, the interface
      * counter for active alerted flows is not incremented as
-     * it means the purgeIdle() has traversed this flow and marked 
+     * it means the purgeIdle() has traversed this flow and marked
      * it as state_idle before it was alerted */
     iface->incNumAlertedFlows(this);
 #ifdef ALERTED_FLOWS_DEBUG
-    iface_alert_inc = true;
+      iface_alert_inc = true;
 #endif
-  }
+    }
 
-  if(cli_host) {
-    cli_host->incNumAlertedFlows();
-    cli_host->incTotalAlerts(alert_type);
-  }
+    if(cli_host) {
+      cli_host->incNumAlertedFlows();
+      cli_host->incTotalAlerts(alert_type);
+    }
 
-  if(srv_host) {
-    srv_host->incNumAlertedFlows();
-    srv_host->incTotalAlerts(alert_type);
+    if(srv_host) {
+      srv_host->incNumAlertedFlows();
+      srv_host->incTotalAlerts(alert_type);
+    }
   }
 
   /* Success - alert is dumped/notified from lua */
@@ -4530,4 +4538,13 @@ FlowStatus Flow::getPredominantStatus() const {
   }
 
   return(status);
+}
+
+/* *************************************** */
+
+u_int16_t Flow::getAlertedStatusScore() {
+  if(!status_infos)
+    return(0);
+
+  return(status_infos[alerted_status].score);
 }

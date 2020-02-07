@@ -55,7 +55,7 @@ class Flow : public GenericHashEntry {
   AlertType alert_type;
   AlertLevel alert_level;
   char *alert_status_info;        /* Alert specific status info */
-  bool is_alerted;
+  char *alert_status_info_shadow;
 
   u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
 
@@ -574,9 +574,10 @@ class Flow : public GenericHashEntry {
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); };
   inline bool isTCPRefused()     const { return (!isThreeWayHandshakeOK() && (dst2src_tcp_flags & TH_RST) == TH_RST); };
-  inline bool isFlowAlerted() const         { return(is_alerted); };
+  inline bool isFlowAlerted() const         { return(alerted_status != status_normal); };
   inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
   inline ViewInterfaceFlowStats* getViewInterfaceFlowStats() { return(viewFlowStats); }
+  u_int16_t getAlertedStatusScore();
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
     if(client) {

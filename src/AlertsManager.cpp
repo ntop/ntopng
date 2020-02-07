@@ -65,6 +65,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   unlink(filePath);
   sprintf(&filePath[base_offset], "%s", "alerts_v16.db");
   unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v17.db");
+  unlink(filePath);
   filePath[base_offset] = 0;
 
   /* open the newest */
@@ -123,7 +125,7 @@ int AlertsManager::openStore() {
 	   "alert_tstamp     INTEGER NOT NULL, "
 	   "alert_tstamp_end INTEGER DEFAULT NULL, "
 	   "alert_json       TEXT DEFAULT NULL, "
-	   "ip               VARBINARY(16) NOT NULL DEFAULT 0"
+	   "ip               BINARY(16) NOT NULL DEFAULT 0"
 	   ");"
 	   "CREATE INDEX IF NOT EXISTS t2i_type     ON %s(alert_type); "
 	   "CREATE INDEX IF NOT EXISTS t2i_subtype  ON %s(alert_subtype); "
@@ -172,8 +174,10 @@ int AlertsManager::openStore() {
 	   "srv_blacklisted  INTEGER NOT NULL DEFAULT 0, "
 	   "cli_localhost    INTEGER NOT NULL DEFAULT 0, "
 	   "srv_localhost    INTEGER NOT NULL DEFAULT 0, "
-	   "cli_ip           VARBINARY(16) NOT NULL DEFAULT 0, "
-	   "srv_ip           VARBINARY(16) NOT NULL DEFAULT 0, "
+	   "cli_ip           BINARY(16) NOT NULL DEFAULT 0, "
+	   "srv_ip           BINARY(16) NOT NULL DEFAULT 0, "
+	   "first_seen       INTEGER NOT NULL, "
+	   "score            INTEGER NOT NULL DEFAULT 0, "
 	   "flow_status      INTEGER NOT NULL DEFAULT 0  "
 	   ");"
 	   "CREATE INDEX IF NOT EXISTS t3i_tstamp    ON %s(alert_tstamp); "
@@ -408,6 +412,9 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
   u_int16_t cli_port = 0, srv_port = 0;
   bool cli_is_localhost = false, srv_is_localhost = false;
   bool cli_is_blacklisted = false, srv_is_blacklisted = false;
+  bool replace_alert = false;
+  u_int16_t score = 0;
+  u_int64_t first_seen = 0;
   u_int64_t cli2srv_bytes = 0, srv2cli_bytes = 0;
   u_int64_t cli2srv_packets = 0, srv2cli_packets = 0;
   char query[STORE_MANAGER_MAX_QUERY];
@@ -489,6 +496,10 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
           srv2cli_bytes = lua_tonumber(L, -1);
         else if(!strcmp(key, "srv2cli_packets"))
           srv2cli_packets = lua_tonumber(L, -1);
+        else if(!strcmp(key, "score"))
+          score = lua_tonumber(L, -1);
+        else if(!strcmp(key, "first_seen"))
+          first_seen = lua_tonumber(L, -1);
 	break;
 
       case LUA_TBOOLEAN:
@@ -500,6 +511,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
           cli_is_blacklisted = lua_toboolean(L, -1);
         else if(!strcmp(key, "srv_blacklisted"))
           srv_is_blacklisted = lua_toboolean(L, -1);
+	else if(!strcmp(key, "replace_alert"))
+	  replace_alert = lua_toboolean(L, -1);
 	break;
 
       default:
@@ -523,30 +536,49 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
   snprintf(query, sizeof(query),
 	   "SELECT rowid, alert_counter, cli2srv_bytes, srv2cli_bytes, cli2srv_packets, srv2cli_packets "
 	   "FROM %s "
-	   "WHERE alert_type = ? AND alert_severity = ? "
-	   "AND vlan_id = ? AND proto = ? AND l7_master_proto = ? AND l7_proto = ? "
-	   "AND flow_status = ? AND cli_addr = ? AND srv_addr = ? AND cli_port = ? AND srv_port = ? "
-	   "AND alert_tstamp >= ? "
+	   "WHERE vlan_id = ? AND proto = ? AND l7_master_proto = ? AND l7_proto = ? "
+	   "AND cli_addr = ? AND srv_addr = ? AND cli_port = ? AND srv_port = ? "
+	   "%s "
 	   "LIMIT 1; ",
-	   ALERTS_MANAGER_FLOWS_TABLE_NAME);
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   replace_alert ? "AND first_seen = ?" : "AND alert_tstamp >= ? AND alert_type = ? AND alert_severity = ? AND flow_status = ?");
 
   if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
-     || sqlite3_bind_int(stmt,    1, static_cast<int>(alert_type))
-     || sqlite3_bind_int(stmt,    2, static_cast<int>(alert_severity))
-     || sqlite3_bind_int(stmt,    3, vlan_id)
-     || sqlite3_bind_int(stmt,    4, protocol)
-     || sqlite3_bind_int(stmt,    5, ndpi_master_protocol)
-     || sqlite3_bind_int(stmt,    6, ndpi_app_protocol)
-     || sqlite3_bind_int(stmt,    7, (int)status)
-     || sqlite3_bind_text(stmt,   8, cli_ip, -1, SQLITE_STATIC)
-     || sqlite3_bind_text(stmt,   9, srv_ip, -1, SQLITE_STATIC)
-     || sqlite3_bind_int(stmt,   10, cli_port)
-     || sqlite3_bind_int(stmt,   11, srv_port)
-     || sqlite3_bind_int64(stmt, 12, static_cast<long int>(tstamp) - ALERTS_MANAGER_MAX_AGGR_SECS)) {
+     || sqlite3_bind_int(stmt,    1, vlan_id)
+     || sqlite3_bind_int(stmt,    2, protocol)
+     || sqlite3_bind_int(stmt,    3, ndpi_master_protocol)
+     || sqlite3_bind_int(stmt,    4, ndpi_app_protocol)
+     || sqlite3_bind_text(stmt,   5, cli_ip, -1, SQLITE_STATIC)
+     || sqlite3_bind_text(stmt,   6, srv_ip, -1, SQLITE_STATIC)
+     || sqlite3_bind_int(stmt,    7, cli_port)
+     || sqlite3_bind_int(stmt,    8, srv_port)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
     rc = -1;
     goto out;
   }
+
+  if(replace_alert) {
+    /* Match the exact flow */
+    if(sqlite3_bind_int(stmt,    9, first_seen)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+      rc = -1;
+      goto out;
+    }
+  } else {
+    /* Match similar flows */
+    if(sqlite3_bind_int64(stmt,  9, static_cast<long int>(tstamp) - ALERTS_MANAGER_MAX_AGGR_SECS)
+       || sqlite3_bind_int(stmt,    10, static_cast<int>(alert_type))
+       || sqlite3_bind_int(stmt,    11, static_cast<int>(alert_severity))
+       || sqlite3_bind_int(stmt,    12, (int)status)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+      rc = -1;
+      goto out;
+    }
+  }
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sqlite3_expanded_sql(stmt));
+#endif
 
   /* Try and read the rowid (if the record exists) */
   while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
@@ -565,21 +597,27 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
     }
   }
 
-  if(cur_rowid != (u_int64_t)-1) { /* Already existing record found */
+  if(cur_rowid != (u_int64_t)-1) { /* Already existing record found, update it */
     snprintf(query, sizeof(query),
 	     "UPDATE %s "
-	     "SET alert_counter = ?, alert_tstamp_end = ?, cli2srv_bytes = ?, srv2cli_bytes = ?, cli2srv_packets = ?, srv2cli_packets = ? "
+	     "SET alert_counter = ?, alert_tstamp_end = ?, cli2srv_bytes = ?, srv2cli_bytes = ?, cli2srv_packets = ?, srv2cli_packets = ?, "
+	     "score = ?, alert_type = ?, alert_severity = ?, flow_status = ?, alert_json = ? "
 	     "WHERE rowid = ? ",
 	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     if(sqlite3_prepare_v2(db, query, -1, &stmt2, 0)
-       || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(cur_counter + 1))
+       || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(replace_alert ? cur_counter : (cur_counter + 1)))
        || sqlite3_bind_int64(stmt2, 2, static_cast<long int>(tstamp))
        || sqlite3_bind_int64(stmt2, 3, cur_cli2srv_bytes + cli2srv_bytes)
        || sqlite3_bind_int64(stmt2, 4, cur_srv2cli_bytes + srv2cli_bytes)
        || sqlite3_bind_int64(stmt2, 5, cur_cli2srv_packets + cli2srv_packets)
        || sqlite3_bind_int64(stmt2, 6, cur_srv2cli_packets + srv2cli_packets)
-       || sqlite3_bind_int64(stmt2, 7, static_cast<long int>(cur_rowid))) {
+       || sqlite3_bind_int(stmt2,   7, score)
+       || sqlite3_bind_int(stmt2,   8, alert_type)
+       || sqlite3_bind_int(stmt2,   9, alert_severity)
+       || sqlite3_bind_int(stmt2,  10, status)
+       || sqlite3_bind_text(stmt2, 11, alert_json, -1, SQLITE_STATIC)
+       || sqlite3_bind_int64(stmt2,12, static_cast<long int>(cur_rowid))) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
       rc = -1;
       goto out;
@@ -606,8 +644,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
 	     "cli_blacklisted, srv_blacklisted, "
 	     "cli_localhost, srv_localhost, "
 	     "cli_ip, srv_ip, "
-	     "flow_status) "
-	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	     "score, first_seen, flow_status) "
+	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)) {
@@ -654,14 +692,16 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
        || sqlite3_bind_int(stmt3,   26, srv_is_localhost ? 1 : 0)
        || sqlite3_bind_blob(stmt3,  27, cli_ip_raw.s6_addr, sizeof(cli_ip_raw.s6_addr), SQLITE_STATIC)
        || sqlite3_bind_blob(stmt3,  28, srv_ip_raw.s6_addr, sizeof(srv_ip_raw.s6_addr), SQLITE_STATIC)
-       || sqlite3_bind_int(stmt3,   29, (int) status)) {
+       || sqlite3_bind_int(stmt3,   29, (int) score)
+       || sqlite3_bind_int64(stmt3, 30, static_cast<long int>(first_seen))
+       || sqlite3_bind_int(stmt3,   31, (int) status)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
       rc = -1;
       goto out;
     }
 
     while((rc = sqlite3_step(stmt3)) != SQLITE_DONE) {
-      if(rc == SQLITE_ERROR) {
+      if((rc == SQLITE_ERROR) || (rc == SQLITE_CONSTRAINT)) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step [%s][%s]",
                                      query, sqlite3_errmsg(db));
         rc = -1;

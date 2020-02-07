@@ -9134,6 +9134,18 @@ static int ntop_flow_get_icmp_status_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_alerted_status_score(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushnumber(vm, f->getAlertedStatusScore());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_is_local(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   bool is_local = false;
@@ -9406,18 +9418,6 @@ static int ntop_flow_get_server_key(lua_State* vm) {
 
   h = f->get_srv_host();
   lua_pushstring(vm, h ? h->get_hostkey(buf, sizeof(buf), true /* force VLAN, required by flow.lua */) : "");
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_can_trigger_alert(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, !f->isFlowAlerted());
 
   return(CONST_LUA_OK);
 }
@@ -9903,14 +9903,11 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   const char *status_info = NULL;
   u_int32_t buflen;
   time_t now;
+  bool first_alert;
 
   if(!f) return(CONST_LUA_ERROR);
 
-  if(f->isFlowAlerted()) {
-    /* Already alerted */
-    lua_pushboolean(vm, false);
-    return(CONST_LUA_OK);
-  }
+  first_alert = !f->isFlowAlerted();
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   status = (FlowStatus)lua_tonumber(vm, 1);
@@ -9942,6 +9939,9 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
 
       /* Only proceed if there is some space in the queues */
       f->flow2alertJson(&flow_json, now);
+      if(!first_alert)
+        ndpi_serialize_string_boolean(&flow_json, "replace_alert", true);
+
       flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
       if(flow_str) {
@@ -11457,15 +11457,13 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getFullInfo",              ntop_flow_get_full_info              },
   { "getUnicastInfo",           ntop_flow_get_unicast_info           },
 
-  /* Internal */
   { "triggerAlert",             ntop_flow_trigger_alert              },
   { "getPredominantStatus",     ntop_get_predominant_status          },
   { "isStatusSet",              ntop_flow_is_status_set              },
   { "getKey",                   ntop_flow_get_key                    },
   { "getHashEntryId",           ntop_flow_get_hash_entry_id          },
   { "getICMPStatusInfo",        ntop_flow_get_icmp_status_info       },
-
-  /* Fast calls */
+  { "getAlertedStatusScore",    ntop_flow_get_alerted_status_score   },
   { "getFirstSeen",             ntop_flow_get_first_seen             },
   { "getLastSeen",              ntop_flow_get_last_seen              },
   { "getDuration",              ntop_flow_get_duration               },
@@ -11493,7 +11491,6 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getnDPIAppProtoId",        ntop_flow_get_ndpi_app_proto_id      },
   { "getClientTCPIssues",       ntop_flow_get_cli_tcp_issues         },
   { "getServerTCPIssues",       ntop_flow_get_srv_tcp_issues         },
-  { "canTriggerAlert",          ntop_flow_can_trigger_alert          },
   { "isDeviceProtocolNotAllowed", ntop_flow_is_dp_not_allowed        },
   { "isTCPConnectionRefused",   ntop_flow_is_tcp_connection_refused  },
   { "isTCPConnecting",          ntop_flow_is_tcp_connecting          },

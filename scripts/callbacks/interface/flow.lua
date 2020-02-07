@@ -380,7 +380,9 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       trace_f(string.format("%s()[END]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), flow.getPredominantStatus()))
    end
 
-   if alerted_status and flow.canTriggerAlert() then
+   -- Only trigger the alert if its score is greater than the currently
+   -- triggered alert score
+   if alerted_status and (alerted_status_score > flow.getAlertedStatusScore()) then
       triggerFlowAlert(now, l4_proto)
 
       if calculate_stats then
@@ -407,8 +409,11 @@ function flow.triggerStatus(flow_status_type, status_json, flow_score, cli_score
       return
    end
 
+   -- NOTE: The "new_status.status_id < alerted_status.status_id" check must
+   -- correspond to the Flow::getPredominantStatus logic in order to determine
+   -- the same predominant status
    if((not alerted_status) or (flow_score > alerted_status_score) or
-	 ((flow_score == alerted_status_score) and (cur_user_script.key > alerted_user_script.key))) then
+	 ((flow_score == alerted_status_score) and (new_status.status_id < alerted_status.status_id))) then
       -- The new alerted status as an higher score
       alerted_status = new_status
       alerted_status_msg = status_json

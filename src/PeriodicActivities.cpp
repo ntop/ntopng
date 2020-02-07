@@ -130,6 +130,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   no_priority_pool       = new ThreadPool(false, num_threads);
   
   static activity_descr ad[] = {
+    /* Script               Periodicity  Pool                    Align  !View  !PCAP  Reuse */
     { SECOND_SCRIPT_PATH,             1, standard_priority_pool, false, false, true,  true  },
     { HT_STATE_UPDATE_SCRIPT_PATH,    5, high_priority_pool,     false, true,  false, true  },
     { STATS_UPDATE_SCRIPT_PATH,       5, standard_priority_pool, false, false, true,  true  },
@@ -137,7 +138,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     { FIVE_MINUTES_SCRIPT_PATH,     300, no_priority_pool,       false, false, true,  false },
     { HOURLY_SCRIPT_PATH,          3600, no_priority_pool,       false, false, true,  false },
     { DAILY_SCRIPT_PATH,          86400, no_priority_pool,       true,  false, true,  false },
-    { HOUSEKEEPING_SCRIPT_PATH,       3, standard_priority_pool, false, false, true,  true  },
+    { HOUSEKEEPING_SCRIPT_PATH,       3, standard_priority_pool, false, false, false, true  },
     { DISCOVER_SCRIPT_PATH,           5, no_priority_pool,       false, false, true,  true  },
     { TIMESERIES_SCRIPT_PATH,         5, standard_priority_pool, false, false, true,  true  },
 #ifdef HAVE_NEDGE
