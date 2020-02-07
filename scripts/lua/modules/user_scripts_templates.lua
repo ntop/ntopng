@@ -131,7 +131,7 @@ function ItemsList:parseConfig(script, conf)
 end
 
 function ItemsList:describeConfig(script, hooks_conf)
-  if not hooks_conf.all then
+  if((not hooks_conf.all) or (not hooks_conf.all.script_conf)) then
     return '' -- disabled, nothing to show
   end
 
