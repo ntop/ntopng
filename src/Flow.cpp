@@ -4465,10 +4465,28 @@ void Flow::luaRetrieveExternalAlert(lua_State *vm) {
 
 /* *************************************** */
 
+static void incPeerScorePcap(Host *h, u_int16_t score_inc) {
+  u_int32_t old_score = h->getScore()->getValue();
+  u_int32_t new_score = old_score + score_inc;
+
+  if(new_score >= (u_int16_t)-1)
+    new_score = (u_int16_t)-1;
+
+  h->getScore()->incValue(new_score);
+  h->getScore()->refreshValue();
+}
+
 void Flow::incScore(u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc) {
   flow_score += flow_inc;
   cli_score += cli_inc;
   srv_score += srv_inc;
+
+  if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
+    /* Periodic scripts (e.g. minute.lua) are not executed while reading a
+     * PCAP file. Increment the peers score here. */
+    if(cli_host) incPeerScorePcap(cli_host, cli_inc);
+    if(srv_host) incPeerScorePcap(srv_host, srv_inc);
+  }
 }
 
 /* *************************************** */

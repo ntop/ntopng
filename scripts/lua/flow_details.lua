@@ -1017,7 +1017,7 @@ else
       local status_icon = "<i class=\"fas fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
 
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
-      for _, t in pairs(flow_consts.status_types) do
+      for _, t in pairsByKeys(flow_consts.status_types) do
 	 local id = t.status_id
          if ntop.bitmapIsSet(additional_status, id) then
             print(flow_consts.getStatusDescription(id, flow2statusinfo(flow)).."<br />")
