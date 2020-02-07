@@ -243,7 +243,7 @@ function page_utils.print_navbar(title, base_url, items_table)
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
+  <div class="collapse navbar-collapse scroll-x" id="navbarNav">
     <ul class="navbar-nav">]]
 
    for _, item in ipairs(items_table) do
