@@ -30,8 +30,6 @@ end
 flow_consts.status_types = {}
 local status_by_id = {}
 local status_key_by_id = {}
-local status_by_prio = {}
-local max_prio = 0
 
 local function loadStatusDefs()
     if(false) then
@@ -74,14 +72,12 @@ function flow_consts.resetDefinitions()
    flow_consts.status_types = {}
    status_by_id = {}
    status_key_by_id = {}
-   status_by_prio = {}
-   max_prio = 0
 end
 
 -- ################################################################################
 
 function flow_consts.loadDefinition(def_script, mod_fname, script_path)
-    local required_fields = {"prio", "alert_severity", "alert_type", "i18n_title"}
+    local required_fields = {"alert_severity", "alert_type", "i18n_title"}
 
     -- print("Loading "..script_path.."\n")
     
@@ -106,17 +102,10 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
         return(false)
     end
 
-    if(status_by_prio[def_script.prio] ~= nil) then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: status priority must be unique, skipping", script_path))
-        return(false)
-    end
-
     -- Success
     def_script.status_id = def_id
     status_by_id[def_id] = def_script
     status_key_by_id[def_id] = mod_fname
-    max_prio = math.max(max_prio, def_script.prio)
-    status_by_prio[def_script.prio] = def_script
     flow_consts.status_types[mod_fname] = def_script
 
     return(true)
@@ -163,27 +152,6 @@ end
 
 function flow_consts.getStatusType(status_id)
     return(status_key_by_id[tonumber(status_id)])
-end
-
--- ################################################################################
-
--- @brief Calculate the predominant status from a status bitmap
-function flow_consts.getPredominantStatus(status_bitmap)
-    local normal_status = flow_consts.status_types.status_normal
-
-    if(status_bitmap == normal_status.status_id) then
-        -- Simple case: normal status
-        return(normal_status)
-    end
-
-    -- Look for predominant status in descending order to speed up search
-    for i = max_prio,0,-1 do
-        local status = status_by_prio[i]
-
-        if(status and ntop.bitmapIsSet(status_bitmap, status.status_id)) then
-            return(status)
-        end
-    end
 end
 
 -- ################################################################################
@@ -1147,7 +1115,7 @@ flow_consts.mobile_country_code = {
 
 local function dumpStatusDefs()
    for _, a in pairsByKeys(status_by_id) do
-      print("[status_id: ".. a.status_id .."][prio: ".. a.prio .."][title: ".. a.i18n_title.."]\n")
+      print("[status_id: ".. a.status_id .."][title: ".. a.i18n_title.."]\n")
       -- tprint(k)
    end
 end

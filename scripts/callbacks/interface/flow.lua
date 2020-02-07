@@ -38,9 +38,8 @@ local available_modules = nil
 -- Keeps information about the current predominant alerted status
 local alerted_status
 local alerted_status_msg
+local alerted_status_score
 local alerted_custom_severity
-local predominant_status
-local recalculate_predominant_status
 local hosts_disabled_status
 local confset_id
 local alerted_user_script
@@ -62,10 +61,8 @@ local stats = {
 -- #################################################################
 
 local function trace_f(trace_msg)
-   if do_trace then
-      local fmt = string.format("[ifid: %i] %s\n", interface.getId(), trace_msg or '')
-      print(fmt)
-   end
+   local fmt = string.format("[ifid: %i] %s\n", interface.getId(), trace_msg or '')
+   print(fmt)
 end
 
 -- #################################################################
@@ -90,7 +87,9 @@ end
 
 -- The function below is called once (#pragma once)
 function setup()
-   trace_f(string.format("flow.lua:setup() called"))
+   if do_trace then
+      trace_f(string.format("flow.lua:setup() called"))
+   end
 
    local ifid = interface.getId()
    local view_ifid
@@ -155,7 +154,9 @@ end
 -- The function below is called once (#pragma once) right before
 -- the lua virtual machine is destroyed
 function teardown()
-   trace_f("flow.lua:teardown() called")
+   if do_trace then
+      trace_f("flow.lua:teardown() called")
+   end
 
    if available_modules then
       user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
@@ -195,15 +196,19 @@ local function triggerFlowAlert(now, l4_proto)
    if (cli_disabled_status ~= 0 and ntop.bitmapIsSet(cli_disabled_status, status_id)) or
        (srv_disabled_status ~= 0 and ntop.bitmapIsSet(srv_disabled_status, status_id)) then
 
+      if do_trace then
 	  trace_f(string.format("Not triggering flow alert for status %u [cli_bitmap: %s/%d][srv_bitmap: %s/%d]",
 				status_id, cli_key, cli_disabled_status, srv_key, srv_disabled_status))
+      end
 
       return(false)
    end
 
-   trace_f(string.format("flow.triggerAlert(type=%s, severity=%s)",
+   if do_trace then
+      trace_f(string.format("flow.triggerAlert(type=%s, severity=%s)",
 			 alertTypeRaw(alerted_status.alert_type.alert_id),
 			 alertSeverityRaw(alerted_status.alert_severity.severity_id)))
+   end
 
    alerted_status_msg = alerted_status_msg or {}
 
@@ -285,25 +290,28 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
 
    local all_modules = available_modules.modules
    local hooks = available_modules.l4_hooks[l4_proto]
-   local prev_predominant_status = flow_consts.getStatusInfo(flow.getPredominantStatus())
 
    -- Reset predominant status information
    alerted_status = nil
    alerted_status_msg = nil
    alerted_custom_severity = nil
-   recalculate_predominant_status = false
-   predominant_status = prev_predominant_status
+   alerted_status_score = -1
 
    if hooks then
       hooks = hooks[mod_fn]
    end
 
    if not hooks then
-      trace_f(string.format("No flow.lua modules, skipping %s(%d) for %s", mod_fn, l4_proto, shortFlowLabel(flow.getInfo())))
+      if do_trace then
+	 trace_f(string.format("No flow.lua modules, skipping %s(%d) for %s", mod_fn, l4_proto, shortFlowLabel(flow.getInfo())))
+      end
+
       return true
    end
 
-   trace_f(string.format("%s()[START]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), prev_predominant_status.status_id))
+   if do_trace then
+      trace_f(string.format("%s()[START]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), flow.getPredominantStatus()))
+   end
 
    local now = os.time()
    local twh_in_progress = l4_proto == 6 --[[TCP]] and not flow.isTwhOK()
@@ -314,8 +322,10 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       if mod_fn == "periodicUpdate" then
 	 -- Check if the script should be invoked
 	 if (update_ctr % script.periodic_update_divisor) ~= 0 then
-	    trace_f(string.format("%s() [check: %s]: skipping periodicUpdate [ctr: %s, divisor: %s, frequency: %s]",
+	    if do_trace then
+	       trace_f(string.format("%s() [check: %s]: skipping periodicUpdate [ctr: %s, divisor: %s, frequency: %s]",
 				  mod_fn, mod_key, update_ctr, script.periodic_update_divisor, script.periodic_update_seconds))
+	    end
 
 	    goto continue
 	 end
@@ -324,7 +334,9 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       -- Check if the script requires the flow to have successfully completed the three-way handshake
       if script.three_way_handshake_ok and twh_in_progress then
 	 -- Check if the script wants the three way handshake completed
-	 trace_f(string.format("%s() [check: %s]: skipping flow with incomplete three way handshake", mod_fn, mod_key))
+	 if do_trace then
+	    trace_f(string.format("%s() [check: %s]: skipping flow with incomplete three way handshake", mod_fn, mod_key))
+	 end
 
 	 goto continue
       end
@@ -332,7 +344,9 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       local script_l7 = script.l7_proto_id
 
       if script_l7 and master_id ~= script_l7 and app_id ~= script_l7 then
-	 trace_f(string.format("%s() [check: %s]: skipping flow with proto=%s/%s [wants: %s]", mod_fn, mod_key, master_id, app_id, script_l7))
+	 if do_trace then
+	    trace_f(string.format("%s() [check: %s]: skipping flow with proto=%s/%s [wants: %s]", mod_fn, mod_key, master_id, app_id, script_l7))
+	 end
 
 	 goto continue
       end
@@ -348,7 +362,10 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
 
       if do_trace then
 	 local info = flow.getInfo()
-	 trace_f(string.format("%s() [check: %s]: %s", mod_fn, mod_key, shortFlowLabel(info)))
+
+	 if do_trace then
+	    trace_f(string.format("%s() [check: %s]: %s", mod_fn, mod_key, shortFlowLabel(info)))
+	 end
       end
 
       local conf = user_scripts.getTargetHookConfig(flows_config, script)
@@ -359,17 +376,8 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       ::continue::
    end
 
-   if recalculate_predominant_status then
-      -- The predominant status has changed and we've lost track of it
-      -- This is the worst case, it must be recalculated manually
-      predominant_status = flow_consts.getPredominantStatus(flow.getStatus())
-   end
-
-   trace_f(string.format("%s()[END]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), predominant_status.status_id))
-
-   if prev_predominant_status ~= predominant_status then
-      -- The predominant status has changed, updated the flow
-      flow.setPredominantStatus(predominant_status.status_id)
+   if do_trace then
+      trace_f(string.format("%s()[END]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), flow.getPredominantStatus()))
    end
 
    if alerted_status and flow.canTriggerAlert() then
@@ -391,6 +399,7 @@ end
 function flow.triggerStatus(flow_status_type, status_json, flow_score, cli_score, srv_score, custom_severity)
    local status_id = flow_status_type.status_id
    local new_status = flow_consts.getStatusInfo(status_id)
+   flow_score = flow_score or 0
 
    if(tonumber(status_json) ~= nil) then
       tprint("Invalid status_json")
@@ -398,11 +407,13 @@ function flow.triggerStatus(flow_status_type, status_json, flow_score, cli_score
       return
    end
 
-   if not alerted_status or new_status.prio > alerted_status.prio then
-      -- The new alerted status as an higher priority
+   if((not alerted_status) or (flow_score > alerted_status_score) or
+	 ((flow_score == alerted_status_score) and (cur_user_script.key > alerted_user_script.key))) then
+      -- The new alerted status as an higher score
       alerted_status = new_status
       alerted_status_msg = status_json
       alerted_custom_severity = custom_severity -- possibly nil
+      alerted_status_score = flow_score
       alerted_user_script = cur_user_script
    end
 
@@ -420,11 +431,6 @@ function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
       -- The status has actually changed
       local new_status = flow_consts.getStatusInfo(status_id)
 
-      if new_status.prio > predominant_status.prio then
-         -- The new status as an higher priority
-         predominant_status = new_status
-      end
-
       if score_utils then
         score_utils.updateScore(flow, status_id, status_json, new_status, flow_score, cli_score, srv_score)
       end
@@ -441,9 +447,8 @@ function flow.clearStatus(flow_status_type)
 
    if c_flow_clear_status(status_id) then
       -- The status has actually changed
-      if predominant_status.id == status_id then
-         -- The predominant status has been cleared, need to recalculate it
-         recalculate_predominant_status = true
+      if do_trace then
+	 trace_f(string.format("flow.clearStatus: predominant status changed to %d", flow.getPredominantStatus()))
       end
    end
 end

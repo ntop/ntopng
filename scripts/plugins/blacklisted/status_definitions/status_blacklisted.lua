@@ -41,7 +41,6 @@ end
 -- #################################################################
 
 return {
-  prio = 700,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_flow_blacklisted,
   i18n_title = "flow_details.blacklisted_flow",

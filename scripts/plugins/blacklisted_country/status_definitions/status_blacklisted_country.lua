@@ -28,7 +28,6 @@ end
 -- #################################################################
 
 return {
-  prio = 650,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_blacklisted_country,
   i18n_title = "alerts_dashboard.blacklisted_country",
