@@ -34,6 +34,7 @@ local protos_utils = require("protos_utils")
 local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
+local user_scripts = require("user_scripts")
 
 local tls_cipher_suites = {
    TLS_NULL_WITH_NULL_NULL=0x000000,
@@ -993,11 +994,16 @@ else
    -- ######################################
 
    local alerted_status = nil
+   local status_infos = flow["status_infos"]
 
    if flow["flow.alerted"] then
       alerted_status = flow["alerted_status"]
+      local status_info = status_infos[alerted_status]
       local alert_info = flow2statusinfo(flow)
       local message = flow_consts.getStatusDescription(alerted_status, alert_info)
+      if status_info then
+	 message = message .. string.format(" [%s: %d]", i18n("score"), status_info.score)
+      end
       message = message .. getConfigsetAlertLink(alert_info)
 
       print("<tr><th width=30%><i class='fas fa-exclamation-triangle' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
@@ -1015,12 +1021,31 @@ else
 
    if(additional_status ~= 0) then
       local status_icon = "<i class=\"fas fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
+      local configsets = user_scripts.getConfigsets()
+      local view_ifid
+
+      if interface.isViewed() then
+	 view_ifid = interface.viewedBy()
+      else
+	 view_ifid = ifid
+      end
+
+      local flows_config, confset_id = user_scripts.getTargetConfig(configsets, "flow", view_ifid..'')
 
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
       for _, t in pairsByKeys(flow_consts.status_types) do
 	 local id = t.status_id
+
          if ntop.bitmapIsSet(additional_status, id) then
-            print(flow_consts.getStatusDescription(id, flow2statusinfo(flow)).."<br />")
+	    local status_info = status_infos[id]
+	    local detail = ""
+
+	    if status_info then
+	       detail = string.format(" [%s: %d]", i18n("score"), status_info.score)
+	       detail = detail .. getConfigsetAlertLink({alert_generation = {confset_id = confset_id, subdir = "flow", script_key = status_info.user_script}})
+	    end
+
+            print(flow_consts.getStatusDescription(id, flow2statusinfo(flow))..detail.."<br />")
          end
       end
       print("</td></tr>\n")

@@ -3817,6 +3817,11 @@ void Flow::lua_get_status(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "flow.status", getPredominantStatus());
   lua_push_uint64_table_entry(vm, "status_map", status_map.get());
 
+  statusInfosLua(vm);
+  lua_pushstring(vm, "status_infos");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
   if(isFlowAlerted()) {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
     lua_push_uint64_table_entry(vm, "alerted_status", alerted_status);
@@ -4547,4 +4552,29 @@ u_int16_t Flow::getAlertedStatusScore() {
     return(0);
 
   return(status_infos[alerted_status].score);
+}
+
+/* *************************************** */
+
+void Flow::statusInfosLua(lua_State* vm) const {
+  int i;
+
+  lua_newtable(vm);
+
+  if(status_infos) {
+    for(i=0; i<BITMAP_NUM_BITS; i++) {
+      if(status_map.issetBit(i)) {
+	lua_newtable(vm);
+
+	if(status_infos[i].script_key)
+	  lua_push_str_table_entry(vm, "user_script", status_infos[i].script_key);
+
+	lua_push_int32_table_entry(vm, "score", status_infos[i].score);
+
+	lua_pushinteger(vm, i);
+	lua_insert(vm, -2);
+	lua_settable(vm, -3);
+      }
+    }
+  }
 }

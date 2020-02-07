@@ -265,6 +265,7 @@ class Flow : public GenericHashEntry {
   bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json);
   FlowStatus getPredominantStatus() const;
   inline const char* getStatusInfo() const      { return(alert_status_info);    }
+  void statusInfosLua(lua_State* vm) const;
 
   bool isBlacklistedFlow()   const;
   bool isBlacklistedClient() const;
