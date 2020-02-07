@@ -20,7 +20,7 @@ local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")
 local json = require("dkjson")
 local alerts_api = require("alerts_api")
-local score_utils = nil
+local ids_utils = nil
 
 if ntop.isPro() then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -144,8 +144,8 @@ function setup()
       end
    end
 
-   if(isScoreEnabled()) then
-      score_utils = require("score_utils")
+   if(ntop.isEnterprise()) then
+      ids_utils = require("ids_utils")
    end
 end
 
@@ -425,18 +425,32 @@ end
 -- NOTE: overrides the C flow.setStatus (now saved in c_flow_set_status)
 function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
    local status_id = flow_status_type.status_id
-   local changed = c_flow_set_status(status_id)
 
-   if changed then
-      -- The status has actually changed
+   if(not flow.isStatusSet(status_id)) then
       local new_status = flow_consts.getStatusInfo(status_id)
 
-      if score_utils then
-        score_utils.updateScore(flow, status_id, status_json, new_status, flow_score, cli_score, srv_score)
+      if(new_status and status_json and ids_utils) then
+	 if(status_id == flow_consts.status_types.status_external_alert.status_id) then
+	    local status_info = json.decode(score_info.status_info)
+
+	    if(status_info and (status_info.source == "suricata")) then
+	       local fs, cs, ss = ids_utils.computeScore(status_info)
+	       flow_score = fs
+	       cli_score = cs
+	       srv_score = ss
+	    end
+	 end
       end
+
+      flow_score = math.min(math.max(flow_score or 0, 0), 1000)
+      cli_score = math.min(math.max(cli_score or 0, 0), 1000)
+      srv_score = math.min(math.max(srv_score or 0, 0), 1000)
+
+      c_flow_set_status(status_id, flow_score, cli_score, srv_score, cur_user_script.key)
+      return(true)
    end
 
-   return(changed)
+   return(false)
 end
 
 -- #################################################################

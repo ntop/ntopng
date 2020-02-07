@@ -32,6 +32,11 @@ typedef struct {
   u_int64_t last, next;
 } TCPSeqNum;
 
+typedef struct {
+  u_int16_t score;
+  char *script_key;
+} StatusInfo;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -45,8 +50,8 @@ class Flow : public GenericHashEntry {
   struct ndpi_flow_struct *ndpiFlow;
 
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
+  StatusInfo *status_infos;       /* An array of 64 StatusInfo, one for each status (lazy allocation upon setStatus call) */
   FlowStatus alerted_status;      /* This is the status which has triggered the alert */
-  FlowStatus predominant_status;  /* This is the most important status currently set in the status_map */
   AlertType alert_type;
   AlertLevel alert_level;
   char *alert_status_info;        /* Alert specific status info */
@@ -255,11 +260,10 @@ class Flow : public GenericHashEntry {
   ~Flow();
 
   inline Bitmap getStatusBitmap()     const     { return(status_map);           }
-  void setStatus(FlowStatus status);
+  bool setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc, const char*script_key);
   void clearStatus(FlowStatus status);
   bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json);
-  inline void setPredominantStatus(FlowStatus status) { predominant_status = status; }
-  inline FlowStatus getPredominantStatus() const      { return(predominant_status); }
+  FlowStatus getPredominantStatus() const;
   inline const char* getStatusInfo() const      { return(alert_status_info);    }
 
   bool isBlacklistedFlow()   const;
@@ -602,7 +606,6 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
 
-  void incScore(u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc);
   inline u_int16_t getCliScore() const     { return(cli_score); };
   inline u_int16_t getSrvScore() const     { return(srv_score); };
   inline u_int16_t getScore() const        { return(flow_score); };

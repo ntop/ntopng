@@ -9151,29 +9151,6 @@ static int ntop_flow_is_local(lua_State* vm) {
 
 #ifdef NTOPNG_PRO
 
-static int ntop_flow_inc_score(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-  u_int16_t flow_score, cli_score, srv_score;
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  flow_score = (u_int16_t)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  cli_score = (u_int16_t)lua_tonumber(vm, 2);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  srv_score = (u_int16_t)lua_tonumber(vm, 3);
-
-  f->incScore(flow_score, cli_score, srv_score);
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_flow_get_score(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -9839,23 +9816,28 @@ static int ntop_flow_get_status(lua_State* vm) {
 // ***API***
 static int ntop_flow_set_status(lua_State* vm) {
   FlowStatus new_status;
-  Bitmap old_bitmap;
+  u_int16_t flow_score, cli_score, srv_score;
   Flow *f = ntop_flow_get_context_flow(vm);
-  bool changed = false;
+  char *script_key;
 
   if(!f) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   new_status = (FlowStatus)lua_tonumber(vm, 1);
 
-  old_bitmap = f->getStatusBitmap();
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  flow_score = (u_int16_t)lua_tonumber(vm, 2);
 
-  if(!old_bitmap.issetBit(new_status)) {
-    f->setStatus(new_status);
-    changed = true;
-  }
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  cli_score = (u_int16_t)lua_tonumber(vm, 3);
 
-  lua_pushboolean(vm, changed);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  srv_score = (u_int16_t)lua_tonumber(vm, 4);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  script_key = (char*)lua_tostring(vm, 5);
+
+  lua_pushboolean(vm, f->setStatus(new_status, flow_score, cli_score, srv_score, script_key));
   return(CONST_LUA_OK);
 }
 
@@ -9886,18 +9868,7 @@ static int ntop_flow_clear_status(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_predominant_status(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushinteger(vm, f->getPredominantStatus());
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_set_predominant_status(lua_State* vm) {
+static int ntop_flow_is_status_set(lua_State* vm) {
   FlowStatus status;
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -9906,9 +9877,18 @@ static int ntop_set_predominant_status(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   status = (FlowStatus)lua_tonumber(vm, 1);
 
-  f->setPredominantStatus(status);
-  lua_pushnil(vm);
+  lua_pushboolean(vm, f->getStatusBitmap().issetBit(status));
+  return(CONST_LUA_OK);
+}
 
+/* ****************************************** */
+
+static int ntop_get_predominant_status(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->getPredominantStatus());
   return(CONST_LUA_OK);
 }
 
@@ -11480,7 +11460,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   /* Internal */
   { "triggerAlert",             ntop_flow_trigger_alert              },
   { "getPredominantStatus",     ntop_get_predominant_status          },
-  { "setPredominantStatus",     ntop_set_predominant_status          },
+  { "isStatusSet",              ntop_flow_is_status_set              },
   { "getKey",                   ntop_flow_get_key                    },
   { "getHashEntryId",           ntop_flow_get_hash_entry_id          },
   { "getICMPStatusInfo",        ntop_flow_get_icmp_status_info       },
@@ -11530,7 +11510,6 @@ static const luaL_Reg ntop_flow_reg[] = {
   /* TODO document */
   { "isLocal",                  ntop_flow_is_local                   },
 #ifdef NTOPNG_PRO
-  { "incScore",                 ntop_flow_inc_score                  },
   { "getScore",                 ntop_flow_get_score                  },
   { "getScoreInfo",             ntop_flow_get_score_info             },
 #endif

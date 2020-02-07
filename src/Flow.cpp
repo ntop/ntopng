@@ -47,8 +47,8 @@ Flow::Flow(NetworkInterface *_iface,
   alert_type = alert_none;
   alert_level = alert_level_none;
   alerted_status = status_normal;
-  predominant_status = status_normal;
   peers_score_accounted = false;
+  status_infos = NULL;
 
   detection_completed = update_flow_port_stats = false;
   fully_processed = false;
@@ -292,6 +292,14 @@ Flow::~Flow() {
   }
 
   if(bt_hash)                free(bt_hash);
+
+  if(status_infos) {
+    for(int i=0; i<BITMAP_NUM_BITS; i++) {
+      if(status_infos[i].script_key)
+	free(status_infos[i].script_key);
+    }
+    free(status_infos);
+  }
 
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
@@ -4417,13 +4425,58 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 
 /* *************************************** */
 
-void Flow::setStatus(FlowStatus status) {
+static void incPeerScorePcap(Host *h, u_int16_t score_inc) {
+  u_int32_t old_score = h->getScore()->getValue();
+  u_int32_t new_score = old_score + score_inc;
+
+  if(new_score >= (u_int16_t)-1)
+    new_score = (u_int16_t)-1;
+
+  h->getScore()->incValue(new_score);
+  h->getScore()->refreshValue();
+}
+
+/* *************************************** */
+
+bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
+	  u_int16_t srv_inc, const char*script_key) {
   if(status_map.get() == status_normal) {
     /* First misbehaving status */
     iface->incNumMisbehavingFlows();
   }
 
-  status_map.setBit(status);
+  if(!status_map.issetBit(status)) {
+    status_map.setBit(status);
+
+#ifdef NTOPNG_PRO
+    if(ntop->getPrefs()->is_enterprise_edition()) {
+      flow_score += flow_inc;
+      cli_score += cli_inc;
+      srv_score += srv_inc;
+
+      if(!status_infos)
+	status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));
+
+      if(status_infos && (status < BITMAP_NUM_BITS)) {
+	if(!status_infos[status].script_key)
+	  status_infos[status].script_key = strdup(script_key);
+
+	status_infos[status].score = flow_inc;
+      }
+
+      if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
+	/* Periodic scripts (e.g. minute.lua) are not executed while reading a
+	 * PCAP file. Increment the peers score here. */
+	if(cli_host) incPeerScorePcap(cli_host, cli_inc);
+	if(srv_host) incPeerScorePcap(srv_host, srv_inc);
+      }
+    }
+#endif
+
+    return(true);
+  }
+
+  return(false);
 }
 
 /* *************************************** */
@@ -4462,28 +4515,19 @@ void Flow::luaRetrieveExternalAlert(lua_State *vm) {
 
 /* *************************************** */
 
-static void incPeerScorePcap(Host *h, u_int16_t score_inc) {
-  u_int32_t old_score = h->getScore()->getValue();
-  u_int32_t new_score = old_score + score_inc;
+FlowStatus Flow::getPredominantStatus() const {
+  int i;
+  u_int16_t max_score = 0;
+  FlowStatus status = status_normal;
 
-  if(new_score >= (u_int16_t)-1)
-    new_score = (u_int16_t)-1;
-
-  h->getScore()->incValue(new_score);
-  h->getScore()->refreshValue();
-}
-
-void Flow::incScore(u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc) {
-  flow_score += flow_inc;
-  cli_score += cli_inc;
-  srv_score += srv_inc;
-
-  if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
-    /* Periodic scripts (e.g. minute.lua) are not executed while reading a
-     * PCAP file. Increment the peers score here. */
-    if(cli_host) incPeerScorePcap(cli_host, cli_inc);
-    if(srv_host) incPeerScorePcap(srv_host, srv_inc);
+  if(status_infos) {
+    for(i=0; i<BITMAP_NUM_BITS; i++) {
+      if(status_map.issetBit(i) && (status_infos[i].score > max_score)) {
+	status = (FlowStatus)i;
+	max_score = status_infos[i].score;
+      }
+    }
   }
-}
 
-/* *************************************** */
+  return(status);
+}
