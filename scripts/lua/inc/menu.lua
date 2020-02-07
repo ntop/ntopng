@@ -15,9 +15,6 @@ local page_utils = require("page_utils")
 
 local is_admin = isAdministrator()
 
-local active_page = page_utils.get_active_section()
-local active_subpage = page_utils.get_active_entry()
-
 -- tprint(collapsed_sidebar)
 
 print([[
