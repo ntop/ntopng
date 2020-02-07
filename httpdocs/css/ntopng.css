@@ -1086,3 +1086,9 @@ path.link {
 .p-btn {
   padding: .375rem 0rem;
 }
+
+.scroll-x {
+  white-space: nowrap;
+  overflow-x: auto; 
+  -webkit-overflow-scrolling: touch;
+}
