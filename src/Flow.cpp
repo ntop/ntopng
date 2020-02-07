@@ -393,6 +393,7 @@ void Flow::processDetectedProtocol() {
 	}
       }
     }
+
     /* See Flow::processFullyDissectedProtocol for reply dissection */
     break;
 
@@ -1277,11 +1278,12 @@ void Flow::periodic_stats_update(void *user_data) {
 
       See https://github.com/ntop/ntopng/issues/3106 and enclosed pcap for additional details.
     */
-    if(get_detected_protocol().app_protocol != NDPI_PROTOCOL_UNKNOWN)
-      ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+    const ndpi_protocol ndpiGenericDNS = { NDPI_PROTOCOL_DNS,
+					   NDPI_PROTOCOL_UNKNOWN,
+					   NDPI_PROTOCOL_CATEGORY_NETWORK };
 
-    if(get_protocol_category() != NDPI_PROTOCOL_CATEGORY_NETWORK)
-      ndpiDetectedProtocol.category = NDPI_PROTOCOL_CATEGORY_NETWORK;
+    if(memcmp(&ndpiGenericDNS, &ndpiDetectedProtocol, sizeof(ndpiDetectedProtocol)))
+      memcpy(&ndpiDetectedProtocol, &ndpiGenericDNS, sizeof(ndpiGenericDNS));
   }
 
   if(update_flow_port_stats) {
