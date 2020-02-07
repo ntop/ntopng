@@ -362,9 +362,7 @@ class Flow : public GenericHashEntry {
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
 		    u_int in_fragments, u_int out_fragments, time_t last_seen);
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
-  inline bool isDetectionCompleted()     const { return(detection_completed
-							|| (ndpiDetectedProtocol.master_protocol != NDPI_PROTOCOL_UNKNOWN)
-							|| (ndpiDetectedProtocol.app_protocol    != NDPI_PROTOCOL_UNKNOWN));  };
+  inline bool isDetectionCompleted()     const { return(detection_completed);             };
   inline bool isOneWay()                 const { return(get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli())); };
   inline bool isBidirectional()          const { return(get_packets_cli2srv() && get_packets_srv2cli());                      };
   inline void* get_cli_id()              const { return(cli_id);                          };
