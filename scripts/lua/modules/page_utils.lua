@@ -17,12 +17,26 @@ local active_entry = nil
 
 -- #################################
 
+page_utils.menu_sections = {
+   dashboard    = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
+   alerts       = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
+   flows        = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
+   hosts        = {key = "hosts", i18n_title = "hosts", icon = "fas fa-laptop"},
+   exporters    = {key = "exporters", i18n_title = "flow_devices.exporters", icon = "fas fa-file-export"},
+   interface    = {key = "interface", i18n_title = "interface", icon = "fas fa-ethernet"},
+   system_stats = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
+   admin = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
+   about = {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
+}
+
+-- #################################
+
 page_utils.menu_entries = {
     -- Dashboard
     traffic_dashboard 	= {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard"},
     network_discovery 	= {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard"},
     traffic_report    	= {key = "traffic_report",    i18n_title = "report.traffic_report",	section = "dashboard"},
-    db_explorer    	= {key = "db_explorer", i18n_title = "event_exporters.event_exporters",	section = "dashboard"},
+    db_explorer    	= {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "dashboard"},
 
     -- Alerts
     detected_alerts  	 = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts"},
@@ -61,12 +75,13 @@ page_utils.menu_entries = {
 
     -- Exporters
     event_exporters   	 = {key = "event_exporters", i18n_title = "system_interfaces_status", section = "exporters"},
+    sflow_exporters   	 = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "exporters"},
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters"},
 
     -- Settings
     manage_users	 = {key = "manage_users", i18n_title = "manage_users.manage_users", section = "admin"},
     preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin"},
-    scripts_config	 = {key = "scripts_config", i18n_title = "config_scripts.config_x", section = "admin"},
+    scripts_config	 = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin"},
     profiles	      	 = {key = "profiles", i18n_title = "traffic_profiles.traffic_profiles", section = "admin"},
     categories	      	 = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin"},
     category_lists    	 = {key = "category_lists", i18n_title = "category_lists.category_lists", section = "admin"},
@@ -75,17 +90,27 @@ page_utils.menu_entries = {
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "admin"},
     plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "admin"},
     remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "admin"},
+    conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin"},
+    conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin"},
 
     -- Home
     live_capture   	 = {key = "live_capture", i18n_title = "live_capture.active_live_captures", section = "home"},
 
     -- Help
-    about   		 = {key = "about", i18n_title = "about.about_x", section = "about"},
+    about   		 = {key = "about", i18n_title = "about.about", section = "about"},
     telemetry    	 = {key = "telemetry", i18n_title = "telemetry", section = "about"},
+    blog         	 = {key = "blog", i18n_title = "about.ntop_blog", section = "about"},
+    telegram         	 = {key = "telegram", i18n_title = "about.telegram", section = "about"},
+    report_issue         = {key = "report_issue", i18n_title = "about.report_issue", section = "about"},
     directories    	 = {key = "directories", i18n_title = "about.directories", section = "about"},
     plugins    		 = {key = "plugins", i18n_title = "plugins", section = "about"},
     user_scripts 	 = {key = "user_scripts", i18n_title = "about.user_scripts", section = "about"},
     alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "about"},
+    manual 	         = {key = "manual", i18n_title = "about.readme_and_manual", section = "about"},
+    api 	         = {key = "api", i18n_title = "Lua/C API", section = "about"},
+
+    -- Just a divider for horizontal rows in the menu
+    divider = {key = "divider"},
 }
 
 -- Extend the menu entries with the plugins
@@ -267,6 +292,149 @@ function page_utils.print_navbar(title, base_url, items_table)
 </nav>
 <p>
 ]]
+end
+
+-- #################################
+local menubar_structure = {}
+
+function page_utils.init_menubar()
+   menubar_structure = {}
+end
+
+-- #################################
+
+function page_utils.add_menubar_section(section)
+   menubar_structure[#menubar_structure + 1] = section
+end
+
+-- #################################
+
+function page_utils.print_menubar()
+   local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
+   local active_page = page_utils.get_active_section()
+   local active_subpage = page_utils.get_active_entry()
+
+   if ((navbar_style == nil) or (navbar_style == "")) then
+      navbar_style = "default"
+   end
+
+   if (navbar_style == "default") then
+      navbar_style = "dark"
+   end
+
+   print('<div id="n-sidebar" class="bg-'.. navbar_style ..'" py-0 px-2">')
+
+   print([[
+	 <h3 class='muted'>
+	    <div class='d-flex'>
+	       <a href='/'>
+		  ]])
+   print(addLogoSvg())
+   print([[
+	       </a>
+	    </div>
+	 </h3>
+
+	 <ul class="nav-side mb-4" id='sidebar'>
+]])
+
+   for _, section in ipairs(menubar_structure) do
+      if not section.hidden then
+	 local section_key = section.section.key
+	 local section_id = section_key.."-submenu"
+	 local section_has_entries = section.entries and #section.entries > 0
+
+	 print[[
+      <li class="nav-item ]] print(active_page == section_key and 'active' or '') print[[">
+	<a class="]]
+
+	 if section_has_entries then
+	    print[[submenu ]]
+	 end
+
+	 if active_page == section_key then
+	    print[[active ]]
+	 end
+
+	 print[[" ]]
+
+	 if section_has_entries then
+	    print[[ data-toggle="collapse" ]]
+	 end
+
+	 print[[href="]]
+
+	 if section.url then
+	    print(ntop.getHttpPrefix()..section.url)
+	 else
+	    print("#"..section_id)
+	 end
+
+	 print[[">
+	  <span class="]] print(section.section.icon) print[["></span> ]] print(i18n(section.section.i18n_title)) print[[
+	</a>]]
+
+	 if section_has_entries then
+	    print[[<div data-parent='#sidebar' class='collapse side-collapse' id=']] print(section_id) print[['>
+		  <ul class='nav flex-column'>
+   ]]
+
+	    for _, section_entry in ipairs(section.entries) do
+	       if not section_entry.hidden then
+		  if section_entry.custom then
+		     print(section_entry.custom)
+		  elseif section_entry.entry.key == "divider" then
+		     print[[
+		   <li class="dropdown-divider"></li>
+]]
+		  else
+		     local external_link = false
+
+		     print[[
+		   <li>
+		     <a href="]]
+		     if section_entry.url:starts("http") then
+			-- Absolute url
+			print(section_entry.url)
+			external_link = true
+		     else
+			-- Url relative to ntopng
+			print(ntop.getHttpPrefix()..section_entry.url)
+		     end
+		     print[["]]
+
+		     if external_link then
+			print('target="_blank"')
+		     end
+
+		     print[[>]]
+		     print(i18n(section_entry.entry.i18n_title) or section_entry.entry.i18n_title)
+		     if external_link then
+			print(" <i class='fas fa-external-link-alt'></i>")
+		     end
+
+		     print[[</a>
+		   </li>
+   ]]
+		  end
+	       end
+	    end
+
+	    print[[
+		  </ul>
+		</div>
+   ]]
+
+	 end
+      end
+   end
+
+
+   print([[
+     </ul>
+   </div>
+]])
+
 end
 
 -- #################################
