@@ -7922,7 +7922,7 @@ static int ntop_mkdir_tree(lua_State* vm) {
 
 static int ntop_list_reports(lua_State* vm) {
   DIR *dir;
-  char fullpath[MAX_PATH+8];
+  char fullpath[MAX_PATH+64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
