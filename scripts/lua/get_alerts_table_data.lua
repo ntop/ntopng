@@ -41,6 +41,21 @@ local function getEntityAlertDisabledBitmap(entity, entity_val)
   return(bitmap)
 end
 
+local function getExplorerLink(origin, target, timestamp)
+   local url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flow_alerts_explorer.lua?"
+   if origin ~= nil and origin ~= "" then
+      url = url..'&origin='..origin
+   end
+   if target ~= nil and target ~= "" then
+      url = url..'&target='..target
+   end
+   if timestamp ~= nil then
+      url = url..'&epoch_begin='..(tonumber(timestamp) - 1800)
+      url = url..'&epoch_end='..(tonumber(timestamp) + 1800)
+   end
+   return url
+end
+
 --~ function alerts_api.getEntityAlertsDisabled(ifid, entity, entity_val)
 
 if(tonumber(_GET["currentPage"]) == nil) then _GET["currentPage"] = 1 end
@@ -129,26 +144,12 @@ for _key,_value in ipairs(alerts) do
    end
 
    local column_id = tostring(alert_id)
-
-   if ntop.isEnterprise() and (status == "historical-flows") then
-      local explore = function()
-	 local url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flow_alerts_explorer.lua?"
-	 local origin = _value["cli_addr"]
-	 local target = _value["srv_addr"]
-	 if origin ~= nil and origin ~= "" then
-	    url = url..'&origin='..origin
-	 end
-	 if target ~= nil and target ~= "" then
-	    url = url..'&target='..target
-	 end
-	 if _value["alert_tstamp"] ~= nil then
-	    url = url..'&epoch_begin='..(tonumber(_value["alert_tstamp"]) - 1800)
-	    url = url..'&epoch_end='..(tonumber(_value["alert_tstamp"]) + 1800)
-	 end
-	 return url
+   if(ntop.isEnterprise()) then
+      if (status == "historical-flows") then
+	 record["column_explorer"] = getExplorerLink(_value["cli_addr"], _value["srv_addr"], _value["alert_tstamp"])
+      elseif(_value["alert_subtype"] == "host_score") then
+	 record["column_explorer"] = getExplorerLink(nil, hostkey2hostinfo(_value["alert_entity_val"]).host, _value["alert_tstamp"])
       end
-
-      record["column_explorer"] = explore()
    end
 
    if status ~= "historical-flows" then

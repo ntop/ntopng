@@ -1613,12 +1613,16 @@ function toggleAlert(disable) {
                var explorer_url = data["column_explorer"];
 
                if(explorer_url) {
-                  datatableAddLinkButtonCallback.bind(this)(9, explorer_url, "]] print(i18n("show_alerts.explorer")) print[[");
+                  datatableAddLinkButtonCallback.bind(this)(10, explorer_url, "]] print(i18n("show_alerts.explorer")) print[[");
                   disable_alerts_dialog = "#disable_flows_alerts";
-               } else if(!data.column_alert_disabled)
-                  datatableAddActionButtonCallback.bind(this)(9, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#disable_alert_type').modal('show');", "]] print(i18n("show_alerts.disable_alerts")) print[[");
-               else
-                  datatableAddActionButtonCallback.bind(this)(9, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#enable_alert_type').modal('show');", "]] print(i18n("show_alerts.enable_alerts")) print[[");
+               }
+
+	       if(]] print(ternary(t["status"] == "historical-flows", "false", "true")) print[[) {
+		  if(!data.column_alert_disabled)
+		     datatableAddActionButtonCallback.bind(this)(10, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#disable_alert_type').modal('show');", "]] print(i18n("show_alerts.disable_alerts")) print[[");
+		  else
+		     datatableAddActionButtonCallback.bind(this)(10, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#enable_alert_type').modal('show');", "]] print(i18n("show_alerts.enable_alerts")) print[[");
+	       }
 
                if(]] print(ternary(t["status"] == "engaged", "true", "false")) print[[)
                  datatableAddActionButtonCallback.bind(this)(9, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "]] print(i18n("show_alerts.release_alert_action")) print[[");
