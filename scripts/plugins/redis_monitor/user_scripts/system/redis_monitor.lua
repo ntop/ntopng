@@ -18,18 +18,15 @@ local script = {
   -- See below
   hooks = {},
 
+  -- This script is disabled on windows since many of the required stats
+  -- (e.g. aof_last_bgrewrite_status) are not available.
+  windows_exclude = true,
+
   gui = {
     i18n_title = "system_stats.redis.redis_monitor",
     i18n_description = "system_stats.redis.redis_monitor_description",
   },
 }
-
--- ##############################################
-
-function script.setup()
-  -- This module is always enabled
-  return(true)
-end
 
 -- ##############################################
 
