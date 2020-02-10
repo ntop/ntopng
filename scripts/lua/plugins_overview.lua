@@ -35,7 +35,7 @@ local function printPlugins()
 
   print[[<h3>Loaded Plugins</h3><br>
   <table class="table table-bordered table-sm table-striped">
-    <tr><th width="20%">Plugin</th><th>Description</th><th class="text-center">Version</th><th>Source Location</th><th width="10%">Availability</th></tr>]]
+    <tr><th width="20%">Plugin</th><th>Description</th><th>Source Location</th><th width="10%">Availability</th></tr>]]
 
   for _, plugin in pairsByField(plugins, "title", asc) do
     local available = ""
@@ -52,7 +52,7 @@ local function printPlugins()
       if((edition ~= "") and (edition ~= "community")) then goto skip end
     end
 
-    print(string.format([[<tr><td>%s</td><td>%s</td><td class="text-center">%s</td><td>%s</td><td>%s</td></tr>]], plugin.title, plugin.description, plugin.version, plugin.path, available))
+    print(string.format([[<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>]], plugin.title, plugin.description, plugin.path, available))
     ::skip::
   end
 
