@@ -348,6 +348,11 @@ page_utils.add_menubar_section(
 	    url = '/lua/admin/edit_device_protocols.lua',
 	 },
 	 {
+	    entry = page_utils.menu_entries.manage_data,
+	    hidden = not is_admin,
+	    url = '/lua/manage_data.lua',
+	 },
+	 {
 	    entry = page_utils.menu_entries.divider,
 	    hidden = not is_admin,
 	 },
