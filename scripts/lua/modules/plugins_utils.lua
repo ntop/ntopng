@@ -56,7 +56,7 @@ function plugins_utils.listPlugins()
 
       if ntop.exists(plugin_info) then
         local metadata = dofile(plugin_info)
-        local mandatory_fields = {"title", "description", "author", "version"}
+        local mandatory_fields = {"title", "description", "author"}
 
         if(metadata == nil) then
           traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load manifest.lua in '%s'", plugin_name))

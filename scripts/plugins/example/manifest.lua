@@ -18,9 +18,6 @@ return {
   -- The author of the plugin. For emails use the format: 'Name Surname <me@domain.com>'
   author = "ntop",
 
-  -- An incremental number indicating the plugin version.
-  version = 1,
-
   -- A list of plugin keys which this plugin depends on. A plugin key
   -- corresponds to the directory name of the plugin (e.g. the key of
   -- this plugin is "example")

@@ -6,6 +6,5 @@ return {
   title = "Threshold Cross",
   description = "Multiple threshold cross alerts",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }

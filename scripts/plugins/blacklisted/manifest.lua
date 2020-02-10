@@ -6,6 +6,5 @@ return {
   title = "Blacklisted Hosts",
   description = "Detects blacklisted hosts and triggers alerts",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }

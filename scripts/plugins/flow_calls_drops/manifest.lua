@@ -6,6 +6,5 @@ return {
   title = "Flow Calls Drops",
   description = "Detects drops in flow user scripts calls and triggers alerts",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }

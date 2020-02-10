@@ -6,6 +6,5 @@ return {
   title = "Country Check",
   description = "Detects hosts contacts with specific countries",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }

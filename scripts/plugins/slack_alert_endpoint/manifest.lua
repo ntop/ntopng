@@ -12,6 +12,5 @@ return {
   title = "Slack Alert Endpoint",
   description = "Provides alerts notifications to Slack",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }

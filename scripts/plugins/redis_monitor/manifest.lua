@@ -6,6 +6,5 @@ return {
   title = "Redis Monitor",
   description = "Monitors Redis health and performance",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }

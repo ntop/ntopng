@@ -12,6 +12,5 @@ return {
   title = "Webhook Alert Endpoint",
   description = "Provides alerts notifications via webhooks",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }

@@ -12,6 +12,5 @@ return {
   title = "Email Alert Endpoint",
   description = "Provides alerts notifications via emails",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }

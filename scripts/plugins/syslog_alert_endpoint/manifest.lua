@@ -12,6 +12,5 @@ return {
   title = "Syslog Alert Endpoint",
   description = "Provides alerts notifications to Syslog",
   author = "ntop",
-  version = 1,
   dependencies = {},
 }
