@@ -65,6 +65,7 @@ local is_pcap_dump = interface.isPcapDumpInterface()
 local is_packet_interface = interface.isPacketInterface()
 ifId = ifs.id
 
+-- NOTE: see sidebar.js for the client logic
 page_utils.init_menubar()
 
 -- ##############################################
@@ -258,7 +259,7 @@ page_utils.add_menubar_section(
 -- Interface
 page_utils.add_menubar_section(
    {
-      section = page_utils.menu_sections.interface,
+      section = page_utils.menu_sections.if_stats,
       url = "/lua/if_stats.lua",
    }
 )

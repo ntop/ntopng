@@ -23,7 +23,7 @@ page_utils.menu_sections = {
    flows        = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
    hosts        = {key = "hosts", i18n_title = "hosts", icon = "fas fa-laptop"},
    exporters    = {key = "exporters", i18n_title = "flow_devices.exporters", icon = "fas fa-file-export"},
-   interface    = {key = "interface", i18n_title = "interface", icon = "fas fa-ethernet"},
+   if_stats     = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
    admin        = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
    dev   	= {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
@@ -395,7 +395,11 @@ function page_utils.print_menubar()
 
 		     print[[
 		   <li>
-		     <a href="]]
+		     <a class="]]
+		     if section_entry.entry and section_entry.entry.key == active_subpage then
+			print("active")
+		     end
+		     print[[" href="]]
 		     if section_entry.url:starts("http") then
 			-- Absolute url
 			print(section_entry.url)
