@@ -293,6 +293,8 @@ function performAlertsQuery(statement, what, opts, force_query, group_by)
          order_by = "alert_type"
       elseif opts.sortColumn == "column_count" and what ~= "engaged" then
          order_by = "alert_counter"
+      elseif opts.sortColumn == "column_score" and what ~= "engaged" then
+         order_by = "score"
       elseif((opts.sortColumn == "column_duration") and (what == "historical")) then
          order_by = "(alert_tstamp_end - alert_tstamp)"
       else
@@ -1558,6 +1560,16 @@ function toggleAlert(disable) {
 	    css: {
 	       textAlign: 'center',
           whiteSpace: 'nowrap',
+	    }
+	 },
+
+	 {
+	    title: "]]print(i18n("score"))print[[",
+	    field: "column_score",
+            hidden: ]] print(ternary(t["status"] ~= "historical-flows", "true", "false")) print[[,
+            sortable: true,
+	    css: {
+	       textAlign: 'center'
 	    }
 	 },
 
