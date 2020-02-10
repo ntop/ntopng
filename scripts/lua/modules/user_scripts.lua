@@ -420,6 +420,7 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.plugin = plugin
    user_script.script_type = script_type
    user_script.edition = plugin.edition
+   user_script.category = checkCategory(user_script.category)
 
    if(user_script.gui and user_script.gui.input_builder) then
       user_script.template = user_scripts_templates[user_script.gui.input_builder]
@@ -454,6 +455,95 @@ end
 
 -- ##############################################
 
+local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir, return_all, scripts_filter, hook_filter)
+   local alerts_disabled = (not areAlertsEnabled())
+   local setup_ok = true
+
+   -- Recheck the edition as the demo mode may expire
+   if((plugin.edition == "pro" and (not ntop.isPro())) or
+      ((plugin.edition == "enterprise" and (not ntop.isEnterprise())))) then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, plugin.edition))
+      return(nil)
+   end
+
+   traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
+
+   local user_script = dofile(full_path)
+   
+   if(type(user_script) ~= "table") then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))
+      return(nil)
+   end
+
+   if((not return_all) and user_script.packet_interface_only and (not interface.isPacketInterface())) then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for non packet interface", mod_fname))
+      return(nil)
+   end
+
+   if((not return_all) and ((user_script.nedge_exclude and ntop.isnEdge()) or (user_script.nedge_only and (not ntop.isnEdge())))) then
+      return(nil)
+   end
+
+   if((not return_all) and (user_script.windows_exclude and ntop.isWindows())) then
+      return(nil)
+   end
+
+   if(table.empty(user_script.hooks)) then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s', skipping", mod_fname))
+      return(nil)
+   end
+
+   if(user_script.l7_proto ~= nil) then
+      user_script.l7_proto_id = interface.getnDPIProtoId(user_script.l7_proto)
+
+      if(user_script.l7_proto_id == -1) then
+	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown L7 protocol filter '%s' in user script '%s', skipping", user_script.l7_proto, mod_fname))
+	 return(nil)
+      end
+   end
+
+   if((not user_script.gui) or (not user_script.gui.i18n_title) or (not user_script.gui.i18n_description)) then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' does not define a gui", mod_fname))
+   end
+
+   -- Augument with additional attributes
+   init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
+
+   if((not return_all) and alerts_disabled and user_script.is_alert) then
+      return(nil)
+   end
+
+   if(hook_filter ~= nil) then
+      -- Only return modules which should be called for the specified hook
+      if((user_script.hooks[hook_filter] == nil) and (user_script.hooks["all"] == nil)) then
+	 traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for hook '%s'", user_script.key, hook_filter))
+	 return(nil)
+      end
+   end
+
+   if(scripts_filter ~= nil) then
+      local script_ok = scripts_filter(user_script)
+
+      if(not script_ok) then
+	 return(nil)
+      end
+   end
+
+   -- If a setup function is available, call it
+   if(user_script.setup ~= nil) then
+      setup_ok = user_script.setup()
+   end
+
+   if((not return_all) and (not setup_ok)) then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' as setup() returned %s", user_script.key, setup_ok))
+      return(nil)
+   end
+
+   return(user_script)
+end
+
+-- ##############################################
+
 -- @brief Load the user scripts.
 -- @param ifid the interface ID
 -- @param script_type one of user_scripts.script_types
@@ -467,12 +557,7 @@ end
 -- @return {modules = key->user_script, hooks = user_script->function}
 function user_scripts.load(ifid, script_type, subdir, options)
    local rv = {modules = {}, hooks = {}, conf = {}}
-   local is_nedge = ntop.isnEdge()
-   local is_windows = ntop.isWindows()
-   local alerts_disabled = (not areAlertsEnabled())
    local old_ifid = interface.getId()
-   local is_pro = ntop.isPro()
-   local is_enterprise = ntop.isEnterprise()
    options = options or {}
    ifid = tonumber(ifid)
 
@@ -497,7 +582,6 @@ function user_scripts.load(ifid, script_type, subdir, options)
    for _, checks_dir in pairs(check_dirs) do
       for fname in pairs(ntop.readdir(checks_dir)) do
          if string.ends(fname, ".lua") then
-            local setup_ok = true
 	    local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
 	    local full_path = os_utils.fixPath(checks_dir .. "/" .. fname)
 	    local plugin = plugins_utils.getUserScriptPlugin(full_path)
@@ -507,92 +591,16 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	       goto next_module
 	    end
 
-	    -- Recheck the edition as the demo mode may expire
-	    if((plugin.edition == "pro" and (not is_pro)) or
-	       ((plugin.edition == "enterprise" and (not is_enterprise)))) then
-	       traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, plugin.edition))
+	    if(rv.modules[mod_fname]) then
+	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
 	       goto next_module
 	    end
 
-            traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
+	    local user_script = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir, return_all, scripts_filter, hook_filter)
 
-            local user_script = dofile(full_path)
-	    
-            if(type(user_script) ~= "table") then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))
-               goto next_module
-            end
-
-	    user_script["category"] = checkCategory(user_script["category"])
-
-            if(rv.modules[mod_fname]) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
-               goto next_module
-            end
-
-            if((not return_all) and user_script.packet_interface_only and (not interface.isPacketInterface())) then
-               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for non packet interface", mod_fname))
-               goto next_module
-            end
-
-            if((not return_all) and ((user_script.nedge_exclude and is_nedge) or (user_script.nedge_only and (not is_nedge)))) then
-               goto next_module
-            end
-
-            if((not return_all) and (user_script.windows_exclude and is_windows)) then
-               goto next_module
-            end
-
-            if(table.empty(user_script.hooks)) then
-               traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s', skipping", mod_fname))
-               goto next_module
-            end
-
-	    if(user_script.l7_proto ~= nil) then
-	       user_script.l7_proto_id = interface.getnDPIProtoId(user_script.l7_proto)
-
-	       if(user_script.l7_proto_id == -1) then
-		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown L7 protocol filter '%s' in user script '%s', skipping", user_script.l7_proto, mod_fname))
-		  goto next_module
-	       end
-	    end
-
-	    if((not user_script.gui) or (not user_script.gui.i18n_title) or (not user_script.gui.i18n_description)) then
-	       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' does not define a gui", mod_fname))
-	    end
-
-            -- Augument with additional attributes
-	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir, rv.conf)
-
-	    if((not return_all) and alerts_disabled and user_script.is_alert) then
+	    if(not user_script) then
 	       goto next_module
 	    end
-
-	    if(hook_filter ~= nil) then
-	       -- Only return modules which should be called for the specified hook
-	       if((user_script.hooks[hook_filter] == nil) and (user_script.hooks["all"] == nil)) then
-		  traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for hook '%s'", user_script.key, hook_filter))
-		  goto next_module
-	       end
-	    end
-
-	    if(scripts_filter ~= nil) then
-	       local script_ok = scripts_filter(user_script)
-
-	       if(not script_ok) then
-		  goto next_module
-	       end
-	    end
-
-            -- If a setup function is available, call it
-            if(user_script.setup ~= nil) then
-               setup_ok = user_script.setup()
-            end
-
-            if((not return_all) and (not setup_ok)) then
-               traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' as setup() returned %s", user_script.key, setup_ok))
-               goto next_module
-            end
 
 	    -- Checks passed, now load the script information
 
@@ -654,13 +662,9 @@ function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
       local plugin = plugins_utils.getUserScriptPlugin(full_path)
 
       if(ntop.exists(full_path) and (plugin ~= nil)) then
-	 local user_script = dofile(full_path)
+	 local user_script = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir)
 
-	 if(user_script ~= nil) then
-	    init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
-
-	    return(user_script)
-	 end
+	 return(user_script)
       end
    end
 
@@ -1128,6 +1132,23 @@ end
 
 -- Returns true if a system script is enabled for some hook
 function user_scripts.isSystemScriptEnabled(script_key)
+   -- Verify that the script is currently available
+   local k = "ntonpng.cache.user_scripts.available_system_modules." .. script_key
+   local available = ntop.getCache(k)
+
+   if(isEmptyString(available)) then
+      local m = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.script_types.system, "system", script_key)
+      available = (m ~= nil)
+
+      ntop.setCache(k, ternary(available, "1", "0"))
+   else
+      available = ternary(available == "1", true, false)
+   end
+
+   if(not available) then
+      return(false)
+   end
+
    local configsets = user_scripts.getConfigsets()
    local default_config = user_scripts.getDefaultConfig(configsets, "system")
    local script_config = default_config[script_key]

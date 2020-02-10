@@ -429,6 +429,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
 
   -- Remove previously loaded plugins
   ntop.rmdir(plugins_utils.PLUGINS_RUNTIME_PATH)
+  deleteCachePattern("ntonpng.cache.user_scripts.available_system_modules.*")
 
   -- Note: load these only after cleaning the old plugins, to avoid
   -- errors due to ntopng version change (e.g. after adding the --community switch)
