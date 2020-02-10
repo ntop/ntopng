@@ -10,6 +10,8 @@ local os_utils = require("os_utils")
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 
+local dirs = ntop.getDirs()
+
 local user_scripts = {}
 
 -- ##############################################
@@ -1277,6 +1279,18 @@ function user_scripts.getHostTargetConfigset(configsets, subdir, ip_target)
    end
 
    return conf.config[subdir] or {}, conf.id
+end
+
+-- ##############################################
+
+function user_scripts.getScriptEditorUrl(script)
+   if(script.edition == "community") then
+       local plugin_file_path = string.sub(script.source_path, string.len(dirs.scriptdir) + 1)
+       local plugin_path = string.sub(script.plugin.path, string.len(dirs.scriptdir) + 1)
+       return(string.format("%s/lua/code_viewer.lua?plugin_file_path=%s&plugin_path=%s", ntop.getHttpPrefix(), plugin_file_path, plugin_path))
+   end
+
+   return(nil)
 end
 
 -- ##############################################

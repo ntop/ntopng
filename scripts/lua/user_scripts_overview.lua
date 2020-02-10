@@ -21,9 +21,13 @@ local edition = _GET["edition"] or ""
 -- #######################################################
 
 local function printUserScripts(title, scripts)
+  if table.empty(scripts.modules) then
+    return
+  end
+
   print[[<h3>]] print(title) print[[</h3>
     <table class="table table-bordered table-sm table-striped">
-    <tr><th class='text-center' width="30%">Script</th><th width="10%">Availability</th><th width="30%">Hooks</th><th>Filters</th></tr>]]
+    <tr><th class='text-left' width="30%">Script</th><th width="10%">Availability</th><th width="30%">Hooks</th><th>Filters</th></tr>]]
 
   for name, script in pairsByKeys(scripts.modules) do
     local available = ""
@@ -67,6 +71,12 @@ local function printUserScripts(title, scripts)
       if((edition ~= "") and (edition ~= "community")) then goto skip end
     end
 
+    local edit_url = user_scripts.getScriptEditorUrl(script)
+
+    if(edit_url) then
+      name = name .. ' <a href="'.. edit_url ..'" class="badge badge-secondary" style="visibility: visible">' .. i18n("host_pools.view") ..'</a>'
+    end
+
     print(string.format([[<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>]], name, available, hooks, filters))
     ::skip::
   end
@@ -93,13 +103,12 @@ print[[<form class="form-inline" style="width:12em">
   });
 </script>]]
 
-printUserScripts("Interface Scripts", user_scripts.load(ifid, user_scripts.script_types.traffic_element, "interface", {return_all = true}))
-print("<br>")
-printUserScripts("Host Scripts", user_scripts.load(ifid, user_scripts.script_types.traffic_element, "host", {return_all = true}))
-print("<br>")
-printUserScripts("Network Scripts", user_scripts.load(ifid, user_scripts.script_types.traffic_element, "network", {return_all = true}))
-print("<br>")
-printUserScripts("Flow Scripts", user_scripts.load(ifid, user_scripts.script_types.flow, "flow", {return_all = true}))
+print("<br><br>")
+
+for _, info in ipairs(user_scripts.listSubdirs()) do
+  printUserScripts(info.label, user_scripts.load(ifid, user_scripts.getScriptType(info.id), info.id, {return_all = true}))
+  print("<br>")
+end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
