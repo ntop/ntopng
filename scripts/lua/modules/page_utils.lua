@@ -25,8 +25,9 @@ page_utils.menu_sections = {
    exporters    = {key = "exporters", i18n_title = "flow_devices.exporters", icon = "fas fa-file-export"},
    interface    = {key = "interface", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
-   admin = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
-   about = {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
+   admin        = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
+   dev   	= {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
+   about	= {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
 }
 
 -- #################################
@@ -96,18 +97,20 @@ page_utils.menu_entries = {
     -- Home
     live_capture   	 = {key = "live_capture", i18n_title = "live_capture.active_live_captures", section = "home"},
 
+    -- Developer
+    directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev"},
+    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev"},
+    user_scripts 	 = {key = "user_scripts", i18n_title = "about.user_scripts", section = "dev"},
+    alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev"},
+    api 	         = {key = "api", i18n_title = "Lua/C API", section = "dev"},
+
     -- Help
     about   		 = {key = "about", i18n_title = "about.about", section = "about"},
     telemetry    	 = {key = "telemetry", i18n_title = "telemetry", section = "about"},
     blog         	 = {key = "blog", i18n_title = "about.ntop_blog", section = "about"},
     telegram         	 = {key = "telegram", i18n_title = "about.telegram", section = "about"},
     report_issue         = {key = "report_issue", i18n_title = "about.report_issue", section = "about"},
-    directories    	 = {key = "directories", i18n_title = "about.directories", section = "about"},
-    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "about"},
-    user_scripts 	 = {key = "user_scripts", i18n_title = "about.user_scripts", section = "about"},
-    alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "about"},
     manual 	         = {key = "manual", i18n_title = "about.readme_and_manual", section = "about"},
-    api 	         = {key = "api", i18n_title = "Lua/C API", section = "about"},
 
     -- Just a divider for horizontal rows in the menu
     divider = {key = "divider"},

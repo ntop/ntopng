@@ -379,6 +379,38 @@ page_utils.add_menubar_section(
 
 -- ##############################################
 
+-- Developer
+
+page_utils.add_menubar_section(
+   {
+      section = page_utils.menu_sections.dev,
+      entries = {
+	 {
+	    entry = page_utils.menu_entries.plugins,
+	    url = '/lua/plugins_overview.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.user_scripts,
+	    url = '/lua/user_scripts_overview.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.alert_definitions,
+	    url = '/lua/defs_overview.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.directories,
+	    url = '/lua/directories.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.api,
+	    url = 'https://www.ntop.org/guides/ntopng/api/',
+	 }
+      },
+   }
+)
+
+-- ##############################################
+
 -- About
 page_utils.add_menubar_section(
    {
@@ -405,29 +437,9 @@ page_utils.add_menubar_section(
 	    url = 'https://github.com/ntop/ntopng/issues',
 	 },
 	 {
-	    entry = page_utils.menu_entries.directories,
-	    url = '/lua/directories.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.plugins,
-	    url = '/lua/plugins_overview.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.user_scripts,
-	    url = '/lua/user_scripts_overview.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.alert_definitions,
-	    url = '/lua/defs_overview.lua',
-	 },
-	 {
 	    entry = page_utils.menu_entries.manual,
 	    url = 'https://www.ntop.org/guides/ntopng/',
-	 },
-	 {
-	    entry = page_utils.menu_entries.api,
-	    url = 'https://www.ntop.org/guides/ntopng/api/',
-	 },
+	 }
       },
    }
 )
