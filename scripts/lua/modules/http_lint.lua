@@ -1492,6 +1492,7 @@ local known_parameters = {
    ["max_extracted_pcap_bytes"]                    = validateNumber,
    ["traffic_recording_provider"]                  = validateTrafficRecordingProvider,
    ["dismiss_external_providers_reminder"]         = validateBool,
+   ["dismiss_missing_geoip_reminder"]              = validateBool,
 --
 
 -- PAGE SPECIFIC

@@ -2,7 +2,7 @@
 -- (C) 2013-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -14,12 +14,6 @@ sendHTTPContentTypeHeader('text/html')
 page_utils.set_active_menu_entry(page_utils.menu_entries.countries)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
-if not ntop.hasGeoIP() then
-  print('<div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-  print(i18n("geolocation_unavailable"))
-  print('</div>')
-else
 
 print [[
       <div id="table-country"></div>
@@ -33,7 +27,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/country_stats_id.inc")
 
 print [[
 	 $("#table-country").datatable({
-                        title: "Country List",
+			title: "Country List",
 			url: url_update ,
 	 ]]
 
@@ -50,21 +44,21 @@ print ('sort: [ ["' .. getDefaultTableSort("country") ..'","' .. getDefaultTable
 
 print [[
 	       showPagination: true,
-	        columns: [
-           {
-                                title: "Key",
-                                field: "key",
-                                hidden: true,
-                                css: {
-                                   textAlign: 'center'
-                                }
-           },
+		columns: [
+	   {
+				title: "Key",
+				field: "key",
+				hidden: true,
+				css: {
+				   textAlign: 'center'
+				}
+	   },
 	     {
 			     title: "]] print(i18n("name")) print[[",
 				 field: "column_id",
 				 sortable: true,
-                             css: {
-			        textAlign: 'left'
+			     css: {
+				textAlign: 'left'
 			     }
 
 				 }, {
@@ -75,12 +69,12 @@ print [[
 local charts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
 
 if not charts_enabled then
-	print("hidden: true,\n")
+   print("hidden: true,\n")
 end
 
-          print[[
+print[[
 						css: {
-			        textAlign: 'center'
+				textAlign: 'center'
 			     }
 				 },
 			  ]]
@@ -90,8 +84,8 @@ print [[
 			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
 				 field: "column_hosts",
 				 sortable: true,
-                             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			     }
 
 				 },
@@ -101,8 +95,8 @@ print [[
 				 /* TODO: alerts not implemented */
 				 hidden: true,
 				 sortable: true,
-                             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			     }
 
 				 },
@@ -111,8 +105,8 @@ print [[
 			     title: "]] print(i18n("seen_since")) print[[",
 				 field: "column_since",
 				 sortable: true,
-                             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			     }
 
 				 },
@@ -123,24 +117,24 @@ print [[
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
 				 sortable: false,
-	 	             css: {
-			        textAlign: 'center'
+			     css: {
+				textAlign: 'center'
 			     }
 				 },
 			     {
 			     title: "]] print(i18n("throughput")) print[[",
 				 field: "column_thpt",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
+			     css: {
+				textAlign: 'right'
 			     }
 				 },
 			     {
 			     title: "]] print(i18n("traffic")) print[[",
 				 field: "column_traffic",
 				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
+			     css: {
+				textAlign: 'right'
 			     }
 				 }
 			     ]
@@ -150,7 +144,5 @@ print [[
        </script>
 
 ]]
-
-end -- not ntop.hasGeoIP 
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

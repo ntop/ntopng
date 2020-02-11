@@ -319,7 +319,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("user_info.processes"),
 			      },
 			      {
-				 hidden = only_historical or host["privatehost"],
+				 hidden = only_historical or host["privatehost"] or not ntop.hasGeoIP(),
 				 active = page == "geomap",
 				 page_name = "geomap",
 				 label = "<i class='fas fa-lg fa-globe'></i>",

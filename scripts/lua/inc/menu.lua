@@ -170,10 +170,12 @@ else
 	    },
 	    {
 	       entry = page_utils.menu_entries.autonomous_systems,
+	       hidden = not ntop.hasGeoIP(),
 	       url = '/lua/as_stats.lua',
 	    },
 	    {
 	       entry = page_utils.menu_entries.countries,
+	       hidden = not ntop.hasGeoIP(),
 	       url = '/lua/country_stats.lua',
 	    },
 	    {
@@ -212,7 +214,7 @@ else
 	    },
 	    {
 	       entry = page_utils.menu_entries.geo_map,
-	       hidden = interface.isLoopback(),
+	       hidden = interface.isLoopback() or not ntop.hasGeoIP(),
 	       url = '/lua/hosts_geomap.lua',
 	    },
 	    {
@@ -931,6 +933,30 @@ if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet
 	 print('</a></div>')
       end
    end
+end
+
+if is_admin and not ntop.hasGeoIP() and ntop.getPref("ntopng.prefs.geoip.reminder_dismissed") ~= "true" then
+  print('<div id="missing-geoip" class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <button type="button" class="close" data-dismiss="alert" aria-label="close">&times;</button>')
+  print(i18n("geolocation_unavailable"))
+  print('</div>')
+  
+  print [[
+  <script>
+    $('#missing-geoip').on('close.bs.alert', function () {
+         $.ajax({
+          type: 'POST',
+          url: ']]
+  print (ntop.getHttpPrefix())
+  print [[/lua/geoip_config.lua',
+          data: {dismiss_missing_geoip_reminder: true,
+                 csrf: "]] print(ntop.getRandomCSRFValue()) print[["},
+          success: function()  {},
+          complete: function() {},
+        });
+    });
+  </script>
+]]
+
 end
 
 -- Hidden by default, will be shown by the footer if necessary
