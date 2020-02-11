@@ -37,24 +37,24 @@ nDPIStats::nDPIStats(bool enable_throughput_stats) {
 /* *************************************** */
 
 nDPIStats::nDPIStats(const nDPIStats &stats) {
+  memset(counters, 0, sizeof(counters));
+  memset(cat_counters, 0, sizeof(cat_counters));
+
   if(stats.bytes_thpt)
     bytes_thpt = new (std::nothrow)ThroughputStats*[MAX_NDPI_PROTOS]();
   else
     bytes_thpt = NULL;
 
   for(int i = 0; i < MAX_NDPI_PROTOS; i++) {
-    if(stats.counters[i] != NULL) {
-      counters[i] = (ProtoCounter*) malloc(sizeof(ProtoCounter));
-      memcpy(counters[i], stats.counters[i], sizeof(ProtoCounter));
+    if(bytes_thpt && stats.bytes_thpt && stats.bytes_thpt[i])
+      bytes_thpt[i] = new (std::nothrow)ThroughputStats(*stats.bytes_thpt[i]);
 
-      if(bytes_thpt && stats.bytes_thpt && stats.bytes_thpt[i])
-	bytes_thpt[i] = new (std::nothrow)ThroughputStats(*stats.bytes_thpt[i]);
-    } else {
+    if(stats.counters[i]
+       && (counters[i] = (ProtoCounter*)malloc(sizeof(*counters[i]))))
+      memcpy(counters[i], stats.counters[i], sizeof(*counters[i]));
+    else
       counters[i] = NULL;
-    }
   }
-
-  memcpy(cat_counters, stats.cat_counters, sizeof(cat_counters));
 }
 
 /* *************************************** */
@@ -409,6 +409,8 @@ static void addProtoJson(json_object *my_object, ProtoCounter *counter, const ch
   json_object_object_add(my_object, name, inner);
 }
 
+/* *************************************** */
+
 json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
   char *unknown = iface->get_ndpi_proto_name(NDPI_PROTOCOL_UNKNOWN);
   json_object *my_object;
@@ -443,38 +445,6 @@ json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
   json_object_object_add(my_object, "categories", inner);
 
   return(my_object);
-}
-
-/* *************************************** */
-
-json_object* nDPIStats::getJSONObjectForCheckpoint(NetworkInterface *iface) {
-  json_object *my_object;
-  char *name;
-
-  my_object = json_object_new_object();
-  if(my_object == NULL) return NULL;
-
-  if (counters[NDPI_PROTOCOL_DNS] != NULL) {
-    name = iface->get_ndpi_proto_name(NDPI_PROTOCOL_DNS);
-    if(name) addProtoJson(my_object, counters[NDPI_PROTOCOL_DNS], name);
-  }
-
-  if (counters[NDPI_PROTOCOL_EDONKEY] != NULL) {
-    name = iface->get_ndpi_proto_name(NDPI_PROTOCOL_EDONKEY);
-    if(name) addProtoJson(my_object, counters[NDPI_PROTOCOL_EDONKEY], name);
-  }
-
-  if (counters[NDPI_PROTOCOL_BITTORRENT] != NULL) {
-    name = iface->get_ndpi_proto_name(NDPI_PROTOCOL_BITTORRENT);
-    if(name) addProtoJson(my_object, counters[NDPI_PROTOCOL_BITTORRENT], name);
-  }
-
-  if (counters[NDPI_PROTOCOL_SKYPE] != NULL) {
-    name = iface->get_ndpi_proto_name(NDPI_PROTOCOL_SKYPE);
-    if(name) addProtoJson(my_object, counters[NDPI_PROTOCOL_SKYPE], name);
-  }
-
-  return my_object;
 }
 
 /* *************************************** */
