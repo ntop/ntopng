@@ -11,6 +11,7 @@ local lang = {
   ["all"] = "All",
   ["allowed"] = "Allowed",
   ["any"] = "any",
+  ["views"] = "Views",
   ["app_name"] = "Application Name",
   ["application"] = "Application",
   ["applications"] = "Applications",
@@ -664,6 +665,7 @@ local lang = {
     ["top_local_talkers"] = "Top Local Talkers",
     ["top_remote_destinations"] = "Top Remote Destinations",
     ["traffic_dashboard"] = "Traffic Dashboard",
+    ["gateways_users"] = "Gateways and Users",
   },
   ["db_explorer"] = {
     ["abort"] = "Abort",
@@ -2580,6 +2582,7 @@ local lang = {
     ["status_inactive"] = "Inactive",
     ["status_unreachable"] = "Unreachable",
     ["status_up"] = "Up",
+    ["dhcp_leases"] = "DHCP Leases",
     ["system_setup"] = "System Setup",
     ["system_users"] = "System Users",
     ["test_policies"] = "Test Policies",
@@ -3833,6 +3836,7 @@ local lang = {
     ["note_what_are_user_scripts"] = "<a href=\"%{user_scripts_url}\">User scripts</a> %{user_scripts_external} are executed periodically or when a certain event occurs. ",
   },
   ["users"] = {
+    ["users"] = "Users",
     ["add_new_user"] = "Add New User",
     ["add_user"] = "Add User",
     ["assigned_devices"] = "Assigned Devices",

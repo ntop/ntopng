@@ -12,7 +12,11 @@ local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.host_pools)
+if not ntop.isnEdge() then
+   page_utils.set_active_menu_entry(page_utils.menu_entries.host_pools)
+else
+   page_utils.set_active_menu_entry(page_utils.menu_entries.users)
+end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

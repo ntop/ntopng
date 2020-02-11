@@ -14,6 +14,7 @@ local ts_utils = require("ts_utils_core")
 local page_utils = require("page_utils")
 
 local is_admin = isAdministrator()
+local info = ntop.getInfo()
 
 -- tprint(collapsed_sidebar)
 
@@ -36,11 +37,6 @@ print[[
 
    let http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
 </script>]]
-
-if ntop.isnEdge() then
-   dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menu.lua")
-   return
-end
 
 local template = require "template_utils"
 
@@ -68,191 +64,197 @@ ifId = ifs.id
 -- NOTE: see sidebar.js for the client logic
 page_utils.init_menubar()
 
--- ##############################################
+if ntop.isnEdge() then
+   dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menubar.lua")   
+else
 
--- Dashboard
-page_utils.add_menubar_section(
-   {
-      section = page_utils.menu_sections.dashboard,
-      hidden = is_pcap_dump,
-      entries = {
-	 {
-	    entry = page_utils.menu_entries.traffic_dashboard,
-	    url = ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.network_discovery,
-	    hidden = not interface.isDiscoverableInterface() or interface.isLoopback(),
-	    url = "/lua/discover.lua",
-	 },
-	 {
-	    entry = page_utils.menu_entries.traffic_report,
-	    hidden = not ntop.isPro(),
-	    url = "/lua/pro/report.lua",
-	 },
-	 {
-	    entry = page_utils.menu_entries.divider,
-	    hidden = not ntop.isPro() or not prefs.is_dump_flows_to_mysql_enabled or ifs.isViewed,
-	 },
-	 {
-	    entry = page_utils.menu_entries.db_explorer,
-	    hidden = not ntop.isPro() or not prefs.is_dump_flows_to_mysql_enabled or ifs.isViewed,
-	    url = "/lua/pro/db_explorer.lua?ifid="..ifId,
-	 },
-      },
-   }
-)
+   -- ##############################################
 
--- ##############################################
+   -- Dashboard
+   page_utils.add_menubar_section(
+      {
+	 section = page_utils.menu_sections.dashboard,
+	 hidden = is_pcap_dump,
+	 entries = {
+	    {
+	       entry = page_utils.menu_entries.traffic_dashboard,
+	       url = ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.network_discovery,
+	       hidden = not interface.isDiscoverableInterface() or interface.isLoopback(),
+	       url = "/lua/discover.lua",
+	    },
+	    {
+	       entry = page_utils.menu_entries.traffic_report,
+	       hidden = not ntop.isPro(),
+	       url = "/lua/pro/report.lua",
+	    },
+	    {
+	       entry = page_utils.menu_entries.divider,
+	       hidden = not ntop.isPro() or not prefs.is_dump_flows_to_mysql_enabled or ifs.isViewed,
+	    },
+	    {
+	       entry = page_utils.menu_entries.db_explorer,
+	       hidden = not ntop.isPro() or not prefs.is_dump_flows_to_mysql_enabled or ifs.isViewed,
+	       url = "/lua/pro/db_explorer.lua?ifid="..ifId,
+	    },
+	 },
+      }
+   )
 
--- Alerts
-page_utils.add_menubar_section(
-   {
-      section = page_utils.menu_sections.alerts,
-      hidden = not ntop.getPrefs().are_alerts_enabled,
-      entries = {
-	 {
-	    entry = page_utils.menu_entries.detected_alerts,
-	    url = '/lua/show_alerts.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.alerts_dashboard,
-	    hidden = not ntop.isEnterprise(),
-	    url = '/lua/pro/enterprise/alerts_dashboard.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.divider,
-	    hidden = not ntop.isEnterprise(),
-	 },
-	 {
-	    entry = page_utils.menu_entries.flow_alerts_explorer,
-	    hidden = not ntop.isEnterprise(),
-	    url = '/lua/pro/enterprise/flow_alerts_explorer.lua',
-	 },
-      },
-   }
-)
+   -- ##############################################
 
--- ##############################################
+   -- Alerts
+   page_utils.add_menubar_section(
+      {
+	 section = page_utils.menu_sections.alerts,
+	 hidden = not ntop.getPrefs().are_alerts_enabled,
+	 entries = {
+	    {
+	       entry = page_utils.menu_entries.detected_alerts,
+	       url = '/lua/show_alerts.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.alerts_dashboard,
+	       hidden = not ntop.isEnterprise(),
+	       url = '/lua/pro/enterprise/alerts_dashboard.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.divider,
+	       hidden = not ntop.isEnterprise(),
+	    },
+	    {
+	       entry = page_utils.menu_entries.flow_alerts_explorer,
+	       hidden = not ntop.isEnterprise(),
+	       url = '/lua/pro/enterprise/flow_alerts_explorer.lua',
+	    },
+	 },
+      }
+   )
 
--- Flows
-page_utils.add_menubar_section(
-   {
-      section = page_utils.menu_sections.flows,
-      url = "/lua/flows_stats.lua",
-   }
-)
+   -- ##############################################
 
--- ##############################################
+   -- Flows
+   page_utils.add_menubar_section(
+      {
+	 section = page_utils.menu_sections.flows,
+	 url = "/lua/flows_stats.lua",
+      }
+   )
 
--- Hosts
-page_utils.add_menubar_section(
-   {
-      section = page_utils.menu_sections.hosts,
-      hidden = ifs.isViewed,
-      entries = {
-	 {
-	    entry = page_utils.menu_entries.hosts,
-	    url = '/lua/hosts_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.devices,
-	    hidden = not ifs.has_macs,
-	    url = '/lua/macs_stats.lua?devices_mode=source_macs_only',
-	 },
-	 {
-	    entry = page_utils.menu_entries.networks,
-	    url = '/lua/network_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.host_pools,
-	    url = '/lua/pool_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.autonomous_systems,
-	    url = '/lua/as_stats.lua',
-	 },
- 	 {
-	    entry = page_utils.menu_entries.countries,
-	    url = '/lua/country_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.operating_systems,
-	    url = '/lua/os_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.vlans,
-	    hidden = not interface.hasVLANs(),
-	    url = '/lua/vlan_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.pods,
-	    hidden = not ifs.has_seen_pods,
-	    url = '/lua/pods_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.containers,
-	    hidden = not ifs.has_seen_containers,
-	    url = '/lua/containers_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.divider,
-	 },
-	 {
-	    entry = page_utils.menu_entries.http_servers,
-	    url = '/lua/http_servers_stats.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.top_hosts,
-	    hidden = is_pcap_dump,
-	    url = '/lua/top_hosts.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.divider,
-	 },
-	 {
-	    entry = page_utils.menu_entries.geo_map,
-	    hidden = interface.isLoopback(),
-	    url = '/lua/hosts_geomap.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.hosts_treemap,
-	    hidden = interface.isLoopback(),
-	    url = '/lua/hosts_treemap.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.host_explorer,
-	    url = '/lua/bubble.lua',
-	 },
-      },
-   }
-)
+   -- ##############################################
 
--- ##############################################
+   -- Hosts
+   page_utils.add_menubar_section(
+      {
+	 section = page_utils.menu_sections.hosts,
+	 hidden = ifs.isViewed,
+	 entries = {
+	    {
+	       entry = page_utils.menu_entries.hosts,
+	       url = '/lua/hosts_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.devices,
+	       hidden = not ifs.has_macs,
+	       url = '/lua/macs_stats.lua?devices_mode=source_macs_only',
+	    },
+	    {
+	       entry = page_utils.menu_entries.networks,
+	       url = '/lua/network_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.host_pools,
+	       url = '/lua/pool_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.autonomous_systems,
+	       url = '/lua/as_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.countries,
+	       url = '/lua/country_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.operating_systems,
+	       url = '/lua/os_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.vlans,
+	       hidden = not interface.hasVLANs(),
+	       url = '/lua/vlan_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.pods,
+	       hidden = not ifs.has_seen_pods,
+	       url = '/lua/pods_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.containers,
+	       hidden = not ifs.has_seen_containers,
+	       url = '/lua/containers_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.divider,
+	    },
+	    {
+	       entry = page_utils.menu_entries.http_servers,
+	       url = '/lua/http_servers_stats.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.top_hosts,
+	       hidden = is_pcap_dump,
+	       url = '/lua/top_hosts.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.divider,
+	    },
+	    {
+	       entry = page_utils.menu_entries.geo_map,
+	       hidden = interface.isLoopback(),
+	       url = '/lua/hosts_geomap.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.hosts_treemap,
+	       hidden = interface.isLoopback(),
+	       url = '/lua/hosts_treemap.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.host_explorer,
+	       url = '/lua/bubble.lua',
+	    },
+	 },
+      }
+   )
 
--- Exporters
-page_utils.add_menubar_section(
-   {
-      section = page_utils.menu_sections.exporters,
-      hidden = ifs.type ~= "zmq" or not ntop.isEnterprise(),
-      entries = {
-	 {
-	    entry = page_utils.menu_entries.event_exporters,
-	    hidden = not ifs.has_seen_ebpf_events,
-	    url = '/lua/pro/enterprise/event_exporters.lua',
+   -- ##############################################
+
+   -- Exporters
+   page_utils.add_menubar_section(
+      {
+	 section = page_utils.menu_sections.exporters,
+	 hidden = ifs.type ~= "zmq" or not ntop.isEnterprise(),
+	 entries = {
+	    {
+	       entry = page_utils.menu_entries.event_exporters,
+	       hidden = not ifs.has_seen_ebpf_events,
+	       url = '/lua/pro/enterprise/event_exporters.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.sflow_exporters,
+	       hidden = table.len(interface.getSFlowDevices() or {}) == 0,
+	       url = '/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All',
+	    },
+	    {
+	       entry = page_utils.menu_entries.flow_exporters,
+	       url = '/lua/pro/enterprise/flowdevices_stats.lua',
+	    },
 	 },
-	 {
-	    entry = page_utils.menu_entries.sflow_exporters,
-	    hidden = table.len(interface.getSFlowDevices() or {}) == 0,
-	    url = '/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All',
-	 },
-	 {
-	    entry = page_utils.menu_entries.flow_exporters,
-	    url = '/lua/pro/enterprise/flowdevices_stats.lua',
-	 },
-      },
-   }
-)
+      }
+   )
+
+end
 
 -- ##############################################
 
@@ -292,6 +294,54 @@ for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
       entry = page_utils.menu_entries[entry.menu_entry.key],
       url = entry.url,
    }
+end
+
+-- Possibly add nEdge entries
+if ntop.isnEdge() then
+   for _, entry in ipairs(
+      {
+	 {
+	    entry = page_utils.menu_entries.divider,
+	    hidden = not is_admin,
+	 },
+	 {
+	    entry = page_utils.menu_entries.system_setup,
+	    hidden = not is_admin,
+	    url = '/lua/pro/nedge/system_setup/interfaces.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.dhcp_leases,
+	    hidden = not is_admin or not ntop.isRoutingMode(),
+	    url = '/lua/pro/nedge/admin/dhcp_leases.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.port_forwarding,
+	    hidden = not is_admin or not ntop.isRoutingMode(),
+	    url = '/lua/pro/nedge/admin/port_forwarding.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.system_users,
+	    hidden = not is_admin,
+	    url = '/lua/admin/users.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.divider,
+	    hidden = not is_admin,
+	 },
+	 {
+	    custom = [[
+               <li><a href="javascript:void(0);" onclick='$("#poweroff_dialog").modal("show");'>
+                 <i class="fas fa-power-off"></i> ]]..i18n("nedge.power_off")..[[</a>
+               </li>
+               <li><a href="javascript:void(0);" onclick='$("#reboot_dialog").modal("show");'>
+                 <i class="fas fa-redo"></i> ]]..i18n("nedge.reboot")..[[</a>
+               </li>
+]],
+	    hidden = not is_admin,
+	 },
+   }) do
+      system_entries[#system_entries + 1] = entry
+   end
 end
 
 page_utils.add_menubar_section(
@@ -421,6 +471,7 @@ page_utils.add_menubar_section(
 page_utils.add_menubar_section(
    {
       section = page_utils.menu_sections.about,
+      hidden = info.oem,
       entries = {
 	 {
 	    entry = page_utils.menu_entries.about,
@@ -450,11 +501,11 @@ page_utils.add_menubar_section(
    }
 )
 
+
 -- ##############################################
 
 page_utils.print_menubar()
 
-local info = ntop.getInfo()
 
 -- ##############################################
 -- Interface

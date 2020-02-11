@@ -28,6 +28,9 @@ page_utils.menu_sections = {
    admin        = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
    dev   	= {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
    about	= {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
+
+   -- nEdge
+   views	= {key = "hosts", i18n_title = "views", icon = "fas fa-bars"},
 }
 
 -- #################################
@@ -114,6 +117,15 @@ page_utils.menu_entries = {
 
     -- Just a divider for horizontal rows in the menu
     divider = {key = "divider"},
+
+    -- nEdge
+    gateways_users       = {key = "gateways_users", i18n_title = "dashboard.gateways_users", section = "dashboard"},
+    flows  	     	 = {key = "flows", i18n_title = "flows", section = "hosts"},
+    users	     	 = {key = "users", i18n_title = "users.users", section = "hosts"},
+    system_setup         = {key = "system_setup", i18n_title = "nedge.system_setup", section = "system_stats"},
+    dhcp_leases          = {key = "dhcp_leases", i18n_title = "nedge.dhcp_leases", section = "admin"},
+    port_forwarding      = {key = "port_forwarding", i18n_title = "nedge.port_forwarding", section = "admin"},
+    system_users         = {key = "system_users", i18n_title = "nedge.system_users", section = "admin"},
 }
 
 -- Extend the menu entries with the plugins
