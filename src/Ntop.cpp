@@ -2424,7 +2424,7 @@ void Ntop::loadTrackers() {
 /* ******************************************* */
 
 bool Ntop::isATrackerHost(char *host) {
-  return((trackers_automa && (!ndpi_match_string(trackers_automa, host))) ? true : false);
+  return trackers_automa && ndpi_match_string(trackers_automa, host) > 0;
 }
 
 /* ******************************************* */

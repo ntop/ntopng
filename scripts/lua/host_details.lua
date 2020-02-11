@@ -44,7 +44,7 @@ local host_name   = hostinfo2hostkey(host_info)
 local host_vlan   = host_info["vlan"] or 0
 local always_show_hist = _GET["always_show_hist"]
 
-local top_sites, top_sites_old = {}, {}
+
 
 local ntopinfo    = ntop.getInfo()
 
@@ -104,6 +104,9 @@ if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) t
    restoreFailed = true
 end
 ]]
+
+local top_sites = host["sites"] and json.decode(host["sites"]) or {}
+local top_sites_old = host["sites.old"] and json.decode(host["sites.old"]) or {}
 
 local host_pool_id = nil
 
@@ -304,7 +307,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("flows"),
 			      },
 			      {
-				 hidden = only_historical or not host["localhost"],
+				 hidden = only_historical or not host["localhost"] or (table.len(top_sites) == 0 and table.len(top_sites_old) == 0),
 				 active = page == "sites",
 				 page_name = "sites",
 				 label = i18n("sites_page.sites"),
@@ -1480,6 +1483,7 @@ elseif(page == "http") then
       print("</table>\n")
    end
 
+
 elseif(page == "sites") then
    if not prefs.are_top_talkers_enabled then
       local msg = i18n("sites_page.top_sites_not_enabled_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=protocols"})
@@ -1525,10 +1529,10 @@ elseif(page == "sites") then
    else
       local msg = i18n("sites_page.top_sites_not_seen")
       print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
-
    end
 
    elseif(page == "flows") then
+
       require("flow_utils")
 
 print [[
