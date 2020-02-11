@@ -1246,7 +1246,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
   char key[64], val[64], password_hash[33];
   *localuser = false;
 
-  if((user == NULL) || (user[0] == '\0'))
+  if(!user || user[0] == '\0' || !password || password[0] == '\0')
     return(false);
 
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
@@ -1261,7 +1261,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 	  *bind_dn = NULL, *bind_pwd = NULL, *user_group = NULL,
 	  *search_path = NULL, *admin_group = NULL;
 
-	if(!(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
+ 	if(!(ldapServer = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
 	   || !(ldapAccountType = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either 'posix' or 'samaccount' */
 	   || !(ldapAnonymousBind = (char*)calloc(sizeof(char), MAX_LDAP_LEN)) /* either '1' or '0' */
 	   || !(bind_dn = (char*)calloc(sizeof(char), MAX_LDAP_LEN))
@@ -1279,9 +1279,6 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 
  	  goto ldap_auth_out;
 	}
-
-        if(!password || !password[0])
-          return false;
 
         ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, MAX_LDAP_LEN);
         ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, MAX_LDAP_LEN);
