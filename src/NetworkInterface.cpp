@@ -952,14 +952,16 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface, u_int32
 
   h = (FlowHashing*)malloc(sizeof(FlowHashing));
 
-  if (h == NULL) {
+  if(h == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     delete sub_iface; /* Note: deleting here as ntop->registerInterface is also deleting it on failure */
     return false;
   }
 
-  if (!ntop->registerInterface(sub_iface)) 
+  if(!ntop->registerInterface(sub_iface)) {
+    free(h);
     return false;
+  }
 
   sub_iface->setSubInterface();
   sub_iface->allocateStructures();
