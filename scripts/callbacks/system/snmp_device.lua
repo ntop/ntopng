@@ -58,6 +58,8 @@ local function snmp_device_run_user_scripts(snmp_device)
    local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
    local device_interfaces = snmp_device.merge_interfaces_data()
    local all_modules = available_modules.modules
+   local now = os.time()
+   now = now - now % 300
 
    local info = {
       granularity = granularity,
@@ -65,6 +67,7 @@ local function snmp_device_run_user_scripts(snmp_device)
       interfaces = device_interfaces,
       user_script = check,
       system = device["system"],
+      now = now,
    }
 
    local device_conf, confset_id = user_scripts.getHostTargetConfigset(configsets, "snmp_device", device_ip)
@@ -102,6 +105,7 @@ local function snmp_device_run_user_scripts(snmp_device)
 	       alert_entity = iface_entity,
 	       user_script = script,
 	       conf = conf.script_conf,
+	       now = now,
 	    }))
 	 end
       end
