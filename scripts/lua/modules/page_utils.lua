@@ -413,7 +413,7 @@ function page_utils.print_menubar()
 		     end
 		     print[[" href="]]
 		     if section_entry.url:starts("http") then
-			-- Absolute url
+			-- Absolute (external) url
 			print(section_entry.url)
 			external_link = true
 		     else
@@ -423,7 +423,8 @@ function page_utils.print_menubar()
 		     print[["]]
 
 		     if external_link then
-			print('target="_blank"')
+			-- Open in a new page
+			print(' target="_blank"')
 		     end
 
 		     print[[>]]
