@@ -937,7 +937,7 @@ end
 
 if is_admin and not ntop.hasGeoIP() and ntop.getPref("ntopng.prefs.geoip.reminder_dismissed") ~= "true" then
   print('<div id="missing-geoip" class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <button type="button" class="close" data-dismiss="alert" aria-label="close">&times;</button>')
-  print(i18n("geolocation_unavailable"))
+  print(i18n("geolocation_unavailable", {url = "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md", target = "_blank", icon = "fas fa-external-link-alt"}))
   print('</div>')
   
   print [[
