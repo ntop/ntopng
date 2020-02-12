@@ -211,14 +211,18 @@ void ThreadedActivity::runScript() {
 
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, time_t deadline) {
-  LuaEngine *l;
+  LuaEngine *l = NULL;
   u_long max_duration_ms = periodicity * 1e3;
   u_long msec_diff;
   struct timeval begin, end;
 
   if(!iface) iface = ntop->getSystemInterface();
-  if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating()) return;
-  if(iface->isViewed() && exclude_viewed_interfaces) return;
+
+  if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating())
+    goto run_script_out;
+
+  if(iface->isViewed() && exclude_viewed_interfaces)
+    goto run_script_out;
 
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);
@@ -227,8 +231,10 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_path, iface);
 
   l = loadVm(script_path, iface, time(NULL));
-  if(l == NULL)
-    return;
+  if(!l) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s]", iface->get_name(), path);
+    goto run_script_out;
+  }
 
   /* Set the global deadline parameter */
   lua_pushinteger(l->getState(), deadline);
@@ -248,58 +254,59 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
 #endif
 
   if((max_duration_ms > 0) &&
-      (msec_diff > 2*max_duration_ms) &&
-      /* These scripts are allowed to go beyong their max time */
-      (strcmp(path, HOUSEKEEPING_SCRIPT_PATH) != 0) &&
-      (strcmp(path, DISCOVER_SCRIPT_PATH) != 0) &&
-      (strcmp(path, TIMESERIES_SCRIPT_PATH) != 0))
+     (msec_diff > 2*max_duration_ms) &&
+     /* These scripts are allowed to go beyong their max time */
+     (strcmp(path, HOUSEKEEPING_SCRIPT_PATH) != 0) &&
+     (strcmp(path, DISCOVER_SCRIPT_PATH) != 0) &&
+     (strcmp(path, TIMESERIES_SCRIPT_PATH) != 0))
     iface->getAlertsQueue()->pushSlowPeriodicActivity(msec_diff, periodicity * 1e3, path);
 
+ run_script_out:
   if(iface == ntop->getSystemInterface())
     systemTaskRunning = false;
   else
     setInterfaceTaskRunning(iface, false);
 
-  if(!reuse_vm)
+  if(l && !reuse_vm)
     delete l;
 }
 
 /* ******************************************* */
 
 LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, time_t when) {
-  LuaEngine *l;
+  LuaEngine *l = NULL;
 
-  if(reuse_vm) {
-    /* Reuse an existing engine or allocate a new one */
-    LuaReusableEngine *engine;
-    std::map<int, LuaReusableEngine*>::iterator it;
+  try {
+    if(reuse_vm) {
+      /* Reuse an existing engine or allocate a new one */
+      LuaReusableEngine *engine;
+      std::map<int, LuaReusableEngine*>::iterator it;
 
-    vms_mutex.lock(__FILE__, __LINE__);
+      vms_mutex.lock(__FILE__, __LINE__);
 
-    if((it = vms.find(iface->get_id())) != vms.end())
-      engine = it->second;
-    else {
-      engine = new LuaReusableEngine(script_path, iface, 300 /* reload interval */);
+      if((it = vms.find(iface->get_id())) != vms.end())
+	engine = it->second;
+      else {
+	engine = new LuaReusableEngine(script_path, iface, 300 /* reload interval */);
 
-      /* Save the VM for later use */
-      vms[iface->get_id()] = engine;
-    }
+	/* Save the VM for later use */
+	vms[iface->get_id()] = engine;
+      }
 
-    vms_mutex.unlock(__FILE__, __LINE__);
+      vms_mutex.unlock(__FILE__, __LINE__);
 
-    l = engine->getVm(when);
-  } else {
-    try {
+      l = engine->getVm(when);
+    } else {
       /* NOTE: this needs to be deallocated by the caller */
       l = new LuaEngine();
 
       if(l->load_script(script_path, iface) != 0) {
-        delete l;
-        l = NULL;
+	delete l;
+	l = NULL;
       }
-    } catch(std::bad_alloc& ba) {
-      l = NULL;
     }
+  } catch(std::bad_alloc& ba) {
+    l = NULL;
   }
 
   return(l);
@@ -417,8 +424,8 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
 
       if(iface
 	 && (iface->getIfType() != interface_type_PCAP_DUMP || !exclude_pcap_dump_interfaces)
-	 && !isInterfaceTaskRunning(iface)) {
-        pool->queueJob(this, script_path, iface, deadline);
+	 && !isInterfaceTaskRunning(iface)
+	 && pool->queueJob(this, script_path, iface, deadline)) {
         setInterfaceTaskRunning(iface, true);
 
 #ifdef THREAD_DEBUG
