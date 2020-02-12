@@ -150,7 +150,7 @@ OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
-	$(GPP) $(OBJECTS) -Wall $(NLIBS) -o $@
+	$(GPP) $(OBJECTS) -Wall $(LDFLAGS) $(NLIBS) -o $@
 
 test_fifo_queue: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/FifoStringsQueue.o
