@@ -821,6 +821,7 @@ path.link {
 #n-sidebar ul>li.nav-item div.collapse, #n-sidebar ul>li.nav-item div.collapsing {
   background-color:rgb(237, 237, 237);
   color:rgb(56, 59, 69);
+  min-height: 40px;
 }
 
 #n-sidebar ul>li.nav-item div.collapse>ul li>a.active,

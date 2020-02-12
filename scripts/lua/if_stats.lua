@@ -1479,8 +1479,11 @@ elseif(page == "config") then
    print [[<tr>
          <th>]] print(i18n("if_stats_config.interface_rrd_creation")) print[[</th>
          <td>
-            <input id="interface_rrd_creation" name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
-         </td>
+         <div class="custom-control custom-switch">
+            <input class="custom-control-input" id="interface_rrd_creation" name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
+            <label class="custom-control-label" for="interface_rrd_creation"></label>
+         </div>
+            </td>
       </tr>
 
       <script type="text/javascript">
@@ -1513,9 +1516,12 @@ elseif(page == "config") then
 
    print [[<tr class="rrd_creation" ]] if not interface_rrd_creation then print("style='display:none;'") end print[[>
 	 <th>]] print(i18n("if_stats_config.interface_one_way_hosts_rrd_creation")) print[[</th>
-	 <td>
-	    <input name="interface_one_way_hosts_rrd_creation" type="checkbox" value="1" ]] print(interface_one_way_hosts_rrd_creation_checked) print[[>
-	 </td>
+    <td>
+    <div class="custom-control custom-switch">
+	    <input class="custom-control-input"  id="check-interface_one_way_hosts_rrd_creation" name="interface_one_way_hosts_rrd_creation" type="checkbox" value="1" ]] print(interface_one_way_hosts_rrd_creation_checked) print[[>
+       <label class="custom-control-label" for="check-interface_one_way_hosts_rrd_creation"></label>
+       </div>
+       </td>
       </tr>]]
 
    -- per-interface Top-Talkers generation
@@ -1539,8 +1545,11 @@ elseif(page == "config") then
    print [[<tr>
          <th>]] print(i18n("if_stats_config.interface_top_talkers_creation")) print[[</th>
          <td>
-            <input name="interface_top_talkers_creation" type="checkbox" value="1" ]] print(interface_top_talkers_creation_checked) print[[>
-         </td>
+            <div class="custom-control custom-switch">
+               <input class="custom-control-input" id="check-interface_top_talkers_creation" name="interface_top_talkers_creation" type="checkbox" value="1" ]] print(interface_top_talkers_creation_checked) print[[>
+               <label class="custom-control-label" for="check-interface_top_talkers_creation"></label>
+            </div>
+            </td>
       </tr>]]
 
    -- Flow dump
@@ -1550,7 +1559,10 @@ elseif(page == "config") then
       print [[<tr>
          <th>]] print(i18n("if_stats_config.dump_flows_to_database")) print[[</th>
          <td>
-            <input name="interface_flow_dump" type="checkbox" value="1" ]] print(interface_flow_dump_checked) print[[>
+            <div class="custom-control custom-switch">
+               <input class="custom-control-input" id="check-interface_flow_dump" name="interface_flow_dump" type="checkbox" value="1" ]] print(interface_flow_dump_checked) print[[>
+               <label class="custom-control-label" for="check-interface_flow_dump"></label>
+            </div>
          </td>
       </tr>]]
    end
@@ -1580,8 +1592,11 @@ elseif(page == "config") then
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.is_mirrored_traffic")) print[[</th>
-	 <td>
-      <input type="checkbox" name="is_mirrored_traffic" value="1" ]] print(is_mirrored_traffic_checked) print[[>
+    <td>
+      <div class="custom-control custom-switch">
+         <input class="custom-control-input" type="checkbox" id="check-is_mirrored_traffic" name="is_mirrored_traffic" value="1" ]] print(is_mirrored_traffic_checked) print[[>
+         <label class="custom-control-label" for="check-is_mirrored_traffic"></label>
+      </div>
 	 </td>
       </tr>]]
    end
@@ -1611,9 +1626,12 @@ elseif(page == "config") then
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.flows_only_interface")) print[[</th>
-	 <td>
-      <input type="checkbox" name="flows_only_interface" value="1" ]] print(flows_only_interface_checked) print[[>
-	 </td>
+    <td>
+      <div class="custom-control custom-switch">
+         <input class="custom-control-input" id="check-flows_only_interface" type="checkbox" name="flows_only_interface" value="1" ]] print(flows_only_interface_checked) print[[>
+         <label class="custom-control-label" for="check-flows_only_interface"></label>   
+      </div>
+         </td>
       </tr>]]
    end
 
@@ -1642,9 +1660,12 @@ elseif(page == "config") then
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.discard_probing_traffic")) print[[</th>
-	 <td>
-      <input type="checkbox" name="discard_probing_traffic" value="1" ]] print(discard_probing_traffic_checked) print[[>
-	 </td>
+    <td>
+      <div class="custom-control custom-switch">
+         <input class="custom-control-input" id="check-discard_probing_traffic" type="checkbox" name="discard_probing_traffic" value="1" ]] print(discard_probing_traffic_checked) print[[>
+         <label class="custom-control-label" for="check-discard_probing_traffic"></label>
+      </div>
+         </td>
       </tr>]]
    end
 
@@ -1673,9 +1694,12 @@ elseif(page == "config") then
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.interface_network_discovery")) print[[</th>
-	 <td>
-      <input type="checkbox" name="interface_network_discovery" value="1" ]] print(interface_network_discovery_checked) print[[>
-	 </td>
+    <td>
+    <div class="custom-control custom-switch">
+      <input class="custom-control-input" id="check-interface_network_discovery" type="checkbox" name="interface_network_discovery" value="1" ]] print(interface_network_discovery_checked) print[[>
+    <label class="custom-control-label" for="check-interface_network_discovery"></label>
+      </div>
+      </td>
       </tr>]]
    end
 
@@ -1826,8 +1850,11 @@ elseif(page == "config") then
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.show_dyn_iface_traffic")) print[[</th>
-	 <td>
-           <input type="checkbox" name="show_dyn_iface_traffic" value="1" ]] print(show_dyn_iface_traffic_checked) print[[>
+    <td>
+         <div class="custom-control custom-switch">
+           <input id="show_dyn_iface_traffic" class="custom-control-input" type="checkbox" name="show_dyn_iface_traffic" value="1" ]] print(show_dyn_iface_traffic_checked) print[[>
+          <label class="custom-control-label" for="check-show_dyn_iface_traffic"></label>
+         </div>
            <br><br><small><p><b>]] print(i18n("notes")) print [[</b><ul><li>]] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print [[</li></ul></p></small>
 	 </td>
       </tr>]]

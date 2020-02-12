@@ -144,8 +144,10 @@ print [[
 
     <div class="input-group mb-6">
       <div class="form-check">
-        <input id="allow_pcap_input" type="checkbox" name="allow_pcap_download" value="1" class="form-check-input">
-        <label for="allow_pcap_input" class="form-check-label">]] print(i18n("manage_users.allow_pcap_download_descr")) print[[</label>
+        <div class="custom-control custom-switch d-inline">
+          <input id="allow_pcap_input" type="checkbox" name="allow_pcap_download" value="1" class="custom-control-input">
+          <label for="allow_pcap_input" class="custom-control-label">]] print(i18n("manage_users.allow_pcap_download_descr")) print[[</label>
+        </div>
       </div>
     </div>
 

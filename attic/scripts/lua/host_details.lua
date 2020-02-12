@@ -2056,10 +2056,13 @@ elseif (page == "config") then
          <td>
             <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
                <input type="hidden" name="trigger_alerts" value="]] print(not trigger_alerts) print[[">
-               <input type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
-                  <i class="fa fa-exclamation-triangle fa-lg"></i>
-                  Trigger alerts for Host ]] print(host["name"]) print[[
-               </input>
+               <div class="custom-control custom-switch">
+                  <input class="custom-control-input" id="check-alert_prefs" type="checkbox" value="1" ]] print(trigger_alerts_checked) print[[ onclick="this.form.submit();">
+                  <label class="custom-control-label" for="check-alert_prefs">
+                     <i class="fa fa-exclamation-triangle fa-lg"></i>
+                     Trigger alerts for Host ]] print(host["name"]) print[[
+                  </label>
+               </div>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
             </form>
          </td>
@@ -2071,10 +2074,11 @@ elseif (page == "config") then
          <td>
             <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
                <input type="hidden" name="dump_traffic" value="]] print(dump_traffic_value) print[[">
-               <input type="checkbox" value="1" ]] print(dump_traffic_checked) print[[ onclick="this.form.submit();">
-                  <i class="fa fa-hdd-o fa-lg"></i>
-                  <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">Dump Traffic</a>
-               </input>
+               <div class="custom-control custom-switch">
+                  <input class="custom-control-input" id="check-alert_prefs" type="checkbox" value="1" ]] print(dump_traffic_checked) print[[ onclick="this.form.submit();">
+                  <label class="custom-control-label" for="check-alert_prefs"> <i class="fa fa-hdd-o fa-lg"></i>
+                  <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">Dump Traffic</a></label>
+               </div>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
             </form>
          </td>
@@ -2110,7 +2114,13 @@ elseif (page == "config") then
          end
 
          print[[<form id="alert_prefs" class="form-inline" style="margin-bottom:0px; margin-right:1em; display:inline;" method="post">]]
-         print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
+         print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'">')
+         
+         print('<div class="custom-control custom-switch">')
+         print('<input class="custom-control-input" id="check-alert_prefs" type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
+         print('<label class="custom-control-label" for="check-alert_prefs"></label>')
+         print('</div>')
+         
          print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
          print('</form>')
       end

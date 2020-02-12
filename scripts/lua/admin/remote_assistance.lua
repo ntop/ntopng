@@ -122,7 +122,10 @@ print[[
           <th width=22%>]] print(i18n("remote_assistance.enable_remote_assistance")) print [[</th>
           <td>
             <div class="form-group">
-              <input id="toggle_remote_assistance" name="toggle_remote_assistance" type="checkbox" value="1" ]] print(assistace_checked) print [[/>
+              <div class="custom-control custom-switch">
+                <input class="custom-control-input" id="toggle_remote_assistance" name="toggle_remote_assistance" type="checkbox" value="1" ]] print(assistace_checked) print [[/>
+                <label for="toggle_remote_assistance" class="custom-control-label"></label>
+              </div>
             </div>
             <div style="margin-left: 0.5em; display:inline">]] print(remote_assistance.statusLabel()) print[[</div>
              <br><small>]]
@@ -153,7 +156,12 @@ print[[
 
         <tr>
           <th>]] print(i18n("remote_assistance.admin_access")) print[[</th>
-          <td><input name="allow_admin_access" type="checkbox" value="1" ]] print(admin_checked) print [[/><br>
+          <td>
+          <div class="custom-control custom-switch">
+          <input class="custom-control-input" id="check-allow_admin_access" name="allow_admin_access" type="checkbox" value="1" ]] print(admin_checked) print [[/>
+          <label class="custom-control-label" for="check-allow_admin_access"></label>
+          </div>
+          <br>
           <small>]] print(i18n("remote_assistance.admin_access_descr", {product = info.product}))
 
 if((admin_checked == "checked") and (remote_assistance.getStatus() == "active")) then

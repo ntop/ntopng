@@ -103,8 +103,11 @@ print[[
 
               <div class="row form-group">
                 <div class="col col-md-12">
-                  <label class="form-label">]] print(i18n("category_lists.enabled")) print[[&nbsp;</label>
-                  <input name="list_enabled" type="checkbox" id="form-edit-enable" />
+                  <label class="form-label">]] print(i18n("category_lists.enabled")) print[[: </label>
+                  <div class="custom-control custom-switch d-inline">
+                    <input class="custom-control-input" name="list_enabled" type="checkbox" id="form-edit-enable" />
+                    <label class="custom-control-label" for="form-edit-enable"></label>
+                  </div>
                 </div>
               </div>
 

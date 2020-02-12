@@ -1979,9 +1979,10 @@ elseif (page == "config") then
    print [[<tr>
          <th>]] print(i18n("host_config.hide_from_top")) print[[</th>
          <td>
-               <input type="checkbox" name="top_hidden" value="1" ]] print(top_hidden_checked) print[[>
-                  ]] print(i18n("host_config.hide_host_from_top_descr", {host=host["name"]})) print[[
-               </input>
+         <div class="custom-control custom-switch">
+               <input class="custom-control-input" type="checkbox" id="check-top_hidden" name="top_hidden" value="1" ]] print(top_hidden_checked) print[[>
+               <label class="custom-control-label" for="check-top_hidden">]] print(i18n("host_config.hide_host_from_top_descr", {host=host["name"]})) print[[</label>
+            </div>
          </td>
       </tr>]]
 
@@ -2022,7 +2023,10 @@ elseif (page == "config") then
             drop_traffic_value = "true" -- Opposite
          end
 
-         print('<input type="checkbox" name="drop_host_traffic" value="1" '..drop_traffic_checked..'"> '..i18n("host_config.drop_all_host_traffic")..'</input> &nbsp;')
+         print([[<div class="custom-control custom-switch">]])
+         print('<input class="custom-control-input" id="check-drop_host_traffic" type="checkbox" name="drop_host_traffic" value="1" '..drop_traffic_checked..'"> '..i18n("host_config.drop_all_host_traffic")..'</input>')
+         print([[<label class="custom-control-label" for="check-drop_host_traffic"></label>]])
+         print([[</div>]])
       end
 
       print[[<a class="btn btn-secondary btn-sm" href="]]

@@ -82,15 +82,19 @@ const select_script_filter = (enabled_count) => {
 const generate_checkbox_enabled = (id, enabled, callback) => {
 
    const $checkbox_enabled = $(`
-      <input 
-         id='${id}'
-         name='enabled' 
-         type="checkbox" 
-         ${enabled ? "checked" : ""} />
+      <div class="custom-control custom-switch">
+         <input 
+            id='${id}'
+            name='enabled' 
+            class="custom-control-input"
+            type="checkbox" 
+            ${enabled ? "checked" : ""} />
+            <label class="custom-control-label" for="${id}"></label>
+      </div>
    `);
 
    // bind check event on checkboxes
-   $checkbox_enabled.change(callback);
+   $checkbox_enabled.find(`input[type='checkbox']`).change(callback);
 
    return $checkbox_enabled;
 }
@@ -430,10 +434,15 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          $field.append(`<div class='invalid-feedback'></div>`);
 
          const $input_container = $(`<tr id='${key}'></tr>`);
-         const $checkbox = $(`<input name="${key}-check" type="checkbox" ${hook.enabled ? "checked" : ""} >`);
+         const $checkbox = $(`
+            <div class="custom-control custom-switch">
+               <input class="custom-control-input" id="id-${key}-check" name="${key}-check" type="checkbox" ${hook.enabled ? "checked" : ""} >
+               <label class="custom-control-label" for="id-${key}-check"></label>
+            </div>
+         `);
 
          // bind check event on checkboxes
-         $checkbox.change(function (e) {
+         $checkbox.find(`input[type='checkbox']`).change(function (e) {
 
             const checked = $(this).prop('checked');
 

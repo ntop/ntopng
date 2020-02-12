@@ -62,7 +62,10 @@ print [[
 <div class="form-group">
   <div class="form-check">
     <label class="form-check-label" style="font-weight: normal;">
-      <input id="tos" class="form-check-input" type="checkbox" value="">
+    <div class="custom-control custom-switch">
+      <input id="tos" class="custom-control-input" type="checkbox" value="">
+      <label for="tos" class="custom-control-label"></label>
+      </div>
 ]] print(i18n("login.informative_captive_portal_tos", {url="https://en.wikipedia.org/wiki/General_Data_Protection_Regulation"})) print[[
     </label>
   </div>

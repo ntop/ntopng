@@ -893,10 +893,13 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
   print[[<tr>
          <th width="25%">]] print(i18n("device_protocols.alert")) print[[</th>
          <td>
-               <input type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
-                  <i class="fas fa-exclamation-triangle fa-lg"></i>
-                  ]] print(enable_label) print[[
-               </input>
+<div class="custom-control custom-switch">
+               <input id="check-trigger_alerts" class="custom-control-input" type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
+               <label class="custom-control-label" for="check-trigger_alerts">
+               <i class="fas fa-exclamation-triangle fa-lg"></i>
+               ]] print(enable_label) print[[
+               </label>
+               </div>
          </td>
       </tr>]]
 
