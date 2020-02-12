@@ -75,6 +75,9 @@ a:hover, .btn-link:hover {
 .navbar-light, .navbar-light .navbar-brand, ul.navbar-nav li.nav-item > a {
   color: #e2e2e2 !important;
 }
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+  background-color: #ff7500;
+}
 
 ul.navbar-nav li.nav-item.active > a.active {
   color: #e9e9e9 !important;
@@ -217,6 +220,9 @@ table.tablesorter tbody td {
   background-color: #181818;
   border: 1px solid #3c3c3c;
 }
+.form-control:disabled, .form-control[readonly] {
+  background-color: #696969;
+}
 .form-control:focus {
     border-color: #f39f55;
     background-color: #333333;
@@ -254,3 +260,7 @@ text, g text.tick {
   border-top: 2px solid #464646
 }
 
+#legend {
+  background: transparent !important;
+  color: #ccc !important; 
+}
