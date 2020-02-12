@@ -21,7 +21,7 @@ sendHTTPContentTypeHeader('application/json')
 
 local function getListStatusLabel(list)
   if not list.enabled then
-    return '<span class="badge badge-secondary">'.. i18n("nedge.status_disabled") ..'</span>'
+    return '<span class="badge badge-danger">'.. i18n("nedge.status_disabled") ..'</span>'
   end
 
   if list.status.last_error then

@@ -838,13 +838,13 @@ path.link {
 
 #ntop-logo {
   height: 3.2rem;
-  width: 6rem;
-  margin-left: 1rem;
+  width: 100%;
 }
 #ntop-logo>svg {
   width: 100%;
-  height: 4rem;
-  margin-top: -4px;
+  height: 2.5rem;
+  margin-left: 3px;
+  margin-top: 6px;
 }
 
 .squared-logo {

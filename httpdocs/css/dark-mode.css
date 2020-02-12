@@ -19,6 +19,14 @@ a:hover, .btn-link:hover {
   color: #f39f55;
 }
 
+.btn {
+  color: #eee;
+}
+
+.btn:hover {
+  color: #d6d6d6;
+}
+
 .btn-light {
   color: #eee;
   background-color: #232323;
@@ -35,12 +43,18 @@ a:hover, .btn-link:hover {
   border-color: #272727;
 }
 
+.dropdown-header {
+  color: #9a9a9a;
+}
+.dropdown-divider {
+  border-top: 1px solid #0a0a0a
+}
 
 .bg-primary {
     background-color: #ff8a26 !important;
 }
 
-.bg-light {
+.bg-light, .card, .card-body {
   background-color: #1f1f1f !important;
   color: #e2e2e2 !important;
 }
@@ -220,7 +234,11 @@ table.tablesorter tbody td {
     border: 1px solid #3c3c3c !important;
 }
 
-table.table svg, table.table .pie-chart circle {
+.progress {
+  background-color: #383838;
+}
+
+.pie-chart, table.table svg, table.table .pie-chart circle {
   background-color: #1d1d1d;
 }
 
@@ -231,3 +249,8 @@ text, g text.tick {
   fill: #eee;
   text-shadow: none;
 }
+
+.table tbody+tbody {
+  border-top: 2px solid #464646
+}
+

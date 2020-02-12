@@ -985,45 +985,88 @@ function addLogoSvg()
    return ([[
       <div id='ntop-logo'>
       <svg
-         xmlns:dc="http://purl.org/dc/elements/1.1/"
-         xmlns:cc="http://creativecommons.org/ns#"
-         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns:svg="http://www.w3.org/2000/svg"
-         xmlns="http://www.w3.org/2000/svg"
-         id="svg8"
-         version="1.1"
-         viewBox="0 0 21.695834 10.054166"
-         height="38"
-         width="82">
-         <defs
-            id="defs2" />
-         <metadata
-            id="metadata5">
-            <rdf:RDF>
-               <cc:Work
-                  rdf:about="">
-               <dc:format>image/svg+xml</dc:format>
-               <dc:type
-                  rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-               <dc:title></dc:title>
-               </cc:Work>
-            </rdf:RDF>
-         </metadata>
-         <g
-            style="display:inline"
-            transform="translate(0,-286.94585)"
-            id="layer1">
-            <g
-               id="text1368"
-               style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ff7500;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-               aria-label="ntop">
-               <path
-                  id="ntop-logo-n"
-                  style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:#ff7500;fill-opacity:1;stroke-width:0.26458332"
-                  d="m 0.12764118,293.41728 v -3.3538 q 0,-0.61495 0.20153808,-0.90951 0.20670573,-0.29972 0.63045246,-0.29972 0.25321448,0 0.44958498,0.13436 0.1963704,0.12919 0.3462321,0.39791 0.2687174,-0.29456 0.6201171,-0.42892 0.3513997,-0.13436 0.8526611,-0.13436 0.9870199,0 1.5089518,0.56328 0.521932,0.56327 0.521932,1.63814 v 2.39262 q 0,0.61495 -0.2067058,0.91467 -0.2067057,0.29972 -0.6304524,0.29972 -0.4237468,0 -0.6304525,-0.29972 -0.2067057,-0.29972 -0.2067057,-0.91467 v -1.88619 q 0,-0.69763 -0.2118734,-0.99219 -0.2067057,-0.29972 -0.6872965,-0.29972 -0.4547526,0 -0.6717936,0.31006 -0.217041,0.30489 -0.217041,0.96118 v 1.90686 q 0,0.61495 -0.2067057,0.91467 -0.2067057,0.29972 -0.63045248,0.29972 -0.42374673,0 -0.63045246,-0.29972 -0.20153808,-0.29972 -0.20153808,-0.91467 z" />
-              </g>
-         </g>
-      </svg>
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="48"
+   height="48"
+   viewBox="0 0 12.7 12.7"
+   version="1.1"
+   id="svg4694"
+   inkscape:version="0.92.4 (unknown)"
+   sodipodi:docname="logo-square.svg">
+  <defs
+     id="defs4688">
+    <linearGradient
+       id="linearGradient5305"
+       inkscape:collect="always"
+       osb:paint="gradient">
+      <stop
+         id="stop5311"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         id="stop5313"
+         offset="1"
+         style="stop-color:#f9f9f9;stop-opacity:0;" />
+    </linearGradient>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="3.959798"
+     inkscape:cx="35.373468"
+     inkscape:cy="56.705194"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1023"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata4691">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-284.29998)">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.91316032px;line-height:1.25;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';letter-spacing:0px;word-spacing:0px;fill:#ff7500;fill-opacity:1;stroke:none;stroke-width:0.20991984"
+       x="1.0931334"
+       y="292.86954"
+       id="text4698"
+       transform="scale(0.99114531,1.0089338)"><tspan
+         sodipodi:role="line"
+         id="tspan4696"
+         x="1.0931334"
+         y="292.86954"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.91316032px;font-family:'VAGRounded BT';-inkscape-font-specification:'VAGRounded BT';fill:#ff7500;fill-opacity:1;stroke-width:0.20991984">n</tspan></text>
+  </g>
+</svg>
    
       </div>
    ]])
