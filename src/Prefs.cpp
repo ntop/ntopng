@@ -815,9 +815,10 @@ void Prefs::setCommandLineString(int optkey, const char * optarg){
       int l = strlen(cli);
       char *backup = cli;
 
-      if((cli = (char*)realloc(cli, l+len)) != NULL)
+      if((cli = (char*)realloc(cli, l+len)) != NULL) {
 	strcpy(&cli[l], p);
-      else
+	free(p);
+      } else
 	cli = backup;
     }
   }
