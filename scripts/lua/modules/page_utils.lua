@@ -337,7 +337,7 @@ function page_utils.print_menubar()
       navbar_style = "dark"
    end
 
-   print('<div id="n-sidebar" class="bg-'.. navbar_style ..'" py-0 px-2">')
+   print('<div id="n-sidebar" class="bg-'.. navbar_style ..' py-0 px-2">')
 
    print([[
 	 <h3 class='muted'>
