@@ -728,6 +728,7 @@ path.link {
 #n-sidebar h3.muted {
   padding: 0.1rem 0.5rem;
   margin-bottom: 2px; 
+  position: relative;
 }
 
 #n-sidebar h3.muted div>a, #n-sidebar h3.muted div>button {
@@ -843,7 +844,6 @@ path.link {
 #ntop-logo>svg {
   width: 100%;
   height: 2.5rem;
-  margin-left: 2px;
   margin-top: 6px;
 }
 

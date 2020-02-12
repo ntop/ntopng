@@ -341,13 +341,11 @@ function page_utils.print_menubar()
 
    print([[
 	 <h3 class='muted'>
-	    <div class='d-flex'>
 	       <a href='/'>
 		  ]])
    print(addLogoSvg())
    print([[
 	       </a>
-	    </div>
 	 </h3>
 
 	 <ul class="nav-side mb-4" id='sidebar'>
