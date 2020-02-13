@@ -157,7 +157,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 						d->align_to_localtime,
 						d->exclude_viewed_interfaces,
 						d->exclude_pcap_dump_interfaces,
-            d->reuse_vm,
+						d->reuse_vm,
 						d->pool);
     if(ta) {
       activities[num_activities++] = ta;

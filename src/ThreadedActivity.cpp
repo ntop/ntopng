@@ -202,7 +202,8 @@ void ThreadedActivity::runScript() {
 	   ntop->get_callbacks_dir(), path);
 
   if(stat(script_path, &buf) == 0) {
-    runScript(script_path, NULL, 0 /* No deadline */);
+    systemTaskRunning = true;
+    runScript(script_path, ntop->getSystemInterface(), 0 /* No deadline */);
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
 }
@@ -216,7 +217,8 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   u_long msec_diff;
   struct timeval begin, end;
 
-  if(!iface) iface = ntop->getSystemInterface();
+  if(!iface)
+    goto run_script_out;
 
   if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating())
     goto run_script_out;
@@ -264,7 +266,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
  run_script_out:
   if(iface == ntop->getSystemInterface())
     systemTaskRunning = false;
-  else
+  else if(iface)
     setInterfaceTaskRunning(iface, false);
 
   if(l && !reuse_vm)
@@ -334,7 +336,6 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 #endif
 
     gettimeofday(&begin, NULL);
-    systemTaskRunning = true;
     runScript();
     gettimeofday(&end, NULL);
 
@@ -406,7 +407,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
 	     ntop->get_callbacks_dir(), path);
 
     if(stat(script_path, &buf) == 0
-       && pool->queueJob(this, script_path, NULL, deadline)) {
+       && pool->queueJob(this, script_path, ntop->getSystemInterface(), deadline)) {
       systemTaskRunning = true;
 
 #ifdef THREAD_DEBUG
