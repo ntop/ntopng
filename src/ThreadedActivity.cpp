@@ -404,16 +404,17 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
     /* Schedule system script */
     snprintf(script_path, sizeof(script_path), "%s/system/%s",
 	     ntop->get_callbacks_dir(), path);
-    
-    if(stat(script_path, &buf) == 0) {
+
+    if(stat(script_path, &buf) == 0
+       && pool->queueJob(this, script_path, NULL, deadline)) {
       systemTaskRunning = true;
-      pool->queueJob(this, script_path, NULL, deadline);
+
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
     }
   }
-  
+
   /* Schedule interface script, one for each interface */
   snprintf(script_path, sizeof(script_path), "%s/interface/%s",
 	   ntop->get_callbacks_dir(), path);
