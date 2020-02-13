@@ -41,13 +41,14 @@ class DB {
   bool running;
   NetworkInterface *iface;
 
-  inline void incNumExportedFlows(u_int64_t num = 1)        { exportedFlows += num; };
-  inline void incNumDroppedFlows(u_int32_t num = 1)         { droppedFlows += num; };
-  inline void incNumQueueDroppedFlows(u_int32_t num = 1)    { queueDroppedFlows += num; };
-
  public:
   DB(NetworkInterface *_iface);
   virtual ~DB() {};
+
+  inline void incNumExportedFlows(u_int64_t num = 1)        { exportedFlows += num;     };
+  inline void incNumDroppedFlows(u_int32_t num = 1)         { droppedFlows += num;      };
+  inline void incNumQueueDroppedFlows(u_int32_t num = 1)    { queueDroppedFlows += num; };
+
   inline u_int32_t getNumDroppedFlows()  const              { return(queueDroppedFlows + droppedFlows); };
   void updateStats(const struct timeval *tv);
   void checkPointCounters(bool drops_only);

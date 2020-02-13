@@ -61,7 +61,7 @@ typedef struct {
   AlertCheckLuaEngine *acle;
   struct timeval *tv;
   time_t deadline;
-  bool quick_update;
+  bool no_time_left;
   bool skip_user_scripts;
 } periodic_ht_state_update_user_data_t;
 
@@ -319,6 +319,15 @@ typedef enum {
   flow_lua_call_periodic_update,
   flow_lua_call_idle,
 } FlowLuaCall;
+
+typedef enum {
+  flow_lua_call_exec_status_ok = 0,                             /* Call executed successfully                                */
+  flow_lua_call_exec_status_not_executed_script_failure,        /* Call NOT executed as the script failed to load (syntax?)   */
+  flow_lua_call_exec_status_not_executed_no_time_left,          /* Call NOT executed as the deadline was approaching         */
+  flow_lua_call_exec_status_not_executed_unknown_call,          /* Call NOT executed as the function to be called is unknown */
+  flow_lua_call_exec_status_not_executed_shutdown_in_progress,  /* Call NOT executed as a shutdown was in progress           */
+  flow_lua_call_exec_status_not_executed_vm_not_allocated,      /* Call NOT executed as the vm wasn't allocated              */
+} FlowLuaCallExecStatus;
 
 typedef enum {
   details_normal = 0,

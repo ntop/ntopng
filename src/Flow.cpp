@@ -896,7 +896,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
 
 /* *************************************** */
 
-bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper) {
+bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_time_left) {
   bool rc = false;
 
   if(ntop->getPrefs()->do_dump_flows()
@@ -944,7 +944,7 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper) {
       dumper->aggregatePartialFlow(tv, this);
 #endif
 
-    dumper->dumpFlow(last_seen, this);
+    dumper->dumpFlow(last_seen, this, no_time_left);
 
 #ifndef HAVE_NEDGE
     if(ntop->get_export_interface()) {
@@ -1488,10 +1488,10 @@ void Flow::periodic_stats_update(void *user_data) {
 
 /* *************************************** */
 
-void Flow::periodic_dump_check(const struct timeval *tv) {
+void Flow::periodic_dump_check(const struct timeval *tv, bool no_time_left) {
   /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
      ViewInterface dump their flows in another thread, not this one. */
-  dumpFlow(tv, iface->isViewed() ? iface->viewedBy() : iface);
+  dumpFlow(tv, iface->isViewed() ? iface->viewedBy() : iface, no_time_left);
 }
 
 /* *************************************** */
@@ -1921,6 +1921,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 void Flow::periodic_hash_entry_state_update(void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   struct timeval *tv = periodic_ht_state_update_user_data->tv;
+  bool no_time_left = periodic_ht_state_update_user_data->no_time_left;
 
   switch(get_state()) {
   case hash_entry_state_allocated:
@@ -1935,13 +1936,13 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
 
   case hash_entry_state_active:
     if(next_lua_call_periodic_update == 0) next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS;
-    periodic_dump_check(tv); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
+    periodic_dump_check(tv, no_time_left); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
     postFlowSetIdle(tv);
-    periodic_dump_check(tv); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
+    periodic_dump_check(tv, no_time_left); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
     break;
   }
 
@@ -4264,17 +4265,17 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 
 /* ***************************************************** */
 
-bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv,
-			  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
+FlowLuaCallExecStatus Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv,
+					   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
   const char *lua_call_fn_name = NULL;
   FlowAlertCheckLuaEngine *acle = getLuaVMUservalue(periodic_ht_state_update_user_data->vm, flow_acle);
 
   if(flow_lua_call != flow_lua_call_idle
      && ntop->getGlobals()->isShutdownRequested())
-    return false; /* Only flow_lua_call_idle go through during a shutdown */
+    return flow_lua_call_exec_status_not_executed_shutdown_in_progress; /* Only flow_lua_call_idle go through during a shutdown */
 
   if(!acle)
-    return false;
+    return flow_lua_call_exec_status_not_executed_vm_not_allocated;
 
   lua_State *L = acle->getState();
   acle->setFlow(this);
@@ -4290,7 +4291,7 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv,
     lua_call_fn_name = FLOW_LUA_CALL_IDLE_FN_NAME;
     break;
   default:
-    return false;
+    return flow_lua_call_exec_status_not_executed_unknown_call;
   }
 
   int num_args = 4;
@@ -4316,9 +4317,10 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv,
     bool executed = lua_toboolean(acle->getState(), -1);
     lua_pop(acle->getState(), -1);
 
-    if(executed)
+    if(executed) {
       acle->incSuccessfulPcalls(flow_lua_call);
-    else {
+      return flow_lua_call_exec_status_ok;
+    } else {
       switch(get_state()) {
       case hash_entry_state_idle:
 	acle->incSkippedPcalls(flow_lua_call);
@@ -4327,21 +4329,23 @@ bool Flow::performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv,
 	acle->incPendingPcalls(flow_lua_call);
 	break;
       }
+      return flow_lua_call_exec_status_not_executed_no_time_left;
     }
-  }
-
-  return true;
+  } else
+    return flow_lua_call_exec_status_not_executed_script_failure;
 }
-
 
 /* ***************************************************** */
 
 void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data) {
   HashEntryState cur_state = get_state();
+  FlowLuaCallExecStatus protocol_detected_exec_status = flow_lua_call_exec_status_ok,
+    periodic_update_exec_status = flow_lua_call_exec_status_ok,
+    idle_exec_status = flow_lua_call_exec_status_ok;
 
   /* Check if it is time to call the protocol detected */
   if(pending_lua_call_protocol_detected
-     && performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data))
+     && (protocol_detected_exec_status = performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data)))
     pending_lua_call_protocol_detected = false;
 
   /* Check if it is time to call the periodic update. Need to make sure this is not called BEFORE
@@ -4350,7 +4354,7 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
      && (trigger_immediate_periodic_update ||
 	 (next_lua_call_periodic_update > 0 /* 0 means not-yet-set */
 	  && next_lua_call_periodic_update <= tv->tv_sec))
-     && performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data)) {
+     && (periodic_update_exec_status = performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data))) {
     next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
     if(trigger_immediate_periodic_update) trigger_immediate_periodic_update = false; /* Reset if necessary */
   }
@@ -4358,7 +4362,16 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
   /* Check if it is time to call the idle. There is no need to change any boolean here to remember
      the call has been performed: each flow in idle state is visited exactly once. */
   if(cur_state == hash_entry_state_idle)
-    performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data);
+    idle_exec_status = performLuaCall(flow_lua_call_idle, tv, periodic_ht_state_update_user_data);
+
+  /* If a lua call hasn't been executed due to no time left (deadline approaching)
+     then we set this information also into the user data. */
+  if((protocol_detected_exec_status == flow_lua_call_exec_status_not_executed_no_time_left
+      || periodic_update_exec_status == flow_lua_call_exec_status_not_executed_no_time_left
+      || idle_exec_status == flow_lua_call_exec_status_not_executed_no_time_left)
+     && !periodic_ht_state_update_user_data->no_time_left) {
+    periodic_ht_state_update_user_data->no_time_left = true;
+  }
 }
 
 /* ***************************************************** */
