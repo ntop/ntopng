@@ -12510,7 +12510,9 @@ void LuaEngine::setHost(Host* h) {
 
   if(c) {
     c->host = h;
-    c->iface = h->getInterface();
+
+    if(h)
+      c->iface = h->getInterface();
   }
 }
 

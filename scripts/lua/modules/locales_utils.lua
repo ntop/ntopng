@@ -23,6 +23,11 @@ local supported_locales = {
    {code = "cz"}
 }
 
+local nedge_supported_locales = {
+   ["jp"] = true,
+   ["en"] = true,
+}
+
 -- ##############################################
 
 local function loadfile_to_data(file_path)
@@ -82,6 +87,8 @@ local function initLocales()
       return
    end
 
+   local is_nedge = ntop.isnEdge()
+
    -- Provides a fallback for not already localized strings
    locales.loadLocaleFile(default_locale_path, default_locale)
 
@@ -97,7 +104,7 @@ local function initLocales()
    i18n.setLocale(language)
 
    -- Note: en already loaded
-   if (language ~= "en") and (not ntop.isnEdge()) then
+   if ((not is_nedge) or nedge_supported_locales[language]) then
       local locale_path = lookupLocale(language)
 
       if locale_path then
@@ -109,7 +116,7 @@ local function initLocales()
    for _, locale in ipairs(supported_locales) do
       local localename = locale["code"]
 
-      if lookupLocale(localename) then
+      if ((not is_nedge) or nedge_supported_locales[localename]) and lookupLocale(localename) then
          available_locales[#available_locales + 1] = locale
       end
    end

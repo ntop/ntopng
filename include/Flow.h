@@ -225,7 +225,7 @@ class Flow : public GenericHashEntry {
 			  const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) const;
-  void periodic_dump_check(const struct timeval *tv);
+  void periodic_dump_check(const struct timeval *tv, bool no_time_left);
   void updateCliJA3();
   void updateSrvJA3();
   void updateHASSH(bool as_client);
@@ -239,8 +239,10 @@ class Flow : public GenericHashEntry {
    * @param flow_lua_call The time of the call that should be performed on the flow
    * @param tv Pointer to a timeval struct indicating the current time at which the update is performed
    * @param periodic_ht_state_update_user_data Pointer to a structure holding update-related data (including the lua engine)
+   *
+   * @return Whether the call has been executed successfully or if there were issues during the execution
    */  
-  bool performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data);
+  FlowLuaCallExecStatus performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data);
   /**
    * @brief Method to possibly call lua scripts on the flow
    * @details This method evaluates the states of the flow and possibly calls lua functions on this flow.
@@ -502,7 +504,7 @@ class Flow : public GenericHashEntry {
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction) const;
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
-  bool dumpFlow(const struct timeval *tv, NetworkInterface *dumper);
+  bool dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_time_left);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len);

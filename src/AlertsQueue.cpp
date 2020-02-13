@@ -40,8 +40,12 @@ void AlertsQueue::pushAlertJson(const char *atype, ndpi_serializer *alert) {
   ndpi_serialize_string_string(alert, "alert_type", atype);
   ndpi_serialize_string_uint64(alert, "alert_tstamp", time(NULL));
 
-  if(!ntop->getInternalAlertsQueue()->enqueue(alert))
+  if(!ntop->getInternalAlertsQueue()->enqueue(alert)) {
     iface->incNumDroppedAlerts(1);
+
+    ndpi_term_serializer(alert);
+    free(alert);
+  }
 }
 
 /* **************************************************** */

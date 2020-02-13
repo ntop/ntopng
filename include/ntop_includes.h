@@ -282,6 +282,7 @@ using namespace std;
 #include "HostTimeseriesPoint.h"
 #include "FifoQueue.h"
 #include "FifoStringsQueue.h"
+#include "FifoSerializerQueue.h"
 #include "SPSCQueue.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"

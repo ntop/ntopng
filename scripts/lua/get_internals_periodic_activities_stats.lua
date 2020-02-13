@@ -117,6 +117,8 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       sort_to_key[k] = script_stats.stats.duration.last_duration_ms
    elseif(sortColumn == "column_periodic_activity_name") then
       sort_to_key[k] = script_stats.script
+   elseif(sortColumn == "column_in_progress_since") then
+      sort_to_key[k] = -(script_stats.stats.in_progress_since or 0)
    elseif(sortColumn == "column_name") then
       sort_to_key[k] = getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid))
    else
@@ -153,6 +155,10 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_key"] = key
       record["column_ifid"] = string.format("%i", script_stats.ifid)
       record["column_time_perc"] = script_stats.stats.perc_duration
+
+      if script_stats.stats.in_progress_since and script_stats.stats.in_progress_since > 0 then
+	 record["column_in_progress_since"] = format_utils.formatEpoch(script_stats.stats.in_progress_since)
+      end
 
       local utiliz = time_utilization(script_stats.stats)
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])

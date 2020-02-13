@@ -608,7 +608,7 @@ NetworkInterface::~NetworkInterface() {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpFlow(time_t when, Flow *f) {
+int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
   int rc = -1;
 
 #ifndef HAVE_NEDGE
@@ -617,7 +617,12 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
     ntop->getPrefs()->do_dump_flows_on_ls();
 
   if(!db)
-    return(-1);
+    return -1;
+
+  if(no_time_left) {
+    db->incNumDroppedFlows(1);
+    return -1;
+  }
 
   json = f->serialize(es_flow);
 
@@ -2709,8 +2714,9 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 
   periodic_ht_state_update_user_data.acle = NULL,
     periodic_ht_state_update_user_data.iface = this,
+    periodic_ht_state_update_user_data.tv = &tv,
     periodic_ht_state_update_user_data.deadline = deadline,
-    periodic_ht_state_update_user_data.tv = &tv;
+    periodic_ht_state_update_user_data.no_time_left = false;
     periodic_ht_state_update_user_data.skip_user_scripts = skip_user_scripts;
     periodic_ht_state_update_user_data.vm = vm;
 

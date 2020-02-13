@@ -337,7 +337,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = "<i class='fas fa-lg fa-chart-area'></i>",
 			      },
 			      {
-				 hidden = only_historical or is_pcap_dump or not host["localhost"] or not ts_utils.getDriverName() == "rrd",
+				 hidden = only_historical or (not host["localhost"]) or (not hasTrafficReport()),
 				 active = page == "traffic_report",
 				 page_name = "traffic_report",
 				 label = "<i class='fas fa-lg fa-file-alt report-icon'></i>",

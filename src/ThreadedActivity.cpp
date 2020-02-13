@@ -168,7 +168,7 @@ void ThreadedActivity::run() {
 
 /* ******************************************* */
 
-void ThreadedActivity::updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration) {
+ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(NetworkInterface *iface) {
   ThreadedActivityStats *ta = NULL;
 
   if(iface && iface->get_id() >= 0) {
@@ -176,15 +176,32 @@ void ThreadedActivity::updateThreadedActivityStats(NetworkInterface *iface, u_lo
       try {
 	ta = new ThreadedActivityStats(this);
       } catch(std::bad_alloc& ba) {
-	return;
+	return NULL;
       }
       threaded_activity_stats[iface->get_id()] = ta;
     } else
       ta = threaded_activity_stats[iface->get_id()];
-
-    if(ta)
-      ta->updateStats(latest_duration);
   }
+
+  return ta;
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin) {
+  ThreadedActivityStats *ta = getThreadedActivityStats(iface);
+
+  if(ta)
+    ta->updateStatsBegin(begin);
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration) {
+  ThreadedActivityStats *ta = getThreadedActivityStats(iface);
+
+  if(ta)
+    ta->updateStatsEnd(latest_duration);
 }
 
 /* ******************************************* */
@@ -202,7 +219,8 @@ void ThreadedActivity::runScript() {
 	   ntop->get_callbacks_dir(), path);
 
   if(stat(script_path, &buf) == 0) {
-    runScript(script_path, NULL, 0 /* No deadline */);
+    systemTaskRunning = true;
+    runScript(script_path, ntop->getSystemInterface(), 0 /* No deadline */);
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
 }
@@ -216,7 +234,8 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   u_long msec_diff;
   struct timeval begin, end;
 
-  if(!iface) iface = ntop->getSystemInterface();
+  if(!iface)
+    goto run_script_out;
 
   if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating())
     goto run_script_out;
@@ -241,11 +260,13 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   lua_setglobal(l->getState(), "deadline");
 
   gettimeofday(&begin, NULL);
-  l->run_loaded_script();
-  gettimeofday(&end, NULL);
+  updateThreadedActivityStatsBegin(iface, &begin);
 
+  l->run_loaded_script();
+
+  gettimeofday(&end, NULL);
   msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
-  updateThreadedActivityStats(iface, msec_diff);
+  updateThreadedActivityStatsEnd(iface, msec_diff);
 
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -264,7 +285,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
  run_script_out:
   if(iface == ntop->getSystemInterface())
     systemTaskRunning = false;
-  else
+  else if(iface)
     setInterfaceTaskRunning(iface, false);
 
   if(l && !reuse_vm)
@@ -334,7 +355,6 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 #endif
 
     gettimeofday(&begin, NULL);
-    systemTaskRunning = true;
     runScript();
     gettimeofday(&end, NULL);
 
@@ -404,16 +424,17 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
     /* Schedule system script */
     snprintf(script_path, sizeof(script_path), "%s/system/%s",
 	     ntop->get_callbacks_dir(), path);
-    
-    if(stat(script_path, &buf) == 0) {
+
+    if(stat(script_path, &buf) == 0
+       && pool->queueJob(this, script_path, ntop->getSystemInterface(), deadline)) {
       systemTaskRunning = true;
-      pool->queueJob(this, script_path, NULL, deadline);
+
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
     }
   }
-  
+
   /* Schedule interface script, one for each interface */
   snprintf(script_path, sizeof(script_path), "%s/interface/%s",
 	   ntop->get_callbacks_dir(), path);

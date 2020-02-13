@@ -85,7 +85,7 @@ Ntop::Ntop(char *appName) {
 
   sqlite_alerts_queue = new FifoStringsQueue(SQLITE_ALERTS_QUEUE_SIZE);
   alerts_notifications_queue = new FifoStringsQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE);
-  internal_alerts_queue = new FifoStringsQueue(INTERNAL_ALERTS_QUEUE_SIZE);
+  internal_alerts_queue = new FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
   resolvedHostsBloom = new Bloom(NUM_HOSTS_RESOLVED_BITS);
   
@@ -943,12 +943,12 @@ void Ntop::getUsers(lua_State* vm) {
   }
 
   for(i = 0; i < rc; i++) {
-    if(usernames[i] == NULL) continue; /* safety check */
-    if((username = strchr(usernames[i], '.')) == NULL) continue;
-    if((username = strchr(username+1, '.')) == NULL) continue;
+    if(usernames[i] == NULL) goto next_username; /* safety check */
+    if((username = strchr(usernames[i], '.')) == NULL) goto next_username;
+    if((username = strchr(username+1, '.')) == NULL) goto next_username;
     len = strlen(++username);
 
-    if(len < sizeof(".password")) continue;
+    if(len < sizeof(".password")) goto next_username;
     username[len - sizeof(".password") + 1] = '\0';
 
     lua_newtable(vm);
@@ -1007,7 +1007,10 @@ void Ntop::getUsers(lua_State* vm) {
     lua_insert(vm, -2);
     lua_settable(vm, -3);
 
-    free(usernames[i]);
+next_username:
+
+    if(usernames[i])
+      free(usernames[i]);
   }
 
   free(usernames);

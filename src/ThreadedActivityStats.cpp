@@ -25,6 +25,7 @@
 
 ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
   max_duration_ms = last_duration_ms = 0;
+  start_time = 0;
   threaded_activity = ta;
 }
 
@@ -35,7 +36,14 @@ ThreadedActivityStats::~ThreadedActivityStats() {
 
 /* ******************************************* */
 
-void ThreadedActivityStats::updateStats(u_long duration_ms) {
+void ThreadedActivityStats::updateStatsBegin(struct timeval *begin) {
+  start_time = begin->tv_sec;
+}
+
+/* ******************************************* */
+
+void ThreadedActivityStats::updateStatsEnd(u_long duration_ms) {
+  start_time = 0;
   last_duration_ms = duration_ms;
 
   if(duration_ms > max_duration_ms)
@@ -54,4 +62,8 @@ void ThreadedActivityStats::lua(lua_State *vm) {
   lua_pushstring(vm, "duration");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  if(start_time) {
+    lua_push_uint64_table_entry(vm, "in_progress_since", start_time);
+  }
 }

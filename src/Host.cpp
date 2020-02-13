@@ -850,6 +850,12 @@ void Host::periodic_hash_entry_state_update(void *user_data) {
       lua_getglobal(L, USER_SCRIPTS_RELEASE_ALERTS_CALLBACK); /* Called function */
 
       acle->pcall(0 /* 0 arguments */, 0 /* 0 results */);
+
+      /* Important: unset the host from the acle to avoid user-after-free in
+       * ~AlertCheckLuaEngine, as the host pointer will be free by
+       * GenericHash::walkAllStates right after this callback returns.
+       */
+      acle->setHost(NULL);
     }
   }
 

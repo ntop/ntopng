@@ -30,13 +30,15 @@ class ThreadedActivityStats {
  private:
   u_long max_duration_ms;
   u_long last_duration_ms;
+  time_t start_time;
   const ThreadedActivity *threaded_activity;
   
  public:
   ThreadedActivityStats(const ThreadedActivity *ta);
   ~ThreadedActivityStats();
 
-  void updateStats(u_long duration_ms);
+  void updateStatsBegin(struct timeval *begin);
+  void updateStatsEnd(u_long duration_ms);
   void lua(lua_State *vm);
 };
 

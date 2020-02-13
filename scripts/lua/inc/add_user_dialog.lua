@@ -116,7 +116,6 @@ print [[
     </script>
 ]]
 
-if not ntop.isnEdge() then
   print[[
     <label for="user_language">]] print(i18n("language")) print[[</label>
     <div class="input-group mb-6">
@@ -133,7 +132,6 @@ if not ntop.isnEdge() then
       </select>
     </div>
 ]]
-end
 
 print[[
 <br>

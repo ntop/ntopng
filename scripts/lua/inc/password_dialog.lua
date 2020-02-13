@@ -165,7 +165,6 @@ print [[
 
 ]]
 
-if not ntop.isnEdge() then
 print[[
     <label for="user_language">]] print(i18n("language")) print[[</label>
     <div class='input-group mb-6'>
@@ -181,7 +180,6 @@ print[[
         </select>
     </div>
 <br>]]
-end
 
 print[[
     <div class="form-group col-md-12 has-feedback">
