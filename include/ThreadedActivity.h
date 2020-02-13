@@ -53,7 +53,9 @@ class ThreadedActivity {
   void schedulePeriodicActivity(ThreadPool *pool, time_t deadline);
   void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
   bool isInterfaceTaskRunning(NetworkInterface *iface);
-  void updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration);
+  ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface);
+  void updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin);
+  void updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration);
   void reloadVm(const char *ifname);
   LuaEngine* loadVm(char *script_path, NetworkInterface *iface, time_t when);
 

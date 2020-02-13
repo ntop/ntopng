@@ -238,6 +238,14 @@ $("#table-internals-periodic-activities").datatable({
 	 textAlign: 'right',
 	 width: '5%',
        }
+     }, {
+       title: "]] print(i18n("internals.in_progress_since")) print[[",
+       field: "column_in_progress_since",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '5%',
+       }
      }
    ], tableCallback: function() {
       datatableInitRefreshRows($("#table-internals-periodic-activities"),

@@ -168,7 +168,7 @@ void ThreadedActivity::run() {
 
 /* ******************************************* */
 
-void ThreadedActivity::updateThreadedActivityStats(NetworkInterface *iface, u_long latest_duration) {
+ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(NetworkInterface *iface) {
   ThreadedActivityStats *ta = NULL;
 
   if(iface && iface->get_id() >= 0) {
@@ -176,15 +176,32 @@ void ThreadedActivity::updateThreadedActivityStats(NetworkInterface *iface, u_lo
       try {
 	ta = new ThreadedActivityStats(this);
       } catch(std::bad_alloc& ba) {
-	return;
+	return NULL;
       }
       threaded_activity_stats[iface->get_id()] = ta;
     } else
       ta = threaded_activity_stats[iface->get_id()];
-
-    if(ta)
-      ta->updateStats(latest_duration);
   }
+
+  return ta;
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin) {
+  ThreadedActivityStats *ta = getThreadedActivityStats(iface);
+
+  if(ta)
+    ta->updateStatsBegin(begin);
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration) {
+  ThreadedActivityStats *ta = getThreadedActivityStats(iface);
+
+  if(ta)
+    ta->updateStatsEnd(latest_duration);
 }
 
 /* ******************************************* */
@@ -243,11 +260,13 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   lua_setglobal(l->getState(), "deadline");
 
   gettimeofday(&begin, NULL);
-  l->run_loaded_script();
-  gettimeofday(&end, NULL);
+  updateThreadedActivityStatsBegin(iface, &begin);
 
+  l->run_loaded_script();
+
+  gettimeofday(&end, NULL);
   msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
-  updateThreadedActivityStats(iface, msec_diff);
+  updateThreadedActivityStatsEnd(iface, msec_diff);
 
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
