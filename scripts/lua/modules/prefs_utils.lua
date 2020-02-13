@@ -484,23 +484,33 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
     objRow = " style=\"display:table-row\""
   end
   if(label ~= "") then print('<tr id="row_'..submit_field..'"'..objRow..'><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-  print('<div class="btn-group btn-toggle">')
-  print('<button type="button" onclick="'..submit_field..'_functionOn()" id="'..submit_field..'_on_id" '..disabled..' class="btn btn-sm  '..on_active..'">'..on_label..'</button>')
-  print('<button type="button" onclick="'..submit_field..'_functionOff()" id="'..submit_field..'_off_id" '..disabled..' class="btn btn-sm '..off_active..'">'..off_label..'</button></div>\n')
-  print('<input type=hidden id="'..submit_field..'_input" name='..submit_field..' value="'..value..'"/>\n')
+  print([[
+    <div class="custom-control custom-switch ">
+      <input ]].. (value == "0" and '' or 'checked') ..[[ type="checkbox" class="custom-control-input" id="check-]].. submit_field ..[[">
+      <label class="custom-control-label custom-control-label-lg " for="check-]].. submit_field ..[["></label>
+      <input hidden id="input-]].. submit_field ..[[" name="]].. submit_field ..[[" value="]].. value ..[[">
+  ]])
+  print([[</div>]])
   if(label ~= "") then print('</td></tr>') end
-  print('\n')
-  print('<script>\n')
+  print('<script type="text/javascript">')
 
-  print[[function ]] print(submit_field) print [[_functionOn(){
-    var classOn = document.getElementById("]] print(submit_field) print [[_on_id");
-    var classOff = document.getElementById("]] print(submit_field) print [[_off_id");
-    classOn.removeAttribute("class");
-    classOff.removeAttribute("class");
-    classOn.setAttribute("class", "btn btn-sm btn-]]print(on_color) print[[ active");
-    classOff.setAttribute("class", "btn btn-sm btn-secondary");
+  print([[
+    $("#check-]].. submit_field.. [[").change(function(e) {
 
-    $("#]] print(submit_field) print [[_input").val("]] print(on_value) print[[").trigger('change');]]
+      const value = $(this).is(":checked");
+      
+      if (value) {
+        ]]..submit_field..[[_functionOn();
+      }
+      else { 
+        ]]..submit_field..[[_functionOff();
+      }
+    });
+  ]])
+
+  print[[function ]] print(submit_field) print [[_functionOn(){]]
+    print([[$(`#input-]].. submit_field ..[[`).val("]].. on_value ..[[");]])
+
     if elementToSwitch ~= nil then
       for element = 1, #elementToSwitch do
         if ((hideOn == nil) or (hideOn == false)) then
@@ -518,14 +528,10 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
   }
   ]]
   print[[
-  function ]] print(submit_field) print [[_functionOff(){
-    var classOn = document.getElementById("]] print(submit_field) print [[_on_id");
-    var classOff = document.getElementById("]] print(submit_field) print [[_off_id");
-    classOn.removeAttribute("class");
-    classOff.removeAttribute("class");
-    classOn.setAttribute("class", "btn btn-sm btn-secondary");
-    classOff.setAttribute("class", "btn btn-sm btn-]]print(off_color) print[[ active");
-    $("#]] print(submit_field) print [[_input").val("]]print(off_value) print[[").trigger('change');]]
+  function ]] print(submit_field) print [[_functionOff(){]]
+
+    print([[$(`#input-]].. submit_field ..[[`).val("]].. off_value ..[["); ]])
+
     if elementToSwitch ~= nil then
       for element = 1, #elementToSwitch do
         if ((hideOn == nil) or (hideOn == false)) then

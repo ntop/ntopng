@@ -62,11 +62,6 @@ if(haveAdminPrivileges()) then
           break
         end
       end
-
-      if not one_enabled then
-        -- at least one auth method should be enabled
-        _POST["toggle_local_auth"] = "1"
-      end
     end
   end
 

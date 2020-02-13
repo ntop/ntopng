@@ -567,6 +567,12 @@ path.link {
   color: #ff7500;
 }
 
+/* increase switches size */
+.custom-control-label-lg {
+  transform: scale(1.5);
+}
+
+
 /* New Sidebar and container */
 
 #wrapper {
