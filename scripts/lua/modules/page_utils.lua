@@ -7,6 +7,7 @@ local info = ntop.getInfo()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local plugins_utils = require("plugins_utils")
+local is_nedge = ntop.isnEdge()
 
 local page_utils = {}
 
@@ -83,7 +84,7 @@ page_utils.menu_entries = {
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters"},
 
     -- Settings
-    manage_users	 = {key = "manage_users", i18n_title = "manage_users.manage_users", section = "admin"},
+    manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin"},
     preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin"},
     scripts_config	 = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin"},
     profiles	      	 = {key = "profiles", i18n_title = "traffic_profiles.traffic_profiles", section = "admin"},
@@ -120,12 +121,12 @@ page_utils.menu_entries = {
 
     -- nEdge
     gateways_users       = {key = "gateways_users", i18n_title = "dashboard.gateways_users", section = "dashboard"},
-    flows  	     	 = {key = "flows", i18n_title = "flows", section = "hosts"},
+    nedge_flows    	 = {key = "nedge_flows", i18n_title = "flows", section = "hosts"},
     users	     	 = {key = "users", i18n_title = "users.users", section = "hosts"},
     system_setup         = {key = "system_setup", i18n_title = "nedge.system_setup", section = "system_stats"},
-    dhcp_leases          = {key = "dhcp_leases", i18n_title = "nedge.dhcp_leases", section = "admin"},
-    port_forwarding      = {key = "port_forwarding", i18n_title = "nedge.port_forwarding", section = "admin"},
-    system_users         = {key = "system_users", i18n_title = "nedge.system_users", section = "admin"},
+    dhcp_leases          = {key = "dhcp_leases", i18n_title = "nedge.dhcp_leases", section = "system_stats"},
+    port_forwarding      = {key = "port_forwarding", i18n_title = "nedge.port_forwarding", section = "system_stats"},
+    nedge_users          = {key = "nedge_users", i18n_title = "manage_users.manage_users", section = "system_stats"},
 }
 
 -- Extend the menu entries with the plugins
@@ -140,6 +141,8 @@ end
 
 -- #################################
 
+-- NOTE: this function is called by the web pages in order to
+-- set the active entry and section and highlight it into the menu
 function page_utils.set_active_menu_entry(entry, i18n_params, alt_title)
     active_section = entry.section
     active_entry = entry.key

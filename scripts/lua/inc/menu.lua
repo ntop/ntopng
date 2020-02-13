@@ -13,6 +13,7 @@ local telemetry_utils = require "telemetry_utils"
 local ts_utils = require("ts_utils_core")
 local page_utils = require("page_utils")
 
+local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
 local info = ntop.getInfo()
 
@@ -64,7 +65,7 @@ ifId = ifs.id
 -- NOTE: see sidebar.js for the client logic
 page_utils.init_menubar()
 
-if ntop.isnEdge() then
+if is_nedge then
    dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menubar.lua")   
 else
 
@@ -299,7 +300,7 @@ for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
 end
 
 -- Possibly add nEdge entries
-if ntop.isnEdge() then
+if is_nedge then
    for _, entry in ipairs(
       {
 	 {
@@ -322,9 +323,9 @@ if ntop.isnEdge() then
 	    url = '/lua/pro/nedge/admin/port_forwarding.lua',
 	 },
 	 {
-	    entry = page_utils.menu_entries.system_users,
+	    entry = page_utils.menu_entries.nedge_users,
 	    hidden = not is_admin,
-	    url = '/lua/admin/users.lua',
+	    url = '/lua/pro/nedge/admin/nf_list_users.lua',
 	 },
 	 {
 	    entry = page_utils.menu_entries.divider,
@@ -382,7 +383,7 @@ page_utils.add_menubar_section(
 	 },
 	 {
 	    entry = page_utils.menu_entries.profiles,
-	    hidden = not is_admin or not ntop.isPro(),
+	    hidden = not is_admin or not ntop.isPro() or is_nedge,
 	    url = '/lua/pro/admin/edit_profiles.lua',
 	 },
 	 {

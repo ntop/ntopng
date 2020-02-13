@@ -24,12 +24,26 @@ local function interpolateField(string, variables)
     end)
 end
 
+local DEBUG = false
+
 local function interpolate(pattern, variables)
   variables = variables or {}
   local result = pattern
   result = interpolateValue(result, variables)
   result = interpolateField(result, variables)
-  result = string.format(result, unpack(variables))
+
+  if not DEBUG then
+    result = string.format(result, unpack(variables))
+  else
+    local err, res = pcall(function () result = string.format(result, unpack(variables)) end)
+
+    if err then
+      tprint(debug.traceback())
+      return(result)
+    else
+      result = res
+    end
+  end
 
   return result
 end
