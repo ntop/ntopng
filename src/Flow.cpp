@@ -3421,6 +3421,10 @@ void Flow::dissectSSDP(bool src2dst_direction, char *payload, u_int16_t payload_
 void Flow::dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len) {
   char name[64];
 
+  /* Already dissected ? */
+  if(protos.netbios.name)
+    return;
+
   if(((payload[2] & 0x80) /* NetBIOS Response */ || ((payload[2] & 0x78) == 0x28 /* NetBIOS Registration */))
      && (ndpi_netbios_name_interpret((char*)&payload[12], name, sizeof(name)) > 0)
      && (!strstr(name, "__MSBROWSE__"))
