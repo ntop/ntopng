@@ -656,6 +656,13 @@ function isScoreEnabled()
   return(ntop.isEnterprise())
 end
 
+function hasTrafficReport()
+   local ts_utils = require("ts_utils_core")
+   local is_pcap_dump = interface.isPcapDumpInterface()
+
+   return((not is_pcap_dump) and (ts_utils.getDriverName() == "rrd") and ntop.isEnterprise())
+end
+
 function mustScanAlerts(ifstats)
    return areAlertsEnabled()
 end

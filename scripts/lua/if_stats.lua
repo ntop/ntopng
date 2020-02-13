@@ -281,7 +281,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 			      },
 			      {
-				 hidden = is_pcap_dump or not ts_utils.getDriverName() == "rrd",
+				 hidden = not hasTrafficReport(),
 				 active = page == "traffic_report",
 				 page_name = "traffic_report",
 				 label = "<i class='fas fa-lg fa-file-alt report-icon'></i>",
