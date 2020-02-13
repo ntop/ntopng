@@ -355,16 +355,33 @@ function page_utils.print_menubar()
 ]])
 
    for _, section in ipairs(menubar_structure) do
-      if not section.hidden then
+      local show_section = false
+      local section_has_submenu = (section.entries and #section.entries > 0)
+
+      if(not section.hidden) then
+	if not section_has_submenu then
+	    show_section = true
+	else
+	    -- The section is shown only if at least one of its sub entries
+	    -- is shown
+	    for _, section_entry in pairs(section.entries or {}) do
+		if not section_entry.hidden then
+		  show_section = true
+		  break
+		end
+	      end
+	end  
+      end
+
+      if show_section then
 	 local section_key = section.section.key
 	 local section_id = section_key.."-submenu"
-	 local section_has_entries = section.entries and #section.entries > 0
 
 	 print[[
       <li class="nav-item ]] print(active_page == section_key and 'active' or '') print[[">
 	<a class="]]
 
-	 if section_has_entries then
+	 if section_has_submenu then
 	    print[[submenu ]]
 	 end
 
@@ -374,7 +391,7 @@ function page_utils.print_menubar()
 
 	 print[[" ]]
 
-	 if section_has_entries then
+	 if section_has_submenu then
 	    print[[ data-toggle="collapse" ]]
 	 end
 
@@ -390,7 +407,7 @@ function page_utils.print_menubar()
 	  <span class="]] print(section.section.icon) print[["></span> ]] print(i18n(section.section.i18n_title)) print[[
 	</a>]]
 
-	 if section_has_entries then
+	 if section_has_submenu then
 	    print[[<div data-parent='#sidebar' class='collapse side-collapse' id=']] print(section_id) print[['>
 		  <ul class='nav flex-column'>
    ]]
