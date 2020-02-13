@@ -85,7 +85,7 @@ Ntop::Ntop(char *appName) {
 
   sqlite_alerts_queue = new FifoStringsQueue(SQLITE_ALERTS_QUEUE_SIZE);
   alerts_notifications_queue = new FifoStringsQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE);
-  internal_alerts_queue = new FifoStringsQueue(INTERNAL_ALERTS_QUEUE_SIZE);
+  internal_alerts_queue = new FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
   resolvedHostsBloom = new Bloom(NUM_HOSTS_RESOLVED_BITS);
   

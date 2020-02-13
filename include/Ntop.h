@@ -79,7 +79,7 @@ class Ntop {
   bool is_started;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue;
-  FifoQueue *internal_alerts_queue;
+  FifoSerializerQueue *internal_alerts_queue;
 
 #ifdef __linux__
   int inotify_fd;
@@ -459,7 +459,7 @@ class Ntop {
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
   inline FifoStringsQueue* getSqliteAlertsQueue()         { return(sqlite_alerts_queue);         }
   inline FifoStringsQueue* getAlertsNotificationsQueue()  { return(alerts_notifications_queue);  }
-  inline FifoQueue* getInternalAlertsQueue() { return(internal_alerts_queue);  }
+  inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }

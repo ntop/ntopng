@@ -21,12 +21,6 @@
 
 #include "ntop_includes.h"
 
-FifoStringsQueue::FifoStringsQueue(u_int32_t queue_size) : FifoQueue(queue_size) {
-  
-}
-
-/* ******************************************* */
-
 FifoStringsQueue::~FifoStringsQueue() {
   char *tmp;
   
@@ -60,7 +54,7 @@ bool FifoStringsQueue::enqueue(const char *item) {
 
 /* NOTE: the caller should free the returned string */
 char* FifoStringsQueue::dequeue() {
-  return (char*) FifoQueue::dequeue(); 
+  return (char*) FifoQueue::dequeue();
 }
 
 /* make test_fifo_queue */

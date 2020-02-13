@@ -1277,6 +1277,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 #ifndef WIN32
   case 'G':
+    if(pid_path) free(pid_path);
     pid_path = strdup(optarg);
     break;
 #endif

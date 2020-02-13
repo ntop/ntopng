@@ -37,7 +37,8 @@ class FifoQueue {
 
  public:
   FifoQueue(u_int32_t queue_size);
-  ~FifoQueue();
+  virtual ~FifoQueue();
+
   bool enqueue(void *item);
   void* dequeue();
   inline bool canEnqueue()      { return(cur_items < size); }
