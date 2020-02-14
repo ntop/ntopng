@@ -5,7 +5,7 @@ dnl> Do not add anything above
 AC_ARG_WITH(llvm_sanitizer,     [  --with-llvm-sanitizer   Build with support for the LLVM address sanitizer])
 
 AS_IF([test "${with_llvm_sanitizer+set}" = set],[
-     CPPFLAGS="${CPPFLAGS} -Wno-unused-value -fsanitize=address -fno-omit-frame-pointer"
+     CPPFLAGS="${CPPFLAGS} -O2 -Wno-unused-value -fsanitize=address -fno-omit-frame-pointer"
      LDFLAGS="${LDFLAGS} -fsanitize=address"
      CC=clang
      CXX=clang++
