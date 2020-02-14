@@ -53,7 +53,7 @@ public:
 
   void discover(lua_State* vm, u_int timeout);
   void arpScan(lua_State* vm);
-  void queueMDNSRespomse(u_int32_t src_ip_nw_byte_order, u_char *buf, u_int buf_len);
+  void queueMDNSResponse(u_int32_t src_ip_nw_byte_order, u_char *buf, u_int buf_len);
 };
 
 #endif /* _NETWORK_DISCOVERY_H_ */

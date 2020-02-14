@@ -25,7 +25,7 @@ local syslog_module = {
   },
 }
 
-local external_stats_key = getRedisIfacePrefix(interface.getId())..'.external_stats'
+local external_stats_key = "ntopng.prefs.ifid_"..tostring(interface.getId())..'.external_stats'
 
 -- #################################################################
 

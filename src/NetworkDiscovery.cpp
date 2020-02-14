@@ -110,7 +110,7 @@ u_int16_t NetworkDiscovery::in_cksum(u_int8_t *buf, u_int16_t buf_len, u_int32_t
 
 /* ******************************* */
 
-void NetworkDiscovery::queueMDNSRespomse(u_int32_t src_ip_nw_byte_order,
+void NetworkDiscovery::queueMDNSResponse(u_int32_t src_ip_nw_byte_order,
 					 u_char* mdnsreply, u_int mdnsreply_len) {
   if(mdns_vm) {
     m.lock(__FILE__, __LINE__);
@@ -314,7 +314,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 	int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
 
 	if(len > 0)
-	  queueMDNSRespomse(from.sin_addr.s_addr, mdnsreply, len);
+	  queueMDNSResponse(from.sin_addr.s_addr, mdnsreply, len);
       }
 
       _usleep(1000); /* Avoid flooding */
@@ -368,7 +368,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 			   0, (struct sockaddr *)&from, &from_len);
 
 	if(len > 0)
-	  queueMDNSRespomse(from.sin_addr.s_addr, mdnsreply, len);
+	  queueMDNSResponse(from.sin_addr.s_addr, mdnsreply, len);
       } else
 	break;
     }

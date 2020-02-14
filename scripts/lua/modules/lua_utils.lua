@@ -1918,10 +1918,6 @@ function getRedisPrefix(str)
   end
 end
 
-function getRedisIfacePrefix(ifid)
-   return "ntopng.prefs.ifid_"..tostring(ifid)
-end
-
 -----  End of Redis Utils  ------
 
 
@@ -2012,7 +2008,7 @@ function getInterfaceSpeed(ifid)
 end
 
 function getInterfaceRefreshRate(ifid)
-   local key = getRedisIfacePrefix(ifid)..".refresh_rate"
+   local key = "ntopng.prefs.ifid_"..tostring(ifid)..".refresh_rate"
    local refreshrate = ntop.getCache(key)
 
    if isEmptyString(refreshrate) or tonumber(refreshrate) == nil then
@@ -2025,7 +2021,7 @@ function getInterfaceRefreshRate(ifid)
 end
 
 function setInterfaceRegreshRate(ifid, refreshrate)
-   local key = getRedisIfacePrefix(ifid)..".refresh_rate"
+   local key = "ntopng.prefs.ifid_"..tostring(ifid)..".refresh_rate"
 
    if isEmptyString(refreshrate) then
       ntop.delCache(key)

@@ -159,7 +159,7 @@ if (isAdministrator()) then
 
       local sf = tonumber(_POST["scaling_factor"])
       if(sf == nil) then sf = 1 end
-      ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
+      ntop.setCache("ntopng.prefs.iface_" .. tostring(ifid)..'.scaling_factor',tostring(sf))
       interface.loadScalingFactorPrefs()
    end
 end
@@ -607,7 +607,7 @@ if((page == "overview") or (page == nil)) then
    end
   
    if not interface.isPacketInterface() then 
-      local external_json_stats = ntop.getCache(getRedisIfacePrefix(ifid)..".external_stats")
+      local external_json_stats = ntop.getCache("ntopng.prefs.ifid_"..tostring(ifid)..".external_stats")
       if not isEmptyString(external_json_stats) then
          local external_stats = json.decode(external_json_stats)
          if external_stats ~= nil then
@@ -1394,7 +1394,7 @@ elseif(page == "config") then
    if not have_nedge then
      -- Scaling factor
      if interface.isPacketInterface() and not have_nedge then
-	local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
+	local label = ntop.getCache("ntopng.prefs.iface_"..tostring(ifid)..".scaling_factor")
 	if((label == nil) or (label == "")) then label = "1" end
 
 	print[[

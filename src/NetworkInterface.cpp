@@ -1392,22 +1392,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
 
   if(!flow->isDetectionCompleted() || flow->needsExtraDissection()) {
-    if(!is_fragment) {
-      /* NOTE: can be NULL */
-      struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
-      struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
-      struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
-
-      if(flow->hasDissectedTooManyPackets()) {
-	u_int8_t proto_guessed;
-	
-	flow->setDetectedProtocol(ndpi_detection_giveup(get_ndpi_struct(), ndpi_flow, 1, &proto_guessed), false);
-      } else {
-	flow->setDetectedProtocol(ndpi_detection_process_packet(get_ndpi_struct(), ndpi_flow,
-								ip, trusted_ip_len, (u_int32_t)packet_time,
-								cli, srv), false);
-      }
-    } else {
+    if(!is_fragment)
+      flow->processPacket(ip, trusted_ip_len, packet_time);
+    else {
       // FIX - only handle unfragmented packets
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
     }
@@ -1545,11 +1532,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       flow->dissectMDNS(payload, trusted_payload_len);
 
       if(discovery && iph)
-	discovery->queueMDNSRespomse(iph->saddr, payload, trusted_payload_len);
+	discovery->queueMDNSResponse(iph->saddr, payload, trusted_payload_len);
       break;
     }
-
-    flow->processDetectedProtocol();
 
 #ifdef HAVE_NEDGE
     if(is_bridge_interface()) {
@@ -5001,18 +4986,8 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle) {
 /* *************************************** */
 
 static void guess_all_ndpi_protocols_walker(Flow *flow, NetworkInterface *iface) {
-  if(iface->get_ndpi_struct() && flow->get_ndpi_flow()) {
-    if(!flow->isDetectionCompleted()) {
-      u_int8_t proto_guessed;
-      
-      flow->setDetectedProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), flow->get_ndpi_flow(), 1, &proto_guessed), true);
-    }
-    
-    /* Ensure that the callbacks are called. Normally processFullyDissectedProtocol
-     * sould not be called because the detection of the flow is not completed yet. */
-    flow->processDetectedProtocol();
-    flow->processFullyDissectedProtocol();
-  }
+  if(iface->get_ndpi_struct() && flow->get_ndpi_flow())
+    flow->endProtocolDissection();
 }
 
 static bool process_all_active_flows_walker(GenericHashEntry *node, void *user_data, bool *matched) {

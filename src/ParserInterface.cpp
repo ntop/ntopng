@@ -357,7 +357,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
     flow->fillZmqFlowCategory(zflow, &p);
 
     /* Here everything is setup and it is possible to set the actual protocol to the flow */
-    flow->setDetectedProtocol(p, true);
+    flow->setDetectedProtocol(p);
   }
 
   flow->setJSONInfo(zflow->getAdditionalFieldsJSON());

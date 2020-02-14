@@ -59,7 +59,7 @@ class Flow : public GenericHashEntry {
 
   u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
 
-  bool detection_completed, protocol_processed, fully_processed,
+  bool detection_completed, extra_dissection_completed,
     twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
     good_tls_hs, update_flow_port_stats,
@@ -231,6 +231,11 @@ class Flow : public GenericHashEntry {
   void updateCliJA3();
   void updateSrvJA3();
   void updateHASSH(bool as_client);
+  void processExtraDissectedInformation();
+  void processDetectedProtocol();
+  void setExtraDissectionCompleted();
+  void setProtocolDetectionCompleted();
+  void updateProtocol(ndpi_protocol proto_id);
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *delta, bool *first_partial) const;
   /**
@@ -345,9 +350,9 @@ class Flow : public GenericHashEntry {
 		       u_int16_t payload_len, bool src2dst_direction);
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
-  void processDetectedProtocol();
-  void processFullyDissectedProtocol();
-  void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
+  void setDetectedProtocol(ndpi_protocol proto_id);
+  void processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time);
+  void endProtocolDissection();
   inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));
   };

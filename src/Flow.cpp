@@ -51,7 +51,7 @@ Flow::Flow(NetworkInterface *_iface,
   status_infos = NULL;
 
   detection_completed = update_flow_port_stats = false;
-  fully_processed = false;
+  extra_dissection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0;
@@ -138,7 +138,6 @@ Flow::Flow(NetworkInterface *_iface,
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
   //bytes_rate = new TimeSeries<float>(4096);
-  protocol_processed = false;
 
   synTime.tv_sec = synTime.tv_usec = 0,
     ackTime.tv_sec = ackTime.tv_usec = 0,
@@ -177,7 +176,7 @@ Flow::Flow(NetworkInterface *_iface,
   switch(protocol) {
   case IPPROTO_TCP:
   case IPPROTO_UDP:
-    if(iface->is_ndpi_enabled() && (!iface->isSampledTraffic()))
+    if(iface->is_ndpi_enabled())
       allocDPIMemory();
 
     if(protocol == IPPROTO_UDP)
@@ -187,19 +186,17 @@ Flow::Flow(NetworkInterface *_iface,
   case IPPROTO_ICMP:
     ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMP,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    setDetectedProtocol(ndpiDetectedProtocol, true);
+    setDetectedProtocol(ndpiDetectedProtocol);
     break;
 
   case IPPROTO_ICMPV6:
     ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMPV6,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    setDetectedProtocol(ndpiDetectedProtocol, true);
+    setDetectedProtocol(ndpiDetectedProtocol);
     break;
 
   default:
-    ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(),
-							  NULL, protocol, 0, 0, 0, 0);
-    setDetectedProtocol(ndpiDetectedProtocol, true);
+    setDetectedProtocol(ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol, 0, 0, 0, 0));
     break;
   }
 }
@@ -327,12 +324,12 @@ u_int16_t Flow::getStatsProtocol() const {
 /* *************************************** */
 
 /* This function is called as soon as the protocol detection is
- * completed. See processFullyDissectedProtocol for a later callback. */
+ * completed. See processExtraDissectedInformation for a later callback. */
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
 
-  if(protocol_processed || (ndpiFlow == NULL))
+  if(ndpiFlow == NULL)
     return;
 
   stats_protocol = getStatsProtocol();
@@ -364,10 +361,8 @@ void Flow::processDetectedProtocol() {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_BITTORRENT:
-    if(bt_hash == NULL) {
+    if(bt_hash == NULL)
       setBittorrentHash((char*)ndpiFlow->protos.bittorrent.hash);
-      protocol_processed = true;
-    }
     break;
 
   case NDPI_PROTOCOL_MDNS:
@@ -398,7 +393,7 @@ void Flow::processDetectedProtocol() {
       }
     }
 
-    /* See Flow::processFullyDissectedProtocol for reply dissection */
+    /* See Flow::processExtraDissectedInformation for reply dissection */
     break;
 
   case NDPI_PROTOCOL_TOR:
@@ -407,16 +402,12 @@ void Flow::processDetectedProtocol() {
        && cli_host
        && cli_host->isLocalHost())
       cli_host->incrVisitedWebSite(protos.tls.client_requested_server_name);
-
-    protocol_processed = true;
     break;
 
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(ndpiFlow->host_server_name[0] != '\0') {
       char *doublecol, delimiter = ':';
-
-      protocol_processed = true;
 
       /* If <host>:<port> we need to remove ':' */
       if((doublecol = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter)) != NULL)
@@ -439,10 +430,7 @@ void Flow::processDetectedProtocol() {
 /* This is called only once per Flow, when all the protocol information,
  * including extra dissection information (e.g. the TLS certificate), is
  * available. */
-void Flow::processFullyDissectedProtocol() {
-  if(fully_processed)
-    return;
-
+void Flow::processExtraDissectedInformation() {
   if(ndpiFlow) {
     u_int16_t l7proto;
 
@@ -525,8 +513,6 @@ void Flow::processFullyDissectedProtocol() {
 
 	    if(ndpiFlow->protos.dns.reply_code == 0) {
 	      if(ndpiFlow->protos.dns.num_answers > 0) {
-		protocol_processed = true;
-
 		if(at != NULL) {
 		  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
 		  ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
@@ -543,8 +529,6 @@ void Flow::processFullyDissectedProtocol() {
   /* Free the nDPI memory */
   freeDPIMemory();
 
-  fully_processed = true;
-
   /*
     We need to change state here as in Lua scripts we need to know
     all metadata available
@@ -560,86 +544,37 @@ bool Flow::needsExtraDissection() {
   /* NOTE: do not check hasDissectedTooManyPackets() here, otherwise
    * ndpi_detection_giveup won't be called. */
   return((ndpif = get_ndpi_flow())
-	 && (!fully_processed)
+	 && (!extra_dissection_completed)
 	 && (ndpi_extra_dissection_possible(iface->get_ndpi_struct(), ndpif))
 	 );
 }
 
 /* *************************************** */
 
-/* NOTE: this function can be called multiple times, even after the detection
- * has compleated. This usually happens if needsExtraDissection() returns true.
- * See doc/README.developers.flow_state.md for more details. */
-void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
-  if((proto_id.app_protocol != NDPI_PROTOCOL_UNKNOWN)
-     || forceDetection
-     || hasDissectedTooManyPackets()
-     || (!iface->is_ndpi_enabled())
-     || iface->isSampledTraffic()) {
-    /* Only execute this if the detection is was not already completed. */
-    if(!detection_completed) {
-      u_int8_t is_proto_user_defined;
+/* Process a packet and advance the flow detection state. */
+void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time) {
+  bool detected;
+  ndpi_protocol proto_id;
 
-      if(forceDetection && (proto_id.app_protocol == NDPI_PROTOCOL_UNKNOWN))
-        proto_id.app_protocol = (int16_t)ndpi_guess_protocol_id(iface->get_ndpi_struct(),
-								NULL, protocol, get_cli_port(),
-								get_srv_port(), &is_proto_user_defined);
+  /* Note: do not call endProtocolDissection before ndpi_detection_process_packet. In case of
+   * early giveup (e.g. sampled traffic), nDPI should process at least one packet in order to
+   * be able to guess the protocol. */
 
-      ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
-      ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
+  proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
+    ip_packet, ip_len, packet_time,
+    (struct ndpi_id_struct*) cli_id, (struct ndpi_id_struct*) srv_id);
 
-      /* NOTE: only overwrite the category if it was not set.
-       * This prevents overwriting already determined category (e.g. by IP or Host)
-       */
-      if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
-        ndpiDetectedProtocol.category = proto_id.category;
+  detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
 
-      stats.setDetectedProtocol(&ndpiDetectedProtocol);
-      processDetectedProtocol();
-      detection_completed = true;
-
-#ifdef HAVE_NEDGE
-      updateFlowShapers(true);
-#endif
-      update_flow_port_stats = true;
-    }
-
-    if(detection_completed && (forceDetection || !needsExtraDissection())) {
-      switch(protocol) {
-      case IPPROTO_TCP:
-      case IPPROTO_UDP:
-	break;
-
-      default:
-	/* nDPI is not allocated for non-TCP non-UDP flows so, in order to
-	   make sure custom cateories are properly populated, function ndpi_fill_ip_protocol_category
-	   must be called explicitly. */
-	if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED /* Override only if unspecified */
-	   && get_cli_ip_addr()->get_ipv4() && get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
-	  ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
-					 get_cli_ip_addr()->get_ipv4(), get_srv_ip_addr()->get_ipv4(),
-					 &ndpiDetectedProtocol);
-	  stats.setDetectedProtocol(&ndpiDetectedProtocol);
-	}
-
-	break;
-      }
-
-      /* Always called, not just for TCP or UDP */
-      processFullyDissectedProtocol();
-    }
-
-#ifdef BLACKLISTED_FLOWS_DEBUG
-    if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
-      char buf[512];
-      print(buf, sizeof(buf));
-      snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf),
-	       "Malware category detected. [cli_blacklisted: %u][srv_blacklisted: %u][category: %s]",
-	       isBlacklistedClient(), isBlacklistedServer(), get_protocol_category_name());
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
-    }
-#endif
+  if(!detected && hasDissectedTooManyPackets()) {
+    endProtocolDissection();
+    return;
   }
+
+#if 0
+  if(detected && (proto_id.app_protocol == NDPI_PROTOCOL_UNKNOWN))
+    printf("Detected: %d/%d\n", proto_id.master_protocol, proto_id.app_protocol);
+#endif
 
 #ifdef NTOPNG_PRO
   // Update the profile even if the detection is not yet completed.
@@ -649,6 +584,122 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 #ifndef HAVE_NEDGE
   updateProfile();
 #endif
+#endif
+
+  if(detected) {
+    updateProtocol(proto_id);
+    setProtocolDetectionCompleted();
+  }
+
+  if(detection_completed && !needsExtraDissection())
+    setExtraDissectionCompleted();
+}
+
+/* *************************************** */
+
+/* End the nDPI dissection on a flow. Guess the protocol if not already
+ * detected. It is safe to call endProtocolDissection() multiple times. */
+void Flow::endProtocolDissection() {
+  if(!detection_completed) {
+    u_int8_t proto_guessed;
+
+    updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow, 1, &proto_guessed));
+    setProtocolDetectionCompleted();
+  }
+
+  if(!extra_dissection_completed)
+    setExtraDissectionCompleted();
+}
+
+/* *************************************** */
+
+/* Manually set a protocol on the flow and terminate the dissection. */
+void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
+  updateProtocol(proto_id);
+  setProtocolDetectionCompleted();
+
+  endProtocolDissection();
+}
+
+/* *************************************** */
+
+/* Called when the extra dissection on the flow is completed. */
+void Flow::setExtraDissectionCompleted() {
+  if(extra_dissection_completed)
+    return;
+
+  if(!detection_completed) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad internal status: setExtraDissectionCompleted called before setDetectedProtocol");
+    return;
+  }
+
+  if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
+    /* nDPI is not allocated for non-TCP non-UDP flows so, in order to
+       make sure custom cateories are properly populated, function ndpi_fill_ip_protocol_category
+       must be called explicitly. */
+    if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED /* Override only if unspecified */
+       && get_cli_ip_addr()->get_ipv4() && get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
+      ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
+				     get_cli_ip_addr()->get_ipv4(), get_srv_ip_addr()->get_ipv4(),
+				     &ndpiDetectedProtocol);
+      stats.setDetectedProtocol(&ndpiDetectedProtocol);
+    }
+  }
+
+  processExtraDissectedInformation();
+
+  extra_dissection_completed = true;
+}
+
+/* *************************************** */
+
+void Flow::updateProtocol(ndpi_protocol proto_id) {
+  /* NOTE: in order to avoid inconsistent states, only overwrite the
+   * protocools if UNKNOWN. */
+  if(ndpiDetectedProtocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+    ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
+
+  if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+    ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
+
+  /* NOTE: only overwrite the category if it was not set.
+   * This prevents overwriting already determined category (e.g. by IP or Host)
+   */
+  if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
+    ndpiDetectedProtocol.category = proto_id.category;
+
+#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
+  updateFlowShapers(true);
+#else
+  updateProfile();
+#endif
+#endif
+}
+
+/* *************************************** */
+
+/* Called to update the flow protocol and possibly advance the flow to
+ * the protocol_detected state. */
+void Flow::setProtocolDetectionCompleted() {
+  if(detection_completed)
+    return;
+
+  stats.setDetectedProtocol(&ndpiDetectedProtocol);
+  processDetectedProtocol();
+
+  detection_completed = true;
+  update_flow_port_stats = true;
+
+#ifdef BLACKLISTED_FLOWS_DEBUG
+  if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
+    char buf[512];
+    print(buf, sizeof(buf));
+    snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf),
+	     "Malware category detected. [cli_blacklisted: %u][srv_blacklisted: %u][category: %s]",
+	     isBlacklistedClient(), isBlacklistedServer(), get_protocol_category_name());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
+  }
 #endif
 }
 
@@ -2311,11 +2362,7 @@ bool Flow::isNetfilterIdleFlow() const {
 void Flow::housekeep(time_t t) {
   if(((t - get_last_seen()) > 5 /* sec */)
      && iface->get_ndpi_struct() && get_ndpi_flow()) {
-    u_int8_t proto_guessed;
-    ndpi_protocol givenup_protocol = ndpi_detection_giveup(iface->get_ndpi_struct(),
-							   get_ndpi_flow(), 1, &proto_guessed);
-
-    setDetectedProtocol(givenup_protocol, true);
+    endProtocolDissection();
   }
 }
 
@@ -4402,6 +4449,10 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
 
 bool Flow::hasDissectedTooManyPackets() {
   u_int32_t num_packets;
+
+  if(iface->isSampledTraffic() || (!iface->is_ndpi_enabled()))
+    /* Cannot reliably process sampled traffic, giveup the dissection */
+    return(true);
 
 #ifdef HAVE_NEDGE
   /* NOTE: in nEdge packet stats are update periodically, so
