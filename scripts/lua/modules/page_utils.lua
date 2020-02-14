@@ -328,6 +328,13 @@ end
 -- #################################
 
 function page_utils.print_menubar()
+   
+   local logo_path = nil
+
+   if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.png") then
+      logo_path = ntop.getHttpPrefix().."/img/custom_logo.png"
+   end
+
    local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
    local active_page = page_utils.get_active_section()
    local active_subpage = page_utils.get_active_entry()
@@ -343,10 +350,17 @@ function page_utils.print_menubar()
    print('<div id="n-sidebar" class="bg-'.. navbar_style ..' py-0 px-2">')
 
    print([[
-	 <h3 class='muted'>
+	<h3 class='muted'>
 	       <a href='/'>
-		  ]])
-   print(addLogoSvg())
+	]])
+   
+   if (logo_path ~= nil) then
+      print("<img class=\"logo-brand\" height=\"52px\" src=\""..logo_path.."\" alt='Custom Logo' />")
+   else
+      print(addLogoSvg())
+   end
+   
+   
    print([[
 	       </a>
 	 </h3>
