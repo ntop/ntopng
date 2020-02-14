@@ -140,8 +140,8 @@ class NetworkInterface : public AlertableEntity {
   CustomAppStats *custom_app_stats;
   FlowInterfacesStats *flow_interfaces_stats;
   AggregatedFlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
-  u_int32_t aggregated_flows_dump_updates;
-  u_int32_t aggregated_flows_dump_max_updates;
+  struct timeval aggregated_flows_dump_last_dump;
+  bool aggregated_flows_dump_ready;
 #endif
   EthStats ethStats;
   std::map<u_int32_t, u_int64_t> ip_mac; /* IP (network byte order) <-> MAC association [2 bytes are unused] */
@@ -350,11 +350,11 @@ class NetworkInterface : public AlertableEntity {
   int dumpFlow(time_t when, Flow *f, bool no_time_left);
 #ifdef NTOPNG_PRO
   void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
-  void dumpAggregatedFlows(const struct timeval *tv);
-  void flushAggregatedFlows();
+  void dumpAggregatedFlows(const struct timeval *tv, time_t deadline, bool no_time_left);
+  void flushFlowDump();
+  void set_aggregated_flows_dump_update(const struct timeval *tv);
   bool is_aggregated_flows_dump_ready() const;
-  void inc_aggregated_flows_dump_updates();
-  bool check_aggregated_flows_dump_ready(const struct timeval *tv) const;
+
 #endif
   void checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
   int dumpLocalHosts2redis(bool disable_purge);
@@ -661,7 +661,8 @@ class NetworkInterface : public AlertableEntity {
 #endif
 
   void getFlowsStatus(lua_State *vm);
-  void startDBLoop()               { if(db) db->startDBLoop();                 };
+  inline void startDBLoop()                   { if(db) db->startDBLoop();                 };
+  inline void incDBNumDroppedFlows(u_int num) { if(db) db->incNumDroppedFlows(num);       };
 #ifdef NTOPNG_PRO
   inline void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);

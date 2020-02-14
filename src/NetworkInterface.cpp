@@ -269,7 +269,8 @@ void NetworkInterface::init() {
   num_active_misbehaving_flows = num_idle_misbehaving_flows = 0;
 
 #ifdef NTOPNG_PRO
-  aggregated_flows_dump_updates = aggregated_flows_dump_max_updates = 0;
+  gettimeofday(&aggregated_flows_dump_last_dump, NULL);
+  aggregated_flows_dump_ready = false;
 #endif
 
   ip_addresses = "", networkStats = NULL,
@@ -505,7 +506,7 @@ void NetworkInterface::deleteDataStructures() {
 
 #ifdef NTOPNG_PRO
   if(aggregated_flows_hash) {
-    aggregated_flows_hash->cleanup();
+    aggregated_flows_hash->cleanup(time(NULL) + 10, false);
     delete(aggregated_flows_hash);
     aggregated_flows_hash = NULL;
   }
@@ -665,11 +666,9 @@ void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool i
 
 /* **************************************************** */
 
-void NetworkInterface::dumpAggregatedFlows(const struct timeval *tv) {
-  aggregated_flows_dump_updates = 0;  /* Reset */
-
+void NetworkInterface::dumpAggregatedFlows(const struct timeval *tv, time_t deadline, bool no_time_left) {
   if(aggregated_flows_hash)
-    aggregated_flows_hash->cleanup();
+    aggregated_flows_hash->cleanup(deadline, no_time_left);
 
 #ifdef AGGREGATED_FLOW_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -677,34 +676,28 @@ void NetworkInterface::dumpAggregatedFlows(const struct timeval *tv) {
 			       "Aggregated flows hash cleared. [num_items: %i]",
 			       aggregated_flows_hash->getNumEntries());
 #endif
-}
-/* **************************************************** */
 
-void NetworkInterface::flushAggregatedFlows() {
-  if(db)
-    db->flushAggregatedFlows();
+  memcpy(&aggregated_flows_dump_last_dump, tv, sizeof(aggregated_flows_dump_last_dump));
+  aggregated_flows_dump_ready = false;
 }
 
 /* **************************************************** */
 
-void NetworkInterface::inc_aggregated_flows_dump_updates() {
-  /* Given a periodicStatsUpdateFrequency(), that is, the number of seconds between consecutive
-     calls to NetworkInterface::periodicStatsUpdate and the FLOW_AGGREGATION_DURATION, we
-     can compute the number of times NetworkInterface::periodicStatsUpdate has to be called before
-     aggregated flows can actually be dumped.
-     Need to re-evaluate as the update frequency can change. */
-  aggregated_flows_dump_max_updates = FLOW_AGGREGATION_DURATION / periodicStatsUpdateFrequency();
-
-  /* Every time a NetworkInterface::periodicStatsUpdate is called, this
-     method should be called to keep track of the number of updates necessary
-     before actually dumping aggregated flows to database. */
-  aggregated_flows_dump_updates++;
+void NetworkInterface::set_aggregated_flows_dump_update(const struct timeval *tv) {
+  if(tv->tv_sec - aggregated_flows_dump_last_dump.tv_sec >= FLOW_AGGREGATION_DURATION)
+    aggregated_flows_dump_ready = true;
 }
 
 /* **************************************************** */
 
 bool NetworkInterface::is_aggregated_flows_dump_ready() const {
-  return aggregated_flows_dump_updates >= aggregated_flows_dump_max_updates;
+  return aggregated_flows_dump_ready;
+}
+
+/* **************************************************** */
+
+void NetworkInterface::flushFlowDump() {
+  if(db) db->flush();
 }
 
 #endif
@@ -2570,10 +2563,6 @@ void NetworkInterface::periodicStatsUpdate() {
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
 
-#ifdef NTOPNG_PRO
-  inc_aggregated_flows_dump_updates();
-#endif
-
   /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
   if((!isView()) && flows_hash) {
     begin_slot = 0;
@@ -2616,18 +2605,10 @@ void NetworkInterface::periodicStatsUpdate() {
   ethStats.updateStats(&tv);
   ndpiStats->updateStats(&tv);
 
-#ifdef NTOPNG_PRO
-  if(is_aggregated_flows_dump_ready()) 
-    dumpAggregatedFlows(&tv);
-#endif
-
   checkReloadHostsBroadcastDomain();
 
   if(ntop->getGlobals()->isShutdownRequested())
     return;
-
-  if(db)
-    db->updateStats(&tv);
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "MySQL dump took %d seconds", time(NULL) - tdebug.tv_sec);
@@ -2711,6 +2692,10 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
   /* Always use the current time to update the hash tables states, also when processing pcap dumps. This
      is necessary as hash table states changes and periodic lua scripts call assume the time flows normally. */
   gettimeofday(&tv, NULL);
+  
+#ifdef NTOPNG_PRO
+  set_aggregated_flows_dump_update(&tv);
+#endif
 
   periodic_ht_state_update_user_data.acle = NULL,
     periodic_ht_state_update_user_data.iface = this,
@@ -2735,8 +2720,15 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
     }
   }
 
-  if(db)
-    db->flushFlows();
+#ifdef NTOPNG_PRO
+  if(is_aggregated_flows_dump_ready()) 
+    dumpAggregatedFlows(&tv, deadline, periodic_ht_state_update_user_data.no_time_left);
+#endif
+
+  if(db) {
+    flushFlowDump();
+    db->updateStats(&tv);
+  }
 
   if((update_end = time(NULL)) > deadline) {
     char date_buf[32];
@@ -5344,8 +5336,7 @@ void NetworkInterface::runShutdownTasks() {
      e.g., all hosts and all flows can be marked as idle */
   periodicStatsUpdate();
 
-  if(db)
-    db->flushFlows();
+  flushFlowDump();
 }
 
 /* **************************************************** */

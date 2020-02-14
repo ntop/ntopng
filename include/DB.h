@@ -60,8 +60,7 @@ class DB {
   inline void startDBLoop()                                 { running = true; startLoop(); };
   inline int isRunning()                                    { return(running); };
   virtual void shutdown();
-  virtual void flushFlows() {};
-  virtual void flushAggregatedFlows() {};
+  virtual void flush() {};
   virtual void lua(lua_State* vm, bool since_last_checkpoint) const;
 #ifdef NTOPNG_PRO
   virtual bool dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
