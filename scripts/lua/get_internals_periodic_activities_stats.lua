@@ -158,6 +158,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       if script_stats.stats.in_progress_since and script_stats.stats.in_progress_since > 0 then
 	 record["column_in_progress_since"] = format_utils.formatEpoch(script_stats.stats.in_progress_since)
+      else
+	 record["column_in_progress_since"] = ''
       end
 
       local utiliz = time_utilization(script_stats.stats)

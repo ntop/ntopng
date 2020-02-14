@@ -3755,30 +3755,32 @@ void Flow::updateHASSH(bool as_client) {
 
 /* Called when a flow is set_idle */
 void Flow::postFlowSetIdle(const struct timeval *tv) {
+  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
+
   if(status_map.get() != status_normal) {
 #if 0
     char buf[256];
     printf("%s status=%d\n", print(buf, sizeof(buf)), status);
 #endif
 
-    if(cli_host) {
-      cli_host->setMisbehavingFlowsStatusMap(status_map, true);
-      cli_host->incNumMisbehavingFlows(true);
-      cli_host->getScore()->incValue(cli_score);
+    if(cli_h) {
+      cli_h->setMisbehavingFlowsStatusMap(status_map, true);
+      cli_h->incNumMisbehavingFlows(true);
+      cli_h->getScore()->incValue(cli_score);
     }
 
-    if(srv_host) {
-      srv_host->setMisbehavingFlowsStatusMap(status_map, false);
-      srv_host->incNumMisbehavingFlows(false);
-      srv_host->getScore()->incValue(srv_score);
+    if(srv_h) {
+      srv_h->setMisbehavingFlowsStatusMap(status_map, false);
+      srv_h->incNumMisbehavingFlows(false);
+      srv_h->getScore()->incValue(srv_score);
     }
 
     iface->decNumMisbehavingFlows();
   }
 
   if(isFlowAlerted()) {
-    if(cli_host) cli_host->decNumAlertedFlows();
-    if(srv_host) srv_host->decNumAlertedFlows();
+    if(cli_h) cli_h->decNumAlertedFlows();
+    if(srv_h) srv_h->decNumAlertedFlows();
   }
 }
 
@@ -4404,12 +4406,14 @@ bool Flow::hasDissectedTooManyPackets() {
 
 bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char *alert_json) {
   bool first_alert = !isFlowAlerted();
+  bool cli_thresh = false, srv_thresh = false;
+  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
+  time_t when = time(NULL);
 
   /* Note: triggerAlert is called by flow.lua only after all the flow
    * status are processed (once every 5 seconds), so it is safe to use the shadow */
   if(alert_status_info_shadow)
     free(alert_status_info_shadow);
-
   alert_status_info_shadow = alert_status_info;
 
   alert_status_info = alert_json ? strdup(alert_json) : NULL;
@@ -4417,20 +4421,11 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   alert_level = severity;
   alert_type = atype;
 
+  if(cli_h) cli_thresh = cli_h->incFlowAlertHits(when);
+  if(srv_h) srv_thresh = srv_h->incFlowAlertHits(when);
+
   if(first_alert) {
     /* This is the first alert for the flow, increment the counters */
-
-    if(cli_host && srv_host) {
-      bool cli_thresh, srv_thresh;
-      time_t when = time(0);
-
-      /* Check per-host thresholds */
-      cli_thresh = cli_host->incFlowAlertHits(when);
-      srv_thresh = srv_host->incFlowAlertHits(when);
-      if((cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump())
-	return(false);
-    }
-
     if(!idle()) {
       /* If idle() and not alerted, the interface
        * counter for active alerted flows is not incremented as
@@ -4442,19 +4437,19 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 #endif
     }
 
-    if(cli_host) {
-      cli_host->incNumAlertedFlows();
-      cli_host->incTotalAlerts(alert_type);
+    if(cli_h) {
+      cli_h->incNumAlertedFlows();
+      cli_h->incTotalAlerts(alert_type);
     }
 
-    if(srv_host) {
-      srv_host->incNumAlertedFlows();
-      srv_host->incTotalAlerts(alert_type);
+    if(srv_h) {
+      srv_h->incNumAlertedFlows();
+      srv_h->incTotalAlerts(alert_type);
     }
   }
 
   /* Success - alert is dumped/notified from lua */
-  return(true);
+  return (cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump() ? false : true;
 }
 
 /* *************************************** */
