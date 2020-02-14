@@ -19,7 +19,7 @@ print [[
 
   <div id="add_user_alert_placeholder"></div>
 
-<script>
+<script type="text/javascript">
   add_user_alert = function() {}
   add_user_alert.error =   function(message, no_close) { $('#add_user_alert_placeholder').html('<div class="alert alert-danger">' + (no_close ? '' : '<button type="button" class="close" data-dismiss="alert">x</button>') + message + '</div>');
  }
@@ -33,7 +33,7 @@ print [[
 print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 print [[
-
+  <div class="form-group">
     <label for="username_input">]] print(i18n("login.username")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
@@ -41,6 +41,8 @@ print [[
       </div>
       <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
     </div>
+    </div>
+    <div class="form-group">
 
     <label for="full_name_input">]] print(i18n("users.full_name")) print[[</label>
     <div class="input-group mb-6">
@@ -49,7 +51,9 @@ print [[
       </div>
       <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
     </div>
+</div>
 
+<div class="form-group">
     <label for="password_input">]] print(i18n("login.password")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
@@ -57,7 +61,9 @@ print [[
       </div>
       <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
+</div>
 
+<div class="form-group">
     <label for="confirm_password_input">]] print(i18n("login.confirm_password")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
@@ -65,7 +71,9 @@ print [[
       </div>
       <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
+</div>
 
+<div class="form-group">
     <label for="user_role">]] print(i18n("manage_users.user_role")) print[[</label>
     <div class="input-group mb-6">
 	<select id="user_role" name="user_role" class="form-control" style="width:100%;">
@@ -73,12 +81,14 @@ print [[
 	  <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
 	</select>
     </div>
+  </div>
 
     <div id="unprivileged_input">
 
-    <label for="allowed_interface_input">]] print(i18n("manage_users.allowed_interface")) print[[</labe>
+  <div class="form-group">
+    <label for="allowed_interface_input">]] print(i18n("manage_users.allowed_interface")) print[[</label>
     <div class="input-group mb-6">
-	<select id="allowed_interface_input" name="allowed_interface" class="form-control">
+	<select id="allowed_interface_input" name="allowed_interface" class="form-control ">
 	  <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
 ]]
 
@@ -88,14 +98,17 @@ print [[
    print[[
 	</select>
     </div>
+    </div>
 
+  <div class="form-group">
     <label for="allowed_networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
     <div class="input-group mb-6">
       <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
+  </div>
 
-    <div class="input-group mb-6">
+    <div class="form-group">
       <div class="form-check">
         <div class="custom-control custom-switch">
           <input id="allow_pcap_download_input" type="checkbox" name="allow_pcap_download" value="1" class="custom-control-input">
@@ -117,6 +130,8 @@ print [[
 ]]
 
   print[[
+    <div class="form-group">
+
     <label for="user_language">]] print(i18n("language")) print[[</label>
     <div class="input-group mb-6">
       <div class="input-group-prepend">
@@ -130,6 +145,7 @@ print [[
 
   print[[
       </select>
+    </div>
     </div>
 ]]
 
