@@ -333,9 +333,9 @@ static void* packetPollLoop(void* ptr) {
   } while(pcap_list != NULL);
 
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
+    iface->set_read_from_pcap_dump_done();
     iface->processAllActiveFlows();
     iface->guessAllBroadcastDomainHosts();
-    iface->set_read_from_pcap_dump_done();
     iface->periodicStatsUpdate();
   }
 

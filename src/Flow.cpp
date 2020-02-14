@@ -924,7 +924,7 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_
     }
 
     if(!idle()) {
-      if(dumper->getIfType() == interface_type_PCAP_DUMP
+      if((dumper->getIfType() == interface_type_PCAP_DUMP && !dumper->read_from_pcap_dump_done())
          || tv->tv_sec - get_first_seen() < CONST_DB_DUMP_FREQUENCY
 	 || tv->tv_sec - get_partial_last_seen() < CONST_DB_DUMP_FREQUENCY) {
 	return(rc);
