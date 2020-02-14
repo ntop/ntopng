@@ -105,6 +105,7 @@ class Flow : public GenericHashEntry {
 
     struct {
       char *last_query;
+      char *last_query_shadow;
       u_int16_t last_query_type;
       u_int16_t last_return_code;
       bool invalid_chars_in_query;
@@ -541,7 +542,13 @@ class Flow : public GenericHashEntry {
   inline bool hasInvalidDNSQueryChars() { return(isDNS() && protos.dns.invalid_chars_in_query); }
   inline bool hasMaliciousSignature() { return(has_malicious_cli_signature || has_malicious_srv_signature); }
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
-  inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = v; } }
+  inline void  setDNSQuery(char *v) {
+    if(isDNS()) {
+      if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
+      protos.dns.last_query_shadow = protos.dns.last_query;
+      protos.dns.last_query = v;
+    }
+  }
   inline void  setDNSQueryType(u_int16_t t) { if(isDNS()) { protos.dns.last_query_type = t; } }
   inline void  setDNSRetCode(u_int16_t c) { if(isDNS()) { protos.dns.last_return_code = c; } }
   inline u_int16_t getLastQueryType() { return(isDNS() ? protos.dns.last_query_type : 0); }

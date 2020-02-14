@@ -268,6 +268,7 @@ Flow::~Flow() {
     if(protos.http.last_content_type) free(protos.http.last_content_type);
   } else if(isDNS()) {
     if(protos.dns.last_query)   free(protos.dns.last_query);
+    if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
   } else if (isMDNS()) {
     if(protos.mdns.answer)           free(protos.mdns.answer);
     if(protos.mdns.name)             free(protos.mdns.name);
@@ -378,19 +379,20 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_DNS:
     if(ndpiFlow->host_server_name[0] != '\0') {
+      char *q = strdup((const char*)ndpiFlow->host_server_name);
 
-      if(protos.dns.last_query) {
-	free(protos.dns.last_query);
+      if(q) {
 	protos.dns.invalid_chars_in_query = false;
-      }
-      protos.dns.last_query = strdup((const char*)ndpiFlow->host_server_name);
-      protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
 
-      for(int i = 0; protos.dns.last_query[i] != '\0'; i++) {
-	if(!isprint(protos.dns.last_query[i])) {
-	  protos.dns.last_query[i] = '?';
-	  protos.dns.invalid_chars_in_query = true;
+	for(int i = 0; q[i] != '\0'; i++) {
+	  if(!isprint(q[i])) {
+	    q[i] = '?';
+	    protos.dns.invalid_chars_in_query = true;
+	  }
 	}
+
+	setDNSQuery(q);
+	protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
       }
     }
 
