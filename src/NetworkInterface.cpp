@@ -2726,7 +2726,9 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 #endif
 
   if(db) {
+#ifdef NTOPNG_PRO
     flushFlowDump();
+#endif
     db->updateStats(&tv);
   }
 
@@ -5336,7 +5338,9 @@ void NetworkInterface::runShutdownTasks() {
      e.g., all hosts and all flows can be marked as idle */
   periodicStatsUpdate();
 
+#ifdef NTOPNG_PRO
   flushFlowDump();
+#endif
 }
 
 /* **************************************************** */
