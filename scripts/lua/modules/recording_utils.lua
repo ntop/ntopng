@@ -329,18 +329,7 @@ end
 -- Read information about used disk space for an interface dump
 local function interfaceStorageUsed(ifid)
   local pcap_path = recording_utils.getPcapPath(ifid)
-  if ntop.isdir(pcap_path) then
-    local line = os_utils.execWithOutput("du -s "..pcap_path.." 2>/dev/null")
-    local values = split(line, '\t')
-    if #values >= 1 then
-      local if_used = tonumber(values[1])
-      if if_used ~= nil then
-        if_used = if_used*1024
-        return math.ceil(if_used)
-      end
-    end
-  end
-  return 0
+  return getFolderSize(pcap_path) 
 end
 
 --! @brief Read information about a volume, including storage size and available space
@@ -390,18 +379,8 @@ function recording_utils.storageInfo(ifid)
   storage_info.if_used = interfaceStorageUsed(ifid)
 
   -- PCAP Extraction storage info
-  storage_info.extraction_used = 0
   local extraction_path = getPcapExtractionPath(ifid)
-  if ntop.isdir(extraction_path) then
-    local line = os_utils.execWithOutput("du -s "..extraction_path.." 2>/dev/null")
-    local values = split(line, '\t')
-    if #values >= 1 then
-      local extraction_used = tonumber(values[1])
-      if extraction_used ~= nil then
-        storage_info.extraction_used = extraction_used*1024
-      end
-    end
-  end
+  storage_info.extraction_used = getFolderSize(extraction_path)
 
   return storage_info
 end

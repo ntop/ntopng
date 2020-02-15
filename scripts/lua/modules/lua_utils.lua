@@ -3318,18 +3318,37 @@ end
 
 -- Returns the size of a folder (size is in bytes)
 function getFolderSize(path)
-   local size = 0
+   local folder_size_key = "ntopng.cache.folder_size"
+   local now = os.time()
+   local expiration = 30 -- sec
+   local size = nil
 
    if ntop.isWindows() then
-     -- TODO
+      size = 0 -- TODO
    else
-      if ntop.isdir(path) then
-         local line = os_utils.execWithOutput("du -s "..path.." 2>/dev/null")
-         local values = split(line, '\t')
-         if #values >= 1 then
-            local used = tonumber(values[1])
-            if used ~= nil then
-               size = used*1024
+      -- Check the cache for a recent value
+      local time_size = ntop.getHashCache(folder_size_key, path)
+      if not isEmptyString(time_size) then
+         local values = split(time_size, ',')
+         if #values >= 2 and tonumber(values[1]) >= (now - expiration) then
+            size = tonumber(values[2])
+         end
+      end
+
+      if size == nil then
+         size = 0
+         -- Read disk utilization
+         if ntop.isdir(path) then
+            local line = os_utils.execWithOutput("du -s "..path.." 2>/dev/null")
+            local values = split(line, '\t')
+            if #values >= 1 then
+               local used = tonumber(values[1])
+               if used ~= nil then
+                  size = math.ceil(used*1024)
+
+                  -- Cache disk utilization
+                  ntop.setHashCache("ntopng.cache.folder_size", path, now..","..size)
+               end
             end
          end
       end
