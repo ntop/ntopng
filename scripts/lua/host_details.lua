@@ -67,7 +67,6 @@ local prefs = ntop.getPrefs()
 
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
-local labelKey = host_info["host"].."@"..host_info["vlan"]
 
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPContentTypeHeader('text/html')
@@ -105,10 +104,10 @@ if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) t
 end
 ]]
 
-local top_sites = host["sites"] and json.decode(host["sites"]) or {}
-local top_sites_old = host["sites.old"] and json.decode(host["sites.old"]) or {}
-
-local host_pool_id = nil
+local top_sites     = ((host ~= nil) and host["sites"] and json.decode(host["sites"])) or {}
+local top_sites_old = ((host ~= nil) and host["sites.old"] and json.decode(host["sites.old"])) or {}
+local labelKey      = host_info["host"].."@"..host_info["vlan"]
+local host_pool_id  = nil
 
 if (host ~= nil) then
    if (isAdministrator() and (_POST["pool"] ~= nil)) then
