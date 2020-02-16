@@ -195,7 +195,7 @@ function stackedProgressBars(total, bars, other_label, formatter, css_class)
    formatter = formatter or (function(x) return x end)
 
    -- The bars
-   res[#res + 1] = [[<div class=' ]] .. (css_class or "ntop-progress-stacked") .. [['><div class="progress">]]
+   res[#res + 1] = [[<div class=']] .. (css_class or "ntop-progress-stacked") .. [['><div class="progress">]]
 
    for _, bar in ipairs(bars) do cumulative = cumulative + bar.value end
    if cumulative > total then total = cumulative end
