@@ -2893,92 +2893,150 @@ static bool is_table_empty(lua_State *L, int index) {
 
 /* ****************************************** */
 
-/* NOTE: outbuf and orig buffers must not overlap */
-static inline void influx_escape_char(char *outbuf, int outlen, const char *orig, char to_escape) {
-  const char *pos;
-
-  while((pos = strchr(orig, to_escape)) != NULL) {
-    int to_copy = (pos - orig);
-
-    if((to_copy+3) > outlen) // +3: escape, to_replace, NULL
-      break;
-
-    memcpy(outbuf, orig, to_copy);
-    outbuf[to_copy] = '\\';
-    outbuf[to_copy+1] = to_escape;
-
-    outbuf += to_copy+2;
-    outlen -= to_copy+2;
-    orig = pos+1;
-  }
-
-  if(outlen > 0)
-    strncpy(outbuf, orig, outlen);
-
-  outbuf[outlen-1] = '\0';
-}
-
-static inline int influx_concat_table_fields(lua_State *L, int index, char *buf, int size) {
+static inline int line_protocol_concat_table_fields(lua_State *L, int index, char *buf, int buf_len,
+						    int (*escape_fn)(char *outbuf, int outlen, const char *orig)) {
   bool first = true;
   char val_buf[128];
+  int cur_buf_len = 0, n;
+  bool write_ok;
 
   // table traversal from https://www.lua.org/ftp/refman-5.0.pdf
   lua_pushnil(L);
 
   while(lua_next(L, index) != 0) {
-    influx_escape_char(val_buf, sizeof(val_buf), lua_tostring(L, -1), ' ');
+    write_ok = false;
 
-    int l = snprintf(buf, size, "%s%s=%s", first ? "" : ",",
-		     lua_tostring(L, -2), val_buf);
+    if(escape_fn)
+      n = escape_fn(val_buf, sizeof(val_buf), lua_tostring(L, -1));
+    else
+      n = snprintf(val_buf, sizeof(val_buf), "%s", lua_tostring(L, -1));
 
-    buf += l;
-    size -= l;
-    first = false;
+    if(n > 0 && n < (int)sizeof(val_buf)) {
+      n = snprintf(buf + cur_buf_len, buf_len - cur_buf_len,
+		   "%s%s=%s", first ? "" : ",", lua_tostring(L, -2), val_buf);
+
+      if(n > 0 && n < buf_len - cur_buf_len) {
+	write_ok = true;
+	cur_buf_len += n;
+	if(first) first = false;
+      }
+    }
 
     lua_pop(L, 1);
+    if(!write_ok)
+      goto line_protocol_concat_table_fields_err;
   }
 
-  return size;
+  return cur_buf_len;
+
+ line_protocol_concat_table_fields_err:
+  if(buf_len)
+    buf[0] = '\0';
+
+  return -1;
+}
+
+/* ****************************************** */
+
+static int line_protocol_write_line(lua_State* vm,
+				    char *dst_line,
+				    int dst_line_len,
+				    int (*escape_fn)(char *outbuf, int outlen, const char *orig)) {
+  char *schema;
+  time_t tstamp;
+  int cur_line_len = 0, n;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return -1;
+  schema = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return -1;
+  tstamp = (time_t)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK)  return -1;
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TTABLE) != CONST_LUA_OK)  return -1;
+
+  /* A line of the protocol is: "iface:traffic,ifid=0 bytes=0 1539358699\n" */
+
+  /* measurement name (with a comma if no tags are found) */
+  n = snprintf(dst_line, dst_line_len, is_table_empty(vm, 3) ? "%s" : "%s,", schema);
+  if(n < 0 || n >= dst_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  /* tags */
+  n = line_protocol_concat_table_fields(vm, 3, dst_line + cur_line_len, dst_line_len - cur_line_len, escape_fn); // tags
+  if(n < 0 || n >= dst_line_len - cur_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  /* space to separate tags and metrics */
+  n = snprintf(dst_line + cur_line_len, dst_line_len - cur_line_len, " ");
+  if(n < 0 || n >= dst_line_len - cur_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  /* metrics */
+  n = line_protocol_concat_table_fields(vm, 4, dst_line + cur_line_len, dst_line_len - cur_line_len, escape_fn); // metrics
+  if(n < 0 || n >= dst_line_len - cur_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  /* timestamp (in seconds, not nanoseconds) and a \n */
+  n = snprintf(dst_line + cur_line_len, dst_line_len - cur_line_len, " %lu\n", tstamp);
+  if(n < 0 || n >= dst_line_len - cur_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  return cur_line_len;
+
+ line_protocol_write_line_err:
+  if(dst_line_len)
+    dst_line[0] = '\0';
+
+  return -1;
+}
+
+/* ****************************************** */
+
+/* NOTE: outbuf and unescaped buffers must not overlap.
+   Need to escape spaces at least.
+
+   See https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/#special-characters
+*/
+static inline int influx_escape_char(char *buf, int buf_len, const char *unescaped) {
+  int cur_len = 0;
+
+  while(*unescaped) {
+    if(cur_len >= buf_len - 2)
+      goto influx_escape_char_err;
+
+    switch(*unescaped) {
+    case ' ':
+      *buf++ = '\\';
+      cur_len++;
+      /* No break */
+    default:
+      *buf++ = *unescaped++;
+      cur_len++;
+      break;
+    }
+  }
+
+  *buf = '\0';
+  return cur_len;
+
+ influx_escape_char_err:
+  *(buf - cur_len) = '\0';
+  return -1;
 }
 
 /* ****************************************** */
 
 /* curl -i -XPOST "http://localhost:8086/write?precision=s&db=ntopng" --data-binary 'profile:traffic,ifid=0,profile=a profile bytes=2506351 1559634840' */
 static int ntop_append_influx_db(lua_State* vm) {
-  char data[512], *schema;
-  int buflen = sizeof(data);
   bool rv = false;
-  time_t tstamp;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char data[LINE_PROTOCOL_MAX_LINE];
+  NetworkInterface *ntop_interface;
 
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  schema = (char*)lua_tostring(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  tstamp = (time_t)lua_tonumber(vm, 2);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TTABLE) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-
-  // "iface:traffic,ifid=0 bytes=0 1539358699\n"
-  buflen -= snprintf(data, buflen, is_table_empty(vm, 3) ? "%s" : "%s,", schema);
-  buflen = influx_concat_table_fields(vm, 3, data + sizeof(data) - buflen, buflen); // tags
-  buflen -= snprintf(data + sizeof(data) - buflen, buflen, " ");
-  buflen = influx_concat_table_fields(vm, 4, data + sizeof(data) - buflen, buflen); // metrics
-  buflen -= snprintf(data + sizeof(data) - buflen, buflen, " %lu\n", tstamp);
-
-  if(ntop_interface && ntop_interface->getTSExporter()) {
+  if((ntop_interface = getCurrentInterface(vm))
+     && ntop_interface->getTSExporter()
+     && line_protocol_write_line(vm, data, sizeof(data), influx_escape_char) >= 0) {
     ntop_interface->getTSExporter()->exportData(data);
     rv = true;
   }
 
   lua_pushboolean(vm, rv);
-  return(CONST_LUA_OK);
+  return CONST_LUA_OK;
 }
 
 /* ****************************************** */

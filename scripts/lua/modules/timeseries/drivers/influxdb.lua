@@ -183,7 +183,14 @@ function driver:append(schema, timestamp, tags, metrics)
     return(false)
   end
 
-  return interface.appendInfluxDB(schema.name, timestamp, tags, metrics)
+  local rv = interface.appendInfluxDB(schema.name, timestamp, tags, metrics)
+
+  if not rv then
+     -- Unable to append the point for export
+     self.cur_dropped_points = self.cur_dropped_points + 1
+  end
+
+  return rv
 end
 
 -- ##############################################

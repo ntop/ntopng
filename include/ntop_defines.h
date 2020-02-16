@@ -519,6 +519,9 @@
 #define USER_SCRIPTS_RUN_CALLBACK             "runScripts"
 #define USER_SCRIPTS_RELEASE_ALERTS_CALLBACK  "releaseAlerts"
 
+/* Maximum line lenght for the line protocol to write timeseries */
+#define LINE_PROTOCOL_MAX_LINE             512
+
 #define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
 #define CONST_INFLUXDB_MAX_DUMP_SIZE       4194304 /* 4 MB */

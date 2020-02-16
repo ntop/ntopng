@@ -10,7 +10,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local callback_utils = require "callback_utils"
 local now = os.time()
-local periodicity = 3
-local deadline = (now + periodicity)
 
+-- deadline is a global which is set from the C
 callback_utils.uploadTSdata(deadline)
