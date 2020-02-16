@@ -39,7 +39,7 @@ if not ntop.isWindows() then
       local item = {
 	    title = getInterfaceName(if_id),
 	    value = if_info.total,
-	    -- link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. if_id
+	    link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. if_id
       }
       if num_items < #classes then
          item.class = classes[num_items+1]
@@ -56,6 +56,7 @@ if not ntop.isWindows() then
    local item = {
       title = i18n("system"),
       value = storage_info.other,
+      link = ""
    }
    item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
    table.insert(storage_items, item)
@@ -74,7 +75,7 @@ if not ntop.isWindows() then
          local item = {
             title = getInterfaceName(if_id),
             value = if_info.pcap,
-            -- link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. if_id
+            link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. if_id
          }
          if num_items < #classes then
             item.class = classes[num_items+1]
@@ -91,6 +92,7 @@ if not ntop.isWindows() then
       local item = {
          title = i18n("system"),
          value = storage_info.pcap_other,
+         link = ""
       }
       item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
       table.insert(storage_items, item)
