@@ -552,8 +552,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->tcp.applLatencyMsec = value->double_num;
     break;
   case DNS_QUERY:
-    if (value->string[0] && value->string[0] != '\n')
+    if (value->string[0] && value->string[0] != '\n') {
+      if(flow->dns_query) free(flow->dns_query);
       flow->dns_query = strdup(value->string);
+    }
     break;
   case DNS_QUERY_TYPE:
     flow->dns_query_type = value->int_num;
@@ -562,27 +564,37 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->dns_ret_code = value->int_num;
     break;
   case HTTP_URL:
-    if (value->string[0] && value->string[0] != '\n')
+    if (value->string[0] && value->string[0] != '\n') {
+      if(flow->http_url) free(flow->http_url);
       flow->http_url = strdup(value->string);
+    }
     break;
   case HTTP_SITE:
-    if (value->string[0] && value->string[0] != '\n')
+    if (value->string[0] && value->string[0] != '\n') {
+      if(flow->http_site) free(flow->http_site);
       flow->http_site = strdup(value->string);
+    }
     break;
   case HTTP_RET_CODE:
     flow->http_ret_code = value->int_num;
     break;
   case SSL_SERVER_NAME:
-    if (value->string[0] && value->string[0] != '\n')
+    if (value->string[0] && value->string[0] != '\n') {
+      if(flow->tls_server_name) free(flow->tls_server_name);
       flow->tls_server_name = strdup(value->string);
+    }
     break;
   case JA3C_HASH:
-    if (value->string[0])
+    if (value->string[0]) {
+      if(flow->ja3c_hash) free(flow->ja3c_hash);
       flow->ja3c_hash = strdup(value->string);
+    }
     break;
   case JA3S_HASH:
-    if (value->string[0])
+    if (value->string[0]) {
+      if(flow->ja3s_hash) free(flow->ja3s_hash);
       flow->ja3s_hash = strdup(value->string);
+    }
     break;
   case SSL__CIPHER:
     flow->tls_cipher = value->int_num;
@@ -591,8 +603,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->tls_unsafe_cipher = value->int_num;
     break;
   case BITTORRENT_HASH:
-    if (value->string[0] && value->string[0] != '\n')
+    if (value->string[0] && value->string[0] != '\n') {
+      if(flow->bittorrent_hash) free(flow->bittorrent_hash);
       flow->bittorrent_hash = strdup(value->string);
+    }
     break;
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */
