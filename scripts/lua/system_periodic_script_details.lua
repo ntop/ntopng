@@ -20,7 +20,7 @@ local ifstats = interface.getStats()
 local ifId = ifstats.id
 
 sendHTTPContentTypeHeader('text/html')
-tprint(getHumanReadableInterfaceName(ifId))
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.system_status, {ifname = getSystemInterfaceName()})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
