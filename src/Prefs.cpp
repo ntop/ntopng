@@ -194,6 +194,7 @@ Prefs::~Prefs() {
   if(https_binding_address1) free(https_binding_address1);
   if(https_binding_address2) free(https_binding_address2);
   if(lan_interface)	free(lan_interface);
+  if(ndpi_proto_path)	free(ndpi_proto_path);
 }
 
 /* ******************************************* */

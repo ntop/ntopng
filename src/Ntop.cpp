@@ -214,7 +214,7 @@ Ntop::~Ntop() {
   if(udp_socket != -1) closesocket(udp_socket);
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
-  if(custom_ndpi_protos)  delete(custom_ndpi_protos);
+  if(custom_ndpi_protos)  free(custom_ndpi_protos);
 
   delete address;
   if(pa)    delete pa;
