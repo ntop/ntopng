@@ -296,6 +296,7 @@ local tls_cipher_suites = {
 }
 
 function tlsVersion2Str(v)
+   -- TODO: Use ndpi_ssl_version2str()
    if(v == 768) then
       return("SSL v3")
    elseif(v == 769) then
@@ -306,8 +307,15 @@ function tlsVersion2Str(v)
       return("TLS v1.2");
    elseif(v == 772) then
       return("TLS v1.3");
+   elseif(v == 64282) then
+      return("TLS v1.3 (Fizz)");
+   elseif(v == 65279) then
+      return("DTLS v1.0");
+   elseif(v == 65277) then
+      return("DTLS v1.2");
+
    else
-      return("SSL "..flow["protos.tls_version"])
+      return("TLS "..flow["protos.tls_version"])
    end
 end
 
