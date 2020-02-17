@@ -289,6 +289,8 @@ Flow::~Flow() {
     if(protos.tls.server_names)        free(protos.tls.server_names);
     if(protos.tls.ja3.client_hash)     free(protos.tls.ja3.client_hash);
     if(protos.tls.ja3.server_hash)     free(protos.tls.ja3.server_hash);
+    if(protos.tls.client_alpn)                   free(protos.tls.client_alpn);
+    if(protos.tls.client_tls_supported_versions) free(protos.tls.client_tls_supported_versions);
   }
 
   if(bt_hash)                free(bt_hash);
@@ -481,6 +483,14 @@ void Flow::processFullyDissectedProtocol() {
       if((protos.tls.server_names == NULL)
 	 && (ndpiFlow->protos.stun_ssl.ssl.server_names != NULL))
 	protos.tls.server_names = strdup(ndpiFlow->protos.stun_ssl.ssl.server_names);
+
+      if((protos.tls.client_alpn == NULL)
+	 && (ndpiFlow->protos.stun_ssl.ssl.alpn != NULL))
+	protos.tls.client_alpn = strdup(ndpiFlow->protos.stun_ssl.ssl.alpn);
+
+      if((protos.tls.client_tls_supported_versions == NULL)
+	 && (ndpiFlow->protos.stun_ssl.ssl.tls_supported_versions != NULL))
+	protos.tls.client_tls_supported_versions = strdup(ndpiFlow->protos.stun_ssl.ssl.tls_supported_versions);
 
       if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
 	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
@@ -4130,6 +4140,12 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 
     if(protos.tls.server_names)
       lua_push_str_table_entry(vm, "protos.tls.server_names", protos.tls.server_names);
+
+    if(protos.tls.client_alpn)
+      lua_push_str_table_entry(vm, "protos.tls.client_alpn", protos.tls.client_alpn);
+
+    if(protos.tls.client_tls_supported_versions)
+      lua_push_str_table_entry(vm, "protos.tls.client_tls_supported_versions", protos.tls.client_tls_supported_versions);
 
     if(protos.tls.client_requested_server_name)
       lua_push_str_table_entry(vm, "protos.tls.client_requested_server_name",

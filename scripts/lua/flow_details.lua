@@ -902,6 +902,14 @@ else
       print("</td></tr>")
    end
 
+   if(flow["protos.tls.client_alpn"] ~= nil) then
+      print('<tr><th width=30%><a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation" data-toggle="tooltip" title="ALPN">TLS ALPN</A></th><td>'..flow["protos.tls.client_alpn"]..'</td></tr>\n')
+   end
+
+   if(flow["protos.tls.client_tls_supported_versions"] ~= nil) then
+      print('<tr><th width=30%><a href="https://tools.ietf.org/html/rfc7301" data-toggle="tooltip">'.. i18n("flow_details.client_tls_supported_versions") ..'</A></th><td>'..flow["protos.tls.client_tls_supported_versions"]..'</td></tr>\n')
+   end
+   
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
      '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-toggle="tooltip" title="'..i18n("flow_details.computed_as_tcp_window_size_rtt")..'">'..
