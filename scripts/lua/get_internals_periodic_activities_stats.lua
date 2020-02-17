@@ -72,12 +72,17 @@ local to_skip = (currentPage-1) * perPage
 
 local ifaces_scripts_stats = {}
 
-for _, iface in pairs(interface.getIfNames()) do
+local available_interfaces = interface.getIfNames()
+-- Add the system interface to the available interfaces
+available_interfaces[getSystemInterfaceId()] = getSystemInterfaceName()
+
+for _, iface in pairs(available_interfaces) do
    if iffilter and iffilter ~= tostring(getInterfaceId(iface)) then
       goto continue
    end
 
    interface.select(iface)
+
    local scripts_stats = interface.getPeriodicActivitiesStats()
 
    -- Flatten out the nested tables

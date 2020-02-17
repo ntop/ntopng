@@ -395,30 +395,45 @@ end
 
 -- ###########################################
 
-function internals_utils.printInternals(ifid)
-   local tab = _GET["tab"] or "hash_tables"
+function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_activities, print_user_scripts)
+   local tab = _GET["tab"]
+
+   if not tab then
+      -- Pick a default tab if no tab is available in the _GET
+      if print_hash_tables then tab = "hash_tables"
+      elseif print_periodic_activities then tab = "periodic_activities"
+      elseif print_user_scripts then tab = "user_scripts" end
+   end
+
    local ts_creation = ntop.getPref("ntopng.prefs.ifid_"..(ifid or getSystemInterfaceId())..".interface_rrd_creation") ~= "false"
 
-   print[[
-<ul class="nav nav-tabs" role="tablist">
-  <li class="nav-item ]] if tab == "hash_tables" then print[[active]] end print[[">
-    <a class="nav-link ]] if tab == "hash_tables" then print[[active]] end print[[" href="?page=internals&tab=hash_tables]] print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>
-  <li class="nav-item ]] if tab == "periodic_activities" then print[[active]] end print[[">
-    <a class="nav-link ]] if tab == "periodic_activities" then print[[active]] end print[[" href="?page=internals&tab=periodic_activities"]] print[[">]] print(i18n("internals.periodic_activities")) print[[</a>
-  </li>
-  <li class="nav-item ]] if tab == "user_scripts" then print[[active]] end print[[">
-    <a class="nav-link ]] if tab == "user_scripts" then print[[active]] end print[[" href="?page=internals&tab=user_scripts"]] print[[">]] print(i18n("internals.user_scripts")) print[[</a>
-  </li>
-</ul>
+   print[[<ul class="nav nav-tabs" role="tablist">]]
+
+   if print_hash_tables then
+      print[[<li class="nav-item ]] if tab == "hash_tables" then print[[active]] end print[[">
+    <a class="nav-link ]] if tab == "hash_tables" then print[[active]] end print[[" href="?page=internals&tab=hash_tables]] print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>]]
+   end
+
+   if print_periodic_activities then
+      print[[<li class="nav-item ]] if tab == "periodic_activities" then print[[active]] end print[[">
+    <a class="nav-link ]] if tab == "periodic_activities" then print[[active]] end print[[" href="?page=internals&tab=periodic_activities"]] print[[">]] print(i18n("internals.periodic_activities")) print[[</a></li>]]
+   end
+
+   if print_user_scripts then
+      print[[<li class="nav-item ]] if tab == "user_scripts" then print[[active]] end print[[">
+    <a class="nav-link ]] if tab == "user_scripts" then print[[active]] end print[[" href="?page=internals&tab=user_scripts"]] print[[">]] print(i18n("internals.user_scripts")) print[[</a></li>]]
+   end
+
+   print[[</ul>
 
 <div class="tab-content clearfix">]]
    local base_url = "?page=internals"
 
-   if tab == "hash_tables" then
+   if tab == "hash_tables" and print_hash_tables then
       printHashTablesTable(base_url.."&tab=hash_tables", ifid, ts_creation)
-   elseif tab == "periodic_activities" then
+   elseif tab == "periodic_activities" and print_periodic_activities then
       printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid, ts_creation)
-   elseif tab == "user_scripts" then
+   elseif tab == "user_scripts" and print_user_scripts then
       printUserScriptsTable(base_url.."&tab=user_scripts", ifid, ts_creation)
    end
    print[[</div>]]

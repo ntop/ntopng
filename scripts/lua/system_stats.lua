@@ -11,6 +11,7 @@ local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local plugins_utils = require("plugins_utils")
 local alert_consts = require("alert_consts")
+local internals_utils = require "internals_utils"
 require("graph_utils")
 require("alert_utils")
 
@@ -49,6 +50,11 @@ page_utils.print_navbar(title, url,
 			      active = page == "alerts",
 			      page_name = "alerts",
 			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
+			   },
+			   {
+			      active = page == "internals",
+			      page_name = "internals",
+			      label = "<i class=\"fas fa-lg fa-wrench\"></i>",
 			   },
 			}
 )
@@ -156,6 +162,8 @@ elseif((page == "alerts") and isAdministrator()) then
    drawAlerts()
 
    interface.select(tostring(cur_id))
+elseif page == "internals" then
+   internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], false --[[ user scripts]])
 end
 
 -- #######################################################
