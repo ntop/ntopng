@@ -2163,6 +2163,7 @@ local lang = {
     ["high_idle_entries"] = "High number of idle entries",
     ["iface_hash_tables"] = "%{iface} Hash Tables",
     ["iface_periodic_scripts"] = "%{iface} Periodic Activities",
+    ["system_iface_periodic_scripts"] = "System Periodic Activities",
     ["last_duration_ms"] = "Last Duration",
     ["in_progress_since"] = "In Progress Since",
     ["last_num_calls"] = "Last Num Calls",
