@@ -58,6 +58,8 @@ local stats = {
    partial_scripts = {},	-- List of scripts invoked on flow with THW not-completed
 }
 
+local max_score = flow_consts.max_score
+
 -- #################################################################
 
 local function trace_f(trace_msg)
@@ -447,9 +449,9 @@ function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
 	 end
       end
 
-      flow_score = math.min(math.max(flow_score or 0, 0), 1000)
-      cli_score = math.min(math.max(cli_score or 0, 0), 1000)
-      srv_score = math.min(math.max(srv_score or 0, 0), 1000)
+      flow_score = math.min(math.max(flow_score or 0, 0), max_score)
+      cli_score = math.min(math.max(cli_score or 0, 0), max_score)
+      srv_score = math.min(math.max(srv_score or 0, 0), max_score)
 
       c_flow_set_status(status_id, flow_score, cli_score, srv_score, cur_user_script.key)
       return(true)

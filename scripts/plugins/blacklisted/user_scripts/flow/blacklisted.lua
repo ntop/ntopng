@@ -29,7 +29,7 @@ function script.hooks.protocolDetected(now)
       local cli_score, srv_score
 
       if info["blacklisted.srv"] then
-         cli_score = 100
+         cli_score = flow_consts.max_score
          srv_score = 5
       else
          cli_score = 5

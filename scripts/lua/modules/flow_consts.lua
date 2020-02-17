@@ -17,6 +17,8 @@ flow_consts.custom_status_3 = 61
 flow_consts.custom_status_4 = 62
 flow_consts.custom_status_5 = 63
 
+flow_consts.max_score = 1000
+
 -- ################################################################################
 
 function flow_consts.getDefinititionsDir()
