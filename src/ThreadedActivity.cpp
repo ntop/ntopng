@@ -48,7 +48,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (bool *) calloc(MAX_NUM_INTERFACE_IDS, sizeof(bool));
-  threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_INTERFACE_IDS]();
+  threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */]();
   pool = _pool;
 
 #ifdef THREADED_DEBUG
@@ -168,19 +168,28 @@ void ThreadedActivity::run() {
 
 /* ******************************************* */
 
-ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(NetworkInterface *iface) {
+ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing) {
   ThreadedActivityStats *ta = NULL;
 
-  if(iface && iface->get_id() >= 0) {
-    if(!threaded_activity_stats[iface->get_id()]) {
-      try {
-	ta = new ThreadedActivityStats(this);
-      } catch(std::bad_alloc& ba) {
-	return NULL;
+  if(iface) {
+    /* As the system interface has id -1, we add 1 to the offset to access the array of stats.
+       The array of stats is allocated in the constructor with MAX_NUM_INTERFACE_IDS + 1 to also
+       accomodate the system interface */
+    int stats_idx = iface->get_id() + 1;
+
+    if(stats_idx >= 0 && stats_idx < MAX_NUM_INTERFACE_IDS + 1) {
+	if(!threaded_activity_stats[stats_idx]) {
+	  if(allocate_if_missing) {
+	    try {
+	      ta = new ThreadedActivityStats(this);
+	    } catch(std::bad_alloc& ba) {
+	      return NULL;
+	    }
+	    threaded_activity_stats[stats_idx] = ta;
+	  }
+	} else
+	  ta = threaded_activity_stats[stats_idx];
       }
-      threaded_activity_stats[iface->get_id()] = ta;
-    } else
-      ta = threaded_activity_stats[iface->get_id()];
   }
 
   return ta;
@@ -189,7 +198,7 @@ ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(NetworkInterfa
 /* ******************************************* */
 
 void ThreadedActivity::updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin) {
-  ThreadedActivityStats *ta = getThreadedActivityStats(iface);
+  ThreadedActivityStats *ta = getThreadedActivityStats(iface, true /* Allocate if missing */);
 
   if(ta)
     ta->updateStatsBegin(begin);
@@ -198,7 +207,7 @@ void ThreadedActivity::updateThreadedActivityStatsBegin(NetworkInterface *iface,
 /* ******************************************* */
 
 void ThreadedActivity::updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration) {
-  ThreadedActivityStats *ta = getThreadedActivityStats(iface);
+  ThreadedActivityStats *ta = getThreadedActivityStats(iface, true /* Allocate if missing */);
 
   if(ta)
     ta->updateStatsEnd(latest_duration);
@@ -461,10 +470,12 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
 /* ******************************************* */
 
 void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
-  if(iface && iface->get_id() >= 0 && threaded_activity_stats[iface->get_id()]) {
+  ThreadedActivityStats *ta = getThreadedActivityStats(iface, false /* Do not allocate if missing */);
+
+  if(ta) {
     lua_newtable(vm);
 
-    threaded_activity_stats[iface->get_id()]->lua(vm);
+    ta->lua(vm);
 
     lua_pushstring(vm, path ? path : "");
     lua_insert(vm, -2);

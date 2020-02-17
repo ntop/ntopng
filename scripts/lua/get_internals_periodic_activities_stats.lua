@@ -82,14 +82,11 @@ for _, iface in pairs(interface.getIfNames()) do
 
    -- Flatten out the nested tables
    for script in pairs(internals_utils.periodic_scripts_durations) do
-      local stats = scripts_stats[script] or {
-	 duration = {
-	    max_duration_ms = 0,
-	    last_duration_ms = 0,
-	 }
-      }
+      local stats = scripts_stats[script]
 
-      ifaces_scripts_stats[iface.."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
+      if stats then
+	 ifaces_scripts_stats[iface.."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
+      end
    end
 
    ::continue::

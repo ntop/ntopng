@@ -53,7 +53,7 @@ class ThreadedActivity {
   void schedulePeriodicActivity(ThreadPool *pool, time_t deadline);
   void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
   bool isInterfaceTaskRunning(NetworkInterface *iface);
-  ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface);
+  ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing);
   void updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin);
   void updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration);
   void reloadVm(const char *ifname);

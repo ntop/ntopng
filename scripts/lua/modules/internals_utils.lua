@@ -12,12 +12,15 @@ local user_scripts = require "user_scripts"
 
 internals_utils.periodic_scripts_durations = {
    -- Script -> max_duration sec
-   ["stats_update.lua"] =        5,
-   ["ht_state_update.lua"] =     5,
-   ["minute.lua"] =             60,
-   ["5min.lua"] =              300,
-   ["hourly.lua"] =           3600,
-   ["daily.lua"] =           86400,
+   ["stats_update.lua"]      =     5,
+   ["ht_state_update.lua"]   =     5,
+   ["minute.lua"]            =    60,
+   ["5min.lua"]              =   300,
+   ["hourly.lua"]            =  3600,
+   ["daily.lua"]             = 86400,
+   ["housekeeping.lua"]      =     3,
+   ["discover.lua"]          =     5,
+   ["timeseries.lua"]        =     5,
 }
 
 -- ###########################################

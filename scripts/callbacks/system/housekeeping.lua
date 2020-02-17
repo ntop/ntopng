@@ -18,7 +18,8 @@ local recording_utils = require "recording_utils"
 local plugins_utils = require "plugins_utils"
 local now = os.time()
 local periodicity = 3
-local deadline = now + periodicity
+
+-- deadline is a global set from C
 
 -- Check for alerts from the datapath
 checkStoreAlertsFromC(deadline-1)
