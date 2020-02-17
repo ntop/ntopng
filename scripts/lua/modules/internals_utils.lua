@@ -516,35 +516,39 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
       }
    end
 
-   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-		 timeseries = table.merge(periodic_scripts_ts,
-					  {
-					     {
-						separator = 1,
-						label="ht_state_update.lua"
-					     },
-					     {
-						schema = "flow_script:lua_duration",
-						label = i18n("internals.flow_lua_duration"),
-						metrics_labels = {
-						   i18n("duration")
-						}
-					     },
-					     {
-						schema = "custom:flow_script:stats",
-						label = i18n("internals.flow_calls_stats"),
-						metrics_labels =
-						   {
-						      i18n("internals.missed_idle"),
-						      i18n("internals.missed_proto_detected"),
-						      i18n("internals.missed_periodic_update"),
-						      i18n("internals.pending_proto_detected"),
-						      i18n("internals.pending_periodic_update"),
-						      i18n("internals.successful_calls")
-						   },
-					     },
-		 })
-   })
+   local timeseries = periodic_scripts_ts
+
+   if tostring(ifId) ~= getSystemInterfaceId() then
+      timeseries = table.merge(timeseries,
+			       {
+				  {
+				     separator = 1,
+				     label="ht_state_update.lua"
+				  },
+				  {
+				     schema = "flow_script:lua_duration",
+				     label = i18n("internals.flow_lua_duration"),
+				     metrics_labels = {
+					i18n("duration")
+				     }
+				  },
+				  {
+				     schema = "custom:flow_script:stats",
+				     label = i18n("internals.flow_calls_stats"),
+				     metrics_labels =
+					{
+					   i18n("internals.missed_idle"),
+					   i18n("internals.missed_proto_detected"),
+					   i18n("internals.missed_periodic_update"),
+					   i18n("internals.pending_proto_detected"),
+					   i18n("internals.pending_periodic_update"),
+					   i18n("internals.successful_calls")
+					},
+				  },
+      })
+   end
+
+   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, { timeseries = timeseries })
    
 
 end
