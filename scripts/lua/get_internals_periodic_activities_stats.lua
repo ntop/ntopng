@@ -85,6 +85,7 @@ for _, iface in pairs(available_interfaces) do
 
    local scripts_stats = interface.getPeriodicActivitiesStats()
 
+
    -- Flatten out the nested tables
    for script in pairs(internals_utils.periodic_scripts_durations) do
       local stats = scripts_stats[script]
@@ -175,7 +176,11 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       if iffilter then
 	 if ts_utils.exists("periodic_script:duration", {ifid = iffilter, periodic_script = script_stats.script}) then
-	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
+	    if iffilter == getSystemInterfaceId() then
+	       record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/system_periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
+	    else
+	       record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
+	    end
 	 end
       end
 

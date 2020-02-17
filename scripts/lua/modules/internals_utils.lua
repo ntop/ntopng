@@ -480,6 +480,74 @@ function internals_utils.getPeriodicActivitiesFillBar(busy_pct, available_pct)
    return code
 end
 
+-- ###########################################
+
+function internals_utils.printPeriodicActivityDetails(ifId, url)
+   local periodic_script = _GET["periodic_script"]
+   local schema = _GET["ts_schema"] or "custom:flow_script:stats"
+   local selected_epoch = _GET["epoch"] or ""
+   url = url..'&page=historical'
+
+   local tags = {
+      ifid = ifId,
+      periodic_script = periodic_script,
+   }
+
+   local periodic_scripts_ts = {}
+
+   for script, max_duration in pairsByKeys(internals_utils.periodic_scripts_durations) do
+      periodic_scripts_ts[#periodic_scripts_ts + 1] = {
+	 schema = "periodic_script:duration",
+	 label = script,
+	 extra_params = {periodic_script = script},
+	 metrics_labels = {i18n("flow_callbacks.last_duration")},
+
+	 -- Horizontal line with max duration
+	 extra_series = {
+	    {
+	       label = i18n("internals.max_duration_ms"),
+	       axis = 1,
+	       type = "line",
+	       color = "red",
+	       value = max_duration * 1000,
+	       class = "line-dashed",
+	    },
+	 }
+      }
+   end
+
+   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+		 timeseries = table.merge(periodic_scripts_ts,
+					  {
+					     {
+						separator = 1,
+						label="ht_state_update.lua"
+					     },
+					     {
+						schema = "flow_script:lua_duration",
+						label = i18n("internals.flow_lua_duration"),
+						metrics_labels = {
+						   i18n("duration")
+						}
+					     },
+					     {
+						schema = "custom:flow_script:stats",
+						label = i18n("internals.flow_calls_stats"),
+						metrics_labels =
+						   {
+						      i18n("internals.missed_idle"),
+						      i18n("internals.missed_proto_detected"),
+						      i18n("internals.missed_periodic_update"),
+						      i18n("internals.pending_proto_detected"),
+						      i18n("internals.pending_periodic_update"),
+						      i18n("internals.successful_calls")
+						   },
+					     },
+		 })
+   })
+   
+
+end
 
 -- ###########################################
 

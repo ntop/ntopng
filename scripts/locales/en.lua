@@ -2187,6 +2187,7 @@ local lang = {
     ["state_idle"] = "Entries in Idle State",
     ["state_idle_vs_active"] = "Idle vs Active Entries",
     ["successful_calls"] = "Successful Calls",
+    ["system_iface_periodic_scripts"] = "System Periodic Activities",
     ["time_usage"] = "Time Utilization",
     ["total_duration"] = "Total %{subdir} Scripts Duration",
     ["total_flow_duration"] = "Total Duration",
