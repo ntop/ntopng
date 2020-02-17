@@ -15,9 +15,10 @@ require "graph_utils"
 local page_utils = require("page_utils")
 local internals_utils = require "internals_utils"
 
-interface.select(getSystemInterfaceId())
-local ifstats = interface.getStats()
-local ifId = ifstats.id
+-- Save the interface id of the currently selected NON-system interface
+-- so that it can be passed to the url to maintain the functionalities of
+-- the header and footer
+local ifId = interface.getId()
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -38,6 +39,6 @@ page_utils.print_navbar(title, nav_url,
 			}
 )
 
-internals_utils.printPeriodicActivityDetails(ifId, nav_url)
+internals_utils.printPeriodicActivityDetails(getSystemInterfaceId(), nav_url)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
