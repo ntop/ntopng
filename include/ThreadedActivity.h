@@ -51,8 +51,6 @@ class ThreadedActivity {
   void aperiodicActivityBody();
   void uSecDiffPeriodicActivityBody();
   void schedulePeriodicActivity(ThreadPool *pool, time_t deadline);
-  void setInterfaceTaskRunning(NetworkInterface *iface, bool running);
-  bool isInterfaceTaskRunning(NetworkInterface *iface);
   ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing);
   void updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin);
   void updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration);
@@ -77,9 +75,12 @@ class ThreadedActivity {
   inline void shutdown()      { terminating = true; };
   void terminateEnqueueLoop();
   bool isTerminating();
+
   void setNextVmReload(time_t when);
 
   void run();
+  bool isRunning(const NetworkInterface *iface) const;
+  void setRunning(NetworkInterface *iface, bool running);
 
   void lua(NetworkInterface *iface, lua_State *vm);
 };

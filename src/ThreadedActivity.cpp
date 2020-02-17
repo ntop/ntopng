@@ -113,22 +113,43 @@ bool ThreadedActivity::isTerminating() {
 
 /* ******************************************* */
 
-void ThreadedActivity::setInterfaceTaskRunning(NetworkInterface *iface, bool running) {
-  const int iface_id = iface->get_id();
+bool ThreadedActivity::isRunning(const NetworkInterface *iface) const {
+  if(iface == ntop->getSystemInterface())
+    return systemTaskRunning;
+  else {
+    const int iface_id = iface->get_id();
 
-  if((iface_id >= 0) && (iface_id < MAX_NUM_INTERFACE_IDS))
-    interfaceTasksRunning[iface_id] = running;
+    if(iface_id >= 0 && iface_id < MAX_NUM_INTERFACE_IDS)
+      return interfaceTasksRunning[iface_id];
+    else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to determine whether a task is running [path: %s][iface: %s]", path, iface->get_name());
+  }
+
+  return false;
 }
 
 /* ******************************************* */
 
-bool ThreadedActivity::isInterfaceTaskRunning(NetworkInterface *iface) {
-  const int iface_id = iface->get_id();
+void ThreadedActivity::setRunning(NetworkInterface *iface, bool running) {
+  if(iface == ntop->getSystemInterface()) {
+    if(systemTaskRunning != running)
+      systemTaskRunning = running;
+    else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. [path: %s][iface: %s][running: %u][requested: %u]",
+				   path, iface->get_name(), systemTaskRunning ? 1 : 0, running ? 1 : 0);
+  } else {
+    const int iface_id = iface->get_id();
 
-  if((iface_id >= 0) && (iface_id < MAX_NUM_INTERFACE_IDS))
-    return interfaceTasksRunning[iface_id];
-
-  return false;
+    if((iface_id >= 0) && (iface_id < MAX_NUM_INTERFACE_IDS)) {
+      if(interfaceTasksRunning[iface_id] != running)
+	interfaceTasksRunning[iface_id] = running;
+      else
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. [path: %s][iface: %s][running: %u][set: %u]",
+				     path, iface->get_name(), interfaceTasksRunning[iface_id] ? 1 : 0, running ? 1 : 0);
+    } else {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set task running running [path: %s][iface: %s][running: %u]", path, iface->get_name(), running ? 1 : 0);
+    }
+  }
 }
 
 /* ******************************************* */
@@ -228,7 +249,6 @@ void ThreadedActivity::runScript() {
 	   ntop->get_callbacks_dir(), path);
 
   if(stat(script_path, &buf) == 0) {
-    systemTaskRunning = true;
     runScript(script_path, ntop->getSystemInterface(), 0 /* No deadline */);
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
@@ -244,13 +264,13 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   struct timeval begin, end;
 
   if(!iface)
-    goto run_script_out;
+    return;
 
   if(strcmp(path, SHUTDOWN_SCRIPT_PATH) && isTerminating())
-    goto run_script_out;
+    return;
 
   if(iface->isViewed() && exclude_viewed_interfaces)
-    goto run_script_out;
+    return;
 
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Running %s", this, path);
@@ -261,7 +281,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   l = loadVm(script_path, iface, time(NULL));
   if(!l) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s]", iface->get_name(), path);
-    goto run_script_out;
+    return;
   }
 
   /* Set the global deadline parameter */
@@ -290,12 +310,6 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
      (strcmp(path, DISCOVER_SCRIPT_PATH) != 0) &&
      (strcmp(path, TIMESERIES_SCRIPT_PATH) != 0))
     iface->getAlertsQueue()->pushSlowPeriodicActivity(msec_diff, periodicity * 1e3, path);
-
- run_script_out:
-  if(iface == ntop->getSystemInterface())
-    systemTaskRunning = false;
-  else if(iface)
-    setInterfaceTaskRunning(iface, false);
 
   if(l && !reuse_vm)
     delete l;
@@ -359,10 +373,6 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 #endif
   
   while(!isTerminating()) {
-#ifndef PERIODIC_DEBUG
-    while(systemTaskRunning) _usleep(1000);
-#endif
-
     gettimeofday(&begin, NULL);
     runScript();
     gettimeofday(&end, NULL);
@@ -429,15 +439,12 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
   struct stat buf;
 #endif
 
-  if(!systemTaskRunning) {
-    /* Schedule system script */
-    snprintf(script_path, sizeof(script_path), "%s/system/%s",
-	     ntop->get_callbacks_dir(), path);
+  /* Schedule system script */
+  snprintf(script_path, sizeof(script_path), "%s/system/%s",
+	   ntop->get_callbacks_dir(), path);
 
-    if(stat(script_path, &buf) == 0
-       && pool->queueJob(this, script_path, ntop->getSystemInterface(), deadline)) {
-      systemTaskRunning = true;
-
+  if(stat(script_path, &buf) == 0) {
+    if(pool->queueJob(this, script_path, ntop->getSystemInterface(), deadline)) {
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
@@ -453,15 +460,12 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
       NetworkInterface *iface = ntop->getInterface(i);
 
       if(iface
-	 && (iface->getIfType() != interface_type_PCAP_DUMP || !exclude_pcap_dump_interfaces)
-	 && !isInterfaceTaskRunning(iface)
-	 && pool->queueJob(this, script_path, iface, deadline)) {
-        setInterfaceTaskRunning(iface, true);
-
+	 && (iface->getIfType() != interface_type_PCAP_DUMP || !exclude_pcap_dump_interfaces)) {
+	if(pool->queueJob(this, script_path, iface, deadline)) {
 #ifdef THREAD_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued interface job %s [%s]", script_path, iface->get_name());
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued interface job %s [%s]", script_path, iface->get_name());
 #endif
-
+	}	
       }
     }
   }

@@ -99,7 +99,8 @@ void ThreadPool::run() {
       break;
     } else {
       Utils::setThreadName(q->script_path);
-      (q->j)->runScript(q->script_path, q->iface, q->deadline);
+      q->j->runScript(q->script_path, q->iface, q->deadline);
+      q->j->setRunning(q->iface, false);
       delete q;
     }
   }
@@ -111,13 +112,16 @@ void ThreadPool::run() {
 
 /* **************************************************** */
 
-bool ThreadPool::queueJob(ThreadedActivity *j, char *path, NetworkInterface *iface, time_t deadline) {
+bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface, time_t deadline) {
   QueuedThreadData *q;
   
   if(isTerminating())
     return(false);
 
-  q = new QueuedThreadData(j, path, iface, deadline);
+  if(ta->isRunning(iface))
+    return(false); /* Task still running, don't re-queue it */
+
+  q = new QueuedThreadData(ta, path, iface, deadline);
 
   if(!q) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create job");
@@ -126,6 +130,7 @@ bool ThreadPool::queueJob(ThreadedActivity *j, char *path, NetworkInterface *ifa
 
   m->lock(__FILE__, __LINE__);
   threads.push(q);
+  ta->setRunning(iface, true);
   pthread_cond_signal(&condvar);
   m->unlock(__FILE__, __LINE__);
 
