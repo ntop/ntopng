@@ -33,6 +33,7 @@ class ZMQParserInterface : public ParserInterface {
   u_int32_t flow_max_idle;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
     zmq_remote_initial_exported_flows;
+  std::map<u_int8_t, ZMQ_RemoteStats*>source_id_last_zmq_remote_stats;
   ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
 #ifdef NTOPNG_PRO
   CustomAppMaps *custom_app_maps;

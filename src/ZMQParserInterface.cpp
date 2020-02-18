@@ -167,76 +167,81 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 					u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
-  ZMQ_RemoteStats *zrs = NULL;
+  ZMQ_RemoteStats zrs;
+
+  memset(&zrs, 0, sizeof(zrs));
 
   // payload[payload_size] = '\0';
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
   o = json_tokener_parse_verbose(payload, &jerr);
 
-  if(o && (zrs = (ZMQ_RemoteStats*)calloc(1, sizeof(ZMQ_RemoteStats)))) {
+  if(o) {
     json_object *w, *z;
 
-    if(json_object_object_get_ex(o, "time", &w))    zrs->remote_time  = (u_int32_t)json_object_get_int64(w);
-    if(json_object_object_get_ex(o, "bytes", &w))   zrs->remote_bytes = (u_int64_t)json_object_get_int64(w);
-    if(json_object_object_get_ex(o, "packets", &w)) zrs->remote_pkts  = (u_int64_t)json_object_get_int64(w);
+    zrs.source_id = source_id;
+    zrs.local_time = (u_int32_t) time(NULL);
+
+    if(json_object_object_get_ex(o, "time", &w))    zrs.remote_time  = (u_int32_t)json_object_get_int64(w);
+    if(json_object_object_get_ex(o, "bytes", &w))   zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
+    if(json_object_object_get_ex(o, "packets", &w)) zrs.remote_pkts  = (u_int64_t)json_object_get_int64(w);
 
     if(json_object_object_get_ex(o, "iface", &w)) {
       if(json_object_object_get_ex(w, "name", &z))
-	snprintf(zrs->remote_ifname, sizeof(zrs->remote_ifname), "%s", json_object_get_string(z));
+	snprintf(zrs.remote_ifname, sizeof(zrs.remote_ifname), "%s", json_object_get_string(z));
       if(json_object_object_get_ex(w, "speed", &z))
-	zrs->remote_ifspeed = (u_int32_t)json_object_get_int64(z);
+	zrs.remote_ifspeed = (u_int32_t)json_object_get_int64(z);
       if(json_object_object_get_ex(w, "ip", &z))
-	snprintf(zrs->remote_ifaddress, sizeof(zrs->remote_ifaddress), "%s", json_object_get_string(z));
+	snprintf(zrs.remote_ifaddress, sizeof(zrs.remote_ifaddress), "%s", json_object_get_string(z));
     }
 
     if(json_object_object_get_ex(o, "probe", &w)) {
       if(json_object_object_get_ex(w, "public_ip", &z))
-	snprintf(zrs->remote_probe_public_address, sizeof(zrs->remote_probe_public_address), "%s", json_object_get_string(z));
+	snprintf(zrs.remote_probe_public_address, sizeof(zrs.remote_probe_public_address), "%s", json_object_get_string(z));
       if(json_object_object_get_ex(w, "ip", &z))
-	snprintf(zrs->remote_probe_address, sizeof(zrs->remote_probe_address), "%s", json_object_get_string(z));
+	snprintf(zrs.remote_probe_address, sizeof(zrs.remote_probe_address), "%s", json_object_get_string(z));
     }
 
     if(json_object_object_get_ex(o, "avg", &w)) {
       if(json_object_object_get_ex(w, "bps", &z))
-	zrs->avg_bps = (u_int32_t)json_object_get_int64(z);
+	zrs.avg_bps = (u_int32_t)json_object_get_int64(z);
       if(json_object_object_get_ex(w, "pps", &z))
-	zrs->avg_pps = (u_int32_t)json_object_get_int64(z);
+	zrs.avg_pps = (u_int32_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "timeout", &w)) {
       if(json_object_object_get_ex(w, "lifetime", &z))
-	zrs->remote_lifetime_timeout = (u_int32_t)json_object_get_int64(z);
+	zrs.remote_lifetime_timeout = (u_int32_t)json_object_get_int64(z);
       if(json_object_object_get_ex(w, "idle", &z))
-	zrs->remote_idle_timeout = (u_int32_t)json_object_get_int64(z);
+	zrs.remote_idle_timeout = (u_int32_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "drops", &w)) {
       if(json_object_object_get_ex(w, "export_queue_full", &z))
-	zrs->export_queue_full = (u_int32_t)json_object_get_int64(z);
+	zrs.export_queue_full = (u_int32_t)json_object_get_int64(z);
 
       if(json_object_object_get_ex(w, "too_many_flows", &z))
-	zrs->too_many_flows = (u_int32_t)json_object_get_int64(z);
+	zrs.too_many_flows = (u_int32_t)json_object_get_int64(z);
 
       if(json_object_object_get_ex(w, "elk_flow_drops", &z))
-	zrs->elk_flow_drops = (u_int32_t)json_object_get_int64(z);
+	zrs.elk_flow_drops = (u_int32_t)json_object_get_int64(z);
 
       if(json_object_object_get_ex(w, "sflow_pkt_sample_drops", &z))
-	zrs->sflow_pkt_sample_drops = (u_int32_t)json_object_get_int64(z);
+	zrs.sflow_pkt_sample_drops = (u_int32_t)json_object_get_int64(z);
 
       if(json_object_object_get_ex(w, "flow_collection_drops", &z))
-	zrs->flow_collection_drops = (u_int32_t)json_object_get_int64(z);
+	zrs.flow_collection_drops = (u_int32_t)json_object_get_int64(z);
 
       if(json_object_object_get_ex(w, "flow_collection_udp_socket_drops", &z))
-	zrs->flow_collection_udp_socket_drops = (u_int32_t)json_object_get_int64(z);
+	zrs.flow_collection_udp_socket_drops = (u_int32_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "zmq", &w)) {
       if(json_object_object_get_ex(w, "num_flow_exports", &z))
-	zrs->num_flow_exports = (u_int64_t)json_object_get_int64(z);
+	zrs.num_flow_exports = (u_int64_t)json_object_get_int64(z);
 
       if(json_object_object_get_ex(w, "num_exporters", &z))
-	zrs->num_exporters = (u_int8_t)json_object_get_int(z);
+	zrs.num_exporters = (u_int8_t)json_object_get_int(z);
     }
 
 #ifdef ZMQ_EVENT_DEBUG
@@ -246,32 +251,26 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 				 "[avg: {bps: %u, pps: %u}]"
 				 "[remote: {time: %u, bytes: %u, packets: %u, idle_timeout: %u, lifetime_timeout:%u}]"
 				 "[zmq: {num_exporters: %u, num_flow_exports: %u}]",
-				 zrs->remote_ifname, zrs->remote_ifspeed, zrs->remote_ifaddress,
-				 zrs->remote_probe_public_address, zrs->remote_probe_address,
-				 zrs->avg_bps, zrs->avg_pps,
-				 zrs->remote_time, (u_int32_t)zrs->remote_bytes, (u_int32_t)zrs->remote_pkts,
-				 zrs->remote_idle_timeout, zrs->remote_lifetime_timeout,
-				 zrs->num_exporters, zrs->num_flow_exports);
+				 zrs.remote_ifname, zrs.remote_ifspeed, zrs.remote_ifaddress,
+				 zrs.remote_probe_public_address, zrs.remote_probe_address,
+				 zrs.avg_bps, zrs.avg_pps,
+				 zrs.remote_time, (u_int32_t)zrs.remote_bytes, (u_int32_t)zrs.remote_pkts,
+				 zrs.remote_idle_timeout, zrs.remote_lifetime_timeout,
+				 zrs.num_exporters, zrs.num_flow_exports);
 #endif
 
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%u/%u", avg_bps, avg_pps); */
 
     /* Process Flow */
-    setRemoteStats(zrs);
+    setRemoteStats(&zrs);
 
     if(flowHashing) {
       FlowHashing *current, *tmp;
       ZMQParserInterface *current_iface;
 
       HASH_ITER(hh, flowHashing, current, tmp) {
-	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface))) {
-          ZMQ_RemoteStats *zrscopy = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
-
-	  if(zrscopy) {
-	    memcpy(zrscopy, zrs, sizeof(ZMQ_RemoteStats));
-	    current_iface->setRemoteStats(zrscopy);
-          }
-        }
+	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface)))
+	  current_iface->setRemoteStats(&zrs);
       }
     }
 
@@ -1760,35 +1759,90 @@ u_int32_t ZMQParserInterface::getFlowMaxIdle() {
 /* **************************************** */
 
 void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
-  if(!zrs) return;
+  ZMQ_RemoteStats *last_zrs, *cumulative_zrs;
+  map<u_int8_t, ZMQ_RemoteStats*>::const_iterator it;
+  u_int32_t last_time = zrs->local_time;
 
-  ifSpeed = zrs->remote_ifspeed, last_pkt_rcvd = 0, last_pkt_rcvd_remote = zrs->remote_time,
-    last_remote_pps = zrs->avg_pps, last_remote_bps = zrs->avg_bps;
+  /* Store stats for the current exporter */
+
+  if(source_id_last_zmq_remote_stats.find(zrs->source_id) == source_id_last_zmq_remote_stats.end()) {
+    last_zrs = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
+    if(!last_zrs)
+      return;
+    source_id_last_zmq_remote_stats[zrs->source_id] = last_zrs;
+  } else {
+    last_zrs = source_id_last_zmq_remote_stats[zrs->source_id];
+  }
+
+  memcpy(last_zrs, zrs, sizeof(ZMQ_RemoteStats));
+
+  /* Sum stats from all exporters */
+
+  cumulative_zrs = (ZMQ_RemoteStats*) calloc(1, sizeof(ZMQ_RemoteStats));
+  if (!cumulative_zrs)
+    return;
+
+  for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); it++) {
+    ZMQ_RemoteStats *zrs_i = it->second;
+    if (zrs_i->local_time < last_time - 3 /* sec */) {
+      /* do not account inactive exporters, release them */
+      source_id_last_zmq_remote_stats[zrs_i->source_id] = NULL;
+      free(zrs_i);
+    } else {
+      Utils::snappend(cumulative_zrs->remote_ifname, sizeof(cumulative_zrs->remote_ifname), zrs_i->remote_ifname, ",");
+      Utils::snappend(cumulative_zrs->remote_ifaddress, sizeof(cumulative_zrs->remote_ifaddress), zrs_i->remote_ifaddress, ",");
+      Utils::snappend(cumulative_zrs->remote_probe_address, sizeof(cumulative_zrs->remote_probe_address), zrs_i->remote_probe_address, ",");
+      Utils::snappend(cumulative_zrs->remote_probe_public_address,  sizeof(cumulative_zrs->remote_probe_public_address), zrs_i->remote_probe_public_address, ",");
+      cumulative_zrs->num_exporters += zrs_i->num_exporters;
+      cumulative_zrs->remote_bytes += zrs_i->remote_bytes;
+      cumulative_zrs->remote_pkts += zrs_i->remote_pkts;
+      cumulative_zrs->num_flow_exports += zrs_i->num_flow_exports;
+      cumulative_zrs->remote_ifspeed = max_val(cumulative_zrs->remote_ifspeed, zrs_i->remote_ifspeed);
+      cumulative_zrs->remote_time = max_val(cumulative_zrs->remote_time, zrs_i->remote_time);
+      cumulative_zrs->local_time = max_val(cumulative_zrs->local_time, zrs_i->local_time);
+      cumulative_zrs->avg_bps += zrs_i->avg_bps;
+      cumulative_zrs->avg_pps += zrs_i->avg_pps;
+      cumulative_zrs->remote_lifetime_timeout = max_val(cumulative_zrs->remote_lifetime_timeout, zrs_i->remote_lifetime_timeout);
+      cumulative_zrs->remote_idle_timeout = max_val(cumulative_zrs->remote_idle_timeout, zrs_i->remote_idle_timeout);
+      cumulative_zrs->export_queue_full += zrs_i->export_queue_full;
+      cumulative_zrs->too_many_flows += zrs_i->too_many_flows;
+      cumulative_zrs->elk_flow_drops += zrs_i->elk_flow_drops;
+      cumulative_zrs->sflow_pkt_sample_drops += zrs_i->sflow_pkt_sample_drops;
+      cumulative_zrs->flow_collection_drops += zrs_i->flow_collection_drops;
+      cumulative_zrs->flow_collection_udp_socket_drops += zrs_i->flow_collection_udp_socket_drops;
+    }
+  }
+
+  ifSpeed = cumulative_zrs->remote_ifspeed;
+  last_pkt_rcvd = 0;
+  last_pkt_rcvd_remote = cumulative_zrs->remote_time;
+  last_remote_pps = cumulative_zrs->avg_pps;
+  last_remote_bps = cumulative_zrs->avg_bps;
 
   /* Recalculate the flow max idle according to the timeouts received */
-  flow_max_idle = zrs->remote_lifetime_timeout + 10 /* Safe margin */;
+  flow_max_idle = cumulative_zrs->remote_lifetime_timeout + 10 /* Safe margin */;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
-     || (zrs->remote_bytes < zmq_initial_bytes) /* nProbe has been restarted */
+     || (cumulative_zrs->remote_bytes < zmq_initial_bytes) /* nProbe has been restarted */
      ) {
     /* Start over */
-    zmq_initial_bytes = zrs->remote_bytes, zmq_initial_pkts = zrs->remote_pkts;
+    zmq_initial_bytes = cumulative_zrs->remote_bytes, zmq_initial_pkts = cumulative_zrs->remote_pkts;
   }
 
   if(zmq_remote_initial_exported_flows == 0 /* ntopng has been restarted */
-     || zrs->num_flow_exports < zmq_remote_initial_exported_flows) /* nProbe has been restarted */
-    zmq_remote_initial_exported_flows = zrs->num_flow_exports;
+     || cumulative_zrs->num_flow_exports < zmq_remote_initial_exported_flows) /* nProbe has been restarted */
+    zmq_remote_initial_exported_flows = cumulative_zrs->num_flow_exports;
 
   if(zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
   zmq_remote_stats_shadow = zmq_remote_stats;
-  zmq_remote_stats = zrs;
+  zmq_remote_stats = cumulative_zrs;
 
   /*
    * Don't override ethStats here, these stats are properly updated
    * inside NetworkInterface::processFlow for ZMQ interfaces.
    * Overriding values here may cause glitches and non-strictly-increasing counters
    * yielding negative rates.
-   ethStats.setNumBytes(zrs->remote_bytes), ethStats.setNumPackets(zrs->remote_pkts);
+   ethStats.setNumBytes(cumulative_zrs->remote_bytes), ethStats.setNumPackets(cumulative_zrs->remote_pkts);
    *
    */
 }

@@ -266,9 +266,9 @@ typedef struct {
 typedef struct zmq_remote_stats {
   char remote_ifname[32], remote_ifaddress[64];
   char remote_probe_address[64], remote_probe_public_address[64];
-  u_int8_t  num_exporters;
+  u_int8_t  source_id, num_exporters;
   u_int64_t remote_bytes, remote_pkts, num_flow_exports;
-  u_int32_t remote_ifspeed, remote_time, avg_bps, avg_pps;
+  u_int32_t remote_ifspeed, remote_time, local_time, avg_bps, avg_pps;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout;
   u_int32_t export_queue_full, too_many_flows, elk_flow_drops,
     sflow_pkt_sample_drops, flow_collection_drops, flow_collection_udp_socket_drops;

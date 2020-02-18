@@ -4241,3 +4241,16 @@ u_int16_t Utils::country2u16(const char *country_code) {
 }
 
 /* ****************************************************** */
+
+int Utils::snappend(char *str, size_t size, const char *tobeappended, const char *separator) {
+  int len = strlen(str), ret;
+
+  ret = snprintf(&str[len], size, "%s%s", (len > 0 && separator) ? separator : "", tobeappended);
+
+  if (ret < 0)
+    return ret;
+
+  return len + ret;
+}
+
+/* ****************************************************** */

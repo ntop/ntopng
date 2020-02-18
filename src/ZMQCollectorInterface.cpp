@@ -413,7 +413,7 @@ void ZMQCollectorInterface::collect_flows() {
           switch(h->url[0]) {
           case 'e': /* event */
             recvStats.num_events++;
-            parseEvent(uncompressed, uncompressed_len, subscriber_id, this);
+            parseEvent(uncompressed, uncompressed_len, source_id, this);
             break;
 
           case 'f': /* flow */
