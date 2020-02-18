@@ -50,6 +50,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   interfaceTasksRunning = (bool *) calloc(MAX_NUM_INTERFACE_IDS, sizeof(bool));
   threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */]();
   pool = _pool;
+  setDeadlineApproachingSecs();
 
 #ifdef THREADED_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p] Creating ThreadedActivity '%s'", this, path);
@@ -81,6 +82,19 @@ ThreadedActivity::~ThreadedActivity() {
 
   for(it = vms.begin(); it != vms.end(); ++it)
     delete(it->second);
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::setDeadlineApproachingSecs() {
+  if(periodicity <= 1)
+    deadline_approaching_secs =  0;
+  else if(periodicity <= 5)
+    deadline_approaching_secs =  1;
+  else if(periodicity <= 60)
+    deadline_approaching_secs =  5;
+  else /* > 60 secs */
+    deadline_approaching_secs = 10;
 }
 
 /* ******************************************* */
@@ -155,7 +169,13 @@ void ThreadedActivity::setRunning(NetworkInterface *iface, bool running) {
 /* ******************************************* */
 
 bool ThreadedActivity::isDeadlineApproaching(time_t deadline) const {
-  return deadline - time(NULL) <= 1 /* Possibly make it ThreadedActivity-dependent */;
+  /*
+    The deadline is approaching if the current time is closer than deadline_approaching_secs
+    with reference to the deadline passed as parameter
+   */
+  bool res = deadline - time(NULL) <= deadline_approaching_secs;
+
+  return res;
 }
 
 /* ******************************************* */

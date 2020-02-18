@@ -250,11 +250,11 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp)
     -- Do not write timeseries if the deadline is approaching.
     -- TODO: add a property `important` to the schema so that such schemas
     -- can still be written even though the deadline is approaching
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Dealine approaching... [".. schema.name .."] ")
+    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Deadline approaching... [".. schema.name .."]["..formatEpoch(ntop.getDeadline()).."]")
     return false
   else
     -- require "lua_utils"
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Dealine OK ... [".. schema.name .."]["..formatEpoch(ntop.getDeadline()).."]")
+    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Deadline OK ... [".. schema.name .."]["..formatEpoch(ntop.getDeadline()).."]")
   end
 
   local rv = true

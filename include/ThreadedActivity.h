@@ -32,6 +32,7 @@ class ThreadedActivity {
   pthread_t pthreadLoop;
   char *path;
   u_int32_t periodicity;
+  u_int32_t deadline_approaching_secs;
   bool align_to_localtime;
   bool exclude_viewed_interfaces;
   bool exclude_pcap_dump_interfaces;
@@ -47,6 +48,7 @@ class ThreadedActivity {
   /* ifid -> engine */
   std::map<int, LuaReusableEngine*> vms;
 
+  void setDeadlineApproachingSecs();
   void periodicActivityBody();
   void aperiodicActivityBody();
   void uSecDiffPeriodicActivityBody();
