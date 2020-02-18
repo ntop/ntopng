@@ -37,7 +37,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 				   bool _align_to_localtime,
 				   bool _exclude_viewed_interfaces,
 				   bool _exclude_pcap_dump_interfaces,
-           bool _reuse_vm,
+				   bool _reuse_vm,
 				   ThreadPool *_pool) {
   terminating = false;
   periodicity = _periodicity_seconds;
@@ -154,6 +154,12 @@ void ThreadedActivity::setRunning(NetworkInterface *iface, bool running) {
 
 /* ******************************************* */
 
+bool ThreadedActivity::isDeadlineApproaching(time_t deadline) const {
+  return deadline - time(NULL) <= 1 /* Possibly make it ThreadedActivity-dependent */;
+}
+
+/* ******************************************* */
+
 /* NOTE: this runs into a separate thread, launched by PeriodicActivities
  * after creation. */
 void ThreadedActivity::activityBody() {
@@ -237,7 +243,7 @@ void ThreadedActivity::updateThreadedActivityStatsEnd(NetworkInterface *iface, u
 /* ******************************************* */
 
 /* Run a one-shot script / accurate (e.g. second) periodic script */
-void ThreadedActivity::runScript() {
+void ThreadedActivity::runSystemScript() {
 #ifdef WIN32
   struct _stat64 buf;
 #else
@@ -259,6 +265,7 @@ void ThreadedActivity::runScript() {
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, time_t deadline) {
   LuaEngine *l = NULL;
+  struct ntopngLuaContext *ctx;
   u_long max_duration_ms = periodicity * 1e3;
   u_long msec_diff;
   struct timeval begin, end;
@@ -284,9 +291,12 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
     return;
   }
 
-  /* Set the global deadline parameter */
+  /* Set the deadline and the threaded activity in the vm so they can be accessed */
   lua_pushinteger(l->getState(), deadline);
   lua_setglobal(l->getState(), "deadline");
+  ctx = getLuaVMContext(l->getState());
+  ctx->deadline = deadline;
+  ctx->threaded_activity = this;
 
   gettimeofday(&begin, NULL);
   updateThreadedActivityStatsBegin(iface, &begin);
@@ -360,7 +370,7 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
 
 void ThreadedActivity::aperiodicActivityBody() {
   if(!isTerminating())
-    runScript();
+    runSystemScript();
 }
 
 /* ******************************************* */
@@ -374,7 +384,7 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
   
   while(!isTerminating()) {
     gettimeofday(&begin, NULL);
-    runScript();
+    runSystemScript();
     gettimeofday(&end, NULL);
 
     usec_diff = (end.tv_sec - begin.tv_sec) * 1e6 + (end.tv_usec - begin.tv_usec);

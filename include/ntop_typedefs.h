@@ -580,6 +580,7 @@ class NetworkStats;
 class Host;
 class Flow;
 class FlowAlertCheckLuaEngine;
+class ThreadedActivity;
 
 struct ntopngLuaContext {
   char *allowed_ifname, *user, *group;
@@ -622,6 +623,10 @@ struct ntopngLuaContext {
     bool pcaphdr_sent;
     bool stopped;
   } live_capture;
+
+  /* Periodic scripts (ThreadedActivity.cpp) */
+  time_t deadline;
+  ThreadedActivity *threaded_activity;
 };
 
 typedef enum {

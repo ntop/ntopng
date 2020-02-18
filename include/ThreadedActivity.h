@@ -69,7 +69,7 @@ class ThreadedActivity {
 
   const char *activityPath() { return path; };
   void activityBody();
-  void runScript();
+  void runSystemScript();
   void runScript(char *script_path, NetworkInterface *iface, time_t deadline);
 
   inline void shutdown()      { terminating = true; };
@@ -81,6 +81,7 @@ class ThreadedActivity {
   void run();
   bool isRunning(const NetworkInterface *iface) const;
   void setRunning(NetworkInterface *iface, bool running);
+  bool isDeadlineApproaching(time_t deadline) const;
 
   void lua(NetworkInterface *iface, lua_State *vm);
 };

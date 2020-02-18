@@ -2884,6 +2884,34 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
+static int ntop_script_is_deadline_approaching(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+  if(ctx && ctx->deadline && ctx->threaded_activity)
+    lua_pushboolean(vm, ctx->threaded_activity->isDeadlineApproaching(ctx->deadline));
+  else
+    lua_pushboolean(vm, false);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_script_get_deadline(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+  if(ctx && ctx->deadline)
+    lua_pushinteger(vm, ctx->deadline);
+  else
+    lua_pushnil(vm);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static bool is_table_empty(lua_State *L, int index) {
     lua_pushnil(L);
 
@@ -11870,11 +11898,15 @@ static const luaL_Reg ntop_reg[] = {
 #endif
 
   /* System User Scripts */
-  { "checkSystemScriptsMin",     ntop_check_system_scripts_min   },
-  { "checkSystemScripts5Min",    ntop_check_system_scripts_5min  },
-  { "checkSystemScriptsHour",    ntop_check_system_scripts_hour  },
-  { "checkSystemScriptsDay",     ntop_check_system_scripts_day   },
-  { "checkSNMPDeviceAlerts5Min", ntop_check_snmp_device_alerts_5min },
+  { "checkSystemScriptsMin",     ntop_check_system_scripts_min       },
+  { "checkSystemScripts5Min",    ntop_check_system_scripts_5min      }, 
+  { "checkSystemScriptsHour",    ntop_check_system_scripts_hour      },
+  { "checkSystemScriptsDay",     ntop_check_system_scripts_day       },
+  { "checkSNMPDeviceAlerts5Min", ntop_check_snmp_device_alerts_5min  },
+
+  /* Periodic scripts (ThreadedActivity.cpp) */
+  { "isDeadlineApproaching",     ntop_script_is_deadline_approaching },
+  { "getDeadline",               ntop_script_get_deadline            },
 
   { NULL,          NULL}
 };

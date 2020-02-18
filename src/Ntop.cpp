@@ -2378,7 +2378,7 @@ void Ntop::shutdownAll() {
   /* Exec shutdown script before shutting down ntopng */
   if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
-    shutdown_activity->runScript();
+    shutdown_activity->runSystemScript();
     delete shutdown_activity;
   }
 
