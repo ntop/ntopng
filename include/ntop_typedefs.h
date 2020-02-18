@@ -626,7 +626,7 @@ struct ntopngLuaContext {
 
   /* Periodic scripts (ThreadedActivity.cpp) */
   time_t deadline;
-  ThreadedActivity *threaded_activity;
+  const ThreadedActivity *threaded_activity;
 };
 
 typedef enum {

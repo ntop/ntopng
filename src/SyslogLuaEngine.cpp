@@ -23,7 +23,7 @@
 
 /* ****************************************** */
 
-SyslogLuaEngine::SyslogLuaEngine(NetworkInterface *iface) : LuaEngine() {
+SyslogLuaEngine::SyslogLuaEngine(NetworkInterface *iface) : LuaEngine(NULL) {
   initialized = false;
 
   snprintf(script_path, sizeof(script_path), "%s/%s",

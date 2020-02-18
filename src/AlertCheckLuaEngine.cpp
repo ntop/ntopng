@@ -23,7 +23,7 @@
 
 /* ****************************************** */
 
-AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *_iface) : LuaEngine() {
+AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity script_periodicity,  NetworkInterface *_iface, lua_State *vm) : LuaEngine(vm) {
   const char *lua_file = NULL;
   iface = _iface;
   tps = Utils::gettickspersec();

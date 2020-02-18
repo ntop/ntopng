@@ -265,7 +265,6 @@ void ThreadedActivity::runSystemScript() {
 /* Run a script - both periodic and one-shot scripts are called here */
 void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, time_t deadline) {
   LuaEngine *l = NULL;
-  struct ntopngLuaContext *ctx;
   u_long max_duration_ms = periodicity * 1e3;
   u_long msec_diff;
   struct timeval begin, end;
@@ -292,11 +291,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   }
 
   /* Set the deadline and the threaded activity in the vm so they can be accessed */
-  lua_pushinteger(l->getState(), deadline);
-  lua_setglobal(l->getState(), "deadline");
-  ctx = getLuaVMContext(l->getState());
-  ctx->deadline = deadline;
-  ctx->threaded_activity = this;
+  l->setDeadline(this, deadline);
 
   gettimeofday(&begin, NULL);
   updateThreadedActivityStatsBegin(iface, &begin);
@@ -352,7 +347,7 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
       l = engine->getVm(when);
     } else {
       /* NOTE: this needs to be deallocated by the caller */
-      l = new LuaEngine();
+      l = new LuaEngine(NULL);
 
       if(l->load_script(script_path, iface) != 0) {
 	delete l;

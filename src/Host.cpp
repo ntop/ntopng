@@ -841,7 +841,7 @@ void Host::periodic_hash_entry_state_update(void *user_data) {
     
     if(getNumTriggeredAlerts()
        && (periodic_ht_state_update_user_data->acle
-	   || (periodic_ht_state_update_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface)))
+	   || (periodic_ht_state_update_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface, periodic_ht_state_update_user_data->vm)))
        ) {
       AlertCheckLuaEngine *acle = periodic_ht_state_update_user_data->acle;
       lua_State *L = acle->getState();

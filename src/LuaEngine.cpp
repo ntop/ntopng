@@ -86,7 +86,7 @@ static void stackDump(lua_State *L) {
 
 /* ******************************* */
 
-LuaEngine::LuaEngine() {
+LuaEngine::LuaEngine(lua_State *vm) {
   std::bad_alloc bax;
   void *ctx;
   loaded_script_path = NULL;
@@ -117,6 +117,9 @@ LuaEngine::LuaEngine() {
 
   lua_pushlightuserdata(L, ctx);
   lua_setglobal(L, "userdata");
+
+  if(vm)
+    setDeadline(vm);
 }
 
 /* ******************************* */
@@ -2712,7 +2715,7 @@ static int ntop_check_hosts_alerts(lua_State* vm, ScriptPeriodicity p) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
   else
-    ntop_interface->checkHostsAlerts(p);
+    ntop_interface->checkHostsAlerts(p, vm);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -2731,7 +2734,7 @@ static int ntop_check_networks_alerts(lua_State* vm, ScriptPeriodicity p) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
   else
-    ntop_interface->checkNetworksAlerts(p);
+    ntop_interface->checkNetworksAlerts(p, vm);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -2750,7 +2753,7 @@ static int ntop_check_interface_alerts(lua_State* vm, ScriptPeriodicity p) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
   else
-    ntop_interface->checkInterfaceAlerts(p);
+    ntop_interface->checkInterfaceAlerts(p, vm);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -2764,7 +2767,7 @@ static int ntop_check_interface_alerts_day(lua_State* vm)  { return(ntop_check_i
 /* ****************************************** */
 
 static int ntop_check_system_scripts(lua_State* vm, ScriptPeriodicity p) {
-  ntop->checkSystemScripts(p);
+  ntop->checkSystemScripts(p, vm);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -2778,7 +2781,7 @@ static int ntop_check_system_scripts_day(lua_State* vm)   { return(ntop_check_sy
 /* ****************************************** */
 
 static int ntop_check_snmp_device_alerts(lua_State* vm, ScriptPeriodicity p) {
-  ntop->checkSNMPDeviceAlerts(p);
+  ntop->checkSNMPDeviceAlerts(p, vm);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -2902,10 +2905,7 @@ static int ntop_script_is_deadline_approaching(lua_State* vm) {
 static int ntop_script_get_deadline(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
 
-  if(ctx && ctx->deadline)
-    lua_pushinteger(vm, ctx->deadline);
-  else
-    lua_pushnil(vm);
+  lua_pushinteger(vm, ctx && ctx->deadline ? ctx->deadline : 0);
 
   return CONST_LUA_OK;
 }
@@ -12628,5 +12628,37 @@ void LuaEngine::setFlow(Flow* f) {
   if(c) {
     c->flow = f;
     c->iface = f->getInterface();
+  }
+}
+
+/* ****************************************** */
+
+void LuaEngine::setDeadline(lua_State* from) {
+  struct ntopngLuaContext *cur_ctx, *from_ctx;
+  lua_State *cur_state = getState();
+
+  if(from
+     && (cur_ctx = getLuaVMContext(cur_state))
+     && (from_ctx = getLuaVMContext(from))) {
+    lua_pushinteger(cur_state, from_ctx->deadline);
+    lua_setglobal(cur_state, "deadline");
+
+    cur_ctx->deadline = from_ctx->deadline;
+    cur_ctx->threaded_activity = from_ctx->threaded_activity;
+  }
+}
+
+/* ****************************************** */
+
+void LuaEngine::setDeadline(const ThreadedActivity *ta, time_t deadline) {
+  struct ntopngLuaContext *cur_ctx;
+  lua_State *cur_state = getState();
+
+  if((cur_ctx = getLuaVMContext(cur_state))) {
+    lua_pushinteger(cur_state, deadline);
+    lua_setglobal(cur_state, "deadline");
+
+    cur_ctx->deadline = deadline;
+    cur_ctx->threaded_activity = ta;
   }
 }

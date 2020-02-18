@@ -35,7 +35,7 @@ class AlertCheckLuaEngine : public LuaEngine {
   NetworkInterface *iface;
 
  public:
-  AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *_iface);
+  AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodicity p, NetworkInterface *_iface, lua_State *vm);
   virtual ~AlertCheckLuaEngine();
 
   bool pcall(int num_args, int num_results);

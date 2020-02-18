@@ -50,7 +50,7 @@ class LuaEngine {
   *
   * @return A new instance of lua.
   */
-  LuaEngine();
+  LuaEngine(lua_State *vm);
  
   /**
    * @brief A Destructor.
@@ -62,6 +62,11 @@ class LuaEngine {
   void setHost(Host* h);
   void setNetwork(NetworkStats* ns);
   void setFlow(Flow*f);
+
+  /* Set the deadline into the Lua context from an existing vm */
+  void setDeadline(lua_State* from);
+  /* Set the deadline into the Lua context from a threaded activity and a deadline */
+  void setDeadline(const ThreadedActivity *ta, time_t deadline);
 
   inline Host* getHost()     { return(getLuaVMContext(L)->host); }
   inline NetworkInterface* getNetworkInterface() { return(getLuaVMContext(L)->iface); }

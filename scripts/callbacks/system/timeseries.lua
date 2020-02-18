@@ -11,5 +11,4 @@ require "lua_utils"
 local callback_utils = require "callback_utils"
 local now = os.time()
 
--- deadline is a global which is set from the C
-callback_utils.uploadTSdata(deadline)
+callback_utils.uploadTSdata()

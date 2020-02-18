@@ -147,9 +147,9 @@ function processHost(hostname, host)
 end
 
 if(show_remote == true) then
-   callback_utils.foreachHost(ifname, os.time() + 60, processHost)
+   callback_utils.foreachHost(ifname, processHost)
 else
-   callback_utils.foreachLocalHost(ifname, os.time() + 60, processHost)
+   callback_utils.foreachLocalHost(ifname, processHost)
 end
 
 local max_radius_px = 30

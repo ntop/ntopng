@@ -995,7 +995,7 @@ static int handle_lua_request(struct mg_connection *conn) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s [%s]", request_info->uri, path);
 
       try {
-	l = new LuaEngine();
+	l = new LuaEngine(NULL);
       } catch(std::bad_alloc& ba) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] Unable to start Lua interpreter.");
 	return(send_error(conn, 500 /* Internal server error */,

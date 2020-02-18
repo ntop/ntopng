@@ -1886,7 +1886,7 @@ function check_macs_alerts(ifid)
    end
 
    local active_devices = {}
-   callback_utils.foreachDevice(getInterfaceName(ifid), nil, function(devicename, devicestats, devicebase)
+   callback_utils.foreachDevice(getInterfaceName(ifid), function(devicename, devicestats, devicebase)
       -- note: location is always lan when capturing from a local interface
       if (not devicestats.special_mac) and (devicestats.location == "lan") then
          local mac = devicestats.mac
@@ -2323,12 +2323,12 @@ end
 -- Check for alerts pushed by the datapath to an internal queue (from C)
 -- and store them (push them to the SQLite and Notification queues).
 -- NOTE: this is executed in a system VM, with no interfaces references
-function checkStoreAlertsFromC(deadline)
+function checkStoreAlertsFromC()
   if(not areAlertsEnabled()) then
     return
   end
 
-  while(os.time() <= deadline) do
+  while not ntop.isDeadlineApproaching() do
     local alert = ntop.popInternalAlerts()
 
     if alert == nil then

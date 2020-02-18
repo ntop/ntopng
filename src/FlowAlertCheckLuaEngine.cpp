@@ -23,7 +23,7 @@
 
 /* ****************************************** */
 
-FlowAlertCheckLuaEngine::FlowAlertCheckLuaEngine(NetworkInterface *iface) : AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, iface) {
+FlowAlertCheckLuaEngine::FlowAlertCheckLuaEngine(NetworkInterface *iface) : AlertCheckLuaEngine(alert_entity_flow, minute_script /* doesn't matter */, iface, NULL) {
   reset_stats();
 }
 

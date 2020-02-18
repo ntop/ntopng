@@ -19,16 +19,14 @@ local plugins_utils = require "plugins_utils"
 local now = os.time()
 local periodicity = 3
 
--- deadline is a global set from C
-
 -- Check for alerts from the datapath
-checkStoreAlertsFromC(deadline-1)
+checkStoreAlertsFromC()
 
 -- Check and possibly reload plugins
 plugins_utils.checkReloadPlugins(now)
 
 -- Check for alerts to be stored to SQLite
-alerts_api.checkPendingStoreAlerts(deadline)
+alerts_api.checkPendingStoreAlerts()
 
 lists_utils.checkReloadLists()
 

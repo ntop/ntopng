@@ -183,7 +183,7 @@ function top_talkers_utils.makeTopJson(_ifname)
       return nil
    end
 
-   local in_time = callback_utils.foreachHost(_ifname, os.time() + 50 --[[ seconds --]], function (hostname, hoststats)
+   local in_time = callback_utils.foreachHost(_ifname, function (hostname, hoststats)
       local checkpoint = interface.checkpointHostTalker(ifid, hostname)
       local tskey = hoststats["tskey"]
       local vlan = hoststats["vlan"]

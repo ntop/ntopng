@@ -7317,9 +7317,9 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
 
 /* *************************************** */
 
-void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
+void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p, lua_State* vm) {
   u_int32_t begin_slot = 0;
-  AlertCheckLuaEngine acle(alert_entity_host, p, this);
+  AlertCheckLuaEngine acle(alert_entity_host, p, this, vm);
 
   /* ... then iterate all hosts */
   walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &acle);
@@ -7327,8 +7327,8 @@ void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p) {
 
 /* *************************************** */
 
-void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
-  AlertCheckLuaEngine acle(alert_entity_network, p, this);
+void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p, lua_State* vm) {
+  AlertCheckLuaEngine acle(alert_entity_network, p, this, vm);
 
   /* ... then iterate all networks */
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
@@ -7345,8 +7345,8 @@ void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p) {
 
 /* *************************************** */
 
-void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p) {
-  AlertCheckLuaEngine acle(alert_entity_interface, p, this);
+void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p, lua_State* vm) {
+  AlertCheckLuaEngine acle(alert_entity_interface, p, this, vm);
 
   handle_entity_alerts(&acle, this);
 }
@@ -7538,8 +7538,8 @@ static bool host_release_engaged_alerts(GenericHashEntry *entity, void *user_dat
 /* *************************************** */
 
 void NetworkInterface::releaseAllEngagedAlerts() {
-  AlertCheckLuaEngine network_script(alert_entity_network, minute_script /* doesn't matter */, this);
-  AlertCheckLuaEngine host_script(alert_entity_host, minute_script /* doesn't matter */, this);
+  AlertCheckLuaEngine network_script(alert_entity_network, minute_script /* doesn't matter */, this, NULL);
+  AlertCheckLuaEngine host_script(alert_entity_host, minute_script /* doesn't matter */, this, NULL);
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -7549,7 +7549,7 @@ void NetworkInterface::releaseAllEngagedAlerts() {
 
   /* Interface */
   if(getNumTriggeredAlerts()) {
-    AlertCheckLuaEngine interface_script(alert_entity_interface, minute_script /* doesn't matter */, this);
+    AlertCheckLuaEngine interface_script(alert_entity_interface, minute_script /* doesn't matter */, this, NULL);
     lua_getglobal(interface_script.getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
     interface_script.pcall(0, 0);
   }

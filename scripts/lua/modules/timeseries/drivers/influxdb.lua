@@ -1037,7 +1037,7 @@ end
 
 -- ##############################################
 
-function driver:export(deadline)
+function driver:export()
    interface.select(getSystemInterfaceId())
 
    local num_ifaces = table.len(interface.getIfNames())

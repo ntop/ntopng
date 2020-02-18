@@ -57,7 +57,7 @@ end
 -- This is necessary both to avoid paying the database io cost inside
 -- the other scripts and as a necessity to avoid a deadlock on the
 -- host hash in the host.lua script
-function alerts_api.checkPendingStoreAlerts(deadline)
+function alerts_api.checkPendingStoreAlerts()
   if(not areAlertsEnabled()) then
     return(false)
   end
@@ -86,7 +86,7 @@ function alerts_api.checkPendingStoreAlerts(deadline)
       end
     end
 
-    if(os.time() > deadline) then
+    if ntop.isDeadlineApproaching() then
       return(false)
     end
   end

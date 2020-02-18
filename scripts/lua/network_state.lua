@@ -192,7 +192,7 @@ function network_state.check_bad_hosts_and_app()
   local function mycallback( hostname, hoststats )
       if  hoststats.is_blacklisted then blacklisted = blacklisted + 1  end
   end
-  callback.foreachHost(ifname, os.time()+5000, mycallback )
+  callback.foreachHost(ifname, mycallback)
 
   local j, breeds, tot, bytes = 1, {}, 0, 0
   for i,v in pairs(if_stats["ndpi"]) do

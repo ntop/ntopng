@@ -406,7 +406,7 @@ end
 -- ########################################################
 
 -- NOTE: this is executed every minute if ts_utils.hasHighResolutionTs() is true
-function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, verbose)
+function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
   local is_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
   local num_processed_hosts = 0
   local min_instant = when - (when % 60) - 60
@@ -418,7 +418,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, v
   if is_rrd_creation_enabled and config.host_rrd_creation ~= "0" then
      local is_one_way_hosts_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_one_way_hosts_rrd_creation") ~= "false")
 
-     local in_time = callback_utils.foreachLocalRRDHost(_ifname, time_threshold, true --[[ timeseries ]], is_one_way_hosts_rrd_creation_enabled, function (hostname, host_ts)
+     local in_time = callback_utils.foreachLocalRRDHost(_ifname, true --[[ timeseries ]], is_one_way_hosts_rrd_creation_enabled, function (hostname, host_ts)
       local host_key = host_ts.tskey
 
       if(dumped_hosts[host_key] == nil) then
@@ -467,7 +467,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, time_threshold, v
 
   if is_rrd_creation_enabled then
     if config.l2_device_rrd_creation ~= "0" then
-      local in_time = callback_utils.foreachDevice(_ifname, time_threshold, function (devicename, device)
+      local in_time = callback_utils.foreachDevice(_ifname, function (devicename, device)
         ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, verbose)
 
         if config.l2_device_ndpi_timeseries_creation == "per_category" then

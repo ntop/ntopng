@@ -94,11 +94,6 @@ local function getBatchedIterator(batched_function, field, function_params)
    end
 end
 
--- A batched iterator over the active flows
-function callback_utils.getFlowsIterator(...)
-   return getBatchedIterator(interface.getBatchedFlowsInfo, "flows", { ... })
-end
-
 -- A batched iterator over the local hosts with timeseries
 function callback_utils.getLocalHostsTsIterator(...)
    return getBatchedIterator(interface.getBatchedLocalHostsTs, "hosts", { ... })
@@ -126,35 +121,9 @@ end
 
 -- ########################################################
 
--- Iterates each active flow on the ifname interface.
--- Each flow is passed to the callback with some more information.
-function callback_utils.foreachFlow(ifname, deadline, callback, ...)
-   interface.select(ifname)
-
-   local iterator = callback_utils.getFlowsIterator({...})
-
-   for flow_key, flow in iterator do
-
-      if(ntop.isShutdown()) then return true end
-
-      if ((deadline ~= nil) and (os.time() >= deadline)) then
-	 -- Out of time
-	 return false
-      end
-
-      if callback(flow_key, flow) == false then
-	 return false
-      end
-   end
-
-   return true
-end
-
--- ########################################################
-
 -- Iterates each active host on the ifname interface for RRD creation.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachLocalRRDHost(ifname, deadline, with_ts, with_one_way_traffic_hosts, callback)
+function callback_utils.foreachLocalRRDHost(ifname, with_ts, with_one_way_traffic_hosts, callback)
    interface.select(ifname)
 
    local iterator
@@ -167,7 +136,7 @@ function callback_utils.foreachLocalRRDHost(ifname, deadline, with_ts, with_one_
 
    for hostname, host_ts in iterator do
       if(ntop.isShutdown()) then return true end
-      if ((deadline ~= nil) and (os.time() >= deadline)) then
+      if ntop.isDeadlineApproaching() then
 	 -- Out of time
 	 return false
       end
@@ -184,7 +153,7 @@ end
 
 -- Iterates each active host on the ifname interface.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachHost(ifname, deadline, callback)
+function callback_utils.foreachHost(ifname, callback)
    interface.select(ifname)
 
    local iterator = callback_utils.getHostsIterator(false --[[ no details ]])
@@ -192,7 +161,7 @@ function callback_utils.foreachHost(ifname, deadline, callback)
    for hostname, hoststats in iterator do
       if(ntop.isShutdown()) then return true end
 
-      if ((deadline ~= nil) and (os.time() >= deadline)) then
+      if ntop.isDeadlineApproaching() then
 	 -- Out of time
 	 return false
       end
@@ -209,7 +178,7 @@ end
 
 -- Iterates each active host on the ifname interface.
 -- Each host is passed to the callback with some more information.
-function callback_utils.foreachLocalHost(ifname, deadline, callback)
+function callback_utils.foreachLocalHost(ifname, callback)
    interface.select(ifname)
 
    local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
@@ -217,7 +186,7 @@ function callback_utils.foreachLocalHost(ifname, deadline, callback)
    for hostname, hoststats in iterator do
       if(ntop.isShutdown()) then return true end
 
-      if ((deadline ~= nil) and (os.time() >= deadline)) then
+      if ntop.isDeadlineApproaching() then
 	 -- Out of time
 	 return false
       end
@@ -232,7 +201,7 @@ end
 
 -- Iterates each device on the ifname interface.
 -- Each device is passed to the callback with some more information.
-function callback_utils.foreachDevice(ifname, deadline, callback)
+function callback_utils.foreachDevice(ifname, callback)
    interface.select(ifname)
 
    local devices_stats = callback_utils.getDevicesIterator()
@@ -241,7 +210,7 @@ function callback_utils.foreachDevice(ifname, deadline, callback)
       if(ntop.isShutdown()) then return true end
       devicename = hostinfo2hostkey(devicestats) -- make devicename the combination of mac address and vlan
 
-      if ((deadline ~= nil) and (os.time() >= deadline)) then
+      if ntop.isDeadlineApproaching() then
          -- Out of time
          return false
       end
@@ -256,13 +225,13 @@ end
 
 -- ########################################################
 
-function callback_utils.uploadTSdata(deadline)
+function callback_utils.uploadTSdata()
    local ts_utils = require("ts_utils_core")
    local drivers = ts_utils.listActiveDrivers()
    ts_utils.setup()
 
    for _, driver in ipairs(drivers) do
-      driver:export(deadline)
+      driver:export()
    end
 end
 -- ########################################################

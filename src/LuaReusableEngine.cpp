@@ -47,7 +47,7 @@ void LuaReusableEngine::reloadVm(time_t now) {
   }
 
   try {
-    vm = new LuaEngine();
+    vm = new LuaEngine(NULL);
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
 
