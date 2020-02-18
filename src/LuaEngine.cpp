@@ -823,9 +823,13 @@ static int ntop_get_ndpi_category_name(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_ndpi_protocol_category(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int proto;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   proto = (u_int)lua_tonumber(vm, 1);
@@ -834,7 +838,7 @@ static int ntop_get_ndpi_protocol_category(lua_State* vm) {
 
   lua_newtable(vm);
   lua_push_int32_table_entry(vm, "id", category);
-  lua_push_str_table_entry(vm, "name", (char*)ndpi_get_proto_name(ntop->get_ndpi_struct(), category));
+  lua_push_str_table_entry(vm, "name", (char*)ntop_interface->get_ndpi_category_name(category));
 
   return(CONST_LUA_OK);
 }
