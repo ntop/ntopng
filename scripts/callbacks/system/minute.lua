@@ -8,7 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local prefs_dump_utils = require "prefs_dump_utils"
 
 require "lua_utils"
+local ts_utils = require("ts_utils_core")
 local ts_dump = require "ts_min_dump_utils"
+
+ts_utils.checkAppendSlow()
 
 local prefs_changed = ntop.getCache("ntopng.prefs_changed")
 

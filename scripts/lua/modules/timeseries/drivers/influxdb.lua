@@ -1969,4 +1969,18 @@ end
 
 -- ##############################################
 
+function driver:isAppendSlow()
+   -- InfluxDB appends are handled in C and are never assumed to be slow
+   return false
+end
+
+-- ##############################################
+
+function driver:checkAppendSlow()
+   -- InfluxDB appends are handled in C and are never assumed to be slow
+   return
+end
+
+-- ##############################################
+
 return driver

@@ -22,6 +22,10 @@ local _ifname = ifstats.name
 
 -- ########################################################
 
+ts_utils.checkAppendSlow()
+
+-- ########################################################
+
 ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
 
 if interface.hasHighResTs() then

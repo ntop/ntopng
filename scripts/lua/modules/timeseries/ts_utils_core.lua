@@ -270,6 +270,30 @@ end
 
 -- ##############################################
 
+--! @brief Returns true when the append is slow (e.g., due to a slow disk)
+--! @return true if the append is slow, false otherwise
+function ts_utils.isAppendSlow()
+   for _, driver in pairs(ts_utils.listActiveDrivers()) do
+      if driver:isAppendSlow() then
+	 return true
+      end
+   end
+
+   return false
+end
+
+-- ##############################################
+
+--! @brief Returns true when the append is slow (e.g., due to a slow disk)
+--! @return true if the append is slow, false otherwise
+function ts_utils.checkAppendSlow()
+   for _, driver in pairs(ts_utils.listActiveDrivers()) do
+      driver:checkAppendSlow()
+   end
+end
+
+-- ##############################################
+
 -- Get some default options to use in queries.
 function ts_utils.getQueryOptions(overrides)
   return table.merge({

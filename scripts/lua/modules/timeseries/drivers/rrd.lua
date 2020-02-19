@@ -74,6 +74,7 @@ local HOST_PREFIX_MAP = {
   host_pool = "pool:",
 }
 local WILDCARD_TAGS = {protocol=1, category=1, l4proto=1}
+local MAX_AVG_APPEND_DURATION_MS = 20 -- Appends are considered slow if average is slower than this value
 
 local function get_fname_for_schema(schema, tags)
   if schema.options.rrd_fname ~= nil then
@@ -952,6 +953,34 @@ end
 
 function driver:setup(ts_utils)
   return true
+end
+
+-- ##############################################
+
+function driver:isAppendSlow()
+   -- InfluxDB appends are handled in C and are never assumed to be slow
+   return ntop.getCache("ntopng.cache.rrd.write.slow") == "1"
+end
+
+-- ##############################################
+
+function driver:checkAppendSlow()
+   -- Retrieve the stats for all the interface periodic activities (note that
+   -- this function can be called concurrently by multiple thread, each with a
+   -- different interface (already selected and available with interface.<something> methods
+   local periodic_scripts_stats = interface.getPeriodicActivitiesStats()
+
+   for ps_name, ps_stats in pairs(periodic_scripts_stats) do
+      if ps_stats["rrd"] and ps_stats["rrd"]["write"] then
+	 -- At least 10 calls to consider the average as significant
+	 if ps_stats["rrd"]["write"]["tot_calls"] > 10
+	 and ps_stats["rrd"]["write"]["avg_call_duration_ms"] >= MAX_AVG_APPEND_DURATION_MS then
+	    -- tprint({info = "ERROR", name = ps_name, ps_stats = ps_stats})
+	    ntop.setCache("ntopng.cache.rrd.write.slow", "1", 60 --[[ 1 min TTL --]])
+	    return
+	 end
+      end
+   end
 end
 
 -- ##############################################
