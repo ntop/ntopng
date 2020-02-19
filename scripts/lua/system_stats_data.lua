@@ -27,6 +27,10 @@ local info = {}
 if not ntop.isWindows() then
    local storage_info = storage_utils.storageInfo()
 
+   if not storage_info then
+      goto out
+   end
+
    local storage_items = {}
 
    local classes = { "primary", "info", "warning", "success", "secondary" }
@@ -101,6 +105,8 @@ if not ntop.isWindows() then
         "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.pcap_volume_dev..")</span><br />"..
         stackedProgressBars(storage_info.pcap_volume_size, storage_items, i18n("available"), bytesToSize)
    end
+
+   ::out::
 end
 
 print(json.encode(info, nil))

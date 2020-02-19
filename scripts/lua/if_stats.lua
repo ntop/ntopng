@@ -683,43 +683,45 @@ if((page == "overview") or (page == nil)) then
       local storage_info = storage_utils.interfaceStorageInfo(ifid)
       local storage_items = {}
 
-      if ts_utils.getDriverName() == "rrd" then
-	 if storage_info.rrd ~= nil and storage_info.rrd > 0 then
+      if storage_info then
+	 if ts_utils.getDriverName() == "rrd" then
+	    if storage_info.rrd ~= nil and storage_info.rrd > 0 then
+	       table.insert(storage_items, {
+			       title = i18n("if_stats_overview.rrd_timeseries"),
+			       value = storage_info.rrd,
+			       class = "primary",
+	       })
+	    end
+	 end
+
+	 if storage_info.flows ~= nil and storage_info.flows > 0 then
 	    table.insert(storage_items, {
-			    title = i18n("if_stats_overview.rrd_timeseries"),
-			    value = storage_info.rrd,
-			    class = "primary",
+			    title = i18n("flows"),
+			    value = storage_info.flows,
+			    class = "info",
 	    })
 	 end
-      end
 
-      if storage_info.flows ~= nil and storage_info.flows > 0 then
-	 table.insert(storage_items, {
-			 title = i18n("flows"),
-			 value = storage_info.flows,
-			 class = "info",
-	 })
-      end
+	 if storage_info.pcap ~= nil and storage_info.pcap > 0 then
+	    local link = nil
 
-      if storage_info.pcap ~= nil and storage_info.pcap > 0 then
-	 local link = nil
+	    if recording_utils.isAvailable(ifstats.id) then
+	       link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
+	    end
 
-	 if recording_utils.isAvailable(ifstats.id) then
-	    link = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. ifid .. "&page=traffic_recording"
+	    table.insert(storage_items, {
+			    title = i18n("traffic_recording.packet_dumps"),
+			    value = storage_info.pcap,
+			    class = "warning",
+			    link = link
+	    })
 	 end
 
-	 table.insert(storage_items, {
-			 title = i18n("traffic_recording.packet_dumps"),
-			 value = storage_info.pcap,
-			 class = "warning",
-			 link = link
-	 })
-      end
-
-      if #storage_items > 0 then
-	 print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=5>")
-	 print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
-	 print("</td></tr>\n")
+	 if #storage_items > 0 then
+	    print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=5>")
+	    print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
+	    print("</td></tr>\n")
+	 end
       end
    end
 

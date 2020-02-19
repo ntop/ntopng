@@ -20,15 +20,14 @@ local storage_utils = {}
 
 -- #################################
 
-function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume)
+-- Note: if refresh_cache is false, no disk access should be performed
+function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache)
   local info = { total = 0 }
   local key = "ntopng.cache."..ifid..".storage_info"
 
   local info_json = ntop.getCache(key)
 
-  if not isEmptyString(info_json) then
-    info = json.decode(info_json)
-  else
+  if refresh_cache then
     -- if ts_utils.getDriverName() == "rrd" then
       local rrd_storage_info = rrd_utils.storageInfo(ifid)
       info["rrd"] = rrd_storage_info.total
@@ -53,7 +52,11 @@ function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume)
     end
     -- end
 
-    ntop.setCache(key, json.encode(info), 60)
+    ntop.setCache(key, json.encode(info))
+  elseif not isEmptyString(info_json) then
+    info = json.decode(info_json)
+  else
+    info = nil
   end
 
   return info
@@ -61,14 +64,26 @@ end
 
 -- #################################
 
-function storage_utils.storageInfo()
+-- Note: if refresh_cache is false, no disk access should be performed
+function storage_utils.storageInfo(refresh_cache)
   local ifnames = interface.getIfNames()
   local info = { total = 0, pcap_total = 0, interfaces = {} }
   local volume_info
   local pcap_volume_info
   local separate_pcap_volume = false
+  local key = "ntopng.cache.system_storage_info"
 
-  local volume_info = recording_utils.volumeInfo(dirs.workingdir)
+  if(not refresh_cache) then
+    local info_json = ntop.getCache(key)
+
+    if not isEmptyString(info_json) then
+      return json.decode(info_json)
+    end
+
+    return nil
+  end
+
+  volume_info = recording_utils.volumeInfo(dirs.workingdir)
 
   if dirs.pcapdir ~= dirs.workingdir then
     pcap_volume_info = recording_utils.volumeInfo(dirs.pcapdir)
@@ -79,7 +94,7 @@ function storage_utils.storageInfo()
 
   for id, name in pairs(ifnames) do
     local ifid = tonumber(id)
-    local if_info = storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume)
+    local if_info = storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache)
     info.interfaces[ifid] = if_info
     info.total = info.total + if_info.total
     if if_info.pcap ~= nil then
@@ -97,6 +112,9 @@ function storage_utils.storageInfo()
     info.pcap_volume_size = pcap_volume_info.total
     info.pcap_volume_dev  = pcap_volume_info.dev
   end
+
+  -- Note: do not serialize the interfaces data, its already cached
+  ntop.setCache(key, json.encode(info))
 
   return info
 end
