@@ -29,6 +29,7 @@ class ThreadedActivity;
 typedef struct {
   ticks  tot_ticks, max_ticks;
   u_long tot_calls;
+  bool is_slow;
 } threaded_activity_rrd_stats_t;
 
 typedef struct {
@@ -44,6 +45,7 @@ class ThreadedActivityStats {
   threaded_activity_stats_t *ta_stats, *ta_stats_shadow;
   time_t start_time;
   const ThreadedActivity *threaded_activity;
+  static ticks tickspersec;
 
   void updateRRDStats(bool write, ticks cur_ticks);
   void luaRRDStats(lua_State *vm, bool write, threaded_activity_stats_t *cur_stats);
@@ -52,6 +54,7 @@ class ThreadedActivityStats {
   ThreadedActivityStats(const ThreadedActivity *ta);
   ~ThreadedActivityStats();
 
+  bool isRRDSlow() const;
   void updateRRDWriteStats(ticks cur_ticks);
   void updateRRDReadStats(ticks cur_ticks);
 

@@ -246,7 +246,7 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp)
     return false
   end
 
-  if((not schema.options.is_critical_ts) and ntop.isDeadlineApproaching()) then
+  if not schema.options.is_critical_ts and (ntop.isDeadlineApproaching() or ntop.rrd_is_slow()) then
     -- Do not write timeseries if the deadline is approaching.
     -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Deadline approaching... [".. schema.name .."]["..formatEpoch(ntop.getDeadline()).."]")
     return false
@@ -266,30 +266,6 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp)
   end
 
   return rv
-end
-
--- ##############################################
-
---! @brief Returns true when the append is slow (e.g., due to a slow disk)
---! @return true if the append is slow, false otherwise
-function ts_utils.isAppendSlow()
-   for _, driver in pairs(ts_utils.listActiveDrivers()) do
-      if driver:isAppendSlow() then
-	 return true
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
---! @brief Returns true when the append is slow (e.g., due to a slow disk)
---! @return true if the append is slow, false otherwise
-function ts_utils.checkAppendSlow()
-   for _, driver in pairs(ts_utils.listActiveDrivers()) do
-      driver:checkAppendSlow()
-   end
 end
 
 -- ##############################################

@@ -5230,6 +5230,20 @@ static int ntop_rrd_tune(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
+static int ntop_rrd_is_slow(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+  if(ctx && ctx->threaded_activity_stats)
+    lua_pushboolean(vm, ctx->threaded_activity_stats->isRRDSlow());
+  else
+    lua_pushboolean(vm, false);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 /* positional 1:4 parameters for ntop_rrd_fetch */
 static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *start, time_t *end) {
   char *start_s, *end_s, *err;
@@ -11754,12 +11768,13 @@ static const luaL_Reg ntop_reg[] = {
   { "networkPrefix",    ntop_network_prefix },
 
   /* RRD */
-  { "rrd_create",        ntop_rrd_create },
-  { "rrd_update",        ntop_rrd_update },
-  { "rrd_fetch",         ntop_rrd_fetch  },
+  { "rrd_create",        ntop_rrd_create        },
+  { "rrd_update",        ntop_rrd_update        },
+  { "rrd_fetch",         ntop_rrd_fetch         },
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
-  { "rrd_lastupdate",    ntop_rrd_lastupdate  },
-  { "rrd_tune",          ntop_rrd_tune  },
+  { "rrd_lastupdate",    ntop_rrd_lastupdate    },
+  { "rrd_tune",          ntop_rrd_tune          },
+  { "rrd_is_slow",       ntop_rrd_is_slow       },
 
   /* Prefs */
   { "getPrefs",          ntop_get_prefs },

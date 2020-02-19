@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+ticks ThreadedActivityStats::tickspersec = Utils::gettickspersec();
+
 /* ******************************************* */
 
 ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
@@ -39,6 +41,18 @@ ThreadedActivityStats::~ThreadedActivityStats() {
 
 /* ******************************************* */
 
+bool ThreadedActivityStats::isRRDSlow() const {
+  threaded_activity_stats_t *cur_stats = ta_stats;
+
+  if(cur_stats) {
+    return cur_stats->rrd.write.is_slow || cur_stats->rrd.read.is_slow;
+  }
+
+  return false;
+}
+
+/* ******************************************* */
+
 void ThreadedActivityStats::updateRRDStats(bool write, ticks cur_ticks) {
   threaded_activity_stats_t *cur_stats = ta_stats;
   threaded_activity_rrd_stats_t *rrd_stats;
@@ -49,6 +63,16 @@ void ThreadedActivityStats::updateRRDStats(bool write, ticks cur_ticks) {
     rrd_stats->tot_ticks += cur_ticks;
     rrd_stats->tot_calls += 1;
     if(cur_ticks > rrd_stats->max_ticks) rrd_stats->max_ticks = cur_ticks;
+
+    if(rrd_stats->tot_calls && !(rrd_stats->tot_calls % 10)) {
+      /* Evaluate the condition every 10 updates */
+      if(rrd_stats->tot_ticks / (float)tickspersec / rrd_stats->tot_calls * 1000 >= THREADED_ACTIVITY_STATS_SLOW_RRD_MS)
+	rrd_stats->is_slow = true;
+      else
+	rrd_stats->is_slow = false;
+
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Evaluated condition: [slow: %u]", rrd_stats->is_slow ? 1 : 0);
+    }
   }
 }
 
@@ -97,7 +121,6 @@ void ThreadedActivityStats::resetStats() {
 
 void ThreadedActivityStats::luaRRDStats(lua_State *vm, bool write, threaded_activity_stats_t *cur_stats) {
   threaded_activity_rrd_stats_t *rrd_stats;
-  ticks tickspersec = Utils::gettickspersec();
 
   if(cur_stats) {
     rrd_stats = write ? &cur_stats->rrd.write : &cur_stats->rrd.read;
