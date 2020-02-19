@@ -85,7 +85,7 @@ class ThreadedActivity {
   void setRunning(NetworkInterface *iface, bool running);
   bool isDeadlineApproaching(time_t deadline) const;
 
-  void lua(NetworkInterface *iface, lua_State *vm);
+  void lua(NetworkInterface *iface, lua_State *vm, bool reset_after_get);
 };
 
 #endif /* _THREADED_ACTIVITY_H_ */

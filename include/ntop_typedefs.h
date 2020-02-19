@@ -581,6 +581,7 @@ class Host;
 class Flow;
 class FlowAlertCheckLuaEngine;
 class ThreadedActivity;
+class ThreadedActivityStats;
 
 struct ntopngLuaContext {
   char *allowed_ifname, *user, *group;
@@ -627,6 +628,7 @@ struct ntopngLuaContext {
   /* Periodic scripts (ThreadedActivity.cpp) */
   time_t deadline;
   const ThreadedActivity *threaded_activity;
+  ThreadedActivityStats *threaded_activity_stats;
 };
 
 typedef enum {

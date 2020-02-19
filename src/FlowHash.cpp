@@ -112,7 +112,7 @@ void FlowHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data
   }
 
   /* Set the deadline from the currently executing VM */
-  if(acle) acle->setDeadline(data->vm);
+  if(acle) acle->setThreadedActivityData(data->vm);
 
   GenericHash::walkAllStates(walker, user_data);
 

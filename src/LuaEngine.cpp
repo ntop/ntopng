@@ -119,7 +119,7 @@ LuaEngine::LuaEngine(lua_State *vm) {
   lua_setglobal(L, "userdata");
 
   if(vm)
-    setDeadline(vm);
+    setThreadedActivityData(vm);
 }
 
 /* ******************************* */
@@ -5076,8 +5076,10 @@ static int ntop_rrd_create(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_rrd_update(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL;
   int status;
+  ticks ticks_duration;
 #ifdef WIN32
   struct _stat64 s;
 #else
@@ -5118,8 +5120,13 @@ static int ntop_rrd_update(lua_State* vm) {
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) %s", __FUNCTION__, filename, buf);
 
+    ticks_duration = Utils::getticks();
     reset_rrd_state();
     status = rrd_update_r(filename, NULL, 1, (const char**)&buf);
+    ticks_duration = Utils::getticks() - ticks_duration;
+
+    if(ctx && ctx->threaded_activity_stats)
+      ctx->threaded_activity_stats->updateRRDWriteStats(ticks_duration);
 
     if(status != 0) {
       char *err = rrd_get_error();
@@ -6273,9 +6280,12 @@ static int ntop_get_interface_hash_tables_stats(lua_State* vm) {
 
 static int ntop_get_interface_periodic_activities_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool reset_after_get = false;
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN) reset_after_get = lua_toboolean(vm, 1);
 
   if(ntop_interface)
-    ntop_interface->lua_periodic_activities_stats(vm);
+    ntop_interface->lua_periodic_activities_stats(vm, reset_after_get);
   else
     lua_pushnil(vm);
 
@@ -11269,8 +11279,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Function for the periodic update of hash tables stats (e.g., throughputs) */
   { "periodicStatsUpdate",      ntop_periodic_stats_update           },
 
-  /* Function to get the duration of periodic threaded activities */
-  { "getPeriodicActivitiesStats", ntop_get_interface_periodic_activities_stats },
+  /* Functions to get and reset the duration of periodic threaded activities */
+  { "getPeriodicActivitiesStats",   ntop_get_interface_periodic_activities_stats   },
 
 #ifndef HAVE_NEDGE
   { "processFlow",              ntop_process_flow },
@@ -12633,7 +12643,7 @@ void LuaEngine::setFlow(Flow* f) {
 
 /* ****************************************** */
 
-void LuaEngine::setDeadline(lua_State* from) {
+void LuaEngine::setThreadedActivityData(lua_State* from) {
   struct ntopngLuaContext *cur_ctx, *from_ctx;
   lua_State *cur_state = getState();
 
@@ -12642,17 +12652,19 @@ void LuaEngine::setDeadline(lua_State* from) {
      && (from_ctx = getLuaVMContext(from))) {
     cur_ctx->deadline = from_ctx->deadline;
     cur_ctx->threaded_activity = from_ctx->threaded_activity;
+    cur_ctx->threaded_activity_stats = from_ctx->threaded_activity_stats;
   }
 }
 
 /* ****************************************** */
 
-void LuaEngine::setDeadline(const ThreadedActivity *ta, time_t deadline) {
+void LuaEngine::setThreadedActivityData(const ThreadedActivity *ta, ThreadedActivityStats *tas, time_t deadline) {
   struct ntopngLuaContext *cur_ctx;
   lua_State *cur_state = getState();
 
   if((cur_ctx = getLuaVMContext(cur_state))) {
     cur_ctx->deadline = deadline;
     cur_ctx->threaded_activity = ta;
+    cur_ctx->threaded_activity_stats = tas;
   }
 }

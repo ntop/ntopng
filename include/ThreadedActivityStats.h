@@ -26,19 +26,40 @@
 
 class ThreadedActivity;
 
-class ThreadedActivityStats {
- private:
+typedef struct {
+  ticks  tot_ticks, max_ticks;
+  u_long tot_calls;
+} threaded_activity_rrd_stats_t;
+
+typedef struct {
   u_long max_duration_ms;
   u_long last_duration_ms;
+  struct {
+    threaded_activity_rrd_stats_t write, read;
+  } rrd;
+} threaded_activity_stats_t;
+
+class ThreadedActivityStats {
+ private:
+  threaded_activity_stats_t *ta_stats, *ta_stats_shadow;
   time_t start_time;
   const ThreadedActivity *threaded_activity;
+
+  void updateRRDStats(bool write, ticks cur_ticks);
+  void luaRRDStats(lua_State *vm, bool write, threaded_activity_stats_t *cur_stats);
   
  public:
   ThreadedActivityStats(const ThreadedActivity *ta);
   ~ThreadedActivityStats();
 
+  void updateRRDWriteStats(ticks cur_ticks);
+  void updateRRDReadStats(ticks cur_ticks);
+
   void updateStatsBegin(struct timeval *begin);
   void updateStatsEnd(u_long duration_ms);
+
+  void resetStats();
+
   void lua(lua_State *vm);
 };
 

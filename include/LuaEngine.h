@@ -36,6 +36,9 @@
  *
  */
 
+class ThreadedActivity;
+class ThreadedActivityStats;
+
 class LuaEngine {
  protected:
   lua_State *L; /**< The LuaEngine state.*/
@@ -64,9 +67,9 @@ class LuaEngine {
   void setFlow(Flow*f);
 
   /* Set the deadline into the Lua context from an existing vm */
-  void setDeadline(lua_State* from);
+  void setThreadedActivityData(lua_State* from);
   /* Set the deadline into the Lua context from a threaded activity and a deadline */
-  void setDeadline(const ThreadedActivity *ta, time_t deadline);
+  void setThreadedActivityData(const ThreadedActivity *ta, ThreadedActivityStats *tas, time_t deadline);
 
   inline Host* getHost()     { return(getLuaVMContext(L)->host); }
   inline NetworkInterface* getNetworkInterface() { return(getLuaVMContext(L)->iface); }

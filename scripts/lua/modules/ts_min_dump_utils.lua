@@ -175,9 +175,31 @@ end
 -- ########################################################
 
 function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
-   local periodic_scripts_stats = interface.getPeriodicActivitiesStats()
+   local periodic_scripts_stats = interface.getPeriodicActivitiesStats(true --[[ reset stats after get --]])
+   local to_stdout = ntop.getPref("ntopng.prefs.periodic_activities_stats_to_stdout") == "1"
 
    for ps_name, ps_stats in pairs(periodic_scripts_stats) do
+      if to_stdout then
+	 local cur_ifid = interface.getId()
+	 local cur_ifname
+	 local rrd_out
+
+	 if tostring(cur_ifid) == getSystemInterfaceId() then
+	    cur_ifname = getSystemInterfaceName()
+	 else
+	    cur_ifname = getInterfaceName(cur_ifid)
+	 end
+
+	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] then
+	    rrd_out = string.format("  [rrd.write.tot_calls: %i][rrd.write.avg_call_duration_ms: %.2f][rrd.write.max_call_duration_ms: %.2f]", ps_stats["rrd"]["write"]["tot_calls"], ps_stats["rrd"]["write"]["avg_call_duration_ms"], ps_stats["rrd"]["write"]["max_call_duration_ms"])
+	 end
+
+	 if rrd_out then
+	    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("[ifname: %s][ifid: %i][%s]", cur_ifname, cur_ifid, ps_name))
+	    traceError(TRACE_NORMAL, TRACE_CONSOLE, rrd_out)
+	 end
+      end
+
       local num_ms_last = 0
 
       if ps_stats["duration"] then

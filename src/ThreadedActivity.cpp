@@ -311,7 +311,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   }
 
   /* Set the deadline and the threaded activity in the vm so they can be accessed */
-  l->setDeadline(this, deadline);
+  l->setThreadedActivityData(this, getThreadedActivityStats(iface, true), deadline);
 
   gettimeofday(&begin, NULL);
   updateThreadedActivityStatsBegin(iface, &begin);
@@ -498,7 +498,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
 
 /* ******************************************* */
 
-void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
+void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm, bool reset_after_get) {
   ThreadedActivityStats *ta = getThreadedActivityStats(iface, false /* Do not allocate if missing */);
 
   if(ta) {
@@ -509,6 +509,9 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
     lua_pushstring(vm, path ? path : "");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
+
+    if(reset_after_get)
+      ta->resetStats();
   }
 }
 
