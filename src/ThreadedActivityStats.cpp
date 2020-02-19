@@ -28,7 +28,7 @@ ticks ThreadedActivityStats::tickspersec = Utils::gettickspersec();
 ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
   ta_stats = (threaded_activity_stats_t*)calloc(1, sizeof(*ta_stats));
   ta_stats_shadow = NULL;
-  start_time = 0;
+  last_start_time = in_progress_since = 0;
   threaded_activity = ta;
 }
 
@@ -91,7 +91,7 @@ void ThreadedActivityStats::updateRRDReadStats(ticks cur_ticks) {
 /* ******************************************* */
 
 void ThreadedActivityStats::updateStatsBegin(struct timeval *begin) {
-  start_time = begin->tv_sec;
+  in_progress_since = last_start_time = begin->tv_sec;
 }
 
 /* ******************************************* */
@@ -99,7 +99,7 @@ void ThreadedActivityStats::updateStatsBegin(struct timeval *begin) {
 void ThreadedActivityStats::updateStatsEnd(u_long duration_ms) {
   threaded_activity_stats_t *cur_stats = ta_stats;
 
-  start_time = 0;
+  in_progress_since = 0;
 
   if(cur_stats) {
     cur_stats->last_duration_ms = duration_ms;
@@ -162,7 +162,8 @@ void ThreadedActivityStats::lua(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  if(start_time) {
-    lua_push_uint64_table_entry(vm, "in_progress_since", start_time);
-  }
+  if(in_progress_since)
+    lua_push_uint64_table_entry(vm, "in_progress_since", in_progress_since);
+  if(last_start_time) 
+    lua_push_uint64_table_entry(vm, "last_start_time", last_start_time);
 }

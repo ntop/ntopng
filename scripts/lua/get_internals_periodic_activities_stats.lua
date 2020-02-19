@@ -121,6 +121,8 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       sort_to_key[k] = script_stats.script
    elseif(sortColumn == "column_in_progress_since") then
       sort_to_key[k] = -(script_stats.stats.in_progress_since or 0)
+   elseif(sortColumn == "column_last_start_time") then
+      sort_to_key[k] = -(script_stats.stats.last_start_time or 0)
    elseif(sortColumn == "column_name") then
       sort_to_key[k] = getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid))
    else
@@ -158,10 +160,13 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_ifid"] = string.format("%i", script_stats.ifid)
       record["column_time_perc"] = script_stats.stats.perc_duration
 
-      if script_stats.stats.in_progress_since and script_stats.stats.in_progress_since > 0 then
-	 record["column_in_progress_since"] = format_utils.formatEpoch(script_stats.stats.in_progress_since)
-      else
-	 record["column_in_progress_since"] = ''
+      for _, k in pairs({"in_progress_since", "last_start_time"}) do
+	 if script_stats.stats[k] and script_stats.stats[k] > 0 then
+	    record["column_"..k] = format_utils.formatEpochShort(0, 0, script_stats.stats[k])
+	    -- tprint({orig = script_stats.stats[k], k = k, v = format_utils.formatEpochShort(0, 0, script_stats.stats[k])})
+	 else
+	    record["column_"..k] = ''
+	 end
       end
 
       local utiliz = time_utilization(script_stats.stats)

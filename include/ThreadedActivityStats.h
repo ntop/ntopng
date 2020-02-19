@@ -43,7 +43,7 @@ typedef struct {
 class ThreadedActivityStats {
  private:
   threaded_activity_stats_t *ta_stats, *ta_stats_shadow;
-  time_t start_time;
+  time_t last_start_time, in_progress_since;
   const ThreadedActivity *threaded_activity;
   static ticks tickspersec;
 

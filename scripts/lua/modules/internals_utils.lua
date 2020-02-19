@@ -242,6 +242,14 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
+       title: "]] print(i18n("internals.last_start_time")) print[[",
+       field: "column_last_start_time",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '5%',
+       }
+     }, {
        title: "]] print(i18n("internals.in_progress_since")) print[[",
        field: "column_in_progress_since",
        sortable: true,

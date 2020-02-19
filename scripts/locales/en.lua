@@ -2165,6 +2165,7 @@ local lang = {
     ["iface_hash_tables"] = "%{iface} Hash Tables",
     ["iface_periodic_scripts"] = "%{iface} Periodic Activities",
     ["in_progress_since"] = "In Progress Since",
+    ["last_start_time"] = "Last Start",
     ["last_duration_ms"] = "Last Duration",
     ["last_num_calls"] = "Last Num Calls",
     ["lua"] = "Lua",
