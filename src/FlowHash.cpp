@@ -111,6 +111,9 @@ void FlowHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data
     getLuaVMUservalue(data->vm, flow_acle) = acle;
   }
 
+  /* Set the deadline from the currently executing VM */
+  if(acle) acle->setDeadline(data->vm);
+
   GenericHash::walkAllStates(walker, user_data);
 
   if(acle) {

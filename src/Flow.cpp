@@ -4378,11 +4378,10 @@ FlowLuaCallExecStatus Flow::performLuaCall(FlowLuaCall flow_lua_call, const stru
     return flow_lua_call_exec_status_not_executed_unknown_call;
   }
 
-  int num_args = 4;
+  int num_args = 3;
 
   /* Call the function */
   lua_getglobal(L, lua_call_fn_name); /* Called function */
-  lua_pushinteger(L, periodic_ht_state_update_user_data->deadline);
   lua_pushinteger(L, protocol);
   lua_pushinteger(L, ndpiDetectedProtocol.master_protocol);
   lua_pushinteger(L, ndpiDetectedProtocol.app_protocol);

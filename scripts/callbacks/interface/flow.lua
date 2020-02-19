@@ -234,7 +234,7 @@ end
 
 -- #################################################################
 
-local function in_time(deadline)
+local function in_time()
    -- Calling os.time() costs per call ~0.033 usecs so nothing expensive to be called every time
    --
    -- This is the code used to profile
@@ -247,8 +247,9 @@ local function in_time(deadline)
    -- local end_ticks = ntop.getticks()
    -- traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("usecs [ticks]: %.8f", (end_ticks - start_ticks) / ntop.gettickspersec() / num_calls * 1000 * 1000))
 
+
    local res
-   local time_left = deadline - os.time()
+   local time_left = ntop.getDeadline() - os.time()
 
    if time_left >= 4 then
       -- There's enough time to run every script
@@ -277,7 +278,7 @@ end
 -- @param app_id the L7 app protocol of the flow
 -- @param mod_fn the callback to call
 -- @return true if some module was called, false otherwise
-local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, update_ctr)
+local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    if calculate_stats then
       stats.num_invocations = stats.num_invocations + 1
    end
@@ -286,7 +287,7 @@ local function call_modules(deadline, l4_proto, master_id, app_id, mod_fn, updat
       return true
    end
 
-   if not in_time(deadline) then
+   if not in_time() then
       return false -- No time left to execute scripts
    end
 
@@ -478,24 +479,24 @@ end
 
 -- Given an L4 protocol, we must call both the hooks registered for that protocol and
 -- the hooks registered for any L4 protocol (id 255)
-function protocolDetected(deadline, l4_proto, master_id, app_id)
-   return call_modules(deadline, l4_proto, master_id, app_id, "protocolDetected")
+function protocolDetected(l4_proto, master_id, app_id)
+   return call_modules(l4_proto, master_id, app_id, "protocolDetected")
 end
 
 -- #################################################################
 
-function statusChanged(deadline, l4_proto, master_id, app_id)
-   return call_modules(deadline, l4_proto, master_id, app_id, "statusChanged")
+function statusChanged(l4_proto, master_id, app_id)
+   return call_modules(l4_proto, master_id, app_id, "statusChanged")
 end
 
 -- #################################################################
 
-function flowEnd(deadline, l4_proto, master_id, app_id)
-   return call_modules(deadline, l4_proto, master_id, app_id, "flowEnd")
+function flowEnd(l4_proto, master_id, app_id)
+   return call_modules(l4_proto, master_id, app_id, "flowEnd")
 end
 
 -- #################################################################
 
-function periodicUpdate(deadline, l4_proto, master_id, app_id, update_ctr)
-   return call_modules(deadline, l4_proto, master_id, app_id, "periodicUpdate", update_ctr)
+function periodicUpdate(l4_proto, master_id, app_id, update_ctr)
+   return call_modules(l4_proto, master_id, app_id, "periodicUpdate", update_ctr)
 end

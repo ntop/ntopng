@@ -12640,9 +12640,6 @@ void LuaEngine::setDeadline(lua_State* from) {
   if(from
      && (cur_ctx = getLuaVMContext(cur_state))
      && (from_ctx = getLuaVMContext(from))) {
-    lua_pushinteger(cur_state, from_ctx->deadline);
-    lua_setglobal(cur_state, "deadline");
-
     cur_ctx->deadline = from_ctx->deadline;
     cur_ctx->threaded_activity = from_ctx->threaded_activity;
   }
@@ -12655,9 +12652,6 @@ void LuaEngine::setDeadline(const ThreadedActivity *ta, time_t deadline) {
   lua_State *cur_state = getState();
 
   if((cur_ctx = getLuaVMContext(cur_state))) {
-    lua_pushinteger(cur_state, deadline);
-    lua_setglobal(cur_state, "deadline");
-
     cur_ctx->deadline = deadline;
     cur_ctx->threaded_activity = ta;
   }
