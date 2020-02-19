@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
-local ts_utils = require("ts_utils")
+local plugins_utils = require("plugins_utils")
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -88,6 +88,7 @@ end
 local res = {}
 local i = 0
 local sys_ifaceid = getSystemInterfaceId()
+local charts_available = plugins_utils.timeseriesCreationEnabled()
 
 for key in pairsByValues(sort_to_key, sOrder) do
   if i >= to_skip + perPage then
@@ -98,7 +99,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
     local chart = ""
     local value = commands_stats[key]
 
-    if(ts_utils.exists("redis:hits", {ifid=sys_ifaceid, command=key})) then
+    if(charts_available) then
       chart = '<a href="?page=historical&redis_command='..key..'&ts_schema=redis:hits"><i class=\'fas fa-chart-area fa-lg\'></i></a>'
     end
 

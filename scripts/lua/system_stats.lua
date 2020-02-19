@@ -8,7 +8,6 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local ts_utils = require("ts_utils")
 local plugins_utils = require("plugins_utils")
 local alert_consts = require("alert_consts")
 local internals_utils = require "internals_utils"
@@ -40,7 +39,7 @@ page_utils.print_navbar(title, url,
 			      label = "<i class=\"fas fa-home fa-lg\"></i>",
 			   },
 			   {
-			      hidden = not ts_creation or not ts_utils.exists("process:resident_memory", {ifid=getSystemInterfaceId()}),
+			      hidden = not ts_creation,
 			      active = page == "historical",
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",

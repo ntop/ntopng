@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local ts_utils = require("ts_utils")
 local alert_consts = require("alert_consts")
 local rtt_utils = require("rtt_utils")
 local plugins_utils = require("plugins_utils")
@@ -49,7 +48,7 @@ page_utils.print_navbar(title, url,
 			      label = "<i class=\"fas fa-lg fa-home\"></i>",
 			   },
 			   {
-			      hidden = not host or not ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host = host}),
+			      hidden = not host or not ts_creation,
 			      active = page == "historical",
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
@@ -391,6 +390,7 @@ elseif((page == "historical") and (host ~= nil)) then
    })
 elseif((page == "alerts") and isAdministrator()) then
    local old_ifname = ifname
+   local ts_utils = require("ts_utils")
    local influxdb = ts_utils.getQueryDriver()
    interface.select(getSystemInterfaceId())
 

@@ -13,7 +13,6 @@ end
 require "lua_utils"
 require "graph_utils"
 local page_utils = require("page_utils")
-local ts_utils = require"ts_utils"
 
 local info = ntop.getInfo(false)
 local vlan_id        = _GET["vlan"]
@@ -33,7 +32,7 @@ if vlan_id == nil or tonumber(vlan_id) == nil or tonumber(vlan_id) == 0 then
     return
 end
 
-if(not ts_utils.exists("vlan:traffic", {ifid=ifId, vlan=vlan_id})) then
+if(not areVlanTimeseriesEnabled(ifId)) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id, product=info["product"]}).."</div>")
 
 else

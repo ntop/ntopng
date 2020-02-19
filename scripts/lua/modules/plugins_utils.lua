@@ -653,13 +653,7 @@ end
 -- ##############################################
 
 function plugins_utils.timeseriesCreationEnabled()
-   local system_probes_timeseries_enabled = true
-
-   if ntop.getPref("ntopng.prefs.system_probes_timeseries") == "0" then
-      system_probes_timeseries_enabled = false
-   end
-
-   return system_probes_timeseries_enabled
+   return areSystemTimeseriesEnabled()
 end
 
 -- ##############################################

@@ -8,13 +8,12 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local ts_utils = require("ts_utils")
 local alert_consts = require("alert_consts")
 local plugins_utils = require("plugins_utils")
 require("graph_utils")
 require("alert_utils")
 
-local ts_creation = plugins_utils.timeseriesCreationEnabled()
+local charts_available = plugins_utils.timeseriesCreationEnabled()
 
 if not isAllowedSystemInterface() then
    return
@@ -42,7 +41,7 @@ page_utils.print_navbar("Redis", url,
 			      label = "<i class=\"fas fa-lg fa-wrench\"></i>",
 			   },
 			   {
-			      hidden = not ts_creation,
+			      hidden = not charts_available,
 			      active = page == "historical",
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
@@ -59,17 +58,14 @@ if(page == "overview") then
 
    print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_health").."</small></td><td></td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-health\"></span></td></tr>\n")
 
-   -- No need to determine whether the chart exists for this as memory is always fetched straigth from redis
-   local storage_chart_available = ts_creation and ts_utils.exists("redis:memory", tags)
    print("<tr><td nowrap width='30%'><b>".. i18n("about.ram_memory") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_ram_memory").."</small></td>")
    print("<td class='text-center' width=5%>")
-   print(ternary(storage_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:memory'><i class='fas fa-lg fa-chart-area'></i></A>", ""))
+   print(ternary(charts_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:memory'><i class='fas fa-lg fa-chart-area'></i></A>", ""))
    print("</td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-memory\"></span></td></tr>\n")
 
-   local keys_chart_available = ts_creation and ts_utils.exists("redis:keys", tags)
    print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.redis.redis_keys") .."</b><br><small>"..i18n("system_stats.redis.short_desc_redis_keys").."</small></td>")
    print("<td class='text-center' width=5%>")
-   print(ternary(keys_chart_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:keys'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
+   print(ternary(charts_available, "<A HREF='"..url.."&page=historical&ts_schema=redis:keys'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
    print("</td><td><img class=\"redis-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"redis-info-keys\"></span></td></tr>\n")
 
    print[[<script>
@@ -139,7 +135,7 @@ $("#table-redis-stats").datatable({
      }, {
        title: "]] print(i18n("chart")) print[[",
        field: "column_chart",
-       hidden: ]] if not ts_creation then print("true") else print("false") end print[[,
+       hidden: ]] if not charts_available then print("true") else print("false") end print[[,
        sortable: false,
        css: {
          textAlign: 'center',
@@ -160,7 +156,8 @@ $("#table-redis-stats").datatable({
 </script>
  ]]
    
-elseif(page == "historical" and ts_creation) then
+elseif(page == "historical" and charts_available) then
+   local ts_utils = require("ts_utils")
    local schema = _GET["ts_schema"] or "redis:memory"
    local selected_epoch = _GET["epoch"] or ""
    local tags = {ifid = getSystemInterfaceId(), command = _GET["redis_command"]}

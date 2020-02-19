@@ -3,7 +3,7 @@
 --
 
 require "os"
-local ts_utils = require("ts_utils")
+local ts_utils = require("ts_utils_core")
 
 local template = require "template_utils"
 
@@ -13,6 +13,7 @@ local info = ntop.getInfo(true)
 interface.select(ifname)
 local iface_id = interface.name2id(ifname)
 local _ifstats = interface.getStats()
+local ifid = _ifstats.id
 
 if not interface.isPcapDumpInterface() and not have_nedge then
    if(ifname ~= nil) then
@@ -95,11 +96,6 @@ print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-upt
 
 local traffic_peity_width = "64"
 
-local host_ts_mode = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
-if ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "1" then
-   host_ts_mode = "none"
-end
-
 if ts_utils.getDriverName() == "influxdb" then
    local msg = ntop.getCache("ntopng.cache.influxdb.last_error")
 
@@ -114,7 +110,7 @@ $("#influxdb-error-msg").show();
 end
 
 -- Only show the message if the host protocol/category timeseries are enabled
-local message_enabled = ((host_ts_mode ~= "none") and (host_ts_mode ~= "")) and
+local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTimeseriesEnabled(ifid)) and
    (ts_utils.getDriverName() ~= "influxdb") and
    (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
 
@@ -152,7 +148,7 @@ var footerRefresh = function() {
 	  url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/rest/get/interface/data.lua',
-	  data: { ifid: ]] print(tostring(getInterfaceId(ifname))) print[[ },
+	  data: { ifid: ]] print(tostring(ifid)) print[[ },
 	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]]
 print (ntop.getHttpPrefix())
 print [[/lua/logout.lua");  }, */
@@ -262,7 +258,7 @@ print [[/lua/flows_stats.lua?flow_status=alerted\">"
 		if(rsp.ts_alerts && rsp.ts_alerts.influxdb) {
 		  msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/plugins/influxdb_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=alerts#tab-table-engaged-alerts\">"
+print [[/plugins/influxdb_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
 		  msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-database\"></i></span></a>";
 		}
 
@@ -367,7 +363,7 @@ print(i18n("remote_assistance.remote_assistance")) print[[\">";
 		  status_label = "danger";
 		  status_title = "]] print(i18n("traffic_recording.failure")) print [[";
 		}
-		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=status\">";
+		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=status\">";
 		msg += "<span class=\"badge badge-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
 		msg += "<i class=\"fas fa-hdd fa-lg\"></i></span></a>";
 	    }
@@ -376,7 +372,7 @@ print(i18n("remote_assistance.remote_assistance")) print[[\">";
 		var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [[";
 		var status_label = "secondary";
 		if (rsp.traffic_extraction == "ready") status_label="primary";
-		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(getInterfaceId(ifname))) print[[&page=traffic_recording&tab=jobs\">";
+		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=jobs\">";
 		msg += "<span class=\"badge badge-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
 		msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></span></a>";
 	    }

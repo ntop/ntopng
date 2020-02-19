@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
-local ts_utils = require "ts_utils"
 local internals_utils = require "internals_utils"
 
 sendHTTPContentTypeHeader('application/json')
@@ -175,7 +174,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_periodic_activity_name"] = warn .. script_stats.script
 
       if iffilter then
-	 if ts_utils.exists("periodic_script:duration", {ifid = iffilter, periodic_script = script_stats.script}) then
+	 if areInternalTimeseriesEnabled(iffilter) then
 	    if iffilter == getSystemInterfaceId() then
 	       record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/system_periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
 	    else

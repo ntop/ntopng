@@ -18,7 +18,6 @@ require "discover_utils"
 require "mac_utils"
 
 local page_utils = require("page_utils")
-local ts_utils = require("ts_utils")
 
 local have_nedge = ntop.isnEdge()
 
@@ -132,7 +131,7 @@ page_utils.print_navbar(title, url,
 			      label = i18n("host_details.snmp"),
 			   },
 			   {
-			      hidden = not ts_utils.exists("mac:traffic", {ifid=ifId, mac = devicekey}),
+			      hidden = not areMacsTimeseriesEnabled(ifId),
 			      active = page == "historical",
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",

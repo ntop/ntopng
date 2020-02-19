@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
-local ts_utils = require("ts_utils")
 local rtt_utils = require("rtt_utils")
 local plugins_utils = require("plugins_utils")
 
@@ -22,6 +21,7 @@ local sortColumn    = _GET["sortColumn"]
 local sortOrder     = _GET["sortOrder"]
 local cont_filter_s = _GET["custom_hosts"]
 local rtt_host      = _GET["rtt_host"]
+local charts_available = plugins_utils.timeseriesCreationEnabled()
 
 local sortPrefs = "rtt_hosts"
 
@@ -94,7 +94,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
     local rtt_host = rtt_hosts[key]
     local chart = ""
 
-    if ts_utils.exists("monitored_host:rtt", {ifid=getSystemInterfaceId(), host=key}) then
+    if charts_available then
       chart = '<a href="'.. plugins_utils.getUrl('rtt_stats.lua') .. '?rtt_host='.. key ..'&page=historical"><i class="fas fa-chart-area fa-lg"></i></a>'
     end
 

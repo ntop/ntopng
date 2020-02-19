@@ -20,7 +20,6 @@ require "historical_utils"
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
-local ts_utils = require "ts_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
 local mud_utils = require "mud_utils"
@@ -44,8 +43,6 @@ local host_name   = hostinfo2hostkey(host_info)
 local host_vlan   = host_info["vlan"] or 0
 local always_show_hist = _GET["always_show_hist"]
 
-
-
 local ntopinfo    = ntop.getInfo()
 
 if not isEmptyString(_GET["ifid"]) then
@@ -57,6 +54,8 @@ end
 local ifstats = interface.getStats()
 
 ifId = ifstats.id
+
+local charts_available = areHostTimeseriesEnabled(ifId, host_info)
 
 local is_pcap_dump = interface.isPcapDumpInterface()
 
@@ -110,6 +109,8 @@ local labelKey      = host_info["host"].."@"..host_info["vlan"]
 local host_pool_id  = nil
 
 if (host ~= nil) then
+   charts_available = charts_available and host["localhost"]
+
    if (isAdministrator() and (_POST["pool"] ~= nil)) then
       host_pool_id = _POST["pool"]
       local prev_pool = tostring(host["host_pool_id"])
@@ -330,7 +331,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 			      },
 			      {
-				 hidden = not ts_utils.exists("host:traffic", {ifid = ifId, host = tskey}),
+				 hidden = not charts_available,
 				 active = page == "historical",
 				 page_name = "historical",
 				 label = "<i class='fas fa-lg fa-chart-area'></i>",
@@ -510,7 +511,7 @@ end
 if isScoreEnabled() then
    local score_chart = ""
 
-   if ts_utils.exists("host:score", {ifid=ifId, host=tskey}) then
+   if charts_available then
       score_chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/host_details.lua?page=historical&ifid='.. ifId ..
 	 '&host='.. hostinfo2hostkey(host_info) .. '&tskey=' .. tskey ..'&ts_schema=host:score"><i class="fas fa-chart-area fa-sm"></i></a>'
    end
@@ -1049,7 +1050,7 @@ print [[/lua/get_host_flow_stats.lua', { mode: "server_frequency", ifid: "]] pri
 
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
-	    if(ts_utils.exists("host:l4protos", {ifid=ifId, host=tskey, l4proto=k})) then
+	    if(charts_available) then
 	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:l4protos&l4proto=".. k .."\">".. label .."</A>")
 	    else
 	       print(label)

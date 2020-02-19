@@ -16,7 +16,6 @@ local page           = _GET["page"]
 
 interface.select(ifname)
 local ifId = getInterfaceId(ifname)
-local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -28,7 +27,7 @@ if(pod == nil) then
     return
 end
 
-if(not ts_utils.exists("pod:num_flows", {ifid=ifId, pod=pod})) then
+if(not areContainersTimeseriesEnabled(ifId)) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_data_available") .. "</div>")
     return
 end
@@ -41,7 +40,6 @@ local title = i18n("containers_stats.pod") .. ": "..pod
 page_utils.print_navbar(title, nav_url,
 			{
 			   {
-			      hidden = not ts_utils.exists("pod:num_flows", {ifid=ifId, pod=pod}),
 			      active = page == "historical" or not page,
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",

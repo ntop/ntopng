@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
-local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -98,7 +97,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       .."</a>"
    local chart = "-"
 
-   if ts_utils.exists("pod:num_flows", {ifid=ifId, pod=key}) then
+   if areContainersTimeseriesEnabled(ifId) then
       chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/pod_details.lua?pod='.. key ..'&page=historical"><i class="fas fa-chart-area fa-lg"></i></a>'
    end
 

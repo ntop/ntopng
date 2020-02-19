@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
-local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
 local custom_column_utils = require("custom_column_utils")
 local discover = require("discover_utils")
@@ -108,7 +107,7 @@ if (_GET["page"] ~= "historical") then
       network_name = getLocalNetworkAlias(network_key)
 
       if not isEmptyString(network_name) then
-         local charts_available = ts_utils.exists("subnet:traffic", {ifid=ifstats.id, subnet=network_key})
+         local charts_available = areInterfaceTimeseriesEnabled(ifstats.id)
 
          charts_icon = " <small><a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network="..
             network .. "&page=config'><i class='fas fa-sm fa-cog'></i></a>"
@@ -191,7 +190,7 @@ if (_GET["page"] ~= "historical") then
    end
 
    if(_GET["pool"] ~= nil) then
-      local charts_available = ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=ifstats.id, pool=_GET["pool"]}) and ntop.isPro()
+      local charts_available = areHostPoolsTimeseriesEnabled(ifstats.id)
       local pool_edit = ""
 
       if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) or (have_nedge) then

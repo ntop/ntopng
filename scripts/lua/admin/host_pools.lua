@@ -8,7 +8,6 @@ require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
 local template = require "template_utils"
-local ts_utils = require "ts_utils"
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -284,7 +283,7 @@ print('</select>')
 local no_pools = (#available_pools <= 1)
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-    if ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=ifId, pool=selected_pool.id}) then
+    if areHostPoolsTimeseriesEnabled(ifid) then
       print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fas fa-chart-area'></i></a>")
     end
 end

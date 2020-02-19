@@ -1,6 +1,5 @@
 require "lua_utils"
 require "graph_utils"
-local ts_utils = require "ts_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -28,9 +27,11 @@ function network2record(ifId, network)
 
    record["column_traffic"] = bytesToSize(network["bytes.sent"] + network["bytes.rcvd"])
 
-   record["column_chart"] = ""
-
-   record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network["network_id"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
+   if not areInterfaceTimeseriesEnabled(ifId) then
+      record["column_chart"] = ""
+   else
+      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network["network_id"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
+   end
 
    return record
 end

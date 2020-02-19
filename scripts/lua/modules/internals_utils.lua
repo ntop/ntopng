@@ -405,7 +405,7 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
       elseif print_user_scripts then tab = "user_scripts" end
    end
 
-   local ts_creation = ntop.getPref("ntopng.prefs.ifid_"..(ifid or getSystemInterfaceId())..".interface_rrd_creation") ~= "false"
+   local ts_creation = areInternalTimeseriesEnabled(ifid or getSystemInterfaceId())
 
    print[[<ul class="nav nav-tabs" role="tablist">]]
 

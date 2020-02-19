@@ -270,8 +270,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   check_macs_alerts(ifstats.id)
   check_host_pools_alerts(ifstats.id)
 
-  local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
-    and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
+  local iface_rrd_creation_enabled = areInterfaceTimeseriesEnabled(ifstats.id)
 
   if not iface_rrd_creation_enabled then
     return

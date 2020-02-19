@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "graph_utils"
-local ts_utils = require("ts_utils")
 
 local ifid = _GET["ifid"]
 
@@ -81,7 +80,7 @@ for _k in pairsByKeys(vals, asc) do
   local has_ndpi_proto = ntop.getCache(proto_cache_key)
 
   if has_ndpi_proto ~= "1" then
-    if ts_utils.exists("iface:ndpi", {ifid=ifid, protocol=k}) then
+    if areInterfaceL7TimeseriesEnabled(ifid) then
       has_ndpi_proto = "1"
       ntop.setCache(proto_cache_key, "1", 300)
     end

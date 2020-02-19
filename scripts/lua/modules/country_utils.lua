@@ -1,6 +1,4 @@
 require "lua_utils"
---require "graph_utils"
-local ts_utils = require "ts_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -31,7 +29,7 @@ function country2record(ifId, country)
 
    record["column_chart"] = ""
 
-   if ts_utils.exists("country:traffic", {ifid=ifId, country=country["country"]}) then
+   if areCountryTimeseriesEnabled(ifId) then
       record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/country_details.lua?country='..country["country"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
    end
 

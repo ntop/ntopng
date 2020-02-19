@@ -77,6 +77,7 @@ print [[
 			     title: "]] print(i18n("chart")) print[[",
 				 field: "column_chart",
 				 sortable: false,
+				 hidden: ]] print(ternary(areInterfaceTimeseriesEnabled(interface.getId()), "false", "true")) print[[,
                              css: {
 			        textAlign: 'center'
 			     }

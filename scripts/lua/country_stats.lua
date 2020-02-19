@@ -66,7 +66,7 @@ print [[
 					field: "column_chart",
 					sortable: false,]]
 
-local charts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
+local charts_enabled = areCountryTimeseriesEnabled(interface.getId())
 
 if not charts_enabled then
    print("hidden: true,\n")

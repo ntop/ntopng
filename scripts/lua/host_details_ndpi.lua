@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 require "historical_utils"
-local ts_utils = require("ts_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -91,7 +90,7 @@ for _k in pairsByKeys(vals , desc) do
   if filter_pass(host["ndpi"][k]) then
     print("<tr><td>")
 
-    if(ts_utils.exists("host:ndpi", {ifid=ifid, host=host_ip, protocol=k})) then
+    if(areHostL7TimeseriesEnabled(ifid, host)) then
       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:ndpi&protocol=".. k .."\">"..k.." "..formatBreed(host["ndpi"][k]["breed"]).."</A>")
     else
       print(k.." "..formatBreed(host["ndpi"][k]["breed"]))

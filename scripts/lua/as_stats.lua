@@ -64,6 +64,7 @@ print [[
                          {
 			     title: "]] print(i18n("chart")) print[[",
 				 field: "column_chart",
+				 hidden: ]] print(ternary(areASTimeseriesEnabled(interface.getId()), "false", "true")) print[[,
 				 sortable: false,
                              css: {
 			        textAlign: 'center'

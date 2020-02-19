@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "graph_utils"
-local ts_utils = require("ts_utils")
 
 local ifid = _GET["ifid"]
 
@@ -47,7 +46,7 @@ for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
      end
   end
 
-  if(ts_utils.exists("iface:ndpi_categories", {ifid=ifid, protocol=k})) then
+  if(areInterfaceCategoriesTimeseriesEnabled(ifid)) then
      if(not(json_format)) then
 	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&ts_schema=iface:ndpi_categories&category=".. k .."\">".. k .." </A>")
      else

@@ -6,7 +6,6 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
-local ts_utils = require("ts_utils")
 local discover = require("discover_utils")
 
 sendHTTPContentTypeHeader('text/html')
@@ -146,7 +145,7 @@ local function print_single_group(value)
       print(pool_name..'</A> " , ')
       print('"column_chart": "')
 
-      if (ntop.getCache("ntopng.prefs.host_pools_rrd_creation") == "1" and ts_utils.exists("host_pool:traffic", {ifid=getInterfaceId(ifname), pool=value["id"]})) then
+      if areHostPoolsTimeseriesEnabled(getInterfaceId(ifname)) then
          print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fas fa-chart-area fa-lg\'></i></A>')
       else
          print('')
@@ -157,7 +156,7 @@ local function print_single_group(value)
       print(value["id"]..'</A>", ')
       print('"column_chart": "')
 
-      if ts_utils.exists("asn:traffic", {ifid=getInterfaceId(ifname), asn=value["id"]}) then
+      if areASTimeseriesEnabled(getInterfaceId(ifname)) then
          print('<A HREF='..ntop.getHttpPrefix()..'/lua/as_details.lua?asn='..value["id"]..'&page=historical><i class=\'fas fa-chart-area fa-lg\'></i></A>')
       else
          print('')
@@ -209,10 +208,10 @@ local function print_single_group(value)
 
    --- TODO: name for VLANs?
    if ( group_col == "country" or country_n ~= nil) then
-      local charts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
+      local charts_enabled = areCountryTimeseriesEnabled(interface.getId())
       if(charts_enabled) then
          print("\"column_chart\" : \"")
-         if ts_utils.exists("country:traffic", {ifid=getInterfaceId(ifname), country=value["id"]}) then
+         if areCountryTimeseriesEnabled(getInterfaceId(ifname)) then
             print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/country_details.lua?country='..value["id"]..'&page=historical\'><i class=\'fas fa-chart-area fa-lg\'></i></A>')
          else
             print("-")

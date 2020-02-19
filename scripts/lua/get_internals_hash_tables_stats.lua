@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
-local ts_utils = require "ts_utils"
 local internals_utils = require "internals_utils"
 
 sendHTTPContentTypeHeader('application/json')
@@ -162,7 +161,7 @@ for key, _ in pairsByValues(sort_to_key, sOrder) do
       record["column_hash_table_name"] = warn .. htlabel
 
       if iffilter then
-	 if ts_utils.exists("ht:state", {ifid = iffilter, hash_table = htstats.ht}) then
+	 if areInternalTimeseriesEnabled(iffilter) then
 	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/hash_table_details.lua?hash_table='..htstats.ht..'\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
 	 end
       end

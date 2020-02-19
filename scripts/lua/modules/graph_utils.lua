@@ -12,7 +12,6 @@ local os_utils = require "os_utils"
 local have_nedge = ntop.isnEdge()
 
 local ts_utils = require("ts_utils")
-local ts_common = require("ts_common")
 
 -- ########################################################
 
@@ -67,6 +66,7 @@ local graph_colors = {
 function normalizeSeriesPoints(series)
   local max_count = 0
   local min_step = math.huge
+  local ts_common = require("ts_common")
 
   for _, serie in pairs(series) do
     max_count = math.max(max_count, #serie.series[1].data)

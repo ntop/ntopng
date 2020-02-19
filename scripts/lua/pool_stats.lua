@@ -78,7 +78,7 @@ print [[
             title: "]] print(i18n("chart")) print[[",
             field: "column_chart",
 ]]
-if not ntop.isPro() then
+if not ntop.isPro() or not areHostPoolsTimeseriesEnabled(interface.getId()) then
    print('hidden: true,')
 end
 print[[

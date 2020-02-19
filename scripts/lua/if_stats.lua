@@ -26,7 +26,7 @@ require "prefs_utils"
 require "graph_utils"
 require "alert_utils"
 require "db_utils"
-local ts_utils = require "ts_utils"
+
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
@@ -42,10 +42,28 @@ sendHTTPContentTypeHeader('text/html')
 page = _GET["page"]
 ifid = _GET["ifid"]
 
+-- parse interface names and possibly fall back to the selected interface:
+-- priority goes to the interface id
+if ifid ~= nil and ifid ~= "" then
+   if_name = getInterfaceName(ifid)
+else
+   -- fall-back to the default interface
+   if_name = ifname
+   ifid = interface.name2id(ifname)
+end
+
+interface.select(ifname)
+
 ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
+local is_packet_interface = interface.isPacketInterface()
+local is_pcap_dump = interface.isPcapDumpInterface()
+
+local ifstats = interface.getStats()
+
 local disaggregation_criterion_key = "ntopng.prefs.dynamic_sub_interfaces.ifid_"..tostring(ifid)..".mode"
+local charts_available = areInterfaceTimeseriesEnabled(ifid)
 
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class)
    if(can_edit) then
@@ -71,23 +89,6 @@ function inline_select_form(name, keys, values, curval)
    end
    print[[</select>]]
 end
-
--- parse interface names and possibly fall back to the selected interface:
--- priority goes to the interface id
-if ifid ~= nil and ifid ~= "" then
-   if_name = getInterfaceName(ifid)
-else
-   -- fall-back to the default interface
-   if_name = ifname
-   ifid = interface.name2id(ifname)
-end
-
-interface.select(ifname)
-
-local is_packet_interface = interface.isPacketInterface()
-local is_pcap_dump = interface.isPcapDumpInterface()
-
-local ifstats = interface.getStats()
 
 -- this is a user-browseable page, so we must return counters from
 -- the latest reset as the user may have chosen to reset statistics at some point
@@ -257,7 +258,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = i18n("arp"),
 			      },
 			      {
-				 hidden = not ts_utils.exists("iface:traffic", {ifid=ifid}),
+				 hidden = not charts_available,
 				 active = page == "historical",
 				 page_name = "historical",
 				 label = "<i class='fas fa-lg fa-chart-area'></i>",
@@ -505,10 +506,9 @@ if((page == "overview") or (page == nil)) then
    if (not hasAllowedNetworksSet()) and ((ifstats.num_alerts_engaged > 0) or (ifstats.num_dropped_alerts > 0)) then
       print("<tr>")
       local warning = "<i class='fas fa-exclamation-triangle fa-lg' style='color: #B94A48;'></i> "
-      local engaged_alerts_chart_available = ts_utils.exists("iface:engaged_alerts", tags)
 
       print("<th>".. ternary(ifstats.num_alerts_engaged > 0, warning, "") ..i18n("show_alerts.engaged_alerts")..
-	       ternary(engaged_alerts_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:engaged_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=2  nowrap><a href='".. ntop.getHttpPrefix() .."/lua/show_alerts.lua?ifid="..ifstats.id.."'>".. formatValue(ifstats.num_alerts_engaged) .."</a> <span id=engaged_alerts_trend></span></td>\n")
+	       ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:engaged_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=2  nowrap><a href='".. ntop.getHttpPrefix() .."/lua/show_alerts.lua?ifid="..ifstats.id.."'>".. formatValue(ifstats.num_alerts_engaged) .."</a> <span id=engaged_alerts_trend></span></td>\n")
       print("<th width=250>".. ternary(ifstats.num_dropped_alerts > 0, warning, "")..i18n("show_alerts.dropped_alerts")..
 	       "</th><td colspan=2>" .. formatValue(ifstats.num_dropped_alerts) .. " <span id=dropped_alerts_trend></span></td>\n</td>")
    end
@@ -543,32 +543,28 @@ if((page == "overview") or (page == nil)) then
    if(ifstats.zmqRecvStats ~= nil) then
       print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.zmq_rx_statistics").."</th></tr>\n")
 
-      local collected_flows_chart_available = ts_utils.exists("iface:zmq_recv_flows", tags)
-      print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows")..ternary(collected_flows_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
+      print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
 
       print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
 
       print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
 
-      local collected_msgs_chart_available = ts_utils.exists("iface:zmq_rcvd_msgs", tags)
-      print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd")..ternary(collected_msgs_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
+      print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
 
-      print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.zmq_message_drops")..ternary(collected_msgs_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
+      print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.zmq_message_drops")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
       print("<th nowrap> "..i18n("if_stats_overview.zmq_avg_msg_flows").."</th><td width=20%><span id=if_zmq_avg_msg_flows></span></td></tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
 
-   local traffic_chart_available = ts_utils.exists("iface:traffic", tags)
-   print("<tr><th nowrap>"..i18n("report.total_traffic")..ternary(traffic_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
+   print("<tr><th nowrap>"..i18n("report.total_traffic")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
 
    print("<span id=pkts_trend></span></td>")
 
    if not ifstats.isDynamic then
       print("<th width=20%><span id='if_packet_drops_drop'><i class='fas fa-tint' aria-hidden='true'></i></span> ")
 
-      local drops_chart_available = ts_utils.exists("iface:drops", tags)
-      print(i18n("if_stats_overview.dropped_packets")..ternary(drops_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
+      print(i18n("if_stats_overview.dropped_packets")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
 
       print("<td width=20% colspan=3><span id=if_drops>")
 
@@ -600,10 +596,8 @@ if((page == "overview") or (page == nil)) then
    print("</tr>")
 
    if(ifstats.has_traffic_directions) then
-      local txrx_chart_available = ts_utils.exists("iface:traffic_rxtx", tags)
-
-      print("<tr><th nowrap>"..i18n("http_page.traffic_sent")..ternary(txrx_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(ifstats.eth.egress.bytes).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
-      print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(txrx_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
+      print("<tr><th nowrap>"..i18n("http_page.traffic_sent")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(ifstats.eth.egress.bytes).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
+      print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
    end
   
    if not interface.isPacketInterface() then 
@@ -679,14 +673,13 @@ if((page == "overview") or (page == nil)) then
    end
 
    if ifstats.stats.discarded_probing_packets then
-      local discarded_probing_traffic_chart_available = ts_utils.exists("iface:disc_prob_pkts", tags)
-
-      print("<tr><td colspan=2></td><th nowrap> <i class='fas fa-trash' aria-hidden='true'></i> "..i18n("if_stats_overview.discarded_probing_traffic")..ternary(discarded_probing_traffic_chart_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:disc_prob_pkts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=4width=20%><span id=if_discarded_probing_bytes>"..bytesToSize(ifstats.stats.discarded_probing_bytes).."</span> [<span id=if_discarded_probing_pkts>".. formatPackets(ifstats.stats.discarded_probing_packets) .."</span>] ")
+      print("<tr><td colspan=2></td><th nowrap> <i class='fas fa-trash' aria-hidden='true'></i> "..i18n("if_stats_overview.discarded_probing_traffic")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:disc_prob_pkts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=4width=20%><span id=if_discarded_probing_bytes>"..bytesToSize(ifstats.stats.discarded_probing_bytes).."</span> [<span id=if_discarded_probing_pkts>".. formatPackets(ifstats.stats.discarded_probing_packets) .."</span>] ")
 
       print("<span id=if_discarded_probing_trend></span></td></tr>\n")
    end
 
    if isAdministrator() and ifstats.isView == false then
+      local ts_utils = require "ts_utils_core"
       local storage_info = storage_utils.interfaceStorageInfo(ifid)
       local storage_items = {}
 
@@ -1190,7 +1183,7 @@ elseif(page == "trafficprofiles") then
      local trimmed = trimSpace(pname)
      local statschart_icon = ''
 
-     if ts_utils.exists("profile:traffic", {ifid=ifid}) then
+     if areInterfaceTimeseriesEnabled(ifid) then
 	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..pname..'\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
      end
 

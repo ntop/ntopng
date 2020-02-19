@@ -3387,6 +3387,96 @@ end
 
 -- ###########################################
 
+local function arePerInterfaceTsEnabled(ifid)
+   if(ifid == nil) then
+      tprint(debug.traceback())
+   end
+
+   return(ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
+end
+
+-- NOTE: '~= "0"' is used for prefs which are enabled by default
+function areInterfaceTimeseriesEnabled(ifid)
+   return((ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0") and arePerInterfaceTsEnabled(ifid))
+end
+
+function areInterfaceL7TimeseriesEnabled(ifid)
+   return(areInterfaceTimeseriesEnabled(ifid) and
+      (ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation") ~= "per_category"))
+end
+
+function areInterfaceCategoriesTimeseriesEnabled(ifid)
+   local rv = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
+
+   -- note: categories are disabled by default
+   return(areInterfaceTimeseriesEnabled(ifid) and
+      ((rv == "per_category") or (rv == "both")))
+end
+
+function areHostTimeseriesEnabled(ifid)
+   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "0"))
+end
+
+function areHostL7TimeseriesEnabled(ifid)
+   local rv = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
+
+   -- note: host protocols are disabled by default
+   return(areHostTimeseriesEnabled(ifid) and
+      ((rv == "per_protocol") or (rv == "both")))
+end
+
+function areHostCategoriesTimeseriesEnabled(ifid)
+   local rv = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
+
+   -- note: host protocols are disabled by default
+   return(areHostTimeseriesEnabled(ifid) and
+      ((rv == "per_category") or (rv == "both")))
+end
+
+function areSystemTimeseriesEnabled()
+   return(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0")
+end
+
+function areHostPoolsTimeseriesEnabled(ifid)
+   return(arePerInterfaceTsEnabled(ifid) and ntop.isPro() and (ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1"))
+end
+
+function areASTimeseriesEnabled(ifid)
+   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1"))
+end
+
+function areInternalTimeseriesEnabled(ifid)
+   -- NOTE: no separate preference so far
+   return(arePerInterfaceTsEnabled(ifid) and areSystemTimeseriesEnabled())
+end
+
+function areCountryTimeseriesEnabled(ifid)
+   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"))
+end
+
+function areVlanTimeseriesEnabled()
+   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.vlan_rrd_creation") == "1"))
+end
+
+function areMacsTimeseriesEnabled(ifid)
+   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1"))
+end
+
+function areContainersTimeseriesEnabled(ifid)
+   -- NOTE: no separate preference so far
+   return(arePerInterfaceTsEnabled(ifid))
+end
+
+function areSnmpTimeseriesEnabled(device, port_idx)
+   return(ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1")
+end
+
+function areFlowdevTimeseriesEnabled(ifid, device)
+   return(ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1")
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

@@ -1396,12 +1396,11 @@ function toggleAlert(disable) {
       end
 
       local status_reset = (status == nil)
-      local ts_utils = require "ts_utils"
 
       if(has_engaged_alerts) then
 	 alert_items[#alert_items + 1] = {
 	    ["label"] = i18n("show_alerts.engaged_alerts"),
-	    ["chart"] = ternary(ts_utils.exists("iface:engaged_alerts", {ifid = ifid}), "iface:engaged_alerts", ""),
+	    ["chart"] = ternary(areInterfaceTimeseriesEnabled(ifid), "iface:engaged_alerts", ""),
 	    ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
       elseif status == "engaged" then
 	 status = nil; status_reset = 1

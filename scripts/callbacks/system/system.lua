@@ -30,7 +30,7 @@ function setup(str_granularity)
    ifid = interface.getId()
    local ifname = getInterfaceName(tostring(ifid))
 
-   system_ts_enabled = (ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0")
+   system_ts_enabled = areSystemTimeseriesEnabled()
 
    -- Load the threshold checking functions
    available_modules = user_scripts.load(ifid, user_scripts.script_types.system, "system", {
