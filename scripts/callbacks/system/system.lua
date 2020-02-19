@@ -60,6 +60,10 @@ function runScripts(granularity)
     return
   end
 
+  -- NOTE: currently no deadline check is explicitly performed here.
+  -- The "process:resident_memory" must always be written as it has the
+  -- is_critical_ts flag set.
+
   local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
   local suppressed_alerts = false
   local when = os.time()

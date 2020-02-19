@@ -62,6 +62,7 @@ ts_schema.supported_steps = {
 function ts_schema:new(name, options)
   options = options or {}
   options.metrics_type = options.metrics_type or ts_common.metrics.counter
+  --options.is_critical_ts : if true, this timeseries should be written even if ntop.isDeadlineApproaching()
 
   -- required options
   if not options.step then

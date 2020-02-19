@@ -246,10 +246,8 @@ function ts_utils.append(schema_name, tags_and_metrics, timestamp)
     return false
   end
 
-  if ntop.isDeadlineApproaching() then
+  if((not schema.options.is_critical_ts) and ntop.isDeadlineApproaching()) then
     -- Do not write timeseries if the deadline is approaching.
-    -- TODO: add a property `important` to the schema so that such schemas
-    -- can still be written even though the deadline is approaching
     -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Deadline approaching... [".. schema.name .."]["..formatEpoch(ntop.getDeadline()).."]")
     return false
   else
