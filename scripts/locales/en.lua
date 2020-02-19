@@ -3536,6 +3536,8 @@ local lang = {
     ["descr_influxdb_exports"] = "The total number of times ntopng has successfully written points into InfluxDB by <a href='%{exp_url}'>sending POST requests %{exp_fa}</a> to the /write endpoint.",
     ["descr_influxdb_ram_memory"] = "The <a href='%{mem_url}'>total memory %{mem_fa}</a> InfluxDB has obtained from the operating system to function.",
     ["descr_influxdb_storage_utilization"] = "The total disk space used by InfluxDB to store all the points. Used disk space also includes points automatically aggregated by means of <a target='_blank' href='%{cq_url}'>continuous queries %{cq_fa}</a>.",
+    ["disk_monitor"] = "Disk Monitor",
+    ["disk_monitor_description"] = "Monitors free disk space",
     ["dropped_points"] = "Dropped Points",
     ["export_failures"] = "Failed Exports",
     ["export_retries"] = "Retried Exports",

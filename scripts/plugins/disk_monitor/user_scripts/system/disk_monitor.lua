@@ -21,8 +21,8 @@ local script = {
   hooks = {},
 
   gui = {
-    i18n_title = "system_stats.redis.redis_monitor",
-    i18n_description = "system_stats.redis.redis_monitor_description",
+    i18n_title = "system_stats.disk_monitor",
+    i18n_description = "system_stats.disk_monitor_description",
   },
 }
 
