@@ -48,6 +48,9 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (ThreadedActivityState*) calloc(MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */, sizeof(ThreadedActivityState));
+  for(int i = 0; i < MAX_NUM_INTERFACE_IDS + 1; i++) {
+    interfaceTasksRunning[i] = threaded_activity_state_sleeping;
+  }
   threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */]();
   pool = _pool;
   setDeadlineApproachingSecs();
@@ -205,7 +208,12 @@ void ThreadedActivity::set_state_sleeping(NetworkInterface *iface) {
 /* ******************************************* */
 
 void ThreadedActivity::set_state_queued(NetworkInterface *iface) {
+  ThreadedActivityStats *ta_stats = getThreadedActivityStats(iface, true /* Allocate if missing */);
+
   set_state(iface, threaded_activity_state_queued);
+
+  if(ta_stats)
+    ta_stats->updateStatsQueuedTime(time(NULL));
 }
 
 /* ******************************************* */

@@ -43,7 +43,7 @@ typedef struct {
 class ThreadedActivityStats {
  private:
   threaded_activity_stats_t *ta_stats, *ta_stats_shadow;
-  time_t last_start_time, in_progress_since;
+  time_t last_start_time, in_progress_since, last_queued_time;
   const ThreadedActivity *threaded_activity;
   static ticks tickspersec;
 
@@ -58,6 +58,7 @@ class ThreadedActivityStats {
   void updateRRDWriteStats(ticks cur_ticks);
   void updateRRDReadStats(ticks cur_ticks);
 
+  void updateStatsQueuedTime(time_t queued_time);
   void updateStatsBegin(struct timeval *begin);
   void updateStatsEnd(u_long duration_ms);
 

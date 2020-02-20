@@ -29,6 +29,7 @@ ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
   ta_stats = (threaded_activity_stats_t*)calloc(1, sizeof(*ta_stats));
   ta_stats_shadow = NULL;
   last_start_time = in_progress_since = 0;
+  last_queued_time = 0;
   threaded_activity = ta;
 }
 
@@ -86,6 +87,12 @@ void ThreadedActivityStats::updateRRDWriteStats(ticks cur_ticks) {
 
 void ThreadedActivityStats::updateRRDReadStats(ticks cur_ticks) {
   updateRRDStats(false /* Read */, cur_ticks);
+}
+
+/* ******************************************* */
+
+void ThreadedActivityStats::updateStatsQueuedTime(time_t queued_time) {
+  last_queued_time = queued_time;
 }
 
 /* ******************************************* */
@@ -164,6 +171,10 @@ void ThreadedActivityStats::lua(lua_State *vm) {
 
   if(in_progress_since)
     lua_push_uint64_table_entry(vm, "in_progress_since", in_progress_since);
+
   if(last_start_time) 
     lua_push_uint64_table_entry(vm, "last_start_time", last_start_time);
+
+  if(last_queued_time)
+    lua_push_uint64_table_entry(vm, "last_queued_time", last_queued_time);
 }
