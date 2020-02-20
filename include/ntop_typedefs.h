@@ -441,6 +441,13 @@ typedef enum {
 } HashEntryState;
 
 typedef enum {
+  threaded_activity_state_unknown = -1,
+  threaded_activity_state_sleeping,
+  threaded_activity_state_queued,
+  threaded_activity_state_running,
+} ThreadedActivityState;
+
+typedef enum {
   device_proto_allowed = 0,
   device_proto_forbidden_master,
   device_proto_forbidden_app

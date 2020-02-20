@@ -99,8 +99,9 @@ void ThreadPool::run() {
       break;
     } else {
       Utils::setThreadName(q->script_path);
+      q->j->set_state_running(q->iface);
       q->j->runScript(q->script_path, q->iface, q->deadline);
-      q->j->setRunning(q->iface, false);
+      q->j->set_state_sleeping(q->iface);
       delete q;
     }
   }
@@ -118,8 +119,8 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
   if(isTerminating())
     return(false);
 
-  if(ta->isRunning(iface))
-    return(false); /* Task still running, don't re-queue it */
+  if(!ta->isQueueable(iface))
+    return(false); /* Task still running or already queued, don't re-queue it */
 
   q = new QueuedThreadData(ta, path, iface, deadline);
 
@@ -130,7 +131,7 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
 
   m->lock(__FILE__, __LINE__);
   threads.push(q);
-  ta->setRunning(iface, true);
+  ta->set_state_queued(iface);
   pthread_cond_signal(&condvar);
   m->unlock(__FILE__, __LINE__);
 

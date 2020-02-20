@@ -39,7 +39,7 @@ class ThreadedActivity {
   bool thread_started;
   bool systemTaskRunning;
   bool reuse_vm;
-  bool *interfaceTasksRunning;
+  ThreadedActivityState *interfaceTasksRunning;
   Mutex m;
   ThreadPool *pool;
   ThreadedActivityStats **threaded_activity_stats;
@@ -54,10 +54,14 @@ class ThreadedActivity {
   void uSecDiffPeriodicActivityBody();
   void schedulePeriodicActivity(ThreadPool *pool, time_t deadline);
   ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing);
+  ThreadedActivityState *getThreadedActivityState(NetworkInterface *iface) const;
   void updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin);
   void updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration);
   void reloadVm(const char *ifname);
   LuaEngine* loadVm(char *script_path, NetworkInterface *iface, time_t when);
+  void set_state(NetworkInterface *iface, ThreadedActivityState ta_state);
+  static const char* get_state_label(ThreadedActivityState ta_state);
+  ThreadedActivityState get_state(NetworkInterface *iface) const;
 
  public:
   ThreadedActivity(const char* _path,		   
@@ -81,8 +85,10 @@ class ThreadedActivity {
   void setNextVmReload(time_t when);
 
   void run();
-  bool isRunning(const NetworkInterface *iface) const;
-  void setRunning(NetworkInterface *iface, bool running);
+  void set_state_sleeping(NetworkInterface *iface);
+  void set_state_queued(NetworkInterface *iface);
+  void set_state_running(NetworkInterface *iface);
+  bool isQueueable(NetworkInterface *iface) const;
   bool isDeadlineApproaching(time_t deadline) const;
 
   void lua(NetworkInterface *iface, lua_State *vm, bool reset_after_get);

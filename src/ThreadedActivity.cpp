@@ -47,7 +47,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   reuse_vm = _reuse_vm;
   thread_started = false, systemTaskRunning = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
-  interfaceTasksRunning = (bool *) calloc(MAX_NUM_INTERFACE_IDS, sizeof(bool));
+  interfaceTasksRunning = (ThreadedActivityState*) calloc(MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */, sizeof(ThreadedActivityState));
   threaded_activity_stats = new (std::nothrow) ThreadedActivityStats*[MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */]();
   pool = _pool;
   setDeadlineApproachingSecs();
@@ -127,43 +127,102 @@ bool ThreadedActivity::isTerminating() {
 
 /* ******************************************* */
 
-bool ThreadedActivity::isRunning(const NetworkInterface *iface) const {
-  if(iface == ntop->getSystemInterface())
-    return systemTaskRunning;
-  else {
-    const int iface_id = iface->get_id();
+ThreadedActivityState *ThreadedActivity::getThreadedActivityState(NetworkInterface *iface) const {
+  if(iface) {
+    /* As the system interface has id -1, we add 1 to the offset to access the array.
+       The array is allocated in the constructor with MAX_NUM_INTERFACE_IDS + 1 to also
+       accomodate the system interface */
+    int stats_idx = iface->get_id() + 1;
 
-    if(iface_id >= 0 && iface_id < MAX_NUM_INTERFACE_IDS)
-      return interfaceTasksRunning[iface_id];
-    else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to determine whether a task is running [path: %s][iface: %s]", path, iface->get_name());
-  }
+    if(stats_idx >= 0 && stats_idx < MAX_NUM_INTERFACE_IDS + 1)
+      return &interfaceTasksRunning[stats_idx];
+    else {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Interface id too large. [path: %s][iface: %s]",
+				   path, iface->get_name());
+      return NULL;
+    }
+  } else
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. NULL interface.");
 
-  return false;
+  return NULL;
 }
 
 /* ******************************************* */
 
-void ThreadedActivity::setRunning(NetworkInterface *iface, bool running) {
-  if(iface == ntop->getSystemInterface()) {
-    if(systemTaskRunning != running)
-      systemTaskRunning = running;
-    else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. [path: %s][iface: %s][running: %u][requested: %u]",
-				   path, iface->get_name(), systemTaskRunning ? 1 : 0, running ? 1 : 0);
-  } else {
-    const int iface_id = iface->get_id();
-
-    if((iface_id >= 0) && (iface_id < MAX_NUM_INTERFACE_IDS)) {
-      if(interfaceTasksRunning[iface_id] != running)
-	interfaceTasksRunning[iface_id] = running;
-      else
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. [path: %s][iface: %s][running: %u][set: %u]",
-				     path, iface->get_name(), interfaceTasksRunning[iface_id] ? 1 : 0, running ? 1 : 0);
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set task running running [path: %s][iface: %s][running: %u]", path, iface->get_name(), running ? 1 : 0);
-    }
+const char* ThreadedActivity::get_state_label(ThreadedActivityState ta_state) {
+  switch(ta_state) {
+  case threaded_activity_state_sleeping:
+    return "sleeping";
+    break;
+  case threaded_activity_state_queued:
+    return "queued";
+    break;
+  case threaded_activity_state_running:
+    return "running";
+    break;
+  case threaded_activity_state_unknown:
+  default:
+    return "unknown";
+    break;
   }
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::set_state(NetworkInterface *iface, ThreadedActivityState ta_state) {
+  ThreadedActivityState *cur_state = getThreadedActivityState(iface);
+
+  if(cur_state) {
+    if((*cur_state == threaded_activity_state_queued
+	  && ta_state != threaded_activity_state_running)
+	 || (*cur_state == threaded_activity_state_running
+	     && ta_state != threaded_activity_state_sleeping))
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Invalid state transition. [path: %s][iface: %s]",
+				     path, iface->get_name());
+      /* Everything is OK, let's set the state. */
+      *cur_state = ta_state;
+  }
+}
+
+/* ******************************************* */
+
+ThreadedActivityState ThreadedActivity::get_state(NetworkInterface *iface) const {
+  ThreadedActivityState *cur_state = getThreadedActivityState(iface);
+
+  if(cur_state)
+    return *cur_state;
+
+  return threaded_activity_state_unknown;
+
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::set_state_sleeping(NetworkInterface *iface) {
+  set_state(iface, threaded_activity_state_sleeping);
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::set_state_queued(NetworkInterface *iface) {
+  set_state(iface, threaded_activity_state_queued);
+}
+
+/* ******************************************* */
+
+void ThreadedActivity::set_state_running(NetworkInterface *iface) {
+  set_state(iface, threaded_activity_state_running);
+}
+
+/* ******************************************* */
+
+bool ThreadedActivity::isQueueable(NetworkInterface *iface) const {
+  ThreadedActivityState *cur_state = getThreadedActivityState(iface);
+
+  if(cur_state && *cur_state == threaded_activity_state_sleeping)
+    return true;
+
+  return false;
 }
 
 /* ******************************************* */
@@ -275,7 +334,9 @@ void ThreadedActivity::runSystemScript() {
 	   ntop->get_callbacks_dir(), path);
 
   if(stat(script_path, &buf) == 0) {
+    set_state_running(ntop->getSystemInterface());
     runScript(script_path, ntop->getSystemInterface(), 0 /* No deadline */);
+    set_state_sleeping(ntop->getSystemInterface());
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
 }
@@ -505,6 +566,8 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm, bool reset_af
     lua_newtable(vm);
 
     ta->lua(vm);
+
+    lua_push_str_table_entry(vm, "state", get_state_label(get_state(iface)));
 
     lua_pushstring(vm, path ? path : "");
     lua_insert(vm, -2);
