@@ -1183,7 +1183,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     u_int16_t ip_len, ip_tot_len;
 
     /* IPv4 */
-    if(trusted_ip_len < 20) {
+    if((trusted_ip_len < 20)
+       || ((ip_len = iph->ihl * 4) == 0)) {
       incStats(ingressPacket,
 	       when->tv_sec, ETHERTYPE_IP,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
@@ -1191,8 +1192,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
-
-    ip_len = iph->ihl * 4;
+    
     ip_tot_len = ntohs(iph->tot_len);
 
     /* Use the actual h->len and not the h->caplen to determine
