@@ -441,15 +441,9 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_TLS:
-#if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> [client: %s][server: %s]",
-				 ndpiFlow->protos.stun_ssl.ssl.client_certificate,
-				 ndpiFlow->protos.stun_ssl.ssl.server_certificate);
-#endif
-
     if((protos.ssl.certificate == NULL)
-       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] != '\0')) {
-      protos.ssl.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_certificate);
+       && (ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name[0] != '\0')) {
+      protos.ssl.certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name);
 
       if(protos.ssl.certificate && (strncmp(protos.ssl.certificate, "www.", 4) == 0)) {
 	if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_TOR))
@@ -458,8 +452,8 @@ void Flow::processDetectedProtocol() {
     }
 
     if((protos.ssl.server_certificate == NULL)
-       && (ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] != '\0')) {
-      protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_certificate);
+       && (ndpiFlow->protos.stun_ssl.ssl.server_names != NULL)) {
+      protos.ssl.server_certificate = strdup(ndpiFlow->protos.stun_ssl.ssl.server_names);
     }
 
     if(check_tor) {
@@ -550,8 +544,8 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     if((proto_id.master_protocol == NDPI_PROTOCOL_TLS)
        && (get_packets() < NDPI_MIN_NUM_PACKETS)
        && (ndpiFlow)
-       && (ndpiFlow->protos.stun_ssl.ssl.client_certificate[0] == '\0'
-	   || ndpiFlow->protos.stun_ssl.ssl.server_certificate[0] == '\0')) {
+       && (ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name[0] == '\0'
+	   || ndpiFlow->protos.stun_ssl.ssl.server_names == NULL)) {
       /*
 	Should never be mangled directly, returning is enough.
        */

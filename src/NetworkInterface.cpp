@@ -165,7 +165,7 @@ NetworkInterface::NetworkInterface(const char *name,
     macs_hash = new MacHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     // init global detection structure
-    ndpi_struct = ndpi_init_detection_module();
+    ndpi_struct = ndpi_init_detection_module(ndpi_no_prefs);
     if(ndpi_struct == NULL) {
 
       exit(-1);
@@ -174,7 +174,6 @@ NetworkInterface::NetworkInterface(const char *name,
     if(ntop->getCustomnDPIProtos() != NULL)
       ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
-    ndpi_set_detection_preferences(ndpi_struct, ndpi_pref_http_dont_dissect_response, 1);
     /* 
        commit f2a5bbef173ee7f5447871f26024b9639735c096
        Author: Luca Deri <deri@ntop.org>
@@ -214,6 +213,9 @@ NetworkInterface::NetworkInterface(const char *name,
     countries_hash =  NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
   }
+
+  if(ndpi_struct != NULL)
+    ndpi_finalize_initalization(ndpi_struct);
 
   networkStats = NULL;
 
