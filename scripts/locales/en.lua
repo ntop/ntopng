@@ -2166,6 +2166,7 @@ local lang = {
     ["iface_periodic_scripts"] = "%{iface} Periodic Activities",
     ["in_progress_since"] = "In Progress Since",
     ["last_start_time"] = "Last Start",
+    ["last_start_time_ago"] = "%{time} ago",
     ["last_duration_ms"] = "Last Duration",
     ["last_num_calls"] = "Last Num Calls",
     ["lua"] = "Lua",

@@ -9,6 +9,7 @@ require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
 local internals_utils = require "internals_utils"
+local now = os.time()
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -162,8 +163,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       for _, k in pairs({"in_progress_since", "last_start_time"}) do
 	 if script_stats.stats[k] and script_stats.stats[k] > 0 then
-	    record["column_"..k] = format_utils.formatEpochShort(0, 0, script_stats.stats[k])
-	    -- tprint({orig = script_stats.stats[k], k = k, v = format_utils.formatEpochShort(0, 0, script_stats.stats[k])})
+	    record["column_"..k] = i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - script_stats.stats[k])})
+	    -- tprint({orig = script_stats.stats[k], k = k, v = record["column_"..k]})
 	 else
 	    record["column_"..k] = ''
 	 end
