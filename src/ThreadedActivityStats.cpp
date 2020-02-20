@@ -30,6 +30,7 @@ ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
   ta_stats_shadow = NULL;
   last_start_time = in_progress_since = 0;
   last_queued_time = 0;
+  last_duration_ms = max_duration_ms = 0;
   threaded_activity = ta;
   not_executed = is_slow = false;
 }
@@ -105,16 +106,10 @@ void ThreadedActivityStats::updateStatsBegin(struct timeval *begin) {
 /* ******************************************* */
 
 void ThreadedActivityStats::updateStatsEnd(u_long duration_ms) {
-  threaded_activity_stats_t *cur_stats = ta_stats;
-
   in_progress_since = 0;
-
-  if(cur_stats) {
-    cur_stats->last_duration_ms = duration_ms;
-
-    if(duration_ms > cur_stats->max_duration_ms)
-      cur_stats->max_duration_ms = duration_ms;
-  }
+  last_duration_ms = duration_ms;
+  if(duration_ms > max_duration_ms)
+    max_duration_ms = duration_ms;
 }
 
 /* ******************************************* */
@@ -154,8 +149,8 @@ void ThreadedActivityStats::lua(lua_State *vm) {
 
   lua_newtable(vm);
 
-  lua_push_uint64_table_entry(vm, "max_duration_ms", (u_int64_t)cur_stats->max_duration_ms);
-  lua_push_uint64_table_entry(vm, "last_duration_ms", (u_int64_t)cur_stats->last_duration_ms);
+  lua_push_uint64_table_entry(vm, "max_duration_ms", (u_int64_t)max_duration_ms);
+  lua_push_uint64_table_entry(vm, "last_duration_ms", (u_int64_t)last_duration_ms);
 
   lua_pushstring(vm, "duration");
   lua_insert(vm, -2);

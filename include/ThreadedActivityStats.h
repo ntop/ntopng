@@ -33,8 +33,6 @@ typedef struct {
 } threaded_activity_rrd_stats_t;
 
 typedef struct {
-  u_long max_duration_ms;
-  u_long last_duration_ms;
   struct {
     threaded_activity_rrd_stats_t write, read;
   } rrd;
@@ -45,6 +43,8 @@ class ThreadedActivityStats {
   threaded_activity_stats_t *ta_stats, *ta_stats_shadow;
   time_t last_start_time, in_progress_since, last_queued_time;
   const ThreadedActivity *threaded_activity;
+  u_long max_duration_ms;
+  u_long last_duration_ms;
   static ticks tickspersec;
   bool not_executed, is_slow;
 
