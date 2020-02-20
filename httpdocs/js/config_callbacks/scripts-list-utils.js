@@ -1362,7 +1362,8 @@ $(document).ready(function() {
    const truncate_string = (str, lim, strip_html = false) => {
 
       if (strip_html) {
-         return str.replace(/(<([^>]+)>)/ig,"").substr(0, lim) + '...';
+         let str_sub = str.replace(/(<([^>]+)>)/ig,"");
+         return (str_sub.length > lim) ? str_sub.substr(0, lim) + '...' : str_sub;
       }
 
       return (str.length > lim) ? str.substr(0, lim) + '...': str;
