@@ -45,7 +45,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   exclude_viewed_interfaces = _exclude_viewed_interfaces;
   exclude_pcap_dump_interfaces = _exclude_pcap_dump_interfaces;
   reuse_vm = _reuse_vm;
-  thread_started = false, systemTaskRunning = false;
+  thread_started = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (ThreadedActivityState*) calloc(MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */, sizeof(ThreadedActivityState));
   for(int i = 0; i < MAX_NUM_INTERFACE_IDS + 1; i++) {
@@ -521,7 +521,7 @@ void ThreadedActivity::periodicActivityBody() {
 
 /* This function enqueues the periodic activity job into the ThreadPool.
  * The ThreadPool, running into another thread, will dequeue the job and call
- * ThreadedActivity::runScript. The variables systemTaskRunning and interfaceTasksRunning
+ * ThreadedActivity::runScript. The variables interfaceTasksRunning
  * are used to ensure that only a single instance of the job is running for a given
  * NetworkInterface. */
 void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadline) {

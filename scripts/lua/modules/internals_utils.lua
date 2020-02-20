@@ -21,6 +21,7 @@ internals_utils.periodic_scripts_durations = {
    ["housekeeping.lua"]      =     3,
    ["discover.lua"]          =     5,
    ["timeseries.lua"]        =     5,
+   ["second.lua"]            =     1,
 }
 
 -- ###########################################
