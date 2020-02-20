@@ -55,7 +55,7 @@ if stats and available_fingerprints[fingerprint_type] then
 	 if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifid)) then
 	    print('<td align=left nowrap>'..value.app_name..'</td>')
 	 end
-	 print('<td align="right">'..value.num_uses..'</td>')
+	 print('<td align="right">'..formatValue(value.num_uses)..'</td>')
 	 print('</tr>\n')
       end
    end
