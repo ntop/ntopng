@@ -598,6 +598,7 @@
 
                     var c = sortList[i][0];
                     var order = sortList[i][1];
+
                     // var s = (getCachedSortType(table.config.parsers,c) == "text") ?
                     // ((order == 0) ? "sortText" : "sortTextDesc") : ((order == 0) ?
                     // "sortNumeric" : "sortNumericDesc");
@@ -750,6 +751,8 @@
                                 }
                                 // add column to sort list
                                 config.sortList.push([i, this.order]);
+
+
                                 // multi column sorting
                             } else {
                                 // the user has clicked on an all
@@ -856,7 +859,11 @@
                 widgets.push(widget);
             };
             this.formatFloat = function (s) {
-                var i = parseFloat(s);
+                // since the lua formatValue uses the comma notation to indicate numbers bigger than 1k
+                // and JS parseFloat function uses the comma to separate the integer part from decimal part
+                // then I remove all the commas from the string so parseFloat con works without any problem
+                const dot_notation = s.replace(/\,/, '');
+                var i = parseFloat(dot_notation);
                 return (isNaN(i)) ? 0 : i;
             };
             this.formatInt = function (s) {
