@@ -53,7 +53,6 @@ class ThreadedActivity {
   void aperiodicActivityBody();
   void uSecDiffPeriodicActivityBody();
   void schedulePeriodicActivity(ThreadPool *pool, time_t deadline);
-  ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing);
   ThreadedActivityState *getThreadedActivityState(NetworkInterface *iface) const;
   void updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin);
   void updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration);
@@ -61,7 +60,6 @@ class ThreadedActivity {
   LuaEngine* loadVm(char *script_path, NetworkInterface *iface, time_t when);
   void set_state(NetworkInterface *iface, ThreadedActivityState ta_state);
   static const char* get_state_label(ThreadedActivityState ta_state);
-  ThreadedActivityState get_state(NetworkInterface *iface) const;
 
  public:
   ThreadedActivity(const char* _path,		   
@@ -90,6 +88,9 @@ class ThreadedActivity {
   void set_state_running(NetworkInterface *iface);
   bool isQueueable(NetworkInterface *iface) const;
   bool isDeadlineApproaching(time_t deadline) const;
+  inline u_int32_t getPeriodicity() { return(periodicity); };
+  ThreadedActivityState get_state(NetworkInterface *iface) const;
+  ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing);
 
   void lua(NetworkInterface *iface, lua_State *vm, bool reset_after_get);
 };

@@ -89,6 +89,9 @@ void AlertsQueue::pushSlowPeriodicActivity(u_long msec_diff,
     u_long max_duration_ms, const char *activity_path) {
   ndpi_serializer *tlv;
 
+  if(ntop->getPrefs()->enableActivitiesDebug())
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Slow Activity: [%s][%s], took %u/%u ms", iface->get_name(), activity_path, msec_diff, max_duration_ms);
+
   if(ntop->getPrefs()->are_alerts_disabled())
     return;
 
@@ -102,6 +105,29 @@ void AlertsQueue::pushSlowPeriodicActivity(u_long msec_diff,
     ndpi_serialize_string_string(tlv, "path", activity_path);
 
     pushAlertJson("slow_periodic_activity", tlv);
+  }
+}
+
+/* **************************************************** */
+
+void AlertsQueue::pushNotExecutedPeriodicActivity(const char *activity_path, time_t pending_since) {
+  ndpi_serializer *tlv;
+
+  if(ntop->getPrefs()->enableActivitiesDebug())
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Activity not executed: [%s][%s], pending since %u", iface->get_name(), activity_path, pending_since);
+
+  if(ntop->getPrefs()->are_alerts_disabled())
+    return;
+
+  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
+
+  if (tlv) {
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
+
+    ndpi_serialize_string_int64(tlv, "pending_since", pending_since);
+    ndpi_serialize_string_string(tlv, "path", activity_path);
+
+    pushAlertJson("periodic_activity_not_executed", tlv);
   }
 }
 

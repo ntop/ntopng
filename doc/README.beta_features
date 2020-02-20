@@ -24,8 +24,8 @@ redis-cli set "ntopng.prefs.influxdb.print_queries" "1"
 ## [Debug] Log RRD operations to console
 redis-cli set "ntopng.prefs.rrd_debug_enabled" "1"
 
+## [Debug] Writes periodic activities duration and scheduling problems to the stdout
+redis-cli set "ntopng.prefs.periodic_activities_stats_to_stdout" "1"
+
 ## [Experimental] Hourly interfaces/hosts traffic delta charts
 redis-cli set "ntopng.prefs.enable_ts_deltas_writes" "1"
-
-## [Experimental] Writes periodic activities duration to the stdout every minute
-redis-cli set "ntopng.prefs.periodic_activities_stats_to_stdout" "1"

@@ -720,6 +720,18 @@ end
 
 -- ##############################################
 
+function alerts_api.periodicActivityNotExecuted(pending_since)
+  return({
+    alert_type = alert_consts.alert_types.periodic_activity_not_executed,
+    alert_severity = alert_consts.alert_severities.warning,
+    alert_type_params = {
+      pending_since = pending_since,
+    },
+  })
+end
+
+-- ##############################################
+
 function alerts_api.ipOutsideDHCPRangeType(router_info, mac, client_mac, sender_mac)
   return({
     alert_type = alert_consts.alert_types.alert_ip_outsite_dhcp_range,

@@ -235,11 +235,11 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
-       title: "]] print(i18n("internals.last_duration_ms")) print[[",
-       field: "column_last_duration",
+       title: "]] print(i18n("status")) print[[",
+       field: "column_status",
        sortable: true,
        css: {
-	 textAlign: 'right',
+	 textAlign: 'center',
 	 width: '5%',
        }
      }, {
@@ -251,8 +251,8 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
-       title: "]] print(i18n("internals.in_progress_since")) print[[",
-       field: "column_in_progress_since",
+       title: "]] print(i18n("internals.last_duration_ms")) print[[",
+       field: "column_last_duration",
        sortable: true,
        css: {
 	 textAlign: 'right',

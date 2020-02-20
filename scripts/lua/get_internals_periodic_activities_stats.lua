@@ -34,6 +34,20 @@ end
 
 -- ################################################
 
+local function status2label(status)
+   if status == "running" then
+      return([[<span class="badge badge-success">]] .. i18n("running") .. [[</span>]])
+   elseif status == "queued" then
+      return([[<span class="badge badge-warning">]] .. i18n("internals.queued") .. [[</span>]])
+   elseif status == "sleeping" then
+      return([[<span class="badge badge-secondary">]] .. i18n("internals.sleeping") .. [[</span>]])
+   else
+      return("")
+   end
+end
+
+-- ################################################
+
 if isEmptyString(sortColumn) or sortColumn == "column_" then
    sortColumn = getDefaultTableSort(sortPrefs)
 else
@@ -120,8 +134,8 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       sort_to_key[k] = script_stats.stats.duration.last_duration_ms
    elseif(sortColumn == "column_periodic_activity_name") then
       sort_to_key[k] = script_stats.script
-   elseif(sortColumn == "column_in_progress_since") then
-      sort_to_key[k] = -(script_stats.stats.in_progress_since or 0)
+   elseif(sortColumn == "column_status") then
+      sort_to_key[k] = stats.state
    elseif(sortColumn == "column_last_start_time") then
       sort_to_key[k] = -(script_stats.stats.last_start_time or 0)
    elseif(sortColumn == "column_name") then
@@ -161,19 +175,18 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_ifid"] = string.format("%i", script_stats.ifid)
       record["column_time_perc"] = script_stats.stats.perc_duration
 
-      for _, k in pairs({"in_progress_since", "last_start_time"}) do
-	 if script_stats.stats[k] and script_stats.stats[k] > 0 then
-	    record["column_"..k] = i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - script_stats.stats[k])})
-	    -- tprint({orig = script_stats.stats[k], k = k, v = record["column_"..k]})
-	 else
-	    record["column_"..k] = ''
-	 end
+      if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 then
+	 record["column_last_start_time"] = i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - script_stats.stats["last_start_time"])})
+	 -- tprint({orig = script_stats.stats[k], k = k, v = record["column_"..k]})
+      else
+	 record["column_last_start_time"] = ''
       end
 
       local utiliz = time_utilization(script_stats.stats)
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
       
       record["column_last_duration"] = last_duration
+      record["column_status"] = status2label(script_stats.stats.state)
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))
 

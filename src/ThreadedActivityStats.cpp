@@ -31,6 +31,7 @@ ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
   last_start_time = in_progress_since = 0;
   last_queued_time = 0;
   threaded_activity = ta;
+  not_executed = is_slow = false;
 }
 
 /* ******************************************* */
@@ -177,4 +178,10 @@ void ThreadedActivityStats::lua(lua_State *vm) {
 
   if(last_queued_time)
     lua_push_uint64_table_entry(vm, "last_queued_time", last_queued_time);
+
+  if(not_executed)
+    lua_push_bool_table_entry(vm, "not_excecuted", true);
+
+  if(is_slow)
+    lua_push_bool_table_entry(vm, "is_slow", true);
 }

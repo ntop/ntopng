@@ -2285,6 +2285,9 @@ local function processStoreAlertFromQueue(alert)
   elseif(alert.alert_type == "slow_periodic_activity") then
     entity_info = alerts_api.periodicActivityEntity(alert.path)
     type_info = alerts_api.slowPeriodicActivityType(alert.duration_ms, alert.max_duration_ms)
+  elseif(alert.alert_type == "periodic_activity_not_executed") then
+    entity_info = alerts_api.periodicActivityEntity(alert.path)
+    type_info = alerts_api.periodicActivityNotExecuted(alert.pending_since)
   elseif(alert.alert_type == "mac_ip_association_change") then
     if(ntop.getPref("ntopng.prefs.ip_reassignment_alerts") == "1") then
       local name = getSavedDeviceName(alert.new_mac)

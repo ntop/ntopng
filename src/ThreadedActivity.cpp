@@ -397,13 +397,18 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
 			       (((max_duration_ms > 0) && (msec_diff > max_duration_ms)) ? "SLOW" : "OK"));
 #endif
 
-  if((max_duration_ms > 0) &&
-     (msec_diff > 2*max_duration_ms) &&
-     /* These scripts are allowed to go beyong their max time */
-     (strcmp(path, HOUSEKEEPING_SCRIPT_PATH) != 0) &&
-     (strcmp(path, DISCOVER_SCRIPT_PATH) != 0) &&
-     (strcmp(path, TIMESERIES_SCRIPT_PATH) != 0))
-    iface->getAlertsQueue()->pushSlowPeriodicActivity(msec_diff, periodicity * 1e3, path);
+  if(getPeriodicity() == 1) {
+    /* Second is aperiodic, we need to trigger this here instead of ThreadPool::queueJob */
+    ThreadedActivityStats *stats = getThreadedActivityStats(iface, true);
+
+    if(stats) {
+      if((max_duration_ms > 0) && (msec_diff > 2*max_duration_ms)) {
+        stats->setSlowPeriodicActivity();
+        iface->getAlertsQueue()->pushSlowPeriodicActivity(msec_diff, max_duration_ms, script_path);
+      } else
+        stats->clearErrors();
+    }
+  }
 
   if(l && !reuse_vm)
     delete l;

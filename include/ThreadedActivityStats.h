@@ -46,6 +46,7 @@ class ThreadedActivityStats {
   time_t last_start_time, in_progress_since, last_queued_time;
   const ThreadedActivity *threaded_activity;
   static ticks tickspersec;
+  bool not_executed, is_slow;
 
   void updateRRDStats(bool write, ticks cur_ticks);
   void luaRRDStats(lua_State *vm, bool write, threaded_activity_stats_t *cur_stats);
@@ -54,6 +55,10 @@ class ThreadedActivityStats {
   ThreadedActivityStats(const ThreadedActivity *ta);
   ~ThreadedActivityStats();
 
+  inline time_t getLastQueueTime()   { return(last_queued_time); }
+  inline time_t getInProgressSince() { return(in_progress_since); }
+  inline time_t getLastStartTime()   { return(last_start_time); }
+
   bool isRRDSlow() const;
   void updateRRDWriteStats(ticks cur_ticks);
   void updateRRDReadStats(ticks cur_ticks);
@@ -61,6 +66,10 @@ class ThreadedActivityStats {
   void updateStatsQueuedTime(time_t queued_time);
   void updateStatsBegin(struct timeval *begin);
   void updateStatsEnd(u_long duration_ms);
+
+  void setNotExecutedAttivity()   { not_executed = true; }
+  void setSlowPeriodicActivity()  { is_slow = true;      }
+  inline void clearErrors()       { not_executed = false; is_slow = false; }
 
   void resetStats();
 

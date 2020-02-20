@@ -637,6 +637,7 @@
 #define DISAGGREGATION_INGRESS_VRF_ID                  "ingress_vrf_id"
 #define DISAGGREGATION_VLAN                            "vlan"
 #define DISAGGREGATION_NONE                            "none"
+#define CONST_ACTIVITIES_DEBUG_ENABLED                 NTOPNG_PREFS_PREFIX".periodic_activities_stats_to_stdout"
 #define CONST_FIELD_MAP_CACHE_KEY                      NTOPNG_CACHE_PREFIX".ifid_%d.field_map.pen_%u"
 #define CONST_FIELD_VALUE_MAP_CACHE_KEY                NTOPNG_CACHE_PREFIX".ifid_%d.field_value_map.pen_%u.field_%u"
 #ifdef NTOPNG_PRO
