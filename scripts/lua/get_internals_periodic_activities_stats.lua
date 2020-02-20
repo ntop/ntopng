@@ -167,7 +167,9 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local last_duration = script_stats.stats.duration.last_duration_ms
       local warn = ""
 
-      if(last_duration > max_duration) then
+      if(script_stats.stats["not_excecuted"]) then
+         warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.script_not_executed") .."\" style=\"color: #f0ad4e;\"></i> "
+      elseif(script_stats.stats["is_slow"]) then
          warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.script_deadline_exceeded") .."\" style=\"color: #f0ad4e;\"></i> "
       end
 

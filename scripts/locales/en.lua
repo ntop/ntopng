@@ -2186,6 +2186,7 @@ local lang = {
     ["queued"] = "Queued",
     ["script_deadline_exceeded"] = "The script has taken too much time to complete",
     ["script_duration"] = "%{script} Duration",
+    ["script_not_executed"] = "The script has been scheduled but has not been executed yet",
     ["script_num_calls"] = "%{script} Num Calls",
     ["script_stats"] = "%{script} vs Total",
     ["sleeping"] = "Sleeping",

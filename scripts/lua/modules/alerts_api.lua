@@ -722,7 +722,7 @@ end
 
 function alerts_api.periodicActivityNotExecuted(pending_since)
   return({
-    alert_type = alert_consts.alert_types.periodic_activity_not_executed,
+    alert_type = alert_consts.alert_types.alert_periodic_activity_not_executed,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       pending_since = pending_since,
