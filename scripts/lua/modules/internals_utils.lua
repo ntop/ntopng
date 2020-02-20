@@ -162,7 +162,7 @@ local function printPeriodicactivityDropdown(base_url, page_params)
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, periodic_activity_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
 
    for script, stats in pairsByKeys(interface.getPeriodicActivitiesStats(), asc) do
-      print[[ <li]] if periodic_activity == script then print(' class="active"') end print[[><a class="dropdown-item" href="]] periodic_activity_params["periodic_script"] = script; print(getPageUrl(base_url, periodic_activity_params)); print[[">]] print(script) print[[</a></li>\]]
+      print[[ <li><a class="dropdown-item ]] if periodic_activity == script then print('active') end print[[" href="]] periodic_activity_params["periodic_script"] = script; print(getPageUrl(base_url, periodic_activity_params)); print[[">]] print(script) print[[</a></li>\]]
    end
 end
 
@@ -406,29 +406,25 @@ end
 function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_activities, print_user_scripts)
    local tab = _GET["tab"]
 
-   if not tab then
-      -- Pick a default tab if no tab is available in the _GET
-      if print_hash_tables then tab = "hash_tables"
-      elseif print_periodic_activities then tab = "periodic_activities"
-      elseif print_user_scripts then tab = "user_scripts" end
-   end
-
    local ts_creation = areInternalTimeseriesEnabled(ifid or getSystemInterfaceId())
 
    print[[<ul class="nav nav-tabs" role="tablist">]]
 
    if print_hash_tables then
-      print[[<li class="nav-item ]] if tab == "hash_tables" then print[[active]] end print[[">
+      if not tab then tab = "hash_tables" end
+      print[[<li class="nav-item">
     <a class="nav-link ]] if tab == "hash_tables" then print[[active]] end print[[" href="?page=internals&tab=hash_tables]] print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>]]
    end
 
    if print_periodic_activities then
-      print[[<li class="nav-item ]] if tab == "periodic_activities" then print[[active]] end print[[">
+      if not tab then tab = "periodic_activities" end
+      print[[<li class="nav-item">
     <a class="nav-link ]] if tab == "periodic_activities" then print[[active]] end print[[" href="?page=internals&tab=periodic_activities"]] print[[">]] print(i18n("internals.periodic_activities")) print[[</a></li>]]
    end
 
    if print_user_scripts then
-      print[[<li class="nav-item ]] if tab == "user_scripts" then print[[active]] end print[[">
+      if not tab then tab = "user_scripts" end
+      print[[<li class="nav-item">
     <a class="nav-link ]] if tab == "user_scripts" then print[[active]] end print[[" href="?page=internals&tab=user_scripts"]] print[[">]] print(i18n("internals.user_scripts")) print[[</a></li>]]
    end
 
