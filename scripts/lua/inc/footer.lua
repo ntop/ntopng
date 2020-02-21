@@ -232,12 +232,19 @@ print[[
 		   var color = error_color;
 		   var label = error_label;
 
+		   if(rsp.degraded_performance) {
+		   msg += "<a href=\"]]
+print (ntop.getHttpPrefix())
+print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities\">"
+		    msg += "<span class=\"badge badge-warning\"><i class=\"fas fa-exclamation-triangle\"></i> ]] print(i18n("internals.degraded_performance")) print[[</span></a>";
+		   }
+
 		   if(rsp.engaged_alerts > 0) {
 		   msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua\">"
 
-		    msg += "<span class=\"badge " + label + "\">"+addCommas(rsp.engaged_alerts)+" <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+		    msg += "<span class=\"badge " + label + "\"><i class=\"fas fa-exclamation-triangle\"></i> "+addCommas(rsp.engaged_alerts)+"</span></a>";
 		   }
 
 		   if(rsp.alerted_flows > 0) {
@@ -332,7 +339,7 @@ print [[/lua/flows_stats.lua\">";
 		if(rsp.flow_export_drops > 0) {
 		   msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/if_stats.lua\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #B94A48;\"></i> <span class=\"badge badge-danger\">"+addCommas(rsp.flow_export_drops)+" Dropped flow";
+print [[/lua/if_stats.lua\"><span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+addCommas(rsp.flow_export_drops)+" Export drop";
 		   if(rsp.flow_export_drops > 1) msg += "s";
 
 		   msg += "</span></a>";

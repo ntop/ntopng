@@ -2183,6 +2183,7 @@ local lang = {
     ["num_missed_calls"] = "Num Missed Calls",
     ["pending_periodic_update"] = "Pending Periodic Update",
     ["pending_proto_detected"] = "Pending Proto Detected",
+    ["degraded_performance"] = "Degraded Performance",
     ["periodic_activities"] = "Periodic Activities",
     ["periodic_activities_not_shown"] = "This page only shows Periodic Activities which have been scheduled at least once from the program start",
     ["periodic_activity"] = "Periodic Activity",

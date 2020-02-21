@@ -286,7 +286,6 @@ local system_entries = {
    },
    {
       entry = page_utils.menu_entries.interfaces_status,
-      hidden = num_ifaces <= 1,
       url = '/lua/system_interfaces_stats.lua',
    },
 }
