@@ -414,7 +414,6 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
     if(stats) {
       if((max_duration_ms > 0) && (msec_diff > 2*max_duration_ms)) {
         stats->setSlowPeriodicActivity();
-        iface->getAlertsQueue()->pushSlowPeriodicActivity(msec_diff, max_duration_ms, script_path);
       } else
         stats->clearErrors();
     }
@@ -592,6 +591,7 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm, bool reset_af
     ta->lua(vm);
 
     lua_push_str_table_entry(vm, "state", get_state_label(get_state(iface)));
+    lua_push_uint64_table_entry(vm, "periodicity", getPeriodicity());
 
     lua_pushstring(vm, path ? path : "");
     lua_insert(vm, -2);

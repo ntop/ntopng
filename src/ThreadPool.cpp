@@ -125,27 +125,24 @@ static bool ignoreDeadlineExceeded(char *path) {
 bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface, time_t deadline) {
   QueuedThreadData *q;
   ThreadedActivityStats *stats = ta->getThreadedActivityStats(iface, true);
-  time_t now = time(NULL);
   
   if(isTerminating())
     return(false);
-
-  if(stats)
-    stats->clearErrors();
 
   if(!ta->isQueueable(iface)) {
     if(stats) {
       if(ta->get_state(iface) == threaded_activity_state_queued) {
         stats->setNotExecutedAttivity();
-        iface->getAlertsQueue()->pushNotExecutedPeriodicActivity(path, stats->getLastQueueTime());
       } else if((ta->get_state(iface) == threaded_activity_state_running) && !ignoreDeadlineExceeded(path)) {
         stats->setSlowPeriodicActivity();
-        iface->getAlertsQueue()->pushSlowPeriodicActivity((now - stats->getLastStartTime()) * 1e3, ta->getPeriodicity() * 1e3, path);
       }
     }
 
     return(false); /* Task still running or already queued, don't re-queue it */
   }
+
+  if(stats)
+    stats->clearErrors();
 
   q = new QueuedThreadData(ta, path, iface, deadline);
 
