@@ -29,7 +29,7 @@ ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
   ta_stats = (threaded_activity_stats_t*)calloc(1, sizeof(*ta_stats));
   ta_stats_shadow = NULL;
   last_start_time = in_progress_since = 0;
-  last_queued_time = 0;
+  last_queued_time = deadline = scheduled_time = 0;
   last_duration_ms = max_duration_ms = 0;
   threaded_activity = ta;
   num_not_executed = num_is_slow = 0;
@@ -188,4 +188,7 @@ void ThreadedActivityStats::lua(lua_State *vm) {
 
   if(isRRDSlow())
     lua_push_bool_table_entry(vm, "rrd_slow", true);
+
+  lua_push_uint64_table_entry(vm, "scheduled_time", scheduled_time);
+  lua_push_uint64_table_entry(vm, "deadline", deadline);
 }

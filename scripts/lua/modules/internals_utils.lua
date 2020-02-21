@@ -178,9 +178,9 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
 <ul>
    <li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
    <li>]] print(i18n("internals.status_description")) print[[</li><ul>
-      <li>]] print(i18n("internals.sleeping")) print[[: ]] print(i18n("internals.status_sleeping_descr")) print[[</li>
-      <li>]] print(i18n("internals.queued")) print[[: ]] print(i18n("internals.status_queued_descr")) print[[</li>
-      <li>]] print(i18n("running")) print[[: ]] print(i18n("internals.status_running_descr")) print[[</li>
+      <li><span class="badge badge-secondary">]] print(i18n("internals.sleeping")) print[[</span> ]] print(i18n("internals.status_sleeping_descr")) print[[</li>
+      <li><span class="badge badge-warning">]] print(i18n("internals.queued")) print[[</span> ]] print(i18n("internals.status_queued_descr")) print[[</li>
+      <li><span class="badge badge-success">]] print(i18n("running")) print[[</span> ]] print(i18n("internals.status_running_descr")) print[[</li>
    </ul>
 </ul>
 <script type='text/javascript'>
@@ -252,8 +252,24 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
+       title: "]] print("Expected Start Time") print[[",
+       field: "column_expected_start_time",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '5%',
+       }
+     }, {
        title: "]] print(i18n("internals.last_start_time")) print[[",
        field: "column_last_start_time",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print("Expected End Time") print[[",
+       field: "column_expected_end_time",
        sortable: true,
        css: {
 	 textAlign: 'right',
@@ -263,6 +279,15 @@ $("#table-internals-periodic-activities").datatable({
        title: "]] print(i18n("internals.last_duration_ms")) print[[",
        field: "column_last_duration",
        sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print("Work Completion") print[[",
+       field: "column_work_completion",
+       sortable: true,
+       hidden: true, // TODO
        css: {
 	 textAlign: 'right',
 	 width: '5%',

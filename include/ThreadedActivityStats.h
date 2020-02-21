@@ -43,10 +43,11 @@ class ThreadedActivityStats {
   threaded_activity_stats_t *ta_stats, *ta_stats_shadow;
   time_t last_start_time, in_progress_since, last_queued_time;
   const ThreadedActivity *threaded_activity;
-  u_long max_duration_ms, last_duration_ms;
   u_long num_not_executed, num_is_slow;
-  bool not_executed, is_slow;
+  u_long max_duration_ms, last_duration_ms;
+  time_t scheduled_time, deadline;
   static ticks tickspersec;
+  bool not_executed, is_slow;
 
   void updateRRDStats(bool write, ticks cur_ticks);
   void luaRRDStats(lua_State *vm, bool write, threaded_activity_stats_t *cur_stats);
@@ -69,7 +70,9 @@ class ThreadedActivityStats {
 
   void setNotExecutedAttivity()   { not_executed = true; num_not_executed++; }
   void setSlowPeriodicActivity()  { is_slow = true;      num_is_slow++;      }
-  inline void clearErrors()       { not_executed = false; is_slow = false;   }
+  inline void setScheduledTime(time_t t) { scheduled_time = t; }
+  inline void setDeadline(time_t t)      { deadline = t; }
+  inline void clearErrors()       { not_executed = false; is_slow = false; }
 
   void resetStats();
 

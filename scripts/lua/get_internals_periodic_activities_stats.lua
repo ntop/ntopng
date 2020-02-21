@@ -153,6 +153,7 @@ end
 
 local res = {}
 local i = 0
+local now = os.time()
 
 for key in pairsByValues(sort_to_key, sOrder) do
    if i >= to_skip + perPage then
@@ -165,6 +166,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       local max_duration = script_stats.stats.duration.max_duration_ms
       local last_duration = script_stats.stats.duration.last_duration_ms
+      local status = script_stats.stats.state
       local warn = ""
 
       if(script_stats.stats["not_excecuted"]) then
@@ -179,6 +181,47 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_ifid"] = string.format("%i", script_stats.ifid)
       record["column_time_perc"] = script_stats.stats.perc_duration
 
+      if status ~= "running" then
+         -- If sleeping/queued, when it should be run
+         local exp_start
+
+         if(status == "queued") then
+            exp_start = script_stats.stats.scheduled_time
+
+            if(exp_start > now) then
+               exp_start = format_utils.formatPastEpochShort(exp_start)
+            else
+               exp_start = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - exp_start)}) .. "</span>"
+            end
+         else --elseif(status == "sleeping") then
+            exp_start = script_stats.stats.deadline
+
+            if(exp_start < now) then
+               exp_start = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - exp_start)}) .. "</span>"
+            else
+               exp_start = format_utils.formatPastEpochShort(exp_start)
+            end
+         end
+
+         record["column_expected_start_time"] = exp_start
+         record["column_expected_end_time"] = " "
+      else
+         -- If running, when it should stop
+         local deadline = script_stats.stats.deadline
+
+         if(deadline > now) then
+            deadline = format_utils.formatPastEpochShort(deadline)
+         else
+            deadline = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - deadline)}) .. "</span>"
+         end
+
+         record["column_expected_start_time"] = " "
+         record["column_expected_end_time"] = deadline
+      end
+
+      -- TODO
+      record["column_work_completion"] = "90%"
+
       if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 then
 	 record["column_last_start_time"] = i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - script_stats.stats["last_start_time"])})
 	 -- tprint({orig = script_stats.stats[k], k = k, v = record["column_"..k]})
@@ -190,7 +233,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
       
       record["column_last_duration"] = last_duration
-      record["column_status"] = status2label(script_stats.stats.state)
+      record["column_status"] = status2label(status)
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))
 

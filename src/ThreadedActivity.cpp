@@ -412,6 +412,8 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
     ThreadedActivityStats *stats = getThreadedActivityStats(iface, true);
 
     if(stats) {
+      stats->setDeadline(time(NULL) + getPeriodicity());
+
       if((max_duration_ms > 0) && (msec_diff > 2*max_duration_ms)) {
         stats->setSlowPeriodicActivity();
       } else
@@ -509,6 +511,7 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
 
 void ThreadedActivity::periodicActivityBody() {
   u_int32_t next_run = (u_int32_t)time(NULL);
+  u_int32_t scheduled_time;
 
   next_run = Utils::roundTime(next_run, periodicity, align_to_localtime ? ntop->get_time_offset() : 0);
 
@@ -519,11 +522,12 @@ void ThreadedActivity::periodicActivityBody() {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
+      scheduled_time = next_run;
       next_run = Utils::roundTime(now, periodicity,
 				  align_to_localtime ? ntop->get_time_offset() : 0);
 
       if(!skipExecution(path))
-        schedulePeriodicActivity(pool, next_run /* next_run is now also the deadline of the current script */);
+        schedulePeriodicActivity(pool, scheduled_time, next_run /* next_run is now also the deadline of the current script */);
     }
 
     sleep(1);
@@ -539,7 +543,7 @@ void ThreadedActivity::periodicActivityBody() {
  * ThreadedActivity::runScript. The variables interfaceTasksRunning
  * are used to ensure that only a single instance of the job is running for a given
  * NetworkInterface. */
-void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadline) {
+void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t scheduled_time, time_t deadline) {
   /* Schedule per system / interface */
   char script_path[MAX_PATH];
 #ifdef WIN32
@@ -553,7 +557,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
 	   ntop->get_callbacks_dir(), path);
 
   if(stat(script_path, &buf) == 0) {
-    if(pool->queueJob(this, script_path, ntop->getSystemInterface(), deadline)) {
+    if(pool->queueJob(this, script_path, ntop->getSystemInterface(), scheduled_time, deadline)) {
 #ifdef THREAD_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
@@ -570,7 +574,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t deadlin
 
       if(iface
 	 && (iface->getIfType() != interface_type_PCAP_DUMP || !exclude_pcap_dump_interfaces)) {
-	if(pool->queueJob(this, script_path, iface, deadline)) {
+	if(pool->queueJob(this, script_path, iface, scheduled_time, deadline)) {
 #ifdef THREAD_DEBUG
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued interface job %s [%s]", script_path, iface->get_name());
 #endif
