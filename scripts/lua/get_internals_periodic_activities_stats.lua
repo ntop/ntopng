@@ -205,7 +205,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_ifid"] = string.format("%i", script_stats.ifid)
       record["column_time_perc"] = script_stats.stats.perc_duration
 
-      if(script_stats.stats.progress > 0) then
+      if script_stats.stats.progress and script_stats.stats.progress > 0 then
 	 record["column_progress"] = string.format("%i %%", script_stats.stats.progress)
       else
 	 -- For now prevent a 0 progress froms being erroneusly reported for unsupported activities
