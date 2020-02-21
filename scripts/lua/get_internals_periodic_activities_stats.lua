@@ -15,12 +15,13 @@ sendHTTPContentTypeHeader('application/json')
 
 -- ################################################
 
-local iffilter           = _GET["iffilter"]
-local periodic_script  = _GET["periodic_script"]
-local currentPage        = _GET["currentPage"]
-local perPage            = _GET["perPage"]
-local sortColumn         = _GET["sortColumn"]
-local sortOrder          = _GET["sortOrder"]
+local iffilter              = _GET["iffilter"]
+local periodic_script       = _GET["periodic_script"]
+local periodic_script_issue = _GET["periodic_script_issue"]
+local currentPage           = _GET["currentPage"]
+local perPage               = _GET["perPage"]
+local sortColumn            = _GET["sortColumn"]
+local sortOrder             = _GET["sortOrder"]
 
 local sortPrefs = "internals_periodic_activites_data"
 
@@ -124,6 +125,19 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       end
    end
 
+   if periodic_script_issue then
+      local cur_issue = script_stats.stats[periodic_script_issue]
+
+      if periodic_script_issue == "any_issue" then
+	 if not script_stats.stats["not_executed"] and not script_stats.stats["is_slow"] and not script_stats.stats["rrd_slow"] then
+	    goto continue
+	 end
+      elseif not cur_issue then
+	 goto continue
+      end
+      
+   end
+
    stats.duration.max_duration_ms = internals_utils.periodic_scripts_durations[script_stats.script] * 1000
    stats.perc_duration = stats.duration.last_duration_ms * 100 / (stats.duration.max_duration_ms)
    
@@ -167,14 +181,24 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local max_duration = script_stats.stats.duration.max_duration_ms
       local last_duration = script_stats.stats.duration.last_duration_ms
       local status = script_stats.stats.state
-      local warn = ""
+      local warn = {}
 
-      if(script_stats.stats["not_excecuted"]) then
-         warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.script_not_executed") .."\" style=\"color: #f0ad4e;\"></i> "
-      elseif(script_stats.stats["is_slow"]) then
-         warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.script_deadline_exceeded") .."\" style=\"color: #f0ad4e;\"></i> "
-      elseif(script_stats.stats["rrd_slow"]) then
-         warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.slow_rrd_writes") .."\" style=\"color: #f0ad4e;\"></i> "
+      if script_stats.stats["not_excecuted"] then
+	 warn[#warn + 1] = i18n("internals.script_not_executed_descr")
+      end
+
+      if script_stats.stats["is_slow"] then
+	 warn[#warn + 1] = i18n("internals.script_deadline_exceeded_descr")
+      end
+
+      if script_stats.stats["rrd_slow"] then
+	 warn[#warn + 1] = i18n("internals.slow_rrd_writes_descr")
+      end
+
+      if #warn > 0 then
+	 warn = string.format("<i class=\"fas fa-exclamation-triangle\" title=\"%s\" style=\"color: #f0ad4e;\"></i> ", table.concat(warn, "&#013;"))
+      else
+	 warn = ''
       end
 
       record["column_key"] = key

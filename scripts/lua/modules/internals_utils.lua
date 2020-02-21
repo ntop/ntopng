@@ -145,6 +145,37 @@ end
 
 -- ###########################################
 
+local function printPeriodicactivityIssuesDropdown(base_url, page_params)
+   local periodic_activity_issue = _GET["periodic_script_issue"]
+   local periodic_activity_issue_filter
+   if not isEmptyString(periodic_activity_issue) then
+      periodic_activity_issue_filter = '<span class="fas fa-filter"></span>'
+   else
+      periodic_activity_issue_filter = ''
+   end
+   local periodic_activity_issue_params = table.clone(page_params)
+   periodic_activity_issue_params["periodic_script_issue"] = nil
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.periodic_activity_issues")) print[[]] print(periodic_activity_issue_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\]]
+
+   print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, periodic_activity_issue_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
+
+   print[[ <li><a class="dropdown-item ]] if periodic_activity_issue == "any_issue" then print('active') end print[[" href="]] periodic_activity_issue_params["periodic_script_issue"] = "any_issue"; print(getPageUrl(base_url, periodic_activity_issue_params)); print[[">]] print(i18n("internals.any_periodic_activity_issue")) print[[</a></li>\]]
+
+   for issue, issue_i18n in pairsByKeys(
+      {
+	 ["not_executed"] = "internals.script_not_executed",
+	 ["is_slow"] = "internals.script_deadline_exceeded",
+	 ["rrd_slow"] = "internals.slow_rrd_writes"
+      }, asc) do
+      print[[ <li><a class="dropdown-item ]] if periodic_activity_issue == issue then print('active') end print[[" href="]] periodic_activity_issue_params["periodic_script_issue"] = issue; print(getPageUrl(base_url, periodic_activity_issue_params)); print[[">]] print(i18n(issue_i18n)) print[[</a></li>\]]
+   end
+end
+
+-- ###########################################
+
 local function printPeriodicactivityDropdown(base_url, page_params)
    local periodic_activity = _GET["periodic_script"]
    local periodic_activity_filter
@@ -170,7 +201,12 @@ end
 -- ###########################################
 
 local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
-   local page_params = {periodic_script = _GET["periodic_script"], tab = _GET["tab"], iffilter = ifid}
+   local page_params = {
+      periodic_script = _GET["periodic_script"],
+      periodic_script_issue = _GET["periodic_script_issue"],
+      tab = _GET["tab"],
+      iffilter = ifid
+   }
 
    print[[
 <div id="table-internals-periodic-activities"></div>
@@ -198,6 +234,10 @@ $("#table-internals-periodic-activities").datatable({
    -- Ip version selector
    print[['<div class="btn-group float-right">]]
    printPeriodicactivityDropdown(base_url, page_params)
+   print[[</div>',]]
+
+   print[['<div class="btn-group float-right">]]
+   printPeriodicactivityIssuesDropdown(base_url, page_params)
    print[[</div>']]
 
    print[[ ],

@@ -1237,6 +1237,7 @@ local known_parameters = {
    ["status"]                  = validateAlertStatus,           -- An alert type to filter
    ["hash_table"]              = validateSingleWord,            -- An internal ntopng hash_table
    ["periodic_script"]         = validateSingleWord,            -- A script under callbacks/interface executed by ntopng
+   ["periodic_script_issue"]   = validateSingleWord,            -- Script issues under callbacks/interface executed by ntopng
    ["user_script"]             = validateSingleWord,            -- A user script key
    ["user_script_target"]      = validateSingleWord,            -- A user script target, e.g., Flow, Host, Interface
    ["subdir"]                  = validateSingleWord,            -- A user script subdir
