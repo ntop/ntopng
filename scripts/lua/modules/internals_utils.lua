@@ -252,7 +252,7 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
-       title: "]] print("Expected Start Time") print[[",
+       title: "]] print(i18n("internals.expected_start_time")) print[[",
        field: "column_expected_start_time",
        sortable: true,
        css: {
@@ -268,7 +268,7 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
-       title: "]] print("Expected End Time") print[[",
+       title: "]] print(i18n("internals.expected_end_time")) print[[",
        field: "column_expected_end_time",
        sortable: true,
        css: {
@@ -284,10 +284,9 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
-       title: "]] print("Work Completion") print[[",
-       field: "column_work_completion",
+       title: "]] print(i18n("internals.work_completion")) print[[",
+       field: "column_progress",
        sortable: true,
-       hidden: true, // TODO
        css: {
 	 textAlign: 'right',
 	 width: '5%',

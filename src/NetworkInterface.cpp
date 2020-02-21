@@ -2533,14 +2533,22 @@ u_int32_t NetworkInterface::getFlowMaxIdle() {
 
 /* **************************************************** */
 
-void NetworkInterface::periodicStatsUpdate() {
+void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
 
   u_int32_t begin_slot;
   periodic_stats_update_user_data_t periodic_stats_update_user_data;
+  ThreadedActivityStats *thstats = NULL;
   struct timeval tv;
+
+  if(vm) {
+    struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+    if(ctx)
+      thstats = ctx->threaded_activity_stats;
+  }
 
   periodicUpdateInitTime(&tv);
   periodic_stats_update_user_data.tv = &tv;
@@ -2554,30 +2562,42 @@ void NetworkInterface::periodicStatsUpdate() {
     walker(&begin_slot, true, walker_flows, host_flow_update_stats, &periodic_stats_update_user_data);
   }
 
+  if(thstats) thstats->setCurrentProgress(40);
+
   if(hosts_hash) {
     begin_slot = 0;
     walker(&begin_slot, true, walker_hosts, host_flow_update_stats, &periodic_stats_update_user_data);
   }
+
+  if(thstats) thstats->setCurrentProgress(70);
 
   if(ases_hash) {
     begin_slot = 0;
     walker(&begin_slot, true, walker_ases, update_generic_element_stats, &periodic_stats_update_user_data);
   }
 
+  if(thstats) thstats->setCurrentProgress(75);
+
   if(countries_hash) {
     begin_slot = 0;
     walker(&begin_slot, true, walker_countries, update_generic_element_stats, &periodic_stats_update_user_data);
   }
+
+  if(thstats) thstats->setCurrentProgress(80);
 
   if(vlans_hash && hasSeenVlanTaggedPackets()) {
     begin_slot = 0;
     walker(&begin_slot, true, walker_vlans, update_generic_element_stats, &periodic_stats_update_user_data);
   }
 
+  if(thstats) thstats->setCurrentProgress(85);
+
   if(macs_hash) {
     begin_slot = 0;
     walker(&begin_slot, true, walker_macs, update_macs_stats, &periodic_stats_update_user_data);
   }
+
+  if(thstats) thstats->setCurrentProgress(90);
 
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->checkPoolsStatsReset();
@@ -2634,6 +2654,8 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats update done [took: %d]", tdebug.tv_sec - tdebug_init.tv_sec);
 #endif
+
+  if(thstats) thstats->setCurrentProgress(100);
 }
 
 /* **************************************************** */
@@ -2664,6 +2686,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 #endif
   struct timeval tv;
   periodic_ht_state_update_user_data_t periodic_ht_state_update_user_data;
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   GenericHash *ghs[] = {
 			!isView() ? flows_hash : NULL, /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
 			hosts_hash,
@@ -2673,6 +2696,11 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 			macs_hash
   };
   time_t update_end;
+
+  memset(&periodic_ht_state_update_user_data, 0, sizeof(periodic_ht_state_update_user_data));
+
+  if(ctx)
+    periodic_ht_state_update_user_data.thstats = ctx->threaded_activity_stats;
 
   /* Always use the current time to update the hash tables states, also when processing pcap dumps. This
      is necessary as hash table states changes and periodic lua scripts call assume the time flows normally. */
@@ -5311,7 +5339,7 @@ void NetworkInterface::runShutdownTasks() {
 
   /* Run the periodic stats update one last time so certain tasks can be properly finalized,
      e.g., all hosts and all flows can be marked as idle */
-  periodicStatsUpdate();
+  periodicStatsUpdate(NULL);
 
 #ifdef NTOPNG_PRO
   flushFlowDump();

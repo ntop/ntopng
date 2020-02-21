@@ -55,6 +55,7 @@ typedef enum {
 
 /* Struct used to pass parameters when walking hosts and flows periodically to update their stats */
 class AlertCheckLuaEngine;
+class ThreadedActivityStats;
 typedef struct {
   lua_State *vm;
   NetworkInterface *iface;
@@ -63,6 +64,9 @@ typedef struct {
   time_t deadline;
   bool no_time_left;
   bool skip_user_scripts;
+  ThreadedActivityStats *thstats;
+  u_int32_t cur_entries;
+  u_int32_t tot_entries;
 } periodic_ht_state_update_user_data_t;
 
 typedef struct {

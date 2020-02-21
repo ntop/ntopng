@@ -1982,9 +1982,9 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 /* *************************************** */
 
 void Flow::periodic_hash_entry_state_update(void *user_data) {
-  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
-  struct timeval *tv = periodic_ht_state_update_user_data->tv;
-  bool no_time_left = periodic_ht_state_update_user_data->no_time_left;
+  periodic_ht_state_update_user_data_t *htstats = (periodic_ht_state_update_user_data_t*)user_data;
+  struct timeval *tv = htstats->tv;
+  bool no_time_left = htstats->no_time_left;
 
   switch(get_state()) {
   case hash_entry_state_allocated:
@@ -2011,10 +2011,22 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
 
   /* Now that the states in the finite state machine have been moved forward, it is time to check and
      possibly perform lua calls on the flow. */
-  if(!periodic_ht_state_update_user_data->skip_user_scripts)
-    performLuaCalls(tv, periodic_ht_state_update_user_data);
+  if(!htstats->skip_user_scripts)
+    performLuaCalls(tv, htstats);
 
   GenericHashEntry::periodic_hash_entry_state_update(user_data);
+
+  /* NOTE: only count entries for which we don't skip_user_scripts */
+  if((!htstats->skip_user_scripts) && htstats->thstats && ((htstats->cur_entries % 128) == 0)) {
+    /* NOTE: need to also update the total entries as they may
+     * have changed since the last update */
+    htstats->tot_entries = get_hash_table()->getNumEntries() + get_hash_table()->getNumIdleEntries();
+
+    htstats->thstats->setCurrentProgress(
+      htstats->cur_entries * 100 / htstats->tot_entries);
+  }
+
+  htstats->cur_entries++;
 }
 
 /* *************************************** */

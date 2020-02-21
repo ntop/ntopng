@@ -33,6 +33,7 @@ ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
   last_duration_ms = max_duration_ms = 0;
   threaded_activity = ta;
   num_not_executed = num_is_slow = 0;
+  progress = 0;
   not_executed = is_slow = false;
 }
 
@@ -191,4 +192,5 @@ void ThreadedActivityStats::lua(lua_State *vm) {
 
   lua_push_uint64_table_entry(vm, "scheduled_time", scheduled_time);
   lua_push_uint64_table_entry(vm, "deadline", deadline);
+  lua_push_int32_table_entry(vm, "progress", progress);
 }

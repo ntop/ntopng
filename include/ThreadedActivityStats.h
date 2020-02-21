@@ -45,6 +45,7 @@ class ThreadedActivityStats {
   const ThreadedActivity *threaded_activity;
   u_long num_not_executed, num_is_slow;
   u_long max_duration_ms, last_duration_ms;
+  int progress;
   time_t scheduled_time, deadline;
   static ticks tickspersec;
   bool not_executed, is_slow;
@@ -73,6 +74,7 @@ class ThreadedActivityStats {
   inline void setScheduledTime(time_t t) { scheduled_time = t; }
   inline void setDeadline(time_t t)      { deadline = t; }
   inline void clearErrors()       { not_executed = false; is_slow = false; }
+  inline void setCurrentProgress(int _progress) { progress = min(max(_progress, 0), 100); }
 
   void resetStats();
 

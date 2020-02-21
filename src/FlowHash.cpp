@@ -119,6 +119,11 @@ void FlowHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data
   if(acle) {
     acle->lua_stats(getName(), data->vm);
 
+    if(data->thstats && (!data->skip_user_scripts)) {
+      /* Assume that all the user scripts have been executed */
+      data->thstats->setCurrentProgress(100);
+    }
+
     /* Prepare for the next run */
     acle->reset_stats();
   }

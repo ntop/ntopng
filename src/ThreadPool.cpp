@@ -129,11 +129,8 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
   if(isTerminating())
     return(false);
 
-  if(stats) {
+  if(stats)
     stats->clearErrors();
-    stats->setScheduledTime(scheduled_time);
-    stats->setDeadline(deadline);
-  }
 
   if(!ta->isQueueable(iface)) {
     if(stats) {
@@ -159,6 +156,11 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
   ta->set_state_queued(iface);
   pthread_cond_signal(&condvar);
   m->unlock(__FILE__, __LINE__);
+
+  if(stats) {
+    stats->setScheduledTime(scheduled_time);
+    stats->setDeadline(deadline);
+  }
 
   return(true); /*  TODO: add a max queue len and return false */
 }

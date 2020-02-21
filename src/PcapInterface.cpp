@@ -336,7 +336,7 @@ static void* packetPollLoop(void* ptr) {
     iface->set_read_from_pcap_dump_done();
     iface->processAllActiveFlows();
     iface->guessAllBroadcastDomainHosts();
-    iface->periodicStatsUpdate();
+    iface->periodicStatsUpdate(NULL);
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",

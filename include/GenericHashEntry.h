@@ -149,6 +149,8 @@ class GenericHashEntry {
    */
   void set_hash_table(GenericHash *gh) { hash_table = gh; };
 
+  inline GenericHash* get_hash_table() { return(hash_table); };
+
   /**
    * @brief Set and id to uniquely identify this
    * hash entry into the hash table (class GenericHash)

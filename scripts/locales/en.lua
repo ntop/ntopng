@@ -2159,6 +2159,8 @@ local lang = {
     ["all_periodic_activities"] = "All Periodic Activities",
     ["all_user_script_targets"] = "All User Script Targets",
     ["duration"] = "Duration",
+    ["expected_end_time"] = "Expected End Time",
+    ["expected_start_time"] = "Expected Start Time",
     ["flow_calls_stats"] = "flow.lua Calls Stats",
     ["flow_lua_duration"] = "flow.lua Duration",
     ["hash_entries"] = "Hash Entries",
@@ -2213,6 +2215,7 @@ local lang = {
     ["user_script"] = "User Script",
     ["user_script_target"] = "Target",
     ["user_scripts"] = "User Scripts",
+    ["work_completion"] = "Work Completion",
   },
   ["live_capture"] = {
     ["active_live_captures"] = "Live Captures",

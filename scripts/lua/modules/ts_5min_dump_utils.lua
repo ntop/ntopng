@@ -454,12 +454,25 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
         dumped_hosts[host_key] = true
       end
 
+      if((num_processed_hosts % 64) == 0) then
+        if((not ntop.isDeadlineApproaching()) and (not ntop.rrd_is_slow())) then
+          local num_local = interface.getNumLocalHosts() -- note: may be changed
+
+          interface.setPeriodicActivityProgress(num_processed_hosts * 100 / num_local)
+        end
+      end
+
       num_processed_hosts = num_processed_hosts + 1
     end)
 
     if not in_time then
        traceError(TRACE_ERROR, TRACE_CONSOLE, "[".. _ifname .." ]" .. i18n("error_rrd_cannot_complete_dump"))
       return false
+    end
+
+    if(in_time and (not ntop.isDeadlineApproaching()) and (not ntop.rrd_is_slow())) then
+      -- Here we assume that all the writes have completed successfully
+      interface.setPeriodicActivityProgress(100)
     end
   end
 

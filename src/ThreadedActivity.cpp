@@ -367,6 +367,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   u_long max_duration_ms = periodicity * 1e3;
   u_long msec_diff;
   struct timeval begin, end;
+  ThreadedActivityStats *thstats = getThreadedActivityStats(iface, true);
 
   if(!iface)
     return;
@@ -390,7 +391,10 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   }
 
   /* Set the deadline and the threaded activity in the vm so they can be accessed */
-  l->setThreadedActivityData(this, getThreadedActivityStats(iface, true), deadline);
+  l->setThreadedActivityData(this, thstats, deadline);
+
+  if(thstats)
+    thstats->setCurrentProgress(0);
 
   gettimeofday(&begin, NULL);
   updateThreadedActivityStatsBegin(iface, &begin);
@@ -409,15 +413,13 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
 
   if(getPeriodicity() == 1) {
     /* Second is aperiodic, we need to trigger this here instead of ThreadPool::queueJob */
-    ThreadedActivityStats *stats = getThreadedActivityStats(iface, true);
-
-    if(stats) {
-      stats->setDeadline(time(NULL) + getPeriodicity());
+    if(thstats) {
+      thstats->setDeadline(time(NULL) + getPeriodicity());
 
       if((max_duration_ms > 0) && (msec_diff > 2*max_duration_ms)) {
-        stats->setSlowPeriodicActivity();
+        thstats->setSlowPeriodicActivity();
       } else
-        stats->clearErrors();
+        thstats->clearErrors();
     }
   }
 

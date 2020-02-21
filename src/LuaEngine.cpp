@@ -1307,6 +1307,19 @@ static int ntop_compute_hosts_score(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_num_local_hosts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, ntop_interface->getNumLocalHosts());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_set_mac_device_type(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -6308,6 +6321,25 @@ static int ntop_get_interface_periodic_activities_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_interface_periodic_activity_progress(lua_State* vm) {
+  int progress;
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_ERROR);
+
+  progress = (int)lua_tonumber(vm, 1);
+
+  if(ctx && ctx->threaded_activity_stats)
+    ctx->threaded_activity_stats->setCurrentProgress(progress);
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_periodic_ht_state_update(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   time_t deadline;
@@ -6334,7 +6366,7 @@ static int ntop_periodic_stats_update(lua_State* vm) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ntop_interface->periodicStatsUpdate();
+  ntop_interface->periodicStatsUpdate(vm);
   lua_pushnil(vm);
 
   return(CONST_LUA_OK);
@@ -11295,6 +11327,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Functions to get and reset the duration of periodic threaded activities */
   { "getPeriodicActivitiesStats",   ntop_get_interface_periodic_activities_stats   },
+  { "setPeriodicActivityProgress",  ntop_set_interface_periodic_activity_progress  },
 
 #ifndef HAVE_NEDGE
   { "processFlow",              ntop_process_flow },
@@ -11368,6 +11401,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadHostPrefs",                  ntop_reload_host_prefs },
   { "setHostOperatingSystem",           ntop_set_host_operating_system },
   { "computeHostsScore",                ntop_compute_hosts_score },
+  { "getNumLocalHosts",                 ntop_get_num_local_hosts },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },

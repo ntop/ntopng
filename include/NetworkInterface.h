@@ -467,7 +467,7 @@ class NetworkInterface : public AlertableEntity {
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Paginator *p);
   virtual u_int32_t periodicStatsUpdateFrequency() const;
-  void periodicStatsUpdate();
+  void periodicStatsUpdate(lua_State* vm);
   virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts);
   void periodicUpdateInitTime(struct timeval *tv) const;
   static bool generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data);
