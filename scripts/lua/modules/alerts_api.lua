@@ -773,17 +773,6 @@ end
 
 -- ##############################################
 
-function alerts_api.slowStatsUpdateType()
-  return({
-    alert_type = alert_consts.alert_types.alert_slow_stats_update,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_granularity = alert_consts.alerts_granularities.min,
-    alert_type_params = {},
-  })
-end
-
--- ##############################################
-
 function alerts_api.requestReplyRatioType(key, requests, replies, granularity)
   return({
     alert_type = alert_consts.alert_types.alert_request_reply_ratio,
