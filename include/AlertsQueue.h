@@ -37,8 +37,6 @@ class AlertsQueue {
 
   void pushOutsideDhcpRangeAlert(u_int8_t* cli_mac, Mac *sender_mac,
     u_int32_t ip, u_int32_t router_ip, int vlan_id);
-  void pushSlowPeriodicActivity(u_long msec_diff, u_long max_duration_ms, const char *activity_path);
-  void pushNotExecutedPeriodicActivity(const char *activity_path, time_t pending_since);
   void pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_mac, u_int8_t *new_mac);
   void pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa, int vlan_id);
   void pushRemoteToRemoteAlert(Host *host);

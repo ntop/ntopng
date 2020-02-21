@@ -2282,12 +2282,6 @@ local function processStoreAlertFromQueue(alert)
     local router_info = {host = alert.router_ip, vlan = alert.vlan_id}
     entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
     type_info = alerts_api.ipOutsideDHCPRangeType(router_info, alert.mac_address, alert.client_mac, alert.sender_mac)
-  elseif(alert.alert_type == "slow_periodic_activity") then
-    entity_info = alerts_api.periodicActivityEntity(alert.path)
-    type_info = alerts_api.slowPeriodicActivityType(alert.duration_ms, alert.max_duration_ms)
-  elseif(alert.alert_type == "periodic_activity_not_executed") then
-    entity_info = alerts_api.periodicActivityEntity(alert.path)
-    type_info = alerts_api.periodicActivityNotExecuted(alert.pending_since)
   elseif(alert.alert_type == "mac_ip_association_change") then
     if(ntop.getPref("ntopng.prefs.ip_reassignment_alerts") == "1") then
       local name = getSavedDeviceName(alert.new_mac)
