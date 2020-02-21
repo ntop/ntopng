@@ -174,6 +174,15 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
 
    print[[
 <div id="table-internals-periodic-activities"></div>
+]] print(i18n("notes")) print[[
+<ul>
+   <li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
+   <li>]] print(i18n("internals.status_description")) print[[</li><ul>
+      <li>]] print(i18n("internals.sleeping")) print[[: ]] print(i18n("internals.status_sleeping_descr")) print[[</li>
+      <li>]] print(i18n("internals.queued")) print[[: ]] print(i18n("internals.status_queued_descr")) print[[</li>
+      <li>]] print(i18n("running")) print[[: ]] print(i18n("internals.status_running_descr")) print[[</li>
+   </ul>
+</ul>
 <script type='text/javascript'>
 
 $("#table-internals-periodic-activities").datatable({

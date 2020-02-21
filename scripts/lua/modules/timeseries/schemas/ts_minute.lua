@@ -9,7 +9,7 @@ local schema
 -- PERIODIC_SCRIPTS SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("periodic_script:duration", {step = 60, rrd_fname="ps_duration", metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("periodic_script:duration", {step = 60, rrd_fname="ps_duration", metrics_type = ts_utils.metrics.gauge, is_critical_ts=true})
 schema:addTag("ifid")
 schema:addTag("periodic_script")
 schema:addMetric("num_ms_last")
@@ -40,7 +40,7 @@ schema:addMetric("num_calls")
 -- HASH_TABLES SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("ht:state", {step = 60, rrd_fname="ht_state", metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("ht:state", {step = 60, rrd_fname="ht_state", metrics_type = ts_utils.metrics.gauge, is_critical_ts=true})
 schema:addTag("ifid")
 schema:addTag("hash_table")
 schema:addMetric("num_idle")

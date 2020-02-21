@@ -179,4 +179,7 @@ void ThreadedActivityStats::lua(lua_State *vm) {
 
   if(is_slow)
     lua_push_bool_table_entry(vm, "is_slow", true);
+
+  if(isRRDSlow())
+    lua_push_bool_table_entry(vm, "rrd_slow", true);
 }

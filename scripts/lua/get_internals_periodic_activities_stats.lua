@@ -171,6 +171,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
          warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.script_not_executed") .."\" style=\"color: #f0ad4e;\"></i> "
       elseif(script_stats.stats["is_slow"]) then
          warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.script_deadline_exceeded") .."\" style=\"color: #f0ad4e;\"></i> "
+      elseif(script_stats.stats["rrd_slow"]) then
+         warn = "<i class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("internals.slow_rrd_writes") .."\" style=\"color: #f0ad4e;\"></i> "
       end
 
       record["column_key"] = key

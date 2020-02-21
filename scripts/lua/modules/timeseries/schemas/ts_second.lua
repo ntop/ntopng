@@ -7,20 +7,20 @@ local schema
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:traffic", {step=1, rrd_fname="bytes"})
+schema = ts_utils.newSchema("iface:traffic", {step=1, rrd_fname="bytes", is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("bytes")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:traffic_rxtx", {step=1})
+schema = ts_utils.newSchema("iface:traffic_rxtx", {step=1, is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:packets", {step=1, rrd_fname="packets"})
+schema = ts_utils.newSchema("iface:packets", {step=1, rrd_fname="packets", is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("packets")
 
@@ -62,19 +62,19 @@ schema:addMetric("drops")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:exported_flows", {step=1, rrd_fname="exported_flows"})
+schema = ts_utils.newSchema("iface:exported_flows", {step=1, rrd_fname="exported_flows", is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("num_flows")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:dropped_flows", {step=1, rrd_fname="dropped_flows"})
+schema = ts_utils.newSchema("iface:dropped_flows", {step=1, rrd_fname="dropped_flows", is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("num_flows")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:drops", {step=1, rrd_fname="drops"})
+schema = ts_utils.newSchema("iface:drops", {step=1, rrd_fname="drops", is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("packets")
 
