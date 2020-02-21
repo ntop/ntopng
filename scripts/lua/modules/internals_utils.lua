@@ -7,6 +7,7 @@ local internals_utils = {}
 local json = require "dkjson"
 local dirs = ntop.getDirs()
 local user_scripts = require "user_scripts"
+local periodic_activities_utils = require "periodic_activities_utils"
 
 -- ###########################################
 
@@ -164,13 +165,8 @@ local function printPeriodicactivityIssuesDropdown(base_url, page_params)
 
    print[[ <li><a class="dropdown-item ]] if periodic_activity_issue == "any_issue" then print('active') end print[[" href="]] periodic_activity_issue_params["periodic_script_issue"] = "any_issue"; print(getPageUrl(base_url, periodic_activity_issue_params)); print[[">]] print(i18n("internals.any_periodic_activity_issue")) print[[</a></li>\]]
 
-   for issue, issue_i18n in pairsByKeys(
-      {
-	 ["not_executed"] = "internals.script_not_executed",
-	 ["is_slow"] = "internals.script_deadline_exceeded",
-	 ["rrd_slow"] = "internals.slow_rrd_writes"
-      }, asc) do
-      print[[ <li><a class="dropdown-item ]] if periodic_activity_issue == issue then print('active') end print[[" href="]] periodic_activity_issue_params["periodic_script_issue"] = issue; print(getPageUrl(base_url, periodic_activity_issue_params)); print[[">]] print(i18n(issue_i18n)) print[[</a></li>\]]
+   for issue, issue_i18n in pairsByKeys(periodic_activities_utils.list_degraded_performance_issues(), asc) do
+      print[[ <li><a class="dropdown-item ]] if periodic_activity_issue == issue then print('active') end print[[" href="]] periodic_activity_issue_params["periodic_script_issue"] = issue; print(getPageUrl(base_url, periodic_activity_issue_params)); print[[">]] print(i18n(issue_i18n.i18n_title)) print[[</a></li>\]]
    end
 end
 

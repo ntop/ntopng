@@ -9,6 +9,7 @@ require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
 local internals_utils = require "internals_utils"
+local periodic_activities_utils = require "periodic_activities_utils"
 local now = os.time()
 
 sendHTTPContentTypeHeader('application/json')
@@ -129,13 +130,21 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       local cur_issue = script_stats.stats[periodic_script_issue]
 
       if periodic_script_issue == "any_issue" then
-	 if not script_stats.stats["not_executed"] and not script_stats.stats["is_slow"] and not script_stats.stats["rrd_slow"] then
+	 local found = false
+
+	 for issue, _ in pairs(periodic_activities_utils.list_degraded_performance_issues()) do
+	    if script_stats.stats[issue] then
+	       found = true
+	       break
+	    end
+	 end
+
+	 if not found then
 	    goto continue
 	 end
       elseif not cur_issue then
 	 goto continue
       end
-      
    end
 
    stats.duration.max_duration_ms = internals_utils.periodic_scripts_durations[script_stats.script] * 1000
@@ -183,16 +192,10 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local status = script_stats.stats.state
       local warn = {}
 
-      if script_stats.stats["not_excecuted"] then
-	 warn[#warn + 1] = i18n("internals.script_not_executed_descr")
-      end
-
-      if script_stats.stats["is_slow"] then
-	 warn[#warn + 1] = i18n("internals.script_deadline_exceeded_descr")
-      end
-
-      if script_stats.stats["rrd_slow"] then
-	 warn[#warn + 1] = i18n("internals.slow_rrd_writes_descr")
+      for issue, issue_i18n in pairs(periodic_activities_utils.list_degraded_performance_issues()) do
+	 if script_stats.stats[issue] then
+	    warn[#warn + 1] = i18n(issue_i18n.i18n_descr)
+	 end
       end
 
       if #warn > 0 then
