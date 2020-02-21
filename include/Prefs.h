@@ -52,6 +52,7 @@ class Prefs {
     enable_users_login, disable_localhost_login, online_license_check,
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     flow_aggregation_enabled, enable_mac_ndpi_stats, enable_activities_debug;
+  TsDriver timeseries_driver;
 
   u_int32_t auth_session_duration;
   bool auth_session_midnight_expiration;
@@ -329,6 +330,7 @@ class Prefs {
   inline bool isMacBasedCaptivePortal()               const { return(mac_based_captive_portal);  }
   inline bool enableActivitiesDebug()                 const { return(enable_activities_debug);   }
   const char * const getCaptivePortalUrl();
+  const TsDriver getTimeseriesDriver()                const { return(timeseries_driver);         }
 
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
 

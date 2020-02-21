@@ -739,6 +739,12 @@ typedef struct bcast_domain_info {
   u_int64_t hits;
 } bcast_domain_info;
 
+typedef enum ts_driver {
+  ts_driver_rrd = 0,
+  ts_driver_influxdb,
+  ts_driver_prometheus
+} TsDriver;
+
 typedef enum mud_recording {
   mud_recording_disabled = 0,
   mud_recording_general_purpose = 1,

@@ -605,6 +605,7 @@
 #define CONST_LOCAL_HOST_IDLE_PREFS            NTOPNG_PREFS_PREFIX".local_host_max_idle"
 
 #define CONST_RUNTIME_MAX_UI_STRLEN                    NTOPNG_PREFS_PREFIX".max_ui_strlen"
+#define CONST_RUNTIME_PREFS_TS_DRIVER                  NTOPNG_PREFS_PREFIX".timeseries_driver"
 #define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED            NTOPNG_PREFS_PREFIX".is_autologon_enabled"
 #define CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED   NTOPNG_PREFS_PREFIX".is_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED NTOPNG_PREFS_PREFIX".is_active_local_host_cache_enabled"

@@ -172,6 +172,16 @@ const char* ThreadedActivity::get_state_label(ThreadedActivityState ta_state) {
 
 /* ******************************************* */
 
+static bool skipExecution(const char *path) {
+  if((ntop->getPrefs()->getTimeseriesDriver() != ts_driver_influxdb) &&
+      (strcmp(path, TIMESERIES_SCRIPT_PATH) == 0))
+    return(true);
+
+  return(false);
+}
+
+/* ******************************************* */
+
 void ThreadedActivity::set_state(NetworkInterface *iface, ThreadedActivityState ta_state) {
   ThreadedActivityState *cur_state = getThreadedActivityState(iface);
 
@@ -513,7 +523,8 @@ void ThreadedActivity::periodicActivityBody() {
       next_run = Utils::roundTime(now, periodicity,
 				  align_to_localtime ? ntop->get_time_offset() : 0);
 
-      schedulePeriodicActivity(pool, next_run /* next_run is now also the deadline of the current script */);
+      if(!skipExecution(path))
+        schedulePeriodicActivity(pool, next_run /* next_run is now also the deadline of the current script */);
     }
 
     sleep(1);

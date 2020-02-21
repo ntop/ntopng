@@ -85,6 +85,7 @@ Prefs::Prefs(Ntop *_ntop) {
   https_binding_address1 = NULL; // CONST_ANY_ADDRESS;
   https_binding_address2 = NULL;
   enable_client_x509_auth = false;
+  timeseries_driver = ts_driver_rrd;
   lan_interface = NULL;
   cpu_affinity = other_cpu_affinity = NULL;
 #ifdef HAVE_LIBCAP
@@ -516,6 +517,17 @@ int32_t Prefs::getDefaultPrefsValue(const char *pref_key, int32_t default_value)
 
 /* ******************************************* */
 
+static TsDriver str2TsDriver(const char *driver) {
+  if(!strcmp(driver, "influxdb"))
+    return(ts_driver_influxdb);
+  else if(!strcmp(driver, "prometheus"))
+    return(ts_driver_prometheus);
+  else
+    return(ts_driver_rrd);
+}
+
+/* ******************************************* */
+
 void Prefs::reloadPrefsFromRedis() {
   char *aux = NULL;
   // sets to the default value in redis if no key is found
@@ -599,6 +611,9 @@ void Prefs::reloadPrefsFromRedis() {
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
     hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask),
     auto_assigned_pool_id = (u_int16_t) getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
+
+    getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux, (char*)"rrd");
+    timeseries_driver = str2TsDriver(aux);
 
   getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS, &aux, (char*)"none");
   if(aux) {
