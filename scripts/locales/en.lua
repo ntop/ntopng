@@ -29,6 +29,7 @@ local lang = {
   ["busy"] = "Busy",
   ["bytes"] = "Bytes",
   ["cancel"] = "Cancel",
+  ["time_in"] = "in",
   ["categories"] = "Categories",
   ["category"] = "Category",
   ["change_number_of_rows"] = "Change the number of rows per page",

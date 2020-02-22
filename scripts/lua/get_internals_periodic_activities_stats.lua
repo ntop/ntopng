@@ -235,7 +235,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
             if(exp_start < now) then
                exp_start = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - exp_start)}) .. "</span>"
             else
-               exp_start = format_utils.secondsToTime(exp_start - now)
+               exp_start = string.format("%s %s", i18n("time_in"), format_utils.secondsToTime(exp_start - now))
             end
          end
 
@@ -246,7 +246,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
          local deadline = script_stats.stats.deadline
 
          if(deadline > now) then
-            deadline = format_utils.secondsToTime(deadline - now)
+            deadline = string.format("%s %s", i18n("time_in"), format_utils.secondsToTime(deadline - now))
          else
             deadline = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - deadline)}) .. "</span>"
          end
