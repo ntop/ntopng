@@ -3,10 +3,21 @@ const fix_submenu_height = ($submenu, $hover_button) => {
     const document_height = $(document).height();
     const submenu_height = $submenu.height();
     const delta_y = $hover_button.offset().top;
-    
+    const submenu_parent_height = $submenu.parent().outerHeight();
+
+    const min_height = 128;
+
     if (delta_y + submenu_height > document_height) {
+
+        let max_height = document_height - delta_y - 32;
         $submenu.css('overflow-y', 'auto');
-        $submenu.css({'max-height': `${document_height - delta_y - 32}px`});
+
+        if (max_height <= min_height) {
+            $submenu.css({'top': `-${submenu_height - submenu_parent_height}px`});
+            return;
+        }
+      
+        $submenu.css({'max-height': `${max_height}px`});
     }
 
 };
@@ -34,12 +45,12 @@ $(document).ready(function () {
         $(this).addClass('show');
     });
     $(`div[id$='submenu']`).mouseleave(function() {
-        $(this).removeClass('show').css('max-height', 'initial');
+        $(this).removeClass('show').css('max-height', 'initial').css('top', '0');
     });
    
     $(`#n-sidebar a.submenu`).mouseleave(function() {
         const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.removeClass('show');
+        $submenu.removeClass('show').css('max-height', 'initial').css('top', '0');
         $(this).attr('aria-expanded', false);
     });
 
