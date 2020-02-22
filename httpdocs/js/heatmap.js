@@ -307,7 +307,7 @@ var map = (function () {
     var createTooltip = function(){
         tooltip = d3.select( getCurrentContainerID() )
         .append("div")
-        .attr("class", "tooltip")
+        .attr("class", "tooltip-heatmap")
         .style("opacity", 0);
     };
 
