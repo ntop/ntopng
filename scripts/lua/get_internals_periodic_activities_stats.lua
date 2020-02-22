@@ -103,7 +103,7 @@ for _, iface in pairs(available_interfaces) do
 
 
    -- Flatten out the nested tables
-   for script in pairs(internals_utils.periodic_scripts_durations) do
+   for script in pairs(periodic_activities_utils.periodic_activities) do
       local stats = scripts_stats[script]
 
       if stats then
@@ -132,7 +132,7 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       if periodic_script_issue == "any_issue" then
 	 local found = false
 
-	 for issue, _ in pairs(periodic_activities_utils.list_degraded_performance_issues()) do
+	 for issue, _ in pairs(periodic_activities_utils.periodic_activity_issues) do
 	    if script_stats.stats[issue] then
 	       found = true
 	       break
@@ -147,7 +147,7 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       end
    end
 
-   stats.duration.max_duration_ms = internals_utils.periodic_scripts_durations[script_stats.script] * 1000
+   stats.duration.max_duration_ms = periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"] * 1000
    stats.perc_duration = stats.duration.last_duration_ms * 100 / (stats.duration.max_duration_ms)
    
    if(sortColumn == "column_time_perc") then
@@ -157,6 +157,8 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       sort_to_key[k] = script_stats.stats.duration.last_duration_ms
    elseif(sortColumn == "column_periodic_activity_name") then
       sort_to_key[k] = script_stats.script
+   elseif(sortColumn == "column_periodicity") then
+      sort_to_key[k] = periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"]
    elseif(sortColumn == "column_status") then
       sort_to_key[k] = stats.state
    elseif(sortColumn == "column_last_start_time") then
@@ -192,7 +194,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local status = script_stats.stats.state
       local warn = {}
 
-      for issue, issue_i18n in pairs(periodic_activities_utils.list_degraded_performance_issues()) do
+      for issue, issue_i18n in pairs(periodic_activities_utils.periodic_activity_issues) do
 	 if script_stats.stats[issue] then
 	    warn[#warn + 1] = i18n(issue_i18n.i18n_descr)
 	 end
@@ -233,18 +235,18 @@ for key in pairsByValues(sort_to_key, sOrder) do
             if(exp_start < now) then
                exp_start = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - exp_start)}) .. "</span>"
             else
-               exp_start = format_utils.formatPastEpochShort(exp_start)
+               exp_start = format_utils.secondsToTime(exp_start - now)
             end
          end
 
          record["column_expected_start_time"] = exp_start
-         record["column_expected_end_time"] = " "
+         record["column_expected_end_time"] = ""
       else
          -- If running, when it should stop
          local deadline = script_stats.stats.deadline
 
          if(deadline > now) then
-            deadline = format_utils.formatPastEpochShort(deadline)
+            deadline = format_utils.secondsToTime(deadline - now)
          else
             deadline = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - deadline)}) .. "</span>"
          end
@@ -271,7 +273,12 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))
 
-      record["column_periodic_activity_name"] = warn .. script_stats.script
+      local activity_id = script_stats.script:gsub(".lua", "")
+      -- local activity_name = string.format("<span id='%s' data-toggle='popover' data-trigger='hover'  data-placement='top' title='%s' data-content='%s'>%s</span><script>$('#%s').popover('hide');$('#%s').popover({placement : 'top', trigger : 'hover'});</script>", activity_id, script_stats.script, i18n("periodic_activities_descr."..script_stats.script), script_stats.script, activity_id, activity_id)
+      local activity_name = string.format("<span id='%s' title='%s'>%s</span>", activity_id, i18n("periodic_activities_descr."..script_stats.script), script_stats.script)
+      record["column_periodic_activity_name"] = warn .. activity_name
+
+      record["column_periodicity"] = format_utils.secondsToTime(periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"])
 
       if iffilter then
 	 if areInternalTimeseriesEnabled(iffilter) then

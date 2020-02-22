@@ -9,21 +9,6 @@ local dirs = ntop.getDirs()
 local user_scripts = require "user_scripts"
 local periodic_activities_utils = require "periodic_activities_utils"
 
--- ###########################################
-
-internals_utils.periodic_scripts_durations = {
-   -- Script -> max_duration sec
-   ["stats_update.lua"]      =     5,
-   ["ht_state_update.lua"]   =     5,
-   ["minute.lua"]            =    60,
-   ["5min.lua"]              =   300,
-   ["hourly.lua"]            =  3600,
-   ["daily.lua"]             = 86400,
-   ["housekeeping.lua"]      =     3,
-   ["discover.lua"]          =     5,
-   ["timeseries.lua"]        =     5,
-   ["second.lua"]            =     1,
-}
 
 -- ###########################################
 
@@ -165,7 +150,7 @@ local function printPeriodicactivityIssuesDropdown(base_url, page_params)
 
    print[[ <li><a class="dropdown-item ]] if periodic_activity_issue == "any_issue" then print('active') end print[[" href="]] periodic_activity_issue_params["periodic_script_issue"] = "any_issue"; print(getPageUrl(base_url, periodic_activity_issue_params)); print[[">]] print(i18n("internals.any_periodic_activity_issue")) print[[</a></li>\]]
 
-   for issue, issue_i18n in pairsByKeys(periodic_activities_utils.list_degraded_performance_issues(), asc) do
+   for issue, issue_i18n in pairsByKeys(periodic_activities_utils.periodic_activity_issues, asc) do
       print[[ <li><a class="dropdown-item ]] if periodic_activity_issue == issue then print('active') end print[[" href="]] periodic_activity_issue_params["periodic_script_issue"] = issue; print(getPageUrl(base_url, periodic_activity_issue_params)); print[[">]] print(i18n(issue_i18n.i18n_title)) print[[</a></li>\]]
    end
 end
@@ -206,8 +191,13 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
 
    print[[
 <div id="table-internals-periodic-activities"></div>
-]] print(i18n("notes")) print[[
+<b>]] print(i18n("notes")) print[[</b>
 <ul>
+   <li>]] print(i18n("internals.periodic_activities_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_periodicity_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_expected_start_time_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_last_start_time_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_expected_end_time_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
    <li>]] print(i18n("internals.status_description")) print[[</li><ul>
       <li><span class="badge badge-secondary">]] print(i18n("internals.sleeping")) print[[</span> ]] print(i18n("internals.status_sleeping_descr")) print[[</li>
@@ -216,6 +206,12 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
    </ul>
 </ul>
 <script type='text/javascript'>
+$(document).ready(function(){
+    $('[data-toggle="popover"]').popover({
+        placement : 'top',
+        trigger : 'hover'
+    });
+});
 
 $("#table-internals-periodic-activities").datatable({
    title: "]] print(i18n("internals.periodic_activities")) print[[",]]
@@ -263,6 +259,14 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
+       title: "]] print(i18n("internals.periodicity")) print[[",
+       field: "column_periodicity",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '2%',
+       }
+     }, {
        title: "]] print(i18n("chart")) print[[",
        field: "column_chart",
        hidden: ]] if not ifid or not ts_creation then print('true') else print('false') end print[[,
@@ -293,7 +297,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '5%',
+	 width: '3%',
        }
      }, {
        title: "]] print(i18n("internals.last_start_time")) print[[",
@@ -301,7 +305,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '5%',
+	 width: '3%',
        }
      }, {
        title: "]] print(i18n("internals.expected_end_time")) print[[",
@@ -309,7 +313,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '5%',
+	 width: '3%',
        }
      }, {
        title: "]] print(i18n("internals.last_duration_ms")) print[[",
@@ -317,7 +321,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '5%',
+	 width: '3%',
        }
      }, {
        title: "]] print(i18n("internals.work_completion")) print[[",
@@ -569,7 +573,9 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 
    local periodic_scripts_ts = {}
 
-   for script, max_duration in pairsByKeys(internals_utils.periodic_scripts_durations) do
+   for script, script_details in pairsByKeys(periodic_activities_utils.periodic_activities) do
+      local max_duration = script_details["periodicity"]
+
       periodic_scripts_ts[#periodic_scripts_ts + 1] = {
 	 schema = "periodic_script:duration",
 	 label = script,
