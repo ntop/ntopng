@@ -36,7 +36,7 @@ $(document).ready(function () {
     $(`#n-sidebar a.submenu`).mouseenter(function() {
 
         const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.collapse('show');
+        $submenu.collapse('show').css('top', '0').css('max-height', 'initial');
         fix_submenu_height($submenu, $(this));
         $(this).attr('aria-expanded', true);
 
@@ -45,12 +45,12 @@ $(document).ready(function () {
         $(this).addClass('show');
     });
     $(`div[id$='submenu']`).mouseleave(function() {
-        $(this).removeClass('show').css('max-height', 'initial').css('top', '0');
+        $(this).removeClass('show');
     });
    
     $(`#n-sidebar a.submenu`).mouseleave(function() {
         const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.removeClass('show').css('max-height', 'initial').css('top', '0');
+        $submenu.removeClass('show');
         $(this).attr('aria-expanded', false);
     });
 
