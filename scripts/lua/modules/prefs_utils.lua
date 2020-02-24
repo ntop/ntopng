@@ -438,6 +438,10 @@ end
 
 function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field,
                                 redis_key, default_value, disabled, elementToSwitch, hideOn, showElement, javascriptAfterSwitch)
+
+
+ local value 
+ 
  if not skip_redis then
   value = ntop.getPref(redis_key)
   if(_POST[submit_field] ~= nil) then
@@ -468,13 +472,8 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
   end
 
   -- Read it anyway to
-  if(value == off_value) then
-    on_active  = "btn-secondary"
-    off_active = "btn-"..off_color.." active"
-  else
+  if(value ~= off_value) then
     value = on_value
-    on_active  = "btn-"..on_color.." active"
-    off_active = "btn-secondary"
   end
 
   local objRow = ""
@@ -484,9 +483,10 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
     objRow = " style=\"display:table-row\""
   end
   if(label ~= "") then print('<tr id="row_'..submit_field..'"'..objRow..'><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
+
   print([[
     <div class="custom-control custom-switch ">
-      <input ]].. (value == "0" and '' or 'checked') ..[[ type="checkbox" class="custom-control-input" id="check-]].. submit_field ..[[">
+      <input ]].. (value == off_value and '' or 'checked') ..[[ type="checkbox" class="custom-control-input" id="check-]].. submit_field ..[[">
       <label class="custom-control-label custom-control-label-lg " for="check-]].. submit_field ..[["></label>
       <input hidden id="input-]].. submit_field ..[[" name="]].. submit_field ..[[" value="]].. value ..[[">
   ]])
