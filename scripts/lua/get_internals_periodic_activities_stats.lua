@@ -180,6 +180,10 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       else
 	 sort_to_key[k] = 0
       end
+   elseif(sortColumn == "column_tot_not_executed") then
+      sort_to_key[k] = (script_stats.stats.num_not_executed or 0)
+   elseif(sortColumn == "column_tot_running_slow") then
+      sort_to_key[k] = (script_stats.stats.num_is_slow or 0)
    elseif(sortColumn == "column_name") then
       sort_to_key[k] = getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid))
    else
@@ -270,6 +274,17 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
          record["column_expected_start_time"] = " "
          record["column_expected_end_time"] = deadline
+      end
+
+      -- TODO
+      record["column_work_completion"] = "90%"
+
+      if script_stats.stats["num_not_executed"] and script_stats.stats["num_not_executed"] > 0 then
+	 record["column_tot_not_executed"] = script_stats.stats["num_not_executed"]
+      end
+
+      if script_stats.stats["num_is_slow"] and script_stats.stats["num_is_slow"] > 0 then
+	 record["column_tot_running_slow"] = script_stats.stats["num_is_slow"]
       end
 
       if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 then

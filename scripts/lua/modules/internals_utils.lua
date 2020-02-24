@@ -193,17 +193,19 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
 <div id="table-internals-periodic-activities"></div>
 <b>]] print(i18n("notes")) print[[</b>
 <ul>
-   <li>]] print(i18n("internals.periodic_activities_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_periodicity_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_expected_start_time_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_last_start_time_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_expected_end_time_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
    <li>]] print(i18n("internals.status_description")) print[[</li><ul>
       <li><span class="badge badge-secondary">]] print(i18n("internals.sleeping")) print[[</span> ]] print(i18n("internals.status_sleeping_descr")) print[[</li>
       <li><span class="badge badge-warning">]] print(i18n("internals.queued")) print[[</span> ]] print(i18n("internals.status_queued_descr")) print[[</li>
       <li><span class="badge badge-success">]] print(i18n("running")) print[[</span> ]] print(i18n("internals.status_running_descr")) print[[</li>
    </ul>
+   <li>]] print(i18n("internals.periodic_activities_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_periodicity_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_expected_start_time_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_last_start_time_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_expected_end_time_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_tot_not_executed_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_tot_running_slow_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
 </ul>
 <script type='text/javascript'>
 $(document).ready(function(){
@@ -248,7 +250,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'left',
-	 width: '5%',
+	 width: '3%',
        }
      }, {
        title: "]] print(i18n("internals.periodic_activity")) print[[",
@@ -256,7 +258,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'left',
-	 width: '5%',
+	 width: '3%',
        }
      }, {
        title: "]] print(i18n("internals.periodicity")) print[[",
@@ -289,7 +291,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'center',
-	 width: '5%',
+	 width: '2%',
        }
      }, {
        title: "]] print(i18n("internals.expected_start_time")) print[[",
@@ -331,12 +333,31 @@ $("#table-internals-periodic-activities").datatable({
 	 textAlign: 'right',
 	 width: '5%',
        }
+     }, {
+       title: "]] print(i18n("internals.tot_not_executed")) print[[",
+       field: "column_tot_not_executed",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '6%',
+       }
+     }, {
+       title: "]] print(i18n("internals.tot_running_slow")) print[[",
+       field: "column_tot_running_slow",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '6%',
+       }
      }
+
    ], tableCallback: function() {
       datatableInitRefreshRows($("#table-internals-periodic-activities"),
 			       "column_key", 5000,
 			       {
                   "column_last_duration": fmillis,
+                  "column_tot_not_executed": fint,
+                  "column_tot_running_slow": fint,
                });
    },
 });
