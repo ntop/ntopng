@@ -5169,6 +5169,7 @@ static int ntop_rrd_get_lastupdate(const char *filename, time_t *last_update, un
   unsigned long i;
   int status;
 
+  reset_rrd_state();
   status = rrd_lastupdate_r(filename, last_update, ds_count, &ds_names, &last_ds);
 
   if(status != 0) {
@@ -5191,6 +5192,8 @@ static int ntop_rrd_lastupdate(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  reset_rrd_state();
 
   if(ntop_rrd_get_lastupdate(filename, &last_update, &ds_count) == -1) {
     return(CONST_LUA_ERROR);
