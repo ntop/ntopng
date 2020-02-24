@@ -1490,7 +1490,10 @@ local default_timeseries = {
    {schema="iface:devices",               label=i18n("graphs.active_devices")},
    {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
    {schema="iface:traffic",               label=i18n("traffic")},
-   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_txrx"), layout="area_plus_line" },
+   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_txrx"), layout={
+      ["bytes_sent"] = "area",
+      ["bytes_rcvd"] = "line"
+   } },
 
    {schema="iface:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
    {schema="iface:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
@@ -1530,18 +1533,17 @@ end
 
 -- #################################################
 
-function get_timeseries_leyout(schema)
-   local ret = "area" -- default
-   
-   for k,v in pairs(default_timeseries) do
-      if(v.schema == schema) then
-	 if(v.layout) then
-	    ret = v.layout
-	 end
+function get_timeseries_layout(schema)
 
-	 break
+   local ret = {"area"} -- default
+
+   for k,v in pairs(default_timeseries) do
+      if (v.schema == schema) then
+         if (v.layout) then
+            ret = v.layout
+         end
+         break
       end
    end
-
-   return(ret)
+   return (ret)
 end

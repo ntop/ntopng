@@ -76,9 +76,6 @@ if tags.ifid then
   interface.select(tags.ifid)
 end
 
--- Add layout information
-options.layout = get_timeseries_leyout(ts_schema)
-
 if((ts_schema == "top:flow_user_script:duration")
     or (ts_schema == "top:elem_user_script:duration")
     or (ts_schema == "custom:flow_user_script:total_stats")
@@ -174,6 +171,19 @@ local extend_labels = true
 
 if extend_labels and ntop.isPro() then
   extendLabels(res)
+end
+
+-- Add layout information
+local layout = get_timeseries_layout(ts_schema)
+
+for _, serie in pairs(res.series) do
+
+  if not serie.type then
+    if layout[serie.label] then
+      serie.type = layout[serie.label]
+    end
+  end
+
 end
 
 if extended_times then
