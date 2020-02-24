@@ -158,7 +158,8 @@
 
             // append the detail boxes
             $e.prepend(that.$top_details);
-            $e.prepend(that.$summary_table);
+            
+            if (res.summary != undefined) $e.prepend(that.$summary_table);
             $e.append(that.$bottom_details);
 
             // render the rest of the table
