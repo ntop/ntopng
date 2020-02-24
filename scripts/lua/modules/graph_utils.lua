@@ -1477,11 +1477,11 @@ end
 
 local default_timeseries = {
    {schema="iface:flows",                 label=i18n("graphs.active_flows")},
-{schema="iface:new_flows",             label=i18n("graphs.new_flows"), value_formatter = {"fflows", "formatFlows"}},
-{schema="custom:flow_misbehaving_vs_alerted", label=i18n("graphs.misbehaving_vs_alerted"),
- value_formatter = {"formatFlows", "formatFlows"},
- skip = hasAllowedNetworksSet(),
- metrics_labels = {i18n("flow_details.mibehaving_flows"), i18n("flow_details.alerted_flows")}},
+   {schema="iface:new_flows",             label=i18n("graphs.new_flows"), value_formatter = {"fflows", "formatFlows"}},
+   {schema="custom:flow_misbehaving_vs_alerted", label=i18n("graphs.misbehaving_vs_alerted"),
+    value_formatter = {"formatFlows", "formatFlows"},
+    skip = hasAllowedNetworksSet(),
+    metrics_labels = {i18n("flow_details.mibehaving_flows"), i18n("flow_details.alerted_flows")}},
    {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
    {schema="iface:engaged_alerts",        label=i18n("show_alerts.engaged_alerts"), skip=hasAllowedNetworksSet()},
    {schema="custom:flows_vs_local_hosts", label=i18n("graphs.flows_vs_local_hosts"), check={"iface:flows", "iface:local_hosts"}, step=60},
@@ -1490,7 +1490,7 @@ local default_timeseries = {
    {schema="iface:devices",               label=i18n("graphs.active_devices")},
    {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
    {schema="iface:traffic",               label=i18n("traffic")},
-   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_txrx")},
+   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_txrx"), layout="area_plus_line" },
 
    {schema="iface:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
    {schema="iface:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
@@ -1499,13 +1499,13 @@ local default_timeseries = {
    {schema="iface:drops",                 label=i18n("graphs.packet_drops")},
    {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
 
-{schema="iface:disc_prob_bytes",       label=i18n("graphs.discarded_probing_bytes"), nedge_exclude=1},
-{schema="iface:disc_prob_pkts",        label=i18n("graphs.discarded_probing_packets"), nedge_exclude=1},
+   {schema="iface:disc_prob_bytes",       label=i18n("graphs.discarded_probing_bytes"), nedge_exclude=1},
+   {schema="iface:disc_prob_pkts",        label=i18n("graphs.discarded_probing_packets"), nedge_exclude=1},
 
    {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-{schema="custom:zmq_msg_rcvd_vs_drops",label=i18n("graphs.zmq_msg_rcvd_vs_drops"), check={"iface:zmq_rcvd_msgs", "iface:zmq_msg_drops"}, metrics_labels = {i18n("if_stats_overview.zmq_message_rcvd"), i18n("if_stats_overview.zmq_message_drops")}, value_formatter = {"fmsgs", "formatMessages"}},
-{schema="iface:zmq_flow_coll_drops",   label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1, value_formatter = {"fflows", "formatFlows"}},
-{schema="iface:zmq_flow_coll_udp_drops", label=i18n("graphs.zmq_flow_coll_udp_drops"), nedge_exclude=1, value_formatter = {"fpackets", "formatPackets"}},
+   {schema="custom:zmq_msg_rcvd_vs_drops",label=i18n("graphs.zmq_msg_rcvd_vs_drops"), check={"iface:zmq_rcvd_msgs", "iface:zmq_msg_drops"}, metrics_labels = {i18n("if_stats_overview.zmq_message_rcvd"), i18n("if_stats_overview.zmq_message_drops")}, value_formatter = {"fmsgs", "formatMessages"}},
+   {schema="iface:zmq_flow_coll_drops",   label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1, value_formatter = {"fflows", "formatFlows"}},
+   {schema="iface:zmq_flow_coll_udp_drops", label=i18n("graphs.zmq_flow_coll_udp_drops"), nedge_exclude=1, value_formatter = {"fpackets", "formatPackets"}},
    {schema="iface:exported_flows",        label=i18n("if_stats_overview.exported_flows"), nedge_exclude=1},
    {schema="iface:dropped_flows",         label=i18n("if_stats_overview.dropped_flows"), nedge_exclude=1},
    {separator=1, nedge_exclude=1, label=i18n("tcp_stats")},
@@ -1513,7 +1513,7 @@ local default_timeseries = {
    {schema="iface:tcp_out_of_order",      label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
    --{schema="tcp_retr_ooo_lost",   label=i18n("graphs.tcp_retr_ooo_lost"), nedge_exclude=1},
    {schema="iface:tcp_retransmissions",   label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
-{schema="iface:tcp_keep_alive",        label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
+   {schema="iface:tcp_keep_alive",        label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
    {separator=1, label=i18n("tcp_flags")},
    {schema="iface:tcp_syn",               label=i18n("graphs.tcp_syn_packets"), nedge_exclude=1, pro_skip=1},
    {schema="iface:tcp_synack",            label=i18n("graphs.tcp_synack_packets"), nedge_exclude=1, pro_skip=1},
@@ -1522,8 +1522,26 @@ local default_timeseries = {
    {schema="iface:tcp_rst",               label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
 }
 
+-- #################################################
+
 function get_default_timeseries() 
+   return(default_timeseries)
+end
 
-   return default_timeseries
+-- #################################################
 
+function get_timeseries_leyout(schema)
+   local ret = "area" -- default
+   
+   for k,v in pairs(default_timeseries) do
+      if(v.schema == schema) then
+	 if(v.layout) then
+	    ret = v.layout
+	 end
+
+	 break
+      end
+   end
+
+   return(ret)
 end

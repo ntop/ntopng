@@ -76,6 +76,9 @@ if tags.ifid then
   interface.select(tags.ifid)
 end
 
+-- Add layout information
+options.layout = get_timeseries_leyout(ts_schema)
+
 if((ts_schema == "top:flow_user_script:duration")
     or (ts_schema == "top:elem_user_script:duration")
     or (ts_schema == "custom:flow_user_script:total_stats")
