@@ -255,9 +255,6 @@ for key in pairsByValues(sort_to_key, sOrder) do
          record["column_expected_end_time"] = deadline
       end
 
-      -- TODO
-      record["column_work_completion"] = "90%"
-
       if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 then
 	 record["column_last_start_time"] = i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - script_stats.stats["last_start_time"])})
 	 -- tprint({orig = script_stats.stats[k], k = k, v = record["column_"..k]})
@@ -274,9 +271,17 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))
 
       local activity_id = script_stats.script:gsub(".lua", "")
+      local activity_desc = i18n("internals.activity_descriptions." .. activity_id)
+
+      if not isEmptyString(activity_desc) then
+	 activity_desc = ' <i class="fas fa-info-circle fa-sm" title="'.. activity_desc ..'"></i>'
+      else
+	 activity_desc = ""
+      end
+
       -- local activity_name = string.format("<span id='%s' data-toggle='popover' data-trigger='hover'  data-placement='top' title='%s' data-content='%s'>%s</span><script>$('#%s').popover('hide');$('#%s').popover({placement : 'top', trigger : 'hover'});</script>", activity_id, script_stats.script, i18n("periodic_activities_descr."..script_stats.script), script_stats.script, activity_id, activity_id)
       local activity_name = string.format("<span id='%s' title='%s'>%s</span>", activity_id, i18n("periodic_activities_descr."..script_stats.script), script_stats.script)
-      record["column_periodic_activity_name"] = warn .. activity_name
+      record["column_periodic_activity_name"] = warn .. activity_name .. activity_desc
 
       record["column_periodicity"] = format_utils.secondsToTime(periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"])
 
