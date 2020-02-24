@@ -422,6 +422,8 @@ then
    UGLIFYJS_MAJOR_VERSION="${UGLIFYJS_VERSION%%.*}"
 fi
 
+AC_CHECK_LIB([rrd_th], [rrd_update_r], [LIBRRD_LD_FLAGS=-lrrd_th], [LIBRRD_LD_FLAGS=`pkg-config --libs librrd`])
+
 AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
 AC_CHECK_LIB([rt], [clock_gettime],   [LDFLAGS="${LDFLAGS} -lrt"])
 
@@ -688,6 +690,7 @@ AC_SUBST(SERVICE_ALIAS)
 AC_SUBST(APP)
 AC_SUBST(CENTOS_N2N_DEP)
 AC_SUBST(RPM_SIGN_CMD)
+AC_SUBST(LIBRRD_LD_FLAGS)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
