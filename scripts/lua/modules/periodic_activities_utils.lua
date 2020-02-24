@@ -58,8 +58,10 @@ local function stats_have_degraded_performance(stats)
       -- The activity is slow if it has been executing for too long,
       -- if it has been waiting in the queue for too long (no available threads)
       -- of if the RRD writes are slow
-      if ps_stats["is_slow"] or ps_stats["not_excecuted"] or ps_stats["rrd_slow"] then
-	 return true
+      for k in pairs(periodic_activities_utils.periodic_activity_issues) do
+         if ps_stats[k] then
+            return true
+         end
       end
    end
 end

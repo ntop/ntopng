@@ -392,6 +392,14 @@ function driver:append(schema, timestamp, tags, metrics)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
+  if not schema.options.is_critical_ts and ntop.rrd_is_slow() then
+     -- RRD is slow and this is not a critical timeseries
+     ntop.rrd_inc_num_drops()
+     -- require "lua_utils"
+     -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "RRD slow inc num drops ... [".. schema.name .."]["..formatEpoch(ntop.getDeadline()).."]")
+     return false
+  end
+
   if not ntop.exists(rrdfile) then
     ntop.mkdir(base)
     if not create_rrd(schema, rrdfile) then
@@ -407,7 +415,7 @@ end
 local function makeTotalSerie(series, count)
   local total = {}
 
-  for i=1,count do
+  for i=1, count do
     total[i] = 0
   end
 

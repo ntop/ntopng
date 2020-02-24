@@ -399,15 +399,15 @@ end
 -- #################################################################
 
 -- @brief This provides an API that flow user_scripts can call in order to
--- set a flow status bit. The status_json of the predominant status is
+-- set a flow status bit. The status_info of the predominant status is
 -- saved for later use.
-function flow.triggerStatus(flow_status_type, status_json, flow_score, cli_score, srv_score, custom_severity)
+function flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score, srv_score, custom_severity)
    local status_id = flow_status_type.status_id
    local new_status = flow_consts.getStatusInfo(status_id)
    flow_score = flow_score or 0
 
-   if(tonumber(status_json) ~= nil) then
-      tprint("Invalid status_json")
+   if(tonumber(status_info) ~= nil) then
+      tprint("Invalid status_info")
       tprint(debug.traceback())
       return
    end
@@ -419,7 +419,7 @@ function flow.triggerStatus(flow_status_type, status_json, flow_score, cli_score
 	 ((flow_score == alerted_status_score) and (new_status.status_id < alerted_status.status_id))) then
       -- The new alerted status as an higher score
       alerted_status = new_status
-      alerted_status_msg = status_json
+      alerted_status_msg = status_info
       alerted_custom_severity = custom_severity -- possibly nil
       alerted_status_score = flow_score
       alerted_user_script = cur_user_script
@@ -436,11 +436,10 @@ function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
 
    if(not flow.isStatusSet(status_id)) then
       local new_status = flow_consts.getStatusInfo(status_id)
+      local status_info = alerted_status_msg
 
-      if(new_status and status_json and ids_utils) then
+      if(new_status and status_info and ids_utils) then
 	 if(status_id == flow_consts.status_types.status_external_alert.status_id) then
-	    local status_info = json.decode(score_info.status_info)
-
 	    if(status_info and (status_info.source == "suricata")) then
 	       local fs, cs, ss = ids_utils.computeScore(status_info)
 	       flow_score = fs

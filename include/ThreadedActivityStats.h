@@ -28,7 +28,8 @@ class ThreadedActivity;
 
 typedef struct {
   ticks  tot_ticks, max_ticks;
-  u_long tot_calls;
+  u_long tot_calls; /* Total number of calls to rrd_update */
+  u_long tot_drops; /* Total number of times rrd_update hasn't been called because RRDs are detected to be slow */
   bool is_slow;
 } threaded_activity_rrd_stats_t;
 
@@ -62,7 +63,12 @@ class ThreadedActivityStats {
   inline time_t getLastStartTime()   { return(last_start_time);   }
 
   bool isRRDSlow() const;
+
+  /* RRD stats and drops for writes */
   void updateRRDWriteStats(ticks cur_ticks);
+  void incRRDWriteDrops();
+
+  /* RRD stats for reads */
   void updateRRDReadStats(ticks cur_ticks);
 
   void updateStatsQueuedTime(time_t queued_time);
