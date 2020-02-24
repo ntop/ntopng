@@ -71,7 +71,7 @@ class ThreadedActivity {
 		   ThreadPool* _pool = NULL);
   ~ThreadedActivity();
 
-  const char *activityPath() { return path; };
+  inline const char *activityPath() const { return path; };
   void activityBody();
   void runSystemScript();
   void runScript(char *script_path, NetworkInterface *iface, time_t deadline);

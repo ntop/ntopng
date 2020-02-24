@@ -85,7 +85,7 @@ void ThreadedActivityStats::updateRRDStats(bool write, ticks cur_ticks) {
       else
 	rrd_stats->is_slow = false;
 
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Evaluated condition: [slow: %u]", rrd_stats->is_slow ? 1 : 0);
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Evaluated condition: [slow: %u][path: %s]", rrd_stats->is_slow ? 1 : 0, threaded_activity->activityPath());
     }
   }
 }

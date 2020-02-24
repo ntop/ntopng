@@ -343,7 +343,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '3%',
+	 width: '4%',
        }
      }, {
        title: "]] print(i18n("internals.rrd_drops")) print[[",
@@ -352,7 +352,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '3%',
+	 width: '4%',
        }
      }, {
        title: "]] print(i18n("internals.tot_not_executed")) print[[",
