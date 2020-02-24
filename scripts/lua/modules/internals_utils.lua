@@ -204,8 +204,11 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
    <li>]] print(i18n("internals.periodic_activities_last_start_time_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_expected_end_time_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_tot_not_executed_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_tot_running_slow_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_tot_running_slow_descr")) print[[</li>]]
+   if ts_utils.getDriverName() == "rrd" then
+      print[[<li>]] print(i18n("internals.periodic_activities_rrd_writes_descr")) print[[</li>]]
+   end
+   print[[<li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
 </ul>
 <script type='text/javascript'>
 $(document).ready(function(){
@@ -283,7 +286,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'center',
-	 width: '5%',
+	 width: '3%',
        }
      }, {
        title: "]] print(i18n("status")) print[[",
@@ -331,7 +334,25 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '5%',
+	 width: '2%',
+       }
+     }, {
+       title: "]] print(i18n("internals.rrd_writes")) print[[",
+       field: "column_rrd_writes",
+       hidden: ]] if not ts_utils.getDriverName() == "rrd" then print('true') else print('false') end print[[,
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '3%',
+       }
+     }, {
+       title: "]] print(i18n("internals.rrd_drops")) print[[",
+       field: "column_rrd_drops",
+       hidden: ]] if not ts_utils.getDriverName() == "rrd" then print('true') else print('false') end print[[,
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '3%',
        }
      }, {
        title: "]] print(i18n("internals.tot_not_executed")) print[[",
@@ -358,6 +379,8 @@ $("#table-internals-periodic-activities").datatable({
                   "column_last_duration": fmillis,
                   "column_tot_not_executed": fint,
                   "column_tot_running_slow": fint,
+                  "column_rrd_writes": fint,
+                  "column_rrd_drops": fint,
                });
    },
 });

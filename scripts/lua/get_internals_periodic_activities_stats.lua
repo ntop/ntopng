@@ -10,6 +10,7 @@ local format_utils = require("format_utils")
 local json = require("dkjson")
 local internals_utils = require "internals_utils"
 local periodic_activities_utils = require "periodic_activities_utils"
+local ts_utils = require "ts_utils_core"
 local now = os.time()
 
 sendHTTPContentTypeHeader('application/json')
@@ -166,6 +167,18 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       sort_to_key[k] = -(script_stats.stats.last_start_time or 0)
    elseif(sortColumn == "column_progress") then
       sort_to_key[k] = script_stats.stats.progress
+   elseif(sortColumn == "column_rrd_writes") then
+      if script_stats.stats.rrd and script_stats.stats.rrd.write then
+	 sort_to_key[k] = (script_stats.stats.rrd.write.tot_calls or 0)
+      else
+	 sort_to_key[k] = 0
+      end
+   elseif(sortColumn == "column_rrd_drops") then
+      if script_stats.stats.rrd and script_stats.stats.rrd.write then
+	 sort_to_key[k] = (script_stats.stats.rrd.write.tot_drops or 0)
+      else
+	 sort_to_key[k] = 0
+      end
    elseif(sortColumn == "column_expected_start_time") then
       if(status == "queued") then
 	 sort_to_key[k] = script_stats.stats.scheduled_time or 0
@@ -236,6 +249,18 @@ for key in pairsByValues(sort_to_key, sOrder) do
       else
 	 -- For now prevent a 0 progress froms being erroneusly reported for unsupported activities
 	 record["column_progress"] = " "
+      end
+
+      if ts_utils.getDriverName() == "rrd" then
+	 if script_stats.stats.rrd and script_stats.stats.rrd.write then
+	    if script_stats.stats.rrd.write.tot_calls and script_stats.stats.rrd.write.tot_calls > 0 then
+	       record["column_rrd_writes"] = script_stats.stats.rrd.write.tot_calls
+	    end
+
+	    if script_stats.stats.rrd.write.tot_drops and script_stats.stats.rrd.write.tot_drops > 0 then
+	       record["column_rrd_drops"] = script_stats.stats.rrd.write.tot_drops
+	    end
+	 end
       end
 
       if status ~= "running" then
