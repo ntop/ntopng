@@ -29,19 +29,24 @@ class ThreadedActivity;
 typedef struct {
   ticks  tot_ticks, max_ticks;
   u_long tot_calls; /* Total number of calls to rrd_update */
-  u_long tot_drops; /* Total number of times rrd_update hasn't been called because RRDs are detected to be slow */
   bool is_slow;
+} threaded_activity_rrd_delta_stats_t; /* Stats periodically reset to keep a most-recent view */
+
+typedef struct {
+  u_long tot_calls; /* Total number of calls to rrd_update */
+  u_long tot_drops; /* Total number of times rrd_update hasn't been called because RRDs are detected to be slow */
+  threaded_activity_rrd_delta_stats_t *delta, *delta_shadow;
 } threaded_activity_rrd_stats_t;
 
 typedef struct {
   struct {
-    threaded_activity_rrd_stats_t write, read;
+    threaded_activity_rrd_stats_t write;
   } rrd;
 } threaded_activity_stats_t;
 
 class ThreadedActivityStats {
  private:
-  threaded_activity_stats_t *ta_stats, *ta_stats_shadow;
+  threaded_activity_stats_t ta_stats;
   time_t last_start_time, in_progress_since, last_queued_time;
   const ThreadedActivity *threaded_activity;
   u_long num_not_executed, num_is_slow;
@@ -52,7 +57,7 @@ class ThreadedActivityStats {
   bool not_executed, is_slow;
 
   void updateRRDStats(bool write, ticks cur_ticks);
-  void luaRRDStats(lua_State *vm, bool write, threaded_activity_stats_t *cur_stats);
+  void luaRRDStats(lua_State *vm);
   
  public:
   ThreadedActivityStats(const ThreadedActivity *ta);
@@ -67,9 +72,6 @@ class ThreadedActivityStats {
   /* RRD stats and drops for writes */
   void updateRRDWriteStats(ticks cur_ticks);
   void incRRDWriteDrops();
-
-  /* RRD stats for reads */
-  void updateRRDReadStats(ticks cur_ticks);
 
   void updateStatsQueuedTime(time_t queued_time);
   void updateStatsBegin(struct timeval *begin);

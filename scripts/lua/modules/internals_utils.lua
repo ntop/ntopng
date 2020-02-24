@@ -649,6 +649,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 	    label = i18n("internals.chart_script_rrds", {script = script}),
 	    extra_params = {periodic_script = script},
 	    metrics_labels = {i18n("internals.num_writes"), i18n("internals.num_drops")},
+	    value_formatter = {"fpoints", "formatPoints"}
 	 }
       end
    end

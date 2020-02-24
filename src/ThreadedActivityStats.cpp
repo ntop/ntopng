@@ -26,8 +26,8 @@ ticks ThreadedActivityStats::tickspersec = Utils::gettickspersec();
 /* ******************************************* */
 
 ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
-  ta_stats = (threaded_activity_stats_t*)calloc(1, sizeof(*ta_stats));
-  ta_stats_shadow = NULL;
+  memset(&ta_stats, 0, sizeof(ta_stats));
+  ta_stats.rrd.write.delta = (threaded_activity_rrd_delta_stats_t*)calloc(1, sizeof(*ta_stats.rrd.write.delta));
   last_start_time = in_progress_since = 0;
   last_queued_time = deadline = scheduled_time = 0;
   last_duration_ms = max_duration_ms = 0;
@@ -40,17 +40,17 @@ ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
 /* ******************************************* */
 
 ThreadedActivityStats::~ThreadedActivityStats() {
-  if(ta_stats)        free(ta_stats);
-  if(ta_stats_shadow) free(ta_stats_shadow);
+  if(ta_stats.rrd.write.delta)        free(ta_stats.rrd.write.delta);
+  if(ta_stats.rrd.write.delta_shadow) free(ta_stats.rrd.write.delta_shadow);
 }
 
 /* ******************************************* */
 
 bool ThreadedActivityStats::isRRDSlow() const {
-  threaded_activity_stats_t *cur_stats = ta_stats;
+  threaded_activity_rrd_delta_stats_t *cur_stats = ta_stats.rrd.write.delta;
 
   if(cur_stats) {
-    return cur_stats->rrd.write.is_slow || cur_stats->rrd.read.is_slow;
+    return cur_stats->is_slow;
   }
 
   return false;
@@ -59,47 +59,35 @@ bool ThreadedActivityStats::isRRDSlow() const {
 /* ******************************************* */
 
 void ThreadedActivityStats::incRRDWriteDrops() {
-  threaded_activity_stats_t *cur_stats = ta_stats;
-
-  if(cur_stats)
-    cur_stats->rrd.write.tot_drops++;
-}
-
-/* ******************************************* */
-
-void ThreadedActivityStats::updateRRDStats(bool write, ticks cur_ticks) {
-  threaded_activity_stats_t *cur_stats = ta_stats;
-  threaded_activity_rrd_stats_t *rrd_stats;
-
-  if(cur_stats) {
-    rrd_stats = write ? &cur_stats->rrd.write : &cur_stats->rrd.read;
-
-    rrd_stats->tot_ticks += cur_ticks;
-    rrd_stats->tot_calls += 1;
-    if(cur_ticks > rrd_stats->max_ticks) rrd_stats->max_ticks = cur_ticks;
-
-    if(rrd_stats->tot_calls && !(rrd_stats->tot_calls % 10)) {
-      /* Evaluate the condition every 10 updates */
-      if(rrd_stats->tot_ticks / (float)tickspersec / rrd_stats->tot_calls * 1000 >= THREADED_ACTIVITY_STATS_SLOW_RRD_MS)
-	rrd_stats->is_slow = true;
-      else
-	rrd_stats->is_slow = false;
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Evaluated condition: [slow: %u][path: %s]", rrd_stats->is_slow ? 1 : 0, threaded_activity->activityPath());
-    }
-  }
+  ta_stats.rrd.write.tot_drops++;
 }
 
 /* ******************************************* */
 
 void ThreadedActivityStats::updateRRDWriteStats(ticks cur_ticks) {
-  updateRRDStats(true /* Write */, cur_ticks);
-}
+  threaded_activity_rrd_delta_stats_t *delta_stats;
 
-/* ******************************************* */
+  /* Increase overall total stats */
+  ta_stats.rrd.write.tot_calls++;
 
-void ThreadedActivityStats::updateRRDReadStats(ticks cur_ticks) {
-  updateRRDStats(false /* Read */, cur_ticks);
+  /* Increase delta stats */
+  delta_stats = ta_stats.rrd.write.delta;
+
+  if(delta_stats) {
+    delta_stats->tot_ticks += cur_ticks;
+    delta_stats->tot_calls += 1;
+    if(cur_ticks > delta_stats->max_ticks) delta_stats->max_ticks = cur_ticks;
+
+    if(delta_stats->tot_calls && !(delta_stats->tot_calls % 10)) {
+      /* Evaluate the condition every 10 updates */
+      if(delta_stats->tot_ticks / (float)tickspersec / delta_stats->tot_calls * 1000 >= THREADED_ACTIVITY_STATS_SLOW_RRD_MS)
+	delta_stats->is_slow = true;
+      else
+	delta_stats->is_slow = false;
+
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Evaluated condition: [slow: %u][path: %s]", delta_stats->is_slow ? 1 : 0, threaded_activity->activityPath());
+    }
+  }
 }
 
 /* ******************************************* */
@@ -126,39 +114,50 @@ void ThreadedActivityStats::updateStatsEnd(u_long duration_ms) {
 /* ******************************************* */
 
 void ThreadedActivityStats::resetStats() {
-  if(ta_stats_shadow) free(ta_stats_shadow);
-  ta_stats_shadow = ta_stats;
-  ta_stats = (threaded_activity_stats_t*)calloc(1, sizeof(*ta_stats));
+  if(ta_stats.rrd.write.delta_shadow) free(ta_stats.rrd.write.delta_shadow);
+  ta_stats.rrd.write.delta_shadow = ta_stats.rrd.write.delta;
+  ta_stats.rrd.write.delta = (threaded_activity_rrd_delta_stats_t*)calloc(1, sizeof(*ta_stats.rrd.write.delta));
 }
 
 /* ******************************************* */
 
-void ThreadedActivityStats::luaRRDStats(lua_State *vm, bool write, threaded_activity_stats_t *cur_stats) {
-  threaded_activity_rrd_stats_t *rrd_stats;
+void ThreadedActivityStats::luaRRDStats(lua_State *vm) {
+  threaded_activity_rrd_stats_t *cur_stats = &ta_stats.rrd.write;
+  threaded_activity_rrd_delta_stats_t *delta_stats = ta_stats.rrd.write.delta;
 
-  if(cur_stats) {
-    rrd_stats = write ? &cur_stats->rrd.write : &cur_stats->rrd.read;
+  lua_newtable(vm);
 
-    if(rrd_stats->tot_calls || rrd_stats->tot_drops) {
+  if(cur_stats->tot_calls || cur_stats->tot_drops) {
+    lua_newtable(vm);
+
+    lua_push_uint64_table_entry(vm, "tot_calls", (u_int64_t)cur_stats->tot_calls);
+    lua_push_uint64_table_entry(vm, "tot_drops", (u_int64_t)cur_stats->tot_drops);
+
+    if(delta_stats) {
       lua_newtable(vm);
 
-      lua_push_float_table_entry(vm, "max_call_duration_ms", rrd_stats->max_ticks / (float)tickspersec * 1000);
-      lua_push_float_table_entry(vm, "avg_call_duration_ms", rrd_stats->tot_ticks / (float)tickspersec / rrd_stats->tot_calls * 1000);
-      lua_push_uint64_table_entry(vm, "tot_calls", (u_int64_t)rrd_stats->tot_calls);
-      lua_push_uint64_table_entry(vm, "tot_drops", (u_int64_t)rrd_stats->tot_drops);
+      lua_push_float_table_entry(vm, "max_call_duration_ms", delta_stats->max_ticks / (float)tickspersec * 1000);
+      lua_push_float_table_entry(vm, "avg_call_duration_ms", delta_stats->tot_ticks / (float)tickspersec / delta_stats->tot_calls * 1000);
+      lua_push_bool_table_entry(vm, "is_slow", delta_stats->is_slow);
 
-      lua_pushstring(vm, write ? "write" : "read");
+      lua_pushstring(vm, "delta");
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }
+
+    lua_pushstring(vm, "write");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
+
+  lua_pushstring(vm, "rrd");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* ******************************************* */
 
 void ThreadedActivityStats::lua(lua_State *vm) {
-  threaded_activity_stats_t *cur_stats = ta_stats;
-
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "max_duration_ms", (u_int64_t)max_duration_ms);
@@ -168,14 +167,7 @@ void ThreadedActivityStats::lua(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  lua_newtable(vm);
-
-  luaRRDStats(vm, true  /* Write */, cur_stats);
-  luaRRDStats(vm, false /* Read */,  cur_stats);
-
-  lua_pushstring(vm, "rrd");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  luaRRDStats(vm);
 
   if(in_progress_since)
     lua_push_uint64_table_entry(vm, "in_progress_since", in_progress_since);

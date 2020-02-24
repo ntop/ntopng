@@ -14,11 +14,11 @@ schema:addTag("ifid")
 schema:addTag("periodic_script")
 schema:addMetric("num_ms_last")
 
-schema = ts_utils.newSchema("periodic_script:rrd_writes", {step = 60, rrd_fname="ps_rrd_wr", metrics_type = ts_utils.metrics.gauge, is_critical_ts=true})
+schema = ts_utils.newSchema("periodic_script:rrd_writes", {step = 60, rrd_fname="ps_rrd_w", is_critical_ts=true})
 schema:addTag("ifid")
 schema:addTag("periodic_script")
-schema:addMetric("num_writes")
-schema:addMetric("num_drops")
+schema:addMetric("writes")
+schema:addMetric("drops")
 
 -------------------------------------------------------
 -- TRAFFIC ELEMENTS USER SCRIPTS SCHEMAS

@@ -190,8 +190,8 @@ function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 	    cur_ifname = getInterfaceName(cur_ifid)
 	 end
 
-	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] then
-	    rrd_out = string.format("  [rrd.write.tot_calls: %i][rrd.write.avg_call_duration_ms: %.2f][rrd.write.max_call_duration_ms: %.2f][rrd.write.tot_drops: %u]", ps_stats["rrd"]["write"]["tot_calls"] or 0, ps_stats["rrd"]["write"]["avg_call_duration_ms"], ps_stats["rrd"]["write"]["max_call_duration_ms"], ps_stats["rrd"]["write"]["tot_drops"] or 0)
+	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] and  ps_stats["rrd"]["write"]["delta"] then
+	    rrd_out = string.format("  [rrd.write.tot_calls: %i][rrd.write.avg_call_duration_ms: %.2f][rrd.write.max_call_duration_ms: %.2f][rrd.write.tot_drops: %u][slow: %s]", ps_stats["rrd"]["write"]["tot_calls"] or 0, ps_stats["rrd"]["write"]["delta"]["avg_call_duration_ms"], ps_stats["rrd"]["write"]["delta"]["max_call_duration_ms"], ps_stats["rrd"]["write"]["tot_drops"] or 0, tostring(ps_stats["rrd"]["write"]["delta"]["is_slow"]))
 	 end
 
 	 if rrd_out then
@@ -214,7 +214,7 @@ function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
       -- Only if RRD is enabled, also total number of writes and dropped points are written
       if ts_utils.getDriverName() == "rrd" then
 	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] then
-	    ts_utils.append("periodic_script:rrd_writes", {ifid = ifstats.id, periodic_script = ps_name, num_writes = (ps_stats["rrd"]["write"]["tot_calls"] or 0), num_drops = (ps_stats["rrd"]["write"]["tot_drops"] or 0)}, when, verbose)
+	    ts_utils.append("periodic_script:rrd_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = (ps_stats["rrd"]["write"]["tot_calls"] or 0), drops = (ps_stats["rrd"]["write"]["tot_drops"] or 0)}, when, verbose)
 	 end
       end
    end
