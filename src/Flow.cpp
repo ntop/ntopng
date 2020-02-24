@@ -4628,7 +4628,7 @@ void Flow::luaRetrieveExternalAlert(lua_State *vm) {
   if(external_alert) {
     lua_pushstring(vm, external_alert);
 
-    /* Must delte the data to avoid returning it in the next call */
+    /* Must delete the data to avoid returning it in the next call */
     free(external_alert);
     external_alert = NULL;
   } else
@@ -4643,10 +4643,12 @@ FlowStatus Flow::getPredominantStatus() const {
   FlowStatus status = status_normal;
 
   if(status_infos) {
-    for(i=0; i<BITMAP_NUM_BITS; i++) {
-      if(status_map.issetBit(i) && (status_infos[i].score > max_score)) {
-	status = (FlowStatus)i;
-	max_score = status_infos[i].score;
+    for(i=1 /* 0 is normal */; i<BITMAP_NUM_BITS; i++) {
+      if(status_map.issetBit(i)) {
+        if (status_infos[i].score > max_score) {
+          status = (FlowStatus)i;
+	  max_score = status_infos[i].score;
+        }
       }
     }
   }
