@@ -271,7 +271,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("chart")) print[[",
        field: "column_chart",
-       hidden: ]] if not ifid or not ts_creation then print('true') else print('false') end print[[,
+       hidden: ]] if not ts_creation then print('true') else print('false') end print[[,
        sortable: false,
        css: {
 	 textAlign: 'center',
@@ -586,6 +586,10 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
    local schema = _GET["ts_schema"] or "custom:flow_script:stats"
    local selected_epoch = _GET["epoch"] or ""
    url = url..'&page=historical'
+
+   if ifId and tostring(getSystemInterfaceId()) ~= ifId then
+      url = url..'&ifid='..ifId
+   end
 
    local tags = {
       ifid = ifId,

@@ -317,15 +317,14 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       record["column_periodicity"] = format_utils.secondsToTime(periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"])
 
-      if iffilter then
-	 if areInternalTimeseriesEnabled(iffilter) then
-	    if iffilter == getSystemInterfaceId() then
-	       record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/system_periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
-	    else
-	       record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
-	    end
+      if areInternalTimeseriesEnabled(script_stats.ifid) then
+	 if script_stats.ifid == getSystemInterfaceId() then
+	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/system_periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
+	 else
+	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration&ifid='..script_stats.ifid..'\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
 	 end
       end
+
 
       res[#res + 1] = record
    end

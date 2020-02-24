@@ -37,6 +37,6 @@ page_utils.print_navbar(title, nav_url,
 			}
 )
 
-internals_utils.printPeriodicActivityDetails(ifId, nav_url)
+internals_utils.printPeriodicActivityDetails(_GET["ifid"] or ifId, nav_url)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
