@@ -31,21 +31,21 @@ schema:addMetric("num_calls")
 -- FLOW USER SCRIPT SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("flow_script:skipped_calls", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("flow_script:skipped_calls", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("idle")
 schema:addMetric("proto_detected")
 schema:addMetric("periodic_update")
 
-schema = ts_utils.newSchema("flow_script:pending_calls", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("flow_script:pending_calls", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("proto_detected")
 schema:addMetric("periodic_update")
 
-schema = ts_utils.newSchema("flow_script:successful_calls", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("flow_script:successful_calls", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_calls")
 
-schema = ts_utils.newSchema("flow_script:lua_duration", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("flow_script:lua_duration", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_ms")
