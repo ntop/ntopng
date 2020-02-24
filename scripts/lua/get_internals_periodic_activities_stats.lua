@@ -119,6 +119,7 @@ local sort_to_key = {}
 
 for k, script_stats in pairs(ifaces_scripts_stats) do
    local stats = script_stats.stats
+   local status = stats.state
 
    if periodic_script then
       if script_stats.script ~= periodic_script then
@@ -163,6 +164,26 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       sort_to_key[k] = stats.state
    elseif(sortColumn == "column_last_start_time") then
       sort_to_key[k] = -(script_stats.stats.last_start_time or 0)
+   elseif(sortColumn == "column_progress") then
+      sort_to_key[k] = script_stats.stats.progress
+   elseif(sortColumn == "column_expected_start_time") then
+      if(status == "queued") then
+	 sort_to_key[k] = script_stats.stats.scheduled_time or 0
+      elseif(status == "sleeping") then
+	 sort_to_key[k] = script_stats.stats.deadline or 0
+      else
+	 sort_to_key[k] = 0
+      end
+   elseif(sortColumn == "column_expected_end_time") then
+      if(status == "running") then
+	 sort_to_key[k] = script_stats.stats.deadline
+      else
+	 sort_to_key[k] = 0
+      end
+   elseif(sortColumn == "column_tot_not_executed") then
+      sort_to_key[k] = (script_stats.stats.num_not_executed or 0)
+   elseif(sortColumn == "column_tot_running_slow") then
+      sort_to_key[k] = (script_stats.stats.num_is_slow or 0)
    elseif(sortColumn == "column_name") then
       sort_to_key[k] = getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid))
    else
@@ -258,6 +279,14 @@ for key in pairsByValues(sort_to_key, sOrder) do
       -- TODO
       record["column_work_completion"] = "90%"
 
+      if script_stats.stats["num_not_executed"] and script_stats.stats["num_not_executed"] > 0 then
+	 record["column_tot_not_executed"] = script_stats.stats["num_not_executed"]
+      end
+
+      if script_stats.stats["num_is_slow"] and script_stats.stats["num_is_slow"] > 0 then
+	 record["column_tot_running_slow"] = script_stats.stats["num_is_slow"]
+      end
+
       if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 then
 	 record["column_last_start_time"] = i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - script_stats.stats["last_start_time"])})
 	 -- tprint({orig = script_stats.stats[k], k = k, v = record["column_"..k]})
@@ -274,9 +303,17 @@ for key in pairsByValues(sort_to_key, sOrder) do
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))
 
       local activity_id = script_stats.script:gsub(".lua", "")
+      local activity_desc = i18n("internals.activity_descriptions." .. activity_id)
+
+      if not isEmptyString(activity_desc) then
+	 activity_desc = ' <i class="fas fa-info-circle fa-sm" title="'.. activity_desc ..'"></i>'
+      else
+	 activity_desc = ""
+      end
+
       -- local activity_name = string.format("<span id='%s' data-toggle='popover' data-trigger='hover'  data-placement='top' title='%s' data-content='%s'>%s</span><script>$('#%s').popover('hide');$('#%s').popover({placement : 'top', trigger : 'hover'});</script>", activity_id, script_stats.script, i18n("periodic_activities_descr."..script_stats.script), script_stats.script, activity_id, activity_id)
       local activity_name = string.format("<span id='%s' title='%s'>%s</span>", activity_id, i18n("periodic_activities_descr."..script_stats.script), script_stats.script)
-      record["column_periodic_activity_name"] = warn .. activity_name
+      record["column_periodic_activity_name"] = warn .. activity_name .. activity_desc
 
       record["column_periodicity"] = format_utils.secondsToTime(periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"])
 

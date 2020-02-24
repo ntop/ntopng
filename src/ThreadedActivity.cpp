@@ -295,7 +295,7 @@ void ThreadedActivity::run() {
 ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing) {
   ThreadedActivityStats *ta = NULL;
 
-  if(iface) {
+  if(!isTerminating() && iface) {
     /* As the system interface has id -1, we add 1 to the offset to access the array of stats.
        The array of stats is allocated in the constructor with MAX_NUM_INTERFACE_IDS + 1 to also
        accomodate the system interface */

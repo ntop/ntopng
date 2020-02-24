@@ -183,7 +183,6 @@ void ThreadedActivityStats::lua(lua_State *vm) {
 
   if(is_slow)
     lua_push_bool_table_entry(vm, "is_slow", true);
-
   if(num_is_slow)
     lua_push_uint64_table_entry(vm, "num_is_slow", num_is_slow);
 
