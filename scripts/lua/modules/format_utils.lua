@@ -179,24 +179,27 @@ function format_utils.bitsToSize(bits)
    return(bitsToSizeMultiplier(bits, 1000))
 end
 
-function format_utils.formatEpoch(epoch)
+-- format an epoch
+-- timezone is the frontend timezone offset in seconds (optional)
+function format_utils.formatEpoch(epoch, timezone)
   if epoch == 0 then
     return("")
   else
-    return(os.date("%d/%m/%Y %X", epoch))
+    return(os.date("%d/%m/%Y %X", epoch + getFrontendTzDeltaSeconds(timezone)))
   end
 end
 
 -- shorten an epoch when there is a well defined interval
-function format_utils.formatEpochShort(epoch_begin, epoch_end, epoch)
-   local begin_day = os.date("%d", epoch_begin)
-   local end_day = os.date("%d", epoch_end)
+-- timezone is the frontend timezone offset in seconds (optional)
+function format_utils.formatEpochShort(epoch_begin, epoch_end, epoch, timezone)
+   local begin_day = os.date("%d", epoch_begin + getFrontendTzDeltaSeconds(timezone))
+   local end_day = os.date("%d", epoch_end + getFrontendTzDeltaSeconds(timezone))
 
    if begin_day == end_day then
-      return os.date("%X", epoch)
+      return os.date("%X", epoch + getFrontendTzDeltaSeconds(timezone))
    end
 
-   return format_utils.formatEpoch(epoch)
+   return format_utils.formatEpoch(epoch, timezone)
 end
 
 function format_utils.formatPastEpochShort(epoch)

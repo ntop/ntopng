@@ -1244,6 +1244,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
         // TODO change topk
         // TODO disable statistics
         params.detail_view = view.id;
+        params.timezone = (new Date().getTimezoneOffset() * 60 * -1);
 
         return params;
       },

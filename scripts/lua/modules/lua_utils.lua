@@ -2621,6 +2621,7 @@ end
 
 -- ####################################################
 
+-- Get the local (backend) timezone offset in seconds
 function getTzOffsetSeconds()
    local now = os.time()
    local local_t = os.date("*t", now)
@@ -2645,6 +2646,17 @@ end
 
 -- ####################################################
 
+-- Get the delta between the frontend local time and the backend local time in seconds
+function getFrontendTzDeltaSeconds(frontend_tz_offset)
+   if frontend_tz_offset == nil then
+      return 0
+   end
+   return frontend_tz_offset - getTzOffsetSeconds()
+end
+
+-- ####################################################
+
+-- Converts a string (with the timezone offset) into an epoch
 function makeTimeStamp(d, tzoffset)
    -- tzoffset is the timezone difference between UTC and Local Time in the browser
    local pattern = "(%d+)%/(%d+)%/(%d+) (%d+):(%d+):(%d+)"
