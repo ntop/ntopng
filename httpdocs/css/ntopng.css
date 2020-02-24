@@ -1103,3 +1103,60 @@ path.link {
   overflow-x: auto; 
   -webkit-overflow-scrolling: touch;
 }
+
+details#dt-top-summary {
+  margin: 1.25rem 0;
+}
+details div.progress {
+  height: 0.55rem;
+}
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+
+details div.details {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+details ul {
+  margin: 0;
+  width: 100%;
+  padding: 0;
+  display: table;
+}
+
+details ul li {
+  display: table-cell;
+  margin: 0.5rem;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: 1%;
+}
+
+details ul li:only-child {
+  border: none;
+}
+details ul li:first-child {
+  border-right: 1px solid #ccc;
+}
+details ul li {
+  border-right: 1px solid #ccc;
+}
+details ul li:last-child {
+  border: none;
+}
+
+details ul li i.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+details ul li>span {
+  color: #8e8e8e;
+}
