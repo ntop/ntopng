@@ -421,6 +421,9 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
       } else
         thstats->clearErrors();
     }
+  } else if(deadline) {
+    if(isDeadlineApproaching(deadline))
+      thstats->setSlowPeriodicActivity();
   }
 
   if(l && !reuse_vm)
