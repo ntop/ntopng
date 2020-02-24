@@ -599,7 +599,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 
       periodic_scripts_ts[#periodic_scripts_ts + 1] = {
 	 schema = "periodic_script:duration",
-	 label = script.." "..i18n("duration"),
+	 label = i18n("internals.chart_script_duration", {script = script}),
 	 extra_params = {periodic_script = script},
 	 metrics_labels = {i18n("flow_callbacks.last_duration"), },
 
@@ -619,7 +619,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
       if ts_utils.getDriverName() == "rrd" then
 	 periodic_scripts_ts[#periodic_scripts_ts + 1] = {
 	    schema = "periodic_script:rrd_writes",
-	    label = script.. " RRD",
+	    label = i18n("internals.chart_script_rrds", {script = script}),
 	    extra_params = {periodic_script = script},
 	    metrics_labels = {i18n("internals.num_writes"), i18n("internals.num_drops")},
 	 }
