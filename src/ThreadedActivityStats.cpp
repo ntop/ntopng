@@ -187,7 +187,7 @@ void ThreadedActivityStats::lua(lua_State *vm) {
     lua_push_uint64_table_entry(vm, "last_queued_time", last_queued_time);
 
   if(not_executed)
-    lua_push_bool_table_entry(vm, "not_excecuted", true);
+    lua_push_bool_table_entry(vm, "not_executed", true);
   if(num_not_executed)
     lua_push_uint64_table_entry(vm, "num_not_executed", num_not_executed);
 
