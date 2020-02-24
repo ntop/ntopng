@@ -2330,7 +2330,10 @@ void NetworkInterface::shutdown() {
 
   if(running) {
     running = false;
-    pthread_join(pollLoop, &res);
+
+    if(pollLoopCreated)
+      pthread_join(pollLoop, &res);
+
     /* purgeIdle one last time to make sure all entries will be marked as idle */
     purgeIdle(time(NULL), true);
   }
