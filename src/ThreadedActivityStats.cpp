@@ -47,10 +47,10 @@ ThreadedActivityStats::~ThreadedActivityStats() {
 /* ******************************************* */
 
 bool ThreadedActivityStats::isRRDSlow() const {
-  threaded_activity_rrd_delta_stats_t *cur_stats = ta_stats.rrd.write.delta;
+  threaded_activity_rrd_delta_stats_t *delta_stats = ta_stats.rrd.write.delta;
 
-  if(cur_stats) {
-    return cur_stats->is_slow;
+  if(delta_stats) {
+    return delta_stats->is_slow;
   }
 
   return false;
@@ -133,7 +133,7 @@ void ThreadedActivityStats::luaRRDStats(lua_State *vm) {
     lua_push_uint64_table_entry(vm, "tot_calls", (u_int64_t)cur_stats->tot_calls);
     lua_push_uint64_table_entry(vm, "tot_drops", (u_int64_t)cur_stats->tot_drops);
 
-    if(delta_stats) {
+    if(delta_stats && delta_stats->tot_calls) {
       lua_newtable(vm);
 
       lua_push_float_table_entry(vm, "max_call_duration_ms", delta_stats->max_ticks / (float)tickspersec * 1000);
