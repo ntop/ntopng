@@ -601,6 +601,7 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm, bool reset_af
 
     lua_push_str_table_entry(vm, "state", get_state_label(get_state(iface)));
     lua_push_uint64_table_entry(vm, "periodicity", getPeriodicity());
+    lua_push_uint64_table_entry(vm, "deadline_secs", deadline_approaching_secs);
 
     lua_pushstring(vm, path ? path : "");
     lua_insert(vm, -2);
