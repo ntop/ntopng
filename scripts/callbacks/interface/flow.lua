@@ -412,6 +412,15 @@ function flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score
       return
    end
 
+   if(new_status and status_info and ids_utils and
+      status_id == flow_consts.status_types.status_external_alert.status_id and
+      status_info and (status_info.source == "suricata")) then
+      local fs, cs, ss = ids_utils.computeScore(status_info)
+      flow_score = fs
+      cli_score = cs
+      srv_score = ss
+   end
+
    -- NOTE: The "new_status.status_id < alerted_status.status_id" check must
    -- correspond to the Flow::getPredominantStatus logic in order to determine
    -- the same predominant status
@@ -435,20 +444,6 @@ function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
    local status_id = flow_status_type.status_id
 
    if(not flow.isStatusSet(status_id)) then
-      local new_status = flow_consts.getStatusInfo(status_id)
-      local status_info = alerted_status_msg
-
-      if(new_status and status_info and ids_utils) then
-	 if(status_id == flow_consts.status_types.status_external_alert.status_id) then
-	    if(status_info and (status_info.source == "suricata")) then
-	       local fs, cs, ss = ids_utils.computeScore(status_info)
-	       flow_score = fs
-	       cli_score = cs
-	       srv_score = ss
-	    end
-	 end
-      end
-
       flow_score = math.min(math.max(flow_score or 0, 0), max_score)
       cli_score = math.min(math.max(cli_score or 0, 0), max_score)
       srv_score = math.min(math.max(srv_score or 0, 0), max_score)
