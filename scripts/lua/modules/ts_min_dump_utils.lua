@@ -191,7 +191,7 @@ function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 	 end
 
 	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] then
-	    rrd_out = string.format("  [rrd.write.tot_calls: %i][rrd.write.avg_call_duration_ms: %.2f][rrd.write.max_call_duration_ms: %.2f]", ps_stats["rrd"]["write"]["tot_calls"], ps_stats["rrd"]["write"]["avg_call_duration_ms"], ps_stats["rrd"]["write"]["max_call_duration_ms"])
+	    rrd_out = string.format("  [rrd.write.tot_calls: %i][rrd.write.avg_call_duration_ms: %.2f][rrd.write.max_call_duration_ms: %.2f][rrd.write.tot_drops: %u]", ps_stats["rrd"]["write"]["tot_calls"] or 0, ps_stats["rrd"]["write"]["avg_call_duration_ms"], ps_stats["rrd"]["write"]["max_call_duration_ms"], ps_stats["rrd"]["write"]["tot_drops"] or 0)
 	 end
 
 	 if rrd_out then
@@ -200,15 +200,23 @@ function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 	 end
       end
 
+      -- Write info on the script duration
       local num_ms_last = 0
 
       if ps_stats["duration"] then
-         if ps_stats["duration"]["last_duration_ms"] then
+	 if ps_stats["duration"]["last_duration_ms"] then
 	   num_ms_last = ps_stats["duration"]["last_duration_ms"]
-         end
+	 end
       end
 
       ts_utils.append("periodic_script:duration", {ifid = ifstats.id, periodic_script = ps_name, num_ms_last = num_ms_last}, when, verbose)
+
+      -- Only if RRD is enabled, also total number of writes and dropped points are written
+      if ts_utils.getDriverName() == "rrd" then
+	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] then
+	    ts_utils.append("periodic_script:rrd_writes", {ifid = ifstats.id, periodic_script = ps_name, num_writes = (ps_stats["rrd"]["write"]["tot_calls"] or 0), num_drops = (ps_stats["rrd"]["write"]["tot_drops"] or 0)}, when, verbose)
+	 end
+      end
    end
 end
 

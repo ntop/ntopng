@@ -5257,6 +5257,18 @@ static int ntop_rrd_is_slow(lua_State* vm) {
 
 /* ****************************************** */
 
+// ***API***
+static int ntop_rrd_inc_num_drops(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+  if(ctx && ctx->threaded_activity_stats)
+    ctx->threaded_activity_stats->incRRDWriteDrops();
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 /* positional 1:4 parameters for ntop_rrd_fetch */
 static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *start, time_t *end) {
   char *start_s, *end_s, *err;
@@ -11809,6 +11821,7 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_lastupdate",    ntop_rrd_lastupdate    },
   { "rrd_tune",          ntop_rrd_tune          },
   { "rrd_is_slow",       ntop_rrd_is_slow       },
+  { "rrd_inc_num_drops", ntop_rrd_inc_num_drops },
 
   /* Prefs */
   { "getPrefs",          ntop_get_prefs },

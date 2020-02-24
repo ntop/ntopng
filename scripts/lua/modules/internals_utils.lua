@@ -8,7 +8,7 @@ local json = require "dkjson"
 local dirs = ntop.getDirs()
 local user_scripts = require "user_scripts"
 local periodic_activities_utils = require "periodic_activities_utils"
-
+local ts_utils = require "ts_utils_core"
 
 -- ###########################################
 
@@ -599,9 +599,9 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 
       periodic_scripts_ts[#periodic_scripts_ts + 1] = {
 	 schema = "periodic_script:duration",
-	 label = script,
+	 label = script.." "..i18n("duration"),
 	 extra_params = {periodic_script = script},
-	 metrics_labels = {i18n("flow_callbacks.last_duration")},
+	 metrics_labels = {i18n("flow_callbacks.last_duration"), },
 
 	 -- Horizontal line with max duration
 	 extra_series = {
@@ -615,6 +615,15 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 	    },
 	 }
       }
+
+      if ts_utils.getDriverName() == "rrd" then
+	 periodic_scripts_ts[#periodic_scripts_ts + 1] = {
+	    schema = "periodic_script:rrd_writes",
+	    label = script.. " RRD",
+	    extra_params = {periodic_script = script},
+	    metrics_labels = {i18n("internals.num_writes"), i18n("internals.num_drops")},
+	 }
+      end
    end
 
    local timeseries = periodic_scripts_ts

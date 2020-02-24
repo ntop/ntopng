@@ -58,6 +58,15 @@ bool ThreadedActivityStats::isRRDSlow() const {
 
 /* ******************************************* */
 
+void ThreadedActivityStats::incRRDWriteDrops() {
+  threaded_activity_stats_t *cur_stats = ta_stats;
+
+  if(cur_stats)
+    cur_stats->rrd.write.tot_drops++;
+}
+
+/* ******************************************* */
+
 void ThreadedActivityStats::updateRRDStats(bool write, ticks cur_ticks) {
   threaded_activity_stats_t *cur_stats = ta_stats;
   threaded_activity_rrd_stats_t *rrd_stats;
@@ -130,12 +139,13 @@ void ThreadedActivityStats::luaRRDStats(lua_State *vm, bool write, threaded_acti
   if(cur_stats) {
     rrd_stats = write ? &cur_stats->rrd.write : &cur_stats->rrd.read;
 
-    if(rrd_stats->tot_calls) {
+    if(rrd_stats->tot_calls || rrd_stats->tot_drops) {
       lua_newtable(vm);
 
       lua_push_float_table_entry(vm, "max_call_duration_ms", rrd_stats->max_ticks / (float)tickspersec * 1000);
       lua_push_float_table_entry(vm, "avg_call_duration_ms", rrd_stats->tot_ticks / (float)tickspersec / rrd_stats->tot_calls * 1000);
       lua_push_uint64_table_entry(vm, "tot_calls", (u_int64_t)rrd_stats->tot_calls);
+      lua_push_uint64_table_entry(vm, "tot_drops", (u_int64_t)rrd_stats->tot_drops);
 
       lua_pushstring(vm, write ? "write" : "read");
       lua_insert(vm, -2);
