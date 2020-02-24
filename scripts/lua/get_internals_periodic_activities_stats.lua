@@ -119,6 +119,7 @@ local sort_to_key = {}
 
 for k, script_stats in pairs(ifaces_scripts_stats) do
    local stats = script_stats.stats
+   local status = stats.state
 
    if periodic_script then
       if script_stats.script ~= periodic_script then
@@ -163,6 +164,22 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       sort_to_key[k] = stats.state
    elseif(sortColumn == "column_last_start_time") then
       sort_to_key[k] = -(script_stats.stats.last_start_time or 0)
+   elseif(sortColumn == "column_progress") then
+      sort_to_key[k] = script_stats.stats.progress
+   elseif(sortColumn == "column_expected_start_time") then
+      if(status == "queued") then
+	 sort_to_key[k] = script_stats.stats.scheduled_time or 0
+      elseif(status == "sleeping") then
+	 sort_to_key[k] = script_stats.stats.deadline or 0
+      else
+	 sort_to_key[k] = 0
+      end
+   elseif(sortColumn == "column_expected_end_time") then
+      if(status == "running") then
+	 sort_to_key[k] = script_stats.stats.deadline
+      else
+	 sort_to_key[k] = 0
+      end
    elseif(sortColumn == "column_name") then
       sort_to_key[k] = getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid))
    else
