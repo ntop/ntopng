@@ -713,6 +713,7 @@ end
 function alerts_api.ipOutsideDHCPRangeType(router_info, mac, client_mac, sender_mac)
   return({
     alert_type = alert_consts.alert_types.alert_ip_outsite_dhcp_range,
+    alert_subtype = string.format("%s_%s_%s", hostinfo2hostkey(router_info), client_mac, sender_mac),
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       router_info = hostinfo2hostkey(router_info),
