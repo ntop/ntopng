@@ -72,10 +72,10 @@ PeriodicActivities::~PeriodicActivities() {
 
 /* ******************************************* */
 
-void PeriodicActivities::lua(NetworkInterface *iface, lua_State *vm, bool reset_after_get) {
+void PeriodicActivities::lua(NetworkInterface *iface, lua_State *vm) {
   for(int i = 0; i < num_activities; i++) {
     if(activities[i])
-      activities[i]->lua(iface, vm, reset_after_get);
+      activities[i]->lua(iface, vm);
   }
 }
 

@@ -33,9 +33,15 @@ typedef struct {
 } threaded_activity_rrd_delta_stats_t; /* Stats periodically reset to keep a most-recent view */
 
 typedef struct {
+  /* Overall totals */
   u_long tot_calls; /* Total number of calls to rrd_update */
   u_long tot_drops; /* Total number of times rrd_update hasn't been called because RRDs are detected to be slow */
-  threaded_activity_rrd_delta_stats_t *delta, *delta_shadow;
+  /* Stats for the last run */
+  u_long tot_is_slow;  /* Total number of times the periodic activity has been detected to have slow RRDs */
+  float last_max_call_duration_ms; /* Maximum time taken to perform a call during the last run */
+  float last_avg_call_duration_ms; /* Average time taken to perform a call during the last run */
+  bool  last_slow; /* True if slow RRD updates have been detected during the last run */
+  threaded_activity_rrd_delta_stats_t last; /* Keep stats for the last run */
 } threaded_activity_rrd_stats_t;
 
 typedef struct {
@@ -82,8 +88,6 @@ class ThreadedActivityStats {
   inline void setScheduledTime(time_t t) { scheduled_time = t; }
   inline void setDeadline(time_t t)      { deadline = t; }
   inline void setCurrentProgress(int _progress) { progress = min(max(_progress, 0), 100); }
-
-  void resetStats();
 
   void lua(lua_State *vm);
 };

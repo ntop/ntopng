@@ -175,7 +175,7 @@ end
 -- ########################################################
 
 function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
-   local periodic_scripts_stats = interface.getPeriodicActivitiesStats(true --[[ reset stats after get --]])
+   local periodic_scripts_stats = interface.getPeriodicActivitiesStats()
    local to_stdout = ntop.getPref("ntopng.prefs.periodic_activities_stats_to_stdout") == "1"
 
    for ps_name, ps_stats in pairs(periodic_scripts_stats) do
@@ -190,13 +190,17 @@ function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 	    cur_ifname = getInterfaceName(cur_ifid)
 	 end
 
-	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] and  ps_stats["rrd"]["write"]["delta"] then
-	    rrd_out = string.format("  [rrd.write.tot_calls: %i][rrd.write.avg_call_duration_ms: %.2f][rrd.write.max_call_duration_ms: %.2f][rrd.write.tot_drops: %u][slow: %s]", ps_stats["rrd"]["write"]["tot_calls"] or 0, ps_stats["rrd"]["write"]["delta"]["avg_call_duration_ms"], ps_stats["rrd"]["write"]["delta"]["max_call_duration_ms"], ps_stats["rrd"]["write"]["tot_drops"] or 0, tostring(ps_stats["rrd"]["write"]["delta"]["is_slow"]))
+	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] and  ps_stats["rrd"]["write"]["last"] then
+	    rrd_out = string.format("[rrd.write.tot_calls: %i][last_avg_call_duration_ms: %.2f][last_max_call_duration_ms: %.2f][rrd.write.tot_drops: %u][last_is_slow: %s]",
+				    ps_stats["rrd"]["write"]["tot_calls"] or 0,
+				    ps_stats["rrd"]["write"]["last"]["avg_call_duration_ms"] or 0,
+				    ps_stats["rrd"]["write"]["last"]["max_call_duration_ms"] or 0,
+				    ps_stats["rrd"]["write"]["tot_drops"] or 0,
+				    tostring(ps_stats["rrd"]["write"]["last"]["is_slow"]))
 	 end
 
 	 if rrd_out then
-	    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("[ifname: %s][ifid: %i][%s]", cur_ifname, cur_ifid, ps_name))
-	    traceError(TRACE_NORMAL, TRACE_CONSOLE, rrd_out)
+	    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("[ifname: %s][ifid: %i][%s]%s", cur_ifname, cur_ifid, ps_name, rrd_out))
 	 end
       end
 

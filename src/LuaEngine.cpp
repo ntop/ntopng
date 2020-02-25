@@ -6322,12 +6322,9 @@ static int ntop_get_interface_hash_tables_stats(lua_State* vm) {
 
 static int ntop_get_interface_periodic_activities_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool reset_after_get = false;
-
-  if(lua_type(vm, 1) == LUA_TBOOLEAN) reset_after_get = lua_toboolean(vm, 1);
 
   if(ntop_interface)
-    ntop_interface->lua_periodic_activities_stats(vm, reset_after_get);
+    ntop_interface->lua_periodic_activities_stats(vm);
   else
     lua_pushnil(vm);
 

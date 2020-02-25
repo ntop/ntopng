@@ -595,7 +595,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
 
 /* ******************************************* */
 
-void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm, bool reset_after_get) {
+void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
   ThreadedActivityStats *ta = getThreadedActivityStats(iface, false /* Do not allocate if missing */);
 
   if(ta) {
@@ -610,9 +610,6 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm, bool reset_af
     lua_pushstring(vm, path ? path : "");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
-
-    if(reset_after_get)
-      ta->resetStats();
   }
 }
 

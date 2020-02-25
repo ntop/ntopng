@@ -916,9 +916,9 @@ void Ntop::checkSNMPDeviceAlerts(ScriptPeriodicity p, lua_State *vm) {
 
 /* ******************************************* */
 
-void Ntop::lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm, bool reset_after_get) {
+void Ntop::lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm) {
   if(pa)
-    pa->lua(iface, vm, reset_after_get);
+    pa->lua(iface, vm);
 }
 
 /* ******************************************* */

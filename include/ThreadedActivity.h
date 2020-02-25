@@ -92,7 +92,7 @@ class ThreadedActivity {
   ThreadedActivityState get_state(NetworkInterface *iface) const;
   ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing);
 
-  void lua(NetworkInterface *iface, lua_State *vm, bool reset_after_get);
+  void lua(NetworkInterface *iface, lua_State *vm);
 };
 
 #endif /* _THREADED_ACTIVITY_H_ */

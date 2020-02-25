@@ -369,7 +369,7 @@ class Ntop {
 #endif
   void checkSystemScripts(ScriptPeriodicity p, lua_State *vm);
   void checkSNMPDeviceAlerts(ScriptPeriodicity p, lua_State *vm);
-  void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm, bool reset_after_get);
+  void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm);
   void getUsers(lua_State* vm);
   bool isUserAdministrator(lua_State* vm);
   void getAllowedInterface(lua_State* vm);

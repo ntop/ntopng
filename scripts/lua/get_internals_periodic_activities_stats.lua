@@ -102,7 +102,6 @@ for _, iface in pairs(available_interfaces) do
 
    local scripts_stats = interface.getPeriodicActivitiesStats()
 
-
    -- Flatten out the nested tables
    for script in pairs(periodic_activities_utils.periodic_activities) do
       local stats = scripts_stats[script]

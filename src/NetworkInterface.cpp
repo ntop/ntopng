@@ -5321,11 +5321,11 @@ void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
 
 /* *************************************** */
 
-void NetworkInterface::lua_periodic_activities_stats(lua_State *vm, bool reset_after_get) {
+void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
   lua_newtable(vm);
 
   /* Periodic activities stats */
-  ntop->lua_periodic_activities_stats(this, vm, reset_after_get);
+  ntop->lua_periodic_activities_stats(this, vm);
 }
 
 /* **************************************************** */
