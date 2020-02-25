@@ -28,7 +28,7 @@ class PcapInterface : public NetworkInterface {
  private:
   pcap_t *pcap_handle;
   bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done, emulate_traffic_directions;
-  ProtoStats initial_stats_in, initial_stats_out;
+  ProtoStats prev_stats_in, prev_stats_out;
   FILE *pcap_list;
 
   pcap_stat last_pcap_stat;

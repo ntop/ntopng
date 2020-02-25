@@ -100,7 +100,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
       if(pcap_setdirection(pcap_handle, ntop->getPrefs()->getCaptureDirection()) != 0)
 		ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
 
-      if(Utils::readInterfaceStats(ifname, &initial_stats_in, &initial_stats_out))
+      if(Utils::readInterfaceStats(ifname, &prev_stats_in, &prev_stats_out))
 	emulate_traffic_directions = true;
 #endif
     } else
@@ -427,6 +427,26 @@ bool PcapInterface::set_packet_filter(char *filter) {
 
 /* **************************************************** */
 
+/* Computes the counter delta handling wrapping on 32 bit platforms */
+static u_int64_t getCounterInc(u_int64_t old_v, u_int64_t new_v) {
+  /* Assume wrapping only occurs on 32 bit platforms (e.g. armv7l raspbian) */
+  const u_int32_t max_val = (u_int32_t)-1;
+
+  if(new_v >= old_v)
+    return(new_v - old_v);
+  else {
+    /* Counter wrapped */
+    if(max_val >= old_v)
+      return((max_val - old_v) + new_v);
+    else
+      /* this should never occur */
+      return(new_v);
+  }
+}
+
+/* **************************************************** */
+
+/* This method is only executed by the periodic script second.lua */
 void PcapInterface::updateDirectionStats() {
   ProtoStats current_stats_in, current_stats_out;
 
@@ -435,20 +455,23 @@ void PcapInterface::updateDirectionStats() {
     pcap_direction_t capture_dir = ntop->getPrefs()->getCaptureDirection();
 
     /* grsec check, the new ntopng user may not able to read the stats anymore */
-    if((initial_stats_in.getPkts() || initial_stats_out.getPkts()) &&
+    if((prev_stats_in.getPkts() || prev_stats_out.getPkts()) &&
       !(current_stats_in.getPkts() || current_stats_out.getPkts())) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot read interface stats after user change (grsec kernel hardening in place?)");
       emulate_traffic_directions = false;
     } else {
       if((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_IN)) {
-	ethStats.setNumPackets(true, current_stats_in.getPkts() - initial_stats_in.getPkts());
-	ethStats.setNumBytes(true, current_stats_in.getBytes() - initial_stats_in.getBytes());
+	ethStats.incNumPackets(true, getCounterInc(prev_stats_in.getPkts(), current_stats_in.getPkts()));
+	ethStats.incNumBytes(true, getCounterInc(prev_stats_in.getBytes(), current_stats_in.getBytes()));
       }
 
       if((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_OUT)) {
-	ethStats.setNumPackets(false, current_stats_out.getPkts() - initial_stats_out.getPkts());
-	ethStats.setNumBytes(false, current_stats_out.getBytes() - initial_stats_out.getBytes());
+	ethStats.incNumPackets(false, getCounterInc(prev_stats_out.getPkts(), current_stats_out.getPkts()));
+	ethStats.incNumBytes(false, getCounterInc(prev_stats_out.getBytes(), current_stats_out.getBytes()));
       }
+
+      prev_stats_in = current_stats_in;
+      prev_stats_out = current_stats_out;
     }
   }
 }

@@ -69,4 +69,4 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       ts_utils.append("iface:exported_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_count}, when)
       ts_utils.append("iface:dropped_flows", {ifid=ifstats.id, num_flows=ifstats.stats.flow_export_drops}, when)
    end
-end, true --[[ get direction stats ]])
+end, true --[[ update direction stats ]])

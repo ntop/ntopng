@@ -13,14 +13,19 @@ local callback_utils = {}
 
 -- Iterates available interfaces, excluding PCAP interfaces.
 -- Each valid interface is select-ed and passed to the callback.
--- NOTE: get_direction_stats should only be used by second.lua
-function callback_utils.foreachInterface(ifnames, condition, callback, get_direction_stats)
+-- NOTE: direction must only be used by second.lua
+function callback_utils.foreachInterface(ifnames, condition, callback, update_direction_stats)
    for _,_ifname in pairs(ifnames) do
       if(ntop.isShutdown()) then return true end
 
       -- NOTE: "eth" will be overwritten here for emulated directions
       interface.select(_ifname)
-      local ifstats = interface.getStats(get_direction_stats)
+
+      if update_direction_stats then
+	 interface.updateDirectionStats()
+      end
+
+      local ifstats = interface.getStats()
 
       if condition == nil or condition(ifstats.id) then
 	 if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then

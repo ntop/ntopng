@@ -6388,21 +6388,28 @@ static int ntop_periodic_stats_update(lua_State* vm) {
 
 static int ntop_get_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool get_direction_stats = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(lua_type(vm, 1) == LUA_TBOOLEAN)
-    get_direction_stats = lua_toboolean(vm, 1);
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
 
-  if(ntop_interface) {
-    if(get_direction_stats)
-      ntop_interface->updateDirectionStats();
+  ntop_interface->lua(vm);
 
-    ntop_interface->lua(vm);
-  } else
-    lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
 
+/* ****************************************** */
+
+static int ntop_update_interface_direction_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->updateDirectionStats();
+
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -11323,6 +11330,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "hasHighResTs",             ntop_interface_has_high_res_ts },
   { "getStats",                 ntop_get_interface_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
+  { "updateDirectionStats",     ntop_update_interface_direction_stats },
   { "getInterfaceTimeseries",   ntop_get_interface_timeseries },
   { "resetCounters",            ntop_interface_reset_counters },
   { "resetHostStats",           ntop_interface_reset_host_stats },
