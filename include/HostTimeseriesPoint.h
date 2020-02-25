@@ -39,6 +39,7 @@ class HostTimeseriesPoint: public TimeseriesPoint {
   u_int32_t active_flows_as_client, active_flows_as_server;
   u_int32_t contacts_as_client, contacts_as_server;
   u_int32_t engaged_alerts;
+  u_int16_t score;
   TcpPacketStats tcp_packet_stats_sent, tcp_packet_stats_rcvd;
   DnsStats *dns;
   ts_icmp_stats *icmp;

@@ -214,6 +214,12 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
             bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when, verbose)
 
+  if((host["score"] ~= nil) and (host["score"] > 0)) then
+    ts_utils.append("host:score", {ifid=ifstats.id, host=hostname,
+            score = host["score"]
+    }, when, verbose)
+  end
+
   -- Number of flows
   ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
 				 flows_as_client = host["active_flows.as_client"],
