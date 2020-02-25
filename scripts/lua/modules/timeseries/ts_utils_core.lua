@@ -855,6 +855,7 @@ function ts_utils.getPossiblyChangedSchemas()
     "process:resident_memory",
     "redis:keys",
     "redis:memory",
+    "host:score",
   }
 end
 
