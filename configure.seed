@@ -209,21 +209,30 @@ fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
 
+REDIS_SERVICE="redis.service"
+if [ test -f /usr/bin/lsb_release ]; then
+  UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
+  UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
+  if test "$UBUNTU_SUB_RELEASE" = "8"; then
+    REDIS_SERVICE="redis-server.service"
+  fi
+fi
+
 SERVICE_ALIAS=
-SERVICE_REQUIRES=redis.service
+SERVICE_REQUIRES=${REDIS_SERVICE}
 SERVICE_WANTS=
 if test "$MACHINE" = "armv7l"; then
-SERVICE_AFTER="network.target syslog.target redis.service"
+  SERVICE_AFTER="network.target syslog.target ${REDIS_SERVICE}"
   if test "${with_nedge+set}" = "set"; then
     SERVICE_ALIAS="nedge.service"
   fi
 elif test "${with_nedge+set}" = "set"; then
-SERVICE_AFTER="network-online.target syslog.target redis.service"
-SERVICE_REQUIRES="${SERVICE_REQUIRES} nedge_pinger.service"
-SERVICE_ALIAS="nedge.service"
+  SERVICE_AFTER="network-online.target syslog.target ${REDIS_SERVICE}"
+  SERVICE_REQUIRES="${SERVICE_REQUIRES} nedge_pinger.service"
+  SERVICE_ALIAS="nedge.service"
 else
-SERVICE_AFTER="network.target syslog.target redis.service pf_ring.service cluster.service mysql.service"
-SERVICE_WANTS="pf_ring.service cluster.service"
+  SERVICE_AFTER="network.target syslog.target ${REDIS_SERVICE} pf_ring.service cluster.service mysql.service"
+  SERVICE_WANTS="pf_ring.service cluster.service"
 fi
 
 APP=
