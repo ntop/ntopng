@@ -205,6 +205,9 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
    <li>]] print(i18n("internals.periodic_activities_expected_end_time_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_tot_not_executed_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_tot_running_slow_descr")) print[[</li>]]
+   if ts_utils.getDriverName() == "rrd" then
+      print[[<li>]] print(i18n("internals.periodic_activities_rrd_descr")) print[[</li>]]
+   end
    print[[<li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
 </ul>
 <script type='text/javascript'>
