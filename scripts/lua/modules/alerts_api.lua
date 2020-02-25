@@ -672,6 +672,9 @@ end
 function alerts_api.broadcastDomainTooLargeType(src_mac, dst_mac, vlan, spa, tpa)
   return({
     alert_type = alert_consts.alert_types.alert_broadcast_domain_too_large,
+    -- Subtype is the concatenation of src and dst macs and ips and the VLAN. This
+    -- allows the elerts engine to properly aggregate alerts when they have the same type and subtype
+    alert_subtype = string.format("%u_%s_%s_%s_%s", vlan, src_mac, spa, dst_mac, tpa),
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       src_mac = src_mac, dst_mac = dst_mac,

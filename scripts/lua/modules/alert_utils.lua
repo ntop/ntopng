@@ -1539,7 +1539,7 @@ function toggleAlert(disable) {
 	 {
 	    title: "]]print(i18n("show_alerts.alert_count"))print[[",
 	    field: "column_count",
-            hidden: ]] print(ternary(t["status"] ~= "historical-flows", "true", "false")) print[[,
+            hidden: ]] print(ternary(t["status"] ~= "historical-flows" and t["status"] ~= "historical", "true", "false")) print[[,
             sortable: true,
 	    css: {
 	       textAlign: 'center'

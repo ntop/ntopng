@@ -34,10 +34,12 @@ AlertsQueue::AlertsQueue(NetworkInterface *_iface) {
  * ndpi_term_serializer(tlv);
  * free(tlv);
  */
-void AlertsQueue::pushAlertJson(const char *atype, ndpi_serializer *alert) {
+void AlertsQueue::pushAlertJson(ndpi_serializer *alert, const char *atype, const char *a_subtype) {
   /* These are mandatory fields, present in all the pushed alerts */
   ndpi_serialize_string_uint32(alert, "ifid", iface->get_id());
   ndpi_serialize_string_string(alert, "alert_type", atype);
+  if(a_subtype && a_subtype[0] != '\0')
+    ndpi_serialize_string_string(alert, "alert_subtype", a_subtype);
   ndpi_serialize_string_uint64(alert, "alert_tstamp", time(NULL));
 
   if(!ntop->getInternalAlertsQueue()->enqueue(alert)) {
@@ -79,7 +81,7 @@ void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
     ndpi_serialize_string_string(tlv, "router_ip", router_ip_s);
     ndpi_serialize_string_int32(tlv, "vlan_id", vlan_id);
 
-    pushAlertJson("misconfigured_dhcp_range", tlv);
+    pushAlertJson(tlv, "misconfigured_dhcp_range");
   }
 }
 
@@ -109,7 +111,7 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_m
     ndpi_serialize_string_string(tlv, "old_mac", oldmac_s);
     ndpi_serialize_string_string(tlv, "new_mac", newmac_s);
 
-    pushAlertJson("mac_ip_association_change", tlv);
+    pushAlertJson(tlv, "mac_ip_association_change");
   }
 }
 
@@ -141,7 +143,7 @@ void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, cons
     ndpi_serialize_string_string(tlv, "spa", spa_s);
     ndpi_serialize_string_string(tlv, "tpa", tpa_s);
 
-    pushAlertJson("broadcast_domain_too_large", tlv);
+    pushAlertJson(tlv, "broadcast_domain_too_large");
   }
 }
 
@@ -164,7 +166,7 @@ void AlertsQueue::pushRemoteToRemoteAlert(Host *host) {
     ndpi_serialize_string_int32(tlv, "vlan", host->get_vlan_id());
     ndpi_serialize_string_string(tlv, "mac_address", host->getMac() ? host->getMac()->print(macbuf, sizeof(macbuf)) : "");
 
-    pushAlertJson("remote_to_remote", tlv);
+    pushAlertJson(tlv, "remote_to_remote");
   }
 }
 
@@ -184,7 +186,7 @@ void AlertsQueue::pushLoginTrace(const char*user, bool authorized) {
     ndpi_serialize_string_string(tlv, "scope", "login");
     ndpi_serialize_string_string(tlv, "user", user);
 
-    pushAlertJson(authorized ? "user_activity" : "login_failed", tlv);
+    pushAlertJson(tlv, authorized ? "user_activity" : "login_failed");
   }
 }
 
@@ -205,6 +207,6 @@ void AlertsQueue::pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queu
     ndpi_serialize_string_int32(tlv, "pct",     queue_len_pct);
     ndpi_serialize_string_int32(tlv, "dropped", queue_dropped);
 
-    pushAlertJson("nfq_flushed", tlv);
+    pushAlertJson(tlv, "nfq_flushed");
   }
 }

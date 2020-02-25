@@ -63,9 +63,9 @@ if(tonumber(_GET["perPage"]) == nil) then _GET["perPage"] = getDefaultTableSize(
 
 if(isEmptyString(_GET["sortColumn"]) or (_GET["sortColumn"] == "column_") or
       (status ~= "historical" and _GET["sortColumn"] == "column_sort")) or
-      (status ~= "historical-flows" and  _GET["sortColumn"] == "column_count") or
+      (status ~= "historical-flows" and status ~= "historical" and  _GET["sortColumn"] == "column_count") or
       (status ~= "historical-flows" and  _GET["sortColumn"] == "column_score") then
-   if(status ~= "historical-flows" and  _GET["sortColumn"] == "column_count") or
+   if(status ~= "historical-flows" and status ~= "historical" and  _GET["sortColumn"] == "column_count") or
          (status ~= "historical-flows" and  _GET["sortColumn"] == "column_score") then
       tablePreferences("sort_alerts", "column_")
    end
