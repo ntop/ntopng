@@ -393,8 +393,13 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   /* Set the deadline and the threaded activity in the vm so they can be accessed */
   l->setThreadedActivityData(this, thstats, deadline);
 
-  if(thstats)
+  if(thstats) {
     thstats->setCurrentProgress(0);
+
+    /* Reset the internal state for the current execution */
+    thstats->setNotExecutedAttivity(false);
+    thstats->setSlowPeriodicActivity(false);
+  }
 
   gettimeofday(&begin, NULL);
   updateThreadedActivityStatsBegin(iface, &begin);
@@ -417,13 +422,12 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
       thstats->setDeadline(time(NULL) + getPeriodicity());
 
       if((max_duration_ms > 0) && (msec_diff > 2*max_duration_ms)) {
-        thstats->setSlowPeriodicActivity();
-      } else
-        thstats->clearErrors();
+        thstats->setSlowPeriodicActivity(true);
+      }
     }
   } else if(deadline) {
     if(isDeadlineApproaching(deadline))
-      thstats->setSlowPeriodicActivity();
+      thstats->setSlowPeriodicActivity(true);
   }
 
   if(l && !reuse_vm)

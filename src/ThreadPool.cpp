@@ -113,15 +113,6 @@ void ThreadPool::run() {
 
 /* **************************************************** */
 
-static bool ignoreDeadlineExceeded(char *path) {
-  /* These scripts are allowed to exceeed their deadline */
-  return((strcmp(path, HOUSEKEEPING_SCRIPT_PATH) == 0) ||
-     (strcmp(path, DISCOVER_SCRIPT_PATH) == 0) ||
-     (strcmp(path, TIMESERIES_SCRIPT_PATH) == 0));
-}
-
-/* **************************************************** */
-
 bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface, time_t scheduled_time, time_t deadline) {
   QueuedThreadData *q;
   ThreadedActivityStats *stats = ta->getThreadedActivityStats(iface, true);
@@ -129,16 +120,12 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
   if(isTerminating())
     return(false);
 
-  if(stats)
-    stats->clearErrors();
-
   if(!ta->isQueueable(iface)) {
     if(stats) {
-      if(ta->get_state(iface) == threaded_activity_state_queued) {
-        stats->setNotExecutedAttivity();
-      } else if((ta->get_state(iface) == threaded_activity_state_running) && !ignoreDeadlineExceeded(path)) {
-        stats->setSlowPeriodicActivity();
-      }
+      if(ta->get_state(iface) == threaded_activity_state_queued)
+        stats->setNotExecutedAttivity(true);
+      else if((ta->get_state(iface) == threaded_activity_state_running))
+        stats->setSlowPeriodicActivity(true);
     }
 
     return(false); /* Task still running or already queued, don't re-queue it */
