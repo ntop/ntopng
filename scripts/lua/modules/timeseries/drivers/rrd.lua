@@ -400,8 +400,6 @@ function driver:append(schema, timestamp, tags, metrics)
      return false
   end
 
-  -- NOTE: successful writes are counted into ntop_rrd_update in C
-
   if not ntop.exists(rrdfile) then
     ntop.mkdir(base)
     if not create_rrd(schema, rrdfile) then

@@ -43,7 +43,6 @@ HostTimeseriesPoint::HostTimeseriesPoint(const LocalHostStats * const hs) : Time
   engaged_alerts = host->getNumTriggeredAlerts();
   tcp_packet_stats_sent = *host->getTcpPacketSentStats();
   tcp_packet_stats_rcvd = *host->getTcpPacketRcvdStats();
-  score = host->getScore()->getValue();
 }
 
 /* *************************************** */
@@ -61,7 +60,6 @@ HostTimeseriesPoint::~HostTimeseriesPoint() {
 void HostTimeseriesPoint::lua(lua_State* vm, NetworkInterface *iface) {
   host_stats->luaStats(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
 
-  lua_push_int32_table_entry(vm, "score", score);
   lua_push_uint64_table_entry(vm, "active_flows.as_client", active_flows_as_client);
   lua_push_uint64_table_entry(vm, "active_flows.as_server", active_flows_as_server);
   lua_push_uint64_table_entry(vm, "contacts.as_client", contacts_as_client);
