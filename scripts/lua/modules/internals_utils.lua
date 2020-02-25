@@ -205,9 +205,6 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
    <li>]] print(i18n("internals.periodic_activities_expected_end_time_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_tot_not_executed_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_tot_running_slow_descr")) print[[</li>]]
-   if ts_utils.getDriverName() == "rrd" then
-      print[[<li>]] print(i18n("internals.periodic_activities_rrd_writes_descr")) print[[</li>]]
-   end
    print[[<li>]] print(i18n("internals.periodic_activities_not_shown")) print[[</li>
 </ul>
 <script type='text/javascript'>
@@ -355,12 +352,21 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '4%',
        }
      }, {
+       title: "]] print(i18n("internals.tot_rrd_running_slow")) print[[",
+       field: "column_tot_rrd_running_slow",
+       hidden: ]] if not ts_utils.getDriverName() == "rrd" then print('true') else print('false') end print[[,
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '4%',
+       }
+     }, {
        title: "]] print(i18n("internals.tot_not_executed")) print[[",
        field: "column_tot_not_executed",
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '6%',
+	 width: '4%',
        }
      }, {
        title: "]] print(i18n("internals.tot_running_slow")) print[[",
@@ -368,7 +374,7 @@ $("#table-internals-periodic-activities").datatable({
        sortable: true,
        css: {
 	 textAlign: 'right',
-	 width: '6%',
+	 width: '4%',
        }
      }
 
@@ -379,6 +385,7 @@ $("#table-internals-periodic-activities").datatable({
                   "column_last_duration": fmillis,
                   "column_tot_not_executed": fint,
                   "column_tot_running_slow": fint,
+                  "column_tot_rrd_running_slow": fint,
                   "column_rrd_writes": fint,
                   "column_rrd_drops": fint,
                });

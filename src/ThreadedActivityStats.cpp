@@ -185,6 +185,8 @@ void ThreadedActivityStats::lua(lua_State *vm) {
 
   if(isRRDSlow())
     lua_push_bool_table_entry(vm, "rrd_slow", true);
+  if(ta_stats.rrd.write.tot_is_slow)
+    lua_push_uint64_table_entry(vm, "num_rrd_slow", ta_stats.rrd.write.tot_is_slow);
 
   lua_push_uint64_table_entry(vm, "scheduled_time", scheduled_time);
   lua_push_uint64_table_entry(vm, "deadline", deadline);
