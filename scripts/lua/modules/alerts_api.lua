@@ -659,6 +659,7 @@ end
 function alerts_api.macIpAssociationChangeType(device, ip, old_mac, new_mac)
   return({
     alert_type = alert_consts.alert_types.alert_mac_ip_association_change,
+    alert_subtype = string.format("%s_%s_%s", ip, old_mac, new_mac),
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
       device = device, ip = ip,
