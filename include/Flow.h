@@ -306,7 +306,7 @@ class Flow : public GenericHashEntry {
 	   || Utils::maskHost(get_srv_ip_addr()->isLocalHost(&network_id)));
   };
   inline const char* getServerCipherClass()  const { return(isTLS() ? cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher) : NULL); }
-  char* serialize(bool es_json = false);
+  char* serialize(bool use_labels = false);
   void flow2alertJson(ndpi_serializer *serializer, time_t now);
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);

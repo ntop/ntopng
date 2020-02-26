@@ -2049,26 +2049,18 @@ void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
 
 /* *************************************** */
 
-char* Flow::serialize(bool es_json) {
+char* Flow::serialize(bool use_labels) {
   json_object *my_object;
-  char *rsp;
+  char *rsp = NULL;
 
-  if(es_json) {
-    ntop->getPrefs()->set_json_symbolic_labels_format(true);
-    if((my_object = flow2json()) != NULL) {
+  ntop->getPrefs()->set_json_symbolic_labels_format(use_labels);
 
-      /* JSON string */
-      rsp = strdup(json_object_to_json_string(my_object));
+  my_object = flow2json();
 
-      /* Free memory */
-      json_object_put(my_object);
-    } else
-      rsp = NULL;
-  } else {
+  if(my_object != NULL) {
     /* JSON string */
-    ntop->getPrefs()->set_json_symbolic_labels_format(false);
-    my_object = flow2json();
     rsp = strdup(json_object_to_json_string(my_object));
+
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Emitting Flow: %s", rsp);
 
     /* Free memory */
@@ -2268,6 +2260,34 @@ json_object* Flow::flow2json() {
 
   if(cli_ebpf) cli_ebpf->getJSONObject(my_object, true);
   if(srv_ebpf) srv_ebpf->getJSONObject(my_object, false);
+
+  if(ntop->getPrefs()->do_dump_flows_on_disk()) {
+    const char *info;
+
+    /* Add items usually dumped on nIndex (useful for debugging) */
+
+    json_object_object_add(my_object, "FLOW_TIME", json_object_new_int(last_seen));
+
+    if(cli_ip) {
+      if (cli_ip->isIPv4()) {
+        json_object_object_add(my_object, 
+          Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION", jsonbuf, sizeof(jsonbuf)),
+          json_object_new_int(4));
+      } else if(cli_ip->isIPv6()) {
+        json_object_object_add(my_object, 
+          Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION", jsonbuf, sizeof(jsonbuf)),
+          json_object_new_int(6));
+      }
+    }
+
+    info = getFlowInfo();
+    if (info)
+      json_object_object_add(my_object, "INFO", json_object_new_string(info));
+    
+    json_object_object_add(my_object, "PROFILE", json_object_new_string(get_profile_name()));
+    json_object_object_add(my_object, "INTERFACE_ID", json_object_new_int(iface->get_id()));
+    json_object_object_add(my_object, "STATUS", json_object_new_int((u_int8_t)getPredominantStatus()));
+  }
 
   return(my_object);
 }

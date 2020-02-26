@@ -614,7 +614,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 
 #ifndef HAVE_NEDGE
   char *json;
-  bool es_flow = ntop->getPrefs()->do_dump_flows_on_es() ||
+  bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() ||
     ntop->getPrefs()->do_dump_flows_on_ls();
 
   if(!db)
@@ -625,7 +625,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
     return -1;
   }
 
-  json = f->serialize(es_flow);
+  json = f->serialize(use_labels);
 
   if(json) {
     rc = db->dumpFlow(when, f, json);
