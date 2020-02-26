@@ -3339,13 +3339,15 @@ function getFolderSize(path, timeout)
       local MAX_TIMEOUT = tonumber(timeout) or 15 -- default
       -- Check if timeout is present on the system to cap the execution time of the subsequent du,
       -- which may be very time consuming, especially when the number of files is high
-      local has_timeout = ntop.getCache("ntopng.cache.has_gnu_timeout") == "true"
+      local has_timeout = ntop.getCache("ntopng.cache.has_gnu_timeout")
 
-      -- Cache the timeout
-      if not has_timeout then
+      if isEmptyString(has_timeout) then
+	 -- Cache the timeout
 	 -- Check timeout existence with which. If no timeout is found, command will return nil
 	 has_timeout = (os_utils.execWithOutput("which timeout >/dev/null 2>&1") ~= nil)
-	 ntop.setCache("ntopng.cache.has_gnu_timeout", tostring(has_timeout))
+	 ntop.setCache("ntopng.cache.has_gnu_timeout", tostring(has_timeout), 3600)
+      else
+	 has_timeout = has_timeout == "true"
       end
 
       -- Check the cache for a recent value
