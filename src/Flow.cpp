@@ -2283,8 +2283,11 @@ json_object* Flow::flow2json() {
     info = getFlowInfo();
     if (info)
       json_object_object_add(my_object, "INFO", json_object_new_string(info));
-    
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
     json_object_object_add(my_object, "PROFILE", json_object_new_string(get_profile_name()));
+#endif
+
     json_object_object_add(my_object, "INTERFACE_ID", json_object_new_int(iface->get_id()));
     json_object_object_add(my_object, "STATUS", json_object_new_int((u_int8_t)getPredominantStatus()));
   }
