@@ -9,12 +9,12 @@ local schema
 -- PERIODIC_SCRIPTS SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("periodic_script:duration", {step = 60, rrd_fname="ps_duration", metrics_type = ts_utils.metrics.gauge, is_critical_ts=true})
+schema = ts_utils.newSchema("periodic_script:duration", {step = 60, rrd_fname="ps_duration", metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("periodic_script")
 schema:addMetric("num_ms_last")
 
-schema = ts_utils.newSchema("periodic_script:rrd_writes", {step = 60, rrd_fname="ps_rrd_w", is_critical_ts=true})
+schema = ts_utils.newSchema("periodic_script:rrd_writes", {step = 60, rrd_fname="ps_rrd_w", is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("periodic_script")
 schema:addMetric("writes")
@@ -46,7 +46,7 @@ schema:addMetric("num_calls")
 -- HASH_TABLES SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("ht:state", {step = 60, rrd_fname="ht_state", metrics_type = ts_utils.metrics.gauge, is_critical_ts=true})
+schema = ts_utils.newSchema("ht:state", {step = 60, rrd_fname="ht_state", metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("hash_table")
 schema:addMetric("num_idle")
@@ -128,28 +128,28 @@ schema:addMetric("alerts")
 -- INTERFACES SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("iface:ndpi", {step=60})
+schema = ts_utils.newSchema("iface:ndpi", {step=60, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("protocol")
 schema:addMetric("bytes")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:ndpi_categories", {step=60})
+schema = ts_utils.newSchema("iface:ndpi_categories", {step=60, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("category")
 schema:addMetric("bytes")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:l4protos", {step=60})
+schema = ts_utils.newSchema("iface:l4protos", {step=60, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("l4proto")
 schema:addMetric("bytes")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:ndpi_flows", {step=60})
+schema = ts_utils.newSchema("iface:ndpi_flows", {step=60, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("protocol")
 schema:addMetric("num_flows")
@@ -170,43 +170,43 @@ schema:addMetric("bytes")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:hosts", {step=60, rrd_fname="num_hosts", metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:hosts", {step=60, rrd_fname="num_hosts", metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_hosts")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:local_hosts", {step=60, rrd_fname="num_local_hosts", metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:local_hosts", {step=60, rrd_fname="num_local_hosts", metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_hosts")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:devices", {step=60, rrd_fname="num_devices", metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:devices", {step=60, rrd_fname="num_devices", metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_devices")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:flows", {step=60, rrd_fname="num_flows", metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:flows", {step=60, rrd_fname="num_flows", metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_flows")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:misbehaving_flows", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:misbehaving_flows", {step=60, metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_flows")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:alerted_flows", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:alerted_flows", {step=60, metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_flows")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:http_hosts", {step=60, rrd_fname="num_http_hosts", metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:http_hosts", {step=60, rrd_fname="num_http_hosts", metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("num_hosts")
 
@@ -266,7 +266,7 @@ schema:addMetric("num_nfq_pct")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:engaged_alerts", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("iface:engaged_alerts", {step=60, metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("alerts")
 
