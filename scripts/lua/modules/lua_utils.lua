@@ -3362,7 +3362,8 @@ function getFolderSize(path, timeout)
       if size == nil then
          size = 0
          -- Read disk utilization
-         if ntop.isdir(path) then
+	 local periodic_activities_utils = require "periodic_activities_utils"
+         if ntop.isdir(path) and not periodic_activities_utils.have_degraded_performance() then
 	    local du_cmd = string.format("du -s %s 2>/dev/null", path)
 	    if has_timeout then
 	       du_cmd = string.format("timeout %u%s %s", MAX_TIMEOUT, "s", du_cmd)
