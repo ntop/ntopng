@@ -266,9 +266,10 @@ schema:addMetric("num_nfq_pct")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:engaged_alerts", {step=60, metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
+schema = ts_utils.newSchema("iface:alerts_stats", {step=60, metrics_type=ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
-schema:addMetric("alerts")
+schema:addMetric("engaged_alerts")
+schema:addMetric("dropped_alerts")
 
 -- ##############################################
 

@@ -90,6 +90,7 @@ void ThreadedActivityStats::updateStatsBegin(struct timeval *begin) {
 
   /* Start over */
   memset(&ta_stats.rrd.write.last, 0, sizeof(ta_stats.rrd.write.last));
+  ta_stats.alerts.has_drops = false;
 }
 
 /* ******************************************* */
@@ -187,6 +188,9 @@ void ThreadedActivityStats::lua(lua_State *vm) {
     lua_push_bool_table_entry(vm, "rrd_slow", true);
   if(ta_stats.rrd.write.tot_is_slow)
     lua_push_uint64_table_entry(vm, "num_rrd_slow", ta_stats.rrd.write.tot_is_slow);
+
+  if(hasAlertsDrops())
+    lua_push_bool_table_entry(vm, "alerts_drops", true);
 
   lua_push_uint64_table_entry(vm, "scheduled_time", scheduled_time);
   lua_push_uint64_table_entry(vm, "deadline", deadline);

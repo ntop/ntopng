@@ -1483,7 +1483,7 @@ local default_timeseries = {
     skip = hasAllowedNetworksSet(),
     metrics_labels = {i18n("flow_details.mibehaving_flows"), i18n("flow_details.alerted_flows")}},
    {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
-   {schema="iface:engaged_alerts",        label=i18n("show_alerts.engaged_alerts"), skip=hasAllowedNetworksSet()},
+   {schema="iface:alerts_stats",          label=i18n("show_alerts.iface_engaged_dropped_alerts"), skip=hasAllowedNetworksSet()},
    {schema="custom:flows_vs_local_hosts", label=i18n("graphs.flows_vs_local_hosts"), check={"iface:flows", "iface:local_hosts"}, step=60},
    {schema="custom:flows_vs_traffic",     label=i18n("graphs.flows_vs_traffic"), check={"iface:flows", "iface:traffic"}, step=60},
    {schema="custom:memory_vs_flows_hosts", label=i18n("graphs.memory_vs_hosts_flows"), check={"process:resident_memory", "iface:flows", "iface:hosts"}},

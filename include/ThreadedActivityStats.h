@@ -48,6 +48,9 @@ typedef struct {
   struct {
     threaded_activity_rrd_stats_t write;
   } rrd;
+  struct {
+    bool has_drops;
+  } alerts;
 } threaded_activity_stats_t;
 
 class ThreadedActivityStats {
@@ -74,6 +77,9 @@ class ThreadedActivityStats {
   inline time_t getLastStartTime()   { return(last_start_time);   }
 
   bool isRRDSlow() const;
+  inline bool hasAlertsDrops() const {
+    return ta_stats.alerts.has_drops;
+  }
 
   /* RRD stats and drops for writes */
   void updateRRDWriteStats(ticks cur_ticks);
@@ -88,6 +94,7 @@ class ThreadedActivityStats {
   inline void setScheduledTime(time_t t) { scheduled_time = t; }
   inline void setDeadline(time_t t)      { deadline = t; }
   inline void setCurrentProgress(int _progress) { progress = min(max(_progress, 0), 100); }
+  inline void setAlertsDrops()           { ta_stats.alerts.has_drops = true; }
 
   void lua(lua_State *vm);
 };

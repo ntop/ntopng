@@ -8980,6 +8980,18 @@ static int ntop_interface_refresh_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_check_dropped_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+
+  if(!iface)
+    return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, iface->checkDroppedAlerts());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static Host* ntop_host_get_context_host(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
 
@@ -10060,6 +10072,7 @@ static int ntop_get_predominant_status(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flow_trigger_alert(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   Flow *f = ntop_flow_get_context_flow(vm);
   FlowStatus status;
   AlertType atype;
@@ -10110,15 +10123,23 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
       flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
       if(flow_str) {
-        if(!sqlite_queue->enqueue(flow_str))
+        if(!sqlite_queue->enqueue(flow_str)) {
           f->getInterface()->incNumDroppedAlerts(1);
+
+          if(ctx->threaded_activity_stats)
+            ctx->threaded_activity_stats->setAlertsDrops();
+        }
 
         notif_queue->enqueue(flow_str);
       }
 
       ndpi_term_serializer(&flow_json);
-    } else
+    } else {
       f->getInterface()->incNumDroppedAlerts(1);
+
+      if(ctx->threaded_activity_stats)
+        ctx->threaded_activity_stats->setAlertsDrops();
+    }
   }
 
   lua_pushboolean(vm, triggered);
@@ -10128,6 +10149,7 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_push_sqlite_alert(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   const char *alert;
   bool rv;
 
@@ -10140,8 +10162,12 @@ static int ntop_push_sqlite_alert(lua_State* vm) {
     NetworkInterface *iface = getCurrentInterface(vm);
     rv = false;
 
-    if(iface)
+    if(iface) {
       iface->incNumDroppedAlerts(1);
+
+      if(ctx->threaded_activity_stats)
+        ctx->threaded_activity_stats->setAlertsDrops();
+    }
   }
 
   lua_pushboolean(vm, rv);
@@ -11534,6 +11560,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "releaseExternalAlert",   ntop_interface_release_external_alert   },
   { "checkContext",           ntop_interface_check_context            },
   { "refreshAlerts",          ntop_interface_refresh_alerts           },
+  { "checkDroppedAlerts",     ntop_interface_check_dropped_alerts     },
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
   { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },
   { "incNumDroppedAlerts",    ntop_interface_inc_num_dropped_alerts   },

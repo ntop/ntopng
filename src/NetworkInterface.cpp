@@ -278,7 +278,7 @@ void NetworkInterface::init() {
   hide_from_top = hide_from_top_shadow = NULL;
 
   gettimeofday(&last_periodic_stats_update, NULL);
-  num_live_captures = 0, num_dropped_alerts = 0;
+  num_live_captures = 0, num_dropped_alerts = 0, checked_dropped_alerts = 0, prev_dropped_alerts = 0;
   memset(live_captures, 0, sizeof(live_captures));
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
   num_active_alerted_flows = num_idle_alerted_flows = 0;
@@ -6926,6 +6926,10 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
   sumStats(&_tcpFlowStats, &_ethStats, &pt->local_stats,
 	   &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats, &_discardedProbingStats);
 
+  // Note: turn into a gauge for consistency with engaged_alerts
+  pt->dropped_alerts = (num_dropped_alerts - prev_dropped_alerts);
+  prev_dropped_alerts = num_dropped_alerts;
+
   pt->engaged_alerts = getNumEngagedAlerts();
   pt->hosts = getNumHosts();
   pt->local_hosts = getNumLocalHosts();
@@ -7698,4 +7702,20 @@ void NetworkInterface::computeHostsScore() {
 
   if(flows_hash)
     walker(&begin_slot, walk_all, walker_flows, run_compute_hosts_score, NULL);
+}
+
+/* *************************************** */
+
+/* Checks if there are new dropped alerts since the last check.
+ * This is only intented to be called by the alerts_drops system plugin.
+ * The prev_dropped_alerts cannot be reused because that is handled by another
+ * thread (the interface minute thread). */
+u_int32_t NetworkInterface::checkDroppedAlerts() {
+  u_int32_t cur_dropped_alerts = num_dropped_alerts;
+  u_int32_t new_drops;
+
+  new_drops = cur_dropped_alerts - checked_dropped_alerts;
+  checked_dropped_alerts = cur_dropped_alerts;
+
+  return(new_drops);
 }

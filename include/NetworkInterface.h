@@ -77,7 +77,7 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
   u_int64_t num_active_alerted_flows, num_idle_alerted_flows;
   u_int64_t num_active_misbehaving_flows, num_idle_misbehaving_flows;
-  u_int32_t num_dropped_alerts, num_dropped_flow_scripts_calls;
+  u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
   u_int64_t num_new_flows;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
@@ -364,6 +364,7 @@ class NetworkInterface : public AlertableEntity {
   inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.incKeepAlive(num); };
   virtual void checkPointCounters(bool drops_only);
   bool registerSubInterface(NetworkInterface *sub_iface, u_int32_t criteria);
+  u_int32_t checkDroppedAlerts();
 
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getCheckPointNumPackets();
