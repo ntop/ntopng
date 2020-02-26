@@ -5111,6 +5111,18 @@ static int ntop_rrd_update(lua_State* vm) {
     return(CONST_LUA_OK);
   }
 
+  // Delete empty rrd files which cause an mmap error
+  if(s.st_size == 0) {
+    char error_buf[256];
+
+    snprintf(error_buf, sizeof(error_buf), "Empty RRD: %s, deleting it\n", filename);
+    lua_pushstring(vm, error_buf);
+
+    unlink(filename);
+
+    return(CONST_LUA_OK);
+  }
+
   if(lua_type(vm, 2) == LUA_TSTRING) {
     if((when = (const char*)lua_tostring(vm, 2)) == NULL)
       return(CONST_LUA_PARAM_ERROR);
@@ -5146,16 +5158,9 @@ static int ntop_rrd_update(lua_State* vm) {
 
       if(err != NULL) {
         char error_buf[256];
-        struct stat rrd_stat;
 
         snprintf(error_buf, sizeof(error_buf), "rrd_update_r() [%s][%s] failed [%s]", filename, buf, err);
         lua_pushstring(vm, error_buf);
-
-        // Delete empty rrd files which cause an mmap error
-        if((stat(filename, &rrd_stat) == 0) && (rrd_stat.st_size == 0)) {
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "Deleting empty RRD: %s\n", filename);
-          unlink(filename);
-        }
       } else
         lua_pushstring(vm, "Unknown RRD error");
     } else

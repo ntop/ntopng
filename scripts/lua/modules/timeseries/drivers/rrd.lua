@@ -400,7 +400,7 @@ function driver:append(schema, timestamp, tags, metrics)
      return false
   end
 
-  if not ntop.exists(rrdfile) then
+  if not ntop.notEmptyFile(rrdfile) then
     ntop.mkdir(base)
     if not create_rrd(schema, rrdfile) then
       return false
@@ -507,7 +507,7 @@ function driver:query(schema, tstart, tend, tags, options)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
-  if not ntop.exists(rrdfile) then
+  if not ntop.notEmptyFile(rrdfile) then
      return nil
   end
 
@@ -826,7 +826,7 @@ end
 function driver:queryTotal(schema, tstart, tend, tags, options)
   local rrdfile = driver.schema_get_full_path(schema, tags)
 
-  if not ntop.exists(rrdfile) then
+  if not ntop.notEmptyFile(rrdfile) then
      return nil
   end
 
