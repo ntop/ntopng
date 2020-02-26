@@ -270,7 +270,7 @@ end
 
 -- ########################################################
 
-function ts_dump.update_user_scripts_stats(when, ifid, verbose)
+local function update_user_scripts_stats(when, ifid, verbose)
   -- NOTE: flow scripts are monitored in 5sec.lua
   local all_scripts = {
     host = user_scripts.script_types.traffic_element,
@@ -351,7 +351,9 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   ts_dump.update_hash_tables_stats(when, ifstats, verbose)
 
   -- Save the traffic elements user scripts stats
-  ts_dump.update_user_scripts_stats(when, ifstats.id, verbose)
+  if config.user_scripts_rrd_creation then
+     update_user_scripts_stats(when, ifstats.id, verbose)
+  end
 
   -- Save duration of periodic scripts
   ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
@@ -385,6 +387,7 @@ function ts_dump.getConfig()
   config.tcp_flags_rrd_creation = ntop.getPref("ntopng.prefs.tcp_flags_rrd_creation")
   config.tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
+  config.user_scripts_rrd_creation = ntop.getPref("ntopng.prefs.user_scripts_rrd_creation") == "1"
 
   -- Interface RRD creation is on, with per-protocol nDPI
   if isEmptyString(config.interface_ndpi_timeseries_creation) then config.interface_ndpi_timeseries_creation = "per_protocol" end
