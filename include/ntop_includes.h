@@ -310,6 +310,7 @@ using namespace std;
 #include "Logstash.h"
 #endif
 #ifdef HAVE_NINDEX
+#include "TextDump.h"
 #include "NIndexFlowDB.h"
 #endif
 #ifdef NTOPNG_PRO

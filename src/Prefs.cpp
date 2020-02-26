@@ -76,7 +76,6 @@ Prefs::Prefs(Ntop *_ntop) {
   categorization_key = NULL, zmq_encryption_pwd = NULL;
   enable_zmq_encryption = false, zmq_encryption_key = NULL;
   es_index = es_url = es_user = es_pwd = NULL;
-  json_flows_dump_path = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
@@ -100,7 +99,7 @@ Prefs::Prefs(Ntop *_ntop) {
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true, enable_auto_logout_at_runtime = true;
-  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
+  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = dump_flows_on_disk = false;
   routing_mode_enabled = false;
   global_dns_forging_enabled = false;
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
@@ -178,7 +177,6 @@ Prefs::~Prefs() {
   if(es_url)           free(es_url);
   if(es_user)          free(es_user);
   if(es_pwd)           free(es_pwd);
-  if(json_flows_dump_path)   free(json_flows_dump_path);
   if(instance_name)    free(instance_name);
   free(http_prefix);
   free(local_networks);
@@ -1193,8 +1191,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX) && !defined(HAVE_NEDGE) /* NOTE: currently disable on nEdge */
     if(strncmp(optarg, "nindex", 2) == 0) {
       char *nindex_opt = strchr(optarg, ';');
-      if(nindex_opt)
-        json_flows_dump_path = strdup(&nindex_opt[1]);
+      if(nindex_opt && strlen(nindex_opt) > 5 && strncmp(&nindex_opt[1], "debug", 5) == 0)
+        dump_flows_on_disk = true;
       dump_flows_on_nindex = true;      
     } else
 #endif

@@ -92,7 +92,8 @@ class Prefs {
   u_int http_port, https_port;
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
-  bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex;
+  bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex,
+    dump_flows_on_disk;
   bool read_flows_from_mysql;
   InterfaceInfo *ifNames;
   char *local_networks;
@@ -122,7 +123,6 @@ class Prefs {
   bool json_labels_string_format;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
-  char *json_flows_dump_path;
   int mysql_port;
   char *ls_host,*ls_port,*ls_proto;
   bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level 
@@ -197,7 +197,7 @@ class Prefs {
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   inline bool  do_dump_flows_on_ls()                    { return(dump_flows_on_ls);       };
   inline bool  do_dump_flows_on_nindex()                { return(dump_flows_on_nindex);   };
-  inline bool  do_dump_flows_on_disk()                  { return(json_flows_dump_path != NULL); };
+  inline bool  do_dump_flows_on_disk()                  { return(dump_flows_on_disk);     };
   inline bool  do_dump_flows()                          { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls || dump_flows_on_nindex); };
     
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
