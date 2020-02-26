@@ -66,7 +66,7 @@ page_utils.print_navbar(title, nav_url,
 			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
 			   },
 			   {
-			      hidden = not hasTrafficReport(),,
+			      hidden = not hasTrafficReport(),
 			      active = page == "traffic_report",
 			      page_name = "traffic_report",
 			      label = "<i class='fas fa-file-alt report-icon'></i>",
