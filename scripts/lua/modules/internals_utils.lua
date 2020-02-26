@@ -666,7 +666,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 
    local timeseries = periodic_scripts_ts
 
-   if tostring(ifId) ~= getSystemInterfaceId() then
+   if tostring(ifId) ~= getSystemInterfaceId() and ntop.getPref("ntopng.prefs.user_scripts_rrd_creation") == "1" then
       timeseries = table.merge(timeseries,
 			       {
 				  {

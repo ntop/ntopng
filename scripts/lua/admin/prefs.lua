@@ -1238,6 +1238,12 @@ function printStatsTimeseries()
     prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {url="?tab=snmp"}))
   end
 
+  prefsToggleButton(subpage_active, {
+    field = "toggle_user_scripts_rrds",
+    default = "0",
+    pref = "user_scripts_rrd_creation",
+  })
+
   print('</table>')
 
   print('<table class="table">')

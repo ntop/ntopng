@@ -6,7 +6,7 @@ local ts_dump = {}
 
 -- ########################################################
 
-function ts_dump.iface_update_periodic_ht_state_update_stats(when, ifid, periodic_ht_state_update_stats)
+local function iface_update_periodic_ht_state_update_stats(when, ifid, periodic_ht_state_update_stats)
    local ht_name = "FlowHash"
    local ht_stats = periodic_ht_state_update_stats[ht_name]
 
@@ -33,7 +33,7 @@ end
 
 -- ########################################################
 
-function ts_dump.update_user_scripts_stats(when, ifid, verbose)
+local function update_user_scripts_stats(when, ifid, verbose)
   -- NOTE: interface/host/network scripts are monitored in minute.lua
   local all_scripts = {
     flow = user_scripts.script_types.flow,
@@ -47,13 +47,14 @@ end
 function ts_dump.run_5sec_dump(ifid, when, periodic_ht_state_update_stats)
    local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
       and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
+   local user_scripts_rrd_creation_enabled = ntop.getPref("ntopng.prefs.user_scripts_rrd_creation") == "1"
 
-   if not iface_rrd_creation_enabled then
+   if not iface_rrd_creation_enabled or not user_scripts_rrd_creation_enabled then
       return
    end
 
-   ts_dump.iface_update_periodic_ht_state_update_stats(when, ifid, periodic_ht_state_update_stats)
-   ts_dump.update_user_scripts_stats(when, ifid, verbose)
+   iface_update_periodic_ht_state_update_stats(when, ifid, periodic_ht_state_update_stats)
+   update_user_scripts_stats(when, ifid, verbose)
 end
 
 -- ########################################################

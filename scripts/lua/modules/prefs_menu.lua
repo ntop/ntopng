@@ -199,6 +199,9 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_ndpi_flows_rrds_title"),
       description = i18n("prefs.toggle_ndpi_flows_rrds_description"),
       pro_only    = true,
+    }, toggle_user_scripts_rrds = {
+      title       = i18n("prefs.toggle_user_scripts_rrds_title"),
+      description = i18n("prefs.toggle_user_scripts_rrds_description"),
     }, toggle_tcp_flags_rrds = {
       title       = i18n("prefs.toggle_tcp_flags_rrds_title"),
       description = i18n("prefs.toggle_tcp_flags_rrds_description"),
@@ -275,7 +278,7 @@ local menu_subpages = {
       title       = i18n("prefs.ewma_alpha_percent_title"),
       description = i18n("prefs.ewma_alpha_percent_description"),
     },
-  }}, {id="logging",       label=i18n("prefs.logging"),              advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_trace_lvl == true), entries={
+  }}, {id="logging",       label=i18n("prefs.logging"),  advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_trace_lvl == true), entries={
     toggle_logging_level = {
       title       = i18n("prefs.toggle_logging_level_title"),
       description = i18n("prefs.toggle_logging_level_description"),
