@@ -37,7 +37,7 @@ PeriodicActivities::PeriodicActivities() {
   for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++)
     activities[i] = NULL;
 
-  high_priority_pool = standard_priority_pool = no_priority_pool = NULL;
+  high_priority_pool = standard_priority_pool = no_priority_pool = longrun_priority_pool = NULL;
 
   num_activities = 0;
 }
@@ -57,6 +57,7 @@ PeriodicActivities::~PeriodicActivities() {
   /* This will terminate any possibly running activities into the ThreadPool::run */
   if(high_priority_pool)      delete high_priority_pool;
   if(standard_priority_pool)  delete standard_priority_pool;
+  if(longrun_priority_pool)   delete longrun_priority_pool;
   if(no_priority_pool)        delete no_priority_pool;
 
   /* Now it's safe to delete the activities as no other thread is executing
@@ -128,6 +129,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 
   high_priority_pool     = new ThreadPool(true,  ntop->get_num_interfaces());
   standard_priority_pool = new ThreadPool(false, ntop->get_num_interfaces());
+  longrun_priority_pool  = new ThreadPool(false, ntop->get_num_interfaces());
   no_priority_pool       = new ThreadPool(false, num_threads);
   
   static activity_descr ad[] = {
@@ -136,8 +138,8 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     { HT_STATE_UPDATE_SCRIPT_PATH,    5, high_priority_pool,     false, true,  false, true  },
     { STATS_UPDATE_SCRIPT_PATH,       5, standard_priority_pool, false, false, true,  true  },
     { MINUTE_SCRIPT_PATH,            60, no_priority_pool,       false, false, true,  false },
-    { FIVE_MINUTES_SCRIPT_PATH,     300, no_priority_pool,       false, false, true,  false },
-    { HOURLY_SCRIPT_PATH,          3600, no_priority_pool,       false, false, true,  false },
+    { FIVE_MINUTES_SCRIPT_PATH,     300, longrun_priority_pool,  false, false, true,  false },
+    { HOURLY_SCRIPT_PATH,          3600, longrun_priority_pool,  false, false, true,  false },
     { DAILY_SCRIPT_PATH,          86400, no_priority_pool,       true,  false, true,  false },
     { HOUSEKEEPING_SCRIPT_PATH,       3, standard_priority_pool, false, false, false, true  },
     { DISCOVER_SCRIPT_PATH,           5, no_priority_pool,       false, false, true,  true  },

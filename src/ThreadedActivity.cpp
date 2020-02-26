@@ -155,17 +155,17 @@ ThreadedActivityState *ThreadedActivity::getThreadedActivityState(NetworkInterfa
 const char* ThreadedActivity::get_state_label(ThreadedActivityState ta_state) {
   switch(ta_state) {
   case threaded_activity_state_sleeping:
-    return "sleeping";
+    return("sleeping");
     break;
   case threaded_activity_state_queued:
-    return "queued";
+    return("queued");
     break;
   case threaded_activity_state_running:
-    return "running";
+    return("running");
     break;
   case threaded_activity_state_unknown:
   default:
-    return "unknown";
+    return("unknown");
     break;
   }
 }
