@@ -856,6 +856,7 @@ function ts_utils.getPossiblyChangedSchemas()
     "redis:keys",
     "redis:memory",
     "host:score",
+    "periodic_script:rrd",
   }
 end
 
