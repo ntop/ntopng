@@ -284,14 +284,15 @@ end
 -- ########################################################
 
 -- Read information about the disk space used by rrd (size is in bytes)
-function rrd_utils.storageInfo(ifid)
+--! @param timeout the maxium time to compute the size
+function rrd_utils.storageInfo(ifid, timeout)
   local dirs = ntop.getDirs()
   local paths = getRRDPaths()
   local info = { total = 0 }
 
   for _, path in pairs(paths) do
     local absolute_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
-    info[path] = getFolderSize(absolute_path)
+    info[path] = getFolderSize(absolute_path, timeout)
     info["total"] = info["total"] + info[path]
   end
 

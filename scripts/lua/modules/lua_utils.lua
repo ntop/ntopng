@@ -3325,7 +3325,9 @@ end
 -- ###########################################
 
 -- Returns the size of a folder (size is in bytes)
-function getFolderSize(path)
+--! @param path the path to compute the size for
+--! @param timeout the maxium time to compute the size. If nil, it defaults to 15 seconds.
+function getFolderSize(path, timeout)
    local folder_size_key = "ntopng.cache.folder_size"
    local now = os.time()
    local expiration = 30 -- sec
@@ -3334,6 +3336,18 @@ function getFolderSize(path)
    if ntop.isWindows() then
       size = 0 -- TODO
    else
+      local MAX_TIMEOUT = tonumber(timeout) or 15 -- default
+      -- Check if timeout is present on the system to cap the execution time of the subsequent du,
+      -- which may be very time consuming, especially when the number of files is high
+      local has_timeout = ntop.getCache("ntopng.cache.has_gnu_timeout") == "true"
+
+      -- Cache the timeout
+      if not has_timeout then
+	 -- Check timeout existence with which. If no timeout is found, command will return nil
+	 has_timeout = (os_utils.execWithOutput("which timeout >/dev/null 2>&1") ~= nil)
+	 ntop.setCache("ntopng.cache.has_gnu_timeout", tostring(has_timeout))
+      end
+
       -- Check the cache for a recent value
       local time_size = ntop.getHashCache(folder_size_key, path)
       if not isEmptyString(time_size) then
@@ -3347,7 +3361,12 @@ function getFolderSize(path)
          size = 0
          -- Read disk utilization
          if ntop.isdir(path) then
-            local line = os_utils.execWithOutput("du -s "..path.." 2>/dev/null")
+	    local du_cmd = string.format("du -s %s 2>/dev/null", path)
+	    if has_timeout then
+	       du_cmd = string.format("timeout %u%s %s", MAX_TIMEOUT, "s", du_cmd)
+	    end
+
+            local line = os_utils.execWithOutput(du_cmd)
             local values = split(line, '\t')
             if #values >= 1 then
                local used = tonumber(values[1])

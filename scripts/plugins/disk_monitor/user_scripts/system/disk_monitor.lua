@@ -30,7 +30,7 @@ local script = {
 
 -- Defines an hook which is executed every hour
 function script.hooks.hour(params)
-   local info = storage_utils.storageInfo(true --[[ refresh cache ]])
+   local info = storage_utils.storageInfo(true --[[ refresh cache ]], 120 --[[ Allow a couple of minutes --]])
 
    -- TODO alert if free disk space is too low
 end

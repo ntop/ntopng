@@ -21,29 +21,30 @@ local storage_utils = {}
 -- #################################
 
 -- Note: if refresh_cache is false, no disk access should be performed
-function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache)
+-- @param timeout The maximum time available to call getFolderSize. See getFolderSize for additional comments.
+function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache, timeout)
   local info = { total = 0 }
   local key = "ntopng.cache."..ifid..".storage_info"
 
   local info_json = ntop.getCache(key)
-
   if refresh_cache then
+
     -- if ts_utils.getDriverName() == "rrd" then
-      local rrd_storage_info = rrd_utils.storageInfo(ifid)
+      local rrd_storage_info = rrd_utils.storageInfo(ifid, timeout)
       info["rrd"] = rrd_storage_info.total
       info["total"] = info["total"] + rrd_storage_info.total
     -- end
 
     if interfaceHasNindexSupport() then
       local nindex_utils = require "nindex_utils"
-      local flows_storage_info = nindex_utils.storageInfo(ifid)
+      local flows_storage_info = nindex_utils.storageInfo(ifid, timeout)
       info["flows"] = flows_storage_info.total
       info["total"] = info["total"] + flows_storage_info.total
     end
 
     -- if recording_utils.isAvailable() then
     if not ntop.isWindows() then
-      local pcap_storage_info = recording_utils.storageInfo(ifid)
+      local pcap_storage_info = recording_utils.storageInfo(ifid, timeout)
       local total_pcap_dump_used = (pcap_storage_info.if_used + pcap_storage_info.extraction_used)
       info["pcap"] = total_pcap_dump_used
       if separate_pcap_volume then
@@ -65,7 +66,9 @@ end
 -- #################################
 
 -- Note: if refresh_cache is false, no disk access should be performed
-function storage_utils.storageInfo(refresh_cache)
+--! @param refresh_cache Whether cached values should be refreshed during the call
+--! @param timeout The maximum time available to call getFolderSize. See getFolderSize for additional comments.
+function storage_utils.storageInfo(refresh_cache, timeout)
   local ifnames = interface.getIfNames()
   local info = { total = 0, pcap_total = 0, interfaces = {} }
   local volume_info
@@ -94,7 +97,7 @@ function storage_utils.storageInfo(refresh_cache)
 
   for id, name in pairs(ifnames) do
     local ifid = tonumber(id)
-    local if_info = storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache)
+    local if_info = storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache, timeout)
     info.interfaces[ifid] = if_info
     info.total = info.total + if_info.total
     if if_info.pcap ~= nil then

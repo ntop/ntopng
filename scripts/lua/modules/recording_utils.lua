@@ -370,9 +370,10 @@ function recording_utils.volumeInfo(path)
 end
 
 --! @brief Read information about the storage, including storage size and available space
---! @param ifid the interface identifier 
+--! @param ifid the interface identifier
+--! @param timeout the maxium time to compute the size
 --! @return a table containing storage information (size is in bytes)
-function recording_utils.storageInfo(ifid)
+function recording_utils.storageInfo(ifid, timeout)
   local storage_info = recording_utils.volumeInfo(dirs.pcapdir)
 
   -- Interface storage info
@@ -380,7 +381,7 @@ function recording_utils.storageInfo(ifid)
 
   -- PCAP Extraction storage info
   local extraction_path = getPcapExtractionPath(ifid)
-  storage_info.extraction_used = getFolderSize(extraction_path)
+  storage_info.extraction_used = getFolderSize(extraction_path, timeout)
 
   return storage_info
 end
