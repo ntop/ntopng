@@ -19,7 +19,10 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.host_explorer)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print("<hr /><h2>Host Explorer</h2>")
+print([[
+	<h2>Host Explorer</h2>
+	<hr>
+]])
 
 -- https://www.d3-graph-gallery.com/graph/bubble_template.html
 
@@ -46,6 +49,13 @@ local remote_label = "Remote Hosts"
 local x_label
 local y_label
 local bubble_mode         = tonumber(_GET["bubble_mode"]) or 0
+
+local current_label
+for _, mode in ipairs(modes) do
+	if mode.mode == bubble_mode then
+		current_label = mode.label
+	end
+end
 
 if(bubble_mode == 0) then
    x_label = 'Flows as Server'
@@ -165,15 +175,15 @@ end
 local local_js  = json.encode(local_hosts)
 local remote_js = json.encode(remote_hosts)
 
-print [[
+print ([[
 
 	 <script type="text/javascript" src="/js/Chart.bundle.min.js"></script>
 
 	 <div class="dropdown">
-	 <button class="btn btn-light dropdown-toggle" type="button" data-toggle="dropdown">Visualization
+	 <button class="btn btn-light dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and 'Visualization' or current_label) ..[[
 	 <span class="caret"></span></button>
 	 <ul class="dropdown-menu scrollable-dropdown" role="menu" aria-labelledby="menu1">
-	 ]]
+	 ]])
 
 for i,v in pairs(modes) do
    print('<li class="dropdown-item"><a class="dropdown-link" tabindex="-1" href="?bubble_mode='..tostring(i-1)..'">'..v.label..'</a></li>\n')
