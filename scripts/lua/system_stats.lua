@@ -72,6 +72,7 @@ if(page == "overview") then
 
    if system_host_stats["cpu_load"] ~= nil then  system_rowspan = system_rowspan + 1 end
    if system_host_stats["mem_total"] ~= nil then system_rowspan = system_rowspan + 1 end
+   if system_host_stats["cpu_states"] and system_host_stats["cpu_states"]["iowait"] then system_rowspan = system_rowspan + 1 end
 
    if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       print("<tr><th rowspan="..system_rowspan.." width=5%>"..i18n("about.system").."</th></tr>\n")
@@ -80,8 +81,13 @@ if(page == "overview") then
    if system_host_stats["cpu_load"] ~= nil then
       print("<tr><th nowrap>"..i18n("about.cpu_load").."</th><td><span id='cpu-load-pct'>...</span></td></tr>\n")
    end
+
    if system_host_stats["mem_total"] ~= nil then
       print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'></span></td></tr>\n")
+   end
+
+   if system_host_stats["cpu_states"] and system_host_stats["cpu_states"]["iowait"] then
+      print("<tr><th nowrap>"..i18n("about.iowait").."</th><td><span id='cpu-states-iowait'></span></td></tr>\n")
    end
 
    print("<tr><th rowspan=".. ntopng_rowspan ..">"..info["product"].."</th>")

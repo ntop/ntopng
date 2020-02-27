@@ -209,6 +209,9 @@ print[[
 		   <li class='nav-item p-btn mx-2'>
 		   <div class='d-flex'>`;
 
+		if(rsp.system_host_stats.cpu_states && rsp.system_host_stats.cpu_states.iowait) {
+                  $('#cpu-states-iowait').html(formatValue(Math.round(rsp.system_host_stats.cpu_states.iowait * 100) / 100) + "%");
+                }
 
 		if (rsp.system_host_stats.mem_total !== undefined) {
 		   var mem_total = rsp.system_host_stats.mem_total;

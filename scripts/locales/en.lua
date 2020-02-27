@@ -255,6 +255,7 @@ local lang = {
     ["ntop_blog"] = "ntop Blog",
     ["platform"] = "Platform",
     ["ram_memory"] = "RAM",
+    ["iowait"] = "iowait",
     ["readme_and_manual"] = "User's Guide",
     ["report_issue"] = "Report an Issue",
     ["runtime_status"] = "Runtime Status",
