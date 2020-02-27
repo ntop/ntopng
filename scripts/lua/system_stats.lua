@@ -12,6 +12,7 @@ local plugins_utils = require("plugins_utils")
 local alert_consts = require("alert_consts")
 local internals_utils = require "internals_utils"
 local system_utils = require("system_utils")
+local ts_utils = require "ts_utils"
 require("graph_utils")
 require("alert_utils")
 
@@ -79,15 +80,18 @@ if(page == "overview") then
    end
 
    if system_host_stats["cpu_load"] ~= nil then
-      print("<tr><th nowrap>"..i18n("about.cpu_load").."</th><td><span id='cpu-load-pct'>...</span></td></tr>\n")
-   end
-
-   if system_host_stats["mem_total"] ~= nil then
-      print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'></span></td></tr>\n")
+      local chart_available = ts_utils.exists("system:cpu_load", {ifid = getSystemInterfaceId()})
+      print("<tr><th nowrap>"..i18n("about.cpu_load").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_load'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-load-pct'>...</span></td></tr>\n")
    end
 
    if system_host_stats["cpu_states"] and system_host_stats["cpu_states"]["iowait"] then
-      print("<tr><th nowrap>"..i18n("about.iowait").."</th><td><span id='cpu-states-iowait'></span></td></tr>\n")
+      local chart_available = ts_utils.exists("system:iowait", {ifid = getSystemInterfaceId()})
+      print("<tr><th nowrap>"..i18n("about.iowait").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:iowait'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-states-iowait'></span></td></tr>\n")
+   end
+
+   if system_host_stats["mem_total"] ~= nil then
+      local chart_available = ts_utils.exists("process:resident_memory", {ifid = getSystemInterfaceId()})
+      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-used'></span></td></tr>\n")
    end
 
    print("<tr><th rowspan=".. ntopng_rowspan ..">"..info["product"].."</th>")
@@ -159,8 +163,20 @@ elseif(page == "historical" and ts_creation) then
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
-	    {schema="system:cpu_load",            label=i18n("about.cpu_load"), metrics_labels = {i18n("about.cpu_load")}, value_formatter = {"ffloat"}},
-	    {schema="process:resident_memory",    label=i18n("graphs.process_memory")},
+	 {
+	    schema = "system:cpu_load",
+	    label=i18n("about.cpu_load"),
+	    metrics_labels = {i18n("about.cpu_load")}, value_formatter = {"ffloat"}
+	 },
+	 {
+	    schema="system:iowait",
+	    label=i18n("about.iowait"),
+	    metrics_labels = {i18n("about.iowait")}, value_formatter = {"fpercent"}
+	 },
+	 {
+	    schema="process:resident_memory",
+	    label=i18n("graphs.process_memory")
+	 },
       }
    })
 elseif((page == "alerts") and isAdministrator()) then

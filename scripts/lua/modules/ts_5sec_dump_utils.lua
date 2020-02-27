@@ -63,4 +63,17 @@ end
 
 -- ########################################################
 
+function ts_dump.dump_cpu_states(ifid, when, cpu_states)
+   if cpu_states and cpu_states["iowait"] then
+      ts_utils.append("system:iowait",
+		      {
+			 ifid = ifid,
+			 iowait_pct = cpu_states["iowait"]
+		      },
+		      when)
+   end
+end
+
+-- ########################################################
+
 return ts_dump

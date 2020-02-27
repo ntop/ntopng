@@ -6,6 +6,14 @@ local ts_utils = require "ts_utils_core"
 local schema
 
 -------------------------------------------------------
+-- SYSTEM CPU states
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("system:iowait", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addMetric("iowait_pct")
+
+-------------------------------------------------------
 -- FLOW USER SCRIPTS SCHEMAS
 -------------------------------------------------------
 
