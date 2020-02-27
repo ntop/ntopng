@@ -5,8 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local json = require("dkjson")
-
 local system_utils = {}
 
 -- #################################
