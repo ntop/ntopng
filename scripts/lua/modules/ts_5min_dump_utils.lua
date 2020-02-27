@@ -180,6 +180,7 @@ function ts_dump.getConfig()
 
   config.host_rrd_creation = ntop.getPref("ntopng.prefs.host_rrd_creation")
   config.host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
+  config.host_stats_timeseries_creation = ntop.getPref("ntopng.prefs.host_stats_timeseries_creation")
   config.l2_device_rrd_creation = ntop.getPref("ntopng.prefs.l2_device_rrd_creation")
   config.l2_device_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.l2_device_ndpi_timeseries_creation")
   config.flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
@@ -215,9 +216,6 @@ end
 -- ########################################################
 
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
-  ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
-            bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
-
   -- Number of flows
   ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
 				 flows_as_client = host["active_flows.as_client"],
@@ -384,7 +382,10 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
     end
 
     -- Traffic stats
-    if(config.host_rrd_creation == "1") then
+    ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
+          bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
+
+    if(config.host_stats_timeseries_creation ~= "0") then
       ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
     end
 

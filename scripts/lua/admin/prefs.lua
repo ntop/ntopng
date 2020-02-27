@@ -1132,10 +1132,17 @@ function printStatsTimeseries()
     field = "toggle_local_hosts_traffic_rrd_creation",
     default = "1",
     pref = "host_rrd_creation",
-    to_switch = {"row_hosts_ndpi_timeseries_creation"},
+    to_switch = {"row_hosts_ndpi_timeseries_creation", "row_toggle_local_hosts_stats_rrd_creation"},
   })
 
   local showElement = ntop.getPref("ntopng.prefs.host_rrd_creation") == "1"
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_local_hosts_stats_rrd_creation",
+    default = "1",
+    pref = "host_stats_timeseries_creation",
+    hidden = not showElement,
+  })
 
   retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
 				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,

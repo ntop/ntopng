@@ -1344,6 +1344,7 @@ local known_parameters = {
    ["toggle_network_discovery"]                    = validateBool,
    ["toggle_interface_traffic_rrd_creation"]       = validateBool,
    ["toggle_local_hosts_traffic_rrd_creation"]     = validateBool,
+   ["toggle_local_hosts_stats_rrd_creation"]       = validateBool,
    ["toggle_l2_devices_traffic_rrd_creation"]      = validateBool,
    ["toggle_system_probes_timeseries"]             = validateBool,
    ["toggle_flow_rrds"]                            = validateBool,
