@@ -285,14 +285,14 @@ function user_scripts.ts_dump(when, ifid, verbose, schema_prefix, all_scripts)
       local total = {tot_elapsed = 0, tot_num_calls = 0}
 
       for modkey, stats in pairs(rv) do
-	 ts_utils.append(schema_prefix .. ":duration", {ifid = ifid, user_script = modkey, subdir = subdir, num_ms = stats.tot_elapsed * 1000}, when, verbose)
-	 ts_utils.append(schema_prefix .. ":num_calls", {ifid = ifid, user_script = modkey, subdir = subdir, num_calls = stats.tot_num_calls}, when, verbose)
+	 ts_utils.append(schema_prefix .. ":duration", {ifid = ifid, user_script = modkey, subdir = subdir, num_ms = stats.tot_elapsed * 1000}, when)
+	 ts_utils.append(schema_prefix .. ":num_calls", {ifid = ifid, user_script = modkey, subdir = subdir, num_calls = stats.tot_num_calls}, when)
 
 	 total.tot_elapsed = total.tot_elapsed + stats.tot_elapsed
 	 total.tot_num_calls = total.tot_num_calls + stats.tot_num_calls
       end
 
-      ts_utils.append(schema_prefix .. ":total_stats", {ifid = ifid, subdir = subdir, num_ms = total.tot_elapsed * 1000, num_calls = total.tot_num_calls}, when, verbose)
+      ts_utils.append(schema_prefix .. ":total_stats", {ifid = ifid, subdir = subdir, num_ms = total.tot_elapsed * 1000, num_calls = total.tot_num_calls}, when)
    end
 end
 

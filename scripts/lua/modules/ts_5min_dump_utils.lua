@@ -1,3 +1,7 @@
+--
+-- (C) 2019-20 - ntop.org
+--
+
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
@@ -26,7 +30,7 @@ function ts_dump.l2_device_update_categories_rrds(when, devicename, device, ifst
   -- nDPI Protocol CATEGORIES
   for k, cat in pairs(device["ndpi_categories"] or {}) do
     ts_utils.append("mac:ndpi_categories", {ifid=ifstats.id, mac=devicename, category=k,
-              bytes=cat["bytes"]}, when, verbose)
+              bytes=cat["bytes"]}, when)
   end
 end
 
@@ -37,7 +41,7 @@ function ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, 
   ts_utils.append("mac:arp_rqst_sent_rcvd_rpls", {ifid=ifstats.id, mac=devicename,
               request_packets_sent = device["arp_requests.sent"],
               reply_packets_rcvd = device["arp_replies.rcvd"]},
-        when,verbose)
+        when)
 end
 
 -- ########################################################
@@ -56,35 +60,35 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
     if asn_stats["ndpi"] ~= nil then
       for proto_name, proto_stats in pairs(asn_stats["ndpi"]) do
         ts_utils.append("asn:ndpi", {ifid=ifstats.id, asn=asn, protocol=proto_name,
-                  bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when, verbose)
+                  bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when)
       end
     end
 
     -- Save ASN RTT stats
     ts_utils.append("asn:rtt",
 		    {ifid=ifstats.id, asn=asn,
-		     millis_rtt=asn_stats["round_trip_time"]}, when, verbose)
+		     millis_rtt=asn_stats["round_trip_time"]}, when)
 
     -- Save ASN TCP stats
     ts_utils.append("asn:tcp_retransmissions",
 		    {ifid=ifstats.id, asn=asn,
 		     packets_sent=asn_stats["tcpPacketStats.sent"]["retransmissions"],
-		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when, verbose)
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when)
 
     ts_utils.append("asn:tcp_out_of_order",
 		    {ifid=ifstats.id, asn=asn,
 		     packets_sent=asn_stats["tcpPacketStats.sent"]["out_of_order"],
-		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when, verbose)
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when)
 
     ts_utils.append("asn:tcp_lost",
 		    {ifid=ifstats.id, asn=asn,
 		     packets_sent=asn_stats["tcpPacketStats.sent"]["lost"],
-		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["lost"]}, when, verbose)
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["lost"]}, when)
 
     ts_utils.append("asn:tcp_keep_alive",
 		    {ifid=ifstats.id, asn=asn,
 		     packets_sent=asn_stats["tcpPacketStats.sent"]["keep_alive"],
-		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when, verbose)
+		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
   end
 end
 
@@ -98,7 +102,7 @@ function ts_dump.country_update_rrds(when, ifstats, verbose)
 
     ts_utils.append("country:traffic", {ifid=ifstats.id, country=country,
                 bytes_ingress=country_stats["ingress"], bytes_egress=country_stats["egress"],
-                bytes_inner=country_stats["inner"]}, when, verbose)
+                bytes_inner=country_stats["inner"]}, when)
   end
 end
 
@@ -112,13 +116,13 @@ function ts_dump.vlan_update_rrds(when, ifstats, verbose)
       local vlan_id = vlan_stats["vlan_id"]
 
       ts_utils.append("vlan:traffic", {ifid=ifstats.id, vlan=vlan_id,
-                bytes_sent=vlan_stats["bytes.sent"], bytes_rcvd=vlan_stats["bytes.rcvd"]}, when, verbose)
+                bytes_sent=vlan_stats["bytes.sent"], bytes_rcvd=vlan_stats["bytes.rcvd"]}, when)
 
       -- Save VLAN ndpi stats
       if vlan_stats["ndpi"] ~= nil then
         for proto_name, proto_stats in pairs(vlan_stats["ndpi"]) do
           ts_utils.append("vlan:ndpi", {ifid=ifstats.id, vlan=vlan_id, protocol=proto_name,
-                    bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when, verbose)
+                    bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when)
         end
       end
     end
@@ -143,10 +147,10 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
         local dev_ifname = format_utils.formatExporterInterface(port_idx, port_value)
 
         ts_utils.append("evexporter_iface:traffic", {ifid=ifstats.id, exporter=flow_device_ip, ifname=dev_ifname,
-                bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when, verbose)
+                bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when)
       else
         ts_utils.append("sflowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
-                bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when, verbose)
+                bytes_sent=port_value.ifOutOctets, bytes_rcvd=port_value.ifInOctets}, when)
       end
     end
   end
@@ -164,7 +168,7 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
 
     for port_idx,port_value in pairs(ports) do
       ts_utils.append("flowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
-                bytes_sent=port_value["bytes.out_bytes"], bytes_rcvd=port_value["bytes.in_bytes"]}, when, verbose)
+                bytes_sent=port_value["bytes.out_bytes"], bytes_rcvd=port_value["bytes.in_bytes"]}, when)
     end
   end
 end
@@ -212,115 +216,115 @@ end
 
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
-            bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when, verbose)
+            bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
 
   -- Number of flows
   ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
 				 flows_as_client = host["active_flows.as_client"],
 				 flows_as_server = host["active_flows.as_server"]},
-         when, verbose)
+         when)
   ts_utils.append("host:total_flows", {ifid=ifstats.id, host=hostname,
 				 flows_as_client = host["total_flows.as_client"],
 				 flows_as_server = host["total_flows.as_server"]},
-         when, verbose)
+         when)
 
   -- Number of misbehaving flows
   ts_utils.append("host:misbehaving_flows", {ifid = ifstats.id, host = hostname,
 					   flows_as_client = host["misbehaving_flows.as_client"],
 					   flows_as_server = host["misbehaving_flows.as_server"]},
-		  when, verbose)
+		  when)
 
   -- Number of unreachable flows
   ts_utils.append("host:unreachable_flows", {ifid = ifstats.id, host = hostname,
 					   flows_as_client = host["unreachable_flows.as_client"],
 					   flows_as_server = host["unreachable_flows.as_server"]},
-      when, verbose)
+      when)
     
   -- Number of host unreachable flows
   ts_utils.append("host:host_unreachable_flows", {ifid = ifstats.id, host = hostname,
             flows_as_server = host["host_unreachable_flows.as_server"],
             flows_as_client = host["host_unreachable_flows.as_client"]},
-      when, verbose)
+      when)
 
   -- Number of dns packets sent
   ts_utils.append("host:dns_qry_sent_rsp_rcvd", {ifid = ifstats.id, host = hostname,
             queries_packets = host["dns"]["sent"]["num_queries"],
             replies_ok_packets = host["dns"]["rcvd"]["num_replies_ok"],
             replies_error_packets =host["dns"]["rcvd"]["num_replies_error"]},
-      when, verbose)
+      when)
 
   -- Number of dns packets rcvd
   ts_utils.append("host:dns_qry_rcvd_rsp_sent", {ifid = ifstats.id, host = hostname,
             queries_packets = host["dns"]["rcvd"]["num_queries"],
             replies_ok_packets = host["dns"]["sent"]["num_replies_ok"],
             replies_error_packets = host["dns"]["sent"]["num_replies_error"]},
-      when, verbose)
+      when)
 
   if(host["icmp.echo_pkts_sent"] ~= nil) then
     ts_utils.append("host:echo_packets", {ifid = ifstats.id, host = hostname,
       packets_sent = host["icmp.echo_pkts_sent"],
       packets_rcvd = host["icmp.echo_pkts_rcvd"]},
-      when, verbose)
+      when)
   end
 
   if(host["icmp.echo_reply_pkts_sent"] ~= nil) then
     ts_utils.append("host:echo_reply_packets", {ifid = ifstats.id, host = hostname,
       packets_sent = host["icmp.echo_reply_pkts_sent"],
       packets_rcvd = host["icmp.echo_reply_pkts_rcvd"]},
-      when, verbose)
+      when)
   end
   
   -- Number of udp packets
   ts_utils.append("host:udp_pkts", {ifid = ifstats.id, host = hostname,
             packets_sent = host["udp.packets.sent"],
             packets_rcvd = host["udp.packets.rcvd"]},
-      when, verbose)
+      when)
 
   -- Tcp RX Stats 
   ts_utils.append("host:tcp_rx_stats", {ifid = ifstats.id, host = hostname,
             retransmission_packets = host["tcpPacketStats.rcvd"]["retransmissions"],
             out_of_order_packets = host["tcpPacketStats.rcvd"]["out_of_order"],
             lost_packets = host["tcpPacketStats.rcvd"]["lost"]},
-      when, verbose)
+      when)
   
   -- Tcp TX Stats
   ts_utils.append("host:tcp_tx_stats", {ifid = ifstats.id, host = hostname,
             retransmission_packets = host["tcpPacketStats.sent"]["retransmissions"],
             out_of_order_packets = host["tcpPacketStats.sent"]["out_of_order"],
             lost_packets = host["tcpPacketStats.sent"]["lost"]},
-      when, verbose)
+      when)
   
   -- Number of TCP packets
   ts_utils.append("host:tcp_packets", {ifid = ifstats.id, host = hostname,
             packets_sent = host["tcp.packets.sent"],
             packets_rcvd = host["tcp.packets.rcvd"]},
-      when, verbose)
+      when)
 
   -- Total number of alerts
   ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
 					   alerts = host["total_alerts"]},
-		  when, verbose)
+		  when)
 
   -- Total number of flow alerts
   ts_utils.append("host:total_flow_alerts", {ifid = ifstats.id, host = hostname,
 					   alerts = host["num_flow_alerts"]},
-		  when, verbose)
+		  when)
 
   -- Engaged alerts
   ts_utils.append("host:engaged_alerts", {ifid = ifstats.id, host = hostname,
 					   alerts = host["engaged_alerts"]},
-		  when, verbose)
+		  when)
 
   -- Contacts
   ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
-            num_as_client=host["contacts.as_client"], num_as_server=host["contacts.as_server"]}, when, verbose)
+            num_as_client=host["contacts.as_client"], num_as_server=host["contacts.as_server"]}, when)
 
   -- L4 Protocols
   for id, _ in pairs(l4_keys) do
     k = l4_keys[id][2]
     if((host[k..".bytes.sent"] ~= nil) and (host[k..".bytes.rcvd"] ~= nil)) then
       ts_utils.append("host:l4protos", {ifid=ifstats.id, host=hostname,
-                l4proto=tostring(k), bytes_sent=host[k..".bytes.sent"], bytes_rcvd=host[k..".bytes.rcvd"]}, when, verbose)
+                l4proto=tostring(k), bytes_sent=host[k..".bytes.sent"], bytes_rcvd=host[k..".bytes.rcvd"]}, when)
     else
       -- L2 host
       --io.write("Discarding "..k.."@"..hostname.."\n")
@@ -330,7 +334,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   -- UDP breakdown
   ts_utils.append("host:udp_sent_unicast", {ifid=ifstats.id, host=hostname,
             bytes_sent_unicast=host["udpBytesSent.unicast"],
-            bytes_sent_non_unicast=host["udpBytesSent.non_unicast"]}, when, verbose)
+            bytes_sent_non_unicast=host["udpBytesSent.non_unicast"]}, when)
 
   -- create custom rrds
   if ts_custom and ts_custom.host_update_stats then
@@ -347,13 +351,13 @@ function ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, c
     local bytes_rcvd = string.sub(value, sep+1, sep2-1)
 
     ts_utils.append("host:ndpi", {ifid=ifstats.id, host=hostname, protocol=k,
-              bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when, verbose)
+              bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when)
 
     if config.ndpi_flows_timeseries_creation == "1" then
       local num_flows = string.sub(value, sep2+1)
 
       ts_utils.append("host:ndpi_flows", {ifid=ifstats.id, host=hostname, protocol=k,
-              num_flows = num_flows}, when, verbose)
+              num_flows = num_flows}, when)
     end
   end
 end
@@ -366,7 +370,7 @@ function ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verb
     local bytes_rcvd = string.sub(value, sep+1)
     
     ts_utils.append("host:ndpi_categories", {ifid=ifstats.id, host=hostname, category=k,
-              bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when, verbose)
+              bytes_sent=bytes_sent, bytes_rcvd=bytes_rcvd}, when)
   end
 end
 
@@ -406,7 +410,7 @@ end
 -- ########################################################
 
 -- NOTE: this is executed every minute if ts_utils.hasHighResolutionTs() is true
-function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
+function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
   local is_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
   local num_processed_hosts = 0
   local min_instant = when - (when % 60) - 60

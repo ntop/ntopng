@@ -1,3 +1,7 @@
+--
+-- (C) 2019-20 - ntop.org
+--
+
 -- ########################################################
 
 require "lua_utils"
@@ -25,10 +29,10 @@ function ts_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose, config)
     local v = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-    ts_utils.append("iface:ndpi", {ifid=ifstats.id, protocol=k, bytes=v}, when, verbose)
+    ts_utils.append("iface:ndpi", {ifid=ifstats.id, protocol=k, bytes=v}, when)
 
     if config.ndpi_flows_timeseries_creation == "1" then
-      ts_utils.append("iface:ndpi_flows", {ifid=ifstats.id, protocol=k, num_flows=ifstats["ndpi"][k]["num_flows"]}, when, verbose)
+      ts_utils.append("iface:ndpi_flows", {ifid=ifstats.id, protocol=k, num_flows=ifstats["ndpi"][k]["num_flows"]}, when)
     end
   end
 end
@@ -40,7 +44,7 @@ function ts_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
     v = v["bytes"]
     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
-    ts_utils.append("iface:ndpi_categories", {ifid=ifstats.id, category=k, bytes=v}, when, verbose)
+    ts_utils.append("iface:ndpi_categories", {ifid=ifstats.id, category=k, bytes=v}, when)
   end
 end
 
@@ -49,11 +53,11 @@ end
 function ts_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
   -- IN/OUT counters
   if(ifstats["localstats"]["bytes"]["local2remote"] > 0) then
-    ts_utils.append("iface:local2remote", {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["local2remote"]}, when, verbose)
+    ts_utils.append("iface:local2remote", {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["local2remote"]}, when)
   end
 
   if(ifstats["localstats"]["bytes"]["remote2local"] > 0) then
-    ts_utils.append("iface:remote2local", {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["remote2local"]}, when, verbose)
+    ts_utils.append("iface:remote2local", {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["remote2local"]}, when)
   end
 end
 
@@ -71,7 +75,7 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
      ts_utils.append("subnet:broadcast_traffic",
 		     {ifid=ifstats.id, subnet=subnet,
 		      bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
-		      bytes_inner=sstats["broadcast"]["inner"]}, when, verbose)
+		      bytes_inner=sstats["broadcast"]["inner"]}, when)
 
      ts_utils.append("subnet:tcp_retransmissions",
 		     {ifid=ifstats.id, subnet=subnet,
@@ -107,14 +111,14 @@ end
 
 function ts_dump.iface_update_general_stats(when, ifstats, verbose)
   -- General stats
-  ts_utils.append("iface:alerts_stats", {ifid=ifstats.id, engaged_alerts=ifstats.stats.engaged_alerts, dropped_alerts=ifstats.stats.dropped_alerts}, when, verbose)
-  ts_utils.append("iface:hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when, verbose)
-  ts_utils.append("iface:local_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.local_hosts}, when, verbose)
-  ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when, verbose)
-  ts_utils.append("iface:flows", {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when, verbose)
-  ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when, verbose)
-  ts_utils.append("iface:alerted_flows", {ifid=ifstats.id, num_flows=ifstats.stats.num_alerted_flows}, when, verbose)
-  ts_utils.append("iface:misbehaving_flows", {ifid=ifstats.id, num_flows=ifstats.stats.num_misbehaving_flows}, when, verbose)
+  ts_utils.append("iface:alerts_stats", {ifid=ifstats.id, engaged_alerts=ifstats.stats.engaged_alerts, dropped_alerts=ifstats.stats.dropped_alerts}, when)
+  ts_utils.append("iface:hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when)
+  ts_utils.append("iface:local_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.local_hosts}, when)
+  ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when)
+  ts_utils.append("iface:flows", {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when)
+  ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when)
+  ts_utils.append("iface:alerted_flows", {ifid=ifstats.id, num_flows=ifstats.stats.num_alerted_flows}, when)
+  ts_utils.append("iface:misbehaving_flows", {ifid=ifstats.id, num_flows=ifstats.stats.num_misbehaving_flows}, when)
 end
 
 function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
@@ -123,30 +127,30 @@ function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
     if((ifstats.stats[k..".bytes.sent"] ~= nil) and (ifstats.stats[k..".bytes.rcvd"] ~= nil)) then
       ts_utils.append("iface:l4protos", {ifid=ifstats.id,
                 -- NOTE: direction may not be correct for PCAP interfaces, so it cannot be split
-                l4proto=tostring(k), bytes=ifstats.stats[k..".bytes.sent"] + ifstats.stats[k..".bytes.rcvd"]}, when, verbose)
+                l4proto=tostring(k), bytes=ifstats.stats[k..".bytes.sent"] + ifstats.stats[k..".bytes.rcvd"]}, when)
     end
   end
 end
 
 function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
-  ts_utils.append("iface:tcp_retransmissions", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when, verbose)
-  ts_utils.append("iface:tcp_out_of_order", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when, verbose)
-  ts_utils.append("iface:tcp_lost", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when, verbose)
-  ts_utils.append("iface:tcp_keep_alive", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.keep_alive}, when, verbose)
+  ts_utils.append("iface:tcp_retransmissions", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when)
+  ts_utils.append("iface:tcp_out_of_order", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when)
+  ts_utils.append("iface:tcp_lost", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.lost}, when)
+  ts_utils.append("iface:tcp_keep_alive", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.keep_alive}, when)
 end
 
 function ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
-  ts_utils.append("iface:tcp_syn", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.syn}, when, verbose)
-  ts_utils.append("iface:tcp_synack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.synack}, when, verbose)
-  ts_utils.append("iface:tcp_finack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.finack}, when, verbose)
-  ts_utils.append("iface:tcp_rst", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.rst}, when, verbose)
+  ts_utils.append("iface:tcp_syn", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.syn}, when)
+  ts_utils.append("iface:tcp_synack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.synack}, when)
+  ts_utils.append("iface:tcp_finack", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.finack}, when)
+  ts_utils.append("iface:tcp_rst", {ifid=ifstats.id, packets=ifstats.pktSizeDistribution.tcp_flags.rst}, when)
 end
 
 -- ########################################################
 
 function ts_dump.profiles_update_stats(when, ifstats, verbose)
   for pname, ptraffic in pairs(ifstats.profiles) do
-    ts_utils.append("profile:traffic", {ifid=ifstats.id, profile=pname, bytes=ptraffic}, when, verbose)
+    ts_utils.append("profile:traffic", {ifid=ifstats.id, profile=pname, bytes=ptraffic}, when)
   end
 end
 
@@ -168,7 +172,7 @@ function ts_dump.update_hash_tables_stats(when, ifstats, verbose)
          end
       end
 
-      ts_utils.append("ht:state", {ifid = ifstats.id, hash_table = ht_name, num_idle = num_idle, num_active = num_active}, when, verbose)
+      ts_utils.append("ht:state", {ifid = ifstats.id, hash_table = ht_name, num_idle = num_idle, num_active = num_active}, when)
    end
 end
 
@@ -213,12 +217,12 @@ function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 	 end
       end
 
-      ts_utils.append("periodic_script:duration", {ifid = ifstats.id, periodic_script = ps_name, num_ms_last = num_ms_last}, when, verbose)
+      ts_utils.append("periodic_script:duration", {ifid = ifstats.id, periodic_script = ps_name, num_ms_last = num_ms_last}, when)
 
       -- Only if RRD is enabled, also total number of writes and dropped points are written
       if ts_utils.getDriverName() == "rrd" then
 	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] then
-	    ts_utils.append("periodic_script:rrd_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = (ps_stats["rrd"]["write"]["tot_calls"] or 0), drops = (ps_stats["rrd"]["write"]["tot_drops"] or 0)}, when, verbose)
+	    ts_utils.append("periodic_script:rrd_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = (ps_stats["rrd"]["write"]["tot_calls"] or 0), drops = (ps_stats["rrd"]["write"]["tot_drops"] or 0)}, when)
 	 end
       end
    end
@@ -232,15 +236,15 @@ function ts_dump.containers_update_stats(when, ifstats, verbose)
   for container_id, container in pairs(containers_stats) do
     ts_utils.append("container:num_flows", {ifid=ifstats.id, container=container_id,
       as_client=container["num_flows.as_client"], as_server=container["num_flows.as_server"]
-    }, when, verbose)
+    }, when)
 
     ts_utils.append("container:rtt", {ifid=ifstats.id, container=container_id,
       as_client=container["rtt_as_client"], as_server=container["rtt_as_server"]
-    }, when, verbose)
+    }, when)
 
     ts_utils.append("container:rtt_variance", {ifid=ifstats.id, container=container_id,
       as_client=container["rtt_variance_as_client"], as_server=container["rtt_variance_as_server"]
-    }, when, verbose)
+    }, when)
   end
 end
 
@@ -252,19 +256,19 @@ function ts_dump.pods_update_stats(when, ifstats, verbose)
   for pod_id, pod in pairs(pods_stats) do
     ts_utils.append("pod:num_containers", {ifid=ifstats.id, pod=pod_id,
       num_containers=pod["num_containers"],
-    }, when, verbose)
+    }, when)
 
     ts_utils.append("pod:num_flows", {ifid=ifstats.id, pod=pod_id,
       as_client=pod["num_flows.as_client"], as_server=pod["num_flows.as_server"]
-    }, when, verbose)
+    }, when)
 
     ts_utils.append("pod:rtt", {ifid=ifstats.id, pod=pod_id,
       as_client=pod["rtt_as_client"], as_server=pod["rtt_as_server"]
-    }, when, verbose)
+    }, when)
 
     ts_utils.append("pod:rtt_variance", {ifid=ifstats.id, pod=pod_id,
       as_client=pod["rtt_variance_as_client"], as_server=pod["rtt_variance_as_server"]
-    }, when, verbose)
+    }, when)
   end
 end
 
@@ -297,7 +301,7 @@ local function dumpTopTalkers(_ifname, ifstats, verbose)
    end
 end
 
-function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
+function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when)
   dumpTopTalkers(_ifname, ifstats, verbose)
 
   user_scripts.runPeriodicScripts("min")
@@ -374,7 +378,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
   if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
      local st = ifstats.netfilter.nfq or {}
 
-     ts_utils.append("iface:nfq_pct", {ifid=ifstats.id, num_nfq_pct = st.queue_pct}, when, verbose)
+     ts_utils.append("iface:nfq_pct", {ifid=ifstats.id, num_nfq_pct = st.queue_pct}, when)
   end
 end
 
