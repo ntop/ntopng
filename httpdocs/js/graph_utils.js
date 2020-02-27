@@ -381,9 +381,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var url = http_prefix + "/lua/rest/get/timeseries/ts.lua";
   var first_load = true;
   var first_time_loaded = true;
-  var manual_trigger_cmp_serie = false;
+  var manual_trigger_extra_series = {}; // keeps track of series manually shown/hidden by the user
   var datetime_format = "dd/MM/yyyy hh:mm:ss";
-  var max_over_total_ratio = 3;
+  var max_cmp_over_total_ratio = 3;     // if the comparison serie max value is too big compared to the actual chart series, hide it
+  var max_line_over_total_ratio = 10;   // if the extra line series max value is too big compared to the actual chart series, hide them
   var query_timer = null;
   var seconds_before_query_slow = 6;
   var query_completed = 0;
@@ -486,8 +487,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   }
 
   chart.legend.dispatch.on('legendClick', function(d,i) {
-    if(d.legend_key.indexOf("ago") != -1)
-      manual_trigger_cmp_serie = true;
+    manual_trigger_extra_series[d.legend_key] = true;
 
     if(typeof localStorage !== "undefined")
       localStorage.setItem("chart_series.disabled." + d.legend_key, (!d.disabled) ? true : false);
@@ -831,7 +831,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           past_serie = serie_data; // TODO: more reliable way to determine past serie
 
           /* Hide comparison serie at first load if it's too high */
-          if((first_time_loaded || !manual_trigger_cmp_serie) && (ratio_over_total > max_over_total_ratio))
+          if((first_time_loaded || !manual_trigger_extra_series[key]) && (ratio_over_total > max_cmp_over_total_ratio))
             is_disabled = true;
 
           res.push({
@@ -862,6 +862,13 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             continue;
           }
 
+          var ratio_over_total = serie.value / d3.max(visual_total);
+          var is_disabled = isLegendDisabled(serie.label, false);
+
+          /* Hide the line serie at first load if it's too high */
+          if((first_time_loaded || !manual_trigger_extra_series[serie.label]) && (ratio_over_total > max_line_over_total_ratio))
+            is_disabled = true;
+
           res.push({
             key: serie.label,
             yAxis: serie.axis || 1,
@@ -870,7 +877,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             color: serie.color || "red",
             classed: serie.class,
             legend_key: serie.label,
-            disabled: isLegendDisabled(serie.label, false),
+            disabled: is_disabled,
           });
         }
       }
