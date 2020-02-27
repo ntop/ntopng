@@ -17,7 +17,7 @@ local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
 local info = ntop.getInfo()
 
--- tprint(collapsed_sidebar)
+local is_system_interface = (ntop.getPref("ntop.prefs.system_mode_enabled") or "0") == "1"
 
 print([[
    <div id='wrapper'>
@@ -25,8 +25,8 @@ print([[
 
 print[[
 <script type='text/javascript'>
-   /* Some localization strings to pass from lua to javacript */
-   let i18n = {
+   /* Some localization strings to pass from lua to javascript */
+   const i18n = {
       "no_results_found": "]] print(i18n("no_results_found")) print[[",
       "change_number_of_rows": "]] print(i18n("change_number_of_rows")) print[[",
       "no_data_available": "]] print(i18n("no_data_available")) print[[",
@@ -36,10 +36,11 @@ print[[
       "exports": "]] print(i18n("system_stats.exports_label")) print[[",
    };
 
-   let http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
+   const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
 </script>]]
 
 local template = require "template_utils"
+
 
 prefs = ntop.getPrefs()
 local iface_names = interface.getIfNames()
@@ -51,9 +52,6 @@ num_ifaces = 0
 for k,v in pairs(iface_names) do
    num_ifaces = num_ifaces+1
 end
-
--- Adding main container div for the time being
---print("<div class=\"container\">")
 
 
 interface.select(ifname)
@@ -75,7 +73,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.dashboard,
-	 hidden = is_pcap_dump,
+	 hidden = is_pcap_dump or is_system_interface,
 	 entries = {
 	    {
 	       entry = page_utils.menu_entries.traffic_dashboard,
@@ -110,7 +108,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.alerts,
-	 hidden = not ntop.getPrefs().are_alerts_enabled,
+	 hidden = not ntop.getPrefs().are_alerts_enabled or is_system_interface,
 	 entries = {
 	    {
 	       entry = page_utils.menu_entries.detected_alerts,
@@ -139,6 +137,7 @@ else
    -- Flows
    page_utils.add_menubar_section(
       {
+         hidden = is_system_interface,
 	 section = page_utils.menu_sections.flows,
 	 url = "/lua/flows_stats.lua",
       }
@@ -150,7 +149,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.hosts,
-	 hidden = ifs.isViewed,
+	 hidden = ifs.isViewed or is_system_interface,
 	 entries = {
 	    {
 	       entry = page_utils.menu_entries.hosts,
@@ -237,7 +236,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.exporters,
-	 hidden = ifs.type ~= "zmq" or not ntop.isEnterprise(),
+	 hidden = (ifs.type ~= "zmq" or not ntop.isEnterprise()) or is_system_interface,
 	 entries = {
 	    {
 	       entry = page_utils.menu_entries.event_exporters,
@@ -265,30 +264,46 @@ end
 page_utils.add_menubar_section(
    {
       section = page_utils.menu_sections.if_stats,
+      hidden = is_system_interface,
       url = "/lua/if_stats.lua",
    }
 )
 
 -- ##############################################
 
+-- SNMP
+
+page_utils.add_menubar_section({
+   hidden = not is_system_interface,
+   url = "/lua/pro/enterprise/snmpdevices_stats.lua",
+   section = page_utils.menu_sections.snmp
+})
+
+-- ##############################################
+
+-- System Health
+
+page_utils.add_menubar_section({
+   hidden = not is_system_interface,
+   section = page_utils.menu_sections.health,
+   entries = {
+      {
+         entry = page_utils.menu_entries.system_status,
+         url = '/lua/system_stats.lua',
+      },
+      {
+         entry = page_utils.menu_entries.interfaces_status,
+         url = '/lua/system_interfaces_stats.lua',
+      },
+   }
+})
+
+
+-- ##############################################
+
 -- System
 
--- Default entries
-local system_entries = {
-   {
-      entry = page_utils.menu_entries.snmp,
-      hidden = not ntop.isEnterprise(),
-      url = '/lua/pro/enterprise/snmpdevices_stats.lua',
-   },
-   {
-      entry = page_utils.menu_entries.system_status,
-      url = '/lua/system_stats.lua',
-   },
-   {
-      entry = page_utils.menu_entries.interfaces_status,
-      url = '/lua/system_interfaces_stats.lua',
-   },
-}
+local system_entries = {}
 
 -- Add plugin entries...
 for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
@@ -327,10 +342,6 @@ if is_nedge then
 	    url = '/lua/pro/nedge/admin/nf_list_users.lua',
 	 },
 	 {
-	    entry = page_utils.menu_entries.divider,
-	    hidden = not is_admin,
-	 },
-	 {
 	    custom = [[
                <li><a href="javascript:void(0);" onclick='$("#poweroff_dialog").modal("show");'>
                  <i class="fas fa-power-off"></i> ]]..i18n("nedge.power_off")..[[</a>
@@ -349,10 +360,48 @@ end
 page_utils.add_menubar_section(
    {
       section = page_utils.menu_sections.system_stats,
-      hidden = not isAllowedSystemInterface(),
+      hidden = not isAllowedSystemInterface() or not is_system_interface,
       entries = system_entries,
    }
 )
+
+-- ##############################################
+
+-- Tools
+
+page_utils.add_menubar_section({
+   hidden = not is_system_interface,
+   section = page_utils.menu_sections.tools,
+   entries = {
+      {
+         entry = page_utils.menu_entries.remote_assistance,
+         hidden = not is_admin or not remote_assistance.isAvailable(),
+         url = '/lua/admin/remote_assistance.lua',
+      },
+      {
+         entry = page_utils.menu_entries.conf_backup,
+         hidden = not is_admin,
+         url = '/lua/get_config.lua',
+      },
+      {
+         entry = page_utils.menu_entries.manage_data,
+         hidden = not is_admin,
+         url = '/lua/manage_data.lua',
+      },
+      {
+         entry = page_utils.menu_entries.conf_restore,
+         hidden = not is_admin,
+         url = 'https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration',
+      },
+      {
+         custom = [[
+                       <li class="dropdown-header" id="updates-info-li"></li>
+                       <li><a id="updates-install-li" href="#"></a></li>
+        ]],
+         hidden = not is_admin or not ntop.isPackage() or ntop.isWindows(),
+      },
+   }
+})
 
 -- ##############################################
 
@@ -400,37 +449,7 @@ page_utils.add_menubar_section(
 	    hidden = not is_admin,
 	    url = '/lua/admin/edit_device_protocols.lua',
 	 },
-	 {
-	    entry = page_utils.menu_entries.manage_data,
-	    hidden = not is_admin,
-	    url = '/lua/manage_data.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.divider,
-	    hidden = not is_admin,
-	 },
-	 {
-	    entry = page_utils.menu_entries.remote_assistance,
-	    hidden = not is_admin or not remote_assistance.isAvailable(),
-	    url = '/lua/admin/remote_assistance.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.conf_backup,
-	    hidden = not is_admin,
-	    url = '/lua/get_config.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.conf_restore,
-	    hidden = not is_admin,
-	    url = 'https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration',
-	 },
-	 {
-	    custom = [[
-                     <li class="dropdown-header" id="updates-info-li"></li>
-                     <li><a id="updates-install-li" href="#"></a></li>
-]],
-	    hidden = not is_admin or not ntop.isPackage() or ntop.isWindows(),
-	 },
+	
       },
    }
 )
@@ -635,12 +654,22 @@ print([[
       </button>
       <ul class='navbar-nav mr-auto'>    
          <li class='nav-item dropdown'>
-            <span class='mr-1'><i class="fas fa-ethernet"></i></span>
             <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
-                  ]] .. (getHumanReadableInterfaceName(ifname)) .. [[
+               <i class="fas fa-ethernet"></i> ]] .. (is_system_interface and 'System' or getHumanReadableInterfaceName(ifname)) .. [[
             </a>
             <ul class='dropdown-menu'>
 ]])
+
+if ntop.isAdministrator() then
+   print([[
+               <li>
+                  <button id="btn-trigger-system-mode" type="submit" class="dropdown-item">]].. 
+                  (is_system_interface and "Disable System Mode" or "Enable System Mode") 
+                  ..[[</button>
+               </li>
+               <li class='dropdown-divider'></li>
+   ]])
+end
        
 -- ##############################################
 -- Interfaces Selector
@@ -678,6 +707,7 @@ end
 for round = 1, 2 do
 
    for k,_ in pairsByValues(ifHdescr, asc) do
+
       local descr
 
       if((round == 1) and (ifCustom[k] ~= nil)) then
@@ -685,59 +715,61 @@ for round = 1, 2 do
       elseif((round == 2) and (ifCustom[k] == nil)) then
 	 -- do nothing
       else
-	 v = ifnames[k]
 
-	 local page_params = table.clone(_GET)
-	 page_params.ifid = k
-	 -- ntop.g`tHttpPrefix()
-	 local url = getPageUrl("", page_params)
+         v = ifnames[k]
 
-	 print("      <li class=\"nav-item\">")
+         local page_params = table.clone(_GET)
+         page_params.ifid = k
+         -- ntop.g`tHttpPrefix()
+         local url = getPageUrl("", page_params)
 
-	 if(v == ifname) then
-	    print("<a class=\"dropdown-item\" href=\""..url.."\">")
-	 else
-	    -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-	    print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
-	    print[[<input name="switch_interface" type="hidden" value="1" />]]
-	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-	    print[[</form>]]
-	    print[[<a class="dropdown-item" href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
-	 end
+         print([[<li class="nav-item">]])
 
-	 if(v == ifname) then print("<i class=\"fas fa-check\"></i> ") end
-	 if(isPausedInterface(v)) then  print('<i class="fas fa-pause"></i> ') end
+         if(v == ifname) then
+            print("<a class=\"dropdown-item\" href=\""..url.."\">")
+         else
+            -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
+            print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
+            print[[<input name="switch_interface" type="hidden" value="1" />]]
+            print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+            print[[</form>]]
+            print[[<a class="dropdown-item" href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
+         end
 
-	 descr = getHumanReadableInterfaceName(v.."")
+         if(v == ifname) then print("<i class=\"fas fa-check\"></i> ") end
+         if(isPausedInterface(v)) then  print('<i class="fas fa-pause"></i> ') end
 
-	 if(string.contains(descr, "{")) then -- Windows
-	    descr = ifdescr[k]
-	 else
-	    if(v ~= ifdescr[k]) then
-	       descr = descr .. " (".. ifdescr[k] ..")"
-	    end
-	 end
+         descr = getHumanReadableInterfaceName(v.."")
 
-	 print(descr)
+         if(string.contains(descr, "{")) then -- Windows
+            descr = ifdescr[k]
+         else
+            if(v ~= ifdescr[k]) then
+               descr = descr .. " (".. ifdescr[k] ..")"
+            end
+         end
 
-	 if(views[v] == true) then
-	    print(' <i class="fas fa-eye" aria-hidden="true"></i> ')
-	 end
+        print(descr)
 
-	 if(dynamic[v] == true) then
-	    print(' <i class="fas fa-code-branch" aria-hidden="true"></i> ')
-	 end
 
-	 if(drops[v] == true) then
-	    print('&nbsp;<span><i class="fas fa-tint" aria-hidden="true"></i></span>')
-	 end
+         if(views[v] == true) then
+            print(' <i class="fas fa-eye" aria-hidden="true"></i>')
+         end
 
-	 if(recording[v] == true) then
-	    print(' <i class="fas fa-hdd" aria-hidden="true"></i> ')
-	 end
+         if(dynamic[v] == true) then
+            print('<i class="fas fa-code-branch" aria-hidden="true"></i>')
+         end
 
-	 print("</a>")
-	 print("</li>\n")
+         if(drops[v] == true) then
+            print('<span><i class="fas fa-tint" aria-hidden="true"></i></span>')
+         end
+
+         if(recording[v] == true) then
+            print('<i class="fas fa-hdd" aria-hidden="true"></i>')
+         end
+
+         print("</a>")
+         print("</li>\n")
       end
    end
 end
@@ -977,6 +1009,37 @@ if(_SESSION["INVALID_CSRF"]) then
   print('</div>')
 end
 
+if ntop.isAdministrator() then
+
+print([[
+   <script type="text/javascript">
+   
+   $(document).ready(function() {
+
+      $("#btn-trigger-system-mode").click(function(e) {
+
+         console.log(e);
+
+         $.post("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", 
+         {
+            system_interface: "]].. (is_system_interface and "0" or "1") ..[[",
+            csrf: "]].. ntop.getRandomCSRFValue() ..[["
+         }, function(data) {
+
+            if (data.success) {
+               location.href= "/lua/system_stats.lua.lua";
+            }
+
+         });
+
+      });
+
+   });
+
+   </script>
+]])
+
+end
 
 -- append password change modal
 if(not is_admin) then

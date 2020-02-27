@@ -27,8 +27,11 @@ page_utils.menu_sections = {
    if_stats     = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
    admin        = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
-   dev   	= {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
-   about	= {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
+   dev   	    = {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
+   about	       = {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
+   snmp         = {key = "snmp", i18n_title = "prefs.snmp", icon = "fas fa-tablet"},
+   health       = {key = "system_health", i18n_title = "health", icon = "fas fa-heartbeat"},
+   tools        = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
 
    -- nEdge
    views	= {key = "hosts", i18n_title = "views", icon = "fas fa-bars"},
@@ -72,10 +75,12 @@ page_utils.menu_entries = {
     -- Interface
     interface	      	 = {key = "interface", i18n_title = "interface_ifname", section = "if_stats"},
 
-    -- System
-    snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "system_stats"},
-    system_status	 = {key = "system_status", i18n_title = "system_status", section = "system_stats"},
-    interfaces_status	 = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_stats"},
+    -- SNMP
+    snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "snmp"},
+
+    -- Status
+    system_status	 = {key = "status", i18n_title = "system_status", section = "system_health"},
+    interfaces_status	 = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_health"},
     -- TODO plugins
 
     -- Exporters
@@ -91,12 +96,14 @@ page_utils.menu_entries = {
     categories	      	 = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin"},
     category_lists    	 = {key = "category_lists", i18n_title = "category_lists.category_lists", section = "admin"},
     device_protocols   	 = {key = "device_protocols", i18n_title = "device_protocols.device_protocols", section = "admin"},
-    manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin"},
-    export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "admin"},
     plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "admin"},
-    remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "admin"},
     conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin"},
     conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin"},
+    
+    -- Tools
+    export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
+    manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "tools"},
+    remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools"},
 
     -- Home
     live_capture   	 = {key = "live_capture", i18n_title = "live_capture.active_live_captures", section = "home"},

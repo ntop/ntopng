@@ -179,7 +179,7 @@ print ([[
 
 	 <script type="text/javascript" src="/js/Chart.bundle.min.js"></script>
 
-	 <div class="dropdown">
+	 <div class="dropdown mb-3">
 	 <button class="btn btn-light dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and 'Visualization' or current_label) ..[[
 	 <span class="caret"></span></button>
 	 <ul class="dropdown-menu scrollable-dropdown" role="menu" aria-labelledby="menu1">

@@ -1212,6 +1212,7 @@ local known_parameters = {
 -- NAVIGATION
    ["page"]                    = validateSingleWord,            -- Currently active subpage tab
    ["tab"]                     = validateSingleWord,            -- Currently active tab, handled by javascript
+   ["system_interface"]        = validateBool,
 
 -- CONFIGSETS
    ["confset_id"]              = validateNumber,
