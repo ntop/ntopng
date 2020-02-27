@@ -78,6 +78,7 @@ class NetworkInterface : public AlertableEntity {
   u_int64_t num_active_alerted_flows, num_idle_alerted_flows;
   u_int64_t num_active_misbehaving_flows, num_idle_misbehaving_flows;
   u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
+  u_int64_t num_written_alerts, num_alerts_queries;
   u_int64_t num_new_flows;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
@@ -800,6 +801,11 @@ class NetworkInterface : public AlertableEntity {
   inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
   inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
   inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
+  inline void incNumWrittenAlerts()			  { num_written_alerts++; }
+  inline void incNumAlertsQueries()			  { num_alerts_queries++; }
+  inline u_int64_t getNumDroppedAlerts()		  { return(num_dropped_alerts); }
+  inline u_int64_t getNumWrittenAlerts()		  { return(num_written_alerts); }
+  inline u_int64_t getNumAlertsQueries()		  { return(num_alerts_queries); }
   void walkAlertables(int entity_type, const char *entity_value, std::set<int> *entity_excludes,
 	    AddressTree *allowed_nets, alertable_callback *callback, void *user_data);
   void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value,

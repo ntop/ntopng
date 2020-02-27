@@ -319,7 +319,6 @@ int main(int argc, char *argv[])
   ntop->loadGeolocation();
   ntop->loadMacManufacturers(prefs->get_docs_dir());
   ntop->loadTrackers();
-  ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir(), ntop->get_runtime_dir()));
 
   /* initInterface writes DB data on disk, keep it after changing user
    * Note: privileges can be dropped by mongoose (creating HTTPserver) */
@@ -329,6 +328,9 @@ int main(int argc, char *argv[])
     if((iface = ntop->getInterface(i)) != NULL)
       ntop->initInterface(iface);
   }
+
+  /* Register the HTTP server after the interfaces have been initialized */
+  ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir(), ntop->get_runtime_dir()));
 
   /*
     We have created the network interface and thus changed user. Let's now check

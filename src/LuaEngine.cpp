@@ -7110,11 +7110,27 @@ static int ntop_get_uptime(lua_State* vm) {
 // ***API***
 static int ntop_system_host_stat(lua_State* vm) {
   float cpu_load;
+  u_int64_t dropped_alerts = 0, written_alerts = 0, alerts_queries = 0;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
   if(ntop->getCpuLoad(&cpu_load)) lua_push_float_table_entry(vm, "cpu_load", cpu_load);
   Utils::luaMeminfo(vm);
+
+  for(int i=-1; i<ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface = (i == -1) ? ntop->getSystemInterface() : ntop->getInterface(i);
+
+    if(iface) {
+      dropped_alerts += iface->getNumDroppedAlerts();
+      written_alerts += iface->getNumWrittenAlerts();
+      alerts_queries += iface->getNumAlertsQueries();
+    }
+  }
+
+  lua_push_uint64_table_entry(vm, "dropped_alerts", dropped_alerts);
+  lua_push_uint64_table_entry(vm, "written_alerts", written_alerts);
+  lua_push_uint64_table_entry(vm, "alerts_queries", alerts_queries);
 
   return(CONST_LUA_OK);
 }

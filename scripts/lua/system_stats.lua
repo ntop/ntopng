@@ -67,6 +67,7 @@ if(page == "overview") then
    print("<table class=\"table table-bordered table-striped\">\n")
 
    local system_rowspan = 1
+   local ntopng_rowspan = 20
    local system_host_stats = system_utils.systemHostStats()
 
    if system_host_stats["cpu_load"] ~= nil then  system_rowspan = system_rowspan + 1 end
@@ -83,13 +84,19 @@ if(page == "overview") then
       print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'></span></td></tr>\n")
    end
 
-   print("<tr><th rowspan=20>"..info["product"].."</th>")
+   print("<tr><th rowspan=".. ntopng_rowspan ..">"..info["product"].."</th>")
 
    if(info.pid ~= nil) then
       print("<tr><th nowrap>PID (Process ID)</th><td>"..info.pid.."</td></tr>\n")
    end
    if system_host_stats["mem_ntopng_resident"] ~= nil then
       print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-process-used'></span></td></tr>\n")
+   end
+
+   if areAlertsEnabled() then
+      print("<tr><th nowrap>"..i18n("show_alerts.dropped_alerts").."</th><td><span id='dropped-alerts'></span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("show_alerts.stored_alerts").."</th><td><span id='stored-alerts'></span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("show_alerts.alerts_queries").."</th><td><span id='alerts-queries'></span></td></tr>\n")
    end
 
    print("<tr id='storage-info-tr'><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")

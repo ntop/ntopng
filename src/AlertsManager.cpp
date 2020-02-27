@@ -279,6 +279,8 @@ bool AlertsManager::hasAlerts() {
       rc = true;
   }
 
+  iface->incNumAlertsQueries();
+
 out:
   if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
@@ -383,6 +385,8 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 	goto out;
       }
 
+      iface->incNumAlertsQueries();
+
       /* Try and read the rowid (if the record exists) */
       while((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
 	if(rc == SQLITE_ROW) {
@@ -423,6 +427,7 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
 	/* Done updating... */
 	*rowid = cur_rowid;
+	iface->incNumWrittenAlerts();
 	rc = 0;
 	goto out;
       } else {
@@ -466,6 +471,7 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
     /* Success */
     *rowid = sqlite3_last_insert_rowid(db);
+    iface->incNumWrittenAlerts();
     rc = 0;
 
   out:
@@ -641,6 +647,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
     goto out;
   }
 
+  iface->incNumAlertsQueries();
+
   if(replace_alert) {
     /* Match the exact flow */
     if(sqlite3_bind_int(stmt,    9, first_seen)) {
@@ -796,6 +804,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
     cur_rowid = sqlite3_last_insert_rowid(db);
   }
 
+  /* Success */
+  iface->incNumWrittenAlerts();
   rc = 0;
 out:
 
@@ -892,6 +902,7 @@ int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection,
 
     ar.vm = vm, ar.current_offset = 0;
     rc = sqlite3_exec(db, query, getAlertsCallback, (void*)&ar, &zErrMsg);
+    iface->incNumAlertsQueries();
 
     if( rc != SQLITE_OK ){
       rc = 1;

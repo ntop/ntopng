@@ -279,6 +279,7 @@ void NetworkInterface::init() {
 
   gettimeofday(&last_periodic_stats_update, NULL);
   num_live_captures = 0, num_dropped_alerts = 0, checked_dropped_alerts = 0, prev_dropped_alerts = 0;
+  num_written_alerts = num_alerts_queries = 0;
   memset(live_captures, 0, sizeof(live_captures));
   memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
   num_active_alerted_flows = num_idle_alerted_flows = 0;
