@@ -2698,7 +2698,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 			hasSeenVlanTaggedPackets() ? vlans_hash : NULL,
 			macs_hash
   };
-  time_t update_end;
+
 
   memset(&periodic_ht_state_update_user_data, 0, sizeof(periodic_ht_state_update_user_data));
 
@@ -2748,6 +2748,9 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
     db->updateStats(&tv);
   }
 
+#if 0
+  time_t update_end;
+
   if((update_end = time(NULL)) > deadline) {
     char date_buf[32];
     struct tm deadline_tm;
@@ -2756,6 +2759,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Deadline exceeded [%s][%s][expected: %s][off by: %u secs]",
 				 __FUNCTION__, get_name(), date_buf, update_end - deadline);
   }
+#endif
 }
 
 /* **************************************************** */
