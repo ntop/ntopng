@@ -357,7 +357,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("internals.tot_rrd_running_slow")) print[[",
        field: "column_tot_rrd_running_slow",
-       hidden: ]] if ts_utils.getDriverName() ~= "rrd" then print('true') else print('false') end print[[,
+       hidden: true,
        sortable: true,
        css: {
 	 textAlign: 'right',
