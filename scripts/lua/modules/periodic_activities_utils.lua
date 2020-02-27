@@ -42,8 +42,8 @@ periodic_activities_utils.periodic_activity_issues = {
       },
    ["alerts_drops"] =
       {
-	 i18n_title = "alerts_dashboard.alerts_drops",
-	 i18n_descr = "internals.alerts_drops_descr"
+	 i18n_title = "internals.alert_drops",
+	 i18n_descr = "internals.alert_drops_descr"
       },
 }
 

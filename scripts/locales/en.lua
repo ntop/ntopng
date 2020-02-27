@@ -340,8 +340,6 @@ local lang = {
   ["alerts_dashboard"] = {
     ["active_flows_anomaly"] = "Active Flows Anomaly",
     ["alert_counts"] = "Counts",
-    ["alert_drops"] = "Alerts Drops",
-    ["alert_drops_description"] = "Trigger an alert when alerts on any interface are not written to disk and dropped.",
     ["alert_duration"] = "Duration",
     ["alert_severity"] = "Severity",
     ["alert_snmp_device_reset_description"] = "SNMP device <a href=\"%{url}\">%{device}</a> has been restarted",
@@ -2172,7 +2170,8 @@ local lang = {
     ["top_flow_talkers"] = "Top Flow Talkers",
   },
   ["internals"] = {
-    ["alerts_drops_descr"] = "Some alerts could not be written to disk because of a full alerts queue",
+    ["alert_drops"] = "Alerts Drops",
+    ["alert_drops_descr"] = "Trigger an alert when alerts on any interface are not written to disk and dropped.",
     ["all_hash_tables"] = "All Hash Tables",
     ["all_periodic_activities"] = "All Periodic Activities",
     ["all_user_script_targets"] = "All User Script Targets",
