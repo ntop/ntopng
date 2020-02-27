@@ -7,10 +7,15 @@ local driver = {}
 local os_utils = require("os_utils")
 local ts_common = require("ts_common")
 local data_retention_utils = require "data_retention_utils"
+local json = require("dkjson")
+
 require("ntop_utils")
 require("rrd_paths")
 
-local use_hwpredict = false
+local use_hwpredict        = false
+local rrd_update_queue     = "ntopng.rrd_update"
+local max_rrd_queueLen     = 100000
+local curr_num_rrd_updates = 0
 
 local type_to_rrdtype = {
   [ts_common.metrics.counter] = "DERIVE",
@@ -388,10 +393,45 @@ end
 
 -- ##############################################
 
+local function log_ts(rrdfile, schema, timestamp, tags, metrics)
+   local what = {}
+   local j
+   
+   what.file = rrdfile
+   what.params = params
+   
+   j = json.encode(what)
+   
+   if(schema.options.is_critical_ts) then
+      critical = "[Critical]"
+   else
+      critical = ""
+   end
+   
+   io.write("[RRD]"..critical.."[Step: ".. schema.options.step .."]["..j.."]["..curr_num_rrd_updates.."]\n")
+
+   return(j)
+end
+
+-- ##############################################
+
 function driver:append(schema, timestamp, tags, metrics)
   local base, rrd = schema_get_path(schema, tags)
-  local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+  local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
+  if(false) then -- Work in progress
+     local j = log_ts(rrdfile, schema, timestamp, tags, metrics)
+     
+     if(false) then
+	ntop.lpushCache(rrd_update_queue, j)
+	
+	if(curr_num_rrd_updates == 100) then
+	   ntop.ltrimCache(rrd_update_queue, 0, max_rrd_queueLen)
+	   curr_num_rrd_updates = 0
+	end
+     end
+  end
+  
   if not schema.options.is_critical_ts and ntop.rrd_is_slow() then
      -- RRD is slow and this is not a critical timeseries
      ntop.rrd_inc_num_drops()
@@ -407,6 +447,8 @@ function driver:append(schema, timestamp, tags, metrics)
     end
   end
 
+  curr_num_rrd_updates = curr_num_rrd_updates + 1
+  
   return update_rrd(schema, rrdfile, timestamp, metrics)
 end
 
