@@ -566,7 +566,7 @@ if((page == "overview") or (page == nil)) then
    if not ifstats.isDynamic then
       print("<th width=20%><span id='if_packet_drops_drop'><i class='fas fa-tint' aria-hidden='true'></i></span> ")
 
-      print(i18n("if_stats_overview.dropped_packets")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
+      print(i18n("if_stats_overview.dropped_packets")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:packets_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
 
       print("<td width=20% colspan=3><span id=if_drops>")
 

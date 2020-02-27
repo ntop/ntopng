@@ -74,9 +74,10 @@ schema:addMetric("num_flows")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:drops", {step=1, rrd_fname="drops", is_critical_ts=true})
+schema = ts_utils.newSchema("iface:packets_vs_drops", {step=1, is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("packets")
+schema:addMetric("drops")
 
 -- ##############################################
 
