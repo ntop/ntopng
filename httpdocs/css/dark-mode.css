@@ -264,3 +264,7 @@ text, g text.tick {
   background: transparent !important;
   color: #ccc !important; 
 }
+
+.switches-list-container {
+  background: none  !important;
+}
