@@ -269,15 +269,6 @@ page_utils.add_menubar_section(
    }
 )
 
--- ##############################################
-
--- SNMP
-
-page_utils.add_menubar_section({
-   hidden = not is_system_interface,
-   url = "/lua/pro/enterprise/snmpdevices_stats.lua",
-   section = page_utils.menu_sections.snmp
-})
 
 -- ##############################################
 
@@ -296,6 +287,16 @@ page_utils.add_menubar_section({
          url = '/lua/system_interfaces_stats.lua',
       },
    }
+})
+
+-- ##############################################
+
+-- SNMP
+
+page_utils.add_menubar_section({
+   hidden = not is_system_interface,
+   url = "/lua/pro/enterprise/snmpdevices_stats.lua",
+   section = page_utils.menu_sections.snmp
 })
 
 
