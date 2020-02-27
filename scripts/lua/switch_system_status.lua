@@ -20,4 +20,5 @@ ntop.setPref("ntop.prefs.system_mode_enabled", system_interface_toggled)
 
 print(json.encode({
     ["success"] = true,
+    ["href"] = (system_interface_toggled == "1" and ntop.getHttpPrefix() .. "/lua/system_stats.lua" or "/"); 
 }))

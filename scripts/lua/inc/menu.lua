@@ -663,9 +663,7 @@ print([[
 if ntop.isAdministrator() then
    print([[
                <li>
-                  <button id="btn-trigger-system-mode" type="submit" class="dropdown-item">]].. 
-                  (is_system_interface and "Disable System Mode" or "Enable System Mode") 
-                  ..[[</button>
+                  <button id="btn-trigger-system-mode" type="submit" class="dropdown-item">System</button>
                </li>
                <li class='dropdown-divider'></li>
    ]])
@@ -1027,7 +1025,7 @@ print([[
          }, function(data) {
 
             if (data.success) {
-               location.href= "/lua/system_stats.lua.lua";
+               location.href= data.href;
             }
 
          });
