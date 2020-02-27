@@ -664,7 +664,9 @@ print([[
 if ntop.isAdministrator() then
    print([[
                <li>
-                  <button id="btn-trigger-system-mode" type="submit" class="dropdown-item">System</button>
+                  <button id="btn-trigger-system-mode" type="submit" class="dropdown-item">
+                     ]].. (is_system_interface and "<i class='fas fa-check'></i>" or "") ..[[ System
+                  </button>
                </li>
                <li class='dropdown-divider'></li>
    ]])
@@ -732,10 +734,10 @@ for round = 1, 2 do
             print[[<input name="switch_interface" type="hidden" value="1" />]]
             print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
             print[[</form>]]
-            print[[<a class="dropdown-item" href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
+            print[[<a class="dropdown-item" href="javascript:void(0);" onclick="switch_interface($('#switch_interface_form_]] print(tostring(k)) print[['));">]]
          end
 
-         if(v == ifname) then print("<i class=\"fas fa-check\"></i> ") end
+         if((v == ifname) and not is_system_interface) then print("<i class=\"fas fa-check\"></i> ") end
          if(isPausedInterface(v)) then  print('<i class="fas fa-pause"></i> ') end
 
          descr = getHumanReadableInterfaceName(v.."")
@@ -1012,25 +1014,33 @@ if ntop.isAdministrator() then
 
 print([[
    <script type="text/javascript">
-   
-   $(document).ready(function() {
 
-      $("#btn-trigger-system-mode").click(function(e) {
+      const switch_interface = ($form) => {
 
-         console.log(e);
+         toggle_system_flag("0", $form);
+      }
+      
+      const toggle_system_flag = (flag, $form = null) => {
 
          $.post("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", 
          {
-            system_interface: "]].. (is_system_interface and "0" or "1") ..[[",
+            system_interface: `${flag}`,
             csrf: "]].. ntop.getRandomCSRFValue() ..[["
          }, function(data) {
 
-            if (data.success) {
-               location.href= data.href;
+            if (data.success && !$form) {
+               location.href = data.href;
             }
-
+            else if (data.success && $form) {
+               $form.submit();
+            }
+            
          });
+      }
 
+   $(document).ready(function() {
+      $("#btn-trigger-system-mode").click(function(e) {
+         toggle_system_flag("]].. (is_system_interface and "0" or "1") ..[[");
       });
 
    });
