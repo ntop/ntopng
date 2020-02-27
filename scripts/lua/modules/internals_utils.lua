@@ -339,7 +339,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("internals.rrd_writes")) print[[",
        field: "column_rrd_writes",
-       hidden: ]] if not ts_utils.getDriverName() == "rrd" then print('true') else print('false') end print[[,
+       hidden: ]] if ts_utils.getDriverName() ~= "rrd" then print('true') else print('false') end print[[,
        sortable: true,
        css: {
 	 textAlign: 'right',
@@ -348,7 +348,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("internals.rrd_drops")) print[[",
        field: "column_rrd_drops",
-       hidden: ]] if not ts_utils.getDriverName() == "rrd" then print('true') else print('false') end print[[,
+       hidden: ]] if ts_utils.getDriverName() ~= "rrd" then print('true') else print('false') end print[[,
        sortable: true,
        css: {
 	 textAlign: 'right',
@@ -357,7 +357,7 @@ $("#table-internals-periodic-activities").datatable({
      }, {
        title: "]] print(i18n("internals.tot_rrd_running_slow")) print[[",
        field: "column_tot_rrd_running_slow",
-       hidden: ]] if not ts_utils.getDriverName() == "rrd" then print('true') else print('false') end print[[,
+       hidden: ]] if ts_utils.getDriverName() ~= "rrd" then print('true') else print('false') end print[[,
        sortable: true,
        css: {
 	 textAlign: 'right',
