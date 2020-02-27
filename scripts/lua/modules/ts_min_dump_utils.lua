@@ -194,13 +194,13 @@ function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 	    cur_ifname = getInterfaceName(cur_ifid)
 	 end
 
-	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] and  ps_stats["rrd"]["write"]["last"] then
-	    rrd_out = string.format("[rrd.write.tot_calls: %i][last_avg_call_duration_ms: %.2f][last_max_call_duration_ms: %.2f][rrd.write.tot_drops: %u][last_is_slow: %s]",
-				    ps_stats["rrd"]["write"]["tot_calls"] or 0,
-				    ps_stats["rrd"]["write"]["last"]["avg_call_duration_ms"] or 0,
-				    ps_stats["rrd"]["write"]["last"]["max_call_duration_ms"] or 0,
-				    ps_stats["rrd"]["write"]["tot_drops"] or 0,
-				    tostring(ps_stats["rrd"]["write"]["last"]["is_slow"]))
+	 if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] and  ps_stats["timeseries"]["write"]["last"] then
+	    rrd_out = string.format("[timeseries.write.tot_calls: %i][last_avg_call_duration_ms: %.2f][last_max_call_duration_ms: %.2f][timeseries.write.tot_drops: %u][last_is_slow: %s]",
+				    ps_stats["timeseries"]["write"]["tot_calls"] or 0,
+				    ps_stats["timeseries"]["write"]["last"]["avg_call_duration_ms"] or 0,
+				    ps_stats["timeseries"]["write"]["last"]["max_call_duration_ms"] or 0,
+				    ps_stats["timeseries"]["write"]["tot_drops"] or 0,
+				    tostring(ps_stats["timeseries"]["write"]["last"]["is_slow"]))
 	 end
 
 	 if rrd_out then
@@ -221,8 +221,8 @@ function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 
       -- Only if RRD is enabled, also total number of writes and dropped points are written
       if ts_utils.getDriverName() == "rrd" then
-	 if ps_stats["rrd"] and ps_stats["rrd"]["write"] then
-	    ts_utils.append("periodic_script:rrd_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = (ps_stats["rrd"]["write"]["tot_calls"] or 0), drops = (ps_stats["rrd"]["write"]["tot_drops"] or 0)}, when)
+	 if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] then
+	    ts_utils.append("periodic_script:timeseries_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = (ps_stats["timeseries"]["write"]["tot_calls"] or 0), drops = (ps_stats["timeseries"]["write"]["tot_drops"] or 0)}, when)
 	 end
       end
    end

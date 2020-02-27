@@ -5151,7 +5151,7 @@ static int ntop_rrd_update(lua_State* vm) {
     ticks_duration = Utils::getticks() - ticks_duration;
 
     if(ctx && ctx->threaded_activity_stats)
-      ctx->threaded_activity_stats->updateRRDWriteStats(ticks_duration);
+      ctx->threaded_activity_stats->updateTimeseriesWriteStats(ticks_duration);
 
     if(status != 0) {
       char *err = rrd_get_error();
@@ -5263,7 +5263,7 @@ static int ntop_rrd_is_slow(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
 
   if(ctx && ctx->threaded_activity_stats)
-    lua_pushboolean(vm, ctx->threaded_activity_stats->isRRDSlow());
+    lua_pushboolean(vm, ctx->threaded_activity_stats->isTimeseriesSlow());
   else
     lua_pushboolean(vm, false);
 
@@ -5277,7 +5277,7 @@ static int ntop_rrd_inc_num_drops(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
 
   if(ctx && ctx->threaded_activity_stats)
-    ctx->threaded_activity_stats->incRRDWriteDrops();
+    ctx->threaded_activity_stats->incTimeseriesWriteDrops();
 
   return CONST_LUA_OK;
 }

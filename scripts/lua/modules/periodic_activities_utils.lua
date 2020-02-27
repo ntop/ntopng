@@ -35,10 +35,10 @@ periodic_activities_utils.periodic_activity_issues = {
 	 i18n_title = "internals.script_deadline_exceeded",
 	 i18n_descr = "internals.script_deadline_exceeded_descr",
       },
-   ["rrd_slow"] =
+   ["timeseries_slow"] =
       {
-	 i18n_title = "internals.slow_rrd_writes",
-	 i18n_descr = "internals.slow_rrd_writes_descr"
+	 i18n_title = "internals.slow_timeseries_writes",
+	 i18n_descr = "internals.slow_timeseries_writes_descr"
       },
    ["alerts_drops"] =
       {
@@ -49,7 +49,7 @@ periodic_activities_utils.periodic_activity_issues = {
 
 if ts_utils.getDriverName() ~= "rrd" then
    -- No rrd issues when driver is not RRD
-   periodic_activities_utils.periodic_activity_issues["rrd_slow"] = nil
+   periodic_activities_utils.periodic_activity_issues["timeseries_slow"] = nil
 end
 
 -- ###########################################

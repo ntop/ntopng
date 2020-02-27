@@ -337,8 +337,8 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '2%',
        }
      }, {
-       title: "]] print(i18n("internals.rrd_writes")) print[[",
-       field: "column_rrd_writes",
+       title: "]] print(i18n("internals.timeseries_writes")) print[[",
+       field: "column_timeseries_writes",
        hidden: ]] if ts_utils.getDriverName() ~= "rrd" then print('true') else print('false') end print[[,
        sortable: true,
        css: {
@@ -389,7 +389,7 @@ $("#table-internals-periodic-activities").datatable({
                   "column_tot_not_executed": fint,
                   "column_tot_running_slow": fint,
                   "column_tot_rrd_running_slow": fint,
-                  "column_rrd_writes": fint,
+                  "column_timeseries_writes": fint,
                   "column_rrd_drops": fint,
                });
    },
@@ -655,7 +655,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 
       if ts_utils.getDriverName() == "rrd" then
 	 periodic_scripts_ts[#periodic_scripts_ts + 1] = {
-	    schema = "periodic_script:rrd_writes",
+	    schema = "periodic_script:timeseries_writes",
 	    label = i18n("internals.chart_script_rrds", {script = script}),
 	    extra_params = {periodic_script = script},
 	    metrics_labels = {i18n("internals.num_writes"), i18n("internals.num_drops")},

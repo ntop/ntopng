@@ -43,23 +43,23 @@ ThreadedActivityStats::~ThreadedActivityStats() {
 
 /* ******************************************* */
 
-bool ThreadedActivityStats::isRRDSlow() const {
-  return ta_stats.rrd.write.last.is_slow;
+bool ThreadedActivityStats::isTimeseriesSlow() const {
+  return ta_stats.timeseries.write.last.is_slow;
 }
 
 /* ******************************************* */
 
-void ThreadedActivityStats::incRRDWriteDrops() {
-  ta_stats.rrd.write.tot_drops++;
+void ThreadedActivityStats::incTimeseriesWriteDrops() {
+  ta_stats.timeseries.write.tot_drops++;
 }
 
 /* ******************************************* */
 
-void ThreadedActivityStats::updateRRDWriteStats(ticks cur_ticks) {
-  threaded_activity_rrd_delta_stats_t *last_stats = &ta_stats.rrd.write.last;
+void ThreadedActivityStats::updateTimeseriesWriteStats(ticks cur_ticks) {
+  threaded_activity_timeseries_delta_stats_t *last_stats = &ta_stats.timeseries.write.last;
 
   /* Increase overall total stats */
-  ta_stats.rrd.write.tot_calls++;
+  ta_stats.timeseries.write.tot_calls++;
 
   /* Increase delta stats */
   last_stats->tot_ticks += cur_ticks;
@@ -68,9 +68,9 @@ void ThreadedActivityStats::updateRRDWriteStats(ticks cur_ticks) {
 
   if(!last_stats->is_slow && last_stats->tot_calls && !(last_stats->tot_calls % 10)) {
     /* Evaluate the condition every 10 updates */
-    if(last_stats->tot_ticks / (float)tickspersec / last_stats->tot_calls * 1000 >= THREADED_ACTIVITY_STATS_SLOW_RRD_MS) {
+    if(last_stats->tot_ticks / (float)tickspersec / last_stats->tot_calls * 1000 >= THREADED_ACTIVITY_STATS_SLOW_TIMESERIES_MS) {
       last_stats->is_slow = true; /* Keep it slow for the rest of the current execution */
-      ta_stats.rrd.write.tot_is_slow++; /* Increase the overall total value as well */
+      ta_stats.timeseries.write.tot_is_slow++; /* Increase the overall total value as well */
 
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Evaluated condition: [slow: %u][path: %s]", last_stats->is_slow ? 1 : 0, threaded_activity->activityPath());
     }
@@ -89,7 +89,7 @@ void ThreadedActivityStats::updateStatsBegin(struct timeval *begin) {
   in_progress_since = last_start_time = begin->tv_sec;
 
   /* Start over */
-  memset(&ta_stats.rrd.write.last, 0, sizeof(ta_stats.rrd.write.last));
+  memset(&ta_stats.timeseries.write.last, 0, sizeof(ta_stats.timeseries.write.last));
   ta_stats.alerts.has_drops = false;
 }
 
@@ -103,25 +103,25 @@ void ThreadedActivityStats::updateStatsEnd(u_long duration_ms) {
     max_duration_ms = duration_ms;
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "END [before] >>> [slow: %u][prev_slow: %u][last_slow: %u][path: %s][num_points: %u]",
-  // 			       isRRDSlow(), ta_stats.rrd.write.last_slow, ta_stats.rrd.write.last.is_slow, threaded_activity->activityPath(), ta_stats.rrd.write.last.tot_calls);
+  // 			       isTimeseriesSlow(), ta_stats.timeseries.write.last_slow, ta_stats.timeseries.write.last.is_slow, threaded_activity->activityPath(), ta_stats.timeseries.write.last.tot_calls);
 
-  /* Update RRD stats for the last run which has just ended with this call */
-  ta_stats.rrd.write.last_slow = ta_stats.rrd.write.last.is_slow;
+  /* Update Timeseries stats for the last run which has just ended with this call */
+  ta_stats.timeseries.write.last_slow = ta_stats.timeseries.write.last.is_slow;
 
-  if(ta_stats.rrd.write.last.tot_calls > 0)
-    ta_stats.rrd.write.last_max_call_duration_ms = ta_stats.rrd.write.last.max_ticks / (float)tickspersec * 1000,
-      ta_stats.rrd.write.last_avg_call_duration_ms = ta_stats.rrd.write.last.tot_ticks / (float)tickspersec / ta_stats.rrd.write.last.tot_calls * 1000;
+  if(ta_stats.timeseries.write.last.tot_calls > 0)
+    ta_stats.timeseries.write.last_max_call_duration_ms = ta_stats.timeseries.write.last.max_ticks / (float)tickspersec * 1000,
+      ta_stats.timeseries.write.last_avg_call_duration_ms = ta_stats.timeseries.write.last.tot_ticks / (float)tickspersec / ta_stats.timeseries.write.last.tot_calls * 1000;
   else
-    ta_stats.rrd.write.last_max_call_duration_ms = ta_stats.rrd.write.last_avg_call_duration_ms = 0;
+    ta_stats.timeseries.write.last_max_call_duration_ms = ta_stats.timeseries.write.last_avg_call_duration_ms = 0;
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "END [after] >>> [slow: %u][prev_slow: %u][last_slow: %u][path: %s][num_points: %u]",
-  // 			       isRRDSlow(), ta_stats.rrd.write.last_slow, ta_stats.rrd.write.last.is_slow, threaded_activity->activityPath(), ta_stats.rrd.write.last.tot_calls);
+  // 			       isTimeseriesSlow(), ta_stats.timeseries.write.last_slow, ta_stats.timeseries.write.last.is_slow, threaded_activity->activityPath(), ta_stats.timeseries.write.last.tot_calls);
 }
 
 /* ******************************************* */
 
-void ThreadedActivityStats::luaRRDStats(lua_State *vm) {
-  threaded_activity_rrd_stats_t *cur_stats = &ta_stats.rrd.write;
+void ThreadedActivityStats::luaTimeseriesStats(lua_State *vm) {
+  threaded_activity_timeseries_stats_t *cur_stats = &ta_stats.timeseries.write;
 
   lua_newtable(vm);
 
@@ -146,7 +146,7 @@ void ThreadedActivityStats::luaRRDStats(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  lua_pushstring(vm, "rrd");
+  lua_pushstring(vm, "timeseries");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
@@ -163,7 +163,7 @@ void ThreadedActivityStats::lua(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  luaRRDStats(vm);
+  luaTimeseriesStats(vm);
 
   if(in_progress_since)
     lua_push_uint64_table_entry(vm, "in_progress_since", in_progress_since);
@@ -184,10 +184,10 @@ void ThreadedActivityStats::lua(lua_State *vm) {
   if(num_is_slow)
     lua_push_uint64_table_entry(vm, "num_is_slow", num_is_slow);
 
-  if(isRRDSlow())
-    lua_push_bool_table_entry(vm, "rrd_slow", true);
-  if(ta_stats.rrd.write.tot_is_slow)
-    lua_push_uint64_table_entry(vm, "num_rrd_slow", ta_stats.rrd.write.tot_is_slow);
+  if(isTimeseriesSlow())
+    lua_push_bool_table_entry(vm, "timeseries_slow", true);
+  if(ta_stats.timeseries.write.tot_is_slow)
+    lua_push_uint64_table_entry(vm, "num_timeseries_slow", ta_stats.timeseries.write.tot_is_slow);
 
   if(hasAlertsDrops())
     lua_push_bool_table_entry(vm, "alerts_drops", true);

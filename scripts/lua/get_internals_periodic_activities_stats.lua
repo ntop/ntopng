@@ -166,15 +166,15 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       sort_to_key[k] = -(script_stats.stats.last_start_time or 0)
    elseif(sortColumn == "column_progress") then
       sort_to_key[k] = script_stats.stats.progress
-   elseif(sortColumn == "column_rrd_writes") then
-      if script_stats.stats.rrd and script_stats.stats.rrd.write then
-	 sort_to_key[k] = (script_stats.stats.rrd.write.tot_calls or 0)
+   elseif(sortColumn == "column_timeseries_writes") then
+      if script_stats.stats.timeseries and script_stats.stats.timeseries.write then
+	 sort_to_key[k] = (script_stats.stats.timeseries.write.tot_calls or 0)
       else
 	 sort_to_key[k] = 0
       end
    elseif(sortColumn == "column_rrd_drops") then
-      if script_stats.stats.rrd and script_stats.stats.rrd.write then
-	 sort_to_key[k] = (script_stats.stats.rrd.write.tot_drops or 0)
+      if script_stats.stats.timeseries and script_stats.stats.timeseries.write then
+	 sort_to_key[k] = (script_stats.stats.timeseries.write.tot_drops or 0)
       else
 	 sort_to_key[k] = 0
       end
@@ -197,7 +197,7 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
    elseif(sortColumn == "column_tot_running_slow") then
       sort_to_key[k] = (script_stats.stats.num_is_slow or 0)
    elseif(sortColumn == "column_tot_rrd_running_slow") then
-      sort_to_key[k] = (script_stats.stats.num_rrd_slow or 0)
+      sort_to_key[k] = (script_stats.stats.num_timeseries_slow or 0)
    elseif(sortColumn == "column_name") then
       sort_to_key[k] = getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid))
    else
@@ -253,13 +253,13 @@ for key in pairsByValues(sort_to_key, sOrder) do
       end
 
       if ts_utils.getDriverName() == "rrd" then
-	 if script_stats.stats.rrd and script_stats.stats.rrd.write then
-	    if script_stats.stats.rrd.write.tot_calls and script_stats.stats.rrd.write.tot_calls > 0 then
-	       record["column_rrd_writes"] = script_stats.stats.rrd.write.tot_calls
+	 if script_stats.stats.timeseries and script_stats.stats.timeseries.write then
+	    if script_stats.stats.timeseries.write.tot_calls and script_stats.stats.timeseries.write.tot_calls > 0 then
+	       record["column_timeseries_writes"] = script_stats.stats.timeseries.write.tot_calls
 	    end
 
-	    if script_stats.stats.rrd.write.tot_drops and script_stats.stats.rrd.write.tot_drops > 0 then
-	       record["column_rrd_drops"] = script_stats.stats.rrd.write.tot_drops
+	    if script_stats.stats.timeseries.write.tot_drops and script_stats.stats.timeseries.write.tot_drops > 0 then
+	       record["column_rrd_drops"] = script_stats.stats.timeseries.write.tot_drops
 	    end
 	 end
       end
@@ -313,8 +313,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
 	 record["column_tot_running_slow"] = script_stats.stats["num_is_slow"]
       end
 
-      if script_stats.stats["num_rrd_slow"] and script_stats.stats["num_rrd_slow"] > 0 then
-	 record["column_tot_rrd_running_slow"] = script_stats.stats["num_rrd_slow"]
+      if script_stats.stats["num_timeseries_slow"] and script_stats.stats["num_timeseries_slow"] > 0 then
+	 record["column_tot_rrd_running_slow"] = script_stats.stats["num_timeseries_slow"]
       end
 
       if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 then

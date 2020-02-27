@@ -28,26 +28,26 @@ class ThreadedActivity;
 
 typedef struct {
   ticks  tot_ticks, max_ticks;
-  u_long tot_calls; /* Total number of calls to rrd_update */
+  u_long tot_calls; /* Total number of calls */
   bool is_slow;
-} threaded_activity_rrd_delta_stats_t; /* Stats periodically reset to keep a most-recent view */
+} threaded_activity_timeseries_delta_stats_t; /* Stats periodically reset to keep a most-recent view */
 
 typedef struct {
   /* Overall totals */
-  u_long tot_calls; /* Total number of calls to rrd_update */
-  u_long tot_drops; /* Total number of times rrd_update hasn't been called because RRDs are detected to be slow */
+  u_long tot_calls; /* Total number of calls */
+  u_long tot_drops; /* Total number of times timeseries haven't been called because writes are detected to be slow */
   /* Stats for the last run */
-  u_long tot_is_slow;  /* Total number of times the periodic activity has been detected to have slow RRDs */
+  u_long tot_is_slow;  /* Total number of times the periodic activity has been detected to have slow updates */
   float last_max_call_duration_ms; /* Maximum time taken to perform a call during the last run */
   float last_avg_call_duration_ms; /* Average time taken to perform a call during the last run */
-  bool  last_slow; /* True if slow RRD updates have been detected during the last run */
-  threaded_activity_rrd_delta_stats_t last; /* Keep stats for the last run */
-} threaded_activity_rrd_stats_t;
+  bool  last_slow; /* True if slow timeseries updates have been detected during the last run */
+  threaded_activity_timeseries_delta_stats_t last; /* Keep stats for the last run */
+} threaded_activity_timeseries_stats_t;
 
 typedef struct {
   struct {
-    threaded_activity_rrd_stats_t write;
-  } rrd;
+    threaded_activity_timeseries_stats_t write;
+  } timeseries;
   struct {
     bool has_drops;
   } alerts;
@@ -65,8 +65,8 @@ class ThreadedActivityStats {
   static ticks tickspersec;
   bool not_executed, is_slow;
 
-  void updateRRDStats(bool write, ticks cur_ticks);
-  void luaRRDStats(lua_State *vm);
+  void updateTimeseriesStats(bool write, ticks cur_ticks);
+  void luaTimeseriesStats(lua_State *vm);
   
  public:
   ThreadedActivityStats(const ThreadedActivity *ta);
@@ -76,14 +76,14 @@ class ThreadedActivityStats {
   inline time_t getInProgressSince() { return(in_progress_since); }
   inline time_t getLastStartTime()   { return(last_start_time);   }
 
-  bool isRRDSlow() const;
+  bool isTimeseriesSlow() const;
   inline bool hasAlertsDrops() const {
     return ta_stats.alerts.has_drops;
   }
 
-  /* RRD stats and drops for writes */
-  void updateRRDWriteStats(ticks cur_ticks);
-  void incRRDWriteDrops();
+  /* Timeseries stats and drops for writes */
+  void updateTimeseriesWriteStats(ticks cur_ticks);
+  void incTimeseriesWriteDrops();
 
   void updateStatsQueuedTime(time_t queued_time);
   void updateStatsBegin(struct timeval *begin);
