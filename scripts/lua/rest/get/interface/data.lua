@@ -11,6 +11,7 @@ local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
 local plugins_utils = require("plugins_utils")
 local periodic_activities_utils = require "periodic_activities_utils"
+local system_utils = require("system_utils")
 
 sendHTTPHeader('application/json')
 
@@ -118,7 +119,7 @@ function dumpInterfaceStats(ifid)
       res["epoch"]      = os.time()
       res["localtime"]  = os.date("%H:%M:%S %z", res["epoch"])
       res["uptime"]     = secondsToTime(uptime)
-      res["system_host_stats"] = ntop.systemHostStat()
+      res["system_host_stats"] = system_utils.systemHostStats()
       res["hosts_pctg"] = hosts_pctg
       res["flows_pctg"] = flows_pctg
       res["macs_pctg"] = macs_pctg

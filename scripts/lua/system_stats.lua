@@ -11,6 +11,7 @@ local page_utils = require("page_utils")
 local plugins_utils = require("plugins_utils")
 local alert_consts = require("alert_consts")
 local internals_utils = require "internals_utils"
+local system_utils = require("system_utils")
 require("graph_utils")
 require("alert_utils")
 
@@ -66,7 +67,7 @@ if(page == "overview") then
    print("<table class=\"table table-bordered table-striped\">\n")
 
    local system_rowspan = 1
-   local system_host_stats = ntop.systemHostStat()
+   local system_host_stats = system_utils.systemHostStats()
 
    if system_host_stats["cpu_load"] ~= nil then  system_rowspan = system_rowspan + 1 end
    if system_host_stats["mem_total"] ~= nil then system_rowspan = system_rowspan + 1 end
