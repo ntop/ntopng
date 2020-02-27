@@ -539,13 +539,13 @@ size_t Utils::file_read(const char *path, char **content) {
       ret = fread(buffer, 1, length, f);
 
     fclose(f);
-  }
 
-  if(buffer) {
-    if(content && ret)
-      *content = buffer;
-    else
-      free(buffer);
+    if(buffer) {
+      if(content && ret)
+        *content = buffer;
+      else
+        free(buffer);
+    }
   }
 
   return ret;
@@ -4254,3 +4254,20 @@ int Utils::snappend(char *str, size_t size, const char *tobeappended, const char
 }
 
 /* ****************************************************** */
+
+bool Utils::isNumber(const char *s, unsigned int s_len, bool *is_float) {
+  unsigned int i;
+  bool is_num = true;
+
+  *is_float = false;
+
+  for(i = 0; i < s_len; i++) {
+    if(!isdigit(s[i]) && s[i] != '.') { is_num = false; break; }
+    if(s[i] == '.') *is_float = true;
+  }
+
+  return is_num;
+}
+
+/* ****************************************************** */
+

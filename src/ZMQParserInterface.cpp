@@ -133,17 +133,14 @@ void ZMQParserInterface::addMapping(const char *sym, u_int32_t num, u_int32_t pe
 /* **************************************************** */
 
 bool ZMQParserInterface::getKeyId(char *sym, u_int32_t sym_len, u_int32_t * const pen, u_int32_t * const field) const {
-  u_int32_t i, cur_pen, cur_field;
+  u_int32_t cur_pen, cur_field;
   string label(sym);
   labels_map_t::const_iterator it;
-  bool is_num = true, is_dotted = false;
+  bool is_num, is_dotted;
 
   *pen = UNKNOWN_PEN, *field = UNKNOWN_FLOW_ELEMENT;
 
-  for(i = 0; i < sym_len; i++) {
-    if(!isdigit(sym[i]) && sym[i] != '.') { is_num = false; break; }
-    if(sym[i] == '.') is_dotted = true;
-  }
+  is_num = Utils::isNumber(sym, sym_len, &is_dotted);
 
   if(is_num && is_dotted) {
     if(sscanf(sym, "%u.%u", &cur_pen, &cur_field) != 2) 
