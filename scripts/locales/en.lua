@@ -239,6 +239,7 @@ local lang = {
     ["defs_directories"] = "Definitions Directories",
     ["dhcp_range_missing_warning"] = "The <a href='%{url}'>%{name}</a> preference is ineffective. Please configure the <a href='%{dhcp_url}'>DHCP range</a> appropriately.",
     ["directories"] = "Directories",
+    ["dropped_store_queries_alerts"] = "Queries/Stored/Dropped Alerts",
     ["flow_callbacks_directory"] = "Flow",
     ["host_callbacks_directory"] = "Host",
     ["host_identifier_warning"] = "This interface is monitoring DHCP hosts. Please consider changing the <a href='%{url}'>%{name}</a> preference to \"Mac Address\".",

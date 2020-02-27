@@ -223,9 +223,9 @@ print[[
 		   mem_used_ratio = mem_used_ratio + "%";
 		   $('#ram-used').html('Used: ' + mem_used_ratio + ' / Available: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / Total: ' + bytesToSize(mem_total * 1024));
 		   $('#ram-process-used').html('Used: ' + bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
-		   $('#dropped-alerts').html(rsp.system_host_stats.dropped_alerts ? formatValue(rsp.system_host_stats.dropped_alerts) : "");
-		   $('#stored-alerts').html(rsp.system_host_stats.written_alerts ? formatValue(rsp.system_host_stats.written_alerts) : "");
-		   $('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? formatValue(rsp.system_host_stats.alerts_queries) : "");
+		   $('#dropped-alerts').html(rsp.system_host_stats.dropped_alerts ? formatValue(rsp.system_host_stats.dropped_alerts) : "0");
+		   $('#stored-alerts').html(rsp.system_host_stats.written_alerts ? formatValue(rsp.system_host_stats.written_alerts) : "0");
+		   $('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? formatValue(rsp.system_host_stats.alerts_queries) : "0");
 		}
 
 		if(rsp.system_host_stats.cpu_load !== undefined)
