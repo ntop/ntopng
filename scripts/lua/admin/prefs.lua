@@ -1204,12 +1204,6 @@ function printStatsTimeseries()
   end
 
   prefsToggleButton(subpage_active, {
-    field = "toggle_tcp_flags_rrds",
-    default = "0",
-    pref = "tcp_flags_rrd_creation",
-  })
-
-  prefsToggleButton(subpage_active, {
     field = "toggle_tcp_retr_ooo_lost_rrds",
     default = "0",
     pref = "tcp_retr_ooo_lost_rrd_creation",
