@@ -9,7 +9,7 @@ local schema
 -- SYSTEM CPU states and load
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("system:cpu_states", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("system:cpu_states", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("iowait_pct")
 schema:addMetric("active_pct") -- sum of system + user

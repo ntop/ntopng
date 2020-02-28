@@ -15,6 +15,7 @@ local use_hwpredict        = false
 local rrd_update_queue     = "ntopng.rrd_update"
 local max_rrd_queueLen     = 100000
 local curr_num_rrd_updates = 0
+local ENABLE_EXPERIMENTAL_RRD_QUEUE = false
 
 local type_to_rrdtype = {
   [ts_common.metrics.counter] = "DERIVE",
@@ -51,12 +52,6 @@ function driver:new(options)
   self.__index = self
 
   return obj
-end
-
--- ##############################################
-
-function driver:export()
-  return
 end
 
 -- ##############################################
@@ -463,9 +458,9 @@ function driver:append(schema, timestamp, tags, metrics)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
-  if(false) then -- Uncomment here
-     if(not schema.options.is_critical_ts) then
-	local j = ts2json(rrdfile, schema, timestamp, tags, metrics)
+  if ENABLE_EXPERIMENTAL_RRD_QUEUE then
+     if not schema.options.is_critical_ts then
+	local j = json.encode({schema_name = schema.name, timestamp = timestamp, tags = tags, metrics = metrics})
 	
 	ntop.lpushCache(rrd_update_queue, j)
 	curr_num_rrd_updates = curr_num_rrd_updates + 1
@@ -1049,6 +1044,50 @@ end
 
 function driver:setup(ts_utils)
   return true
+end
+
+-- ##############################################
+
+function driver:export()
+   if not ENABLE_EXPERIMENTAL_RRD_QUEUE then
+      return -- Nothing to do
+   end
+
+   local ts_utils = require "ts_utils" -- required to get the schema from the schema name
+   -- Cap the number of exported points to the actual number of points in the queue
+   -- Possibly enforce a maximum time
+   local num_ts_points = ntop.llenCache(rrd_update_queue)
+   -- tprint("...dequeuing "..num_ts_points)
+
+   for i=1, num_ts_points do
+      -- use rpop to extract oldest points first
+      local ts_point = ntop.rpopCache(rrd_update_queue)
+      local ts_point_json = json.decode(ts_point)
+
+      if not ts_point or not ts_point_json then
+	 break -- Should not happen
+      end
+
+      -- No need to do sanity checks on the schema. This queue is 'private' and should
+      -- only be written with valid data already checked.
+      local schema = ts_utils.getSchema(ts_point_json["schema_name"])
+      local timestamp = ts_point_json["timestamp"]
+      local tags = ts_point_json["tags"]
+      local metrics = ts_point_json["metrics"]
+      local base, rrd = schema_get_path(schema, tags)
+      local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+
+      if not ntop.notEmptyFile(rrdfile) then
+	 ntop.mkdir(base)
+	 if not create_rrd(schema, rrdfile) then
+	    return false
+	 end
+      end
+
+      update_rrd(schema, rrdfile, timestamp, metrics)
+   end
+
+   -- tprint("... dequeued")
 end
 
 -- ##############################################

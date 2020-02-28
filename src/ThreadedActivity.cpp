@@ -173,10 +173,14 @@ const char* ThreadedActivity::get_state_label(ThreadedActivityState ta_state) {
 /* ******************************************* */
 
 static bool skipExecution(const char *path) {
+#if 0
   if((ntop->getPrefs()->getTimeseriesDriver() != ts_driver_influxdb) &&
       (strcmp(path, TIMESERIES_SCRIPT_PATH) == 0))
     return(true);
+#endif
 
+  // Always execute periodic activities, thread timeseries.lua
+  // is now also used by rrds to dequeue writes
   return(false);
 }
 
