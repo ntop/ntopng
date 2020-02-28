@@ -16,9 +16,9 @@ if (system_interface_toggled == nil) then
     return
 end
 
-ntop.setPref("ntop.prefs.system_mode_enabled", system_interface_toggled)
+ntop.setPref("ntopng.prefs.system_mode_enabled", system_interface_toggled)
 
 print(json.encode({
     ["success"] = true,
-    ["href"] = (system_interface_toggled == "1" and ntop.getHttpPrefix() .. "/lua/system_stats.lua" or "/"); 
+    ["system_view"] = ntop.getPref("ntopng.prefs.system_mode_enabled")
 }))

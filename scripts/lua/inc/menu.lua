@@ -17,7 +17,9 @@ local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
 local info = ntop.getInfo()
 
-local is_system_interface = (ntop.getPref("ntop.prefs.system_mode_enabled") or "0") == "1"
+local is_system_interface = ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and ntop.isAdministrator())
+
+tprint(ntop.getPref("ntopng.prefs.system_mode_enabled"))
 
 print([[
    <div id='wrapper'>
@@ -664,7 +666,7 @@ print([[
 if ntop.isAdministrator() then
    print([[
                <li>
-                  <button id="btn-trigger-system-mode" type="submit" class="dropdown-item">
+                  <button id="btn-trigger-system-mode" ]].. (is_system_interface and "disabled" or "") ..[[ type="submit" class="dropdown-item">
                      ]].. (is_system_interface and "<i class='fas fa-check'></i>" or "") ..[[ System
                   </button>
                </li>
@@ -734,7 +736,7 @@ for round = 1, 2 do
             print[[<input name="switch_interface" type="hidden" value="1" />]]
             print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
             print[[</form>]]
-            print[[<a class="dropdown-item" href="javascript:void(0);" onclick="switch_interface($('#switch_interface_form_]] print(tostring(k)) print[['));">]]
+            print([[<a class="dropdown-item" href="javascript:void(0);" onclick="toggle_system_flag('0', $('#switch_interface_form_]]) print(tostring(k)) print[['));">]]
          end
 
          if((v == ifname) and not is_system_interface) then print("<i class=\"fas fa-check\"></i> ") end
@@ -784,7 +786,7 @@ print([[
 
 -- ##############################################
 -- Up/Down info
-if not is_pcap_dump then
+if not is_pcap_dump and not is_system_interface then
 
    print([[
       <li class='nav-item w-10 mx-2'>
@@ -828,10 +830,11 @@ end
 
 -- ########################################
 -- Network Load 
-
+if not is_system_interface then
 print([[
    <div id="network-load"></div>
 ]])
+end
 
 
 -- ########################################
@@ -842,6 +845,7 @@ print('</ul>')
 -- Searchbox hosts
 -- append searchbox
 
+if not is_system_interface then
 print(
   template.gen("typeahead_input.html", {
     typeahead={
@@ -858,6 +862,7 @@ print(
     }
   })
 )
+end
 
 -- #########################################
 -- User Navbar Menu
@@ -1015,34 +1020,24 @@ if ntop.isAdministrator() then
 print([[
    <script type="text/javascript">
 
-      const switch_interface = ($form) => {
+   const toggle_system_flag = (flag, $form = null) => {
 
-         toggle_system_flag("0", $form);
-      }
-      
-      const toggle_system_flag = (flag, $form = null) => {
+      debugger;
 
-         $.post("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", 
-         {
-            system_interface: `${flag}`,
-            csrf: "]].. ntop.getRandomCSRFValue() ..[["
-         }, function(data) {
+      $.post("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", {
+         system_interface: flag,
+         csrf: "]].. ntop.getRandomCSRFValue() ..[["
+      }, function(data) {
+         if (data.success && !$form) location.href = '/';      
+         if (data.success && $form) $form.submit();
 
-            if (data.success && !$form) {
-               location.href = data.href;
-            }
-            else if (data.success && $form) {
-               $form.submit();
-            }
-            
-         });
-      }
+      });
+   }
 
    $(document).ready(function() {
       $("#btn-trigger-system-mode").click(function(e) {
-         toggle_system_flag("]].. (is_system_interface and "0" or "1") ..[[");
+         toggle_system_flag("1");
       });
-
    });
 
    </script>

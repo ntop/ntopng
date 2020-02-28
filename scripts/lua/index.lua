@@ -8,9 +8,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils = require("page_utils")
+local is_system_interface = ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and ntop.isAdministrator())
 
 interface.select(ifname)
 
+if (is_system_interface) then
+  print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/system_stats.lua"))
+  return
+end
 
 if(ntop.isnEdge()) then
   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
@@ -69,7 +74,6 @@ if(page == nil) then
       page = "TopHosts"
    end
 end
-
 
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
    local nav_url = ntop.getHttpPrefix()..'/?ifid='..interface.getId()
