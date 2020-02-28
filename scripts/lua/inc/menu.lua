@@ -19,8 +19,6 @@ local info = ntop.getInfo()
 
 local is_system_interface = ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and ntop.isAdministrator())
 
-tprint(ntop.getPref("ntopng.prefs.system_mode_enabled"))
-
 print([[
    <div id='wrapper'>
 ]])
@@ -732,7 +730,7 @@ for round = 1, 2 do
             print("<a class=\"dropdown-item\" href=\""..url.."\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-            print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(url) print[[">]]
+            print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="/">]]
             print[[<input name="switch_interface" type="hidden" value="1" />]]
             print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
             print[[</form>]]
@@ -1021,8 +1019,6 @@ print([[
    <script type="text/javascript">
 
    const toggle_system_flag = (flag, $form = null) => {
-
-      debugger;
 
       $.post("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", {
          system_interface: flag,
