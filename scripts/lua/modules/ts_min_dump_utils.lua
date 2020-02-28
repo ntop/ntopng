@@ -156,7 +156,7 @@ end
 
 -- ########################################################
 
-function ts_dump.update_hash_tables_stats(when, ifstats, verbose)
+local function update_internals_hash_tables_stats(when, ifstats, verbose)
    local hash_tables_stats = interface.getHashTablesStats()
 
    for ht_name, ht_stats in pairs(hash_tables_stats) do
@@ -178,7 +178,7 @@ end
 
 -- ########################################################
 
-function ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
+function ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbose)
    local periodic_scripts_stats = interface.getPeriodicActivitiesStats()
    local to_stdout = ntop.getPref("ntopng.prefs.periodic_activities_stats_to_stdout") == "1"
 
@@ -274,7 +274,7 @@ end
 
 -- ########################################################
 
-local function update_user_scripts_stats(when, ifid, verbose)
+local function update_internals_user_scripts_stats(when, ifid, verbose)
   -- NOTE: flow scripts are monitored in 5sec.lua
   local all_scripts = {
     host = user_scripts.script_types.traffic_element,
@@ -300,6 +300,8 @@ local function dumpTopTalkers(_ifname, ifstats, verbose)
       ntop.insertMinuteSampling(ifstats.id, talkers)
    end
 end
+
+-- ########################################################
 
 function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when)
   dumpTopTalkers(_ifname, ifstats, verbose)
@@ -344,16 +346,17 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when)
     end
   end
 
-  -- Save internal hash tables states every minute
-  ts_dump.update_hash_tables_stats(when, ifstats, verbose)
+  -- Only if the internal telemetry preference is enabled...
+  if config.internals_rrd_creation then
+     -- Save internal hash tables states every minute
+     update_internals_hash_tables_stats(when, ifstats, verbose)
 
-  -- Save the traffic elements user scripts stats
-  if config.user_scripts_rrd_creation then
-     update_user_scripts_stats(when, ifstats.id, verbose)
+     -- Save the traffic elements user scripts stats
+     update_internals_user_scripts_stats(when, ifstats.id, verbose)
+     
+     -- Save duration of periodic activities
+     ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbose)
   end
-
-  -- Save duration of periodic scripts
-  ts_dump.update_periodic_scripts_stats(when, ifstats, verbose)
 
   -- Save Profile stats every minute
   if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
@@ -382,7 +385,7 @@ function ts_dump.getConfig()
 
   config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
-  config.user_scripts_rrd_creation = ntop.getPref("ntopng.prefs.user_scripts_rrd_creation") == "1"
+  config.internals_rrd_creation = ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
 
   -- Interface RRD creation is on, with per-protocol nDPI
   if isEmptyString(config.interface_ndpi_timeseries_creation) then config.interface_ndpi_timeseries_creation = "per_protocol" end

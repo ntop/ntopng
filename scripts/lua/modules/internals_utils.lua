@@ -534,7 +534,7 @@ end
 function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_activities, print_user_scripts)
    local tab = _GET["tab"]
 
-   local ts_creation = areInternalTimeseriesEnabled(ifid or getSystemInterfaceId())
+   local ts_creation = areInternalTimeseriesEnabled(ifid or getSystemInterfaceId()) and ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
 
    print[[<ul class="nav nav-tabs" role="tablist">]]
 

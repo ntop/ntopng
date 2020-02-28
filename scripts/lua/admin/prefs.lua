@@ -1234,9 +1234,9 @@ function printStatsTimeseries()
   end
 
   prefsToggleButton(subpage_active, {
-    field = "toggle_user_scripts_rrds",
+    field = "toggle_internals_rrds",
     default = "0",
-    pref = "user_scripts_rrd_creation",
+    pref = "internals_rrd_creation",
   })
 
   print('</table>')

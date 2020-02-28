@@ -18,8 +18,10 @@ if(prefs_changed == "true") then
    prefs_dump_utils.savePrefsToDisk()
 end
 
--- Dump periodic activities duration
-ts_dump.update_periodic_scripts_stats(os.time(), interface.getStats(), false)
+-- Dump periodic activities duration if the telementry timeseries preference is enabled
+if ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1" then
+   ts_dump.update_internals_periodic_activities_stats(os.time(), interface.getStats(), false)
+end
 
 -- Run minute scripts
 ntop.checkSystemScriptsMin()

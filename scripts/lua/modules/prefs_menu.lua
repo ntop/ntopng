@@ -202,9 +202,9 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_ndpi_flows_rrds_title"),
       description = i18n("prefs.toggle_ndpi_flows_rrds_description"),
       pro_only    = true,
-    }, toggle_user_scripts_rrds = {
-      title       = i18n("prefs.toggle_user_scripts_rrds_title"),
-      description = i18n("prefs.toggle_user_scripts_rrds_description"),
+    }, toggle_internals_rrds = {
+      title       = i18n("prefs.toggle_internals_rrds_title").." <i class=\"fas fa-sm fa-wrench\"></i>",
+      description = i18n("prefs.toggle_internals_rrds_description", {url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=internals"}),
     }, multiple_timeseries_database = {
       title       = i18n("prefs.multiple_timeseries_database_title"),
       description = i18n("prefs.multiple_timeseries_database_description"),
