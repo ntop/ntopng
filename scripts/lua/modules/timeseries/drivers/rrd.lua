@@ -356,7 +356,7 @@ end
 -- ##############################################
 
 local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
-  local params = {number_to_rrd_string(timestamp), }
+  local params = { number_to_rrd_string(timestamp), }
 
   if isDebugEnabled() then
     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Going to update %s [%s]", schema.name, rrdfile))
@@ -427,14 +427,24 @@ end
 
 -- ##############################################
 
-local function log_ts(rrdfile, schema, timestamp, tags, metrics)
-   local what = {}
+local function ts2json(rrdfile, schema, timestamp, tags, metrics)
+   local what   = { }
    local j
+
+   what.file   = rrdfile
+   what.params = { number_to_rrd_string(timestamp) }
+
+   for _, metric in ipairs(schema._metrics) do
+      what.params[#params + 1] = number_to_rrd_string(metrics[metric])
+   end
    
-   what.file = rrdfile
-   what.params = params
-   
-   j = json.encode(what)
+   return(json.encode(what))
+end
+
+-- ##############################################
+
+local function log_ts(rrdfile, schema, timestamp, tags, metrics)
+   local j = ts2json(rrdfile, schema, timestamp, tags, metrics)
    
    if(schema.options.is_critical_ts) then
       critical = "[Critical]"
@@ -453,16 +463,19 @@ function driver:append(schema, timestamp, tags, metrics)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
-  if(false) then -- Work in progress
-     local j = log_ts(rrdfile, schema, timestamp, tags, metrics)
-     
-     if(false) then
+  if(false) then -- Uncomment here
+     if(not schema.options.is_critical_ts) then
+	local j = ts2json(rrdfile, schema, timestamp, tags, metrics)
+	
 	ntop.lpushCache(rrd_update_queue, j)
+	curr_num_rrd_updates = curr_num_rrd_updates + 1
 	
 	if(curr_num_rrd_updates == 100) then
 	   ntop.ltrimCache(rrd_update_queue, 0, max_rrd_queueLen)
 	   curr_num_rrd_updates = 0
 	end
+
+	return true
      end
   end
   
