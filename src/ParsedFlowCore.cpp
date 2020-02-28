@@ -27,10 +27,10 @@ ParsedFlowCore::ParsedFlowCore() {
   src_ip.reset(), dst_ip.reset();
   memset(&src_mac, 0, sizeof(src_mac));
   memset(&dst_mac, 0, sizeof(dst_mac));
-
+  memset(&device_ipv6, 0, sizeof(device_ipv6));
   src_tos = dst_tos = 0;
   version = 0;
-  deviceIP = 0;
+  device_ip = 0;
   src_port = dst_port = inIndex = outIndex = 0;
   l7_proto = Flow::get_ndpi_unknown_protocol();
   vlan_id = 0;
@@ -41,7 +41,6 @@ ParsedFlowCore::ParsedFlowCore() {
   absolute_packet_octet_counters = 0;
   memset(&tcp, 0, sizeof(tcp));
   first_switched = last_switched = 0;
-
   direction = source_id = 0;
 }
 
@@ -51,9 +50,9 @@ ParsedFlowCore::ParsedFlowCore(const ParsedFlowCore &pfc) {
   src_ip.set(&pfc.src_ip), dst_ip.set(&pfc.dst_ip);
   memcpy(&src_mac, &pfc.src_mac, sizeof(src_mac));
   memcpy(&dst_mac, &pfc.dst_mac, sizeof(dst_mac));
-
+  memcpy(&device_ipv6, &pfc.device_ipv6, sizeof(device_ipv6));
   version = pfc.version;
-  deviceIP = pfc.deviceIP;
+  device_ip = pfc.device_ip;
   src_port = pfc.src_port, dst_port = pfc.dst_port;
   inIndex = pfc.inIndex, outIndex = pfc.outIndex;
   l7_proto = pfc.l7_proto;
@@ -66,7 +65,6 @@ ParsedFlowCore::ParsedFlowCore(const ParsedFlowCore &pfc) {
   absolute_packet_octet_counters = pfc.absolute_packet_octet_counters;
   memcpy(&tcp, &pfc.tcp, sizeof(tcp));
   first_switched = pfc.first_switched, last_switched = pfc.last_switched;
-
   direction = pfc.direction;
   source_id = pfc.source_id;
 }

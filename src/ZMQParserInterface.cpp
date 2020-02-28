@@ -430,9 +430,18 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
       flow->direction = value->int_num;
     break;
   case EXPORTER_IPV4_ADDRESS:
-    /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
-    if(ntohl(inet_addr(value->string)) && (flow->deviceIP = ntohl(inet_addr(value->string))))
-      return false;
+    if (value->string != NULL) {
+      /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
+      u_int32_t ip = ntohl(inet_addr(value->string));
+      if(ip) {
+        flow->device_ip = ip;
+        return false; /* FIXX check why we are returning false here */
+      }
+    }
+    break;
+  case EXPORTER_IPV6_ADDRESS:
+    if(value->string != NULL && strlen(value->string) > 0)
+      inet_pton(AF_INET6, value->string, &flow->device_ipv6);
     break;
   case INPUT_SNMP:
     flow->inIndex = value->int_num;
@@ -606,7 +615,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     break;
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */
-    if(flow->deviceIP == 0 && (flow->deviceIP = ntohl(inet_addr(value->string))))
+    if(flow->device_ip == 0 && (flow->device_ip = ntohl(inet_addr(value->string))))
       return false;
     break;
   case SRC_FRAGMENTS:
@@ -698,7 +707,15 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
     else return (flow->direction == value->int_num);
 
   case EXPORTER_IPV4_ADDRESS:
-    return (flow->deviceIP == ntohl(inet_addr(value->string)));
+    return (flow->device_ip == ntohl(inet_addr(value->string)));
+
+  case EXPORTER_IPV6_ADDRESS:
+    if(value->string != NULL && strlen(value->string) > 0) {
+      struct ndpi_in6_addr ipv6;
+      if (inet_pton(AF_INET6, value->string, &ipv6) <= 0)
+        return false;
+      return (memcmp(&flow->device_ipv6, &ipv6, sizeof(flow->device_ipv6)) == 0);
+    }
 
   case INPUT_SNMP:
     if (value->string) return (flow->inIndex == atoi(value->string));
@@ -785,7 +802,7 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
       return false;
 
   case NPROBE_IPV4_ADDRESS:
-    return (flow->deviceIP == ntohl(inet_addr(value->string)));
+    return (flow->device_ip == ntohl(inet_addr(value->string)));
 
   default:
     break;

@@ -96,7 +96,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
       switch(flowHashingMode) {
       case flowhashing_probe_ip:
-        vIface = getDynInterface((u_int32_t)zflow->deviceIP, true);
+        vIface = getDynInterface((u_int32_t)zflow->device_ip, true);
         break;
 
       case flowhashing_iface_idx:
@@ -149,7 +149,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
 		 zflow->vlan_id,
-		 zflow->deviceIP,
+		 zflow->device_ip,
 		 zflow->inIndex, zflow->outIndex,
 		 NULL /* ICMPinfo */,
 		 &srcIP, &dstIP,
@@ -237,7 +237,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 
   /* Update flow device stats */
-  if(!flow->setFlowDevice(zflow->deviceIP,
+  if(!flow->setFlowDevice(zflow->device_ip,
 			  src2dst_direction ? zflow->inIndex  : zflow->outIndex,
 			  src2dst_direction ? zflow->outIndex : zflow->inIndex)) {
     static bool flow_device_already_set = false;
@@ -303,19 +303,19 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 
 #ifdef NTOPNG_PRO
-  if(zflow->deviceIP) {
+  if(zflow->device_ip) {
     // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
     if(!flow_interfaces_stats)
       flow_interfaces_stats = new FlowInterfacesStats();
 
     if(flow_interfaces_stats) {
-      flow_interfaces_stats->incStats(now, zflow->deviceIP, zflow->inIndex,
+      flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->inIndex,
 				      zflow->out_bytes, zflow->in_bytes);
       /* If the SNMP device is actually an host with an SNMP agent, then traffic can enter and leave it
 	 from the same interface (think to a management interface). For this reason it is important to check
 	 the outIndex and increase its counters only if it is different from inIndex to avoid double counting. */
       if(zflow->outIndex != zflow->inIndex)
-	flow_interfaces_stats->incStats(now, zflow->deviceIP, zflow->outIndex,
+	flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->outIndex,
 					zflow->in_bytes, zflow->out_bytes);
     }
   }
