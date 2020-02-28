@@ -40,12 +40,28 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 
    print(" [ SystemId: <A HREF=\"https://shop.ntop.org/mkntopng/?systemid=".. info["pro.systemid"].."&".."version=".. v[1] .."&edition=")
 
-   if(info["version.embedded_edition"] == true) then
-      print("embedded")
-   elseif(info["version.enterprise_edition"] == true) then
-      print("enterprise")
+   if(ntop.isnEdge()) then
+      if(info["version.nedge_enterprise_edition"] == true) then
+	 if(info["version.embedded_edition"] == true) then
+	    print("nedge_embedded_ent")
+	 else
+	    print("nedge_enterprise")
+	 end
+      else
+	 if(info["version.embedded_edition"] == true) then
+	    print("nedge_embedded_pro")
+	 else
+	    print("nedge_pro")
+	 end
+      end
    else
-      print("pro")
+      if(info["version.embedded_edition"] == true) then
+	 print("embedded")
+      elseif(info["version.enterprise_edition"] == true) then
+	 print("enterprise")
+      else
+	 print("pro")
+      end
    end
 
    print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fas fa-external-link-alt'></i> ]")
