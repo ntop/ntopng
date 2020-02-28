@@ -6,7 +6,7 @@ local ts_utils = require "ts_utils_core"
 local schema
 
 -------------------------------------------------------
--- SYSTEM CPU states
+-- SYSTEM CPU states and load
 -------------------------------------------------------
 
 schema = ts_utils.newSchema("system:cpu_states", {step = 5, metrics_type = ts_utils.metrics.gauge})

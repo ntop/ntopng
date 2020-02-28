@@ -104,7 +104,8 @@ if(page == "overview") then
    end
 
    if areAlertsEnabled() then
-      print("<tr><th nowrap>"..i18n("details.alerts").."</th><td>"..i18n("about.alert_queries")..": <span id='alerts-queries'>...</span> / "..i18n("about.alerts_stored")..": <span id='stored-alerts'>...</span> / "..i18n("about.alerts_dropped")..": <span id='dropped-alerts'>...</span></td></tr>\n")
+      local chart_available = ts_utils.exists("process:num_alerts", {ifid = getSystemInterfaceId()})
+      print("<tr><th nowrap>"..i18n("details.alerts").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:num_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td>"..i18n("about.alert_queries")..": <span id='alerts-queries'>...</span> / "..i18n("about.alerts_stored")..": <span id='stored-alerts'>...</span> / "..i18n("about.alerts_dropped")..": <span id='dropped-alerts'>...</span></td></tr>\n")
    end
 
    print("<tr id='storage-info-tr'><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")
@@ -176,6 +177,11 @@ elseif(page == "historical" and ts_creation) then
 	 {
 	    schema="process:resident_memory",
 	    label=i18n("graphs.process_memory")
+	 },
+	 {
+	    schema="process:num_alerts",
+	    label=i18n("graphs.process_alerts"),
+	    metrics_labels = {i18n("about.alerts_stored"), i18n("about.alert_queries"), i18n("about.alerts_dropped")},
 	 },
       }
    })
