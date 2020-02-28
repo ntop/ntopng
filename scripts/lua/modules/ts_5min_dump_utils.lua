@@ -189,7 +189,6 @@ function ts_dump.getConfig()
   config.asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
   config.country_rrd_creation = ntop.getPref("ntopng.prefs.country_rrd_creation")
   config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
-  config.tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
 
   -- ########################################################
@@ -502,11 +501,6 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
     -- create RRD for ASN
     if config.asn_rrd_creation == "1" then
       ts_dump.asn_update_rrds(when, ifstats, verbose)
-
-      if config.tcp_retr_ooo_lost_rrd_creation == "1" then
-        --[[ TODO: implement for ASes
-        --]]
-      end
     end
 
     -- create RRD for Countries
@@ -517,11 +511,6 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
     -- Create RRD for vlans
     if config.vlan_rrd_creation == "1" then
       ts_dump.vlan_update_rrds(when, ifstats, verbose)
-
-      if config.tcp_retr_ooo_lost_rrd_creation == "1" then
-          --[[ TODO: implement for VLANs
-          --]]
-      end
     end
 
     -- Create RRDs for flow and sFlow devices

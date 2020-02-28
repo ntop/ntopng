@@ -324,7 +324,11 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when)
     ts_dump.iface_update_stats_rrds(instant, _ifname, iface_point, verbose)
     ts_dump.iface_update_general_stats(instant, iface_point, verbose)
     ts_dump.iface_update_l4_stats(instant, iface_point, verbose)
-    ts_dump.iface_update_tcp_flags(instant, iface_point, verbose)
+
+    if not ifstats.has_seen_ebpf_events then
+       ts_dump.iface_update_tcp_flags(instant, iface_point, verbose)
+       ts_dump.iface_update_tcp_stats(instant, iface_point, verbose)
+    end
 
     if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
       ts_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose, config)
@@ -333,14 +337,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when)
     if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
       ts_dump.iface_update_categories_rrds(instant, _ifname, iface_point, verbose)
     end
-
-    if((not ifstats.has_seen_ebpf_events) or (ifstats.type ~= "zmq")) then
-       -- TCP stats
-      if config.tcp_retr_ooo_lost_rrd_creation == "1" then
-        ts_dump.iface_update_tcp_stats(instant, iface_point, verbose)
-      end
-    end
-
+ 
     -- create custom rrds
     if ts_custom and ts_custom.iface_update_stats then
        ts_custom.iface_update_stats(instant, _ifname, iface_point, verbose)
@@ -384,7 +381,6 @@ function ts_dump.getConfig()
   local config = {}
 
   config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
-  config.tcp_retr_ooo_lost_rrd_creation = ntop.getPref("ntopng.prefs.tcp_retr_ooo_lost_rrd_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
   config.user_scripts_rrd_creation = ntop.getPref("ntopng.prefs.user_scripts_rrd_creation") == "1"
 
