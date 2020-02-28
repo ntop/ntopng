@@ -33,6 +33,7 @@ class NetworkInterfaceTsPoint: public TimeseriesPoint {
   u_int devices, flows, http_hosts;
   u_int engaged_alerts, dropped_alerts;
   u_int num_alerted_flows, num_misbehaving_flows;
+  u_int num_new_flows;
   TcpPacketStats tcpPacketStats;
   PacketStats packetStats;
   L4Stats l4Stats;

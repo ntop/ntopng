@@ -31,7 +31,6 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
    if ifstats.stats.bytes > 0 then
       ts_utils.append("iface:traffic",   {ifid=ifstats.id, bytes=ifstats.stats.bytes}, when)
       ts_utils.append("iface:packets_vs_drops",   {ifid=ifstats.id, packets=ifstats.stats.packets, drops=ifstats.stats.drops or 0}, when)
-      ts_utils.append("iface:new_flows", {ifid=ifstats.id, new_flows=ifstats.stats.new_flows}, when)
 
       if ifstats.has_traffic_directions then
 	 ts_utils.append("iface:traffic_rxtx", {ifid=ifstats.id,

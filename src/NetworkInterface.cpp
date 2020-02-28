@@ -6942,6 +6942,7 @@ void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
   pt->flows = getNumFlows();
   pt->num_misbehaving_flows = getNumActiveMisbehavingFlows();
   pt->num_alerted_flows = getNumActiveAlertedFlows();
+  pt->num_new_flows = getNumNewFlows();
   pt->http_hosts = getNumHTTPHosts();
   pt->l4Stats = l4Stats;
 }
