@@ -307,8 +307,8 @@ int main(int argc, char *argv[])
     the privilege drop after the web server bind()
    */
   if(prefs->do_change_user()
-     && (prefs->get_http_port()  >= 1024)
-     && (prefs->get_https_port() >= 1024)) {
+     && (prefs->get_http_port()  >= 1024 || prefs->get_http_port()  == 0)
+     && (prefs->get_https_port() >= 1024 || prefs->get_https_port() == 0)) {
     Utils::dropPrivileges();
   }
 
