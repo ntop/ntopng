@@ -23,11 +23,6 @@ local function interface_rrd_creation_enabled(ifid)
       and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
 end
 
--- if areSystemTimeseriesEnabled()
-if(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0") then
-   ts_utils.append("system:cpu_load", {ifid = getSystemInterfaceId(), load_percentage = ntop.refreshCpuLoad()}, when)
-end
-
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.." ifid: "..ifstats.id.."\n") end
    -- Traffic stats

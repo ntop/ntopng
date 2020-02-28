@@ -15,6 +15,10 @@ schema:addMetric("iowait_pct")
 schema:addMetric("active_pct") -- sum of system + user
 schema:addMetric("idle_pct") -- idle
 
+schema = ts_utils.newSchema("system:cpu_load", {step = 5, metrics_type = ts_utils.metrics.gauge, rrd_fname="cpu_ld", is_critical_ts = true})
+schema:addTag("ifid")
+schema:addMetric("load_percentage")
+ 
 -------------------------------------------------------
 -- FLOW USER SCRIPTS SCHEMAS
 -------------------------------------------------------

@@ -14,7 +14,11 @@ local when = os.time()
 -- ########################################################
 
 system_utils.compute_cpu_states()
-ts_dump.dump_cpu_states(interface.getId(), when, system_utils.get_cpu_states())
+
+if(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0") then
+   ts_dump.dump_cpu_states(interface.getId(), when, system_utils.get_cpu_states())
+   ts_utils.append("system:cpu_load", {ifid = interface.getId(), load_percentage = ntop.refreshCpuLoad()}, when)
+end
 
 -- ########################################################
 

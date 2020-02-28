@@ -87,9 +87,3 @@ schema:addMetric("bytes")
 schema = ts_utils.newSchema("iface:disc_prob_pkts", {step = 1, rrd_fname = "disc_prob_pkts"})
 schema:addTag("ifid")
 schema:addMetric("packets")
-
--- ##############################################
-
-schema = ts_utils.newSchema("system:cpu_load", {step=1, metrics_type=ts_utils.metrics.gauge, is_critical_ts=true})
-schema:addTag("ifid")
-schema:addMetric("load_percentage")
