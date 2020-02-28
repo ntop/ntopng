@@ -611,7 +611,7 @@ print[[
               $('#admin-badge').hide();
 
             } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') { 
-              $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ntopng ' + rsp.version + '!');
+              $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version + '!');
               var icon = '<i class="fas fa-download"></i>';
               $('#updates-install-li').attr('title', '');
               if (rsp.status == 'upgrade-failure') {
