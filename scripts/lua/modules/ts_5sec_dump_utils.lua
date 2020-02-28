@@ -64,11 +64,13 @@ end
 -- ########################################################
 
 function ts_dump.dump_cpu_states(ifid, when, cpu_states)
-   if cpu_states and cpu_states["iowait"] then
-      ts_utils.append("system:iowait",
+   if cpu_states then
+      ts_utils.append("system:cpu_states",
 		      {
 			 ifid = ifid,
-			 iowait_pct = cpu_states["iowait"]
+			 iowait_pct = cpu_states["iowait"],
+			 active_pct = cpu_states["user"] + cpu_states["system"] + cpu_states["nice"] + cpu_states["irq"] + cpu_states["softirq"] + cpu_states["guest"] + cpu_states["guest_nice"],
+			 idle_pct = cpu_states["idle"] + cpu_states["steal"],
 		      },
 		      when)
    end

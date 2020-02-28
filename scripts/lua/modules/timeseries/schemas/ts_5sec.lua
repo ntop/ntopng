@@ -9,9 +9,11 @@ local schema
 -- SYSTEM CPU states
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("system:iowait", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("system:cpu_states", {step = 5, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addMetric("iowait_pct")
+schema:addMetric("active_pct") -- sum of system + user
+schema:addMetric("idle_pct") -- idle
 
 -------------------------------------------------------
 -- FLOW USER SCRIPTS SCHEMAS

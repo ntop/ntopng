@@ -85,8 +85,8 @@ if(page == "overview") then
    end
 
    if system_host_stats["cpu_states"] and system_host_stats["cpu_states"]["iowait"] then
-      local chart_available = ts_utils.exists("system:iowait", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("about.iowait").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:iowait'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-states-iowait'></span></td></tr>\n")
+      local chart_available = ts_utils.exists("system:cpu_states", {ifid = getSystemInterfaceId()})
+      print("<tr><th nowrap>"..i18n("about.cpu_states").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_states'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-states'></span></td></tr>\n")
    end
 
    if system_host_stats["mem_total"] ~= nil then
@@ -164,12 +164,14 @@ elseif(page == "historical" and ts_creation) then
 	 {
 	    schema = "system:cpu_load",
 	    label=i18n("about.cpu_load"),
-	    metrics_labels = {i18n("about.cpu_load")}, value_formatter = {"ffloat"}
+	    metrics_labels = {i18n("about.cpu_load")},
+	    value_formatter = {"ffloat"}
 	 },
 	 {
-	    schema="system:iowait",
-	    label=i18n("about.iowait"),
-	    metrics_labels = {i18n("about.iowait")}, value_formatter = {"fpercent"}
+	    schema="system:cpu_states",
+	    label=i18n("about.cpu_states"),
+	    metrics_labels = {i18n("about.iowait"), i18n("about.active"), i18n("about.idle")},
+	    value_formatter = {"fpercent"}
 	 },
 	 {
 	    schema="process:resident_memory",

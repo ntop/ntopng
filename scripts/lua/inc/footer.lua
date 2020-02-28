@@ -209,8 +209,11 @@ print[[
 		   <li class='nav-item p-btn mx-2'>
 		   <div class='d-flex'>`;
 
-		if(rsp.system_host_stats.cpu_states && rsp.system_host_stats.cpu_states.iowait) {
-                  $('#cpu-states-iowait').html(formatValue(Math.round(rsp.system_host_stats.cpu_states.iowait * 100) / 100) + "%");
+		if(rsp.system_host_stats.cpu_states) {
+                  const iowait = ']] print(i18n("about.iowait")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
+                  const active = ']] print(i18n("about.active")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.user + rsp.system_host_stats.cpu_states.system  + rsp.system_host_stats.cpu_states.nice + rsp.system_host_stats.cpu_states.irq + rsp.system_host_stats.cpu_states.softirq + rsp.system_host_stats.cpu_states.guest + rsp.system_host_stats.cpu_states.guest_nice) + "%";
+                  const idle = ']] print(i18n("about.idle")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.idle + rsp.system_host_stats.cpu_states.steal) + "%";
+                  $('#cpu-states').html(iowait + " / " + active + " / " + idle);
                 }
 
 		if (rsp.system_host_stats.mem_total !== undefined) {

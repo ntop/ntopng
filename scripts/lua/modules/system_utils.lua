@@ -22,7 +22,7 @@ local function save_cpu_states(cpu_states, key)
 
    local cpu_line = string.format("cpu %u %u %u %u %u %u %u %u %u %u",
 				  cpu_states["user"] or 0, cpu_states["nice"] or 0, cpu_states["system"] or 0,
-				  cpu_states["idle"] or 0, cpu_states["iowait"] or 0, cpu_states["ira"] or 0,
+				  cpu_states["idle"] or 0, cpu_states["iowait"] or 0, cpu_states["irq"] or 0,
 				  cpu_states["softirq"] or 0, cpu_states["steal"] or 0, cpu_states["guest"] or 0,
 				  cpu_states["guest_nice"] or 0)
 
