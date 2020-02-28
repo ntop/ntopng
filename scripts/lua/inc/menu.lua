@@ -656,7 +656,7 @@ print([[
       <ul class='navbar-nav mr-auto'>    
          <li class='nav-item dropdown'>
             <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
-               <i class="fas fa-ethernet"></i> ]] .. (is_system_interface and 'System' or getHumanReadableInterfaceName(ifname)) .. [[
+               ]] .. (is_system_interface and 'System' or '<i class="fas fa-ethernet"></i> ' .. getHumanReadableInterfaceName(ifname)) .. [[
             </a>
             <ul class='dropdown-menu'>
 ]])
