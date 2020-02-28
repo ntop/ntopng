@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2020 - ntop.org
 --
 
 local driver = {}
@@ -9,7 +9,6 @@ local ts_common = require("ts_common")
 local data_retention_utils = require "data_retention_utils"
 local json = require("dkjson")
 
-require("ntop_utils")
 require("rrd_paths")
 
 local use_hwpredict        = false
@@ -319,10 +318,45 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
   return true
 end
 
+-- ###############################################
+
+-- Converts a number (either decimal or integer) to a string
+-- in a format which is friendly for the subsequent call to rrd_update
+local function number_to_rrd_string(what)
+   what = tonumber(what)
+
+   if(what == nil) then
+      return("0")
+   elseif(type(what) ~= "number") then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "number_to_rrd_string got a non-number argument: " .. type(what))
+      traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
+      return("0")
+   elseif(what ~= what) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Trying to convert NaN to integer")
+      traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
+      return("0")
+   elseif(what == math.huge) then
+     traceError(TRACE_ERROR, TRACE_CONSOLE, "Trying to convert inf to integer")
+     traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
+     return("0")
+   elseif((what >= math.maxinteger) or (what <= math.mininteger)) then
+     traceError(TRACE_ERROR, TRACE_CONSOLE, "Number out of integers range: " .. what)
+     traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
+     return("0")
+   elseif what == math.floor(what) then
+      -- If the number has no decimal place, print it as a digit
+      return(string.format("%d", what))
+   else
+      -- If the number has decimal places, print it as a float
+      -- (don't touch the precision, let's the rrd do this job if necessary)
+      return(string.format("%f", what))
+   end
+end
+
 -- ##############################################
 
 local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
-  local params = {tolongint(timestamp), }
+  local params = {number_to_rrd_string(timestamp), }
 
   if isDebugEnabled() then
     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Going to update %s [%s]", schema.name, rrdfile))
@@ -342,7 +376,7 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
   end
 
   for _, metric in ipairs(schema._metrics) do
-    params[#params + 1] = tolongint(data[metric])
+     params[#params + 1] = number_to_rrd_string(data[metric])
   end
 
   if isDebugEnabled() then
