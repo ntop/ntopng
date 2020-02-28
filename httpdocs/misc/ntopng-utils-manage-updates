@@ -6,6 +6,7 @@ APT_GET="/usr/bin/apt-get"
 YUM="/usr/bin/yum"
 NTOPNG_CONFIG_TOOL="/usr/bin/ntopng-utils-manage-config"
 REDIS_CLI="/usr/bin/redis-cli"
+PRODUCT="ntopng"
 
 # redis keys
 REDIS_CHECK_FOR_UPDATES_KEY="ntopng.updates.check_for_updates"
@@ -23,6 +24,11 @@ export DEBIAN_FRONTEND="noninteractive"
 
 # Workaround for third-party installers not using absolute paths
 export PATH="$PATH:/sbin:/usr/sbin"
+
+# Check for nEdge
+if dpkg --get-selections | grep -q "^nedge[[:space:]]*install$" >/dev/null; then
+  PRODUCT="nedge"
+fi
 
 # Read redis connection info
 REDIS_INFO=$(${NTOPNG_CONFIG_TOOL} -a print-redis-info)
@@ -53,7 +59,7 @@ fi
 
 # Help
 function print_usage() {
-	echo "ntopng updates utility"
+	echo "${PRODUCT} updates utility"
 	echo ""
 	echo "Usage:"
 	echo "`basename $0` -a check-updates"
@@ -62,15 +68,15 @@ function print_usage() {
 	echo ""
 	echo "[-a check-updates]"
 	echo "`basename $0` -a check-updates"
-	echo "Check for ntopng updates."
+	echo "Check for ${PRODUCT} updates."
 	echo ""
 	echo "[-a check-updates-on-demand]"
 	echo "`basename $0` -a check-updates-on-demand"
-	echo "Check for requests for checking ntopng updates."
+	echo "Check for requests for checking ${PRODUCT} updates."
 	echo ""
 	echo "[-a handle-upgrade-requests]"
 	echo "`basename $0` -a handle-upgrade-requests"
-	echo "Check for update requests and update ntopng."
+	echo "Check for update requests and update ${PRODUCT}."
 	echo ""
 }
 
@@ -102,13 +108,11 @@ if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $A
 	exit 1
 fi
 
-function stall_check() {
-	INSTANCES=$(pgrep -fc "$0 -a ${ACTION}")
-	if [ $INSTANCES -gt 2 ]; then
-		#echo "Another instance is running with the same action"
-		exit 0
-	fi
-}
+INSTANCES=$(ps aux | grep $0 | grep ${ACTION} | grep bash | grep -v grep | wc -l)
+if [ $INSTANCES -gt 2 ]; then
+	echo "Another instance is running with the same action"
+	exit 1
+fi
 
 # Check if the user requested a ntopng update, and upgrade it in case
 function run_upgrade() {
@@ -130,11 +134,11 @@ function run_upgrade() {
 		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Install
-		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated ntopng
+		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated ${PRODUCT}
 		RESULT=$?
 
 		# Check if installation is successful (we do not trust $?)
-		NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
+		NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
 		if [ -z "${NTOPNG_VERSION}" ]; then
 			RESULT=0
 		fi
@@ -143,13 +147,13 @@ function run_upgrade() {
 
 		# Install
 		${YUM} clean all
-		${YUM} check-update ntopng
-		${YUM} -y install ntopng
+		${YUM} check-update ${PRODUCT}
+		${YUM} -y install ${PRODUCT}
 		RESULT=$?
 	fi
 
 	if [ $RESULT -eq 0 ]; then
-		[ $QUIET = false ] && echo "ntopng updated successfully"
+		[ $QUIET = false ] && echo "${PRODUCT} updated successfully"
 		# Cleanup new version available key
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>&1 >/dev/null 
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY} 2>&1 >/dev/null 
@@ -189,7 +193,7 @@ function check_updates() {
 			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure" 2>&1 >/dev/null 
 		else
 			# Check update and get version
-			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ntopng " | cut -d'(' -f2 | cut -d' ' -f1)
+			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
 			RESULT=0
 		fi
 	else
@@ -197,7 +201,7 @@ function check_updates() {
 
 		# Check update and get version
 		${YUM} clean all
-		NTOPNG_VERSION=$(${YUM} check-update ntopng | grep ntopng | tr -s ' ' | cut -d' ' -f2)
+		NTOPNG_VERSION=$(${YUM} check-update ${PRODUCT} | grep ${PRODUCT} | tr -s ' ' | cut -d' ' -f2)
 		RESULT=0
 	fi
 
@@ -222,7 +226,6 @@ function check_updates() {
 function check_updates_on_demand() {
 	CHECK_FOR_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_CHECK_FOR_UPDATES_KEY} 2>/dev/null | grep 1)
 	if [ "${CHECK_FOR_UPDATES}" == "1" ]; then
-		stall_check
 		check_updates
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} 2>&1 >/dev/null 
 	fi
@@ -233,13 +236,12 @@ function handle_upgrade_requests() {
 	# Check redis for upgrade requests
 	UPGRADE=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_RUN_UPGRADE_KEY} 2>/dev/null | grep 1)
 	if [ "${UPGRADE}" == "1" ]; then
-		stall_check
 		run_upgrade
 	fi
 }
 
 # Run this cron script when the ntopng service is enabled only
-SERVICE_ENABLED=$(/bin/systemctl is-enabled ntopng 2>/dev/null)
+SERVICE_ENABLED=$(/bin/systemctl is-enabled ${PRODUCT} 2>/dev/null)
 if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
 	exit 0
 fi

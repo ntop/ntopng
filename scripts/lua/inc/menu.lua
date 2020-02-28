@@ -294,7 +294,7 @@ page_utils.add_menubar_section({
 -- SNMP
 
 page_utils.add_menubar_section({
-   hidden = not is_system_interface,
+   hidden = not is_system_interface or not ntop.isEnterprise(),
    url = "/lua/pro/enterprise/snmpdevices_stats.lua",
    section = page_utils.menu_sections.snmp
 })
