@@ -90,7 +90,6 @@ if(page == "overview") then
    end
 
    if system_host_stats["mem_total"] ~= nil then
-      local chart_available = ts_utils.exists("process:resident_memory", {ifid = getSystemInterfaceId()})
       print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-used'></span></td></tr>\n")
    end
 
@@ -100,7 +99,8 @@ if(page == "overview") then
       print("<tr><th nowrap>PID (Process ID)</th><td>"..info.pid.."</td></tr>\n")
    end
    if system_host_stats["mem_ntopng_resident"] ~= nil then
-      print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-process-used'></span></td></tr>\n")
+      local chart_available = ts_utils.exists("process:resident_memory", {ifid = getSystemInterfaceId()})
+      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-process-used'></span></td></tr>\n")
    end
 
    if areAlertsEnabled() then
