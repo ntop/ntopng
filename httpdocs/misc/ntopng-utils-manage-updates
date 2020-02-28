@@ -25,11 +25,6 @@ export DEBIAN_FRONTEND="noninteractive"
 # Workaround for third-party installers not using absolute paths
 export PATH="$PATH:/sbin:/usr/sbin"
 
-# Check for nEdge
-if dpkg --get-selections | grep -q "^nedge[[:space:]]*install$" >/dev/null; then
-  PRODUCT="nedge"
-fi
-
 # Read redis connection info
 REDIS_INFO=$(${NTOPNG_CONFIG_TOOL} -a print-redis-info)
 HOST=$(echo ${REDIS_INFO} | cut -d'=' -f2 | cut -d'@' -f1 | cut -d':' -f1)
@@ -55,6 +50,13 @@ OS="DEBIAN"
 CENTOS=$(${LSB_RELEASE} | grep -i CentOS)
 if [ ! -z "${CENTOS}" ]; then
 	OS="CENTOS"
+fi
+
+if [ "${OS}" == "DEBIAN" ]; then
+	# Check for nEdge
+	if dpkg --get-selections | grep -q "^nedge[[:space:]]*install$" >/dev/null; then
+		PRODUCT="nedge"
+	fi
 fi
 
 # Help
