@@ -104,7 +104,7 @@ if(page == "overview") then
    end
 
    if areAlertsEnabled() then
-      print("<tr><th nowrap>"..i18n("about.dropped_store_queries_alerts").."</th><td><span id='alerts-queries'>...</span> / <span id='stored-alerts'>...</span> / <span id='dropped-alerts'>...</span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("details.alerts").."</th><td>"..i18n("about.alert_queries")..": <span id='alerts-queries'>...</span> / "..i18n("about.alerts_stored")..": <span id='stored-alerts'>...</span> / "..i18n("about.alerts_dropped")..": <span id='dropped-alerts'>...</span></td></tr>\n")
    end
 
    print("<tr id='storage-info-tr'><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")
