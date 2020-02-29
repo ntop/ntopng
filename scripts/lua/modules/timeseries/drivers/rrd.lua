@@ -11,11 +11,12 @@ local json = require("dkjson")
 
 require("rrd_paths")
 
-local use_hwpredict        = false
-local rrd_update_queue     = "ntopng.rrd_update"
-local max_rrd_queueLen     = 100000
-local curr_num_rrd_updates = 0
-local ENABLE_EXPERIMENTAL_RRD_QUEUE = false
+local use_hwpredict                 = false
+local rrd_queue                     = "ntopng.rrd_queue"
+local max_rrd_queueLen              = 100000
+local max_num_rrd_write_per_run     = 8192
+local curr_num_rrd_updates          = 0
+local enable_non_critical_rrd_queue = true
 
 local type_to_rrdtype = {
   [ts_common.metrics.counter] = "DERIVE",
@@ -32,6 +33,7 @@ local aggregation_to_consolidation = {
 -- ##############################################
 
 local debug_enabled = nil
+
 local function isDebugEnabled()
   if debug_enabled == nil then
     -- cache it
@@ -72,7 +74,10 @@ local HOST_PREFIX_MAP = {
   snmp_if = "snmp:",
   host_pool = "pool:",
 }
+
 local WILDCARD_TAGS = {protocol=1, category=1, l4proto=1}
+
+-- ##############################################
 
 local function get_fname_for_schema(schema, tags)
   if schema.options.rrd_fname ~= nil then
@@ -90,6 +95,8 @@ local function get_fname_for_schema(schema, tags)
   local suffix = string.split(schema.name, ":")[2]
   return suffix
 end
+
+-- ##############################################
 
 local function schema_get_path(schema, tags)
   local parts = {schema.name, }
@@ -145,6 +152,8 @@ local function schema_get_path(schema, tags)
   return path, rrd
 end
 
+-- ##############################################
+
 function driver.schema_get_full_path(schema, tags)
   local base, rrd = schema_get_path(schema, tags)
   local full_path = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
@@ -160,6 +169,8 @@ local function getRRAParameters(step, resolution, retention_time)
   return aggregation_dp, retention_dp
 end
 
+-- ##############################################
+
 -- This is necessary to keep the current RRD format
 local function map_metrics_to_rrd_columns(num)
   if num == 1 then
@@ -173,6 +184,8 @@ local function map_metrics_to_rrd_columns(num)
   -- error
   return nil
 end
+
+-- ##############################################
 
 -- This is necessary to keep the current RRD format
 local function map_rrd_column_to_metrics(schema, column_name)
@@ -192,6 +205,8 @@ local function map_rrd_column_to_metrics(schema, column_name)
   return nil
 end
 
+-- ##############################################
+
 local function getConsolidationFunction(schema)
   local fn = schema:getAggregationFunction()
 
@@ -203,6 +218,8 @@ local function getConsolidationFunction(schema)
 
   return("AVERAGE")
 end
+
+-- ##############################################
 
 local function create_rrd(schema, path)
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.insertion_step * 2)
@@ -261,6 +278,8 @@ local function handle_old_rrd_tune(schema, rrdfile)
 
   return true
 end
+
+-- ##############################################
 
 local function add_missing_ds(schema, rrdfile, cur_ds)
   local cur_metrics = map_metrics_to_rrd_columns(cur_ds)
@@ -455,14 +474,13 @@ end
 -- ##############################################
 
 function driver:append(schema, timestamp, tags, metrics)
-  local base, rrd = schema_get_path(schema, tags)
-  local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
-
-  if ENABLE_EXPERIMENTAL_RRD_QUEUE then
-     if not schema.options.is_critical_ts then
+   if(enable_non_critical_rrd_queue) then
+      -- Do offline the non critical RRDs
+      
+     if(not(schema.options.is_critical_ts)) then
 	local j = json.encode({schema_name = schema.name, timestamp = timestamp, tags = tags, metrics = metrics})
 	
-	ntop.lpushCache(rrd_update_queue, j)
+	ntop.lpushCache(rrd_queue, j)
 	curr_num_rrd_updates = curr_num_rrd_updates + 1
 	
 	if(curr_num_rrd_updates == 100) then
@@ -471,14 +489,14 @@ function driver:append(schema, timestamp, tags, metrics)
 	   -- as the exporter thread could be reading points and other writers
 	   -- could be wrinting points. However, the chance of this happening is pretty
 	   -- low given that this section is short)
-	   local cur_len = ntop.llenCache(rrd_update_queue)
+	   local cur_len = ntop.llenCache(rrd_queue)
 
 	   if cur_len > max_rrd_queueLen then
 	      -- Calculate how many points are going to be dropped
 	      local num_drops = cur_len - max_rrd_queueLen
 
 	      -- Trim the queue and increase the counter
-	      ntop.ltrimCache(rrd_update_queue, 0, max_rrd_queueLen)
+	      ntop.ltrimCache(rrd_queue, 0, max_rrd_queueLen)
 	      ntop.rrd_inc_num_drops(num_drops)
 	   end
 
@@ -497,6 +515,9 @@ function driver:append(schema, timestamp, tags, metrics)
      return false
   end
 
+  local base, rrd = schema_get_path(schema, tags)
+  local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+
   if not ntop.notEmptyFile(rrdfile) then
     ntop.mkdir(base)
     if not create_rrd(schema, rrdfile) then
@@ -505,7 +526,7 @@ function driver:append(schema, timestamp, tags, metrics)
   end
 
   curr_num_rrd_updates = curr_num_rrd_updates + 1
-  
+
   return update_rrd(schema, rrdfile, timestamp, metrics)
 end
 
@@ -974,6 +995,8 @@ local function deleteAllData(ifid)
   return true
 end
 
+-- ##############################################
+
 function driver:delete(schema_prefix, tags)
   -- NOTE: delete support in this driver is currently limited to a specific set of schemas and tags
   local supported_prefixes = {
@@ -1064,21 +1087,21 @@ end
 -- ##############################################
 
 function driver:export()
-   if not ENABLE_EXPERIMENTAL_RRD_QUEUE then
-      return -- Nothing to do
+   if(not(enable_non_critical_rrd_queue)) then
+      return -- Nothing to do as RRDs have been written already
    end
 
-
-
    local ts_utils = require "ts_utils" -- required to get the schema from the schema name
-   -- Cap the number of exported points to the actual number of points in the queue
-   -- Possibly enforce a maximum time
-   local num_ts_points = ntop.llenCache(rrd_update_queue)
+   local num_ts_points = ntop.llenCache(rrd_queue)
    -- tprint("...dequeuing "..num_ts_points)
 
+   if(num_ts_points > max_num_rrd_write_per_run) then
+      num_ts_points = max_num_rrd_write_per_run
+   end
+   
     for i=1, num_ts_points do
       -- use rpop to extract oldest points first
-      local ts_point = ntop.rpopCache(rrd_update_queue)
+      local ts_point = ntop.rpopCache(rrd_queue)
       local ts_point_json = json.decode(ts_point)
 
       if not ts_point or not ts_point_json then
