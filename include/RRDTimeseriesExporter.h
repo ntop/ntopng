@@ -26,11 +26,14 @@
 
 class RRDTimeseriesExporter : public TimeseriesExporter {
  private:
+  FifoStringsQueue *ts_queue;
+
  public:
   RRDTimeseriesExporter(NetworkInterface *_if);
   ~RRDTimeseriesExporter();
 
-  bool exportData(lua_State* vm, bool do_lock = true);
+  bool enqueueData(lua_State* vm, bool do_lock = true);
+  char *dequeueData();
   void flush();
 };
 

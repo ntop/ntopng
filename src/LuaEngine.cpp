@@ -2932,11 +2932,56 @@ static int ntop_append_influx_db(lua_State* vm) {
 
   if((ntop_interface = getCurrentInterface(vm))
      && ntop_interface->getInfluxDBTSExporter()
-     && ntop_interface->getInfluxDBTSExporter()->exportData(vm))
+     && ntop_interface->getInfluxDBTSExporter()->enqueueData(vm))
     rv = true;
 
   lua_pushboolean(vm, rv);
   return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+static int ntop_rrd_queue_push(lua_State* vm) {
+  bool rv = false;
+  NetworkInterface *ntop_interface;
+  TimeseriesExporter *ts_exporter;
+
+    if((ntop_interface = getCurrentInterface(vm))
+       && (ts_exporter = ntop_interface->getRRDTSExporter())) {
+      ts_exporter->enqueueData(vm);
+      rv = true;
+    }
+
+  lua_pushboolean(vm, rv);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+static int ntop_rrd_queue_pop(lua_State* vm) {
+  int ifid;
+  NetworkInterface* iface;
+  TimeseriesExporter *ts_exporter;
+  char *ts_point;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_ERROR);
+
+  ifid = lua_tointeger(vm, 1);
+
+  if(!(iface = ntop->getInterfaceById(ifid)) ||
+     !(ts_exporter = iface->getRRDTSExporter()))
+    return(CONST_LUA_ERROR);
+
+  ts_point = ts_exporter->dequeueData();
+
+  if(ts_point) {
+    lua_pushstring(vm, ts_point);
+    free(ts_point);
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -11366,6 +11411,10 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* InfluxDB */
   { "appendInfluxDB",                   ntop_append_influx_db                 },
+
+  /* RRD queue */
+  { "rrd_enqueue",                      ntop_rrd_queue_push                   },
+  { "rrd_dequeue",                      ntop_rrd_queue_pop                    },
 
   { "getHostPoolsStats",                ntop_get_host_pools_interface_stats   },
   { "getHostPoolStats",                 ntop_get_host_pool_interface_stats    },

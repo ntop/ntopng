@@ -41,7 +41,8 @@ class TimeseriesExporter {
   static int line_protocol_write_line(lua_State* vm, char *dst_line, int dst_line_len,
 				      int (*escape_fn)(char *outbuf, int outlen, const char *orig));
 
-  virtual bool exportData(lua_State* vm, bool do_lock = true) = 0;
+  virtual bool  enqueueData(lua_State* vm, bool do_lock = true) = 0;
+  virtual char* dequeueData() = 0;
   virtual void flush() = 0;
 };
 

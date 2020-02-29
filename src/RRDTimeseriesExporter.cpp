@@ -24,17 +24,33 @@
 /* ******************************************************* */
 
 RRDTimeseriesExporter::RRDTimeseriesExporter(NetworkInterface *_if) : TimeseriesExporter(_if) {
+  ts_queue = new FifoStringsQueue(MAX_RRD_QUEUE_LEN);
 }
 
 /* ******************************************************* */
 
 RRDTimeseriesExporter::~RRDTimeseriesExporter() {
+  delete ts_queue;
 }
 
 /* ******************************************************* */
 
-bool RRDTimeseriesExporter::exportData(lua_State* vm, bool do_lock) {
-  return true;
+bool RRDTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
+  char data[LINE_PROTOCOL_MAX_LINE];
+  bool rv = false;
+
+  if(line_protocol_write_line(vm, data, sizeof(data), NULL /* No need to escape here */) < 0)
+    return false;
+
+  rv = ts_queue->enqueue(data);
+
+  return rv;
+}
+
+/* ******************************************************* */
+
+char* RRDTimeseriesExporter::dequeueData() {
+  return ts_queue->dequeue();
 }
 
 /* ******************************************************* */

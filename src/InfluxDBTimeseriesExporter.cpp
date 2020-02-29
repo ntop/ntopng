@@ -83,7 +83,7 @@ void InfluxDBTimeseriesExporter::createDump() {
 
 /* ******************************************************* */
 
-bool InfluxDBTimeseriesExporter::exportData(lua_State* vm, bool do_lock) {
+bool InfluxDBTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
   char data[LINE_PROTOCOL_MAX_LINE];
 
   if(line_protocol_write_line(vm, data, sizeof(data), escape_spaces) < 0)
@@ -114,6 +114,13 @@ bool InfluxDBTimeseriesExporter::exportData(lua_State* vm, bool do_lock) {
     flush(); /* Auto-flush data */
 
   return true;
+}
+
+/* ******************************************************* */
+
+char* InfluxDBTimeseriesExporter::dequeueData() {
+  /* Dequeued straigth from a Redis queue in influxdb.lua */
+  return NULL;
 }
 
 /* ******************************************************* */

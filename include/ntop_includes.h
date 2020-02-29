@@ -273,19 +273,18 @@ using namespace std;
 #include <radcli/radcli.h>
 #endif
 
-
 #include "TimeseriesPoint.h"
 #include "TimeseriesRingStatus.h"
 #include "TimeseriesRing.h"
-#include "TimeseriesExporter.h"
-#include "InfluxDBTimeseriesExporter.h"
-#include "RRDTimeseriesExporter.h"
 #include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
 #include "FifoQueue.h"
 #include "FifoStringsQueue.h"
 #include "FifoSerializerQueue.h"
 #include "SPSCQueue.h"
+#include "TimeseriesExporter.h"
+#include "InfluxDBTimeseriesExporter.h"
+#include "RRDTimeseriesExporter.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"
 #include "NetworkInterfaceTsPoint.h"

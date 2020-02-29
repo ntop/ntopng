@@ -41,7 +41,8 @@ class InfluxDBTimeseriesExporter : public TimeseriesExporter {
   InfluxDBTimeseriesExporter(NetworkInterface *_if);
   ~InfluxDBTimeseriesExporter();
 
-  bool exportData(lua_State* vm, bool do_lock = true);
+  bool enqueueData(lua_State* vm, bool do_lock = true);
+  char *dequeueData();
   void flush();
 };
 
