@@ -23,110 +23,153 @@
 
 /* ******************************************************* */
 
-/*
-  Start Influx
-  $ influxd -config /usr/local/etc/influxdb.conf
-
-  Initial database configuration
-  $ influx
-  Connected to http://localhost:8086 version v1.5.2
-  InfluxDB shell version: v1.5.2
-  > create database ntopng;
-  > quit
-
-  Start Chronograf
-  $ chronograf
-*/
 TimeseriesExporter::TimeseriesExporter(NetworkInterface *_if) {
-  iface = _if, num_cached_entries = 0, dbCreated = false;
-  cursize = num_exports = 0;
-  fp = NULL;
-
-  snprintf(fbase, sizeof(fbase), "%s/%d/ts_export/", ntop->get_working_dir(), iface->get_id());
-  ntop->fixPath(fbase);
-
-  if(!Utils::mkdir_tree(fbase)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "Unable to create directory %s", fbase);
-    throw 1;
-  }
+  iface = _if;
 }
 
 /* ******************************************************* */
 
 TimeseriesExporter::~TimeseriesExporter() {
-  flush();
 }
 
 /* ******************************************************* */
 
-void TimeseriesExporter::createDump() {
-  flushTime = time(NULL) + CONST_INFLUXDB_FLUSH_TIME;
-  cursize = 0;
-
-  /* Use the flushTime as the fname */
-  snprintf(fname, sizeof(fname), "%s%u_%lu", fbase, num_exports, flushTime);
-
-  if(!(fp = fopen(fname, "w")))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] Unable to dump TS data onto %s: %s",
-				 iface->get_name(), fname, strerror(errno));
-  else
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Dumping TS data onto %s",
-				 iface->get_name(), fname);
-
-  num_cached_entries = 0;
-
-  if(!dbCreated) {
-    dbCreated = true;
-  }
-}
-
-/* ******************************************************* */
-
-void TimeseriesExporter::exportData(char *data, bool do_lock) {
-  if(do_lock) m.lock(__FILE__, __LINE__);
+bool TimeseriesExporter::is_table_empty(lua_State *L, int index) {
+  lua_pushnil(L);
   
-  if(!fp)
-    createDump();
-
-  if(fp) {
-    int exp = strlen(data);
-    int l = fwrite(data, 1, strlen(data), fp); // (fd, data, exp);
-
-    cursize += l;
-
-    num_cached_entries++;
-    if(l == exp)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", iface->get_name(), data);
-    else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] Unable to append '%s' [written: %u][expected: %u]",
-				   iface->get_name(), data, exp, l);
+  if(lua_next(L, index)) {
+    lua_pop(L, 1);
+    return(false);
   }
 
-  if(do_lock) m.unlock(__FILE__, __LINE__);
-
-  if((time(NULL) > flushTime) || (cursize >= CONST_INFLUXDB_MAX_DUMP_SIZE))
-    flush(); /* Auto-flush data */
+  return(true);
 }
 
 /* ******************************************************* */
 
-void TimeseriesExporter::flush() {
-  m.lock(__FILE__, __LINE__);
+/* NOTE: outbuf and unescaped buffers must not overlap.
+   Need to escape spaces at least.
 
-  if(fp) {
-    fclose(fp);
-    fp = NULL;
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%d|%lu|%u|%u", iface->get_id(), flushTime,
-				   num_exports, num_cached_entries);
-    cursize = 0;
-    num_exports++;
+   See https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/#special-characters
+*/
+int TimeseriesExporter::escape_spaces(char *buf, int buf_len, const char *unescaped) {
+  int cur_len = 0;
 
-    ntop->getRedis()->rpush(CONST_INFLUXDB_FILE_QUEUE, buf, 0);
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] Queueing TS file %s [%u entries]",
-				 iface->get_name(), fname, num_cached_entries);
+  while(*unescaped) {
+    if(cur_len >= buf_len - 2)
+      goto influx_escape_char_err;
+
+    switch(*unescaped) {
+    case ' ':
+      *buf++ = '\\';
+      cur_len++;
+      /* No break */
+    default:
+      *buf++ = *unescaped++;
+      cur_len++;
+      break;
+    }
   }
 
-  m.unlock(__FILE__, __LINE__);
+  *buf = '\0';
+  return cur_len;
+
+ influx_escape_char_err:
+  *(buf - cur_len) = '\0';
+  return -1;
+}
+
+/* ******************************************************* */
+
+int TimeseriesExporter::line_protocol_concat_table_fields(lua_State *L, int index, char *buf, int buf_len,
+							  int (*escape_fn)(char *outbuf, int outlen, const char *orig)) {
+  bool first = true;
+  char val_buf[128];
+  int cur_buf_len = 0, n;
+  bool write_ok;
+
+  // table traversal from https://www.lua.org/ftp/refman-5.0.pdf
+  lua_pushnil(L);
+
+  while(lua_next(L, index) != 0) {
+    write_ok = false;
+
+    if(escape_fn)
+      n = escape_fn(val_buf, sizeof(val_buf), lua_tostring(L, -1));
+    else
+      n = snprintf(val_buf, sizeof(val_buf), "%s", lua_tostring(L, -1));
+
+    if(n > 0 && n < (int)sizeof(val_buf)) {
+      n = snprintf(buf + cur_buf_len, buf_len - cur_buf_len,
+		   "%s%s=%s", first ? "" : ",", lua_tostring(L, -2), val_buf);
+
+      if(n > 0 && n < buf_len - cur_buf_len) {
+	write_ok = true;
+	cur_buf_len += n;
+	if(first) first = false;
+      }
+    }
+
+    lua_pop(L, 1);
+    if(!write_ok)
+      goto line_protocol_concat_table_fields_err;
+  }
+
+  return cur_buf_len;
+
+ line_protocol_concat_table_fields_err:
+  if(buf_len)
+    buf[0] = '\0';
+
+  return -1;
+}
+
+/* ******************************************************* */
+
+int TimeseriesExporter::line_protocol_write_line(lua_State* vm,
+						 char *dst_line,
+						 int dst_line_len,
+						 int (*escape_fn)(char *outbuf, int outlen, const char *orig)) {
+  char *schema;
+  time_t tstamp;
+  int cur_line_len = 0, n;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return -1;
+  schema = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return -1;
+  tstamp = (time_t)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK)  return -1;
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TTABLE) != CONST_LUA_OK)  return -1;
+
+  /* A line of the protocol is: "iface:traffic,ifid=0 bytes=0 1539358699\n" */
+
+  /* measurement name (with a comma if no tags are found) */
+  n = snprintf(dst_line, dst_line_len, is_table_empty(vm, 3) ? "%s" : "%s,", schema);
+  if(n < 0 || n >= dst_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  /* tags */
+  n = line_protocol_concat_table_fields(vm, 3, dst_line + cur_line_len, dst_line_len - cur_line_len, escape_fn); // tags
+  if(n < 0 || n >= dst_line_len - cur_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  /* space to separate tags and metrics */
+  n = snprintf(dst_line + cur_line_len, dst_line_len - cur_line_len, " ");
+  if(n < 0 || n >= dst_line_len - cur_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  /* metrics */
+  n = line_protocol_concat_table_fields(vm, 4, dst_line + cur_line_len, dst_line_len - cur_line_len, escape_fn); // metrics
+  if(n < 0 || n >= dst_line_len - cur_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  /* timestamp (in seconds, not nanoseconds) and a \n */
+  n = snprintf(dst_line + cur_line_len, dst_line_len - cur_line_len, " %lu\n", tstamp);
+  if(n < 0 || n >= dst_line_len - cur_line_len) goto line_protocol_write_line_err; else cur_line_len += n;
+
+  return cur_line_len;
+
+ line_protocol_write_line_err:
+  if(dst_line_len)
+    dst_line[0] = '\0';
+
+  return -1;
 }

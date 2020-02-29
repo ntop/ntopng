@@ -164,7 +164,7 @@ class NetworkInterface : public AlertableEntity {
   L4Stats l4Stats;
   FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
-  TimeseriesExporter *tsExporter;
+  TimeseriesExporter *influxdb_ts_exporter, *rrd_ts_exporter;
   TimeseriesRing *ts_ring;
 
   TcpFlowStats tcpFlowStats;
@@ -764,7 +764,9 @@ class NetworkInterface : public AlertableEntity {
 #ifdef HAVE_NINDEX
   NIndexFlowDB* getNindex();
 #endif
-  inline TimeseriesExporter* getTSExporter() { if(!tsExporter) tsExporter = new TimeseriesExporter(this); return(tsExporter); }
+  TimeseriesExporter* getInfluxDBTSExporter();
+  TimeseriesExporter* getRRDTSExporter();
+
   inline uint32_t getMaxSpeed() const        { return(ifSpeed);     }
   inline bool isLoopback() const             { return(is_loopback); }
 

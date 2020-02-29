@@ -278,6 +278,8 @@ using namespace std;
 #include "TimeseriesRingStatus.h"
 #include "TimeseriesRing.h"
 #include "TimeseriesExporter.h"
+#include "InfluxDBTimeseriesExporter.h"
+#include "RRDTimeseriesExporter.h"
 #include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
 #include "FifoQueue.h"

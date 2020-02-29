@@ -19,30 +19,30 @@
  *
  */
 
-#ifndef _TS_EXPORTER_H_
-#define _TS_EXPORTER_H_
+#ifndef _INFLUXDB_TS_EXPORTER_H_
+#define _INFLUXDB_TS_EXPORTER_H_
 
 #include "ntop_includes.h"
 
-class TimeseriesExporter {
+class InfluxDBTimeseriesExporter : public TimeseriesExporter {
  private:
-  static bool is_table_empty(lua_State *L, int index);
-  static int line_protocol_concat_table_fields(lua_State *L, int index, char *buf, int buf_len,
-					       int (*escape_fn)(char *outbuf, int outlen, const char *orig));
- protected:
-  NetworkInterface *iface;
+  time_t flushTime;
+  u_int32_t cursize;
+  u_int32_t num_exports;
+  FILE *fp;
+  char fbase[PATH_MAX], fname[PATH_MAX+32];
+  u_int num_cached_entries; 
+  Mutex m;
+  bool dbCreated;
+  
+  void createDump();
+  
+ public:
+  InfluxDBTimeseriesExporter(NetworkInterface *_if);
+  ~InfluxDBTimeseriesExporter();
 
-  static int escape_spaces(char *buf, int buf_len, const char *unescaped);
-
-  public:
-  TimeseriesExporter(NetworkInterface *_if);
-  virtual ~TimeseriesExporter();
-
-  static int line_protocol_write_line(lua_State* vm, char *dst_line, int dst_line_len,
-				      int (*escape_fn)(char *outbuf, int outlen, const char *orig));
-
-  virtual bool exportData(lua_State* vm, bool do_lock = true) = 0;
-  virtual void flush() = 0;
+  bool exportData(lua_State* vm, bool do_lock = true);
+  void flush();
 };
 
-#endif /* _TS_EXPORTER_H_ */
+#endif /* _INFLUXDB_TS_EXPORTER_H_ */

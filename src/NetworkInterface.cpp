@@ -47,7 +47,8 @@ NetworkInterface::NetworkInterface(const char *name,
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 
   init();
-  customIftype = custom_interface_type, tsExporter = NULL;
+  customIftype = custom_interface_type;
+  influxdb_ts_exporter = rrd_ts_exporter = NULL;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -599,7 +600,8 @@ NetworkInterface::~NetworkInterface() {
 #endif
   if(hide_from_top)         delete(hide_from_top);
   if(hide_from_top_shadow)  delete(hide_from_top_shadow);
-  if(tsExporter)            delete tsExporter;
+  if(influxdb_ts_exporter)  delete influxdb_ts_exporter;
+  if(rrd_ts_exporter)       delete rrd_ts_exporter;
   if(ts_ring)               delete ts_ring;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolved has time to initialize */
   if(dhcp_ranges)           delete[] dhcp_ranges;
@@ -6597,6 +6599,24 @@ NIndexFlowDB* NetworkInterface::getNindex() {
   return(ntop->getPrefs()->do_dump_flows_on_nindex() ? (NIndexFlowDB*)db : NULL);
 }
 #endif
+
+/* *************************************** */
+
+TimeseriesExporter* NetworkInterface::getInfluxDBTSExporter() {
+  if(!influxdb_ts_exporter)
+    influxdb_ts_exporter = new (nothrow) InfluxDBTimeseriesExporter(this);
+
+  return(influxdb_ts_exporter);
+}
+
+/* *************************************** */
+
+TimeseriesExporter* NetworkInterface::getRRDTSExporter() {
+  if(!rrd_ts_exporter)
+    rrd_ts_exporter = new (nothrow) RRDTimeseriesExporter(this);
+
+  return(rrd_ts_exporter);
+}
 
 /* *************************************** */
 
