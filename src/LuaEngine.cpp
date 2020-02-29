@@ -5275,9 +5275,13 @@ static int ntop_rrd_is_slow(lua_State* vm) {
 // ***API***
 static int ntop_rrd_inc_num_drops(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  u_long num_drops = 1;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER)
+    num_drops = lua_tonumber(vm, 1);
 
   if(ctx && ctx->threaded_activity_stats)
-    ctx->threaded_activity_stats->incTimeseriesWriteDrops();
+    ctx->threaded_activity_stats->incTimeseriesWriteDrops(num_drops);
 
   return CONST_LUA_OK;
 }

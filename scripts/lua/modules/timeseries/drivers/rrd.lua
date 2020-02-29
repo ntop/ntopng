@@ -466,7 +466,22 @@ function driver:append(schema, timestamp, tags, metrics)
 	curr_num_rrd_updates = curr_num_rrd_updates + 1
 	
 	if(curr_num_rrd_updates == 100) then
-	   ntop.ltrimCache(rrd_update_queue, 0, max_rrd_queueLen)
+	   -- Get the current number of points in the queue
+	   -- (this can slightly change once it has been read
+	   -- as the exporter thread could be reading points and other writers
+	   -- could be wrinting points. However, the chance of this happening is pretty
+	   -- low given that this section is short)
+	   local cur_len = ntop.llenCache(rrd_update_queue)
+
+	   if cur_len > max_rrd_queueLen then
+	      -- Calculate how many points are going to be dropped
+	      local num_drops = cur_len - max_rrd_queueLen
+
+	      -- Trim the queue and increase the counter
+	      ntop.ltrimCache(rrd_update_queue, 0, max_rrd_queueLen)
+	      ntop.rrd_inc_num_drops(num_drops)
+	   end
+
 	   curr_num_rrd_updates = 0
 	end
 
@@ -1053,13 +1068,15 @@ function driver:export()
       return -- Nothing to do
    end
 
+
+
    local ts_utils = require "ts_utils" -- required to get the schema from the schema name
    -- Cap the number of exported points to the actual number of points in the queue
    -- Possibly enforce a maximum time
    local num_ts_points = ntop.llenCache(rrd_update_queue)
    -- tprint("...dequeuing "..num_ts_points)
 
-   for i=1, num_ts_points do
+    for i=1, num_ts_points do
       -- use rpop to extract oldest points first
       local ts_point = ntop.rpopCache(rrd_update_queue)
       local ts_point_json = json.decode(ts_point)
@@ -1075,7 +1092,7 @@ function driver:export()
       local tags = ts_point_json["tags"]
       local metrics = ts_point_json["metrics"]
       local base, rrd = schema_get_path(schema, tags)
-      local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+      local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
       if not ntop.notEmptyFile(rrdfile) then
 	 ntop.mkdir(base)

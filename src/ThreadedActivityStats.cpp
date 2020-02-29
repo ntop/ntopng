@@ -49,8 +49,8 @@ bool ThreadedActivityStats::isTimeseriesSlow() const {
 
 /* ******************************************* */
 
-void ThreadedActivityStats::incTimeseriesWriteDrops() {
-  ta_stats.timeseries.write.tot_drops++;
+void ThreadedActivityStats::incTimeseriesWriteDrops(u_long num_drops) {
+  ta_stats.timeseries.write.tot_drops += num_drops;
 }
 
 /* ******************************************* */

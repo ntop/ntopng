@@ -83,7 +83,7 @@ class ThreadedActivityStats {
 
   /* Timeseries stats and drops for writes */
   void updateTimeseriesWriteStats(ticks cur_ticks);
-  void incTimeseriesWriteDrops();
+  void incTimeseriesWriteDrops(u_long num_drops);
 
   void updateStatsQueuedTime(time_t queued_time);
   void updateStatsBegin(struct timeval *begin);
