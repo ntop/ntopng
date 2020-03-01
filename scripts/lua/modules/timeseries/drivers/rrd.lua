@@ -13,6 +13,7 @@ require("rrd_paths")
 
 local use_hwpredict        = false
 local ENABLE_EXPERIMENTAL_RRD_QUEUE = false
+local ENABLE_EXPERIMENTAL_RRD_DEBUG = false
 
 local EXPERIMENTAL_RRD_QUEUE_MAX_LOOPS = 10
 local EXPERIMENTAL_RRD_QUEUE_MAX_DEQUEUES_PER_LOOP = 10000
@@ -465,6 +466,8 @@ function driver:append(schema, timestamp, tags, metrics)
 	if not res then
 	   ntop.rrd_inc_num_drops()
 	end
+
+	return
      end
   end
   
@@ -1059,7 +1062,6 @@ local function line_protocol_to_tags_and_metrics(protocol_line)
    -- local test_line2 = "iface:traffic_rxtx,ifid=0 bytes_sent=849500,bytes_rcvd=5134958 1583007829\n"
    -- local test_line = "iface:traffic_rxtx,ifid=0,ndpi_category=My Category,ndpi_proto=Apple iTunes,host=1.2.3.4 bytes_sent=849500,bytes_rcvd=5134958 1583007829\n"
    --
-
    local measurement_and_tag_set, field_set, timestamp = protocol_line:match("(.+)%s(.+)%s(.+)\n")
 
    local measurement
@@ -1076,7 +1078,7 @@ local function line_protocol_to_tags_and_metrics(protocol_line)
       measurement = items[1]
       for i=2,#items do
 	 local tag_items = items[i]:split("=")
-	 if tag_items then
+	 if tag_items and #tag_items == 2 then
 	    tags[tag_items[1]] = tonumber(tag_items[2]) or tag_items[2]
 	 end
       end
@@ -1085,13 +1087,15 @@ local function line_protocol_to_tags_and_metrics(protocol_line)
    -- Parse metrics
    local items = field_set:split(",")
    if not items then
-      -- Should not occur
-   else
-      for i=1,#items do
-	 local field_items = items[i]:split("=")
-	 if field_items then
-	    metrics[field_items[1]] = tonumber(field_items[2]) or field_items[2]
-	 end
+      -- Just one metric
+      items = {field_set}
+   end
+
+   for i=1,#items do
+      local field_items = items[i]:split("=")
+
+      if field_items and #field_items == 2 then
+	 metrics[field_items[1]] = tonumber(field_items[2]) or field_items[2]
       end
    end
 
@@ -1121,12 +1125,14 @@ function driver:export()
    end
 
    local num_completed = 0 -- Number of interfaces with no more points to dequeue at any given loop
+   local stats = {} -- Stats for every loop
    for cur_loop=1, EXPERIMENTAL_RRD_QUEUE_MAX_LOOPS do
       -- Iterate all interfaces in a round-robin fashion to
-      -- make sue every one gets a chance to have their point written
+      -- make sue every one gets a chance to have its points written
       -- in a fair way
 
-      num_completed = 0 -- reset it at every loop
+      stats[cur_loop] = {num_points = 0} -- Init a table to keep some stats
+      num_completed = 0 -- Reset it at every loop
 
       for cur_ifid, iface in pairs(available_interfaces) do
 	 if iface["completed"] then
@@ -1162,6 +1168,7 @@ function driver:export()
 	    end
 
 	    update_rrd(schema, rrdfile, timestamp, metrics)
+	    stats[cur_loop]["num_points"] = stats[cur_loop]["num_points"] + 1
 	 end
 
 	 ::next_interface::
@@ -1170,9 +1177,18 @@ function driver:export()
 	 end
       end
 
+      stats[cur_loop]["num_completed"] = num_completed
       if num_completed == num_ifaces then
 	 -- No more loops needed, dequeues completed for all interfaces
+	 stats[cur_loop]["done"] = true
 	 break
+      end
+   end
+
+   if ENABLE_EXPERIMENTAL_RRD_DEBUG then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Export run for %u times", #stats))
+      for cur_loop, loop_stats in ipairs(stats) do
+	 traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("[loop: %.2u][num_points: %u][interfaces completed: %u/%u]", cur_loop, loop_stats["num_points"], loop_stats["num_completed"], num_ifaces))
       end
    end
 end
