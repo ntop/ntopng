@@ -1030,12 +1030,17 @@ print([[
 
    const toggle_system_flag = (flag, $form = null) => {
 
-      $.post("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", {
+      $.get("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", {
          system_interface: flag,
          csrf: "]].. ntop.getRandomCSRFValue() ..[["
       }, function(data) {
+
          if (data.success && !$form) location.href = '/';      
          if (data.success && $form) $form.submit();
+         if (!data.success) {
+            console.error("An error has occurred!");
+         }
+
       });
    }
 
