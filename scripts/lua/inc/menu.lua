@@ -890,7 +890,7 @@ if is_admin and ntop.isPackage() and not ntop.isWindows() then
 print([[
    <li class="dropdown-divider"></li>
    <li class="dropdown-header" id="updates-info-li">No updates available.</li>
-   <li><button class="dropdown-item" id="updates-install-li" disabled><i class="fas fa-download"></i> Update now</button></li>
+   <li><button class="dropdown-item" id="updates-install-li"><i class="fas fa-refresh"></i> Check for updates</button></li>
 ]])
 end
 
