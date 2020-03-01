@@ -198,14 +198,14 @@ print[[
 
 		let msg = `<li class='nav-item p-btn mx-2'><div class='d-flex'>`;
 
-		if (rsp.system_host_stats.cpu_states && !system_view_enabled) {
+		if (rsp.system_host_stats.cpu_states) {
             const iowait = ']] print(i18n("about.iowait")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
             const active = ']] print(i18n("about.active")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.user + rsp.system_host_stats.cpu_states.system  + rsp.system_host_stats.cpu_states.nice + rsp.system_host_stats.cpu_states.irq + rsp.system_host_stats.cpu_states.softirq + rsp.system_host_stats.cpu_states.guest + rsp.system_host_stats.cpu_states.guest_nice) + "%";
             const idle = ']] print(i18n("about.idle")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.idle + rsp.system_host_stats.cpu_states.steal) + "%";
             $('#cpu-states').html(iowait + " / " + active + " / " + idle);
         }
 
-		if (rsp.system_host_stats.mem_total !== undefined && !system_view_enabled) {
+		if (rsp.system_host_stats.mem_total != undefined) {
 
 		   var mem_total = rsp.system_host_stats.mem_total;
 		   var mem_used = rsp.system_host_stats.mem_used;
@@ -222,7 +222,7 @@ print[[
 		   $('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? fint(rsp.system_host_stats.alerts_queries) : "0");
 		}
 
-		if (rsp.system_host_stats.cpu_load !== undefined && !system_view_enabled) $('#cpu-load-pct').html(ffloat(rsp.system_host_stats.cpu_load));
+		if (rsp.system_host_stats.cpu_load !== undefined) $('#cpu-load-pct').html(ffloat(rsp.system_host_stats.cpu_load));
 
         if (rsp.degraded_performance) {
 		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue\">"
@@ -244,7 +244,7 @@ print[[
 		   }
 		}
 
-		if ((rsp.engaged_alerts > 0 || rsp.has_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false && !system_view_enabled) {
+		if ((rsp.engaged_alerts > 0 || rsp.has_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
 		  $("#alerts-id").show();
 		}
 
