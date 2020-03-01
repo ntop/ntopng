@@ -12,21 +12,17 @@ local json = require("dkjson")
 require("rrd_paths")
 
 local use_hwpredict        = false
-local ENABLE_EXPERIMENTAL_RRD_QUEUE = false
-local ENABLE_EXPERIMENTAL_RRD_DEBUG = false
-
-local EXPERIMENTAL_RRD_QUEUE_MAX_LOOPS = 10
-local EXPERIMENTAL_RRD_QUEUE_MAX_DEQUEUES_PER_LOOP = 10000
+local use_rrd_queue        = true
 
 local type_to_rrdtype = {
   [ts_common.metrics.counter] = "DERIVE",
-  [ts_common.metrics.gauge] = "GAUGE",
+  [ts_common.metrics.gauge]  = "GAUGE",
 }
 
 local aggregation_to_consolidation = {
   [ts_common.aggregation.mean] = "AVERAGE",
-  [ts_common.aggregation.max] = "MAX",
-  [ts_common.aggregation.min] = "MIN",
+  [ts_common.aggregation.max]  = "MAX",
+  [ts_common.aggregation.min]  = "MIN",
   [ts_common.aggregation.last] = "LAST",
 }
 
@@ -459,7 +455,7 @@ function driver:append(schema, timestamp, tags, metrics)
   local base, rrd = schema_get_path(schema, tags)
   local rrdfile   = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
-  if ENABLE_EXPERIMENTAL_RRD_QUEUE then
+  if use_rrd_queue then
      if not schema.options.is_critical_ts then
 	local res = interface.rrd_enqueue(schema.name, timestamp, tags, metrics)
 
@@ -1107,7 +1103,7 @@ end
 -- ##############################################
 
 function driver:export()
-   if not ENABLE_EXPERIMENTAL_RRD_QUEUE then
+   if(not(use_rrd_queue)) then
       return -- Nothing to do
    end
 
@@ -1124,9 +1120,12 @@ function driver:export()
       num_ifaces = num_ifaces + 1
    end
 
-   local num_completed = 0 -- Number of interfaces with no more points to dequeue at any given loop
-   local stats = {} -- Stats for every loop
-   for cur_loop=1, EXPERIMENTAL_RRD_QUEUE_MAX_LOOPS do
+   local num_completed = 0  -- Number of interfaces with no more points to dequeue at any given loop
+   local stats         = {} -- Stats for every loop
+   local rrd_queue_max_poll_loops        = 10
+   local rrd_queue_max_dequeues_per_loop = 8192
+   
+   for cur_loop=1, rrd_queue_max_poll_loops do
       -- Iterate all interfaces in a round-robin fashion to
       -- make sue every one gets a chance to have its points written
       -- in a fair way
@@ -1141,7 +1140,7 @@ function driver:export()
 	    goto next_interface
 	 end
 
-	 for cur_dequeue=1, EXPERIMENTAL_RRD_QUEUE_MAX_DEQUEUES_PER_LOOP do
+	 for cur_dequeue=1, rrd_queue_max_dequeues_per_loop do
 	    local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
 
 	    if not ts_point then
@@ -1182,13 +1181,6 @@ function driver:export()
 	 -- No more loops needed, dequeues completed for all interfaces
 	 stats[cur_loop]["done"] = true
 	 break
-      end
-   end
-
-   if ENABLE_EXPERIMENTAL_RRD_DEBUG then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Export run for %u times", #stats))
-      for cur_loop, loop_stats in ipairs(stats) do
-	 traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("[loop: %.2u][num_points: %u][interfaces completed: %u/%u]", cur_loop, loop_stats["num_points"], loop_stats["num_completed"], num_ifaces))
       end
    end
 end
