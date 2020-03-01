@@ -166,6 +166,7 @@ local function printPeriodicactivityDropdown(base_url, page_params)
       periodic_activity_filter = ''
    end
    local periodic_activity_params = table.clone(page_params)
+
    periodic_activity_params["periodic_script"] = nil
 
    print[[\
@@ -175,7 +176,7 @@ local function printPeriodicactivityDropdown(base_url, page_params)
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, periodic_activity_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
 
    for script, stats in pairsByKeys(interface.getPeriodicActivitiesStats(), asc) do
-      print[[ <li><a class="dropdown-item ]] if periodic_activity == script then print('active') end print[[" href="]] periodic_activity_params["periodic_script"] = script; print(getPageUrl(base_url, periodic_activity_params)); print[[">]] print(script) print[[</a></li>\]]
+      print[[ <li><a class="dropdown-item ]] if periodic_activity == script then print('active') end print[[" href="]] periodic_activity_params["periodic_script"] = script; print(getPageUrl(base_url, periodic_activity_params)); print[[">]] print(script) print[[</a></li>\n\]]
    end
 end
 
@@ -228,7 +229,7 @@ $("#table-internals-periodic-activities").datatable({
    showPagination: true,
    buttons: [ ]]
 
-   -- Ip version selector
+   -- IP version selector
    print[['<div class="btn-group float-right">]]
    printPeriodicactivityDropdown(base_url, page_params)
    print[[</div>',]]
