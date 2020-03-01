@@ -463,7 +463,7 @@ function driver:append(schema, timestamp, tags, metrics)
 	   ntop.rrd_inc_num_drops()
 	end
 
-	return
+	return res
      end
   end
   
