@@ -2948,8 +2948,7 @@ static int ntop_rrd_queue_push(lua_State* vm) {
 
     if((ntop_interface = getCurrentInterface(vm))
        && (ts_exporter = ntop_interface->getRRDTSExporter())) {
-      ts_exporter->enqueueData(vm);
-      rv = true;
+      rv = ts_exporter->enqueueData(vm);
     }
 
   lua_pushboolean(vm, rv);
