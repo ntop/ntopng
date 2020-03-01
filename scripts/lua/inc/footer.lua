@@ -232,16 +232,15 @@ print[[
 		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[ && !system_view_enabled) {
 			
 		   var error_color = "#B94A48";
-		   var error_label = "badge-danger";
-
+		   
 		   if (rsp.engaged_alerts > 0) {
 		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
-		    msg += "<span class=\"badge " + label + "\"><i class=\"fas fa-exclamation-triangle\"></i> "+addCommas(rsp.engaged_alerts)+"</span></a>";
+		    msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+addCommas(rsp.engaged_alerts)+"</span></a>";
 		   }
 
 		   if(rsp.alerted_flows > 0) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status=alerted\">"
-		    msg += "<span class=\"badge " + label + "\">"+addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+		    msg += "<span class=\"badge badge-danger\">"+addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 		   }
 		}
 
