@@ -229,7 +229,7 @@ print[[
 		    msg += "<span class=\"badge badge-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
 		}
 
-		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[ && !system_view_enabled) {
+		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[ && (!system_view_enabled)) {
 			
 		   var error_color = "#B94A48";
 		   
@@ -248,7 +248,7 @@ print[[
 		  $("#alerts-id").show();
 		}
 
-		if (rsp.ts_alerts && rsp.ts_alerts.influxdb && !system_view_enabled) {
+		if (rsp.ts_alerts && rsp.ts_alerts.influxdb && (!system_view_enabled)) {
 		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/plugins/influxdb_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
 		  msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-database\"></i></span></a>";
 		}
@@ -257,7 +257,7 @@ print[[
 		var alarm_threshold_high = 90; /* 90% */
 		var alert = 0;
 
-		if (rsp.num_local_hosts > 0 && !system_view_enabled) {
+		if (rsp.num_local_hosts > 0 && (!system_view_enabled)) {
 
 		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
 		  msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge badge-success\">";
@@ -286,7 +286,7 @@ print[[
 			msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";	
 		}
 		
-	    if (rsp.num_devices != undefined && !system_view_enabled) {
+	    if (rsp.num_devices != undefined && (!system_view_enabled)) {
 
 	    	var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
@@ -306,7 +306,7 @@ print[[
 			msg += addCommas(rsp.num_devices)+" ]] print(i18n("devices")) print[[</span></a>";
 	    }
 
-	    if (rsp.num_flows != undefined && !system_view_enabled) {
+	    if (rsp.num_flows != undefined && (!system_view_enabled)) {
 
     		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
 
@@ -332,13 +332,13 @@ print[[
 
 	    }
 
-	    if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && !system_view_enabled) {
+	    if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && (!system_view_enabled)) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/live_capture_stats.lua\">";
 			msg += "<span class=\"badge badge-primary\">";
 			msg += addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
 	    }
 
-	    if (rsp.remote_assistance != undefined && !system_view_enabled) {
+	    if (rsp.remote_assistance != undefined && (!system_view_enabled)) {
 
 	    	var status = rsp.remote_assistance.status;
 		  	var status_label = (status == "active") ? "success" : "danger";
@@ -346,7 +346,7 @@ print[[
 	      	msg += "<i class=\"fas fa-comment-dots fa-lg\"></i></span></a>";
 	    }
 
-	    if (rsp.traffic_recording != undefined && !system_view_enabled) {
+	    if (rsp.traffic_recording != undefined && (!system_view_enabled)) {
 
 			var status_label="primary";
 			var status_title="]] print(i18n("traffic_recording.recording")) print [[";
@@ -361,7 +361,7 @@ print[[
 			msg += "<i class=\"fas fa-hdd fa-lg\"></i></span></a>";
 	    }
 
-	    if (rsp.traffic_extraction != undefined && !system_view_enabled) {
+	    if (rsp.traffic_extraction != undefined && (!system_view_enabled)) {
 		
 			var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [[";
 			var status_label = "secondary";
