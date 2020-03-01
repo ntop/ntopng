@@ -590,9 +590,6 @@ path.link {
 }
 
 #n-container {
-  -webkit-transition: all .5s;
-  -o-transition: all .5s;
-  transition: margin-left .5s;
   margin-left: 13.5rem;
   height: calc(100% - 56px);
   overflow-y: auto;

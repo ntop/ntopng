@@ -17,7 +17,8 @@ local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
 local info = ntop.getInfo()
 
-local is_system_interface = ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and ntop.isAdministrator())
+-- this is a global variable
+local is_system_interface = ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and is_admin)
 
 print([[
    <div id='wrapper'>
@@ -35,7 +36,7 @@ print[[
       "query_was_aborted": "]] print(i18n("graphs.query_was_aborted")) print[[",
       "exports": "]] print(i18n("system_stats.exports_label")) print[[",
    };
-
+   const system_view_enabled = ]] print(ternary(is_system_interface, "true", "false")) print[[;
    const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
 </script>]]
 
@@ -808,11 +809,9 @@ end
 
 -- ########################################
 -- Network Load 
-if not is_system_interface then
 print([[
    <div id="network-load"></div>
 ]])
-end
 
 
 -- ########################################
