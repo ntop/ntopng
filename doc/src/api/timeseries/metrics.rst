@@ -3,7 +3,7 @@ Metrics
 
 Here is the full list of metrics exported as timeseries by ntopng.
 
-There are two types of metrics exported by ntiong currently: **counters** and **gauges**. 
+There are two types of metrics exported by ntopng currently: **counters** and **gauges**. 
 
 - **counters** are used for continuous incrementing metrics such as the total number of bytes.
 - **gauges** are used for metrics such as the number of active flows or active hosts at a certain point in time.
