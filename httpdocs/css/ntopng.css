@@ -1170,3 +1170,7 @@ details ul li>span {
   padding: 0.5rem;
   background-color: #fbfbfb;
 }
+
+#updates-install-li {
+  font-size: .875rem;
+}

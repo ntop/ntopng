@@ -342,17 +342,6 @@ if is_nedge then
 	    hidden = not is_admin,
 	    url = '/lua/pro/nedge/admin/nf_list_users.lua',
 	 },
-	 {
-	    custom = [[
-               <li><a href="javascript:void(0);" onclick='$("#poweroff_dialog").modal("show");'>
-                 <i class="fas fa-power-off"></i> ]]..i18n("nedge.power_off")..[[</a>
-               </li>
-               <li><a href="javascript:void(0);" onclick='$("#reboot_dialog").modal("show");'>
-                 <i class="fas fa-redo"></i> ]]..i18n("nedge.reboot")..[[</a>
-               </li>
-]],
-	    hidden = not is_admin,
-	 },
    }) do
       system_entries[#system_entries + 1] = entry
    end
@@ -393,13 +382,6 @@ page_utils.add_menubar_section({
          entry = page_utils.menu_entries.conf_restore,
          hidden = not is_admin,
          url = 'https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration',
-      },
-      {
-         custom = [[
-                       <li class="dropdown-header" id="updates-info-li"></li>
-                       <li><a id="updates-install-li" href="#"></a></li>
-        ]],
-         hidden = not is_admin or not ntop.isPackage() or ntop.isWindows(),
       },
    }
 })
@@ -740,6 +722,22 @@ for round = 1, 2 do
          if((v == ifname) and not is_system_interface) then print("<i class=\"fas fa-check\"></i> ") end
          if(isPausedInterface(v)) then  print('<i class="fas fa-pause"></i> ') end
 
+         if(views[v] == true) then
+            print(' <i class="fas fa-eye" aria-hidden="true"></i> ')
+         end
+
+         if(dynamic[v] == true) then
+            print('<i class="fas fa-code-branch" aria-hidden="true"></i> ')
+         end
+
+         if(drops[v] == true) then
+            print('<i class="fas fa-tint" aria-hidden="true"></i> ')
+         end
+
+         if(recording[v] == true) then
+            print('<i class="fas fa-hdd" aria-hidden="true"></i> ')
+         end
+
          descr = getHumanReadableInterfaceName(v.."")
 
          if(string.contains(descr, "{")) then -- Windows
@@ -750,25 +748,7 @@ for round = 1, 2 do
             end
          end
 
-        print(descr)
-
-
-         if(views[v] == true) then
-            print(' <i class="fas fa-eye" aria-hidden="true"></i>')
-         end
-
-         if(dynamic[v] == true) then
-            print('<i class="fas fa-code-branch" aria-hidden="true"></i>')
-         end
-
-         if(drops[v] == true) then
-            print('<span><i class="fas fa-tint" aria-hidden="true"></i></span>')
-         end
-
-         if(recording[v] == true) then
-            print('<i class="fas fa-hdd" aria-hidden="true"></i>')
-         end
-
+         print(descr)
          print("</a>")
          print("</li>\n")
       end
@@ -879,12 +859,40 @@ print([[
 
 if not _SESSION["localuser"] or not is_admin then
    print[[
-         <li class="nav-item">
+         <li>
            <a class="dropdown-item" href='#password_dialog' data-toggle='modal'>
              ]] print(i18n("login.change_password")) print[[
            </a>
          </li>
-]]
+   ]]
+end
+
+
+-- Render nendge services
+if is_nedge and is_admin then
+print([[
+   <li class="dropdown-divider"></li>
+   <li class="dropdown-header">nEdge Status</li>
+   <li>
+      <a class="dropdown-item" href="#poweroff_dialog" data-toggle="modal">
+         <i class="fas fa-power-off"></i> ]]..i18n("nedge.power_off")..[[
+      </a>
+   </li>
+   <li>
+      <a class="dropdown-item" href="#reboot_dialog" data-toggle="modal">
+         <i class="fas fa-redo"></i> ]]..i18n("nedge.reboot")..[[
+      </a>
+   </li>
+]])
+end
+
+-- Render Update Menu
+if is_admin and ntop.isPackage() and not ntop.isWindows() then
+print([[
+   <li class="dropdown-divider"></li>
+   <li class="dropdown-header" id="updates-info-li">No updates available.</li>
+   <li><button class="dropdown-item" id="updates-install-li" disabled><i class="fas fa-download"></i> Update now</button></li>
+]])
 end
 
 -- Logout
@@ -896,7 +904,7 @@ if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
  <li class="nav-item">
    <a class="dropdown-item" href="]]
    print(ntop.getHttpPrefix())
-   print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"><i class="fas fa-sign-out-alt fa-lg"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
+   print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"><i class="fas fa-sign-out-alt"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
  end
  
  -- Restart
@@ -907,7 +915,7 @@ if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
    ]]
  
  print[[
-  <script>
+  <script type="text/javascript">
    let restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
    let restartService = function() {
      if (confirm(']] print(i18n("restart.confirm")) print[[')) {
@@ -938,6 +946,7 @@ print([[
    </nav>
 ]])
 
+-- begging of #n-container
 print([[<div class='p-md-4 extended p-xs-1 mt-5 p-sm-2' id='n-container'>]])
 
 if(dirs.workingdir == "/var/tmp/ntopng") then
@@ -1013,10 +1022,11 @@ if(_SESSION["INVALID_CSRF"]) then
   print('</div>')
 end
 
-if ntop.isAdministrator() then
+-- render switchable system view
+if is_admin then
 
 print([[
-   <script type="text/javascript">
+<script type="text/javascript">
 
    const toggle_system_flag = (flag, $form = null) => {
 
@@ -1026,7 +1036,6 @@ print([[
       }, function(data) {
          if (data.success && !$form) location.href = '/';      
          if (data.success && $form) $form.submit();
-
       });
    }
 
