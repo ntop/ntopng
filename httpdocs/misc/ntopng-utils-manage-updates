@@ -110,11 +110,13 @@ if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $A
 	exit 1
 fi
 
-INSTANCES=$(ps aux | grep $0 | grep ${ACTION} | grep bash | grep -v grep | wc -l)
-if [ $INSTANCES -gt 2 ]; then
-	echo "Another instance is running with the same action"
-	exit 1
-fi
+function stall_check() {
+	INSTANCES=$(pgrep -fc "$0 -a ${ACTION}")
+	if [ $INSTANCES -gt 2 ]; then
+		#echo "Another instance is running with the same action"
+		exit 0
+	fi
+}
 
 # Check if the user requested a ntopng update, and upgrade it in case
 function run_upgrade() {
@@ -228,6 +230,7 @@ function check_updates() {
 function check_updates_on_demand() {
 	CHECK_FOR_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_CHECK_FOR_UPDATES_KEY} 2>/dev/null | grep 1)
 	if [ "${CHECK_FOR_UPDATES}" == "1" ]; then
+		stall_check
 		check_updates
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} 2>&1 >/dev/null 
 	fi
@@ -238,6 +241,7 @@ function handle_upgrade_requests() {
 	# Check redis for upgrade requests
 	UPGRADE=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_RUN_UPGRADE_KEY} 2>/dev/null | grep 1)
 	if [ "${UPGRADE}" == "1" ]; then
+		stall_check
 		run_upgrade
 	fi
 }
