@@ -2553,14 +2553,21 @@ void Ntop::refreshCpuLoad() {
   if(Utils::getCpuLoad(&cpu_stats))
     cpu_load = cpu_stats.load;
   else
-    cpu_load = 0;
+    cpu_load = -1;
 }
 
 /* ******************************************* */
 
 bool Ntop::getCpuLoad(float *out) {
-  *out = cpu_load;
-  return(true);
+  bool rv;
+
+  if(cpu_load >= 0) {
+    *out = cpu_load;
+    rv = true;
+  } else
+    rv = false;
+
+  return(rv);
 }
 
 /* ******************************************* */
