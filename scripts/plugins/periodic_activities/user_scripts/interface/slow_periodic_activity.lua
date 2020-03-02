@@ -31,7 +31,7 @@ local function check_slow_periodic_activity(params)
    for ps_name, ps_stats in pairs(scripts_stats) do
       local delta = alerts_api.interface_delta_val(script.key..ps_name --[[ metric name --]], params.granularity, ps_stats["num_is_slow"] or 0)
       
-      local info = alert_info(ps_name, (ps_stats["periodicity"] or 0) * 1000)
+      local info = alert_info(ps_name, (ps_stats["max_duration_secs"] or 0) * 1000)
 
       if delta > 0 then
 	 -- tprint({ps_name = ps_name, s = ">>>>>>>>>>>>>>>>>>>>>> TRIGGER"})

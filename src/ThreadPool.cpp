@@ -121,10 +121,22 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
     return(false);
 
   if(!ta->isQueueable(iface)) {
+    ThreadedActivityState ta_state = ta->get_state(iface);
+
+#ifdef THREAD_DEBUG
+    char deadline_buf[32];
+    time_t stats_deadline = stats->getDeadline();
+    struct tm deadline_tm;
+
+    strftime(deadline_buf, sizeof(deadline_buf), "%H:%M:%S", localtime_r(&stats_deadline, &deadline_tm));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to schedule %s [running: %u][deadlline: %s]", path, ta_state == threaded_activity_state_running ? 1 : 0, deadline_buf);
+#endif
+
     if(stats) {
-      if(ta->get_state(iface) == threaded_activity_state_queued)
+      if(ta_state == threaded_activity_state_queued)
         stats->setNotExecutedAttivity(true);
-      else if((ta->get_state(iface) == threaded_activity_state_running))
+      else if(ta_state == threaded_activity_state_running
+	      && stats->getDeadline() < scheduled_time)
         stats->setSlowPeriodicActivity(true);
     }
 
@@ -139,15 +151,15 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
   }
 
   m->lock(__FILE__, __LINE__);
-  threads.push(q);
+
+  if(stats)
+    stats->setScheduledTime(scheduled_time);
+
   ta->set_state_queued(iface);
+  threads.push(q);
+
   pthread_cond_signal(&condvar);
   m->unlock(__FILE__, __LINE__);
-
-  if(stats) {
-    stats->setScheduledTime(scheduled_time);
-    stats->setDeadline(deadline);
-  }
 
   return(true); /*  TODO: add a max queue len and return false */
 }

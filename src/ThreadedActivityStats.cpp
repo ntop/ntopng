@@ -153,6 +153,22 @@ void ThreadedActivityStats::luaTimeseriesStats(lua_State *vm) {
 
 /* ******************************************* */
 
+void ThreadedActivityStats::setNotExecutedAttivity(bool _not_executed) {
+  not_executed = _not_executed;
+  if(_not_executed)
+    num_not_executed++;
+}
+
+/* ******************************************* */
+
+void ThreadedActivityStats::setSlowPeriodicActivity(bool _slow) {
+  is_slow = _slow;
+  if(_slow)
+    num_is_slow++;
+}
+
+/* ******************************************* */
+
 void ThreadedActivityStats::lua(lua_State *vm) {
   lua_newtable(vm);
 

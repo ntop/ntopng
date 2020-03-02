@@ -72,9 +72,10 @@ class ThreadedActivityStats {
   ThreadedActivityStats(const ThreadedActivity *ta);
   ~ThreadedActivityStats();
 
-  inline time_t getLastQueueTime()   { return(last_queued_time);  }
-  inline time_t getInProgressSince() { return(in_progress_since); }
-  inline time_t getLastStartTime()   { return(last_start_time);   }
+  inline time_t getLastQueueTime()   const { return(last_queued_time);  }
+  inline time_t getInProgressSince() const { return(in_progress_since); }
+  inline time_t getLastStartTime()   const { return(last_start_time);   }
+  inline time_t getDeadline()        const { return(deadline);          }
 
   bool isTimeseriesSlow() const;
   inline bool hasAlertsDrops() const {
@@ -89,8 +90,8 @@ class ThreadedActivityStats {
   void updateStatsBegin(struct timeval *begin);
   void updateStatsEnd(u_long duration_ms);
 
-  void setNotExecutedAttivity(bool _not_executed)   { not_executed = _not_executed; if(_not_executed) num_not_executed++; }
-  void setSlowPeriodicActivity(bool _slow)          { is_slow = _slow; if(_slow) num_is_slow++;                           }
+  void setNotExecutedAttivity(bool _not_executed);
+  void setSlowPeriodicActivity(bool _slow);
   inline void setScheduledTime(time_t t) { scheduled_time = t; }
   inline void setDeadline(time_t t)      { deadline = t; }
   inline void setCurrentProgress(int _progress) { progress = min(max(_progress, 0), 100); }

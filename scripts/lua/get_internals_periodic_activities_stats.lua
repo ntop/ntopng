@@ -148,7 +148,7 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       end
    end
 
-   stats.duration.max_duration_ms = periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"] * 1000
+   stats.duration.max_duration_ms = script_stats.stats.max_duration_secs * 1000
    stats.perc_duration = stats.duration.last_duration_ms * 100 / (stats.duration.max_duration_ms)
    
    if(sortColumn == "column_time_perc") then
