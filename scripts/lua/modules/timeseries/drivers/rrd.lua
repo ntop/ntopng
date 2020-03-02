@@ -1202,7 +1202,6 @@ function driver:export()
       stats[cur_loop]["deadline_approaching"] = deadline_approaching
       if deadline_approaching then
 	 -- No time to do additional loops, let's return
-	 tprint("exiting...")
 	 break
       end
    end
