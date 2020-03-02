@@ -326,8 +326,12 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       local utiliz = time_utilization(script_stats.stats)
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
-      
-      record["column_last_duration"] = last_duration
+
+      if last_duration > 0 then
+	 record["column_last_duration"] = last_duration
+      else
+	 record["column_last_duration"] = ''
+      end
       record["column_status"] = status2label(status)
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))

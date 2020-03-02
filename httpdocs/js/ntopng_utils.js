@@ -390,8 +390,8 @@ function formatMessages(n) {
 }
 
 function fmillis(value) {
-  if(typeof(value) === "undefined")
-    return "-";
+  if(!value || value == '')
+    return "";
 
   if(value == 0) return '0 ms';
   if((value > 0) && (value < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' ms');
