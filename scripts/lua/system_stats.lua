@@ -70,12 +70,13 @@ if(page == "overview") then
    local system_rowspan = 1
    local ntopng_rowspan = 20
    local system_host_stats = system_utils.systemHostStats()
+   local has_system = false
 
-   if system_host_stats["cpu_load"] ~= nil then  system_rowspan = system_rowspan + 1 end
-   if system_host_stats["mem_total"] ~= nil then system_rowspan = system_rowspan + 1 end
-   if system_host_stats["cpu_states"] and system_host_stats["cpu_states"]["iowait"] then system_rowspan = system_rowspan + 1 end
+   if system_host_stats["cpu_load"] ~= nil then  system_rowspan = system_rowspan + 1; has_system = true end
+   if system_host_stats["mem_total"] ~= nil then system_rowspan = system_rowspan + 1; has_system = true end
+   if system_host_stats["cpu_states"] and system_host_stats["cpu_states"]["iowait"] then system_rowspan = system_rowspan + 1; has_system = true end
 
-   if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
+   if has_system then
       print("<tr><th rowspan="..system_rowspan.." width=5%>"..i18n("about.system").."</th></tr>\n")
    end
 
@@ -155,9 +156,11 @@ print [[/lua/system_stats_data.lua',
    ]]
 
 elseif(page == "historical" and ts_creation) then
-   local schema = _GET["ts_schema"] or "system:cpu_load"
+   local sys_stats = ntop.systemHostStat()
    local selected_epoch = _GET["epoch"] or ""
    local tags = {ifid = getSystemInterfaceId()}
+   local skip_cpu_load = (sys_stats.cpu_load == nil)
+   local schema = _GET["ts_schema"] or ternary(skip_cpu_load, "process:num_alerts", "system:cpu_load")
    url = url.."&page=historical"
 
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
@@ -166,7 +169,8 @@ elseif(page == "historical" and ts_creation) then
 	    schema = "system:cpu_load",
 	    label=i18n("about.cpu_load"),
 	    metrics_labels = {i18n("about.cpu_load")},
-	    value_formatter = {"ffloat"}
+	    value_formatter = {"ffloat"},
+	    skip = skip_cpu_load,
 	 },
 	 {
 	    schema="system:cpu_states",
