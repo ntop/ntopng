@@ -1151,6 +1151,14 @@ function driver:export()
 	 end
 
 	 for cur_dequeue=1, rrd_queue_max_dequeues_per_loop do
+	    if cur_dequeue % 100 == 0 then
+	      if ntop.isDeadlineApproaching() then
+	        -- No time left (do this check after the processing of points for each interface)
+                 deadline_approaching = true
+	        break
+	      end
+	    end
+	 
 	    local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
 
 	    if not ts_point then
@@ -1185,10 +1193,8 @@ function driver:export()
 	    num_completed = num_completed + 1
 	 end
 
-	 if ntop.isDeadlineApproaching() then
-	    -- No time left (do this check after the processing of points for each interface)
-	    deadline_approaching = true
-	    break
+         if deadline_approaching then
+	   break
 	 end
       end
 
