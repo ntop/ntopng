@@ -265,7 +265,7 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '3%',
        }
      }, {
-       title: "]] print(i18n("internals.periodicity")) print[[",
+       title: "]] print(i18n("frequency")) print[[",
        field: "column_periodicity",
        sortable: true,
        css: {
