@@ -175,7 +175,7 @@ local function printPeriodicactivityDropdown(base_url, page_params)
 
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, periodic_activity_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
 
-   for script, stats in pairsByKeys(interface.getPeriodicActivitiesStats(), asc) do
+   for script, stats in pairsByKeys(interface.getPeriodicActivitiesStats(tonumber(page_params["iffilter"])), asc) do
       print[[ <li><a class="dropdown-item ]] if periodic_activity == script then print('active') end print[[" href="]] periodic_activity_params["periodic_script"] = script; print(getPageUrl(base_url, periodic_activity_params)); print[[">]] print(script) print[[</a></li>\n\]]
    end
 end

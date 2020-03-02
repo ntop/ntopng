@@ -6236,7 +6236,14 @@ static int ntop_get_interface_hash_tables_stats(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_periodic_activities_stats(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  NetworkInterface *ntop_interface = NULL;
+  int ifid;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+    ntop_interface = ntop->getInterfaceById(ifid);
+  } else
+    ntop_interface = getCurrentInterface(vm);
 
   if(ntop_interface)
     ntop_interface->lua_periodic_activities_stats(vm);
