@@ -1168,6 +1168,11 @@ details ul li>span {
   background-color: #fbfbfb;
 }
 
+.switches-list-container > ul {
+  list-style-type: none; 
+  padding-left:0;
+}
+
 #updates-install-li {
   font-size: .875rem;
 }
