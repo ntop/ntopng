@@ -586,12 +586,20 @@ function driver:query(schema, tstart, tend, tags, options)
      return nil
   end
 
+  touchRRD(rrdfile)
+
+  local last_update = ntop.rrd_lastupdate(rrdfile)
+
   if isDebugEnabled() then
     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("RRD_FETCH schema=%s %s -> (%s): last_update=%u",
-      schema.name, table.tconcat(tags, "=", ","), rrdfile, ntop.rrd_lastupdate(rrdfile)))
+      schema.name, table.tconcat(tags, "=", ","), rrdfile, last_update))
   end
 
-  touchRRD(rrdfile)
+  -- Avoid reporting the last point when the timeseries write has not completed
+  -- yet. Use 2*step as a bound.
+  if((tend > last_update) and ((tend - last_update) <= 2*schema.options.step)) then
+    tend = last_update
+  end
 
   --tprint("rrdtool fetch ".. rrdfile.. " " .. getConsolidationFunction(schema) .. " -s ".. tstart .. " -e " .. tend)
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
