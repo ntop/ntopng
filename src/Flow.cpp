@@ -2261,7 +2261,7 @@ json_object* Flow::flow2json() {
   if(cli_ebpf) cli_ebpf->getJSONObject(my_object, true);
   if(srv_ebpf) srv_ebpf->getJSONObject(my_object, false);
 
-  if(ntop->getPrefs()->do_dump_flows_on_disk()) {
+  if(ntop->getPrefs()->do_dump_extended_json()) {
     const char *info;
 
     /* Add items usually dumped on nIndex (useful for debugging) */
