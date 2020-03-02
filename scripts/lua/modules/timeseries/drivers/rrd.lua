@@ -1130,12 +1130,12 @@ function driver:export()
 
    local num_completed = 0  -- Number of interfaces with no more points to dequeue at any given loop
    local stats         = {} -- Stats for every loop
-   local rrd_queue_max_poll_loops        = 10
+   local rrd_queue_max_poll_loops        = 1
    local rrd_queue_max_dequeues_per_loop = 8192
    
    for cur_loop=1, rrd_queue_max_poll_loops do
       -- Iterate all interfaces in a round-robin fashion to
-      -- make sue every one gets a chance to have its points written
+      -- make sure every one gets a chance to have its points written
       -- in a fair way
 
       stats[cur_loop] = {num_points = 0} -- Init a table to keep some stats
