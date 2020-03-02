@@ -1132,7 +1132,8 @@ function driver:export()
    local stats         = {} -- Stats for every loop
    local rrd_queue_max_poll_loops        = 1
    local rrd_queue_max_dequeues_per_loop = 8192
-   
+   local deadline_approaching = false
+
    for cur_loop=1, rrd_queue_max_poll_loops do
       -- Iterate all interfaces in a round-robin fashion to
       -- make sure every one gets a chance to have its points written
@@ -1140,6 +1141,7 @@ function driver:export()
 
       stats[cur_loop] = {num_points = 0} -- Init a table to keep some stats
       num_completed = 0 -- Reset it at every loop
+      deadline_approaching = false
 
       for cur_ifid, iface in pairs(available_interfaces) do
 	 if iface["completed"] then
@@ -1182,12 +1184,25 @@ function driver:export()
 	 if iface["completed"] then
 	    num_completed = num_completed + 1
 	 end
+
+	 if ntop.isDeadlineApproaching() then
+	    -- No time left (do this check after the processing of points for each interface)
+	    deadline_approaching = true
+	    break
+	 end
       end
 
       stats[cur_loop]["num_completed"] = num_completed
       if num_completed == num_ifaces then
 	 -- No more loops needed, dequeues completed for all interfaces
 	 stats[cur_loop]["done"] = true
+	 break
+      end
+
+      stats[cur_loop]["deadline_approaching"] = deadline_approaching
+      if deadline_approaching then
+	 -- No time to do additional loops, let's return
+	 tprint("exiting...")
 	 break
       end
    end
