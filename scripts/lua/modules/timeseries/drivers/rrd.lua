@@ -1151,9 +1151,9 @@ function driver:export()
 	 end
 
 	 for cur_dequeue=1, rrd_queue_max_dequeues_per_loop do
-	    if cur_dequeue % 100 == 0 then
+	    if cur_dequeue % 10 == 0 then
 	      if ntop.isDeadlineApproaching() then
-	        -- No time left (do this check after the processing of points for each interface)
+	        -- No time left
                  deadline_approaching = true
 	        break
 	      end
