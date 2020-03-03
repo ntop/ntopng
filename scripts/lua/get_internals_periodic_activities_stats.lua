@@ -107,7 +107,7 @@ for _, iface in pairs(available_interfaces) do
       local stats = scripts_stats[script]
 
       if stats then
-	 ifaces_scripts_stats[iface.."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
+	 ifaces_scripts_stats["ifid_"..getInterfaceId(iface).."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
       end
    end
 
