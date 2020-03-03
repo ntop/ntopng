@@ -2614,7 +2614,9 @@ void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
   bytes_thpt.updateStats(&tv, getNumBytes());
   pkts_thpt.updateStats(&tv, getNumPackets());
   ethStats.updateStats(&tv);
-  ndpiStats->updateStats(&tv);
+
+  if(ndpiStats)
+    ndpiStats->updateStats(&tv);
 
   checkReloadHostsBroadcastDomain();
 
