@@ -107,7 +107,7 @@ if (ntop.isEnterprise() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAU
   print[[<br/><br/>]]
   
 elseif page == "historical" then
-  if(not areHostPoolsTimeseriesEnabled(ifid)) then
+  if(not areHostPoolsTimeseriesEnabled(ifId)) then
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("pool_details.no_available_data_for_host_pool_message",{pool_name=pool_name}))
     print(" "..i18n("pool_details.host_pool_timeseries_enable_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fas fa-flask\"></i>"})..'</div>')
   else
