@@ -51,9 +51,9 @@ fi
 
 # Detect OS
 OS="DEBIAN"
-CENTOS=$(${LSB_RELEASE} | grep -i CentOS)
-if [ ! -z "${CENTOS}" ]; then
-	OS="CENTOS"
+REDHAT=$(${LSB_RELEASE} | grep -i "CentOS\|RedHat")
+if [ ! -z "${REDHAT}" ]; then
+	OS="REDHAT"
 fi
 
 if [ "${OS}" == "DEBIAN" ]; then
