@@ -29,6 +29,7 @@
 ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_interface_type) : ParserInterface(endpoint, custom_interface_type) {
   zmq_initial_bytes = 0, zmq_initial_pkts = 0;
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
+  memset(&last_zmq_remote_stats_update, 0, sizeof(last_zmq_remote_stats_update));
   zmq_remote_initial_exported_flows = 0;
   once = false;
   flow_max_idle = ntop->getPrefs()->get_pkt_ifaces_flow_max_idle();
@@ -1782,6 +1783,9 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   ZMQ_RemoteStats *last_zrs, *cumulative_zrs;
   map<u_int8_t, ZMQ_RemoteStats*>::iterator it;
   u_int32_t last_time = zrs->local_time;
+  struct timeval now;
+
+  gettimeofday(&now, NULL);
 
   /* Store stats for the current exporter */
 
@@ -1795,6 +1799,12 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   }
 
   memcpy(last_zrs, zrs, sizeof(ZMQ_RemoteStats));
+
+  if (Utils::msTimevalDiff(&now, &last_zmq_remote_stats_update) < 1000) {
+    /* Do not update cumulative stats more frequently than once per second.
+     * Note: this also avoids concurrent access (use after free) of shadow */
+    return;
+  }
 
   /* Sum stats from all exporters */
 
@@ -1858,6 +1868,8 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   if(zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
   zmq_remote_stats_shadow = zmq_remote_stats;
   zmq_remote_stats = cumulative_zrs;
+
+  memcpy(&last_zmq_remote_stats_update, &now, sizeof(now));
 
   /*
    * Don't override ethStats here, these stats are properly updated
