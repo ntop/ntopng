@@ -85,7 +85,7 @@ for _, iface in pairs(interface.getIfNames()) do
 
    -- Flatten out the nested tables
    for ht, stats in pairs(ht_stats) do
-      ifaces_ht_stats[iface.."_"..ht] = {iface = iface, ifid = getInterfaceId(iface), ht = ht, stats = stats}
+      ifaces_ht_stats["ifid_"..getInterfaceId(iface).."_"..ht] = {iface = iface, ifid = getInterfaceId(iface), ht = ht, stats = stats}
    end
 
    ::continue::
