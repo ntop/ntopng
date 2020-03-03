@@ -710,7 +710,7 @@ for round = 1, 2 do
          print([[<li class="nav-item">]])
 
          if(v == ifname and not is_system_interface) then
-            print("<a class=\"dropdown-item\" href=\""..url.."\">")
+            print("<a class=\"dropdown-item disabled\" href=\"#\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
             print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="/?ifid=]] print(k)  print[[">]]
