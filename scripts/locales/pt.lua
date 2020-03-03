@@ -2080,10 +2080,10 @@ local lang = {
     ["retransmissions"] = "Retransmissões",
     ["sent_distribution"] = "Distribuição Enviada",
     ["size_distribution"] = "Distribuição de Tamanho",
-    ["sent_vs_rcvd_distribution"] = "Distribui\u00E7\u00E3o Enviada / Recebida",
+    ["sent_vs_rcvd_distribution"] = "Distribuição Enviada / Recebida",
     ["tcp_flags_distribution"] = "Distribuição de bandeiras TCP",
     ["tcp_flags_vs_arp_distribution"] = "Distribuição de bandeiras TCP / ARP",
-    ["version_vs_flags_distribution"] = "Distribui\u00E7\u00E3o de IP version / TCP Flags",
+    ["version_vs_flags_distribution"] = "Distribuição de IP version / TCP Flags",
     ["tcp_packets_analysis"] = "Análise de pacotes TCP",
   },
   ["peers_page"] = {
