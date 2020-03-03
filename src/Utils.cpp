@@ -2461,6 +2461,8 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
   edata.cmd = ETHTOOL_GSET;
 
   rc = ioctl(sock, SIOCETHTOOL, &ifr);
+  closesocket(sock);
+
   if(rc < 0) {
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "I/O Control error [%s]", ifname);
     return(ifSpeed);
@@ -2471,8 +2473,6 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC Speed = %u",
 			       ifname, edata.speed);
-
-  closesocket(sock);
 
   return(ifSpeed);
 #else
