@@ -1128,21 +1128,21 @@ function printStatsTimeseries()
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr></thead>')
 
-  prefsToggleButton(subpage_active, {
-    field = "toggle_local_hosts_traffic_rrd_creation",
-    default = "1",
-    pref = "host_rrd_creation",
-    to_switch = {"row_hosts_ndpi_timeseries_creation", "row_toggle_local_hosts_stats_rrd_creation"},
-  })
+  local hosts_rrd_labels = {i18n("off"), i18n("light"), i18n("full")}
+  local hosts_rrd_values = {"off", "light", "full"}
+  local hostElemsToSwitch = { "row_hosts_ndpi_timeseries_creation" }
+  local hostShowElementArray = {false, false, true}
 
-  local showElement = ntop.getPref("ntopng.prefs.host_rrd_creation") == "1"
+  multipleTableButtonPrefs(subpage_active.entries["toggle_local_hosts_ts_creation"].title,
+				    subpage_active.entries["toggle_local_hosts_ts_creation"].description,
+				    hosts_rrd_labels, hosts_rrd_values,
+				    "light",
+				    "primary",
+				    "hosts_ts_creation",
+				    "ntopng.prefs.hosts_ts_creation", nil,
+				    hostElemsToSwitch, hostShowElementArray, "", true)
 
-  prefsToggleButton(subpage_active, {
-    field = "toggle_local_hosts_stats_rrd_creation",
-    default = "1",
-    pref = "host_stats_timeseries_creation",
-    hidden = not showElement,
-  })
+  local show_host_l7 = (ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full")
 
   retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
 				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,
@@ -1151,7 +1151,7 @@ function printStatsTimeseries()
 				    "primary",
 				    "hosts_ndpi_timeseries_creation",
 				    "ntopng.prefs.host_ndpi_timeseries_creation", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+				    elementToSwitch, showElementArray, javascriptAfterSwitch, show_host_l7)
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n('prefs.l2_devices_timeseries')..'</th></tr></thead>')
 

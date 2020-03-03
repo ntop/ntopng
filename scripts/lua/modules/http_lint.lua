@@ -1464,6 +1464,7 @@ local known_parameters = {
    ["bridging_policy_target_type"]                 = validateChoiceInline({"per_protocol", "per_category", "both"}),
    ["timeseries_driver"]                           = validateChoiceInline({"rrd", "influxdb", "prometheus"}),
    ["edition"]                                     = validateEmptyOr(validateChoiceInline({"community", "pro", "enterprise"})),
+   ["hosts_ts_creation"]                           = validateChoiceInline({"off", "light", "full"}),
    ["ts_high_resolution"]                          = validateNumber,
    ["lbd_hosts_as_macs"]                           = validateBool,
    ["toggle_send_telemetry_data"]                  = validateBool,

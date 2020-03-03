@@ -178,9 +178,8 @@ end
 function ts_dump.getConfig()
   local config = {}
 
-  config.host_rrd_creation = ntop.getPref("ntopng.prefs.host_rrd_creation")
+  config.host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
   config.host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
-  config.host_stats_timeseries_creation = ntop.getPref("ntopng.prefs.host_stats_timeseries_creation")
   config.l2_device_rrd_creation = ntop.getPref("ntopng.prefs.l2_device_rrd_creation")
   config.l2_device_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.l2_device_ndpi_timeseries_creation")
   config.flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
@@ -202,7 +201,7 @@ function ts_dump.getConfig()
   end
 
   -- Local hosts RRD creation is on, with no nDPI rrd creation
-  if isEmptyString(config.host_rrd_creation) then config.host_rrd_creation = "1" end
+  if isEmptyString(config.host_ts_creation) then config.host_ts_creation = "light" end
   if isEmptyString(config.host_ndpi_timeseries_creation) then config.host_ndpi_timeseries_creation = "none" end
 
   -- Devices RRD creation is OFF, as OFF is the nDPI rrd creation
@@ -375,7 +374,7 @@ end
 
 function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
   -- Crunch additional stats for local hosts only
-  if config.host_rrd_creation ~= "0" then
+  if config.host_ts_creation ~= "off" then
     if enable_debug then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "@".. when .." Going to update host " .. hostname)
     end
@@ -384,16 +383,16 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
     ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
           bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
 
-    if(config.host_stats_timeseries_creation ~= "0") then
+    if(config.host_ts_creation == "full") then
       ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
-    end
 
-    if(config.host_ndpi_timeseries_creation == "per_protocol" or config.host_ndpi_timeseries_creation == "both") then
-      ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, config)
-    end
+      if(config.host_ndpi_timeseries_creation == "per_protocol" or config.host_ndpi_timeseries_creation == "both") then
+        ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, config)
+      end
 
-    if(config.host_ndpi_timeseries_creation == "per_category" or config.host_ndpi_timeseries_creation == "both") then
-      ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
+      if(config.host_ndpi_timeseries_creation == "per_category" or config.host_ndpi_timeseries_creation == "both") then
+        ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
+      end
     end
   end
 end
@@ -419,7 +418,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
   local dumped_hosts = {}
 
   -- Save hosts stats (if enabled from the preferences)
-  if is_rrd_creation_enabled and config.host_rrd_creation ~= "0" then
+  if is_rrd_creation_enabled and config.host_ts_creation ~= "off" then
      local is_one_way_hosts_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_one_way_hosts_rrd_creation") ~= "false")
 
      local in_time = callback_utils.foreachLocalRRDHost(_ifname, true --[[ timeseries ]], is_one_way_hosts_rrd_creation_enabled, function (hostname, host_ts)

@@ -62,7 +62,7 @@ function setup(str_granularity)
    })
 
    configsets = user_scripts.getConfigsets()
-   ts_enabled = (ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "0")
+   ts_enabled = areHostTimeseriesEnabled()
 end
 
 -- #################################################################

@@ -3446,14 +3446,17 @@ function areInterfaceCategoriesTimeseriesEnabled(ifid)
 end
 
 function areHostTimeseriesEnabled(ifid)
-   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.host_rrd_creation") ~= "0"))
+   local rv = ntop.getPref("ntopng.prefs.hosts_ts_creation")
+   if isEmptyString(rv) then rv = "light" end
+
+   return((rv == "light") or (rv == "full"))
 end
 
 function areHostL7TimeseriesEnabled(ifid)
    local rv = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
 
    -- note: host protocols are disabled by default
-   return(areHostTimeseriesEnabled(ifid) and
+   return((ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and
       ((rv == "per_protocol") or (rv == "both")))
 end
 
@@ -3461,7 +3464,7 @@ function areHostCategoriesTimeseriesEnabled(ifid)
    local rv = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
 
    -- note: host protocols are disabled by default
-   return(areHostTimeseriesEnabled(ifid) and
+   return((ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and
       ((rv == "per_category") or (rv == "both")))
 end
 

@@ -615,9 +615,6 @@
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     NTOPNG_PREFS_PREFIX".housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     NTOPNG_PREFS_PREFIX".flow_device_port_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT      NTOPNG_PREFS_PREFIX".ip_reassignment_alerts" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_HOST_RRD_CREATION          NTOPNG_PREFS_PREFIX".host_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION     NTOPNG_PREFS_PREFIX".host_ndpi_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION     NTOPNG_PREFS_PREFIX".host_categories_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               NTOPNG_PREFS_PREFIX".thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"
 #define CONST_PREFS_ENABLE_DEVICE_PROTOCOL_POLICIES    NTOPNG_PREFS_PREFIX".device_protocols_policing"
