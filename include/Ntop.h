@@ -54,6 +54,7 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
+  Mutex m;
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */

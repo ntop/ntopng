@@ -2276,13 +2276,20 @@ int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
 
 /* ****************************************** */
 
+/* NOTE: the interface is deleted when this method returns false */
 bool Ntop::registerInterface(NetworkInterface *_if) {
+  bool rv = true;
+
+  /* Needed as can be called concurrently by NetworkInterface::registerSubInterface */
+  m.lock(__FILE__, __LINE__);
+
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Skipping duplicated interface %s", _if->get_name());
-      delete _if;
-      return false;
+
+      rv = false;
+      goto out;
     }
   }
 
@@ -2290,15 +2297,27 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface %s [id: %d]",
 				 _if->get_name(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
-    return true;
+
+    rv = true;
+    goto out;
   } else {
     static bool too_many_interfaces_error = false;
     if(!too_many_interfaces_error) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
       too_many_interfaces_error = true;
     }
-    return false;
+
+    rv = false;
+    goto out;
   }
+
+out:
+  if(!rv)
+    delete _if;
+
+  m.unlock(__FILE__, __LINE__);
+
+  return(rv);
 };
 
 /* ******************************************* */

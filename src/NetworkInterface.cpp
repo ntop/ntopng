@@ -948,23 +948,28 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
 /* **************************************************** */
 
+/* NOTE: the interface is deleted when this method returns false */
 bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface, u_int32_t criteria) {
   FlowHashing *h = NULL;
 
-  h = (FlowHashing*)malloc(sizeof(FlowHashing));
+  h = (FlowHashing*)calloc(1, sizeof(FlowHashing));
 
   if(h == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    delete sub_iface; /* Note: deleting here as ntop->registerInterface is also deleting it on failure */
+    delete sub_iface;
     return false;
   }
 
+  /* registerInterface deletes the interface on failure */
   if(!ntop->registerInterface(sub_iface)) {
     free(h);
     return false;
   }
 
   sub_iface->setSubInterface();
+
+  /* allocateStructures must be called after registering the interface.
+   * This is needed because StoreManager calles ntop->getInterfaceById. */
   sub_iface->allocateStructures();
 
   ntop->initInterface(sub_iface);
@@ -998,7 +1003,8 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool par
   } else {
     /* Interface not found */
 
-    if(numSubInterfaces < MAX_NUM_VIRTUAL_INTERFACES) {
+    if((numSubInterfaces < MAX_NUM_VIRTUAL_INTERFACES) &&
+       (ntop->get_num_interfaces() < MAX_NUM_DEFINED_INTERFACES)) {
       char buf[64], buf1[48];
       const char *vIface_type;
 
@@ -1044,10 +1050,19 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool par
       if(sub_iface) {
         if (!this->registerSubInterface(sub_iface, criteria)) {
           ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure registering sub-interface");
+
+	  /* NOTE: interface deleted by registerSubInterface */
           sub_iface = NULL;
         }
       } else {
         ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
+      }
+    } else {
+      static bool too_many_interfaces_error = false;
+
+      if(!too_many_interfaces_error) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many subinterfaces defined");
+	too_many_interfaces_error = true;
       }
     }
   }

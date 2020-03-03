@@ -111,11 +111,17 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
 /* **************************************************** */
 
 ZMQParserInterface::~ZMQParserInterface() {
+  map<u_int8_t, ZMQ_RemoteStats*>::iterator it;
+
   if(zmq_remote_stats)        free(zmq_remote_stats);
   if(zmq_remote_stats_shadow) free(zmq_remote_stats_shadow);
 #ifdef NTOPNG_PRO
   if(custom_app_maps)         delete(custom_app_maps);
 #endif
+
+  for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); ++it)
+    free(it->second);
+  source_id_last_zmq_remote_stats.clear();
 }
 
 /* **************************************************** */
@@ -1774,7 +1780,7 @@ u_int32_t ZMQParserInterface::getFlowMaxIdle() {
 
 void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   ZMQ_RemoteStats *last_zrs, *cumulative_zrs;
-  map<u_int8_t, ZMQ_RemoteStats*>::const_iterator it;
+  map<u_int8_t, ZMQ_RemoteStats*>::iterator it;
   u_int32_t last_time = zrs->local_time;
 
   /* Store stats for the current exporter */
@@ -1796,12 +1802,12 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   if (!cumulative_zrs)
     return;
 
-  for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); it++) {
+  for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); ) {
     ZMQ_RemoteStats *zrs_i = it->second;
     if (zrs_i->local_time < last_time - 3 /* sec */) {
       /* do not account inactive exporters, release them */
-      source_id_last_zmq_remote_stats[zrs_i->source_id] = NULL;
       free(zrs_i);
+      source_id_last_zmq_remote_stats.erase(it++);
     } else {
       Utils::snappend(cumulative_zrs->remote_ifname, sizeof(cumulative_zrs->remote_ifname), zrs_i->remote_ifname, ",");
       Utils::snappend(cumulative_zrs->remote_ifaddress, sizeof(cumulative_zrs->remote_ifaddress), zrs_i->remote_ifaddress, ",");
@@ -1824,6 +1830,8 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
       cumulative_zrs->sflow_pkt_sample_drops += zrs_i->sflow_pkt_sample_drops;
       cumulative_zrs->flow_collection_drops += zrs_i->flow_collection_drops;
       cumulative_zrs->flow_collection_udp_socket_drops += zrs_i->flow_collection_udp_socket_drops;
+
+      ++it;
     }
   }
 
