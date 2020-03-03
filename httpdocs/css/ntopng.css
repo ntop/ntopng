@@ -885,6 +885,15 @@ path.link {
 #network-load {
   display: contents;
 }
+#network-load > li.nav-item {
+  max-width: 60rem;
+}
+#network-load div.d-flex {
+  width: 100%;
+  flex-wrap: wrap;
+  height: 100%;
+  align-items: center;  
+}
 #network-load div.d-flex a {
   margin: 0 0.1em;
 }

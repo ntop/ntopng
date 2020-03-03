@@ -196,7 +196,7 @@ print[[
 		$('#network-clock').html(`${rsp.localtime}`);
 		$('#network-uptime').html(`${rsp.uptime}`);
 
-		let msg = `<li class='nav-item p-btn mx-2'><div class='d-flex'>`;
+		let msg = `<li class='nav-item mx-2'><div class='d-flex'>`;
 
 		if (rsp.system_host_stats.cpu_states) {
             const iowait = ']] print(i18n("about.iowait")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
@@ -376,7 +376,13 @@ print[[
 
 		msg += '</div></li>';
 		// append the message inside the network-load element
-		$('#network-load').html(msg);
+		const $msg = $(msg);
+		// resize element's font size to fit better
+		if ($msg.width() > $msg.css('max-width')) {
+			$msg.find('span').css('font-size', '0.748rem');
+		}
+
+		$('#network-load').html($msg);
 		
 	    if (alert) {
 			$('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
