@@ -768,7 +768,7 @@ if((page == "overview") or (page == nil)) then
       print("<td width=20%><span id=nfq_enobufs>"..formatValue(st.failures.no_buffers).."</span> <span id=nfq_enobufs_trend></span></td>")
       print("</tr>")
 
-      print("<tr><th nowrap>Conntrack Flow Entries</th><td colspan=5>")
+      print("<tr><th nowrap>") print(i18n("if_stats_overview.conntrack_flow_entries")) print("</th><td colspan=5>")
       print("<span id=num_conntrack_entries>"..formatValue(st.nfq.num_conntrack_entries).."</span></td>")
       print("</tr>")
    end

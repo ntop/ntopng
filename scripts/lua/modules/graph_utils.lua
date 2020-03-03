@@ -710,11 +710,11 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
          local by_category = {}
 
          for _, serie in pairs(series) do
-            by_category[serie.category] = 1
+            by_category[getCategoryLabel(serie.category)] = serie.category
          end
 
-         for category in pairsByKeys(by_category, asc) do
-            populateGraphMenuEntry(category, base_url, table.merge(params, {ts_schema=schema, category=category}))
+         for label, category in pairsByKeys(by_category, asc) do
+            populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, category=category}))
          end
       end
    end

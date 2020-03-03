@@ -33,9 +33,9 @@ end
 local function printPlugins()
   local plugins = plugins_utils.getLoadedPlugins()
 
-  print[[<h3>Loaded Plugins</h3><br>
+  print[[<h3>]] print(i18n("plugins_overview.loaded_plugins")) print[[</h3><br>
   <table class="table table-bordered table-sm table-striped">
-    <tr><th width="20%">Plugin</th><th>Description</th><th>Source Location</th><th width="10%">Availability</th></tr>]]
+    <tr><th width="20%">]] print(i18n("plugins_overview.plugin")) print[[</th><th>]] print(i18n("show_alerts.alert_description")) print[[</th><th>]] print(i18n("plugins_overview.source_location")) print[[</th><th width="10%">]] print(i18n("plugins_overview.availability")) print[[</th></tr>]]
 
   for _, plugin in pairsByField(plugins, "title", asc) do
     local available = ""
@@ -65,10 +65,10 @@ print[[<div class="row">
 <div class="col col-md-1">
   <form class="form-inline" style="width:12em">
     <select id="filter_select" name="edition" class="form-control">
-    <option value="" ]] print(ternary(isEmptyString(edition, "selected", ""))) print[[>All</option>
-    <option value="community" ]] print(ternary(edition == "community", "selected", "")) print[[>Community Only</option>
-    <option value="pro" ]] print(ternary(edition == "pro", "selected", "")) print[[>Pro Only</option>
-    <option value="enterprise" ]] print(ternary(edition == "enterprise", "selected", "")) print[[>Enterprise Only</option>
+    <option value="" ]] print(ternary(isEmptyString(edition, "selected", ""))) print[[>]] print(i18n("all")) print[[</option>
+    <option value="community" ]] print(ternary(edition == "community", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Community"})) print[[</option>
+    <option value="pro" ]] print(ternary(edition == "pro", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Pro"})) print[[</option>
+    <option value="enterprise" ]] print(ternary(edition == "enterprise", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Enterprise"})) print[[</option>
     </select>
   </form>
 </div>]]
@@ -78,7 +78,7 @@ if isAdministrator() then
   <form class="form-inline" method="POST">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[">
     <input name="action" type="hidden" value="reload" />
-    <button class="btn btn-primary" style="margin-left:auto" type="submit">Reload Plugins</button>
+    <button class="btn btn-primary" style="margin-left:auto" type="submit">]] print(i18n("plugins_overview.reload_plugins")) print[[</button>
   </form>
 </div>
 ]]

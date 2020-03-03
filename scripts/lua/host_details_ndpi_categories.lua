@@ -37,9 +37,10 @@ print("<tr><td>Total</td><td class=\"text-right\">".. secondsToTime(host["total_
 
 for k, v in pairsByKeys(host["ndpi_categories"], desc) do
    print("<tr><td>")
+   local label = getCategoryLabel(k)
 
    if(areHostCategoriesTimeseriesEnabled(ifid, host)) then
-      print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:ndpi_categories&category=".. k .."\">"..k.."</A>")
+      print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:ndpi_categories&category=".. k .."\">"..label.."</A>")
    else
       print(k)
    end

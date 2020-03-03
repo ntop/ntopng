@@ -103,7 +103,7 @@ for list_name, list in pairs(lists) do
   list.status_label = getListStatusLabel(list)
 
   if sortColumn == "column_category_name" then
-    sort_to_key[list_name] = list.category_name
+    sort_to_key[list_name] = getCategoryLabel(list.category_name)
   elseif sortColumn == "column_last_update" then
     sort_to_key[list_name] = list.status.last_update
   elseif sortColumn == "column_num_hosts" then
@@ -148,7 +148,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       column_update_interval = list.update_interval,
       column_update_interval_label = update_interval_label,
       column_category = "cat_" .. list.category,
-      column_category_name = list.category_name,
+      column_category_name = getCategoryLabel(list.category_name),
       column_num_hosts = list.status.num_hosts,
       column_last_update = format_utils.formatPastEpochShort(list.status.last_update),
     }

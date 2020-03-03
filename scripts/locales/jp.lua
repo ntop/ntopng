@@ -322,7 +322,6 @@ local lang = {
     ["potentially_dangerous_protocol_description"] = "古いまたは脆弱なプロトコルが使用されているため、このフローはネットワークに有害な可能性があります。",
     ["proto_bytes_quotas"] = "%{proto} バイト",
     ["proto_time_quotas"] = "%{proto} 時間",
-    ["slow_periodic_activity"] = "定期的なアクティビティ\\ %{script}\"を完了するのに時間がかかりすぎています [%{duration} &gt; %{max_duration}]\"",
     ["slow_purge"] = " \"<a href=\"%{url}\">ハッシュテーブルのアイドルエントリー</a> %{iface}のパージが遅すぎます.これはメモリ、データ の正確性、アラートの抜けにつながります. [&gt %{max_idle}%%]\"",
     ["slow_stats_update"] = "\"%{iface}の統計情報更新が遅すぎます.これは、データの正確性・データロス、アラートロスにつながります. 頻度を更新するには <a href=\"%{url}\">%{pref_name}</a> 設定で行ってください.\"",
     ["subject_quota_exceeded"] = "ホスト プール <a href=\"%{url}\">%{pool}</a> exceeded %{subject} quota [%{value} &gt; %{quota}]",

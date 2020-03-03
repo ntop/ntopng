@@ -56,8 +56,12 @@ function format_utils.secondsToTime(seconds)
 
       if(days > 0) then
 	 if(string.len(msg) > 0) then  msg = msg .. ", " end
-	 msg = msg .. days .. " day"
-	 if(days > 1) then msg = msg .. "s" end
+
+	 if(days > 1) then
+	    msg = msg .. days .. " " .. i18n("metrics.days")
+	 else
+	    msg = msg .. days .. " " .. i18n("day")
+	 end
       end
    end
 

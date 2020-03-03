@@ -27,7 +27,7 @@ local function printUserScripts(title, scripts)
 
   print[[<h3>]] print(title) print[[</h3>
     <table class="table table-bordered table-sm table-striped">
-    <tr><th class='text-left' width="30%">Script</th><th width="10%">Availability</th><th width="30%">Hooks</th><th>Filters</th></tr>]]
+    <tr><th class='text-left' width="30%">]] print(i18n("plugins_overview.script")) print[[</th><th width="10%">]] print(i18n("plugins_overview.availability")) print[[</th><th width="30%">]] print(i18n("plugins_overview.hooks")) print[[</th><th>]] print(i18n("plugins_overview.filters")) print[[</th></tr>]]
 
   for name, script in pairsByKeys(scripts.modules) do
     local available = ""
@@ -92,9 +92,9 @@ local return_all = true
 print[[<form class="form-inline" style="width:12em">
 <select id="filter_select" name="edition" class="form-control">
 <option value="" ]] print(ternary(isEmptyString(edition, "selected", ""))) print[[>All</option>
-<option value="community" ]] print(ternary(edition == "community", "selected", "")) print[[>Community Only</option>
-<option value="pro" ]] print(ternary(edition == "pro", "selected", "")) print[[>Pro Only</option>
-<option value="enterprise" ]] print(ternary(edition == "enterprise", "selected", "")) print[[>Enterprise Only</option>
+<option value="community" ]] print(ternary(edition == "community", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Community"})) print[[</option>
+<option value="pro" ]] print(ternary(edition == "pro", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Pro"})) print[[</option>
+<option value="enterprise" ]] print(ternary(edition == "enterprise", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Enterprise"})) print[[</option>
 </select>
 </form>
 <script>

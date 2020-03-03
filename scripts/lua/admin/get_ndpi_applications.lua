@@ -147,7 +147,7 @@ for app, _ in pairsByValues(sorter, sOrder) do
    for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do
       cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [["]] ..
          ternary(cat_id == current_id, " selected", "") .. [[>]] ..
-         cat_name .. [[</option>]]
+         getCategoryLabel(cat_name) .. [[</option>]]
    end
    cat_select_dropdown = cat_select_dropdown .. "</select>"
 

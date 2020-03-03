@@ -19,6 +19,8 @@ local query = string.lower(_GET["query"])
 local categories = interface.getnDPICategories()
 
 for cat, id in pairsByKeys(categories, asc_insensitive) do
+  cat = getCategoryLabel(cat)
+
   if string.contains(string.lower(cat), query) then
     results[#results + 1] = {name=cat, key=id}
     if #results >= max_num_to_find then

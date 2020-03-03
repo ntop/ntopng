@@ -351,9 +351,9 @@ for _key, _value in pairsByKeys(vals, funct) do
       if value["localhost"] == true --[[or value["systemhost"] == true --]] then
 	 column_location = "<span class='badge badge-success'>"..i18n("hosts_stats.label_local_host").."</span>"
       elseif value["is_multicast"] == true then
-	 column_location = "<span class='badge badge-secondary'>Multicast</span>"
+	 column_location = "<span class='badge badge-secondary'>" ..i18n("multicast").. "</span>"
       elseif value["is_broadcast"] == true then
-	 column_location = "<span class='badge badge-secondary'>Broadcast</span>"
+	 column_location = "<span class='badge badge-secondary'>" ..i18n("broadcast").. "</span>"
       else
 	 column_location = "<span class='badge badge-secondary'>"..i18n("hosts_stats.label_remote_host").."</span>"
       end

@@ -117,7 +117,7 @@ print[[
                   <select name="category" class="form-control" readonly disabled="disabled">]]
 
                   for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
-                    print(string.format([[<option value="cat_%s">%s</option>]], cat_id, cat_name))
+                    print(string.format([[<option value="cat_%s">%s</option>]], cat_id, getCategoryLabel(cat_name)))
                   end
 
                   print[[</select>

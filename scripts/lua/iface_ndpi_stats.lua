@@ -66,9 +66,9 @@ if(stats ~= nil) then
 
       if(tot > 0) then
 	 if(num > 0) then print(", ") end
-	 print("\t { \"label\": \"Other\", \"value\": ".. tot .." }")
+	 print("\t { \"label\": \"".. i18n("other") .."\", \"value\": ".. tot .." }")
       elseif(num == 0) then
-	 print("\t { \"label\": \"No Flows\", \"value\": 0 }")
+	 print("\t { \"label\": \"".. i18n("no_flows") .."\", \"value\": 0 }")
       end
 
       print "]\n"
@@ -99,6 +99,7 @@ if(stats ~= nil) then
       local ndpi_category_stats = {}
 
       for key, value in pairs(stats["ndpi_categories"]) do
+	 key = getCategoryLabel(key)
 	 local traffic = value["bytes"]
 
 	 if(ndpi_category_stats[key] == nil) then
@@ -196,7 +197,7 @@ if(stats ~= nil) then
 	 print (",\n")
       end
 
-      print("\t { \"label\": \"Other\", \"value\": ".. (tot-accumulate) .." }")
+      print("\t { \"label\": \"".. i18n("other") .."\", \"value\": ".. (tot-accumulate) .." }")
    end
 end
 

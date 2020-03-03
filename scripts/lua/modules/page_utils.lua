@@ -113,7 +113,7 @@ page_utils.menu_entries = {
     plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev"},
     user_scripts 	 = {key = "user_scripts", i18n_title = "about.user_scripts", section = "dev"},
     alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev"},
-    api 	         = {key = "api", i18n_title = "Lua/C API", section = "dev"},
+    api 	         = {key = "api", i18n_title = "lua_c_api", section = "dev"},
 
     -- Help
     about   		 = {key = "about", i18n_title = "about.about", section = "about"},

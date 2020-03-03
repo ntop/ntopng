@@ -1293,6 +1293,12 @@ end
 -- #################################
 
 function getCategoryLabel(cat_name)
+  local v = i18n("ndpi_categories." .. cat_name)
+  if v then
+   -- Localized string found
+   return(v)
+  end
+
   cat_name = cat_name:gsub("^%l", string.upper)
   return(cat_name)
 end

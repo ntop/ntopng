@@ -83,7 +83,7 @@ for item_name, item_id in pairs(items) do
    num_items = num_items + 1
 
    if sortColumn == "column_" or sortColumn == "column_category_name" then
-      sorter[item_name] = item_name
+      sorter[item_name] = getCategoryLabel(item_name)
    elseif sortColumn == "column_num_hosts" then
       sorter[item_name] = num_hosts
    elseif sortColumn == "column_num_protos" then
@@ -106,7 +106,7 @@ for sorted_item, _ in pairsByValues(sorter, sOrder) do
    local record = {}
 
    record["column_category_id"] = tostring(items[sorted_item]["id"])
-   record["column_category_name"] = tostring(items[sorted_item]["name"])
+   record["column_category_name"] = getCategoryLabel(items[sorted_item]["name"])
    record["column_num_hosts"] = tostring(items[sorted_item].num_hosts)
    record["column_num_protos"] = string.format('<a href="%s/lua/admin/edit_categories?tab=protocols&category=cat_%u">%s</a>', ntop.getHttpPrefix(), items[sorted_item]["id"], tostring(items[sorted_item].num_protocols))
    record["column_category_hosts"] = table.concat(items[sorted_item].hosts_list, ",")

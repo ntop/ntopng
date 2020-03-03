@@ -375,18 +375,21 @@ if isAdministrator() then
 
       if categories_utils.addCustomCategoryHost(category_id, _POST["custom_hosts"]) then
 	 lists_utils.reloadLists()
+	 local label = interface.getnDPICategoryName(category_id)
 
 	 alert_banners[#alert_banners + 1] = {
 	    type="success",
 	    text=i18n("flow_details.host_successfully_added_to_category",
-	       {host=_POST["custom_hosts"], category=interface.getnDPICategoryName(category_id),
+	       {host=_POST["custom_hosts"], category=(i18n("ndpi_categories." .. label) or label),
 	       url = ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua?l7proto=" .. category_id})
 	 }
       else
+	 local label = interface.getnDPICategoryName(category_id)
+
 	 alert_banners[#alert_banners + 1] = {
 	    type="danger",
 	    text=i18n("flow_details.could_not_add_host_to_category",
-	       {host=_POST["custom_hosts"], category=interface.getnDPICategoryName(category_id)})
+	       {host=_POST["custom_hosts"], category=(i18n("ndpi_categories." .. label) or label)})
 	 }
       end
    end
@@ -405,7 +408,7 @@ local function printAddCustomHostRule(full_url)
    local cat_select_dropdown = '<select id="flow_target_category" class="form-control">'
 
    for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do
-      cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [[">]] .. cat_name .. [[</option>]]
+      cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [[">]] .. (i18n("ndpi_categories." .. cat_name) or cat_name) .. [[</option>]]
    end
    cat_select_dropdown = cat_select_dropdown .. "</select>"
 
@@ -426,8 +429,10 @@ local function printAddCustomHostRule(full_url)
 	 {name=i18n("custom_categories.apps_and_categories"), url=ntop.getHttpPrefix().."/lua/admin/edit_categories.lua"})
 
    if matched_category ~= nil then
+      local cat_name = interface.getnDPICategoryName(matched_category)
+
       existing_note = existing_note .. "<br><br>" .. i18n("details.note") .. ": " ..
-	 i18n("custom_categories.similar_host_found", {host=full_url, category=interface.getnDPICategoryName(matched_category)}) ..
+	 i18n("custom_categories.similar_host_found", {host=full_url, category=(i18n("ndpi_categories." .. cat_name) or cat_name)}) ..
 	 "<br><br>"
    end
 

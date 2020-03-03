@@ -203,7 +203,8 @@ print [[<br>
 <table><tbody><tr>
   <td style="white-space:nowrap; padding-right:1em;">]]
   if catid ~= nil then
-    print("<h2>"..i18n("users.cat_protocols", {cat=interface.getnDPICategoryName(tonumber(catid))}).."</h2>")
+    local key = interface.getnDPICategoryName(tonumber(catid))
+    print("<h2>"..i18n("users.cat_protocols", {cat=(i18n("ndpi_categories." .. key) or key)}).."</h2>")
   end
   print[[</td>]]
 

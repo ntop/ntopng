@@ -20,7 +20,7 @@ print [[
 <div class="row">
 <div class="col col-md-4 offset-1">
 <table class="table table-bordered table-sm">
-<tr><th class='text-center'>Alert ID</th><th>Alert Key</th></tr>]]
+<tr><th class='text-center'>]] print(i18n("plugins_overview.alert_id")) print[[</th><th>]] print(i18n("plugins_overview.alert_key")) print[[</th></tr>]]
 
 local id_start = 0
 local id_end = 63
@@ -36,7 +36,7 @@ print[[</table>
 </div>
 <div class="col offset-1 col-md-4">
 <table class="table table-bordered table-sm">
-<tr><th class='text-center'>Status ID</th><th>Status Key</th></tr>]]
+<tr><th class='text-center'>]] print(i18n("plugins_overview.status_id")) print[[</th><th>]] print(i18n("plugins_overview.status_key")) print[[</th></tr>]]
 
 for status_id=id_start,id_end do
   local status_key = flow_consts.getStatusType(status_id) or "-"
