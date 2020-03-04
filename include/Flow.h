@@ -338,6 +338,7 @@ class Flow : public GenericHashEntry {
   inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = v; }
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
+  void updateTcpSeqIssues(const ParsedFlow *pf);
   static void incTcpBadStats(bool src2dst_direction,
 			     Host *cli, Host *srv,
 			     NetworkInterface *iface,

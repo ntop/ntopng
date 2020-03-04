@@ -290,6 +290,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
       flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction);
     }
 
+    flow->updateTcpSeqIssues(zflow);
+
     Flow::incTcpBadStats(true,
 			 flow->get_cli_host(), flow->get_srv_host(),
 			 this,

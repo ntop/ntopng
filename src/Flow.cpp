@@ -2600,6 +2600,13 @@ void Flow::addFlowStats(bool cli2srv_direction,
 
 /* *************************************** */
 
+void Flow::updateTcpSeqIssues(const ParsedFlow *pf) {
+  stats.incTcpStats(true   /* src2dst */, pf->tcp.retr_in_pkts, pf->tcp.ooo_in_pkts, pf->tcp.lost_in_pkts, 0 /* keepalive not supported */);
+  stats.incTcpStats(false  /* dst2src */, pf->tcp.retr_out_pkts, pf->tcp.ooo_out_pkts, pf->tcp.lost_out_pkts, 0 /* keepalive not supported */);
+}
+
+/* *************************************** */
+
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
   NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
