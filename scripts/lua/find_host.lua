@@ -63,19 +63,25 @@ if not hosts_only then
 
       local asn = "AS" .. as.asn
       local as_name = as.asname
+      local found = false
 
       if string.contains(string.lower(as_name), string.lower(query)) then
          results[#results + 1] = {
 	    name = string.format("%s [%s]", as_name, asn),
             type="asn", asn = as.asn,
          }
+	 found = true
       elseif string.contains(string.lower(asn), string.lower(query)) then
          results[#results + 1] = {
             name = asn,
 	    type="asn", asn = as.asn,
          }
+	 found = true
       end
-      cur_results = cur_results + 1
+
+      if found then
+	 cur_results = cur_results + 1
+      end
    end
 
    -- Check also in the mac addresses of snmp devices
