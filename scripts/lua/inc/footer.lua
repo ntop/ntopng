@@ -178,8 +178,7 @@ var footerRefresh = function() {
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    print[[
 
-		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
-		//$('#networkload').css("width", v+"%")
+		var v = Math.round(Math.min((bps*100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
 		$('#networkload').html(v+"%");
 ]]
 end
@@ -187,7 +186,7 @@ end
 print[[
 		$('#chart-upload-text').html(""+bitsToSize(bps_upload, 1000));
 		$('#chart-download-text').html(""+bitsToSize(bps_download, 1000));
-		//$('#chart-total-text').html(""+bitsToSize(Math.min(bps, ]] print(maxSpeed) print[[), 1000));
+		$('#chart-total-text').html(""+bitsToSize(bps_upload + bps_download, 1000));
      ]]
 
 -- system_view_enabled is defined inside menu.lua
