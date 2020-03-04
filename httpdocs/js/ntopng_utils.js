@@ -1,6 +1,6 @@
 // 2014-18 - ntop.org
 
-var NTOPNG_MIN_VISUAL_VALUE = 1;
+var NTOPNG_MIN_VISUAL_VALUE = 0.005;
 
 function is_good_ipv4(ipv4) {
     if (/^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$/.test(ipv4)) {
