@@ -172,19 +172,27 @@ end
 
 -- ###########################################
 
-local function getHasMudRecordedKey(ifid, host_key)
-   return(string.format("ntopng.mud.ifid_%d.has_recorded_data._%s_", ifid, host_key))
+local function getFirstMudRecordedKey(ifid, host_key)
+   return(string.format("ntopng.mud.ifid_%d.first_recorded_data._%s_", ifid, host_key))
 end
 
 -- ###########################################
 
-local function handleHostMUD(ifid, mud_info, is_general_purpose, is_client)
+local function handleHostMUD(ifid, now, max_recording, mud_info, is_general_purpose, is_client)
    local flow_info = flow.getInfo() -- TODO remove
    local l4proto = flow_info["proto.l4"]
    local mud_type
    local peer_key_is_mac
    local is_local_connection = mud_info["is_local"]
    local host_ip, peer_ip, peer_port, peer_key
+   local first_recorded_key = getFirstMudRecordedKey(ifid, host_ip)
+   local first_recorded = tonumber(ntop.getCache(first_recorded_key)) or 0
+   local recording_completed = ((now - first_recorded) >= max_recording)
+
+   if(recording_completed) then
+      -- The learning phase for this host has ended
+      return
+   end
 
    -- Only support TCP and UDP
    if((l4proto ~= "TCP") and (l4proto ~= "UDP")) then
@@ -220,7 +228,11 @@ local function handleHostMUD(ifid, mud_info, is_general_purpose, is_client)
    -- Register the connection
    -- TODO handle alerts
    ntop.setMembersCache(mud_key, conn_key)
-   ntop.setCache(getHasMudRecordedKey(ifid, host_ip), "1")
+
+   if(first_recorded == 0) then
+      -- First time MUD is recorded for this host
+      ntop.setCache(first_recorded_key, string.format("%u", now))
+   end
 end
 
 -- ###########################################
@@ -258,10 +270,10 @@ function mud_utils.handleFlow(now, enabled_device_types, max_recording)
    end
 
    if(cli_recording ~= "disabled") then
-      handleHostMUD(ifid, mud_info, (cli_recording == "general_purpose"), true --[[client]])
+      handleHostMUD(ifid, now, max_recording, mud_info, (cli_recording == "general_purpose"), true --[[client]])
    end
    if(srv_recording ~= "disabled") then
-      handleHostMUD(ifid, mud_info, (srv_recording == "general_purpose"), false --[[server]])
+      handleHostMUD(ifid, now, max_recording, mud_info, (srv_recording == "general_purpose"), false --[[server]])
    end
 end
 
@@ -579,12 +591,14 @@ end
 -- ###########################################
 
 function mud_utils.hasRecordedMUD(ifid, host_key)
-   return(ntop.getCache(getHasMudRecordedKey(ifid, host_key)) == "1")
+   return(not isEmptyString(ntop.getCache(getFirstMudRecordedKey(ifid, host_key))))
 end
 
 -- ###########################################
 
 function mud_utils.deleteHostMUD(ifid, host_key)
+  ntop.detCache(getFirstMudRecordedKey(ifid, host_key))
+
   local pattern = string.format("ntopng.mud.ifid_%d.*._%s_*", ifid, host_key)
   local keys = ntop.getKeysCache(pattern) or {}
 

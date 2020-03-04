@@ -1294,6 +1294,10 @@ local known_parameters = {
    ["script_subdir"]           = validateSingleWord,
    ["script_key"]              = validateSingleWord,
 
+-- Topology SNMP Devices
+   ["topology_host"]                   = validateIPV4,
+
+
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,
    ["plugin_path"]              = validateLuaScriptPath,
