@@ -103,12 +103,8 @@ for _, iface in pairs(available_interfaces) do
    local scripts_stats = interface.getPeriodicActivitiesStats()
 
    -- Flatten out the nested tables
-   for script in pairs(periodic_activities_utils.periodic_activities) do
-      local stats = scripts_stats[script]
-
-      if stats then
-	 ifaces_scripts_stats["ifid_"..getInterfaceId(iface).."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
-      end
+   for script, stats in pairs(scripts_stats) do
+      ifaces_scripts_stats["ifid_"..getInterfaceId(iface).."_"..script] = {iface = iface, ifid = getInterfaceId(iface), script = script, stats = stats}
    end
 
    ::continue::
@@ -159,7 +155,7 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
    elseif(sortColumn == "column_periodic_activity_name") then
       sort_to_key[k] = script_stats.script
    elseif(sortColumn == "column_periodicity") then
-      sort_to_key[k] = periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"]
+      sort_to_key[k] = script_stats.stats.periodicity
    elseif(sortColumn == "column_status") then
       sort_to_key[k] = stats.state
    elseif(sortColumn == "column_last_start_time") then
@@ -178,20 +174,8 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
       else
 	 sort_to_key[k] = 0
       end
-   elseif(sortColumn == "column_expected_start_time") then
-      if(status == "queued") then
-	 sort_to_key[k] = script_stats.stats.scheduled_time or 0
-      elseif(status == "sleeping") then
-	 sort_to_key[k] = script_stats.stats.deadline or 0
-      else
-	 sort_to_key[k] = 0
-      end
-   elseif(sortColumn == "column_expected_end_time") then
-      if(status == "running") then
-	 sort_to_key[k] = script_stats.stats.deadline
-      else
-	 sort_to_key[k] = 0
-      end
+   elseif(sortColumn == "column_max_duration_secs") then
+      sort_to_key[k] = script_stats.stats.max_duration_secs or 0
    elseif(sortColumn == "column_tot_not_executed") then
       sort_to_key[k] = (script_stats.stats.num_not_executed or 0)
    elseif(sortColumn == "column_tot_running_slow") then
@@ -225,7 +209,6 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local script_stats = ifaces_scripts_stats[key]
 
       local max_duration = script_stats.stats.duration.max_duration_ms
-      local last_duration = script_stats.stats.duration.last_duration_ms
       local status = script_stats.stats.state
       local warn = {}
 
@@ -264,43 +247,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 	 end
       end
 
-      if status ~= "running" then
-         -- If sleeping/queued, when it should be run
-         local exp_start
-
-         if(status == "queued") then
-            exp_start = script_stats.stats.scheduled_time
-
-            if(exp_start > now) then
-               exp_start = format_utils.formatPastEpochShort(exp_start)
-            else
-               exp_start = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - exp_start)}) .. "</span>"
-            end
-         else --elseif(status == "sleeping") then
-            exp_start = script_stats.stats.deadline
-
-            if(exp_start < now) then
-               exp_start = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - exp_start)}) .. "</span>"
-            else
-               exp_start = string.format("%s %s", i18n("time_in"), format_utils.secondsToTime(exp_start - now))
-            end
-         end
-
-         record["column_expected_start_time"] = exp_start
-         record["column_expected_end_time"] = ""
-      else
-         -- If running, when it should stop
-         local deadline = script_stats.stats.deadline
-
-         if(deadline > now) then
-            deadline = string.format("%s %s", i18n("time_in"), format_utils.secondsToTime(deadline - now))
-         else
-            deadline = "<span style='color:red'>" .. i18n("internals.last_start_time_ago", {time = format_utils.secondsToTime(now - deadline)}) .. "</span>"
-         end
-
-         record["column_expected_start_time"] = " "
-         record["column_expected_end_time"] = deadline
-      end
+      record["column_max_duration_secs"] = format_utils.secondsToTime(script_stats.stats["max_duration_secs"])
 
       -- TODO
       record["column_work_completion"] = "90%"
@@ -327,11 +274,21 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local utiliz = time_utilization(script_stats.stats)
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
 
-      if last_duration > 0 then
-	 record["column_last_duration"] = last_duration
+      record["column_last_duration"] = ''
+      if status == "running" then
+	 -- If running, last durations grows with the time as the activity is in progress
+	 if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 and now > script_stats.stats["last_start_time"] then
+	    record["column_last_duration"] = (now - script_stats.stats["last_start_time"]) * 1000 -- Expected in milliseconds
+	 end
       else
-	 record["column_last_duration"] = ''
+	 -- if not running, the last duration can be read from the stats
+	 local last_duration = script_stats.stats.duration.last_duration_ms
+
+	 if script_stats.stats.duration.last_duration_ms > 0 then
+	    record["column_last_duration"] = script_stats.stats.duration.last_duration_ms
+	 end
       end
+
       record["column_status"] = status2label(status)
 
       record["column_name"] = string.format('<a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=%i&page=internals&tab=periodic_activities">%s</a>', script_stats.ifid, getHumanReadableInterfaceName(getInterfaceName(script_stats.ifid)))
@@ -349,7 +306,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local activity_name = string.format("<span id='%s' title='%s'>%s</span>", activity_id, i18n("periodic_activities_descr."..script_stats.script), script_stats.script)
       record["column_periodic_activity_name"] = warn .. activity_name .. activity_desc
 
-      record["column_periodicity"] = format_utils.secondsToTime(periodic_activities_utils.periodic_activities[script_stats.script]["periodicity"])
+      record["column_periodicity"] = format_utils.secondsToTime(script_stats.stats.periodicity)
 
       if areInternalTimeseriesEnabled(script_stats.ifid) then
 	 if script_stats.ifid == getSystemInterfaceId() then

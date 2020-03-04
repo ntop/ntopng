@@ -9,17 +9,17 @@ local ts_utils = require "ts_utils_core"
 -- ###########################################
 
 periodic_activities_utils.periodic_activities = {
-   -- Script -> max_duration sec
-   ["stats_update.lua"]      = { periodicity = 5,     },
-   ["ht_state_update.lua"]   = { periodicity = 5,     },
-   ["minute.lua"]            = { periodicity = 60,    },
-   ["5min.lua"]              = { periodicity = 300,   },
-   ["hourly.lua"]            = { periodicity = 3600,  },
-   ["daily.lua"]             = { periodicity = 86400, },
-   ["housekeeping.lua"]      = { periodicity = 3,     },
-   ["discover.lua"]          = { periodicity = 5,     },
-   ["timeseries.lua"]        = { periodicity = 5,     },
-   ["second.lua"]            = { periodicity = 1,     },
+   -- Can use this table to keep certain information for every periodic activity
+   ["stats_update.lua"]      = {  },
+   ["ht_state_update.lua"]   = {  },
+   ["minute.lua"]            = {  },
+   ["5min.lua"]              = {  },
+   ["hourly.lua"]            = {  },
+   ["daily.lua"]             = {  },
+   ["housekeeping.lua"]      = {  },
+   ["discover.lua"]          = {  },
+   ["timeseries.lua"]        = {  },
+   ["second.lua"]            = {  },
 }
 
 -- ###########################################

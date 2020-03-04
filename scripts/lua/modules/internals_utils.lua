@@ -201,9 +201,8 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
    </ul>
    <li>]] print(i18n("internals.periodic_activities_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_periodicity_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_expected_start_time_descr")) print[[</li>
+   <li>]] print(i18n("internals.periodic_activities_max_duration_secs_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_last_start_time_descr")) print[[</li>
-   <li>]] print(i18n("internals.periodic_activities_expected_end_time_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_tot_not_executed_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_tot_running_slow_descr")) print[[</li>]]
    if ts_utils.getDriverName() == "rrd" then
@@ -273,6 +272,14 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '2%',
        }
      }, {
+       title: "]] print(i18n("internals.max_duration_secs")) print[[",
+       field: "column_max_duration_secs",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '3%',
+       }
+     }, {
        title: "]] print(i18n("chart")) print[[",
        field: "column_chart",
        hidden: ]] if not ts_creation then print('true') else print('false') end print[[,
@@ -298,24 +305,8 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '2%',
        }
      }, {
-       title: "]] print(i18n("internals.expected_start_time")) print[[",
-       field: "column_expected_start_time",
-       sortable: true,
-       css: {
-	 textAlign: 'right',
-	 width: '3%',
-       }
-     }, {
        title: "]] print(i18n("internals.last_start_time")) print[[",
        field: "column_last_start_time",
-       sortable: true,
-       css: {
-	 textAlign: 'right',
-	 width: '3%',
-       }
-     }, {
-       title: "]] print(i18n("internals.expected_end_time")) print[[",
-       field: "column_expected_end_time",
        sortable: true,
        css: {
 	 textAlign: 'right',
