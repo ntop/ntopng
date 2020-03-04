@@ -274,11 +274,12 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local utiliz = time_utilization(script_stats.stats)
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
 
-      record["column_last_duration"] = ''
+      record["column_last_duration"] = '0'
+
       if status == "running" then
 	 -- If running, last durations grows with the time as the activity is in progress
-	 if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 and now > script_stats.stats["last_start_time"] then
-	    record["column_last_duration"] = (now - script_stats.stats["last_start_time"]) * 1000 -- Expected in milliseconds
+	 if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 and now >= script_stats.stats["last_start_time"] then
+	    record["column_last_duration"] = (now - script_stats.stats["last_start_time"]) * 1000 --[[ Expected in milliseconds --]]
 	 end
       else
 	 -- if not running, the last duration can be read from the stats
