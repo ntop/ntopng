@@ -28,6 +28,8 @@ StoreManager::StoreManager(int interface_id) {
 };
 
 int StoreManager::init(const char *db_file_full_path) {
+  // db_file_full_path = (char*)":memory:"; 
+  
   if(sqlite3_open(db_file_full_path, &db)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s: %s",
 				 db_file_full_path, sqlite3_errmsg(db));

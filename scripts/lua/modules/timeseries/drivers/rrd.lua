@@ -1118,97 +1118,35 @@ function driver:export()
    local ts_utils = require "ts_utils" -- required to get the schema from the schema name
 
    local available_interfaces = interface.getIfNames()
-   -- Add the system interface to the available interfaces
-   available_interfaces[getSystemInterfaceId()] = getSystemInterfaceName()
+   local rrd_queue_max_dequeues_per_interface = 8192
 
-   -- Set the name and a status to know when all the interfaces are done
-   local num_ifaces = 0
-   for cur_ifid, ifname in pairs(available_interfaces) do
-      available_interfaces[cur_ifid] = {ifname = ifname, completed = false}
-      num_ifaces = num_ifaces + 1
-   end
+   for cur_ifid, iface in pairs(available_interfaces) do
+      for cur_dequeue=1, rrd_queue_max_dequeues_per_interface do	 
+	 local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
 
-   local num_completed = 0  -- Number of interfaces with no more points to dequeue at any given loop
-   local stats         = {} -- Stats for every loop
-   local rrd_queue_max_poll_loops        = 1
-   local rrd_queue_max_dequeues_per_loop = 8192
-   local deadline_approaching = false
+         if not ts_point then
+  	     break
+         end
 
-   for cur_loop=1, rrd_queue_max_poll_loops do
-      -- Iterate all interfaces in a round-robin fashion to
-      -- make sure every one gets a chance to have its points written
-      -- in a fair way
+	 local parsed_ts_point = line_protocol_to_tags_and_metrics(ts_point)
 
-      stats[cur_loop] = {num_points = 0} -- Init a table to keep some stats
-      num_completed = 0 -- Reset it at every loop
-      deadline_approaching = false
+	 -- No need to do sanity checks on the schema. This queue is 'private' and should
+	 -- only be written with valid data already checked.
+	 local schema = ts_utils.getSchema(parsed_ts_point["schema_name"])
+	 local timestamp = parsed_ts_point["timestamp"]
+	 local tags = parsed_ts_point["tags"]
+	 local metrics = parsed_ts_point["metrics"]
+	 local base, rrd = schema_get_path(schema, tags)
+	 local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
-      for cur_ifid, iface in pairs(available_interfaces) do
-	 if iface["completed"] then
-	    -- Once an interface is marked as completed, do not reprocess it
-	    -- until the next run, even if new points have arrived in the meanwhile
-	    goto next_interface
-	 end
-
-	 for cur_dequeue=1, rrd_queue_max_dequeues_per_loop do
-	    if cur_dequeue % 10 == 0 then
-	      if ntop.isDeadlineApproaching() then
-	        -- No time left
-                 deadline_approaching = true
-	        break
-	      end
+	 if not ntop.notEmptyFile(rrdfile) then
+	    ntop.mkdir(base)
+	    if not create_rrd(schema, rrdfile) then
+	       return false
 	    end
-	 
-	    local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
-
-	    if not ts_point then
-	       iface["completed"] = true
-	       break
-	    end
-
-	    local parsed_ts_point = line_protocol_to_tags_and_metrics(ts_point)
-
-	    -- No need to do sanity checks on the schema. This queue is 'private' and should
-	    -- only be written with valid data already checked.
-	    local schema = ts_utils.getSchema(parsed_ts_point["schema_name"])
-	    local timestamp = parsed_ts_point["timestamp"]
-	    local tags = parsed_ts_point["tags"]
-	    local metrics = parsed_ts_point["metrics"]
-	    local base, rrd = schema_get_path(schema, tags)
-	    local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
-
-	    if not ntop.notEmptyFile(rrdfile) then
-	       ntop.mkdir(base)
-	       if not create_rrd(schema, rrdfile) then
-		  return false
-	       end
-	    end
-
-	    update_rrd(schema, rrdfile, timestamp, metrics)
-	    stats[cur_loop]["num_points"] = stats[cur_loop]["num_points"] + 1
 	 end
 
-	 ::next_interface::
-	 if iface["completed"] then
-	    num_completed = num_completed + 1
-	 end
-
-         if deadline_approaching then
-	   break
-	 end
-      end
-
-      stats[cur_loop]["num_completed"] = num_completed
-      if num_completed == num_ifaces then
-	 -- No more loops needed, dequeues completed for all interfaces
-	 stats[cur_loop]["done"] = true
-	 break
-      end
-
-      stats[cur_loop]["deadline_approaching"] = deadline_approaching
-      if deadline_approaching then
-	 -- No time to do additional loops, let's return
-	 break
+	 update_rrd(schema, rrdfile, timestamp, metrics)
       end
    end
 end
