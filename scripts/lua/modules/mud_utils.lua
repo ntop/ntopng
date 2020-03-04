@@ -267,19 +267,32 @@ end
 
 -- ###########################################
 
+local mud_user_script = nil
+
+-- Cache mud_user_script to avoid repeated loads
+local function loadMudUserScriptConf()
+   if(mud_user_script == nil) then
+      local user_scripts = require("user_scripts")
+      local configsets = user_scripts.getConfigsets()
+      local configset, confset_id = user_scripts.getTargetConfig(configsets, "flow", ifid)
+      mud_user_script = user_scripts.getTargetHookConfig(configset, "mud")
+   end
+
+   return(mud_user_script)
+end
+
+-- ###########################################
+
 function mud_utils.getCurrentHostMUDRecording(ifid, host_key, device_type)
    local pref = mud_utils.getHostMUDRecordingPref(ifid, host_key)
 
    if(pref == "default") then
-      local user_scripts = require("user_scripts")
-      local configsets = user_scripts.getConfigsets()
-      local configset, confset_id = user_scripts.getTargetConfig(configsets, "flow", ifid)
-      local mud_user_script = user_scripts.getTargetHookConfig(configset, "mud")
+      local mud_user_script = loadMudUserScriptConf()
 
       if(mud_user_script.enabled) then
          local enabled_device_types = {}
 
-         for _, devtype in pairs(mud_user_script.script_conf or {}) do
+         for _, devtype in pairs(mud_user_script.script_conf.device_types or {}) do
             local id = discover.devtype2id(devtype)
 
             enabled_device_types[id] = true
@@ -306,6 +319,14 @@ function mud_utils.getMudPrefLabel(pref)
    else
       return(i18n("default"))
    end
+end
+
+-- ###########################################
+
+function mud_utils.isMudScriptEnabled(ifid)
+   local mud_user_script = loadMudUserScriptConf()
+
+   return(mud_user_script.enabled)
 end
 
 -- ###########################################

@@ -1141,8 +1141,8 @@ const FlowMud = (gui, hooks, script_subdir, script_key) => {
 
    const render_template = () => {
       const enabled = hooks.all.enabled;
-      const items_list = hooks.all.script_conf.device_types || [];
-      const max_recording = hooks.all.script_conf.max_recording || 3600;
+      const items_list = (hooks.all.script_conf ? hooks.all.script_conf.device_types : null) || [];
+      const max_recording = (hooks.all.script_conf ? hooks.all.script_conf.max_recording : null) || 3600;
 
       const $multiselect_ds = generate_multi_select({
          enabled: enabled,

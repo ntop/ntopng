@@ -248,14 +248,8 @@ function FlowMUDTemplate:new()
 end
 
 function FlowMUDTemplate:parseConfig(script, conf)
-  --~ if(tonumber(conf.min_duration) == nil) then
-    --~ return false, "bad min_duration value"
-  --~ end
-
-  --~ return http_lint.validateListItems(script, conf)
-
   -- TODO validation
-  return true
+  return true, conf
 end
 
 function FlowMUDTemplate:describeConfig(script, hooks_conf)

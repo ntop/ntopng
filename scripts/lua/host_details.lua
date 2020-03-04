@@ -538,9 +538,9 @@ if isScoreEnabled() then
    print("<tr><th>"..i18n("score").." " .. score_chart .."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
 end
 
-local cur_mud_pref = mud_utils.getCurrentHostMUDRecording(ifId, host_info.host, host["devtype"])
+if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
+   local cur_mud_pref = mud_utils.getCurrentHostMUDRecording(ifId, host_info.host, host["devtype"])
 
-if(cur_mud_pref ~= "disabled") then
    print("<tr><th>"..i18n("flow_callbacks_config.mud").."</th><td colspan=2></li> ".. mud_utils.getMudPrefLabel(cur_mud_pref) .. " ")
    print('<a style="margin-left: 0.5em" href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..hostinfo2hostkey(host_info)..'&page=config"><i class="fas fa-cog"></i></a>\n')
    printMudRecordingActions()
@@ -2005,7 +2005,7 @@ elseif (page == "config") then
          </td>
       </tr>]]
 
-   if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0))) then
+   if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
       local mud_recording_pref = mud_utils.getHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
 
       print [[<tr>
