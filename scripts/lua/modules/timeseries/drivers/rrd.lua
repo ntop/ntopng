@@ -1118,6 +1118,8 @@ function driver:export()
    local ts_utils = require "ts_utils" -- required to get the schema from the schema name
 
    local available_interfaces = interface.getIfNames()
+   -- Add the system interface to the available interfaces
+   available_interfaces[getSystemInterfaceId()] = getSystemInterfaceName()
    local rrd_queue_max_dequeues_per_interface = 8192
 
    for cur_ifid, iface in pairs(available_interfaces) do
