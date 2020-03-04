@@ -207,19 +207,20 @@ discover.extra_asset_icons = {
 }
 
 local id2label = {
+ -- ID      string_id    label					special_purpose_device
    [0]  = { 'unknown', i18n("device_types.unknown") },
-   [1]  = { 'printer', i18n("device_types.printer") },
-   [2]  = { 'video', i18n("device_types.video") },
+   [1]  = { 'printer', i18n("device_types.printer"), 		true },
+   [2]  = { 'video', i18n("device_types.video"),		true },
    [3]  = { 'workstation', i18n("device_types.workstation") },
    [4]  = { 'laptop', i18n("device_types.laptop") },
    [5]  = { 'tablet', i18n("device_types.tablet") },
    [6]  = { 'phone', i18n("device_types.phone") },
-   [7]  = { 'tv', i18n("device_types.tv") },
-   [8]  = { 'networking', i18n("device_types.networking") },
-   [9]  = { 'wifi', i18n("device_types.wifi") },
-   [10] = { 'nas', i18n("device_types.nas") },
-   [11] = { 'multimedia', i18n("device_types.multimedia") },
-   [12] = { 'iot', i18n("device_types.iot") },
+   [7]  = { 'tv', i18n("device_types.tv"),			true },
+   [8]  = { 'networking', i18n("device_types.networking"),	true },
+   [9]  = { 'wifi', i18n("device_types.wifi"),			true },
+   [10] = { 'nas', i18n("device_types.nas"),			true },
+   [11] = { 'multimedia', i18n("device_types.multimedia"),	true },
+   [12] = { 'iot', i18n("device_types.iot"),			true },
    -- IMPORTANT: please keep in sync asset_icons with id2label
 }
 
@@ -423,6 +424,18 @@ function discover.devtype2string(devtype)
    end
 
    return("") -- unknown
+end
+
+-- ################################################################################
+
+function discover.isSpecialPurposeDevice(id)
+   local v = id2label[id]
+
+   if(v) then
+      return(v[3] or false)
+   end
+
+   return(false)
 end
 
 -- ################################################################################

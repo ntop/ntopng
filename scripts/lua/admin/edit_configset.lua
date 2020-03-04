@@ -15,6 +15,7 @@ local os_utils = require "os_utils"
 local template = require "template_utils"
 local user_scripts = require "user_scripts"
 local json = require "dkjson"
+local discover = require "discover_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -50,6 +51,8 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.user_scripts)
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+-- APP/Categories types
+
 -- Initialize apps_and_categories
 -- Check out generate_multi_select in scripts-list-utils.js for the format
 local cat_groups = {label = i18n("categories"), elements = {}}
@@ -57,11 +60,11 @@ local app_groups = {label = i18n("applications"), elements = {}}
 local elems = {}
 
 for cat, _ in pairsByKeys(interface.getnDPICategories(), asc_insensitive) do
-  cat_groups.elements[#cat_groups.elements + 1] = cat
+  cat_groups.elements[#cat_groups.elements + 1] = {cat, getCategoryLabel(cat)}
 end
 
 for app, _ in pairsByKeys(interface.getnDPIProtocols(), asc_insensitive) do
-  app_groups.elements[#app_groups.elements + 1] = app
+  app_groups.elements[#app_groups.elements + 1] = {app, app}
 end
 
 apps_and_categories = {cat_groups, app_groups}
@@ -77,6 +80,27 @@ for script_name, script in pairs(scripts.modules) do
    end
 end
 
+-- Device types
+
+local device_types = {}
+
+for type_id in discover.sortedDeviceTypeLabels() do
+   local label = discover.devtype2string(type_id)
+   local devtype = discover.id2devtype(type_id)
+
+   device_types[#device_types + 1] = {devtype, label}
+end
+
+local device_types_list = {{elements = device_types}}
+
+-- MUD max recording
+
+local mud_max_recording = {
+   {3600, "1H"},
+   {86400, "1D"},
+   {604800, "1W"},
+}
+
 local context = {
    script_list = {
       subdir = script_subdir,
@@ -88,6 +112,8 @@ local context = {
       script_filter = script_filter,
       page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
       apps_and_categories = json.encode(apps_and_categories),
+      device_types = json.encode(device_types_list),
+      mud_max_recording = json.encode(mud_max_recording),
    },
    script_categories = script_categories,
 

@@ -232,12 +232,45 @@ end
 
 -- ##############################################
 
+--
+-- MUD template
+--
+
+local FlowMUDTemplate = {}
+
+function FlowMUDTemplate:new()
+  local obj = Template:new("flow_mud")
+
+  setmetatable(obj, self)
+  self.__index = self
+
+  return obj
+end
+
+function FlowMUDTemplate:parseConfig(script, conf)
+  --~ if(tonumber(conf.min_duration) == nil) then
+    --~ return false, "bad min_duration value"
+  --~ end
+
+  --~ return http_lint.validateListItems(script, conf)
+
+  -- TODO validation
+  return true
+end
+
+function FlowMUDTemplate:describeConfig(script, hooks_conf)
+  return "TODO"
+end
+
+-- ##############################################
+
 -- Available templates
 return {
   default 	  = DefaultTemplate:new(),
 
   threshold_cross = ThresholdCrossTemplate:new(),
-  items_list 	  = ItemsList:new(),
+  items_list   	  = ItemsList:new(),
   elephant_flows  = ElephantFlowsTemplate:new(),
   long_lived	  = LongLivedTemplate:new(),
+  flow_mud        = FlowMUDTemplate:new(),
 }

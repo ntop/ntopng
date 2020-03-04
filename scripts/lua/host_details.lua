@@ -363,6 +363,25 @@ local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
    and (info["version.enterprise_edition"]) and host_has_snmp_location(host["mac"])
    and isAllowedSystemInterface()
 
+print[[<form id="delete-mud-form" method="post">]]
+print[[<input name="action" type="hidden" value="delete_mud" />]]
+print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+print[[</form>]]
+
+if(isAdministrator() and (_POST["action"] == "delete_mud")) then
+  mud_utils.deleteHostMUD(ifId, host_info.host)
+end
+
+local function printMudRecordingActions()
+   if mud_utils.hasRecordedMUD(ifId, host_info.host) then
+      print(" <a style=\"margin-left: 0.5em\" href=\""..ntop.getHttpPrefix().."/lua/rest/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fas fa-download\"></i></a>")
+
+      if isAdministrator() then
+	 print("<a style=\"margin-left: 1em\" href=\"#\" onclick=\"$('#delete-mud-form').submit();\"><i class=\"fas fa-trash\"></i></a>")
+      end
+   end
+end
+
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
@@ -517,6 +536,15 @@ if isScoreEnabled() then
    end
 
    print("<tr><th>"..i18n("score").." " .. score_chart .."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
+end
+
+local cur_mud_pref = mud_utils.getCurrentHostMUDRecording(ifId, host_info.host, host["devtype"])
+
+if(cur_mud_pref ~= "disabled") then
+   print("<tr><th>"..i18n("flow_callbacks_config.mud").."</th><td colspan=2></li> ".. mud_utils.getMudPrefLabel(cur_mud_pref) .. " ")
+   print('<a style="margin-left: 0.5em" href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..hostinfo2hostkey(host_info)..'&page=config"><i class="fas fa-cog"></i></a>\n')
+   printMudRecordingActions()
+   print("</td></tr>\n")
 end
 
 if(host["active_alerted_flows"] > 0) then
@@ -1946,16 +1974,7 @@ elseif (page == "config") then
          mud_utils.setHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
          interface.reloadHostPrefs(host_info.host)
       end
-
-      if _POST["action"] == "delete_mud" then
-        mud_utils.deleteHostMUD(ifId, host_info.host)
-      end
    end
-
-   print[[<form id="delete-mud-form" method="post">]]
-   print[[<input name="action" type="hidden" value="delete_mud" />]]
-   print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-   print[[</form>]]
 
    print[[
    <form id="host_config" class="form-inline" method="post">
@@ -1993,15 +2012,13 @@ elseif (page == "config") then
          <th>]] print(i18n("host_config.mud_recording")) print[[ <a href="https://developer.cisco.com/docs/mud/#!what-is-mud" target="_blank"><i class='fas fa-external-link-alt'></i></a></th>
          <td>
                <select name="mud_recording" class="form-control" style="width:20em;">
+		  <option value="default" ]] if mud_recording_pref == "default" then print("selected") end print[[>]] print(i18n("default")) print[[</option>
                   <option value="disabled" ]] if mud_recording_pref == "disabled" then print("selected") end print[[>]] print(i18n("traffic_recording.disabled")) print[[</option>
                   <option value="general_purpose" ]] if mud_recording_pref == "general_purpose" then print("selected") end print[[>]] print(i18n("host_config.mud_general_purpose")) print[[</option>
                   <option value="special_purpose" ]] if mud_recording_pref == "special_purpose" then print("selected") end print[[>]] print(i18n("host_config.mud_special_purpose")) print[[</option>
                </select>]]
 
-      if mud_utils.hasRecordedMUD(ifId, host_info.host) then
-         print(" <a style=\"margin-left: 0.5em\" href=\""..ntop.getHttpPrefix().."/lua/rest/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fas fa-lg fa-download\"></i></a>")
-         print("<a style=\"margin-left: 1em\" href=\"#\" onclick=\"$('#delete-mud-form').submit();\"><i class=\"fas fa-lg fa-trash\"></i></a>")
-      end
+      printMudRecordingActions()
 
       print[[</td>
       </tr>]]

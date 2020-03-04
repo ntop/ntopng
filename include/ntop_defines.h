@@ -218,6 +218,7 @@
 #define MUD_RECORDING_GENERAL_PURPOSE "general_purpose"
 #define MUD_RECORDING_SPECIAL_PURPOSE "special_purpose"
 #define MUD_RECORDING_DISABLED        "disabled"
+#define MUD_RECORDING_DEFAULT         "default"
 #define HOST_BY_MAC_SERIALIZED_KEY "ntopng.serialized_hostsbymac.ifid_%u__%s"
 #define HOST_POOL_SERIALIZED_KEY "ntopng.serialized_host_pools.ifid_%u"
 #define VLAN_SERIALIZED_KEY     "ntopng.serialized_vlan.ifid_%u_vlan_%u"

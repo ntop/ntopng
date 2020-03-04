@@ -174,6 +174,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void reloadHostBlacklist();
   inline const u_int8_t* const get_mac() const { return(mac ? mac->get_mac() : NULL);}
   inline Mac* getMac() const                   { return(mac);              }
+  inline DeviceType getDeviceType()      const { Mac *m = mac; return(isBroadcastDomainHost() && m ? m->getDeviceType() : device_unknown); }
   char * getResolvedName(char * const buf, ssize_t buf_len);
   char * getMDNSName(char * const buf, ssize_t buf_len);
   char * getMDNSTXTName(char * const buf, ssize_t buf_len);

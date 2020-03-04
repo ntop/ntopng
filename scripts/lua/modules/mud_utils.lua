@@ -18,6 +18,7 @@
 --
 
 local mud_utils = {}
+local discover = require("discover_utils")
 
 -- ###########################################
 
@@ -224,20 +225,86 @@ end
 
 -- ###########################################
 
+local function getDefaultMudRecordingPref(enabled_device_types, devtype)
+   if(not enabled_device_types[devtype]) then
+      return("disabled")
+   end
+
+   if(discover.isSpecialPurposeDevice(devtype)) then
+      return("special_purpose")
+   else
+      return("general_purpose")
+   end
+end
+
+-- ###########################################
+
 -- @brief Possibly generate MUD entries for the flow hosts
--- @param flow_info minimal flow information as returned by flow.getInfo()
+-- @param now timestamp
+-- @param table containing the device type IDs for MUD enabled devices
+-- @param max_recording the maximum time in seconds to record the MUD for a device
 -- @notes This function is called with a LuaC flow context set
-function mud_utils.handleFlow()
+function mud_utils.handleFlow(now, enabled_device_types, max_recording)
    local ifid = interface.getId()
    local mud_info = flow.getMUDInfo()
    local cli_recording = mud_info["cli.mud_recording"]
    local srv_recording = mud_info["srv.mud_recording"]
+
+   if(cli_recording == "default") then
+      cli_recording = getDefaultMudRecordingPref(enabled_device_types, mud_info["cli.devtype"])
+   end
+   if(srv_recording == "default") then
+      srv_recording = getDefaultMudRecordingPref(enabled_device_types, mud_info["srv.devtype"])
+   end
 
    if(cli_recording ~= "disabled") then
       handleHostMUD(ifid, mud_info, (cli_recording == "general_purpose"), true --[[client]])
    end
    if(srv_recording ~= "disabled") then
       handleHostMUD(ifid, mud_info, (srv_recording == "general_purpose"), false --[[server]])
+   end
+end
+
+-- ###########################################
+
+function mud_utils.getCurrentHostMUDRecording(ifid, host_key, device_type)
+   local pref = mud_utils.getHostMUDRecordingPref(ifid, host_key)
+
+   if(pref == "default") then
+      local user_scripts = require("user_scripts")
+      local configsets = user_scripts.getConfigsets()
+      local configset, confset_id = user_scripts.getTargetConfig(configsets, "flow", ifid)
+      local mud_user_script = user_scripts.getTargetHookConfig(configset, "mud")
+
+      if(mud_user_script.enabled) then
+         local enabled_device_types = {}
+
+         for _, devtype in pairs(mud_user_script.script_conf or {}) do
+            local id = discover.devtype2id(devtype)
+
+            enabled_device_types[id] = true
+         end
+
+         return(getDefaultMudRecordingPref(enabled_device_types, device_type))
+      end
+
+      return("disabled")
+   end
+
+   return(pref)
+end
+
+-- ###########################################
+
+function mud_utils.getMudPrefLabel(pref)
+   if pref == "disabled" then
+      return(i18n("traffic_recording.disabled"))
+   elseif pref == "general_purpose" then
+      return(i18n("host_config.mud_general_purpose"))
+   elseif pref == "special_purpose" then
+      return(i18n("host_config.mud_special_purpose"))
+   else
+      return(i18n("default"))
    end
 end
 
@@ -465,6 +532,7 @@ local function getHostMUDRecordingKey(ifid, host_key)
    return(string.format("ntopng.prefs.iface_%d.mud.recording.%s", ifid, host_key))
 end
 
+-- See getCurrentHostMUDRecording to expand the "default"
 function mud_utils.getHostMUDRecordingPref(ifid, host_key)
    local rv = ntop.getPref(getHostMUDRecordingKey(ifid, host_key))
 
@@ -472,13 +540,15 @@ function mud_utils.getHostMUDRecordingPref(ifid, host_key)
       return(rv)
    end
 
-   return("disabled")
+   -- Use the MUD user script configuration to determine if the MUD recording
+   -- is currently enabled.
+   return("default")
 end
 
 function mud_utils.setHostMUDRecordingPref(ifid, host_key, val)
    local key = getHostMUDRecordingKey(ifid, host_key)
 
-   if(val == "disabled") then
+   if(val == "default") then
       ntop.delCache(key)
    else
       ntop.setPref(key, val)

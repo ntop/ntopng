@@ -9880,8 +9880,10 @@ static const char* mud_pref_2_str(MudRecording mud_pref) {
     return(MUD_RECORDING_GENERAL_PURPOSE);
   case mud_recording_special_purpose:
     return(MUD_RECORDING_SPECIAL_PURPOSE);
-  default:
+  case mud_recording_disabled:
     return(MUD_RECORDING_DISABLED);
+  default:
+    return(MUD_RECORDING_DEFAULT);
   }
 }
 
@@ -9910,6 +9912,8 @@ static int ntop_flow_get_mud_info(lua_State* vm) {
   lua_push_bool_table_entry(vm, "srv.serialize_by_mac", srv_host->serializeByMac());
   lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(cli_host->get_mac(), buf, sizeof(buf)));
   lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(srv_host->get_mac(), buf, sizeof(buf)));
+  lua_push_int32_table_entry(vm, "cli.devtype", cli_host->getDeviceType());
+  lua_push_int32_table_entry(vm, "srv.devtype", srv_host->getDeviceType());
 
   return(CONST_LUA_OK);
 }

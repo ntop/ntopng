@@ -434,12 +434,14 @@ void LocalHost::reloadPrefs() {
         mud_pref = mud_recording_general_purpose;
       else if(!strcmp(rsp, MUD_RECORDING_SPECIAL_PURPOSE))
         mud_pref = mud_recording_special_purpose;
-      else
+      else if(!strcmp(rsp, MUD_RECORDING_DISABLED))
         mud_pref = mud_recording_disabled;
+      else
+        mud_pref = mud_recording_default;
     } else
-      mud_pref = mud_recording_disabled;
+      mud_pref = mud_recording_default;
   } else
-    mud_pref = mud_recording_disabled;
+    mud_pref = mud_recording_default;
 
   Host::reloadPrefs();
 }

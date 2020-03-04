@@ -750,9 +750,10 @@ typedef enum ts_driver {
 } TsDriver;
 
 typedef enum mud_recording {
-  mud_recording_disabled = 0,
+  mud_recording_default = 0,
   mud_recording_general_purpose = 1,
   mud_recording_special_purpose = 2,
+  mud_recording_disabled = 3,
 } MudRecording;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

@@ -109,15 +109,21 @@ const generate_multi_select = (params, has_container = true) => {
    const $select = $(`<select id='multiple-select' multiple class='form-control'></select>`);
 
    // add groups and items
-   params.groups.forEach((category) => {
-
-      const $group = $(`<optgroup label='${category.label}'></optgroup>`);
-      category.elements.forEach((element) => {
-         $group.append($(`<option value='${element}'>${element.titleCase()}</option>`))
+   if(params.groups.length == 1) {
+      params.groups[0].elements.forEach((element) => {
+         $select.append($(`<option value='${element[0]}'>${element[1]}</option>`))
       });
+   } else {
+      params.groups.forEach((category) => {
 
-      $select.append($group);
-   });
+         const $group = $(`<optgroup label='${category.label}'></optgroup>`);
+         category.elements.forEach((element) => {
+            $group.append($(`<option value='${element[0]}'>${element[1]}</option>`))
+         });
+
+         $select.append($group);
+      });
+   }
 
    // add attributes
    if (params.name != undefined) $select.attr('name', params.name);
@@ -158,6 +164,33 @@ const generate_input_box = (input_settings, has_container = true) => {
    if (has_container) {
       const $input_container = $(`<div class='form-row mb-2'></div>`);
       return $input_container.append($(`<div class='col-2'></div>`).append($input_box));
+   }
+
+   return $input_box;
+}
+
+/* ******************************************************* */
+
+const generate_single_select = (params, has_container = true) => {
+
+   const $select = $(`<select name='${params.name}' class='form-control' />`);
+
+   if (params.enabled != undefined && !params.enabled) {
+      $select.attr("disabled", "");
+   }
+
+   params.elements.forEach((element) => {
+      $select.append($(`<option value='${element[0]}'>${element[1]}</option>`))
+   });
+
+   if (params.current_value != undefined) $select.val(params.current_value);
+
+   if (has_container) {
+      const $input_container = $(`<div class='form-row mb-2'></div>`);
+      return $input_container.append(
+         $(`<div class='col-10'><label class='p-2'>${params.label}</label></div>`),
+         $(`<div class='col-2'></div>`).append($select),
+      );
    }
 
    return $input_box;
@@ -1101,6 +1134,96 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
+const FlowMud = (gui, hooks, script_subdir, script_key) => {
+
+   const $table_editor = $("#script-config-editor");
+   $("#script-config-editor").empty();
+
+   const render_template = () => {
+      const enabled = hooks.all.enabled;
+      const items_list = hooks.all.script_conf.device_types || [];
+      const max_recording = hooks.all.script_conf.max_recording || 3600;
+
+      const $multiselect_ds = generate_multi_select({
+         enabled: enabled,
+         name: 'item_list',
+         selected_values: items_list,
+         groups: device_types
+      }, false /* no container */);
+
+      const $max_recording = generate_single_select({
+         enabled: enabled,
+         label: i18n.scripts_list.templates.max_mud_recording,
+         name: 'max_recording',
+         current_value: max_recording,
+         elements: mud_max_recording,
+      });
+
+      
+      const $checkbox_enabled = generate_checkbox_enabled(
+         'mud-checkbox', enabled, function (e) {
+            const checked = $(this).prop('checked');
+
+            if (!checked) {
+               $multiselect_ds.attr("disabled", "");
+               $max_recording.find('select').attr("disabled", "");
+            } else {
+               $multiselect_ds.removeAttr("disabled");
+               $max_recording.find('select').removeAttr("disabled");
+            }
+            
+         }
+      );
+
+      const $container = $(`<tr></tr>`).append(
+         $(`<td class='text-center'></td>`).append($checkbox_enabled),
+         $(`<td></td>`).append(
+            $(`<div class='form-group'>
+               <label>${i18n.scripts_list.templates.mud_enabled_devices}:</label>
+            </div>`).append($multiselect_ds),
+            $max_recording
+         )
+      );
+
+      $table_editor.append(`<tr class='text-center'><th>${i18n.enabled}</th></tr>`);
+
+      // append all inside the table
+      $table_editor.append($container);
+   }
+
+   const apply_event = (event) => {
+
+      const hook_enabled = $('#mud-checkbox').prop('checked');
+      const items_list = $(`select[name='item_list']`).val();
+      const max_recording = parseInt($(`select[name='max_recording']`).val());
+
+      const template_data = {
+         all: {
+            enabled: hook_enabled,
+            script_conf: {
+               device_types: items_list,
+               max_recording: max_recording,
+            }
+         }
+      }
+
+      // make post request to save data
+      apply_edits_script(template_data, script_subdir, script_key);
+   }
+
+   const reset_event = (event) => {
+      console.log("TODO: implement reset_event");
+   }
+
+   return {
+      apply_click_event: apply_event,
+      reset_click_event: reset_event,
+      render: render_template,
+   }
+};
+
+/* ******************************************************* */
+
 const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_key = null) => {
    return {
       apply_click_event: function() {},
@@ -1184,7 +1307,8 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
       threshold_cross: ThresholdCross(gui, hooks, script_subdir, script_key),
       items_list: ItemsList(gui, hooks, script_subdir, script_key),
       long_lived: LongLived(gui, hooks, script_subdir, script_key),
-      elephant_flows: ElephantFlows(gui, hooks, script_subdir, script_key)
+      elephant_flows: ElephantFlows(gui, hooks, script_subdir, script_key),
+      flow_mud: FlowMud(gui, hooks, script_subdir, script_key),
    }
 
    let template_chosen = templates[template_name];

@@ -1201,7 +1201,7 @@ end
 -- @param target_config target configuration as returned by
 -- user_scripts.getTargetConfig/user_scripts.getHostTargetConfigset
 function user_scripts.getTargetHookConfig(target_config, script, hook)
-   local script_conf = target_config[script.key]
+   local script_conf = target_config[script.key or script]
 
    if not hook then
       -- See has_per_hook_config

@@ -158,7 +158,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = os_unknown;
   prefs_loaded = false;
-  mud_pref = mud_recording_disabled;
+  mud_pref = mud_recording_default;
 
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
@@ -385,7 +385,7 @@ void Host::lua_get_mac(lua_State *vm) const {
   Mac *cur_mac = getMac();
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(cur_mac ? cur_mac->get_mac() : NULL, buf, sizeof(buf)));
-  lua_push_uint64_table_entry(vm, "devtype", isBroadcastDomainHost() && cur_mac ? cur_mac->getDeviceType() : device_unknown);
+  lua_push_uint64_table_entry(vm, "devtype", getDeviceType());
 }
 
 /* ***************************************************** */
