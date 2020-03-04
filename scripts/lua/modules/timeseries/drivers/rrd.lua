@@ -1124,13 +1124,6 @@ function driver:export()
 
    for cur_ifid, iface in pairs(available_interfaces) do
       for cur_dequeue=1, rrd_queue_max_dequeues_per_interface do
-	 if cur_dequeue % 10 == 0 then
-	    if ntop.isDeadlineApproaching() then
-	       -- No time left
-	       return
-	    end
-	 end
-
 	 local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
 
 	 if not ts_point then
