@@ -1500,6 +1500,7 @@ $(document).ready(function() {
       language: {
          info: i18n.showing_x_to_y_rows,
          search: i18n.script_search,
+         infoFiltered: "",
          paginate: {
             previous: '&lt;',
             next: '&gt;',
