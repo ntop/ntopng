@@ -1,0 +1,21 @@
+nIndex Debug
+------------
+
+nIndex support can be enabled in ntopng setting the dump mode to `nindex`
+using the [--dump-flows|-F] <mode> option (-F "inindex"). 
+The same option can be used to debug issues related to the flows dumped 
+in the database. Available parameters: 
+
+-F "nindex;debug" adds extended information to the `JSON` field, this 
+includes all the information dumped to the database as columns.
+ 
+-F "nindex;dump" generates a tree of json files containing the same
+information dumped to the database. The root folder of this tree is
+/var/lib/ntopng/<interface>/flows-json, while the flows database is
+created as usual under /var/lib/ntopng/<interface>/flows. 
+
+-F "nindex;load" loads flows information from the json dump (if any) 
+placed under /var/lib/ntopng/<interface>/flows-json and feeds the nindex
+database. This is useful to reconstruct the flows database using the 
+json dump.
+
