@@ -1904,6 +1904,7 @@ local lang = {
     ["host_traffic_policy"] = "Host Traffic Policy",
     ["modify_host_pool_policy_btn"] = "Modify Host Pool Policy",
     ["mud_general_purpose"] = "General Purpose",
+    ["mud_is_recording"] = "MUD is being recorded",
     ["mud_recording"] = "MUD Recording",
     ["mud_special_purpose"] = "Special Purpose",
     ["rtt_monitor"] = "RTT Monitor",

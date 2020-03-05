@@ -185,14 +185,6 @@ local function handleHostMUD(ifid, now, max_recording, mud_info, is_general_purp
    local peer_key_is_mac
    local is_local_connection = mud_info["is_local"]
    local host_ip, peer_ip, peer_port, peer_key
-   local first_recorded_key = getFirstMudRecordedKey(ifid, host_ip)
-   local first_recorded = tonumber(ntop.getCache(first_recorded_key)) or 0
-   local recording_completed = ((now - first_recorded) >= max_recording)
-
-   if(recording_completed) then
-      -- The learning phase for this host has ended
-      return
-   end
 
    -- Only support TCP and UDP
    if((l4proto ~= "TCP") and (l4proto ~= "UDP")) then
@@ -221,6 +213,15 @@ local function handleHostMUD(ifid, now, max_recording, mud_info, is_general_purp
       peer_key = ternary(peer_key_is_mac, mud_info["cli.mac"], flow_info["cli.ip"])
    end
 
+   local first_recorded_key = getFirstMudRecordedKey(ifid, host_ip)
+   local first_recorded = tonumber(ntop.getCache(first_recorded_key)) or now
+   local recording_completed = ((now - first_recorded) >= max_recording)
+
+   if(recording_completed) then
+      -- The learning phase for this host has ended
+      return
+   end
+
    local is_ipv6 = (not isIPv4(host_ip))
    local mud_key = getMudRedisKey(mud_type, ifid, host_ip, is_client, is_ipv6)
    local conn_key = mud_type.encode(flow_info, peer_key, peer_port, is_client, peer_key_is_mac, mud_info)
@@ -229,7 +230,7 @@ local function handleHostMUD(ifid, now, max_recording, mud_info, is_general_purp
    -- TODO handle alerts
    ntop.setMembersCache(mud_key, conn_key)
 
-   if(first_recorded == 0) then
+   if(first_recorded == now) then
       -- First time MUD is recorded for this host
       ntop.setCache(first_recorded_key, string.format("%u", now))
    end
@@ -592,6 +593,26 @@ end
 
 function mud_utils.hasRecordedMUD(ifid, host_key)
    return(not isEmptyString(ntop.getCache(getFirstMudRecordedKey(ifid, host_key))))
+end
+
+-- ###########################################
+
+function mud_utils.isMUDRecordingInProgress(ifid, host_key)
+   local first_recorded = tonumber(ntop.getCache(getFirstMudRecordedKey(ifid, host_key)))
+
+   if(first_recorded == nil) then
+      return(false)
+   end
+
+   local conf = loadMudUserScriptConf()
+
+   if(not conf.enabled) then
+      return(false)
+   end
+
+   local max_recording = conf.script_conf.max_recording or 3600
+
+   return((os.time() - first_recorded) < max_recording)
 end
 
 -- ###########################################
