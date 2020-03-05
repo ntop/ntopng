@@ -1805,7 +1805,7 @@ elseif(page == "config") then
     <td>
          <div class="custom-control custom-switch">
            <input id="show_dyn_iface_traffic" class="custom-control-input" type="checkbox" name="show_dyn_iface_traffic" value="1" ]] print(show_dyn_iface_traffic_checked) print[[>
-          <label class="custom-control-label" for="check-show_dyn_iface_traffic"></label>
+          <label class="custom-control-label" for="show_dyn_iface_traffic"></label>
          </div>
            <br><br><small><p><b>]] print(i18n("notes")) print [[</b><ul><li>]] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print [[</li></ul></p></small>
 	 </td>
