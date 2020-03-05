@@ -637,7 +637,7 @@ print([[
         <i class='fas fa-bars'></i>
       </button>
       <ul class='navbar-nav mr-auto'>    
-         <li class='nav-item dropdown'>
+         <li class='nav-item d-flex align-items-center dropdown'>
             <a class="btn border-dark dropdown-toggle" data-toggle="dropdown" href="#">
                ]] .. (is_system_interface and 'System' or '<i class="fas fa-ethernet"></i> ' .. getHumanReadableInterfaceName(ifname)) .. [[
             </a>
@@ -768,7 +768,7 @@ print([[
 if not is_pcap_dump and not is_system_interface then
 
    print([[
-      <li class='nav-item w-10 mx-2'>
+      <li class='nav-item my-sm-2 my-xs-2 w-10 mx-2'>
          <div class='info-stats'>
             ]].. 
             (function()
