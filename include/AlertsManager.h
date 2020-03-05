@@ -46,6 +46,16 @@ class AlertsManager : public StoreManager {
   bool isValidNetwork(const char *cidr);
   bool isValidInterface(NetworkInterface *n);
 
+  /* Methods to handle caching for alerts (to avoid putting high pressure on sqlite) */
+  static char *getAlertCacheKey(int ifid, AlertType alert_type, const char *subtype, int granularity,
+				AlertEntity alert_entity, const char *alert_entity_value, AlertLevel alert_severity);
+  static bool isCached(int ifid, AlertType alert_type, const char *subtype, int granularity,
+		       AlertEntity alert_entity, const char *alert_entity_value, AlertLevel alert_severity,
+		       u_int64_t *cached_rowid);
+  static void cache(int ifid, AlertType alert_type, const char *subtype, int granularity,
+		    AlertEntity alert_entity, const char *alert_entity_value, AlertLevel alert_severity,
+		    u_int64_t rowid);
+
  public:
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager();

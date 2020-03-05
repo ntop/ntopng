@@ -334,18 +334,101 @@ int AlertsManager::parseEntityValueIp(const char *alert_entity_value, struct in6
 
 /* **************************************************** */
 
+/*
+  Generates a key used to cache the alert
+*/
+char *AlertsManager::getAlertCacheKey(int ifid, AlertType alert_type, const char *subtype, int granularity,
+				      AlertEntity alert_entity, const char *alert_entity_value, AlertLevel alert_severity) {
+  char * res = NULL;
+
+  if((res = (char*)malloc(CONST_MAX_LEN_REDIS_KEY))) {
+    if(snprintf(res, CONST_MAX_LEN_REDIS_KEY,
+		ALERTS_MANAGER_AGGR_CACHE_KEY,
+		ifid,
+		alert_type, subtype, granularity,
+		alert_entity, alert_entity_value, alert_severity) >= CONST_MAX_LEN_REDIS_KEY) {
+      free(res);
+      res = NULL;
+    }
+  }
+
+  return res;
+}
+
+/* **************************************************** */
+
+/*
+  Checks if an alert is cached an, in case, it returns the corresponding rowid in cached_rowid
+*/
+bool AlertsManager::isCached(int ifid, AlertType alert_type, const char *subtype, int granularity,
+			     AlertEntity alert_entity, const char *alert_entity_value, AlertLevel alert_severity,
+			     u_int64_t *cached_rowid) {
+  char *cached_k = getAlertCacheKey(ifid, alert_type, subtype, granularity, alert_entity, alert_entity_value, alert_severity);
+  bool is_cached = false;
+
+  if(cached_k) {
+    Redis *r = ntop->getRedis();
+
+    if(r) {
+      char cur_rowid_str[32];
+      u_int64_t cur_rowid;
+
+      if(r->get(cached_k, cur_rowid_str, sizeof(cur_rowid_str)) == 0) {
+	errno = 0; /* Still thread-safe, errno is per-thread */
+	cur_rowid = strtol(cur_rowid_str, NULL, 0); /* Use strtol as result is a 64 bit integer */
+
+	if(!errno)
+	  *cached_rowid = cur_rowid,
+	    is_cached = true;
+      }
+    }
+
+    free(cached_k);
+  }
+
+  return is_cached;
+}
+
+/* **************************************************** */
+
+/*
+  Adds an an alert with a give rowid to the cache of alerts
+*/
+void AlertsManager::cache(int ifid, AlertType alert_type, const char *subtype, int granularity,
+			  AlertEntity alert_entity, const char *alert_entity_value, AlertLevel alert_severity,
+			  u_int64_t rowid) {
+  char *cached_k = getAlertCacheKey(ifid, alert_type, subtype, granularity, alert_entity, alert_entity_value, alert_severity);
+
+  if(cached_k) {
+    Redis *r = ntop->getRedis();
+
+    if(r) {
+      char rowid_str[32];
+
+      snprintf(rowid_str, sizeof(rowid_str), "%lu", rowid);
+      /* The cache has a time-to-live corresponding to the aggregation period. Once the aggregation period is
+	 reached, the key disappears and a new alert is added. */
+      r->set(cached_k, rowid_str, ALERTS_MANAGER_MAX_AGGR_SECS);
+    }
+
+    free(cached_k);
+  }
+}
+
+/* **************************************************** */
+
 /* NOTE: do not call this from C, use alert queues in LUA */
 int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, AlertType alert_type, const char *subtype,
 			      AlertLevel alert_severity, AlertEntity alert_entity, const char *alert_entity_value,
 			      const char *alert_json, bool *new_alert, u_int64_t *rowid,
 			      bool ignore_disabled, bool check_maximum) {
   int rc = 0;
-  u_int64_t cur_rowid = (u_int64_t)-1, cur_counter = 0;
+  u_int64_t cur_rowid = (u_int64_t)-1;
 
   if(ignore_disabled || !ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
     struct in6_addr ip_raw;
-    sqlite3_stmt *stmt = NULL, *stmt2 = NULL, *stmt3 = NULL;
+    sqlite3_stmt *stmt = NULL, *stmt2 = NULL;
 
     if(!store_initialized || !store_opened)
       return -1;
@@ -359,82 +442,39 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
     /* If alert tstart and tend coincide, that is, if the alert wasn't engaged, we try and aggregated it to
        solve issues such as https://github.com/ntop/ntopng/issues/3430 */
     if(tstart == tend) {
-      /* Check if this alert already exists ...*/
-      snprintf(query, sizeof(query),
-	       "SELECT rowid, alert_counter "
-	       "FROM %s "
-	       "WHERE alert_type = ? AND alert_subtype = ? AND alert_granularity = ? "
-	       "AND alert_entity = ? AND alert_entity_val = ? AND alert_severity = ? "
-	       "AND alert_tstamp >= ? "
-	       "LIMIT 1; ",
-	       ALERTS_MANAGER_TABLE_NAME);
+      if(isCached(getNetworkInterface()->get_id(),
+		  alert_type, subtype, granularity,
+		  alert_entity, alert_entity_value, alert_severity, &cur_rowid)) {
+	*rowid = cur_rowid;
 
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking [%s][subtype: %s]", alert_entity_value, subtype);
-
-      if(sqlite3_prepare_v2(db, query, -1, &stmt2, 0)
-	 || sqlite3_bind_int(stmt2,   1,  static_cast<int>(alert_type))
-	 || sqlite3_bind_text(stmt2,  2,  subtype ? subtype : "", -1, SQLITE_STATIC)
-	 || sqlite3_bind_int(stmt2,   3,  granularity)
-	 || sqlite3_bind_int(stmt2,   4,  static_cast<int>(alert_entity))
-	 || sqlite3_bind_text(stmt2,  5,  alert_entity_value, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int(stmt2,   6,  static_cast<int>(alert_severity))
-	 || sqlite3_bind_int64(stmt2, 7,  static_cast<long int>(tstart) - ALERTS_MANAGER_MAX_AGGR_SECS)
-	 ) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-	rc = -1;
-	goto out;
-      }
-
-      iface->incNumAlertsQueries();
-
-      /* Try and read the rowid (if the record exists) */
-      while((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
-	if(rc == SQLITE_ROW) {
-	  cur_rowid = sqlite3_column_int(stmt2, 0);
-	  cur_counter = sqlite3_column_int(stmt2, 1);
-
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u]\n", sqlite3_column_text(stmt2, 0), cur_rowid, cur_counter);
-	} else {
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-	  rc = -1;
-	  goto out;
-	}
-      }
-
-      if(cur_rowid != (u_int64_t)-1) { /* Already existing record found, update it */
 	snprintf(query, sizeof(query),
 		 "UPDATE %s "
-		 "SET alert_counter = ?, alert_tstamp_end = ? "
+		 "SET alert_counter = alert_counter + 1, alert_tstamp_end = ? "
 		 "WHERE rowid = ? ",
 		 ALERTS_MANAGER_TABLE_NAME);
 
-	if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)
-	   || sqlite3_bind_int64(stmt3, 1, static_cast<long int>(cur_counter + 1))
-	   || sqlite3_bind_int64(stmt3, 2, static_cast<long int>(tend))
-	   || sqlite3_bind_int64(stmt3, 3, static_cast<long int>(cur_rowid))) {
+	if(sqlite3_prepare_v2(db, query, -1, &stmt2, 0)
+	   || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(tend))
+	   || sqlite3_bind_int64(stmt2, 2, static_cast<long int>(cur_rowid))) {
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step");
 	  rc = -1;
 	  goto out;
 	}
 
-	if((rc = sqlite3_step(stmt3)) != SQLITE_DONE) {
+	if((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
 	  rc = -1;
 	  goto out;
 	}
 
 	/* Done updating... */
-	*rowid = cur_rowid;
 	iface->incNumWrittenAlerts();
 	rc = 0;
 	goto out;
-      } else {
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Not Found\n");
       }
     }
 
     /* If here, the alert was engaged or not already found in the DB */
-
     snprintf(query, sizeof(query),
 	     "INSERT INTO %s "
 	     "(alert_granularity, alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, alert_subtype, ip) "
@@ -467,13 +507,15 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
     /* Success */
     *rowid = sqlite3_last_insert_rowid(db);
+    cache(getNetworkInterface()->get_id(),
+	  alert_type, subtype, granularity,
+	  alert_entity, alert_entity_value, alert_severity, *rowid);
     iface->incNumWrittenAlerts();
     rc = 0;
 
   out:
     if(stmt)  sqlite3_finalize(stmt);
     if(stmt2) sqlite3_finalize(stmt2);
-    if(stmt3) sqlite3_finalize(stmt3);
     m.unlock(__FILE__, __LINE__);
   }
 

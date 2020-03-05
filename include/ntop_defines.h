@@ -853,7 +853,14 @@
 #define STORE_MANAGER_MAX_KEY                20
 #define DEFAULT_GLOBAL_DNS                   ""
 #define DEFAULT_SAFE_SEARCH_DNS              "208.67.222.123" /* OpenDNS Family Shield */
+
 #define ALERTS_MANAGER_MAX_AGGR_SECS         300 /* Aggregate equal alerts if generated within this interval */
+
+/* A cache key used to look for the alert before going into sqlite. The rowid of an inserted
+   alert is stored in the value of this cache key. Cache key is:
+   <prefix>.ifid_<ifid>.alerts.aggregation_cache.<alert_type>_<alert_subtype>_<granularity>_<entity>_<entity_val>_<severity> */
+#define ALERTS_MANAGER_AGGR_CACHE_KEY        NTOPNG_CACHE_PREFIX ".ifid_%d.alerts.aggregation_cache.%i_%s_%i_%i_%s_%i"
+
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
