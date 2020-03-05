@@ -28,6 +28,7 @@ local script = {
       i18n_title = "flow_callbacks_config.mud",
       i18n_description = "flow_callbacks_config.mud_description",
       input_builder = "flow_mud",
+      item_list_type = "device_type",
    }
 }
 

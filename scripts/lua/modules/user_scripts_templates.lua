@@ -248,12 +248,40 @@ function FlowMUDTemplate:new()
 end
 
 function FlowMUDTemplate:parseConfig(script, conf)
-  -- TODO validation
-  return true, conf
+  if(tonumber(conf.max_recording) == nil) then
+    return false, "bad max_recording value"
+  end
+
+  return http_lint.validateListItems(script, conf, "device_types")
 end
 
 function FlowMUDTemplate:describeConfig(script, hooks_conf)
-  return "TODO"
+  local discover = require("discover_utils")
+  local mud_utils = require("mud_utils")
+
+  if(not hooks_conf.all) then
+    return '' -- disabled, nothing to show
+  end
+
+  local conf = hooks_conf.all.script_conf
+
+  if(not conf.max_recording) then
+    return ''
+  end
+
+  local enabled_on = {}
+
+  for _, k in pairs(conf.device_types or {}) do
+    enabled_on[#enabled_on + 1] = discover.devtype2string(discover.devtype2id(k))
+  end
+
+  local msg = i18n("user_scripts.stop_recording_after", {duration = mud_utils.formatMaxRecording(conf.max_recording)})
+
+  if(#enabled_on > 0) then
+    msg = msg .. ". " .. i18n("user_scripts.mud_enabled_on", {device_types = table.concat(enabled_on, ', ')})
+  end
+
+  return msg
 end
 
 -- ##############################################
