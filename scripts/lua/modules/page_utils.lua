@@ -99,10 +99,10 @@ page_utils.menu_entries = {
     plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "admin"},
     conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin"},
     conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin"},
-    
+    manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin"},
+
     -- Tools
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
-    manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "tools"},
     remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools"},
 
     -- Home

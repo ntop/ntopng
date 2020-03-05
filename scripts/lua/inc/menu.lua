@@ -305,7 +305,9 @@ page_utils.add_menubar_section({
 
 -- System
 
-local system_entries = {}
+local system_entries = {
+  
+}
 
 -- Add plugin entries...
 for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
@@ -375,11 +377,6 @@ page_utils.add_menubar_section({
          url = '/lua/get_config.lua',
       },
       {
-         entry = page_utils.menu_entries.manage_data,
-         hidden = not is_admin,
-         url = '/lua/manage_data.lua',
-      },
-      {
          entry = page_utils.menu_entries.conf_restore,
          hidden = not is_admin,
          url = 'https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration',
@@ -412,7 +409,16 @@ page_utils.add_menubar_section(
 	 {
 	    entry = page_utils.menu_entries.divider,
 	    hidden = not is_admin,
-	 },
+    },
+    {
+      entry = page_utils.menu_entries.manage_data,
+      hidden = not is_admin or is_system_interface,
+      url = '/lua/manage_data.lua',
+   },
+   {
+      entry = page_utils.menu_entries.divider,
+      hidden = not is_admin or is_system_interface,
+   },
 	 {
 	    entry = page_utils.menu_entries.profiles,
 	    hidden = not is_admin or not ntop.isPro() or is_nedge,
