@@ -540,9 +540,15 @@ end
 
 if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
    local cur_mud_pref = mud_utils.getCurrentHostMUDRecording(ifId, host_info.host, host["devtype"])
+   local in_progress = mud_utils.isMUDRecordingInProgress(ifId, host_info.host)
 
    print("<tr><th>"..i18n("flow_callbacks_config.mud").."</th><td colspan=2></li> ".. mud_utils.getMudPrefLabel(cur_mud_pref) .. " ")
-   print('<a style="margin-left: 0.5em" href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..hostinfo2hostkey(host_info)..'&page=config"><i class="fas fa-cog"></i></a>\n')
+
+   if in_progress then
+      print('<i class="fas fa-circle fa-sm" title="'.. i18n("host_config.mud_is_recording") ..'" style="margin-left: 0.5em; color: #FC2222"></i>')
+   end
+
+   print('<a style="margin-left: 0.7em" href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..hostinfo2hostkey(host_info)..'&page=config"><i class="fas fa-cog"></i></a>\n')
    printMudRecordingActions()
    print("</td></tr>\n")
 end
