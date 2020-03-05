@@ -1498,6 +1498,8 @@ $(document).ready(function() {
       dom: "Bfrtip",
       pagingType: 'full_numbers',
       language: {
+         info: i18n.showing_x_to_y_rows,
+         search: i18n.script_search,
          paginate: {
             previous: '&lt;',
             next: '&gt;',

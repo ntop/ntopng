@@ -374,6 +374,7 @@ local lang = {
     ["config_name"] = "Nome Configurazione",
     ["config_rename"] = "Rinomina Configurazione",
     ["config_rename_message"] = "Digita il nuovo nome per la configurazione",
+    ["config_search"] = "Cerca Configurazione:",
     ["config_setting"] = "Impostazioni Configurazione",
     ["config_x"] = "Config %{product}",
     ["no_targets_applied"] = "questa configurazione non è applicata a nesusn target specifico!",
@@ -2332,6 +2333,7 @@ local lang = {
     ["are_you_sure"] = "Le modifiche non sono ancora state salvate. Sei veramente sicuro di volere chiudere la finestra?",
     ["config"] = "Configurazione",
     ["reset_default"] = "Ripristina Default",
+    ["script_search"] = "Cerca Script:",
     ["scripts_x"] = "Scripts %{subdir} - %{config}",
   },
   ["sflows_stats"] = {

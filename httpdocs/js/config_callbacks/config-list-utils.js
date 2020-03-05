@@ -137,6 +137,8 @@ $(document).ready(function() {
             $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
         },
         language: {
+            info: i18n.showing_x_to_y_rows,
+            search: i18n.config_search,
             paginate: {
                previous: '&lt;',
                next: '&gt;',
