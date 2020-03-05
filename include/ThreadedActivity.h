@@ -75,8 +75,8 @@ class ThreadedActivity {
 
   inline const char *activityPath() const { return path; };
   void activityBody();
-  void runSystemScript();
-  void runScript(char *script_path, NetworkInterface *iface, time_t deadline);
+  void runSystemScript(time_t now);
+  void runScript(time_t now, char *script_path, NetworkInterface *iface, time_t deadline);
 
   inline void shutdown()      { terminating = true; };
   void terminateEnqueueLoop();

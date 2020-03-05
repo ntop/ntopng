@@ -100,7 +100,7 @@ void ThreadPool::run() {
     } else {
       Utils::setThreadName(q->script_path);
       q->j->set_state_running(q->iface);
-      q->j->runScript(q->script_path, q->iface, q->deadline);
+      q->j->runScript(time(NULL), q->script_path, q->iface, q->deadline);
       q->j->set_state_sleeping(q->iface);
       delete q;
     }

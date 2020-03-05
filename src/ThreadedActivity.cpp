@@ -346,7 +346,7 @@ void ThreadedActivity::updateThreadedActivityStatsEnd(NetworkInterface *iface, u
 /* ******************************************* */
 
 /* Run a one-shot script / accurate (e.g. second) periodic script */
-void ThreadedActivity::runSystemScript() {
+void ThreadedActivity::runSystemScript(time_t now) {
 #ifdef WIN32
   struct _stat64 buf;
 #else
@@ -359,7 +359,7 @@ void ThreadedActivity::runSystemScript() {
 
   if(stat(script_path, &buf) == 0) {
     set_state_running(ntop->getSystemInterface());
-    runScript(script_path, ntop->getSystemInterface(), time(NULL) + max_duration_secs /* this is the deadline */);
+    runScript(now, script_path, ntop->getSystemInterface(), now + max_duration_secs /* this is the deadline */);
     set_state_sleeping(ntop->getSystemInterface());
   } else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find script %s", path);
@@ -368,7 +368,7 @@ void ThreadedActivity::runSystemScript() {
 /* ******************************************* */
 
 /* Run a script - both periodic and one-shot scripts are called here */
-void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, time_t deadline) {
+void ThreadedActivity::runScript(time_t now, char *script_path, NetworkInterface *iface, time_t deadline) {
   LuaEngine *l = NULL;
   u_long msec_diff;
   struct timeval begin, end;
@@ -389,7 +389,7 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_path, iface);
 
-  l = loadVm(script_path, iface, time(NULL));
+  l = loadVm(script_path, iface, now);
   if(!l) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s]", iface->get_name(), path);
     return;
@@ -410,6 +410,9 @@ void ThreadedActivity::runScript(char *script_path, NetworkInterface *iface, tim
   gettimeofday(&begin, NULL);
   updateThreadedActivityStatsBegin(iface, &begin);
 
+  /* Set the current time globally  */
+  lua_pushinteger(l->getState(), now);
+  lua_setglobal(l->getState(), "_now");
   l->run_loaded_script();
 
   gettimeofday(&end, NULL);
@@ -468,7 +471,7 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
 
 void ThreadedActivity::aperiodicActivityBody() {
   if(!isTerminating())
-    runSystemScript();
+    runSystemScript(time(NULL));
 }
 
 /* ******************************************* */
@@ -482,7 +485,7 @@ void ThreadedActivity::uSecDiffPeriodicActivityBody() {
   
   while(!isTerminating()) {
     gettimeofday(&begin, NULL);
-    runSystemScript();
+    runSystemScript(begin.tv_sec);
     gettimeofday(&end, NULL);
 
     usec_diff = (end.tv_sec - begin.tv_sec) * 1e6 + (end.tv_usec - begin.tv_usec);

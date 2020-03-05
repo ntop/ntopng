@@ -121,7 +121,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
       Don't call run() as by the time the script will be run
       the delete below will free the memory 
     */
-    startup_activity->runSystemScript();
+    startup_activity->runSystemScript(time(NULL));
     delete startup_activity;
     startup_activity = NULL;
   }

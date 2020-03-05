@@ -15,8 +15,8 @@ require("ts_second")
 local enable_second_debug = false
 local ifnames = interface.getIfNames()
 
--- NOTE: must use gettimeofday otherwise the seconds may not correspond
-local when = math.floor(ntop.gettimemsec())
+-- NOTE: must use value passed by the C otherwise the seconds may not correspond
+local when = _now
 
 local function interface_rrd_creation_enabled(ifid)
    return (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
