@@ -782,6 +782,22 @@ path.link {
   white-space: nowrap;
   font-size: 0.75rem;
 }
+
+#n-sidebar.bg-dark ul>li.nav-item>a.submenu::before {
+  border-left: 4px solid #fff;
+}
+
+#n-sidebar ul>li.nav-item>a.submenu::before {
+  display: block;
+  content: " ";
+  position: absolute;
+  border-radius: 3px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 4px solid #333;
+  right: 4px;
+}
+
 #n-sidebar ul>li.nav-item>a>span {
   display: block;
   margin-bottom: 0.2rem;
