@@ -445,7 +445,6 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
       if(isCached(getNetworkInterface()->get_id(),
 		  alert_type, subtype, granularity,
 		  alert_entity, alert_entity_value, alert_severity, &cur_rowid)) {
-	*rowid = cur_rowid;
 
 	snprintf(query, sizeof(query),
 		 "UPDATE %s "
@@ -457,20 +456,21 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 	   || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(tend))
 	   || sqlite3_bind_int64(stmt2, 2, static_cast<long int>(cur_rowid))) {
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step");
-	  rc = -1;
+	  rc = -2;
 	  goto out;
 	}
 
-	if((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-	  rc = -1;
+	/* As the entry in the table could have been deleted after the caching,
+	   the UPDATE can fail. In this case, the alert is added as if it was new.
+	   Otherwise, if the update is successful, we exit.
+	*/
+	if((rc = sqlite3_step(stmt2)) == SQLITE_DONE) {
+	  /* Done updating... */
+	  *rowid = cur_rowid;
+	  iface->incNumWrittenAlerts();
+	  rc = 0;
 	  goto out;
 	}
-
-	/* Done updating... */
-	iface->incNumWrittenAlerts();
-	rc = 0;
-	goto out;
       }
     }
 
@@ -495,13 +495,13 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
        || sqlite3_bind_text(stmt,  9,  subtype, -1, SQLITE_STATIC)
        || sqlite3_bind_blob(stmt, 10,  ip_raw.s6_addr, sizeof(ip_raw.s6_addr), SQLITE_STATIC)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = -2;
+      rc = -3;
       goto out;
     }
 
     if((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = -3;
+      rc = -4;
       goto out;
     }
 
