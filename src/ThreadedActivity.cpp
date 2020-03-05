@@ -513,9 +513,6 @@ void ThreadedActivity::periodicActivityBody() {
 
   next_schedule = Utils::roundTime(next_schedule, periodicity, align_to_localtime ? ntop->get_time_offset() : 0);
 
-  if(align_to_localtime)
-    next_schedule -= periodicity;
-
   while(!isTerminating()) {
     now = (u_int)time(NULL);
 

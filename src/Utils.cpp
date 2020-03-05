@@ -3560,13 +3560,18 @@ bool Utils::isCriticalNetworkProtocol(u_int16_t protocol_id) {
 /* ****************************************************** */
 
 u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc) {
+  /* Align now to rounder (UTC) */
   now -= (now % rounder);
-  now += rounder; /* Aligned to midnight UTC */
+  now += rounder;
 
-  if(offset_from_utc > 0)
-    now += 86400 - offset_from_utc;
-  else if(offset_from_utc < 0)
-    now += -offset_from_utc;
+  /* Aling now to localtime using the local offset from UTC.
+     So for example UTC+1, which has a +3600 offset from UTC, will have the local time
+     one hour behind, that is, 10PM UTC are 9PM UTC+1.
+     For an UTC-1, which has a -3600 offset from UTC, the local time is one hour ahead, that is,
+     10PM UTC are 11PM UTC-1.
+     Hence, in practice, a negative offset needs to be added whereas a positive offset needs to be
+     substracted. */
+  now += -offset_from_utc;
 
   return(now);
 }
