@@ -3560,9 +3560,9 @@ bool Utils::isCriticalNetworkProtocol(u_int16_t protocol_id) {
 /* ****************************************************** */
 
 u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from_utc) {
-  /* Align now to rounder (UTC) */
-  now -= (now % rounder);
-  now += rounder;
+  /* Align result to rounder. Operations intrinsically work in UTC. */
+  u_int32_t result = now - (now % rounder);
+  result += rounder;
 
   /* Aling now to localtime using the local offset from UTC.
      So for example UTC+1, which has a +3600 offset from UTC, will have the local time
@@ -3571,9 +3571,14 @@ u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from
      10PM UTC are 11PM UTC-1.
      Hence, in practice, a negative offset needs to be added whereas a positive offset needs to be
      substracted. */
-  now += -offset_from_utc;
+  result += -offset_from_utc;
 
-  return(now);
+  /* Don't allow results which are earlier than now. Adjust using rounder until now is reached.
+     This can happen when result has been adjusted with a positive offset from UTC. */
+  while(result < now)
+    result += rounder;
+
+  return result;
 }
 
 /* ************************************************* */
