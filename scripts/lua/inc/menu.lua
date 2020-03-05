@@ -638,7 +638,7 @@ print([[
       </button>
       <ul class='navbar-nav mr-auto'>    
          <li class='nav-item dropdown'>
-            <a class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" href="#">
+            <a class="btn border-dark dropdown-toggle" data-toggle="dropdown" href="#">
                ]] .. (is_system_interface and 'System' or '<i class="fas fa-ethernet"></i> ' .. getHumanReadableInterfaceName(ifname)) .. [[
             </a>
             <ul class='dropdown-menu'>
@@ -710,7 +710,7 @@ for round = 1, 2 do
          print([[<li class="nav-item">]])
 
          if(v == ifname and not is_system_interface) then
-            print("<a class=\"dropdown-item disabled\" href=\"#\">")
+            print("<a class=\"dropdown-item active\" href=\"#\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
             print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="/?ifid=]] print(k)  print[[">]]

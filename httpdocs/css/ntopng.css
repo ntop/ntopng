@@ -877,6 +877,11 @@ path.link {
 .info-stats div.down {
   margin-top: -.55rem;
 }
+.info-stats {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
 .info-stats a {
   color:rgb(56, 59, 69);
   text-decoration: none;
