@@ -339,12 +339,10 @@ int StatsManager::insertSampling(const char * const sampling, const char * const
     goto out;
   }
 
-  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if(rc == SQLITE_ERROR) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-      rc = 1;
-      goto out;
-    }
+  if((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+    rc = 1;
+    goto out;
   }
 
   rc = 0;
