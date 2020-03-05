@@ -653,7 +653,7 @@ print([[
 if ntop.isAdministrator() then
    print([[
                <li>
-                  <button id="btn-trigger-system-mode" ]].. (is_system_interface and "disabled" or "") ..[[ type="submit" class="dropdown-item">
+                  <button id="btn-trigger-system-mode" type="submit" class="dropdown-item ]].. (is_system_interface and "active" or "") ..[[">
                      ]].. (is_system_interface and "<i class='fas fa-check'></i>" or "") ..[[ System
                   </button>
                </li>
