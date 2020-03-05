@@ -336,6 +336,20 @@ end
 
 -- ###########################################
 
+function mud_utils.formatMaxRecording(max_recording_secs)
+   if max_recording_secs == 3600 then
+      return(i18n("show_alerts.1_hour"))
+   elseif max_recording_secs == 86400 then
+      return(i18n("show_alerts.1_day"))
+   elseif max_recording_secs == 604800 then
+      return(i18n("show_alerts.1_week"))
+   else
+      return(string.format("%u", max_recording_secs))
+   end
+end
+
+-- ###########################################
+
 function mud_utils.isMudScriptEnabled(ifid)
    local mud_user_script = loadMudUserScriptConf()
 

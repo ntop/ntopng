@@ -1212,7 +1212,24 @@ const FlowMud = (gui, hooks, script_subdir, script_key) => {
    }
 
    const reset_event = (event) => {
-      console.log("TODO: implement reset_event");
+      reset_script_defaults(script_key, script_subdir, (reset_data) => {
+         const max_recording = reset_data.hooks.all.script_conf.max_recording || 3600;
+         const items_list = reset_data.hooks.all.script_conf.device_types || [];
+         const enabled = reset_data.hooks.all.enabled;
+
+         // set textarea value with default's one
+         $(`select[name='item_list']`).val(items_list.join(','));
+         $('#mud-checkbox').prop('checked', enabled);
+         $(`select[name='max_recording']`).val(max_recording);
+
+         if (!enabled) {
+            $(`select[name='item_list']`).attr('disabled', '');
+            $(`select[name='max_recording']`).attr('disabled', '');
+         } else {
+            $(`select[name='item_list']`).removeAttr('disabled', '');
+            $(`select[name='max_recording']`).removeAttr('disabled', '');
+         }
+      })
    }
 
    return {

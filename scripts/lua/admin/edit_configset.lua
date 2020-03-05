@@ -16,6 +16,7 @@ local template = require "template_utils"
 local user_scripts = require "user_scripts"
 local json = require "dkjson"
 local discover = require "discover_utils"
+local mud_utils = require "mud_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -96,9 +97,9 @@ local device_types_list = {{elements = device_types}}
 -- MUD max recording
 
 local mud_max_recording = {
-   {3600, "1H"},
-   {86400, "1D"},
-   {604800, "1W"},
+   {3600, mud_utils.formatMaxRecording(3600)},
+   {86400, mud_utils.formatMaxRecording(86400)},
+   {604800, mud_utils.formatMaxRecording(604800)},
 }
 
 local context = {

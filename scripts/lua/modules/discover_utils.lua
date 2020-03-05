@@ -397,6 +397,16 @@ end
 
 -- ################################################################################
 
+function discover.isValidDevtype(devtype)
+   for k,v in pairs(id2label) do
+      if(v[1] == devtype) then return(true) end
+   end
+
+   return(false)
+end
+
+-- ################################################################################
+
 function discover.devtype2id(devtype)
    for k,v in pairs(id2label) do
       if(v[1] == devtype) then return k end
@@ -436,6 +446,34 @@ function discover.isSpecialPurposeDevice(id)
    end
 
    return(false)
+end
+
+-- ################################################################################
+
+function discover.getGeneralPurposeDevicesList()
+   local rv = {}
+
+   for k, v in pairsByField(id2label, 2, asc) do
+      if not v[3] then
+	 rv[#rv + 1] = v[2]
+      end
+   end
+
+   return rv
+end
+
+-- ################################################################################
+
+function discover.getSpecialPurposeDevicesList()
+      local rv = {}
+
+   for k, v in pairsByField(id2label, 2, asc) do
+      if v[3] then
+	 rv[#rv + 1] = v[2]
+      end
+   end
+
+   return rv
 end
 
 -- ################################################################################

@@ -541,8 +541,22 @@ end
 if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
    local cur_mud_pref = mud_utils.getCurrentHostMUDRecording(ifId, host_info.host, host["devtype"])
    local in_progress = mud_utils.isMUDRecordingInProgress(ifId, host_info.host)
+   local dev_list = nil
+   local dev_lb = nil
 
-   print("<tr><th>"..i18n("flow_callbacks_config.mud").."</th><td colspan=2></li> ".. mud_utils.getMudPrefLabel(cur_mud_pref) .. " ")
+   print("<tr><th>"..i18n("flow_callbacks_config.mud").." <a href=\"https://developer.cisco.com/docs/mud/#!what-is-mud\" target=\"_blank\"><i class='fas fa-external-link-alt'></i></a></th><td colspan=2></li> ".. mud_utils.getMudPrefLabel(cur_mud_pref) .. " ")
+
+   if cur_mud_pref == "general_purpose" then
+      dev_list = discover.getGeneralPurposeDevicesList()
+      dev_lb = "host_details.list_of_general_purpose"
+   elseif cur_mud_pref == "special_purpose" then
+      dev_list = discover.getSpecialPurposeDevicesList()
+      dev_lb = "host_details.list_of_special_purpose"
+   end
+
+   if not table.empty(dev_list) then
+      print('<i class="fas fa-info-circle" title="'.. i18n(dev_lb, {list=table.concat(dev_list, ", ")}) ..'"></i>')
+   end
 
    if in_progress then
       print('<i class="fas fa-circle fa-sm" title="'.. i18n("host_config.mud_is_recording") ..'" style="margin-left: 0.5em; color: #FC2222"></i>')

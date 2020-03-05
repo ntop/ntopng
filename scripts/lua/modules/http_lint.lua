@@ -485,6 +485,12 @@ local function validateDevicesMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateDeviceType(tp)
+   local discover = require("discover_utils")
+
+   return(discover.isValidDevtype(tp))
+end
+
 local function validateUnassignedDevicesMode(mode)
    local modes = {"active_only", "inactive_only"}
 
@@ -1033,11 +1039,13 @@ end
 
 -- #################################################################
 
-local function validateListItems(script, conf)
+local function validateListItems(script, conf, key)
    local item_type = script.gui.item_list_type or ""
    local item_validator = validateUnchecked
    local existing_items = {}
    local validated_items = {}
+   key = key or "items"
+   local conf_items = conf[key]
 
    if(item_type == "country") then
       item_validator = validateCountry
@@ -1048,10 +1056,13 @@ local function validateListItems(script, conf)
    elseif(item_type == "string") then
       item_validator = validateSingleWord
       err_label = "Bad string"
+   elseif(item_type == "device_type") then
+      item_validator = validateDeviceType
+      err_label = "Bad device type"
    end
 
-   if(type(conf.items) == "table") then
-      for _, item in ipairs(conf.items) do
+   if(type(conf_items) == "table") then
+      for _, item in ipairs(conf_items) do
          if existing_items[item] then
             -- Ignore duplicated items
             goto next_item
@@ -1067,7 +1078,7 @@ local function validateListItems(script, conf)
          ::next_item::
       end
 
-      conf.items = validated_items
+      conf[key] = validated_items
    end
 
    return true, conf
