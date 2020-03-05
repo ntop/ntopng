@@ -1567,6 +1567,15 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 
 /* **************************************************** */
 
+/* NOTE: the following fields may or may not appear depending on the traffic:
+ * "IPV4_SRC_ADDR", "IPV4_DST_ADDR", "IPV6_SRC_ADDR", "IPV6_DST_ADDR" */
+static std::string mandatory_template_fields[] = {
+  "L4_SRC_PORT", "L4_DST_PORT",
+  "IP_PROTOCOL_VERSION", "PROTOCOL", "L7_PROTO",
+  "IN_BYTES", "IN_PKTS", "OUT_BYTES", "OUT_PKTS",
+  "FIRST_SWITCHED", "LAST_SWITCHED"
+};
+
 u_int8_t ZMQParserInterface::parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   /* The format that is currently defined for templates is a JSON as follows:
 
@@ -1585,6 +1594,8 @@ u_int8_t ZMQParserInterface::parseTemplate(const char * const payload, int paylo
   if(obj) {
     if(json_object_get_type(obj) == json_type_array) {
       int i, num_elements = json_object_array_length(obj);
+      std::set<std::string> mandatory_fields(mandatory_template_fields,
+	mandatory_template_fields + sizeof(mandatory_template_fields) / sizeof(mandatory_template_fields[0]));
 
       for(i = 0; i < num_elements; i++) {
 	memset(&zmq_template, 0, sizeof(zmq_template));
@@ -1606,12 +1617,30 @@ u_int8_t ZMQParserInterface::parseTemplate(const char * const payload, int paylo
 	if(json_object_object_get_ex(w, "descr", &z))
 	  zmq_template.descr = json_object_get_string(z);
 
-	if(zmq_template.name)
+	if(zmq_template.name) {
 	  addMapping(zmq_template.name, zmq_template.field, zmq_template.pen);
+
+	  mandatory_fields.erase(zmq_template.name);
+	}
 
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Template [PEN: %u][field: %u][format: %s][name: %s][descr: %s]",
 	//			     zmq_template.pen, zmq_template.field, zmq_template.format, zmq_template.name, zmq_template.descr)
 	  ;
+      }
+
+      if(mandatory_fields.size() > 0) {
+	static bool template_warning_sent = 0;
+
+	if(!template_warning_sent) {
+	  std::set<std::string>::iterator it;
+
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Some mandatory fields are missing in the ZMQ template:");
+	  template_warning_sent = true;
+
+	  for(it = mandatory_fields.begin(); it != mandatory_fields.end(); ++it) {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "\t%s", (*it).c_str());
+	  }
+	}
       }
     }
     json_object_put(obj);
