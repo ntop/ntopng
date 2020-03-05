@@ -60,3 +60,6 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       ts_utils.append("iface:exported_vs_dropped_flows", {ifid=ifstats.id, exported=ifstats.stats.flow_export_count, dropped=ifstats.stats.flow_export_drops}, when)
    end
 end, true --[[ update direction stats ]])
+
+-- Uncomment this to simulate slow downs
+--os.execute('perl -e "select(undef,undef,undef,0.8);"')
