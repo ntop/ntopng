@@ -768,7 +768,7 @@ print([[
 if not is_pcap_dump and not is_system_interface then
 
    print([[
-      <li class='nav-item my-sm-2 my-xs-2 w-10 mx-2'>
+      <li class='nav-item my-sm-2 my-xs-2 my-md-0 my-lg-0 w-10 mx-2'>
          <div class='info-stats'>
             ]].. 
             (function()
