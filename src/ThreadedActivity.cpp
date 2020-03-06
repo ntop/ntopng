@@ -512,8 +512,8 @@ void ThreadedActivity::periodicActivityBody() {
     now = (u_int)time(NULL);
 
     if(now >= next_schedule) {
-      next_deadline = next_schedule + max_duration_secs;
-      next_schedule = next_schedule + periodicity - (now - next_schedule) /* re-align in case now is greater than next_schedule */;
+      next_deadline = now + max_duration_secs; /* deadline is max_duration_secs from now */
+      next_schedule = Utils::roundTime(now, periodicity, align_to_localtime ? ntop->get_time_offset() : 0);
 
       if(!skipExecution(path))
 	schedulePeriodicActivity(pool, now, next_deadline);

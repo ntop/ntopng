@@ -3575,7 +3575,7 @@ u_int32_t Utils::roundTime(u_int32_t now, u_int32_t rounder, int32_t offset_from
 
   /* Don't allow results which are earlier than now. Adjust using rounder until now is reached.
      This can happen when result has been adjusted with a positive offset from UTC. */
-  while(result < now)
+  while(result <= now)
     result += rounder;
 
   return result;
