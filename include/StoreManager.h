@@ -36,6 +36,7 @@ class StoreManager {
   int exec_query(char *db_query,
 		 int (*callback)(void *, int, char **, char **),
 		 void *payload);
+  int exec_statement(sqlite3_stmt *stmt);
  public:
   StoreManager(int interface_id);
   virtual ~StoreManager();

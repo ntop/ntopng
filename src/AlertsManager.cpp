@@ -272,12 +272,8 @@ bool AlertsManager::hasAlerts() {
     goto out;
   }
 
-  if((step = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if(step == SQLITE_ERROR)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-    else
-      rc = true;
-  }
+  if((step = exec_statement(stmt)) == SQLITE_ROW)
+    rc = true;
 
   iface->incNumAlertsQueries();
 
@@ -464,7 +460,7 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 	   the UPDATE can fail. In this case, the alert is added as if it was new.
 	   Otherwise, if the update is successful, we exit.
 	*/
-	if((rc = sqlite3_step(stmt2)) == SQLITE_DONE) {
+	if((rc = exec_statement(stmt2)) == SQLITE_DONE) {
 	  /* Done updating... */
 	  *rowid = cur_rowid;
 	  iface->incNumWrittenAlerts();
@@ -499,8 +495,7 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
       goto out;
     }
 
-    if((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+    if((rc = exec_statement(stmt)) != SQLITE_DONE) {
       rc = -4;
       goto out;
     }
@@ -653,7 +648,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
   /* Safety check */
   if (!tstamp) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "storeFlowAlert: some mandatory parameter is missing");
-    return -1;
+    return -2;
   }
 
   /* Store to DB*/
@@ -681,7 +676,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
      || sqlite3_bind_int(stmt,    7, cli_port)
      || sqlite3_bind_int(stmt,    8, srv_port)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-    rc = -1;
+    rc = -3;
     goto out;
   }
 
@@ -691,7 +686,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
     /* Match the exact flow */
     if(sqlite3_bind_int(stmt,    9, first_seen)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = -1;
+      rc = -4;
       goto out;
     }
   } else {
@@ -701,7 +696,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
        || sqlite3_bind_int(stmt,    11, static_cast<int>(alert_severity))
        || sqlite3_bind_int(stmt,    12, (int)status)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = -1;
+      rc = -5;
       goto out;
     }
   }
@@ -711,20 +706,14 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
 #endif
 
   /* Try and read the rowid (if the record exists) */
-  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if(rc == SQLITE_ROW) {
-      cur_rowid = sqlite3_column_int(stmt, 0);
-      cur_counter = sqlite3_column_int(stmt, 1);
-      cur_cli2srv_bytes = sqlite3_column_int(stmt, 2);
-      cur_srv2cli_bytes = sqlite3_column_int(stmt, 3);
-      cur_cli2srv_packets = sqlite3_column_int(stmt, 4);
-      cur_srv2cli_packets = sqlite3_column_int(stmt, 5);
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u]\n", sqlite3_column_text(stmt, 0), cur_rowid, cur_counter);
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = -1;
-      goto out;
-    }
+  if((rc = exec_statement(stmt)) == SQLITE_ROW) {
+    cur_rowid = sqlite3_column_int(stmt, 0);
+    cur_counter = sqlite3_column_int(stmt, 1);
+    cur_cli2srv_bytes = sqlite3_column_int(stmt, 2);
+    cur_srv2cli_bytes = sqlite3_column_int(stmt, 3);
+    cur_cli2srv_packets = sqlite3_column_int(stmt, 4);
+    cur_srv2cli_packets = sqlite3_column_int(stmt, 5);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u]\n", sqlite3_column_text(stmt, 0), cur_rowid, cur_counter);
   }
 
   if(cur_rowid != (u_int64_t)-1) { /* Already existing record found, update it */
@@ -749,13 +738,12 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
        || sqlite3_bind_text(stmt2, 11, alert_json, -1, SQLITE_STATIC)
        || sqlite3_bind_int64(stmt2,12, static_cast<long int>(cur_rowid))) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-      rc = -1;
+      rc = -6;
       goto out;
     }
 
-    if((rc = sqlite3_step(stmt2)) != SQLITE_DONE) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = -1;
+    if((rc = exec_statement(stmt2)) != SQLITE_DONE) {
+      rc = -7;
       goto out;
     }
 
@@ -778,7 +766,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
 
     if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare the statement for %s", query);
-      rc = -1;
+      rc = -8;
       goto out;
     }
 
@@ -824,13 +812,11 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
        || sqlite3_bind_int64(stmt3, 30, static_cast<long int>(first_seen))
        || sqlite3_bind_int(stmt3,   31, (int) status)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
-      rc = -1;
+      rc = -9;
       goto out;
     }
 
-    if((rc = sqlite3_step(stmt3)) != SQLITE_DONE) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step [%s][%s]",
-				   query, sqlite3_errmsg(db));
+    if((rc = exec_statement(stmt3)) != SQLITE_DONE) {
       rc = -1;
       goto out;
     }
