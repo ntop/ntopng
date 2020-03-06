@@ -4,7 +4,6 @@
 -- This file contains the user_script constats
 
 local periodic_activities_utils = {}
-local ts_utils = require "ts_utils_core"
 
 -- ###########################################
 
@@ -35,24 +34,12 @@ periodic_activities_utils.periodic_activity_issues = {
 	 i18n_title = "internals.script_deadline_exceeded",
 	 i18n_descr = "internals.script_deadline_exceeded_descr",
       },
-   ["timeseries_slow"] =
-      {
-	 i18n_title = "internals.slow_timeseries_writes",
-	 i18n_descr = "internals.slow_timeseries_writes_descr"
-      },
    ["alerts_drops"] =
       {
 	 i18n_title = "internals.alert_drops",
 	 i18n_descr = "internals.alert_drops_descr"
       },
 }
-
-if ts_utils.getDriverName() ~= "rrd" then
-   -- No rrd issues when driver is not RRD
-   periodic_activities_utils.periodic_activity_issues["timeseries_slow"] = nil
-end
-
--- ###########################################
 
 -- ###########################################
 

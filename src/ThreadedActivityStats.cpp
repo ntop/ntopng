@@ -43,12 +43,6 @@ ThreadedActivityStats::~ThreadedActivityStats() {
 
 /* ******************************************* */
 
-bool ThreadedActivityStats::isTimeseriesSlow() const {
-  return ta_stats.timeseries.write.last.is_slow;
-}
-
-/* ******************************************* */
-
 void ThreadedActivityStats::incTimeseriesWriteDrops(u_long num_drops) {
   ta_stats.timeseries.write.tot_drops += num_drops;
 }
@@ -65,16 +59,6 @@ void ThreadedActivityStats::updateTimeseriesWriteStats(ticks cur_ticks) {
   last_stats->tot_ticks += cur_ticks;
   last_stats->tot_calls++;
   if(cur_ticks > last_stats->max_ticks) last_stats->max_ticks = cur_ticks;
-
-  if(!last_stats->is_slow && last_stats->tot_calls && !(last_stats->tot_calls % 10)) {
-    /* Evaluate the condition every 10 updates */
-    if(last_stats->tot_ticks / (float)tickspersec / last_stats->tot_calls * 1000 >= THREADED_ACTIVITY_STATS_SLOW_TIMESERIES_MS) {
-      last_stats->is_slow = true; /* Keep it slow for the rest of the current execution */
-      ta_stats.timeseries.write.tot_is_slow++; /* Increase the overall total value as well */
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Evaluated condition: [slow: %u][path: %s]", last_stats->is_slow ? 1 : 0, threaded_activity->activityPath());
-    }
-  }
 }
 
 /* ******************************************* */
@@ -102,20 +86,12 @@ void ThreadedActivityStats::updateStatsEnd(u_long duration_ms) {
   if(duration_ms > max_duration_ms)
     max_duration_ms = duration_ms;
 
-  // ntop->getTrace()->traceEvent(TRACE_WARNING, "END [before] >>> [slow: %u][prev_slow: %u][last_slow: %u][path: %s][num_points: %u]",
-  // 			       isTimeseriesSlow(), ta_stats.timeseries.write.last_slow, ta_stats.timeseries.write.last.is_slow, threaded_activity->activityPath(), ta_stats.timeseries.write.last.tot_calls);
-
   /* Update Timeseries stats for the last run which has just ended with this call */
-  ta_stats.timeseries.write.last_slow = ta_stats.timeseries.write.last.is_slow;
-
   if(ta_stats.timeseries.write.last.tot_calls > 0)
     ta_stats.timeseries.write.last_max_call_duration_ms = ta_stats.timeseries.write.last.max_ticks / (float)tickspersec * 1000,
       ta_stats.timeseries.write.last_avg_call_duration_ms = ta_stats.timeseries.write.last.tot_ticks / (float)tickspersec / ta_stats.timeseries.write.last.tot_calls * 1000;
   else
     ta_stats.timeseries.write.last_max_call_duration_ms = ta_stats.timeseries.write.last_avg_call_duration_ms = 0;
-
-  // ntop->getTrace()->traceEvent(TRACE_WARNING, "END [after] >>> [slow: %u][prev_slow: %u][last_slow: %u][path: %s][num_points: %u]",
-  // 			       isTimeseriesSlow(), ta_stats.timeseries.write.last_slow, ta_stats.timeseries.write.last.is_slow, threaded_activity->activityPath(), ta_stats.timeseries.write.last.tot_calls);
 }
 
 /* ******************************************* */
@@ -199,11 +175,6 @@ void ThreadedActivityStats::lua(lua_State *vm) {
     lua_push_bool_table_entry(vm, "is_slow", true);
   if(num_is_slow)
     lua_push_uint64_table_entry(vm, "num_is_slow", num_is_slow);
-
-  if(isTimeseriesSlow())
-    lua_push_bool_table_entry(vm, "timeseries_slow", true);
-  if(ta_stats.timeseries.write.tot_is_slow)
-    lua_push_uint64_table_entry(vm, "num_timeseries_slow", ta_stats.timeseries.write.tot_is_slow);
 
   if(hasAlertsDrops())
     lua_push_bool_table_entry(vm, "alerts_drops", true);

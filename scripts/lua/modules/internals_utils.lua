@@ -347,15 +347,6 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '4%',
        }
      }, {
-       title: "]] print(i18n("internals.tot_rrd_running_slow")) print[[",
-       field: "column_tot_rrd_running_slow",
-       hidden: true,
-       sortable: true,
-       css: {
-	 textAlign: 'right',
-	 width: '4%',
-       }
-     }, {
        title: "]] print(i18n("internals.tot_not_executed")) print[[",
        field: "column_tot_not_executed",
        sortable: true,

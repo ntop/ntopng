@@ -458,7 +458,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
       end
 
       if((num_processed_hosts % 64) == 0) then
-        if((not ntop.isDeadlineApproaching()) and (not ntop.rrd_is_slow())) then
+        if not ntop.isDeadlineApproaching() then
           local num_local = interface.getNumLocalHosts() -- note: may be changed
 
           interface.setPeriodicActivityProgress(num_processed_hosts * 100 / num_local)
@@ -473,7 +473,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
       return false
     end
 
-    if(in_time and (not ntop.isDeadlineApproaching()) and (not ntop.rrd_is_slow())) then
+    if(in_time and (not ntop.isDeadlineApproaching())) then
       -- Here we assume that all the writes have completed successfully
       interface.setPeriodicActivityProgress(100)
     end

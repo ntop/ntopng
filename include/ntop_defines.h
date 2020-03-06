@@ -873,7 +873,6 @@
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
-#define THREADED_ACTIVITY_STATS_SLOW_TIMESERIES_MS  5  /* Timeseries are slow if an update takes more than 5 millis */
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"
 #define BOOT_SCRIPT_PATH           "boot.lua" /* Executed as root before networking is setup */
