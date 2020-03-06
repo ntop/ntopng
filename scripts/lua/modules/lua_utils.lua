@@ -3391,6 +3391,17 @@ function getFolderSize(path, timeout)
    return size
 end
 
+-- ##############################################
+
+function generate_switch_toggle(id, label, disabled) 
+   return ([[
+      <div class="custom-control custom-switch ]]..(disabled and 'disabled' or '') ..[[">
+         <input type="checkbox" class="custom-control-input" id="]].. id ..[[">
+         <label class="custom-control-label" for="]].. id ..[[">]].. label ..[[</label>
+      </div>
+   ]])
+end
+
 -- ###########################################
 
 function getHttpUrlPrefix()
