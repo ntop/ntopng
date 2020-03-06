@@ -456,16 +456,22 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 	  goto out;
 	}
 
-	/* As the entry in the table could have been deleted after the caching,
-	   the UPDATE can fail. In this case, the alert is added as if it was new.
-	   Otherwise, if the update is successful, we exit.
-	*/
 	if((rc = exec_statement(stmt2)) == SQLITE_DONE) {
-	  /* Done updating... */
-	  *rowid = cur_rowid;
-	  iface->incNumWrittenAlerts();
-	  rc = 0;
-	  goto out;
+	  int num_updates = sqlite3_changes(db);
+
+	  // ntop->getTrace()->traceEvent(TRACE_ERROR, "Changes %u", num_updates);
+
+	  /* Ensure the number of UPDATEd rows is greater than zero. A zero value means
+	     the row is no longer in the database (alert deleted) but it is still in cache, so
+	     a new insert need to be performed. The new insert will also refresh the cache.
+	  */
+	  if(num_updates > 0) {
+	    /* Done updating... */
+	    *rowid = cur_rowid;
+	    iface->incNumWrittenAlerts();
+	    rc = 0;
+	    goto out;
+	  }
 	}
       }
     }
@@ -651,7 +657,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
     return -2;
   }
 
-  /* Store to DB*/
+  /* Store to DB */
 
   m.lock(__FILE__, __LINE__);
 
