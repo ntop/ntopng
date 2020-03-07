@@ -117,8 +117,8 @@ int StoreManager::exec_statement(sqlite3_stmt *stmt) {
     See https://www.sqlite.org/rescode.html#done
   */
   if(rc != SQLITE_OK && rc != SQLITE_DONE && rc != SQLITE_ROW)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: [%s (%d)][%s (%d)]",
-				 sqlite3_errstr(rc), rc,
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: [%d][%s (%d)]",
+				 /* sqlite3_errstr(rc), */ rc,
 				 sqlite3_errmsg(db), sqlite3_errcode(db));
 
   return rc;
