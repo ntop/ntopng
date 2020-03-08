@@ -401,7 +401,7 @@ void AlertsManager::cache(int ifid, AlertType alert_type, const char *subtype, i
     if(r) {
       char rowid_str[32];
 
-      snprintf(rowid_str, sizeof(rowid_str), "%lu", rowid);
+      snprintf(rowid_str, sizeof(rowid_str), "%lu", (unsigned long)rowid);
       /* The cache has a time-to-live corresponding to the aggregation period. Once the aggregation period is
 	 reached, the key disappears and a new alert is added. */
       r->set(cached_k, rowid_str, ALERTS_MANAGER_MAX_AGGR_SECS);

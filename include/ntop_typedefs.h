@@ -129,8 +129,8 @@ typedef enum {
 } L7PolicySource_t;
 
 /* Status are handled in Lua (alert_consts.lua) */
-typedef uint8_t AlertType;
-#define alert_none ((uint8_t)-1)
+typedef u_int8_t AlertType;
+#define alert_none ((u_int8_t)-1)
 
 typedef enum {
   alert_level_none = -1,
@@ -188,7 +188,7 @@ struct zmq_msg_hdr {
   u_int32_t msg_id;
 };
 
-typedef uint8_t dump_mac_t[DUMP_MAC_SIZE];
+typedef u_int8_t dump_mac_t[DUMP_MAC_SIZE];
 typedef char macstr_t[MACSTR_SIZE];
 
 typedef struct {
@@ -315,7 +315,7 @@ struct string_list {
 };
 
 /* Status are handled in Lua (flow_consts.lua) */
-typedef uint8_t FlowStatus;
+typedef u_int8_t FlowStatus;
 #define status_normal 0
 
 typedef enum {

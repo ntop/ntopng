@@ -38,6 +38,9 @@ class NtopPro;
  */
 class Ntop {
  private:
+#ifndef WIN32
+  int startupLockFile;
+#endif
   bool ndpiReloadInProgress;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
@@ -49,7 +52,7 @@ class Ntop {
   NetworkInterface **iface; /**< Array of network interfaces. */
   NetworkInterface *system_interface; /** The system interface */
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
-  uint8_t num_dump_interfaces;
+  u_int8_t num_dump_interfaces;
   HTTPserver *httpd; /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
@@ -360,7 +363,10 @@ class Ntop {
 #endif
 
   inline Prefs*            getPrefs()                { return(prefs);               };
-  
+
+#ifndef WIN32
+  void  lockNtopInstance();
+#endif
 #ifdef NTOPNG_PRO
 #ifdef WIN32
   char* getIfName(int if_id, char *name, u_int name_len);

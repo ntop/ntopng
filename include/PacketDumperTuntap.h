@@ -29,8 +29,8 @@ class PacketDumperTuntap {
  private:
   NetworkInterface *iface;
   int           fd;
-  uint8_t       mac_addr[6];
-  uint16_t      mtu;
+  u_int8_t      mac_addr[6];
+  u_int16_t     mtu;
   char          dev_name[DUMP_IFNAMSIZ];
   bool		init_ok;
   u_int32_t     num_dumped_packets;
