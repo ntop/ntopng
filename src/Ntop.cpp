@@ -123,8 +123,6 @@ Ntop::Ntop(char *appName) {
     snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
 
   //umask(0);
-
-  lockNtopInstance();
   
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
     ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -173,6 +171,8 @@ Ntop::Ntop(char *appName) {
 
 #ifndef WIN32
   setservent(1);
+
+  startupLockFile = -1;
 #endif
 }
 
@@ -181,7 +181,7 @@ Ntop::Ntop(char *appName) {
 #ifndef WIN32
 
 void Ntop::lockNtopInstance() {
-  char lockPath[MAX_PATH];
+  char lockPath[MAX_PATH+8];
   struct flock lock;
   
   snprintf(lockPath, sizeof(lockPath), "%s/.lock", working_dir);
@@ -281,7 +281,8 @@ Ntop::~Ntop() {
 #endif
 
 #ifndef WIN32
-  flock(startupLockFile);
+  if (startupLockFile >= 0)
+    flock(startupLockFile);
 #endif
 }
 

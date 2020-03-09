@@ -121,6 +121,10 @@ int main(int argc, char *argv[])
 
   if(rc < 0) return(-1);
 
+#ifndef WIN32
+  ntop->lockNtopInstance();
+#endif
+
   ntop->registerPrefs(prefs, false);
 
   if((boot_activity = new ThreadedActivity(BOOT_SCRIPT_PATH))) {
