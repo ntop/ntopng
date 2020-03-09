@@ -281,8 +281,13 @@ Ntop::~Ntop() {
 #endif
 
 #ifndef WIN32
-  if (startupLockFile >= 0)
+  if(startupLockFile >= 0) {
+#ifdef __linux__    
     flock(startupLockFile);
+#else
+    flock(startupLockFile, LOCK_EX);
+#endif
+  }
 #endif
 }
 
