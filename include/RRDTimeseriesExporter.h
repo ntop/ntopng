@@ -34,6 +34,7 @@ class RRDTimeseriesExporter : public TimeseriesExporter {
 
   bool enqueueData(lua_State* vm, bool do_lock = true);
   char *dequeueData();
+  u_int64_t queueLength() const;
   void flush();
 };
 
