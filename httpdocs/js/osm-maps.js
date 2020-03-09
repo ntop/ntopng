@@ -38,7 +38,11 @@ $(document).ready(function () {
             }
         });
 
-        if (errors.code != 1) display_localized_error(error_code);
+        if (errors.code == 2) {
+            /* Do not even report the info/error to the user, this is
+             * not relevant as the map functionality is not impacted */
+        } else if (errors.code != 1)
+            display_localized_error(error_code);
     }
 
     const init_map = () => {
@@ -81,7 +85,11 @@ $(document).ready(function () {
         const user_coords = [current_user_position.coords.latitude, current_user_position.coords.longitude];
 
         if (user_coords[0] == 0 && user_coords[1] == 0) {
-            display_localized_no_geolocation_msg();
+            /* Do not even report the info/error to the user, this is
+             * not relevant as the map functionality is not impacted */
+            //display_localized_no_geolocation_msg();
+            console.log("Geolocation unavailable, using default location");
+
             user_coords[0] = default_coords[0], user_coords[1] = default_coords[1];
         }
 

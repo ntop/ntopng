@@ -55,7 +55,7 @@ Ntop::Ntop(char *appName) {
   ntop = this;
   globals = new NtopGlobals();
   extract = new TimelineExtract();
-  pa = new PeriodicActivities();
+  pa      = new PeriodicActivities();
   address = new AddressResolution();
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
@@ -123,7 +123,7 @@ Ntop::Ntop(char *appName) {
     snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
 
   //umask(0);
-
+  
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Occurred while checking the current directory (errno=%d)", errno);
@@ -171,8 +171,36 @@ Ntop::Ntop(char *appName) {
 
 #ifndef WIN32
   setservent(1);
+
+  startupLockFile = -1;
 #endif
 }
+
+/* ******************************************* */
+
+#ifndef WIN32
+
+void Ntop::lockNtopInstance() {
+  char lockPath[MAX_PATH+8];
+  struct flock lock;
+  
+  snprintf(lockPath, sizeof(lockPath), "%s/.lock", working_dir);
+  
+  lock.l_type   = F_WRLCK;  /* read/write (exclusive versus shared) lock */
+  lock.l_whence = SEEK_SET; /* base for seek offsets */
+  lock.l_start  = 0;        /* 1st byte in file */
+  lock.l_len    = 0;        /* 0 here means 'until EOF' */
+  lock.l_pid    = getpid(); /* process id */
+
+  if(((startupLockFile = open(lockPath, O_RDWR | O_CREAT, 0666)) < 0)
+     || (fcntl(startupLockFile, F_SETLK, &lock) < 0) /** F_SETLK doesn't block, F_SETLKW does **/
+     ) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Another ntopng instance is running...");
+    exit(0);
+  }  
+}
+
+#endif
 
 /* ******************************************* */
 
@@ -227,7 +255,7 @@ Ntop::~Ntop() {
   if(nagios_manager) delete nagios_manager;
 #endif
 #endif
-
+  
   if(resolvedHostsBloom) delete resolvedHostsBloom;
   delete sqlite_alerts_queue;
   delete alerts_notifications_queue;
@@ -250,6 +278,11 @@ Ntop::~Ntop() {
 
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
+#endif
+
+#ifndef WIN32
+  if (startupLockFile >= 0)
+    flock(startupLockFile);
 #endif
 }
 

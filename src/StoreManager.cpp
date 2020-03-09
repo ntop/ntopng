@@ -86,6 +86,46 @@ int StoreManager::exec_query(char *db_query,
 
 /* **************************************************** */
 /*
+  Executes a prepared statements and retries a fixed number of times upon
+  certain errors. This allows some errors to be recovered such as SQLITE_BUSY (5)
+
+  See https://www.sqlite.org/rescode.html
+*/
+int StoreManager::exec_statement(sqlite3_stmt *stmt) {
+  int rc;
+  int max_retries = 5;
+  bool retry = true;
+
+  for(int cur_retries = 0; cur_retries < max_retries && retry; cur_retries++) {
+    rc = sqlite3_step(stmt);
+
+    switch(rc) {
+    case SQLITE_ERROR:
+    case SQLITE_ROW:
+    case SQLITE_OK:
+    case SQLITE_DONE:
+      /* Stop immediately upon error or completion */
+      retry = false;
+      break;
+    }
+  }
+
+  /*
+    There are only a few non-error result codes:
+    SQLITE_OK, SQLITE_ROW, and SQLITE_DONE.
+
+    See https://www.sqlite.org/rescode.html#done
+  */
+  if(rc != SQLITE_OK && rc != SQLITE_DONE && rc != SQLITE_ROW)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: [%d][%s (%d)]",
+				 /* sqlite3_errstr(rc), */ rc,
+				 sqlite3_errmsg(db), sqlite3_errcode(db));
+
+  return rc;
+}
+
+/* **************************************************** */
+/*
   Reclaims unused disk space and defragments tables and indices.
   Should be called as disk space and defragmentation are not run
   automatically by sqlite.
@@ -105,10 +145,8 @@ int StoreManager::optimizeStore() {
     goto out;
   }
 
-  if((step = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if(step == SQLITE_ERROR)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-    else
+  if((step = exec_statement(stmt)) != SQLITE_DONE) {
+    if(step != SQLITE_ERROR)
       rc = true;
   }
 

@@ -5158,20 +5158,6 @@ static int ntop_rrd_tune(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
-static int ntop_rrd_is_slow(lua_State* vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
-
-  if(ctx && ctx->threaded_activity_stats)
-    lua_pushboolean(vm, ctx->threaded_activity_stats->isTimeseriesSlow());
-  else
-    lua_pushboolean(vm, false);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-// ***API***
 static int ntop_rrd_inc_num_drops(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   u_long num_drops = 1;
@@ -11801,7 +11787,6 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate",    ntop_rrd_lastupdate    },
   { "rrd_tune",          ntop_rrd_tune          },
-  { "rrd_is_slow",       ntop_rrd_is_slow       },
   { "rrd_inc_num_drops", ntop_rrd_inc_num_drops },
 
   /* Prefs */

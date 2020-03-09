@@ -205,7 +205,6 @@ print[[
         }
 
 		if (rsp.system_host_stats.mem_total != undefined) {
-
 		   var mem_total = rsp.system_host_stats.mem_total;
 		   var mem_used = rsp.system_host_stats.mem_used;
 		   var mem_used_ratio = mem_used / mem_total;
@@ -214,11 +213,16 @@ print[[
 		   mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
 		   mem_used_ratio = mem_used_ratio + "%";
 
-		   $('#ram-used').html('Used: ' + mem_used_ratio + ' / Available: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / Total: ' + bytesToSize(mem_total * 1024));
-		   $('#ram-process-used').html('Used: ' + bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
+		   $('#ram-used').html(']] print(i18n("ram_used")) print[[: ' + mem_used_ratio + ' / ]] print(i18n("ram_available")) print[[: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / ]] print(i18n("ram_total")) print[[: ' + bytesToSize(mem_total * 1024));
+		   $('#ram-process-used').html(']] print(i18n("ram_used")) print[[: ' + bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
 		}
 
-		$('#dropped-alerts').html(rsp.system_host_stats.dropped_alerts ? fint(rsp.system_host_stats.dropped_alerts) : "0");
+                if(rsp.system_host_stats.dropped_alerts) {
+                  const drop_pct = rsp.system_host_stats.dropped_alerts / (rsp.system_host_stats.dropped_alerts + rsp.system_host_stats.written_alerts) * 100;
+                  $('#dropped-alerts').html(fint(rsp.system_host_stats.dropped_alerts) + " [" + fpercent(drop_pct) + "]");
+                } else {
+                  $('#dropped-alerts').html("0");
+                }
 		$('#stored-alerts').html(rsp.system_host_stats.written_alerts ? fint(rsp.system_host_stats.written_alerts) : "0");
 		$('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? fint(rsp.system_host_stats.alerts_queries) : "0");
 

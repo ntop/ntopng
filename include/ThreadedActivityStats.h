@@ -29,7 +29,6 @@ class ThreadedActivity;
 typedef struct {
   ticks  tot_ticks, max_ticks;
   u_long tot_calls; /* Total number of calls */
-  bool is_slow;
 } threaded_activity_timeseries_delta_stats_t; /* Stats periodically reset to keep a most-recent view */
 
 typedef struct {
@@ -37,7 +36,6 @@ typedef struct {
   u_long tot_calls; /* Total number of calls */
   u_long tot_drops; /* Total number of times timeseries haven't been called because writes are detected to be slow */
   /* Stats for the last run */
-  u_long tot_is_slow;  /* Total number of times the periodic activity has been detected to have slow updates */
   float last_max_call_duration_ms; /* Maximum time taken to perform a call during the last run */
   float last_avg_call_duration_ms; /* Average time taken to perform a call during the last run */
   bool  last_slow; /* True if slow timeseries updates have been detected during the last run */
@@ -77,7 +75,6 @@ class ThreadedActivityStats {
   inline time_t getLastStartTime()   const { return(last_start_time);   }
   inline time_t getDeadline()        const { return(deadline);          }
 
-  bool isTimeseriesSlow() const;
   inline bool hasAlertsDrops() const {
     return ta_stats.alerts.has_drops;
   }

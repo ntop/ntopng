@@ -466,14 +466,6 @@ function driver:append(schema, timestamp, tags, metrics)
 	return res
      end
   end
-  
-  if not schema.options.is_critical_ts and ntop.rrd_is_slow() then
-     -- RRD is slow and this is not a critical timeseries
-     ntop.rrd_inc_num_drops()
-     -- require "lua_utils"
-     -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "RRD slow inc num drops ... [".. schema.name .."]["..formatEpoch(ntop.getDeadline()).."]")
-     return false
-  end
 
   if not ntop.notEmptyFile(rrdfile) then
     ntop.mkdir(base)
