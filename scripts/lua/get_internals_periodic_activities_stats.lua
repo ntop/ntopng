@@ -29,8 +29,33 @@ local sortPrefs = "internals_periodic_activites_data"
 
 -- ################################################
 
+-- Returns the last duration of the activity. If the activity is running
+-- last duration is the amount of seconds since the activity was started.
+-- If the activity is not running, the last duration is the actual recorded
+-- last duration
+local function get_last_duration_ms(stats)
+   local status = stats.state
+   local last_duration = 0
+
+   if status == "running" then
+      -- If running, last durations grows with the time as the activity is in progress
+      if stats["last_start_time"] and stats["last_start_time"] > 0 and now >= stats["last_start_time"] then
+	 last_duration = (now - stats["last_start_time"]) * 1000 --[[ Expected in milliseconds --]]
+      end
+   else
+      if stats.duration.last_duration_ms > 0 then
+	 last_duration = stats.duration.last_duration_ms
+      end
+   end
+
+   return last_duration
+end
+
+-- ################################################
+
 local function time_utilization(stats)
-   local busy = stats.duration.last_duration_ms / stats.duration.max_duration_ms * 100
+   local last_duration = get_last_duration_ms(stats)
+   local busy = last_duration / (stats.max_duration_secs  * 1000) * 100
 
    return {busy = busy, available = 100 - busy}
 end
@@ -143,15 +168,12 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
 	 goto continue
       end
    end
-
-   stats.duration.max_duration_ms = script_stats.stats.max_duration_secs * 1000
-   stats.perc_duration = stats.duration.last_duration_ms * 100 / (stats.duration.max_duration_ms)
    
    if(sortColumn == "column_time_perc") then
       local utiliz = time_utilization(script_stats.stats)
       sort_to_key[k] = -utiliz["available"]
    elseif(sortColumn == "column_last_duration") then
-      sort_to_key[k] = script_stats.stats.duration.last_duration_ms
+      sort_to_key[k] = get_last_duration_ms(script_stats.stats)
    elseif(sortColumn == "column_periodic_activity_name") then
       sort_to_key[k] = script_stats.script
    elseif(sortColumn == "column_periodicity") then
@@ -206,7 +228,6 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local record = {}
       local script_stats = ifaces_scripts_stats[key]
 
-      local max_duration = script_stats.stats.duration.max_duration_ms
       local status = script_stats.stats.state
       local warn = {}
 
@@ -224,7 +245,6 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
       record["column_key"] = key
       record["column_ifid"] = string.format("%i", script_stats.ifid)
-      record["column_time_perc"] = script_stats.stats.perc_duration
 
       if script_stats.stats.progress and script_stats.stats.progress > 0 then
 	 record["column_progress"] = string.format("%i %%", script_stats.stats.progress)
@@ -268,21 +288,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local utiliz = time_utilization(script_stats.stats)
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
 
-      record["column_last_duration"] = '0'
-
-      if status == "running" then
-	 -- If running, last durations grows with the time as the activity is in progress
-	 if script_stats.stats["last_start_time"] and script_stats.stats["last_start_time"] > 0 and now >= script_stats.stats["last_start_time"] then
-	    record["column_last_duration"] = (now - script_stats.stats["last_start_time"]) * 1000 --[[ Expected in milliseconds --]]
-	 end
-      else
-	 -- if not running, the last duration can be read from the stats
-	 local last_duration = script_stats.stats.duration.last_duration_ms
-
-	 if script_stats.stats.duration.last_duration_ms > 0 then
-	    record["column_last_duration"] = script_stats.stats.duration.last_duration_ms
-	 end
-      end
+      record["column_last_duration"] = get_last_duration_ms(script_stats.stats)
 
       record["column_status"] = status2label(status)
 
