@@ -213,45 +213,38 @@ print [[
 
 <div class="panel-body">
   <div id="search_panel">
+  <form class="host_data_form" id="host_data_form_delete" method="POST">
     <div class='container'>
 
-      <form class="host_data_form" id="host_data_form_delete" method="POST">
-      <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
+        <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
 
-       <div class="row">
-	 <div class='col-md-1'>
-	   <div class="form-group">
-	     <div class="btn-group btn-group-toggle invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
-	       <label class="btn btn-secondary active">
-		 <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle" checked="checked">]] print(i18n("manage_data.single")) print[[
-	       </label>
-	     </div>
-	   </div>
-	 </div>
-	 <div class='col-md-3'>
-	     <div class="form-group" style="margin-bottom:0;">
-	       <input type="text" id="delete_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24" required/>
-	     </div>
-	 </div>
-	 <div class='col-md-3'>
-	     <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="delete_vlan" name="vlan" class="form-control" value=""/>
-	   </div>
-
-
-	 <div class='col-md-5'>
-	 </div>
+      <div class="row">
+	      <div class='col-md-1'>
+	        <div class="form-group">
+	          <div class="btn-group btn-group-toggle invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
+              <label class="btn btn-secondary active">
+                <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle" checked="checked">]] print(i18n("manage_data.single")) print[[
+              </label>
+	          </div>
+	        </div>
+	      </div>
+	      <div class='col-md-3'>
+	        <div class="form-group" style="margin-bottom:0;">
+	          <input type="text" required id="delete_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24"/>
+	        </div>
+	      </div>
+	      <div class='col-md-3'>
+	        <input type="number" required min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="delete_vlan" name="vlan" class="form-control" value=""/>
+	      </div>
+  	  </div>
+      <div class="row">
+        <div class='col-md-10'></div>
+        <div class='col-md-2'>
+	        <div class="btn-group btn-group-toggle float-right">
+	        </div>
+	      </div>
        </div>
-	 </div>
-       <div class="row">
-	 <div class='col-md-10'>
-	 </div>
-
-	 <div class='col-md-2'>
-	   <div class="btn-group btn-group-toggle float-right">
-	   </div>
-	 </div>
-       </div>
-  </div>
+    </div>
 	  <button class="btn btn-secondary" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
 	</form>
 
@@ -292,17 +285,24 @@ print("</div>") -- closes <div class="tab-content">
 
 print[[<script type='text/javascript'>
 
-var delete_data_show_modal = function() {
-  $(".modal-body #modal_host").html(" " + $('#delete_host').val());
-  if($('#delete_vlan').val() != "") {
-    $(".modal-body #modal_vlan").html("@" + $('#delete_vlan').val());
-  } else {
-    $(".modal-body #modal_vlan").html("");
-  }
-  $('#delete_data').modal('show');
+$(document).ready(function() {
+  $('#host_data_form_delete').areYouSure();
+})
 
-  /* abort submit */
-  return false;
+var delete_data_show_modal = function() {
+
+  $(".modal-body #modal_host").html(" " + $('#delete_host').val());
+  if ($('#delete_vlan').val() != "") {
+
+    $(".modal-body #modal_vlan").html("@" + $('#delete_vlan').val());
+    $('#delete_data').modal('show');
+
+    /* abort submit */
+    return false;
+  }
+
+  return true;
+
 };
 
 var delete_data = function() {
