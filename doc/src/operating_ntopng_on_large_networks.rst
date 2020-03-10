@@ -33,8 +33,13 @@ Packet Drops
 ------------
 
 When ntopng drops packets, it means that it cannot keep up with the
-rate at which packets are entering the NIC being monitored. In
-this case, one should consider operating PF_RING Zero Copy
+rate at which packets are entering the NIC being monitored. One first
+check to perform is to disable the "Idle Local Hosts Cache" preference from the
+ntopng "Cache Settings", which has an high impact on the packet capture
+thread due to its interactions with Redis for newly created hosts.
+
+If the above change does not solve the packet drops issue, one should
+consider operating PF_RING Zero Copy
 (ZC), and even use RSS to let multiple thread handle the incoming
 traffic. The configuration of PF_RING ZC and RSS fall outside
 the scope of this guide. Additional information can be found at the
@@ -42,6 +47,11 @@ following links:
 
 - https://www.ntop.org/guides/pf_ring/zc.html
 - https://www.ntop.org/guides/pf_ring/rss.html
+
+When RSS is enabled, the traffic will be spread across multiple virtual
+interfaces. View Interfaces can be used in order to aggregate the traffic
+back into a single interface, check out
+https://www.ntop.org/guides/ntopng/advanced_features/view_interfaces.html .
 
 Additional Tuning
 -----------------
