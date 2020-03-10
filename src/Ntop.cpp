@@ -1595,7 +1595,7 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
      (ntop->getRedis()->get((char*)TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&
      (val[0] != '\0') &&
      (!strcmp(val, password)))
-    return(true);
+    goto valid_local_user;
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 
@@ -1604,18 +1604,21 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
   } else {
     mg_md5(password_hash, password, NULL);
 
-    if(strcmp(password_hash, val) == 0) {
-      snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
-      strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
-      group[NTOP_GROUP_MAXLEN - 1] = '\0';
-
-      /* mark the user as local */
-      *localuser = true;
-      return(true);
-    } else {
+    if(strcmp(password_hash, val) != 0) {
       return(false);
     }
+
+    // goto valid_local_user
   }
+
+valid_local_user:
+  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
+  strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
+  group[NTOP_GROUP_MAXLEN - 1] = '\0';
+
+  /* mark the user as local */
+  *localuser = true;
+  return(true);
 }
 
 /* ******************************************* */
