@@ -55,5 +55,11 @@ char* RRDTimeseriesExporter::dequeueData() {
 
 /* ******************************************************* */
 
+u_int64_t RRDTimeseriesExporter::queueLength() const {
+  return ts_queue->getLength();
+}
+
+/* ******************************************************* */
+
 void RRDTimeseriesExporter::flush() {
 }

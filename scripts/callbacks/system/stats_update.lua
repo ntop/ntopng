@@ -27,3 +27,9 @@ end
 
 -- ########################################################
 
+if ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1" then
+   ts_dump.update_rrd_queue_length(interface.getId(), when)
+end
+
+-- ########################################################
+

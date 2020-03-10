@@ -2985,6 +2985,27 @@ static int ntop_rrd_queue_pop(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_rrd_queue_length(lua_State* vm) {
+  int ifid;
+  NetworkInterface* iface;
+  TimeseriesExporter *ts_exporter;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_ERROR);
+
+  ifid = lua_tointeger(vm, 1);
+
+  if(!(iface = ntop->getInterfaceById(ifid)) ||
+     !(ts_exporter = iface->getRRDTSExporter()))
+    return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, ts_exporter->queueLength());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -11411,6 +11432,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* RRD queue */
   { "rrd_enqueue",                      ntop_rrd_queue_push                   },
   { "rrd_dequeue",                      ntop_rrd_queue_pop                    },
+  { "rrd_queue_length",                 ntop_rrd_queue_length                 },
 
   { "getHostPoolsStats",                ntop_get_host_pools_interface_stats   },
   { "getHostPoolStats",                 ntop_get_host_pool_interface_stats    },

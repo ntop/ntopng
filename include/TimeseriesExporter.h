@@ -43,6 +43,7 @@ class TimeseriesExporter {
 
   virtual bool  enqueueData(lua_State* vm, bool do_lock = true) = 0;
   virtual char* dequeueData() = 0;
+  virtual u_int64_t queueLength() const { return 0; };
   virtual void flush() = 0;
 };
 

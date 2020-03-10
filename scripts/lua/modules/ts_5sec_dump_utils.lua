@@ -48,6 +48,19 @@ end
 
 -- ########################################################
 
+function ts_dump.update_rrd_queue_length(ifid, when)
+   if ts_utils.getDriverName() == "rrd" then
+      ts_utils.append("iface:ts_queue_length",
+		      {
+			 ifid = ifid,
+			 num_ts = interface.rrd_queue_length(ifid) or 0
+		      },
+		      when)
+   end
+end
+
+-- ########################################################
+
 function ts_dump.run_5sec_dump(ifid, when, periodic_ht_state_update_stats)
    local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
       and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
@@ -59,6 +72,7 @@ function ts_dump.run_5sec_dump(ifid, when, periodic_ht_state_update_stats)
 
    iface_update_periodic_ht_state_update_stats(when, ifid, periodic_ht_state_update_stats)
    update_user_scripts_stats(when, ifid, verbose)
+   ts_dump.update_rrd_queue_length(ifid, when)
 end
 
 -- ########################################################

@@ -615,7 +615,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
    local periodic_scripts_ts = {}
 
    for script, script_details in pairsByKeys(periodic_activities_utils.periodic_activities) do
-      local max_duration = script_details["periodicity"]
+      local max_duration = script_details["max_duration"]
 
       periodic_scripts_ts[#periodic_scripts_ts + 1] = {
 	 schema = "periodic_script:duration",
@@ -644,7 +644,19 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 	    metrics_labels = {i18n("internals.num_writes"), i18n("internals.num_drops")},
 	    value_formatter = {"fpoints", "formatPoints"}
 	 }
+
       end
+   end
+
+   if ts_utils.getDriverName() == "rrd" then
+      periodic_scripts_ts[#periodic_scripts_ts + 1] = {
+	 separator = 1,
+      }
+      periodic_scripts_ts[#periodic_scripts_ts + 1] = {
+	 schema = "iface:ts_queue_length",
+	 label = i18n("internals.timeseries_queue_length"),
+	 metrics_labels = {i18n("internals.timeseries_queued_points")},
+      }
    end
 
    local timeseries = periodic_scripts_ts

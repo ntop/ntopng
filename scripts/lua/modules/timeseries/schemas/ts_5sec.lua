@@ -18,7 +18,15 @@ schema:addMetric("idle_pct") -- idle
 schema = ts_utils.newSchema("system:cpu_load", {step = 5, metrics_type = ts_utils.metrics.gauge, rrd_fname="cpu_ld", is_critical_ts = true})
 schema:addTag("ifid")
 schema:addMetric("load_percentage")
- 
+
+-------------------------------------------------------
+-- Timeseries write queue length
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("iface:ts_queue_length", {step = 5, metrics_type = ts_utils.metrics.gauge, is_critical_ts = true})
+schema:addTag("ifid")
+schema:addMetric("num_ts") -- Number of timeseries currently in the queue
+
 -------------------------------------------------------
 -- FLOW USER SCRIPTS SCHEMAS
 -------------------------------------------------------

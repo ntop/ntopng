@@ -342,6 +342,8 @@ Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 
 /* **************************************************** */
 
+/* NOTE: this method is void, it does not correspond to the
+ * static bool NetworkInterface::periodicHTStateUpdate. */
 void ViewInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts) {
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
     viewed_interfaces[s]->periodicHTStateUpdate(deadline, vm, skip_user_scripts);
@@ -349,6 +351,12 @@ void ViewInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, bool s
   /* Also call the base, overridden NetworkInterface::periodicHTStateUpdate for this view.
      It is necessary to ensure idle hash entries (e.g., hosts) are deleted from memory */
   NetworkInterface::periodicHTStateUpdate(deadline, vm, skip_user_scripts);
+
+  /* It is necessary to call purgeIdle explicitly here (other than in
+   * ViewInterface::generic_periodic_hash_entry_state_update) as if all the
+   * sub interfaces hash tables are empty generic_periodic_hash_entry_state_update
+   * would not be called. */
+  purgeIdle(time(NULL));
 }
 
 /* **************************************************** */
