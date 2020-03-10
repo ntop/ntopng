@@ -280,11 +280,6 @@ Ntop::~Ntop() {
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
 #endif
-
-#ifndef WIN32
-  if(startupLockFile >= 0)
-    flock(startupLockFile, LOCK_EX);
-#endif
 }
 
 /* ******************************************* */
