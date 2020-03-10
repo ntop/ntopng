@@ -389,6 +389,7 @@ page_utils.add_menubar_section({
 
 local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
 local num_inactive_interfaces = ternary(not ntop.isnEdge(), table.len(inactive_interfaces or {}), 0)
+local delete_active_interface_requested_system = delete_data_utils.delete_active_interface_data_requested(getSystemInterfaceId())
 
 -- Admin
 page_utils.add_menubar_section(
@@ -420,11 +421,11 @@ page_utils.add_menubar_section(
       url = '/lua/manage_data.lua',
    },
    {
-      hidden = not is_system_interface,
+      hidden = (not is_system_interface or delete_active_interface_requested_system),
       custom = ([[
          <form class="interface_data_form" method="POST">
             <li>
-               <a id='delete-system-interface' data-toggle='modal' href='#delete_active_interface_data'>]].. i18n("manage_data.delete_system_interface_data") ..[[</a>
+               <a id='delete-system-interface' data-toggle='modal' href='#delete_active_interface_data_system'>]].. i18n("manage_data.delete_system_interface_data") ..[[</a>
             </li>
          </form>
       ]])
@@ -434,7 +435,7 @@ page_utils.add_menubar_section(
       custom = ([[
          <form class="interface_data_form" id='form_delete_inactive_interfaces' method="POST">
             <li>
-               <a id='delete-system-inactive' data-toggle='modal' href='#delete_inactive_interfaces_data'>]].. i18n("manage_data.delete_inactive_interfaces") ..[[</a>
+               <a id='delete-system-inactive' data-toggle='modal' href='#delete_inactive_interfaces_data_system'>]].. i18n("manage_data.delete_inactive_interfaces") ..[[</a>
             </li>
          </form>
       ]])

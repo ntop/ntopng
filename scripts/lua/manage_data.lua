@@ -94,7 +94,7 @@ print(
 print[[
 <h2>]] print(i18n("manage_data.manage_data")) print[[</h2>
 <br>
-<ul id="manage-data-nav" class="nav nav-tabs">]]
+<ul id="manage-data-nav" class="nav nav-pills mb-3">]]
 
 local tab_export_active = ""
 local tab_delete_active = ""
@@ -118,218 +118,168 @@ end
 
 print[[</ul>
 
-<div class="tab-content">
+<div class="tab-content mb-2">
 
 ]]
 
 print [[
 
-  <div id="export" class="tab-pane ]]print(tab_export_active) print[[">
-  <br>
-
-<section class="panel panel-default">
-
-<div class="panel-heading">
-  <h3 class="panel-title"> ]] print(i18n("manage_data.export")) print[[ </h3>
-  <br>
-</div>
-
-<div class="panel-body">
-  <div id="search_panel">
-    <div class='container'>
-      <form class="host_data_form" id="host_data_form_export" action="]] print(ntop.getHttpPrefix()) print[[/lua/do_export_data.lua" method="GET">
-      <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
-
-       <div class="row">
-	 <div class='col-md-3'>
-	   <div class="form-group">
-	     <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
-	       <label class="btn btn-secondary active">
-		 <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("manage_data.all_hosts")) print[[
-	       </label>
-	       <label class="btn btn-secondary">
-		 <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.local_hosts")) print[[
-	       </label>
-	       <label class="btn btn-secondary">
-		 <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.remote_hosts")) print[[
-	       </label>
-	       <label class="btn btn-secondary">
-		 <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.single")) print[[
-	       </label>
-	     </div>
-	   </div>
-	 </div>
-	 <div class='col-md-3'>
-	   <div class="form-group" style="margin-bottom:0;">
-	     <input type="text" id="export_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24" disabled required/>
-	   </div>
-	 </div>
-	 <div class='col-md-2'>
-	   <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="export_vlan" name="vlan" class="form-control" value="" disabled/>
-	 </div>
-	 <div class='col-md-2'>
-	 </div>
-       </div>
-     </div>
-
-       <div class="row">
-	 <div class='col-md-10'>
-	   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-	 </div>
-
-	 <div class='col-md-2'>
-	   <div class="btn-group btn-group-toggle float-right">
-	     <input type="submit" value="]] print(i18n("export_data.export_json_data")) print[[" class="btn btn-secondary float-right">
-	   </div>
-	 </div>
-       </div>
-      </form>
+<div id="export" class="tab-pane ]]print(tab_export_active) print[[">
+  <section class="card">
+    <h5 class="card-header">]] print(i18n("manage_data.export")) print[[ </h5>
+    <div class="card-body">
+      <div id="search_card">
+        <form class="host_data_form" id="host_data_form_export" action="]] print(ntop.getHttpPrefix()) print[[/lua/do_export_data.lua" method="GET">
+          <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+          <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
+          <div class='form-row'>
+            <div class="form-group col-md-2 col-xs-12 col-sm-12">
+              <label class="d-block">Select Export Type</label>
+              <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
+                <label class="btn btn-secondary active">
+                  <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("manage_data.all_hosts")) print[[
+                </label>
+                <label class="btn btn-secondary">
+                  <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.local_hosts")) print[[
+                </label>
+                <label class="btn btn-secondary">
+                  <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.remote_hosts")) print[[
+                </label>
+                <label class="btn btn-secondary">
+                  <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle">]] print(i18n("manage_data.single")) print[[
+                </label>
+              </div>
+            </div>
+            <div class="form-group col-md-3 col-xs-12 col-sm-12">
+              <label for="export_host">Insert Host IP or Mac Address or /24</label>
+              <input type="text" id="export_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24" disabled required/>
+            </div>
+            <div class="form-group col-md-3 col-xs-12 col-sm-12">
+              <label for="export_vlan">VLAN Host</label>
+              <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" id="export_vlan" name="vlan" class="form-control" value="" disabled/>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-secondary float-right">]]
+            print(i18n("export_data.export_json_data"))
+print([[
+          </button>
+        </form>
+        <div class="notes mt-5">
+          <b>]].. i18n('notes') ..[[</b>
+          <ul>
+            <li>]].. i18n('export_data.note_maximum_number') ..[[</li>
+            <li>]].. i18n('export_data.note_active_hosts') .. [[</li>
+          </ul>
+        </div>
+      </div>
     </div>
-  </div>
-
-</section>
-  <b>]] print(i18n('notes')) print[[</b>
-<ul>
-<li>]] print(i18n('export_data.note_maximum_number')) print[[</li>
-<li>]] print(i18n('export_data.note_active_hosts')) print[[</li>
-
-</ul>
-]]
-
+  </section>
+]])
 
 print("</div>") -- closes <div id="export" class="tab-pane in active">
 
 print [[
 
-  <div id="delete" class="tab-pane ]] print(tab_delete_active) print[[">
-  <br>
-
-<section class="panel panel-default">
-
-<div class="panel-heading">
-  <h3 class="panel-title"> ]] print(i18n("manage_data.delete")) print[[ </h3>
-  <br>
-</div>
-
-<div class="panel-body">
-  <div id="search_panel">
-  <form class="host_data_form" id="host_data_form_delete" method="POST">
-    <div class='container'>
-
-        <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
-
-      <div class="row">
-	      <div class='col-md-1'>
-	        <div class="form-group">
-	          <div class="btn-group btn-group-toggle invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
-              <label class="btn btn-secondary active">
-                <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle" checked="checked">]] print(i18n("manage_data.single")) print[[
-              </label>
-	          </div>
-	        </div>
-	      </div>
-	      <div class='col-md-3'>
-	        <div class="form-group" style="margin-bottom:0;">
-	          <input type="text" required id="delete_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24"/>
-	        </div>
-	      </div>
-	      <div class='col-md-3'>
-	        <input type="number" required min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" style="display:inline;" id="delete_vlan" name="vlan" class="form-control" value=""/>
-	      </div>
-  	  </div>
-      <div class="row">
-        <div class='col-md-10'></div>
-        <div class='col-md-2'>
-	        <div class="btn-group btn-group-toggle float-right">
-	        </div>
-	      </div>
-       </div>
-    </div>
-	  <button class="btn btn-secondary" type="submit" onclick="return delete_data_show_modal();" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[</button>
-	</form>
-
-</div>
-
-</section>
+<div id="delete" class="tab-pane ]] print(tab_delete_active) print[[">
+  <section class="card">
+    <h5 class="card-header">]] print(i18n("manage_data.delete")) print[[ and Interface Data</h5>
+    <div class="card-body">
+      <div id="search_card">
+        <form class="host_data_form" id="host_data_form_delete" method="POST">
+      	  <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+          <input type="hidden" name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
+          <div class="form-row">
+            <div class="form-group col-md-3 col-sm-12 col-xs-12">
+              <label for="delete_host">Insert Host IP or Mac Address or /24</label>
+              <input type="text" required id="delete_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24"/>
+            </div>
+            <div class="form-group col-md-3 col-sm-12 col-xs-12">
+              <label for="delete_vlan">Insert VLAN</label>
+              <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" id="delete_vlan" name="vlan" class="form-control" value=""/>
+            </div>
+          </div>
+          <button class="btn btn-secondary float-right mr-1" type="submit" onclick="return delete_data_show_modal();">
+            <i class="fas fa-trash" aria-hidden="true" title="]] print(i18n("manage_data.delete")) print[["></i> ]] print(i18n("manage_data.delete")) print[[
+          </button>
+        </form>
 ]]
 
-print[[<div>]]
+        if (not ntop.isnEdge()) and (not delete_active_interface_requested) then
+          print[[
+            <form class="interface_data_form" method="POST">
+              <button class="btn btn-secondary d-inline-block mx-1 float-right" type="submit"
+                onclick="$('#delete_active_interface_data #interface-name-to-delete').html(']] print(ifname) print[['); return delete_interfaces_data_show_modal('delete_active_interface_data');" ><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
+            </form>
+          ]]
+       end
 
-if (not ntop.isnEdge()) and (not delete_active_interface_requested) then
-   print[[
-<form class="interface_data_form" method="POST">
-  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(ifname) print[['); return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
-</form>
-]]
-end
+print([[
 
-print[[</div><br>]]
-
-print[[  <b>]] print(i18n('notes')) print[[</b>
-<ul>
-<li>]] print(i18n('delete_data.note_persistent_data')) print[[</li>
-]]
-
+        <div class="notes mt-5">
+          <b>]].. i18n('notes') ..[[</b>
+          <ul>
+            <li>]].. i18n('delete_data.note_persistent_data') ..[[</li>
+            <li>]].. i18n('manage_data.system_interface_note') ..[[</li>
+]])
 if interfaceHasNindexSupport() then
   print[[<li>]] print(i18n('delete_data.node_nindex_flows')) print[[</li>]]
 end
+print([[
+          </ul>
+        </div>
 
-print[[
-<li>]] print(i18n('manage_data.system_interface_note')) print[[</li>
-</ul>
-</div>]]
-
+      </div>
+    </div>
+  </section>
+</div>
+]])
 
 print("</div>") -- closes <div class="tab-content">
 
 
-print[[<script type='text/javascript'>
+print[[
+<script type='text/javascript'>
 
-$(document).ready(function() {
-  $('#host_data_form_delete').areYouSure();
-})
-
-var delete_data_show_modal = function() {
+function delete_data_show_modal() {
 
   $(".modal-body #modal_host").html(" " + $('#delete_host').val());
+
   if ($('#delete_vlan').val() != "") {
 
     $(".modal-body #modal_vlan").html("@" + $('#delete_vlan').val());
-    $('#delete_data').modal('show');
-
     /* abort submit */
     return false;
   }
 
-  return true;
+  $('#delete_data').modal('show');
 
+  return false;
 };
 
-var delete_data = function() {
-var params = {};
+function delete_data() {
+  const params = {};
+  params.ifid = ']] print(tostring(getInterfaceId(ifname))) print[[';
+  params.host = $('#delete_host').val();
+  params.vlan = $('#delete_vlan').val();
+  params.page = 'delete';
 
-params.ifid = ']] print(tostring(getInterfaceId(ifname))) print[[';
-            params.host = $('#delete_host').val();
-            params.vlan = $('#delete_vlan').val();
-            params.page = 'delete';
+  params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-            params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+  const form = paramsToForm('<form method="post"></form>', params);
 
-            var form = paramsToForm('<form method="post"></form>', params);
+  aysResetForm($("#host_data_form_delete")); // clean the form to void alert message
+  form.appendTo('body').submit();
+};
 
-            aysResetForm($("#host_data_form_delete")); // clean the form to void alert message
-            form.appendTo('body').submit();
-         };
+function delete_interfaces_data_show_modal(modal_id) {
 
-var delete_interfaces_data_show_modal = function(modal_id) {
   $('#' + modal_id).modal('show');
-
   /* abort submit */
   return false;
 };
 
-var delete_interfaces_data = function(action) {
-  var params = {[action] : ''};
+function delete_interfaces_data(action) {
+  const params = {[action] : ''};
 
   params.page = 'delete';
   params.ifid = ]] print(getInterfaceId(ifname)) print[[;
@@ -345,44 +295,49 @@ function setActiveHashTab(hash) {
    $('#manage-data-nav a[href="' + hash + '"]').tab('show');
 }
 
-var prepare_typeahead = function(host_id, vlan_id, buttons_id) {
+function prepare_typeahead(host_id, vlan_id, buttons_id) {
   $('#' + host_id).val('');
   $('#' + vlan_id).val('');
 
   $('#' + host_id).typeahead({
     source: function (query, process) {
-      return $.get(']]
-print (ntop.getHttpPrefix())
-print [[/lua/find_host.lua', { query: query, hosts_only: true }, function (data) {
-                     return process(data.results);
+      return $.get(']] print (ntop.getHttpPrefix()) print [[/lua/find_host.lua', { query: query, hosts_only: true }, function (data) {
+        return process(data.results);
       });
-      }, afterSelect: function(item) {
-        $('#' + host_id).val(item.ip.split("@")[0]);
-        $('#' + vlan_id).val(item.ip.split("@")[1] || '');
+    },
+    afterSelect: function(item) {
+      $('#' + host_id).val(item.ip.split("@")[0]);
+      $('#' + vlan_id).val(item.ip.split("@")[1] || '');
 
-        /* retrigger validation */
-        $('#' + host_id).closest("form").data("bs.validator").validate();
-      }
-    });
+      /* retrigger validation */
+      $('#' + host_id).closest("form").validator('validate');
+    }
+  });
 
   $('#' + buttons_id + ' :input').change(function() {
+
     $('#' + vlan_id + ', #' + host_id).prop('disabled', this.id === "single_host" ? false : true);
+
     if(this.id !== "single_host") {
       $('#' + vlan_id).val('');
       $('#' + host_id).val('');
     }
+
   });
+
 }
 
   function deleteHostValidator(input) {
-    if(hostOrMacValidator(input))
-      return true;
+
+    if (hostOrMacValidator(input)) return true;
 
     /* check for a /24-/32 IPv4 network */
-    if(is_network_mask(input.val(), false /* mandatory mask */)) {
-      var elems = input.val().split("/");
+    /* mandatory mask */
 
-      if((elems.length == 2) && is_good_ipv4(elems[0]) && (parseInt(elems[1]) >= 24))
+    if (is_network_mask(input.val(), false)) {
+
+      const elems = input.val().split("/");
+      if ((elems.length == 2) && is_good_ipv4(elems[0]) && (parseInt(elems[1]) >= 24))
         return true;
     }
 
@@ -390,35 +345,44 @@ print [[/lua/find_host.lua', { query: query, hosts_only: true }, function (data)
   }
 
   $(document).ready(function(){
+
+    $('#host_data_form_delete').areYouSure();
+
     prepare_typeahead('export_host', 'export_vlan', 'export_hosts_buttons');
     prepare_typeahead('delete_host', 'delete_vlan', 'delete_hosts_buttons');
 
-    var validator_options = {
+    const validator_options = {
       disable: true,
       custom: {
-         host: deleteHostValidator,
-      }, errors: {
-         host: "]] print(i18n("manage_data.mac_or_ip_required")) print[[.",
+        host: deleteHostValidator,
+      },
+      errors: {
+        host: "]] print(i18n("manage_data.mac_or_ip_required")) print[[.",
       }
     }
 
-    $("#host_data_form_delete")
-      .validator(validator_options);
+    $("#host_data_form_delete").validator(validator_options);
 
     aysHandleForm("#host_data_form_delete");
+
   });
 
   /* Handle tab state across requests */
   $("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
-      var id = $(e.target).attr("href").substr(1);
+      const id = $(e.target).attr("href").substr(1);
       history.replaceState(null, null, "#"+id);
   });
 
-  if(window.location.hash)
-    setActiveHashTab(window.location.hash)
+  if (window.location.hash) setActiveHashTab(window.location.hash)
+
 </script>
 
 
 ]]
+
+-- <div class="btn-group btn-group-toggle invisible" data-toggle="buttons" id="delete_hosts_buttons" name="delete_hosts_buttons">
+-- <label class="btn btn-secondary active">
+-- <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle" checked="checked">]] print(i18n("manage_data.single")) print[[
+-- </label>
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

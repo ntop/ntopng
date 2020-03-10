@@ -466,12 +466,11 @@ function delete_data_utils.delete_active_interface_data_requested(if_name)
    if not isEmptyString(if_name) then
       -- Check if a delete has been requested for a particular interface
       local if_id = getInterfaceId(if_name)
-
-      if tonumber(if_id) >= 0 then
-	 local req = ntop.getHashCache(ACTIVE_INTERFACES_DELETE_HASH, tostring(if_id))
-	 if not isEmptyString(req) then
-	    return true
-	 end
+      if tonumber(if_id) >= -1 then
+         local req = ntop.getHashCache(ACTIVE_INTERFACES_DELETE_HASH, tostring(if_id))
+         if not isEmptyString(req) then
+            return true
+         end
       end
    else
       -- Check if there's at least a data delete request

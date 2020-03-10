@@ -38,19 +38,24 @@ if _POST and table.len(_POST) > 0 and isAdministrator() then
 
       -- Data for the active interface can't be hot-deleted.
       -- a restart of ntopng is required so we just mark the deletion.
-      delete_data_utils.request_delete_active_interface_data(_POST["ifid"])
+      delete_data_utils.request_delete_active_interface_data(getSystemInterfaceId())
 
-      print('<div class="alert alert-success alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_active_interface_data_ok', {ifname = ifname, product = ntop.getInfo().product})..'</div>')
+      print([[
+         <div class="alert alert-success alert-dismissable">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            ]]..i18n('delete_data.delete_active_interface_data_ok', {ifname = i18n("system"), product = ntop.getInfo().product})..[[
+         </div>
+      ]])
    end
 
 end
 
-local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname)
+local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(getSystemInterfaceId())
 if not delete_active_interface_requested then
    print(
       template.gen("modal_confirm_dialog.html", {
 		   dialog = {
-			   id      = "delete_active_interface_data",
+			   id      = "delete_active_interface_data_system",
 			   action  = "delete_system_interfaces_data('delete_active_if_data_system')",
 			   title   = i18n("manage_data.delete_active_interface"),
 			   message = i18n("delete_data.delete_active_interface_confirmation", {ifname = "<span id='interface-name-to-delete'></span>", product = ntop.getInfo().product}),
@@ -80,7 +85,7 @@ if num_inactive_interfaces > 0 then
    print(
       template.gen("modal_confirm_dialog.html", {
 		   dialog = {
-            id      = "delete_inactive_interfaces_data",
+            id      = "delete_inactive_interfaces_data_system",
             action  = "delete_system_interfaces_data('delete_inactive_if_data_system')",
             title   = i18n("manage_data.delete_inactive_interfaces"),
             message = i18n("delete_data.delete_inactive_interfaces_confirmation", {interfaces_list = inactive_list}),

@@ -139,7 +139,7 @@ function hasAllowedNetworksSet()
          end
       end
    end
-   
+
    return(cached_allowed_networks_set)
 end
 
@@ -926,10 +926,10 @@ end
 function addLogoLightSvg()
    return ([[
       <div id='ntopng-logo'>
-         <svg 
-            id="ntopng-logo" 
-            data-name="ntopng logo" 
-            xmlns="http://www.w3.org/2000/svg" 
+         <svg
+            id="ntopng-logo"
+            data-name="ntopng logo"
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512.74 512.84"
             height="56"
             width="56">
@@ -959,10 +959,10 @@ end
 function addLogoDarkSvg()
    return ([[
       <div id='ntopng-logo'>
-         <svg 
-            id="ntopng-logo-svg" 
-            data-name="ntopng logo" 
-            xmlns="http://www.w3.org/2000/svg" 
+         <svg
+            id="ntopng-logo-svg"
+            data-name="ntopng logo"
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512.74 512.84"
             height="56"
             width="56">
@@ -1540,7 +1540,7 @@ function flowinfo2process(process, host_info_to_url)
       if not isEmptyString(process["name"]) then
 	 local full_clean_name = process["name"]:gsub("'",'')
 	 local t = split(full_clean_name, "/")
-	 
+
 	 clean_name = t[#t]
 
 	 proc_name = string.format("<A HREF='%s/lua/process_details.lua?%s&pid_name=%s&pid=%u'><i class='fas fa-terminal'></i> %s</A>",
@@ -1586,7 +1586,7 @@ function flowinfo2container(container)
       -- 				  formatted_pod)
       -- end
 
-      fmt = string.format("[%s]", table.concat({cont_name, pod_name}, ''))   
+      fmt = string.format("[%s]", table.concat({cont_name, pod_name}, ''))
    end
 
    return fmt
@@ -3300,7 +3300,7 @@ function printMessageBanners(banners)
       end
 
       print(msg.text)
-    
+
       print[[
   </div>]]
    end
@@ -3393,7 +3393,7 @@ end
 
 -- ##############################################
 
-function generate_switch_toggle(id, label, disabled) 
+function generate_switch_toggle(id, label, disabled)
    return ([[
       <div class="custom-control custom-switch ]]..(disabled and 'disabled' or '') ..[[">
          <input type="checkbox" class="custom-control-input" id="]].. id ..[[">
