@@ -31,6 +31,7 @@
 #include <shlobj.h> /* SHGetFolderPath() */
 #else
 #include <ifaddrs.h>
+#include <sys/file.h>
 #endif
 
 Ntop *ntop;
@@ -281,13 +282,8 @@ Ntop::~Ntop() {
 #endif
 
 #ifndef WIN32
-  if(startupLockFile >= 0) {
-#ifdef __linux__    
-    flock(startupLockFile);
-#else
+  if(startupLockFile >= 0)
     flock(startupLockFile, LOCK_EX);
-#endif
-  }
 #endif
 }
 
