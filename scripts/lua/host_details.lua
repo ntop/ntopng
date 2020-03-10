@@ -540,7 +540,7 @@ end
 
 if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
    local cur_mud_pref = mud_utils.getCurrentHostMUDRecording(ifId, host_info.host, host["devtype"])
-   local in_progress = mud_utils.isMUDRecordingInProgress(ifId, host_info.host)
+   local in_progress = (cur_mud_pref ~= "disabled") and mud_utils.isMUDRecordingInProgress(ifId, host_info.host)
    local dev_list = nil
    local dev_lb = nil
 
