@@ -34,6 +34,7 @@ if not interface.isPcapDumpInterface() and not have_nedge then
    end
 end -- closes interface.isPcapDumpInterface() == false
 
+
 print ([[
 <div id="n-footer" class="border-top">
 	<div class="container-fluid"> <!-- occupy the whole row -->
@@ -43,7 +44,7 @@ print ([[
 					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
 				  		]] .. (info.product .. ' ' .. getNtopngRelease(info) .." Edition v.".. info.version) ..[[
 					</a>
-					| 
+					|
 					<a href="https://github.com/ntop/ntopng"><i class="fab fa-github"></i></a>
 				</small>
 			</div>
@@ -75,7 +76,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 end
 
 print [[
-			</div>	
+			</div>
 			<div class="col-4 text-right">
 				<small>
 					<div class="text-right">
@@ -234,9 +235,9 @@ print[[
 		}
 
 		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[ && (!system_view_enabled)) {
-			
+
 		   var error_color = "#B94A48";
-		   
+
 		   if (rsp.engaged_alerts > 0) {
 		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
 		    msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+addCommas(rsp.engaged_alerts)+"</span></a>";
@@ -274,34 +275,34 @@ print[[
 
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote\">";
 			var remove_hosts_label = "]] print(i18n("remote_hosts")) print[[";
-	
+
 			if (rsp.hosts_pctg < alarm_threshold_low && !system_view_enabled) {
 			  msg += "<span title=\"" + remove_hosts_label +"\" class=\"badge badge-secondary\">";
-			} 
+			}
 			else if (rsp.hosts_pctg < alarm_threshold_high && !system_view_enabled) {
 			  alert = 1;
 			  msg += "<span title=\"" + remove_hosts_label +"\" class=\"badge badge-warning\">";
-			} 
+			}
 			else {
 			  alert = 1;
 			  msg += "<span title=\"" + remove_hosts_label +"\" class=\"badge badge-danger\">";
 			}
-	
-			msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";	
+
+			msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 		}
-		
+
 	    if (rsp.num_devices != undefined && (!system_view_enabled)) {
 
 	    	var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
-			  
+
 			if (rsp.macs_pctg < alarm_threshold_low) {
 				msg += "<span title=\"" + macs_label +"\" class=\"badge badge-secondary\">";
 			}
 			else if(rsp.macs_pctg < alarm_threshold_high) {
 				alert = 1;
 				msg += "<span title=\"" + macs_label +"\" class=\"badge badge-warning\">";
-			} 
+			}
 			else {
 				alert = 1;
 				msg += "<span title=\"" + macs_label +"\" class=\"badge badge-danger\">";
@@ -316,11 +317,11 @@ print[[
 
 			if (rsp.flows_pctg < alarm_threshold_low) {
 				msg += "<span class=\"badge badge-secondary\">";
-			} 
+			}
 			else if(rsp.flows_pctg < alarm_threshold_high) {
 				alert = 1;
 				msg += "<span class=\"badge badge-warning\">";
-			} 
+			}
 			else {
 				alert = 1;
 				msg += "<span class=\"badge badge-danger\">";
@@ -366,10 +367,10 @@ print[[
 	    }
 
 	    if (rsp.traffic_extraction != undefined && (!system_view_enabled)) {
-		
+
 			var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [[";
 			var status_label = "secondary";
-		
+
 			if (rsp.traffic_extraction == "ready") status_label="primary";
 
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=jobs\">";
@@ -386,7 +387,7 @@ print[[
 		}
 
 		$('#network-load').html($msg);
-		
+
 	    if (alert) {
 			$('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
 	    }

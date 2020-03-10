@@ -212,6 +212,9 @@ end
 -- ##############################################
 
 function isMacAddress(address)
+
+  if (address == nil) then return false end
+
    if(string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil)  or
      (string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x%@%d+$") ~= nil) then
       return true

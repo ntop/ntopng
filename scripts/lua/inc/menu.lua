@@ -12,6 +12,7 @@ local remote_assistance = require "remote_assistance"
 local telemetry_utils = require "telemetry_utils"
 local ts_utils = require("ts_utils_core")
 local page_utils = require("page_utils")
+local delete_data_utils = require "delete_data_utils"
 
 local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
@@ -65,7 +66,7 @@ ifId = ifs.id
 page_utils.init_menubar()
 
 if is_nedge then
-   dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menubar.lua")   
+   dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menubar.lua")
 else
 
    -- ##############################################
@@ -306,7 +307,7 @@ page_utils.add_menubar_section({
 -- System
 
 local system_entries = {
-  
+
 }
 
 -- Add plugin entries...
@@ -386,6 +387,9 @@ page_utils.add_menubar_section({
 
 -- ##############################################
 
+local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
+local num_inactive_interfaces = ternary(not ntop.isnEdge(), table.len(inactive_interfaces or {}), 0)
+
 -- Admin
 page_utils.add_menubar_section(
    {
@@ -416,8 +420,27 @@ page_utils.add_menubar_section(
       url = '/lua/manage_data.lua',
    },
    {
+      hidden = not is_system_interface,
+      custom = ([[
+         <form class="interface_data_form" method="POST">
+            <li>
+               <a id='delete-system-interface' data-toggle='modal' href='#delete_active_interface_data'>]].. i18n("manage_data.delete_system_interface_data") ..[[</a>
+            </li>
+         </form>
+      ]])
+   },
+   {
+      hidden = (num_inactive_interfaces <= 0 or not is_system_interface) ,
+      custom = ([[
+         <form class="interface_data_form" id='form_delete_inactive_interfaces' method="POST">
+            <li>
+               <a id='delete-system-inactive' data-toggle='modal' href='#delete_inactive_interfaces_data'>]].. i18n("manage_data.delete_inactive_interfaces") ..[[</a>
+            </li>
+         </form>
+      ]])
+   },
+   {
       entry = page_utils.menu_entries.divider,
-      hidden = not is_admin or is_system_interface,
    },
 	 {
 	    entry = page_utils.menu_entries.profiles,
@@ -439,7 +462,7 @@ page_utils.add_menubar_section(
 	    hidden = not is_admin,
 	    url = '/lua/admin/edit_device_protocols.lua',
 	 },
-	
+
       },
    }
 )
@@ -540,7 +563,7 @@ print[[
 
   /* Install latest update */
   var installUpdate = function() {
-    if (confirm(']] print(i18n("updates.install_confirm")) 
+    if (confirm(']] print(i18n("updates.install_confirm"))
       if info["pro.license_days_left"] ~= nil and info["pro.license_days_left"] <= 0 then
         -- License is valid, however maintenance is expired: warning the user
         print(" "..i18n("updates.maintenance_expired"))
@@ -599,7 +622,7 @@ print[[
               $('#updates-install-li').hide();
               $('#admin-badge').hide();
 
-            } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') { 
+            } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') {
               $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version + '!');
               var icon = '<i class="fas fa-download"></i>';
               $('#updates-install-li').attr('title', '');
@@ -636,13 +659,13 @@ end
 end -- num_ifaces > 0
 
 -- ##############################################
- 
+
 print([[
    <nav class="navbar extended navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
       <button data-toggle='sidebar' class='btn d-sm-none d-md-none d-lg-none'>
         <i class='fas fa-bars'></i>
       </button>
-      <ul class='navbar-nav mr-auto'>    
+      <ul class='navbar-nav mr-auto'>
          <li class='nav-item d-flex align-items-center dropdown'>
             <a class="btn border-dark dropdown-toggle" data-toggle="dropdown" href="#">
                ]] .. (is_system_interface and 'System' or '<i class="fas fa-ethernet"></i> ' .. getHumanReadableInterfaceName(ifname)) .. [[
@@ -660,7 +683,7 @@ if ntop.isAdministrator() then
                <li class='dropdown-divider'></li>
    ]])
 end
-       
+
 -- ##############################################
 -- Interfaces Selector
 
@@ -765,7 +788,7 @@ end
 interface.select(ifs.id.."")
 
 print([[
-         </ul>         
+         </ul>
       </li>
 ]])
 
@@ -776,9 +799,9 @@ if not is_pcap_dump and not is_system_interface then
    print([[
       <li class='nav-item my-sm-2 my-xs-2 my-md-0 my-lg-0 w-10 mx-2'>
          <div class='info-stats'>
-            ]].. 
+            ]]..
             (function()
-               
+
                local _ifstats = interface.getStats()
 
                if _ifstats.has_traffic_directions then
@@ -814,7 +837,7 @@ end
 
 
 -- ########################################
--- Network Load 
+-- Network Load
 print([[
    <div id="network-load"></div>
 ]])
@@ -904,21 +927,21 @@ end
 
 if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
    print[[
- 
+
          <li class='dropdown-divider'></li>
  <li class="nav-item">
    <a class="dropdown-item" href="]]
    print(ntop.getHttpPrefix())
    print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"><i class="fas fa-sign-out-alt"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
  end
- 
+
  -- Restart
 if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
    print [[
        <li class="dropdown-divider"></li>
        <li class="nav-item"><a class="dropdown-item" id="restart-service-li" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
    ]]
- 
+
  print[[
   <script type="text/javascript">
    let restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
@@ -942,12 +965,12 @@ if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
  ]]
 
 end
- 
+
 print([[
       </ul>
    </li>
 </ul>
-   
+
    </nav>
 ]])
 
@@ -989,7 +1012,7 @@ if is_admin and not ntop.hasGeoIP() and ntop.getPref("ntopng.prefs.geoip.reminde
   print('<div id="missing-geoip" class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <button type="button" class="close" data-dismiss="alert" aria-label="close">&times;</button>')
   print(i18n("geolocation_unavailable", {url = "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md", target = "_blank", icon = "fas fa-external-link-alt"}))
   print('</div>')
-  
+
   print [[
   <script>
     $('#missing-geoip').on('close.bs.alert', function () {
@@ -1040,7 +1063,7 @@ print([[
          csrf: "]].. ntop.getRandomCSRFValue() ..[["
       }, function(data) {
 
-         if (data.success && !$form) location.href = '/';      
+         if (data.success && !$form) location.href = '/';
          if (data.success && $form) $form.submit();
          if (!data.success) {
             console.error("An error has occurred!");
@@ -1059,6 +1082,8 @@ print([[
 ]])
 
 end
+
+dofile(dirs.installdir .. "/scripts/lua/inc/manage_data.lua")
 
 -- append password change modal
 if(not is_admin) then

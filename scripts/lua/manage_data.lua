@@ -21,70 +21,44 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.manage_data)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-
 if _POST and table.len(_POST) > 0 and isAdministrator() then
-   if _POST["delete_active_if_data"] then
-      -- Data for the active interface can't be hot-deleted.
-      -- a restart of ntopng is required so we just mark the deletion.
-      delete_data_utils.request_delete_active_interface_data(_POST["ifid"])
 
-      print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_active_interface_data_ok', {ifname = ifname, product = ntop.getInfo().product})..'</div>')
+  if _POST["delete_active_if_data"] then
 
-   elseif _POST["delete_inactive_if_data"] then
-      local res = delete_data_utils.delete_inactive_interfaces()
+    -- Data for the active interface can't be hot-deleted.
+    -- a restart of ntopng is required so we just mark the deletion.
+    delete_data_utils.request_delete_active_interface_data(_POST["ifid"])
 
-      local err_msgs = {}
-      for what, what_res in pairs(res) do
-	 if what_res["status"] ~= "OK" then
-	    err_msgs[#err_msgs + 1] = i18n(delete_data_utils.status_to_i18n(what_res["status"]))
-	 end
+    print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_active_interface_data_ok', {ifname = ifname, product = ntop.getInfo().product})..'</div>')
+
+  else -- we're deleting an host
+
+    local host_info = url2hostinfo(_POST)
+    local parts = split(host_info["host"], "/")
+    local res
+
+    if (#parts == 2) and (tonumber(parts[2]) ~= nil) then
+      res = delete_data_utils.delete_network(_POST["ifid"], parts[1], parts[2], host_info["vlan"] or 0)
+    else
+      res = delete_data_utils.delete_host(_POST["ifid"], host_info)
+    end
+
+    local err_msgs = {}
+
+    for what, what_res in pairs(res) do
+      if what_res["status"] ~= "OK" then
+          err_msgs[#err_msgs + 1] = i18n(delete_data_utils.status_to_i18n(what_res["status"]))
       end
+    end
 
-      if #err_msgs == 0 then
-	 print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_inactive_interfaces_data_ok')..'</div>')
-      else
-	 print('<div class="alert alert-danger alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_inactive_interfaces_data_failed')..' '..table.concat(err_msgs, ' ')..'</div>')
-      end
+    if #err_msgs == 0 then
+	    print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_ok', {host = hostinfo2hostkey(host_info)})..'</div>')
+    else
+	    print('<div class="alert alert-danger alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_failed', {host = hostinfo2hostkey(host_info)})..' '..table.concat(err_msgs, ' ')..'</div>')
+    end
 
-   else -- we're deleting an host
-      local host_info = url2hostinfo(_POST)
-      local parts = split(host_info["host"], "/")
-      local res
-
-      if (#parts == 2) and (tonumber(parts[2]) ~= nil) then
-        res = delete_data_utils.delete_network(_POST["ifid"], parts[1], parts[2], host_info["vlan"] or 0)
-      else
-        res = delete_data_utils.delete_host(_POST["ifid"], host_info)
-      end
-
-      local err_msgs = {}
-      for what, what_res in pairs(res) do
-	 if what_res["status"] ~= "OK" then
-	    err_msgs[#err_msgs + 1] = i18n(delete_data_utils.status_to_i18n(what_res["status"]))
-	 end
-      end
-
-      if #err_msgs == 0 then
-	 print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_ok', {host = hostinfo2hostkey(host_info)})..'</div>')
-      else
-	 print('<div class="alert alert-danger alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_failed', {host = hostinfo2hostkey(host_info)})..' '..table.concat(err_msgs, ' ')..'</div>')
-      end
    end
 end
-
-print(
-   template.gen("modal_confirm_dialog.html", {
-		   dialog = {
-		      id      = "delete_data",
-		      action  = "delete_data()",
-		      title   = i18n("manage_data.delete"),
-		      message = i18n("delete_data.delete_confirmation",
-				     {host = '<span id="modal_host"></span><span id="modal_vlan"></span>'}),
-		      confirm = i18n("delete"),
-                      confirm_button = "btn-danger",
-		   }
-   })
-)
 
 local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname)
 if not delete_active_interface_requested then
@@ -103,36 +77,19 @@ if not delete_active_interface_requested then
    )
 end
 
-local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
-local num_inactive_interfaces = ternary(not ntop.isnEdge(), table.len(inactive_interfaces or {}), 0)
-
-if num_inactive_interfaces > 0 then
-   local inactive_list = {}
-   for if_id, if_name in pairs(inactive_interfaces) do
-      inactive_list[#inactive_list + 1] = if_name
-   end
-
-   if table.len(inactive_list) > 20 then
-      -- too many to use a bullet list, just concat them with a comma
-      inactive_list = '<br>'..table.concat(inactive_list, ", ")..'<br>'
-   else
-      inactive_list = '<br><ul><li>'..table.concat(inactive_list, "</li><li>")..'</li></ul><br>'
-   end
-
-   print(
-      template.gen("modal_confirm_dialog.html", {
-		      dialog = {
-			 id      = "delete_inactive_interfaces_data",
-			 action  = "delete_interfaces_data('delete_inactive_if_data')",
-			 title   = i18n("manage_data.delete_inactive_interfaces"),
-			 message = i18n("delete_data.delete_inactive_interfaces_confirmation",
-					{interfaces_list = inactive_list}),
-			 confirm = i18n("delete"),
-                         confirm_button = "btn-danger",
-		      }
-      })
-   )
-end
+print(
+   template.gen("modal_confirm_dialog.html", {
+		   dialog = {
+		      id      = "delete_data",
+		      action  = "delete_data()",
+		      title   = i18n("manage_data.delete"),
+		      message = i18n("delete_data.delete_confirmation",
+				     {host = '<span id="modal_host"></span><span id="modal_vlan"></span>'}),
+		      confirm = i18n("delete"),
+                      confirm_button = "btn-danger",
+		   }
+   })
+)
 
 print[[
 <h2>]] print(i18n("manage_data.manage_data")) print[[</h2>
@@ -305,24 +262,10 @@ print [[
 
 print[[<div>]]
 
-print[[
-<form class="interface_data_form" method="POST">
-  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(i18n("system")) print[['); delete_system_iface = true; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_system_interface_data")) print[[</button>
-</form>
-]]
-
-if num_inactive_interfaces > 0 then
-   print[[
-	<form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
-	  <button class="btn btn-secondary" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print(i18n("manage_data.delete_inactive_interfaces")) print[[</button>
-	</form>
-]]
-end
-
 if (not ntop.isnEdge()) and (not delete_active_interface_requested) then
    print[[
 <form class="interface_data_form" method="POST">
-  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(ifname) print[['); delete_system_iface = false; return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
+  <button class="btn btn-secondary" type="submit" onclick="$('#interface-name-to-delete').html(']] print(ifname) print[['); return delete_interfaces_data_show_modal('delete_active_interface_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_active_interface")) print[["></i> ]] print(i18n("manage_data.delete_active_interface")) print[[</button>
 </form>
 ]]
 end
@@ -348,8 +291,6 @@ print("</div>") -- closes <div class="tab-content">
 
 
 print[[<script type='text/javascript'>
-
-var delete_system_iface = false;
 
 var delete_data_show_modal = function() {
   $(".modal-body #modal_host").html(" " + $('#delete_host').val());
@@ -391,7 +332,7 @@ var delete_interfaces_data = function(action) {
   var params = {[action] : ''};
 
   params.page = 'delete';
-  params.ifid = delete_system_iface ? ]] print(getSystemInterfaceId()) print[[ : ]] print(getInterfaceId(ifname)) print[[;
+  params.ifid = ]] print(getInterfaceId(ifname)) print[[;
 
   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 

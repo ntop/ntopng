@@ -144,8 +144,8 @@ end
 http_lint.validateUnquoted = validateUnquoted
 
 local function validateLuaScriptPath(p)
-   if (string.find(p, "'") ~= nil) then return false end   
-   return(starts(p, "/plugins"))   
+   if (string.find(p, "'") ~= nil) then return false end
+   return(starts(p, "/plugins"))
 end
 http_lint.validateLuaScriptPath = validateLuaScriptPath
 
@@ -380,7 +380,7 @@ end
 local function validateTCPFlowState(mode)
    local modes = { "established", "connecting", "closed", "reset" }
 
-   return validateChoice(modes, mode)   
+   return validateChoice(modes, mode)
 end
 
 local function validatePolicyPreset(mode)
@@ -599,7 +599,7 @@ end
 
 local function validateMemberRelaxed(m)
    -- This does not actually check the semantic with isValidPoolMember
-   -- as this is used in pool deletion to handle bad pool member values 
+   -- as this is used in pool deletion to handle bad pool member values
    -- inserted by mistake)
    if validateUnquoted(m) then
       return true
@@ -635,7 +635,7 @@ end
 
 local function validateLocalGlobal(p)
    local values = {"local", "global"}
-   
+
    return validateChoice(values, p)
 end
 
@@ -655,7 +655,7 @@ http_lint.validateBool = validateBool
 
 local function validateSortOrder(p)
    local defaults = {"asc", "desc"}
-   
+
    return validateChoice(defaults, p)
 end
 
@@ -1138,7 +1138,7 @@ local known_parameters = {
    ["maxhits_clause"]          = validateNumber,
    ["ni_query_type"]           = validatenIndexQueryType,
    ["ni_query_filter"]         = validateListOfTypeInline(validateSingleWord),
-   
+
 -- HOST SPECIFICATION
    ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
    ["versus_host"]             = validateHost,                  -- an host for comparison
@@ -1630,6 +1630,8 @@ local known_parameters = {
    ["delete"]                  = validateEmpty,
    ["delete_active_if_data"]   = validateEmpty,
    ["delete_inactive_if_data"] = validateEmpty,
+   ["delete_inactive_if_data_system"] = validateEmpty,
+   ["delete_active_if_data_system"] =   validateEmpty,
    ["reset_quotas"]            = validateEmpty,
    ["bandwidth_allocation"]    = validateChoiceInline({"min_guaranteed", "max_enforced"}),
    ["bind_to"]                 = validateChoiceInline({"lan", "any"}),
@@ -1761,7 +1763,7 @@ local function validateParameter(k, v)
    else
       local ret
       local f = known_parameters[k]
-     
+
       if(type(f) == "function") then
 	 -- We apply the default parameter cleanup
 	 v = ntop.httpPurifyParam(v)
@@ -1859,7 +1861,7 @@ local function lintParams()
 		  if(debug) then io.write("[LINT] "..k.." = ["..v.."] -> ["..message.."]\n") end
 
 		  id[k] = message -- Setting the value back
-		  
+
                   if(debug) then io.write("[LINT] Special Parameter "..k.." validated successfully\n") end
                end
             end
@@ -1873,7 +1875,7 @@ end
 local function parsePOSTpayload()
    if((_POST ~= nil) and (_POST["payload"] ~= nil)) then
       local info, pos, err = json.decode(_POST["payload"], 1, nil)
-      
+
       for k,v in pairs(info) do
 	 _GET[k] = v
       end
@@ -1912,7 +1914,7 @@ local function clearNotAllowedParams()
       end
    end
 end
-      
+
 -- #################################################################
 
 if(pragma_once) then
