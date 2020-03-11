@@ -624,7 +624,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
+   if prefs.is_dump_flows_enabled then
       local dump_to = "MySQL"
       if prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
@@ -1270,7 +1270,7 @@ elseif(page == "config") then
 
    -- Flow dump check
    local interface_flow_dump = true
-   if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
+   if prefs.is_dump_flows_enabled then
       interface_flow_dump = (ntop.getPref("ntopng.prefs.ifid_"..ifId..".is_flow_dump_disabled") ~= "1")
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
@@ -1506,7 +1506,7 @@ elseif(page == "config") then
       </tr>]]
 
    -- Flow dump
-   if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
+   if prefs.is_dump_flows_enabled then
       local interface_flow_dump_checked = ternary(interface_flow_dump, "checked", "")
 
       print [[<tr>
