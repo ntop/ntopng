@@ -624,7 +624,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if prefs.is_dump_flows_enabled then
+   if prefs.is_dump_flows_enabled and not ifstats.isViewed then
       local dump_to = "MySQL"
       if prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
