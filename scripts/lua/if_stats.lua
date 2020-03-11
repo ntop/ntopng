@@ -470,7 +470,7 @@ if((page == "overview") or (page == nil)) then
       s = s .. " <a href=\""..url.."&page=config\"><i class=\"fas fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
    end
 
-   print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2">' .. s ..' </td>\n')
+   print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2"><p style="word-break: break-all">' .. s ..'</p></td>\n')
 
    print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
    print(ifstats.type)
@@ -2151,10 +2151,10 @@ print [[
 	last_pkts = rsp.packets;
 	last_drops = rsp.drops;
 
-  $('#engaged_alerts_trend').html(get_trend(last_engaged_alerts, rsp.engaged_alerts));
-  last_engaged_alerts = rsp.engaged_alerts;
-  $('#dropped_alerts_trend').html(get_trend(last_dropped_alerts, rsp.dropped_alerts));
-  last_dropped_alerts = rsp.dropped_alerts;
+	$('#engaged_alerts_trend').html(get_trend(last_engaged_alerts, rsp.engaged_alerts));
+	last_engaged_alerts = rsp.engaged_alerts;
+	$('#dropped_alerts_trend').html(get_trend(last_dropped_alerts, rsp.dropped_alerts));
+	last_dropped_alerts = rsp.dropped_alerts;
 
 	if((rsp.packets + rsp.drops) > 0) {
           pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2);
@@ -2163,10 +2163,7 @@ print [[
 	if(rsp.drops > 0) {
           drops = '<span class="badge badge-danger">';
         }
-	drops = drops + addCommas(rsp.drops)+" ]]
-
-print("Pkts")
-print [[";
+	drops = drops + addCommas(rsp.drops)+" Pkts";
 
 	if(pctg > 0)      { drops  += " [ "+pctg+" % ]"; }
 	if(rsp.drops > 0) { drops  += '</span>'; }
