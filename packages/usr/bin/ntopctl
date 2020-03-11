@@ -50,7 +50,7 @@ check_interface() {
 }
 
 check_license() {
-    if [[ "$LICENSE" =~ ^[a-zA-Z0-9]{32,64}$ ]]; then
+    if [[ "$LICENSE" =~ ^[a-zA-Z0-9\+/=]+$ ]]; then
 	:
     else
 	[ $QUIET = false ] && echo "Invalid license $LICENSE"
