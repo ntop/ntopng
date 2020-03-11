@@ -488,7 +488,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th width=250>"..i18n("if_stats_overview.zmq_encryption_public_key").."</th><td colspan=6><span>")
       print(ifstats.encryption.public_key)
       print("<br><small><b>"..i18n("if_stats_overview.note").."</b>:<ul><li> ".. i18n("if_stats_overview.zmq_encryption_public_key_note", {key="&lt;key&gt;"}).."")
-      print("<li>nprobe --zmq-encryption-key '"..ifstats.encryption.public_key.."' ...")
+      print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..ifstats.encryption.public_key.."' ...")
       print("</small></ul></td></tr>\n")
    end
 
