@@ -100,10 +100,11 @@ class Prefs {
   bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs;
   u_int32_t num_simulated_ips;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
-	  *callbacks_dir, *prefs_dir, *pcap_dir, *export_endpoint;
+	  *callbacks_dir, *prefs_dir, *pcap_dir;
   char *categorization_key;
   char *zmq_encryption_pwd;
-  char *zmq_encryption_key;
+  char *zmq_encryption_priv_key;
+  char *export_endpoint, *export_zmq_encryption_key;
   char *http_prefix;
   char *instance_name;
   char *config_file_path, *ndpi_proto_path;
@@ -218,6 +219,7 @@ class Prefs {
   inline const char* get_test_script_path()                   { return(test_script_path); };
 #endif
   inline char* get_export_endpoint()                    { return(export_endpoint);};
+  inline char* get_export_zmq_encryption_key()          { return(export_zmq_encryption_key); };
   inline char* get_categorization_key()                 { return(categorization_key); };
   inline char* get_http_prefix()                        { return(http_prefix); };
   inline char* get_instance_name()                      { return(instance_name); };
@@ -295,7 +297,7 @@ class Prefs {
   inline char* get_ls_port()		{ return(ls_port);		 };
   inline char* get_ls_proto()		{ return(ls_proto);		 };
   inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
-  inline char* get_zmq_encryption_key() { return(zmq_encryption_key);    };
+  inline char* get_zmq_encryption_priv_key() { return(zmq_encryption_priv_key); };
   inline bool  is_zmq_encryption_enabled() { return(enable_zmq_encryption); };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
   inline char* get_lan_interface()      { return(lan_interface ? lan_interface : (char*)""); };
