@@ -132,8 +132,8 @@ print [[
         <form class="host_data_form" id="host_data_form_export" action="]] print(ntop.getHttpPrefix()) print[[/lua/do_export_data.lua" method="GET">
           <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
           <input type=hidden name="ifid" value=]] print(tostring(getInterfaceId(ifname))) print[[>
-          <div class='form-row'>
-            <div class="form-group col-md-2 col-xs-12 col-sm-12">
+          <div class='form-row align-items-center'>
+            <div class="form-group col-12">
               <label class="d-block">Select Export Type</label>
               <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
                 <label class="btn btn-secondary active">
@@ -150,12 +150,12 @@ print [[
                 </label>
               </div>
             </div>
-            <div class="form-group col-md-3 col-xs-12 col-sm-12">
+            <div class="form-group col-auto">
               <label for="export_host">Insert Host IP or Mac Address or /24</label>
               <input type="text" id="export_host" data-host="host" name="host" placeholder="]] print(i18n("manage_data.ip_or_mac_address")) print[[" class="form-control" size="24" disabled required/>
             </div>
-            <div class="form-group col-md-3 col-xs-12 col-sm-12">
-              <label for="export_vlan">VLAN Host</label>
+            <div class="form-group col-auto">
+              <label for="export_vlan">Insert VLAN Host</label>
               <input type="number" min="1" max="65535" placeholder="]] print(i18n("vlan")) print[[" id="export_vlan" name="vlan" class="form-control" value="" disabled/>
             </div>
           </div>
