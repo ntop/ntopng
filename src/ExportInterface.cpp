@@ -30,24 +30,73 @@ ExportInterface::ExportInterface(const char *_endpoint, const char *_topic) {
 
   if((context = zmq_ctx_new()) == NULL) {
     const char *msg = "Unable to initialize ZMQ context";
-
     ntop->getTrace()->traceEvent(TRACE_ERROR, msg);
     throw(msg);
   }
 
   if((publisher = zmq_socket(context, ZMQ_PUB)) == NULL) {
     const char *msg = "Unable to create ZMQ socket";
-
     ntop->getTrace()->traceEvent(TRACE_ERROR, msg);
     throw(msg);
   }
 
-  if(zmq_bind(publisher, endpoint) != 0)
+#if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
+  if (ntop->getPrefs()->get_export_zmq_encryption_key()) {
+    const char *server_public_key = ntop->getPrefs()->get_export_zmq_encryption_key();
+    char client_public_key[41];
+    char client_secret_key[41];
+    int rc;
+
+    rc = zmq_curve_keypair(client_public_key, client_secret_key);
+
+    if (rc != 0) {
+      const char *msg = "Error generating ZMQ client key pair";
+      ntop->getTrace()->traceEvent(TRACE_ERROR, msg);
+      throw(msg);
+    }
+
+    if (strlen(server_public_key) != 40) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad ZMQ server public key size (%lu != 40) '%s'", 
+        strlen(server_public_key), server_public_key);
+      throw("Bad ZMQ server public key size");
+    }
+
+    rc = zmq_setsockopt(publisher, ZMQ_CURVE_SERVERKEY,
+      server_public_key, strlen(server_public_key)+1);
+
+    if (rc != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error setting ZMQ_CURVE_SERVERKEY = %s (%d)", 
+        server_public_key, errno);
+      throw("Error setting ZMQ_CURVE_SERVERKEY");
+    }
+
+    rc = zmq_setsockopt(publisher, ZMQ_CURVE_PUBLICKEY,
+      client_public_key, strlen(client_public_key)+1);
+
+    if (rc != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error setting ZMQ_CURVE_PUBLICKEY = %s",
+        client_public_key);
+      throw("Error setting ZMQ_CURVE_PUBLICKEY");
+    }
+
+    rc = zmq_setsockopt(publisher, ZMQ_CURVE_SECRETKEY, client_secret_key, 
+      strlen(client_secret_key)+1);
+
+    if (rc != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error setting ZMQ_CURVE_SECRETKEY = %s",
+        client_secret_key);
+      throw("Error setting ZMQ_CURVE_SECRETKEY");
+    }
+  }
+#endif
+
+  if(zmq_bind(publisher, endpoint) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind ZMQ endpoint %s: %s",
-				 endpoint, strerror(errno));
-  else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Successfully created ZMQ endpoint %s", endpoint);
+      endpoint, strerror(errno));
+    throw("Unable to bind ZMQ endpoint");
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully created ZMQ endpoint %s", endpoint);
 }
 
 /* **************************************************** */

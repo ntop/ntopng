@@ -60,7 +60,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 
     if(ntop->getPrefs()->is_zmq_encryption_enabled()) {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
-      const char *server_secret_key = ntop->getPrefs()->get_zmq_encryption_key();
+      const char *server_secret_key = ntop->getPrefs()->get_zmq_encryption_priv_key();
 
       if (server_secret_key == NULL)
         server_secret_key = generateEncryptionKeys(); 

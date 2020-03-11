@@ -74,7 +74,8 @@ Prefs::Prefs(Ntop *_ntop) {
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
   categorization_key = NULL, zmq_encryption_pwd = NULL;
-  enable_zmq_encryption = false, zmq_encryption_key = NULL;
+  enable_zmq_encryption = false, zmq_encryption_priv_key = NULL;
+  export_zmq_encryption_key = NULL;
   es_index = es_url = es_user = es_pwd = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
@@ -306,7 +307,8 @@ void usage() {
 	 "[--shutdown-when-done]              | Terminate after reading the pcap (debug only)\n"
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
 	 "[--zmq-encryption]                  | Enable ZMQ encryption\n"
-	 "[--zmq-encryption-key <key>]        | ZMQ encryption secret key (debug only) \n"
+	 "[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only) \n"
+	 "[--zmq-encryption-key <key>]        | ZMQ (export) encryption public key (-I only) \n"
 #endif
 	 "[--disable-autologout|-q]           | Disable web logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
@@ -747,7 +749,6 @@ static const struct option long_options[] = {
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
-  { "simulate-ips",                      required_argument, NULL, 221 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
 #ifndef HAVE_NEDGE
   { "ignore-macs",                       no_argument,       NULL, 216 },
@@ -757,7 +758,9 @@ static const struct option long_options[] = {
   { "test-script",                       required_argument, NULL, 218 },
 #endif
   { "zmq-encryption",                    no_argument,       NULL, 219 },
-  { "zmq-encryption-key",                required_argument, NULL, 220 },
+  { "zmq-encryption-key-priv",           required_argument, NULL, 220 },
+  { "simulate-ips",                      required_argument, NULL, 221 },
+  { "zmq-encryption-key",                required_argument, NULL, 222 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -1419,7 +1422,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 220:
     enable_zmq_encryption = true;
-    zmq_encryption_key = strdup(optarg);
+    zmq_encryption_priv_key = strdup(optarg);
+    break;
+
+  case 222:
+    export_zmq_encryption_key = strdup(optarg);
     break;
 
 #ifdef NTOPNG_PRO
