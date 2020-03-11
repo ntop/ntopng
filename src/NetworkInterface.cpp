@@ -624,7 +624,11 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
     return -1;
 
   if(no_time_left) {
-    db->incNumDroppedFlows(1);
+    /* There is no time to dump the flow, however this is not yet
+     * lost unless it is in the idle state (active flows will be
+     * dumped in the next iteration */
+    if (f->get_state() == hash_entry_state_idle)
+      db->incNumDroppedFlows(1);
     return -1;
   }
 
