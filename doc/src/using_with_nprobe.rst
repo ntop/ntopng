@@ -139,9 +139,15 @@ In order to enable encryption, the :code:`--zmq-encryption` option should be add
 
   Encryption Public Key
 
-Please note that it is also possible to manually generate a key pair and configure it in ntopng by specifying the :code:`--zmq-encryption-key <priv key>` option.
-
 The public key should be configured in nProbe (the same applies to cento and n2disks) by using the :code:`--zmq-encryption-key '<pub key>'` option.
+
+Example:
+
+- Suppose you want to run nprobe and ntopng on the same host and send flows on ZMQ port 1234
+- Start ntopng as follows: :code:`ntopng -i tcp://127.0.0.1:1234 --zmq-encryption`
+- Connect to the ntopng web GUI, select the ZMQ interface as in the above picture and copy the value of --zmq-encryption-key '...'
+- Start nprobe as follows:  :code:`nprobe --zmq-encryption-key '<pub key>' --zmq tcp://127.0.0.1:1234`
+
 
 Quick Start
 ===========
