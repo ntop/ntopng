@@ -145,7 +145,8 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
       char *name = iface->get_ndpi_proto_name(i);
 
       if(name != NULL) {
-	if(counters[i]->bytes.sent || counters[i]->bytes.rcvd) {
+	if(counters[i]->bytes.sent || counters[i]->bytes.rcvd
+	    || iface->hasSeenEBPFEvents() /* eBPF flows can have 0 traffic */) {
 	  if(!tsLua) {
 	    lua_newtable(vm);
 

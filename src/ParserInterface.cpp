@@ -353,6 +353,12 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
       p.app_protocol = guessed_protocol.app_protocol;
     }
 
+    if(zflow->hasParsedeBPF()) {
+      /* nProbe Agent does not perform nDPI detection*/
+      p.master_protocol = guessed_protocol.app_protocol;
+      p.app_protocol = guessed_protocol.app_protocol;
+    }
+
     /* Now, depending on the q and on the zflow, there's an additional check
        to possibly override the category, according to the rules specified
        in ntopng */

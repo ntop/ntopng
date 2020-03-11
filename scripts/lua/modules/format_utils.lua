@@ -215,7 +215,7 @@ function format_utils.formatMillis(x)
    if(x == 0) then return 0 end
    if(x < 0.1) then return "< 0.1 ms" end
 
-   return string.format("%s ms", format_utils.formatValue(x))
+   return string.format("%.2f ms", format_utils.formatValue(x))
 end
 
 function format_utils.formatContainer(cont)

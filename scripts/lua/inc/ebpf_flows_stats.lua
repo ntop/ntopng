@@ -29,6 +29,7 @@ local vhost = _GET["vhost"]
 local flowhosts_type = _GET["flowhosts_type"]
 local ipversion = _GET["version"]
 local vlan = _GET["vlan"]
+local l4proto = _GET["l4proto"]
 
 -- remote exporters address and interfaces
 local deviceIP = _GET["deviceIP"]
@@ -87,6 +88,10 @@ end
 
 if(ipversion ~= nil) then
   page_params["version"] = ipversion
+end
+
+if(l4proto ~= nil) then
+  page_params["l4proto"] = l4proto
 end
 
 if(deviceIP ~= nil) then

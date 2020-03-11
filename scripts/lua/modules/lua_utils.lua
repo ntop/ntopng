@@ -1293,6 +1293,10 @@ end
 -- #################################
 
 function getCategoryLabel(cat_name)
+  if isEmptyString(cat_name) then
+   return("")
+  end
+
   local v = i18n("ndpi_categories." .. cat_name)
   if v then
    -- Localized string found

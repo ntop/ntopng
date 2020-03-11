@@ -29,7 +29,7 @@ local script = {
 -- #################################################################
 
 function script.hooks.all(now)
-   if(flow.getPacketsRcvd() == 0) then
+   if((flow.getPacketsRcvd() == 0) and (flow.getPacketsSent() > 0)) then
       -- Now check if the recipient isn't a broadcast/multicast address
       if(flow.isServerUnicast()) then
          -- TODO some UDP protocols are inherently unidirectional (e.g. Netflow/sflow)

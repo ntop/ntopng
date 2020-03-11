@@ -312,7 +312,10 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
 	title: "Key",
 	 field: "key",
 	 hidden: true
-	 },
+	 }, {
+			       field: "hash_id",
+			       hidden: true,
+			     },
 			     {
 			     title: "",
 				 field: "column_key",
