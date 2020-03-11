@@ -696,7 +696,7 @@ class NetworkInterface : public AlertableEntity {
 
   inline bool isView()             const { return is_view;    };
   inline ViewInterface* viewedBy() const { return viewed_by;  };
-  inline bool isViewed()           const { return viewedBy(); };
+  inline bool isViewed()           const { return viewedBy() != NULL; };
 
   inline void setViewed(ViewInterface *view_iface) { viewed_by = view_iface; };
 

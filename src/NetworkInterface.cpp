@@ -6705,6 +6705,10 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
   if(isFlowDumpDisabled())
     return(false);
 
+  /* Flows are dumped by the view only */
+  if(isViewed())
+    return(false);
+
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
   if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
     if(num_dump_interfaces >= NINDEX_MAX_NUM_INTERFACES) {
