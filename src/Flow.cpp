@@ -375,25 +375,7 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_DNS:
-    if(ndpiFlow->host_server_name[0] != '\0') {
-      char *q = strdup((const char*)ndpiFlow->host_server_name);
-
-      if(q) {
-	protos.dns.invalid_chars_in_query = false;
-
-	for(int i = 0; q[i] != '\0'; i++) {
-	  if(!isprint(q[i])) {
-	    q[i] = '?';
-	    protos.dns.invalid_chars_in_query = true;
-	  }
-	}
-
-	setDNSQuery(q);
-	protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
-      }
-    }
-
-    /* See Flow::processExtraDissectedInformation for reply dissection */
+    /* See Flow::processDNSPacket for dissection */
     break;
 
   case NDPI_PROTOCOL_TOR:
@@ -431,6 +413,8 @@ void Flow::processDetectedProtocol() {
  * including extra dissection information (e.g. the TLS certificate), is
  * available. */
 void Flow::processExtraDissectedInformation() {
+  bool free_ndpi_memory = true; /* Possibly set to false if the flow is DNS and all the packets need to be dissected */
+
   if(ndpiFlow) {
     u_int16_t l7proto;
 
@@ -494,40 +478,16 @@ void Flow::processExtraDissectedInformation() {
       break;
 
     case NDPI_PROTOCOL_DNS:
-      if(ntop->getPrefs()->decode_dns_responses()) {
-
-	if(ndpiFlow->host_server_name[0] != '\0') {
-	  char delimiter = '@', *name = NULL;
-	  char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
-
-	  /* Consider only positive DNS replies */
-	  if(at != NULL)
-	    name = &at[1], at[0] = '\0';
-	  else if((!strstr((const char*)ndpiFlow->host_server_name, ".in-addr.arpa"))
-		  && (!strstr((const char*)ndpiFlow->host_server_name, ".ip6.arpa")))
-	    name = (char*)ndpiFlow->host_server_name;
-
-	  if(name) {
-	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);
-	    protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
-
-	    if(ndpiFlow->protos.dns.reply_code == 0) {
-	      if(ndpiFlow->protos.dns.num_answers > 0) {
-		if(at != NULL) {
-		  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
-		  ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
-		}
-	      }
-	    }
-	  }
-	}
-      }
+      /* Don't free the memory, let the nDPI dissection run for DNS. See Method Flow::processDNSPacket  */
+      if(getInterface()->isPacketInterface())
+	free_ndpi_memory = false;
       break;
     }
   }
 
   /* Free the nDPI memory */
-  freeDPIMemory();
+  if(free_ndpi_memory)
+    freeDPIMemory();
 
   /*
     We need to change state here as in Lua scripts we need to know
@@ -593,6 +553,104 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 
   if(detection_completed && !needsExtraDissection())
     setExtraDissectionCompleted();
+}
+
+/* *************************************** */
+
+/* Special handling of DNS which is always performed. */
+void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time) {
+  ndpi_protocol proto_id;
+
+  /* Exits if the flow isn't DNS or it the interface is not a packet-interface */
+  if(!isDNS() || !getInterface()->isPacketInterface())
+    return;
+
+  /* Instruct nDPI to continue the dissection
+     See https://github.com/ntop/ntopng/commit/30f52179d9f7a1eb774534def93d55c77d6070bc#diff-20b1df29540b6de59ceb6c6d2f3afdb5R387
+  */
+  // ndpiFlow->protos.dns.num_answers = 0;
+  // ndpiFlow->host_server_name[0] = '\0';
+  ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10;
+
+  proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
+					   ip_packet, ip_len, packet_time,
+					   (struct ndpi_id_struct*) cli_id, (struct ndpi_id_struct*) srv_id);
+
+  /*
+    A DNS flow won't change to a non-DNS flow. However, this check is
+    just in case for safety. What can change is the application protocol, e.g.,
+    a DNS.Google can become DNS.Facebook.
+  */
+  switch(ndpi_get_lower_proto(proto_id)) {
+  case NDPI_PROTOCOL_DNS:
+    ndpiDetectedProtocol = proto_id; /* Override! */
+
+    if(ndpiFlow->host_server_name[0] != '\0') {
+      if(ndpiFlow->protos.dns.is_query) {
+	char *q = strdup((const char*)ndpiFlow->host_server_name);
+
+	if(q) {
+	  protos.dns.invalid_chars_in_query = false;
+
+	  for(int i = 0; q[i] != '\0'; i++) {
+	    if(!isprint(q[i])) {
+	      q[i] = '?';
+	      protos.dns.invalid_chars_in_query = true;
+	    }
+	  }
+
+	  setDNSQuery(q);
+	  protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
+	}
+      } else { /* this is a response... */
+	if(ntop->getPrefs()->decode_dns_responses()) {
+	  char delimiter = '@', *name = NULL;
+	  char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
+
+	  /* Consider only positive DNS replies */
+	  if(at != NULL)
+	    name = &at[1], at[0] = '\0';
+	  else if((!strstr((const char*)ndpiFlow->host_server_name, ".in-addr.arpa"))
+		  && (!strstr((const char*)ndpiFlow->host_server_name, ".ip6.arpa")))
+	    name = (char*)ndpiFlow->host_server_name;
+
+	  if(name) {
+#if 0
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s [query_type: %u][reply_code: %u][is_query: %u][num_queries: %u][num_answers: %u]",
+					 (char*)ndpiFlow->host_server_name,
+					 ndpiFlow->protos.dns.query_type,
+					 ndpiFlow->protos.dns.reply_code,
+					 ndpiFlow->protos.dns.is_query ? 1 : 0,
+					 ndpiFlow->protos.dns.num_queries,
+					 ndpiFlow->protos.dns.num_answers);
+	    protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
+#endif
+
+	    if(ndpiFlow->protos.dns.reply_code == 0) {
+	      if(ndpiFlow->protos.dns.num_answers > 0) {
+		if(at != NULL) {
+		  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
+		  ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
+#ifdef HAVE_NEDGE
+    updateFlowShapers(true);
+#endif
+    break;
+  default:
+    break;
+  }
+
+#if 0
+  char buf[256];
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "%s %s", ndpiFlow->host_server_name[0] != '\0' ? ndpiFlow->host_server_name : (unsigned char*)"", print(buf, sizeof(buf)));
+#endif
 }
 
 /* *************************************** */
@@ -1325,29 +1383,6 @@ void Flow::periodic_stats_update(void *user_data) {
 
   Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
   Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
-
-  if(isDNS()
-     && ((iface->isPacketInterface() && stats.get_num_dns_queries() > 1)
-	 || (!iface->isPacketInterface() && stats.get_srv2cli_packets() > 1))) {
-    /*
-      When the number of DNS queries for the same flow is greater than one,
-      nDPI can no longer reliably determine the application protocol as it just uses
-      the first request to determine it.
-      For example, if the same flow contains the first request for google.com and then other
-      requests, the flow would be marked ad DNS.Google but this would be inaccurate and only
-      representative for the first query.
-      For this reason, when the number of queries is greater than one, the application
-      protocol is reset to unknown.
-
-      See https://github.com/ntop/ntopng/issues/3106 and enclosed pcap for additional details.
-    */
-    const ndpi_protocol ndpiGenericDNS = { NDPI_PROTOCOL_DNS,
-					   NDPI_PROTOCOL_UNKNOWN,
-					   NDPI_PROTOCOL_CATEGORY_NETWORK };
-
-    if(memcmp(&ndpiGenericDNS, &ndpiDetectedProtocol, sizeof(ndpiDetectedProtocol)))
-      memcpy(&ndpiDetectedProtocol, &ndpiGenericDNS, sizeof(ndpiGenericDNS));
-  }
 
   if(update_flow_port_stats) {
     bool dump_flow = false;

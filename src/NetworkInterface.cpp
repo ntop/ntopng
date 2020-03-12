@@ -1422,6 +1422,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
   }
 
+  if(flow->isDNS())
+    flow->processDNSPacket(ip, trusted_ip_len, packet_time);
+
   if(flow->isDetectionCompleted()
      && (!isSampledTraffic())) {
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
