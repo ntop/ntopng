@@ -247,8 +247,6 @@ function delete_data_show_modal() {
   if ($('#delete_vlan').val() != "") {
 
     $(".modal-body #modal_vlan").html("@" + $('#delete_vlan').val());
-    /* abort submit */
-    return false;
   }
 
   $('#delete_data').modal('show');
@@ -310,7 +308,9 @@ function prepare_typeahead(host_id, vlan_id, buttons_id) {
       $('#' + vlan_id).val(item.ip.split("@")[1] || '');
 
       /* retrigger validation */
-      $('#' + host_id).closest("form").validator('validate');
+      const form = $('#' + host_id).closest("form");
+      form.removeClass('dirty');
+      form.validator('validate');
     }
   });
 
