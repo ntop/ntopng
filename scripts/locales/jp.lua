@@ -239,7 +239,6 @@ local lang = {
   ["yes"] = "はい",
   ["about"] = {
     ["about"] = "nEdgeについて",
-    ["about_ntopng"] = "ntopngについて",
     ["about_x"] = "%{product}について",
     ["active"] = "アクティブ",
     ["alert_defines"] = "アラート定義",

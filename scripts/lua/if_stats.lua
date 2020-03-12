@@ -264,7 +264,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = "<i class='fas fa-lg fa-chart-area'></i>",
 			      },
 			      {
-				 hidden = have_nedge or not ifstats or not ifstats.profiles,
+				 hidden = have_nedge or not ifstats or table.empty(ifstats.profiles),
 				 active = page == "trafficprofiles",
 				 page_name = "trafficprofiles",
 				 label = "<i class=\"fas fa-lg fa-user-md\"></i>",
