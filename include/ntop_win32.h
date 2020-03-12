@@ -223,6 +223,10 @@ struct ip6_ext
 #define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
 #endif
 
+#ifndef ssize_t
+#define ssize_t                  __int64
+#endif
+
 #define localtime_r(a, b) localtime(a)
 
 #ifdef __cplusplus

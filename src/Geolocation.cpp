@@ -160,7 +160,11 @@ Geolocation::Geolocation() {
 #ifdef HAVE_MAXMINDDB
 bool Geolocation::loadMaxMindDB(const char * const base_path, const char * const db_name, MMDB_s * const mmdb) const {
   char path[MAX_PATH];
+#ifdef WIN32
+  struct _stat64 buf;
+#else
   struct stat buf;
+#endif
   bool found;
 
   snprintf(path, sizeof(path), "%s/%s", base_path, db_name);

@@ -24,12 +24,6 @@
 
 #include "ntop_includes.h"
 
-extern "C" {
-#ifdef HAVE_MAXMINDDB
-#include <maxminddb.h>
-#endif
-};
-
 class Geolocation {
  private:
 #ifdef HAVE_MAXMINDDB
@@ -46,7 +40,13 @@ class Geolocation {
   Geolocation();
   ~Geolocation();
 
-  inline bool isAvailable() { return mmdbs_ok; };
+  inline bool isAvailable() {
+#ifdef HAVE_MAXMINDDB
+      return(mmdbs_ok);
+#else
+      return(false);
+#endif
+  };
   void getAS(IpAddress *addr, u_int32_t *asn, char **asname);
   void getInfo(IpAddress *addr, char **continent_code, char **country_code, char **city, float *latitude, float *longitude);
   static void freeInfo(char **continent_code, char **country_code, char **city);

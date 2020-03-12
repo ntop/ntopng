@@ -147,6 +147,10 @@ extern "C" {
 #include <errmsg.h>
 #endif
 
+#ifdef HAVE_MAXMINDDB
+#include <maxminddb.h>
+#endif
+
 #ifdef HAVE_LIBCAP
 #include <sys/capability.h>
 #include <sys/prctl.h>
