@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local ts_utils = require("ts_utils")
-local info = ntop.getInfo() 
+local info = ntop.getInfo()
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
@@ -81,14 +81,13 @@ print[[</small>
 
    if(isAdministrator()) then
       if(info["pro.use_redis_license"] or (info["pro.license"] == "")) then
-	 print('<div class="form-group">')
+	 print('<div class="form-group w-100">')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('<input id="ntopng_license" class="form-control" type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 pattern='.. getLicensePattern() ..' value="')
+	 print('<textarea rows="3" id="ntopng_license" class="form-control w-100" type="text" name="ntopng_license" placeholder="'..i18n("about.specify_licence")..'" size=70 pattern='.. getLicensePattern() ..' >')
 	 print(info["ntopng.license"])
-
-	 print [["></input>
-	 </div>
-		     &nbsp;<button type="submit" class="btn btn-secondary">]] print(i18n("about.save_licence")) print[[</button>
+	 print [[</textarea>
+    </div>
+    <button type="submit" class="btn my-2 btn-secondary">]] print(i18n("about.save_licence")) print[[</button>
 		  </form>
 	  <script>
 	    function trimLicenceSpaces() {
@@ -124,7 +123,7 @@ print("<tr><th>"..i18n("about.version").."</th><td colspan=2>"..ntopng_git_url..
 printntopngRelease(info)
 
 if((info["OS"] ~= nil) and (info["OS"] ~= "")) then
-   print("<tr><th>"..i18n("about.built_on").."</th><td colspan=2>"..info["OS"].."</td></tr>\n") 
+   print("<tr><th>"..i18n("about.built_on").."</th><td colspan=2>"..info["OS"].."</td></tr>\n")
 end
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
