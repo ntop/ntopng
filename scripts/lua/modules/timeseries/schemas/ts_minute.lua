@@ -14,7 +14,7 @@ schema:addTag("ifid")
 schema:addTag("periodic_script")
 schema:addMetric("num_ms_last")
 
-schema = ts_utils.newSchema("periodic_script:timeseries_writes", {step = 60, rrd_fname="ps_ts_w", is_critical_ts = true})
+schema = ts_utils.newSchema("periodic_script:timeseries_writes", {step = 60, rrd_fname="ps_ts_wrdr", is_critical_ts = true})
 schema:addTag("ifid")
 schema:addTag("periodic_script")
 schema:addMetric("writes")

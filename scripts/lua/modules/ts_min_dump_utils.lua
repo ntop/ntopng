@@ -223,7 +223,14 @@ function ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbo
       -- Only if RRD is enabled, also total number of writes and dropped points are written
       if ts_utils.getDriverName() == "rrd" then
 	 if ps_stats["timeseries"] and ps_stats["timeseries"]["write"] then
-	    ts_utils.append("periodic_script:timeseries_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = (ps_stats["timeseries"]["write"]["tot_calls"] or 0), drops = (ps_stats["timeseries"]["write"]["tot_drops"] or 0)}, when)
+	    local tot_calls = ps_stats["timeseries"]["write"]["tot_calls"] or 0
+	    local tot_drops = ps_stats["timeseries"]["write"]["tot_drops"] or 0
+
+	    -- Do not generate nor update the timeseries if no point has been written or dropped
+	    -- to prevent generation of empty files and empty timeseries
+	    if tot_calls + tot_drops > 0 then
+	       ts_utils.append("periodic_script:timeseries_writes", {ifid = ifstats.id, periodic_script = ps_name, writes = tot_calls, drops = tot_drops}, when)
+	    end
 	 end
       end
    end
