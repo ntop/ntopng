@@ -640,7 +640,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
     }
 
 #ifdef HAVE_NEDGE
-    updateFlowShapers(true);
+    updateFlowShapers(false);
 #endif
     break;
   default:
