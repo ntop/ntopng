@@ -343,7 +343,7 @@ if is_nedge then
 	 },
 	 {
 	    entry = page_utils.menu_entries.nedge_users,
-	    hidden = not is_admin,
+	    hidden = not is_admin or not is_system_interface,
 	    url = '/lua/pro/nedge/admin/nf_list_users.lua',
 	 },
    }) do
