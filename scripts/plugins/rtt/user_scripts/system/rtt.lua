@@ -66,98 +66,154 @@ end
 
 -- #################################################################
 
+-- Resolve the domain name into an IP if necessary
+local function resolveRttHost(domain_name, is_v6)
+   local ip_address = nil
+
+   if not isIPv4(domain_name) and not is_v6 then
+     ip_address = ntop.resolveHost(domain_name, true --[[IPv4 --]])
+
+     if not ip_address then
+	if do_trace then
+	   print("[RTT] Could not resolve IPv4 host: ".. domain_name .."\n")
+	end
+     end
+   elseif not isIPv6(domain_name) and is_v6 then
+      ip_address = ntop.resolveHost(domain_name, false --[[IPv6 --]])
+
+      if not ip_address then
+	if do_trace then
+	   print("[RTT] Could not resolve IPv6 host: ".. domain_name .."\n")
+	end
+      end
+   else
+     ip_address = domain_name
+   end
+
+  return(ip_address)
+end
+
+-- #################################################################
+
 -- Defines an hook which is executed every minute
 function script.hooks.min(params)
-  local hosts = rtt_utils.getHosts()
+  local all_hosts = rtt_utils.getHosts()
+  local tracked_hosts = {}
   local pinged_hosts = {}
-  local max_latency = {}
+  local hosts_rtt = {}
+  local resolved_hosts = {}
   local when = params.when
 
   if(do_trace) then
      print("[RTT] Script started\n")
   end
 
-  if table.empty(hosts) then
+  if table.empty(all_hosts) then
     return
   end
 
-  for key, host in pairs(hosts) do
-     local host_label = host.host
-     local ip_address = host_label
-     local is_v6
+  for key, host in pairs(all_hosts) do
+     local domain_name = host.host
 
-     if host.iptype == "ipv6" then
-	is_v6 = true
-     else
-	is_v6 = false
-     end
-     
-     if not isIPv4(host_label) and not is_v6 then
-       ip_address = ntop.resolveHost(host_label, true --[[IPv4 --]])
+     if(host.probetype == "icmp") then
+       local is_v6 = (host.iptype == "ipv6")
+       local ip_address = resolveRttHost(domain_name, is_v6)
 
        if not ip_address then
-          if do_trace then
-             print("[RTT] Could not resolve IPv4 host: ".. host_label .."\n")
-          end
-	  goto continue
+	 goto continue
        end
-     elseif not isIPv6(host_label) and is_v6 then
-	ip_address = ntop.resolveHost(host_label, false --[[IPv6 --]])
 
-	if not ip_address then
-          if do_trace then
-             print("[RTT] Could not resolve IPv6 host: ".. host_label .."\n")
-          end
-	  goto continue
+       if do_trace then
+	 print("[RTT] Pinging "..ip_address.."/"..domain_name.."\n")
+       end
+
+       -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
+       ntop.pingHost(ip_address, is_v6)
+
+       pinged_hosts[ip_address] = key
+       resolved_hosts[key] = ip_address
+     elseif(host.probetype == "http_get") then
+       if do_trace then
+	 print("[RTT] GET "..domain_name.."\n")
+       end
+
+       -- HTTP results are retrieved immediately
+       local rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], false --[[ don't return content ]])
+
+       if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
+         local total_time = rv.HTTP_STATS.TOTAL_TIME * 1000
+	 local lookup_time = (rv.HTTP_STATS.NAMELOOKUP_TIME or 0) * 1000
+	 local connect_time = (rv.HTTP_STATS.APPCONNECT_TIME or 0) * 1000
+
+	 hosts_rtt[key] = total_time
+	 resolved_hosts[key] = rv.RESOLVED_IP
+
+	 -- HTTP specific metrics
+	 ts_utils.append("monitored_host:http_stats", {
+	    ifid = getSystemInterfaceId(),
+	    host = key,
+	    lookup_ms = lookup_time,
+	    connect_ms = connect_time,
+	    other_ms = (total_time - lookup_time - connect_time),
+	 }, when)
 	end
+     else
+       print("[RTT] Unknown probe type: " .. host.probetype)
+       goto continue
      end
 
-     if do_trace then
-	print("[RTT] Pinging "..ip_address.."/"..host_label.."\n")
-     end
-
-     ntop.pingHost(ip_address, is_v6)
-     pinged_hosts[ip_address] = key
-     max_latency[ip_address]  = host.max_rtt
+     -- A reply for the host is expected
+     tracked_hosts[key] = host
 
      ::continue::
   end
 
-  ntop.msleep(2000) -- wait results
-  
-  local res = ntop.collectPingResults()
+  -- Collect possible ICMP results
+  if not table.empty(pinged_hosts) then
+     ntop.msleep(2000) -- wait results
 
-  if(res ~= nil) then
-     for host, rtt in pairs(res) do
-	local max_rtt = max_latency[host]
-	local key     = pinged_hosts[host]
+     local res = ntop.collectPingResults()
+
+     for host, rtt in pairs(res or {}) do
+	local key = pinged_hosts[host]
 
 	if(do_trace) then
-	   print("[RTT] Reading response for host ".. host .."\n")
+	  print("[RTT] Reading ICMP response for host ".. host .."\n")
 	end
 
-	if params.ts_enabled then
-	   ts_utils.append("monitored_host:rtt", {ifid = getSystemInterfaceId(), host = key, millis_rtt = rtt}, when)
-	end
-
-	rtt = tonumber(rtt)
-	rtt_utils.setLastRttUpdate(key, when, rtt, host)
-	
-	if(max_rtt and (rtt > max_rtt)) then
-	  if(do_trace) then print("[TRIGGER] Host "..host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
-	  triggerRttAlert(host, key, rtt, max_rtt)
-	else
-	  if(do_trace) then print("[OK] Host "..host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
-	  releaseRttAlert(host, key, rtt, max_rtt)
-	end
-	
-	pinged_hosts[host] = nil -- Remove key
+	hosts_rtt[key] = tonumber(rtt)
      end
   end
 
-  for ip,label in pairs(pinged_hosts) do
-     if(do_trace) then print("[TRIGGER] Host "..ip.."/"..label.." is unreacheable\n") end
-     triggerRttAlert(ip, label, 0, 0)
+  -- Parse the results
+  for key, rtt in pairs(hosts_rtt) do
+    local host = all_hosts[key]
+    local resolved_host = resolved_hosts[key] or host.host
+    local max_rtt = host.max_rtt
+
+    if params.ts_enabled then
+       ts_utils.append("monitored_host:rtt", {ifid = getSystemInterfaceId(), host = key, millis_rtt = rtt}, when)
+    end
+
+    rtt_utils.setLastRttUpdate(key, when, rtt, resolved_host)
+
+    if(max_rtt and (rtt > max_rtt)) then
+      if(do_trace) then print("[TRIGGER] Host "..resolved_host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
+      triggerRttAlert(resolved_host, key, rtt, max_rtt)
+    else
+      if(do_trace) then print("[OK] Host "..resolved_host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
+      releaseRttAlert(resolved_host, key, rtt, max_rtt)
+    end
+  end
+
+  -- Find the unreachable hosts
+  for key, host in pairs(tracked_hosts) do
+     local ip = resolved_hosts[key] or host.host
+
+     if(hosts_rtt[key] == nil) then
+       if(do_trace) then print("[TRIGGER] Host "..ip.."/"..key.." is unreacheable\n") end
+       triggerRttAlert(ip, key, 0, 0)
+     end
   end
 
   if(do_trace) then

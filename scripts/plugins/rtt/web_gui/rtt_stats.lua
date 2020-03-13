@@ -256,11 +256,11 @@ if(page == "overview") then
     td.html(container);
   }
 
-  function addSelectField(td, value, arr, other_html) {
+  function addSelectField(td, value, arr, other_html, other_classes) {
     var name = "rtt_input_id_" + input_id;
     input_id++;
 
-    var sel = $("<select class='form-control' " + (other_html || "") + ">")
+    var sel = $("<select class='form-control " + (other_classes ? other_classes : "") + "' " + (other_html || "") + ">")
       .attr("name", name);
     td.html(sel);
 
@@ -269,6 +269,16 @@ if(page == "overview") then
 	.text(this.text)
 	.prop('selected', this.val == value));
     });
+  }
+
+  function checkIPVersionEnabled(row) {
+    var iptype = row.find("td:eq(2) select");
+    var probetype = row.find("td:eq(3) select").val();
+
+    if(probetype == "icmp")
+      iptype.removeAttr("disabled");
+    else
+      iptype.attr("disabled", "disabled");
   }
 
   function addInputFields(row) {
@@ -284,14 +294,16 @@ if(page == "overview") then
     ];
 
     var probetypes = [
-      {val : "icmp", text: ']] print("ICMP") print[['},
-      //{val : "http_get", text: ']] print("HTTP GET") print[['},
+      {val : "icmp", text: ']] print(i18n("icmp")) print[['},
+      {val : "http_get", text: ']] print(i18n("system_stats.http_get")) print[['},
     ];
 
     addInputField(host, host.html(), ' data-orig-value="' + key.html() + '"');
     addInputField(maxrtt, maxrtt.html() || "100", 'autocomplete="off" style="width:12em;" type="number" min="1"');
     addSelectField(iptype, iptype.html(), iptypes);
-    addSelectField(probetype, probetype.html(), probetypes);
+    addSelectField(probetype, probetype.html(), probetypes, null, "probe-type-selector");
+
+    checkIPVersionEnabled(row);
   }
 
   function onRowAddUndo() {
@@ -363,6 +375,10 @@ if(page == "overview") then
     paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
+  $(document).on("change", ".probe-type-selector", function() {
+    checkIPVersionEnabled($(this).closest("tr"));
+  })
+
   aysHandleForm("#table-hosts-form", {
     handle_datatable: true,
     ays_options: {addRemoveFieldsMarksDirty: true}
@@ -383,10 +399,20 @@ elseif((page == "historical") and (host ~= nil)) then
    local tags = {ifid=getSystemInterfaceId(), host=host}
    url = url.."&page=historical&rtt_host=" .. host
 
+   local rtt_host = rtt_utils.getHost(host)
+   local timeseries = {
+    { schema="monitored_host:rtt",              label=i18n("graphs.num_ms_rtt") },
+   }
+
+   if(rtt_host and (rtt_host.probetype == "http_get")) then
+     timeseries = table.merge(timeseries, {
+       { schema="monitored_host:http_stats",              label=i18n("graphs.http_stats"),
+	  metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }},
+     })
+   end
+
    drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = {
-        { schema="monitored_host:rtt",              label=i18n("graphs.num_ms_rtt") },
-      },
+      timeseries = timeseries,
    })
 elseif((page == "alerts") and isAdministrator()) then
    local old_ifname = ifname

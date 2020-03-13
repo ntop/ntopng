@@ -103,6 +103,7 @@ typedef struct {
   char outbuf[2*65536];
   u_int num_bytes;
   lua_State* vm;
+  bool return_content;
 } DownloadState;
 
 #ifdef HAVE_LIBCAP
@@ -1571,7 +1572,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
       curl_easy_setopt(curl, CURLOPT_HEADERDATA, state);
       curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curl_hdf);
 
-      state->vm = vm, state->header_over = 0;
+      state->vm = vm, state->header_over = 0, state->return_content = true;
     } else {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
       curl_easy_cleanup(curl);
@@ -1723,16 +1724,17 @@ static size_t curl_writefunc_to_lua(char *buffer, size_t size,
     state->num_bytes = 0, state->header_over = 1;
   }
 
+  if(state->return_content) {
+    diff = sizeof(state->outbuf) - state->num_bytes - 1;
 
-  diff = sizeof(state->outbuf) - state->num_bytes - 1;
+    if(diff > 0) {
+      int buff_diff = min(diff, len);
 
-  if(diff > 0) {
-    int buff_diff = min(diff, len);
-
-    if(buff_diff > 0) {
-      strncpy(&state->outbuf[state->num_bytes], buffer, buff_diff);
-      state->num_bytes += buff_diff;
-      state->outbuf[state->num_bytes] = '\0';
+      if(buff_diff > 0) {
+	strncpy(&state->outbuf[state->num_bytes], buffer, buff_diff);
+	state->num_bytes += buff_diff;
+	state->outbuf[state->num_bytes] = '\0';
+      }
     }
   }
 
@@ -1863,7 +1865,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writefunc_to_file);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_f);
-    } else if(return_content) {
+    } else {
       state = (DownloadState*)malloc(sizeof(DownloadState));
       if(state != NULL) {
 	memset(state, 0, sizeof(DownloadState));
@@ -1873,7 +1875,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, state);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curl_hdf);
 	
-	state->vm = vm, state->header_over = 0;
+	state->vm = vm, state->header_over = 0, state->return_content = return_content;
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
 	curl_easy_cleanup(curl);
@@ -1913,6 +1915,13 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
       if(return_content && vm) {
 	lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
 	lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
+      }
+
+      if(vm) {
+	char *ip = NULL;
+
+	if(!curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &ip) && ip)
+	  lua_push_str_table_entry(vm, "RESOLVED_IP", ip);
       }
       
       ret = true;

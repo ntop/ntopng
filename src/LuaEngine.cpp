@@ -5496,24 +5496,25 @@ static int ntop_http_get(lua_State* vm) {
 
     if(lua_type(vm, 3) == LUA_TSTRING) {
       pwd = (char*)lua_tostring(vm, 3);
-
-      if(lua_type(vm, 4) == LUA_TNUMBER) {
-	timeout = lua_tointeger(vm, 4);
-	if(timeout < 1) timeout = 1;
-
-	/*
-	  This optional parameter specifies if the result of HTTP GET has to be returned
-	  to LUA or not. Usually the content has to be returned, but in some causes
-	  it just matters to time (for instance when use for testing HTTP services)
-	*/
-	if(lua_type(vm, 5) == LUA_TBOOLEAN) {
-	  return_content = lua_toboolean(vm, 5) ? true : false;
-	  if(lua_type(vm, 6) == LUA_TBOOLEAN) {
-	    use_cookie_authentication = lua_toboolean(vm, 6) ? true : false;
-	  }
-	}
-      }
     }
+  }
+
+  if(lua_type(vm, 4) == LUA_TNUMBER) {
+    timeout = lua_tointeger(vm, 4);
+    if(timeout < 1) timeout = 1;
+  }
+
+  /*
+    This optional parameter specifies if the result of HTTP GET has to be returned
+    to LUA or not. Usually the content has to be returned, but in some causes
+    it just matters to time (for instance when use for testing HTTP services)
+  */
+  if(lua_type(vm, 5) == LUA_TBOOLEAN) {
+    return_content = lua_toboolean(vm, 5) ? true : false;
+  }
+
+  if(lua_type(vm, 6) == LUA_TBOOLEAN) {
+    use_cookie_authentication = lua_toboolean(vm, 6) ? true : false;
   }
 
   Utils::httpGetPost(vm, url, username, pwd, timeout, return_content,

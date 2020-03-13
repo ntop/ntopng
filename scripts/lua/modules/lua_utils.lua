@@ -2144,6 +2144,16 @@ end
 
 -- ##############################################
 
+function unescapeHttpHost(host)
+   if isEmptyString(host) then
+      return(host)
+   end
+
+   return string.gsub(string.gsub(host, "http:__", "http://"), "https:__", "https://")
+end
+
+-- ##############################################
+
 function harvestUnusedDir(path, min_epoch)
    local files = ntop.readdir(path)
 

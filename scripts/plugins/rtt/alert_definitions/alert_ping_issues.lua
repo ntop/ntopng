@@ -23,7 +23,7 @@ local function pingIssuesFormatter(ifid, alert, info)
 		  numeric_ip = numeric_ip})
    else -- host too slow
       msg = i18n("alert_messages.ping_rtt_too_slow",
-		 {ip_label = ip_label,
+		 {ip_label = unescapeHttpHost(ip_label),
 		  numeric_ip = numeric_ip,
 		  rtt_value = format_utils.round(info.value, 2),
 		  maximum_rtt = info.threshold})

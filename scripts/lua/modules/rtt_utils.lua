@@ -52,8 +52,14 @@ function rtt_utils.key2label(key)
   local parts = string.split(key, "@")
 
   if((parts ~= nil) and (#parts == 3)) then
-    -- TODO improve
-    return string.format("%s [%s] (%s)", parts[1], parts[2], string.upper(parts[3]))
+    local probe_type = parts[3]
+    local iplabel = ternary(parts[2] == "ipv6", i18n("ipv6"), i18n("ipv4"))
+
+    if(probe_type == "icmp") then
+      return string.format("%s [%s] (%s)", parts[1], iplabel, i18n("icmp"))
+    elseif (probe_type == "http_get") then
+      return string.format("%s (%s)", unescapeHttpHost(parts[1]), i18n("system_stats.http_get"))
+    end
   end
 
   return key
@@ -66,7 +72,7 @@ function rtt_utils.deserializeHost(val)
 
   if((parts ~= nil) and (#parts == 4)) then
     local value = {
-      host = parts[1],
+      host = unescapeHttpHost(parts[1]),
       iptype = parts[2], -- ipv4 or ipv6
       probetype = parts[3],
       max_rtt = tonumber(parts[4]),

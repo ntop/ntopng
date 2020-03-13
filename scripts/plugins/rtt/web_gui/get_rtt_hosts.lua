@@ -118,8 +118,9 @@ for key in pairsByValues(sort_to_key, sOrder) do
  
     res[#res + 1] = {
       column_key = key,
-      column_host = rtt_host.host,
+      column_host = unescapeHttpHost(rtt_host.host),
       column_chart = chart,
+      column_probetype = rtt_host.probetype,
       column_iptype = rtt_host.iptype,
       column_max_rrt = rtt_host.max_rtt,
       column_last_rrt = column_last_rtt,
