@@ -1945,7 +1945,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 	lua_push_bool_table_entry(vm, "IS_PARTIAL", true);
     }
 
-    if(return_content && state)
+    if(state)
       free(state);
 
     /* always cleanup */
