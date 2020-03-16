@@ -2212,7 +2212,12 @@ function formatAlertMessage(ifid, alert)
   end
 
   if(msg) then
-    msg = msg .. getConfigsetAlertLink(alert_json)
+    if(alert_consts.getAlertType(alert.alert_type) == "alert_ping_issues") then
+      msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/rtt_stats.lua?rtt_host='..
+	 alert.alert_entity_val .. '&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+    else
+      msg = msg .. getConfigsetAlertLink(alert_json)
+    end
   end
 
   return(msg or "")
