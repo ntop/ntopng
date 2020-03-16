@@ -25,7 +25,8 @@ if true then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    require "snmp_utils"
 
-   snmp_read_interface_counters(config, time_threshold, true)   
+   local res = snmp_walk_table("192.168.2.169", "ntop", "1.3.6.1.6.3.16.1.2.1.3.1", 2, 3600)
+   tprint(res)
 else
    community = _GET["community"]
    host      = _GET["host"]

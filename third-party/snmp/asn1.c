@@ -264,14 +264,14 @@ void *render_oid_object(char *oid, void *dest)
   return render_oid(oid, dest);
 }
 
-static void *read_oid_part(void *src, int *part)
+static void *read_oid_part(void *src, u_int64_t *part)
 {
   int v;
-  int val = 0;
+  u_int64_t val = 0LL;
   do
     {
       src = read_byte(src, &v);
-      val = (val << 7) + (v & 0x7F);
+      val = (val << 7) + (u_int64_t)(v & 0x7F);
     }
   while (v > 127);
   *part = val;
@@ -280,7 +280,7 @@ static void *read_oid_part(void *src, int *part)
 
 static void *read_oid(void *src, char **oid, int size)
 {
-  int parts[MAX_OID_PARTS + 1];
+  u_int64_t parts[MAX_OID_PARTS + 1];
   int first_byte;
   int i;
   void *endp = (unsigned char *)src + size;
@@ -304,15 +304,15 @@ static void *read_oid(void *src, char **oid, int size)
   len = num_parts-1;
   for (i = 0; i < num_parts; i++)
     {
-      len += snprintf(NULL, 0, "%d", parts[i]);
+      len += snprintf(NULL, 0, "%lu", parts[i]);
     }
     
   *oid = (char*)malloc(len+1);
   p = *oid;
-  p += sprintf(p, "%d", parts[0]);
+  p += sprintf(p, "%lu", parts[0]);
   for (i =1; i < num_parts; i++)
     {
-      p += sprintf(p, ".%d", parts[i]);
+      p += sprintf(p, ".%lu", parts[i]);
     }
     
   return src;
