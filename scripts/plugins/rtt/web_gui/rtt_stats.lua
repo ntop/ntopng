@@ -144,7 +144,7 @@ if(page == "overview") then
     print[[
 	columns: [
 	{
-	  title: "]] print(i18n("traffic_profiles.host_traffic")) print[[",
+	  title: "]] print(i18n("flow_details.url")) print[[",
 	  field: "column_host",
 	  sortable: true,
 	  css: {
@@ -299,7 +299,7 @@ if(page == "overview") then
 
     var probetypes = [
       {val : "icmp", text: ']] print(i18n("icmp")) print[['},
-      {val : "http_get", text: ']] print(i18n("system_stats.http_get")) print[['},
+      {val : "http_get", text: ']] print(i18n("http_s")) print[['},
     ];
 
     addInputField(host, host.html(), ' data-orig-value="' + key.html() + '"');

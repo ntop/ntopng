@@ -48,21 +48,61 @@ end
 
 -- ##############################################
 
+function rtt_utils.probetype2label(probe_type)
+  if(probe_type == "icmp") then
+    return(i18n("icmp"))
+  elseif(probe_type == "http_get") then
+    return(i18n("http_s"))
+  else
+    return(probe_type)
+  end
+end
+
+-- ##############################################
+
+function rtt_utils.iptype2label(ip_type)
+  if(ip_type == "ipv6") then
+    return(i18n("ipv6"))
+  elseif(ip_type == "ipv4") then
+    return(i18n("ipv4"))
+  else
+    return(ip_type)
+  end
+end
+
+-- ##############################################
+
 function rtt_utils.key2label(key)
   local parts = string.split(key, "@")
 
   if((parts ~= nil) and (#parts == 3)) then
     local probe_type = parts[3]
-    local iplabel = ternary(parts[2] == "ipv6", i18n("ipv6"), i18n("ipv4"))
+    local iplabel = rtt_utils.iptype2label(parts[2])
 
     if(probe_type == "icmp") then
       return string.format("%s [%s] (%s)", parts[1], iplabel, i18n("icmp"))
     elseif (probe_type == "http_get") then
-      return string.format("%s [%s] (%s)", unescapeHttpHost(parts[1]), iplabel, i18n("system_stats.http_get"))
+      return string.format("%s [%s] (%s)", unescapeHttpHost(parts[1]), iplabel, i18n("http_s"))
     end
   end
 
   return key
+end
+
+-- ##############################################
+
+function rtt_utils.key2host(key)
+  local parts = string.split(key, "@")
+
+  if((parts ~= nil) and (#parts == 3)) then
+    return {
+      host = unescapeHttpHost(parts[1]),
+      iptype = parts[2],
+      probetype = parts[3],
+    }
+  end
+
+  return nil
 end
 
 -- ##############################################
