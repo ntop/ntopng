@@ -43,7 +43,7 @@ else
       err = "Name"
       err_val = name_key
    end
-   
+
   num = 0;
 
   if(flows ~= nil) then
@@ -71,29 +71,29 @@ else
    elseif (name_key ~= nil)then
       print [[ <li><a href="#">]] print (getApplicationLabel(name_key)) if(host_key ~= nil) then print(" - IP: "..host_key) end print [[ </a></li>]]
    end
-   
+
    if(page == "Protocols") then active=' class="active"' else active = "" end
 
 if (pid_key ~= nil) then
-   print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..name) end print('&page=Protocols">'..i18n("protocols")..'</a></li>\n')
+   print('<li><a '..active..' href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..name) end print('&page=Protocols">'..i18n("protocols")..'</a></li>\n')
 elseif (name_key ~= nil) then
-   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Protocols">'..i18n("protocols")..'</a></li>\n')
+   print('<li><a '..active..' href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Protocols">'..i18n("protocols")..'</a></li>\n')
 end
 
 if (general_process == 1) then
   if(page == "Hosts") then active=' class="active"' else active = "" end
   if (pid_key ~= nil) then
-    print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Hosts">'..i18n("flows_page.hosts")..'</a></li>\n')
+    print('<li><a '..active..' href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Hosts">'..i18n("flows_page.hosts")..'</a></li>\n')
   elseif (name_key ~= nil) then
-   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Hosts">'..i18n("flows_page.hosts")..'</a></li>\n')
+   print('<li><a '..active..' href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Hosts">'..i18n("flows_page.hosts")..'</a></li>\n')
   end
 end
 
 if(page == "Flows") then active=' class="active"' else active = "" end
 if (pid_key ~= nil) then
- print('<li'..active..'><a href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows")..'</a></li>\n')
+ print('<li><a '..active..' href="?pid='.. pid_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows")..'</a></li>\n')
   elseif (name_key ~= nil) then
-   print('<li'..active..'><a href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows")..'</a></li>\n')
+   print('<li><a '..active..' href="?pid_name='.. name_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">'..i18n("flows")..'</a></li>\n')
   end
 
 print [[ <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a> ]]
@@ -118,7 +118,7 @@ print [[<li class="nav-item"><a class="nav-link" href="#l4" data-toggle="tab">]]
 
 print [[
     </ul>
-    
+
       <!-- Tab content-->
       <div class="tab-content">
 ]]
@@ -148,47 +148,47 @@ print [[
 
 print [[
       </div> <!-- End Tab content-->
-   
+
      </table>
 ]]
 
  print [[
-     
+
 <script type='text/javascript'>
 window.onload=function() {
    var refresh = 3000 /* ms */;
 ]]
 if(pid_key ~= nil)then
-   print [[ 
+   print [[
   do_pie("#topL7", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/pid_stats.lua', { "pid": ]] print(pid_key) print [[, "pid_mode": "l7" ]] 
+print [[/lua/pid_stats.lua', { "pid": ]] print(pid_key) print [[, "pid_mode": "l7" ]]
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
  do_pie("#topL4", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/pid_stats.lua', { "pid": ]] print(pid_key) print [[, "pid_mode": "l4"  ]] 
+print [[/lua/pid_stats.lua', { "pid": ]] print(pid_key) print [[, "pid_mode": "l4"  ]]
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
   ]]
 elseif (name_key ~= nil)then
-    print [[ 
+    print [[
     do_pie("#topL7", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/pid_stats.lua', { "name": "]] print(name_key) print [[", "pid_mode": "l7" ]] 
+print [[/lua/pid_stats.lua', { "name": "]] print(name_key) print [[", "pid_mode": "l7" ]]
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
     do_pie("#topL4", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/pid_stats.lua', { "name": "]] print(name_key) print [[", "pid_mode": "l4"  ]] 
+print [[/lua/pid_stats.lua', { "name": "]] print(name_key) print [[", "pid_mode": "l4"  ]]
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh); ]]
 end
-print [[	    
+print [[
 }
 </script>
 ]]
@@ -206,7 +206,7 @@ print [[
    $("#table-hosts").datatable({
       url: "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_flows_data.lua]] 
+print [[/lua/get_flows_data.lua]]
 if(application ~= nil) then
    print("?application="..application)
    num_param = num_param + 1
@@ -289,7 +289,7 @@ print [[
          {
 			     title: "]] print(i18n("info")) print[[",
 				 field: "column_key",
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -297,7 +297,7 @@ print [[
 			     title: "]] print(i18n("application")) print[[",
 				 field: "column_ndpi",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -305,7 +305,7 @@ print [[
 			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -313,7 +313,7 @@ print [[
 			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
 				 field: "column_client_process",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -326,7 +326,7 @@ print [[
                              title: "]] print(i18n("sflows_stats.server_process")) print[[",
 				 field: "column_server_process",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -339,7 +339,7 @@ print [[
 			     title: "]] print(i18n("duration")) print[[",
 				 field: "column_duration",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			       }
 			       },
@@ -353,7 +353,7 @@ print [[
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
 				 sortable: false,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -361,7 +361,7 @@ print [[
 			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
 				 field: "column_bytes",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 }
@@ -385,7 +385,7 @@ print [[<li class="nav-item active"><a class="nav-link active" href="#topHost" d
 
 print [[
     </ul>
-    
+
       <!-- Tab content-->
       <div class="tab-content">
 ]]
@@ -415,20 +415,20 @@ window.onload=function() {
 ]]
 
 if(pid_key ~= nil)then
-  print [[ 
+  print [[
     do_pie("#topHosts", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/pid_stats.lua', { "pid": ]] print(pid_key) print [[", "pid_mode": "host" }, "", refresh);
   ]]
 elseif (name_key ~= nil)then
-  print [[ 
+  print [[
     do_pie("#topHosts", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/pid_stats.lua', { "name": "]] print(name_key) print [[", "pid_mode": "host" }, "", refresh); 
+print [[/lua/pid_stats.lua', { "name": "]] print(name_key) print [[", "pid_mode": "host" }, "", refresh);
     ]]
 end
 
-print [[      
+print [[
 }
 </script>
 ]]

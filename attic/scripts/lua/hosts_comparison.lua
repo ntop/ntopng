@@ -14,7 +14,7 @@ local page        = _GET["page"]
 local hosts_ip     = _GET["hosts"]
 
 -- Default values
-if(page == nil) then 
+if(page == nil) then
   page = "overview"
 end
 
@@ -48,13 +48,13 @@ local hosts_ip_tab_name = string.gsub(hosts_ip, ',', " <i class=\"fa fa-exchange
 print("<li><a href=\"#\">"..i18n("flows_page.hosts")..": "..hosts_ip_tab_name.." </a></li>\n")
 
 if((page == "overview") or (page == nil)) then
-  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
+  print("<li><a class=\"active\" href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
 else
   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
 if(page == "traffic") then
-   print("<li class=\"active\"><a href=\"#\">"..i18n("traffic").."</a></li>\n")
+   print("<li><a class=\"active\" href=\"#\">"..i18n("traffic").."</a></li>\n")
 else
    if(active_traffic) then
       print("<li><a href=\""..url.."&page=traffic\">"..i18n("traffic").."</a></li>")
@@ -62,7 +62,7 @@ else
 end
 
 if(page == "packets") then
-   print("<li class=\"active\"><a href=\"#\">"..i18n("packets").."</a></li>\n")
+   print("<li><a class=\"active\" href=\"#\">"..i18n("packets").."</a></li>\n")
 else
    if(active_packets) then
       print("<li><a href=\""..url.."&page=packets\">"..i18n("packets").."</a></li>")
@@ -70,7 +70,7 @@ else
 end
 
 if(page == "ndpi") then
-  print("<li class=\"active\"><a href=\"#\">"..i18n("applications").."</a></li>\n")
+  print("<li><a class=\"active\" href=\"#\">"..i18n("applications").."</a></li>\n")
 else
    if(active_ndpi) then
       print("<li><a href=\""..url.."&page=ndpi\">"..i18n("applications").."</a></li>")
@@ -125,11 +125,11 @@ print[[
     sankey();
   });
 
-  $(window).load(function() 
+  $(window).load(function()
   {
    // disabled graph interval
    clearInterval(sankey_interval);
-  });  
+  });
 </script>
 
 ]]
@@ -214,7 +214,7 @@ print [[
     bubble.setUrlParams({ aggregation: bubble_aggregation, hosts:]]
     print("\""..hosts_ip.."\" }") print [[ );
     bubble.forceUpdate();
-    }); 
+    });
 </script>
 
 ]]

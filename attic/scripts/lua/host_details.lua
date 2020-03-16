@@ -111,7 +111,7 @@ if(host == nil) then
          <div class="navbar-collapse collapse">
          <ul class="nav navbar-nav">
       ]]
-      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+      print("\n<li><a class=\"active\" href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
       print [[
          <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
          </ul>
@@ -188,13 +188,13 @@ url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url
 print("<li><a href=\"#\">Host: "..host_info["host"].."</A> </li>")
 
 if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
+   print("<li><a class=\"active\" href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 else
    print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
 end
 
 if(page == "traffic") then
-   print("<li class=\"active\"><a href=\"#\">Traffic</a></li>\n")
+   print("<li><a class=\"active\" href=\"#\">Traffic</a></li>\n")
 else
    if(host["ip"] ~= nil) then
       print("<li><a href=\""..url.."&page=traffic\">Traffic</a></li>")
@@ -202,7 +202,7 @@ else
 end
 
 if(page == "packets") then
-   print("<li class=\"active\"><a href=\"#\">Packets</a></li>\n")
+   print("<li><a class=\"active\" href=\"#\">Packets</a></li>\n")
 else
    if((host["ip"] ~= nil) and (
    	(host["udp.packets.sent"] > 0)
@@ -214,7 +214,7 @@ else
 end
 
 if(page == "ports") then
-   print("<li class=\"active\"><a href=\"#\">Ports</a></li>\n")
+   print("<li><a class=\"active\" href=\"#\">Ports</a></li>\n")
 else
    if(host["ip"] ~= nil) then
       print("<li><a href=\""..url.."&page=ports\">Ports</a></li>")
@@ -223,7 +223,7 @@ end
 
 if(not(isLoopback(ifname))) then
    if(page == "peers") then
-      print("<li class=\"active\"><a href=\"#\">Peers</a></li>\n")
+      print("<li><a class=\"active\" href=\"#\">Peers</a></li>\n")
    else
       if(host["ip"] ~= nil) then
 	 print("<li><a href=\""..url.."&page=peers\">Peers</a></li>")
@@ -233,15 +233,15 @@ end
 
 if((host["ICMPv4"] ~= nil) or (host["ICMPv6"] ~= nil)) then
    if(page == "ICMP") then
-      print("<li class=\"active\"><a href=\"#\">ICMP</a></li>\n")
+      print("<li><a class=\"active\" href=\"#\">ICMP</a></li>\n")
    else
       print("<li><a href=\""..url.."&page=ICMP\">ICMP</a></li>")
-   end      
+   end
 end
 
 if(page == "ndpi") then
   direction = _GET["direction"]
-  print("<li class=\"active\"><a href=\"#\">Protocols</a></li>\n")
+  print("<li><a class=\"active\" href=\"#\">Protocols</a></li>\n")
 else
    if(host["ip"] ~= nil) then
       print("<li><a href=\""..url.."&page=ndpi\">Protocols</a></li>")
@@ -249,7 +249,7 @@ else
 end
 
 if(page == "activities") then
- print("<li class=\"active\"><a href=\"#\">Activities</a></li>\n")
+ print("<li><a class=\"active\" href=\"#\">Activities</a></li>\n")
 else
  if interface.isPcapDumpInterface() == false and host["ip"] ~= nil then
    print("<li><a href=\""..url.."&page=activities\">Activities</a></li>")
@@ -257,7 +257,7 @@ else
 end
 
 if(page == "dns") then
-  print("<li class=\"active\"><a href=\"#\">DNS</a></li>\n")
+  print("<li><a class=\"active\" href=\"#\">DNS</a></li>\n")
 else
    if((host["dns"] ~= nil)
    and ((host["dns"]["sent"]["num_queries"]+host["dns"]["rcvd"]["num_queries"]) > 0)) then
@@ -268,7 +268,7 @@ end
 http = host["http"]
 
 if(page == "http") then
-  print("<li class=\"active\"><a href=\"#\">HTTP")
+  print("<li><a class=\"active\" href=\"#\">HTTP")
 else
    if((http ~= nil)
       and ((http["sender"]["query"]["total"]+ http["receiver"]["response"]["total"]) > 0)) then
@@ -280,7 +280,7 @@ end
 print("</a></li>\n")
 
 if(page == "flows") then
-  print("<li class=\"active\"><a href=\"#\">Flows</a></li>\n")
+  print("<li><a class=\"active\" href=\"#\">Flows</a></li>\n")
 else
    if(host["ip"] ~= nil) then
       print("<li><a href=\""..url.."&page=flows\">Flows</a></li>")
@@ -288,7 +288,7 @@ else
 end
 
 if(page == "categories") then
-  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>\n")
+  print("<li><a class=\"active\" href=\"#\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>\n")
 else
    if(host["categories"] ~= nil) then
       print("<li><a href=\""..url.."&page=categories\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>")
@@ -298,7 +298,7 @@ end
 if host["localhost"] == true then
    if(ntop.isPro()) then
       if(page == "snmp") then
-	 print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
+	 print("<li><a class=\"active\" href=\"#\">SNMP</a></li>\n")
       elseif interface.isPcapDumpInterface() == false then
 	 print("<li><a href=\""..url.."&page=snmp\">SNMP</a></li>")
       end
@@ -307,13 +307,13 @@ end
 
 if(not(isLoopback(ifname))) then
    if(page == "talkers") then
-      print("<li class=\"active\"><a href=\"#\">Talkers</a></li>\n")
+      print("<li><a class=\"active\" href=\"#\">Talkers</a></li>\n")
    else
       print("<li><a href=\""..url.."&page=talkers\">Talkers</a></li>")
    end
 
    if(page == "geomap") then
-      print("<li class=\"active\"><a href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
+      print("<li><a class=\"active\" href=\"#\"><i class='fa fa-globe fa-lg'></i></a></li>\n")
    else
       if((host["ip"] ~= nil) and (host["privatehost"] == false)) then
 	 print("<li><a href=\""..url.."&page=geomap\"><i class='fa fa-globe fa-lg'></i></a></li>")
@@ -327,7 +327,7 @@ if(false) then
 -- NOTE: code temporarily disabled
 if(not(isLoopback(ifname))) then
    if(page == "jaccard") then
-      print("<li class=\"active\"><a href=\"#\">Similarity</a></li>\n")
+      print("<li><a class=\"active\" href=\"#\">Similarity</a></li>\n")
    else
       if(host["ip"] ~= nil) then
 	 print("<li><a href=\""..url.."&page=jaccard\">Similarity</a></li>")
@@ -338,7 +338,7 @@ end
 
 if(host.systemhost) then
 if(page == "sprobe") then
-  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-flag fa-lg\"></i></a></li>\n")
+  print("<li><a class=\"active\" href=\"#\"><i class=\"fa fa-flag fa-lg\"></i></a></li>\n")
 else
    if(ifstats.sprobe) then
       print("<li><a href=\""..url.."&page=sprobe\"><i class=\"fa fa-flag fa-lg\"></i></a></li>")
@@ -348,7 +348,7 @@ end
 
 if (host["ip"] ~= nil and host['localhost']) and areAlertsEnabled() then
    if(page == "alerts") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
+      print("\n<li><a class=\"active\" href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
    end
@@ -356,7 +356,7 @@ end
 
 if(ntop.exists(rrdname)) then
    if(page == "historical") then
-     print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+     print("\n<li><a class=\"active\" href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
    else
      print("\n<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    end
@@ -365,7 +365,7 @@ end
 if host["localhost"] == true then
    if(ntop.isEnterprise()) then
       if(page == "traffic_report") then
-         print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
+         print("\n<li><a class=\"active\" href=\"#\"><i class='fa fa-file-text report-icon'></i></a></li>\n")
       else
          print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text report-icon'></i></a></li>")
       end
@@ -376,7 +376,7 @@ end
 
 if ntop.isEnterprise() and ifstats.inline and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
   if page == "quotas" then
-    print("\n<li class=\"active\"><a href=\"#\">Quotas</a></li>\n")
+    print("\n<li><a class=\"active\" href=\"#\">Quotas</a></li>\n")
   else
     print("\n<li><a href=\""..url.."&page=quotas\">Quotas</a></li>\n")
   end
@@ -384,7 +384,7 @@ end
 
 if ((isAdministrator()) and (host["ip"] ~= nil)) then
    if(page == "config") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
+      print("\n<li><a class=\"active\" href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
@@ -434,12 +434,12 @@ if((page == "overview") or (page == nil)) then
 	 end
       end
       print("</tr>")
-      
+
       print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
       if(host.childSafe == true) then print(getSafeChildIcon()) end
-      
+
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
-      
+
       if(host["local_network_name"] ~= nil) then
 	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A>&nbsp;]")
       end
@@ -581,14 +581,14 @@ end
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
    end
 
-   
+
    if((host["info"] ~= nil) or (host["label"] ~= nil))then
       print("<tr><th>Further Host Names/Information</th><td colspan=2>")
       if(host["info"] ~= nil) then  print(host["info"]) end
       if((host["label"] ~= nil) and (host["info"] ~= host["label"])) then print(host["label"]) end
       print("</td></tr>\n")
    end
-   
+
    if(host["json"] ~= nil) then print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/rest/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>Download<A></td></tr>\n") end
 
 
@@ -616,7 +616,7 @@ end
             print('<tr><th class="text-left">ARP Distribution</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
          end
       end
-      
+
       hostinfo2json(host_info)
       print [[
       </table>
@@ -1113,7 +1113,7 @@ print [[
       <style type = "text/css">
          ]] ntop.dumpFile(dirs.installdir .. "/httpdocs/css/cubism.css") print[[
       </style>
-      
+
          <script type="text/javascript">
 	 var activitiesurl = "]] print(ntop.getHttpPrefix().."/lua/get_host_activity.lua?ifid="..ifId.."&host="..host_ip) print[[";
          var HorizonGraphWidth = 576;
@@ -1125,14 +1125,14 @@ print [[
 
 	 function onChangeStep(control) {
 	    var newvalue = control.value;
-	    
+
 	    if (curstep != newvalue) {
 	       $(control).blur();
 	       setShowMode(curmode, newvalue);
 	    }
 	 }
 
-	 function resetContext(newstep) {	 
+	 function resetContext(newstep) {
 	    if (newstep != curstep) {
 	       // hard reset
 	       curstep = newstep;
@@ -1171,13 +1171,13 @@ print [[
 	    newstep = newstep ? newstep : curstep;
 	    if (context)
 	       context.stop();
-	    
+
             $.ajax({
                type: 'GET',
                url: activitiesurl + '&step=' + newstep,
                success: function(content) {
 		  resetContext(newstep);
-                  
+
                   var metrics = [];
                   var parsed = JSON.parse(content);
                   Object.keys(parsed).sort().map(function(activity_name) {
@@ -1211,7 +1211,7 @@ print [[
                }
             });
          }
-	 
+
          setShowMode("updown", 300);
       </script>
       <p>
@@ -1273,7 +1273,7 @@ end
         local dns_ratio_str = string.format("%.2f", dns_ratio)
 
         if(dns_ratio < 0.9) then
-          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>" 
+          dns_ratio_str = "<font color=red>".. dns_ratio_str .."</font>"
         end
 
 	print('<tr><td align=right>'..  dns_ratio_str ..'</td><td colspan=3>')
@@ -1298,12 +1298,12 @@ print [[
 	    if(old_top_len > top_len) then num = old_top_len else num = top_len end
 
 	    print("<tr><th rowspan="..(1+num)..">Top Visited Sites</th><th>Current Sites</th><th>Contacts</th><th>Last 5 Minute Sites</th><th>Contacts</th></tr>\n")
-	    sites = {} 
+	    sites = {}
 	    for k,v in pairsByValues(top_sites, rev) do
 	       table.insert(sites, { k, v })
 	    end
 
-	    sites_old = {} 
+	    sites_old = {}
 	    for k,v in pairsByValues(top_sites_old, rev) do
 	       table.insert(sites_old, { k, v })
 	    end
@@ -1312,18 +1312,18 @@ print [[
 	       if(sites[i] == nil) then sites[i] = { "", 0 } end
 	       if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
 	       print("<tr><th>")
-	       if(sites[i][1] ~= "") then 
-		  print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n") 
+	       if(sites[i][1] ~= "") then
+		  print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n")
 	       else
 		  print("&nbsp;</th><td>&nbsp;</td>\n")
 	       end
-	       
-	       if(sites_old[i][1] ~= "") then 
+
+	       if(sites_old[i][1] ~= "") then
 		  print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td></tr>\n")
 	       else
-		  print("&nbsp;</th><td>&nbsp;</td></tr>\n") 
+		  print("&nbsp;</th><td>&nbsp;</td></tr>\n")
 	       end
-	    end	    
+	    end
 	 end
 
 	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>HTTP Queries</A></th><th width=20%>Method</th><th width=20%>Requests</th><th colspan=2>Distribution</th></tr>")
@@ -1428,7 +1428,7 @@ for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
    if(key == application) then
       class_active = ' class="active"'
    end
-   dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..ntop.getHttpPrefix()..url..'&page=flows&application='..key..'">'..key..'</a></li>'
+   dt_buttons = dt_buttons..'<li><a '..class_active..' href="'..ntop.getHttpPrefix()..url..'&page=flows&application='..key..'">'..key..'</a></li>'
 end
 
 dt_buttons = dt_buttons .. "</ul></div>']"
@@ -1664,7 +1664,7 @@ print [[
 
 </td></tr>
 </table>
-]]  
+]]
 elseif(page == "snmp" and ntop.isPro()) then
    local sys_object_id = true
    local community = get_snmp_community(host_ip)
@@ -2115,12 +2115,12 @@ elseif (page == "config") then
 
          print[[<form id="alert_prefs" class="form-inline" style="margin-bottom:0px; margin-right:1em; display:inline;" method="post">]]
          print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'">')
-         
+
          print('<div class="custom-control custom-switch">')
          print('<input class="custom-control-input" id="check-alert_prefs" type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
          print('<label class="custom-control-label" for="check-alert_prefs"></label>')
          print('</div>')
-         
+
          print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
          print('</form>')
       end
@@ -2411,7 +2411,7 @@ end
 if (host ~= nil) then
    print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
 
-   print [[ 
+   print [[
    <script>
 
    $(document).ready(function() {
@@ -2588,7 +2588,7 @@ if (host ~= nil) then
 			$('#trend_as_active_server').html(drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
 			$('#trend_as_server').html(drawTrend(host["flows.as_server"], last_flows_as_server, ""));
 			$('#low_goodput_trend_as_server').html(drawTrend(host["low_goodput_flows.as_server"], last_low_goodput_flows_as_server, " style=\"color: #B94A48;\""));
-			
+
 			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
