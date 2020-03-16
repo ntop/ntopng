@@ -98,7 +98,6 @@ end
 -- Defines an hook which is executed every minute
 function script.hooks.min(params)
   local all_hosts = rtt_utils.getHosts()
-  local tracked_hosts = {}
   local pinged_hosts = {}
   local hosts_rtt = {}
   local resolved_hosts = {}
@@ -163,9 +162,6 @@ function script.hooks.min(params)
        goto continue
      end
 
-     -- A reply for the host is expected
-     tracked_hosts[key] = host
-
      ::continue::
   end
 
@@ -208,7 +204,7 @@ function script.hooks.min(params)
   end
 
   -- Find the unreachable hosts
-  for key, host in pairs(tracked_hosts) do
+  for key, host in pairs(all_hosts) do
      local ip = resolved_hosts[key] or host.host
 
      if(hosts_rtt[key] == nil) then
