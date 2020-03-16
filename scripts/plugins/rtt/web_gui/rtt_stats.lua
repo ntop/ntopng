@@ -28,7 +28,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
 local host = _GET["rtt_host"]
-local url = plugins_utils.getUrl("rtt_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local base_url = plugins_utils.getUrl("rtt_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local url = base_url
 
 if not isEmptyString(host) then
   url = url .. "&rtt_host=" .. host
@@ -36,7 +37,7 @@ end
 
 local title = i18n("graphs.rtt")
 
-if host ~= nil then
+if((host ~= nil) and (page ~= "overview")) then
    title = title..": " .. rtt_utils.key2label(host)
 end
 
@@ -46,6 +47,7 @@ page_utils.print_navbar(title, url,
 			      active = page == "overview" or not page,
 			      page_name = "overview",
 			      label = "<i class=\"fas fa-lg fa-home\"></i>",
+			      url = base_url,
 			   },
 			   {
 			      hidden = not host or not ts_creation,
@@ -98,6 +100,19 @@ if(page == "overview") then
     elseif((_POST["action"] == "delete") and (_POST["rtt_host"] ~= nil)) then
       rtt_utils.removeHost(_POST["rtt_host"])
     end
+  end
+
+  if(host ~= nil) then
+    print[[
+  <td>
+    <form action="]] print(base_url) print[[">
+      <input type="hidden" name="page" value="overview" />
+      <button type="button" class="btn btn-secondary btn-sm" onclick="$(this).closest('form').submit();">
+        <i class="fas fa-times fa-lg" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("filter")) print(": ") print(rtt_utils.key2label(host)) print[[
+      </button>
+    </form>
+  </td>
+  ]]
   end
 
   print(
