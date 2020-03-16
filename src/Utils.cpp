@@ -1804,7 +1804,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 			bool return_content,
 			bool use_cookie_authentication,
 			HTTPTranferStats *stats, const char *form_data,
-      char *write_fname) {
+      char *write_fname, bool follow_redirects, int ip_version) {
   CURL *curl;
   FILE *out_f = NULL;
   bool ret = true;
@@ -1884,8 +1884,16 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
       }
     }
 
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5);
+    if(follow_redirects) {
+      curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+      curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5);
+    }
+
+    if(ip_version == 4)
+      curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    else if(ip_version == 6)
+      curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V6);
+
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);

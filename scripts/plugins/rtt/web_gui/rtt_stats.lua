@@ -272,6 +272,7 @@ if(page == "overview") then
   }
 
   function checkIPVersionEnabled(row) {
+/*
     var iptype = row.find("td:eq(2) select");
     var probetype = row.find("td:eq(3) select").val();
 
@@ -279,6 +280,9 @@ if(page == "overview") then
       iptype.removeAttr("disabled");
     else
       iptype.attr("disabled", "disabled");
+*/
+
+    // always enabled for now
   }
 
   function addInputFields(row) {

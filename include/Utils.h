@@ -86,7 +86,7 @@ class Utils {
   static bool httpGetPost(lua_State* vm, char *url, char *username,
 		      char *password, int timeout, bool return_content,
 		      bool use_cookie_authentication, HTTPTranferStats *stats, const char *form_data,
-          char *write_fname);
+          char *write_fname, bool follow_redirects, int ip_version);
   static long httpGet(const char * const url,
 		      const char * const username, const char * const password,
 		      int timeout,

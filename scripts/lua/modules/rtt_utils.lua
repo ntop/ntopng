@@ -58,7 +58,7 @@ function rtt_utils.key2label(key)
     if(probe_type == "icmp") then
       return string.format("%s [%s] (%s)", parts[1], iplabel, i18n("icmp"))
     elseif (probe_type == "http_get") then
-      return string.format("%s (%s)", unescapeHttpHost(parts[1]), i18n("system_stats.http_get"))
+      return string.format("%s [%s] (%s)", unescapeHttpHost(parts[1]), iplabel, i18n("system_stats.http_get"))
     end
   end
 

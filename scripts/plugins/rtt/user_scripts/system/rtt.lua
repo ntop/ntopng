@@ -138,7 +138,8 @@ function script.hooks.min(params)
        end
 
        -- HTTP results are retrieved immediately
-       local rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], false --[[ don't return content ]])
+       local rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], false --[[ don't return content ]],
+	nil, false --[[ don't follow redirects ]], ternary(host.iptype == "ipv6", 6, 4))
 
        if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
          local total_time = rv.HTTP_STATS.TOTAL_TIME * 1000

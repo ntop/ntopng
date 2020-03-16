@@ -5482,6 +5482,8 @@ static int ntop_http_get(lua_State* vm) {
   char *url, *username = NULL, *pwd = NULL;
   int timeout = 30;
   bool return_content = true, use_cookie_authentication = false;
+  bool follow_redirects = true;
+  int ip_version = 0;
   HTTPTranferStats stats;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -5517,8 +5519,15 @@ static int ntop_http_get(lua_State* vm) {
     use_cookie_authentication = lua_toboolean(vm, 6) ? true : false;
   }
 
+  if(lua_type(vm, 7) == LUA_TBOOLEAN) {
+    follow_redirects = lua_toboolean(vm, 7) ? true : false;
+  }
+
+  if(lua_type(vm, 8) == LUA_TNUMBER)
+    ip_version = lua_tointeger(vm, 8);
+
   Utils::httpGetPost(vm, url, username, pwd, timeout, return_content,
-		    use_cookie_authentication, &stats, NULL, NULL);
+		    use_cookie_authentication, &stats, NULL, NULL, follow_redirects, ip_version);
 
   return(CONST_LUA_OK);
 }
@@ -5931,7 +5940,7 @@ static int ntop_http_post(lua_State* vm) {
     use_cookie_authentication = lua_toboolean(vm, 7) ? true : false;
 
   Utils::httpGetPost(vm, url, username, password, timeout, return_content,
-    use_cookie_authentication, &stats, form_data, NULL);
+    use_cookie_authentication, &stats, form_data, NULL, true, 0);
 
   return(CONST_LUA_OK);
 }
@@ -5956,7 +5965,7 @@ static int ntop_http_fetch(lua_State* vm) {
   ntop->fixPath(fname);
 
   Utils::httpGetPost(vm, url, NULL, NULL, timeout,
-    false, false, &stats, NULL, fname);
+    false, false, &stats, NULL, fname, true, 0);
 
   return(CONST_LUA_OK);
 }
