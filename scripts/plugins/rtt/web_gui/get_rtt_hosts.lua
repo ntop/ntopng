@@ -74,7 +74,48 @@ if rtt_host then
    end
 else
    for key, config in pairs(rtt_hosts) do
-      sort_to_key[key] = config.host
+      if sortColumn == "column_iptype" then
+         sort_to_key[key] = config.iptype
+      elseif sortColumn == "column_probetype" then
+         sort_to_key[key] = config.probetype
+      elseif sortColumn == "column_max_rrt" then
+         sort_to_key[key] = config.max_rtt
+      elseif sortColumn == "column_last_ip" then
+         local last_ip = rtt_utils.getLastRttUpdate(key)
+
+         if last_ip and last_ip.ip then
+            last_ip = last_ip.ip
+         else
+            last_ip = ""
+         end
+
+         sort_to_key[key] = last_ip
+         sOrder = ternary(sortOrder == "desc", ip_address_rev, ip_address_asc)
+      elseif sortColumn == "column_last_rrt" then
+         local last_rtt = rtt_utils.getLastRttUpdate(key)
+
+         if last_rtt and last_rtt.when then
+            last_rtt = tonumber(last_rtt.value) or 0
+         else
+            last_rtt = 0
+         end
+
+         sort_to_key[key] = last_rtt
+      elseif sortColumn == "column_last_update" then
+         local last_update = rtt_utils.getLastRttUpdate(key)
+
+         if last_update and last_update.when then
+            last_update = tonumber(last_update.value) or 0
+         else
+            last_update = 0
+         end
+
+         sort_to_key[key] = last_update
+      else
+         -- Sort by key instead of host to keep proper sort order in
+         -- case both ipv4 and ipv6 are used
+         sort_to_key[key] = key
+      end
 
       totalRows = totalRows + 1
    end

@@ -146,7 +146,7 @@ if(page == "overview") then
 	{
 	  title: "]] print(i18n("traffic_profiles.host_traffic")) print[[",
 	  field: "column_host",
-	  sortable: false,
+	  sortable: true,
 	  css: {
 
 	    width: "20%",
@@ -163,7 +163,7 @@ if(page == "overview") then
 	}, {
 	  title: "]] print(i18n("flows_page.ip_version")) print[[",
 	  field: "column_iptype",
-	  sortable: false,
+	  sortable: true,
 	  css: {
 	    textAlign: 'center',
 	    width: "10%",
@@ -171,7 +171,7 @@ if(page == "overview") then
 	}, {
 	  title: "]] print(i18n("system_stats.probe")) print[[",
 	  field: "column_probetype",
-	  sortable: false,
+	  sortable: true,
 	  css: {
 	    textAlign: 'center',
 	    width: "10%",
@@ -179,7 +179,7 @@ if(page == "overview") then
 	}, {
 	  title: "]] print(i18n("system_stats.max_rtt")) print[[",
 	  field: "column_max_rrt",
-	  sortable: false,
+	  sortable: true,
 	  css: {
 	    textAlign: 'center',
 
@@ -187,7 +187,7 @@ if(page == "overview") then
 	}, {
 	  title: "]] print(i18n("system_stats.last_rtt")) print[[",
 	  field: "column_last_rrt",
-	  sortable: false,
+	  sortable: true,
 	  css: {
 	    textAlign: 'center',
 	    width: "10%",
@@ -195,7 +195,7 @@ if(page == "overview") then
 	}, {
 	  title: "]] print(i18n("system_stats.last_ip")) print[[",
 	  field: "column_last_ip",
-	  sortable: false,
+	  sortable: true,
 	  css: {
 	    textAlign: 'center',
 	    width: "10%",
@@ -203,7 +203,7 @@ if(page == "overview") then
 	}, {
 	  title: "]] print(i18n("category_lists.last_update")) print[[",
 	  field: "column_last_update",
-	  sortable: false,
+	  sortable: true,
 	  css: {
 	    textAlign: 'center',
 	    width: "10%",
