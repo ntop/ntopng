@@ -307,7 +307,15 @@ function page_utils.print_navbar(title, base_url, items_table)
 	 if item["active"] then
 	    print(string.format("<li class=\"nav-item active\">%s<a class=\"nav-link active\" href=\"#\">%s</a></li>", badge, item["label"]))
 	 else
-	    print(string.format("<li class=\"nav-item\">%s<a class=\"nav-link\" href=\"%s&page=%s\">%s</a></li>", badge, base_url, item["page_name"], item["label"]))
+	    local url
+
+	    if(not isEmptyString(item["url"])) then
+		url = item["url"]
+	    else
+		url = base_url .. "&page=" .. item["page_name"]
+	    end
+
+	    print(string.format("<li class=\"nav-item\">%s<a class=\"nav-link\" href=\"%s\">%s</a></li>", badge, url, item["label"]))
 	 end
       end
    end
