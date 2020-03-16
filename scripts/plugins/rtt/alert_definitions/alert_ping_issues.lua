@@ -3,12 +3,12 @@
 --
 
 local format_utils = require("format_utils")
+local rtt_utils = require("rtt_utils")
 
 local function pingIssuesFormatter(ifid, alert, info)
    local msg
-   -- example of an ip label:
-   -- google-public-dns-b.google.com@ipv4@icmp/216.239.38.120
-   local ip_label = (alert.alert_entity_val:split("@") or {alert.alert_entity_val})[1]
+
+   local ip_label = rtt_utils.key2label(alert.alert_entity_val)
    local numeric_ip = alert.ip
 
    if numeric_ip and numeric_ip ~= ip_label then
