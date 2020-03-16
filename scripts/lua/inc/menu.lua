@@ -743,11 +743,14 @@ for round = 1, 2 do
             print("<a class=\"dropdown-item active\" href=\"#\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-            print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="/?ifid=]] print(k)  print[[">]]
+            local action_url = (is_system_interface and '/?' or '?')
+
+            print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[ifid=]]) print(string.format("%u", k))  print[[">]]
             print[[<input name="switch_interface" type="hidden" value="1" />]]
             print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
             print[[</form>]]
-            print([[<a class="dropdown-item" href="javascript:void(0);" onclick="toggle_system_flag('0', $('#switch_interface_form_]]) print(tostring(k)) print[['));">]]
+
+            print([[<a class="dropdown-item" href="javascript:void(0);" onclick="toggle_system_flag(false, $('#switch_interface_form_]]) print(tostring(k)) print[['));">]]
          end
 
          if((v == ifname) and not is_system_interface) then print("<i class=\"fas fa-check\"></i> ") end
@@ -1057,7 +1060,11 @@ if is_admin then
 print([[
 <script type="text/javascript">
 
-   const toggle_system_flag = (flag, $form = null) => {
+   const toggle_system_flag = (is_system_switch = false, $form = null) => {
+
+      // if form it's empty it means the call was not invoked
+      // by a form request
+      const flag = (is_system_switch) ? "1" : "0";
 
       $.get("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", {
          system_interface: flag,
@@ -1065,6 +1072,7 @@ print([[
       }, function(data) {
 
          if (data.success && !$form) location.href = '/';
+         debugger;
          if (data.success && $form) $form.submit();
          if (!data.success) {
             console.error("An error has occurred!");
@@ -1075,7 +1083,7 @@ print([[
 
    $(document).ready(function() {
       $("#btn-trigger-system-mode").click(function(e) {
-         toggle_system_flag("1");
+         toggle_system_flag(true);
       });
    });
 
