@@ -260,7 +260,7 @@ function handleCustomFlowField(key, value, snmpdevice)
       return(formatInterfaceId(value, "inIfIdx", snmpdevice))
    elseif key == 'OUTPUT_SNMP' then
       return(formatInterfaceId(value, "outIfIdx", snmpdevice))
-   elseif key == 'EXPORTER_IPV4_ADDRESS' or 
+   elseif key == 'EXPORTER_IPV4_ADDRESS' or
           key == 'NPROBE_IPV4_ADDRESS' then
       local res = getResolvedAddress(hostkey2hostinfo(value))
 
@@ -299,36 +299,36 @@ function handleCustomFlowField(key, value, snmpdevice)
       else
          return(value)
       end
-   elseif key == 'SIP_TRYING_TIME' or 
-          key == 'SIP_RINGING_TIME' or 
-          key == 'SIP_INVITE_TIME' or 
-          key == 'SIP_INVITE_OK_TIME' or 
-          key == 'SIP_INVITE_FAILURE_TIME' or 
-          key == 'SIP_BYE_TIME' or 
-          key == 'SIP_BYE_OK_TIME' or 
-          key == 'SIP_CANCEL_TIME' or 
+   elseif key == 'SIP_TRYING_TIME' or
+          key == 'SIP_RINGING_TIME' or
+          key == 'SIP_INVITE_TIME' or
+          key == 'SIP_INVITE_OK_TIME' or
+          key == 'SIP_INVITE_FAILURE_TIME' or
+          key == 'SIP_BYE_TIME' or
+          key == 'SIP_BYE_OK_TIME' or
+          key == 'SIP_CANCEL_TIME' or
           key == 'SIP_CANCEL_OK_TIME' then
       if(value ~= '0') then
          return(formatEpoch(value))
       else
          return "0"
       end
-   elseif key == 'RTP_IN_JITTER' or 
+   elseif key == 'RTP_IN_JITTER' or
           key == 'RTP_OUT_JITTER' then
       if(value ~= nil and value ~= '0') then
          return(value/1000)
       else
          return 0
       end
-   elseif key == 'RTP_IN_MAX_DELTA' or 
-          key == 'RTP_OUT_MAX_DELTA' or 
-          key == 'RTP_MOS' or 
-          key == 'RTP_R_FACTOR' or 
-          key == 'RTP_IN_MOS' or 
-          key == 'RTP_OUT_MOS' or 
+   elseif key == 'RTP_IN_MAX_DELTA' or
+          key == 'RTP_OUT_MAX_DELTA' or
+          key == 'RTP_MOS' or
+          key == 'RTP_R_FACTOR' or
+          key == 'RTP_IN_MOS' or
+          key == 'RTP_OUT_MOS' or
           key == 'RTP_IN_R_FACTOR' or
           key == 'RTP_OUT_R_FACTOR' or
-          key == 'RTP_IN_TRANSIT' or 
+          key == 'RTP_IN_TRANSIT' or
           key == 'RTP_OUT_TRANSIT' then
       if(value ~= nil and value ~= '0') then
          return(value/100)
@@ -340,10 +340,10 @@ function handleCustomFlowField(key, value, snmpdevice)
    -- Unformatted value
 
    if (type(value) == "boolean") then
-      if (value) then 
-         value = i18n("yes") 
-      else 
-         value = i18n("no") 
+      if (value) then
+         value = i18n("yes")
+      else
+         value = i18n("no")
       end
    end
 
@@ -391,9 +391,9 @@ l4_protocols = {
 function getL4ProtoName(proto_id)
    return(l4_proto_to_string(proto_id))
 end
- 
+
  -- #######################
- 
+
 local dns_types = {
   ['A'] = 1,
   ['NS'] = 2,
@@ -412,7 +412,7 @@ local dns_types = {
   ['MX'] = 15,
   ['TXT'] = 16,
   ['AAAA'] = 28,
-  ['A6'] = 38, 
+  ['A6'] = 38,
   ['SPF'] = 99,
   ['AXFR'] = 252,
   ['MAILB'] = 253,
@@ -650,7 +650,7 @@ function getFlowKey(name)
 
       s = flow_consts.flow_fields_description[v]
    end
-   
+
    if(s ~= nil) then
       s = string.gsub(s, "<", "&lt;")
       s = string.gsub(s, ">", "&gt;")
@@ -685,20 +685,20 @@ end
 -- #######################
 
 function isFieldProtocol(protocol, field)
-   if not field or not protocol then 
-      return false 
+   if not field or not protocol then
+      return false
    end
 
    local key_name = fieldIDToFieldName(field)
 
-   if not key_name then 
-      return false 
+   if not key_name then
+      return false
    end
 
    if starts(key_name, protocol) then
       return true
    end
-      
+
    return false
 end
 
@@ -756,7 +756,7 @@ function getFlowValue(info, field)
 	 end
       end
    end
-   
+
    return_value = string.gsub(return_value, "<", "&lt;")
    return_value = string.gsub(return_value, ">", "&gt;")
    return_value = string.gsub(return_value, "\"", "\\\"")
@@ -782,14 +782,14 @@ end
 
 function isThereProtocol(protocol, info)
    local found = 0
-   
+
    for key,value in pairs(info) do
       if isFieldProtocol(protocol, key) then
 	 found = 1
 	 break
       end
    end
-   
+
    return found
 end
 
@@ -800,9 +800,9 @@ function isThereSIPCall(info)
   local call_state = getFlowValue(info, "SIP_CALL_STATE")
 
   if((call_state ~= nil) and (call_state ~= "")) then
-     retVal = 1     
+     retVal = 1
   end
-  
+
   return retVal
 end
 
@@ -1028,9 +1028,9 @@ function getRTPTableRows(info)
 	 end
 	 string_table = string_table.."<tr id=\"sync_source_id_tr\" "..sync_source_hide.." ><th> "..i18n("flow_details.sync_source_id").." </th><td colspan=2><div id=sync_source_id>" .. sync_source_var .. "</td></tr>\n"
       end
-      
+
       -- ROUND-TRIP-TIME
-      if isFlowValueDefined(info, "RTP_RTT") then	 
+      if isFlowValueDefined(info, "RTP_RTT") then
 	 local rtp_rtt_var = getFlowValue(info, "RTP_RTT")
 	 if((rtp_rtt_var == nil) or (rtp_rtt_var == "")) then
 	    rtp_rtt_hide = "style=\"display: none;\""
@@ -1045,7 +1045,7 @@ function getRTPTableRows(info)
       end
 
       -- RTP-IN-TRASIT
-      if isFlowValueDefined(info, "RTP_IN_TRANSIT") then	 
+      if isFlowValueDefined(info, "RTP_IN_TRANSIT") then
 	 local rtp_in_transit = getFlowValue(info, "RTP_IN_TRANSIT")/100
 	 local rtp_out_transit = getFlowValue(info, "RTP_OUT_TRANSIT")/100
 	 if(((rtp_in_transit == nil) or (rtp_in_transit == "")) and ((rtp_out_transit == nil) or (rtp_out_transit == ""))) then
@@ -1053,12 +1053,12 @@ function getRTPTableRows(info)
 	 else
 	    rtp_transit_hide = "style=\"display: table-row;\""
 	 end
-	 
+
 	 string_table = string_table .. "<tr id=\"rtp_transit_id_tr\" "..rtp_transit_hide.."><th>"..i18n("flow_details.rtp_transit_in_out").."</th><td><div id=rtp_transit_in>"..getFlowValue(info, "RTP_IN_TRANSIT").."</div></td><td><div id=rtp_transit_out>"..getFlowValue(info, "RTP_OUT_TRANSIT").."</div></td></tr>\n"
       end
-      
+
       -- TONES
-      if isFlowValueDefined(info, "RTP_DTMF_TONES") then	 
+      if isFlowValueDefined(info, "RTP_DTMF_TONES") then
 	 local rtp_dtmf_var = getFlowValue(info, "RTP_DTMF_TONES")
 	 if((rtp_dtmf_var == nil) or (rtp_dtmf_var == "")) then
 	    rtp_dtmf_hide = "style=\"display: none;\""
@@ -1067,9 +1067,9 @@ function getRTPTableRows(info)
 	 end
 	 string_table = string_table .. "<tr id=\"dtmf_id_tr\" ".. rtp_dtmf_hide .."><th>"..i18n("flow_details.dtmf_tones_sent").."</th><td colspan=2><span id=dtmf_tones>"..rtp_dtmf_var.."</span></td></tr>\n"
       end
-	 
+
       -- FIRST REQUEST
-      if isFlowValueDefined(info, "RTP_FIRST_SEQ") then         
+      if isFlowValueDefined(info, "RTP_FIRST_SEQ") then
 	 local first_flow_sequence_var = getFlowValue(info, "RTP_FIRST_SEQ")
 	 local last_flow_sequence_var = getFlowValue(info, "RTP_FIRST_SEQ")
 	 if(((first_flow_sequence_var == nil) or (first_flow_sequence_var == "")) and ((last_flow_sequence_var == nil) or (last_flow_sequence_var == ""))) then
@@ -1079,9 +1079,9 @@ function getRTPTableRows(info)
 	 end
 	 string_table = string_table .. "<tr id=\"first_last_flow_sequence_id_tr\" "..first_last_flow_sequence_hide.."><th>"..i18n("flow_details.first_last_flow_sequence").."</th><td><div id=first_flow_sequence>"..first_flow_sequence_var.."</div></td><td><div id=last_flow_sequence>"..last_flow_sequence_var.."</div></td></tr>\n"
       end
-      
+
       -- CALL-ID
-      if isFlowValueDefined(info, "RTP_SIP_CALL_ID") then	 
+      if isFlowValueDefined(info, "RTP_SIP_CALL_ID") then
 	 local sip_call_id_var = getFlowValue(info, "RTP_SIP_CALL_ID")
 	 if((sip_call_id_var == nil) or (sip_call_id_var == "")) then
 	    sip_call_id_hide = "style=\"display: none;\""
@@ -1090,33 +1090,33 @@ function getRTPTableRows(info)
 	 end
 	 string_table = string_table .. "<tr id=\"sip_call_id_tr\" "..sip_call_id_hide.."><th> "..i18n("flow_details.sip_call_id").." <i class='fas fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;</th><td colspan=2><div id=rtp_sip_call_id>" .. sip_call_id_var .. "</div></td></tr>\n"
       end
-      
+
       -- TWO-WAY CALL-QUALITY INDICATORS
       string_table = string_table.."<tr><th>"..i18n("flow_details.call_quality_indicators").."</th><th>"..i18n("flow_details.forward").."</th><th>"..i18n("flow_details.reverse").."</th></tr>"
       -- JITTER
-      if isFlowValueDefined(info, "RTP_IN_JITTER") then	 
+      if isFlowValueDefined(info, "RTP_IN_JITTER") then
 	 local rtp_in_jitter = getFlowValue(info, "RTP_IN_JITTER")/100
 	 local rtp_out_jitter = getFlowValue(info, "RTP_OUT_JITTER")/100
 	 if(((rtp_in_jitter == nil) or (rtp_in_jitter == "")) and ((rtp_out_jitter == nil) or (rtp_out_jitter == ""))) then
 	    rtp_out_jitter_hide = "style=\"display: none;\""
 	 else
 	    rtp_out_jitter_hide = "style=\"display: table-row;\""
-	 end	 
+	 end
 	 string_table = string_table .. "<tr id=\"jitter_id_tr\" "..rtp_out_jitter_hide.."><th style=\"text-align:right\">"..i18n("flow_details.jitter").."</th><td><span id=jitter_in>"
-	 
+
 	 if((rtp_in_jitter ~= nil) and (rtp_in_jitter ~= "")) then
 	    string_table = string_table .. rtp_in_jitter.." ms "
 	 end
 	 string_table = string_table .. "</span> <span id=jitter_in_trend></span></td><td><span id=jitter_out>"
-	 
+
 	 if((rtp_out_jitter ~= nil) and (rtp_out_jitter ~= "")) then
 	    string_table = string_table .. rtp_out_jitter.." ms "
 	 end
 	 string_table = string_table .. "</span> <span id=jitter_out_trend></span></td></tr>\n"
       end
-      
+
       -- PACKET LOSS
-      if isFlowValueDefined(info, "RTP_IN_PKT_LOST") then	 
+      if isFlowValueDefined(info, "RTP_IN_PKT_LOST") then
 	 local rtp_in_pkt_lost = getFlowValue(info, "RTP_IN_PKT_LOST")
 	 local rtp_out_pkt_lost = getFlowValue(info, "RTP_OUT_PKT_LOST")
 	 if(((rtp_in_pkt_lost == nil) or (rtp_in_pkt_lost == "")) and ((rtp_out_pkt_lost == nil) or (rtp_out_pkt_lost == ""))) then
@@ -1125,20 +1125,20 @@ function getRTPTableRows(info)
 	    rtp_packet_loss_hide = "style=\"display: table-row;\""
 	 end
 	 string_table = string_table .. "<tr id=\"rtp_packet_loss_id_tr\" "..rtp_packet_loss_hide.."><th style=\"text-align:right\">"..i18n("flow_details.lost_packets").."</th><td><span id=packet_lost_in>"
-	 
+
 	 if((rtp_in_pkt_lost ~= nil) and (rtp_in_pkt_lost ~= "")) then
 	    string_table = string_table .. formatPackets(rtp_in_pkt_lost)
 	 end
 	 string_table = string_table .. "</span> <span id=packet_lost_in_trend></span></td><td><span id=packet_lost_out>"
-	 
+
 	 if((rtp_out_pkt_lost ~= nil) and (rtp_out_pkt_lost ~= "")) then
 	    string_table = string_table .. formatPackets(rtp_out_pkt_lost)
 	 end
 	 string_table = string_table .. " </span> <span id=packet_lost_out_trend></span></td></tr>\n"
       end
-      
+
       -- PACKET DROPS
-      if isFlowValueDefined(info, "RTP_IN_PKT_DROP") then	 
+      if isFlowValueDefined(info, "RTP_IN_PKT_DROP") then
 	 local rtp_in_pkt_drop = getFlowValue(info, "RTP_IN_PKT_DROP")
 	 local rtp_out_pkt_drop = getFlowValue(info, "RTP_OUT_PKT_DROP")
 	 if(((rtp_in_pkt_drop == nil) or (rtp_in_pkt_drop == "")) and ((rtp_out_pkt_drop == nil) or (rtp_out_pkt_drop == ""))) then
@@ -1151,15 +1151,15 @@ function getRTPTableRows(info)
 	    string_table = string_table .. formatPackets(rtp_in_pkt_drop)
 	 end
 	 string_table = string_table .. "</span> <span id=packet_drop_in_trend></span></td><td><span id=packet_drop_out>"
-	 
+
 	 if((rtp_out_pkt_drop ~= nil) and (rtp_out_pkt_drop ~= "")) then
 	    string_table = string_table .. formatPackets(rtp_out_pkt_drop)
 	 end
 	 string_table = string_table .. " </span> <span id=packet_drop_out_trend></span></td></tr>\n"
       end
-      
+
       -- MAXIMUM DELTA BETWEEN CONSECUTIVE PACKETS
-      if isFlowValueDefined(info, "RTP_IN_MAX_DELTA") then	 
+      if isFlowValueDefined(info, "RTP_IN_MAX_DELTA") then
 	 local rtp_in_max_delta = getFlowValue(info, "RTP_IN_MAX_DELTA")
 	 local rtp_out_max_delta = getFlowValue(info, "RTP_OUT_MAX_DELTA")
 	 if(((rtp_in_max_delta == nil) or (rtp_in_max_delta == "")) and ((rtp_out_max_delta == nil) or (rtp_out_max_delta == ""))) then
@@ -1177,9 +1177,9 @@ function getRTPTableRows(info)
 	 end
 	 string_table = string_table .. "</span> <span id=max_delta_time_out_trend></span></td></tr>\n"
       end
-      
+
       -- PAYLOAD TYPE
-      if isFlowValueDefined(info, "RTP_IN_PAYLOAD_TYPE") then	 
+      if isFlowValueDefined(info, "RTP_IN_PAYLOAD_TYPE") then
 	 local rtp_payload_in_var  = formatRtpPayloadType(getFlowValue(info, "RTP_IN_PAYLOAD_TYPE"))
 	 local rtp_payload_out_var = formatRtpPayloadType(getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE"))
 	 if(((rtp_payload_in_var == nil) or (rtp_payload_in_var == "")) and ((rtp_payload_out_var == nil) or (rtp_payload_out_var == ""))) then
@@ -1191,7 +1191,7 @@ function getRTPTableRows(info)
       end
 
       -- MOS
-      if isFlowValueDefined(info, "RTP_IN_MOS") then		 
+      if isFlowValueDefined(info, "RTP_IN_MOS") then
 	 local rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")
 	 local rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")
 
@@ -1211,7 +1211,7 @@ function getRTPTableRows(info)
 	 end
 
 	 string_table = string_table .. "</span> <span id=mos_in_trend></span></td>"
-	 
+
 	 string_table = string_table .. "<td><span id=mos_out_signal></span><span id=mos_out>"
 	 if((rtp_out_mos ~= nil) and (rtp_out_mos ~= "")) then
 	    string_table = string_table .. MosPercentageBar(rtp_out_mos)
@@ -1220,12 +1220,12 @@ function getRTPTableRows(info)
 	 string_table = string_table.."</span> <span id=mos_out_trend></span>"..
            "</td></tr>"
       end
-      
+
       -- R_FACTOR
       if isFlowValueDefined(info, "RTP_IN_R_FACTOR") then
 	 local rtp_in_r_factor = getFlowValue(info, "RTP_IN_R_FACTOR")/100
 	 local rtp_out_r_factor = getFlowValue(info, "RTP_OUT_R_FACTOR")/100
-	 
+
 	 if(rtp_in_r_factor == nil or rtp_in_r_factor == "" or rtp_in_r_factor == "0") and (rtp_out_r_factor == nil or rtp_out_r_factor == "" or rtp_out_r_factor == "0") then
 	    quality_r_factor_hide = "style=\"display: none;\""
 	 else
@@ -1236,7 +1236,7 @@ function getRTPTableRows(info)
 	    string_table = string_table .. RFactorPercentageBar(rtp_in_r_factor)
 	 end
 	 string_table = string_table .. "</span> <span id=r_factor_in_trend></span></td>"
-	 
+
 	 string_table = string_table .. "<td><span id=r_factor_out_signal></span><span id=r_factor_out>"
 	 if((rtp_out_r_factor ~= nil) and (rtp_out_r_factor ~= "")) then
 	    string_table = string_table .. RFactorPercentageBar(rtp_out_r_factor)
@@ -1310,7 +1310,7 @@ end
 
 function printFlowQuota(ifid, info, as_client)
   local flow_quota, proto_stats, category_stats = getFlowQuota(ifid, info, as_client)
- 
+
   if flow_quota ~= nil then
     print("<table style='width:100%; table-layout: fixed;'><tr>")
     print(string.gsub(printProtocolQuota(flow_quota, proto_stats, category_stats, {traffic=true, time=true}, true), "\n", ""))
@@ -1357,7 +1357,7 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 
 	    return ifurl
 	 end
- 
+
 	 local inputurl = prepare_interface_url(input_idx, snmp_interfaces[input_idx])
 	 local outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
 
@@ -1428,7 +1428,7 @@ function printL4ProtoDropdown(base_url, page_params, l4_proto)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.l4_protocol")) print[[]] print(l4proto_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, l4proto_params_non_tcp)) print[[">]] print(i18n("flows_page.all_l4_protocols")) print[[</a></li>]]
 
     if l4_proto then
@@ -1436,11 +1436,7 @@ function printL4ProtoDropdown(base_url, page_params, l4_proto)
 	  local num_proto = tonumber(key)
 	  print[[<li]]
 
-	  if tonumber(l4_proto) == key then
-	     print(' class="active"')
-	  end
-
-	  print[[><a class="dropdown-item" href="]]
+	  print([[><a class="dropdown-item ]].. (tonumber(l4_proto) == key and 'active' or '') ..[[" href="]])
 
 	  local l4_table = ternary(key ~= 6, l4proto_params_non_tcp, l4proto_params)
 
@@ -1467,9 +1463,8 @@ local function printDropdownEntries(entries, base_url, param_arr, param_filter, 
       param_arr[param_filter] = htype[1]
       print[[<li]]
 
-      if htype[1] == curr_filter then print(' class="active"') end
 
-      print[[><a class="dropdown-item" href="]] print(getPageUrl(base_url, param_arr)) print[[">]] print(htype[2]) print[[</a></li>]]
+      print([[><a class="dropdown-item ]].. (htype[1] == curr_filter and 'active' or '') ..[[" href="]]) print(getPageUrl(base_url, param_arr)) print[[">]] print(htype[2]) print[[</a></li>]]
       ::continue::
    end
 end
@@ -1490,7 +1485,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print[['\
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(getParamFilter(page_params, "flowhosts_type")) print[[<span class="caret"></span></button>\
-	  <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">\
+	  <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
 	     <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
        printDropdownEntries({
 	  {"local_only", i18n("flows_page.local_only")},
@@ -1510,7 +1505,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print[[, '\
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("status")) print(getParamFilter(page_params, "flow_status")) print[[<span class="caret"></span></button>\
-	  <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu">\
+	  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
 	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flow_status_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
        local entries = {
@@ -1539,7 +1534,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        if isBridgeInterface(ifstats) then
 	  entries[#entries + 1] = {"filtered", i18n("flows_page.blocked")}
        end
-     
+
        printDropdownEntries(entries, base_url, flow_status_params, "flow_status", page_params.flow_status)
     print[[\
 	  </ul>\
@@ -1555,7 +1550,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	  print[[, '\
 	   <div class="btn-group">\
 	      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.tcp_state")) print(getParamFilter(page_params, "tcp_flow_state")) print[[<span class="caret"></span></button>\
-	      <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu">\
+	      <ul class="dropdown-menu scrollable-dropdown" role="menu">\
 	      <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, tcp_state_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
 	  local entries = {}
@@ -1577,7 +1572,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	print[[, '\
 	   <div class="btn-group">\
 	      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print(getParamFilter(page_params, "traffic_type")) print[[<span class="caret"></span></button>\
-	      <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu">\
+	      <ul class="dropdown-menu scrollable-dropdown" role="menu">\
 		 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 	printDropdownEntries({
 	      {"unicast", i18n("flows_page.non_multicast")},
@@ -1600,7 +1595,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 		print[[, '\
 	       <div class="btn-group">\
 		  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.pod")) print(getParamFilter(page_params, "pod")) print[[<span class="caret"></span></button>\
-		  <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown" role="menu">\
+		  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
 		  ]]
 		local entries = {}
 
@@ -1628,7 +1623,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 		print[[, '\
 	       <div class="btn-group">\
 		  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("containers_stats.container")) print(getParamFilter(page_params, "container")) print[[<span class="caret"></span></button>\
-		  <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu">\
+		  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
 		  ]]
 		local entries = {}
 
@@ -1648,7 +1643,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     end
 
     -- L7 Application
-    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">')
+    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
     print('<li><a class="dropdown-item" href="')
 
     local application_filter_params = table.clone(page_params)
@@ -1659,10 +1654,9 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     for key, value in pairsByKeys(flowstats["ndpi"], asc) do
        local class_active = ''
        if(key == page_params.application) then
-
-	  class_active = ' class="active"'
+	      class_active = 'active'
        end
-       print('<li '..class_active..'><a class="dropdown-item" href="')
+       print('<li><a class="dropdown-item '..class_active..'" href="')
        application_filter_params["application"] = key
        print(getPageUrl(base_url, application_filter_params))
        print('">'..key..'</a></li>')
@@ -1671,7 +1665,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print("</ul> </div>'")
 
     -- L7 Application Category
-    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">')
+    print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
     print('<li><a class="dropdown-item" href="')
     local category_filter_params = table.clone(page_params)
     category_filter_params["category"] = nil
@@ -1681,10 +1675,10 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     for key, value in pairsByKeys(ndpicatstats, asc) do
        local class_active = ''
-       if(key == page_params.category) then
-	  class_active = ' class="active"'
+       if (key == page_params.category) then
+	      class_active = 'active'
        end
-       print('<li '..class_active..'><a class="dropdown-item" href="')
+       print('<li><a class="dropdown-item '..class_active..'" href="')
        category_filter_params["category"] = key
        print(getPageUrl(base_url, category_filter_params))
        print('">'.. getCategoryLabel(key) ..'</a></li>')
@@ -1721,14 +1715,14 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
       local profiles = ntop.getHashKeysCache(hashname) or {}
       local profiles_defined = false
 
-      for k,_ in pairsByKeys(profiles) do 
+      for k,_ in pairsByKeys(profiles) do
          profiles_defined = true
          break
       end
 
       if profiles_defined then
         -- Traffic Profiles
-        print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("traffic_profiles.traffic_profiles")..' ' .. getParamFilter(page_params, "traffic_profile") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown scrollable-dropdown scrollable-dropdown" role="menu" id="flow_dropdown">')
+        print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("traffic_profiles.traffic_profiles")..' ' .. getParamFilter(page_params, "traffic_profile") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
         print('<li><a class="dropdown-item" href="')
         local traffic_profile_filter_params = table.clone(page_params)
         traffic_profile_filter_params["traffic_profile"] = nil
@@ -1738,9 +1732,9 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
         for key,_ in pairsByKeys(profiles) do
 	  local class_active = ''
 	  if(key == page_params.traffic_profile) then
-	    class_active = ' class="active"'
+	    class_active = 'active'
 	  end
-	  print('<li '..class_active..'><a class="dropdown-item" href="')
+	  print('<li><a class="dropdown-item '..class_active..'" href="')
 	  traffic_profile_filter_params["traffic_profile"] = key
 	  print(getPageUrl(base_url, traffic_profile_filter_params))
 	  print('">'..key..'</a></li>')

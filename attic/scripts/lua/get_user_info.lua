@@ -85,7 +85,7 @@ print [[
       <tr><th class="text-center">
       <h4>]] print(i18n("user_info.top_applications")) print[[</h4>
         <td><div class="pie-chart" id="topApps"></div></td>
-      
+
       </th>
     </tr>]]
 
@@ -96,7 +96,7 @@ window.onload=function() {
    var refresh = 3000 /* ms */;
 		    do_pie("#topApps", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "apps" ]] 
+print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "apps" ]]
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
@@ -110,12 +110,12 @@ print [[
   <br>
   <!-- Left Tab -->
   <div class="tabbable tabs-left">
-    
+
     <ul class="nav nav-tabs">
       <li class="active"><a href="#l7" data-toggle="tab">]] print(i18n("applications")) print[[</a></li>
       <li><a href="#l4" data-toggle="tab">]] print(i18n("protocols")) print[[</a></li>
     </ul>
-    
+
       <!-- Tab content-->
       <div class="tab-content">
 
@@ -150,13 +150,13 @@ window.onload=function() {
    var refresh = 3000 /* ms */;
 		    do_pie("#topL7", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "l7" ]] 
+print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "l7" ]]
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
 		    do_pie("#topL4", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "l4" ]] 
+print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "l4" ]]
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
@@ -175,7 +175,7 @@ print [[
    $("#table-hosts").datatable({
       url: "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_flows_data.lua]] 
+print [[/lua/get_flows_data.lua]]
 if(application ~= nil) then
    print("?application="..application)
    num_param = num_param + 1
@@ -209,9 +209,9 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.
 for key, value in pairsByKeys(stats["ndpi"], asc) do
    class_active = ''
    if(key == application) then
-      class_active = ' class="active"'
+      class_active = 'active'
    end
-   print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows&application=' .. key..'">'..key..'</a></li>')
+   print('<li><a class="'..class_active..'" href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows&application=' .. key..'">'..key..'</a></li>')
 end
 
 
@@ -228,7 +228,7 @@ print [[
          {
 			     title: "]] print(i18n("info")) print[[",
 				 field: "column_key",
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -236,7 +236,7 @@ print [[
 			     title: "]] print(i18n("application")) print[[",
 				 field: "column_ndpi",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -244,7 +244,7 @@ print [[
 			     title: "]] print(i18n("protocol")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -252,7 +252,7 @@ print [[
 			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
 				 field: "column_client_process",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -265,7 +265,7 @@ print [[
                              title: "]] print(i18n("sflows_stats.server_process")) print[[",
 				 field: "column_server_process",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -278,7 +278,7 @@ print [[
 			     title: "]] print(i18n("duration")) print[[",
 				 field: "column_duration",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			       }
 			       },
@@ -292,7 +292,7 @@ print [[
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
 				 sortable: false,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -300,7 +300,7 @@ print [[
 			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
 				 field: "column_bytes",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 }

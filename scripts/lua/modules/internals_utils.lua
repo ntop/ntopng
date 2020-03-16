@@ -30,7 +30,7 @@ local function printHashTablesDropdown(base_url, page_params)
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, hash_table_params)) print[[">]] print(i18n("internals.all_hash_tables")) print[[</a></li>\]]
 
    for ht, stats in pairsByKeys(interface.getHashTablesStats(), asc) do
-      print[[ <li]] if hash_table == ht then print(' class="active"') end print[[><a class="dropdown-item" href="]] hash_table_params["hash_table"] = ht; print(getPageUrl(base_url, hash_table_params)); print[[">]] print(i18n("hash_table."..ht)) print[[</a></li>\]]
+      print[[ <li><a class="dropdown-item ]] if hash_table == ht then print(' class="active"') end print[[" href="]] hash_table_params["hash_table"] = ht; print(getPageUrl(base_url, hash_table_params)); print[[">]] print(i18n("hash_table."..ht)) print[[</a></li>\]]
    end
 end
 
@@ -692,7 +692,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
    end
 
    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, { timeseries = timeseries })
-   
+
 
 end
 

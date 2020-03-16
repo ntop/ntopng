@@ -91,7 +91,7 @@ end
 
 -- ###################################################################
 
-local function printDevicePolicyLegenda() 
+local function printDevicePolicyLegenda()
    print[[<div style='float:left;'><ul style='display:inline; padding:0'>]]
 
    for _, action in ipairs(presets_utils.actions) do
@@ -110,7 +110,7 @@ local function printDeviceProtocolsPage()
    print[[ <h2 style="margin-top: 0; margin-bottom: 20px;">]]
    if is_nedge then
       local pool_name = host_pools_utils.DEFAULT_POOL_NAME
-      print(i18n("nedge.user_device_protocols", {user=pool_name})) 
+      print(i18n("nedge.user_device_protocols", {user=pool_name}))
    else
       print(i18n("device_protocols.filter_device_protocols", {filter=filter_msg}))
    end
@@ -207,7 +207,7 @@ local function printDeviceProtocolsPage()
    <button class="btn btn-secondary" onclick="$('#to_reset_devtype').html($('#device_type_selector option:selected').text()); $('#presetsResetDefaults').modal('show');" style="float:right; margin-right:1em;"><i class="fas fa-undo" aria-hidden="true" data-original-title="" title=""></i> ]] print(i18n("users.reset_to_defaults")) print[[</button>
 
    <br>]]
- 
+
    print[[
      <span>
        <ul>]]
@@ -312,7 +312,7 @@ local function printDeviceProtocolsPage()
    for _, entry in pairs(entries) do
       if entry ~= "" then
          page_params["policy_filter"] = entry.id
-         print('<li' .. ternary(policy_filter == entry.id, ' class="active"', '') .. '><a class="dropdown-item" href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
+         print('<li><a class="dropdown-item ' .. ternary(policy_filter == entry.id, ' class="active"', '') .. '" href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
       else
          print('<li role="separator" class="divider"></li>')
       end
@@ -327,7 +327,7 @@ local function printDeviceProtocolsPage()
       local cat_count = 0
       for proto_id,p in pairs(device_policies) do
          local cat = ntop.getnDPIProtoCategory(tonumber(proto_id))
-         if cat.name == cat_name and (isEmptyString(policy_filter) 
+         if cat.name == cat_name and (isEmptyString(policy_filter)
               or policy_filter == p.clientActionId or policy_filter == p.serverActionId) then
             cat_count = cat_count + 1
          end

@@ -55,7 +55,7 @@ end
 
 print ('";')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")    
+ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
    print [[
    flow_rows_option["sprobe"] = true;
    $("#table-flows").datatable({
@@ -74,9 +74,9 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sflows_stats.lua">'..i18n("fl
 for key, value in pairsByKeys(stats["ndpi"], asc) do
    class_active = ''
    if(key == application) then
-      class_active = ' class="active"'
+      class_active = 'active'
    end
-   print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/sflows_stats.lua?application=' .. key..'">'..key..'</a></li>')
+   print('<li><a class=" '..class_active..'" href="'..ntop.getHttpPrefix()..'/lua/sflows_stats.lua?application=' .. key..'">'..key..'</a></li>')
 end
 
 
@@ -92,7 +92,7 @@ print [[
          {
 			     title: "]] print(i18n("info")) print[[",
 				 field: "column_key",
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -100,7 +100,7 @@ print [[
 			     title: "]] print(i18n("application")) print[[",
 				 field: "column_ndpi",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -108,7 +108,7 @@ print [[
 			     title: "]] print(i18n("sflows_stats.l4_proto")) print[[",
 				 field: "column_proto_l4",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -116,7 +116,7 @@ print [[
 			     title: "]] print(i18n("sflows_stats.client_process")) print[[",
 				 field: "column_client_process",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -129,7 +129,7 @@ print [[
                              title: "]] print(i18n("sflows_stats.server_process")) print[[",
 				 field: "column_server_process",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -142,7 +142,7 @@ print [[
 			     title: "]] print(i18n("duration")) print[[",
 				 field: "column_duration",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			       }
 			       },
@@ -156,7 +156,7 @@ print [[
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
 				 sortable: false,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -164,7 +164,7 @@ print [[
 			     title: "]] print(i18n("sflows_stats.total_bytes")) print[[",
 				 field: "column_bytes",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 }

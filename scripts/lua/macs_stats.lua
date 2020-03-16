@@ -59,10 +59,10 @@ print(getPageUrl(ntop.getHttpPrefix().."/lua/get_macs_data.lua", page_params))
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
 
-print [[ 
+print [[
            $("#table-mac").datatable({
                         title: "Mac List",
-			url: url_update , 
+			url: url_update ,
 ]]
 
 local title
@@ -110,9 +110,7 @@ print('buttons: [')
    print('">'..i18n("mac_stats.all_devices")..'</a></li>')
 
    -- Source MACs only
-   print('<li')
-   if devices_mode == "source_macs_only" then print(' class="active"') end
-   print('><a class="dropdown-item" href="')
+   print('<li><a class="dropdown-item '.. (devices_mode == "source_macs_only" and 'active' or '') ..'" href="')
    macs_params.devices_mode = "source_macs_only"
    print(getPageUrl(base_url, macs_params))
    print('">'..i18n("mac_stats.source_macs")..'</a></li>')
@@ -132,9 +130,7 @@ print('buttons: [')
 for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_type), asc) do
    local _manuf = string.gsub(string.gsub(manuf, "'", "&#39;"), "\"", "&quot;")
       manufacturer_params.manufacturer = manuf
-      print('<li')
-      if manufacturer == manuf then print(' class="active"') end
-      print('><a class="dropdown-item" href="'..getPageUrl(base_url, manufacturer_params)..'">'.._manuf..' ('..count..')'..'</a></li>')
+      print('<li><a class="dropdown-item '.. (manufacturer == manuf and 'active' or '') ..'" href="'..getPageUrl(base_url, manufacturer_params)..'">'.._manuf..' ('..count..')'..'</a></li>')
    end
    print[[
        </ul>\
@@ -153,9 +149,7 @@ for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_t
 
    for typeidx, count in pairsByKeys(interface.getMacDeviceTypes(nil, nil, manufacturer, device_type), asc) do
       devicetype_params.device_type = typeidx
-      print('<li')
-      if typeidx == device_type then print(' class="active"') end
-      print('><a class="dropdown-item" href="'..getPageUrl(base_url, devicetype_params)..'">'.. discover.devtype2string(typeidx) ..' ('..count..')'..'</a></li>')
+      print('<li><a class="dropdown-item '.. (typeidx == device_type and 'active' or '') ..'" href="'..getPageUrl(base_url, devicetype_params)..'">'.. discover.devtype2string(typeidx) ..' ('..count..')'..'</a></li>')
    end
    print[[
        </ul>\
@@ -238,7 +232,7 @@ print [[
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
 				 sortable: false,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -246,7 +240,7 @@ print [[
 			     title: "]] print(i18n("throughput")) print[[",
 				 field: "column_thpt",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 },
@@ -254,7 +248,7 @@ print [[
 			     title: "]] print(i18n("traffic")) print[[",
 				 field: "column_traffic",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 }

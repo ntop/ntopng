@@ -97,9 +97,9 @@ function queryEpochData(schema, tags, selectedEpoch, zoomLevel, options)
    local start_time
    options = table.merge(options or {}, {initial_point=true})
 
-   if((selectedEpoch == nil) or (selectedEpoch == "")) then 
-      selectedEpoch = os.time() 
-      end_time = tonumber(selectedEpoch)   
+   if((selectedEpoch == nil) or (selectedEpoch == "")) then
+      selectedEpoch = os.time()
+      end_time = tonumber(selectedEpoch)
       start_time = end_time - d
    else
       end_time = tonumber(selectedEpoch) + math.floor(d / 2)
@@ -206,8 +206,8 @@ function stackedProgressBars(total, bars, other_label, formatter, css_class)
       cumulative_perc = cumulative_perc + percentage
       if bar.class == nil then bar.class = "primary" end
       if bar.style == nil then bar.style = "" end
-      if bar.link ~= nil then 
-         res[#res + 1] = [[<a href="]] .. bar.link .. [[" style="width:]] .. percentage .. [[%;]] .. bar.style .. [["> 
+      if bar.link ~= nil then
+         res[#res + 1] = [[<a href="]] .. bar.link .. [[" style="width:]] .. percentage .. [[%;]] .. bar.style .. [[">
             <div class="progress-bar bg-]] .. (bar.class) .. [[" role="progressbar" style="width: 100%"></div></a>]]
       else
          res[#res + 1] = [[
@@ -937,7 +937,7 @@ for k,v in ipairs(zoom_vals) do
    end
 
    local url = getPageUrl(baseurl, params)
-   
+
    print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..url..'">'.. zoom_vals[k][1] ..'</input></label>\n')
    ::continue::
 end
@@ -1007,7 +1007,7 @@ if(stats ~= nil) then
   for _, serie in pairs(data.series) do
      lastval = lastval + serie.data[data.count]
   end
-   
+
    if format_as_bytes then
       print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bytesToSize((stats.min_val*8) or "") .. '</td></tr>\n')
       print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bytesToSize((stats.max_val*8) or "") .. '</td></tr>\n')
@@ -1453,8 +1453,7 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
       if entry ~= "" then
          page_params["category"] = ternary(by_id, ternary(entry.cat_id ~= "", "cat_" .. entry.cat_id, ""), entry.id)
 
-         print('<li' .. ternary(cat_id_or_name == ternary(by_id, entry.cat_id, entry.id), ' class="active"', '') ..
-            '><a class="dropdown-item" href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") ..
+         print('<li><a class="dropdown-item '.. ternary(cat_id_or_name == ternary(by_id, entry.cat_id, entry.id), 'active', '') ..'" href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") ..
             entry.text .. '</a></li>')
       else
          print(makeMenuDivider())
@@ -1525,7 +1524,7 @@ local default_timeseries = {
 
 -- #################################################
 
-function get_default_timeseries() 
+function get_default_timeseries()
    return(default_timeseries)
 end
 
