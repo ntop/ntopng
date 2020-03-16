@@ -139,7 +139,8 @@ In order to enable encryption, the :code:`--zmq-encryption` option should be add
 
   Encryption Public Key
 
-The public key should be configured in nProbe (the same applies to cento, n2disk, or other ntopng instances when used as probe with ntopng) by using the :code:`--zmq-encryption-key '<pub key>'` option.
+The public key should be configured in nProbe (the same applies to cento and n2disk when used as probes for ntopng, or other ntopng instances when used as data producers in a 
+`hierarchical cluster <https://www.ntop.org/ntopng/creating-a-hierarchical-cluster-of-ntopng-instances/>`_) by using the :code:`--zmq-encryption-key '<pub key>'` option.
 
 Example:
 
