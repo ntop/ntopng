@@ -477,7 +477,7 @@ print[[
   <script>
     let import_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
 
-    $('#import-modal-btn').on("click", function(e) { 
+    $('#import-modal-btn').on("click", function(e) {
 
         // hide previous errors
         $("#import-error").hide();
@@ -588,7 +588,7 @@ print[[
       if (]] print(ternary(ifstats.has_macs, "false", "true")) print[[)
         select_field.attr("disabled", true);
     }
-    
+
     /* Make the pair address,vlan unique */
     function addressValidator(input) {
       var member = input.val();
@@ -600,7 +600,7 @@ print[[
       recheckFields(input);
       return memberValueValidator(input);
     }
-  
+
     function memberValidator(input) {
       var member = input.val();
 
@@ -616,7 +616,7 @@ print[[
       } else {
         var address_value;
         var vlan_value;
-        
+
         if (input.attr("name").endsWith("_vlan")) {
           var name = input.attr("name").split("_vlan")[0];
           address_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
@@ -777,7 +777,7 @@ print [[
       perPage: ]] print(perPageMembers) print[[,
       forceTable: true,
       hidePerPage: true,
-      
+
       buttons: [
          '<a id="addPoolMemberBtn" onclick="addPoolMember()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
@@ -905,7 +905,7 @@ print[[
           aysResetForm('#table-manage-form');
         }
 
-        $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form"))
+        $("#addPoolMemberBtn").addClass("disabled").attr("disabled", ((! datatableIsLastPage("#table-manage-form"))
                                               || (no_pools))
                                               || (]] if members_filtering ~= nil then print("true") else print("false") end print[[)
                                               || (curDisplayedMembers > ]] print(perPageMembers) print[[)
@@ -922,7 +922,7 @@ print[[
         return false;
 
       var form = $("#table-manage-form");
-      
+
       // build the settings object
       var settings = {};
       $('input[name^="member_"]:not([name$="_vlan"])', form).each(function() {
@@ -1049,9 +1049,9 @@ printPoolNameField('pool_id') print[[</td><td align="center"></td></tr>');
       if ((numPools >= maxPoolsNum)
           || (displayed_items > ]] print(perPagePools) print[[)
           || (! datatableIsLastPage("#table-create-form")))
-        $("#addNewPoolBtn").attr("disabled", "disabled");
+        $("#addNewPoolBtn").attr("disabled", "disabled").addClass("disabled");
       else
-        $("#addNewPoolBtn").removeAttr("disabled");
+        $("#addNewPoolBtn").removeAttr("disabled").removeClass("disabled");
     }
 
     $("#table-create").datatable({
@@ -1137,7 +1137,7 @@ printPoolNameField('pool_id') print[[</td><td align="center"></td></tr>');
         return false;
 
       var form = $("#table-create-form");
-      
+
       // build the settings object
       var settings = {};
       $("input[name^='pool_']", form).each(function() {
