@@ -1908,6 +1908,7 @@ local lang = {
     ["host_alias"] = "Host Alias",
     ["host_pool"] = "Host Pool",
     ["host_traffic_policy"] = "Host Traffic Policy",
+    ["invalid_url"] = "Invalid input for the this configuration",
     ["modify_host_pool_policy_btn"] = "Modify Host Pool Policy",
     ["mud_general_purpose"] = "General Purpose",
     ["mud_is_recording"] = "MUD is being recorded",

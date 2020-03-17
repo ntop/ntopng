@@ -1209,3 +1209,8 @@ details ul li>span {
 #updates-install-li {
   font-size: .875rem;
 }
+
+div.help-block.with-errors .list-unstyled {
+  margin-top: 0.5em;
+  margin-bottom: 0px !important;
+}

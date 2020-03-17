@@ -128,7 +128,7 @@ if(page == "overview") then
   )
 
   print[[
-<form id="table-hosts-form" method="post" data-toggle="validator">
+<form id="table-hosts-form" method="post">
   <div id="table-hosts"></div>
   <button id="hosts-save" class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" onclick="if($(this).hasClass('disabled')) return false;" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
@@ -137,6 +137,95 @@ if(page == "overview") then
 	 <script>
     var key_field_idx = 9;
     var action_field_idx = 9;
+
+
+    // https://codepen.io/martinkrulltott/pen/GWWWQj
+    function extractDomainName(url) {
+      var domain;
+      //find & remove protocol (http, ftp, etc.) and get domain
+      if (url.indexOf("://") > -1) {
+	domain = url.split('/')[2];
+      } else {
+	domain = url.split('/')[0];
+      }
+  
+      //find & remove www
+      if (domain.indexOf("www.") > -1) { 
+	domain = domain.split('www.')[1];
+      }
+  
+      domain = domain.split(':')[0]; //find & remove port number
+      domain = domain.split('?')[0]; //find & remove url params
+
+      if((domain.indexOf(".") == -1) && (domain.indexOf(":") == -1))
+	return(null);
+
+      return domain;
+    }
+
+    // https://mathiasbynens.be/demo/url-regex
+    function isValidURL(url) {
+      return(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/.test(url));
+    }
+
+    function urlValidator(input) {
+      let val = input.val();
+      const row = input.closest("tr");
+      const probe_type = row.find(".probe-type-selector").val();
+      const ip_type = row.find(".ip-type-selector").val();
+
+      //console.log(val, probe_type, ip_type);
+
+      if(!val)
+	// will be validated by the "required" attribute
+	return(true);
+
+      if(probe_type == "icmp") {
+	const isv6 = is_good_ipv6(val);
+	const isv4 = is_good_ipv4(val);
+
+        if((ip_type == "ipv4") && isv6)
+	  // IPv6 used in place of IPv4
+	  return(false);
+	else if((ip_type == "ipv6") && isv4)
+	  // IPv4 used in place of IPv6
+	  return(false);
+
+	if(!isv4 && !isv6)
+	  // must be a domain name
+	  return(extractDomainName(val) == val)
+      } else if(probe_type == "http_get") {
+	if(val.startsWith("https://"))
+	  val = val.substr(8);
+	else if(val.startsWith("http://"))
+	  val = val.substr(7);
+
+	if(!isValidURL(val))
+	  return(false);
+
+	const domain_name = extractDomainName(val);
+
+	if(domain_name) {
+	  if((ip_type == "ipv4") && is_good_ipv6(domain_name))
+	    // IPv6 used in place of IPv4
+	    return(false);
+	  else if((ip_type == "ipv6") && is_good_ipv4(domain_name))
+	    // IPv4 used in place of IPv6
+	    return(false);
+	}
+      }
+
+      return(true);
+    }
+
+    var validator_options = {
+      disable: true,
+      custom: {
+         url: urlValidator,
+      }, errors: {
+	 url: "]] print(i18n("host_config.invalid_url")) print[[.",
+      },
+    }
 
 	 $("#table-hosts").datatable({
 	 	url: "]]
@@ -253,6 +342,9 @@ if(page == "overview") then
       }
   });
 
+  $("#table-hosts-form")
+    .validator(validator_options);
+
   var rtt_row_id = 0;
   var input_id = 0;
   var elem_to_delete = null;
@@ -266,6 +358,9 @@ if(page == "overview") then
     var input = $("<input class='form-control' " + (other_html || "") + "required>")
       .attr("name", name)
       .attr("value", value)
+      .appendTo(container);
+
+    $('<div class="help-block with-errors"></div>')
       .appendTo(container);
 
     td.html(container);
@@ -317,9 +412,9 @@ if(page == "overview") then
       {val : "http_get", text: ']] print(i18n("http_s")) print[['},
     ];
 
-    addInputField(host, host.html(), ' data-orig-value="' + key.html() + '"');
+    addInputField(host, host.html(), ' data-orig-value="' + key.html() + '" data-url="url"');
     addInputField(maxrtt, maxrtt.html() || "100", 'autocomplete="off" style="width:12em;" type="number" min="1"');
-    addSelectField(iptype, iptype.html(), iptypes);
+    addSelectField(iptype, iptype.html(), iptypes, null, "ip-type-selector");
     addSelectField(probetype, probetype.html(), probetypes, null, "probe-type-selector");
 
     checkIPVersionEnabled(row);
@@ -394,8 +489,12 @@ if(page == "overview") then
     paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
+  // Retrigger validation when IP version/Probe change
   $(document).on("change", ".probe-type-selector", function() {
-    checkIPVersionEnabled($(this).closest("tr"));
+    $("#table-hosts-form").data("bs.validator").validate();
+  })
+  $(document).on("change", ".ip-type-selector", function() {
+    $("#table-hosts-form").data("bs.validator").validate();
   })
 
   aysHandleForm("#table-hosts-form", {
