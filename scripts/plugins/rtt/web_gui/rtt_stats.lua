@@ -74,31 +74,31 @@ if(page == "overview") then
 
       -- process arguments
       for _, host_line in pairs(rtt_hosts_args) do
-	local parts = string.split(host_line, "|")
-	local key = table.remove(parts, 1)
-	local old_host = table.remove(parts, 1)
-	local value = table.concat(parts, "|")
+        local parts = string.split(host_line, "|")
+        local key = table.remove(parts, 1)
+        local old_host = table.remove(parts, 1)
+        local value = table.concat(parts, "|")
 
-	rtt_hosts[key] = {old_host, value}
+        rtt_hosts[key] = {old_host, value}
       end
 
       -- Delete changed
       for host, value in pairs(rtt_hosts) do
-	local old_host = value[1]
+        local old_host = value[1]
 
-	if((not isEmptyString(old_host)) and (host ~= old_host)) then
-	  rtt_utils.removeHost(old_host)
-	end
+        if((not isEmptyString(old_host)) and (host ~= old_host)) then
+          rtt_utils.removeHost(old_host)
+        end
       end
 
       -- Add new
       for host, value in pairs(rtt_hosts) do
-	local conf = value[2]
-
-	rtt_utils.addHost(host, conf)
+        local conf = value[2]
+        rtt_utils.addHost(host, conf)
       end
+
     elseif((_POST["action"] == "delete") and (_POST["rtt_host"] ~= nil)) then
-      rtt_utils.removeHost(_POST["rtt_host"])
+        rtt_utils.removeHost(_POST["rtt_host"])
     end
   end
 
@@ -148,12 +148,12 @@ if(page == "overview") then
       } else {
 	domain = url.split('/')[0];
       }
-  
+
       //find & remove www
-      if (domain.indexOf("www.") > -1) { 
-	domain = domain.split('www.')[1];
+      if (domain.indexOf("www.") > -1) {
+	        domain = domain.split('www.')[1];
       }
-  
+
       domain = domain.split(':')[0]; //find & remove port number
       domain = domain.split('?')[0]; //find & remove url params
 
