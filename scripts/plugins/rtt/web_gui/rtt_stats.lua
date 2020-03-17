@@ -165,7 +165,7 @@ if(page == "overview") then
 
     // https://mathiasbynens.be/demo/url-regex
     function isValidURL(url) {
-      return(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/.test(url));
+      return(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)*[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/.test(url));
     }
 
     function urlValidator(input) {
@@ -191,9 +191,7 @@ if(page == "overview") then
 	  // IPv4 used in place of IPv6
 	  return(false);
 
-	if(!isv4 && !isv6)
-	  // must be a domain name
-	  return(extractDomainName(val) == val)
+	return(true);
       } else if(probe_type == "http_get") {
 	if(val.startsWith("https://"))
 	  val = val.substr(8);
@@ -339,6 +337,9 @@ if(page == "overview") then
 	}
 
 	aysResetForm('#table-hosts-form');
+
+	// Trigger validation on load
+	$("#table-hosts-form").data("bs.validator").validate();
       }
   });
 
