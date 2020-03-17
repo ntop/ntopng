@@ -60,6 +60,8 @@ for key, rtt_host in pairs(rtt_hosts) do
  
     res[#res + 1] = {
        url = makeURL(rtt_host),
+       measurement = rtt_host.probetype,
+       host = rtt_host.host,
        chart = chart,
        threshold = rtt_host.max_rtt,
        last_rtt = column_last_rtt,
