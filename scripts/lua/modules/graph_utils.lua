@@ -90,27 +90,6 @@ end
 
 -- ########################################################
 
-function queryEpochData(schema, tags, selectedEpoch, zoomLevel, options)
-   if(zoomLevel == nil) then zoomLevel = "1h" end
-   local d = getZoomDuration(zoomLevel)
-   local end_time
-   local start_time
-   options = table.merge(options or {}, {initial_point=true})
-
-   if((selectedEpoch == nil) or (selectedEpoch == "")) then
-      selectedEpoch = os.time()
-      end_time = tonumber(selectedEpoch)
-      start_time = end_time - d
-   else
-      end_time = tonumber(selectedEpoch) + math.floor(d / 2)
-      start_time = tonumber(selectedEpoch) - math.floor(d / 2)
-   end
-
-   return ts_utils.query(schema, tags, start_time, end_time, options)
-end
-
--- ########################################################
-
 function getProtoVolume(ifName, start_time, end_time)
    ifId = getInterfaceId(ifName)
    local series = ts_utils.listSeries("iface:ndpi", {ifid=ifId}, start_time)
