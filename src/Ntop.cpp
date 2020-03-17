@@ -193,11 +193,14 @@ void Ntop::lockNtopInstance() {
   lock.l_len    = 0;        /* 0 here means 'until EOF' */
   lock.l_pid    = getpid(); /* process id */
 
-  if(((startupLockFile = open(lockPath, O_RDWR | O_CREAT, 0666)) < 0)
-     || (fcntl(startupLockFile, F_SETLK, &lock) < 0) /** F_SETLK doesn't block, F_SETLKW does **/
-     ) {
+  if((startupLockFile = open(lockPath, O_RDWR | O_CREAT, 0666)) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open lock file: %s", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  if(fcntl(startupLockFile, F_SETLK, &lock) < 0) { /** F_SETLK doesn't block, F_SETLKW does **/
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Another ntopng instance is running...");
-    exit(0);
+    exit(EXIT_FAILURE);
   }  
 }
 
