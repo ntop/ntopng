@@ -4109,7 +4109,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
 
   if(!strcmp(sortColumn, "column_client")) retriever->sorter = column_client, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = isViewed() ? ipSorter : hostSorter;
+  else if(!strcmp(sortColumn, "column_server")) retriever->sorter = column_server, sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
   else if(!strcmp(sortColumn, "column_proto_l4")) retriever->sorter = column_proto_l4, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
