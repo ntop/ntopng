@@ -79,7 +79,12 @@ function prefs_dump_utils.readPrefsFromDisk()
       local dump = file:read()
       file:close()
 
+      if(dump == nil) then
+	 return
+      end
+
       local json = require("dkjson")
+
       local restore = json.decode(dump, 1, nil)
 
       for k,v in pairs(restore or {}) do
