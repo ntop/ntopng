@@ -11,6 +11,7 @@ local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 
 local dirs = ntop.getDirs()
+local info = ntop.getInfo()
 
 local user_scripts = {}
 

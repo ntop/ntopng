@@ -1719,7 +1719,7 @@ elseif(page == "config") then
       end
    end
 
-   if not ifstats.isDynamic then
+   if not ifstats.isDynamic and not have_nedge then
       local cur_mode = ntop.getCache(disaggregation_criterion_key)
       if isEmptyString(cur_mode) then
          cur_mode = "none"

@@ -118,8 +118,8 @@ local menu_subpages = {
       description = i18n("prefs.http_auth_server_description"),
       hidden      = have_nedge,
     }, toggle_client_x509_auth = {
-      title       = i18n("prefs.client_x509_auth_title"),
-      description = i18n("prefs.client_x509_auth_descr"),
+      title       = i18n("prefs.client_x509_auth_title", {product=info.product}),
+      description = i18n("prefs.client_x509_auth_descr", {product=info.product}),
     },
   }}, {id="ifaces",    label=i18n("prefs.network_interfaces"),   advanced=true,  pro_only=false,  hidden=false, nedge_hidden=true, entries={
     ignored_interfaces = {
@@ -325,7 +325,7 @@ local menu_subpages = {
       title       = i18n("prefs.network_discovery_interval_title"),
       description = i18n("prefs.network_discovery_interval_description"),
     },
-  }}, {id="telemetry",     label=i18n("prefs.telemetry"), advanced=false,  pro_only=false,   hidden=false, entries={
+  }}, {id="telemetry",     label=i18n("prefs.telemetry"), advanced=false,  pro_only=false,   hidden=have_nedge, entries={
     toggle_send_telemetry_data = {
       title       = i18n("prefs.toggle_send_telemetry_data_title"),
       description = i18n("prefs.toggle_send_telemetry_data_description", {product = info.product, url = ntop.getHttpPrefix() .. "/lua/telemetry.lua", ntop_org="https://www.ntop.org"}),
@@ -386,7 +386,7 @@ local menu_subpages = {
   }}, {id="updates", label=i18n("prefs.updates"), advanced=false, pro_only=false, hidden=false, entries={
     toggle_autoupdates = {
       title       = i18n("prefs.toggle_autoupdates_title"),
-      description = i18n("prefs.toggle_autoupdates_description"),
+      description = i18n("prefs.toggle_autoupdates_description", { product = info.product }),
     }
   }},
 }

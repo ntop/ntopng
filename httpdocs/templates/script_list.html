@@ -52,7 +52,7 @@
       <li> {{ i18n('user_scripts.categories') }}
 	<ul>
 	  {% for _, cat in pairsByKeys(script_categories) do %}
-	  <li> {* string.format("<i class='fa %s'></i> %s: %s", cat.icon, i18n(cat.i18n_title), i18n(cat.i18n_descr)) *} </li>
+	  <li> {* string.format("<i class='fa %s'></i> %s: %s", cat.icon, i18n(cat.i18n_title, {product=info.product}), i18n(cat.i18n_descr, {product=info.product})) *} </li>
 	  {% end %}
 	</ul>
       </li>

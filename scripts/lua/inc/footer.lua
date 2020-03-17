@@ -34,6 +34,7 @@ if not interface.isPcapDumpInterface() and not have_nedge then
    end
 end -- closes interface.isPcapDumpInterface() == false
 
+if not info.oem then
 
 print ([[
 <div id="n-footer" class="border-top">
@@ -88,6 +89,16 @@ print [[
    </div>
 </div>
 ]]
+
+else -- info.oem
+  print[[<div class="col-12 text-right">
+    <small>
+	    <div class="text-right">
+		    <i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
+	    </div>
+    </small>
+</div>]]
+end
 
 local traffic_peity_width = "64"
 

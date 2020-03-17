@@ -904,7 +904,7 @@ end
 if is_nedge and is_admin then
 print([[
    <li class="dropdown-divider"></li>
-   <li class="dropdown-header">]] .. i18n("nedge.nedge_status") .. [[</li>
+   <li class="dropdown-header">]] .. i18n("nedge.product_status", {product=info.product}) .. [[</li>
    <li>
       <a class="dropdown-item" href="#poweroff_dialog" data-toggle="modal">
          <i class="fas fa-power-off"></i> ]]..i18n("nedge.power_off")..[[
@@ -1099,4 +1099,6 @@ if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
 
-telemetry_utils.show_notice()
+if not info.oem then
+   telemetry_utils.show_notice()
+end

@@ -117,7 +117,7 @@ local context = {
       mud_max_recording = json.encode(mud_max_recording),
    },
    script_categories = script_categories,
-
+   info = ntop.getInfo(),
 }
 
 -- print config_list.html template
