@@ -187,6 +187,10 @@ elseif(page == "historical" and ts_creation) then
 	    label=i18n("graphs.process_alerts"),
 	    metrics_labels = {i18n("about.alerts_stored"), i18n("about.alert_queries"), i18n("about.alerts_dropped")},
 	 },
+	 {
+	    schema="iface:alerts_stats",
+	    label=i18n("show_alerts.iface_engaged_dropped_alerts"),
+	 },
       }
    })
 elseif((page == "alerts") and isAdministrator()) then

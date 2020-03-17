@@ -570,6 +570,10 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
 
             -- exists by default, otherwise specify a serie.check below
             exists = true
+
+            if(serie.custom_schema == nil) then
+               serie.custom_schema = getCustomSchemaOptions(k)
+            end
          end
 
          local to_check = serie.check or (serie.custom_schema and serie.custom_schema.bases)

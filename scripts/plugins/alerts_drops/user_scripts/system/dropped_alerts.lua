@@ -27,6 +27,9 @@ local script = {
 function script.hooks.min(params)
   local available_interfaces = interface.getIfNames()
 
+  -- Add the system interface id
+  available_interfaces[getSystemInterfaceId()] = getSystemInterfaceName()
+
   for _, iface in pairs(available_interfaces) do
     interface.select(iface)
 

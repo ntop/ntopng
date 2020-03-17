@@ -1462,7 +1462,19 @@ function toggleAlert(disable) {
 	       showPagination: true,
                buttons: [']]
 
-   local title = t["label"]..ternary(t["chart"] ~= "", " <small><A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..string.format("%d", ifid).."&page=historical&ts_schema="..t["chart"].."'><i class='fas fa-chart-area fa-sm'></i></A></small>", "")
+	 local title = t["label"]
+
+	 if(t["chart"] ~= "") then
+	    local base_url
+
+	    if interface.getId() == tonumber(getSystemInterfaceId()) then
+	       base_url = "/lua/system_stats.lua"
+	    else
+	       base_url = "/lua/if_stats.lua"
+	    end
+
+	    title = title .. " <small><A HREF='"..ntop.getHttpPrefix().. base_url .. "?ifid="..string.format("%d", ifid).."&page=historical&ts_schema="..t["chart"].."'><i class='fas fa-chart-area fa-sm'></i></A></small>"
+	 end
 
 	 if(options.hide_filters ~= true)  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
