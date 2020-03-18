@@ -1011,7 +1011,6 @@ elseif string.contains(label, "packets") or string.contains(label, "flows") or l
    format_as_bytes = false
    format_as_bps = false
 else
-   tprint(schema)
    formatter_fctn = "fbits"
 end
 
