@@ -84,7 +84,7 @@ page_utils.menu_entries = {
     -- TODO plugins
 
     -- Exporters
-    event_exporters   	 = {key = "event_exporters", i18n_title = "system_interfaces_status", section = "exporters"},
+    event_exporters   	 = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
     sflow_exporters   	 = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "exporters"},
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters"},
 
