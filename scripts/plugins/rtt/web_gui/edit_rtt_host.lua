@@ -65,7 +65,7 @@ elseif(action == "edit") then
   if not existing then
     rv.error = i18n("rtt_stats.host_not_exists", {host=host_label})
   else
-    local rtt_value = _POST["rtt_max"] or 500
+    local rtt_value = _POST["rtt_max"] or 100
 
     rtt_utils.addHost(host, rtt_value)
     rv.success = true

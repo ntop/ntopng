@@ -1215,6 +1215,6 @@ div.help-block.with-errors .list-unstyled {
   margin-bottom: 0px !important;
 }
 
-div.dt-buttons {
+#rtt-table_wrapper div.dt-buttons {
   float: right;
 }

@@ -157,7 +157,8 @@ $(document).ready(function() {
                     text: '<i class="fas fa-plus"></i>',
                     className: 'btn-link',
                     action: function(e, dt, node, config) {
-                        $('#input-add-host').val();
+                        $('#input-add-host').val('');
+                        $('#input-add-threshold').val(100);
                         $('#rtt-add-modal').modal('show');
                     }
                 }

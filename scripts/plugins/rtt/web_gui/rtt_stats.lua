@@ -230,7 +230,7 @@ if(page == "overview") then
       </form>
     </div>
 
-    <div id='rtt-delete-modal' class="modal" tabindex="-1" role="dialog">
+    <div id='rtt-delete-modal' class="modal fade" tabindex="-1" role="dialog">
       <form id='rtt-delete-form'>
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
