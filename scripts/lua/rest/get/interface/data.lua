@@ -119,6 +119,13 @@ function dumpInterfaceStats(ifid)
       res["epoch"]      = os.time()
       res["localtime"]  = os.date("%H:%M:%S %z", res["epoch"])
       res["uptime"]     = secondsToTime(uptime)
+      if ntop.isPro() then
+	 local product_info = ntop.getInfo(true)
+
+	 if product_info["pro.out_of_maintenance"] then
+	    res["out_of_maintenance"] = true
+	 end
+      end
       res["system_host_stats"] = system_utils.systemHostStats()
       res["hosts_pctg"] = hosts_pctg
       res["flows_pctg"] = flows_pctg

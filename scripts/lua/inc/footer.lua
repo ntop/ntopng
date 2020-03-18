@@ -70,10 +70,6 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
    end
    print('</span></a>')
-
-   if(info["pro.out_of_maintenance"] == true) then
-      print('<span class="badge badge-error">') print(i18n("about.maintenance_expired", {product=info["product"]})) print('</span>')
-   end
 end
 
 print [[
@@ -239,6 +235,10 @@ print[[
 		$('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? fint(rsp.system_host_stats.alerts_queries) : "0");
 
 		if (rsp.system_host_stats.cpu_load !== undefined) $('#cpu-load-pct').html(ffloat(rsp.system_host_stats.cpu_load));
+
+        if(rsp.out_of_maintenance) {
+          msg += "<a href=\"https://www.ntop.org/support/faq/how-can-i-renew-maintenance-for-commercial-products/\" target=\"_blank\"><span class=\"badge badge-warning\">]] print(i18n("about.maintenance_expired", {product=info["product"]})) print[[ <i class=\"fas fa-external-link-alt\"></i></span></a> ";
+        }
 
         if(rsp.degraded_performance) {
 		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue\">"
