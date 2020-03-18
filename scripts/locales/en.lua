@@ -337,8 +337,8 @@ local lang = {
     ["ntopng_update"] = "Started after software update",
     ["open_files_limit_too_small"] = "Ntopng detected that the maximum number of files MySQL can open is potentially too small. This can result in flow data loss due to errors such as [Out of resources when opening file './ntopng/flowsv6#P#p22.MYD' (Errcode: 24 - Too many open files)][23]. Make sure to increase open_files_limit or, if you just want to ignore this warning, disable the check from the preferences.",
     ["periodic_activity_not_executed"] = "Periodic activity \"%{script}\" is queued but has not been executed. No thread available for  execution.  [Pending since %{pending_since}]",
-    ["ping_host_unreachable_v2"] = "[%{what}] %{ip_version} Host %{ip_label} %{numeric_ip} is unreachable.",
-    ["ping_rtt_too_slow_v2"] = "[%{what}] RTT too high for %{ip_version} host %{ip_label} %{numeric_ip} [%{rtt_value} ms > %{maximum_rtt} ms].",
+    ["ping_host_unreachable_v3"] = "Host %{host} %{numeric_ip} is unreachable.",
+    ["ping_rtt_too_slow_v3"] = "RTT too high for %{host} %{numeric_ip} [%{rtt_value} ms > %{maximum_rtt} ms].",
     ["potentially_dangerous_protocol_description"] = "This flow can be harmful for the network because an outdated or vulnerable protocol is in use.",
     ["proto_bytes_quotas"] = "%{proto} bytes",
     ["proto_time_quotas"] = "%{proto} time",
@@ -3353,6 +3353,10 @@ local lang = {
     ["restart"] = "Restart",
     ["restart_now"] = "Restart now",
     ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
+  },
+  ["rtt_stats"] = {
+    ["host_exists"] = "Host \"%{host}\" already exists",
+    ["host_not_exists"] = "Host \"%{host}\" not found",
   },
   ["scripts_list"] = {
     ["all"] = "All",

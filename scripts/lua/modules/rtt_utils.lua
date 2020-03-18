@@ -15,18 +15,12 @@ rtt_utils.probe_types = {
 
 -- ##############################################
 
-local rtt_hosts_key = string.format("ntopng.prefs.ifid_%d.system_rtt_hosts", getSystemInterfaceId())
+local rtt_hosts_key = string.format("ntopng.prefs.ifid_%d.system_rtt_hosts_v2", getSystemInterfaceId())
 
 -- ##############################################
 
 local function rtt_last_updates_key(key)
   return string.format("ntopng.cache.ifid_%d.system_rtt_hosts.last_update." .. key, getSystemInterfaceId())
-end
-
--- ##############################################
-
-function rtt_utils.host2key(host, iptype, probetype)
-  return table.concat({host, iptype, probetype}, "@")
 end
 
 -- ##############################################
@@ -37,13 +31,36 @@ end
 
 -- ##############################################
 
+function rtt_utils.unescapeRttHost(host)
+  -- This is necessary to uneascape http:__ into http:// and similars
+  local parts = string.split(host, ":__")
+
+  if(parts and (#parts == 2)) then
+    host = string.format("%s://%s", parts[1], parts[2])
+  end
+
+  return(host)
+end
+
+-- ##############################################
+
+local function rttHostSplitMeasurement(host)
+  local parts = string.split(host, ":__")
+
+  if(parts and (#parts == 2)) then
+    return parts[1], parts[2]
+  end
+end
+
+-- ##############################################
+
 function rtt_utils.getLastRttUpdate(key)
   local val = ntop.getCache(rtt_last_updates_key(key))
 
   if(val ~= nil)then
     local parts = string.split(val, "@")
 
-    if((parts ~= nil) and (#parts == 3)) then
+    if(parts and (#parts == 3)) then
       return {
         when = parts[1],
         value = parts[2],
@@ -55,100 +72,48 @@ end
 
 -- ##############################################
 
-function rtt_utils.probetype2label(probe_type)
-  if(probe_type == "icmp") then
-    return(i18n("icmp"))
-  elseif(probe_type == "http_get") then
-    return(i18n("http_s"))
-  else
-    return(probe_type)
-  end
+function rtt_utils.key2host(host)
+  local measurement, target = rttHostSplitMeasurement(host)
+
+  return {
+    key = host,
+    label = rtt_utils.unescapeRttHost(host),
+    measurement = measurement,
+    host = target,
+  }
 end
 
 -- ##############################################
 
-function rtt_utils.iptype2label(ip_type)
-  if(ip_type == "ipv6") then
-    return(i18n("ipv6"))
-  elseif(ip_type == "ipv4") then
-    return(i18n("ipv4"))
-  else
-    return(ip_type)
-  end
+-- Host (de)serialization functions. For now, only the RTT is saved.
+local function deserializeHost(host, val)
+  local rv = rtt_utils.key2host(host)
+
+  rv.max_rtt = tonumber(val)
+
+  return(rv)
+end
+
+local function serializeHost(host, val)
+  return string.format("%u", math.floor(tonumber(val)))
 end
 
 -- ##############################################
 
-function rtt_utils.key2label(key)
-  local parts = string.split(key, "@")
+function rtt_utils.hasHost(host_key)
+  local res = ntop.getHashCache(rtt_hosts_key, host_key)
 
-  if((parts ~= nil) and (#parts == 3)) then
-    local probe_type = parts[3]
-    local iplabel = rtt_utils.iptype2label(parts[2])
-
-    if(probe_type == "icmp") then
-      return string.format("%s [%s] (%s)", parts[1], iplabel, i18n("icmp"))
-    elseif (probe_type == "http_get") then
-      return string.format("%s [%s] (%s)", unescapeHttpHost(parts[1]), iplabel, i18n("http_s"))
-    end
-  end
-
-  return key
-end
-
--- ##############################################
-
-function rtt_utils.key2host(key)
-  local parts = string.split(key, "@")
-
-  if((parts ~= nil) and (#parts == 3)) then
-    return {
-      host = unescapeHttpHost(parts[1]),
-      iptype = parts[2],
-      probetype = parts[3],
-    }
-  end
-
-  return nil
-end
-
--- ##############################################
-
-function rtt_utils.deserializeHost(val)
-  local parts = string.split(val, "|")
-
-  if((parts ~= nil) and (#parts == 4)) then
-    local value = {
-      host = unescapeHttpHost(parts[1]),
-      iptype = parts[2], -- ipv4 or ipv6
-      probetype = parts[3],
-      max_rtt = tonumber(parts[4]),
-    }
-
-    return value
-  end
-end
-
--- ##############################################
-
-function rtt_utils.getHostsSerialized()
-  return ntop.getHashAllCache(rtt_hosts_key) or {}
-end
-
--- ##############################################
-
-function rtt_utils.getHostSerialized(host_key)
-   return ntop.getHashCache(rtt_hosts_key, host_key) or {}
+  return(not isEmptyString(res))
 end
 
 -- ##############################################
 
 function rtt_utils.getHosts()
-  local hosts = rtt_utils.getHostsSerialized()
+  local hosts = ntop.getHashAllCache(rtt_hosts_key) or {}
   local rv = {}
 
   for host, val in pairs(hosts) do
-    rv[host] = rtt_utils.deserializeHost(val)
+    rv[host] = deserializeHost(host, val)
   end
 
   return rv
@@ -157,27 +122,24 @@ end
 -- ##############################################
 
 function rtt_utils.getHost(host_key)
-   if not host_key then
-      return
-   end
+  local val = ntop.getHashCache(rtt_hosts_key, host_key)
 
-   res = rtt_utils.getHostSerialized(host_key)
-
-   if not isEmptyString(res) then
-      return rtt_utils.deserializeHost(res)
-   end
+  if not isEmptyString(val) then
+    return deserializeHost(host_key, val)
+  end
 end
 
 -- ##############################################
 
-function rtt_utils.addHost(host, value)
-  ntop.setHashCache(rtt_hosts_key, host, value)
+function rtt_utils.addHost(host, rtt_value)
+  ntop.setHashCache(rtt_hosts_key, host, serializeHost(host, rtt_value))
 end
 
 -- ##############################################
 
-function rtt_utils.removeHost(host)
+function rtt_utils.deleteHost(host)
   local alerts_api = require("alerts_api")
+  require("alert_utils")
   local rtt_host_entity = alerts_api.pingedHostEntity(host)
   local old_ifname = ifname
 

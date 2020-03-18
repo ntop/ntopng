@@ -114,8 +114,8 @@ function script.hooks.min(params)
   for key, host in pairs(all_hosts) do
      local domain_name = host.host
 
-     if(host.probetype == "icmp") then
-       local is_v6 = (host.iptype == "ipv6")
+     if((host.measurement == "icmp") or (host.measurement == "icmp6")) then
+       local is_v6 = (host.measurement == "icmp6")
        local ip_address = resolveRttHost(domain_name, is_v6)
 
        if not ip_address then
@@ -131,14 +131,14 @@ function script.hooks.min(params)
 
        pinged_hosts[ip_address] = key
        resolved_hosts[key] = ip_address
-     elseif(host.probetype == "http_get") then
+     elseif((host.measurement == "http") or (host.measurement == "https")) then
        if do_trace then
 	 print("[RTT] GET "..domain_name.."\n")
        end
 
        -- HTTP results are retrieved immediately
        local rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], false --[[ don't return content ]],
-	nil, false --[[ don't follow redirects ]], ternary(host.iptype == "ipv6", 6, 4))
+	nil, false --[[ don't follow redirects ]])
 
        if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
          local total_time = rv.HTTP_STATS.TOTAL_TIME * 1000
@@ -158,7 +158,7 @@ function script.hooks.min(params)
 	 }, when)
 	end
      else
-       print("[RTT] Unknown probe type: " .. host.probetype)
+       print("[RTT] Unknown measurement: " .. host.measurement)
        goto continue
      end
 

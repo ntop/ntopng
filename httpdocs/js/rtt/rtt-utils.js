@@ -60,7 +60,7 @@ $(document).ready(function() {
             }
         },
         ajax: {
-            url: `${http_prefix}/plugins/rtt_get_hosts.lua`,
+            url: `${http_prefix}/plugins/get_rtt_hosts.lua`,
             type: 'get',
             dataSrc: ''
         },
