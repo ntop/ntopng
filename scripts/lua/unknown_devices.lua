@@ -103,16 +103,18 @@ print('buttons: [')
    print ('#unassigned">'..i18n("unknown_devices.all_devices")..'</a></li>')
 
    devices_mode.unassigned_devices = "active_only"
-   print('<li class="nav-item"')
-   if page_params.unassigned_devices == devices_mode.unassigned_devices then print(' class="active"') end
-   print('><a class="dropdown-item" href="')
+   print('<li>')
+   print('<a class="dropdown-item ')
+   if page_params.unassigned_devices == devices_mode.unassigned_devices then print('active') end
+   print('" href="')
    print (getPageUrl(base_url, devices_mode))
    print ('#unassigned">'..i18n("unknown_devices.active_only")..'</a></li>')
 
    devices_mode.unassigned_devices = "inactive_only"
-   print('<li class="nav-item"')
-   if page_params.unassigned_devices == devices_mode.unassigned_devices then print(' class="active"') end
-   print('><a class="dropdown-item" href="')
+   print('<li>')
+   print('<a class="dropdown-item ')
+   if page_params.unassigned_devices == devices_mode.unassigned_devices then print('active') end
+   print('" href="')
    print (getPageUrl(base_url, devices_mode))
    print ('#unassigned">'..i18n("unknown_devices.inactive_only")..'</a></li>')
 

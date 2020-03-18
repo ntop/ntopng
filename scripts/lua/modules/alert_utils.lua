@@ -780,8 +780,9 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
    buttons = buttons..'<ul class="dropdown-menu dropdown-menu-right" role="menu">'
 
    local class_active = ""
-   if active_entry == nil then class_active = ' class="active"' end
-   buttons = buttons..'<li'..class_active..'><a class="dropdown-item" href="?status='..status..dropdownUrlParams(get_params)..'">All</a></i>'
+
+   if active_entry == nil then class_active = 'active' end
+   buttons = buttons..'<li><a class="dropdown-item '..class_active..'" href="?status='..status..dropdownUrlParams(get_params)..'">All</a></i>'
 
    for _, entry in pairs(actual_entries) do
       local id = tonumber(entry["id"])
@@ -791,9 +792,9 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
         local label = id_to_label(id, true)
 
         class_active = ""
-        if label == active_entry then class_active = ' class="active"' end
+        if label == active_entry then class_active = 'active' end
         -- buttons = buttons..'<li'..class_active..'><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
-        buttons = buttons..'<li'..class_active..'><a class="dropdown-item" href="?status='..status
+        buttons = buttons..'<li><a class="dropdown-item '..class_active..'" href="?status='..status
         buttons = buttons..dropdownUrlParams(get_params)
         buttons = buttons..'&alert_'..selection_name..'='..id..'">'
         buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'

@@ -30,7 +30,7 @@ local function printHashTablesDropdown(base_url, page_params)
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, hash_table_params)) print[[">]] print(i18n("internals.all_hash_tables")) print[[</a></li>\]]
 
    for ht, stats in pairsByKeys(interface.getHashTablesStats(), asc) do
-      print[[ <li><a class="dropdown-item ]] if hash_table == ht then print(' class="active"') end print[[" href="]] hash_table_params["hash_table"] = ht; print(getPageUrl(base_url, hash_table_params)); print[[">]] print(i18n("hash_table."..ht)) print[[</a></li>\]]
+      print[[ <li><a class="dropdown-item ]] if hash_table == ht then print('active') end print[[" href="]] hash_table_params["hash_table"] = ht; print(getPageUrl(base_url, hash_table_params)); print[[">]] print(i18n("hash_table."..ht)) print[[</a></li>\]]
    end
 end
 
@@ -401,7 +401,7 @@ local function printUserScriptsDropdown(base_url, page_params)
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, user_script_target_params)) print[[">]] print(i18n("internals.all_user_script_targets")) print[[</a></li>\]]
 
    for _, subdir in pairsByKeys(user_scripts.listSubdirs(), asc) do
-      print[[ <li]] if user_script_target == subdir["label"] then print(' class="active"') end print[[><a class="dropdown-item" href="]] user_script_target_params["user_script_target"] = subdir["label"]; print(getPageUrl(base_url, user_script_target_params)); print[[">]] print(subdir["label"]) print[[</a></li>\]]
+      print[[ <li><a class="dropdown-item ]] if user_script_target == subdir["label"] then print('active') end print[[" href="]] user_script_target_params["user_script_target"] = subdir["label"]; print(getPageUrl(base_url, user_script_target_params)); print[[">]] print(subdir["label"]) print[[</a></li>\]]
    end
 end
 

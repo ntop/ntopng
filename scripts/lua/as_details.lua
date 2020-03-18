@@ -144,9 +144,9 @@ local ndpi_stats = interface.getASInfo(asn)
 for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
    local class_active = ''
    if(key == application) then
-      class_active = ' class="active"'
+      class_active = 'active'
    end
-   dt_buttons = dt_buttons..'<li '..class_active..'><a class="dropdown-item" href="'..nav_url..'&page=flows&application='..key..'">'..key..'</a></li>'
+   dt_buttons = dt_buttons..'<li><a class="dropdown-item '..class_active..'" href="'..nav_url..'&page=flows&application='..key..'">'..key..'</a></li>'
 end
 
 dt_buttons = dt_buttons .. "</ul></div>']"

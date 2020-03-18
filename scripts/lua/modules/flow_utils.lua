@@ -1436,7 +1436,7 @@ function printL4ProtoDropdown(base_url, page_params, l4_proto)
 	  local num_proto = tonumber(key)
 	  print[[<li]]
 
-	  print([[><a class="dropdown-item ]].. (tonumber(l4_proto) == key and 'active' or '') ..[[" href="]])
+	  print([[><a class="dropdown-item ]].. (tonumber(l4proto) == key and 'active' or '') ..[[" href="]])
 
 	  local l4_table = ternary(key ~= 6, l4proto_params_non_tcp, l4proto_params)
 
@@ -1448,6 +1448,97 @@ function printL4ProtoDropdown(base_url, page_params, l4_proto)
     end
 
     print[[</ul>]]
+end
+
+-- #######################
+
+local function printFlowDevicesFilterDropdown(base_url, page_params)
+   if (ntop.isPro()) then
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+      require "snmp_utils"
+   end
+
+   local flowdevs = interface.getFlowDevices()
+   local vlans = interface.getVLANsList()
+
+   if flowdevs == nil then flowdevs = {} end
+
+   local devips = {}
+   for dip, _ in pairsByValues(flowdevs, asc) do
+      devips[#devips + 1] = dip
+   end
+
+   local cur_dev = _GET["deviceIP"]
+   local cur_dev_filter = ''
+   local snmp_community = ''
+   if not isEmptyString(cur_dev) then
+      cur_dev_filter = '<span class="fas fa-filter"></span>'
+   end
+
+   local dev_params = table.clone(page_params)
+   for _, p in pairs({"deviceIP", "outIfIdx", "inIfIdx"}) do
+      dev_params[p] = nil
+   end
+
+   print[[, '<div class="btn-group float-right">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
+	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
+   for _, dev_ip in ipairs(devips) do
+      local dev_name = dev_ip
+      dev_params["deviceIP"] = dev_name
+      local snmp_community = get_snmp_community(dev_name, true --[[ no default --]])
+      if not isEmptyString(snmp_community) then
+	 local snmp_name = get_snmp_device_name(dev_name, snmp_community)
+	 if not isEmptyString(snmp_name) and snmp_name ~= dev_name then
+	    dev_name = dev_name .. "["..shortenString(snmp_name).."]"
+	 end
+      else
+	 local resname = getResolvedAddress(hostkey2hostinfo(dev_name))
+	 if not isEmptyString(resname) and resname ~= dev_name then
+	    dev_name = dev_name .. "["..shortenString(resname).."]"
+	 end
+      end
+
+      print[[
+	 <li>\
+	   <a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.device_ip").." "..dev_name) print[[</a></li>\]]
+   end
+   print[[
+      </ul>\
+</div>']]
+
+   if cur_dev ~= nil then -- also print dropddowns for input and output interface index
+      local ports = interface.getFlowDeviceInfo(cur_dev)
+
+      for _, direction in pairs({"outIfIdx", "inIfIdx"}) do
+	 local cur_if = _GET[direction]
+	 local cur_if_filter = ''
+	 if not isEmptyString(cur_if) then
+	    cur_if_filter = '<span class="fas fa-filter"></span>'
+	 end
+
+	 local if_params = table.clone(page_params)
+
+	 if_params[direction] = nil
+	    print[[, '<div class="btn-group float-right">\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page."..direction)) print[[]] print(cur_if_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
+	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page.all_"..direction)) print[[</a></li>\]]
+
+	    for portidx, _ in pairsByKeys(ports, asc) do
+	       if_params[direction] = portidx
+
+	       print[[
+	 <li>\
+	   <a class="dropdown-item ]] print(cur_if == tostring(portidx) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page."..direction).." "..tostring(portidx)) print[[</a></li>\]]
+	    end
+	    print[[
+      </ul>\
+</div>']]
+      end
+
+   end
 end
 
 -- #######################
@@ -1730,8 +1821,8 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
         print('">'..i18n("traffic_profiles.all_profiles")..'</a></li>')
 
         for key,_ in pairsByKeys(profiles) do
-	  local class_active = ''
-	  if(key == page_params.traffic_profile) then
+	   local class_active = ''
+          if(key == _GET["traffic_profile"]) then
 	    class_active = 'active'
 	  end
 	  print('<li><a class="dropdown-item '..class_active..'" href="')

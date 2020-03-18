@@ -1478,8 +1478,6 @@ function printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_param
 
          print('<li><a class="dropdown-item '.. ternary(cat_id_or_name == ternary(by_id, entry.cat_id, entry.id), 'active', '') ..'" href="' .. getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") ..
             entry.text .. '</a></li>')
-      else
-         print(makeMenuDivider())
       end
    end
 

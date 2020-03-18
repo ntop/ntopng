@@ -164,11 +164,7 @@ function custom_column_utils.printCustomColumnDropdown(base_url, page_params)
       local key = lg[1]
       local label = lg[2]
 
-      if custom_column == label then
-	      goto continue
-      end
-
-      print[[<li><a class="dropdown-item" href="]] custom_column_params["custom_column"] = key; print(getPageUrl(base_url, custom_column_params)); print[[">]] print(label) print[[</a></li>]]
+      print[[<li><a class="dropdown-item ]] print(custom_column == label and 'active' or '') print[[" href="]] custom_column_params["custom_column"] = key; print(getPageUrl(base_url, custom_column_params)); print[[">]] print(label) print[[</a></li>]]
 
       ::continue::
    end
