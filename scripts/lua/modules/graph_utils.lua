@@ -994,10 +994,24 @@ if label == "load_percentage" then
 elseif label == "resident_bytes" then
    formatter_fctn = "bytesToSize"
    format_as_bytes = true
-elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") then
+elseif string.contains(label, "pct") then
+   formatter_fctn = "fpercent"
    format_as_bps = false
+   format_as_bytes = false
+elseif schema == "process:num_alerts" then
+   formatter_fctn = "falerts"
+   format_as_bps = false
+   format_as_bytes = false
+elseif label:contains("millis") or label:contains("_ms") then
+   formatter_fctn = "fmillis"
+   format_as_bytes = false
+   format_as_bps = false
+elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") or label:contains("alerts") then
    formatter_fctn = "fint"
+   format_as_bytes = false
+   format_as_bps = false
 else
+   tprint(schema)
    formatter_fctn = "fbits"
 end
 
@@ -1031,7 +1045,6 @@ if(stats ~= nil) then
      print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval), 1) .. '</td></tr>\n')
      print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats.average, 2)) .. '</td></tr>\n')
      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(stats["95th_percentile"], 2)) .. '</td></tr>\n')
-     print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(stats.total)) .. '</td></tr>\n')
    else
      print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bitsToSize((stats.min_val*8) or "") .. '</td></tr>\n')
      print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bitsToSize((stats.max_val*8) or "") .. '</td></tr>\n')
