@@ -6,6 +6,13 @@ local rtt_utils = {}
 local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
 
+rtt_utils.probe_types = {
+   { title = "icmp",   value = "icmp"  },
+   { title = "icmp6",  value = "icmp6" },
+   { title = "http",   value = "http"  },
+   { title = "https",  value = "https" }
+}
+
 -- ##############################################
 
 local rtt_hosts_key = string.format("ntopng.prefs.ifid_%d.system_rtt_hosts", getSystemInterfaceId())

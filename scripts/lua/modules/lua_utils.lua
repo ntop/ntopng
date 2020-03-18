@@ -3421,7 +3421,6 @@ end
 --- Return an HTML `select` element with passed options.
 --
 function generate_select(id, name, is_required, is_disabled, options)
-
    local required_flag = (is_required and "required" or "")
    local disabled_flag = (is_disabled and "disabled" or "")
    local name_attr = (name == "" and "name='" .. name .. "'" or "")

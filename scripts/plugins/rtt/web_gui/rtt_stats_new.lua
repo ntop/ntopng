@@ -11,6 +11,8 @@ local alert_consts = require("alert_consts")
 local rtt_utils = require("rtt_utils")
 local plugins_utils = require("plugins_utils")
 local template = require("template_utils")
+local rtt_utils = require("rtt_utils")
+
 require("graph_utils")
 require("alert_utils")
 
@@ -140,17 +142,10 @@ if(page == "overview") then
             </div>
             <div class="modal-body container-fluid">
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Measurument</label>
-                <div class="col-sm-5">
-                  ]]..
-                  generate_select("select-measurement", "measurement", true, false, {
-                    { value = "icmp",   title = "Icmp"},
-                    { value = "icmp6",  title = "Icmp6"},
-                    { value = "ipv4",   title = "IpV4"},
-                    { value = "ipv6",   title = "IpV6"},
-                  })
-                  ..[[
-                </div>
+                <label class="col-sm-2 col-form-label">Measurement</label>
+                <div class="col-sm-5"> ]])
+                  print(generate_select("select-measurement", "measurement", true, false, rtt_utils.probe_types))
+                print ([[</div>
               </div>
               <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Host</label>
