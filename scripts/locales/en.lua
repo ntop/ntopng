@@ -5,6 +5,7 @@ local lang = {
   ["active_flows"] = "Active Flows",
   ["activities"] = "Activities",
   ["activity"] = "Activity",
+  ["add"] = "Add",
   ["advanced"] = "Advanced",
   ["aggregation"] = "Aggregation",
   ["alias"] = "Alias",
@@ -3357,6 +3358,7 @@ local lang = {
     ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
   },
   ["rtt_stats"] = {
+    ["add_rtt"] = "Add RTT Record",
     ["config_reset_confirm"] = "Do you really want to discard the current configuration and reset it to default?",
     ["confirm_delete"] = "Do you want really remove this record?",
     ["edit_rtt"] = "Edit RTT Record",
