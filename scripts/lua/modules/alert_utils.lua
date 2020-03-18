@@ -827,7 +827,7 @@ local function printProbesTab(entity_probes, entity_type, entity_value, page_nam
        --~ <td>]] print(probe["probe"]["name"]) print[[</td>
        --~ <td><a href="]] print(probe["config"]["url"]) print[["><i class="fas fa-cog" aria-hidden="true"></i></a></td>
      --~ </tr>]]
-	 
+
       --~ end
 
       --~ print[[</table>]]
@@ -1383,7 +1383,7 @@ function toggleAlert(disable) {
 </script>
 ]]
 
-      if not alt_nav_tabs then print [[<div class="tab-content">]] end
+      if not alt_nav_tabs then print [[<div class="tab-content my-3">]] end
 
       local status = _GET["status"]
       if(status == nil) then
@@ -1621,7 +1621,7 @@ function toggleAlert(disable) {
       ], tableCallback: function() {
             var table_data = $("#]] print(t["div-id"]) print[[").data("datatable").resultset.data;
 
-            datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {              
+            datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {
                var alert_key = $("td:nth(8)", this).html().split("|");
                var alert_id = alert_key[0];
                var data = table_data[row_id];
@@ -1941,7 +1941,7 @@ function check_macs_alerts(ifid)
       end
    end)
 
-   -- Safety check to avoid notifying disconnected devices 
+   -- Safety check to avoid notifying disconnected devices
    -- during shutdown when they are no longer active in ntopng.
    if not ntop.isShutdown() then
 
@@ -2400,7 +2400,7 @@ function processAlertNotifications(now, periodic_frequency, force_export)
       if message.is_flow_alert then
 	-- Silly but necessary due to the notifyFlowAlert
 	message.alert_entity = alert_consts.alert_entities.flow.entity_id
-	message.alert_entity_val = "flow" 
+	message.alert_entity_val = "flow"
         message.action = nil
 
         json_message = json.encode(message)
@@ -2422,7 +2422,7 @@ local function notify_ntopng_status(started)
    local msg_details = string.format("%s v.%s (%s) [OS: %s][pid: %s][options: %s]", info.product, info.version, info.revision, info.OS, info.pid, info.command_line)
    local anomalous = false
    local event
-   
+
    if(started) then
 
       -- reading current version and last version to check if it has been updated
@@ -2469,7 +2469,7 @@ local function notify_ntopng_status(started)
   local entity_info = alerts_api.processEntity(entity_value)
   local type_info = alerts_api.processNotificationType(event, severity, msg_details)
 
-  interface.select(getSystemInterfaceId())  
+  interface.select(getSystemInterfaceId())
   return(alerts_api.store(entity_info, type_info))
 end
 

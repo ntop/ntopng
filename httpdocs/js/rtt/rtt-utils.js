@@ -7,10 +7,9 @@ $(document).ready(function() {
         event.preventDefault();
 
         const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
-        const rtt_host = `${measurement}://${host}`;
 
         const threshold = $("#input-add-threshold").val();
-        perform_request(make_data_to_send('add', rtt_host, threshold, measurement, rtt_csrf));
+        perform_request(make_data_to_send('add', host, threshold, measurement, rtt_csrf));
 
     });
 
@@ -146,7 +145,7 @@ $(document).ready(function() {
         initComplete: function() {
             setInterval(() => {
                 $rtt_table.ajax.reload()
-            }, 3000);
+            }, 15000);
         },
         ajax: {
             url: `${http_prefix}/plugins/get_rtt_hosts.lua`,
