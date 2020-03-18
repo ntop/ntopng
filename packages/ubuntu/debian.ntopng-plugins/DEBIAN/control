@@ -1,0 +1,15 @@
+Source: ntopng-plugins
+Package: ntopng-plugins
+Section: free
+Priority: optional
+Maintainer: Simone Mainardi <mainardi@ntop.org>
+Version: 1.0-1
+Depends:
+Pre-Depends:
+Architecture: all
+Recommends: ntopng
+Suggests: ntopng
+Conflicts:
+Provides:
+Replaces:
+Description: An example package to install ntopng plugins
