@@ -535,7 +535,7 @@ path.link {
 .filter-scripts-button.active {
   color: #ffffff;
   background-color: #007bff;
-  border-radius: 0.5rem;
+  border-radius: 0.35rem;
 }
 
 .filter-scripts-button.active:hover {
@@ -1217,4 +1217,12 @@ div.help-block.with-errors .list-unstyled {
 
 #rtt-table_wrapper div.dt-buttons {
   float: right;
+}
+
+th.dt-head-center {
+  text-align: center;
+}
+
+td.dt-body-right {
+  text-align: right;
 }

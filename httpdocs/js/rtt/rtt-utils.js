@@ -1,8 +1,6 @@
 $(document).ready(function() {
 
-    $("#rtt-alert button").click(function() {
-        $("#rtt-alert").hide();
-    });
+    let rtt_alert_timeout = null;
 
     $("#rtt-add-form").on('submit', function(event) {
 
@@ -101,10 +99,15 @@ $(document).ready(function() {
             rtt_csrf = data.csrf;
             $(`form#rtt-${action}-modal button[type='submit']`).removeAttr("disabled");
 
-
             if (data.success) {
+
+                if (!rtt_alert_timeout) clearTimeout(rtt_alert_timeout);
+                rtt_alert_timeout = setTimeout(() => {
+                    $('#rtt-alert').fadeOut();
+                }, 1000)
+
                 $('#rtt-alert .alert-body').text(data.message);
-                $('#rtt-alert').show();
+                $('#rtt-alert').fadeIn();
                 $(`#rtt-${action}-modal`).modal('hide');
                 $rtt_table.ajax.reload();
                 return;
@@ -181,16 +184,21 @@ $(document).ready(function() {
                 }
             },
             {
-                data: 'threshold'
+                data: 'threshold',
+                className: 'text-center'
             },
             {
-                data: 'last_mesurement_time'
+                data: 'last_mesurement_time',
+                className: 'dt-body-right dt-head-center'
             },
             {
-                data: 'last_ip'
+                data: 'last_ip',
+                className: 'dt-body-right dt-head-center'
             },
             {
-                data: 'last_rtt'
+                data: 'last_rtt',
+                className: 'dt-body-right dt-head-center'
+
             },
             {
                 targets: -1,

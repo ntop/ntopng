@@ -157,7 +157,7 @@ if(page == "overview") then
               <div class="form-group row">
                 <label class="col-sm-2 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
                 <div class="col-sm-5">
-                  <input placeholder="ntop.org" required id="input-edit-host" type="text" name="host" class="form-control" />
+                  <input placeholder="yourhostname.org" required id="input-edit-host" type="text" name="host" class="form-control" />
                 </div>
               </div>
               <div class="form-group row">
@@ -204,7 +204,7 @@ if(page == "overview") then
               <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Host</label>
                 <div class="col-sm-5">
-                  <input placeholder="ntop.org" required id="input-add-host" type="text" name="host" class="form-control" />
+                  <input placeholder="yourhostname.org" required id="input-add-host" type="text" name="host" class="form-control" />
                 </div>
               </div>
               <div class="form-group row">
