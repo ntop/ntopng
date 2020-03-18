@@ -273,6 +273,7 @@ if(page == "overview") then
       i18n.showing_x_to_y_rows = "]].. i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) ..[[";
       i18n.search = "]].. i18n("search") ..[[:";
       let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+      let import_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
 
     </script>
     <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/rtt/rtt-utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
