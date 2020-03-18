@@ -92,13 +92,15 @@ $(document).ready(function() {
 
         $(`#rtt-${action}-modal span.invalid-feedback`).hide();
         $('#rtt-alert').hide();
+        $(`form#rtt-${action}-modal button[type='submit']`).attr("disabled", "disabled");
 
         $.post(`${http_prefix}/plugins/edit_rtt_host.lua`, data_to_send)
         .then((data, result, xhr) => {
 
             // always update the token
             rtt_csrf = data.csrf;
-            console.log(data);
+            $(`form#rtt-${action}-modal button[type='submit']`).removeAttr("disabled");
+
 
             if (data.success) {
                 $('#rtt-alert .alert-body').text(data.message);
@@ -129,6 +131,9 @@ $(document).ready(function() {
         stateSave: true,
         dom: 'lfBrtip',
         language: {
+            info: i18n.showing_x_to_y_rows,
+            search: i18n.search,
+            infoFiltered: "",
             paginate: {
                previous: '&lt;',
                next: '&gt;',

@@ -167,7 +167,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text">&gt;</span>
                     </div>
-                    <input step="100" placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right" min="10" max="10000">
+                    <input placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right" min="10" max="10000">
                     <span class="my-auto ml-1">]] .. i18n("rtt_stats.msec") .. [[</span>
                   </div>
                 </div>
@@ -214,7 +214,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text">&gt;</span>
                     </div>
-                    <input step="100" placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right" min="1">
+                    <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right" min="1">
                     <span class="my-auto ml-1">msec</span>
                   </div>
                 </div>
@@ -269,7 +269,11 @@ if(page == "overview") then
   print([[
     <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
     <script type="text/javascript">
+
+      i18n.showing_x_to_y_rows = "]].. i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) ..[[";
+      i18n.search = "]].. i18n("search") ..[[:";
       let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+
     </script>
     <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/rtt/rtt-utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
   ]])

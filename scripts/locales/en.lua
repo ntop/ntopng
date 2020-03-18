@@ -186,6 +186,7 @@ local lang = {
   ["save_settings"] = "Save Settings",
   ["score"] = "Score",
   ["scripts"] = "Scripts",
+  ["search"] = "Search",
   ["search_host"] = "Search",
   ["seen_since"] = "Seen Since",
   ["sent"] = "Sent",
