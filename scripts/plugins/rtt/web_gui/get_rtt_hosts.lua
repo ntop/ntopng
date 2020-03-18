@@ -46,6 +46,8 @@ for key, rtt_host in pairs(rtt_hosts) do
       column_last_ip = last_update.ip
     end
 
+    if(column_last_rtt == "") then chart = "" end
+
     res[#res + 1] = {
        key = key,
        url = rtt_host.label,
