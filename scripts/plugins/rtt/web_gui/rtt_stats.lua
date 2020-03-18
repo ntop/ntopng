@@ -167,7 +167,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text">&gt;</span>
                     </div>
-                    <input placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control" min="1">
+                    <input step="100" placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right" min="10" max="10000">
                     <span class="my-auto ml-1">]] .. i18n("rtt_stats.msec") .. [[</span>
                   </div>
                 </div>
@@ -214,7 +214,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text">&gt;</span>
                     </div>
-                    <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control" min="1">
+                    <input step="100" placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right" min="1">
                     <span class="my-auto ml-1">msec</span>
                   </div>
                 </div>

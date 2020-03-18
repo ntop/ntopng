@@ -136,6 +136,11 @@ $(document).ready(function() {
                last: '»'
             }
         },
+        initComplete: function() {
+            setInterval(() => {
+                $rtt_table.ajax.reload()
+            }, 3000);
+        },
         ajax: {
             url: `${http_prefix}/plugins/get_rtt_hosts.lua`,
             type: 'get',
@@ -147,6 +152,7 @@ $(document).ready(function() {
                     text: '<i class="fas fa-plus"></i>',
                     className: 'btn-link',
                     action: function(e, dt, node, config) {
+                        $('#input-add-host').val();
                         $('#rtt-add-modal').modal('show');
                     }
                 }
