@@ -113,11 +113,11 @@ if(page == "overview") then
               <tr>
                 <th>]].. i18n("flow_details.url") ..[[</th>
                 <th>]].. i18n("chart") ..[[</th>
-                <th>Threshold</th>
-                <th>Last Measurement</th>
-                <th>Last IP</th>
-                <th>Measurement Time</th>
-                <th>Action</th>
+                <th>]].. i18n("threshold") .. [[</th>
+                <th>]].. i18n("rtt_stats.last_measurement") .. [[</th>
+                <th>]].. i18n("system_stats.last_rtt") .. [[</th>
+                <th>]].. i18n("rtt_stats.measurement_time") .. [[</th>
+                <th>]].. i18n("actions") .. [[</th>
               </tr>
             </thead>
             <tbody>
@@ -132,42 +132,42 @@ if(page == "overview") then
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Edit RTT Record</h5>
+              <h5 class="modal-title">]] .. i18n("rtt_stats.edit_rtt") .. [[</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body container-fluid">
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Measurement</label>
+                <label class="col-sm-2 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
                 <div class="col-sm-5"> ]])
                   print(generate_select("select-measurement", "measurement", true, false, rtt_utils.probe_types))
                 print ([[</div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Host</label>
+                <label class="col-sm-2 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
                 <div class="col-sm-5">
                   <input required id="host-input" type="text" name="host" class="form-control" />
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Threshold</label>
+                <label class="col-sm-2 col-form-label">]] .. i18n("threshold") .. [[</label>
                 <div class="col-sm-5">
                   <div class="input-group">
                     <div class="input-group-prepend">
                       <span class="input-group-text">&gt;</span>
                     </div>
                     <input required id="threshold" name="threshold" type="number" class="form-control" min="1">
-                    <span class="my-auto ml-1">msec</span>
+                    <span class="my-auto ml-1">]] .. i18n("rtt_stats.msec") .. [[</span>
                   </div>
                 </div>
               </div>
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">Reset Default</button>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Apply</button>
+              <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">]] .. i18n("scripts_list.reset_default") .. [[</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
+              <button type="submit" class="btn btn-primary">]] .. i18n("apply") .. [[</button>
             </div>
           </div>
         </div>
@@ -179,19 +179,19 @@ if(page == "overview") then
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Delete: </h5>
+              <h5 class="modal-title">]] .. i18n("delete") .. [[: </h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body">
               <p>
-                Do you want really remove this record?
+		]] .. i18n("rtt_stats.confirm_delete") .. [[
               </p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-danger">Confirm Deleting</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
+              <button type="submit" class="btn btn-danger">]] .. i18n("delete") .. [[</button>
             </div>
           </div>
         </div>
