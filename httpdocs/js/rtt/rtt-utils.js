@@ -103,4 +103,14 @@ $(document).ready(function() {
         ]
     });
 
+    importModalHelper({
+        load_config_xhr: (json_conf) => {
+          return $.post(http_prefix + "/plugins/import_rtt_config.lua", {
+            csrf: import_csrf,
+            JSON: json_conf,
+          });
+        }, reset_csrf: (new_csrf) => {
+            import_csrf = new_csrf;
+        }
+    });
 });

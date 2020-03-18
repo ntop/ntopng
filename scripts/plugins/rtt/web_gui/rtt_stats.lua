@@ -49,6 +49,11 @@ if((host ~= nil) and (page ~= "overview")) then
    title = title..": " .. host.label
 end
 
+if isAdministrator() then
+  if(_POST["action"] == "reset_config") then
+    rtt_utils.resetConfig()
+  end
+end
 
 page_utils.print_navbar(title, url,
 			{
@@ -76,6 +81,29 @@ page_utils.print_navbar(title, url,
 -- #######################################################
 
 if(page == "overview") then
+  print(template.gen("modal_confirm_dialog.html", {
+      dialog={
+	  id      = "reset-modal",
+	  action  = "$('#reset-form').submit()",
+	  title   = i18n("config_scripts.config_reset"),
+	  message = i18n("rtt_stats.config_reset_confirm"),
+	  confirm = i18n("reset")
+       }
+  }))
+
+  print(
+    template.gen("config_list_components/import_modal.html", {
+      dialog={
+	id      = "import-modal",
+	title   = i18n("host_pools.config_import"),
+	label   = "",
+	message = i18n("host_pools.config_import_message"),
+	cancel  = i18n("cancel"),
+	apply   = i18n("apply"),
+      }
+    })
+  )
+
   print([[
     <div class='container-fluid my-3'>
       <div class='row'>
@@ -170,10 +198,23 @@ if(page == "overview") then
       </form>
     </div>
 
+    <div style="margin-bottom: 1rem">
+        <form action="]] .. ntop.getHttpPrefix() .. [[/plugins/get_rtt_config.lua" class="form-inline" method="GET">
+            <button type="submit" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_export') .. [[</span></button>
+        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_import') .. [[</span></button>
+	<form class="form-inline" method="POST" id="reset-form">
+	  <input type="hidden" name="csrf" value="]].. ntop.getRandomCSRFValue() ..[["/>
+	  <input type="hidden" name="action" value="reset_config"/>
+	  <button type="button" id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_reset') .. [[</span></button>
+	</form>
+    </div>
   ]])
 
   print([[
     <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
+    <script type='text/javascript'>
+      let import_csrf = ']] .. ntop.getRandomCSRFValue() .. [[';
+    </script>
     <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/rtt/rtt-utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
   ]])
 

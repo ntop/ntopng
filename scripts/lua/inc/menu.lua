@@ -36,6 +36,9 @@ print[[
       "actions": "]] print(i18n("actions")) print[[",
       "query_was_aborted": "]] print(i18n("graphs.query_was_aborted")) print[[",
       "exports": "]] print(i18n("system_stats.exports_label")) print[[",
+      "no_file": "]] print(i18n("config_scripts.no_file")) print[[",
+      "invalid_file": "]] print(i18n("config_scripts.invalid_file")) print[[",
+      "request_failed_message": "]] print(i18n("request_failed_message")) print[[",
    };
    const system_view_enabled = ]] print(ternary(is_system_interface, "true", "false")) print[[;
    const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";

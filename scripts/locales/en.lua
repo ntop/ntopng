@@ -3355,6 +3355,7 @@ local lang = {
     ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
   },
   ["rtt_stats"] = {
+    ["config_reset_confirm"] = "Do you really want to discard the current configuration and reset it to default?",
     ["host_exists"] = "Host \"%{host}\" already exists",
     ["host_not_exists"] = "Host \"%{host}\" not found",
   },

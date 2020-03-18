@@ -1,21 +1,6 @@
 // 2020 - ntop.org
 const special_characters_regex = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\,\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
 
-// return true if the status code is different from 200
-const check_status_code = (status_code, status_text, $error_label) => {
-        
-    const is_different = status_code != 200;
-
-    if (is_different && $error_label != null) {
-        $error_label.text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
-    }
-    else if (is_different && $error_label == null) {
-        alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
-    }
-
-    return is_different;
-}
-
 const get_configuration_data = ($config_table, $button_caller) => {
 
     // get row data
@@ -484,74 +469,14 @@ $(document).ready(function() {
     });
 
     // handle import modal
-    $('#import-modal-btn').on("click", function(e) { 
-
-        // hide previous errors
-        $("#import-error").hide();
-
-        $("#import-modal form").off("submit");
-
-        $('#btn-confirm-import').off('click').click(function(e) {
-
-            const $button = $(this);
-
-            let applied_value = null;
-
-            $button.attr("disabled", "");
-
-            // Read configuration file file
-            var file = $('#import-input')[0].files[0];
-
-            if (!file) {
-                 $("#import-error").text(`${i18n.no_file}`).show();
-
-                 // re-enable button
-                 $button.removeAttr("disabled");
-             } else {
-                var reader = new FileReader();
-                reader.onload = function () {
-                    // Client-side configuration file format check
-                    let json_conf = null
-                    try { json_conf = JSON.parse(reader.result); } catch (e) {}
-
-                    if (!json_conf || !json_conf['0']) {
-                        $("#import-error").text(`${i18n.invalid_file}`).show();
-                        // re-enable button
-                        $button.removeAttr("disabled");
-                    } else {
-                        // Submit configuration file
-                        $.post(`${http_prefix}/lua/rest/set/scripts/config.lua`, {
-                            csrf: import_csrf,
-                            JSON: JSON.stringify(json_conf)
-                        })
-                        .done((d, status, xhr) => {
-                            if (check_status_code(xhr.status, xhr.statusText, $("#import-error"))) return;
-                            if (!d.success) {
-                                $("#import-error").text(d.error).show();
-                                // update token
-                                import_csrf = d.csrf;
-                            } else {
-                                location.reload();
-                            }
-                        })
-                        .fail(({ status, statusText }) => {
-                            check_status_code(status, statusText, $("#import-error"));
-
-                            // re-enable button
-                            $button.removeAttr("disabled");
-                        });
-
-                     };
-                 }
-                 reader.readAsText(file, "UTF-8");
-             }
-        });
-
-        $("#import-modal").on("submit", "form", function (e) {
-            e.preventDefault();
-            $("#btn-import").trigger("click");
-        });
-
+    importModalHelper({
+        load_config_xhr: (json_conf) => {
+          return $.post(`${http_prefix}/lua/rest/set/scripts/config.lua`, {
+            csrf: import_csrf,
+            JSON: json_conf,
+          });
+        }, reset_csrf: (new_csrf) => {
+            import_csrf = new_csrf;
+        }
     });
-
 });
