@@ -49,6 +49,11 @@ if((host ~= nil) and (page ~= "overview")) then
    title = title..": " .. host.label
 end
 
+if isAdministrator() then
+  if(_POST["action"] == "reset_config") then
+    rtt_utils.resetConfig()
+  end
+end
 
 page_utils.print_navbar(title, url,
 			{
@@ -76,6 +81,29 @@ page_utils.print_navbar(title, url,
 -- #######################################################
 
 if(page == "overview") then
+  print(template.gen("modal_confirm_dialog.html", {
+      dialog={
+	  id      = "reset-modal",
+	  action  = "$('#reset-form').submit()",
+	  title   = i18n("config_scripts.config_reset"),
+	  message = i18n("rtt_stats.config_reset_confirm"),
+	  confirm = i18n("reset")
+       }
+  }))
+
+  print(
+    template.gen("config_list_components/import_modal.html", {
+      dialog={
+	id      = "import-modal",
+	title   = i18n("host_pools.config_import"),
+	label   = "",
+	message = i18n("host_pools.config_import_message"),
+	cancel  = i18n("cancel"),
+	apply   = i18n("apply"),
+      }
+    })
+  )
+
   print([[
     <div class='container-fluid my-3'>
       <div class='row'>
@@ -95,11 +123,11 @@ if(page == "overview") then
               <tr>
                 <th>]].. i18n("flow_details.url") ..[[</th>
                 <th>]].. i18n("chart") ..[[</th>
-                <th>Threshold</th>
-                <th>Last Measurement</th>
-                <th>Last IP</th>
-                <th>Measurement Time</th>
-                <th>Action</th>
+                <th>]].. i18n("threshold") .. [[</th>
+                <th>]].. i18n("rtt_stats.last_measurement") .. [[</th>
+                <th>]].. i18n("system_stats.last_rtt") .. [[</th>
+                <th>]].. i18n("rtt_stats.measurement_time") .. [[</th>
+                <th>]].. i18n("actions") .. [[</th>
               </tr>
             </thead>
             <tbody>
@@ -114,42 +142,42 @@ if(page == "overview") then
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Edit RTT Record</h5>
+              <h5 class="modal-title">]] .. i18n("rtt_stats.edit_rtt") .. [[</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body container-fluid">
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Measurement</label>
+                <label class="col-sm-2 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
                   ]].. generate_select("select-edit-measurement", "measurement", true, false, rtt_utils.probe_types) ..[[
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Host</label>
+                <label class="col-sm-2 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
                 <div class="col-sm-5">
                   <input placeholder="ntop.org" required id="input-edit-host" type="text" name="host" class="form-control" />
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Threshold</label>
+                <label class="col-sm-2 col-form-label">]] .. i18n("threshold") .. [[</label>
                 <div class="col-sm-5">
                   <div class="input-group">
                     <div class="input-group-prepend">
                       <span class="input-group-text">&gt;</span>
                     </div>
                     <input placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control" min="1">
-                    <span class="my-auto ml-1">msec</span>
+                    <span class="my-auto ml-1">]] .. i18n("rtt_stats.msec") .. [[</span>
                   </div>
                 </div>
               </div>
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">Reset</button>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Apply</button>
+              <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">]] .. i18n("reset") .. [[</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
+              <button type="submit" class="btn btn-primary">]] .. i18n("apply") .. [[</button>
             </div>
           </div>
         </div>
@@ -207,25 +235,35 @@ if(page == "overview") then
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Delete: <span id="delete-host"></span></h5>
+              <h5 class="modal-title">]] .. i18n("delete") .. [[: <span id="delete-host"></span></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body">
               <p>
-                Do you want really remove this record?
+		              ]] .. i18n("rtt_stats.confirm_delete") .. [[
               </p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button id="btn-delete-rtt" type="submit" class="btn btn-danger">Confirm Deleting</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
+              <button id="btn-delete-rtt" type="submit" class="btn btn-danger">]] .. i18n("delete") .. [[</button>
             </div>
           </div>
         </div>
       </form>
     </div>
 
+    <div style="margin-bottom: 1rem">
+        <form action="]] .. ntop.getHttpPrefix() .. [[/plugins/get_rtt_config.lua" class="form-inline" method="GET">
+            <button type="submit" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_export') .. [[</span></button>
+        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_import') .. [[</span></button>
+	<form class="form-inline" method="POST" id="reset-form">
+	  <input type="hidden" name="csrf" value="]].. ntop.getRandomCSRFValue() ..[["/>
+	  <input type="hidden" name="action" value="reset_config"/>
+	  <button type="button" id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_reset') .. [[</span></button>
+	</form>
+    </div>
   ]])
 
   print([[

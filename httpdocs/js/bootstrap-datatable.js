@@ -158,7 +158,7 @@
 
             // append the detail boxes
             $e.prepend(that.$top_details);
-            
+
             if (res.summary != undefined) $e.prepend(that.$summary_table);
             $e.append(that.$bottom_details);
 
@@ -171,10 +171,10 @@
 
             // render table summary
             if (res.summary != undefined) {
-              
+
               // do a validity check summing all percentages
               if (res.summary.map(s => s.percentage).reduce((acc, curr) => acc + curr) <= 100) {
-                
+
                 // clear the previous state
                 const $summary = that.$summary_table.find('summary');
                 $summary.empty();
@@ -186,22 +186,22 @@
 
                 // create progresses bars
                 res.summary.forEach((s) => {
-  
+
                   const color = colors.pop();
-  
+
                   const $progress = $(`<div class='progress-bar'></div>`);
                   $progress.attr('role', 'progressbar');
                   $progress.css('width', `${s.percentage}%`);
                   $progress.addClass(color);
                   $progresses.append($progress);
-  
+
                   const $li = $(`<li></li>`);
                   $li.html(`<i class='fas fa-circle ${color.replace('bg', 'text')}'></i> ${s.label} <span>(${s.percentage}%)</span>`);
-  
+
                   $list.append($li);
-  
+
                 });
-  
+
                 $summary.append($progresses);
               }
 

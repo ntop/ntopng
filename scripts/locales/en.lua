@@ -206,6 +206,7 @@ local lang = {
   ["tcp_flags"] = "TCP Flags",
   ["tcp_stats"] = "TCP Statistics",
   ["telemetry"] = "Telemetry",
+  ["threshold"] = "Threshold",
   ["throughput"] = "Throughput",
   ["time"] = "Time",
   ["time_in"] = "in",
@@ -3355,8 +3356,15 @@ local lang = {
     ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
   },
   ["rtt_stats"] = {
+    ["config_reset_confirm"] = "Do you really want to discard the current configuration and reset it to default?",
+    ["confirm_delete"] = "Do you want really remove this record?",
+    ["edit_rtt"] = "Edit RTT Record",
     ["host_exists"] = "Host \"%{host}\" already exists",
     ["host_not_exists"] = "Host \"%{host}\" not found",
+    ["last_measurement"] = "Last Measurement",
+    ["measurement"] = "Measurement",
+    ["measurement_time"] = "Measurement Time",
+    ["msec"] = "msec",
   },
   ["scripts_list"] = {
     ["all"] = "All",

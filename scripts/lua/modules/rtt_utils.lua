@@ -86,8 +86,14 @@ end
 -- ##############################################
 
 -- Host (de)serialization functions. For now, only the RTT is saved.
-local function deserializeHost(host, val)
-  local rv = rtt_utils.key2host(host)
+local function deserializeHost(host, val, config_only)
+  local rv
+
+  if config_only then
+    rv = {}
+  else
+    rv = rtt_utils.key2host(host)
+  end
 
   rv.max_rtt = tonumber(val)
 
@@ -108,15 +114,27 @@ end
 
 -- ##############################################
 
-function rtt_utils.getHosts()
+function rtt_utils.getHosts(config_only)
   local hosts = ntop.getHashAllCache(rtt_hosts_key) or {}
   local rv = {}
 
   for host, val in pairs(hosts) do
-    rv[host] = deserializeHost(host, val)
+    rv[host] = deserializeHost(host, val, config_only)
   end
 
   return rv
+end
+
+-- ##############################################
+
+function rtt_utils.resetConfig()
+  local hosts = rtt_utils.getHosts(true --[[ config only]])
+
+  for k in pairs(hosts) do
+    rtt_utils.deleteHost(k)
+  end
+
+  ntop.delCache(rtt_hosts_key)
 end
 
 -- ##############################################

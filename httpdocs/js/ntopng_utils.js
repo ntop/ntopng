@@ -698,3 +698,93 @@ function getHistoryParameters(params) {
 
   return baseUrl + new_query;
 }
+
+// return true if the status code is different from 200
+function check_status_code(status_code, status_text, $error_label) {
+    const is_different = status_code != 200;
+
+    if (is_different && $error_label != null) {
+        $error_label.text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
+    }
+    else if (is_different && $error_label == null) {
+        alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
+    }
+
+    return is_different;
+}
+
+// To be used in conjunction with httpdocs/templates/config_list_components/import_modal.html
+function importModalHelper(params) {
+  if(!params.load_config_xhr) { alert("Missing 'load_config_xhr' param"); return; }
+  if(!params.reset_csrf) { alert("Missing 'reset_csrf' param"); return; }
+
+  $('#import-modal-btn').on("click", function(e) { 
+    // hide previous errors
+    $("#import-error").hide();
+
+    $("#import-modal form").off("submit");
+  });
+
+  $('#btn-confirm-import').off('click').click(function(e) {
+    const $button = $(this);
+
+    $button.attr("disabled", "");
+
+    // Read configuration file file
+    var file = $('#import-input')[0].files[0];
+
+    if (!file) {
+         $("#import-error").text(`${i18n.no_file}`).show();
+
+         // re-enable button
+         $button.removeAttr("disabled");
+     } else {
+        var reader = new FileReader();
+        reader.onload = function () {
+            // Client-side configuration file format check
+            let json_conf = null
+            try { json_conf = JSON.parse(reader.result); } catch (e) {}
+
+            if (!json_conf) {
+                $("#import-error").text(`${i18n.invalid_file}`).show();
+                // re-enable button
+                $button.removeAttr("disabled");
+            } else {
+              // Submit configuration file
+              params.load_config_xhr(reader.result)
+                .done((d, status, xhr) => {
+                    if (check_status_code(xhr.status, xhr.statusText, $("#import-error"))) {
+                      // re-enable button
+                      $button.removeAttr("disabled");
+                      return;
+                    }
+
+                    if (!d.success) {
+                        $("#import-error").text(d.error).show();
+
+                        // re-enable button
+                        $button.removeAttr("disabled");
+
+                        // update token
+                        params.reset_csrf(d.csrf);
+                    } else {
+                        location.reload();
+                    }
+                })
+                .fail(({ status, statusText }) => {
+                    check_status_code(status, statusText, $("#import-error"));
+
+                    // re-enable button
+                    $button.removeAttr("disabled");
+                });
+             };
+         }
+         reader.readAsText(file, "UTF-8");
+     }
+  });
+
+  $("#import-modal").on("submit", "form", function (e) {
+    e.preventDefault();
+    $("#btn-import").trigger("click");
+  });
+}
