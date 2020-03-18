@@ -7,8 +7,10 @@ $(document).ready(function() {
         event.preventDefault();
 
         const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
+        const rtt_host = `${measurement}://${host}`;
+
         const threshold = $("#input-add-threshold").val();
-        perform_request(make_data_to_send('add', host, threshold, measurement, rtt_csrf));
+        perform_request(make_data_to_send('add', rtt_host, threshold, measurement, rtt_csrf));
 
     });
 
@@ -17,7 +19,7 @@ $(document).ready(function() {
         event.preventDefault();
 
         const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
-        const rtt_host = `${measurement}://${host}`;
+        const threshold = $("#input-edit-threshold").val();
 
         perform_request(make_data_to_send('edit', host, threshold, measurement, rtt_csrf));
 
@@ -33,7 +35,7 @@ $(document).ready(function() {
             e.preventDefault();
             perform_request({
                 action: 'delete',
-                rtt_host: row_data.url,
+                rtt_url: row_data.url,
                 csrf: rtt_csrf
             })
         });
