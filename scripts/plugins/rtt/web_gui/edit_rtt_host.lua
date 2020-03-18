@@ -13,80 +13,101 @@ sendHTTPContentTypeHeader('application/json')
 
 -- ################################################
 
-local action = _POST["action"]
-local host = _POST["rtt_host"]
+local action      = _POST["action"]
+local host        = _POST["rtt_host"]
+local measurement = _POST["measurement"]
 
 local rv = {
-  success = false,
+   success = false,
 }
 
-if isEmptyString(action) then
-  print(json.encode({
-    error = "Something went wrong. Try again.",
-    success = false
-  }))
-  return
+local function reportError(msg)
+   print(json.encode({ error = msg, success = false }))   
 end
 
-if isEmptyString(host) then
-  print(json.encode({
-    error = "Missing 'host' parameter",
-    success = false
-  }))
-  return
-end
-
-if not haveAdminPrivileges() then
-  print(json.encode({
-    error = "Not admin",
-    success = false
-  }))
-  return
+local function isValidHostMeasurementCombination(host, measurement)
+   -- print("isValidHostMeasurementCombination("..host..","..measurement..")\n")
+   if((measurement == "icmp6") and not(isIPv6(host))) then return(false) end
+   
+   return(true)
 end
 
 -- ################################################
 
-local host_label = rtt_utils.unescapeRttHost(host)
+if isEmptyString(action) then
+   reportError("Something went wrong (empty action). Try again.")
+   return
+end
+
+if not haveAdminPrivileges() then
+   reportError("Not admin")
+   return
+end
+
+-- ################################################
 
 if(action == "add") then
-  local existing = rtt_utils.hasHost(host)
-  local rtt_value = _POST["rtt_max"] or 500
+   local existing = rtt_utils.hasHost(url)
+   local rtt_value = _POST["rtt_max"] or 500
+   local url = measurement.."://"..host
+   
+   if isEmptyString(host) then
+      reportError("Missing 'host' parameter")
+      return
+   end
+   
+   if(isValidHostMeasurementCombination(host, measurement) == false) then
+      reportError("Invalid measurement/host combination")
+      return
+   end
 
-  if existing then
-    rv.error = i18n("rtt_stats.host_exists", {host=host_label})
-  else
-    rtt_utils.addHost(host, rtt_value)
-    rv.success = true
-    rv.message = "The host was successful added!"
-  end
+   if existing then
+      rv.error = i18n("rtt_stats.host_exists", {host=url})
+   else
+      rtt_utils.addHost(url, rtt_value)
+      rv.success = true
+      rv.message = "The host ("..url..", "..rtt_value..") was successful added !"
+   end
 elseif(action == "edit") then
-  local existing = rtt_utils.hasHost(host)
+   local existing = rtt_utils.hasHost(url)
+   local url = measurement.."://"..host
 
-  if not existing then
-    rv.error = i18n("rtt_stats.host_not_exists", {host=host_label})
-  else
-    local rtt_value = _POST["rtt_max"] or 100
+   if isEmptyString(host) then
+      reportError("Missing 'host' parameter")
+      return
+   end
+   
+   if(isValidHostMeasurementCombination(host, measurement) == false) then
+      reportError("Invalid measurement/host combination")
+      return
+   end
 
-    rtt_utils.addHost(host, rtt_value)
-    rv.success = true
-    rv.message = "The host was successful edited!"
-  end
+   if not existing then
+      rv.error = i18n("rtt_stats.host_not_exists", {host=url})
+   else
+      local rtt_value = _POST["rtt_max"] or 100
+
+      rtt_utils.addHost(url, rtt_value)
+      rv.success = true
+      rv.message = "The host was successful edited!"
+   end
 elseif(action == "delete") then
-  local existing = rtt_utils.hasHost(host)
-
-  if not existing then
-    rv.error = i18n("rtt_stats.host_not_exists", {host=host_label})
-  else
-    rtt_utils.deleteHost(host)
-    rv.success = true
-    rv.message = "The host was successful deleted!"
-  end
+   local url      = rtt_utils.unescapeRttHost(_POST["rtt_url"])
+   local existing = rtt_utils.hasHost(url)
+   
+   if not existing then
+      rv.error = i18n("rtt_stats.host_not_exists", {host=url})
+   else
+      rtt_utils.deleteHost(url)
+      rv.success = true
+      rv.message = "The host was successful deleted!"
+   end
 else
-  print(json.encode({
-    error = "Bad action paramater",
-    success = false
-  }))
-  return
+   print(json.encode({
+	       error = "Bad action paramater",
+	       success = false
+   }))
+   return
 end
 
 -- ################################################

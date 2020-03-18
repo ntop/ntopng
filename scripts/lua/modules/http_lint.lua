@@ -110,8 +110,17 @@ local function validateNumber(p)
       return false
    end
 end
+
 local function validateSyslogFormat(p)
    if p == "plaintext" or p == "json" then
+      return true
+   end
+
+   return false
+end
+
+local function validateMeasurement(p)
+   if p == "icmp" or p == "icmp6" or p == "http" or p == "https" then
       return true
    end
 
@@ -1681,6 +1690,8 @@ local known_parameters = {
    ["rtt_hosts"]               = validateListOfTypeInline(validateSingleWord), -- TODO
    ["rtt_host"]                = validateSingleWord,
    ["rtt_max"]                 = validateEmptyOr(validateNumber),
+   ["rtt_url"]                 = validateUnquoted,
+   ["measurement"]             = validateMeasurement,
    ["disabled_status"]         = validateListOfTypeInline(validateNumber),
    ["redis_command"]           = validateSingleWord,
    ["flow_calls_drops"]        = validateOnOff,
