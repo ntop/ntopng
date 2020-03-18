@@ -64,28 +64,56 @@ local graph_colors = {
 -- returned by ts_utils.query
 -- @note the series are modified in place
 function normalizeSeriesPoints(series)
-  local max_count = 0
-  local min_step = math.huge
-  local ts_common = require("ts_common")
+   -- local format_utils = require "format_utils"
 
-  for _, serie in pairs(series) do
-    max_count = math.max(max_count, #serie.series[1].data)
-    min_step = math.min(min_step, serie.step)
-  end
+   -- for idx, data in ipairs(series) do
+   --    for _, s in ipairs(data.series) do
+   -- 	 if not s.tags.protocol then
+   -- 	    tprint({step = data.step, num = #s.data, start = format_utils.formatEpoch(data.start), count = s.count, label = s.label})
+   -- 	 end
+   --    end
+   -- end
 
-  if max_count > 0 then
-    for _, serie in pairs(series) do
-      local count = #serie.series[1].data
+   local max_count = 0
+   local min_step = math.huge
+   local ts_common = require("ts_common")
 
-      if count ~= max_count then
-        for _, serie in pairs(serie.series) do
-          serie.data = ts_common.upsampleSerie(serie.data, max_count)
-          serie.step = min_step
-          serie.count = max_count
-        end
+   for _, serie in pairs(series) do
+      max_count = math.max(max_count, #serie.series[1].data)
+      min_step = math.min(min_step, serie.step)
+   end
+
+   if max_count > 0 then
+      for _, serie in pairs(series) do
+	 local count = #serie.series[1].data
+
+	 if count ~= max_count then
+	    serie.count = max_count
+
+	    for _, serie_data in pairs(serie.series) do
+	       -- The way this function perform the upsampling is partial.
+	       -- Only points are upsampled, times are not adjusted.
+	       -- In addition, the max_count is fixed and this causes series
+	       -- with different lengths to be upsampled differently.
+	       -- For example a 240-points timeseries with lenght 1-day
+	       -- and a 10 points timeseris with length 1-hour would result
+	       -- the the 1-hour timeseries being divided into 240 points, actually
+	       -- ending up in having a much smaller step.
+	       -- TODO: adjust timeseries times.
+	       -- TODO: handle series with different start and end times.
+	       serie_data.data = ts_common.upsampleSerie(serie_data.data, max_count)
+	       -- The new step needs to be adjusted as well. The new step is smaller
+	       -- than the new step. To calculate it, multiply the old step by the fraction
+	       -- of old vs new points.
+	       local new_step = round(serie.step * count / max_count, 0)
+	       serie.step = new_step
+
+	       serie_data.step = new_step
+	       serie_data.count = max_count
+	    end
+	 end
       end
-    end
-  end
+   end
 end
 
 -- ########################################################

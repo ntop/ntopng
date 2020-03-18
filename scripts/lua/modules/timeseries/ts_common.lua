@@ -91,7 +91,9 @@ end
 -- ##############################################
 
 -- NOTE: this corresponds to graph_utils interpolateSerie
--- This is approximate
+-- This is approximate.
+-- Aproximate means it doesn't adjust the step.
+-- TODO: take as input and adjust the step as well.
 function ts_common.upsampleSerie(serie, num_points)
   if num_points <= #serie then
     return serie
