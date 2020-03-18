@@ -28,6 +28,7 @@ $(document).ready(function() {
 
         const row_data = get_rtt_data($rtt_table, $(this));
         $("#delete-host").html(`<b>${row_data.url}</b>`);
+        $(`#rtt-delete-modal span.invalid-feedback`).hide();
 
         $('#rtt-delete-form').off('submit').on('submit', function(e) {
 
@@ -64,7 +65,8 @@ $(document).ready(function() {
         });
 
         fill_form(data);
-        $('#rtt-edit-form').removeClass('dirty');
+        $(`#rtt-edit-modal span.invalid-feedback`).hide();
+
 
     });
 
@@ -160,6 +162,7 @@ $(document).ready(function() {
                     action: function(e, dt, node, config) {
                         $('#input-add-host').val('');
                         $('#input-add-threshold').val(100);
+                        $(`#rtt-add-modal span.invalid-feedback`).hide();
                         $('#rtt-add-modal').modal('show');
                     }
                 }
