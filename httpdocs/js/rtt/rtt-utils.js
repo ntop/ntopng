@@ -181,6 +181,7 @@ $(document).ready(function() {
                 data: 'chart',
                 class: 'text-center',
                 render: function(href) {
+                    if (href == "" || href == undefined) return "";
                     return `<a href='${href}'><i class='fas fa-chart-area'></i></a>`
                 }
             },
