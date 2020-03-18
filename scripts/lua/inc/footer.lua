@@ -240,7 +240,7 @@ print[[
 
 		if (rsp.system_host_stats.cpu_load !== undefined) $('#cpu-load-pct').html(ffloat(rsp.system_host_stats.cpu_load));
 
-        if (rsp.degraded_performance) {
+        if(rsp.degraded_performance) {
 		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue\">"
 		    msg += "<span class=\"badge badge-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
 		}
@@ -249,7 +249,7 @@ print[[
 
 		   var error_color = "#B94A48";
 
-		   if (rsp.engaged_alerts > 0) {
+		   if(rsp.engaged_alerts > 0) {
 		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
 		    msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+addCommas(rsp.engaged_alerts)+"</span></a>";
 		   }
@@ -260,11 +260,11 @@ print[[
 		   }
 		}
 
-		if ((rsp.engaged_alerts > 0 || rsp.has_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
+		if((rsp.engaged_alerts > 0 || rsp.has_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
 		  $("#alerts-id").show();
 		}
 
-		if (rsp.ts_alerts && rsp.ts_alerts.influxdb && (!system_view_enabled)) {
+		if(rsp.ts_alerts && rsp.ts_alerts.influxdb && (!system_view_enabled)) {
 		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/plugins/influxdb_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
 		  msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-database\"></i></span></a>";
 		}
@@ -273,8 +273,7 @@ print[[
 		var alarm_threshold_high = 90; /* 90% */
 		var alert = 0;
 
-		if (rsp.num_local_hosts > 0 && (!system_view_enabled)) {
-
+		if(rsp.num_local_hosts > 0 && (!system_view_enabled)) {
 		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
 		  msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge badge-success\">";
 		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
@@ -282,28 +281,27 @@ print[[
 		  checkMigrationMessage(rsp);
 		}
 
-		if (!system_view_enabled) {
-
+                const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
+		if(num_remote_hosts > 0 && !system_view_enabled) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote\">";
-			var remove_hosts_label = "]] print(i18n("remote_hosts")) print[[";
+			var remote_hosts_label = "]] print(i18n("remote_hosts")) print[[";
 
 			if (rsp.hosts_pctg < alarm_threshold_low && !system_view_enabled) {
-			  msg += "<span title=\"" + remove_hosts_label +"\" class=\"badge badge-secondary\">";
+			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-secondary\">";
 			}
 			else if (rsp.hosts_pctg < alarm_threshold_high && !system_view_enabled) {
 			  alert = 1;
-			  msg += "<span title=\"" + remove_hosts_label +"\" class=\"badge badge-warning\">";
+			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-warning\">";
 			}
 			else {
 			  alert = 1;
-			  msg += "<span title=\"" + remove_hosts_label +"\" class=\"badge badge-danger\">";
+			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-danger\">";
 			}
 
-			msg += addCommas(rsp.num_hosts-rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+			msg += addCommas(num_remote_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 		}
 
-	    if (rsp.num_devices != undefined && (!system_view_enabled)) {
-
+	    if(rsp.num_devices > 0 && !system_view_enabled) {
 	    	var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
 
@@ -322,8 +320,7 @@ print[[
 			msg += addCommas(rsp.num_devices)+" ]] print(i18n("devices")) print[[</span></a>";
 	    }
 
-	    if (rsp.num_flows != undefined && (!system_view_enabled)) {
-
+	    if(rsp.num_flows > 0 && !system_view_enabled) {
     		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
 
 			if (rsp.flows_pctg < alarm_threshold_low) {
