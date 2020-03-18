@@ -79,6 +79,16 @@ if(page == "overview") then
   print([[
     <div class='container-fluid my-3'>
       <div class='row'>
+        <div class="col-md-12">
+          <div id="rtt-alert" class="alert alert-success" style="display: none" role="alert">
+            <strong>Success!</strong> <span class="alert-body"></span>
+            <button type="button" class="close" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class='row'>
         <div class='col-md-12 col-12'>
           <table class="table w-100 table-striped table-hover table-bordered" id="rtt-table">
             <thead>
@@ -112,14 +122,14 @@ if(page == "overview") then
             <div class="modal-body container-fluid">
               <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Measurement</label>
-                <div class="col-sm-5"> ]])
-                  print(generate_select("select-measurement", "measurement", true, false, rtt_utils.probe_types))
-                print ([[</div>
+                <div class="col-sm-5">
+                  ]].. generate_select("select-edit-measurement", "measurement", true, false, rtt_utils.probe_types) ..[[
+                </div>
               </div>
               <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Host</label>
                 <div class="col-sm-5">
-                  <input required id="host-input" type="text" name="host" class="form-control" />
+                  <input placeholder="ntop.org" required id="input-edit-host" type="text" name="host" class="form-control" />
                 </div>
               </div>
               <div class="form-group row">
@@ -129,7 +139,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text">&gt;</span>
                     </div>
-                    <input required id="threshold" name="threshold" type="number" class="form-control" min="1">
+                    <input placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control" min="1">
                     <span class="my-auto ml-1">msec</span>
                   </div>
                 </div>
@@ -137,9 +147,55 @@ if(page == "overview") then
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">Reset Default</button>
+              <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">Reset</button>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
               <button type="submit" class="btn btn-primary">Apply</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div id='rtt-add-modal' class="modal fade" tabindex="-1" role="dialog">
+      <form method="post" id='rtt-add-form'>
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Add RTT Record</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body container-fluid">
+              <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Measurement</label>
+                <div class="col-sm-5">
+                  ]] .. generate_select("select-add-measurement", "measurement", true, false, rtt_utils.probe_types) ..[[
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Host</label>
+                <div class="col-sm-5">
+                  <input placeholder="ntop.org" required id="input-add-host" type="text" name="host" class="form-control" />
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Threshold</label>
+                <div class="col-sm-5">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text">&gt;</span>
+                    </div>
+                    <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control" min="1">
+                    <span class="my-auto ml-1">msec</span>
+                  </div>
+                </div>
+              </div>
+              <span class="invalid-feedback"></span>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Add</button>
             </div>
           </div>
         </div>
@@ -151,7 +207,7 @@ if(page == "overview") then
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Delete: </h5>
+              <h5 class="modal-title">Delete: <span id="delete-host"></span></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -163,7 +219,7 @@ if(page == "overview") then
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-danger">Confirm Deleting</button>
+              <button id="btn-delete-rtt" type="submit" class="btn btn-danger">Confirm Deleting</button>
             </div>
           </div>
         </div>
@@ -174,6 +230,9 @@ if(page == "overview") then
 
   print([[
     <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
+    <script type="text/javascript">
+      let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+    </script>
     <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/rtt/rtt-utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
   ]])
 

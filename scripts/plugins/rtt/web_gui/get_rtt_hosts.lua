@@ -45,11 +45,12 @@ for key, rtt_host in pairs(rtt_hosts) do
       column_last_rtt = last_update.value .. " ms"
       column_last_ip = last_update.ip
     end
- 
+
     res[#res + 1] = {
        key = key,
        url = rtt_host.label,
        host = rtt_host.host,
+       measurement = rtt_host.measurement,
        chart = chart,
        threshold = rtt_host.max_rtt,
        last_rtt = column_last_rtt,

@@ -33,8 +33,7 @@ end
 local function printPlugins()
   local plugins = plugins_utils.getLoadedPlugins()
 
-  print[[<h3>]] print(i18n("plugins_overview.loaded_plugins")) print[[</h3><br>
-  <table class="table table-bordered table-sm table-striped">
+  print[[<table class="table table-bordered table-sm table-striped">
     <tr><th width="20%">]] print(i18n("plugins_overview.plugin")) print[[</th><th>]] print(i18n("show_alerts.alert_description")) print[[</th><th>]] print(i18n("plugins_overview.source_location")) print[[</th><th width="10%">]] print(i18n("plugins_overview.availability")) print[[</th></tr>]]
 
   for _, plugin in pairsByField(plugins, "title", asc) do
@@ -61,7 +60,15 @@ end
 
 -- #######################################################
 
-print[[<div class="row">
+print([[
+<div class="row mb-3">
+  <div class="col-md-12">
+    <h3>]].. i18n("plugins_overview.loaded_plugins") ..[[</h3>
+  </div>
+</div>
+]])
+
+print[[<div class="row mb-3">
 <div class="col col-md-1">
   <form class="form-inline" style="width:12em">
     <select id="filter_select" name="edition" class="form-control">
@@ -74,7 +81,7 @@ print[[<div class="row">
 </div>]]
 
 if isAdministrator() then
-  print[[<div class="col col-md-2 offset-9">
+  print[[<div class="col col-md--11 text-right">
   <form class="form-inline" method="POST">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[">
     <input name="action" type="hidden" value="reload" />
@@ -83,16 +90,17 @@ if isAdministrator() then
 </div>
 ]]
 end
+print("</div>")
 
-print[[
-</div>
-<script>
+printPlugins()
+
+print([[
+<script type="text/javascript">
   $("#filter_select").on("change", function() {
     $("#filter_select").closest("form").submit();
   });
-</script><br>]]
-
-printPlugins()
+</script>
+]])
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 

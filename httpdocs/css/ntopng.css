@@ -3,15 +3,15 @@
 }
 
 /*
-NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  
+NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 
-DO NOT TRY TO OVERRIDE BOOTSTRAP HERE 
+DO NOT TRY TO OVERRIDE BOOTSTRAP HERE
 IF YOU NEED TO EDIT STYLES, CREATE NEW CSS
 ONE FOR EACH FUNCTION YOU NEED TO OVERRIDE
 AS OTHERWISE IT WOULD BE A PAIN TO UPDATE
 BOOTSTRAP AND UNDERSTAND WHY IT DOESN'T WORK
 
-NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  
+NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 */
 
 /* // Media queries breakpoints */
@@ -622,7 +622,7 @@ path.link {
 }
 
 
-#n-sidebar .sidebar-info, 
+#n-sidebar .sidebar-info,
 #n-sidebar.active .sidebar-info {
   background-color: #ececec;
   color: #363943;
@@ -713,7 +713,7 @@ path.link {
 }
 
 #n-sidebar.bg-dark #sidebar li::after {
-  background-color: #42424236; 
+  background-color: #42424236;
   content: '';
   display: block;
   height: 1px;
@@ -734,7 +734,7 @@ path.link {
 
 #n-sidebar h3.muted {
   padding: 0.1rem 0.5rem;
-  margin-bottom: 2px; 
+  margin-bottom: 2px;
   position: relative;
 }
 
@@ -776,7 +776,7 @@ path.link {
 #n-sidebar ul>li.nav-item>a {
   display: block;
   padding: 0.8rem 0rem;
-  text-decoration: none; 
+  text-decoration: none;
   transition: background 0.5s;
   color:#363943;
   white-space: nowrap;
@@ -816,7 +816,7 @@ path.link {
 #n-sidebar.active .submenu::after {
   display: inline-block;
   margin-left: auto;
-  margin-right: 0px;  
+  margin-right: 0px;
   vertical-align: .260em;
   content: "";
   border-top: .3em solid;
@@ -885,7 +885,7 @@ path.link {
   position: absolute;
   overflow-y: auto;
   box-shadow:rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
-} 
+}
 
 .side-collapse a {
   text-align: left;
@@ -916,7 +916,7 @@ path.link {
   width: 100%;
   flex-wrap: wrap;
   height: 100%;
-  align-items: center;  
+  align-items: center;
 }
 #network-load div.d-flex a {
   margin: 0 0.1em;
@@ -1007,13 +1007,13 @@ path.link {
   #n-navbar {
     left: 0rem;
   }
-  
+
   #n-navbar.extended {
     left: 0rem;
     z-index: 0;
   }
 
-  #n-container { 
+  #n-container {
     margin-left: 0;
     padding: 0rem 0.2rem;
     padding-top: 14rem !important;
@@ -1022,7 +1022,7 @@ path.link {
   #n-container.extended { margin-left: 0; }
 
   #n-sidebar.active { width: 0; }
-  #n-sidebar { 
+  #n-sidebar {
     height: 100vh;
     width: 100%;
   }
@@ -1066,10 +1066,10 @@ path.link {
   }
 
   #n-sidebar ul>li.nav-item>a {
-    padding: 1.2rem;  
+    padding: 1.2rem;
   }
   #n-sidebar ul>li.nav-item div.collapse>ul li>a {
-    padding: 1.2rem 1.2rem 1.2rem 1.8rem;  
+    padding: 1.2rem 1.2rem 1.2rem 1.8rem;
   }
 
   #n-sidebar ul li.nav-item.active {
@@ -1130,7 +1130,7 @@ path.link {
 
 .scroll-x {
   white-space: nowrap;
-  overflow-x: auto; 
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1202,7 +1202,7 @@ details ul li>span {
 }
 
 .switches-list-container > ul {
-  list-style-type: none; 
+  list-style-type: none;
   padding-left:0;
 }
 
@@ -1213,4 +1213,8 @@ details ul li>span {
 div.help-block.with-errors .list-unstyled {
   margin-top: 0.5em;
   margin-bottom: 0px !important;
+}
+
+div.dt-buttons {
+  float: right;
 }

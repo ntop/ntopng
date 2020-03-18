@@ -1,45 +1,121 @@
 $(document).ready(function() {
 
-    $("#rtt-edit-form").areYouSure();
+    $("#rtt-alert button").click(function() {
+        $("#rtt-alert").hide();
+    });
 
-    $("#rtt-edit-form").on('click', function(event) {
+    $("#rtt-add-form").on('submit', function(event) {
 
         event.preventDefault();
-        $.post(``, {
 
-        })
-        .then((data, result, xhr) => {
+        const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
+        const rtt_host = `${measurement}://${host}`;
 
-        })
-        .fail((status) => {
+        const threshold = $("#input-add-threshold").val();
+        perform_request(make_data_to_send('add', rtt_host, threshold, rtt_csrf));
 
+    });
+
+    $("#rtt-edit-form").on('submit', function(event) {
+
+        event.preventDefault();
+
+        const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
+        const rtt_host = `${measurement}://${host}`;
+
+        const threshold = $("#input-edit-threshold").val();
+
+        perform_request(make_data_to_send('edit', rtt_host, threshold, rtt_csrf));
+
+    });
+
+    $('#rtt-table').on('click', `a[href='#rtt-delete-modal']`, function(e) {
+
+        const row_data = get_rtt_data($rtt_table, $(this));
+        $("#delete-host").html(`<b>${row_data.url}</b>`);
+
+        $('#rtt-delete-form').off('submit').on('submit', function(e) {
+
+            e.preventDefault();
+            perform_request({
+                action: 'delete',
+                rtt_host: row_data.url,
+                csrf: rtt_csrf
+            })
         });
+
+
     });
 
     $('#rtt-table').on('click', `a[href='#rtt-edit-modal']`, function(e) {
 
         const fill_form = (data) => {
 
-            const DEFAULT_THRESHOLD = 100;
-            const DEFAULT_MEASUREMENT = "icmp";
-            const DEFAULT_HOST = "";
+            const DEFAULT_THRESHOLD     = 100;
+            const DEFAULT_MEASUREMENT   = "icmp";
+            const DEFAULT_HOST          = "";
 
             // fill input boxes
-            $('#threshold').val(data.threshold || DEFAULT_THRESHOLD);
-            $('#select-measurement').val(data.measurement || DEFAULT_MEASUREMENT);
-            $('#host-input').val(data.host || DEFAULT_HOST);
+            $('#input-edit-threshold').val(data.threshold || DEFAULT_THRESHOLD);
+            $('#select-edit-measurement').val(data.measurement || DEFAULT_MEASUREMENT);
+            $('#input-edit-host').val(data.host || DEFAULT_HOST);
         }
 
         const data = get_rtt_data($rtt_table, $(this));
+
         // create a closure for reset button
         $('#btn-reset-defaults').off('click').on('click', function() {
             fill_form(data);
         });
 
         fill_form(data);
-        $('##rtt-edit-form').removeClass('dirty');
+        $('#rtt-edit-form').removeClass('dirty');
 
     });
+
+    const make_data_to_send = (action, rtt_host, rtt_max, csrf) => {
+        return {
+            action: action,
+            rtt_host: rtt_host,
+            rtt_max: rtt_max,
+            csrf: csrf
+        }
+    }
+
+    const perform_request = (data_to_send) => {
+
+        const {action} = data_to_send;
+        if (action != 'add' && action != 'edit' && action != "delete") {
+            console.error("The requested action is not valid!");
+            return;
+        }
+
+        $(`#rtt-${action}-modal span.invalid-feedback`).hide();
+        $('#rtt-alert').hide();
+
+        $.post(`${http_prefix}/plugins/edit_rtt_host.lua`, data_to_send)
+        .then((data, result, xhr) => {
+
+            // always update the token
+            rtt_csrf = data.csrf;
+            console.log(data);
+
+            if (data.success) {
+                $('#rtt-alert .alert-body').text(data.message);
+                $('#rtt-alert').show();
+                $(`#rtt-${action}-modal`).modal('hide');
+                $rtt_table.ajax.reload();
+                return;
+            }
+
+            const error_message = data.error;
+            $(`#rtt-${action}-modal span.invalid-feedback`).html(error_message).show();
+
+        })
+        .fail((status) => {
+
+        });
+    }
 
     const get_rtt_data = ($rtt_table, $button_caller) => {
 
@@ -51,6 +127,7 @@ $(document).ready(function() {
         pagingType: 'full_numbers',
         lengthChange: false,
         stateSave: true,
+        dom: 'lfBrtip',
         language: {
             paginate: {
                previous: '&lt;',
@@ -63,6 +140,22 @@ $(document).ready(function() {
             url: `${http_prefix}/plugins/get_rtt_hosts.lua`,
             type: 'get',
             dataSrc: ''
+        },
+        buttons: {
+            buttons: [
+                {
+                    text: '<i class="fas fa-plus"></i>',
+                    className: 'btn-link',
+                    action: function(e, dt, node, config) {
+                        $('#rtt-add-modal').modal('show');
+                    }
+                }
+            ],
+            dom: {
+                button: {
+                    className: 'btn btn-link'
+                }
+            }
         },
         columns: [
             {

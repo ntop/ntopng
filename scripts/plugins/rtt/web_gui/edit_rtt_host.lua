@@ -21,17 +21,26 @@ local rv = {
 }
 
 if isEmptyString(action) then
-  print("Missing 'action' parameter (or invalid CSRF?)")
+  print(json.encode({
+    error = "Something went wrong. Try again.",
+    success = false
+  }))
   return
 end
 
 if isEmptyString(host) then
-  print("Missing 'host' parameter")
+  print(json.encode({
+    error = "Missing 'host' parameter",
+    success = false
+  }))
   return
 end
 
 if not haveAdminPrivileges() then
-  print("Not admin")
+  print(json.encode({
+    error = "Not admin",
+    success = false
+  }))
   return
 end
 
@@ -48,6 +57,7 @@ if(action == "add") then
   else
     rtt_utils.addHost(host, rtt_value)
     rv.success = true
+    rv.message = "The host was successful added!"
   end
 elseif(action == "edit") then
   local existing = rtt_utils.hasHost(host)
@@ -59,6 +69,7 @@ elseif(action == "edit") then
 
     rtt_utils.addHost(host, rtt_value)
     rv.success = true
+    rv.message = "The host was successful edited!"
   end
 elseif(action == "delete") then
   local existing = rtt_utils.hasHost(host)
@@ -68,9 +79,13 @@ elseif(action == "delete") then
   else
     rtt_utils.deleteHost(host)
     rv.success = true
+    rv.message = "The host was successful deleted!"
   end
 else
-  print("Bad 'action' parameter")
+  print(json.encode({
+    error = "Bad action paramater",
+    success = false
+  }))
   return
 end
 
