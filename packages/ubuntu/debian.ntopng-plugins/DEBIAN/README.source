@@ -1,0 +1,5 @@
+This is a package example which can be used to package custom plugins
+into a .deb.
+
+Refer to https://www.ntop.org/guides/ntopng/plugins/index.html for
+custom plugins documentation and examples.
