@@ -168,7 +168,7 @@ bool AddressResolution::resolveHost(char *host, char *rsp, u_int rsp_len, bool v
     freeaddrinfo(servinfo);
   }
 
-  return dst != NULL;
+  return(dst != NULL);
 }
 
 /* **************************************************** */

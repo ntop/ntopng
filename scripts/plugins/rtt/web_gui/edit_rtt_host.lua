@@ -22,13 +22,25 @@ local rv = {
 }
 
 local function reportError(msg)
-   print(json.encode({ error = msg, success = false }))   
+   print(json.encode({ error = msg, success = false, csrf = ntop.getRandomCSRFValue() }))
 end
 
 local function isValidHostMeasurementCombination(host, measurement)
-   -- print("isValidHostMeasurementCombination("..host..","..measurement..")\n")
-   if((measurement == "icmp6") and not(isIPv6(host))) then return(false) end
-   
+   if((measurement == "icmp6") and not(isIPv6(host))) then
+      if(ntop.resolveHost(host, false) == nil) then
+	 return(true)
+      else
+	 reportError("Invalid measurement/host combination")
+	 return(false)
+      end
+   end
+
+   if(ntop.resolveHost(host, true) == nil) then
+      reportError("Invalid host specified")
+      return(false)
+   end
+
+
    return(true)
 end
 
@@ -46,18 +58,25 @@ end
 
 -- ################################################
 
-if(action == "add") then
-   local existing = rtt_utils.hasHost(url)
+if((action == "add") or (action == "edit")) then
+   local existing
    local rtt_value = _POST["rtt_max"] or 500
-   local url = measurement.."://"..host
-   
+   local url
+
    if isEmptyString(host) then
       reportError("Missing 'host' parameter")
       return
    end
+
+   url = measurement.."://"..host
+   existing = rtt_utils.hasHost(url)
+
+   if(existing and (action == "add")) then
+      reportError("Host "..url.." is already existing")
+      return
+   end
    
    if(isValidHostMeasurementCombination(host, measurement) == false) then
-      reportError("Invalid measurement/host combination")
       return
    end
 
@@ -66,35 +85,17 @@ if(action == "add") then
    else
       rtt_utils.addHost(url, rtt_value)
       rv.success = true
-      rv.message = "The host ("..url..", "..rtt_value..") was successful added !"
-   end
-elseif(action == "edit") then
-   local existing = rtt_utils.hasHost(url)
-   local url = measurement.."://"..host
 
-   if isEmptyString(host) then
-      reportError("Missing 'host' parameter")
-      return
-   end
-   
-   if(isValidHostMeasurementCombination(host, measurement) == false) then
-      reportError("Invalid measurement/host combination")
-      return
-   end
-
-   if not existing then
-      rv.error = i18n("rtt_stats.host_not_exists", {host=url})
-   else
-      local rtt_value = _POST["rtt_max"] or 100
-
-      rtt_utils.addHost(url, rtt_value)
-      rv.success = true
-      rv.message = "The host was successful edited!"
+      if(action == "edit") then
+	 rv.message = "Host "..url.." was successful edited!"
+      else
+	 rv.message = "Host "..url.." was successful added!"
+      end
    end
 elseif(action == "delete") then
    local url      = rtt_utils.unescapeRttHost(_POST["rtt_url"])
    local existing = rtt_utils.hasHost(url)
-   
+
    if not existing then
       rv.error = i18n("rtt_stats.host_not_exists", {host=url})
    else
@@ -103,10 +104,7 @@ elseif(action == "delete") then
       rv.message = "The host was successful deleted!"
    end
 else
-   print(json.encode({
-	       error = "Bad action paramater",
-	       success = false
-   }))
+   reportError("Bad action paramater")
    return
 end
 
