@@ -244,6 +244,7 @@ if(page == "overview") then
               <p>
 		              ]] .. i18n("rtt_stats.confirm_delete") .. [[
               </p>
+              <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
