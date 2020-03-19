@@ -1,5 +1,79 @@
 # Changelog
 
+#### ntopng 4.0 (March 2020)
+
+## Breakthoughs
+
+* Plugins engine to tap into flows, hosts and other network elements
+* Migration to Bootstrap 4 and Font Awesome 4 for a renewed ntopng look-and-feel with light and dark themes
+* Processes and containers monitoring thanks to the eBPF integration via libebpfflow https://github.com/ntop/libebpfflow
+* Active monitoring of hosts ICMP/ICMPv6/HTTP/HTTPS Round Trip Times (RTT)
+
+## New features
+* X.509 client certificate authentication
+* ERSPAN transparent ethernet bridging
+* Webhook export module for exporting alarms
+* Identifications of the hosts in broadcast domain
+* Category Lists editor to manage ip/domain lists
+* Handling of PEN fields from nProbe
+* Added anomalous flows to the looking glass
+* Visibility of ICMP port-unreachable flows IPv4
+* TCP states filtering (est., connecting, closed and rst)
+* Ability to serialize local hosts in the broadcast domain via MAC address
+* Japanese, portuguese/brazilian localization
+* Added process memory, cpu load, InfluxDB, Redis status pages and charts
+* Implement ntopng Plugins, self contained modules to extend the ntopng functionalities
+* Implement ZMQ/Suricata companion interface
+* SSL traffic analysis and alerts via JA3 fingerprint, unsafe ciphers detection
+* SSH traffic analysis and alerts via HASSH fingerprint
+* Host traffic profile generation via the (MUD) Manifacturer Usage Descriptor
+* Experimental Prometheus timeseries export
+* Introduce the System interface to manage system wide settings and status
+* Read events from Suricata and generate alerts
+* SNMP network topology visualization
+* Automatic ntopng update check and upgrade
+* Calculate host anomaly score and trigger alerts when it exceeds a threshold
+* Add ability to extract timeseries data with a click
+* Initial Marketplace droplet using Fabric
+* Alerts on duplex status change on SNMP interface
+
+## Improvements
+* View interfaces are now optimized for big networks and use less memory
+* Systemd macros are now used to start/restart the ntopng services
+* Handles n2disk traffic extractions from recording processes non managed by ntopng
+* Interface in/out now available also for non PF_RING interfaces (read from /proc)
+* Automatic InfluxDB rollup support
+* MDNS discovery improvements
+* Rework of the alerts engine and api for efficient engaged alerts triggering
+* Faster ZMQ communication to nProbe thanks to the implementation of a binary TLV format
+* Stats update for ZMQ interfaces is now based on the idle/active flows timeout
+* Timeseries export improvements via queues, detect if InfluxDB is down and stop the export
+* Implemented reusable Lua engine to reduce the overhead of periodic scripts
+* Improve Lua error handling
+* Exclude certain categories from Elephant/Long lived flows alerts
+
+## nEdge
+* Ability to set up port forwarding
+* Support for Ubuntu 18.04
+* Fix users and other prefs deleted during nEdge data reset
+* Japanese localization
+* Block unsupported L3 protocols (currently only ARP and IPv4 are supported)
+* DNS mapping port to avoid conflicts with system programs
+
+## Fixes
+* Fixed export to mysql on shutdown in case of Pcap file in community mode
+* Fixed failing SYN-scan detection
+* Fixed ZMQ decompression errors with large templates
+* Fixed possible XSS in login.lua referer param and `runtime.lua`
+* Update geolocation due to changes in the library usage policy
+* Fixes to support browsers dark mode
+* Option `--zmq-encryption-key <pub key>` can be used with `-I <endpoint>` to encrypt data hi hierarchical mode
+* Fixed nIndex missing data while performing some queries and throughput calculation
+
+----------------------------------------------------------------
+
+## New features
+
 #### ntopng 3.8 (December 2018)
 
 ## New features
