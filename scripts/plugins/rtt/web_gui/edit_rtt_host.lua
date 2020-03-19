@@ -28,13 +28,13 @@ local function isValidHostMeasurementCombination(host, measurement)
       if(ntop.resolveHost(host, false) == nil) then
 	 return(true)
       else
-	 reportError("Invalid measurement/host combination")
+	 reportError(i18n("rtt_stats.invalid_combination"))
 	 return(false)
       end
    end
 
    if(ntop.resolveHost(host, true) == nil) then
-      reportError("Invalid host specified")
+      reportError(i18n("rtt_stats.invalid_host"))
       return(false)
    end
 
@@ -45,22 +45,22 @@ end
 -- ################################################
 
 if isEmptyString(action) then
-   reportError("Something went wrong (empty action). Try again.")
+   reportError(i18n("rtt_stats.empty_action"))
    return
 end
 
 if isEmptyString(host) then
-   reportError("Missing 'rtt_host' parameter")
+   reportError(i18n("missing_x_parameter", {param='rtt_host'}))
    return
 end
 
 if isEmptyString(measurement) then
-   reportError("Missing 'measurement' parameter")
+   reportError(i18n("missing_x_parameter", {param='measurement'}))
    return
 end
 
 if not haveAdminPrivileges() then
-   reportError("Not admin")
+   reportError(i18n("not_admin"))
    return
 end
 
@@ -84,12 +84,7 @@ if(action == "add") then
    end
 
    rtt_utils.addHost(host, measurement, rtt_value)
-
-   if(action == "edit") then
-      rv.message = "Host "..url.." was successful edited!"
-   else
-      rv.message = "Host "..url.." was successful added!"
-   end
+   rv.message = i18n("rtt_stats.host_add_ok", {host=url})
 elseif(action == "edit") then
    local existing
    local rtt_value = _POST["rtt_max"] or 500
@@ -103,20 +98,20 @@ elseif(action == "edit") then
    end
 
    if isEmptyString(old_rtt_host) then
-      reportError("Missing 'old_rtt_host' parameter")
+      reportError(i18n("missing_x_parameter", {param='old_rtt_host'}))
       return
    end
 
    if isEmptyString(old_measurement) then
-      reportError("Missing 'old_measurement' parameter")
+      reportError(i18n("missing_x_parameter", {param='old_measurement'}))
       return
    end
+
+   local old_url = rtt_utils.formatRttHost(old_rtt_host, old_measurement)
 
    existing = rtt_utils.hasHost(old_rtt_host, old_measurement)
 
    if not existing then
-      local old_url = rtt_utils.formatRttHost(old_rtt_host, old_measurement)
-
       reportError(i18n("rtt_stats.host_not_exists", {host=old_url}))
       return
    end
@@ -137,7 +132,7 @@ elseif(action == "edit") then
       rtt_utils.addHost(host, measurement, rtt_value)
    end
 
-   rv.message = "The host was successful modified!"
+   rv.message = i18n("rtt_stats.host_edit_ok", {host=old_url})
 elseif(action == "delete") then
    local url = rtt_utils.formatRttHost(host, measurement)
    local existing = rtt_utils.hasHost(host, measurement)
@@ -147,9 +142,9 @@ elseif(action == "delete") then
    end
 
    rtt_utils.deleteHost(host, measurement)
-   rv.message = "The host was successful deleted!"
+   rv.message = i18n("rtt_stats.host_delete_ok", {host=url})
 else
-   reportError("Bad action paramater")
+   reportError(i18n("rtt_stats.bad_action_param"))
    return
 end
 
