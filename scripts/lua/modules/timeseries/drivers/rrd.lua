@@ -968,6 +968,9 @@ function driver:delete(schema_prefix, tags)
     }, subnet = {
       tags = {ifid=1, subnet=1},
       path = function(tags) return getRRDName(tags.ifid, "net:" .. tags.subnet) end,
+    }, rtt_host = {
+      tags = {ifid=1, host=1, measurement=1},
+      path = function(tags) return getRRDName(tags.ifid, "rtt_host:" .. tags.host) end,
     }
   }
 
@@ -998,6 +1001,7 @@ function driver:delete(schema_prefix, tags)
   end
 
   local path_to_del = os_utils.fixPath(delete_info.path(tags))
+
   if ntop.exists(path_to_del) and not ntop.rmdir(path_to_del) then
      return false
   end

@@ -161,15 +161,21 @@ end
 -- ##############################################
 
 function rtt_utils.deleteHost(host, measurement)
+  local ts_utils = require("ts_utils")
   local alerts_api = require("alerts_api")
   require("alert_utils")
   local host_key = rtt_utils.getRttHostKey(host, measurement)
   local rtt_host_entity = alerts_api.pingedHostEntity(host_key)
   local old_ifname = ifname
 
-  interface.select(getSystemInterfaceId())
+  -- Release any engaged alerts of the host
   alerts_api.releaseEntityAlerts(rtt_host_entity)
-  interface.select(old_ifname)
+
+  -- Delete the host RRDs
+  ts_utils.delete("rtt_host", {ifid=getSystemInterfaceId(), host=host, measurement=measurement})
+
+  -- Remove the redis keys of the host
+  ntop.delCache(rtt_last_updates_key(host))
 
   ntop.delHashCache(rtt_hosts_key, host_key)
 end
