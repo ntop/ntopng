@@ -21,8 +21,16 @@ if(_POST["ntopng_license"] ~= nil) then
    ntop.setCache('ntopng.license', trimSpace(_POST["ntopng_license"]))
    ntop.checkLicense()
 end
+print("<div class='container-fluid'>")
 
-print("<hr /><h2>"..i18n("about.directories").."</h2>")
+print("<div class='row mb-3'>")
+print("<div class='col-12'>")
+print("<h2>"..i18n("about.directories").."</h2>")
+print("</div>")
+print("</div>")
+
+print("<div class='row'>")
+print("<div class='col-12'>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
 
@@ -38,6 +46,9 @@ print("<tr><th nowrap rowspan=2>"..i18n("about.defs_directories").."</th><td>"..
 print("<td>"..i18n("flow_details.flow_status").."</td><td>".. flow_consts.getDefinititionsDir() .."</td></tr>\n")
 
 print("</table>\n")
+print("</div>")
+print("</div>")
+print("</div>")
 
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

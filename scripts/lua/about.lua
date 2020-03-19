@@ -22,7 +22,15 @@ if(_POST["ntopng_license"] ~= nil) then
    ntop.setCache('ntopng.cache.force_reload_plugins', '1') -- housekeeping.lua will reload plugins
 end
 
+print("<div class='container-fluid'>")
+print("<div class='row mb-3'>")
+print("<div class='col-12'>")
 print("<h2>"..i18n("about.about_x", {product=info["product"]}).."</h2>")
+print("</div>")
+print("</div>")
+
+print("<div class='row'>")
+print("<div class='col-12'>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th>") print(i18n("about.copyright")) print("</th><td colspan=2>"..info["copyright"].."</td></tr>\n")
@@ -202,5 +210,8 @@ print("<tr><th><a href=\"http://www.d3js.org\" target=\"_blank\">Data-Driven Doc
 
 print("</table>\n")
 
+print("</div>")
+print("</div>")
+print("</div>")
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
