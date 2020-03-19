@@ -1002,7 +1002,12 @@ end
 function printStatsTimeseries()
   print('<form method="post">')
   print('<table class="table">')
-  print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n('prefs.timeseries_database')..'</th></tr></thead>')
+
+  local force_rrd = false --ntop.isWindows()
+
+  if not force_rrd then
+    print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n('prefs.timeseries_database')..'</th></tr></thead>')
+  end
 
   local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention", "row_toggle_influx_auth", "influx_username", "influx_password", "row_ts_high_resolution"}
   local showElementArray = {false, true, false}
@@ -1024,7 +1029,7 @@ function printStatsTimeseries()
   local active_driver = "rrd"
   local influx_active = false
 
-  if not ntop.isWindows() then
+  if not force_rrd then
     multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
 				    subpage_active.entries["multiple_timeseries_database"].description,
 				    {"RRD", "InfluxDB", "Prometheus [Export Only]"}, {"rrd", "influxdb", "prometheus"},
