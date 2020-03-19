@@ -167,6 +167,8 @@ A quick note on the :code:`gui` section. It has just a title and a
 description that will be used by ntopng in the web UI, to allow a user
 to enable/disable the plugin.
 
+.. _Flow Flooders:
+
 Flow Flooders
 -------------
 
