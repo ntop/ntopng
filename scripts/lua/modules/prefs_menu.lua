@@ -7,6 +7,7 @@ local plugins_utils = require("plugins_utils")
 local prefs = ntop.getPrefs()
 
 local have_nedge = ntop.isnEdge()
+local is_windows = ntop.isWindows()
 local info = ntop.getInfo(false)
 local hasRadius = ntop.hasRadiusSupport()
 local hasNindex = hasNindexSupport()
@@ -383,7 +384,7 @@ local menu_subpages = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
     }
-  }}, {id="updates", label=i18n("prefs.updates"), advanced=false, pro_only=false, hidden=false, entries={
+  }}, {id="updates", label=i18n("prefs.updates"), advanced=false, pro_only=false, hidden=(is_windows or (not ntop.isPackage())), entries={
     toggle_autoupdates = {
       title       = i18n("prefs.toggle_autoupdates_title"),
       description = i18n("prefs.toggle_autoupdates_description", { product = info.product }),
