@@ -5,7 +5,7 @@
 ## Breakthroughs
 
 * Plugins engine to tap into flows, hosts and other network elements
-* Migration to Bootstrap 4 and Font Awesome 4 for a renewed ntopng look-and-feel with light and dark themes
+* Migration to Bootstrap 4 and Font Awesome 5 for a renewed ntopng look-and-feel with light and dark themes
 * Processes and containers monitoring thanks to the eBPF integration via libebpfflow https://github.com/ntop/libebpfflow
 * Active monitoring of hosts ICMP/ICMPv6/HTTP/HTTPS Round Trip Times (RTT)
 
