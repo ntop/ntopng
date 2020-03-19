@@ -30,17 +30,18 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
 local host = _GET["rtt_host"]
+local measurement = _GET["measurement"]
 local base_url = plugins_utils.getUrl("rtt_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
 local url = base_url
 
-if not isEmptyString(host) then
-  host = rtt_utils.getHost(host)
+if(not isEmptyString(host) and not isEmptyString(measurement)) then
+  host = rtt_utils.getHost(host, measurement)
 else
   host = nil
 end
 
 if host then
-  url = url .. "&rtt_host=" .. host.key
+  url = url .. "&rtt_host=" .. host.host .. "&measurement=" .. host.measurement
 end
 
 local title = i18n("graphs.rtt")
@@ -283,18 +284,18 @@ if(page == "overview") then
 
 elseif((page == "historical") and (host ~= nil)) then
 
-  local schema = _GET["ts_schema"] or "monitored_host:rtt"
+  local schema = _GET["ts_schema"] or "rtt_host:rtt"
   local selected_epoch = _GET["epoch"] or ""
-  local tags = {ifid=getSystemInterfaceId(), host=host.key}
+  local tags = {ifid=getSystemInterfaceId(), host=host.host, measurement=host.measurement}
   url = url.."&page=historical"
 
   local timeseries = {
-    { schema="monitored_host:rtt", label=i18n("graphs.num_ms_rtt") },
+    { schema="rtt_host:rtt", label=i18n("graphs.num_ms_rtt") },
   }
 
   if((host.measurement == "http") or (host.measurement == "https")) then
     timeseries = table.merge(timeseries, {
-      { schema="monitored_host:http_stats", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }},
+      { schema="rtt_host:http_stats", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }},
     })
   end
 

@@ -15,7 +15,7 @@ rtt_utils.probe_types = {
 
 -- ##############################################
 
-local rtt_hosts_key = string.format("ntopng.prefs.ifid_%d.system_rtt_hosts_v2", getSystemInterfaceId())
+local rtt_hosts_key = string.format("ntopng.prefs.ifid_%d.system_rtt_hosts_v3", getSystemInterfaceId())
 
 -- ##############################################
 
@@ -31,30 +31,24 @@ end
 
 -- ##############################################
 
-function rtt_utils.unescapeRttHost(host)
-  -- This is necessary to uneascape http:__ into http:// and similars
-  local parts = string.split(host, ":__")
-
-  if(parts and (#parts == 2)) then
-    host = string.format("%s://%s", parts[1], parts[2])
-  end
-
-  return(host)
+-- Note: alerts requires a unique key to be used in order to identity the
+-- entity. This key is also used internally as a key into the lua tables.
+local function rtthost2key(host, measurement)
+  return(string.format("%s@%s", measurement, host))
 end
 
--- ##############################################
-
-local function rttHostSplitMeasurement(host)
-  local parts = string.split(host, ":__")
+local function key2rtthost(host)
+  local parts = string.split(host, "@")
 
   if(parts and (#parts == 2)) then
-    return parts[1], parts[2]
+    return parts[2], parts[1]
   end
 end
 
 -- ##############################################
 
-function rtt_utils.getLastRttUpdate(key)
+function rtt_utils.getLastRttUpdate(host, measurement)
+  local key = rtthost2key(host, measurement)
   local val = ntop.getCache(rtt_last_updates_key(key))
 
   if(val ~= nil)then
@@ -72,27 +66,34 @@ end
 
 -- ##############################################
 
-function rtt_utils.key2host(host)
-  local measurement, target = rttHostSplitMeasurement(host)
+-- Only used for the formatting, don't use as a key as the "/"
+-- character is escaped in HTTP parameters
+function rtt_utils.formatRttHost(host, measurement)
+  return(string.format("%s://%s", measurement, host))
+end
+
+-- ##############################################
+
+function rtt_utils.key2host(host_key)
+  local host, measurement = key2rtthost(host_key)
 
   return {
-    key = host,
-    label = rtt_utils.unescapeRttHost(host),
+    label = rtt_utils.formatRttHost(host, measurement),
     measurement = measurement,
-    host = target,
+    host = host,
   }
 end
 
 -- ##############################################
 
 -- Host (de)serialization functions. For now, only the RTT is saved.
-local function deserializeHost(host, val, config_only)
+local function deserializeRttPrefs(host_key, val, config_only)
   local rv
 
   if config_only then
     rv = {}
   else
-    rv = rtt_utils.key2host(host)
+    rv = rtt_utils.key2host(host_key)
   end
 
   rv.max_rtt = tonumber(val)
@@ -100,13 +101,14 @@ local function deserializeHost(host, val, config_only)
   return(rv)
 end
 
-local function serializeHost(host, val)
+local function serializeRttPrefs(val)
   return string.format("%u", math.floor(tonumber(val)))
 end
 
 -- ##############################################
 
-function rtt_utils.hasHost(host_key)
+function rtt_utils.hasHost(host, measurement)
+  local host_key = rtthost2key(host, measurement)
   local res = ntop.getHashCache(rtt_hosts_key, host_key)
 
   return(not isEmptyString(res))
@@ -118,8 +120,8 @@ function rtt_utils.getHosts(config_only)
   local hosts = ntop.getHashAllCache(rtt_hosts_key) or {}
   local rv = {}
 
-  for host, val in pairs(hosts) do
-    rv[host] = deserializeHost(host, val, config_only)
+  for host_key, val in pairs(hosts) do
+    rv[host_key] = deserializeRttPrefs(host_key, val, config_only)
   end
 
   return rv
@@ -139,33 +141,37 @@ end
 
 -- ##############################################
 
-function rtt_utils.getHost(host_key)
+function rtt_utils.getHost(host, measurement)
+  local host_key = rtthost2key(host, measurement)
   local val = ntop.getHashCache(rtt_hosts_key, host_key)
 
   if not isEmptyString(val) then
-    return deserializeHost(host_key, val)
+    return deserializeRttPrefs(host_key, val)
   end
 end
 
 -- ##############################################
 
-function rtt_utils.addHost(host, rtt_value)
-  ntop.setHashCache(rtt_hosts_key, host, serializeHost(host, rtt_value))
+function rtt_utils.addHost(host, measurement, rtt_value)
+  local host_key = rtthost2key(host, measurement)
+
+  ntop.setHashCache(rtt_hosts_key, host_key, serializeRttPrefs(rtt_value))
 end
 
 -- ##############################################
 
-function rtt_utils.deleteHost(host)
+function rtt_utils.deleteHost(host, measurement)
   local alerts_api = require("alerts_api")
   require("alert_utils")
-  local rtt_host_entity = alerts_api.pingedHostEntity(host)
+  local host_key = rtthost2key(host, measurement)
+  local rtt_host_entity = alerts_api.pingedHostEntity(host_key)
   local old_ifname = ifname
 
   interface.select(getSystemInterfaceId())
   alerts_api.releaseEntityAlerts(rtt_host_entity)
   interface.select(old_ifname)
 
-  ntop.delHashCache(rtt_hosts_key, host)
+  ntop.delHashCache(rtt_hosts_key, host_key)
 end
 
 -- ##############################################

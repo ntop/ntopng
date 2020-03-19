@@ -35,7 +35,8 @@ $(document).ready(function() {
             e.preventDefault();
             perform_request({
                 action: 'delete',
-                rtt_url: row_data.url,
+                rtt_host: row_data.host,
+                measurement: row_data.measurement,
                 csrf: rtt_csrf
             })
         });

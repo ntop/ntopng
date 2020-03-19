@@ -149,9 +149,10 @@ function script.hooks.min(params)
 	 resolved_hosts[key] = rv.RESOLVED_IP
 
 	 -- HTTP specific metrics
-	 ts_utils.append("monitored_host:http_stats", {
+	 ts_utils.append("rtt_host:http_stats", {
 	    ifid = getSystemInterfaceId(),
-	    host = key,
+	    host = host.host,
+	    measurement = host.measurement,
 	    lookup_ms = lookup_time,
 	    connect_ms = connect_time,
 	    other_ms = (total_time - lookup_time - connect_time),
@@ -189,7 +190,7 @@ function script.hooks.min(params)
     local max_rtt = host.max_rtt
 
     if params.ts_enabled then
-       ts_utils.append("monitored_host:rtt", {ifid = getSystemInterfaceId(), host = key, millis_rtt = rtt}, when)
+       ts_utils.append("rtt_host:rtt", {ifid = getSystemInterfaceId(), host = host.host, measurement = host.measurement, millis_rtt = rtt}, when)
     end
 
     rtt_utils.setLastRttUpdate(key, when, rtt, resolved_host)

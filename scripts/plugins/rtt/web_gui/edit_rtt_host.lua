@@ -51,6 +51,16 @@ if isEmptyString(action) then
    return
 end
 
+if isEmptyString(host) then
+   reportError("Missing 'rtt_host' parameter")
+   return
+end
+
+if isEmptyString(measurement) then
+   reportError("Missing 'measurement' parameter")
+   return
+end
+
 if not haveAdminPrivileges() then
    reportError("Not admin")
    return
@@ -58,32 +68,21 @@ end
 
 -- ################################################
 
-if((action == "add") or (action == "edit")) then
+if(action == "add") then
    local existing
    local rtt_value = _POST["rtt_max"] or 500
-   local url
+   local url = rtt_utils.formatRttHost(host, measurement)
 
-   if isEmptyString(host) then
-      reportError("Missing 'host' parameter")
-      return
-   end
-
-   url = measurement.."://"..host
-   existing = rtt_utils.hasHost(url)
-
-   if(existing and (action == "add")) then
-      reportError("Host "..url.." is already existing")
-      return
-   end
-   
    if(isValidHostMeasurementCombination(host, measurement) == false) then
       return
    end
 
+   existing = rtt_utils.hasHost(host, measurement)
+
    if existing then
       rv.error = i18n("rtt_stats.host_exists", {host=url})
    else
-      rtt_utils.addHost(url, rtt_value)
+      rtt_utils.addHost(host, measurement, rtt_value)
       rv.success = true
 
       if(action == "edit") then
@@ -92,14 +91,58 @@ if((action == "add") or (action == "edit")) then
 	 rv.message = "Host "..url.." was successful added!"
       end
    end
+
+elseif(action == "edit") then
+   local existing
+   local rtt_value = _POST["rtt_max"] or 500
+   local url = rtt_utils.formatRttHost(host, measurement)
+
+   local old_rtt_host = _POST["old_rtt_host"]
+   local old_measurement = _POST["old_measurement"]
+
+   if(isValidHostMeasurementCombination(host, measurement) == false) then
+      return
+   end
+
+   if isEmptyString(old_rtt_host) then
+      reportError("Missing 'old_rtt_host' parameter")
+      return
+   end
+
+   if isEmptyString(old_measurement) then
+      reportError("Missing 'old_measurement' parameter")
+      return
+   end
+
+   existing = rtt_utils.hasHost(old_rtt_host, old_measurement)
+
+   if not existing then
+      local old_url = rtt_utils.formatRttHost(old_rtt_host, old_measurement)
+      rv.error = i18n("rtt_stats.host_not_exists", {host=old_url})
+   else
+      if((old_rtt_host ~= host) or (old_measurement ~= measurement)) then
+	 -- The key has changed, delete the old host and create a new one
+	 existing = rtt_utils.hasHost(host, measurement)
+
+	 if existing then
+	    rv.error = i18n("rtt_stats.host_exists", {host=url})
+	 else
+	    rtt_utils.deleteHost(host, measurement)
+	    rtt_utils.addHost(host, measurement, rtt_value)
+	 end
+      else
+	 -- The key is the same, only update the rtt
+	 rtt_utils.addHost(host, measurement, rtt_value)
+      end
+   end
 elseif(action == "delete") then
-   local url      = rtt_utils.unescapeRttHost(_POST["rtt_url"])
-   local existing = rtt_utils.hasHost(url)
+   local url = rtt_utils.formatRttHost(host, measurement)
+   local existing = rtt_utils.hasHost(host, measurement)
 
    if not existing then
       rv.error = i18n("rtt_stats.host_not_exists", {host=url})
    else
-      rtt_utils.deleteHost(url)
+      rtt_utils.deleteHost(host, measurement)
       rv.success = true
       rv.message = "The host was successful deleted!"
    end

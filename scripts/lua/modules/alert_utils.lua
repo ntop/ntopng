@@ -2226,8 +2226,13 @@ function formatAlertMessage(ifid, alert)
 
   if(msg) then
     if(alert_consts.getAlertType(alert.alert_type) == "alert_ping_issues") then
-      msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/rtt_stats.lua?rtt_host='..
-	 alert.alert_entity_val .. '&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+      local rtt_utils = require("rtt_utils")
+      local host = rtt_utils.key2host(alert.alert_entity_val)
+
+      if host and host.measurement then
+	 msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/rtt_stats.lua?rtt_host='..
+	    host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+      end
     else
       msg = msg .. getConfigsetAlertLink(alert_json)
     end

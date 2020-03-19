@@ -25,13 +25,13 @@ for key, rtt_host in pairs(rtt_hosts) do
     local chart = ""
 
     if charts_available then
-      chart = plugins_utils.getUrl('rtt_stats.lua') .. '?rtt_host='.. key ..'&page=historical'
+      chart = plugins_utils.getUrl('rtt_stats.lua') .. '?rtt_host='.. rtt_host.host ..'&measurement='.. rtt_host.measurement ..'&page=historical'
     end
 
     local column_last_ip = ""
     local column_last_update = ""
     local column_last_rtt = ""
-    local last_update = rtt_utils.getLastRttUpdate(key)
+    local last_update = rtt_utils.getLastRttUpdate(rtt_host.host, rtt_host.measurement)
 
     if(last_update ~= nil) then
       local tdiff = os.time() - last_update.when
