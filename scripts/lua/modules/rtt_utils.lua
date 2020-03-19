@@ -33,7 +33,7 @@ end
 
 -- Note: alerts requires a unique key to be used in order to identity the
 -- entity. This key is also used internally as a key into the lua tables.
-local function rtthost2key(host, measurement)
+function rtt_utils.getRttHostKey(host, measurement)
   return(string.format("%s@%s", measurement, host))
 end
 
@@ -48,7 +48,7 @@ end
 -- ##############################################
 
 function rtt_utils.getLastRttUpdate(host, measurement)
-  local key = rtthost2key(host, measurement)
+  local key = rtt_utils.getRttHostKey(host, measurement)
   local val = ntop.getCache(rtt_last_updates_key(key))
 
   if(val ~= nil)then
@@ -108,7 +108,7 @@ end
 -- ##############################################
 
 function rtt_utils.hasHost(host, measurement)
-  local host_key = rtthost2key(host, measurement)
+  local host_key = rtt_utils.getRttHostKey(host, measurement)
   local res = ntop.getHashCache(rtt_hosts_key, host_key)
 
   return(not isEmptyString(res))
@@ -142,7 +142,7 @@ end
 -- ##############################################
 
 function rtt_utils.getHost(host, measurement)
-  local host_key = rtthost2key(host, measurement)
+  local host_key = rtt_utils.getRttHostKey(host, measurement)
   local val = ntop.getHashCache(rtt_hosts_key, host_key)
 
   if not isEmptyString(val) then
@@ -153,7 +153,7 @@ end
 -- ##############################################
 
 function rtt_utils.addHost(host, measurement, rtt_value)
-  local host_key = rtthost2key(host, measurement)
+  local host_key = rtt_utils.getRttHostKey(host, measurement)
 
   ntop.setHashCache(rtt_hosts_key, host_key, serializeRttPrefs(rtt_value))
 end
@@ -163,7 +163,7 @@ end
 function rtt_utils.deleteHost(host, measurement)
   local alerts_api = require("alerts_api")
   require("alert_utils")
-  local host_key = rtthost2key(host, measurement)
+  local host_key = rtt_utils.getRttHostKey(host, measurement)
   local rtt_host_entity = alerts_api.pingedHostEntity(host_key)
   local old_ifname = ifname
 

@@ -312,7 +312,10 @@ elseif((page == "alerts") and isAdministrator()) then
 
    _GET["ifid"] = getSystemInterfaceId()
    _GET["entity"] = alert_consts.alertEntity("pinged_host")
-   _GET["entity_val"] = _GET["rtt_host"]
+
+   if host then
+      _GET["entity_val"] = rtt_utils.getRttHostKey(host.host, host.measurement)
+   end
 
    drawAlerts()
 
