@@ -153,8 +153,10 @@ end
 http_lint.validateUnquoted = validateUnquoted
 
 local function validateLuaScriptPath(p)
+   local os_utils = require("os_utils")
+
    if (string.find(p, "'") ~= nil) then return false end
-   return(starts(p, "/plugins"))
+   return(starts(p, os_utils.getPathDivider() .. "plugins"))
 end
 http_lint.validateLuaScriptPath = validateLuaScriptPath
 

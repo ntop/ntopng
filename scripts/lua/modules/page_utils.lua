@@ -96,7 +96,6 @@ page_utils.menu_entries = {
     categories	      	 = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin"},
     category_lists    	 = {key = "category_lists", i18n_title = "category_lists.category_lists", section = "admin"},
     device_protocols   	 = {key = "device_protocols", i18n_title = "device_protocols.device_protocols", section = "admin"},
-    plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "admin"},
     conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin"},
     conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin"},
     manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin"},
@@ -112,6 +111,7 @@ page_utils.menu_entries = {
     directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev"},
     plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev"},
     user_scripts 	 = {key = "user_scripts", i18n_title = "about.user_scripts", section = "dev"},
+    plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev"},
     alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev"},
     api 	         = {key = "api", i18n_title = "lua_c_api", section = "dev"},
 
