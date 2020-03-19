@@ -3376,7 +3376,7 @@ local lang = {
     ["last_measurement"] = "Last Measurement",
     ["measurement"] = "Measurement",
     ["measurement_time"] = "Measurement Time",
-    ["msec"] = "msec",
+    ["msec"] = "ms",
   },
   ["scripts_list"] = {
     ["all"] = "All",
