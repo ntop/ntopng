@@ -17,9 +17,7 @@ local action      = _POST["action"]
 local host        = _POST["rtt_host"]
 local measurement = _POST["measurement"]
 
-local rv = {
-   success = false,
-}
+local rv = {}
 
 local function reportError(msg)
    print(json.encode({ error = msg, success = false, csrf = ntop.getRandomCSRFValue() }))
@@ -74,33 +72,33 @@ if(action == "add") then
    local url = rtt_utils.formatRttHost(host, measurement)
 
    if(isValidHostMeasurementCombination(host, measurement) == false) then
+      -- NOTE: reportError already called
       return
    end
 
    existing = rtt_utils.hasHost(host, measurement)
 
    if existing then
-      rv.error = i18n("rtt_stats.host_exists", {host=url})
-   else
-      rtt_utils.addHost(host, measurement, rtt_value)
-      rv.success = true
-
-      if(action == "edit") then
-	 rv.message = "Host "..url.." was successful edited!"
-      else
-	 rv.message = "Host "..url.." was successful added!"
-      end
+      reportError(i18n("rtt_stats.host_exists", {host=url}))
+      return
    end
 
+   rtt_utils.addHost(host, measurement, rtt_value)
+
+   if(action == "edit") then
+      rv.message = "Host "..url.." was successful edited!"
+   else
+      rv.message = "Host "..url.." was successful added!"
+   end
 elseif(action == "edit") then
    local existing
    local rtt_value = _POST["rtt_max"] or 500
    local url = rtt_utils.formatRttHost(host, measurement)
-
    local old_rtt_host = _POST["old_rtt_host"]
    local old_measurement = _POST["old_measurement"]
 
    if(isValidHostMeasurementCombination(host, measurement) == false) then
+      -- NOTE: reportError already called
       return
    end
 
@@ -118,34 +116,38 @@ elseif(action == "edit") then
 
    if not existing then
       local old_url = rtt_utils.formatRttHost(old_rtt_host, old_measurement)
-      rv.error = i18n("rtt_stats.host_not_exists", {host=old_url})
-   else
-      if((old_rtt_host ~= host) or (old_measurement ~= measurement)) then
-	 -- The key has changed, delete the old host and create a new one
-	 existing = rtt_utils.hasHost(host, measurement)
 
-	 if existing then
-	    rv.error = i18n("rtt_stats.host_exists", {host=url})
-	 else
-	    rtt_utils.deleteHost(host, measurement)
-	    rtt_utils.addHost(host, measurement, rtt_value)
-	 end
-      else
-	 -- The key is the same, only update the rtt
-	 rtt_utils.addHost(host, measurement, rtt_value)
-      end
+      reportError(i18n("rtt_stats.host_not_exists", {host=old_url}))
+      return
    end
+
+   if((old_rtt_host ~= host) or (old_measurement ~= measurement)) then
+      -- The key has changed, delete the old host and create a new one
+      existing = rtt_utils.hasHost(host, measurement)
+
+      if existing then
+	 reportError(i18n("rtt_stats.host_exists", {host=url}))
+	 return
+      end
+
+      rtt_utils.deleteHost(old_rtt_host, old_measurement)
+      rtt_utils.addHost(host, measurement, rtt_value)
+   else
+      -- The key is the same, only update the rtt
+      rtt_utils.addHost(host, measurement, rtt_value)
+   end
+
+   rv.message = "The host was successful modified!"
 elseif(action == "delete") then
    local url = rtt_utils.formatRttHost(host, measurement)
    local existing = rtt_utils.hasHost(host, measurement)
 
    if not existing then
-      rv.error = i18n("rtt_stats.host_not_exists", {host=url})
-   else
-      rtt_utils.deleteHost(host, measurement)
-      rv.success = true
-      rv.message = "The host was successful deleted!"
+      reportError(i18n("rtt_stats.host_not_exists", {host=url}))
    end
+
+   rtt_utils.deleteHost(host, measurement)
+   rv.message = "The host was successful deleted!"
 else
    reportError("Bad action paramater")
    return
@@ -153,5 +155,6 @@ end
 
 -- ################################################
 
+rv.success = true
 rv.csrf = ntop.getRandomCSRFValue()
 print(json.encode(rv))
