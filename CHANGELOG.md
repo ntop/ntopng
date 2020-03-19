@@ -2,7 +2,7 @@
 
 #### ntopng 4.0 (March 2020)
 
-## Breakthoughs
+## Breakthroughs
 
 * Plugins engine to tap into flows, hosts and other network elements
 * Migration to Bootstrap 4 and Font Awesome 4 for a renewed ntopng look-and-feel with light and dark themes
@@ -20,13 +20,13 @@
 * Visibility of ICMP port-unreachable flows IPv4
 * TCP states filtering (est., connecting, closed and rst)
 * Ability to serialize local hosts in the broadcast domain via MAC address
-* Japanese, portuguese/brazilian localization
+* Japanese, portugese/brazilian localization
 * Added process memory, cpu load, InfluxDB, Redis status pages and charts
 * Implement ntopng Plugins, self contained modules to extend the ntopng functionalities
 * Implement ZMQ/Suricata companion interface
 * SSL traffic analysis and alerts via JA3 fingerprint, unsafe ciphers detection
 * SSH traffic analysis and alerts via HASSH fingerprint
-* Host traffic profile generation via the (MUD) Manifacturer Usage Descriptor
+* Host traffic profile generation via the (MUD) Manufacturer Usage Descriptor
 * Experimental Prometheus timeseries export
 * Introduce the System interface to manage system wide settings and status
 * Read events from Suricata and generate alerts
