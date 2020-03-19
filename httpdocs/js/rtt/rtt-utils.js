@@ -7,20 +7,9 @@ $(document).ready(function() {
         event.preventDefault();
 
         const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
-
         const threshold = $("#input-add-threshold").val();
+
         perform_request(make_data_to_send('add', host, threshold, measurement, rtt_csrf));
-
-    });
-
-    $("#rtt-edit-form").on('submit', function(event) {
-
-        event.preventDefault();
-
-        const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
-        const threshold = $("#input-edit-threshold").val();
-
-        perform_request(make_data_to_send('edit', host, threshold, measurement, rtt_csrf));
 
     });
 
@@ -60,6 +49,28 @@ $(document).ready(function() {
 
         const data = get_rtt_data($rtt_table, $(this));
 
+        // bind submit to form for edits
+        $("#rtt-edit-form").off('submit').on('submit', function(event) {
+
+            event.preventDefault();
+
+            const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
+            const threshold = $("#input-edit-threshold").val();
+
+            const data_to_send = {
+                action: 'edit',
+                rtt_max: threshold,
+                rtt_host: host,
+                measurement: measurement,
+                old_rtt_host: data.host,
+                old_measurement: data.measurement,
+                csrf: rtt_csrf
+            };
+
+            perform_request(data_to_send);
+
+        });
+
         // create a closure for reset button
         $('#btn-reset-defaults').off('click').on('click', function() {
             fill_form(data);
@@ -67,7 +78,6 @@ $(document).ready(function() {
 
         fill_form(data);
         $(`#rtt-edit-modal span.invalid-feedback`).hide();
-
 
     });
 
