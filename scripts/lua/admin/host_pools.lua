@@ -730,8 +730,14 @@ print [[
       var icon = $("td:nth-child(4)", tr);
       var icon_input = $("select", icon).first();
       curDisplayedMembers++;
-      $("#addPoolMemberBtn").attr("disabled", ((curDisplayedMembers > ]] print(perPageMembers) print[[)
-       || (numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[)));
+
+      var is_disabled = ((curDisplayedMembers > ]] print(perPageMembers) print[[)
+       || (numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
+
+      if(is_disabled)
+          $("#addPoolMemberBtn").addClass("disabled").attr("disabled", "disabled");
+        else
+          $("#addPoolMemberBtn").removeClass("disabled").removeAttr("disabled");
 
       aysRecheckForm("#table-manage-form");
     }
@@ -905,11 +911,16 @@ print[[
           aysResetForm('#table-manage-form');
         }
 
-        $("#addPoolMemberBtn").addClass("disabled").attr("disabled", ((! datatableIsLastPage("#table-manage-form"))
+        var is_disabled = (((! datatableIsLastPage("#table-manage-form"))
                                               || (no_pools))
                                               || (]] if members_filtering ~= nil then print("true") else print("false") end print[[)
                                               || (curDisplayedMembers > ]] print(perPageMembers) print[[)
                                               || (numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
+
+        if(is_disabled)
+          $("#addPoolMemberBtn").addClass("disabled").attr("disabled", "disabled");
+        else
+          $("#addPoolMemberBtn").removeClass("disabled").removeAttr("disabled");
 
         $("#table-manage-form")
             .validator(validator_options)

@@ -25,7 +25,7 @@ function datatableGetByForm(form) {
 
 function datatableUndoAddRow(new_row, empty_str, bt_to_enable, callback_str) {
   if (bt_to_enable)
-     $(bt_to_enable).removeAttr("disabled");
+     $(bt_to_enable).removeAttr("disabled").removeClass("disabled");
 
   var form = $(new_row).closest("form");
   $(new_row).remove();
