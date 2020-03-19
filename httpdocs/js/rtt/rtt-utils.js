@@ -198,7 +198,10 @@ $(document).ready(function() {
             },
             {
                 data: 'threshold',
-                className: 'text-center'
+                className: 'text-center',
+                render: function(threshold) {
+                    return `${threshold} ${i18n.msec}`
+                }
             },
             {
                 data: 'last_mesurement_time',
