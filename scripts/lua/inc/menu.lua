@@ -739,7 +739,7 @@ for round = 1, 2 do
          local page_params = table.clone(_GET)
          page_params.ifid = k
          -- ntop.g`tHttpPrefix()
-         local url = getPageUrl("", page_params)
+         local url_query = getPageUrl("", page_params)
 
          print([[<li class="nav-item">]])
 
@@ -747,9 +747,9 @@ for round = 1, 2 do
             print("<a class=\"dropdown-item active\" href=\"#\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-            local action_url = (is_system_interface and '/?' or '?')
+            local action_url = (is_system_interface and '/?' or url_query)
 
-            print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[ifid=]]) print(string.format("%u", k))  print[[">]]
+            print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[]]) print[[">]]
             print[[<input name="switch_interface" type="hidden" value="1" />]]
             print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
             print[[</form>]]
