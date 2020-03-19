@@ -16,6 +16,7 @@ local delete_data_utils = require "delete_data_utils"
 
 local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
+local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 
 -- this is a global variable
@@ -377,12 +378,12 @@ page_utils.add_menubar_section({
       },
       {
          entry = page_utils.menu_entries.conf_backup,
-         hidden = not is_admin,
+         hidden = not is_admin or is_windows,
          url = '/lua/get_config.lua',
       },
       {
          entry = page_utils.menu_entries.conf_restore,
-         hidden = not is_admin,
+         hidden = not is_admin or is_windows,
          url = 'https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration',
       },
    }
