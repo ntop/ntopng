@@ -3297,12 +3297,14 @@ function getFolderSize(path, timeout)
 	       du_cmd = string.format("timeout %u%s %s", MAX_TIMEOUT, "s", du_cmd)
 	    end
 
-            local line = os_utils.execWithOutput(du_cmd)
+	    -- use POSIXLY_CORRECT=1 to guarantee results is returned in 512-byte blocks
+	    -- both on BSD and Linux
+            local line = os_utils.execWithOutput(string.format("POSIXLY_CORRECT=1 %s", du_cmd))
             local values = split(line, '\t')
             if #values >= 1 then
                local used = tonumber(values[1])
                if used ~= nil then
-                  size = math.ceil(used*1024)
+                  size = math.ceil(used * 512)
 
                   -- Cache disk utilization
                   ntop.setHashCache("ntopng.cache.folder_size", path, now..","..size)
