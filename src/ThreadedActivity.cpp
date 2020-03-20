@@ -46,7 +46,13 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   align_to_localtime = _align_to_localtime;
   exclude_viewed_interfaces = _exclude_viewed_interfaces;
   exclude_pcap_dump_interfaces = _exclude_pcap_dump_interfaces;
+#ifndef WIN32
   reuse_vm = _reuse_vm;
+#else
+  /* Don't reuse the VM in Windows as it seems like some file/error state
+   * is cached causing ntopng script failures on demo expiration. */
+  reuse_vm = false;
+#endif
   thread_started = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (ThreadedActivityState*) calloc(MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */, sizeof(ThreadedActivityState));
