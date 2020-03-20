@@ -972,7 +972,7 @@ if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
   <script type="text/javascript">
    let restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
    let restartService = function() {
-     if (confirm(']] print(i18n("restart.confirm")) print[[')) {
+     if (confirm(']] print(i18n("restart.confirm", {product=info.product})) print[[')) {
        $.ajax({
          type: 'POST',
          url: ']] print (ntop.getHttpPrefix()) print [[/lua/admin/service_restart.lua',
@@ -981,7 +981,7 @@ if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
          },
          success: function(rsp) {
            restart_csrf = rsp.csrf;
-           alert("]] print(i18n("restart.restarting")) print[[");
+           alert("]] print(i18n("restart.restarting", {product=info.product})) print[[");
          }
        });
      }

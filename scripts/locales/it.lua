@@ -3102,7 +3102,7 @@ local lang = {
     ["use_server_timezone"] = "Utilizza la Timezone del Server",
   },
   ["restart"] = {
-    ["confirm"] = "Riavviare ntopng adesso?",
+    ["confirm"] = "Riavviare %{product} adesso?",
     ["restart"] = "Riavvia",
     ["restart_now"] = "Riavvia adesso",
     ["restarting"] = "Riavvio in corso... (potrebbero esser necessari alcuni secondi)",

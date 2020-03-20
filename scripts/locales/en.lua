@@ -3357,10 +3357,10 @@ local lang = {
     ["use_server_timezone"] = "Use Server Timezone",
   },
   ["restart"] = {
-    ["confirm"] = "Do you want to restart ntopng now?",
+    ["confirm"] = "Do you want to restart %{product} now?",
     ["restart"] = "Restart",
     ["restart_now"] = "Restart now",
-    ["restarting"] = "Restarting ntopng... (this should take a few seconds)",
+    ["restarting"] = "Restarting %{product}... (this should take a few seconds)",
   },
   ["rtt_stats"] = {
     ["add_rtt"] = "Add RTT Record",
