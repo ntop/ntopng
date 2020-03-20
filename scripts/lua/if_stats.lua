@@ -65,11 +65,14 @@ local ifstats = interface.getStats()
 local disaggregation_criterion_key = "ntopng.prefs.dynamic_sub_interfaces.ifid_"..tostring(ifid)..".mode"
 local charts_available = areInterfaceTimeseriesEnabled(ifid)
 
-function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class)
+function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class, measure_unit)
    if(can_edit) then
       print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value.."") end
       print[[">]]
+      if (measure_unit) then
+         print([[<span class='ml-1 align-middle'>]].. i18n(measure_unit) ..[[</span>]])
+      end
    else
       if(value ~= nil) then print(value) end
    end
@@ -602,8 +605,8 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th nowrap>"..i18n("http_page.traffic_sent")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(ifstats.eth.egress.bytes).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
       print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
    end
-  
-   if not interface.isPacketInterface() then 
+
+   if not interface.isPacketInterface() then
       local external_json_stats = ntop.getCache("ntopng.prefs.ifid_"..tostring(ifid)..".external_stats")
       if not isEmptyString(external_json_stats) then
          local external_stats = json.decode(external_json_stats)
@@ -1112,7 +1115,7 @@ setInterval(update_arp_table, 5000);
 </script>
 
 ]]
-   
+
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "iface:traffic"
    local selected_epoch = _GET["epoch"] or ""
@@ -1324,7 +1327,7 @@ elseif(page == "config") then
 	local ifspeed = getInterfaceSpeed(ifstats.id)
 	inline_input_form("ifSpeed", "Interface Speed",
 	   i18n("if_stats_config.interface_speed_popup_msg"),
-	   ifspeed, isAdministrator(), 'type="number" min="1"')
+	   ifspeed, isAdministrator(), 'type="number" min="1"', "d-inline-block", "if_stats_config.interface_speed_measure_unit")
 	print[[
 	   </td>
 	</tr>]]
@@ -1338,7 +1341,7 @@ elseif(page == "config") then
 	local refreshrate = getInterfaceRefreshRate(ifstats.id)
 	inline_input_form("ifRate", "Refresh Rate",
 	   i18n("if_stats_config.refresh_rate_popup_msg"),
-	   refreshrate, isAdministrator(), 'type="number" min="1"')
+	   refreshrate, isAdministrator(), 'type="number" min="1"', "d-inline-block", "if_stats_config.referesh_rate_measure_unit")
 	print[[
 	   </td>
 	</tr>]]
@@ -1442,7 +1445,7 @@ elseif(page == "config") then
       <script type="text/javascript">
         $("#interface_rrd_creation").change(function(){
           var self = this;
-          $("#iface_config_table tr.rrd_creation").toggle(self.checked); 
+          $("#iface_config_table tr.rrd_creation").toggle(self.checked);
         }).change();
      </script>
 ]]
@@ -1582,7 +1585,7 @@ elseif(page == "config") then
     <td>
       <div class="custom-control custom-switch">
          <input class="custom-control-input" id="check-flows_only_interface" type="checkbox" name="flows_only_interface" value="1" ]] print(flows_only_interface_checked) print[[>
-         <label class="custom-control-label" for="check-flows_only_interface"></label>   
+         <label class="custom-control-label" for="check-flows_only_interface"></label>
       </div>
          </td>
       </tr>]]
@@ -1764,7 +1767,7 @@ elseif(page == "config") then
 
 	 print[[
 	   </select>
-	  ]] 
+	  ]]
          print ("<br><br><small><p><b>"..i18n("notes").."</b><ul>"..
 		"<li>"..i18n("prefs.dynamic_interfaces_creation_description").."</li>"..
 		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
@@ -2106,7 +2109,7 @@ if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
    print("var last_nfq_queue_total = ".. st.nfq.queue_total .. ";\n")
    print("var last_nfq_handling_failed = ".. st.failures.handle_packet .. ";\n")
    print("var last_nfq_enobufs = ".. st.failures.no_buffers .. ";\n")
-   
+
    print[[
         if(rsp.netfilter.nfq.queue_pct > 80) {
           $('#nfq_queue_total').addClass("badge badge-danger");
