@@ -175,7 +175,7 @@ function rtt_utils.deleteHost(host, measurement)
   ts_utils.delete("rtt_host", {ifid=getSystemInterfaceId(), host=host, measurement=measurement})
 
   -- Remove the redis keys of the host
-  ntop.delCache(rtt_last_updates_key(host))
+  ntop.delCache(rtt_last_updates_key(host_key))
 
   ntop.delHashCache(rtt_hosts_key, host_key)
 end
