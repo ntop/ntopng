@@ -1811,11 +1811,7 @@ static int ntop_is_dir(lua_State* vm) {
 // ***API***
 static int ntop_is_not_empty_file(lua_State* vm) {
   char *path;
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
   int rc;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1835,11 +1831,7 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 // ***API***
 static int ntop_get_file_dir_exists(lua_State* vm) {
   char *path;
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
   int rc;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -1858,11 +1850,7 @@ static int ntop_get_file_dir_exists(lua_State* vm) {
 // ***API***
 static int ntop_get_file_last_change(lua_State* vm) {
   char *path;
-#ifdef WIN32
-  struct _stat64 buf;
-#else
-  struct stat buf;
-#endif
+ struct stat buf;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5013,11 +5001,7 @@ static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL;
   int status;
   ticks ticks_duration;
-#ifdef WIN32
-  struct _stat64 s;
-#else
   struct stat s;
-#endif
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
@@ -8054,11 +8038,7 @@ static int ntop_list_reports(lua_State* vm) {
 
     while ((ent = readdir(dir)) != NULL) {
       char filepath[MAX_PATH+16];
-#ifdef WIN32
-	  struct _stat64 buf;
-#else
 	  struct stat buf;
-#endif
 
       snprintf(filepath, sizeof(filepath), "%s/%s", fullpath, ent->d_name);
       ntop->fixPath(filepath);

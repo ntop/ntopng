@@ -138,7 +138,16 @@ extern "C" {
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
+
+#ifdef WIN32
+#define CURL_STATICLIB
+#endif
 #include <curl/curl.h>
+
+#ifdef WIN32
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "wldap32.lib") 
+#endif
 
 #include "third-party/uthash.h"
 

@@ -347,11 +347,7 @@ void ThreadedActivity::updateThreadedActivityStatsEnd(NetworkInterface *iface, u
 
 /* Run a one-shot script / accurate (e.g. second) periodic script */
 void ThreadedActivity::runSystemScript(time_t now) {
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
   char script_path[MAX_PATH];
   
   snprintf(script_path, sizeof(script_path), "%s/system/%s",
@@ -535,11 +531,7 @@ void ThreadedActivity::periodicActivityBody() {
 void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t scheduled_time, time_t deadline) {
   /* Schedule per system / interface */
   char script_path[MAX_PATH];
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
 
 #ifdef THREAD_DEBUG
   char deadline_buf[32], scheduled_time_buf[32];
