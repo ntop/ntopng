@@ -957,8 +957,14 @@ extern "C" {
 int Utils::ifname2id(const char *name) {
   char rsp[MAX_INTERFACE_NAME_LEN], ifidx[8];
 
-  if(name == NULL) return(-1);
-  else if(!strncmp(name, "-", 1)) name = (char*) "stdin";
+  if (name == NULL)
+      return(-1);
+#ifdef WIN32
+  else if (isdigit(name[0]))
+      return(atoi(name));
+#endif
+  else if(!strncmp(name, "-", 1))
+      name = (char*) "stdin";
 
   if(!strcmp(name, SYSTEM_INTERFACE_NAME)) return(SYSTEM_INTERFACE_ID);
 
