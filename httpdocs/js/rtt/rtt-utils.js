@@ -224,8 +224,8 @@ $(document).ready(function() {
                 class: 'text-center',
                 render: function() {
                     return `
-                        <a class="badge badge-info" data-toggle="modal" href="#rtt-edit-modal">Edit</a>
-                        <a class="badge badge-danger" data-toggle="modal" href="#rtt-delete-modal">Delete</a>
+                        <a class="badge badge-info" data-toggle="modal" href="#rtt-edit-modal">${i18n.edit}</a>
+                        <a class="badge badge-danger" data-toggle="modal" href="#rtt-delete-modal">${i18n.delete}</a>
                     `;
                 }
             }
