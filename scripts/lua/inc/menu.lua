@@ -490,7 +490,8 @@ page_utils.add_menubar_section(
 
 -- Developer
 
-page_utils.add_menubar_section(
+if not info.oem then
+  page_utils.add_menubar_section(
    {
       section = page_utils.menu_sections.dev,
       entries = {
@@ -516,7 +517,8 @@ page_utils.add_menubar_section(
 	 }
       },
    }
-)
+  )
+end
 
 -- ##############################################
 
