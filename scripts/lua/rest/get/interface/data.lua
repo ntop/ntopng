@@ -229,18 +229,17 @@ end
 
 local res = {}
 if(_GET["iffilter"] == "all") then
-   for _, ifname in pairs(interface.getIfNames()) do
-      local ifid = getInterfaceId(ifname)
+   for cur_ifid, ifname in pairs(interface.getIfNames()) do
       -- ifid in the key must be a string or json.encode will think
       -- its a lua array and will look for integers starting at one
-      res[ifid..""] = dumpInterfaceStats(ifid)
+      res[cur_ifid..""] = dumpInterfaceStats(cur_ifid)
    end
 elseif not isEmptyString(_GET["iffilter"]) then
    res = dumpInterfaceStats(_GET["iffilter"])
 else
    local ifid = nil
    if not isEmptyString(_GET["ifid"]) then
-      ifid = getInterfaceName(_GET["ifid"])
+      ifid = _GET["ifid"]
    end
    res = dumpInterfaceStats(ifid)
 
