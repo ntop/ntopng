@@ -781,9 +781,13 @@ for round = 1, 2 do
          if(string.contains(descr, "{")) then -- Windows
             descr = ifdescr[k]
          else
-            if(v ~= ifdescr[k]) then
-               descr = descr .. " (".. ifdescr[k] ..")"
-            end
+	    if(descr ~= ifdescr[k]) then
+	       if(descr == shortenCollapse(ifdescr[k])) then
+		  descr = ifdescr[k]
+	       else
+		  descr = descr .. " (".. ifdescr[k] ..")" -- Add description
+	       end
+	    end
          end
 
          print(descr)
