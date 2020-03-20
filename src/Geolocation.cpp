@@ -82,9 +82,8 @@ void Geolocation::testme() {
 	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
 	    char *org;
 
-	    if((org = (char*)malloc(entry_data.data_size + 1))) {
-	      snprintf(org, entry_data.data_size + 1, "%s", entry_data.utf8_string);
-	      org[entry_data.data_size] = '\0';
+	    if((org = (char*)calloc(1, entry_data.data_size + 1))) {
+	      memcpy(org, entry_data.utf8_string, entry_data.data_size);
 	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Organization: %s", org);
 	      free(org);
 	    }
@@ -233,8 +232,8 @@ void Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
 	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
 	    char *org;
 
-	    if((org = (char*)malloc(entry_data.data_size + 1))) {
-	      snprintf(org, entry_data.data_size + 1, "%s", entry_data.utf8_string);
+	    if((org = (char*)calloc(1, entry_data.data_size + 1))) {
+	      memcpy(org, entry_data.utf8_string, entry_data.data_size);
 	      *asname = org;
 	    }
 	  }
@@ -279,8 +278,8 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 	/* Get the continent code */
 	if(continent_code && (status = MMDB_get_value(&result.entry, &entry_data, "continent", "code", NULL)) == MMDB_SUCCESS) {
 	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
-	    if((cdata = (char*)malloc(entry_data.data_size + 1))) {
-	      snprintf(cdata, entry_data.data_size + 1, "%s", entry_data.utf8_string);
+	    if((cdata = (char*)calloc(1, entry_data.data_size + 1))) {
+	      memcpy(cdata, entry_data.utf8_string, entry_data.data_size);
 	      free(*continent_code);
 	      *continent_code = cdata;
 	    }
@@ -290,8 +289,8 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 	/* Get the country code */
 	if(country_code && (status = MMDB_get_value(&result.entry, &entry_data, "country", "iso_code", NULL)) == MMDB_SUCCESS) {
 	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
-	    if((cdata = (char*)malloc(entry_data.data_size + 1))) {
-	      snprintf(cdata, entry_data.data_size + 1, "%s", entry_data.utf8_string);
+	    if((cdata = (char*)calloc(1, entry_data.data_size + 1))) {
+	      memcpy(cdata, entry_data.utf8_string, entry_data.data_size);
 	      free(*country_code);
 	      *country_code = cdata;
 	    }
@@ -301,8 +300,8 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 	/* Get the city (seems that there are only localized versions of the city name) */
 	if(city && (status = MMDB_get_value(&result.entry, &entry_data, "city", "names", "en", NULL)) == MMDB_SUCCESS) {
 	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
-	    if((cdata = (char*)malloc(entry_data.data_size + 1))) {
-	      snprintf(cdata, entry_data.data_size + 1, "%s", entry_data.utf8_string);
+	    if((cdata = (char*)calloc(1, entry_data.data_size + 1))) {
+	      memcpy(cdata, entry_data.utf8_string, entry_data.data_size);
 	      free(*city);
 	      *city = cdata;
 	    }
