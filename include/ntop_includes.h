@@ -140,6 +140,10 @@ extern "C" {
 #endif
 
 #ifdef WIN32
+/* 
+See
+https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.blogspot.com%2F2017%2F05%2Fvcpkg.html
+*/
 #define CURL_STATICLIB
 #endif
 #include <curl/curl.h>
