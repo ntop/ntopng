@@ -204,7 +204,7 @@ static void get_qsvar(const struct mg_request_info *request_info,
 
 static int checkCaptive(const struct mg_connection *conn,
 			const struct mg_request_info *request_info,
-			char *username, char *password) {
+			char *username, char *password, char *label) {
 #ifdef NTOPNG_PRO
   if(ntop->getPrefs()->isCaptivePortalEnabled()
      && ntop->isCaptivePortalUser(username)) {
@@ -213,9 +213,6 @@ static int checkCaptive(const struct mg_connection *conn,
     */
     u_int16_t host_pool_id;
     int32_t limited_lifetime = -1; /* Unlimited by default */
-    char label[128];
-
-    get_qsvar(request_info, "label", label, sizeof(label));
 
 #ifdef DEBUG
     char buf[32];
@@ -396,13 +393,17 @@ static int getAuthorizedUser(struct mg_connection *conn,
          For this reason it is necessary to check submitted username and password. */
         if(!strcmp(request_info->request_method, "POST")) {
           char post_data[1024];
+          char label[128];
           int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+
+          label[0] = '\0';
 
           mg_get_var(post_data, post_data_len, "username", username, username_len);
           mg_get_var(post_data, post_data_len, "password", password, sizeof(password));
+          mg_get_var(post_data, post_data_len, "label", label, sizeof(label));
 
 	return(ntop->checkCaptiveUserPassword(username, password, group)
-	     && checkCaptive(conn, request_info, username, password));
+	     && checkCaptive(conn, request_info, username, password, label));
       }
     }
   }
