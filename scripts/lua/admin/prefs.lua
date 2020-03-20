@@ -1032,7 +1032,7 @@ function printStatsTimeseries()
   if not force_rrd then
     multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
 				    subpage_active.entries["multiple_timeseries_database"].description,
-				    {"RRD", "InfluxDB", "Prometheus [Export Only]"}, {"rrd", "influxdb", "prometheus"},
+				    {"RRD", "InfluxDB"}, {"rrd", "influxdb" },
 				    "rrd",
 				    "primary",
 				    "timeseries_driver",
