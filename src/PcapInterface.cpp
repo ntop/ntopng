@@ -31,11 +31,8 @@
 
 PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-#ifdef WIN32
-  struct _stat64 buf;
-#else
-  struct stat buf;
-#endif
+ struct stat buf;
+
 
   pcap_handle = NULL, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));

@@ -541,7 +541,7 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
 
    print[[</ul>
 
-<div class="tab-content clearfix">]]
+<div class="tab-content my-3 clearfix">]]
    local base_url = "?page=internals"
 
    if tab == "hash_tables" and print_hash_tables then

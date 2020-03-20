@@ -289,12 +289,7 @@ Ntop::~Ntop() {
 
 void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   char value[32];
-
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
 
   prefs = _prefs;
 
@@ -2108,11 +2103,8 @@ void Ntop::fixPath(char *str, bool replaceDots) {
 
 char* Ntop::getValidPath(char *__path) {
   char _path[MAX_PATH+8];
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
+
 #ifdef WIN32
   const char *install_dir = (const char *)get_install_dir();
 #endif

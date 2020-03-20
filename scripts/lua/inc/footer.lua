@@ -505,6 +505,17 @@ if have_nedge then
    )
 end
 
+if not rtt_script_found then
+  print(template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "enable-rtt-monitor",
+			 title   = i18n("host_config.rtt_monitor"),
+			 message = i18n("host_config.rtt_monitor_enable",
+			  {url=ntop.getHttpPrefix() .. '/lua/admin/edit_configset.lua?confset_id=0&subdir=system&user_script=rtt#all'}),
+		      }
+      }))
+end
+
 -- ######################################
 
 -- close wrapper

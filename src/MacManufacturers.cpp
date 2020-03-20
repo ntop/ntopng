@@ -40,11 +40,7 @@ MacManufacturers::MacManufacturers(const char * const home) {
 /* *************************************** */
 
 void MacManufacturers::init() {
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
   FILE *fd;
   char line[256], *cr;
   int _mac[3];

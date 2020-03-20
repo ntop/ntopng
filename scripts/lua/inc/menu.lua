@@ -314,11 +314,25 @@ local system_entries = {
 
 }
 
+-- Used by footer.lua, keep global
+rtt_script_found = false
+
 -- Add plugin entries...
 for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+   if(k == "rtt") then
+      rtt_script_found = true
+   end
+
    system_entries[#system_entries + 1] = {
       entry = page_utils.menu_entries[entry.menu_entry.key],
       url = entry.url,
+   }
+end
+
+if(not rtt_script_found and isAdministrator()) then
+   system_entries[#system_entries + 1] = {
+      entry = page_utils.menu_entries.rtt_monitor_enable,
+      url = "#enable-rtt-monitor",
    }
 end
 
@@ -781,9 +795,13 @@ for round = 1, 2 do
          if(string.contains(descr, "{")) then -- Windows
             descr = ifdescr[k]
          else
-            if(v ~= ifdescr[k]) then
-               descr = descr .. " (".. ifdescr[k] ..")"
-            end
+	    if(descr ~= ifdescr[k]) then
+	       if(descr == shortenCollapse(ifdescr[k])) then
+		  descr = ifdescr[k]
+	       else
+		  descr = descr .. " (".. ifdescr[k] ..")" -- Add description
+	       end
+	    end
          end
 
          print(descr)

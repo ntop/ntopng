@@ -351,15 +351,22 @@ function recording_utils.volumeInfo(path)
   end
 
   if ntop.isdir(root_path) then
-    local line = os_utils.execWithOutput("df "..root_path.." 2>/dev/null|tail -n1")
+    -- use environment variable POSIXLY_CORRECT=1 to guarantee the
+    -- the results are returned in number of 512-byte blocks (otherwise,
+    -- linux will return 1K blocks and BSD 512-byte blocks) 
+    local line = os_utils.execWithOutput("POSIXLY_CORRECT=1 df "..root_path.." 2>/dev/null|tail -n1")
+
     if line ~= nil then
       line = line:gsub('%s+', ' ')
       local values = split(line, ' ')
+
       if #values >= 6 then
-        volume_info.dev = values[1]
-        volume_info.total = tonumber(values[2])*1024
-        volume_info.used =  tonumber(values[3])*1024
-        volume_info.avail = tonumber(values[4])*1024
+	volume_info.dev = values[1]
+	-- Multiply by 512 as results are in 512-byte blocks 
+        volume_info.total = (tonumber(values[2]) or 0) * 512
+        volume_info.used =  (tonumber(values[3]) or 0) * 512
+        volume_info.avail = (tonumber(values[4]) or 0) * 512
+
         volume_info.used_perc = values[5]
         volume_info.mount = values[6]
       end

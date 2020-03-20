@@ -493,11 +493,7 @@ bool Utils::file_exists(const char *path) {
 /* ****************************************************** */
 
 bool Utils::dir_exists(const char * const path) {
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
 
   return !((stat(path, &buf) != 0) || (!S_ISDIR(buf.st_mode)));
 }
@@ -575,11 +571,7 @@ int Utils::remove_recursively(const char * const path) {
       buf = (char *) malloc(len);
 
       if(buf) {
-#ifdef WIN32
-	struct _stat64 statbuf;
-#else
-	struct stat statbuf;
-#endif
+	    struct stat statbuf;
 
         snprintf(buf, len, "%s/%s", path, p->d_name);
 
@@ -607,11 +599,7 @@ int Utils::remove_recursively(const char * const path) {
 
 bool Utils::mkdir_tree(char * const path) {
   int rc;
-#ifdef WIN32
-  struct _stat64 s;
-#else
   struct stat s;
-#endif
 
   ntop->fixPath(path);
 
@@ -969,8 +957,14 @@ extern "C" {
 int Utils::ifname2id(const char *name) {
   char rsp[MAX_INTERFACE_NAME_LEN], ifidx[8];
 
-  if(name == NULL) return(-1);
-  else if(!strncmp(name, "-", 1)) name = (char*) "stdin";
+  if (name == NULL)
+      return(-1);
+#ifdef WIN32
+  else if (isdigit(name[0]))
+      return(atoi(name));
+#endif
+  else if(!strncmp(name, "-", 1))
+      name = (char*) "stdin";
 
   if(!strcmp(name, SYSTEM_INTERFACE_NAME)) return(SYSTEM_INTERFACE_ID);
 
@@ -1507,11 +1501,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 			     char *path, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
   bool ret = true;
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
   size_t file_len;
   FILE *fd;
 
@@ -2036,11 +2026,7 @@ long Utils::httpGet(const char * const url,
 /* **************************************** */
 
 char* Utils::getURL(char *url, char *buf, u_int buf_len) {
-#ifdef WIN32
-  struct _stat64 s;
-#else
   struct stat s;
-#endif
 
   if(!ntop->getPrefs()->is_pro_edition())
     return(url);
@@ -2165,11 +2151,7 @@ static bool scan_dir(const char * dir_name,
   int path_length;
   char path[MAX_PATH+2];
   DIR *d;
-#ifdef WIN32
-  struct _stat64 buf;
-#else
   struct stat buf;
-#endif
 
   d = opendir(dir_name);
   if(!d) return false;
@@ -2214,11 +2196,7 @@ static bool scan_dir(const char * dir_name,
 /* **************************************** */
 
 bool file_mtime_compare(const pair<struct dirent *, char * > &d1, const pair<struct dirent *, char * > &d2) {
-#ifdef WIN32
-  struct _stat64 sa, sb;
-#else
   struct stat sa, sb;
-#endif
 
   if(!d1.second || !d2.second)
     return false;
@@ -2235,11 +2213,7 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
   unsigned long total = 0;
   list<pair<struct dirent *, char * > > fileslist;
   list<pair<struct dirent *, char * > >::iterator it;
-#ifdef WIN32
-  struct _stat64 st;
-#else
   struct stat st;
-#endif
 
   if(path == NULL || !strncmp(path, "", MAX_PATH))
     return false;
