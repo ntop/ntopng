@@ -24,24 +24,29 @@ local function reportError(msg)
 end
 
 local function isValidHostMeasurementCombination(host, measurement)
-   if((measurement == "icmp6") and not(isIPv6(host))) then
-      if(ntop.resolveHost(host, false) == nil) then
-	 return(true)
-      else
-	 reportError(i18n("rtt_stats.invalid_combination"))
-	 return(false)
-      end
-   end
+   local host_v4 = isIPv4(host)
+   local host_v6 = isIPv6(host)
+   local expected_ipv = ternary((measurement == "icmp6"), 6, 4)
 
-   if(ntop.resolveHost(host, true) == nil) then
-      reportError(i18n("rtt_stats.invalid_host"))
+   if(((expected_ipv == 6) and host_v6) or
+	 ((expected_ipv == 4) and host_v4)) then
+      -- IP address version matches
+      return(true)
+   elseif(((expected_ipv == 6) and host_v4) or
+	  ((expected_ipv == 4) and host_v6)) then
+      reportError(i18n("rtt_stats.invalid_combination"))
       return(false)
    end
 
+   -- Host is a domain, try to resolve it to validate it
+   if(ntop.resolveHost(host, ternary((expected_ipv == 4), true, false)) ~= nil) then
+      -- Valid Host
+      return(true)
+   end
 
-   return(true)
+   reportError(i18n("rtt_stats.invalid_host"))
+   return(false)
 end
-
 -- ################################################
 
 if isEmptyString(action) then
