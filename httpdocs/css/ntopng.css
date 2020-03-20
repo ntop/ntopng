@@ -1226,3 +1226,7 @@ th.dt-head-center {
 td.dt-body-right {
   text-align: right;
 }
+
+#alertsActionsPanel {
+  margin-bottom: 1rem;
+}

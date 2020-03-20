@@ -78,10 +78,12 @@ page_utils.menu_entries = {
     -- SNMP
     snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "snmp"},
 
+    -- System
+    rtt_monitor_enable   = {key = "rtt_monitor_enable", i18n_title = "host_config.rtt_monitor", section = "system", is_modal = true},
+
     -- Status
     system_status	 = {key = "status", i18n_title = "system_status", section = "system_health"},
     interfaces_status	 = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_health"},
-    -- TODO plugins
 
     -- Exporters
     event_exporters   	 = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
@@ -468,6 +470,10 @@ function page_utils.print_menubar()
 			print(ntop.getHttpPrefix()..section_entry.url)
 		     end
 		     print[["]]
+
+		     if section_entry.entry.is_modal then
+			print(' data-toggle="modal"')
+		     end
 
 		     if external_link then
 			-- Open in a new page

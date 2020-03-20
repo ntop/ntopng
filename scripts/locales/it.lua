@@ -1919,6 +1919,7 @@ local lang = {
     ["mud_special_purpose"] = "Special Purpose",
     ["rtt_monitor"] = "Monitor RTT",
     ["rtt_monitor_description"] = "Configura e monitora l'RTT di host specifici",
+    ["rtt_monitor_enable"] = "Il Monitor RTT può essere usato per monitorare latenza e stato di host. Può essere abilitato <a href=\"%{url}\">qui</a>.",
     ["trigger_alerts_for_host"] = "Genera allarmi per l'host %{host}",
     ["trigger_host_alerts"] = "Genera allarmi per l'host",
     ["unblock_host_traffic"] = "Sblocca Traffico Host",
@@ -3123,6 +3124,7 @@ local lang = {
     ["measurement"] = "Misurazione",
     ["measurement_time"] = "Tempo di Misurazione",
     ["msec"] = "ms",
+    ["rtt_note1"] = "In questa pagina è possibile configurare host da monitorare. Ogni minuto, %{product} proverà a contattare tali host, in base al metodo specificato, riportando la loro latenza. Host non raggiungibili saranno notificati tramite opportune alerts.",
   },
   ["scripts_list"] = {
     ["all"] = "Tutti",
@@ -3697,9 +3699,9 @@ local lang = {
     ["available"] = "Nuovo",
     ["check"] = "Controlla aggiornamenti",
     ["checking"] = "Controllo aggiornamenti in corso..",
-    ["install_confirm"] = "Vuoi veramente aggiornare e riavviare ntopng adesso?",
+    ["install_confirm"] = "Vuou veramente aggiornare e riavviare ntopng adesso?",
     ["installing"] = "Installazione aggiornamento..",
-    ["no_updates"] = "Nessun aggiornamento disponibile",
+    ["no_updates"] = "Non ci sono aggiornamenti disponibili",
     ["upgrade_failure_message"] = "Qualcosa è andato storto durante l'aggiornamento. Riprovare.",
   },
   ["user_activity"] = {

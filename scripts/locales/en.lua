@@ -1920,6 +1920,7 @@ local lang = {
     ["mud_special_purpose"] = "Special Purpose",
     ["rtt_monitor"] = "RTT Monitor",
     ["rtt_monitor_description"] = "Configure and monitor the RTT of specific hosts",
+    ["rtt_monitor_enable"] = "RTT Monitor can be used to monitor the status and latency of hosts. It can be enabled <a href=\"%{url}\">here</a>.",
     ["trigger_alerts_for_host"] = "Trigger alerts for Host %{host}",
     ["trigger_host_alerts"] = "Trigger Host Alerts",
     ["unblock_host_traffic"] = "Unblock Host Traffic",
@@ -3376,6 +3377,7 @@ local lang = {
     ["measurement"] = "Measurement",
     ["measurement_time"] = "Measurement Time",
     ["msec"] = "ms",
+    ["rtt_note1"] = "This page can be used to configure some hosts to monitor. Every minute, %{product} will try to reach the configured hosts (according to the specified method) and report their latency. An alert will be generated for the unreachable hosts.",
   },
   ["scripts_list"] = {
     ["all"] = "All",

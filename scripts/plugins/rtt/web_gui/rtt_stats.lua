@@ -33,6 +33,7 @@ local host = _GET["rtt_host"]
 local measurement = _GET["measurement"]
 local base_url = plugins_utils.getUrl("rtt_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
 local url = base_url
+local info = ntop.getInfo()
 
 if(not isEmptyString(host) and not isEmptyString(measurement)) then
   host = rtt_utils.getHost(host, measurement)
@@ -265,6 +266,12 @@ if(page == "overview") then
 	  <input type="hidden" name="action" value="reset_config"/>
 	  <button type="button" id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_reset') .. [[</span></button>
 	</form>
+    </div>
+
+    <div>
+      ]].. i18n("notes") .. [[<ul>
+	<li>]].. i18n("rtt_stats.rtt_note1", {product=info.product}) ..[[</li>
+      </ul>
     </div>
   ]])
 

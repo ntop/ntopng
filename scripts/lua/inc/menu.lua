@@ -314,11 +314,25 @@ local system_entries = {
 
 }
 
+-- Used by footer.lua, keep global
+rtt_script_found = false
+
 -- Add plugin entries...
 for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+   if(k == "rtt") then
+      rtt_script_found = true
+   end
+
    system_entries[#system_entries + 1] = {
       entry = page_utils.menu_entries[entry.menu_entry.key],
       url = entry.url,
+   }
+end
+
+if(not rtt_script_found and isAdministrator()) then
+   system_entries[#system_entries + 1] = {
+      entry = page_utils.menu_entries.rtt_monitor_enable,
+      url = "#enable-rtt-monitor",
    }
 end
 
