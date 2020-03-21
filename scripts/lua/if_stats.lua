@@ -238,7 +238,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = i18n("networks"),
 			      },
 			      {
-				 hidden = not ifstats or ifstats.stats.packets == 0 or ntop.isnEdge(),
+				 hidden = have_nedge or not ifstats or ifstats.stats.packets == 0 or ntop.isnEdge(),
 				 active = page == "packets",
 				 page_name = "packets",
 				 label = i18n("packets"),
@@ -249,7 +249,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = i18n("applications"),
 			      },
 			      {
-				 hidden = ntop.isnEdge(),
+				 hidden = have_nedge,
 				 active = page == "ICMP",
 				 page_name = "ICMP",
 				 label = i18n("icmp"),
@@ -302,7 +302,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = "<i class=\"fas fa-lg fa-wrench\"></i>",
 			      },
 			      {
-				 hidden = not isAdministrator() or not ntop.isEnterprise() or ifstats.isDynamic or ifstats.isView,
+				 hidden = have_nedge or not isAdministrator() or not ntop.isEnterprise() or ifstats.isDynamic or ifstats.isView,
 				 active = page == "sub_interfaces",
 				 page_name = "sub_interfaces",
 				 label = "<i class=\"fas fa-lg fa-code-branch\"></i>",

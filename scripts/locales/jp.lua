@@ -3363,10 +3363,10 @@ local lang = {
     ["use_server_timezone"] = "サーバタイムゾーンを利用",
   },
   ["restart"] = {
-    ["confirm"] = "ntopngを今すぐ再起動しますか？",
+    ["confirm"] = "%{product}を今すぐ再起動しますか？",
     ["restart"] = "再起動",
     ["restart_now"] = "今すぐ再起動",
-    ["restarting"] = "ntopngを再起動しています...（これには数秒かかります）",
+    ["restarting"] = "%{product}を再起動しています...（これには数秒かかります）",
   },
   ["scripts_list"] = {
     ["all"] = "すべて",

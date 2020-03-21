@@ -240,7 +240,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("traffic"),
 			      },
 			      {
-				 hidden = only_historical or (host["packets.sent"] + host["packets.rcvd"] == 0),
+				 hidden = have_nedge or only_historical or (host["packets.sent"] + host["packets.rcvd"] == 0),
 				 active = page == "packets",
 				 page_name = "packets",
 				 label = i18n("packets"),
@@ -258,7 +258,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("peers"),
 			      },
 			      {
-				 hidden = only_historical or not host["localhost"] or (not host["ICMPv4"] and not host["ICMPv6"]),
+				 hidden = have_nedge or only_historical or not host["localhost"] or (not host["ICMPv4"] and not host["ICMPv6"]),
 				 active = page == "ICMP",
 				 page_name = "ICMP",
 				 label = i18n("icmp"),
@@ -270,26 +270,26 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("applications"),
 			      },
 			      {
-				 hidden = only_historical or not host["localhost"],
+				 hidden = have_nedge or only_historical or not host["localhost"],
 				 active = page == "dns",
 				 page_name = "dns",
 				 label = i18n("dns"),
 			      },
 			      {
-				 hidden = only_historical or not host["ja3_fingerprint"],
+				 hidden = have_nedge or only_historical or not host["ja3_fingerprint"],
 				 active = page == "tls",
 				 page_name = "tls",
 				 label = i18n("tls"),
 			      },
 			      {
-				 hidden = only_historical or not host["hassh_fingerprint"],
+				 hidden = have_nedge or only_historical or not host["hassh_fingerprint"],
 				 active = page == "ssh",
 				 page_name = "ssh",
 				 label = i18n("ssh"),
 			      },
 			      {
 				 hidden = only_historical
-				    or ntop.isnEdge()
+				    or have_nedge
 				    or not host["localhost"]
 				    or not host["http"]
 				    or (host["http"]["sender"]["query"]["total"] == 0
