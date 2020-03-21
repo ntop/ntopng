@@ -1736,11 +1736,12 @@ int mg_write_async(struct mg_connection *conn, const void *buf, size_t len) {
 
 int mg_is_client_connected(struct mg_connection *conn) {
   char c;
-  int rv = recv(conn->client.sock, &c, 1, MSG_PEEK
-#ifndef WIN32
-	  | MSG_DONTWAIT
+  int rv;
+#ifdef WIN32
+  rv = 1;
+#else  
+  rv = recv(conn->client.sock, &c, 1, MSG_PEEK | MSG_DONTWAIT | MSG_NOSIGNAL);
 #endif
-	  | MSG_NOSIGNAL);
 
   return(rv != 0);
 }
