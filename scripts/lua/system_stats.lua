@@ -22,7 +22,7 @@ if not isAllowedSystemInterface() then
    return
 end
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, true)
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.system_status)
 

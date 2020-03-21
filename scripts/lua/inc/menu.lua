@@ -20,7 +20,7 @@ local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 
 -- this is a global variable
-local is_system_interface = ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and is_admin)
+local is_system_interface = isSystemView()
 
 print([[
    <div id='wrapper'>
@@ -795,13 +795,13 @@ for round = 1, 2 do
          if(string.contains(descr, "{")) then -- Windows
             descr = ifdescr[k]
          else
-	    if(descr ~= ifdescr[k]) then
-	       if(descr == shortenCollapse(ifdescr[k])) then
-		  descr = ifdescr[k]
-	       else
-		  descr = descr .. " (".. ifdescr[k] ..")" -- Add description
-	       end
-	    end
+	         if(descr ~= ifdescr[k]) then
+	            if(descr == shortenCollapse(ifdescr[k])) then
+		            descr = ifdescr[k]
+	            else
+		            descr = descr .. " (".. ifdescr[k] ..")" -- Add description
+	            end
+	         end
          end
 
          print(descr)
@@ -1081,6 +1081,10 @@ if is_admin then
 
 print([[
 <script type="text/javascript">
+
+   window.onpopstate = function(event) {
+      console.log(`location: ${document.location}, state: ${JSON.stringify(event.state)}`)
+   }
 
    const toggle_system_flag = (is_system_switch = false, $form = null) => {
 

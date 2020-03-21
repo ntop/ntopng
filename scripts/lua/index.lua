@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils = require("page_utils")
-local is_system_interface = ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and ntop.isAdministrator())
+local is_system_interface = isSystemView()
 
 interface.select(ifname)
 

@@ -248,7 +248,17 @@ end
 
 -- ##############################################
 
-function sendHTTPContentTypeHeader(content_type, content_disposition, charset)
+function sendHTTPContentTypeHeader(content_type, content_disposition, charset, system_view)
+
+   -- Check if the current request page belongs to system view
+   local is_system_view = system_view or false
+
+   if (not isSystemView() and is_system_view) then
+      setSystemView(true)
+   elseif (isSystemView() and not is_system_view) then
+      setSystemView(false)
+   end
+
   local charset = charset or "utf-8"
   local mime = content_type.."; charset="..charset
   sendHTTPHeader(mime, content_disposition)
@@ -3474,6 +3484,19 @@ end
 
 function areFlowdevTimeseriesEnabled(ifid, device)
    return(ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1")
+end
+
+-- ##############################################
+
+function isSystemView()
+   return ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and isAdministrator())
+end
+
+-- ##############################################
+
+function setSystemView(toggle)
+   local t = (toggle and "1" or "0")
+   ntop.setPref("ntopng.prefs.system_mode_enabled", t)
 end
 
 -- ###########################################

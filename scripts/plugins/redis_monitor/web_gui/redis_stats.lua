@@ -19,7 +19,7 @@ if not isAllowedSystemInterface() then
    return
 end
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, true)
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.redis_monitor)
 
@@ -155,7 +155,7 @@ $("#table-redis-stats").datatable({
 });
 </script>
  ]]
-   
+
 elseif(page == "historical" and charts_available) then
    local ts_utils = require("ts_utils")
    local schema = _GET["ts_schema"] or "redis:memory"
