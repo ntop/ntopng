@@ -228,10 +228,10 @@ function page_utils.print_header(title)
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/popper-1.12.9/js/popper.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/popper-1.12.9/js/popper.min.js" crossorigin="anonymous"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/js/bootstrap.min.js?]] print(startup_epoch) print[[" integrity="sha384-3qaqj0lc6sV/qpzrc1N5DC6i1VRn/HyX4qdPaiEFbn54VjQBEU341pvjz7Dv3n6P" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
+    <script async type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js"></script>
+    <script async type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
     <script defer type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js"></script>
   </head>
   <body>
