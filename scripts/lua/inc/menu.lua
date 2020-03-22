@@ -904,6 +904,19 @@ end
 print([[
 <ul class='navbar-nav'>
    <li class="nav-item">
+      <a id="notification-list" href="#" class="nav-link dropdown-toggle mx-2 dark-gray position-relative" data-toggle="dropdown">
+         <i class='fas fa-bell'></i>
+      </a>
+      <div class="dropdown-menu dropdown-menu-right p-1">
+         <div class="blog-section">
+            <h6 class="text-muted p-2 mb-0">News from the Blog</h6>
+            <ul class="list-unstyled">
+               <li class="text-muted p-2">Nothing to show here!</li>
+            </ul>
+         </div>
+      </div>
+   </li>
+   <li class="nav-item">
       <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" data-toggle="dropdown">
          <i class='fas fa-user'></i>
       </a>

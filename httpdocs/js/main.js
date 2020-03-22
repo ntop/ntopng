@@ -1,3 +1,5 @@
-if ('serviceWorker' in navigator) {
-    // navigator.serviceWorker.register('/sw.js');
+const registerServiceWorker = () => {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
 }

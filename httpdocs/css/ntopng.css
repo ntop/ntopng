@@ -1230,3 +1230,10 @@ td.dt-body-right {
 #alertsActionsPanel {
   margin-bottom: 1rem;
 }
+
+.notification-bell {
+  font-size: 0.5rem;
+  position: absolute;
+  right: 1rem;
+  top: 0.2rem;
+}

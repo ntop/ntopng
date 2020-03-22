@@ -119,7 +119,12 @@ local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTi
 
 print [[
 <script type="text/javascript">
-	var is_historical = false;
+
+$(document).ready(function() {
+	BlogFeed.queryBlog();
+});
+
+var is_historical = false;
 
 function checkMigrationMessage(data) {
   var max_local_hosts = 500;
