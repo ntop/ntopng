@@ -125,7 +125,7 @@ if(page == "overview") then
               <tr>
                 <th>]].. i18n("flow_details.url") ..[[</th>
                 <th>]].. i18n("chart") ..[[</th>
-                <th>]].. i18n("threshold") .. [[</th>
+                <th>]].. i18n("rtt_stats.rtt_threshold") .. [[</th>
                 <th>]].. i18n("rtt_stats.last_measurement") .. [[</th>
                 <th>]].. i18n("system_stats.last_rtt") .. [[</th>
                 <th>]].. i18n("rtt_stats.measurement_time") .. [[</th>
@@ -151,19 +151,19 @@ if(page == "overview") then
             </div>
             <div class="modal-body container-fluid">
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
                   ]].. generate_select("select-edit-measurement", "measurement", true, false, rtt_utils.probe_types) ..[[
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
                 <div class="col-sm-5">
                   <input placeholder="yourhostname.org" required id="input-edit-host" type="text" name="host" class="form-control" />
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">]] .. i18n("threshold") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.rtt_threshold") .. [[</label>
                 <div class="col-sm-5">
                   <div class="input-group">
                     <div class="input-group-prepend">
@@ -173,6 +173,14 @@ if(page == "overview") then
                     <span class="my-auto ml-1">]] .. i18n("rtt_stats.msec") .. [[</span>
                   </div>
                 </div>
+              </div>
+              <div id='script-description' class='alert alert-light' role='alert'>
+              ]] .. i18n("notes") ..[[
+              <ul>
+                <li>]] .. i18n("rtt_stats.rtt_note_icmp") ..[[</li>
+                <li>]] .. i18n("rtt_stats.rtt_note_http") ..[[</li>
+                <li>]] .. i18n("rtt_stats.rtt_note_rtt_alert") ..[[</li>
+              </ul>
               </div>
               <span class="invalid-feedback"></span>
             </div>
@@ -198,28 +206,36 @@ if(page == "overview") then
             </div>
             <div class="modal-body container-fluid">
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
                   ]] .. generate_select("select-add-measurement", "measurement", true, false, rtt_utils.probe_types) ..[[
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
                 <div class="col-sm-5">
                   <input placeholder="yourhostname.org" required id="input-add-host" type="text" name="host" class="form-control" />
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-2 col-form-label">]] .. i18n("threshold") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.rtt_threshold") .. [[</label>
                 <div class="col-sm-5">
                   <div class="input-group">
                     <div class="input-group-prepend">
                       <span class="input-group-text">&gt;</span>
                     </div>
-                    <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right" min="1">
+                    <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right" min="1" max="10000">
                     <span class="my-auto ml-1">]] .. i18n("rtt_stats.msec") .. [[</span>
                   </div>
                 </div>
+              </div>
+              <div id='script-description' class='alert alert-light' role='alert'>
+              ]] .. i18n("notes") ..[[
+              <ul>
+                <li>]] .. i18n("rtt_stats.rtt_note_icmp") ..[[</li>
+                <li>]] .. i18n("rtt_stats.rtt_note_http") ..[[</li>
+                <li>]] .. i18n("rtt_stats.rtt_note_rtt_alert") ..[[</li>
+              </ul>
               </div>
               <span class="invalid-feedback"></span>
             </div>
@@ -271,6 +287,8 @@ if(page == "overview") then
     <div>
       ]].. i18n("notes") .. [[<ul>
 	<li>]].. i18n("rtt_stats.rtt_note1", {product=info.product}) ..[[</li>
+	<li>]].. i18n("rtt_stats.rtt_note2") ..[[</li>
+	<li>]].. i18n("rtt_stats.rtt_note3") ..[[</li>
       </ul>
     </div>
   ]])
