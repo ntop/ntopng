@@ -176,7 +176,7 @@ function page_utils.print_header(title)
   local startup_epoch = ntop.getStartupEpoch()
 
   local theme = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
-  
+
   local dark_mode = false
 
   if((theme == nil) or (theme == "")) then
@@ -198,48 +198,41 @@ function page_utils.print_header(title)
     <title>]] print(page_title) print[[</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
     <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
-    <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/tempusdominus/css/tempusdominus-bootstrap-4.css">
-    <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/fontawesome.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/brands.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/solid.css" rel="stylesheet">
-    <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
+    <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(startup_epoch) print[[" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/minified/fontawesome-custom.min.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/minified/tempusdominus.min.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/minified/heatmap.min.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/minified/rickshaw.min.css" type="text/css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/dc.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/heatmap.css" rel="stylesheet">
-<style>
-.flag {
-	width: 16px;
-	height: 11px;
-	margin-top: -5px;
-	background:url(]] print(http_prefix) print[[/img/flags.png) no-repeat
-}
-</style>
+   <style>
+   .flag {
+      width: 16px;
+      height: 11px;
+      margin-top: -5px;
+      background:url(]] print(http_prefix) print[[/img/flags.png) no-repeat
+   }
+   </style>
     <link href="]] print(http_prefix) print[[/css/flags.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/pie-chart.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/rickshaw.css" rel="stylesheet">
     <!-- http://kamisama.github.io/cal-heatmap/v2/ -->
-    <link href="]] print(http_prefix) print[[/css/cal-heatmap.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">]]
-    
+    <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
+    ]]
     if (dark_mode) then
       print[[<link href="]] print(http_prefix) print[[/css/dark-mode.css" rel="stylesheet">]]
     end
-
     print[[
     <!--[if lt IE 9]>
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
-    <link href="]] print(http_prefix) print[[/css/ntopng.css?]] print(startup_epoch) print[[" rel="stylesheet">
-    
-    <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
-    
-    <script type="text/javascript" src="]] print(http_prefix) print[[/popper-1.12.9/js/popper.js?]] print(startup_epoch) print[[" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/popper-1.12.9/js/popper.js" crossorigin="anonymous"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/js/bootstrap.min.js?]] print(startup_epoch) print[[" integrity="sha384-3qaqj0lc6sV/qpzrc1N5DC6i1VRn/HyX4qdPaiEFbn54VjQBEU341pvjz7Dv3n6P" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(startup_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/push.min.js?]] print(startup_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/tempusdominus/js/tempusdominus-bootstrap-4.js?]] print(startup_epoch) print[["></script>
+    <script defer type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js"></script>
   </head>
   <body>
 
@@ -345,7 +338,7 @@ end
 -- #################################
 
 function page_utils.print_menubar()
-   
+
    local logo_path = nil
 
    if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.png") then
@@ -370,14 +363,14 @@ function page_utils.print_menubar()
 	<h3 class='muted'>
 	       <a href='/'>
 	]])
-   
+
    if (logo_path ~= nil) then
       print("<img class=\"logo-brand\" height=\"52px\" src=\""..logo_path.."\" alt='Custom Logo' />")
    else
       print(addLogoSvg())
    end
-   
-   
+
+
    print([[
 	       </a>
 	 </h3>
@@ -401,7 +394,7 @@ function page_utils.print_menubar()
 		  break
 		end
 	      end
-	end  
+	end
       end
 
       if show_section then
