@@ -13,7 +13,8 @@ Hooks
 How does ntopng know when to call a certain user script? By means of
 hooks. Hooks are pre-defined events (for flows) of intervals of time
 (for any other network element such as an host, or a network) which
-can be associated to functions to be called. So for example if a user
+can be associated to functions to be called. Such functions are also
+referred to as :code:`callbacks`. So for example if a user
 script needs to be called every minute, it will implement a function
 assigned to hook :code:`min`. Similarly, if a user script needs to be
 called every time a flow goes idle, it will implement a function
@@ -57,8 +58,8 @@ following attributes:
   - :code:`hooks` (mandatory): a map :code:`hook_name -> callback`
     which defines on which events the callback should be called. The
     scripts must register to at least one hook. The list of available
-    hooks depends on the script type, check out the flow/traffic
-    element documentation for details
+    hooks depends on the script type. :ref:`Flow User Scripts` hooks
+    are different from :ref:`Other User Scripts` hooks.
   - :code:`gui` (optional): See :ref:`Web UI` for additional details
   - :code:`local_only` (optional, hosts only): if true, the script
     will not be executed on remote hosts
@@ -94,10 +95,10 @@ are only called once per script:
     operation is complete (e.g. after all the hosts have been iterated
     and hooks called).
 
-Hook Callback
--------------
+Hook Callbacks
+--------------
 
-The hook callback function takes the following form:
+An hook callback function takes the following form:
 
 .. code:: lua
 
@@ -124,7 +125,7 @@ Flow user scripts are executed on each network flow. The user can
 inspect the flow protocol, peers involved in the communication, and
 other specific information.
 
-A user script can hook the following functions:
+A user script can hook to the following functions:
 
   - `protocolDetected`: called after the Layer-7 application protocol
     has been detected
@@ -138,6 +139,8 @@ See the `Flow API`_ for a documentation of the available functions
 which can be called inside a flow user script.
 
 .. _`Flow API`: ../lua_c/flow/index.html
+
+.. _Other User Scripts:
 
 Other User Scripts
 ------------------
@@ -229,7 +232,7 @@ Triggering Alerts
 -----------------
 
 An user script can trigger an alert when some anomalous behaviour is
-detected.  Users can use the already provided hook callbacks:
+detected. Users can use the already provided hook callbacks:
 
   - :code:`alerts_api.threshold_check_function`: can check thresholds
     and trigger threshold cross alerts
@@ -255,10 +258,5 @@ Built-in Alerts
 ~~~~~~~~~~~~~~~
 
 Alert types are defined into :code:`alert_consts.alert_types` inside
-:code:`scripts/lua/modules/alert_consts.lua`. In order to add new
-alert types, the alert definition must be inserted into
-:code:`alert_consts.alert_types`.  The new alert type must have a
-unique :code:`alert_id` >= 0, a title and description.
-
-Moreover, a new "type_info building function" should be added to the
-:code:`alerts_api.lua` to describe the alert type.
+:code:`scripts/lua/modules/alert_consts.lua`. Additional alert types
+can be created as explained in :ref:`Alert Definitions`.
