@@ -696,7 +696,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
 
       if not isEmptyString(decoded["info"]) then
          local lb = ""
-         if (record["flow_status"] == "13") -- blacklisted flow
+         if (flow_consts.getStatusType(record["flow_status"]) == "status_blacklisted")
                   and (not flow["srv.blacklisted"]) and (not flow["cli.blacklisted"]) then
             lb = " <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
          end
