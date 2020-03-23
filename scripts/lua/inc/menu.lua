@@ -796,7 +796,7 @@ for round = 1, 2 do
          if(string.contains(descr, "{")) then -- Windows
             descr = ifdescr[k]
          else
-	         if(descr ~= ifdescr[k]) then
+	         if(descr ~= ifdescr[k]) and (not views[v]) then
 	            if(descr == shortenCollapse(ifdescr[k])) then
 		            descr = ifdescr[k]
 	            else
