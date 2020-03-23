@@ -1,5 +1,5 @@
-Plugins
-=======
+Developing Plugins and User Scripts
+===================================
 
 .. toctree::
     :maxdepth: 3
