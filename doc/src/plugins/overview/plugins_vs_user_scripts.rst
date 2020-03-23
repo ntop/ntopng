@@ -1,3 +1,5 @@
+.. _Plugins vs User Scripts:
+
 Plugins vs User Scripts
 =======================
 
