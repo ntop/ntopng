@@ -1510,7 +1510,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
   if(stat(path, &buf) != 0)
     return(false);
   
-  if((fd = fopen(path, "r")) == NULL)
+  if((fd = fopen(path, "rb")) == NULL)
     return(false);
   else
     file_len = (size_t)buf.st_size;
@@ -1847,7 +1847,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 
     if(write_fname) {
       ntop->fixPath(write_fname);
-      out_f = fopen(write_fname, "w");
+      out_f = fopen(write_fname, "wb");
 
       if(out_f == NULL) {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Could not open %s for write", write_fname, strerror(errno));
