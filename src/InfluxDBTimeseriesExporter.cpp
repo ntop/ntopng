@@ -67,7 +67,7 @@ void InfluxDBTimeseriesExporter::createDump() {
   /* Use the flushTime as the fname */
   snprintf(fname, sizeof(fname), "%s%u_%lu", fbase, num_exports, flushTime);
 
-  if(!(fp = fopen(fname, "w")))
+  if(!(fp = fopen(fname, "wb")))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "[%s] Unable to dump TS data onto %s: %s",
 				 iface->get_name(), fname, strerror(errno));
   else
