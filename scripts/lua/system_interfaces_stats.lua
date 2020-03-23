@@ -15,7 +15,7 @@ if not isAllowedSystemInterface() then
    return
 end
 
-sendHTTPContentTypeHeader('text/html', nil, nil, true)
+sendHTTPContentTypeHeader('text/html', nil, nil, getSystemViewFlag())
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.interfaces_status)
 

@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local ts_utils = require("ts_utils")
-local info = ntop.getInfo() 
+local info = ntop.getInfo()
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
@@ -18,7 +18,7 @@ local json = require "dkjson"
 local discover = require "discover_utils"
 local mud_utils = require "mud_utils"
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 -- get config parameters like the id and name
 local script_subdir = _GET["subdir"]

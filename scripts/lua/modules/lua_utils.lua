@@ -248,15 +248,20 @@ end
 
 -- ##############################################
 
-function sendHTTPContentTypeHeader(content_type, content_disposition, charset, system_view)
+function sendHTTPContentTypeHeader(content_type, content_disposition, charset, view_mode)
 
-   -- Check if the current request page belongs to system view
-   local is_system_view = system_view or false
+   -- Check if the current request page belongs to iface/system view
+   if (content_type == "text/html") then
 
-   if (not isSystemView() and is_system_view) then
-      setSystemView(true)
-   elseif (isSystemView() and not is_system_view) then
-      setSystemView(false)
+      local really_view_mode = view_mode or getIfaceViewFlag()
+
+      if (isSystemView() and really_view_mode == getIfaceViewFlag()) then
+         setSystemView(false)
+      elseif (not isSystemView() and view_mode == getSystemViewFlag()) then
+         setSystemView(true)
+      elseif (really_view_mode == getBothViewFlag()) then
+         -- do nothing because the view is shared between iface view and system view
+      end
    end
 
   local charset = charset or "utf-8"
@@ -3490,6 +3495,24 @@ end
 
 function isSystemView()
    return ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and isAdministrator())
+end
+
+-- ##############################################
+
+function getSystemViewFlag()
+   return "system"
+end
+
+-- ##############################################
+
+function getBothViewFlag()
+   return "both"
+end
+
+-- ##############################################
+
+function getIfaceViewFlag()
+   return "iface"
 end
 
 -- ##############################################

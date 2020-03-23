@@ -11,7 +11,7 @@ require "lua_utils"
 local presets_utils = require "presets_utils"
 local json = require("dkjson")
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 if not isAdministrator() then
    return
@@ -83,8 +83,8 @@ local function matchesPolicyFilter(item_id)
       if policy_filter ~= presets_utils.DEFAULT_ACTION then -- != default
          return false
       end
-   elseif policy.clientActionId ~= nil and policy_filter ~= policy.clientActionId and 
-          policy.serverActionId ~= nil and policy_filter ~= policy.serverActionId then 
+   elseif policy.clientActionId ~= nil and policy_filter ~= policy.clientActionId and
+          policy.serverActionId ~= nil and policy_filter ~= policy.serverActionId then
       return false
    end
 
@@ -127,7 +127,7 @@ for item_name, item_id in pairs(items) do
    if sortColumn == "column_" or sortColumn == "column_ndpi_application" then
       sorter[item_name] = item_name
    elseif sortColumn == "column_ndpi_category" then
-      sorter[item_name] = cat.name 
+      sorter[item_name] = cat.name
    end
 
    ::continue::
@@ -159,14 +159,14 @@ for sorted_item, _ in pairsByValues(sorter, sOrder) do
           ((conf ~= nil and conf.clientActionId ~= nil) and conf.clientActionId == action.id) then
          checked = 'checked'
       end
-      cr = cr..'<label class="radio-inline"><input type="radio" name="'..field_id..'_client_action" value="'..action.id..'" '..checked..'><span style="font-size: 16px;">'..action.icon..'</span></label>'
+      cr = cr..'<label class="radio-inline mx-2"><input type="radio" name="'..field_id..'_client_action" value="'..action.id..'" '..checked..'><span class="mx-1" style="font-size: 16px;">'..action.icon..'</span></label>'
 
       checked = ''
       if ((conf == nil or conf.serverActionId == nil) and action.id == presets_utils.DEFAULT_ACTION) or
           ((conf ~= nil and conf.serverActionId ~= nil) and conf.serverActionId == action.id) then
          checked = 'checked'
       end
-      sr = sr..'<label class="radio-inline"><input type="radio" name="'..field_id..'_server_action" value="'..action.id..'" '..checked..'><span style="font-size: 16px;">'..action.icon..'</span></label>'
+      sr = sr..'<label class="radio-inline mx-2"><input type="radio" name="'..field_id..'_server_action" value="'..action.id..'" '..checked..'><span class="mx-1" style="font-size: 16px;">'..action.icon..'</span></label>'
    end
 
    record["column_client_policy"] = cr

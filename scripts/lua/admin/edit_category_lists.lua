@@ -13,7 +13,8 @@ local lists_utils = require "lists_utils"
 local page_utils = require("page_utils")
 local json = require("dkjson")
 local format_utils = require("format_utils")
-sendHTTPContentTypeHeader('text/html')
+
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 if not haveAdminPrivileges() then
   return
@@ -143,7 +144,7 @@ print[[
   </div>
 ]]
 
-print[[<hr><h2>]] print(i18n("category_lists.category_lists")) print[[</h2>]]
+print[[<h2>]] print(i18n("category_lists.category_lists")) print[[</h2>]]
 
 print[[
 <div id="table-edit-lists-form"></div>]]

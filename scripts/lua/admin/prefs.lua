@@ -35,7 +35,7 @@ if(ntop.isPro()) then
   end
 end
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 local show_advanced_prefs = false
 local alerts_disabled = false
@@ -256,7 +256,7 @@ function printAlerts()
 			   "row_toggle_ip_reassignment_alerts", "row_alerts_informative_header",
 			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert",
 			}
- 
+
  if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
     elementToSwitch[#elementToSwitch+1] = "row_toggle_mysql_check_open_files_limit"
   end
@@ -292,7 +292,7 @@ function printAlerts()
   default = "0",
   hidden = not showElements,
   })
-  
+
   prefsToggleButton(subpage_active, {
     field = "toggle_remote_to_remote_alerts",
     pref = "remote_to_remote_alerts",
@@ -520,9 +520,9 @@ function printRecording()
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("traffic_recording.settings")..'</th></tr></thead>')
 
-  prefsInputFieldPrefs(subpage_active.entries["max_extracted_pcap_bytes"].title, 
+  prefsInputFieldPrefs(subpage_active.entries["max_extracted_pcap_bytes"].title,
      subpage_active.entries["max_extracted_pcap_bytes"].description,
-    "ntopng.prefs.", "max_extracted_pcap_bytes", prefs.max_extracted_pcap_bytes, 
+    "ntopng.prefs.", "max_extracted_pcap_bytes", prefs.max_extracted_pcap_bytes,
     "number", true, nil, nil, {min=10*1024*1024, format_spec = FMT_TO_DATA_BYTES, tformat="mg"})
 
   -- ######################
@@ -544,7 +544,7 @@ function printRemoteAssitance()
   print('<table class="table">')
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("remote_assistance.remote_assistance")..'</th></tr></thead>')
-  prefsInputFieldPrefs(subpage_active.entries["n2n_supernode"].title, 
+  prefsInputFieldPrefs(subpage_active.entries["n2n_supernode"].title,
                        subpage_active.entries["n2n_supernode"].description,
 		       "ntopng.prefs.remote_assistance.", "supernode", remote_assistance.getSupernode(), nil,
 		       true, nil, nil, {attributes = {pattern = "[0-9.\\-A-Za-z]+(:[0-9]+)?", required = "required"}})
@@ -589,8 +589,8 @@ function printGUI()
     })
   end
 
-  -- ###################### 
-  
+  -- ######################
+
   local t_labels = {i18n("default"), i18n("light"), i18n("dark")}
   local t_values = {"default", "light", "dark"}
   local label = "toggle_theme"
@@ -601,7 +601,7 @@ function printGUI()
 			   label, "ntopng.prefs.theme")
 
   -- ######################
-  
+
   prefsInputFieldPrefs(subpage_active.entries["max_ui_strlen"].title, subpage_active.entries["max_ui_strlen"].description,
 		       "ntopng.prefs.", "max_ui_strlen", prefs.max_ui_strlen, "number", nil, nil, nil, {min=3, max=128})
 
@@ -610,7 +610,7 @@ function printGUI()
 		       "http_acl_management_port",
 		       "", false, nil, nil, nil, {style = {width = "25em;"},
 						  attributes = {spellcheck = "false", maxlength = 64, pattern = getACLPattern()}})
- 
+
   -- #####################
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
@@ -938,7 +938,7 @@ function printInMemory()
     "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval or 3600, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
 
   print('</table>')
-  
+
   print('<table class="table">')
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.idle_timeout_settings")..'</th></tr></thead>')
 
@@ -949,7 +949,7 @@ function printInMemory()
   prefsInputFieldPrefs(subpage_active.entries["non_local_host_max_idle"].title, subpage_active.entries["non_local_host_max_idle"].description,
 		       "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle, "number", nil, nil, nil,
 		       {min=1, max=86400, tformat="smh"})
-  
+
   prefsInputFieldPrefs(subpage_active.entries["flow_max_idle"].title, subpage_active.entries["flow_max_idle"].description,
 		       "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil,
 		       {min=1, max=3600, tformat="smh"})
@@ -976,7 +976,7 @@ function printInMemory()
 
       return true;
     }
-  
+
     var idleFormValidatorOptions = {
       disable: true,
       custom: {
@@ -1275,10 +1275,10 @@ function printLogging()
   print('<table class="table">')
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.logging")..'</th></tr></thead>')
 
-  loggingSelector(subpage_active.entries["toggle_logging_level"].title, 
-     subpage_active.entries["toggle_logging_level"].description, 
+  loggingSelector(subpage_active.entries["toggle_logging_level"].title,
+     subpage_active.entries["toggle_logging_level"].description,
      "toggle_logging_level", "ntopng.prefs.logging_level")
-     
+
   prefsToggleButton(subpage_active, {
     field = "toggle_log_to_file",
     default = "0",
@@ -1324,7 +1324,7 @@ function printSnmp()
 
   multipleTableButtonPrefs(subpage_active.entries["default_snmp_proto_version"].title, subpage_active.entries["default_snmp_proto_version"].description,
 			   t_labels, t_values, "0", "primary", "default_snmp_version", "ntopng.prefs.default_snmp_version", disabled)
-  
+
   prefsInputFieldPrefs(subpage_active.entries["default_snmp_community"].title, subpage_active.entries["default_snmp_community"].description,
 		       "ntopng.prefs.",
 		       "default_snmp_community",
@@ -1547,7 +1547,7 @@ aysHandleForm("form", {
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 
-local high_res_secs = tonumber(_POST["ts_high_resolution"])      
+local high_res_secs = tonumber(_POST["ts_high_resolution"])
 if high_res_secs then
   -- update ts_write_slots
   local driver = ntop.getPref("ntopng.prefs.timeseries_driver")

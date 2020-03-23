@@ -9,7 +9,7 @@ local plugins_utils = require("plugins_utils")
 local user_scripts = require("user_scripts")
 local page_utils = require("page_utils")
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 page_utils.set_active_menu_entry(page_utils.menu_entries.plugins)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

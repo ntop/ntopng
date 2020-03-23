@@ -10,7 +10,7 @@ local page_utils = require("page_utils")
 local telemetry_utils = require "telemetry_utils"
 local page = _GET["page"] or "overview"
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.telemetry)
 

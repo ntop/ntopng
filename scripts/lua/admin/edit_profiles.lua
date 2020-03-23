@@ -13,7 +13,7 @@ local template = require "template_utils"
 local os_utils = require "os_utils"
 local page_utils = require("page_utils")
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.profiles)
 
@@ -242,7 +242,7 @@ print[[
       var profile_validation_div = $('<div class="form-group has-feedback" style="margin-bottom:0;"></div>');
       profile_validation_div.html(profile_name_input);
       $('<div class="help-block with-errors" style="margin-bottom:0;"></div>').appendTo(profile_validation_div);
-      
+
       var filter_validation_div = $('<div class="form-group has-feedback" style="margin-bottom:0;"></div>');
       filter_validation_div.html(profile_filter_input);
       $('<div class="help-block with-errors" style="margin-bottom:0;"></div>').appendTo(filter_validation_div);
@@ -367,7 +367,7 @@ print[[
          if (status.last_val !== filter) {
             if (status.ajax_obj)
                status.ajax_obj.abort();
-            
+
             status.ajax_obj = $.ajax({
                type: "GET",
                url: ']] print(ntop.getHttpPrefix().."/lua/pro/check_profile.lua") print [[',

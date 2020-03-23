@@ -8,7 +8,7 @@ require "lua_utils"
 local protos_utils = require("protos_utils")
 
 local json = require("dkjson")
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 -- Table parameters
 local currentPage  = _GET["currentPage"]
@@ -143,7 +143,7 @@ for app, _ in pairsByValues(sorter, sOrder) do
 
    cat_select_dropdown = '<select class="form-control" style="width:320px;" name="proto_' .. app["app_id"] .. '">'
    local current_id = tostring(app["cat"]["id"])
-   
+
    for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do
       cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [["]] ..
          ternary(cat_id == current_id, " selected", "") .. [[>]] ..

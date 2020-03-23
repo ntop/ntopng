@@ -11,7 +11,7 @@ local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
 local page_utils = require("page_utils")
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 local category_filter = _GET["l7proto"]
 local ifId = getInterfaceId(ifname)
@@ -26,7 +26,6 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.categories)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print("<hr>")
 print("<h2>") print(i18n("custom_categories.apps_and_categories")) print("</h2>")
 print("<br>")
 

@@ -11,7 +11,7 @@ local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.about, { product=info.product })
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
