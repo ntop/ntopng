@@ -548,7 +548,7 @@ local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
 
 print([[
    <tr>
-      <th>RTT Host</th>
+      <th>RTT</th>
 ]])
 if (not rtt_utils.hasHost(host["ip"], "icmp")) then
 
