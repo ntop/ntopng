@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ntopng'
-copyright = u'2019, ntop'
+copyright = u'2020, ntop'
 author = u'ntop.org'
 
 # The version info for the project you're documenting, acts as replacement for
