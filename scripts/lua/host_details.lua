@@ -544,88 +544,89 @@ if isScoreEnabled() then
 end
 
 -- RTT Host
-local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
-
-print([[
-   <tr>
-      <th>RTT</th>
-]])
-if (not rtt_utils.hasHost(host["ip"], icmp)) then
-
+if (not ntop.isWindows()) then
+   local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
    print([[
-      <td colspan="2">
-         <a href='#' id='btn-add-rtt'>]].. i18n('add') ..[[ RTT <i class='fas fa-plus'></i></a>
-      </td>
-      <script type='text/javascript'>
-         $(document).ready(function() {
+      <tr>
+         <th>RTT</th>
+   ]])
+   if (not rtt_utils.hasHost(host["ip"], icmp)) then
 
-            let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
-            $('#btn-add-rtt').click(function(e) {
+      print([[
+         <td colspan="2">
+            <a href='#' id='btn-add-rtt'>]].. i18n('add') ..[[ RTT <i class='fas fa-plus'></i></a>
+         </td>
+         <script type='text/javascript'>
+            $(document).ready(function() {
 
-               e.preventDefault();
-               const data_to_send = {
-                  action: 'add',
-                  rtt_host: ']].. host["ip"] ..[[',
-                  rtt_max: 100,
-                  measurement: ']].. icmp ..[[',
-                  csrf: rtt_csrf
-               };
+               let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+               $('#btn-add-rtt').click(function(e) {
 
-               $.post(`${http_prefix}/plugins/edit_rtt_host.lua`, data_to_send)
-               .then((data, result, xhr) => {
+                  e.preventDefault();
+                  const data_to_send = {
+                     action: 'add',
+                     rtt_host: ']].. host["ip"] ..[[',
+                     rtt_max: 100,
+                     measurement: ']].. icmp ..[[',
+                     csrf: rtt_csrf
+                  };
 
-                  // always update the token
-                  rtt_csrf = data.csrf;
-                  const $alert_message = $('<div class="alert"></div>');
-                  if (data.success) {
-                     $alert_message.addClass('alert-success').text(data.message);
+                  $.post(`${http_prefix}/plugins/edit_rtt_host.lua`, data_to_send)
+                  .then((data, result, xhr) => {
+
+                     // always update the token
+                     rtt_csrf = data.csrf;
+                     const $alert_message = $('<div class="alert"></div>');
+                     if (data.success) {
+                        $alert_message.addClass('alert-success').text(data.message);
+                        $('#n-container').prepend($alert_message);
+
+                        setTimeout(() => {
+                           location.reload();
+                        }, 1000);
+
+                        return;
+                     }
+
+                     $alert_message.addClass('alert-danger').text(data.error);
                      $('#n-container').prepend($alert_message);
-
                      setTimeout(() => {
-                        location.reload();
-                     }, 1000);
+                        $alert_message.remove();
+                     }, 5000);
 
-                     return;
-                  }
+                  })
+                  .fail(() => {
 
-                  $alert_message.addClass('alert-danger').text(data.error);
-                  $('#n-container').prepend($alert_message);
-                  setTimeout(() => {
-                     $alert_message.remove();
-                  }, 5000);
+                     const $alert_message = $('<div class="alert"></div>');
+                     $alert_message.addClass('alert-danger').text("]].. i18n('expired_csrf') ..[[");
 
-               })
-               .fail(() => {
-
-                  const $alert_message = $('<div class="alert"></div>');
-                  $alert_message.addClass('alert-danger').text("]].. i18n('expired_csrf') ..[[");
+                  });
 
                });
-
             });
-         });
-      </script>
-]])
+         </script>
+      ]])
 
-else
+   else
 
 
-   local last_update = rtt_utils.getLastRttUpdate(host['ip'], icmp)
-   local last_rtt = ""
+      local last_update = rtt_utils.getLastRttUpdate(host['ip'], icmp)
+      local last_rtt = ""
 
-   if(last_update ~= nil) then
-      last_rtt = last_update.value .. " ms"
+      if(last_update ~= nil) then
+         last_rtt = last_update.value .. " ms"
+      end
+
+      print([[
+         <td colspan="2">
+            <a href=']].. ntop.getHttpPrefix() ..[[/plugins/rtt_stats.lua?host=]].. host['ip'] ..[['>]].. (isEmptyString(last_rtt) and 'No updates yet' or last_rtt) ..[[</a>
+         </td>
+      ]])
+
    end
 
-   print([[
-      <td colspan="2">
-         <a href=']].. ntop.getHttpPrefix() ..[[/plugins/rtt_stats.lua?host=]].. host['ip'] ..[['>]].. (isEmptyString(last_rtt) and 'No updates yet' or last_rtt) ..[[</a>
-      </td>
-   ]])
-
+   print("</tr>")
 end
-
-print("</tr>")
 
 
 if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
