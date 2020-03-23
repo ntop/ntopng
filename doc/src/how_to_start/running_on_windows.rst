@@ -1,6 +1,6 @@
 Running on Windows
 ==================
-ntopng can be run either as service or as application (i.e. you can start it from :code`cmd.exe`). The ntopng installer registers the service and automatically starts is as shown below.
+ntopng can be run either as service or as application (i.e. you can start it from :code:`cmd.exe`). The ntopng installer registers the service and automatically starts is as shown below.
 
 .. figure:: ../img/what_is_ntopng_running_on_windows.png
   :align: center
@@ -14,7 +14,10 @@ In order to interact with ntopng from the command line, fire up a Windows Comman
 
    ntopng /c -h
 
+.. warning::
 
+   ntopng requires the :code:`redis` service to be up and running or it will not start. Make sure this service is running and auto-started on boot. Check its status and configuration from the Task Manager, tab Services.
+   
 Specify Monitored Interfaces
 ----------------------------
 As network interfaces on Windows can have long names, a numeric index is associated to the interface in order to ease the ntopng configuration. The association between interface name and index is shown in the inline help.
