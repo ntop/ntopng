@@ -18,7 +18,7 @@ local script = {
   -- This module is enabled by default
   default_enabled = true,
 
-  -- Exclude this script in Windows
+  -- Exclude this script in Windows (as the ICMP monitor is not working there)
   windows_exclude = true,
 
   -- No default configuration is provided
@@ -152,7 +152,7 @@ function script.hooks.min(params)
 	 ts_utils.append("rtt_host:http_stats", {
 	    ifid = getSystemInterfaceId(),
 	    host = host.host,
-	    measurement = host.measurement,
+	    measure = host.measurement,
 	    lookup_ms = lookup_time,
 	    connect_ms = connect_time,
 	    other_ms = (total_time - lookup_time - connect_time),
@@ -190,7 +190,7 @@ function script.hooks.min(params)
     local max_rtt = host.max_rtt
 
     if params.ts_enabled then
-       ts_utils.append("rtt_host:rtt", {ifid = getSystemInterfaceId(), host = host.host, measurement = host.measurement, millis_rtt = rtt}, when)
+       ts_utils.append("rtt_host:rtt", {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = rtt}, when)
     end
 
     rtt_utils.setLastRttUpdate(key, when, rtt, resolved_host)

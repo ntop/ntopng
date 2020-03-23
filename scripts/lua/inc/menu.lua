@@ -329,11 +329,13 @@ for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
    }
 end
 
-if(not rtt_script_found and isAdministrator()) then
+if(not rtt_script_found and isAdministrator() and (not ntop.isWindows())) then
    system_entries[#system_entries + 1] = {
       entry = page_utils.menu_entries.rtt_monitor_enable,
       url = "#enable-rtt-monitor",
    }
+else
+   rtt_script_found = true
 end
 
 -- Possibly add nEdge entries

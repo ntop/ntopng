@@ -1383,6 +1383,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "Expect:"); // Disable 100-continue as it may cause issues (e.g. in InfluxDB)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
@@ -1454,6 +1455,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "Expect:"); // Disable 100-continue as it may cause issues (e.g. in InfluxDB)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json));
@@ -1540,6 +1542,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     headers = curl_slist_append(headers, "Content-Type: text/plain; charset=utf-8");
+    headers = curl_slist_append(headers, "Expect:"); // Disable 100-continue as it may cause issues (e.g. in InfluxDB)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     curl_easy_setopt(curl, CURLOPT_READDATA, fd);

@@ -129,7 +129,7 @@ if(page == "overview") then
                 <th>]].. i18n("chart") ..[[</th>
                 <th>]].. i18n("rtt_stats.rtt_threshold") .. [[</th>
                 <th>]].. i18n("rtt_stats.last_measurement") .. [[</th>
-                <th>]].. i18n("system_stats.last_rtt") .. [[</th>
+                <th>]].. i18n("system_stats.last_ip") .. [[</th>
                 <th>]].. i18n("rtt_stats.measurement_time") .. [[</th>
                 <th>]].. i18n("actions") .. [[</th>
               </tr>
@@ -317,7 +317,7 @@ elseif((page == "historical") and (host ~= nil)) then
 
   local schema = _GET["ts_schema"] or "rtt_host:rtt"
   local selected_epoch = _GET["epoch"] or ""
-  local tags = {ifid=getSystemInterfaceId(), host=host.host, measurement=host.measurement}
+  local tags = {ifid=getSystemInterfaceId(), host=host.host, measure=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
   url = url.."&page=historical"
 
   local timeseries = {

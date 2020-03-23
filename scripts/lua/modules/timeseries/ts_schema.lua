@@ -86,7 +86,23 @@ function ts_schema:new(name, options)
   return obj
 end
 
+local function validateTagMetric(name)
+  if(name == "measurement") then
+    --[[
+    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid tag/measurement name: \"%s\"", name))
+    tprint(debug.traceback())
+    ]]
+    return(false)
+  end
+
+  return(true)
+end
+
 function ts_schema:addTag(name)
+  if not validateTagMetric(name) then
+    return
+  end
+
   if self.tags[name] == nil then
     self._tags[#self._tags + 1] = name
     self.tags[name] = 1
@@ -94,6 +110,10 @@ function ts_schema:addTag(name)
 end
 
 function ts_schema:addMetric(name)
+  if not validateTagMetric(name) then
+    return
+  end
+
   if self.metrics[name] == nil then
     self._metrics[#self._metrics + 1] = name
     self.metrics[name] = 1

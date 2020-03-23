@@ -14,7 +14,7 @@ schema = ts_utils.newSchema("rtt_host:rtt", {
 
 schema:addTag("ifid")
 schema:addTag("host")
-schema:addTag("measurement")
+schema:addTag("measure")
 schema:addMetric("millis_rtt")
 
 -- ##############################################
@@ -28,7 +28,7 @@ schema = ts_utils.newSchema("rtt_host:http_stats", {
 
 schema:addTag("ifid")
 schema:addTag("host")
-schema:addTag("measurement")
+schema:addTag("measure")
 schema:addMetric("lookup_ms")
 schema:addMetric("connect_ms")
 schema:addMetric("other_ms")
