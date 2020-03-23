@@ -25,7 +25,7 @@ create timeseries of certain metrics of interest.
 All plugin capabilities are briefly summarized below.
 
 Alerts
-------
+~~~~~~
 
 Plugins allow the generation of custom alerts. For example, one can
 create an alert when it detects a certain host has too many TCP
