@@ -164,6 +164,11 @@ function rtt_utils.deleteHost(host, measurement)
   local ts_utils = require("ts_utils")
   local alerts_api = require("alerts_api")
   require("alert_utils")
+
+  -- NOTE: system interface must be manually sected and then unselected
+  local old_iface = tostring(interface.getId())
+  interface.select(getSystemInterfaceId())
+
   local host_key = rtt_utils.getRttHostKey(host, measurement)
   local rtt_host_entity = alerts_api.pingedHostEntity(host_key)
   local old_ifname = ifname
@@ -172,12 +177,15 @@ function rtt_utils.deleteHost(host, measurement)
   alerts_api.releaseEntityAlerts(rtt_host_entity)
 
   -- Delete the host RRDs
-  ts_utils.delete("rtt_host", {ifid=getSystemInterfaceId(), host=host, measurement=measurement})
+  ts_utils.delete("rtt_host", {ifid=getSystemInterfaceId(), host=host, measure=measurement})
 
   -- Remove the redis keys of the host
   ntop.delCache(rtt_last_updates_key(host_key))
 
   ntop.delHashCache(rtt_hosts_key, host_key)
+
+  -- Select the old interface
+  interface.select(old_iface)
 end
 
 -- ##############################################

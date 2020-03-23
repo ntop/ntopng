@@ -969,7 +969,7 @@ function driver:delete(schema_prefix, tags)
       tags = {ifid=1, subnet=1},
       path = function(tags) return getRRDName(tags.ifid, "net:" .. tags.subnet) end,
     }, rtt_host = {
-      tags = {ifid=1, host=1, measurement=1},
+      tags = {ifid=1, host=1, measure=1},
       path = function(tags) return getRRDName(tags.ifid, "rtt_host:" .. tags.host) end,
     }
   }
