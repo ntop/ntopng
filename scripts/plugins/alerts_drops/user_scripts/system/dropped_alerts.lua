@@ -18,7 +18,7 @@ local script = {
 
   gui = {
     i18n_title = "internals.alert_drops",
-    i18n_description = "internals.alert_drops_description",
+    i18n_description = "internals.alert_drops_descr",
   },
 }
 

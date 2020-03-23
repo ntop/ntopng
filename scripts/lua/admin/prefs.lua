@@ -946,11 +946,11 @@ function printInMemory()
 
   prefsInputFieldPrefs(subpage_active.entries["local_host_max_idle"].title, subpage_active.entries["local_host_max_idle"].description,
 		       "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle, "number", nil, nil, nil,
-		       {min=1, max=86400, tformat="smh", attributes={["data-localremotetimeout"]="localremotetimeout"}})
+		       {min=1, max=7*86400, tformat="smh", attributes={["data-localremotetimeout"]="localremotetimeout"}})
 
   prefsInputFieldPrefs(subpage_active.entries["non_local_host_max_idle"].title, subpage_active.entries["non_local_host_max_idle"].description,
 		       "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle, "number", nil, nil, nil,
-		       {min=1, max=86400, tformat="smh"})
+		       {min=1, max=7*86400, tformat="smh"})
 
   prefsInputFieldPrefs(subpage_active.entries["flow_max_idle"].title, subpage_active.entries["flow_max_idle"].description,
 		       "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil,
