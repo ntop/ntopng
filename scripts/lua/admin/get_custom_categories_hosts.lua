@@ -9,7 +9,11 @@ require "lua_utils"
 
 local json = require("dkjson")
 local categories_utils = require("categories_utils")
-sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
+local page_utils = require("page_utils")
+
+sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
+
 
 -- ################################################
 -- Table parameters

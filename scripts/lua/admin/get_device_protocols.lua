@@ -10,8 +10,11 @@ require "lua_utils"
 
 local presets_utils = require "presets_utils"
 local json = require("dkjson")
+local page_utils = require("page_utils")
 
-sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
+sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
+
 
 if not isAdministrator() then
    return

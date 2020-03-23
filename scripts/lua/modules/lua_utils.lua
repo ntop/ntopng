@@ -248,26 +248,13 @@ end
 
 -- ##############################################
 
-function sendHTTPContentTypeHeader(content_type, content_disposition, charset, view_mode)
-
-   -- Check if the current request page belongs to iface/system view
-   if (content_type == "text/html") then
-
-      local really_view_mode = view_mode or getIfaceViewFlag()
-
-      if (isSystemView() and really_view_mode == getIfaceViewFlag()) then
-         setSystemView(false)
-      elseif (not isSystemView() and view_mode == getSystemViewFlag()) then
-         setSystemView(true)
-      elseif (really_view_mode == getBothViewFlag()) then
-         -- do nothing because the view is shared between iface view and system view
-      end
-   end
+function sendHTTPContentTypeHeader(content_type, content_disposition, charset)
 
   local charset = charset or "utf-8"
   local mime = content_type.."; charset="..charset
   sendHTTPHeader(mime, content_disposition)
 end
+
 
 -- ##############################################
 
@@ -3489,37 +3476,6 @@ end
 
 function areFlowdevTimeseriesEnabled(ifid, device)
    return(ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1")
-end
-
--- ##############################################
-
-function isSystemView()
-   return ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and isAdministrator())
-end
-
--- ##############################################
-
-function getSystemViewFlag()
-   return "system"
-end
-
--- ##############################################
-
-function getBothViewFlag()
-   return "both"
-end
-
--- ##############################################
-
-function getIfaceViewFlag()
-   return "iface"
-end
-
--- ##############################################
-
-function setSystemView(toggle)
-   local t = (toggle and "1" or "0")
-   ntop.setPref("ntopng.prefs.system_mode_enabled", t)
 end
 
 -- ###########################################

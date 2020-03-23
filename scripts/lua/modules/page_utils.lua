@@ -503,7 +503,54 @@ function page_utils.print_menubar()
 
 end
 
--- #################################
+-- ##############################################
+
+function page_utils.is_system_view()
+   return ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and isAdministrator())
+end
+
+-- ##############################################
+
+
+function page_utils.manage_system_interface(mode)
+
+   local really_view_mode = mode or page_utils.get_iface_interface_flag()()
+
+   if (page_utils.is_system_view() and really_view_mode == page_utils.get_iface_interface_flag()) then
+      page_utils.set_system_view(false)
+   elseif (not page_utils.is_system_view() and really_view_mode == page_utils.get_system_interface_flag()) then
+      page_utils.set_system_view(true)
+   elseif (really_view_mode == page_utils.get_shared_interface_flag()) then
+      -- do nothing because the page is shared between iface view and system view
+   end
+end
+
+-- ##############################################
+
+function page_utils.get_system_interface_flag()
+   return "system"
+end
+
+-- ##############################################
+
+function page_utils.get_shared_interface_flag()
+   return "both"
+end
+
+-- ##############################################
+
+function page_utils.get_iface_interface_flag()
+   return "iface"
+end
+
+-- ##############################################
+
+function page_utils.set_system_view(toggle)
+   local t = (toggle and "1" or "0")
+   ntop.setPref("ntopng.prefs.system_mode_enabled", t)
+end
+
+-- ##############################################
 
 return page_utils
 

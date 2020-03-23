@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils = require("page_utils")
-local is_system_interface = isSystemView()
+local is_system_interface = page_utils.is_system_view()
 
 interface.select(ifname)
 

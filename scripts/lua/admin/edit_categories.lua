@@ -11,7 +11,9 @@ local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
 local page_utils = require("page_utils")
 
-sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
+sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
+
 
 local category_filter = _GET["l7proto"]
 local ifId = getInterfaceId(ifname)

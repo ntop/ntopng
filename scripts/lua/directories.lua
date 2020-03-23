@@ -11,7 +11,9 @@ local user_scripts = require "user_scripts"
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
 
-sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
+sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
+
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.directories)
 

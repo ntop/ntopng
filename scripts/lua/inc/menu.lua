@@ -20,7 +20,7 @@ local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 
 -- this is a global variable
-local is_system_interface = isSystemView()
+local is_system_interface = page_utils.is_system_view()
 
 print([[
    <div id='wrapper'>

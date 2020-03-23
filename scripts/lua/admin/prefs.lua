@@ -35,7 +35,9 @@ if(ntop.isPro()) then
   end
 end
 
-sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
+sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
+
 
 local show_advanced_prefs = false
 local alerts_disabled = false

@@ -8,7 +8,9 @@ require "lua_utils"
 local user_scripts = require("user_scripts")
 local page_utils = require("page_utils")
 
-sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
+sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.user_scripts)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

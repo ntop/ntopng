@@ -6,9 +6,12 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local protos_utils = require("protos_utils")
+local page_utils = require("page_utils")
 
 local json = require("dkjson")
-sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
+sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
+
 
 -- Table parameters
 local currentPage  = _GET["currentPage"]

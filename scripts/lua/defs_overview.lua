@@ -9,7 +9,9 @@ local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")
 local page_utils = require("page_utils")
 
-sendHTTPContentTypeHeader('text/html', nil, nil, getBothViewFlag())
+sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.alert_definitions)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
