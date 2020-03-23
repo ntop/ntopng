@@ -304,6 +304,7 @@ if(page == "overview") then
       i18n.msec = "]] .. i18n("rtt_stats.msec") .. [[";
       i18n.edit = "]] .. i18n("users.edit") .. [[";
       i18n.delete = "]] .. i18n("delete") .. [[";
+      i18n.expired_csrf = "]] .. i18n("expired_csrf") .. [[";
 
       let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
       let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";

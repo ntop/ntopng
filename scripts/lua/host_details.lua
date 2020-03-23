@@ -550,7 +550,7 @@ print([[
    <tr>
       <th>RTT</th>
 ]])
-if (not rtt_utils.hasHost(host["ip"], "icmp")) then
+if (not rtt_utils.hasHost(host["ip"], icmp)) then
 
    print([[
       <td colspan="2">
@@ -576,11 +576,31 @@ if (not rtt_utils.hasHost(host["ip"], "icmp")) then
 
                   // always update the token
                   rtt_csrf = data.csrf;
-
+                  const $alert_message = $('<div class="alert"></div>');
                   if (data.success) {
-                     location.reload();
+                     $alert_message.addClass('alert-success').text(data.message);
+                     $('#n-container').prepend($alert_message);
+
+                     setTimeout(() => {
+                        location.reload();
+                     }, 1000);
+
+                     return;
                   }
+
+                  $alert_message.addClass('alert-danger').text(data.error);
+                  $('#n-container').prepend($alert_message);
+                  setTimeout(() => {
+                     $alert_message.remove();
+                  }, 5000);
+
                })
+               .fail(() => {
+
+                  const $alert_message = $('<div class="alert"></div>');
+                  $alert_message.addClass('alert-danger').text("]].. i18n('expired_csrf') ..[[");
+
+               });
 
             });
          });

@@ -109,6 +109,7 @@ $(document).ready(function() {
             // always update the token
             rtt_csrf = data.csrf;
             $(`form#rtt-${action}-modal button[type='submit']`).removeAttr("disabled");
+            $('#rtt-alert').addClass('alert-success').removeClass('alert-danger');
 
             if (data.success) {
 
@@ -129,7 +130,8 @@ $(document).ready(function() {
 
         })
         .fail((status) => {
-
+            $('#rtt-alert').removeClass('alert-success').addClass('alert-danger');
+            $('#rtt-alert .alert-body').text(i18n.expired_csrf);
         });
     }
 
