@@ -2846,6 +2846,7 @@ local lang = {
     ["waiting_for_db_msg"] = "Database schema migration in progress, waiting for database <b>%{dbname}</b> to become operational. You will be redirected as soon as the database is ready. Depending on the size of the existing database, this operation can take a long time. Migrations are performed only once and only during major version upgrades. If in doubt, please contact the developers at <a href='mailto:info@ntop.org'>info@ntop.org</a>.",
   },
   ["plugins_overview"] = {
+    ["action_view"] = "Open the user script source in the code editor",
     ["alert_id"] = "Alert ID",
     ["alert_key"] = "Alert Key",
     ["availability"] = "Availability",

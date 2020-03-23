@@ -29,7 +29,12 @@ local function printUserScripts(title, scripts)
 
   print[[<h3>]] print(title) print[[</h3>
     <table class="table table-bordered table-sm table-striped">
-    <tr><th class='text-left' width="30%">]] print(i18n("plugins_overview.script")) print[[</th><th width="10%">]] print(i18n("plugins_overview.availability")) print[[</th><th width="30%">]] print(i18n("plugins_overview.hooks")) print[[</th><th>]] print(i18n("plugins_overview.filters")) print[[</th></tr>]]
+    <tr><th class='text-left' width="30%">]] print(i18n("plugins_overview.script"))
+    print[[</th><th width="10%">]] print(i18n("plugins_overview.availability"))
+    print[[</th><th width="30%">]] print(i18n("plugins_overview.hooks"))
+    print[[</th><th>]] print(i18n("plugins_overview.filters"))
+    print[[</th><th class="text-center">]] print(i18n("actions"))
+    print[[</th></tr>]]
 
   for name, script in pairsByKeys(scripts.modules) do
     local available = ""
@@ -76,10 +81,10 @@ local function printUserScripts(title, scripts)
     local edit_url = user_scripts.getScriptEditorUrl(script)
 
     if(edit_url) then
-      name = name .. ' <a href="'.. edit_url ..'" class="badge badge-secondary" style="visibility: visible">' .. i18n("host_pools.view") ..'</a>'
+      edit_url = ' <a title="'.. i18n("plugins_overview.action_view") ..'" href="'.. edit_url ..'" class="badge badge-secondary" style="visibility: visible">' .. i18n("host_pools.view") ..'</a>'
     end
 
-    print(string.format([[<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>]], name, available, hooks, filters))
+    print(string.format([[<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td class="text-center">%s</td></tr>]], name, available, hooks, filters, edit_url or ""))
     ::skip::
   end
 
