@@ -23,8 +23,6 @@ local lang = {
   ["available"] = "Available",
   ["backup"] = "Backup",
   ["begin"] = "Begin",
-  ["blog_updates"] = "Blog Updates",
-  ["blog_updates_info"] = "Receive notification when a new blog is posted at: <a href='https://www.ntop.org/blog' target='_blank'>https://ntop.org/blog</a>",
   ["breakdown"] = "Breakdown",
   ["bridge"] = "Bridge",
   ["broadcast"] = "Broadcast",
@@ -559,6 +557,12 @@ local lang = {
   },
   ["as_stats"] = {
     ["autonomous_systems"] = "Autonomous Systems",
+  },
+  ["blog_feed"] = {
+    ["blog_updates"] = "Blog Updates",
+    ["blog_updates_info"] = "Receive notification when a new blog is posted at: <a href='https://www.ntop.org/blog' target='_blank'>https://ntop.org/blog</a>",
+    ["news_from_blog"] = "News from the Blog",
+    ["nothing_to_show"] = "Nothing to show here. Try tomorrow!",
   },
   ["categories_page"] = {
     ["search_application"] = "Search Application",

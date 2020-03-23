@@ -683,9 +683,6 @@ end -- num_ifaces > 0
 
 print([[
    <nav class="navbar extended navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
-      <button data-toggle='sidebar' class='btn d-sm-none d-md-none d-lg-none'>
-        <i class='fas fa-bars'></i>
-      </button>
       <ul class='navbar-nav mr-auto'>
          <li class='nav-item d-flex align-items-center dropdown'>
             <a class="btn border-dark dropdown-toggle" data-toggle="dropdown" href="#">
@@ -909,9 +906,9 @@ print([[
       </a>
       <div class="dropdown-menu dropdown-menu-right p-1">
          <div class="blog-section">
-            <h6 class="text-muted p-2 mb-0">News from the Blog</h6>
+            <h6 class="text-muted p-2 mb-0">]].. i18n("blog_feed.news_from_blog") ..[[</h6>
             <ul class="list-unstyled">
-               <li class="text-muted p-2">Nothing to show here!</li>
+               <li class="text-muted p-2">]].. i18n("blog_feed.nothing_to_show") ..[[</li>
             </ul>
          </div>
       </div>
