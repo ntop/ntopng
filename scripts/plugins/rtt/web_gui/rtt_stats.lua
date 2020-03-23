@@ -335,10 +335,11 @@ elseif((page == "historical") and (host ~= nil)) then
   })
 
 elseif((page == "alerts") and isAdministrator()) then
-
    local old_ifname = ifname
    local ts_utils = require("ts_utils")
    local influxdb = ts_utils.getQueryDriver()
+
+   -- NOTE: system interface must be manually sected and then unselected
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
