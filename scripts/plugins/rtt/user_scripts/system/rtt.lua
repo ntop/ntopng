@@ -132,12 +132,14 @@ function script.hooks.min(params)
        pinged_hosts[ip_address] = key
        resolved_hosts[key] = ip_address
      elseif((host.measurement == "http") or (host.measurement == "https")) then
+       local full_url = string.format("%s://%s", host.measurement, domain_name)
+
        if do_trace then
-	 print("[RTT] GET "..domain_name.."\n")
+	 print("[RTT] GET "..full_url.."\n")
        end
 
        -- HTTP results are retrieved immediately
-       local rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], false --[[ don't return content ]],
+       local rv = ntop.httpGet(full_url, nil, nil, 10 --[[ timeout ]], false --[[ don't return content ]],
 	nil, false --[[ don't follow redirects ]])
 
        if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
