@@ -8,6 +8,7 @@ require "lua_utils"
 require "vlan_utils"
 
 local json = require("dkjson")
+
 sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters

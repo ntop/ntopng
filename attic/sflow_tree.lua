@@ -22,12 +22,12 @@ function setAggregatedFlow(pid,father_pid,father_name,p_what,p_how,type)
     aggregated_flows[pid]["father_name"] = father_name
     aggregated_flows[pid]["type"] = type
     aggregated_flows[pid][what] = p_what
-    aggregated_flows[pid][how] = p_how 
+    aggregated_flows[pid][how] = p_how
   else
     -- Aggregate values
     if ((how_is_process ~= 1) and (how_is_latency ~= 1))then
       aggregated_flows[pid][how] = aggregated_flows[pid][how] + p_how
-    end 
+    end
   end
 end
 
@@ -37,18 +37,18 @@ function getAggregationValue(flow,flow_key,type)
   l_how = 0;
   process_key = "client_process"
   bytes_key = "cli2srv.bytes"
-  
+
   if (type == "server") then
     process_key = "server_process"
      bytes_key = "srv2cli.bytes"
   end
-  
+
   if (how_is_process == 1) then
-  
+
     l_how = flow[process_key][how]
-  
+
   elseif (how_is_latency == 1) then
-  
+
     flow_more_info = interface.findFlowByKey(flow_key)
     local info, pos, err = json.decode(flow_more_info["moreinfo.json"], 1, nil)
     for k,v in pairs(info) do
@@ -56,11 +56,11 @@ function getAggregationValue(flow,flow_key,type)
         l_how = tonumber(handleCustomFlowField(k, v))
       end
     end
-  
+
   else
-  
+
     l_how = flow[bytes_key]
-  
+
   end
   return l_how;
 end
@@ -77,7 +77,7 @@ function setType(p_type)
     how_is_latency = 1
     how = "Application latency (residual usec)"
   end
-  
+
   if (debug) then io.write("How:"..how.."\n"); end
 end
 
@@ -122,7 +122,7 @@ if(host == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> This flow cannot be found (expired ?)</div>")
 else
   flows_stats = interface.getFlowsInfo()
-  flows_stats = flows_stats["flows"] 
+  flows_stats = flows_stats["flows"]
 
   -- Default values
   aggregated_flows = {}
@@ -147,21 +147,21 @@ else
     flow = flows_stats[key]
     process = 1
 
-    if ((flow["cli.ip"] ~= host) and 
-      (flow["srv.ip"] ~= host)) then 
+    if ((flow["cli.ip"] ~= host) and
+      (flow["srv.ip"] ~= host)) then
       process = 0
     end
 
     if (process == 1) then
 
-      if (filter_client == 1) and (flow["cli.ip"] == host) and (flow["client_process"] ~= nil) then 
+      if (filter_client == 1) and (flow["cli.ip"] == host) and (flow["client_process"] ~= nil) then
         client_id = flow["client_process"]["pid"]
 
         client_how = getAggregationValue(flow,key,"client")
         setAggregatedFlow(client_id,flow["client_process"]["father_pid"],flow["client_process"]["father_name"],flow["client_process"][what],client_how,"client")
       end
-        
-      if (filter_server == 1) and (flow["srv.ip"] == host) and (flow["server_process"] ~= nil) then 
+
+      if (filter_server == 1) and (flow["srv.ip"] == host) and (flow["server_process"] ~= nil) then
         server_id = flow["server_process"]["pid"]
 
         server_how = getAggregationValue(flow,key,"server")
@@ -169,7 +169,7 @@ else
       end
 
     end
-  end 
+  end
 
   father_process = {}
   children_process = {}
@@ -184,7 +184,7 @@ else
         father_process[flow["father_pid"]] = {}
         father_process[flow["father_pid"]]["name"] = flow[what]
         father_process[flow["father_pid"]]["size"] = flow[how]
-        father_process[flow["father_pid"]]["pid"] = flow["pid"]      
+        father_process[flow["father_pid"]]["pid"] = flow["pid"]
       else
         father_process[flow["father_pid"]]["size"] = father_process[flow["father_pid"]]["size"] + flow[how]
       end
@@ -211,7 +211,7 @@ else
 
   end
 
-  if (debug) then 
+  if (debug) then
     for key, size in pairs(father_process) do
       flow = father_process[key]
       io.write("Father => Name:"..flow["name"]..", size:"..flow["size"]..", pid:"..flow["pid"].."\n")
@@ -228,7 +228,7 @@ else
   print "{\n"
   num = 0
   s = 0
-  print("\"name\": \"" .. what .."\", \"size\": ".. tot ..", \n\"children\": [\n") 
+  print("\"name\": \"" .. what .."\", \"size\": ".. tot ..", \n\"children\": [\n")
 
   for key, value in pairs(father_process) do
     flow = father_process[key]
@@ -239,8 +239,8 @@ else
       if(debug) then io.write("Empty name\n") end
       flow["name"] = "Empty name"
     end
-    print("\t { \"name\": \"" .. flow["name"] .."\", \"id\": " .. key ..", \"size\": ".. flow["size"]..",\"url\": \"" .. url..key.."\"") 
-    
+    print("\t { \"name\": \"" .. flow["name"] .."\", \"id\": " .. key ..", \"size\": ".. flow["size"]..",\"url\": \"" .. url..key.."\"")
+
     children_num = 0
     if (flow["children"] ~= nil) then
       print( ", \n\t\"children\": \n\t\t[\n")
@@ -253,16 +253,16 @@ else
           if(debug) then io.write("Empty name children\n") end
           children["name"] = "Empty name"
         end
-        print("\t\t { \"name\": \"" .. children["name"] .."\", \"id\": ".. k ..", \"size\": ".. children["size"] ..",\"url\": \"" .. url..k.."\" }") 
-      
+        print("\t\t { \"name\": \"" .. children["name"] .."\", \"id\": ".. k ..", \"size\": ".. children["size"] ..",\"url\": \"" .. url..k.."\" }")
+
         children_num = children_num + 1
-      
+
       end
       print ("\n\t\t]\n")
     end
 
     print ("\t}")
-    
+
    num = num + 1
 
   end

@@ -12,6 +12,7 @@ local page_utils = require("page_utils")
 local code_editor = require("code_editor")
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 local title = i18n("plugin_browser", {plugin_name = _GET["plugin_path"]})
 local url = ntop.getHttpPrefix().."/lua/code_viewer.lua"

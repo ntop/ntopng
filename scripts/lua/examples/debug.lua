@@ -16,6 +16,7 @@ local page_utils = require("page_utils")
 -- function sendHTTPHeader(mime)
 -- For more information please read the scripts/lua/modules/lua_utils.lua file.
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.print_header()
 

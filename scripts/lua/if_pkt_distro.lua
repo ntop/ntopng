@@ -52,8 +52,8 @@ for key, value in pairs(what) do
 	 if(num > 0) then
 	    print ",\n"
 	 end
-	 	 
-	 print("\t { \"label\": \"" .. pkt_distribution[key] .."\", \"value\": ".. value .." }") 
+
+	 print("\t { \"label\": \"" .. pkt_distribution[key] .."\", \"value\": ".. value .." }")
 	 num = num + 1
 	 sum = sum + value
       end
@@ -61,7 +61,7 @@ for key, value in pairs(what) do
 end
 
 if(sum < tot) then
-   print("\t, { \"label\": \"Other\", \"value\": ".. (tot-sum) .." }") 
+   print("\t, { \"label\": \"Other\", \"value\": ".. (tot-sum) .." }")
 end
 
 print "\n]"

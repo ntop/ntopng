@@ -33,6 +33,7 @@ if (_POST["new_password"] ~= nil) and (_SESSION["user"] == "admin") then
 end
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.print_header()
 

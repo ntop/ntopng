@@ -26,6 +26,7 @@ local mud_utils = require "mud_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
+local rtt_utils = require("rtt_utils")
 
 local info = ntop.getInfo()
 
@@ -42,6 +43,7 @@ local host_ip     = host_info["host"]
 local host_name   = hostinfo2hostkey(host_info)
 local host_vlan   = host_info["vlan"] or 0
 local always_show_hist = _GET["always_show_hist"]
+local format_utils = require("format_utils")
 
 local ntopinfo    = ntop.getInfo()
 
@@ -69,6 +71,7 @@ local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("host_details.host_parameter_missing_message") .. "</div>")
@@ -137,6 +140,7 @@ if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
       if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
       sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
       page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
       if page == "alerts" then
 	 print('<script>window.location.href = "')
@@ -163,6 +167,7 @@ if(host == nil) and (not only_historical) then
    end
 else
    sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
    page_utils.set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", { host = host_info["host"] }))
 
@@ -538,6 +543,71 @@ if isScoreEnabled() then
    print("<tr><th>"..i18n("score").." " .. score_chart .."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
 end
 
+-- RTT Host
+local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
+
+print([[
+   <tr>
+      <th>RTT Host</th>
+]])
+if (not rtt_utils.hasHost(host["ip"], "icmp")) then
+
+   print([[
+      <td colspan="2">
+         <a href='#' id='btn-add-rtt'>]].. i18n('add') ..[[ RTT <i class='fas fa-plus'></i></a>
+      </td>
+      <script type='text/javascript'>
+         $(document).ready(function() {
+
+            let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+            $('#btn-add-rtt').click(function(e) {
+
+               e.preventDefault();
+               const data_to_send = {
+                  action: 'add',
+                  rtt_host: ']].. host["ip"] ..[[',
+                  rtt_max: 100,
+                  measurement: ']].. icmp ..[[',
+                  csrf: rtt_csrf
+               };
+
+               $.post(`${http_prefix}/plugins/edit_rtt_host.lua`, data_to_send)
+               .then((data, result, xhr) => {
+
+                  // always update the token
+                  rtt_csrf = data.csrf;
+
+                  if (data.success) {
+                     location.reload();
+                  }
+               })
+
+            });
+         });
+      </script>
+]])
+
+else
+
+
+   local last_update = rtt_utils.getLastRttUpdate(host['ip'], icmp)
+   local last_rtt = ""
+
+   if(last_update ~= nil) then
+      last_rtt = last_update.value .. " ms"
+   end
+
+   print([[
+      <td colspan="2">
+         <a href=']].. ntop.getHttpPrefix() ..[[/plugins/rtt_stats.lua?host=]].. host['ip'] ..[['>]].. (isEmptyString(last_rtt) and 'No updates yet' or last_rtt) ..[[</a>
+      </td>
+   ]])
+
+end
+
+print("</tr>")
+
+
 if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
    local cur_mud_pref = mud_utils.getCurrentHostMUDRecording(ifId, host_info.host, host["devtype"])
    local in_progress = (cur_mud_pref ~= "disabled") and mud_utils.isMUDRecordingInProgress(ifId, host_info.host)
@@ -760,7 +830,7 @@ end
 
       local tots = 0 for key, value in pairs(host["pktStats.sent"]["size"]) do tots = tots + value end
       local totr = 0 for key, value in pairs(host["pktStats.recv"]["size"]) do totr = totr + value end
-   
+
    if((tots > 0) or (totr > 0)) then
      print('<tr><th class="text-left">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
      if(tots > 0) then
@@ -768,11 +838,11 @@ end
      else
         print('<td colspan=1>&nbsp;</td>')
      end
-  
+
      if(totr > 0) then
        print('<td colspan=1><div class="pie-chart" id="sizeRecvDistro"></div></td>')
      else
-       print('<td colspan=1>&nbsp;</td>') 
+       print('<td colspan=1>&nbsp;</td>')
      end
      print('</tr>')
    end
@@ -781,7 +851,7 @@ end
    local has_arp_distro = (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00")
 
 if(has_tcp_distro and has_arp_distro) then
-print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')  
+print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
 else
       if (has_tcp_distro) then
 	 print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
@@ -1020,7 +1090,7 @@ end
                ]]
 
 	      	-- ############
-	
+
 	   print [[<tr><th colspan="2" class="text-left">]] print(i18n("details.as_client")) print[[</th>]]
 	   if(num_expired_client_flows) then
 	      print [[
@@ -1032,7 +1102,7 @@ end
 	   end
 
 	   -- ############
-	
+
 	   print [[<tr><th colspan="2" class="text-left">]] print(i18n("details.as_server")) print[[</th>]]
 	   if(num_expired_server_flows) then
 	      print [[
@@ -1041,7 +1111,7 @@ end
               ]]
 	   else
 	      print("<td colspan=2>&nbsp;</td>td colspan=2>&nbsp;</td>")
-	   end	   
+	   end
 
 
 	end
@@ -1069,8 +1139,8 @@ print (ntop.getHttpPrefix())
 print [[/lua/get_host_flow_stats.lua', { mode: "client_frequency", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 	end
 
-	
-      if(num_expired_server_flows > 0) then	 
+
+      if(num_expired_server_flows > 0) then
 print [[
   	   do_pie("#flowsDistributionServerDuration", ']]
 print (ntop.getHttpPrefix())
@@ -1085,7 +1155,7 @@ print [[/lua/get_host_flow_stats.lua', { mode: "server_frequency", ifid: "]] pri
          }
 	 </script>
 	]]
-  
+
      print("<tr><th>"..i18n("protocol").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr>\n")
 
      for id, _ in ipairs(l4_keys) do
@@ -1379,7 +1449,7 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 	 end
 	 print("</tr>")
 	 end
-	
+
 	print[[
         </table>
        <small><b>]] print(i18n("dns_page.note")) print[[:</b><br>]] print(i18n("dns_page.note_dns_ratio")) print[[
@@ -1803,7 +1873,7 @@ elseif not host.privatehost and page == "geomap" then
       <div class="container-fluid">
         <div class="row">
           <div class='col-md-12 col-lg-12 col-xs-12'>
-            <div class='border-bottom pb-2 mb-3'> 
+            <div class='border-bottom pb-2 mb-3'>
               <h1 class='h2'>]].. i18n("geo_map.hosts_geomap").. [[</h1>
             </div>
             <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger'>
@@ -1825,27 +1895,27 @@ elseif not host.privatehost and page == "geomap" then
       <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js" type="text/javascript"></script>
       <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js" type="text/javascript"></script>
       <script type='text/javascript'>
-  
+
         const zoomIP = "ifid=]]..ifId..[[&]].. hostinfo2url(host_info) ..[[";
-  
+
         const display_localized_error = (error_code) => {
           $('#geomap-alert p').html(`]].. i18n("geo_map.geolocation_error") ..[[[${error_code}]: ]].. i18n("geo_map.using_default_location") ..[[`);
           $('#geomap-alert').removeClass('alert-info').addClass('alert-danger').show();
         }
-  
+
         const display_localized_position = (position) => {
             $('#my-location').html(`
-            ]].. i18n("geo_map.browser_reported_home_map")..[[: 
+            ]].. i18n("geo_map.browser_reported_home_map")..[[:
             <a href='https://www.openstreetmap.org/#map=6/${position[0]}/${position[1]}'>
             ]]..i18n("geo_map.latitude").. [[: ${position[0]}, ]].. i18n("geo_map.longitude").. [[: ${position[1]} </a>
           `);
         }
-  
+
         const display_localized_no_geolocation_msg = () => {
-  
+
             $('#geomap-alert p').html(`]].. i18n("geo_map.unavailable_geolocation") .. ' ' .. i18n("geo_map.using_default_location") ..[[`);
             $('#geomap-alert').addClass('alert-info').removeClass('alert-danger').show();
-  
+
         }
       </script>
       <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js"  type='text/javascript'></script>
@@ -2355,7 +2425,7 @@ print [[
    		      var key = idx.replace(/\./g,'___');
    		      $('#'+key+'_bytes_vhost_rcvd').html(bytesToVolume(obj["bytes.rcvd"])+" "+get_trend(obj["bytes.rcvd"], last_http_val[key+"_rcvd"]));
    		      $('#'+key+'_bytes_vhost_sent').html(bytesToVolume(obj["bytes.sent"])+" "+get_trend(obj["bytes.sent"], last_http_val[key+"_sent"]));
-   		      $('#'+key+'_num_vhost_req_serv').html(addCommas(obj["http.requests"])+" "+get_trend(obj["http.requests"], last_http_val[key+"_req_serv"]));
+   		      $('#'+key+'_num_vhost_req_serv').html(addCommas(obj["xs"])+" "+get_trend(obj["http.requests"], last_http_val[key+"_req_serv"]));
    		      last_http_val[key+"_rcvd"] = obj["bytes.rcvd"];
    		      last_http_val[key+"_sent"] = obj["bytes.sent"];
    		      last_http_val[key+"_req_serv"] = obj["bytes.http_requests"];

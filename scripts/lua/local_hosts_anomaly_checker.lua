@@ -12,13 +12,13 @@ sendHTTPContentTypeHeader('text/html')
 
 local hosts = interface.getLocalHostsInfo(true, "column_traffic")
 
-function isanomaly(value)   
+function isanomaly(value)
    if(value > 0) then
       if((value < 25) or (value > 75)) then
 	 return true
       end
    end
-   
+
    return false
 end
 
@@ -31,7 +31,7 @@ for k,h in pairs(hosts.hosts) do
 	 print("[active_flows.as_client.anomaly_index: "..h["active_flows.as_client.anomaly_index"].."]")
       end
    end
-   
+
    if(h["active_flows.as_server.anomaly_index"] ~= nil) then
       if(isanomaly(h["active_flows.as_server.anomaly_index"]) == true) then
 	 print("[active_flows.as_server.anomaly_index: "..h["active_flows.as_server.anomaly_index"].."]")
@@ -48,6 +48,6 @@ for k,h in pairs(hosts.hosts) do
       if(isanomaly(h["other_ip.bytes.sent.anomaly_index"]) == true) then print("[other_ip.bytes.sent: "..h["other_ip.bytes.sent.anomaly_index"].."]") end
       if(isanomaly(h["other_ip.bytes.rcvd.anomaly_index"]) == true) then print("[other_ip.bytes.rcvd: "..h["other_ip.bytes.rcvd.anomaly_index"].."]") end
    end
-   
+
    print("<br>\n")
 end

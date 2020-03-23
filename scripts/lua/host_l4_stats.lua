@@ -24,7 +24,7 @@ else
    for id, _ in ipairs(l4_keys) do
       label = l4_keys[id][1]
       key = l4_keys[id][2]
-      traffic = 0		
+      traffic = 0
       if(host[key..".bytes.sent"] ~= nil) then traffic = traffic + host[key..".bytes.sent"] end
       if(host[key..".bytes.rcvd"] ~= nil) then traffic = traffic + host[key..".bytes.rcvd"] end
 

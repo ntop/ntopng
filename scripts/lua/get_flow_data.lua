@@ -24,8 +24,8 @@ else
   print ("{ \"column_duration\" : \"" .. secondsToTime(flow["duration"]))
   print ("\", \"column_bytes\" : \"" .. bytesToSize(flow["bytes"]) .. "")
 
- if ( (flow["throughput_trend_"..throughput_type] ~= nil) and 
-      (flow["throughput_trend_"..throughput_type] > 0) 
+ if ( (flow["throughput_trend_"..throughput_type] ~= nil) and
+      (flow["throughput_trend_"..throughput_type] > 0)
   ) then
 
     if (throughput_type == "pps") then
@@ -34,7 +34,7 @@ else
       print ("\", \"column_thpt\" : \"" .. bitsToSize(8*flow["throughput_bps"]).. " ")
     end
 
-    if(flow["throughput_trend_"..throughput_type] == 1) then 
+    if(flow["throughput_trend_"..throughput_type] == 1) then
        print("<i class='fas fa-arrow-up'></i>")
        elseif(flow["throughput_trend_"..throughput_type] == 2) then
        print("<i class='fas fa-arrow-down'></i>")

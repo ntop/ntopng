@@ -53,7 +53,7 @@ local ip_version = tonumber(ip_version)
 
 if(ifId == nil) then ifId = interface.getId() end
 if(epoch_begin == nil) then epoch_begin = 0 end
-if(epoch_end == nil) then epoch_end = now end 
+if(epoch_end == nil) then epoch_end = now end
 if((currentPage == nil) or (currentPage == "")) then currentPage = 1 end
 if((perPage == nil) or (perPage == "")) then perPage = 5 end
 if((sortOrder == nil) or (sortOrder == "")) then sortOrder = "asc" end

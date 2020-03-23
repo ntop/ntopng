@@ -38,6 +38,7 @@ if ntop.isPro() then
 end
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page = _GET["page"]
 ifid = _GET["ifid"]

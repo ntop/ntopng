@@ -14,6 +14,8 @@ require("graph_utils")
 
 if not isAllowedSystemInterface() then
    sendHTTPContentTypeHeader('text/html')
+   page_utils.manage_system_interface(page_utils.get_system_interface_flag())
+
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("error_not_granted").."</div>")
@@ -65,7 +67,7 @@ if not ntop.isWindows() then
    item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
    table.insert(storage_items, item)
 
-   info.storage = 
+   info.storage =
       "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.volume_dev..")</span><br />"..
       stackedProgressBars(storage_info.volume_size, storage_items, i18n("available"), bytesToSize)
 
@@ -101,7 +103,7 @@ if not ntop.isWindows() then
       item.style = "background-image: linear-gradient(to bottom, grey 0%, darkgrey 100%)"
       table.insert(storage_items, item)
 
-      info.pcap_storage = 
+      info.pcap_storage =
         "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.pcap_volume_dev..")</span><br />"..
         stackedProgressBars(storage_info.pcap_volume_size, storage_items, i18n("available"), bytesToSize)
    end

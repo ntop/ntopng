@@ -18,6 +18,7 @@ interface.select(ifname)
 local ifId = getInterfaceId(ifname)
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.pods)
 

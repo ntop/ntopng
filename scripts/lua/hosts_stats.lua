@@ -13,6 +13,7 @@ local discover = require("discover_utils")
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
 

@@ -10,12 +10,12 @@ sendHTTPContentTypeHeader('text/html')
 
 if(haveAdminPrivileges()) then
    username = _POST["username"]
-   
+
    if(username == nil) then
       print ("{ \"result\" : -1, \"message\" : \"Invalid parameters\" }")
       return
    end
-   
+
    if(ntop.deleteUser(username)) then
       print ("{ \"result\" : 0, \"message\" : \"User deleted successfully\" }")
    else

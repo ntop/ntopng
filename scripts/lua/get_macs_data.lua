@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "mac_utils"
 local json = require("dkjson")
+
 sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters
@@ -55,7 +56,7 @@ end
 
 local source_macs_only = false
 
-if devices_mode == "source_macs_only" then   
+if devices_mode == "source_macs_only" then
    source_macs_only = true
 end
 

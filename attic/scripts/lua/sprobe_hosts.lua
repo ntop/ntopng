@@ -6,9 +6,12 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local page_utils = require("page_utils")
+
 
 if(mode ~= "embed") then
    sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    active_page = "hosts"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -25,7 +28,7 @@ print (ntop.getHttpPrefix())
 print [[/lua/sprobe_hosts_data.lua", function(error, json) {
     if (error) return console.warn(error);
     links = json;
-    
+
     // Compute the distinct nodes from the links.
     links.forEach(function(link) {
 			s = link.source.split("@");

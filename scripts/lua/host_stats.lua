@@ -14,7 +14,7 @@ local host_info = url2hostinfo(_GET)
 
 if((host_info ~= nil) and (host_info["host"] ~= nil)) then
    interface.select(ifname)
-   host = interface.getHostInfo(host_info["host"], host_info["vlan"]) 
+   host = interface.getHostInfo(host_info["host"], host_info["vlan"])
    if(host == nil) then
       host = "{}"
    elseif(isEmptyString(host["name"])) then

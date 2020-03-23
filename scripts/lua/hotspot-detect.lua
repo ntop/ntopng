@@ -15,7 +15,7 @@ print [[
 <html>
 <head>
 <title>]] print(info["product"]) print[[ hotspot detect</title>
-<meta http-equiv="refresh" Content="0; url=]] 
+<meta http-equiv="refresh" Content="0; url=]]
 
 print(ntop.getHttpPrefix().."/lua/captive_portal.lua")
 

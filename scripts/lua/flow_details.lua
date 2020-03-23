@@ -345,6 +345,7 @@ local function ja3url(what, safety)
 end
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 warn_shown = 0
 

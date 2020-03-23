@@ -46,7 +46,7 @@ if(ifstats.stats ~= nil) then
     ifstats["ndpi"]["Unknown"]["bytes.rcvd"] = ifstats["ndpi"]["Unknown"]["bytes.rcvd"] - ifstats.eth["ARP_bytes"]
     ifstats["ndpi"]["Unknown"]["packets.rcvd"] = ifstats["ndpi"]["Unknown"]["packets.rcvd"] - ifstats.eth["ARP_packets"]
   end
-end   
+end
 
 local total = ifstats.stats.bytes
 

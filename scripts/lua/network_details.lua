@@ -36,6 +36,7 @@ local network_vlan   = tonumber(_GET["vlan"])
 if network_vlan == nil then network_vlan = 0 end
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.networks)
 

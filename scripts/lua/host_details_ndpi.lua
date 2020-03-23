@@ -11,7 +11,6 @@ require "historical_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-
 ifid = _GET["ifid"]
 direction = _GET["sflow_filter"]
 
@@ -95,7 +94,7 @@ for _k in pairsByKeys(vals , desc) do
     else
       print(k.." "..formatBreed(host["ndpi"][k]["breed"]))
     end
-    
+
     t = host["ndpi"][k]["bytes.sent"]+host["ndpi"][k]["bytes.rcvd"]
 
     if((host["ndpi"][k]["bytes.sent"] == 0) and (host["ndpi"][k]["bytes.rcvd"] > 0)) then

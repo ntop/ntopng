@@ -30,7 +30,7 @@ local name_map = {
       { "Unspecified", "Other Traffic" }
 }
 
-function mapRRDname(name) 	 
+function mapRRDname(name)
   for id,_ in ipairs(name_map) do
     local m = name_map[id]
     if(name == m[1]) then
@@ -80,7 +80,7 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil and _GET["step"] ~= nil) then
          else
             -- mode=get
             rrd = activbase.."/"..actname..".rrd"
-            
+
             if(ntop.notEmptyFile(rrd)) then
                fetchData = true
             end
@@ -110,7 +110,7 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil and _GET["step"] ~= nil) then
          local cf = _GET["cf"] or "AVERAGE"
          local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrd, cf, start_time, end_time)
          res.step = fstep
-         
+
          function getValue(w) if w ~= w then return 0 else return math.max(tonumber(w), 0) end end
 
          for i, v in ipairs(fdata) do

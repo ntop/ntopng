@@ -52,7 +52,7 @@ for key, value in ipairs(flows_stats) do
       if(hitters[peer] == nil) then
 	 hitters[peer] = interface.getPeerHitRate(flows_stats[key]["cli.key"], host)
       end
-   end   
+   end
 end
 
 
@@ -63,11 +63,11 @@ rcvd_from_hitters = {}
 extra = 0.01 -- Used to avoid overwriting values with the same number of bytes
 for k,v in pairs(hitters) do
    if(v["sent"] > 0) then
-      sent_to_hitters[v["sent"]+extra] = k 
+      sent_to_hitters[v["sent"]+extra] = k
    end
 
    if(v["rcvd"] > 0) then
-      rcvd_from_hitters[v["rcvd"]+extra] = k 
+      rcvd_from_hitters[v["rcvd"]+extra] = k
    end
 
    extra = extra + 0.01
@@ -76,10 +76,10 @@ end
 print(' "top_destinations": [ ')
 
 local num = 0
-for _value,_key in pairsByKeys(sent_to_hitters, rev) do   
+for _value,_key in pairsByKeys(sent_to_hitters, rev) do
    peer_name = getResolvedAddress(hostkey2hostinfo(_key))
    h="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=" .. _key.. "'>".. shortenString(peer_name).."</A>"
-   
+
    if(num > 0) then print(",") end
    print(' { "ip": "'.._key..'", "host": "'..h..'", "bytes": '..round(_value, 0)..' }')
 
@@ -95,7 +95,7 @@ num = 0
 for _value,_key in pairsByKeys(rcvd_from_hitters, rev) do
    peer_name = getResolvedAddress(hostkey2hostinfo(_key))
    h="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=" .. _key.. "'>".. shortenString(peer_name).."</A>"
-   
+
    if(num > 0) then print(",") end
    print(' { "ip": "'.._key..'", "host": "'..h..'", "bytes": '..round(_value, 0)..' }')
 

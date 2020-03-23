@@ -18,6 +18,7 @@ require("alert_utils")
 local probe = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.script_types.system, "system", "influxdb_monitor")
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.influxdb)
 

@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+
 sendHTTPContentTypeHeader('text/html')
 local json = require("dkjson")
 
@@ -19,7 +20,7 @@ local is_host
 if(host_info["host"] ~= nil) then
    local breakdown = {}
 
-   -- Show ARP sent/recv breakdown 
+   -- Show ARP sent/recv breakdown
    stats = interface.getMacInfo(host_info["host"])
 
    if stats ~= nil then

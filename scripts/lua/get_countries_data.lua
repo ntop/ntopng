@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local json = require("dkjson")
+
 require("country_utils")
 sendHTTPContentTypeHeader('text/html')
 

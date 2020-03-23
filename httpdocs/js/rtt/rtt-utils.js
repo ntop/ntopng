@@ -156,6 +156,12 @@ $(document).ready(function() {
             }
         },
         initComplete: function() {
+
+            if (get_host != "") {
+                $rtt_table.search(get_host).draw(true);
+                $rtt_table.state.clear();
+            }
+
             setInterval(() => {
                 $rtt_table.ajax.reload()
             }, 15000);

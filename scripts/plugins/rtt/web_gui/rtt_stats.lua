@@ -305,6 +305,7 @@ if(page == "overview") then
       i18n.edit = "]] .. i18n("users.edit") .. [[";
       i18n.delete = "]] .. i18n("delete") .. [[";
 
+      let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
       let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
       let import_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
 

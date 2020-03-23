@@ -31,7 +31,7 @@ local function getTopTalkersFromJSONDirection(table, wantedDir, add_vlan)
 
       for i2,hostpair in pairs(vlan["hosts"]) do
 	 -- hostpair is { "senders": [...], "receivers": [...] }
-	 
+
 	 local direction = hostpair[wantedDir]
 	 if direction == nil then direction = {} end
 	 for _, host in pairs(direction) do

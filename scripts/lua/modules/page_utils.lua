@@ -514,7 +514,7 @@ end
 
 function page_utils.manage_system_interface(mode)
 
-   local really_view_mode = mode or page_utils.get_iface_interface_flag()()
+   local really_view_mode = mode or page_utils.get_iface_interface_flag()
 
    if (page_utils.is_system_view() and really_view_mode == page_utils.get_iface_interface_flag()) then
       page_utils.set_system_view(false)

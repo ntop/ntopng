@@ -75,7 +75,7 @@ num = 0
 
 for _key, value in ipairs(flows_stats) do
   p = flows_stats[_key]
-  process = 1 
+  process = 1
   client_process = 1
   server_process = 1
 
@@ -83,55 +83,55 @@ for _key, value in ipairs(flows_stats) do
   ---------------- PID ----------------
    if(pid ~= nil) then
     if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"Pid:"..pid.."\n")end
-    if (p["client_process"] ~= nil) then 
+    if (p["client_process"] ~= nil) then
       if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"Client pid:"..p["client_process"]["pid"].."\n") end
-      if ((p["client_process"]["pid"] ~= pid)) then 
+      if ((p["client_process"]["pid"] ~= pid)) then
         process = 0
       end
       if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"ClientProcess -\t"..process.."\n")end
     end
-    if (p["server_process"] ~= nil) then 
+    if (p["server_process"] ~= nil) then
       if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"Server pid:"..p["server_process"]["pid"].."\n") end
-      if ((p["server_process"]["pid"] ~= pid)) then 
+      if ((p["server_process"]["pid"] ~= pid)) then
         process = 0
       end
       if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"ServerProcess -\t"..process.."\n")end
     end
     if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"Pid -\t"..process.."\n")end
    end
-   
+
   ---------------- NAME ----------------
    if(name ~= nil) then
-    
+
     if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"url:"..process_sourceId.."vlan:"..p["vlan"].."\n") end
     if (process_sourceId == p["vlan"]) then
 
       if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"Name:"..name.."\n")end
-      if (p["client_process"] ~= nil) then 
+      if (p["client_process"] ~= nil) then
         if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"Client name:"..p["client_process"]["name"].."\n") end
 
-        if ((p["client_process"]["name"] ~= name)) then 
+        if ((p["client_process"]["name"] ~= name)) then
           client_process = 0
         end
         if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"ClientProcess -\t"..client_process.."\n")end
-    
+
       end
-      if (p["server_process"] ~= nil) then 
+      if (p["server_process"] ~= nil) then
         if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"Server name:"..p["server_process"]["name"].."\n") end
 
-        if ((p["server_process"]["name"] ~= name)) then 
+        if ((p["server_process"]["name"] ~= name)) then
           server_process = 0
         end
         if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"ServerProcess -\t"..server_process.."\n")end
-    
+
       end
       if (debug) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"name -\t"..process.."\n")end
     else
-      client_process = 0 
+      client_process = 0
       server_process = 0
     end
    end
-   
+
 
   ---------------- HOST ----------------
   if((host ~= nil) and (p["cli.ip"] ~= host) and (p["srv.ip"] ~= host)) then
@@ -142,7 +142,7 @@ for _key, value in ipairs(flows_stats) do
 
   if (process == 1) then
 
-    if((p["client_process"] ~= nil) and (client_process == 1) )then 
+    if((p["client_process"] ~= nil) and (client_process == 1) )then
       k = p["client_process"]
       key = k["name"] -- .."@"..p["vlan"]
 
@@ -172,7 +172,7 @@ for _key, value in ipairs(flows_stats) do
       end
     end
 
-    if((p["server_process"] ~= nil) and (server_process == 1) )then 
+    if((p["server_process"] ~= nil) and (server_process == 1) )then
       k = p["server_process"]
       key = k["name"] -- .."@"..p["vlan"]
 
@@ -229,13 +229,13 @@ for key, value in pairs(processes) do
    elseif(sortColumn == "column_bytes_sent") then
    vkey = processes[key]["bytes_sent"]+postfix
    elseif(sortColumn == "column_duration") then
-   vkey = processes[key]["duration"]+postfix    
+   vkey = processes[key]["duration"]+postfix
    elseif(sortColumn == "column_count") then
-   vkey = processes[key]["count"]+postfix   
+   vkey = processes[key]["count"]+postfix
       else
    vkey = key
       end
-      
+
       vals[vkey] = key
 end
 
@@ -253,7 +253,7 @@ end
 
 if (mode == "table") then
   for _key, _value in pairsByKeys(vals, funct) do
-     key = vals[_key]   
+     key = vals[_key]
      value = processes[key]
 
      if(to_skip > 0) then
@@ -301,7 +301,7 @@ elseif (mode == "timeline") then
 
   print ("[\n")
   for _key, _value in pairsByKeys(vals, funct) do
-     key = vals[_key]   
+     key = vals[_key]
      value = processes[key]
 
      if (num > 0) then print(',\n') end

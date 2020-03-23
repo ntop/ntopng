@@ -26,7 +26,7 @@ if(haveAdminPrivileges()) then
       print ("{ \"result\" : -1, \"message\" : \"Invalid parameters\" }")
       return
    end
-   
+
    if(password ~= confirm_password) then
       print ("{ \"result\" : -1, \"message\" : \"Passwords do not match: typo?\" }")
       return

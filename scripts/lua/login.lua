@@ -61,7 +61,7 @@ local blacklisted = ntop.isLoginBlacklisted()
 
 -- must specify the accept-charset here or the encoding for the special characters will be different from the encoding used when saving/updating passwords
 print[[
-	 <form id="form_add_user" role="form" data-toggle="validator" class="form-signin" onsubmit="return makeUsernameLowercase();" action="]] print(ntop.getHttpPrefix()) print[[/authorize.html" method="POST" accept-charset="UTF-8"> 
+	 <form id="form_add_user" role="form" data-toggle="validator" class="form-signin" onsubmit="return makeUsernameLowercase();" action="]] print(ntop.getHttpPrefix()) print[[/authorize.html" method="POST" accept-charset="UTF-8">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(i18n("login.welcome_to", {product=info["product"]})) print[[</h2>
   <div class="form-group has-feedback">
       <input type="hidden" class="form-control" name="user">
@@ -77,7 +77,7 @@ end
 
 print[[
 </div>
-	 <input type="hidden" class="form-control" name="referer" value="]] 
+	 <input type="hidden" class="form-control" name="referer" value="]]
 
 local r = _GET["referer"]
 

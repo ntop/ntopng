@@ -16,6 +16,7 @@ local info = ntop.getInfo()
 local delete_data_utils = require "delete_data_utils"
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.manage_data)
 

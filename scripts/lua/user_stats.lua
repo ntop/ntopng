@@ -24,9 +24,9 @@ local debug = false
 if (debug) then io.write("Host:"..host.."\n") end
 if(flows == nil) then
    print('[ { "label": "Other", "value": 1 } ]') -- No flows found
-else   
-  
-  if(mode == nil) then mode = "apps" end  
+else
+
+  if(mode == nil) then mode = "apps" end
 
    apps = {}
    tot = 0
@@ -52,7 +52,7 @@ else
       key = f["proto.l4"]
     end
 
-    -- Do aggregation 
+    -- Do aggregation
     if((key ~= nil) and (process == 1))then
       if(apps[key] == nil) then apps[key] = 0 end
       v = f["cli2srv.bytes"] + f["srv2cli.bytes"]
@@ -95,7 +95,7 @@ end
 
 -- In case there is some leftover do print it as "Other"
 if(accumulate < tot) then
-   if(num > 0) then print(",") end 
+   if(num > 0) then print(",") end
    print("\n\t { \"label\": \"Other\", \"value\": ".. (tot-accumulate) .." }")
 end
 

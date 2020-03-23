@@ -60,7 +60,7 @@ if(stats ~= nil) then
 	    local keys = string.split(key, ",")
 	    local icmp_type = keys[1]
 	    local icmp_value = keys[2]
-	    
+
 	    print('<tr><td><a href="'..ntop.getHttpPrefix()..'/lua/flows_stats.lua?icmp_type='..
 		     icmp_type..'&icmp_cod='..icmp_value..'&version='.. ternary(is_v4, "4", "6") ..'">'..
 		     icmp_utils.get_icmp_label(ternary(is_v4, 4, 6), icmp_type, icmp_value)..'</a>')

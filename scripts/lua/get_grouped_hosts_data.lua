@@ -35,7 +35,7 @@ local throughput_type = getThroughputType()
 
 if ((sortColumn == nil) or (sortColumn == "column_")) then
    sortColumn = getDefaultTableSort(group_col)
-   --if(sortColumn == "column_") then sortColumn = "column_name" end	
+   --if(sortColumn == "column_") then sortColumn = "column_name" end
 else
    if ((sortColumn ~= "column_") and (sortColumn ~= "")) then
       tablePreferences("sort_"..group_col,sortColumn)
@@ -112,7 +112,7 @@ local function print_single_group(value)
    if (group_col == "country" or country_n ~= nil) then
       print("hosts_stats.lua?country="..value["id"].."'>")
       print(getFlag(value["country"]).."&nbsp&nbsp")
-   elseif (group_col == "os" or os_n ~= nil) then        
+   elseif (group_col == "os" or os_n ~= nil) then
       print("hosts_stats.lua?os=".. value["id"] .."'>")
    elseif (group_col == "local_network_id" or group_col == "local_network" or network_n ~= nil) then
       print("hosts_stats.lua?network="..tostring(value["id"]))
@@ -171,7 +171,7 @@ local function print_single_group(value)
    end
 
    local alt = getHostAltName(value["id"])
-   
+
    if((alt ~= nil) and (alt ~= value["id"])) then alt = " ("..alt..")" else alt = "" end
    print('"column_link": "<A HREF=\''..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'\'>'.. value["id"]..alt..'</A>')
 
@@ -282,9 +282,9 @@ elseif (pool_n ~= nil) then
    stats_by_group_col = {}
 end
 
-vals = { } 
+vals = { }
 for key,value in pairs(stats_by_group_col) do
-   v = stats_by_group_col[key]    
+   v = stats_by_group_col[key]
    if((key ~= nil) and (v ~= nil)) then
       if(sortColumn == "column_id") then
 	 vals[key] = v["id"]

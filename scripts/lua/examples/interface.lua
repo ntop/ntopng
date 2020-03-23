@@ -31,6 +31,7 @@ end
 require "lua_utils"
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.print_header()
 

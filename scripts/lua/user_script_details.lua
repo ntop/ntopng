@@ -22,6 +22,7 @@ local ifstats = interface.getStats()
 local ifId = ifstats.id
 local schema_prefix = ternary(subdir == "flow", "flow_user_script", "elem_user_script")
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
 

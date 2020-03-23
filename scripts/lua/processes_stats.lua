@@ -12,6 +12,7 @@ local page_utils = require("page_utils")
 local ifstats = interface.getStats()
 
 sendHTTPContentTypeHeader('text/html')
+page_utils.manage_system_interface()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
 

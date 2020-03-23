@@ -22,10 +22,10 @@ top_value = 0
 num = 0
 for key, value in pairs(hosts_stats) do
    host_info = hostkey2hostinfo(key);
-   
+
    value = hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]
 
-   if(value ~= nil) then 
+   if(value ~= nil) then
       if(host_info["host"] == "255.255.255.255") then
 	 key = "Broadcast"
       end
@@ -60,7 +60,7 @@ for key, value in pairsByKeys(_hosts_stats, rev) do
       print("\t { \"label\": \"" .. value .."\", \"value\": ".. key ..", \"url\": \""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(value).."\" }")
    else
       print("\t [ \"" .. value .."\", ".. key .." ]")
-   end	
+   end
 
    accumulate = accumulate + key
    num = num + 1
@@ -73,7 +73,7 @@ end
 if((num == 0) and (top_key ~= nil)) then
    if((ajax_format == nil) or (ajax_format == "d3")) then
      print("\t { \"label\": \"" .. top_key .."\", \"value\": ".. top_value ..", \"url\": \""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(top_key).."\" }")
-   else      
+   else
     print("\t [ \"" .. top_key .."\", ".. top_value .." ]")
    end
 
