@@ -1029,7 +1029,7 @@ if(stats ~= nil) then
   local lastval = 0
 
   for _, serie in pairs(data.series) do
-     lastval = lastval + serie.data[data.count]
+     lastval = lastval + (serie.data[data.count] or 0)
   end
 
    if format_as_bytes then
