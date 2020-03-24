@@ -688,7 +688,7 @@ print([[
       <ul class='navbar-nav mr-auto'>
          <li class='nav-item d-flex align-items-center dropdown'>
             <a class="btn border-dark dropdown-toggle" data-toggle="dropdown" href="#">
-               ]] .. (is_system_interface and 'System' or '<i class="fas fa-ethernet"></i> ' .. getHumanReadableInterfaceName(ifname)) .. [[
+               ]] .. (is_system_interface and i18n("system") or '<i class="fas fa-ethernet"></i> ' .. getHumanReadableInterfaceName(ifname)) .. [[
             </a>
             <ul class='dropdown-menu'>
 ]])
@@ -697,7 +697,7 @@ if ntop.isAdministrator() then
    print([[
                <li>
                   <button id="btn-trigger-system-mode" type="submit" class="dropdown-item ]].. (is_system_interface and "active" or "") ..[[">
-                     ]].. (is_system_interface and "<i class='fas fa-check'></i>" or "") ..[[ System
+                     ]].. (is_system_interface and "<i class='fas fa-check'></i>" or "") ..[[ ]] .. i18n("system") .. [[
                   </button>
                </li>
                <li class='dropdown-divider'></li>
