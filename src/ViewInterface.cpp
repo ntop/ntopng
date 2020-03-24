@@ -29,51 +29,81 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 
   memset(viewed_interfaces, 0, sizeof(viewed_interfaces));
   num_viewed_interfaces = 0;
-  char *ifaces = strdup(&_endpoint[5]); /* Skip view: */
 
-  if(ifaces) {
-    char *tmp, *iface = strtok_r(ifaces, ",", &tmp);
+  if(!strcmp(_endpoint, "view:all")) {
+    /* Create a view on all the active interfaces */
+    for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+      NetworkInterface *iface = ntop->getInterface(i);
 
-    while(iface != NULL) {
-      bool found = false;
+      if(!iface)
+	break;
 
-      for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
-	char *ifName;
+      if(!iface->isViewed() && (iface->getIfType() != interface_type_VIEW)) {
+	if(!addSubinterface(iface))
+	  break;
+      }
+    }
+  } else {
+    char *ifaces = strdup(&_endpoint[5]); /* Skip view: */
 
-	if((ifName = ntop->get_if_name(i)) == NULL)
-	  continue;
+    if(ifaces) {
+      char *tmp, *iface = strtok_r(ifaces, ",", &tmp);
 
-	if(!strncmp(ifName, iface, MAX_INTERFACE_NAME_LEN)) {
-	  found = true;
-	  
-	  if(num_viewed_interfaces < MAX_NUM_VIEW_INTERFACES) {
+      while(iface != NULL) {
+	bool found = false;
+
+	for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+	  char *ifName;
+
+	  if((ifName = ntop->get_if_name(i)) == NULL)
+	    continue;
+
+	  if(!strncmp(ifName, iface, MAX_INTERFACE_NAME_LEN)) {
 	    NetworkInterface *what = ntop->getInterfaceById(i);
 
 	    if(!what)
 	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal Error: NULL interface [%s][%d]", ifName, i);
-	    else if(what->isViewed())
-	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface already belonging to a view [%s][%d]", ifName, i);
 	    else {
-	      what->setViewed(this);
-	      viewed_interfaces[num_viewed_interfaces++] = what;
-	      is_packet_interface &= what->isPacketInterface();
+	      addSubinterface(what);
+	      found = true;
 	    }
+
+	    break;
 	  }
-
-	  break;
 	}
-      }
 
-      if(!found) 
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping view sub-interface %s: not found", iface);
-      else if(num_viewed_interfaces == MAX_NUM_VIEW_INTERFACES)
-	break; /* Upper interface limit reached */
+	if(!found)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping view sub-interface %s: not found", iface);
+	else if(num_viewed_interfaces >= MAX_NUM_VIEW_INTERFACES)
+	  break; /* Upper interface limit reached */
+
+	iface = strtok_r(NULL, ",", &tmp);
+      }
       
-      iface = strtok_r(NULL, ",", &tmp);
+      free(ifaces);
     }
-    
-    free(ifaces);
   }
+
+  if(num_viewed_interfaces == 0)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Empty view interface: \"%s\"", get_name());
+}
+
+/* **************************************************** */
+
+bool ViewInterface::addSubinterface(NetworkInterface *what) {
+  if(num_viewed_interfaces < MAX_NUM_VIEW_INTERFACES) {
+    if(what->isViewed()) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface already belonging to a view [%s][%d]", what->get_name(), what->get_id());
+      return(false);
+    } else {
+      what->setViewed(this);
+      viewed_interfaces[num_viewed_interfaces++] = what;
+      is_packet_interface &= what->isPacketInterface();
+      return(true);
+    }
+  }
+
+  return(false);
 }
 
 /* **************************************************** */

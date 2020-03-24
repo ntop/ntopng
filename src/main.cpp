@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
   char *core_id_s = NULL;
   int core_id;
   char path[MAX_PATH];
+  bool has_view_all = false;
   FILE *fd;
   ThreadedActivity *boot_activity;
 
@@ -271,7 +272,20 @@ int main(int argc, char *argv[])
     if((ifName = ntop->get_if_name(i)) == NULL || strncmp(ifName, "view:", 5))
       continue;
 
+    if(!strcmp(ifName, "view:all")) {
+      /* Defer view:all interface after the other view interfaces */
+      has_view_all = true;
+      continue;
+    }
+
     if((iface = new ViewInterface(ifName)))
+      ntop->registerInterface(iface);
+  }
+
+  if(has_view_all) {
+    NetworkInterface *iface = NULL;
+
+    if((iface = new ViewInterface("view:all")))
       ntop->registerInterface(iface);
   }
   
