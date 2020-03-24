@@ -2006,7 +2006,9 @@ function shortenCollapse(s, max_len)
 end
 
 function getHumanReadableInterfaceName(interface_name)
-   if tonumber(interface_name) ~= nil then
+   if(interface_name == "__system__") then
+      return(i18n("system"))
+   elseif tonumber(interface_name) ~= nil then
       -- convert ID to name
       interface_name = getInterfaceName(interface_name)
    end
