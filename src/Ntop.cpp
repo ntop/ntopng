@@ -701,6 +701,7 @@ void Ntop::loadLocalInterfaceAddress() {
   DWORD dwSize = 0;
   DWORD dwRetVal = 0;
   IN_ADDR IPAddr;
+  char buf2[bufsize];
 
   /* Variables used to return error message */
   LPVOID lpMsgBuf;
@@ -743,20 +744,20 @@ void Ntop::loadLocalInterfaceAddress() {
     for(int id = 0; id < num_defined_interfaces; id++) {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
 	u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
-	
-	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
-	snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %",
-				     buf, iface[id]->get_name());
-	address->setLocalNetwork(buf);
-	iface[id]->addInterfaceNetwork(buf);
-	
+
 	IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
 	snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
 	local_interface_addresses.addAddress(buf);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s",
 				     buf, iface[id]->get_name());
 	iface[id]->addInterfaceAddress(buf);
+
+	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+	snprintf(buf2, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %",
+				     buf2, iface[id]->get_name());
+	address->setLocalNetwork(buf2);
+	iface[id]->addInterfaceNetwork(buf2, buf);
       }
     }
   }
@@ -770,6 +771,7 @@ void Ntop::loadLocalInterfaceAddress() {
   struct ifaddrs *local_addresses, *ifa;
   /* buf must be big enough for an IPv6 address(e.g. 3ffe:2fa0:1010:ca22:020a:95ff:fe8a:1cf8) */
   char buf_orig[bufsize+32];
+  char net_buf[bufsize+32];
   int sock = socket(AF_INET, SOCK_STREAM, 0);
 
   if(getifaddrs(&local_addresses) != 0) {
@@ -827,11 +829,11 @@ void Ntop::loadLocalInterfaceAddress() {
 	/* Set to zero non network bits */
 	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
 	inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));
-	snprintf(buf_orig2, sizeof(buf_orig2), "%s/%d", buf, cidr);
+	snprintf(net_buf, sizeof(net_buf), "%s/%d", buf, cidr);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s",
-				     buf_orig2, iface[ifId]->get_name());
-	address->setLocalNetwork(buf_orig2);
-	iface[ifId]->addInterfaceNetwork(buf_orig2);
+				     net_buf, iface[ifId]->get_name());
+	iface[ifId]->addInterfaceNetwork(net_buf, buf_orig2);
+	address->setLocalNetwork(net_buf);
       }
     } else if(ifa->ifa_addr->sa_family == AF_INET6) {
       struct sockaddr_in6 *s6 =(struct sockaddr_in6 *)(ifa->ifa_netmask);
@@ -859,12 +861,12 @@ void Ntop::loadLocalInterfaceAddress() {
 	  s6->sin6_addr.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
 
 	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
-	snprintf(buf_orig, sizeof(buf_orig), "%s/%d", buf, cidr);
+	snprintf(net_buf, sizeof(net_buf), "%s/%d", buf, cidr);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network for %s",
-				     buf_orig, iface[ifId]->get_name());
+				     net_buf, iface[ifId]->get_name());
 
-	iface[ifId]->addInterfaceNetwork(buf_orig);
-	address->setLocalNetwork(buf_orig);
+	iface[ifId]->addInterfaceNetwork(net_buf, buf_orig);
+	address->setLocalNetwork(net_buf);
       }
     }
   }

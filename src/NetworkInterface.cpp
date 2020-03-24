@@ -5906,8 +5906,15 @@ void NetworkInterface::addInterfaceAddress(char * const addr) {
 
 /* **************************************** */
 
-void NetworkInterface::addInterfaceNetwork(char * const net) {
-  interface_networks.addAddress(net);
+void NetworkInterface::addInterfaceNetwork(char * const net, char * addr) {
+  /* E.g. 192.168.1.0/24 -> 192.168.1.42 */
+  char *addr_cp = strdup(addr);
+  char *sep = NULL;
+
+  if(addr_cp && (sep = strchr(addr_cp, '/')))
+    *sep = '\0';
+
+  interface_networks.addAddressAndData(net, addr_cp);
 }
 
 /* **************************************** */

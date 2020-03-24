@@ -168,6 +168,21 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
 
 /* ******************************************* */
 
+bool AddressTree::addAddressAndData(const char * const _what, void *user_data) {
+  patricia_node_t *node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
+
+  if(node)
+    node->data = user_data;
+  else
+    return(false);
+
+  numAddresses++;
+
+  return(true);
+}
+
+/* ******************************************* */
+
 bool AddressTree::addAddress(const char * const _what, const int16_t user_data) {
   u_int32_t _mac[6];
   int16_t id = (user_data == -1) ? numAddresses : user_data;

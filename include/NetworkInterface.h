@@ -295,6 +295,7 @@ class NetworkInterface : public AlertableEntity {
   void checkDisaggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
+  inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };
   virtual void startPacketPolling();
   virtual void shutdown();
   virtual void cleanup();
@@ -637,7 +638,7 @@ class NetworkInterface : public AlertableEntity {
   inline bool is_bridge_interface()                { return(bridge_interface);        }
   inline const char* getLocalIPAddresses()         { return(ip_addresses.c_str());    }
   void addInterfaceAddress(char * const addr);
-  void addInterfaceNetwork(char * const net);
+  void addInterfaceNetwork(char * const net, char * addr);
   bool isInterfaceNetwork(const IpAddress * const ipa, int network_bits) const;
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
 #ifdef HAVE_MYSQL

@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+//#define DEBUG_DISCOVERY
+
 /* ******************************* */
 
 NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
@@ -139,16 +141,155 @@ void NetworkDiscovery::queueMDNSResponse(u_int32_t src_ip_nw_byte_order,
 }
 
 /* ******************************* */
+
+typedef struct {
+  NetworkDiscovery *discover;
+  int fd;
+  int mdns_sock;
+  lua_State* vm;
+  struct sockaddr_in *mdns_dest;
+  ndpi_dns_packet_header *dns_h;
+  char *mdnsbuf;
+  struct arp_packet *arp;
+  u_int dns_query_len;
+  char *ifname;
+} arp_data;
+
+static void arp_scan_hosts(patricia_node_t *node, void *data, void *user_data) {
+  u_int32_t netp, maskp;
+  arp_data *arp_d = (arp_data*) user_data;
+
+  if(node->prefix->family == AF_INET) {
+    struct in_addr sender_ip;
+    netp = ntohl(node->prefix->add.sin.s_addr);
+    maskp = (0xFFFFFFFF << (32 - node->prefix->bitlen)) & 0xFFFFFFFF;
+
+    if(node->data)
+      inet_aton((char*)node->data, &sender_ip);
+    else
+      sender_ip.s_addr = 0;
+
+    arp_d->discover->sendArpNetwork(arp_d, netp, maskp, sender_ip.s_addr);
+  }
+}
+
+/* ******************************* */
+
 /*
   Code portions courtesy of Andrea Zerbinati <zeran23@gmail.com>
   and Luca Peretti <lucaperetti.lp@gmail.com>
 */
+void NetworkDiscovery::sendArpNetwork(void *data, u_int32_t netp, u_int32_t maskp, u_int32_t sender_ip) {
+  u_char mdnsreply[1500];
+  u_int32_t first_ip, last_ip, host_ip;
+  const u_int max_num_ips = 1024;
+  struct arp_packet *reply;
+  fd_set rset;
+  int max_sock = 0;
+  struct timeval tv;
+  struct pcap_pkthdr h;
+  char macbuf[32], ipbuf[32];
+  arp_data *arp_d = (arp_data*) data;
+  int mdns_sock = arp_d->mdns_sock;
+  lua_State* vm = arp_d->vm;
+  struct sockaddr_in *mdns_dest = arp_d->mdns_dest;
+  ndpi_dns_packet_header *dns_h = arp_d->dns_h;
+  struct arp_packet *arp = arp_d->arp;
+
+  arp->arph.arp_spa = sender_ip;
+
+  first_ip = netp & maskp, last_ip = netp + (~maskp);
+  first_ip++, last_ip--;
+
+  if((last_ip - first_ip) > max_num_ips)
+    last_ip = first_ip + max_num_ips;
+
+  if(mdns_sock > max_sock) max_sock = mdns_sock;
+
+#ifdef DEBUG_DISCOVERY
+  {
+    char buf0[32], buf1[32], buf2[32];
+    u_int32_t first_ip_nbo = htonl(first_ip);
+    u_int32_t last_ip_nbo = htonl(last_ip);
+
+    printf("ARP scan [as %s]: %s-%s\n",
+      inet_ntop(AF_INET, &sender_ip, buf0, sizeof(buf0)),
+      inet_ntop(AF_INET, &first_ip_nbo, buf1, sizeof(buf1)),
+      inet_ntop(AF_INET, &last_ip_nbo, buf2, sizeof(buf2)));
+  }
+#endif
+
+  for(int num_runs=0; num_runs<2; num_runs++) {
+    for(host_ip = first_ip; host_ip <last_ip; host_ip++) {
+      int sel_rc = 0;
+
+      arp->arph.arp_tpa = ntohl(host_ip);
+
+      if(arp->arph.arp_tpa == arp->arph.arp_spa)
+	continue; /* I know myself already */
+
+      // Inject packet
+      if(pcap_sendpacket(pd, (const u_char*)arp, sizeof(*arp)) == -1)
+	break;
+
+      FD_ZERO(&rset);
+
+      if(arp_d->fd != -1) {
+	FD_SET(arp_d->fd, &rset);
+	if(arp_d->fd > max_sock) max_sock = arp_d->fd;
+      }
+      if(mdns_sock != -1) FD_SET(mdns_sock, &rset);
+
+      tv.tv_sec = 0, tv.tv_usec = 0; /* Don't wait at all */
+
+      if(max_sock != 0)
+	sel_rc = select(max_sock + 1, &rset, NULL, NULL, &tv);
+
+      if((arp_d->fd == -1) || FD_ISSET(arp_d->fd, &rset))
+	reply = (struct arp_packet*)pcap_next(pd, &h);
+      else
+	reply = NULL;
+
+      if(reply) {
+	lua_push_str_table_entry(vm,
+				 Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
+				 Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Received ARP reply from %s",
+				     Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+
+	if(mdns_sock != -1) {
+	  mdns_dest->sin_addr.s_addr = reply->arph.arp_spa, dns_h->tr_id++;
+	  if(sendto(mdns_sock, arp_d->mdnsbuf, arp_d->dns_query_len, 0, (struct sockaddr *)mdns_dest, sizeof(struct sockaddr_in)) < 0)
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "MDNS Send error [%d/%s]", errno, strerror(errno));
+	}
+      }
+
+      if((sel_rc > 0) && FD_ISSET(mdns_sock, &rset)) {
+	struct sockaddr_in from;
+	socklen_t from_len = sizeof(from);
+	int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(*mdnsreply), 0, (struct sockaddr *)&from, &from_len);
+
+	if(len > 0)
+	  queueMDNSResponse(from.sin_addr.s_addr, mdnsreply, len);
+      }
+
+      _usleep(1000); /* Avoid flooding */
+    }
+  }
+
+  /* Query myself mith MDNS */
+  mdns_dest->sin_addr.s_addr = sender_ip, dns_h->tr_id++;
+  errno = 0;
+  if((sendto(mdns_sock, arp_d->mdnsbuf, arp_d->dns_query_len, 0, (struct sockaddr *)mdns_dest, sizeof(struct sockaddr_in)) < 0) && (errno != 0))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
+}
+
+/* ******************************* */
+
 void NetworkDiscovery::arpScan(lua_State* vm) {
-  bpf_u_int32 netp, maskp;
-  u_int32_t first_ip, last_ip, host_ip, sender_ip;
   char macbuf[32], ipbuf[32], mdnsbuf[256];
   u_char mdnsreply[1500];
-  const u_int max_num_ips = 1024;
   struct arp_packet arp, *reply;
   fd_set rset;
   struct timeval tv;
@@ -159,6 +300,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   struct sockaddr_in mdns_dest;
   int fd = -1;
   char *ifname  = iface->altDiscoverableName();
+  arp_data arp_d;
 
 #ifndef WIN32
   fd = pcap_get_selectable_fd(pd);
@@ -167,17 +309,13 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   if(ifname == NULL)
     ifname = iface->get_name();
 
-  if(!pd) return;
-  sender_ip = Utils::readIPv4(ifname);
+  if(!pd || !iface->getInterfaceNetworks()) return;
 
   lua_newtable(vm);
 
   setMDNSvm(vm);
 
-  iface->getIPv4Address(&netp, &maskp);
-
   /* Purge existing packets */
-
   while(!ntop->getGlobals()->isShutdown()) {
     fd_set rset;
     struct timeval tv;
@@ -235,13 +373,6 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
     return;
   }
 
-  netp = ntohl(netp), maskp = ntohl(maskp);
-  first_ip = netp & maskp, last_ip = netp + (~maskp);
-  first_ip++, last_ip--;
-
-  if((last_ip - first_ip) > max_num_ips)
-    last_ip = first_ip + max_num_ips;
-
   Utils::readMac(ifname, arp.arph.arp_sha);
 
   memset(arp.dst_mac, 0xFF, sizeof(arp.dst_mac));
@@ -252,7 +383,6 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   arp.arph.ar_hln = 6;
   arp.arph.ar_pln = 4;
   arp.arph.ar_op = htons(1 /* ARP Request */);
-  arp.arph.arp_spa = sender_ip;
   memset(arp.arph.arp_tha, 0, sizeof(arp.arph.arp_tha));
 
   /* Let's add myself */
@@ -262,72 +392,21 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
 
   mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353);
 
-  for(int num_runs=0; num_runs<2; num_runs++) {
-    for(host_ip = first_ip; host_ip <last_ip; host_ip++) {
-      int sel_rc = 0;
+  /* Start the polling */
+  arp_d.discover = this;
+  arp_d.fd = fd;
+  arp_d.mdns_sock = mdns_sock;
+  arp_d.vm = vm;
+  arp_d.mdns_dest = &mdns_dest;
+  arp_d.dns_h = dns_h;
+  arp_d.mdnsbuf = mdnsbuf;
+  arp_d.dns_query_len = dns_query_len;
+  arp_d.arp = &arp;
+  arp_d.ifname = ifname;
 
-      arp.arph.arp_tpa = ntohl(host_ip);
+  iface->getInterfaceNetworks()->walk(arp_scan_hosts, &arp_d);
 
-      if(arp.arph.arp_tpa == arp.arph.arp_spa)
-	continue; /* I know myself already */
-
-      // Inject packet
-      if(pcap_sendpacket(pd, (const u_char*)&arp, sizeof(arp)) == -1)
-	break;
-
-      FD_ZERO(&rset);
-
-      if(fd != -1) {
-	FD_SET(fd, &rset);
-	if(fd > max_sock) max_sock = fd;
-      }
-      if(mdns_sock != -1) FD_SET(mdns_sock, &rset);
-
-      tv.tv_sec = 0, tv.tv_usec = 0; /* Don't wait at all */
-
-      if(max_sock != 0)
-	sel_rc = select(max_sock + 1, &rset, NULL, NULL, &tv);
-
-      if((fd == -1) || FD_ISSET(fd, &rset))
-	reply = (struct arp_packet*)pcap_next(pd, &h);
-      else
-	reply = NULL;
-
-      if(reply) {
-	lua_push_str_table_entry(vm,
-				 Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
-				 Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
-
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Received ARP reply from %s",
-				     Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
-
-	if(mdns_sock != -1) {
-	  mdns_dest.sin_addr.s_addr = reply->arph.arp_spa, dns_h->tr_id++;
-	  if(sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0)
-	    ntop->getTrace()->traceEvent(TRACE_ERROR, "MDNS Send error [%d/%s]", errno, strerror(errno));
-	}
-      }
-
-      if((sel_rc > 0) && FD_ISSET(mdns_sock, &rset)) {
-	struct sockaddr_in from;
-	socklen_t from_len = sizeof(from);
-	int len = recvfrom(mdns_sock, (char*)mdnsreply, sizeof(mdnsreply), 0, (struct sockaddr *)&from, &from_len);
-
-	if(len > 0)
-	  queueMDNSResponse(from.sin_addr.s_addr, mdnsreply, len);
-      }
-
-      _usleep(1000); /* Avoid flooding */
-    }
-  }
-
-  /* Query myself mith MDNS */
-  mdns_dest.sin_addr.s_addr = sender_ip, dns_h->tr_id++;
-  errno = 0;
-  if((sendto(mdns_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) && (errno != 0))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
-
-  /* Final rush */
+  /* Collect possibly pending replies */
   while(true) {
     if(fd != -1) {
       fd_set rset;

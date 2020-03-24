@@ -54,6 +54,7 @@ public:
   void discover(lua_State* vm, u_int timeout);
   void arpScan(lua_State* vm);
   void queueMDNSResponse(u_int32_t src_ip_nw_byte_order, u_char *buf, u_int buf_len);
+  void sendArpNetwork(void *data, u_int32_t netp, u_int32_t maskp, u_int32_t sender_ip);
 };
 
 #endif /* _NETWORK_DISCOVERY_H_ */

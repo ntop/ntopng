@@ -50,6 +50,7 @@ class AddressTree {
 
   inline patricia_tree_t * getTree(bool isV4) const { return(isV4 ? ptree_v4 : ptree_v6); }
   bool addAddress(const char * const _net, const int16_t user_data = -1);
+  bool addAddressAndData(const char * const _what, void *user_data);
   patricia_node_t* addAddress(const IpAddress * const ipa);
   patricia_node_t* addAddress(const IpAddress * const ipa, int network_bits, bool compact_after_add);
   bool addAddresses(const char *net, const int16_t user_data = -1);
