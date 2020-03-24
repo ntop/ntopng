@@ -3345,6 +3345,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
     u_int j;
     u_int16_t rsp_type, data_len;
     DeviceType dtype = device_unknown;
+    bool first_char = true;
 
     memset(_name, 0, sizeof(_name));
 
@@ -3402,8 +3403,10 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 	  /*  ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> [%d] %s", i, &payload[i-12]); */
 	  break;
 	}
-      } else
+      } else if(!first_char)
 	_name[j++] = payload[i];
+
+      first_char = false;
     }
 
     memcpy(&rsp, &payload[i], sizeof(rsp));
