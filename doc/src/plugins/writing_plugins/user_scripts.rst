@@ -3,7 +3,7 @@ User Scripts
 
 User scripts are the core of plugins. They actually allow certain
 actions to be performed periodically, or when a certain event
-occurs. The business logic of a plugin is contained in its users
+occurs. The logic of a plugin is contained in its users
 scripts. A plugin can contain many user scripts. Differences between a
 plugin and a user script are described in :ref:`Plugins vs User Scripts`.
 

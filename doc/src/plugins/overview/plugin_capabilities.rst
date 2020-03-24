@@ -1,10 +1,10 @@
 Plugin Capabilities
 -------------------
 
-With plugins, one can instruct ntopng to execute certain actions at
-regular intervals of time, or when it detects a certain condition. One
-can also create custom pages and add them to the ntopng menu, and even
-create timeseries of certain metrics of interest.
+By means of plugins, ntopng can execute actions at regular intervals
+of time, or when it detects a certain condition. Plugins can also be
+used to create custom pages and add them to the ntopng menu, and even
+to create timeseries of certain metrics of interest.
 
 All plugin capabilities are briefly summarized below.
 
