@@ -10,7 +10,6 @@ local page_utils = require("page_utils")
 
 local json = require("dkjson")
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
 
 
 -- Table parameters

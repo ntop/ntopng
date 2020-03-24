@@ -72,7 +72,7 @@ local devicekey = hostinfo2hostkey(host_info)
 if(vlanId == nil) then vlanId = 0 end
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.devices)
 

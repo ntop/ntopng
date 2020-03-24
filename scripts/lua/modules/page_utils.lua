@@ -39,51 +39,55 @@ page_utils.menu_sections = {
 
 -- #################################
 
+-- visible_iface: this flag is true when the page belong to interface view
+-- visible_system: this flags is true when the page belong to system view
+-- if both flags are true it means the pages are shared between views
+
 page_utils.menu_entries = {
     -- Dashboard
-    traffic_dashboard 	= {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard"},
-    network_discovery 	= {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard"},
-    traffic_report    	= {key = "traffic_report",    i18n_title = "report.traffic_report",	section = "dashboard"},
-    db_explorer    	= {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "dashboard"},
+    traffic_dashboard 	= {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", visible_iface = true},
+    network_discovery 	= {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard", visible_iface = true},
+    traffic_report    	= {key = "traffic_report",    i18n_title = "report.traffic_report",	section = "dashboard", visible_iface = true},
+    db_explorer    	= {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "dashboard", visible_iface = true},
 
     -- Alerts
-    detected_alerts  	 = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts"},
-    alerts_dashboard  	 = {key = "alerts_dashboard", i18n_title = "alerts_dashboard.alerts_dashboard", section = "alerts"},
-    flow_alerts_explorer = {key = "flow_alerts_explorer", i18n_title = "flow_alerts_explorer.label", section = "alerts"},
+    detected_alerts  	 = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts", visible_iface = true},
+    alerts_dashboard  	 = {key = "alerts_dashboard", i18n_title = "alerts_dashboard.alerts_dashboard", section = "alerts", visible_iface = true},
+    flow_alerts_explorer = {key = "flow_alerts_explorer", i18n_title = "flow_alerts_explorer.label", section = "alerts", visible_iface = true},
 
     -- Flows
-    flows 	     	 = {key = "flows", i18n_title = "flows", section = "flows"},
-    flow_details 	 = {key = "flow_details", i18n_title = "flow_details.flow_details", section = "flows"},
+    flows 	     	 = {key = "flows", i18n_title = "flows", section = "flows", visible_iface = true},
+    flow_details 	 = {key = "flow_details", i18n_title = "flow_details.flow_details", section = "flows", visible_iface = true},
 
     -- Hosts
-    hosts 	     	 = {key = "hosts", i18n_title = "hosts", section = "hosts"},
-    devices	     	 = {key = "devices", i18n_title = "layer_2", section = "hosts"},
-    networks	     	 = {key = "networks", i18n_title = "networks", section = "hosts"},
-    vlans	     	 = {key = "vlans", i18n_title = "vlan_stats.vlans", section = "hosts"},
-    host_pools	     	 = {key = "host_pools", i18n_title = "host_pools.host_pools", section = "hosts"},
-    autonomous_systems	 = {key = "autonomous_systems", i18n_title = "as_stats.autonomous_systems", section = "hosts"},
-    countries	    	 = {key = "countries", i18n_title = "countries", section = "hosts"},
-    operating_systems	 = {key = "operating_systems", i18n_title = "operating_systems", section = "hosts"},
-    http_servers	 = {key = "http_servers", i18n_title = "http_servers_stats.http_servers", section = "hosts"},
-    top_hosts	      	 = {key = "top_hosts", i18n_title = "processes_stats.top_hosts", section = "hosts"},
-    geo_map	      	 = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "hosts"},
-    hosts_treemap	 = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts"},
-    host_explorer	 = {key = "host_explorer", i18n_title = "host_explorer", section = "hosts"},
-    containers	      	 = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts"},
-    pods	      	 = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts"},
+    hosts 	     	 = {key = "hosts", i18n_title = "hosts", section = "hosts", visible_iface = true},
+    devices	     	 = {key = "devices", i18n_title = "layer_2", section = "hosts", visible_iface = true},
+    networks	     	 = {key = "networks", i18n_title = "networks", section = "hosts", visible_iface = true},
+    vlans	     	 = {key = "vlans", i18n_title = "vlan_stats.vlans", section = "hosts", visible_iface = true},
+    host_pools	     	 = {key = "host_pools", i18n_title = "host_pools.host_pools", section = "hosts", visible_iface = true},
+    autonomous_systems	 = {key = "autonomous_systems", i18n_title = "as_stats.autonomous_systems", section = "hosts", visible_iface = true},
+    countries	    	 = {key = "countries", i18n_title = "countries", section = "hosts", visible_iface = true},
+    operating_systems	 = {key = "operating_systems", i18n_title = "operating_systems", section = "hosts", visible_iface = true},
+    http_servers	 = {key = "http_servers", i18n_title = "http_servers_stats.http_servers", section = "hosts", visible_iface = true},
+    top_hosts	      	 = {key = "top_hosts", i18n_title = "processes_stats.top_hosts", section = "hosts", visible_iface = true},
+    geo_map	      	 = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "hosts", visible_iface = true},
+    hosts_treemap	 = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts", visible_iface = true},
+    host_explorer	 = {key = "host_explorer", i18n_title = "host_explorer", section = "hosts", visible_iface = true},
+    containers	      	 = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts", visible_iface = true},
+    pods	      	 = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts", visible_iface = true},
 
     -- Interface
-    interface	      	 = {key = "interface", i18n_title = "interface_ifname", section = "if_stats"},
+    interface	      	 = {key = "interface", i18n_title = "interface_ifname", section = "if_stats", visible_iface = true},
 
     -- SNMP
-    snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "snmp"},
+    snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "snmp", visible_system = true},
 
     -- System
     rtt_monitor_enable   = {key = "rtt_monitor_enable", i18n_title = "host_config.rtt_monitor", section = "system", is_modal = true},
 
-    -- Status
-    system_status	 = {key = "status", i18n_title = "system_status", section = "system_health"},
-    interfaces_status	 = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_health"},
+    -- Status (Health)
+    system_status	 = {key = "status", i18n_title = "system_status", section = "system_health", visible_system = true},
+    interfaces_status	 = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_health", visible_system = true},
 
     -- Exporters
     event_exporters   	 = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
@@ -91,16 +95,16 @@ page_utils.menu_entries = {
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters"},
 
     -- Settings
-    manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin"},
-    preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin"},
-    scripts_config	 = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin"},
-    profiles	      	 = {key = "profiles", i18n_title = "traffic_profiles.traffic_profiles", section = "admin"},
-    categories	      	 = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin"},
-    category_lists    	 = {key = "category_lists", i18n_title = "category_lists.category_lists", section = "admin"},
-    device_protocols   	 = {key = "device_protocols", i18n_title = "device_protocols.device_protocols", section = "admin"},
-    conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin"},
-    conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin"},
-    manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin"},
+    manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true},
+    preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", visible_iface = true, visible_system = true},
+    scripts_config	 = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin", visible_iface = true, visible_system = true},
+    profiles	      	 = {key = "profiles", i18n_title = "traffic_profiles.traffic_profiles", section = "admin", visible_iface = true, visible_system = true},
+    categories	      	 = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin", visible_iface = true, visible_system = true},
+    category_lists    	 = {key = "category_lists", i18n_title = "category_lists.category_lists", section = "admin", visible_iface = true, visible_system = true},
+    device_protocols   	 = {key = "device_protocols", i18n_title = "device_protocols.device_protocols", section = "admin", visible_iface = true, visible_system = true},
+    conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin", visible_iface = true, visible_system = true},
+    conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin", visible_iface = true, visible_system = true},
+    manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin", visible_iface = true, visible_system = false},
 
     -- Tools
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
@@ -110,16 +114,16 @@ page_utils.menu_entries = {
     live_capture   	 = {key = "live_capture", i18n_title = "live_capture.active_live_captures", section = "home"},
 
     -- Developer
-    directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev"},
-    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev"},
-    user_scripts 	 = {key = "user_scripts", i18n_title = "about.user_scripts", section = "dev"},
-    plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev"},
-    alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev"},
+    directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev", visible_iface = true, visible_system = true},
+    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev", visible_iface = true, visible_system = true},
+    user_scripts 	 = {key = "user_scripts", i18n_title = "about.user_scripts", section = "dev", visible_iface = true, visible_system = true},
+    plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev", visible_iface = true, visible_system = true},
+    alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", visible_iface = true, visible_system = true},
     api 	         = {key = "api", i18n_title = "lua_c_api", section = "dev"},
 
     -- Help
-    about   		 = {key = "about", i18n_title = "about.about", section = "about"},
-    telemetry    	 = {key = "telemetry", i18n_title = "telemetry", section = "about"},
+    about   		 = {key = "about", i18n_title = "about.about", section = "about", visible_iface = true, visible_system = true},
+    telemetry    	 = {key = "telemetry", i18n_title = "telemetry", section = "about", visible_iface = true, visible_system = true},
     blog         	 = {key = "blog", i18n_title = "about.ntop_blog", section = "about"},
     telegram         	 = {key = "telegram", i18n_title = "about.telegram", section = "about"},
     report_issue         = {key = "report_issue", i18n_title = "about.report_issue", section = "about"},
@@ -153,10 +157,26 @@ end
 -- NOTE: this function is called by the web pages in order to
 -- set the active entry and section and highlight it into the menu
 function page_utils.set_active_menu_entry(entry, i18n_params, alt_title)
-    active_section = entry.section
-    active_entry = entry.key
 
-    page_utils.print_header(alt_title or i18n(entry.i18n_title, i18n_params) or entry.i18n_title)
+   active_section = entry.section
+   active_entry = entry.key
+
+   -- check if the page belong to system view
+   -- or if the page belong to interface view
+   -- if both flags are true then it means the page
+   -- is visible in system view and interface view
+   local visible_iface = entry.visible_iface or false
+   local visible_system = entry.visible_system or false
+
+   if (visible_system and visible_iface) then
+      -- do nothing
+   elseif (visible_system and not page_utils.is_system_view()) then
+      page_utils.set_system_view(true)
+   elseif (visible_iface and page_utils.is_system_view()) then
+      page_utils.set_system_view(false)
+   end
+
+   page_utils.print_header(alt_title or i18n(entry.i18n_title, i18n_params) or entry.i18n_title)
 end
 
 -- #################################
@@ -507,40 +527,6 @@ end
 
 function page_utils.is_system_view()
    return ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and isAdministrator())
-end
-
--- ##############################################
-
-
-function page_utils.manage_system_interface(mode)
-
-   local really_view_mode = mode or page_utils.get_iface_interface_flag()
-
-   if (page_utils.is_system_view() and really_view_mode == page_utils.get_iface_interface_flag()) then
-      page_utils.set_system_view(false)
-   elseif (not page_utils.is_system_view() and really_view_mode == page_utils.get_system_interface_flag()) then
-      page_utils.set_system_view(true)
-   elseif (really_view_mode == page_utils.get_shared_interface_flag()) then
-      -- do nothing because the page is shared between iface view and system view
-   end
-end
-
--- ##############################################
-
-function page_utils.get_system_interface_flag()
-   return "system"
-end
-
--- ##############################################
-
-function page_utils.get_shared_interface_flag()
-   return "both"
-end
-
--- ##############################################
-
-function page_utils.get_iface_interface_flag()
-   return "iface"
 end
 
 -- ##############################################

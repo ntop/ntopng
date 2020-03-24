@@ -36,7 +36,6 @@ if(ntop.isPro()) then
 end
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
 
 
 local show_advanced_prefs = false

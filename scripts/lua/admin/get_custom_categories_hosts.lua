@@ -12,7 +12,6 @@ local categories_utils = require("categories_utils")
 local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
 
 
 -- ################################################

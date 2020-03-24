@@ -11,7 +11,7 @@ local page_utils = require("page_utils")
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
 
 if not ntop.isnEdge() then
    page_utils.set_active_menu_entry(page_utils.menu_entries.host_pools)

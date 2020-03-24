@@ -19,7 +19,6 @@ local discover = require "discover_utils"
 local mud_utils = require "mud_utils"
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
 
 
 -- get config parameters like the id and name

@@ -25,7 +25,7 @@ show_aggregation = true
 
 active_page = "hosts"
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
 
 page_utils.print_header()
 

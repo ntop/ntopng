@@ -22,7 +22,7 @@ local host = _GET["host"]
 
 if(host_info["host"] == nil) then
    sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host parameter is missing (internal error ?)</div>")
@@ -73,7 +73,7 @@ host = interface.getHostInfo(host_info["host"], host_info["vlan"])
 
 if(host == nil) then
    sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host ".. host_info["host"] .. " Vlan" ..host_info["vlan"].." cannot be found (expired ?)</div>")

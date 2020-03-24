@@ -11,7 +11,7 @@ local page_utils = require("page_utils")
 
 if(mode ~= "embed") then
    sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    active_page = "hosts"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
