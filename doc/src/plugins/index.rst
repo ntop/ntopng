@@ -1,10 +1,18 @@
-Developing Plugins and User Scripts
-===================================
+Developing Plugins
+==================
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
-    overview/index
-    writing_plugins/index
-    distributing_plugins/index
+    overview
+    examples
+    structure
+    manifest
+    alert_endpoints
+    alert_definitions
+    flow_status_definitions
+    user_scripts
+    localization
+    web_ui
+    distributing_plugins
 

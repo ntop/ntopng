@@ -142,7 +142,7 @@ returns a boolean which is either true or false, depending on whether
 any of the client or server is blacklisted. As this plugin wants to
 trigger an alert then the flow is blacklisted, method is called and
 tested in the first :code:`if`. When the flow is blacklisted and the
-method returns true, a couple of scores are computed. Scores are
+method returns true, a couple of scores are computed. **Scores** are
 numbers associated to the client and server of the flow and attempt to
 summarize how critical is the issue for both the client and the
 server.
