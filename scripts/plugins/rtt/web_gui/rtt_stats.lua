@@ -325,10 +325,10 @@ elseif((page == "historical") and (host ~= nil)) then
     { schema="rtt_host:rtt", label=i18n("graphs.num_ms_rtt") },
   }
 
-  if((host.measurement == "http") or (host.measurement == "https")) then
-    timeseries = table.merge(timeseries, {
-      { schema="rtt_host:http_stats", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }},
-    })
+  if(host.measurement == "https") then
+    timeseries[#timeseries + 1] = { schema="rtt_host:https_stats", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }}
+  elseif(host.measurement == "http") then
+    timeseries[#timeseries + 1] = { schema="rtt_host:http_stats_v2", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("other") }}
   end
 
   drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
