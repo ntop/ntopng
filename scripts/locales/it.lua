@@ -170,6 +170,7 @@ local lang = {
   ["protocol_categories"] = "Categorie dei Protocolli",
   ["protocols"] = "Protocolli",
   ["purged_error_message"] = "Molto probabilmente è scaduto e %{product} lo ha eliminato dalla memoria. È possibile modificare le impostazioni del timeout d'inattività dalle <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Impostazioni</a>.",
+  ["push_notification"] = "Notifiche Push",
   ["quotas"] = "Quote",
   ["ram_available"] = "Disponibile",
   ["ram_total"] = "Totale",
@@ -556,6 +557,12 @@ local lang = {
   },
   ["as_stats"] = {
     ["autonomous_systems"] = "Autonomous Systems",
+  },
+  ["blog_feed"] = {
+    ["blog_updates"] = "Aggioramenti dal Blog",
+    ["blog_updates_info"] = "Ricevi notifiche quando ci sono nuovi articoli in: <a href='https://www.ntop.org/blog' target='_blank'>https://ntop.org/blog</a>",
+    ["news_from_blog"] = "Novità dal <b>Blog ntop</b>",
+    ["nothing_to_show"] = "Nulla da mostrare. Riprova domani!",
   },
   ["categories_page"] = {
     ["search_application"] = "Cerca Protocollo",
@@ -2586,6 +2593,7 @@ local lang = {
     ["waiting_for_db_msg"] = "Migrazione dello schema del database in corso, in attesa che il database <b>%{dbname}</b> diventi operativo. Verrai reindirizzato non appena il database sarà pronto. Per database di dimensione importante, questa operazione potrebbe richiedere molto tempo. Le migrazioni vengono eseguite una sola volta e solo durante i principali aggiornamenti della versione. In caso di dubbi, contattare gli sviluppatori a <a href='mailto:info@ntop.org'>info@ntop.org</a>.",
   },
   ["plugins_overview"] = {
+    ["action_view"] = "Apri il codice dello user script nell'editor di codice",
     ["alert_id"] = "ID dell'Allarme",
     ["alert_key"] = "Chiave dell'Allarme",
     ["availability"] = "Disponibilità",
@@ -3708,9 +3716,9 @@ local lang = {
     ["available"] = "Nuovo",
     ["check"] = "Controlla aggiornamenti",
     ["checking"] = "Controllo aggiornamenti in corso..",
-    ["install_confirm"] = "Aggiornare e riavviare adesso?",
+    ["install_confirm"] = "Vuoi aggiornare e riavviare ntopng adesso?",
     ["installing"] = "Installazione aggiornamento..",
-    ["no_updates"] = "Nessun aggiornamento disponibile",
+    ["no_updates"] = "Nessun update disponibile",
     ["upgrade_failure_message"] = "Qualcosa è andato storto durante l'aggiornamento. Riprovare.",
   },
   ["user_activity"] = {
