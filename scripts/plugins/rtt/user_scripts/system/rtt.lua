@@ -150,15 +150,25 @@ function script.hooks.min(params)
 	 hosts_rtt[key] = total_time
 	 resolved_hosts[key] = rv.RESOLVED_IP
 
-	 -- HTTP specific metrics
-	 ts_utils.append("rtt_host:http_stats", {
-	    ifid = getSystemInterfaceId(),
-	    host = host.host,
-	    measure = host.measurement,
-	    lookup_ms = lookup_time,
-	    connect_ms = connect_time,
-	    other_ms = (total_time - lookup_time - connect_time),
-	 }, when)
+	 -- HTTP/S specific metrics
+	 if(host.measurement == "https") then
+	   ts_utils.append("rtt_host:https_stats", {
+	      ifid = getSystemInterfaceId(),
+	      host = host.host,
+	      measure = host.measurement,
+	      lookup_ms = lookup_time,
+	      connect_ms = connect_time,
+	      other_ms = (total_time - lookup_time - connect_time),
+	   }, when)
+	 else
+	   ts_utils.append("rtt_host:http_stats_v2", {
+	      ifid = getSystemInterfaceId(),
+	      host = host.host,
+	      measure = host.measurement,
+	      lookup_ms = lookup_time,
+	      other_ms = (total_time - lookup_time),
+	   }, when)
+	 end
 	end
      else
        print("[RTT] Unknown measurement: " .. host.measurement)
