@@ -288,7 +288,7 @@ class BlogFeed {
                     toShow = newPosts;
                 }
 
-                toShow.sort((a, b) => b.epoch - a.epoch);
+                toShow.sort((a, b) => a.epoch - b.epoch);
                 BlogFeed.showNotifications(toShow, newPosts.length, currentLocalStorage);
             }
 
