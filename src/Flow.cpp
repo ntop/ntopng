@@ -4509,7 +4509,7 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
 
   /* Check if it is time to call the protocol detected */
   if(pending_lua_call_protocol_detected
-     && (protocol_detected_exec_status = performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data)))
+     && (protocol_detected_exec_status = performLuaCall(flow_lua_call_protocol_detected, tv, periodic_ht_state_update_user_data)) == flow_lua_call_exec_status_ok)
     pending_lua_call_protocol_detected = false;
 
   /* Check if it is time to call the periodic update. Need to make sure this is not called BEFORE
@@ -4518,7 +4518,7 @@ void Flow::performLuaCalls(const struct timeval *tv, periodic_ht_state_update_us
      && (trigger_immediate_periodic_update ||
 	 (next_lua_call_periodic_update > 0 /* 0 means not-yet-set */
 	  && next_lua_call_periodic_update <= tv->tv_sec))
-     && (periodic_update_exec_status = performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data))) {
+     && (periodic_update_exec_status = performLuaCall(flow_lua_call_periodic_update, tv, periodic_ht_state_update_user_data)) == flow_lua_call_exec_status_ok) {
     next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
     if(trigger_immediate_periodic_update) trigger_immediate_periodic_update = false; /* Reset if necessary */
   }
