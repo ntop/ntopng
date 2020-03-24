@@ -561,7 +561,7 @@ local lang = {
   ["blog_feed"] = {
     ["blog_updates"] = "Blog Updates",
     ["blog_updates_info"] = "Receive notification when a new blog is posted at: <a href='https://www.ntop.org/blog' target='_blank'>https://ntop.org/blog</a>",
-    ["news_from_blog"] = "News from the Blog",
+    ["news_from_blog"] = "News from the <b>ntop Blog</b>",
     ["nothing_to_show"] = "Nothing to show here. Try tomorrow!",
   },
   ["categories_page"] = {

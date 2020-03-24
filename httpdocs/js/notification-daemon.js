@@ -257,7 +257,7 @@ class BlogFeed {
 
             const {fetchedPosts, aDayIsPassed} = await BlogFeed.checkNewPosts(currentLocalStorage);
             if (!aDayIsPassed) {
-                const sorted = currentLocalStorage.donwloadedPosts.sort((a, b) => b.epoch - a.epoch);
+                const sorted = currentLocalStorage.donwloadedPosts.sort((a, b) => a.epoch - b.epoch);
                 const toShow = [sorted[0], sorted[1], sorted[2]];
                 BlogFeed.showNotifications(toShow, 0, currentLocalStorage);
                 return;
@@ -275,7 +275,7 @@ class BlogFeed {
             // show new post notifications
             if (newPosts.length > 0) {
 
-                const sorted = currentLocalStorage.donwloadedPosts.sort((a, b) => b.epoch - a.epoch);
+                const sorted = currentLocalStorage.donwloadedPosts.sort((a, b) => a.epoch - b.epoch);
                 let toShow = [];
 
                 if (newPosts.length == 1) {
@@ -288,6 +288,7 @@ class BlogFeed {
                     toShow = newPosts;
                 }
 
+                toShow.sort((a, b) => b.epoch - a.epoch);
                 BlogFeed.showNotifications(toShow, newPosts.length, currentLocalStorage);
             }
 
