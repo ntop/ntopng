@@ -2,22 +2,11 @@
 -- (C) 2020 - ntop.org
 --
 
-dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-
-if ((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then
-    package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path
-end
-
-require "lua_utils"
 local json = require("dkjson")
 
-sendHTTPContentTypeHeader('application/json')
+local blog_utils = {}
 
-local blog_module = {}
-
-function blog_module.updateRedis(newPosts)
-
+function blog_utils.updateRedis(newPosts)
     ntop.setPref("ntopng.notifications.blog_feed", json.encode({}))
 
     local oldPostsJSON = ntop.getPref("ntopng.notifications.blog_feed")
@@ -47,7 +36,7 @@ function blog_module.updateRedis(newPosts)
 
 end
 
-function blog_module.fetchLatestPosts()
+function blog_utils.fetchLatestPosts()
 
     local JSON_FEED = "https://www.ntop.org/blog/feed/json"
     local response = ntop.httpGet(JSON_FEED)
@@ -84,11 +73,11 @@ function blog_module.fetchLatestPosts()
     end
 
     -- updates redis
-    blog_module.updateRedis(formattedPosts)
+    blog_utils.updateRedis(formattedPosts)
 
 end
 
-function blog_module.readPostsFromRedis()
+function blog_utils.readPostsFromRedis()
 
     local postsJSON = ntop.getPref("ntopng.notifications.blog_feed")
     local posts = json.decode(postsJSON)
@@ -96,10 +85,4 @@ function blog_module.readPostsFromRedis()
     return posts
 end
 
-print(json.encode({
-    success = true,
-    posts = blog_module.readPostsFromRedis()
-}))
-
-
-return blog_module
+return blog_utils

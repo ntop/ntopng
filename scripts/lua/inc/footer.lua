@@ -116,14 +116,19 @@ local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTi
    (ts_utils.getDriverName() ~= "influxdb") and
    (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
 
-
 print [[
 <script type="text/javascript">
 
+]]
+
+if not info.oem then
+  print[[
 $(document).ready(function() {
 	BlogFeed.queryBlog();
-});
+});]]
+end
 
+print[[
 var is_historical = false;
 
 function checkMigrationMessage(data) {
