@@ -15,8 +15,9 @@ The following section lists all the steps which are necessary to use geolocation
     2. Add a license key description and answer "Yes" to the question "Will this key be used for GeoIP Update?".
     3. Then choose one of the two available options "Generate a license key and config file". Choice depends on the installed `geoipupdate` version. Most likely, installed version is older than 3.1.1 so the correct option to select is "Generate a license key and config file for use with `geoipupdate` versions older than 3.1.1". If you don't know the version type `geoipupdate -V`.
 3. Once the license is created, you will be promted to download file `GeoIP.conf` which contains account id and license key necessary to download the databases. Download and place this file in `/etc/GeoIP.conf`.
-4. Run `sudo geoipupdate` to download the database files.
-5. Restart any running ntop software. Upon restart, software will automatically locate and load the downloaded databases.
+4. Make sure that the `EditionIDs` section (or `ProductIds` according to the `geoipupdate` version) in `/etc/GeoIP.conf` contains `GeoLite2-Country GeoLite2-City GeoLite2-ASN` (`GeoLite2-ASN` could be missing by default).
+5. Run `sudo geoipupdate` to download the database files.
+6. Restart any running ntop software. Upon restart, software will automatically locate and load the downloaded databases.
 
 Subsequent updates of the `ntopng-data` package will check for the availability of newer geolocation databases and will possibly update them automatically.
 
