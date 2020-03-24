@@ -2,7 +2,7 @@
 // (C) 2020 - ntop.org
 //
 
-const NOTIFICATION_DEBUG = true;
+const NOTIFICATION_DEBUG = false;
 
 class PushNotificationBuilder {
 
@@ -183,7 +183,10 @@ class BlogFeed {
         const $list = $blogSection.find("ul");
         $list.empty();
 
+        console.log(newPosts);
         newPosts.forEach((post, index) => {
+
+            if (!post) return;
 
             const $media = $("<li></li>");
             if (index < newPosts.length - 1) {
@@ -255,7 +258,9 @@ class BlogFeed {
 
             const {fetchedPosts, aDayIsPassed} = await BlogFeed.checkNewPosts(currentLocalStorage);
             if (!aDayIsPassed) {
-                BlogFeed.showNotifications(currentLocalStorage.donwloadedPosts, 0, currentLocalStorage);
+                const sorted = currentLocalStorage.donwloadedPosts.sort((a, b) => b.epoch - a.epoch);
+                const toShow = [sorted[0], sorted[1], sorted[2]];
+                BlogFeed.showNotifications(toShow, 0, currentLocalStorage);
                 return;
             }
 
@@ -270,13 +275,26 @@ class BlogFeed {
 
             // show new post notifications
             if (newPosts.length > 0) {
-                BlogFeed.showNotifications(newPosts, newPosts.length, currentLocalStorage);
+
+                const sorted = currentLocalStorage.donwloadedPosts.sort((a, b) => b.epoch - a.epoch);
+                let toShow = [];
+
+                if (newPosts.length == 1) {
+                    toShow = [newPosts[0], sorted[0], sorted[1]];
+                }
+                else if (newPosts.length == 2) {
+                    toShow = [newPosts[0], newPosts[1], sorted[0]];
+                }
+                else {
+                    toShow = newPosts;
+                }
+
+                BlogFeed.showNotifications(toShow, newPosts.length, currentLocalStorage);
             }
 
             // merge the arrays and save them into local storage
             const newLocalStorage = [...newPosts, ...currentLocalStorage.donwloadedPosts];
             BlogFeed.saveDownloadedPosts(newLocalStorage);
-
 
         })();
     }
