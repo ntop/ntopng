@@ -144,7 +144,7 @@ class BlogFeed {
 
             try {
 
-                const request = await fetch('/lua/modules/blog_ntop.lua');
+                const request = await fetch('/lua/get_new_blog_posts.lua');
                 const response = await request.json();
                 const {posts} = response;
 

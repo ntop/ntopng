@@ -902,6 +902,10 @@ end
 
 print([[
 <ul class='navbar-nav'>
+]])
+
+if not info.oem then
+   print([[
    <li class="nav-item">
       <a id="notification-list" href="#" class="nav-link dropdown-toggle mx-2 dark-gray position-relative" data-toggle="dropdown">
          <i class='fas fa-bell'></i>
@@ -914,7 +918,10 @@ print([[
             </ul>
          </div>
       </div>
-   </li>
+   </li>]])
+end
+
+print([[
    <li class="nav-item">
       <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" data-toggle="dropdown">
          <i class='fas fa-user'></i>

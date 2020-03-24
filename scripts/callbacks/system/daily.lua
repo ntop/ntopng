@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local auth_sessions_utils = require "auth_sessions_utils"
-local blog_ntop = require("blog_ntop")
+local blog_utils = require("blog_utils")
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
@@ -27,7 +27,7 @@ if ntop.getPref("ntopng.prefs.midnight_stats_reset_enabled") == "1" then
    ntop.resetStats()
 end
 
-blog_ntop.fetchLatestPosts()
+blog_utils.fetchLatestPosts()
 
 -- Run hourly scripts
 ntop.checkSystemScriptsDay()
