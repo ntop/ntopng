@@ -183,7 +183,6 @@ class BlogFeed {
         const $list = $blogSection.find("ul");
         $list.empty();
 
-        console.log(newPosts);
         newPosts.forEach((post, index) => {
 
             if (!post) return;
