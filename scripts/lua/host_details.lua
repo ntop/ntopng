@@ -71,7 +71,7 @@ local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("host_details.host_parameter_missing_message") .. "</div>")
@@ -140,7 +140,7 @@ if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
       if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
       sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
       page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
       if page == "alerts" then
 	 print('<script>window.location.href = "')
@@ -167,7 +167,7 @@ page_utils.manage_system_interface()
    end
 else
    sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
 
    page_utils.set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", { host = host_info["host"] }))
 

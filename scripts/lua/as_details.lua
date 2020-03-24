@@ -32,7 +32,7 @@ if not isEmptyString(asname) then
 end
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
 
 page_utils.print_header()
 page_utils.set_active_menu_entry(page_utils.menu_entries.autonomous_systems)

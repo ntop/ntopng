@@ -12,7 +12,7 @@ local alerts_api = require("alerts_api")
 local format_utils = require("format_utils")
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
 page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
 if not isAdministrator() then

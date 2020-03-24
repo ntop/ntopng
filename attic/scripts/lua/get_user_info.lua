@@ -11,7 +11,7 @@ require "flow_utils"
 local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
 
 page_utils.print_header()
 

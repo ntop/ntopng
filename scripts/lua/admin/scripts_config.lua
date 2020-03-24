@@ -15,7 +15,6 @@ local user_scripts = require "user_scripts"
 local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
 
 
 if not haveAdminPrivileges() then

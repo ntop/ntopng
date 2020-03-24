@@ -14,7 +14,7 @@ local format_utils = require("format_utils")
 local info = ntop.getInfo()
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface()
+
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.host_explorer)
 

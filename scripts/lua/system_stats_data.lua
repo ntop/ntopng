@@ -14,8 +14,7 @@ require("graph_utils")
 
 if not isAllowedSystemInterface() then
    sendHTTPContentTypeHeader('text/html')
-   page_utils.manage_system_interface(page_utils.get_system_interface_flag())
-
+   
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("error_not_granted").."</div>")

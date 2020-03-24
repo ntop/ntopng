@@ -15,7 +15,6 @@ local json = require("dkjson")
 local format_utils = require("format_utils")
 
 sendHTTPContentTypeHeader('text/html')
-page_utils.manage_system_interface(page_utils.get_shared_interface_flag())
 
 
 if not haveAdminPrivileges() then
