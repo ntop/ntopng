@@ -35,6 +35,8 @@ class ViewInterface : public NetworkInterface {
 			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
 			ProtoStats *_discardedProbingStats) const;
 
+  bool addSubinterface(NetworkInterface *iface);
+
  public:
   ViewInterface(const char *_endpoint);
   virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts);
