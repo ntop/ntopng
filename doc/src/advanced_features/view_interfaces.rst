@@ -23,6 +23,12 @@ following syntax:
     Interfaces that are part of a view must also be specified separately as physical interfaces. This
     means that you cannot omit the -i en0 -i en4 from the example above.
 
+A convenient way to create a view of all the other network interfaces is to use the `view:all` identified:
+
+.. code:: bash
+
+    ntopng -i tcp://127.0.0.1:5556 -i tcp://127.0.0.1:5557 -i view:all
+
 Upon successful startup, ntopng shows, in the top toolbar ‘Interfaces’ menu, the interface view together
 with other physical interfaces. An eye is show next to each view, which can be clicked and selected as if it
 was a physical interface.
