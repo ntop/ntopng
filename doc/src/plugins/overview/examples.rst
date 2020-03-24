@@ -70,12 +70,13 @@ to create an alert for blacklisted flows. Similarly,
 :code:`status_blacklisted.lua` tells ntopng the plugin is going to set
 a blacklisted status for certain flows. Those two directories, as said
 by their names, contain just definitions of alerts and flow status,
-the actual business logic stays in directory :code:`user_scripts`.
+the actual logic stays in directory :code:`user_scripts`.
 
-As this plugin requires flows to carry on its task, directory :code:`user_scripts` with the
-business logic must contain a subdirectly :code:`flow`, which, in
-turn, contains file :code:`blacklisted.lua`. ntopng knows it has to
-execute :code:`blacklisted.lua` agains each flow it sees because
+As this plugin requires flows to carry on its task, directory
+:code:`user_scripts` with the logic must contain a subdirectly
+:code:`flow`, which, in turn, contains file
+:code:`blacklisted.lua`. ntopng knows it has to execute
+:code:`blacklisted.lua` agains each flow it sees because
 :code:`blacklisted.lua` is found under the :code:`flow` directory.
 
 Let's have a look at the
@@ -230,9 +231,9 @@ Flows`_. However, as this plugin generates alerts,
 :code:`alert_flows_flood.lua` is needed under
 :code:`alert_definitions` to tell ntopng about this.
 
-The business logic stays under :code:`user_scripts` which
+The logic stays under :code:`user_scripts` which
 has two sub-directories: :code:`host` and :code:`network`, each one
-containing lua files with the business logic necessary to trigger the
+containing lua files with the logic necessary to trigger the
 alert. ntopng will execute scripts under the :code:`host` directory on
 every host and scripts under the :code:`network` directory on every
 network.

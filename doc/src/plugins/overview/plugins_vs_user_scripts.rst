@@ -10,12 +10,12 @@ user scripts, whereas a user script is contained in one and only one
 plugin.
 
 So what are the differences between a plugin and a user script? A user
-script contains the business logic which gets executed by ntopng when
+script contains the logic which gets executed by ntopng when
 a certain condition is detected (such as the creation of a new flow) or at
 regular intervals of time (for example every minute). However, this
-business logic may involve the generation of alerts, the setting of
+logic may involve the generation of alerts, the setting of
 flow statuses, and the writing of timeseries. A plugin is meant
-to put together the business logic of user scripts with all the
+to put together the logic of user scripts with all the
 ancillary things such as the definition of alerts and flow statuses.
 
 To give a real example, let's consider the :ref:`Flow Flooders` plugin, which
