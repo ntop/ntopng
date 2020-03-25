@@ -7,17 +7,24 @@ local json = require("dkjson")
 local blog_utils = {}
 
 function blog_utils.updateRedis(newPosts)
-
     -- save the posts inside redis
     ntop.setPref("ntopng.notifications.blog_feed", json.encode(newPosts))
-
 end
 
 function blog_utils.fetchLatestPosts()
-
     local JSON_FEED = "https://www.ntop.org/blog/feed/json"
     local response = ntop.httpGet(JSON_FEED)
+
+    if((response == nil) or (response["CONTENT"] == nil)) then
+        return(false)
+    end
+
     local jsonFeed = json.decode(response["CONTENT"])
+
+    if((jsonFeed == nil) or table.empty(jsonFeed["items"])) then
+        return(false)
+    end
+
     local posts = jsonFeed["items"]
 
     local latest3Posts = {posts[1], posts[2], posts[3]}
@@ -52,12 +59,20 @@ function blog_utils.fetchLatestPosts()
     -- updates redis
     blog_utils.updateRedis(formattedPosts)
 
+    return(true)
 end
 
 function blog_utils.readPostsFromRedis()
-
     local postsJSON = ntop.getPref("ntopng.notifications.blog_feed")
-    local posts = json.decode(postsJSON)
+    local posts = nil
+
+    if not isEmptyString(postsJSON) then
+        json.decode(postsJSON)
+    end
+
+    if(posts == nil) then
+        posts = {}
+    end
 
     return posts
 end
