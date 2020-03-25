@@ -22,12 +22,32 @@ Dots :code:`.` are allowed in strings to be localized. Dots are treated as separ
 
 A plugin can extend ntopng localization tables. Extension is done using Lua files placed under plugin sub-directory :code:`./locales`. Lua files contain localization tables. Each file must have the name of one of the ntopng supported languages and it must return a Lua table. For example, to extend the ntopng English localization file a plugin can use an :code:`en.lua` file as shown `here <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/example/locales>`_. Plugin localization tables are automatically merged with ntopng localization tables.
 
-Example
--------
+Parameters
+----------
 
-Consider :code:`i18n_title = "alerts_dashboard.blacklisted_flow". Prefix :code:`i18n_` tells ntopng :code:`alerts_dashboard.blacklisted_flow` needs to be localized. Assuming german is set as language for the current user:
+Localized strings accept parameters. Parameters are not translated. They are passed to the string automatically by ntopng. Parameters are passed to the localized string as a Lua table. The Lua table is passed automatically by ntopng but is specified in the plugin code.
+
+Parameters in a localized string are expressed as :code:`%{parameter_name}`. Localization replaces the :code:`%{parameter_name}` with the actual parameter value found in key :code:`parameter_name` of the parameters Lua table.
+
+Examples
+--------
+
+Consider
+
+.. code:: lua
+
+	i18n_title = "alerts_dashboard.blacklisted_flow"
+
+Prefix :code:`i18n_` tells ntopng :code:`alerts_dashboard.blacklisted_flow` needs to be localized. Assuming german is set as language for the current user:
 
 1. ntopng looks up key :code:`alerts_dashboard` in the german localization table. If the key is found and the value is a table, ntopng looks up key :code:`blacklisted_flow` in the table found as value. If key :code:`blacklisted_flow` is found, then it's value is taken as the localized string and the localization ends. If any of the two keys does not exists:
 2. Step 1. is repeated on the English fallback localization table. If no localized string is found:
-3. :code:`alerts_dashboard.blacklisted_flow` is taken verbatim. 
+3. :code:`alerts_dashboard.blacklisted_flow` is taken verbatim.
 
+Consider now the entry
+
+.. code:: lua
+
+	["iface_download"] = "%{iface} download"
+
+Found in file `en.lua <https://github.com/ntop/ntopng/blob/26aa2ebecc3b446119ec981b2454b0ab12d488e2/scripts/locales/en.lua#L105>`_. The localized string contains parameter :code:`%{iface}`. This parameter will be replaced with the value found in key :code:`iface` of the parameters Lua table. So for example if the parameters Lua table is :code:`{iface="eno1"}`, localized string will become :code:`"eno1 download"`.

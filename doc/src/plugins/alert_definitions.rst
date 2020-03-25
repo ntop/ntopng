@@ -21,6 +21,8 @@ The file must return a Lua table with the following keys:
 Alert Description
 -----------------
 
+Alert description :code:`i18n_description` can be either a string with the alert description or a function returning an alert description string.
+
 String
 ~~~~~~
 
