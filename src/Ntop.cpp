@@ -508,6 +508,9 @@ void Ntop::start() {
    * After this call, startup.lua has completed. */
   pa->startPeriodicActivitiesLoop();
 
+  if(get_HTTPserver())
+    get_HTTPserver()->start_accepting_requests();
+
 #ifdef HAVE_NEDGE
   /* TODO: enable start/stop of the captive portal webserver directly from Lua */
   if(get_HTTPserver() && prefs->isCaptivePortalEnabled())

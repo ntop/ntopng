@@ -812,10 +812,9 @@ static int handle_lua_request(struct mg_connection *conn) {
 			       (char*)mg_get_header(conn, "Referer"));
 #endif
 
-  if((ntop->getGlobals()->isShutdown())
-     //|| (strcmp(request_info->request_method, "GET"))
-     || (ntop->getRedis() == NULL /* Starting up... */)
-     || (ntop->get_HTTPserver() == NULL))
+  if((ntop->getRedis() == NULL /* Starting up... */)
+     || (ntop->get_HTTPserver() == NULL)
+     || (!ntop->get_HTTPserver()->accepts_requests()))
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
 		      "Unable to serve requests at this time, possibly starting up or shutting down."));
 
@@ -1181,42 +1180,30 @@ int init_client_x509_auth(void *ctx) {
 /* ****************************************** */
 
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir, const char *_runtime_dir) {
-  struct mg_callbacks callbacks;
-  const char *http_binding_addr1, *http_binding_addr2;
-  const char *https_binding_addr1, *https_binding_addr2;
-  bool use_http = true;
   bool good_ssl_cert = false;
   struct timeval tv;
   
   memset(ports, 0, sizeof(ports)), memset(access_log_path, 0, sizeof(access_log_path));
-  
+  use_http = true;
+
   ntop->getPrefs()->get_http_binding_addresses(&http_binding_addr1, &http_binding_addr2);
   ntop->getPrefs()->get_https_binding_addresses(&https_binding_addr1, &https_binding_addr2);
 
   wispr_captive_data = NULL;
   captive_redirect_addr = NULL;
   gui_access_restricted = false;
+  can_accept_requests = false;
+  httpd_v4 = NULL;
 
-  /* TODO: remove static below */
-  static char *http_options[] = {
-    (char*)"listening_ports", ports,
-    (char*)"enable_directory_listing", (char*)"no",
-    (char*)"document_root",  (char*)_docs_dir,
-    (char*)"access_control_list", acl_management,
-    /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
-    (char*)"num_threads", (char*)"5",
-    NULL, NULL, NULL, NULL,
-    NULL
-  };
+  cur_http_options = 0;
 
-  memset(&callbacks, 0, sizeof(callbacks));
-  callbacks.begin_request = handle_lua_request;
-  callbacks.log_message = handle_http_message;
-
-#ifdef NO_SSL_DL
-  if(ntop->getPrefs()->is_client_x509_auth_enabled())
-    callbacks.init_ssl = init_client_x509_auth;
-#endif
+  /* HTTP options */
+  addHTTPOption("listening_ports", ports);
+  addHTTPOption("enable_directory_listing", "no");
+  addHTTPOption("document_root", _docs_dir);
+  addHTTPOption("access_control_list", acl_management);
+  /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
+  addHTTPOption("num_threads", "5");
 
   /* Randomize data */
   gettimeofday(&tv, NULL);
@@ -1256,10 +1243,8 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir, const ch
   good_ssl_cert = check_ssl_cert(ssl_cert_path, sizeof(ssl_cert_path));
   if(good_ssl_cert && ntop->getPrefs()->get_https_port() > 0) {
     ssl_enabled = true;
-    int i;
 
-    for(i = 0; http_options[i] != NULL; i++) ;
-    http_options[i] = (char*)"ssl_certificate", http_options[i+1] = ssl_cert_path;
+    addHTTPOption("ssl_certificate", ssl_cert_path);
 
     snprintf(&ports[strlen(ports)],
 	     sizeof(ports) - strlen(ports) - 1,
@@ -1279,29 +1264,59 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir, const ch
 
   if((!use_http) && (!ssl_enabled)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "Starting the HTTP server on the default port");
+				 "The HTTP server on the default port");
     snprintf(ports, sizeof(ports), "%d", ntop->getPrefs()->get_http_port());
     use_http = true;
   }
 
   if(ntop->getPrefs()->is_access_log_enabled()) {
-    int i;
-
     snprintf(access_log_path, sizeof(access_log_path), "%s/ntopng_access.log",
 	     ntop->get_working_dir());
 
-    for(i=0; http_options[i] != NULL; i++)
-      ;
+    addHTTPOption("access_log_file", access_log_path);
 
-    http_options[i] = (char*)"access_log_file", http_options[i+1] = access_log_path;
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP logs will be stored on %s", access_log_path);
   }
 
-  /* mongoose */
   http_prefix = ntop->getPrefs()->get_http_prefix(),
     http_prefix_len = strlen(ntop->getPrefs()->get_http_prefix());
 
-  httpd_v4 = mg_start(&callbacks, NULL, (const char**)http_options);
+  /* NOTE: the HTTP server must be started now as here ntopng still
+   * has admin privileges to possibly bind to privileged ports. */
+  startHttpServer();
+
+  /* NOTE: requests are still rejected until start_accepting_requests is
+   * called. */
+};
+
+/* ****************************************** */
+
+void HTTPserver::startHttpServer() {
+  struct mg_callbacks callbacks;
+
+  memset(&callbacks, 0, sizeof(callbacks));
+  callbacks.begin_request = handle_lua_request;
+  callbacks.log_message = handle_http_message;
+
+#ifdef NO_SSL_DL
+  if(ntop->getPrefs()->is_client_x509_auth_enabled())
+    callbacks.init_ssl = init_client_x509_auth;
+#endif
+
+#ifdef DEBUG_HTTP_OPTIONS
+  {
+    const char **k = http_options;
+
+    printf("Dumping %d HTTP options:\n", cur_http_options/2);
+
+    while(*k && *(k+1)) {
+      printf("  %s=%s\n", *k, *(k+1));
+      k+=2;
+    }
+  }
+#endif
+
+  httpd_v4 = mg_start(&callbacks, NULL, http_options);
 
   if(httpd_v4 == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -1313,7 +1328,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir, const ch
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Either port in use or another ntopng instance is running (using the same port)");
     exit(-1);
   }
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Web server dirs [%s][%s]", docs_dir, scripts_dir);
 
   if(use_http)
@@ -1327,7 +1342,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir, const ch
 				 https_binding_addr1[0] != '\0' ? https_binding_addr1 : (char*)"",
 				 https_binding_addr1[0] != '\0' ? (char*)":" : (char*)"",
 				 ntop->getPrefs()->get_https_port());
-};
+}
 
 /* ****************************************** */
 
@@ -1408,3 +1423,29 @@ void HTTPserver::startCaptiveServer() {
 #endif 
 
 /* ****************************************** */
+
+void HTTPserver::addHTTPOption(const char *k, const char*v) {
+  const int max_http_options = sizeof(http_options) / sizeof(http_options[0]);
+
+  if(httpd_v4) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "HTTPserver::addHTTPOption called after HTTP server start. Please report this bug.");
+    throw 1;
+  }
+
+  /* NOTE: last two buckets in http_options are reserved for NULL,NULL */
+  if(cur_http_options+4 > max_http_options) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Max HTTP options reached. Please report this bug.");
+    throw 1;
+  }
+
+  http_options[cur_http_options++] = k;
+  http_options[cur_http_options++] = v;
+  http_options[cur_http_options+1] = NULL;
+  http_options[cur_http_options+2] = NULL;
+}
+
+/* ****************************************** */
+
+bool HTTPserver::accepts_requests() {
+  return(can_accept_requests && !ntop->getGlobals()->isShutdown());
+};
