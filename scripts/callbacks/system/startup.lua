@@ -32,6 +32,7 @@ local ts_utils = require "ts_utils"
 local user_scripts = require("user_scripts")
 local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
+local blog_utils = require("blog_utils")
 
 host_pools_utils.initPools()
 
@@ -200,3 +201,5 @@ end
 
 -- Show the warning at most 1 time per run
 ntop.delCache("ntopng.cache.rrd_format_change_warning_shown")
+
+blog_utils.fetchLatestPosts()
