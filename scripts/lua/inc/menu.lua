@@ -1103,10 +1103,6 @@ if is_admin then
 print([[
 <script type="text/javascript">
 
-   window.onpopstate = function(event) {
-      console.log(`location: ${document.location}, state: ${JSON.stringify(event.state)}`)
-   }
-
    const toggle_system_flag = (is_system_switch = false, $form = null) => {
 
       // if form it's empty it means the call was not invoked

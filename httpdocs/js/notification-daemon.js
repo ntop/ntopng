@@ -136,7 +136,8 @@ class BlogFeed {
         // initialize the local storage to store information
         // about new posts
         const blogSettings = currentLocalStorage;
-        const aDayIsPassed = Math.floor((Date.now() - blogSettings.lastCheck) / 86400000) >= 1;
+        const localStorageEmpty = !blogSettings.downloadedPosts;
+        const aDayIsPassed = Math.floor((Date.now() - blogSettings.lastCheck) / 86400000) >= 1 || localStorageEmpty;
 
         // if a day is passed since the last check then check if there is a new post
         // inside the blog
@@ -273,24 +274,23 @@ class BlogFeed {
             }
 
             // show new post notifications
-            if (newPosts.length > 0) {
+            const sorted = currentLocalStorage.donwloadedPosts;
+            let toShow = [];
 
-                const sorted = currentLocalStorage.donwloadedPosts.sort((a, b) => a.epoch - b.epoch);
-                let toShow = [];
-
-                if (newPosts.length == 1) {
-                    toShow = [newPosts[0], sorted[0], sorted[1]];
-                }
-                else if (newPosts.length == 2) {
-                    toShow = [newPosts[0], newPosts[1], sorted[0]];
-                }
-                else {
-                    toShow = newPosts;
-                }
-
-                toShow.sort((a, b) => a.epoch - b.epoch);
-                BlogFeed.showNotifications(toShow, newPosts.length, currentLocalStorage);
+            if (newPosts.length == 1) {
+                toShow = [newPosts[0], sorted[0], sorted[1]];
             }
+            else if (newPosts.length == 2) {
+                toShow = [newPosts[0], newPosts[1], sorted[0]];
+            }
+            else if (newPosts.length == 3) {
+                toShow = newPosts;
+            }
+            else {
+                toShow = sorted;
+            }
+
+            BlogFeed.showNotifications(toShow, newPosts.length, currentLocalStorage);
 
             // merge the arrays and save them into local storage
             const newLocalStorage = [...newPosts, ...currentLocalStorage.donwloadedPosts];
