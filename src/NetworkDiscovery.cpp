@@ -161,11 +161,12 @@ static void arp_scan_hosts(patricia_node_t *node, void *data, void *user_data) {
 
   if(node->prefix->family == AF_INET) {
     struct in_addr sender_ip;
+
     netp = ntohl(node->prefix->add.sin.s_addr);
     maskp = (0xFFFFFFFF << (32 - node->prefix->bitlen)) & 0xFFFFFFFF;
 
     if(node->data)
-      inet_aton((char*)node->data, &sender_ip);
+        sender_ip.s_addr = inet_addr((char*)node->data);
     else
       sender_ip.s_addr = 0;
 
