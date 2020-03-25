@@ -49,6 +49,13 @@ For a complete discussion on the explorer capabilities check out the following U
 - https://www.ntop.org/ntopng/exploring-historical-data-using-ntopng/
 - https://www.ntop.org/ntopng/exploring-historical-data-using-ntopng-part-2/
 
+.. warning::
+
+   MySQL 5.7+ default authentication mechanism has changed. In case
+   ntopng fails to authenticate, check out
+   `this document
+   <https://github.com/ntop/ntopng/blob/dev/doc/README.mysql.5.7%2B.md>`_.
+
 MySQL Performance
 -----------------
 
