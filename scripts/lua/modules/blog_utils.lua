@@ -7,32 +7,9 @@ local json = require("dkjson")
 local blog_utils = {}
 
 function blog_utils.updateRedis(newPosts)
-    ntop.setPref("ntopng.notifications.blog_feed", json.encode({}))
-
-    local oldPostsJSON = ntop.getPref("ntopng.notifications.blog_feed")
-    local oldPosts = json.decode(oldPostsJSON)
-
-    -- merge the posts array
-    local posts = {}
-    for i, p in ipairs(oldPosts) do
-        posts[p.id] = p
-    end
-    for i, p in ipairs(newPosts) do
-        if (posts[p.id] == nil) then
-            posts[p.id] = p
-        end
-    end
-
-    local prePosts = {}
-    for i, post in pairs(posts) do
-        table.insert(prePosts, post)
-    end
-
-    table.sort(prePosts, function(p1, p2) return p1.epoch > p2.epoch end)
-    local firstPosts = {prePosts[1], prePosts[2], prePosts[3]}
 
     -- save the posts inside redis
-    ntop.setPref("ntopng.notifications.blog_feed", json.encode(firstPosts))
+    ntop.setPref("ntopng.notifications.blog_feed", json.encode(newPosts))
 
 end
 
