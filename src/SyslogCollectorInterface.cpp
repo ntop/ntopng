@@ -26,7 +26,7 @@
 /* **************************************************** */
 
 SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : SyslogParserInterface(_endpoint) {
-  char *tmp, *port_ptr, *server_address;
+  char *tmp, *pos, *port, *server_address, *producer;
   int server_port;
   int reuse = 1;
   int i;
@@ -41,18 +41,34 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
   if(tmp == NULL)
     throw("memory allocation error");
 
+  /* 
+   * Interface name format:
+   * syslog://[<producer>@]<ip>:<port>
+   */
+
   if(strncmp(tmp, (char*) "syslog://", 9) == 0) {
     server_address = &tmp[9];
   } else {
     server_address = tmp;
   }
 
-  port_ptr = strchr(server_address, ':');
+  pos = strchr(server_address, '@');
 
-  if(port_ptr != NULL) {
-    port_ptr[0] = '\0';
-    port_ptr++;
-    server_port = atoi(port_ptr);
+  if (pos != NULL) {
+    producer = server_address;
+    pos[0] = '\0';
+    pos++;
+    server_address = pos;
+
+    setLogProducer(producer);
+  }
+
+  port = strchr(server_address, ':');
+
+  if(port != NULL) {
+    port[0] = '\0';
+    port++;
+    server_port = atoi(port);
   } else {
     throw("bad tcp bind address format"); 
   }

@@ -27,10 +27,13 @@
 class SyslogParserInterface : public ParserInterface {
  private:
   SyslogLuaEngine *le;
+  char *log_producer;
 
  public:
   SyslogParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~SyslogParserInterface();
+
+  void setLogProducer(char *name);
 
   u_int8_t parseLog(char *log_line);
 
