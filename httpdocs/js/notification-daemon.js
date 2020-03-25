@@ -217,7 +217,7 @@ class BlogFeed {
         });
 
         if (newPostsLength > 0) {
-            // remove the badge when open notifications
+            // remove the badge when open link notifications
             $notificationBell.off('click').click(function(event) {
 
                 $notificationBell.find("span.badge").remove();
@@ -258,8 +258,13 @@ class BlogFeed {
 
             const {fetchedPosts, aDayIsPassed} = await BlogFeed.checkNewPosts(currentLocalStorage);
             if (!aDayIsPassed) {
-                const sorted = currentLocalStorage.donwloadedPosts.sort((a, b) => a.epoch - b.epoch);
-                const toShow = [sorted[0], sorted[1], sorted[2]];
+
+                const toShow = [
+                    currentLocalStorage.donwloadedPosts[0],
+                    currentLocalStorage.donwloadedPosts[1],
+                    currentLocalStorage.donwloadedPosts[2]
+                ];
+
                 BlogFeed.showNotifications(toShow, 0, currentLocalStorage);
                 return;
             }
