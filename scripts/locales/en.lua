@@ -3372,6 +3372,7 @@ local lang = {
   },
   ["rtt_stats"] = {
     ["add_rtt"] = "Add RTT Record",
+    ["app_connect_descr"] = "The \"App Connect\" time is the time took to complete the TLS handshake.",
     ["bad_action_param"] = "Bad \"action\" paramater",
     ["config_reset_confirm"] = "Do you really want to discard the current configuration and reset it to default?",
     ["confirm_delete"] = "Do you want really remove this record?",
@@ -3388,6 +3389,8 @@ local lang = {
     ["measurement"] = "Measurement",
     ["measurement_time"] = "Measurement Time",
     ["msec"] = "ms",
+    ["other_http_descr"] = "The sum of \"Name Lookup\" and \"Other\" is the total time took to complete the HTTP request.",
+    ["other_https_descr"] = "The sum of \"App Connect\", \"Name Lookup\" and \"Other\" is the total time took to complete the HTTPS request.",
     ["rtt_note1"] = "%{product} Round Trip Time (RTT) monitor measures hosts RTT on a minute-by-minute basis.",
     ["rtt_note2"] = "RTT is the time it takes to reach the destination host plus the time it takes to receive a response from the host.",
     ["rtt_note3"] = "An alert is triggered when the measured RTT exceeds the configured RTT threshold",
