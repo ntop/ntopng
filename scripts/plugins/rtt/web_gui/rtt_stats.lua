@@ -319,6 +319,7 @@ elseif((page == "historical") and (host ~= nil)) then
   local schema = _GET["ts_schema"] or "rtt_host:rtt"
   local selected_epoch = _GET["epoch"] or ""
   local tags = {ifid=getSystemInterfaceId(), host=host.host, measure=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
+  local notes = {}
   url = url.."&page=historical"
 
   local timeseries = {
@@ -327,12 +328,16 @@ elseif((page == "historical") and (host ~= nil)) then
 
   if(host.measurement == "https") then
     timeseries[#timeseries + 1] = { schema="rtt_host:https_stats", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }}
+    notes[#notes + 1] = i18n("rtt_stats.app_connect_descr")
+    notes[#notes + 1] = i18n("rtt_stats.other_https_descr")
   elseif(host.measurement == "http") then
     timeseries[#timeseries + 1] = { schema="rtt_host:http_stats_v2", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("other") }}
+    notes[#notes + 1] = i18n("rtt_stats.other_http_descr")
   end
 
   drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
     timeseries = timeseries,
+    notes = notes,
   })
 
 elseif((page == "alerts") and isAdministrator()) then
