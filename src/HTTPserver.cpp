@@ -1440,8 +1440,8 @@ void HTTPserver::addHTTPOption(const char *k, const char*v) {
 
   http_options[cur_http_options++] = k;
   http_options[cur_http_options++] = v;
+  http_options[cur_http_options+0] = NULL;
   http_options[cur_http_options+1] = NULL;
-  http_options[cur_http_options+2] = NULL;
 }
 
 /* ****************************************** */
