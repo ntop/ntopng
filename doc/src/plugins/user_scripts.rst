@@ -70,6 +70,8 @@ are only called once per script:
     operation is complete (e.g. after all the hosts have been iterated
     and hooks called).
 
+.. _Hooks:
+
 Hooks
 -----
 

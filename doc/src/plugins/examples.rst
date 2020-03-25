@@ -40,10 +40,9 @@ The complete structure of the plugin is as follows:
 As it can be seen from the file system tree, a plugin is a set of Lua
 files, placed in predefined sub-directories.
 
-The root directory, :code:`blacklisted`, should carry a name which is
+The root directory, :code:`blacklisted`, carries a name which is
 representative for the plugin. This directory contains other
-sub-directories and a :code:`manifest.lua` file, a plugin
-manifest containing basic plugin information:
+sub-directories and a :code:`manifest.lua` (see :ref:`Manifest`) file containing basic plugin information:
 
 .. code:: lua
 
@@ -55,25 +54,21 @@ manifest containing basic plugin information:
 	     title = "Blacklisted Hosts",
 	     description = "Detects blacklisted hosts and triggers alerts",
 	     author = "ntop",
-	     version = 1,
 	     dependencies = {},
 	  }
 
 Sub-directories
-:code:`alert_definitions` and :code:`status_definitions` contain Lua
-scripts which are necessary to tell ntopng the plugin is going to set certain flow status
-and trigger certain alerts.
-
-In this specific plugin,
+:code:`alert_definitions` and :code:`status_definitions` contain Lua scripts necessary to define alerts and flow statuses. Specifically, :ref:`Alert Definitions`
+define the alerts the plugin is going to trigger, whereas :ref:`Flow Definitions` define flow statues the plugin is going to set. In this specific plugin,
 :code:`alert_flow_blacklisted.lua` tells ntopng the plugin is willing
 to create an alert for blacklisted flows. Similarly,
 :code:`status_blacklisted.lua` tells ntopng the plugin is going to set
 a blacklisted status for certain flows. Those two directories, as said
 by their names, contain just definitions of alerts and flow status,
-the actual logic stays in directory :code:`user_scripts`.
+the actual logic which sets the status and trigger the alert resides in directory :code:`user_scripts`.
 
 As this plugin requires flows to carry on its task, directory
-:code:`user_scripts` with the logic must contain a sub-directory
+:code:`user_scripts` (see :ref:`User Scripts`) with the logic must contain a sub-directory
 :code:`flow`, which, in turn, contains file
 :code:`blacklisted.lua`. ntopng knows it has to execute
 :code:`blacklisted.lua` against each flow it sees because
@@ -132,8 +127,8 @@ The first thing to observe, is that :code:`blacklisted.lua` contains a
 single :code:`function` with a predefined
 name :code:`script.hooks.protocolDetected`. This name tells
 ntopng to execute the plugin for every flow, as soon as the flow has
-its :code:`protocolDetected`, which is one of the several events
-plugins can attach to.
+its :code:`protocolDetected`, which is one of the several :ref:`Hooks`
+a plugin can attach to.
 
 The body of the function has access to a :code:`flow` Lua table, with
 several methods available to be called, among which
@@ -155,15 +150,15 @@ and thus the score is lower.
 Once the scores have been computed, the function calls
 :code:`flow.triggerStatus`. This is the actual call that causes
 ntopng to set the blacklisted status and trigger an alert! This call
-wants the two scores as parameters, along with the flow status defined
+wants the  scores as parameters, along with the flow status defined
 in :code:`status_definitions` and an info table which contains certain
 extra details and description of the flow blacklisted peers.
 
 From this point on, the flow will appear as alerted and with status
-blacklisted in the ntopng web UI, along with the scores specified for
-its client and server. That is pretty much all to create a flow script!
+blacklisted in the ntopng Web UI, along with the scores specified for
+its client and server. That is pretty much all to create a flow script.
 
-A quick note on the :code:`gui` section. It has just a title and a
+A quick note on the :ref:`Web UI` section. It has just a title and a
 description that will be used by ntopng in the web UI, to allow a user
 to enable/disable the plugin.
 
@@ -179,10 +174,9 @@ this case, namely, a flow flood attacker alert and a flow flood victim
 alert. The same reasoning can be applied to networks as well. A
 network can either be considered a flow flood attacker or a flow flood
 victim, depending on whether its host are the clients or servers of
-the monitored flows.
+the monitored flows. For the sake of this example, only flow flood victim alerts are considered for networks.
 
-The predefined threshold can be configured from the web UI so that one
-can tune it on a host-by-host or CIDR basis. Indeed, a threshold which
+This plugin also exposes a threshold so that it can be configured from the :ref:`Web UI`. The threshold is configurable on an host-by-host or CIDR basis. Indeed, a threshold which
 is meaningful for an host is not necessarily meaningful for another host.
 
 Full plugin sources are available on `GitHub flow flood plugin page
@@ -206,8 +200,7 @@ The complete structure of the plugin is as follows:
 
 From the file system tree, it can be seen that the plugin is
 self-contained in :code:`flow_flood`, a directory which carries a name
-representative for the plugin. The :code:`manifest.lua` script, a sort
-of manifest for the plugin, contains basic information and description
+representative for the plugin. The :code:`manifest.lua` (see :ref:`Manifest`) script contains basic information and description:
 
 .. code:: lua
 
@@ -219,7 +212,6 @@ of manifest for the plugin, contains basic information and description
      title = "Flow Flood detector",
      description = "Detects flow flood attacks and triggers alerts",
      author = "ntop",
-     version = 1,
      dependencies = {},
    }
 
@@ -230,14 +222,14 @@ Flows`_. However, as this plugin generates alerts,
 :code:`alert_flows_flood.lua` is needed under
 :code:`alert_definitions` to tell ntopng about this.
 
-The logic stays under :code:`user_scripts` which
+The logic stays under :code:`user_scripts`  (see :ref:`User Scripts`) which
 has two sub-directories: :code:`host` and :code:`network`, each one
 containing Lua files with the logic necessary to trigger the
 alert. ntopng will execute scripts under the :code:`host` directory on
 every host and scripts under the :code:`network` directory on every
 network.
 
-Let's have a closer look at :code:`host` s :code:`flow_flood_attacker.lua`, of the
+Let's have a closer look at :code:`host` s :code:flow_flood_attacker.lua`, of the
 scripts executed on hosts (the other Lua script are similar):
 
 .. code:: lua
@@ -290,7 +282,7 @@ scripts executed on hosts (the other Lua script are similar):
    return script
 
 The first thing to observe is that the script has only one function
-with a predefined name :code:`script.hooks.min`. This name tells
+with a predefined name :code:`script.hooks.min` which is part of the :ref:`Hooks` table. This name tells
 ntopng to call this function on every host, *every minute*. The body
 of the function is fairly straightforward. It access a Lua table
 :code:`host`, with several methods available to be called. This Lua
@@ -310,10 +302,9 @@ along with the type of alert that needs to be generated, and the
 actual :code:`value`. That is pretty much all. The ntopng engine will
 evaluate :code:`value` and possibly trigger the alert.
 
-
 Let's now have a closer look at the :code:`local script` table, which
-basically contains all the necessary configuraton, default values, and
-information to properly render a configuration page on the web UI.
+basically contains all the necessary configuration, default values, and
+information to properly render a configuration page on the :ref:`Web UI.
 
 The table tells ntopng this script is enabled by default
 (:code:`default_enabled = true`) and also specify the default
