@@ -26,10 +26,20 @@ Alert description :code:`i18n_description` can be either a string with the alert
 String
 ~~~~~~
 
+When the alert description is string, it is localized as described in :ref:`Plugin Localization`. An :code:`alert_json` table is passed as the parameters table for the localization. Keys and values of :code:`alert_json` can be used to add parameters to the localization string. Refer to :ref:`Triggering Alerts` to see how to create and :code:`alert_json`.
+
 Function
 ~~~~~~~~
 
-When it is a function, it gets called by the plugin with certain parameters. Parameters can be used to augment the alert with additional information on the alert itself. Localization :code:`i18n` is available inside the function so that it can produce a localized description. See :ref:`Alert Description` below for additional details and examples.
+When the alert description is a function, it gets called by the plugin with three parameters:
+
+- :code:`ifid`: An integer number uniquely identifying the interface which is triggering the alert.
+- :code:`alert`: A Lua table containing the details of the alert.
+- :code:`alert_json`: A Lua table that can be used to add parameters to the localization string.
+
+Refer to :ref:`Triggering Alerts` for additional details on these three parameters.
+
+The function is expected to return a string which is possibly localized. It is up to the plugin to call the :code:`i18n()` localization function to do the actual localization. ntopng will not perform any localization on the returned value of the function.
 
 Examples
 --------
@@ -45,12 +55,8 @@ The first example considers :ref:`Blacklisted Flows` created in the :ref:`Plugin
    }
 
 This file is very simple as it just :code:`return` s a table with two
-keys. :code:`i18n_title` is localized as
-:code:`scripts/locales/en.lua` and other localization files contain a table
-:code:`alerts_dashboard` with a key :code:`blacklisted_flow`. Then,
-:code:`icon` is used to select the `warning sign <https://fontawesome.com/icons/exclamation-triangle>`_ which will be printed
-next to the title. :code:`i18n_description` has been omitted as the
-:ref:`Flow Definitions` format function is re-used.
+keys. :code:`i18n_title` is localized in `en.lua <https://github.com/ntop/ntopng/blob/dev/scripts/locales/en.lua>`_ and other localization files. :code:`icon` is used to select the `warning sign <https://fontawesome.com/icons/exclamation-triangle>`_ which will be printed
+next to the title. :code:`i18n_description` has been omitted as the alert does not need any extra description apart from the title.
 
 Second example considers plugin :ref:`Flow Flooders`.
 It's :code:`./alert_definitions` `sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/flow_flood/alert_definitions>`_ contains file :code:`alert_flows_flood.lua`. Contents of this file are
@@ -89,9 +95,7 @@ It's :code:`./alert_definitions` `sub-directory <https://github.com/ntop/ntopng/
 
 The file returns a table with the keys as described above. However,
 here, :code:`i18n_description` is a function. This function will be
-called automatically with three parameters, namely the interface id of
-the interface which is triggering the alert, an alert table, and information
-on the exceeded threshold. This function uses
+called automatically with the three parameters as described above. This function uses
 :code:`alert_consts.formatAlertEntity` to properly format the alert
 (remember that either an host or a network can be a flooder) and then
 returns an :code:`i18n` localized string.

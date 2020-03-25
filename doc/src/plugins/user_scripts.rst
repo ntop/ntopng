@@ -205,6 +205,8 @@ exported to syslog in Eve JSON format.
    
    return syslog_module
 
+.. _Triggering Alerts:
+
 Triggering Alerts
 -----------------
 
