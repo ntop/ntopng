@@ -119,7 +119,7 @@ class BlogFeed {
             // create empty settings for blog feed
             const emptyBlogSettings = {
                 lastCheck: Date.now(),
-                donwloadedPosts: []
+                downloadedPosts: []
             };
 
             // save settings inside local storage
@@ -135,9 +135,18 @@ class BlogFeed {
 
         // initialize the local storage to store information
         // about new posts
-        const blogSettings = currentLocalStorage;
-        const localStorageEmpty = !blogSettings.downloadedPosts;
-        const aDayIsPassed = Math.floor((Date.now() - blogSettings.lastCheck) / 86400000) >= 1 || localStorageEmpty;
+        let aDayIsPassed;
+        if (currentLocalStorage.downloadedPosts == undefined) {
+            aDayIsPassed = true;
+        }
+        else {
+            if (currentLocalStorage.downloadedPosts.length == 0) {
+                aDayIsPassed = true;
+            }
+            else {
+                aDayIsPassed = Math.floor((Date.now() - currentLocalStorage.lastCheck) / 86400000) >= 1
+            }
+        }
 
         // if a day is passed since the last check then check if there is a new post
         // inside the blog
@@ -148,14 +157,13 @@ class BlogFeed {
                 const request = await fetch('/lua/get_new_blog_posts.lua');
                 const response = await request.json();
                 const {posts} = response;
-
                 const notificationToShow = [];
-                if (!posts) return [];
+                if (!posts) return {fetchedPosts: [], aDayIsPassed: aDayIsPassed};
 
                 posts.forEach((post) => {
 
                     const postId = post.id;
-                    if (blogSettings.donwloadedPosts.find(shownId => shownId == postId)) return;
+                    if (currentLocalStorage.downloadedPosts.find(shownId => shownId == postId)) return;
                     post.isNew = true;
                     notificationToShow.push(post);
 
@@ -203,6 +211,7 @@ class BlogFeed {
                     <h6 style='max-width: 24em' class='mt-0 mb-1 text-truncate'>
                         ${post.isNew ? "<span class='badge badge-danger'>New</span>" : ""}
                         ${post.title}
+                        <i class='fas fa-external-link-alt'></i>
                     </h6>
                 `),
                 $("<p class='mb-0'></p>").html(post.shortDesc),
@@ -229,7 +238,7 @@ class BlogFeed {
                     post.isNew = false;
                     return post;
                 })
-                const newLocalStorage = [...oldPosts, ...currentLocalStorage.donwloadedPosts];
+                const newLocalStorage = [...oldPosts, ...currentLocalStorage.downloadedPosts];
                 BlogFeed.saveDownloadedPosts(newLocalStorage);
 
                 $notificationBell.click('click', function() {
@@ -246,40 +255,45 @@ class BlogFeed {
         localStorage.removeItem('blog_feed');
         localStorage.setItem('blog_feed', JSON.stringify({
             lastCheck: Date.now(),
-            donwloadedPosts: downloadedPosts,
+            downloadedPosts: downloadedPosts,
         }));
     }
 
     static queryBlog() {
 
         const currentLocalStorage = BlogFeed.initializeLocalStorage();
-
         (async() => {
 
             const {fetchedPosts, aDayIsPassed} = await BlogFeed.checkNewPosts(currentLocalStorage);
             if (!aDayIsPassed) {
 
                 const toShow = [
-                    currentLocalStorage.donwloadedPosts[0],
-                    currentLocalStorage.donwloadedPosts[1],
-                    currentLocalStorage.donwloadedPosts[2]
+                    currentLocalStorage.downloadedPosts[0],
+                    currentLocalStorage.downloadedPosts[1],
+                    currentLocalStorage.downloadedPosts[2]
                 ];
 
-                BlogFeed.showNotifications(toShow, 0, currentLocalStorage);
+                let counter = 0;
+                toShow.forEach((p) => {
+                    if (!p) return;
+                    if (p.isNew) counter++;
+                })
+
+                BlogFeed.showNotifications(toShow, counter, currentLocalStorage);
                 return;
             }
 
             const newPosts = fetchedPosts.filter(post => {
-                return !(currentLocalStorage.donwloadedPosts.find(post2 => post.id == post2.id));
+                return !(currentLocalStorage.downloadedPosts.find(post2 => post.id == post2.id));
             });
 
             // remove the older posts from the local storage
             for (let i = 0; i < newPosts; i++) {
-                currentLocalStorage.donwloadedPosts.pop();
+                currentLocalStorage.downloadedPosts.pop();
             }
 
             // show new post notifications
-            const sorted = currentLocalStorage.donwloadedPosts;
+            const sorted = currentLocalStorage.downloadedPosts;
             let toShow = [];
 
             if (newPosts.length == 1) {
@@ -298,7 +312,7 @@ class BlogFeed {
             BlogFeed.showNotifications(toShow, newPosts.length, currentLocalStorage);
 
             // merge the arrays and save them into local storage
-            const newLocalStorage = [...newPosts, ...currentLocalStorage.donwloadedPosts];
+            const newLocalStorage = [...newPosts, ...currentLocalStorage.downloadedPosts];
             BlogFeed.saveDownloadedPosts(newLocalStorage);
 
         })();
