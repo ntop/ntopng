@@ -18,6 +18,7 @@ local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
+local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows())
 
 -- this is a global variable
 local is_system_interface = page_utils.is_system_view()
@@ -574,7 +575,7 @@ url = ntop.getHttpPrefix().."/lua/if_stats.lua"
 -- ##############################################
 
 -- Updates submenu
-if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
+if updates_supported then
 
 -- Updates check
 print[[
@@ -651,9 +652,9 @@ print[[
               $('#updates-install-li').attr('title', '');
               if (rsp.status == 'upgrade-failure') {
                 icon = '<i class="fas fa-exclamation-triangle"></i>';
-                $('#updates-install-li').attr('title', ']] print(i18n("updates.upgrade_failure_message")) print [[');
+                $('#updates-install-li').attr('title', "]] print(i18n("updates.upgrade_failure_message")) print [[");
               }
-              $('#updates-install-li').html(icon + ' ]] print(i18n("updates.install")) print[[');
+              $('#updates-install-li').html(icon + " ]] print(i18n("updates.install")) print[[");
               $('#updates-install-li').show();
               $('#updates-install-li').off("click");
               $('#updates-install-li').click(installUpdate);
@@ -663,7 +664,7 @@ print[[
 
             } else /* (rsp.status == 'not-avail') */ {
               $('#updates-info-li').html(']] print(i18n("updates.no_updates")) print[[');
-              $('#updates-install-li').html('<i class="fas fa-sync"></i> ]] print(i18n("updates.check")) print[[');
+              $('#updates-install-li').html("<i class='fas fa-sync'></i> ]] print(i18n("updates.check")) print[[");
               $('#updates-install-li').show();
               $('#updates-install-li').off("click");
               $('#updates-install-li').click(checkForUpdates);
@@ -962,7 +963,7 @@ print([[
 end
 
 -- Render Update Menu
-if is_admin and ntop.isPackage() and not ntop.isWindows() then
+if updates_supported then
 print([[
    <li class="dropdown-divider"></li>
    <li class="dropdown-header" id="updates-info-li">]] .. i18n("updates.no_updates") .. [[.</li>
