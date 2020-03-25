@@ -210,8 +210,8 @@ class BlogFeed {
                 $(`
                     <h6 style='max-width: 24em' class='mt-0 mb-1 text-truncate'>
                         ${post.isNew ? "<span class='badge badge-danger'>New</span>" : ""}
-                        ${post.title}
                         <i class='fas fa-external-link-alt'></i>
+                        ${post.title}
                     </h6>
                 `),
                 $("<p class='mb-0'></p>").html(post.shortDesc),
