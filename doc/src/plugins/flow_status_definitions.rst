@@ -3,7 +3,7 @@
 Flow Status Definitions
 =======================
 
-A plugin enables on or more statuses to be set on certain flows. A flow can have multiple statuses associated. An alert can be associated to each status. Flow statuses must be defined in :code:`./status_definitions/` and they are set calling :code:`flow.triggerStatus`. Definition is done using a Lua files, one file per status.
+A plugin enables one or more statuses to be set on certain flows. A flow can have multiple statuses associated. An alert can be associated to each status. Flow statuses must be defined in :code:`./status_definitions/` and they are set calling :code:`flow.triggerStatus`. Definition is done using a Lua files, one file per status.
 
 A flow status definition file must return a lua table with the following keys:
 

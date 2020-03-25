@@ -6,33 +6,28 @@ Alert Definitions
 A plugin enables alerts to be generated. All the alerts a plugin is willing to generate require a
 file in plugin sub-directory :code:`./alert_definitions/`. The file
 contains all the necessary information which is required to properly
-show and format an alert.
+show, localize and format an alert.
 
 The file must return a Lua table with the following keys:
 
-- :code:`i18n_title`: Is a string indicating the title of the
-  alert. The string is first looked up among the localized strings
-  under the plugin directory :code:`./locales`, then among the localized strings
-  under the ntopng :code:`scripts/locales` directory and, finally, if
-  no localization is found, the string is taken verbatim. When a
-  string is searched among the localized strings, it is considered as a key of
-  the localization Lua table. Points :code:`.` present in the string
-  are used to search among localization sub-tables. For example,
-  string :code:`alerts_dashboard.blacklisted_flow` is localized when the
-  localization table contains a table :code:`alerts_dashboard` which,
-  in turn, contains a key :code:`blacklisted_flow`.
-- :code:`i18n_description` (optional): Is either a string with the alert
-  description or a function returning the alert description.
-  a string. When it is a string, the same logic described for
-  the :code:`i18n_title` is applied. When it is a function, it gets
-  called by the plugin with certain parameters and it returns
-  the alert description. Parameters can be used to augment the
-  alert description with information on the current alert that is being
-  triggered. For example, a parameter can be the interface id, and
-  another parameter can be the IP address of an host. Localization
-  :code:`i18n` is available as well so that the function can produce a
-  localized description.
-- :code:`icon` (optional): A Font Awesome 5 icon shown next to the :code:`i18n_title`.
+- :code:`i18n_title`: A string indicating the title of the
+  alert. ntopng localizes the string as described in :ref:`Plugin Localization`.
+- :code:`i18n_description` (optional): Either a string with the alert
+  description or a function returning an alert description string. When :code:`i18n_description` is a string, ntopng localizes as described in :ref:`Plugin Localization`.
+- :code:`icon`: A Font Awesome 5 icon shown next to the :code:`i18n_title`.
+
+.. _Alert Description:
+
+Alert Description
+-----------------
+
+String
+~~~~~~
+
+Function
+~~~~~~~~
+
+When it is a function, it gets called by the plugin with certain parameters. Parameters can be used to augment the alert with additional information on the alert itself. Localization :code:`i18n` is available inside the function so that it can produce a localized description. See :ref:`Alert Description` below for additional details and examples.
 
 Examples
 --------
