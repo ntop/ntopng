@@ -147,8 +147,6 @@ for _key,_value in ipairs(alerts) do
    if(ntop.isEnterprise()) then
       if (status == "historical-flows") then
 	 record["column_explorer"] = getExplorerLink(_value["cli_addr"], _value["srv_addr"], _value["alert_tstamp"])
-      elseif(_value["alert_subtype"] == "host_score") then
-	 record["column_explorer"] = getExplorerLink(nil, hostkey2hostinfo(_value["alert_entity_val"]).host, _value["alert_tstamp"])
       end
    end
 
