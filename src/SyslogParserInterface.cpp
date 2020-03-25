@@ -28,6 +28,7 @@
 /* **************************************************** */
 
 SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *custom_interface_type) : ParserInterface(endpoint, custom_interface_type) {
+  log_producer = NULL;
   le = new SyslogLuaEngine(this);
 }
 
@@ -36,37 +37,63 @@ SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *c
 SyslogParserInterface::~SyslogParserInterface() {
   if (le)
     delete le;
+  if (log_producer)
+    free(log_producer);
+}
+
+/* **************************************************** */
+
+void SyslogParserInterface::setLogProducer(char *name) {
+  if (log_producer) {
+    free(log_producer);
+    log_producer = NULL;
+  }
+
+  if (name)
+    log_producer = strdup(name);
 }
 
 /* **************************************************** */
 
 u_int8_t SyslogParserInterface::parseLog(char *log_line) {
-  char *tmp, *content, *application;
+  char *tmp, *content, *application = NULL;
   int num_flows = 0;
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "[SYSLOG] Raw message: %s", log_line);
 #endif
 
-
   /*
    * Extracting application name and message content from the syslog message.
-   * Format:
+   * Expected Format:
    * TIMESTAMP DEVICE APPLICATION[PID]: CONTENT
    */
-
   tmp = strstr(log_line, "]: ");
-  if(tmp == NULL) return 0; /* unexpected format */
-  tmp[1] = '\0';
-  content = &tmp[3];
+  if(tmp != NULL) {
+    tmp[1] = '\0';
+    content = &tmp[3];
 
-  tmp = strrchr(log_line, '[');
-  if(tmp == NULL) return 0; /* unexpected format */
-  tmp[0] = '\0';
+    tmp = strrchr(log_line, '[');
+    if(tmp != NULL) {
+      tmp[0] = '\0';
 
-  tmp = strrchr(log_line, ' ');
-  if(tmp == NULL) return 0; /* unexpected format */
-  application = &tmp[1];
+      tmp = strrchr(log_line, ' ');
+      if(tmp != NULL) {
+        application = &tmp[1];
+      }
+    }
+  }
+
+  /* If the log format has not been recognize, checking for a hint
+   * in the interface name (syslog://<producer>@<ip>:<port>) */
+  if (application == NULL) {
+    if (log_producer != NULL) {
+      application = log_producer;
+      content = log_line;
+    } else {
+      return 0; /* unexpected format and no hint for the producer */
+    }
+  }
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Application: %s Message: %s",
