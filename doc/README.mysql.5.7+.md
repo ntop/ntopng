@@ -32,6 +32,3 @@ mysql> update mysql.user set plugin="mysql_native_password" WHERE user='root';
 Query OK, 0 rows affected (0,00 sec)
 Rows matched: 1  Changed: 0  Warnings: 0
 ```
-
-
-Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
