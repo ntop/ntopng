@@ -531,30 +531,34 @@ page_utils.add_menubar_section(
       section = page_utils.menu_sections.about,
       hidden = info.oem,
       entries = {
-	 {
-	    entry = page_utils.menu_entries.about,
-	    url = '/lua/about.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.telemetry,
-	    url = '/lua/telemetry.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.blog,
-	    url = 'http://blog.ntop.org/',
-	 },
-	 {
-	    entry = page_utils.menu_entries.telegram,
-	    url = 'https://t.me/ntop_community',
-	 },
-	 {
-	    entry = page_utils.menu_entries.report_issue,
-	    url = 'https://github.com/ntop/ntopng/issues',
-	 },
-	 {
-	    entry = page_utils.menu_entries.manual,
-	    url = 'https://www.ntop.org/guides/ntopng/',
-	 }
+         {
+            entry = page_utils.menu_entries.about,
+            url = '/lua/about.lua',
+         },
+         {
+            entry = page_utils.menu_entries.telemetry,
+            url = '/lua/telemetry.lua',
+         },
+         {
+            entry = page_utils.menu_entries.blog,
+            url = 'http://blog.ntop.org/',
+         },
+         {
+            entry = page_utils.menu_entries.telegram,
+            url = 'https://t.me/ntop_community',
+         },
+         {
+            entry = page_utils.menu_entries.report_issue,
+            url = 'https://github.com/ntop/ntopng/issues',
+         },
+         {
+            entry = page_utils.menu_entries.manual,
+            url = 'https://www.ntop.org/guides/ntopng/',
+         },
+         {
+            entry = page_utils.menu_entries.suggest_feature,
+            url = 'https://www.ntop.org/support/need-help-2/contact-us/',
+         }
       },
    }
 )
@@ -697,7 +701,7 @@ print([[
 if ntop.isAdministrator() then
    print([[
                <li>
-                  <button id="btn-trigger-system-mode" type="submit" class="dropdown-item ]].. (is_system_interface and "active" or "") ..[[">
+                  <button id="btn-trigger-system-mode" class="dropdown-item ]].. (is_system_interface and "active" or "") ..[[">
                      ]].. (is_system_interface and "<i class='fas fa-check'></i>" or "") ..[[ ]] .. i18n("system") .. [[
                   </button>
                </li>
@@ -763,7 +767,7 @@ for round = 1, 2 do
             print("<a class=\"dropdown-item active\" href=\"#\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-            local action_url = (is_system_interface and '/?' or url_query)
+            local action_url = (is_system_interface and '/'..url_query or url_query)
 
             print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[]]) print[[">]]
             print[[<input name="switch_interface" type="hidden" value="1" />]]
@@ -808,7 +812,7 @@ for round = 1, 2 do
 
          print(descr)
          print("</a>")
-         print("</li>\n")
+         print("</li>")
       end
    end
 end
@@ -1106,29 +1110,44 @@ print([[
 
    const toggle_system_flag = (is_system_switch = false, $form = null) => {
 
+      console.group('Debug');
+      console.log($form);
+
       // if form it's empty it means the call was not invoked
       // by a form request
       const flag = (is_system_switch) ? "1" : "0";
 
-      $.get("]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua", {
+      console.log(flag);
+
+      $.get(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
          system_interface: flag,
          csrf: "]].. ntop.getRandomCSRFValue() ..[["
       }, function(data) {
-         if (data.success && !$form) location.href = '/';
-         if (data.success && $form) $form.submit();
+
+         console.info(data.success && $form != null);
+         console.groupEnd();
+
+         if (data.success && $form == null) location.href = '/';
+         if (data.success && $form != null) $form.submit();
          if (!data.success) {
             console.error("An error has occurred!");
          }
 
       });
    }
+]])
 
+if (not page_utils.is_system_view()) then
+print([[
    $(document).ready(function() {
       $("#btn-trigger-system-mode").click(function(e) {
          toggle_system_flag(true);
       });
    });
+]])
+end
 
+print([[
    </script>
 ]])
 
