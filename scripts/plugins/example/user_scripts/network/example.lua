@@ -95,7 +95,7 @@ function script.hooks.min(info)
     },
   }
 
-  if(inner_bytes > info.alert_config.max_inner_bytes) then
+  if(inner_bytes > info.user_script_config.max_inner_bytes) then
     -- Trigger alert
     alerts_api.trigger(info.alert_entity, alert_info)
   else

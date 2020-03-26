@@ -84,7 +84,7 @@ function script.hooks.min(info)
   --tprint(info)
   print("system:min hook called")
 
-  ntop.pingHost(info.alert_config.ip_address, info.alert_config.v6)
+  ntop.pingHost(info.user_script_config.ip_address, info.user_script_config.v6)
 
   -- Wait results
   ntop.msleep(2000)
@@ -94,7 +94,7 @@ function script.hooks.min(info)
   -- The alert entity must be built manually for system scripts
   local alert_entity = {
     alert_entity = alert_consts.alert_entities.pinged_host,
-    alert_entity_val = info.alert_config.ip_address,
+    alert_entity_val = info.user_script_config.ip_address,
   }
 
   local alert_info = {
@@ -104,13 +104,13 @@ function script.hooks.min(info)
     alert_type_params = {},
   }
 
-  if(res[info.alert_config.ip_address] ~= nil) then
-    print(string.format("Host %s is active", info.alert_config.ip_address))
+  if(res[info.user_script_config.ip_address] ~= nil) then
+    print(string.format("Host %s is active", info.user_script_config.ip_address))
 
     -- Release previously triggered alert (if any)
     alerts_api.release(alert_entity, alert_info)
   else
-    print(string.format("Host %s is down", info.alert_config.ip_address))
+    print(string.format("Host %s is down", info.user_script_config.ip_address))
 
     -- Trigger alert
     alerts_api.trigger(alert_entity, alert_info)

@@ -105,7 +105,7 @@ function script.hooks.min(info)
   local bytes = host.getBytes()
   local tot_bytes = bytes["bytes.sent"] + bytes["bytes.rcvd"]
 
-  if(tot_bytes > info.alert_config.max_bytes) then
+  if(tot_bytes > info.user_script_config.max_bytes) then
     -- Trigger alert
     alerts_api.trigger(info.alert_entity, alert_info)
   else

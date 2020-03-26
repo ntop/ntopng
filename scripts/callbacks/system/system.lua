@@ -78,7 +78,7 @@ function runScripts(granularity)
         alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
            granularity = granularity,
            alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
-           alert_config = conf.script_conf,
+           user_script_config = conf.script_conf,
            user_script = user_script,
            when = when,
            ts_enabled = system_ts_enabled,
