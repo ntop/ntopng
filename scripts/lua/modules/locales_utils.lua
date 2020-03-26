@@ -50,9 +50,11 @@ end
 
 function locales.loadLocaleFile(path, locale)
   local data = loadfile_to_data(path)
+  local os_utils = require("os_utils")
+  local plugins_utils = require("plugins_utils")
 
   -- Check if plugin specific locales exist
-  local plugins_locales = dirs.workingdir .. "/plugins/locales/" .. locale .. ".lua"
+  local plugins_locales = os_utils.fixPath(plugins_utils.getRuntimePath() .. "/locales/" .. locale .. ".lua")
 
   if ntop.exists(plugins_locales) then
      local plugins_data = loadfile_to_data(plugins_locales)

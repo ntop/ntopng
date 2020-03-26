@@ -123,6 +123,9 @@ Ntop::Ntop(char *appName) {
   else
     snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
 
+  cur_plugins_dir = 0;
+  refreshPluginsDir();
+
   //umask(0);
   
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
@@ -2813,4 +2816,19 @@ ndpi_protocol_category_t Ntop::get_ndpi_proto_category(u_int protoid) {
 
 void Ntop::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
   ndpi_set_proto_category(get_ndpi_struct(), protoId, protoCategory);
+}
+
+/* *************************************** */
+
+void Ntop::refreshPluginsDir() {
+  const char *current_dir = cur_plugins_dir ? "plugins0" : "plugins1";
+  const char *shadow_dir = cur_plugins_dir ? "plugins1" : "plugins0";
+
+#ifdef WIN32
+  snprintf(plugins_dir, sizeof(plugins_dir), "%s\\%s", get_working_dir(), current_dir);
+  snprintf(shadow_plugins_dir, sizeof(plugins_dir), "%s\\%s", get_working_dir(), shadow_dir);
+#else
+  snprintf(plugins_dir, sizeof(plugins_dir), "%s/%s", get_working_dir(), current_dir);
+  snprintf(shadow_plugins_dir, sizeof(plugins_dir), "%s/%s", get_working_dir(), shadow_dir);
+#endif
 }

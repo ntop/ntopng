@@ -6991,6 +6991,37 @@ static int ntop_reset_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_current_plugins_dir(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushstring(vm, ntop->get_plugins_dir());
+
+  return(CONST_LUA_OK); 
+}
+
+/* ****************************************** */
+
+static int ntop_get_shadow_plugins_dir(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushstring(vm, ntop->get_shadow_plugins_dir());
+
+  return(CONST_LUA_OK); 
+}
+
+/* ****************************************** */
+
+static int ntop_swap_plugins_dir(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->swap_plugins_dir();
+  lua_pushstring(vm, ntop->get_plugins_dir());
+
+  return(CONST_LUA_OK); 
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -11688,6 +11719,9 @@ static const luaL_Reg ntop_reg[] = {
   { "hasLdapSupport",   ntop_has_ldap_support },
   { "execSingleSQLQuery", ntop_interface_exec_single_sql_query },
   { "resetStats",       ntop_reset_stats },
+  { "getCurrentPluginsDir", ntop_get_current_plugins_dir },
+  { "getShadowPluginsDir",  ntop_get_shadow_plugins_dir },
+  { "swapPluginsDir",   ntop_swap_plugins_dir },
 
   /* Redis */
   { "getCacheStatus",    ntop_info_redis },

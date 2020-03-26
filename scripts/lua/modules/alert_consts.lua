@@ -128,7 +128,7 @@ end
 -- ##############################################
 
 function alert_consts.getDefinititionsDir()
-   return(os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/alert_definitions"))
+   return(os_utils.fixPath(plugins_utils.getRuntimePath() .. "/alert_definitions"))
 end
 
 -- ##############################################
