@@ -128,6 +128,7 @@ page_utils.menu_entries = {
     telegram         	 = {key = "telegram", i18n_title = "about.telegram", section = "about"},
     report_issue         = {key = "report_issue", i18n_title = "about.report_issue", section = "about"},
     manual 	         = {key = "manual", i18n_title = "about.readme_and_manual", section = "about"},
+    suggest_feature = {key = "suggest_feature", i18n_title = "about.suggest_feature", section = "about"},
 
     -- Just a divider for horizontal rows in the menu
     divider = {key = "divider"},

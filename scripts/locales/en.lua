@@ -288,6 +288,7 @@ local lang = {
     ["scripts_directory"] = "Scripts",
     ["specify_licence"] = "Specify here your ntopng License",
     ["startup_line"] = "Startup Line",
+    ["suggest_feature"] = "Suggest a Feature",
     ["system"] = "System",
     ["system_id"] = "System Id",
     ["telegram"] = "Help and News",
