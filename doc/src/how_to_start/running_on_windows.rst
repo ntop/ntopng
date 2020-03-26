@@ -9,7 +9,7 @@ on Windows ntopng runs as service. The ntopng installer registers the service an
 
   The Windows Services Manager
 
-  You can start ntopng from cmd.exe only for debug purposes or for manipulating the service settings. In this case you can start cmd.exe (i.e. Windows Commands Prompt) and navigate to the ntopng installation directory (i.e. C:\Program Files\ntopng). Commands are issued after a :code:`/c` that stands for *console*. For example to display the inline help it suffices to run
+You can start ntopng from cmd.exe only for debug purposes or for manipulating the service settings. In this case you can start cmd.exe (i.e. Windows Commands Prompt) and navigate to the ntopng installation directory (i.e. C:\\Program Files\\ntopng). Commands are issued after a :code:`/c` that stands for *console*. For example to display the inline help it suffices to run
 
 .. code:: bash
 

@@ -67,7 +67,7 @@ in the ntopng installer.
 
 The windows package does NOT contain geolocation files, due to restrictions as
 reported later in this section. So you need to download the geolocation files
-and then copy them into C:\Program Files\ntopng\httpdocs\geoip\ directory, and
+and then copy them into C:\\Program Files\\ntopng\\httpdocs\\geoip\\ directory, and
 then restart ntopng.
    
   
