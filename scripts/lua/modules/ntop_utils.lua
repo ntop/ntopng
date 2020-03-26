@@ -246,6 +246,12 @@ end
 
 -- ##############################################
 
+function isNoLoginUser()
+  return _SESSION["user"] == ntop.getNologinUser()
+end
+
+-- ##############################################
+
 function getSystemInterfaceId()
    -- NOTE: keep in sync with SYSTEM_INTERFACE_ID in ntop_defines.h
    -- This must be a string as it is passed in interface.select
