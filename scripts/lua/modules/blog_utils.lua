@@ -67,7 +67,7 @@ function blog_utils.readPostsFromRedis()
     local posts = nil
 
     if not isEmptyString(postsJSON) then
-        json.decode(postsJSON)
+        posts = json.decode(postsJSON)
     end
 
     if(posts == nil) then
