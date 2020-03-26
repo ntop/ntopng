@@ -920,7 +920,7 @@ if not info.oem then
       </a>
       <div class="dropdown-menu dropdown-menu-right p-1">
          <div class="blog-section">
-            <h6 class="text-muted p-2 mb-0">]].. i18n("blog_feed.news_from_blog") ..[[</h6>
+            <span class="dropdown-header p-2 mb-0">]].. i18n("blog_feed.news_from_blog") ..[[</span>
             <ul class="list-unstyled">
                <li class="text-muted p-2">]].. i18n("blog_feed.nothing_to_show") ..[[</li>
             </ul>
