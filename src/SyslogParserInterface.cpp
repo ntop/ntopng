@@ -29,7 +29,16 @@
 
 SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *custom_interface_type) : ParserInterface(endpoint, custom_interface_type) {
   log_producer = NULL;
+  le = NULL;
+}
+
+/* **************************************************** */
+
+void SyslogParserInterface::startPacketPolling() {
+  /* Allocate the SyslogLuaEngine only after the plugins have been loaded */
   le = new SyslogLuaEngine(this);
+
+  ParserInterface::startPacketPolling();
 }
 
 /* **************************************************** */
