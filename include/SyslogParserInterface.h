@@ -39,6 +39,7 @@ class SyslogParserInterface : public ParserInterface {
 
   u_int32_t getNumDroppedPackets() { return 0; };
   virtual void lua(lua_State* vm);
+  virtual void startPacketPolling();
 };
 
 #endif /* _SYSLOG_PARSER_INTERFACE_H_ */

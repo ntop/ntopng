@@ -845,4 +845,14 @@ end
 
 -- ##############################################
 
+-- @brief Deletes the plugins runtime directories. This is usually called
+-- in boot.lua to start fresh.
+function plugins_utils.cleanup()
+  ntop.rmdir(os_utils.fixPath(dirs.workingdir .. "/plugins"))
+  ntop.rmdir(ntop.getCurrentPluginsDir())
+  ntop.rmdir(ntop.getShadowPluginsDir())
+end
+
+-- ##############################################
+
 return(plugins_utils)

@@ -3,7 +3,7 @@
 --
 
 --
--- This script is executed once at boot
+-- This script is executed once at boot (normally as root)
 -- * BEFORE * network interfaces are setup
 -- * BEFORE * switching to nobody
 --
@@ -36,3 +36,8 @@ if not ntop.isnEdge() then -- nEdge data deletion is handled in nf_config.lua
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "Data deletion done.")
    end
 end
+
+-- NOTE: cannot reload plugins here as we must first drop the privileges
+-- They will be loaded in startup.lua . Here we only delete old directories.
+local plugins_utils = require "plugins_utils"
+plugins_utils.cleanup()
