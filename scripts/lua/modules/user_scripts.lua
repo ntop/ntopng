@@ -30,7 +30,6 @@ user_scripts.field_units = {
   syn_min = "field_units.syn_min",
 }
 
-local CALLBACKS_DIR = plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 local ALL_HOOKS_CONFIG_KEY = "all"
@@ -199,7 +198,7 @@ local benchmarks = {}
 -- ##############################################
 
 function user_scripts.getSubdirectoryPath(script_type, subdir, is_pro)
-  local prefix = CALLBACKS_DIR
+  local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
   local path
 
   if not isEmptyString(subdir) and subdir ~= "." then

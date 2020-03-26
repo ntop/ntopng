@@ -48,6 +48,8 @@ class Ntop {
   char working_dir[MAX_PATH]; /**< Working directory. */
   char install_dir[MAX_PATH]; /**< Install directory. */
   char startup_dir[MAX_PATH]; /**< Startup directory. */
+  char plugins_dir[MAX_PATH]; /**< Current Plugins directory. */
+  char shadow_plugins_dir[MAX_PATH]; /**< Shadow Plugins directory. */
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
   NetworkInterface *system_interface; /** The system interface */
@@ -80,7 +82,7 @@ class Ntop {
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
   cpu_load_stats cpu_stats;
   float cpu_load;
-  bool is_started;
+  bool is_started, cur_plugins_dir;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue;
   FifoSerializerQueue *internal_alerts_queue;
@@ -100,6 +102,7 @@ class Ntop {
   void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
   bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
   void cleanShadownDPI();
+  void refreshPluginsDir();
   
  public:
   /**
@@ -352,6 +355,10 @@ class Ntop {
    * @return The path of runtime directory.
    */
   inline char* get_runtime_dir()                     { return(working_dir);         };
+
+  inline char* get_plugins_dir()                     { return(plugins_dir);         };
+  inline char* get_shadow_plugins_dir()              { return(shadow_plugins_dir);  };
+  inline void swap_plugins_dir()                     { cur_plugins_dir = !cur_plugins_dir; refreshPluginsDir(); };
 
   inline Bloom*            getResolutionBloom()      { return(resolvedHostsBloom);  };
   inline NtopGlobals*      getGlobals()              { return(globals);             };

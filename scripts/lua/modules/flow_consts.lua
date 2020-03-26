@@ -23,7 +23,7 @@ flow_consts.max_score = 1000
 
 function flow_consts.getDefinititionsDir()
     local dirs = ntop.getDirs()
-    return(os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/status_definitions"))
+    return(os_utils.fixPath(plugins_utils.getRuntimePath() .. "/status_definitions"))
 end
 
 -- ################################################################################

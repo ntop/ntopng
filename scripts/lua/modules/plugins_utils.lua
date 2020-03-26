@@ -19,13 +19,35 @@ plugins_utils.COMMUNITY_SOURCE_DIR = os_utils.fixPath(dirs.scriptdir .. "/plugin
 plugins_utils.PRO_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/pro_plugins")
 plugins_utils.ENTERPRISE_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_plugins")
 
--- NOTE: keep in sync with the HTTPServer runtime_dir
-plugins_utils.PLUGINS_RUNTIME_PATH = os_utils.fixPath(dirs.workingdir .. "/plugins")
-
-plugins_utils.PLUGINS_RUNTIME_METADATA = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/plugins_metadata.lua")
-
 local RUNTIME_PATHS = {}
 local METADATA = nil
+
+-- ##############################################
+
+-- The runtime path can change when the user reloads the plugins.
+-- We need to cache this into the same vm to ensure that all the lua
+-- scripts into this vm use the same directory.
+local cached_runtime_dir = nil
+
+function plugins_utils.getRuntimePath()
+  if(not cached_runtime_dir) then
+    cached_runtime_dir = ntop.getCurrentPluginsDir()
+  end
+
+  return(cached_runtime_dir)
+end
+
+local function getMetadataPath()
+  return(os_utils.fixPath(plugins_utils.getRuntimePath() .. "/plugins_metadata.lua"))
+end
+
+-- ##############################################
+
+local function clearInternalState()
+  RUNTIME_PATHS = {}
+  METADATA = nil
+  cached_runtime_dir = nil
+end
 
 -- ##############################################
 
@@ -123,37 +145,39 @@ end
 -- ##############################################
 
 local function init_runtime_paths()
+  local runtime_path = plugins_utils.getRuntimePath()
+
   RUNTIME_PATHS = {
     -- Definitions
-    alert_definitions = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/alert_definitions"),
-    status_definitions = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/status_definitions"),
-    pro_alert_definitions = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/alert_definitions/pro"),
-    pro_status_definitions = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/status_definitions/pro"),
+    alert_definitions = os_utils.fixPath(runtime_path .. "/alert_definitions"),
+    status_definitions = os_utils.fixPath(runtime_path .. "/status_definitions"),
+    pro_alert_definitions = os_utils.fixPath(runtime_path .. "/alert_definitions/pro"),
+    pro_status_definitions = os_utils.fixPath(runtime_path .. "/status_definitions/pro"),
 
     -- Locales
-    locales = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/locales"),
+    locales = os_utils.fixPath(runtime_path .. "/locales"),
 
     -- Timeseries
-    ts_schemas = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/ts_schemas"),
+    ts_schemas = os_utils.fixPath(runtime_path .. "/ts_schemas"),
 
     -- Web Gui
-    web_gui = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/scripts",
-    menu_items = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/menu_items",
+    web_gui = os_utils.fixPath(runtime_path) .. "/scripts",
+    menu_items = os_utils.fixPath(runtime_path) .. "/menu_items",
 
     -- Alert endpoints
-    alert_endpoints = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/alert_endpoints",
+    alert_endpoints = os_utils.fixPath(runtime_path) .. "/alert_endpoints",
 
     -- HTTP lint
-    http_lint = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH) .. "/http_lint",
+    http_lint = os_utils.fixPath(runtime_path) .. "/http_lint",
 
     -- User scripts
-    interface_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/interface/interface"),
-    host_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/interface/host"),
-    network_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/interface/network"),
-    flow_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/interface/flow"),
-    syslog = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/system/syslog"),
-    snmp_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/system/snmp_device"),
-    system_scripts = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/callbacks/system/system"),
+    interface_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/interface"),
+    host_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/host"),
+    network_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/network"),
+    flow_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/flow"),
+    syslog = os_utils.fixPath(runtime_path .. "/callbacks/system/syslog"),
+    snmp_scripts = os_utils.fixPath(runtime_path .. "/callbacks/system/snmp_device"),
+    system_scripts = os_utils.fixPath(runtime_path .. "/callbacks/system/system"),
   }
 end
 
@@ -417,7 +441,9 @@ end
 -- ##############################################
 
 -- @brief Loads the ntopng plugins into a single directory tree.
--- @notes This should be called at startup
+-- @notes This should be called at startup. It clears and populates the
+-- shadow_dir first, then swaps it with the current_dir. This prevents
+-- other threads to see intermediate states and half-populated directories.
 function plugins_utils.loadPlugins(community_plugins_only)
   local locales_utils = require("locales_utils")
   local plugins = plugins_utils.listPlugins()
@@ -426,22 +452,26 @@ function plugins_utils.loadPlugins(community_plugins_only)
   local endpoints_prefs_entries = {}
   local path_map = {}
   local en_locale = locales_utils.readDefaultLocale()
+  local current_dir = ntop.getCurrentPluginsDir()
+  local shadow_dir = ntop.getShadowPluginsDir()
 
-  -- Remove previously loaded plugins
-  ntop.rmdir(plugins_utils.PLUGINS_RUNTIME_PATH)
-  deleteCachePattern("ntonpng.cache.user_scripts.available_system_modules.*")
+  -- Clean up the shadow directory
+  ntop.rmdir(shadow_dir)
+
+  -- Use the shadow directory as the new base
+  clearInternalState()
+  cached_runtime_dir = shadow_dir
+
+  init_runtime_paths()
 
   -- Note: load these only after cleaning the old plugins, to avoid
   -- errors due to ntopng version change (e.g. after adding the --community switch)
   local alert_consts = require("alert_consts")
   local flow_consts = require("flow_consts")
 
-  -- Initialize directories
-  init_runtime_paths()
-
   -- Ensure that the directory is writable
-  ntop.mkdir(plugins_utils.PLUGINS_RUNTIME_PATH)
-  local test_file = os_utils.fixPath(plugins_utils.PLUGINS_RUNTIME_PATH .. "/test")
+  ntop.mkdir(shadow_dir)
+  local test_file = os_utils.fixPath(shadow_dir .. "/test")
 
   local outfile, err = io.open(test_file, "w")
   if(outfile) then
@@ -450,7 +480,10 @@ function plugins_utils.loadPlugins(community_plugins_only)
 
   if(outfile == nil) then
     traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Cannot write to the plugins directory: %s. Plugins will not be loaded!",
-      err or plugins_utils.PLUGINS_RUNTIME_PATH))
+      err or shadow_dir))
+
+    clearInternalState()
+
     return(false)
   end
 
@@ -521,8 +554,13 @@ function plugins_utils.loadPlugins(community_plugins_only)
     plugins = loaded_plugins,
     path_map = path_map,
   }
-  persistence.store(plugins_utils.PLUGINS_RUNTIME_METADATA, plugins_metadata)
-  ntop.setDefaultFilePermissions(plugins_utils.PLUGINS_RUNTIME_METADATA)
+  persistence.store(getMetadataPath(), plugins_metadata)
+  ntop.setDefaultFilePermissions(getMetadataPath())
+
+  -- Swap the active plugins directory with the shadow
+  clearInternalState()
+  ntop.swapPluginsDir()
+  deleteCachePattern("ntonpng.cache.user_scripts.available_system_modules.*")
 
   -- Reload the periodic scripts to load the new plugins
   ntop.reloadPeriodicScripts()
@@ -660,7 +698,7 @@ end
 
 local function load_metadata()
   if(METADATA == nil) then
-    METADATA = dofile(plugins_utils.PLUGINS_RUNTIME_METADATA)
+    METADATA = dofile(getMetadataPath())
   end
 end
 
