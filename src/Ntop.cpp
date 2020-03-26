@@ -124,7 +124,6 @@ Ntop::Ntop(char *appName) {
     snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
 
   cur_plugins_dir = 0;
-  refreshPluginsDir();
 
   //umask(0);
   
@@ -149,6 +148,8 @@ Ntop::Ntop(char *appName) {
     }
   }
 #endif
+
+  refreshPluginsDir();
 
 #ifdef NTOPNG_PRO
   pro = new NtopPro();
@@ -2827,9 +2828,9 @@ void Ntop::refreshPluginsDir() {
 
 #ifdef WIN32
   snprintf(plugins_dir, sizeof(plugins_dir), "%s\\%s", get_working_dir(), current_dir);
-  snprintf(shadow_plugins_dir, sizeof(plugins_dir), "%s\\%s", get_working_dir(), shadow_dir);
+  snprintf(shadow_plugins_dir, sizeof(shadow_plugins_dir), "%s\\%s", get_working_dir(), shadow_dir);
 #else
   snprintf(plugins_dir, sizeof(plugins_dir), "%s/%s", get_working_dir(), current_dir);
-  snprintf(shadow_plugins_dir, sizeof(plugins_dir), "%s/%s", get_working_dir(), shadow_dir);
+  snprintf(shadow_plugins_dir, sizeof(shadow_plugins_dir), "%s/%s", get_working_dir(), shadow_dir);
 #endif
 }
