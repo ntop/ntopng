@@ -36,9 +36,8 @@ will start and ntopng will be installed, along with its dependencies.
 The installation procedure installs
 
 - ntopng
-- `WinPcap <https://www.winpcap.org/>`_ or `Win10Pcap
-  <http://www.win10pcap.org>`_ drivers, depending on the Windows
-  version
+- `Win10Pcap
+  <http://www.win10pcap.org>`_ drivers.
 - `Microsoft Visual C++ Redistributable
   <https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads>`_
 - `Redis <https://redis.io/>`_
@@ -66,6 +65,11 @@ in the ntopng installer.
    installation, without any extra step to download or install npcap
    drivers.
 
+The windows package does NOT contain geolocation files, due to restrictions as
+reported later in this section. So you need to download the geolocation files
+and then copy them into C:\Program Files\ntopng\httpdocs\geoip\ directory, and
+then restart ntopng.
+   
   
 Licensing
 =========
