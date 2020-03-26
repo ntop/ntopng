@@ -13,7 +13,7 @@ local custom_column_pref_key = "ntopng.prefs.custom_column"
 --            AND host_search_walker:NetworkInterface.cpp
 --            AND NetworkInterface::getFlows()
 custom_column_utils.available_custom_columns = {
-   -- KEY  LABEL   Host::lua()-label  formatting
+   -- KEY  LABEL   Host::lua()_label  formatting  additonal_url  hidden
    { "traffic_sent", i18n("flows_page.total_bytes_sent"), "bytes.sent", bytesToSize, "right" },
    { "traffic_rcvd", i18n("flows_page.total_bytes_rcvd"), "bytes.rcvd", bytesToSize, "right" },
    { "traffic_unknown", i18n("flows_page.total_bytes_unknown"), "bytes.ndpi.unknown", bytesToSize, "right" },
@@ -25,12 +25,9 @@ custom_column_utils.available_custom_columns = {
    { "total_num_unreachable_flows_as_server", i18n("total_incoming_unreachable_flows"), "unreachable_flows.as_server", format_utils.formatValue, "center" },
    { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center", "page=alerts" },
    { "total_alerts", i18n("alerts_dashboard.total_alerts"), "total_alerts", format_utils.formatValue, "center" },
+   { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) }
 }
 local available_custom_columns = custom_column_utils.available_custom_columns
-
-if isScoreEnabled() then
-   available_custom_columns[#available_custom_columns + 1] = { "score", i18n("score"), "score", format_utils.formatValue, "center" }
-end
 
 -- ###########################################
 
@@ -163,6 +160,11 @@ function custom_column_utils.printCustomColumnDropdown(base_url, page_params)
    for _, lg in ipairs(custom_column_utils.available_custom_columns) do
       local key = lg[1]
       local label = lg[2]
+      local hidden = lg[7]
+
+      if hidden then
+	 goto continue
+      end
 
       print[[<li><a class="dropdown-item ]] print(custom_column == label and 'active' or '') print[[" href="]] custom_column_params["custom_column"] = key; print(getPageUrl(base_url, custom_column_params)); print[[">]] print(label) print[[</a></li>]]
 
