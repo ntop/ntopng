@@ -144,7 +144,7 @@ class BlogFeed {
                 aDayIsPassed = true;
             }
             else {
-                aDayIsPassed = Math.floor((Date.now() - currentLocalStorage.lastCheck) / 86400000) >= 1
+                aDayIsPassed = Math.floor((Date.now() - currentLocalStorage.lastCheck) / 86400000) >= 1;
             }
         }
 
@@ -253,9 +253,12 @@ class BlogFeed {
     static saveDownloadedPosts(downloadedPosts) {
 
         localStorage.removeItem('blog_feed');
+        let date = Date.now();
         localStorage.setItem('blog_feed', JSON.stringify({
-            lastCheck: Date.now(),
-            downloadedPosts: downloadedPosts,
+            lastCheck: date,
+            downloadedPosts: [
+                downloadedPosts[0], downloadedPosts[1], downloadedPosts[2]
+            ],
         }));
     }
 
