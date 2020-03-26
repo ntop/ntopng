@@ -12,6 +12,7 @@ Developing Plugins
     alert_definitions
     flow_status_definitions
     user_scripts
+    user_script_hooks
     localization
     web_ui
     distributing_plugins

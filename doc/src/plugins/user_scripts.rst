@@ -37,73 +37,25 @@ The structure of a user script is the following:
   return(script)
 
 
-Every user script must return a :code:`script` with the following keys:
+Every user script must return a Lua table with the following keys:
 
-  - :code:`hooks` (mandatory): a map :code:`hook -> callback`
-    which defines on which :code:`hook` the :code:`callback` is called. User scripts must register to at least one hook. The list of available hooks depends on the script type. :ref:`Flow User Scripts` hooks 	are different from :ref:`Other User Scripts` hooks.
-  - :code:`gui` (optional): See :ref:`Web UI` for additional details
-  - :code:`local_only` (optional, hosts only): if true, the user script
-    is only executed for local hosts.
-  - :code:`packet_interface_only` (optional): only execute the script
-    on packet interfaces, excluding ZMQ interfaces.
-  - :code:`l4_proto` (optional, flows only): only execute the script
-    for flows matching the L4 protocol.
-  - :code:`l7_proto` (optional, flows only): only execute the script
-    for flows matching the L7 application protocol.
-  - :code:`nedge_only` (optional): if true, the script is only
-    executed in nEdge
-  - :code:`nedge_exclude` (optional): if true, the script is not
-    executed in nEdge
-  - :code:`default_value` (optional): the default value for the script
-    configuration, in the form :code:`<script_key>;<operator>;<value>`
-    (e.g. :code:`syn_flood_victim;gt;50`)
-  - :code:`default_enabled` (optional): if false, the script is
-    disabled by default
+  - :code:`hooks`: a Lua table with hook names as key and callbacks as values. :ref:`User Script Hooks` are events or points in time. ntopng uses hooks to know when to call a user script. A user script defining a hook will get the hook callaback called by ntopng. User scripts must register to at least one hook. See :ref:`User Script Hooks`.
+  - :code:`gui`: a Lua table specifying user script name, description and configuration. Data is used by ntopng to show the user script configurable from the :ref:`Web UI`.
+  - :code:`local_only` (optional, hosts only): if true, the user script is only executed for local hosts.
+  - :code:`packet_interface_only` (optional): only execute the script on packet interfaces, excluding ZMQ interfaces.
+  - :code:`l4_proto` (optional, flows only): only execute the script for flows matching the L4 protocol.
+  - :code:`l7_proto` (optional, flows only): only execute the script for flows matching the L7 application protocol.
+  - :code:`nedge_only` (optional): if true, the script is only executed in nEdge.
+  - :code:`nedge_exclude` (optional): if true, the script is not executed in nEdge.
+  - :code:`default_value` (optional): the default value for the script configuration, in the form :code:`<script_key>;<operator>;<value>`
+    (e.g. :code:`syn_flood_victim;gt;50`). See :ref:`Web UI`.
+  - :code:`default_enabled` (optional): if false, the script is disabled by default.
 
-Furthermore, a script may define the following extra callbacks, which
-are only called once per script:
+Furthermore, a script may define the following extra functions, which are only called once per script:
 
-  - :code:`setup()`: called once per user
-    script. If it returns :code:`false` then the script is considered
+  - :code:`setup()`: called once per user script. If it returns :code:`false` then the script is considered
     disabled and its hooks are not be called.
-  - :code:`teardown()`: called after the script
-    operation is complete (e.g. after all the hosts have been iterated
-    and hooks called).
-
-.. _Hooks:
-
-Hooks
------
-
-ntopng uses hooks to know when a certain user script needs to be executed. Hooks are string keys of the plugin :code:`hooks` table and have a :code:`callback` function assigned. Strings identify:
-
-- Predefined events for flows
-- Intervals of time for any other network element such as an host, or a network
-
-So for example a user script which needs to be called every minute will implement a function
-and assign it to hook :code:`min`. Similarly, a user script which needs to be called every time a flow goes idle, will implement a function and assign it to hook :code:`flowEnd`.
-
-:code:`all` is a special hook name which will cause the associated callback to be called for all the events.
-
-A callback function has the following form:
-
-.. code:: lua
-
-  function my_callback(params)
-    -- ...
-  end
-
-The information contained into the params table depends on the script type:
-
-  - :code:`granularity` (traffic element only): the current granularity
-  - :code:`alert_entity` (traffic element only): the traffic element entity type
-  - :code:`entity_info` (traffic element only): contains entity specific data (e.g. on hosts, it is the output of :code:`Host:lua()`)
-
-It is the ntopng engine which takes care of calling the hook callback function
-with table :code:`params` opportunely populated.
-
-Hooks and user scripts are described in detail for flows and other
-network elements in the reminder of this section.
+  - :code:`teardown()`: called after the script operation is complete (e.g. after all the hosts have been iterated and hooks called).
 
 
 .. _Flow User Scripts:
@@ -111,14 +63,8 @@ network elements in the reminder of this section.
 Flow User Scripts
 -----------------
 
-Flow user scripts are executed on each network flow. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
+Flow user scripts are executed on each network flow. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things. Refer to :ref:`Flow User Script Hooks` for available hooks.
 
-Available hooks for flow user scripts are the following:
-
-  - :code:`protocolDetected`: called after the Layer-7 application protocol has been detected
-  - :code:`statusChanged`: called when the internal status of the flow has changed since the previous invocation. The flow status can be used to detect anomalous behaviors.
-  - :code:`periodicUpdate`: called every few minutes on long-lived flows
-  - :code:`flowEnd`: called when the flow is considered finished
 
 .. _Setting Flow Statuses:
 
@@ -147,13 +93,7 @@ ntopng supports users scripts for the following traffic elements:
   - :code:`system`: the system on top of which is running ntopng
   - :code:`SNMP interfaces`: interfaces of monitored SNMP devices
 
-Traffic element scripts are called periodically. Available hooks are the following:
-
-  - :code:`min`: called every minute
-  - :code:`5mins`: called every 5 minutes
-  - :code:`hour`: called every hour
-  - :code:`day`: called every day (at midnight)
-
+Refer to :ref:`Other User Script Hooks` for available hooks.
 
 Syslog User Scripts
 -------------------
