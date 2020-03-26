@@ -29,10 +29,9 @@
 
 /* **************************************************** */
 
-PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
+PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterface(name) {
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
- struct stat buf;
-
+  struct stat buf;
 
   pcap_handle = NULL, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
@@ -89,7 +88,8 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 	free(tmp);
       }
       
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from interface %s...", ifname);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [id: %d]", 
+          ntop->getPrefs()->get_if_descr(ifIdx), ifIdx);
       read_pkts_from_pcap_dump = false;
       pcap_datalink_type = pcap_datalink(pcap_handle);
 
@@ -237,7 +237,7 @@ static void* packetPollLoop(void* ptr) {
 
     firstPktTS.tv_sec = 0;
 
-    while((pd != NULL) 
+    while((pd != NULL)
 	  && iface->isRunning() 
 	  && (!ntop->getGlobals()->isShutdown())) {
       const u_char *pkt;
@@ -337,7 +337,7 @@ static void* packetPollLoop(void* ptr) {
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
-			       iface->get_name());
+			       iface->get_description());
 
 #ifdef HAVE_TEST_MODE
   char test_path[MAX_PATH];

@@ -543,7 +543,7 @@ NetworkInterface::~NetworkInterface() {
   if(getNumPackets() > 0) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Flushing host contacts for interface %s",
-				 get_name());
+                get_description());
     cleanup();
   }
 
@@ -603,10 +603,9 @@ NetworkInterface::~NetworkInterface() {
   if(influxdb_ts_exporter)  delete influxdb_ts_exporter;
   if(rrd_ts_exporter)       delete rrd_ts_exporter;
   if(ts_ring)               delete ts_ring;
-  if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolved has time to initialize */
   if(dhcp_ranges)           delete[] dhcp_ranges;
   if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
-
+  if (mdns)                 delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
 }
 
@@ -2328,10 +2327,10 @@ void NetworkInterface::startPacketPolling() {
     if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
       if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
         ntop->getTrace()->traceEvent(TRACE_WARNING, "Couldn't set affinity of interface %s to core %d",
-				     get_name(), cpu_affinity);
+				     get_description(), cpu_affinity);
       else
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
-				     get_name(), cpu_affinity);
+            get_description(), cpu_affinity);
     }
 
 #ifdef __linux__
@@ -2343,7 +2342,7 @@ void NetworkInterface::startPacketPolling() {
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",
-			       get_name(), get_id());
+      get_description(), get_id());
 
   running = true;
 }
@@ -2382,7 +2381,7 @@ void NetworkInterface::cleanup() {
   if(vlans_hash)      vlans_hash->cleanup();
   if(macs_hash)       macs_hash->cleanup();
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_description());
 }
 
 /* **************************************************** */
