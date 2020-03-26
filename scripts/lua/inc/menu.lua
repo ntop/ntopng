@@ -547,13 +547,17 @@ page_utils.add_menubar_section(
             entry = page_utils.menu_entries.telegram,
             url = 'https://t.me/ntop_community',
          },
-         {
-            entry = page_utils.menu_entries.report_issue,
-            url = 'https://github.com/ntop/ntopng/issues',
-         },
+
          {
             entry = page_utils.menu_entries.manual,
             url = 'https://www.ntop.org/guides/ntopng/',
+         },
+         {
+            entry = page_utils.menu_entries.divider
+         },
+         {
+            entry = page_utils.menu_entries.report_issue,
+            url = 'https://github.com/ntop/ntopng/issues',
          },
          {
             entry = page_utils.menu_entries.suggest_feature,
