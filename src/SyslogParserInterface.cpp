@@ -38,7 +38,7 @@ void SyslogParserInterface::startPacketPolling() {
   /* Allocate the SyslogLuaEngine only after the plugins have been loaded */
   le = new SyslogLuaEngine(this);
 
-  ParserInterface::startPacketPolling();
+  ParserInterface::startPacketPolling(); /* -> NetworkInterface::startPacketPolling(); */
 }
 
 /* **************************************************** */
@@ -69,7 +69,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   int num_flows = 0;
 
 #ifdef SYSLOG_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[SYSLOG] Raw message: %s", log_line);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Raw message: %s", log_line);
 #endif
 
   /*
