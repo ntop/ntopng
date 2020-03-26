@@ -175,26 +175,26 @@ end
 
 -- ##############################################
 
---! @brief Determine whether the alert has already been triggered
---! @param candidate_severity the candidate alert severity
---! @param candidate_type the candidate alert type
---! @param candidate_granularity the candidate alert granularity
---! @param candidate_alert_subtype the candidate alert subtype
---! @param cur_alerts a table of currently triggered alerts
---! @return true on if the alert has already been triggered, false otherwise
---!
---! @note Example of cur_alerts
---! cur_alerts table
---! cur_alerts.1 table
---! cur_alerts.1.alert_type number 2
---! cur_alerts.1.alert_subtype string min_bytes
---! cur_alerts.1.alert_entity_val string 192.168.2.222@0
---! cur_alerts.1.alert_granularity number 60
---! cur_alerts.1.alert_severity number 2
---! cur_alerts.1.alert_json string {"metric":"bytes","threshold":1,"value":13727070,"operator":"gt"}
---! cur_alerts.1.alert_tstamp_end number 1571328097
---! cur_alerts.1.alert_tstamp number 1571327460
---! cur_alerts.1.alert_entity number 1
+-- @brief Determine whether the alert has already been triggered
+-- @param candidate_severity the candidate alert severity
+-- @param candidate_type the candidate alert type
+-- @param candidate_granularity the candidate alert granularity
+-- @param candidate_alert_subtype the candidate alert subtype
+-- @param cur_alerts a table of currently triggered alerts
+-- @return true on if the alert has already been triggered, false otherwise
+--
+-- @note Example of cur_alerts
+-- cur_alerts table
+-- cur_alerts.1 table
+-- cur_alerts.1.alert_type number 2
+-- cur_alerts.1.alert_subtype string min_bytes
+-- cur_alerts.1.alert_entity_val string 192.168.2.222@0
+-- cur_alerts.1.alert_granularity number 60
+-- cur_alerts.1.alert_severity number 2
+-- cur_alerts.1.alert_json string {"metric":"bytes","threshold":1,"value":13727070,"operator":"gt"}
+-- cur_alerts.1.alert_tstamp_end number 1571328097
+-- cur_alerts.1.alert_tstamp number 1571327460
+-- cur_alerts.1.alert_entity number 1
 local function already_triggered(cur_alerts, candidate_severity, candidate_type,
 	candidate_granularity, candidate_alert_subtype)
    for i = #cur_alerts, 1, -1 do
