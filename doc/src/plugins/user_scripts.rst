@@ -71,14 +71,34 @@ Flow user scripts are executed on each network flow. The user script have access
 Setting Flow Statuses
 ~~~~~~~~~~~~~~~~~~~~~
 
-TBD
+Flow statuses are set with
+
+.. code:: lua
+
+  flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
+
+
+See `flow.lua <https://github.com/ntop/ntopng/blob/dev/scripts/callbacks/interface/flow.lua>`_ for the source code. Parameters are:
+
+- :code:`flow_status_type`: flow status as described in :ref:`Flow Definitions`.
+- :code:`flow_score`: A score to be assigned to the current flow
+- :code:`cli_score`: A score to be added to the score of the flow client
+- :code:`srv_score`: A score to be added to the score to the flow server
+
+Setting a flow status will cause ntopng to show it across the interface.
 
 .. _Triggering Flow Alerts:
 
 Triggering Flow Alerts
 ~~~~~~~~~~~~~~~~~~~~~~
 
-TBD
+A status can also determine the triggering of an alert. Triggering an alert is done calling
+
+.. code:: lua
+
+  flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score, srv_score, custom_severity)
+
+See `flow.lua <https://github.com/ntop/ntopng/blob/dev/scripts/callbacks/interface/flow.lua>`_ for the source code. Parameters are those described in :ref:`Setting Flow Statuses` plus a :code:`custom_severity`.
 
 .. _Other User Scripts:
 
