@@ -8,7 +8,7 @@ server.
 Installation
 ============
 
-ntopng is opensource and available on `GitHub
+ntopng is open source and available on `GitHub
 <https://github.com/ntop/ntopng>`_. In addition, pre-compiled, binary
 ntopng packages are available both for Linux and Windows. Installation
 instructions for binary packages are available below.
@@ -17,14 +17,14 @@ Installing on Linux
 -------------------
 
 Installation instructions can be found at
-http://packages.ntop.org/. Nightly and stable builds are
+http://packages.ntop.org/. Development and stable builds are
 available. Stable builds are intended for production environments whereas
-nightly builds are intended for testing.
+development builds are intended for testing or early feature access.
 
 Installing on Windows
 ---------------------
 
-Only the nightly build binary is available for windows. The binary can
+Only the development build binary is available for windows. The binary can
 be downloaded from the `Windows package repository
 <https://packages.ntop.org/Windows/>`_.
 
@@ -50,7 +50,7 @@ The installation procedure installs
    to respond 'No' or click 'Cancel' when prompted to install WinPcap
    drivers, Microsoft Visual C++ Redistributable, and Redis.
 
-By default, the ntopng installer comes with WinPcap drivers. However,
+By default, the ntopng installer comes with Win10Pcap drivers. However,
 if using a recent Windows version (e.g., Windows 10), it is
 recommended to install `npcap drivers <https://nmap.org/npcap/>`_
 before installing ntopng and then, when prompted by the ntopng
