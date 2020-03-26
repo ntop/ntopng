@@ -91,7 +91,7 @@ function script.hooks.min(info)
     -- Calculate the delta bytes wrt the previous hook run
     bytes_delta = alerts_api.interface_delta_val(script.key, info.granularity, info.entity_info["ndpi"]["HTTP"]["bytes.sent"])
 
-    if(bytes_delta > info.alert_config.max_sent_http_bytes) then
+    if(bytes_delta > info.user_script_config.max_sent_http_bytes) then
       exceeded = true
     end
   end

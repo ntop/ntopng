@@ -841,7 +841,7 @@ end
 -- TODO document
 function alerts_api.checkThresholdAlert(params, alert_type, value)
   local script = params.user_script
-  local threshold_config = params.alert_config
+  local threshold_config = params.user_script_config
   local alarmed = false
 
   local threshold_type = {

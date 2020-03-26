@@ -37,7 +37,7 @@ local function request_reply_ratio(params)
     local req_repl_type = alerts_api.requestReplyRatioType(key, requests, replies, params.granularity)
 
     -- 10: some meaningful value
-    if((requests + replies > 10) and (ratio < tonumber(params.alert_config.threshold))) then
+    if((requests + replies > 10) and (ratio < tonumber(params.user_script_config.threshold))) then
       alerts_api.trigger(params.alert_entity, req_repl_type, nil, params.cur_alerts)
     else
       alerts_api.release(params.alert_entity, req_repl_type, nil, params.cur_alerts)

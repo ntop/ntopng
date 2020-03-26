@@ -9,7 +9,7 @@ local user_scripts = require("user_scripts")
 -- #################################################################
 
 local function check_interface_idle(params)
-  local threshold = tonumber(params.alert_config.threshold)
+  local threshold = tonumber(params.user_script_config.threshold)
   local engage = false
   local max_idle = 0
   local max_idle_perc = 0

@@ -80,7 +80,7 @@ function runScripts(granularity)
 	      alert_entity = entity_info,
 	      entity_info = info,
 	      cur_alerts = cur_alerts,
-	      alert_config = conf.script_conf,
+	      user_script_config = conf.script_conf,
 	      user_script = user_script,
 	    })
 	 end
