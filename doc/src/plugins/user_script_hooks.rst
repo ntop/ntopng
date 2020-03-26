@@ -69,17 +69,17 @@ ntopng calls every user script hook function with a :code:`params` Lua table as 
     -- ...
   end
 
-The :code: `params` contains the following keys:
+The :code:`params` contains the following keys:
 
-  -:code:`granularity`: one of :code:`aperiodic`, :code:`min`, :code:`5mins`, :code:`hour`, :code:`day`.
-  -:code:`alert_entity`: A table carrying information on the current entity which can be used to generate alerts.
-  -:code:`entity_info`: A string identifying the current entity.
-  -:code:`cur_alerts`: Currently engaged alert for the entity.
-  -:code:`user_script_config`: The user script configuration submitted by the user from the :ref:`Web UI`. Table can be empty if the script doesn not require user-submitted configuration.
-  -:code:`user_script`: The name of the user script which is being called.
-  -:code:`when`: An integer indicating the current epoch.
-  -:code:`ifid`: The interface id of the current interface.
-  -:code:`ts_enabled`: True when the timeseries generation is enabled for the current timeseries.
+  - :code:`granularity`: one of :code:`aperiodic`, :code:`min`, :code:`5mins`, :code:`hour`, :code:`day`.
+  - :code:`alert_entity`: A table carrying information on the current entity which can be used to generate alerts.
+  - :code:`entity_info`: A string identifying the current entity.
+  - :code:`cur_alerts`: Currently engaged alert for the entity.
+  - :code:`user_script_config`: The user script configuration submitted by the user from the :ref:`Web UI`. Table can be empty if the script doesn not require user-submitted configuration.
+  - :code:`user_script`: The name of the user script which is being called.
+  - :code:`when`: An integer indicating the current epoch.
+  - :code:`ifid`: The interface id of the current interface.
+  - :code:`ts_enabled`: True when the timeseries generation is enabled for the current timeseries.
 
 It is ntopng which takes care of calling the hook callback function with table :code:`params` opportunely populated.
 
