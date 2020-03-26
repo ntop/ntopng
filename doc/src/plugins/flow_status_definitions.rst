@@ -3,19 +3,43 @@
 Flow Status Definitions
 =======================
 
-A plugin enables one or more statuses to be set on certain flows. A flow can have multiple statuses associated. An alert can be associated to each status. Flow statuses must be defined in :code:`./status_definitions/` and they are set calling :code:`flow.triggerStatus`. Definition is done using a Lua files, one file per status.
+A plugin enables one or more statuses to be set on certain flows. A flow can have multiple statuses set and statuses can be associated to alerts. Flow statuses must be defined in plugin sub-directory :code:`./status_definitions/` and they are set calling :code:`flow.triggerStatus`. Definition is done using a Lua files, one file per status.
 
-A flow status definition file must return a lua table with the following keys:
+A flow status definition file must return a Lua table with the following keys:
 
-- :code:`i18n_title`: A title for the flow status. This title is shown within the ntopng Web UI, for example to filter active flows on their status, or when browsing historical flows. For the rules of how to specify this title, refer to :code:`i18n_title` in :ref:`Alert Definitions`.
-- :code:`i18n_description`: A description for the flow status. This description is shown within the web user interface and follows the same rules as the :code:`i18n_description` in :ref:`Alert Definitions`.
-- :code:`alert_type` (optional): When an alert needs to be associated to the status, this key must be present. Key has the structure :code:`alert_consts.alert_types.<an alert key>`, where :code:`<an alert key>` is the file name of an alert definition without the :code:`.lua` suffix.
-- :code:`alert_severity` (optional): When an alert needs to be associated to the status, this key indicated the severity of the alert. Key has the structure :code:`alert_consts.alert_severities.<alert severity>`, where :code:`<alert severity>` is one among the available `alert severities <https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/alert_consts.lua>`_.
+- :code:`i18n_title`: A string indicating the title of the status. ntopng localizes the string as described in :ref:`Plugin Localization`.
+- :code:`i18n_description` (optional): Either a string with the flow status description or a function returning a flow status description string. When :code:`i18n_description` is a string, ntopng localizes as described in :ref:`Plugin Localization`.
+- :code:`alert_type` (optional): When an alert is associated to the flow status, this key must be present. Key has the structure :code:`alert_consts.alert_types.<an alert key>`, where :code:`<an alert key>` is the name of a file created in :ref:`Alert Definitions`, without the :code:`.lua` suffix.
+- :code:`alert_severity` (optional): When an alert is associated to the flow status, this key indicates the severity of the alert. Key has the structure :code:`alert_consts.alert_severities.<alert severity>`, where :code:`<alert severity>` is one among the available `alert severities <https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/alert_consts.lua>`_.
+
+.. _Flow Status Description:
+
+Flow Status Description
+-----------------
+
+Flow Status description :code:`i18n_description` can be either a string with the flow status description or a function returning a flow status description string.
+
+String
+~~~~~~
+
+When the flow status description is string, it is localized as described in :ref:`Plugin Localization`. A :code:`flowstatus_info` table is passed as the parameters table for the localization. Keys and values of :code:`flowstatus_info` can be used to add parameters to the localization string. Refer to :ref:`Flow User Scripts` to see how to create and pass :code:`flowstatus_info`.
+
+Function
+~~~~~~~~
+
+When the flow status description is a function, it gets called with one parameter:
+
+- :code:`flowstatus_info`: A Lua table containing the details of the flow status.
+
+Refer to :ref:`Flow User Scripts` for additional details on this parameter.
+
+The function is expected to return a string which is possibly localized. It is up to the plugin to call the :code:`i18n()` localization function to do the actual localization. ntopng will not perform any localization on the returned value of the function.
+
 
 Example
 -------
 
-Example considers :ref:`Blacklisted Flows` plugin created in the :ref:`Plugin Examples`. It's :code:`./status_definitions` `sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/blacklisted/status_definitions>`_ contains file :code:`status_blacklisted.lua`. Contents of this file are
+Consider :ref:`Blacklisted Flows` plugin created in the :ref:`Plugin Examples`. It's :code:`./status_definitions` `sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/blacklisted/status_definitions>`_ contains file :code:`status_blacklisted.lua`. Contents of this file are
 
 .. code:: lua
 
@@ -65,4 +89,6 @@ Example considers :ref:`Blacklisted Flows` plugin created in the :ref:`Plugin Ex
      }
 
 
-This file returns a Lua table with the keys as highlighted above. The :code:`i18n_description` is a function which receives as input parameter a table with the flow details, and return a localized string built using the flow details received as input.
+This file returns a Lua table with four keys. An alert is associated to :code:`status_blacklisted`, so both keys :code:`alert_severity` and :code:`alert_type` must be specified. Key :code:`alert_type` indicates the alert which is going to be triggered is :code:`alert_flow_blacklisted`. ntopng retrieves the alert definition as there is an alert definition file `alert_flow_blacklisted.lua <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/blacklisted/alert_definitions/alert_flow_blacklisted.lua>`_.
+
+The :code:`i18n_description` is assigned to the :code:`local function formatBlacklistedFlow`. ntopng will call this function to generate the description of the status. The function takes care of producing a formatted, localized output.

@@ -31,7 +31,7 @@ When the alert description is string, it is localized as described in :ref:`Plug
 Function
 ~~~~~~~~
 
-When the alert description is a function, it gets called by the plugin with three parameters:
+When the alert description is a function, it gets called with three parameters:
 
 - :code:`ifid`: An integer number uniquely identifying the interface which is triggering the alert.
 - :code:`alert`: A Lua table containing the details of the alert.

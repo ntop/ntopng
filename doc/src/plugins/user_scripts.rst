@@ -120,6 +120,19 @@ Available hooks for flow user scripts are the following:
   - :code:`periodicUpdate`: called every few minutes on long-lived flows
   - :code:`flowEnd`: called when the flow is considered finished
 
+.. _Setting Flow Statuses:
+
+Setting Flow Statuses
+~~~~~~~~~~~~~~~~~~~~~
+
+TBD
+
+.. _Triggering Flow Alerts:
+
+Triggering Flow Alerts
+~~~~~~~~~~~~~~~~~~~~~~
+
+TBD
 
 .. _Other User Scripts:
 
