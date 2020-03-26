@@ -343,7 +343,8 @@ static void* messagePollLoop(void* ptr) {
 void SyslogCollectorInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, messagePollLoop, (void*)this);
   pollLoopCreated = true;
-  NetworkInterface::startPacketPolling();
+
+  SyslogParserInterface::startPacketPolling();
 }
 
 /* **************************************************** */
