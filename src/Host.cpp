@@ -621,7 +621,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_get_os(vm);
   lua_get_host_pool(vm);
 
-  stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose,host_details));
+  stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose, host_details));
 
   lua_get_num_flows(vm);
   lua_get_num_contacts(vm);
@@ -643,9 +643,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     }
 
     luaStrTableEntryLocked(vm, "ssdp", ssdpLocation); /* locked to protect against data-reset changes */
-  }
 
-  if(host_details) {
     /* ifid is useful for example for view interfaces to detemine
        the actual, original interface the host is associated to. */
     lua_push_uint64_table_entry(vm, "ifid", iface->get_id());

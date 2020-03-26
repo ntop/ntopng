@@ -8192,6 +8192,25 @@ static int ntop_set_hash_redis(lua_State* vm) {
 /* ****************************************** */
 
 // ***API***
+static int ntop_set_resolved_address(lua_State* vm) {
+  char *ip, *name;
+  Redis *redis = ntop->getRedis();
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((ip = (char*)lua_tostring(vm, 1)) == NULL)   return(CONST_LUA_PARAM_ERROR);
+  if((name = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  redis->setResolvedAddress(ip, name);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// ***API***
 static int ntop_delete_hash_redis_key(lua_State* vm) {
   char *key, *member;
 
@@ -11752,6 +11771,7 @@ static const luaL_Reg ntop_reg[] = {
   { "dumpCache",         ntop_redis_dump },
   { "restoreCache",      ntop_redis_restore },
   { "addLocalNetwork",   ntop_add_local_network },
+  { "setResolvedAddress",ntop_set_resolved_address },
 
   /* Redis Preferences */
   { "setPref",           ntop_set_preference },

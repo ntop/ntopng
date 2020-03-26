@@ -29,7 +29,7 @@ local external_stats_key = "ntopng.prefs.ifid_"..tostring(interface.getId())..'.
 
 -- #################################################################
 
--- The function below ia called once (#pragma once)
+-- The function below is called once (#pragma once)
 function syslog_module.setup()
    -- Cleanup old stats, if any
    ntop.delCache(external_stats_key)
@@ -236,7 +236,7 @@ end
 
 -- #################################################################
 
--- The function below ia called once (#pragma once)
+-- The function below is called once (#pragma once)
 function syslog_module.teardown()
    return true
 end
