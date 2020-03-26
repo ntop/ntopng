@@ -750,19 +750,19 @@ void Ntop::loadLocalInterfaceAddress() {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
 	u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
 	
-	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
-	snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %",
-				     buf, iface[id]->get_name());
-	address->setLocalNetwork(buf);
-	iface[id]->addInterfaceNetwork(buf);
-	
 	IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
 	snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
 	local_interface_addresses.addAddress(buf);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s",
-				     buf, iface[id]->get_name());
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 NIC addr. [%s]",
+				     buf, iface[id]->get_description());
 	iface[id]->addInterfaceAddress(buf);
+
+	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+	snprintf(buf2, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local nw [%s]",
+				     buf2, iface[id]->get_description());
+	address->setLocalNetwork(buf2);
+	iface[id]->addInterfaceNetwork(buf2, buf);
       }
     }
   }
@@ -2319,7 +2319,7 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Skipping duplicated interface %s", _if->get_name());
+				   "Skipping duplicated interface %s", _if->get_description());
 
       rv = false;
       goto out;
@@ -2328,7 +2328,7 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
 
   if(num_defined_interfaces < MAX_NUM_DEFINED_INTERFACES) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface %s [id: %d]",
-				 _if->get_name(), _if->get_id());
+				 _if->get_description(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
 
     rv = true;
@@ -2408,7 +2408,8 @@ void Ntop::shutdown() {
 
     stats->print();
     iface[i]->shutdown();
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]", iface[i]->get_name());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
+        iface[i]->get_description());
   }
 }
 

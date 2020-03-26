@@ -36,7 +36,7 @@ class PcapInterface : public NetworkInterface {
   void cleanupPcapDumpDir();
 
  public:
-  PcapInterface(const char *name);
+  PcapInterface(const char *name, u_int8_t ifIdx);
   virtual ~PcapInterface();
 
   bool isDiscoverableInterface()    { return(getMDNS() != NULL  && !isTrafficMirrored()); };

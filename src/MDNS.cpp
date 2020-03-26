@@ -47,8 +47,8 @@ MDNS::MDNS(NetworkInterface *iface) {
 /* ******************************* */
 
 MDNS::~MDNS() {
-  if(udp_sock != -1)       close(udp_sock);
-  if(batch_udp_sock != -1) close(batch_udp_sock);
+  if(udp_sock != -1)       closesocket(udp_sock);
+  if(batch_udp_sock != -1) closesocket(batch_udp_sock);
 
   pthread_join(resolverCheck, NULL);
 }

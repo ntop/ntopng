@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
     if(iface == NULL) {
       try {
 	errno = 0;
-	iface = new PcapInterface(ifName);
+	iface = new PcapInterface(ifName, i);
       } catch(int err) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "An exception occurred during %s interface creation[%d]: %s",
 				     ifName, err, strerror(err));
