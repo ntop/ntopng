@@ -311,9 +311,7 @@ page_utils.add_menubar_section({
 
 -- System
 
-local system_entries = {
-
-}
+local system_entries = {}
 
 -- Used by footer.lua, keep global
 rtt_script_found = false
@@ -416,6 +414,7 @@ local delete_active_interface_requested_system = delete_data_utils.delete_active
 page_utils.add_menubar_section(
    {
       section = page_utils.menu_sections.admin,
+      hidden = not is_admin,
       entries = {
 	 {
 	    entry = page_utils.menu_entries.manage_users,
@@ -941,7 +940,7 @@ print([[
          </li>
       ]])
 
-if not _SESSION["localuser"] or not is_admin then
+if (not _SESSION["localuser"] or not is_admin) and (not isNoLoginUser()) then
    print[[
          <li>
            <a class="dropdown-item" href='#password_dialog' data-toggle='modal'>
@@ -981,10 +980,10 @@ end
 
 -- Logout
 
-if(_SESSION["user"] ~= nil and _SESSION["user"] ~= ntop.getNologinUser()) then
+if(_SESSION["user"] ~= nil and (not isNoLoginUser())) then
    print[[
 
-         <li class='dropdown-divider'></li>
+ <li class='dropdown-divider'></li>
  <li class="nav-item">
    <a class="dropdown-item" href="]]
    print(ntop.getHttpPrefix())
