@@ -46,8 +46,10 @@ end
 
 rtt_utils.resetConfig()
 
-for host, conf in pairs(data) do
-  rtt_utils.addHost(host, conf.max_rtt or 500)
+for host_key, conf in pairs(data) do
+  host = rtt_utils.key2host(host_key)
+
+  rtt_utils.addHost(host.host, host.measurement, conf.max_rtt or 500)
 end
 
 -- ################################################
