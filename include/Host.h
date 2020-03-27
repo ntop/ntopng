@@ -337,7 +337,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   inline void requestStatsReset()                        { stats_reset_requested = true; };
   inline void requestNameReset()                         { name_reset_requested = true; };
-  inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); requestNameReset(); };
+  inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
   void checkNameReset();
   void checkDataReset();
   void checkBroadcastDomain();

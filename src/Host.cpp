@@ -1405,6 +1405,7 @@ void Host::checkNameReset() {
 /* *************************************** */
 
 void Host::deleteHostData() {
+  resetHostNames();
   host_label_set = false;
   first_seen = last_seen;
 }
