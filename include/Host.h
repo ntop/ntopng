@@ -33,7 +33,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
     Fingerprint ja3;
     Fingerprint hassh;
   } fingerprints;
-  bool stats_reset_requested, data_delete_requested;
+  bool stats_reset_requested, name_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
   OperatingSystem os;
@@ -91,7 +91,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_size);
   void luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry);
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
-  void freeHostData();
+  void freeHostNames();
+  void resetHostNames();
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
   
@@ -335,7 +336,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void serialize(json_object *obj, DetailsLevel details_level);
 
   inline void requestStatsReset()                        { stats_reset_requested = true; };
-  inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); };
+  inline void requestNameReset()                         { name_reset_requested = true; };
+  inline void requestDataReset()                         { data_delete_requested = true; requestStatsReset(); requestNameReset(); };
+  void checkNameReset();
   void checkDataReset();
   void checkBroadcastDomain();
   bool hasAnomalies() const;

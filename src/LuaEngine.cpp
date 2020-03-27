@@ -8191,6 +8191,25 @@ static int ntop_set_hash_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+static void ntop_reset_host_name(lua_State* vm, char *address) {
+  NetworkInterface *iface;
+  char buf[64], *host_ip;
+  Host *host;
+  u_int16_t vlan_id;
+
+  get_host_vlan_info(address, &host_ip, &vlan_id, buf, sizeof(buf));
+
+  for(int i=0; i<ntop->get_num_interfaces(); i++) {
+    if((iface = ntop->getInterface(i)) != NULL) {
+      host = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
+      if(host)
+        host->requestNameReset();
+    }
+  }
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_set_resolved_address(lua_State* vm) {
   char *ip, *name;
@@ -8203,6 +8222,8 @@ static int ntop_set_resolved_address(lua_State* vm) {
   if((name = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   redis->setResolvedAddress(ip, name);
+
+  ntop_reset_host_name(vm, ip);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);

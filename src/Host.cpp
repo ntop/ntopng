@@ -71,7 +71,7 @@ Host::~Host() {
 
 #endif
 
-  freeHostData();
+  freeHostNames();
 
   if(flow_alert_counter) delete flow_alert_counter;
 
@@ -154,7 +154,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
 
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
-  data_delete_requested = false, stats_reset_requested = false;
+  data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = os_unknown;
   prefs_loaded = false;
@@ -868,6 +868,7 @@ void Host::periodic_stats_update(void *user_data) {
   Mac *cur_mac = getMac();
 
   checkReloadPrefs();
+  checkNameReset();
   checkDataReset();
   checkStatsReset();
   checkBroadcastDomain();
@@ -1376,16 +1377,7 @@ void Host::checkBroadcastDomain() {
 
 /* *************************************** */
 
-void Host::checkDataReset() {
-  if(data_delete_requested) {
-    deleteHostData();
-    data_delete_requested = false;
-  }
-}
-
-/* *************************************** */
-
-void Host::freeHostData() {
+void Host::freeHostNames() {
   if(mdns_info)      { free(mdns_info); mdns_info = NULL;           }
   if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;     }
   if(names.mdns)     { free(names.mdns); names.mdns = NULL;         }
@@ -1395,12 +1387,35 @@ void Host::freeHostData() {
 
 /* *************************************** */
 
-void Host::deleteHostData() {
+void Host::resetHostNames() {
   m.lock(__FILE__, __LINE__);
-  freeHostData();
+  freeHostNames();
   m.unlock(__FILE__, __LINE__);
+}
+
+/* *************************************** */
+
+void Host::checkNameReset() {
+  if(name_reset_requested) {
+    resetHostNames();
+    name_reset_requested = false;
+  }
+}
+
+/* *************************************** */
+
+void Host::deleteHostData() {
   host_label_set = false;
   first_seen = last_seen;
+}
+
+/* *************************************** */
+
+void Host::checkDataReset() {
+  if(data_delete_requested) {
+    deleteHostData();
+    data_delete_requested = false;
+  }
 }
 
 /* *************************************** */
@@ -1408,7 +1423,7 @@ void Host::deleteHostData() {
 char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
   char *k = mac->print(buf, bufsize);
 
- /* NOTE: it is important to differentiate between v4 and v6 for macs */
+  /* NOTE: it is important to differentiate between v4 and v6 for macs */
   strncat(buf, get_ip()->isIPv4() ? "_v4" : "_v6", bufsize);
 
   return(k);
