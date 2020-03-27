@@ -130,10 +130,10 @@ end
 -- ##############################################
 
 function rtt_utils.resetConfig()
-  local hosts = rtt_utils.getHosts(true --[[ config only]])
+  local hosts = rtt_utils.getHosts()
 
-  for k in pairs(hosts) do
-    rtt_utils.deleteHost(k)
+  for k,v in pairs(hosts) do
+    rtt_utils.deleteHost(v.host, v.measurement)
   end
 
   ntop.delCache(rtt_hosts_key)
