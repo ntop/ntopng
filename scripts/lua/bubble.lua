@@ -84,7 +84,7 @@ elseif(bubble_mode == 7) then
    y_label = 'TCP Packets Received'
 elseif(bubble_mode == 8) then
    x_label = 'TCP Bytes Sent'
-   y_label = 'TCP Bytes Received'	
+   y_label = 'TCP Bytes Received'
 end
 
 function string.starts(String,Start)
@@ -128,18 +128,18 @@ function processHost(hostname, host)
    elseif(bubble_mode == 5) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])
       line = { link = hostname, label = label, x = stats["pktStats.sent"]["tcp_flags"]["syn"], y = stats["pktStats.recv"]["tcp_flags"]["rst"],
-	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }	
+	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }
    elseif(bubble_mode == 6) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])
       line = { link = hostname, label = label, x = stats["pktStats.sent"]["tcp_flags"]["syn"], y = stats["pktStats.recv"]["tcp_flags"]["synack"],
-	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }	
+	       r = host["active_flows.as_client"] + host["active_flows.as_server"] }
    elseif(bubble_mode == 7) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])
       line = { link = hostname, label = label, x = stats["tcp.packets.sent"], y = stats["tcp.packets.rcvd"],
 	       r = stats["tcp.bytes.sent"]+stats["tcp.bytes.rcvd"] }
    elseif(bubble_mode == 8) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])
-    
+
       line = { link = hostname, label = label, x = stats["tcp.bytes.sent"], y = stats["tcp.bytes.rcvd"],
 	       r = stats["tcp.bytes.sent"]+stats["tcp.bytes.rcvd"] }
       -- io.write("--------------------------\n")
@@ -206,16 +206,16 @@ print [[
      </div>
 </div>
 
-<script>
+<script type="text/javascript">
 
-var chartColors = {
-red: 'rgb(255, 99, 132)',
-orange: 'rgb(255, 159, 64)',
-yellow: 'rgb(255, 205, 86)',
-green: 'rgb(75, 192, 192)',
-blue: 'rgb(54, 162, 235)',
-purple: 'rgb(153, 102, 255)',
-grey: 'rgb(201, 203, 207)'
+let chartColors = {
+red: 'rgba(255, 99, 132, 0.45)',
+orange: 'rgba(255, 159, 64, 0.45)',
+yellow: 'rgba(255, 205, 86, 0.45)',
+green: 'rgba(75, 192, 192, 0.45)',
+blue: 'rgba(54, 162, 235, 0.45)',
+purple: 'rgba(153, 102, 255, 0.45)',
+grey: 'rgba(201, 203, 207, 0.45)'
 };
 
  var ctx = document.getElementById("canvas");
