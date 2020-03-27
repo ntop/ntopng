@@ -262,9 +262,22 @@ text, g text.tick {
 
 #legend {
   background: transparent !important;
-  color: #ccc !important; 
+  color: #ccc !important;
 }
 
 .switches-list-container {
   background: none  !important;
+}
+
+.border-top {
+  border-top: 1px solid #2d2d2d!important;
+}
+.border-bottom {
+  border-bottom: 1px solid #2d2d2d!important;
+}
+.border-left {
+  border-left: 1px solid #2d2d2d!important;
+}
+.border-right {
+  border-right: 1px solid #2d2d2d!important;
 }
