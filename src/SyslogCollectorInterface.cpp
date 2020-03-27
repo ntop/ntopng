@@ -26,10 +26,12 @@
 /* **************************************************** */
 
 SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : SyslogParserInterface(_endpoint) {
-  char *tmp, *pos, *port, *server_address, *producer;
+  char *tmp, *pos, *port, *server_address, *producer, *protocol;
   int server_port;
   int reuse = 1;
   int i;
+
+  use_udp = false;
 
   endpoint = strdup(_endpoint);
 
@@ -43,7 +45,7 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
 
   /* 
    * Interface name format:
-   * syslog://[<producer>@]<ip>:<port>
+   * syslog://[<producer>[:udp]@]<ip>:<port>
    */
 
   if(strncmp(tmp, (char*) "syslog://", 9) == 0) {
@@ -60,6 +62,17 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
     pos++;
     server_address = pos;
 
+    pos = strchr(producer, ':');
+
+    if (pos != NULL) {
+      pos[0] = '\0';
+      pos++;
+      protocol = pos;
+
+      if (strcmp(protocol, "udp") == 0)
+        use_udp = true;
+    }
+
     setLogProducer(producer);
   }
 
@@ -73,10 +86,10 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
     throw("bad tcp bind address format"); 
   }
   
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting TCP collector on %s:%d", 
-    server_address, server_port);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting %s collector on %s:%d", 
+    use_udp ? "UDP" : "TCP", server_address, server_port);
 
-  listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+  listen_sock = socket(AF_INET, use_udp ? SOCK_DGRAM : SOCK_STREAM, 0);
 
   if(listen_sock < 0)
     throw("socket error");
@@ -97,9 +110,11 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
  
   if(bind(listen_sock, (struct sockaddr *) &listen_addr, sizeof(struct sockaddr)) != 0)
     throw("bind error");
- 
-  if(listen(listen_sock, MAX_SYSLOG_SUBSCRIBERS) != 0)
-    throw("listen error");
+
+  if (!use_udp) { 
+    if(listen(listen_sock, MAX_SYSLOG_SUBSCRIBERS) != 0)
+      throw("listen error");
+  }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Accepting connections on %s:%d",
     server_address, server_port);
@@ -113,11 +128,10 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
 /* **************************************************** */
 
 SyslogCollectorInterface::~SyslogCollectorInterface() {
-  int i;
   
   close(listen_sock);
-  
-  for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i)
+
+  for(int i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i)
     if(connections[i].socket != 0)
       close(connections[i].socket);
 
@@ -210,20 +224,16 @@ void SyslogCollectorInterface::closeConnection(syslog_client *client) {
 
 /* **************************************************** */
 
-int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
+int SyslogCollectorInterface::receive(int socket) {
   char buffer[8192];
-  char buff[INET_ADDRSTRLEN + 10];
   int len, received_total = 0;
   int buffer_size = sizeof(buffer) - 1;
   char *line, *pos;
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to receive from %s", 
-    clientAddr2Str(client, buff));
-
   do {
-    len = recv(client->socket, (char *) buffer, buffer_size, 
+    len = recv(socket, (char *) buffer, buffer_size, 
 #ifndef WIN32
-		MSG_DONTWAIT
+        MSG_DONTWAIT
 #else
 	0
 #endif
@@ -257,6 +267,17 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Total received bytes: %u", received_total);
 
   return 0;
+}
+
+/* **************************************************** */
+
+int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
+  char buff[INET_ADDRSTRLEN + 10];
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to receive from %s", 
+    clientAddr2Str(client, buff));
+
+  return receive(client->socket);
 }
 
 /* **************************************************** */
@@ -300,24 +321,35 @@ void SyslogCollectorInterface::collect_flows() {
     }
 
     if(rc > 0) {
-      if(FD_ISSET(listen_sock, &read_fds))
-        handleNewConnection();      
+          
+      if(FD_ISSET(listen_sock, &read_fds)) {
+        if (use_udp) {
+          if(receive(listen_sock) != 0) {
+            ntop->getTrace()->traceEvent(TRACE_ERROR, "Error receiving from socket fd");
+            continue;
+          }
+        } else {
+          handleNewConnection();
+        }
+      }
         
       if(FD_ISSET(listen_sock, &except_fds))
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Exception on listen socket fd");      
-        
-      for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i) {
-        if(connections[i].socket != 0 && FD_ISSET(connections[i].socket, &read_fds)) {
-          if(receiveFromClient(&connections[i]) != 0) {
+      
+      if (!use_udp) {
+        for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i) {
+          if(connections[i].socket != 0 && FD_ISSET(connections[i].socket, &read_fds)) {
+            if(receiveFromClient(&connections[i]) != 0) {
+              closeConnection(&connections[i]);
+              continue;
+            }
+          }
+  
+          if(connections[i].socket != 0 && FD_ISSET(connections[i].socket, &except_fds)) {
+            ntop->getTrace()->traceEvent(TRACE_ERROR, "Exception on client fd");
             closeConnection(&connections[i]);
             continue;
           }
-        }
-  
-        if(connections[i].socket != 0 && FD_ISSET(connections[i].socket, &except_fds)) {
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Exception on client fd");
-          closeConnection(&connections[i]);
-          continue;
         }
       }
     }
@@ -335,6 +367,7 @@ static void* messagePollLoop(void* ptr) {
   while(!iface->isRunning()) sleep(1);
 
   iface->collect_flows();
+
   return(NULL);
 }
 

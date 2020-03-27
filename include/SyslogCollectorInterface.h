@@ -38,6 +38,7 @@ class SyslogCollectorInterface : public SyslogParserInterface {
   char *endpoint;
   struct sockaddr_in listen_addr;
   int listen_sock;
+  bool use_udp;
   syslog_client connections[MAX_SYSLOG_SUBSCRIBERS];
 
   struct {
@@ -49,10 +50,13 @@ class SyslogCollectorInterface : public SyslogParserInterface {
   ~SyslogCollectorInterface();
 
   int initFDSets(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
+
   int handleNewConnection();
   char *clientAddr2Str(syslog_client *client, char *buff);
   void closeConnection(syslog_client *client);
   int receiveFromClient(syslog_client *client);
+
+  int receive(int socket);
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_SYSLOG); };
   virtual InterfaceType getIfType() const { return(interface_type_SYSLOG); }
