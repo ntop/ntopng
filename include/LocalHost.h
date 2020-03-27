@@ -30,7 +30,6 @@ class LocalHost : public Host, public SerializableElement {
   bool systemHost;
   time_t initialization_time;
   HostTimeseriesPoint *initial_ts_point;
-  std::map<u_int16_t,PortContactStats> udp_client_ports, tcp_client_ports, udp_server_ports, tcp_server_ports;
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   OperatingSystem os;
@@ -44,10 +43,6 @@ class LocalHost : public Host, public SerializableElement {
 
   char* getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key);
   char* getIpBasedSerializationKey(char *redis_key, size_t size);
-  void  ports2Lua(lua_State* vm, bool proto_udp, bool as_client);
-  void  updateFlowPort(std::map<u_int16_t,PortContactStats> *c, Host *peer,
-		       u_int16_t port, u_int16_t l7_proto,
-		       const char *info, time_t when);
 
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
@@ -89,9 +84,6 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void tsLua(lua_State* vm);
-  void luaPortsDump(lua_State* vm);
-  void setFlowPort(bool as_server, Host *peer, u_int8_t proto, u_int16_t port,
-		   u_int16_t l7_proto, const char *info, time_t when);
 };
 
 #endif /* _LOCAL_HOST_H_ */

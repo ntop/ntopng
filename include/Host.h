@@ -349,10 +349,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void setResolvedName(const char * const resolved_name);
   inline Fingerprint* getJA3Fingerprint()   { return(&fingerprints.ja3);   }
   inline Fingerprint* getHASSHFingerprint() { return(&fingerprints.hassh); }
-  virtual void setFlowPort(bool as_server, Host *peer, u_int8_t protocol,
-			   u_int16_t port, u_int16_t l7_proto,
-			   const char *info, time_t when) { ; }
-  virtual void luaPortsDump(lua_State* vm) { lua_pushnil(vm); }    
 
   void setPrefsChanged()                   { prefs_loaded = false;  }
   virtual void reloadPrefs()               {}
