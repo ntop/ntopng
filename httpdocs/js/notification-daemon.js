@@ -103,32 +103,73 @@ class NotificationManager {
 
 class BlogFeed {
 
+    static getLocalStorageKey() {
+
+        const VERSION = 'v2';
+        return `blogFeed${VERSION}`;
+    }
+
+    static settingsExists(storage, currentUserName) {
+
+        if (storage == undefined) return false;
+        if (storage.users == undefined) return false;
+        if (!(currentUserName in storage.users)) return false;
+
+        return true;
+    }
+
+    static removeLegacyVersion() {
+        localStorage.removeItem('blog_feed');
+    }
+
     /**
      * Initialize the local storage options. If there aren't any options
      * then create new ones with default paramaters.
-     * The function return the localStorage['blog_feed'].
+     * The function return the localStorage[BlogFeed.getLocalStorageKey()].
      *
      * @return {object}
      */
-    static initializeLocalStorage() {
+    static initializeLocalStorage(currentUserName) {
 
         // check if the settings exists inside the local storage
-        const blogFeedSettings = localStorage.getItem('blog_feed');
-        if (!blogFeedSettings) {
+        const jsonBlog = localStorage.getItem(BlogFeed.getLocalStorageKey());
+        const blogFeedSettings = JSON.parse(jsonBlog);
+
+        // force the user to remove the old version of the local storage
+        BlogFeed.removeLegacyVersion();
+
+        if (!BlogFeed.settingsExists(blogFeedSettings, currentUserName)) {
 
             // create empty settings for blog feed
-            const emptyBlogSettings = {
-                lastCheck: Date.now(),
-                downloadedPosts: []
-            };
 
-            // save settings inside local storage
-            localStorage.setItem('blog_feed', JSON.stringify(emptyBlogSettings));
+            if (blogFeedSettings != undefined) {
+                blogFeedSettings.users[currentUserName] = {
+                    lastCheck: Date.now(),
+                    downloadedPosts: []
+                };
+
+                return blogFeedSettings;
+            }
+
+            let emptyBlogSettings = {
+                users: {
+                    [currentUserName]: {
+                        lastCheck: Date.now(),
+                        downloadedPosts: []
+                    }
+                }
+            };
 
             return emptyBlogSettings;
         }
 
-        return JSON.parse(blogFeedSettings);
+        console.log(jsonBlog);
+
+        return blogFeedSettings;
+    }
+
+    static getUserLocalStorage(currentLocalStorage, currentUserName) {
+        return currentLocalStorage.users[currentUserName];
     }
 
     static async checkNewPosts(currentLocalStorage) {
@@ -136,16 +177,13 @@ class BlogFeed {
         // initialize the local storage to store information
         // about new posts
         let aDayIsPassed;
+
         if (currentLocalStorage.downloadedPosts == undefined) {
             aDayIsPassed = true;
         }
         else {
-            if (currentLocalStorage.downloadedPosts.length == 0) {
-                aDayIsPassed = true;
-            }
-            else {
-                aDayIsPassed = Math.floor((Date.now() - currentLocalStorage.lastCheck) / 86400000) >= 1;
-            }
+            aDayIsPassed = (currentLocalStorage.downloadedPosts.length == 0)
+                ? true : Math.floor((Date.now() - currentLocalStorage.lastCheck) / 86400000) >= 1;
         }
 
         // if a day is passed since the last check then check if there is a new post
@@ -179,14 +217,14 @@ class BlogFeed {
         return {fetchedPosts: [], aDayIsPassed: aDayIsPassed};
     }
 
-    static showNotifications(newPosts, newPostsLength, currentLocalStorage) {
+    static showNotifications(newPosts, newPostsLength, currentUserName, currentLocalStorage) {
+
+        if (newPosts.length == 0) return;
 
         const $notificationBell = $("#notification-list");
-        if (newPostsLength > 0) {
-            $notificationBell.prepend(
-                $(`<span class="badge notification-bell badge-pill badge-danger">${newPostsLength}</span>`)
-            );
-        }
+        const $badgeNotificationCount = $(`<span class="badge notification-bell badge-pill badge-danger">${newPostsLength}</span>`);
+
+        if (newPostsLength > 0) $notificationBell.prepend($badgeNotificationCount);
 
         const $blogSection = $(".blog-section");
         const $list = $blogSection.find("ul");
@@ -197,9 +235,7 @@ class BlogFeed {
             if (!post) return;
 
             const $media = $("<li></li>");
-            if (index < newPosts.length - 1) {
-                $media.addClass("border-bottom");
-            }
+            if (index < newPosts.length - 1) $media.addClass("border-bottom");
 
             const $container = $("<div class='media-body pt-2 pr-2 pl-2 pb-1'></div>");
             const $link = $("<a class='text-dark'></a>");
@@ -218,105 +254,116 @@ class BlogFeed {
                 $("<small class='mb-0'></small>").html(`posted on ${new Date(post.date).toLocaleDateString()}`)
             );
 
+            if (newPostsLength > 0) {
+
+                $link.click(function(e) {
+
+                    // remove the badge
+                    $link.find(`span.badge`).remove();
+                    // remove click listener
+                    $link.off('click');
+
+                    // decrease the counter
+                    let currentCounter = parseInt($badgeNotificationCount.text());
+                    $badgeNotificationCount.html(--currentCounter);
+                    if (currentCounter == 0) $badgeNotificationCount.empty();
+
+                    // mark the post as old
+                    const downloadedPosts = BlogFeed.getUserLocalStorage(currentLocalStorage, currentUserName).downloadedPosts;
+                    console.log(downloadedPosts);
+
+                    const oldPosts = downloadedPosts.map((p) => {
+                        if (p.id == post.id) p.isNew = false;
+                        return p;
+                    });
+
+                    BlogFeed.saveDownloadedPosts(currentLocalStorage, oldPosts, currentUserName);
+                });
+            }
+
             $container.append($link);
             $media.append($container);
-
             $list.append($media);
 
         });
 
-        if (newPostsLength > 0) {
-            // remove the badge when open link notifications
-            $notificationBell.off('click').click(function(event) {
+    }
 
-                $notificationBell.find("span.badge").remove();
-                $notificationBell.off('click');
+    static saveDownloadedPosts(currentLocalStorage, downloadedPosts, currentUserName) {
 
-                // mark all the posts as old
-                // merge the arrays and save them into local storage
-                const oldPosts = newPosts.map(post => {
-                    post.isNew = false;
-                    return post;
-                })
-                const newLocalStorage = [...oldPosts, ...currentLocalStorage.downloadedPosts];
-                BlogFeed.saveDownloadedPosts(newLocalStorage);
+        console.log(downloadedPosts);
 
-                $notificationBell.click('click', function() {
-                    // remove new badges
-                    $('div.blog-section span.badge.badge-danger').fadeOut().remove();
-                });
-            });
+        // remove the current local storage
+        localStorage.removeItem(BlogFeed.getLocalStorageKey());
+
+        // update the new local storage per user
+        let currentEpoch = Date.now();
+
+        currentLocalStorage.users[currentUserName] = {
+            lastCheck: currentEpoch,
+            downloadedPosts: downloadedPosts
+        };
+
+        localStorage.setItem(BlogFeed.getLocalStorageKey(), JSON.stringify(currentLocalStorage));
+    }
+
+    static filterNewPosts(currentLocalStorage, newPosts) {
+
+        const downloadedPosts = currentLocalStorage.downloadedPosts;
+
+        switch (newPosts.length) {
+            case 1:
+                return [newPosts[0], downloadedPosts[0], downloadedPosts[1]];
+            case 2:
+                return [newPosts[0], newPosts[1], downloadedPosts[0]];
+            case 3:
+                return newPosts;
+            default:
+                return downloadedPosts;
         }
-
     }
 
-    static saveDownloadedPosts(downloadedPosts) {
+    static queryBlog(currentUserName) {
 
-        localStorage.removeItem('blog_feed');
-        let date = Date.now();
-        localStorage.setItem('blog_feed', JSON.stringify({
-            lastCheck: date,
-            downloadedPosts: [
-                downloadedPosts[0], downloadedPosts[1], downloadedPosts[2]
-            ],
-        }));
-    }
+        const currentLocalStorage = BlogFeed.initializeLocalStorage(currentUserName);
+        const currentUserLocalStorage = BlogFeed.getUserLocalStorage(currentLocalStorage, currentUserName);
 
-    static queryBlog() {
-
-        const currentLocalStorage = BlogFeed.initializeLocalStorage();
         (async() => {
 
-            const {fetchedPosts, aDayIsPassed} = await BlogFeed.checkNewPosts(currentLocalStorage);
+            const {fetchedPosts, aDayIsPassed} = await BlogFeed.checkNewPosts(currentUserLocalStorage);
             if (!aDayIsPassed) {
 
-                const toShow = [
-                    currentLocalStorage.downloadedPosts[0],
-                    currentLocalStorage.downloadedPosts[1],
-                    currentLocalStorage.downloadedPosts[2]
-                ];
-
+                const toShow = currentUserLocalStorage.downloadedPosts;
                 let counter = 0;
+                console.log(currentLocalStorage);
+                console.log(currentUserLocalStorage);
+
+                // count how many post have not been read
                 toShow.forEach((p) => {
+                    console.log(p);
                     if (!p) return;
                     if (p.isNew) counter++;
-                })
+                });
 
-                BlogFeed.showNotifications(toShow, counter, currentLocalStorage);
+                BlogFeed.showNotifications(toShow, counter, currentUserName, currentLocalStorage);
                 return;
             }
 
             const newPosts = fetchedPosts.filter(post => {
-                return !(currentLocalStorage.downloadedPosts.find(post2 => post.id == post2.id));
+                return !(currentUserLocalStorage.downloadedPosts.find(post2 => post.id == post2.id));
             });
 
             // remove the older posts from the local storage
-            for (let i = 0; i < newPosts; i++) {
-                currentLocalStorage.downloadedPosts.pop();
-            }
+            for (let i = 0; i < newPosts; i++) currentUserLocalStorage.downloadedPosts.pop();
 
+            // filter post notification
+            const toShow = BlogFeed.filterNewPosts(currentUserLocalStorage, newPosts);
             // show new post notifications
-            const sorted = currentLocalStorage.downloadedPosts;
-            let toShow = [];
+            BlogFeed.showNotifications(toShow, newPosts.length, currentUserName, currentLocalStorage);
 
-            if (newPosts.length == 1) {
-                toShow = [newPosts[0], sorted[0], sorted[1]];
-            }
-            else if (newPosts.length == 2) {
-                toShow = [newPosts[0], newPosts[1], sorted[0]];
-            }
-            else if (newPosts.length == 3) {
-                toShow = newPosts;
-            }
-            else {
-                toShow = sorted;
-            }
-
-            BlogFeed.showNotifications(toShow, newPosts.length, currentLocalStorage);
-
-            // merge the arrays and save them into local storage
-            const newLocalStorage = [...newPosts, ...currentLocalStorage.downloadedPosts];
-            BlogFeed.saveDownloadedPosts(newLocalStorage);
+            // merge the arrays and save it into local storage
+            const newUserLocalStorage = [...newPosts, ...currentUserLocalStorage.downloadedPosts];
+            BlogFeed.saveDownloadedPosts(currentLocalStorage, newUserLocalStorage, currentUserName);
 
         })();
     }

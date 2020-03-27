@@ -121,10 +121,15 @@ print [[
 ]]
 
 if not info.oem then
-  print[[
-$(document).ready(function() {
-	BlogFeed.queryBlog();
-});]]
+
+	local user_name = isNoLoginUser() and 'admin' or _SESSION['user']
+
+	print([[
+		$(document).ready(function() {
+			let user_name = `]].. user_name ..[[`;
+			BlogFeed.queryBlog(user_name);
+		});
+	]])
 
   -- Major release check
   local latest_major = ntop.getCache("ntopng.cache.major_release")
