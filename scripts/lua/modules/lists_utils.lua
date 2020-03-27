@@ -580,7 +580,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
 
    traceError(trace_level, TRACE_CONSOLE, string.format("\tRead '%d' rules", num_rules))
 
-   if((num_rules == 0) and (not limit_exceeded)) then
+   if((num_rules == 0) and (not limit_exceeded) and (not ntop.isShutdown())) then
       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("List '%s' has 0 rules. Please report this to https://github.com/ntop/ntopng", list_name))
    end
 

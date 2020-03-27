@@ -512,6 +512,9 @@ void Ntop::start() {
    * After this call, startup.lua has completed. */
   pa->startPeriodicActivitiesLoop();
 
+  if(globals->isShutdownRequested())
+    return;
+
   if(get_HTTPserver())
     get_HTTPserver()->start_accepting_requests();
 
