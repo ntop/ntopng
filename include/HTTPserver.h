@@ -30,7 +30,7 @@ extern bool enable_users_login;
 class HTTPserver {
  private:
   bool use_http, can_accept_requests;
-  char *docs_dir, *scripts_dir, *runtime_dir;
+  char *docs_dir, *scripts_dir;
   struct mg_context *httpd_v4;
   bool ssl_enabled, gui_access_restricted;
   char *captive_redirect_addr;
@@ -51,7 +51,7 @@ class HTTPserver {
 #endif
 
  public:
-  HTTPserver(const char *_docs_dir, const char *_scripts_dir, const char *_data_dir);
+  HTTPserver(const char *_docs_dir, const char *_scripts_dir);
   ~HTTPserver();
 
   bool valid_user_pwd(char *user, char *pass);
@@ -60,7 +60,6 @@ class HTTPserver {
 
   inline char*     get_docs_dir()    { return(docs_dir);         };
   inline char*     get_scripts_dir() { return(scripts_dir);      };
-  inline char*     get_runtime_dir() { return(runtime_dir);      };
   inline bool      is_ssl_enabled()  { return(ssl_enabled);      };
   inline bool      is_gui_access_restricted() { return(gui_access_restricted); };
   inline void      start_accepting_requests() { can_accept_requests = true; };

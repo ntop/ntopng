@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
 
   /* Register the HTTP server before dropping the privileges. This is required
    * in order to possibly bind the HTTP server to privileged ports (< 1024) */
-  ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir(), ntop->get_runtime_dir()));
+  ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
 
   /* Drop the privileges before initializing the network interfaces. This
    * is necessary as the initialization may create files/directories, which

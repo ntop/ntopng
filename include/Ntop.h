@@ -348,14 +348,6 @@ class Ntop {
   inline char* get_install_dir()                     { return(install_dir);         };
   inline void  set_install_dir(char *id)             { snprintf(install_dir, MAX_PATH, "%s", id); };
 
-  /**
-   * @brief Get the runtime directory, which contains executable lua scripts generated at runtime.
-   * @note Currently an alias for the working directory
-   *
-   * @return The path of runtime directory.
-   */
-  inline char* get_runtime_dir()                     { return(working_dir);         };
-
   inline char* get_plugins_dir()                     { return(plugins_dir);         };
   inline char* get_shadow_plugins_dir()              { return(shadow_plugins_dir);  };
   inline void swap_plugins_dir()                     { cur_plugins_dir = !cur_plugins_dir; refreshPluginsDir(); };
