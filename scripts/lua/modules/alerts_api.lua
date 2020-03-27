@@ -426,7 +426,7 @@ end
 function alerts_api.snmpInterfaceEntity(snmp_device, snmp_interface)
   return {
     alert_entity = alert_consts.alert_entities.snmp_device,
-    alert_entity_val = string.format("%s_ifidx%d", snmp_device, snmp_interface)
+    alert_entity_val = string.format("%s_ifidx%s", snmp_device, ""..snmp_interface)
   }
 end
 

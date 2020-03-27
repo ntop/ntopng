@@ -90,14 +90,13 @@ local function snmp_device_run_user_scripts(snmp_device)
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(device_interfaces) do
 	 local if_type = snmp_iftype(snmp_interface.type)
-	 local do_call = true
 
 	 if(script.skip_virtual_interfaces and
 	       ((if_type == "propVirtual") or (if_type == "softwareLoopback"))) then
-	    do_call = false
+	    goto continue
 	 end
 
-	 if(do_call and conf.enabled) then
+	 if(conf.enabled) then
 	    local iface_entity = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
 
 	    alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
@@ -108,6 +107,8 @@ local function snmp_device_run_user_scripts(snmp_device)
 	       now = now,
 	    }))
 	 end
+
+	 ::continue::
       end
    end
 
