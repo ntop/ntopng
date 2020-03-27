@@ -887,6 +887,7 @@ local lang = {
   ["dhcp"] = {
     ["delete_range"] = "Delete DHCP Range",
     ["delete_range_confirm"] = "Do you really want to delete the configured DHCP range %{range} ?",
+    ["dhcp"] = "DHCP",
     ["dhcp_alert_note"] = "An alert will be generated when an IP address is assigned outside the configured DHCP ranges",
     ["dhcp_configuration_note"] = "This page lists the configured DHCP ranges for this interface. These should match the actual DHCP server configuration in use",
     ["invalid_ip_address"] = "Invalid IP address",

@@ -1686,6 +1686,7 @@ local known_parameters = {
    ["list_enabled"]            = validateOnOff,
    ["list_update"]             = validateNumber,
    ["dhcp_ranges"]             = validateListOfTypeInline(validateIpRange),
+   ["old_dhcp_ranges"]         = validateListOfTypeInline(validateIpRange),
    ["icmp_type"]               = validateNumber,
    ["icmp_cod"]                = validateNumber,
    ["hosts_only"]              = validateBool,

@@ -14,8 +14,8 @@ if not isAdministrator() then
   return
 end
 
-if _POST["dhcp_ranges"] then
-  dhcp_utils.setRanges(ifid, _POST["dhcp_ranges"])
+if _POST["dhcp_ranges"] and _POST["old_dhcp_ranges"] then
+  dhcp_utils.editRanges(ifid, _POST["old_dhcp_ranges"], _POST["dhcp_ranges"])
 end
 
 print(
@@ -31,7 +31,7 @@ print(
 )
 
 print[[
-<H3>DHCP</H3>
+<H3>]] print(i18n("dhcp.dhcp")) print[[</H3>
 
 <form id="table-dhcp-form" method="post" data-toggle="validator">
   <div id="table-dhcp"></div>
@@ -105,6 +105,7 @@ print[[
     var input = $("<input class='form-control' data-ipaddress='ipaddress' required>")
       .attr("name", name)
       .attr("value", value)
+      .attr("data-orig-value", value)
       .appendTo(container);
 
     td.html(container);
@@ -145,6 +146,13 @@ print[[
     return first_ip + "-" + last_ip;
   }
 
+  function rowToOrigRange(row) {
+    var first_ip = row.find("td:eq(0) input").attr("data-orig-value");
+    var last_ip = row.find("td:eq(1) input").attr("data-orig-value");
+
+    return first_ip + "-" + last_ip;
+  }
+
   function rowIndexToRange(row_idx) {
     var row = $("#table-dhcp tr:eq(" + (parseInt(row_idx)+1) +")");
     return rowToRange(row);
@@ -160,9 +168,14 @@ print[[
   function submitDhcpRanges() {
     var form = $("#table-dhcp-form");
     var dhcp_ranges = [];
+    var old_dhcp_ranges = [];
 
     datatableForEachRow("#table-dhcp", function() {
       var row = $(this);
+
+      var old_range = rowToOrigRange(row);
+      if(old_range != "-")
+        old_dhcp_ranges.push(old_range);
 
       if(!row.attr("data-skip"))
         dhcp_ranges.push(rowToRange(row));
@@ -172,6 +185,7 @@ print[[
     aysResetForm('#table-dhcp-form');
 
     var params = {};
+    params.old_dhcp_ranges = old_dhcp_ranges.join(",");
     params.dhcp_ranges = dhcp_ranges.join(",");
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
     paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
