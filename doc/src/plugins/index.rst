@@ -5,7 +5,6 @@ Developing Plugins
     :maxdepth: 2
 
     overview
-    examples
     structure
     manifest
     alert_endpoints
@@ -15,5 +14,7 @@ Developing Plugins
     user_script_hooks
     localization
     web_ui
+    examples
+    tutorial
     distributing_plugins
 
