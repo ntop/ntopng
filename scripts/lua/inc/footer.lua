@@ -51,7 +51,6 @@ print ([[
 			</div>
 			<div class="col-4 text-center">
 				<small>]].. ntop.getInfo()["copyright"] ..[[</small>
-				<p id="ntopng_update_available"></p>
 ]])
 
 
@@ -126,6 +125,38 @@ if not info.oem then
 $(document).ready(function() {
 	BlogFeed.queryBlog();
 });]]
+
+  -- Major release check
+  local latest_major = ntop.getCache("ntopng.cache.major_release")
+
+  latest_major = trimSpace(string.gsub(latest_major, "\n", ""))
+
+  if isEmptyString(latest_major) then
+    print[[
+    $.ajax({
+	type: 'GET',
+	  url: ']]
+  print (ntop.getHttpPrefix())
+  print [[/lua/check_major_release.lua',
+	  data: {},
+	  success: function(rsp) {
+	    if(rsp && rsp.msg) {
+	      $("#ntopng_update_available").html(rsp.msg);
+	      $("#major-release-alert").show();
+	    }
+	  }
+      });
+    ]]
+  else
+    local msg = get_version_update_msg(info, latest_major)
+
+    if not isEmptyString(msg) then
+      print[[
+	$("#ntopng_update_available").html(`]] print(msg) print[[`);
+	$("#major-release-alert").show();
+      ]]
+    end
+  end
 end
 
 print[[
