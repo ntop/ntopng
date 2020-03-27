@@ -374,7 +374,6 @@ using namespace std;
 #include "TimeseriesStats.h"
 #include "HostStats.h"
 #include "LocalHostStats.h"
-#include "PortContactStats.h"
 #include "HostScore.h"
 #include "Bin.h"
 #include "FlowDurationBin.h"

@@ -50,7 +50,7 @@ Flow::Flow(NetworkInterface *_iface,
   peers_score_accounted = false;
   status_infos = NULL;
 
-  detection_completed = update_flow_port_stats = false;
+  detection_completed = false;
   extra_dissection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
@@ -747,7 +747,6 @@ void Flow::setProtocolDetectionCompleted() {
   processDetectedProtocol();
 
   detection_completed = true;
-  update_flow_port_stats = true;
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
@@ -1383,59 +1382,6 @@ void Flow::periodic_stats_update(void *user_data) {
 
   Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
   Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
-
-  if(update_flow_port_stats) {
-    bool dump_flow = false;
-
-    if(protocol == IPPROTO_TCP) {
-      /*
-	update the ports only if the flow has been observed from the beginning
-	and it has been established
-      */
-      dump_flow = ((src2dst_tcp_flags|dst2src_tcp_flags) & (TH_SYN|TH_PUSH)) == (TH_SYN|TH_PUSH);
-    } else if(protocol == IPPROTO_UDP) {
-      if(
-	 (srv_host && srv_host->get_ip()->isBroadMulticastAddress())
-	 || (get_packets_srv2cli() > 0 /* We see a response, hence we assume this is not a probing attempt */)
-	 )
-	dump_flow = true;
-    }
-
-#if 0
-    char buf[128];
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%u/%u] %s",
-				 dump_flow ? "DUMP" : "",
-				 get_packets_cli2srv(), get_packets_srv2cli(),
-				 print(buf, sizeof(buf)));
-#endif
-
-    if(dump_flow && (srv_port != 0)) {
-      u_int16_t p = ndpiDetectedProtocol.master_protocol;
-      u_int16_t port = ntohs(srv_port);
-
-      if(p == NDPI_PROTOCOL_UNKNOWN)
-	p = ndpiDetectedProtocol.app_protocol;
-
-      if(cli_host && cli_host->isLocalHost())
-	cli_host->setFlowPort(false /* client */, srv_host, protocol, port, p,
-			      getFlowInfo() ? getFlowInfo() : "",
-			      iface->getTimeLastPktRcvd());
-
-      if(srv_host && srv_host->isLocalHost())
-	srv_host->setFlowPort(true /* server */, cli_host, protocol, port, p,
-			      getFlowInfo() ? getFlowInfo() : "",
-			      iface->getTimeLastPktRcvd());
-
-#if 0
-      char buf[128];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", print(buf, sizeof(buf)));
-#endif
-    }
-
-    update_flow_port_stats = false;
-  }
 
   hosts_periodic_stats_update(getInterface(), cli_host, srv_host, &partial, first_partial, tv);
 

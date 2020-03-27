@@ -62,7 +62,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, extra_dissection_completed,
     twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
-    good_tls_hs, update_flow_port_stats,
+    good_tls_hs,
     quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
