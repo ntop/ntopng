@@ -209,13 +209,13 @@ class BlogFeed {
             $link.append(
                 $(`
                     <h6 style='max-width: 24em' class='mt-0 mb-1 text-truncate'>
-                        ${post.isNew ? "<span class='badge badge-danger'>New</span>" : ""}
+                        ${post.isNew ? "<span class='badge badge-primary'>New</span>" : ""}
                         <i class='fas fa-external-link-alt'></i>
                         ${post.title}
                     </h6>
                 `),
                 $("<p class='mb-0'></p>").html(post.shortDesc),
-                $("<small class='mb-0'></small>").html(post.date)
+                $("<small class='mb-0'></small>").html(`posted on ${new Date(post.date).toLocaleDateString()}`)
             );
 
             $container.append($link);
