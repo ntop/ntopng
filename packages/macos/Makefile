@@ -8,9 +8,20 @@ all: clean ntopng
 
 ntopng:
 	if test -e "./install"; then /bin/rm -f install; fi
-	\mkdir -p ${NTOPNG_BUILD}/usr/local/bin ${NTOPNG_BUILD}/usr/local/etc ${NTOPNG_BUILD}/usr/local/share/man/man8 ${NTOPNG_BUILD}/usr/local/share/ntopng ./install/
+	\mkdir -p ${NTOPNG_BUILD}/usr/local/bin ${NTOPNG_BUILD}/usr/local/etc ${NTOPNG_BUILD}/usr/local/share/man/man8
+	\mkdir -p ${NTOPNG_BUILD}/usr/local/opt/ntopng ${NTOPNG_BUILD}/usr/local/share/ntopng ./install/
 	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/local/bin/
 	cp $(NTOPNG_HOME)/packages/etc/ntopng/ntopng.conf ${NTOPNG_BUILD}/usr/local/etc/
+
+	cp /usr/local/opt/rrdtool/lib/librrd.8.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/json-c/lib/libjson-c.4.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/libmaxminddb/lib/libmaxminddb.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/libsodium/lib/libsodium.23.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/mysql/lib/libmysqlclient.21.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/mysql/lib/libssl.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/mysql/lib/libcrypto.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/zstd/lib/libzstd.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/local/share/man/man8
 	cp -RL $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/local/share/ntopng
 	cp -RL $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng
