@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+"https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>KeepAlive</key>
+	<dict>
+		<key>NetworkState</key>
+		<true/>
+	</dict>
+	<key>Label</key>
+	<string>org.ntop.ntopng</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/local/bin/ntopng</string>
+		<string>/usr/local/etc/ntopng/ntopng.conf</string>
+	</array>
+</dict>
+</plist>
