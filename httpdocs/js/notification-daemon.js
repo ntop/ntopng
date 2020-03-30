@@ -244,10 +244,10 @@ class BlogFeed {
 
             $link.append(
                 $(`
-                    <h6 style='max-width: 24em' class='mt-0 mb-1 text-truncate'>
+                    <h6 class='mt-0 mb-1'>
                         ${post.isNew ? "<span class='badge badge-primary'>New</span>" : ""}
-                        <i class='fas fa-external-link-alt'></i>
-                        ${post.title}
+                        ${post.title.length >= 40 ? post.title.substr(0, 40) + '...' : post.title}
+                        <i class='fas fa-external-link-alt float-right'></i>
                     </h6>
                 `),
                 $("<p class='mb-0'></p>").html(post.shortDesc),
