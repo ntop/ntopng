@@ -67,6 +67,12 @@ if (refresh == '') then refresh = 5000 end
 
 --
 
+print([[
+  <div class='container-fluid'>
+    <div class='row'>
+      <div class='col-12'>
+]])
+
 page = _GET["page"]
 if(page == nil) then
    if(not(is_loopback)) then
@@ -113,8 +119,9 @@ if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
       print('\n</div><br/><br/><br/>\n')
 
 print [[
-<div class="control-group" style="text-align: center;">
-&nbsp;]] print(i18n("index_page.refresh_frequency")) print[[: <div class="btn-group btn-small">
+<div class="control-group text-center">
+<span class='mx-1'>]] print(i18n("index_page.refresh_frequency"))
+print[[:</span><div class="btn-group btn-small">
   <button class="btn btn-secondary btn-xs dropdown-toggle" data-toggle="dropdown">
 ]]
 if (refresh ~= '0') then
@@ -141,15 +148,13 @@ print [[
 ]]
 
 if (refresh ~= '0') then
-  print [[
-          &nbsp;]] print(i18n("index_page.live_update")) print[[:  <div class="btn-group btn-group-toggle btn-group-xs" data-toggle="buttons" data-toggle-name="topflow_graph_state">
-            <button id="topflow_graph_state_play" value="1" type="button" class="btn btn-secondary btn-xs active" data-toggle="button" ><i class="fas fa-play"></i></button>
+  print [[<span class='mx-1'>]] print(i18n("index_page.live_update")) print [[:</span>]] print[[<div class="btn-group btn-group-toggle btn-group-xs" data-toggle="buttons" data-toggle-name="topflow_graph_state">
+            <button id="topflow_graph_state_play" value="1" type="button" class="btn btn-secondary btn-xs active" data-toggle="button" disabled><i class="fas fa-pause"></i></button>
             <button id="topflow_graph_state_stop" value="0" type="button" class="btn btn-secondary btn-xs" data-toggle="button" ><i class="fas fa-stop"></i></button>
           </div>
   ]]
 else
-  print [[
-         &nbsp;]] print(i18n("index_page.refresh")) print[[:  <div class="btn-group btn-small">
+  print [[<span class='mx-1'>]] print(i18n("index_page.refresh")) print [[:</span>]] print[[<div class="btn-group btn-small">
           <button id="topflow_graph_refresh" class="btn btn-secondary btn-xs">
             <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print [[" class="fas fa-sync"></i></button>
           </div>
@@ -178,14 +183,14 @@ print [[
                sankey_interval = window.setInterval(sankey, 5000);
                topflow_stop = false;
                $("#topflow_graph_state_stop").removeClass("active");
-               $("#topflow_graph_state_play").addClass("active");
+               $("#topflow_graph_state_play").addClass("active").html(`<i class='fas fa-pause'></i>`).attr("disabled", "disabled");
             }
          });
          $("#topflow_graph_state_stop").click(function() {
             if (!topflow_stop) {
                clearInterval(sankey_interval);
                topflow_stop = true;
-               $("#topflow_graph_state_play").removeClass("active");
+               $("#topflow_graph_state_play").removeClass("active").removeAttr("disabled").html(`<i class='fas fa-play'></i>`);
                $("#topflow_graph_state_stop").addClass("active");
             }
         });
@@ -206,5 +211,11 @@ print [[
 else
    print("<div class=\"alert alert-warning\">"..i18n("index_page.no_packet_warning",{ifname=getHumanReadableInterfaceName(ifname),countdown="<span id=\'countdown\'></span>"}).."</div> <script type=\"text/JavaScript\">(function countdown(remaining) { if(remaining <= 0) location.reload(true); document.getElementById('countdown').innerHTML = remaining;  setTimeout(function(){ countdown(remaining - 1); }, 1000);})(10);</script>")
 end
+
+print([[
+  </div>
+  </div>
+  </div>
+]])
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

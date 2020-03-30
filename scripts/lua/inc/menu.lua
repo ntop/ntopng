@@ -1032,6 +1032,8 @@ print([[
 -- begging of #n-container
 print([[<div class='p-md-4 extended p-xs-1 mt-5 p-sm-2' id='n-container'>]])
 
+print("<div class='main-alerts'>")
+
 if(dirs.workingdir == "/var/tmp/ntopng") then
    print('<div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
    print(i18n("about.datadir_warning"))
@@ -1109,56 +1111,9 @@ if(_SESSION["INVALID_CSRF"]) then
   print('</div>')
 end
 
--- render switchable system view
-if is_admin then
+-- end of main alerts
+print("</div>")
 
-print([[
-<script type="text/javascript">
-
-   const toggle_system_flag = (is_system_switch = false, $form = null) => {
-
-      console.group('Debug');
-      console.log($form);
-
-      // if form it's empty it means the call was not invoked
-      // by a form request
-      const flag = (is_system_switch) ? "1" : "0";
-
-      console.log(flag);
-
-      $.get(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
-         system_interface: flag,
-         csrf: "]].. ntop.getRandomCSRFValue() ..[["
-      }, function(data) {
-
-         console.info(data.success && $form != null);
-         console.groupEnd();
-
-         if (data.success && $form == null) location.href = '/';
-         if (data.success && $form != null) $form.submit();
-         if (!data.success) {
-            console.error("An error has occurred!");
-         }
-
-      });
-   }
-]])
-
-if (not page_utils.is_system_view()) then
-print([[
-   $(document).ready(function() {
-      $("#btn-trigger-system-mode").click(function(e) {
-         toggle_system_flag(true);
-      });
-   });
-]])
-end
-
-print([[
-   </script>
-]])
-
-end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/manage_data.lua")
 
