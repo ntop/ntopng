@@ -119,8 +119,8 @@
       } else {
         element = this.$menu.insertAfter(this.$element);
         this.hasSameParent = true;
-      }      
-      
+      }
+
       if (!this.hasSameParent) {
           // We cannot rely on the element position, need to position relative to the window
           element.css("position", "fixed");
@@ -142,7 +142,7 @@
       if (this.options.fitToElement === true) {
           element.css("width", this.$element.outerWidth() + "px");
       }
-    
+
       this.shown = true;
       return this;
     },
@@ -463,7 +463,7 @@
         this.focused = true;
         if (this.options.showHintOnFocus && this.skipShowHintOnFocus !== true) {
           if(this.options.showHintOnFocus === "all") {
-            this.lookup(""); 
+            this.lookup("");
           } else {
             this.lookup();
           }
@@ -484,7 +484,7 @@
         this.skipShowHintOnFocus = true;
         this.$element.focus();
         this.mouseddown = false;
-      } 
+      }
     },
 
     click: function (e) {
@@ -548,7 +548,7 @@
   Typeahead.defaults = {
     source: [],
     items: 8,
-    menu: '<ul class="typeahead dropdown-menu" role="listbox"></ul>',
+    menu: '<ul class="typeahead dropdown-menu dropdown-menu-right" role="listbox"></ul>',
     item: '<li><a class="dropdown-item" href="#" role="option"></a></li>',
     minLength: 1,
     scrollHeight: 0,
