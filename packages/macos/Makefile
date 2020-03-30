@@ -4,14 +4,16 @@
 NTOPNG_HOME=$(PWD)/../..
 NTOPNG_BUILD=${NTOPNG_HOME}/packages/macos/install
 
-all: clean ntopng
+all: clean ntopng-build
 
-ntopng:
+ntopng-build:
 	if test -e "./install"; then /bin/rm -f install; fi
-	\mkdir -p ${NTOPNG_BUILD}/usr/local/bin ${NTOPNG_BUILD}/usr/local/etc ${NTOPNG_BUILD}/usr/local/share/man/man8
+	\mkdir -p ${NTOPNG_BUILD}/usr/local/bin ${NTOPNG_BUILD}/usr/local/etc/ntopng ${NTOPNG_BUILD}/usr/local/share/man/man8
 	\mkdir -p ${NTOPNG_BUILD}/usr/local/opt/ntopng ${NTOPNG_BUILD}/usr/local/share/ntopng ./install/
-	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/local/bin/
-	cp $(NTOPNG_HOME)/packages/etc/ntopng/ntopng.conf ${NTOPNG_BUILD}/usr/local/etc/
+	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/local/bin/ntopng-bin
+	cp ./ntopng ${NTOPNG_BUILD}/usr/local/bin/
+	cp ./uninstall.sh ${NTOPNG_BUILD}/usr/local/bin/ntopng-uninstall.sh
+	cp $(NTOPNG_HOME)/packages/etc/ntopng/ntopng.conf ${NTOPNG_BUILD}/usr/local/etc/ntopng/
 
 	cp /usr/local/opt/rrdtool/lib/librrd.8.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/json-c/lib/libjson-c.4.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
@@ -21,6 +23,24 @@ ntopng:
 	cp /usr/local/opt/mysql/lib/libssl.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/mysql/lib/libcrypto.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/zstd/lib/libzstd.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/libpng/lib/libpng16.16.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/Cellar/pango/1.44.7/lib/libpangocairo-1.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/pango/lib/libpango-1.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/glib/lib/libgobject-2.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/glib/lib/libglib-2.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/harfbuzz/lib/libharfbuzz.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/cairo/lib/libcairo.2.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/gettext/lib/libintl.8.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/Cellar/pango/1.44.7/lib/libpangoft2-1.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/fontconfig/lib/libfontconfig.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/fribidi/lib/libfribidi.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/pcre/lib/libpcre.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/libffi/lib/libffi.6.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/freetype/lib/libfreetype.6.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/graphite2/lib/libgraphite2.3.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/pixman/lib/libpixman-1.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+
+	cp /usr/local/bin/redis-server ${NTOPNG_BUILD}/usr/local/bin/ntopng-redis-server
 
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/local/share/man/man8
 	cp -RL $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/local/share/ntopng

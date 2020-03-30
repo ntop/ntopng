@@ -3,13 +3,12 @@
 <plist version="1.0">
      <dict>
          <key>Label</key>
-         <string>org.ntop.ntopng</string>
+         <string>io.redis.redis-server</string>
          <key>ProgramArguments</key>
          <array>
-                <string>/usr/local/bin/ntopng</string>
-                <string>/usr/local/etc/ntopng/ntopng.conf</string>
+                <string>/usr/local/bin/ntopng-redis-server</string>
 	 </array>
-        <key>RunAtLoad</key>
+         <key>RunAtLoad</key>
          <true/>
      </dict>
 </plist>

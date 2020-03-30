@@ -1,0 +1,3 @@
+ntopng source code is available at https://github.com/ntop/ntopng
+
+The ntopng EULA is available at https://www.ntop.org/legal/
