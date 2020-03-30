@@ -225,11 +225,6 @@ else
 	       url = '/lua/hosts_geomap.lua',
 	    },
 	    {
-	       entry = page_utils.menu_entries.hosts_treemap,
-	       hidden = interface.isLoopback(),
-	       url = '/lua/hosts_treemap.lua',
-	    },
-	    {
 	       entry = page_utils.menu_entries.host_explorer,
 	       url = '/lua/bubble.lua',
 	    },
