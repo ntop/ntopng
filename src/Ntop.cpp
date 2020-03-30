@@ -910,6 +910,7 @@ void Ntop::loadMacManufacturers(char *dir) {
 void Ntop::setWorkingDir(char *dir) {
   snprintf(working_dir, sizeof(working_dir), "%s", dir);
   removeTrailingSlash(working_dir);
+  refreshPluginsDir();
 };
 
 /* ******************************************* */
@@ -2836,4 +2837,6 @@ void Ntop::refreshPluginsDir() {
   snprintf(plugins_dir, sizeof(plugins_dir), "%s/%s", get_working_dir(), current_dir);
   snprintf(shadow_plugins_dir, sizeof(shadow_plugins_dir), "%s/%s", get_working_dir(), shadow_dir);
 #endif
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Current plugins directory set to '%s'", plugins_dir);
 }
