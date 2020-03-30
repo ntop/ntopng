@@ -1,3 +1,5 @@
+.. _ntopngPreferences:
+
 ntopng Settings
 ===============
 

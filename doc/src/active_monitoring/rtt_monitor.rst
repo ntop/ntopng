@@ -74,7 +74,7 @@ RTT timeseries are written automatically by default for any of the RTT-monitored
 
   The RTT Timeseries of a Monitored Host
 
-Timeseries can be disabled from the :ref:`Preferences`, tab *Timeseries->System Probes*.
+Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->System Probes*.
 
 .. figure:: ../img/rtt_monitor_timeseries_conf.png
   :align: center
