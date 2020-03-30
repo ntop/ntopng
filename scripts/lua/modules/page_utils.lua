@@ -302,10 +302,13 @@ end
 -- #################################
 
 function page_utils.print_navbar(title, base_url, items_table, label_url)
+
+   -- label_url: is the link for navabr-brand, the default link is #
+
    print[[
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-  <a class="navbar-brand" href="]] print((label_url and base_url or '#')) print[["><small>]] print(title) print[[</small></a>
+  <a class="navbar-brand" href="]] print((label_url and label_url or '#')) print[["><small>]] print(title) print[[</small></a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
