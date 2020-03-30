@@ -95,9 +95,15 @@ ul.navbar-nav li.nav-item.active > a.active {
   background-color: #1d1d1d !important;
   color: #eee;
 }
+
+.blog-section a, .blog-section h6, .blog-section i, .blog-section p, .blog-section small,
 .dropdown-item {
   color: #e2e2e2;
 }
+.blog-section a:hover p, .blog-section a:hover small, .blog-section a:hover h6, .blog-section a:hover i {
+  color: #F39F53;
+}
+
 .dropdown-menu .dropdown-item:hover {
   background-color: #2c2c2c !important;
   color: #e2e2e2;
