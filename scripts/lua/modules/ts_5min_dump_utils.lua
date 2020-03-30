@@ -469,7 +469,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
     end)
 
     if not in_time then
-       traceError(TRACE_ERROR, TRACE_CONSOLE, "[".. _ifname .." ]" .. i18n("error_rrd_cannot_complete_dump"))
+       traceError(TRACE_ERROR, TRACE_CONSOLE, "[".. _ifname .."]" .. i18n("error_rrd_cannot_complete_dump"))
       return false
     end
 
