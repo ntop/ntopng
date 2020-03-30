@@ -3805,6 +3805,7 @@ local lang = {
     ["telemetry_data_no_consent"] = "No preference expressed",
   },
   ["top_hosts"] = {
+    ["note"] = "<b>Note</b><br>This page will refresh every few seconds to report top hosts activities.<p>When a host makes traffic a vertical bar is displayed so that you can see the most active hosts.",
     ["top_hosts_local"] = "Top Hosts (Local)",
   },
   ["topk_heuristic"] = {
