@@ -116,7 +116,7 @@ end
 function alert_endpoints.processNotifications(now, periodic_frequency)
   loadModules()
 
-  -- Process export notifications
+  -- Process the alerts export. NOTE: endpoints are sorted by priority (higher priority first)
   for _, m in ipairs(modules) do
     if force_export or ((now % m.export_frequency) < periodic_frequency) then
 
