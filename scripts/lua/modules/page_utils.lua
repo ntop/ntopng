@@ -301,11 +301,11 @@ end
 
 -- #################################
 
-function page_utils.print_navbar(title, base_url, items_table)
+function page_utils.print_navbar(title, base_url, items_table, label_url)
    print[[
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-  <a class="navbar-brand" href="#"><small>]] print(title) print[[</small></a>
+  <a class="navbar-brand" href="]] print((label_url and base_url or '#')) print[["><small>]] print(title) print[[</small></a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -325,9 +325,9 @@ function page_utils.print_navbar(title, base_url, items_table)
 	    local url
 
 	    if(not isEmptyString(item["url"])) then
-		url = item["url"]
+		   url = item["url"]
 	    else
-		url = base_url .. "&page=" .. item["page_name"]
+		   url = base_url .. "&page=" .. item["page_name"]
 	    end
 
 	    print(string.format("<li class=\"nav-item\">%s<a class=\"nav-link\" href=\"%s\">%s</a></li>", badge, url, item["label"]))
