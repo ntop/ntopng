@@ -304,7 +304,7 @@ end
 function page_utils.print_navbar(title, base_url, items_table)
    print[[
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
   <a class="navbar-brand" href="#"><small>]] print(title) print[[</small></a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -317,7 +317,6 @@ function page_utils.print_navbar(title, base_url, items_table)
 	 local badge = ''
 	 if tonumber(item["badge_num"]) and tonumber(item["badge_num"]) > 0 then
 	    badge = string.format(' <span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">%u</span>', tonumber(item["badge_num"]))
-
 	 end
 
 	 if item["active"] then
@@ -339,7 +338,6 @@ function page_utils.print_navbar(title, base_url, items_table)
     </ul>
   </div>
 </nav>
-<p>
 ]]
 end
 
