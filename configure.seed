@@ -36,31 +36,31 @@ AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
 AC_ARG_WITH(nedge,          [  --with-test-mode      Enable ntopng/nEdge test mode])
 
 if test "${with_test_mode+set}" = set; then
-   AC_DEFINE(HAVE_TEST_MODE, 1, [ntopng/nEdge test mode enabled])
+  AC_DEFINE(HAVE_TEST_MODE, 1, [ntopng/nEdge test mode enabled])
 fi
 
 NEDGE=0
 if test "${with_nedge+set}" = set; then
-   AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
-   NEDGE=1
+  AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
+  NEDGE=1
 
-   AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
-   AC_CHECK_LIB([netfilter_queue], [nfq_create_queue])
-   AC_CHECK_LIB([nfnetlink], [nfnl_rcvbufsiz])
-   AC_CHECK_LIB([netfilter_conntrack], [nfct_filter_dump_create], nfct=true)
-   AC_CHECK_FUNC([nfq_set_verdict2], [AC_DEFINE([HAVE_NFQ_SET_VERDICT2],[1],[Define if nfq_set_verdict2 exists in netfilter_queue.])])
+  AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
+  AC_CHECK_LIB([netfilter_queue], [nfq_create_queue])
+  AC_CHECK_LIB([nfnetlink], [nfnl_rcvbufsiz])
+  AC_CHECK_LIB([netfilter_conntrack], [nfct_filter_dump_create], nfct=true)
+  AC_CHECK_FUNC([nfq_set_verdict2], [AC_DEFINE([HAVE_NFQ_SET_VERDICT2],[1],[Define if nfq_set_verdict2 exists in netfilter_queue.])])
 
-   if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" != xyes; then
-      AC_MSG_RESULT(Cannot build nedge without Netfilter, exiting.)
-      exit 1
-   fi
+  if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" != xyes; then
+    AC_MSG_RESULT(Cannot build nedge without Netfilter, exiting.)
+    exit 1
+  fi
 
-   if test x$nfct = x; then
-      AC_MSG_RESULT(Cannot build nedge without Conntrack, exiting.)
-      exit 1
-   fi
+  if test x$nfct = x; then
+    AC_MSG_RESULT(Cannot build nedge without Conntrack, exiting.)
+    exit 1
+  fi
 
-   LDFLAGS="${LDFLAGS} -lnetfilter_queue -lnfnetlink -lnetfilter_conntrack"
+  LDFLAGS="${LDFLAGS} -lnetfilter_queue -lnfnetlink -lnetfilter_conntrack"
 fi
 
 #
@@ -70,17 +70,17 @@ fi
 REVISION=`git log --pretty=oneline | wc -l`
 
 if test -d "/usr/local/include"; then
-CFLAGS="${CFLAGS} -I/usr/local/include"
-CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
+  CFLAGS="${CFLAGS} -I/usr/local/include"
+  CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
 fi
 
 if test -d "/usr/local/lib"; then
-LDFLAGS="${LDFLAGS} -L/usr/local/lib"
+  LDFLAGS="${LDFLAGS} -L/usr/local/lib"
 fi
 
 if test -d /opt/local/include; then :
-   CFLAGS="${CFLAGS} -I/opt/local/include"
-   CPPFLAGS="${CPPFLAGS} -I/opt/local/include"
+  CFLAGS="${CFLAGS} -I/opt/local/include"
+  CPPFLAGS="${CPPFLAGS} -I/opt/local/include"
 fi
 
 if test -d /opt/local/lib; then :
@@ -88,10 +88,10 @@ if test -d /opt/local/lib; then :
 fi
 
 if [ test -f /usr/bin/lsb_release ]; then
-   CODENAME=`/usr/bin/lsb_release -c|cut -f 2`
-   if [[ $CODENAME == "wheezy" ]]; then :
-     CPPFLAGS="${CPPFLAGS} -DOLD_NETFILTER_INTERFACE=1"
-   fi
+  CODENAME=`/usr/bin/lsb_release -c|cut -f 2`
+  if [[ $CODENAME == "wheezy" ]]; then :
+    CPPFLAGS="${CPPFLAGS} -DOLD_NETFILTER_INTERFACE=1"
+  fi
 fi
 
 SHORT_MACHINE=`uname -m | cut -b1-3`
@@ -165,18 +165,18 @@ PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
    ])
 
 if test ! -z "$NDPI_CUST_INC" ; then :
-   NDPI_INC=$NDPI_CUST_INC
+  NDPI_INC=$NDPI_CUST_INC
 fi
 
 if test ! -z "$NDPI_CUST_LIB" ; then :
-   NDPI_LIB=$NDPI_CUST_LIB
+  NDPI_LIB=$NDPI_CUST_LIB
 fi
 
 if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
-   echo "Could not find nDPI"
-   echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
-   echo "and try again"
-   exit 1
+  echo "Could not find nDPI"
+  echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
+  echo "and try again"
+  exit 1
 fi
 dnl finish: nDPI handling
 
@@ -192,19 +192,19 @@ fi
 
 pkg-config --exists libssl
 if test "$?" -ne 1; then
- AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
- SSL_INC="`pkg-config --cflags libssl` -I/usr/include/openssl"
- SSL_LIB="`pkg-config --libs libssl` -lssl -lcrypto"
+  AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
+  SSL_INC="`pkg-config --cflags libssl` -I/usr/include/openssl"
+  SSL_LIB="`pkg-config --libs libssl` -lssl -lcrypto"
 else
- dnl Workaround for MacOS Brew
- if test -d "/usr/local/opt/openssl/lib"; then
-   AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
-   SSL_INC="-I/usr/local/opt/openssl/include"
-   SSL_LIB="-L/usr/local/opt/openssl/lib -lssl"
- else
-   echo "Please install openssl-dev(el) package prerequisite"
-   exit -1
- fi
+  dnl Workaround for MacOS Brew
+  if test -d "/usr/local/opt/openssl/lib"; then
+    AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
+    SSL_INC="-I/usr/local/opt/openssl/include"
+    SSL_LIB="-L/usr/local/opt/openssl/lib -lssl"
+  else
+    echo "Please install openssl-dev(el) package prerequisite"
+    exit -1
+  fi
 fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
@@ -237,9 +237,9 @@ fi
 
 APP=
 if test "${with_nedge+set}" = "set"; then
-APP=nedge
+  APP=nedge
 else
-APP=ntopng
+  APP=ntopng
 fi
 
 if test -d "pro"; then :
@@ -247,14 +247,14 @@ AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
 if test "${with_nedge+set}" != set; then
- if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
-   cd ../PF_RING/userland/nbpf; ./configure; make; cd -
+  if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
+    cd ../PF_RING/userland/nbpf; ./configure; make; cd -
 
-   dnl> nbpf for FreeBSD is linked statically
-   if test $SYSTEM != "FreeBSD"; then
+    dnl> nbpf for FreeBSD is linked statically
+    if test $SYSTEM != "FreeBSD"; then
       LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
-   fi
- fi
+    fi
+  fi
 fi
 
 if test "${with_nedge+set}" != set; then
@@ -287,12 +287,12 @@ DUMMY=`cd ./pro; make build`
 PRO_INCS="${PRO_INCS} -I${PWD}/pro -I${PWD}/pro/utils -I${PWD}/pro/third-party/libb64-1.2.1/include"
 
 if test -r "../license/systemId.c"; then :
- LICENSELIBS="-L`pwd`/../license -llicense"
- AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
- PRO_LIBS="${PRO_LIBS} ${LICENSELIBS}" 
+  LICENSELIBS="-L`pwd`/../license -llicense"
+  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
+  PRO_LIBS="${PRO_LIBS} ${LICENSELIBS}" 
 fi
 else
-AC_MSG_RESULT(not found)
+  AC_MSG_RESULT(not found)
 fi
 
 GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
@@ -302,42 +302,42 @@ AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Rele
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_DATE, "${GIT_DATE}", [Last GIT change])
 
 if test -z `which pkg-config`; then
-   echo "#!/bin/sh\n" > pkg-config
+  echo "#!/bin/sh\n" > pkg-config
 fi
 
 if test -f ".git/index"; then
-   GIT_INDEX=".git/index"
+  GIT_INDEX=".git/index"
 fi
 
 if test $SYSTEM = "Linux"; then
-   if test -f /etc/debian_version; then
-      DEBIAN_VERSION=`cat /etc/debian_version`
-      OSNAME="Debian $DEBIAN_VERSION"
-   else
-      OSNAME=`./config.guess`
-   fi
+  if test -f /etc/debian_version; then
+    DEBIAN_VERSION=`cat /etc/debian_version`
+    OSNAME="Debian $DEBIAN_VERSION"
+  else
+    OSNAME=`./config.guess`
+  fi
 else
 dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
-   OSNAME=`./config.guess`
+  OSNAME=`./config.guess`
 fi
 AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])
 
 if test $MACHINE = "x86_64"; then
-   EXTN="amd64"
+  EXTN="amd64"
 else
-   if test $MACHINE = "i686"; then
-     EXTN="i386"
-   fi
+  if test $MACHINE = "i686"; then
+    EXTN="i386"
+  fi
 fi
 
 DATE=`date +"%Y-%m-%d"`
 
 if test -d "/usr/include/hiredis"; then
- AC_DEFINE_UNQUOTED(HAVE_HIREDIS, 1, [Local hiredis package present])
- HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
- HIREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
+  AC_DEFINE_UNQUOTED(HAVE_HIREDIS, 1, [Local hiredis package present])
+  HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
+  HIREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
 else
- HIREDIS_INC="-I ${PWD}/third-party/hiredis"
+  HIREDIS_INC="-I ${PWD}/third-party/hiredis"
 fi
 
 if test "${with_nedge+set}" != set; then
@@ -411,24 +411,22 @@ if test "${with_nedge+set}" != set; then
 fi
 
 AC_CHECK_LIB([cap], [cap_get_proc], cap=true)
-if test x$cap != x
-then
-   LDFLAGS="${LDFLAGS} -lcap"
-   AC_DEFINE([HAVE_LIBCAP],[1],[Support for privilege drop])
+if test x$cap != x; then
+  LDFLAGS="${LDFLAGS} -lcap"
+  AC_DEFINE([HAVE_LIBCAP],[1],[Support for privilege drop])
 fi
 
 if test "${with_nedge+set}" != set; then
- AC_CHECK_LIB([ldap], [ldap_initialize], [LDFLAGS="${LDFLAGS} -lldap -llber"])
- if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then
-   AC_DEFINE_UNQUOTED(HAVE_LDAP, 1, [LDAP support is present])
- fi
+  AC_CHECK_LIB([ldap], [ldap_initialize], [LDFLAGS="${LDFLAGS} -lldap -llber"])
+  if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then
+    AC_DEFINE_UNQUOTED(HAVE_LDAP, 1, [LDAP support is present])
+  fi
 fi
 
 UGLIFYJS=`which uglifyjs`
-if test x$UGLIFYJS != x
-then
-   UGLIFYJS_VERSION=`$UGLIFYJS --version | cut -f 2 -d" "`
-   UGLIFYJS_MAJOR_VERSION="${UGLIFYJS_VERSION%%.*}"
+if test x$UGLIFYJS != x; then
+  UGLIFYJS_VERSION=`$UGLIFYJS --version | cut -f 2 -d" "`
+  UGLIFYJS_MAJOR_VERSION="${UGLIFYJS_VERSION%%.*}"
 fi
 
 AC_CHECK_LIB([rrd_th], [rrd_update_r], [LIBRRD_LD_FLAGS=-lrrd_th], [LIBRRD_LD_FLAGS=`pkg-config --libs librrd`])
@@ -443,19 +441,19 @@ AC_CHECK_LIB([dl], [dlopen], [LDFLAGS="${LDFLAGS} -ldl"])
 
 AC_CHECK_LIB([curl], [curl_easy_perform], [LDFLAGS="${LDFLAGS} -lcurl"])
 if test ${ac_cv_lib_curl_curl_easy_perform} = "no"; then
-    echo "Please install libcurl(-dev) (http://curl.haxx.se/)"
-    exit 1
+  echo "Please install libcurl(-dev) (http://curl.haxx.se/)"
+  exit 1
 else
-    dnl> libcurl has CURLOPT_MAIL_RCPT only starting at version 7.20.0
-    dnl> https://github.com/curl/curl/blob/curl-7_20_0/TODO-RELEASE
+  dnl> libcurl has CURLOPT_MAIL_RCPT only starting at version 7.20.0
+  dnl> https://github.com/curl/curl/blob/curl-7_20_0/TODO-RELEASE
 
-    AC_MSG_CHECKING(for curl SMTP support)
-    if `pkg-config --atleast-version="7.20.0" libcurl` ; then
-        AC_DEFINE_UNQUOTED(HAVE_CURL_SMTP, 1, [curl supports SMTP])
-	AC_MSG_RESULT(yes)
-    else
-	AC_MSG_RESULT(no)
-    fi
+  AC_MSG_CHECKING(for curl SMTP support)
+  if `pkg-config --atleast-version="7.20.0" libcurl` ; then
+    AC_DEFINE_UNQUOTED(HAVE_CURL_SMTP, 1, [curl supports SMTP])
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
 fi
 
 RPM_SIGN_CMD="rpm --addsign"
@@ -517,8 +515,7 @@ else
 fi
 
 AC_CHECK_LIB([sqlite3], [sqlite3_open], sqlite=true)
-if test x$sqlite = xtrue
-then
+if test x$sqlite = xtrue; then
   AC_DEFINE_UNQUOTED([HAVE_SQLITE], 1, [We have sqlite])
   SQLITE_LIB="-lsqlite3"
 else
@@ -527,39 +524,38 @@ else
 fi
 
 if test "${with_nedge+set}" != set; then
- AC_CHECK_TOOL(MARIADB, mariadb_config)
- if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
-   MYSQLTOOL="mariadb_config"
- else
-   PATH=$PATH:/usr/local/mysql/bin
-   AC_CHECK_TOOL(MYSQL, mysql_config)
-   if test "x$ac_cv_prog_ac_ct_MYSQL" = "xmysql_config"; then
-     MYSQLTOOL="mysql_config"
-   else
-     MYSQLTOOL=""
-   fi
- fi
+  AC_CHECK_TOOL(MARIADB, mariadb_config)
+  if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
+    MYSQLTOOL="mariadb_config"
+  else
+    PATH=$PATH:/usr/local/mysql/bin
+    AC_CHECK_TOOL(MYSQL, mysql_config)
+    if test "x$ac_cv_prog_ac_ct_MYSQL" = "xmysql_config"; then
+      MYSQLTOOL="mysql_config"
+    else
+      MYSQLTOOL=""
+    fi
+  fi
 
-if test -n "$MYSQLTOOL"; then
-   MYSQLLIBS="`$MYSQLTOOL --libs_r`"
-   if test ".$MYSQLLIBS" != "."; then
+  if test -n "$MYSQLTOOL"; then
+    MYSQLLIBS="`$MYSQLTOOL --libs_r`"
+    if test ".$MYSQLLIBS" != "."; then
       MYSQL_LIB="`$MYSQLTOOL --libs`"
-   else
+    else
       MYSQL_LIB="`$MYSQLTOOL --libs_r`"
-   fi
+    fi
 
-   MYSQL_INC="`$MYSQLTOOL --include`"
-   AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
-   AC_CHECK_LIB([wrap], [main])
- else
-   echo "MySQL libraries not found. Please install them as specified in README.compilation"
-   exit 1
- fi
+    MYSQL_INC="`$MYSQLTOOL --include`"
+    AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
+    AC_CHECK_LIB([wrap], [main])
+  else
+    echo "MySQL libraries not found. Please install them as specified in README.compilation"
+    exit 1
+  fi
 fi
 
 AC_CHECK_LIB([radcli], [rc_read_config], radcli=true)
-if test x$radcli = xtrue
-then
+if test x$radcli = xtrue; then
   RADCLI_LIB="-lradcli"
   AC_DEFINE_UNQUOTED(HAVE_RADIUS, 1, [RADIUS support is present])
 
@@ -594,39 +590,35 @@ else
 fi
 
 if test "${with_nedge+set}" != set; then
- if test $LINUX_OS_RELEASE -eq 7; then
-  MYSQL_DEP="mariadb-libs >= 5.5 tcp_wrappers-libs >= 7.6"
- else
-  MYSQL_DEP="mysql-libs >= 5.1.0 tcp_wrappers-libs >= 7.6"
- fi
+  if test $LINUX_OS_RELEASE -eq 7; then
+    MYSQL_DEP="mariadb-libs >= 5.5 tcp_wrappers-libs >= 7.6"
+  else
+    MYSQL_DEP="mysql-libs >= 5.1.0 tcp_wrappers-libs >= 7.6"
+  fi
 fi
 
 AC_DEFINE_UNQUOTED(_CRT_SECURE_NO_WARNINGS, 1, [Disable warning on windows])
 
 GMAKE=`which gmake`
-if test x$GMAKE = x
-then
-	GMAKE="make"
+if test x$GMAKE = x; then
+  GMAKE="make"
 fi
 
 GIT=`which git`
-if test x$GIT = x
-then
-	AC_MSG_RESULT(FATAL ERROR: git is not installed on your host)
+if test x$GIT = x; then
+  AC_MSG_RESULT(FATAL ERROR: git is not installed on your host)
 fi
 
 WGET=`which wget`
-if test x$WGET = x
-then
-	AC_MSG_RESULT(ERROR. wget is not installed on your host: you cannot download GeoIP data)
+if test x$WGET = x; then
+  AC_MSG_RESULT(ERROR. wget is not installed on your host: you cannot download GeoIP data)
 fi
 
 umask 002
 
 INSTALL_DIR=${prefix}
-if test $INSTALL_DIR = "NONE"
-then
- INSTALL_DIR=${ac_default_prefix}
+if test $INSTALL_DIR = "NONE"; then
+  INSTALL_DIR=${ac_default_prefix}
 fi
 
 if test $SYSTEM = "Darwin"; then
@@ -636,8 +628,13 @@ else
 fi
 
 if test $SYSTEM = "OpenBSD"; then
-INSTALL_DIR=${prefix}
-MAN_DIR=${prefix}
+  INSTALL_DIR=${prefix}
+  MAN_DIR=${prefix}
+fi
+
+STABLE_SUFFIX=""
+if test $GIT_BRANCH != "dev"; then
+  STABLE_SUFFIX="-stable"
 fi
 
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
@@ -700,6 +697,7 @@ AC_SUBST(APP)
 AC_SUBST(CENTOS_N2N_DEP)
 AC_SUBST(RPM_SIGN_CMD)
 AC_SUBST(LIBRRD_LD_FLAGS)
+AC_SUBST(STABLE_SUFFIX)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
@@ -707,6 +705,7 @@ AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(tools/json2tlv/Makefile)
 AC_CONFIG_FILES(doc/doxygen.conf)
 AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-config)
+AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-updates)
 AC_CONFIG_FILES(packages/etc/systemd/system/ntopng.service)
 
 AC_OUTPUT
@@ -715,14 +714,17 @@ if test -f "httpdocs/misc/ntopng-utils-manage-config"; then
   chmod +x httpdocs/misc/ntopng-utils-manage-config
 fi
 
+if test -f "httpdocs/misc/ntopng-utils-manage-updates"; then
+  chmod +x httpdocs/misc/ntopng-utils-manage-updates
+fi
+
 echo ""
 echo "You are now ready to compile typing $GMAKE"
 
-if test "$DOWNLOAD_GEOIP" = "1"
-then
-if ! test -f "./httpdocs/geoip/GeoLite2-ASN.mmdb"; then
-  echo "Please do not forget to download GeoIP databases doing: $GMAKE geoip"
-fi
+if test "$DOWNLOAD_GEOIP" = "1"; then
+  if ! test -f "./httpdocs/geoip/GeoLite2-ASN.mmdb"; then
+    echo "Please do not forget to download GeoIP databases doing: $GMAKE geoip"
+  fi
 fi
 
 dnl>

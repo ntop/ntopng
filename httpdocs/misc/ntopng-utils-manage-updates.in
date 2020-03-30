@@ -158,7 +158,7 @@ function run_upgrade() {
 		# Debian or Ubuntu
 
 		# Update repo index
-		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop@STABLE_SUFFIX@.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Install
 		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated ${PRODUCT}
@@ -204,7 +204,7 @@ function check_updates() {
 		# Debian or Ubuntu
 
 		# Update repo index
-		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop@STABLE_SUFFIX@.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Check for broken packages
 		${APT_GET} --just-print upgrade 2>&1 >/dev/null
