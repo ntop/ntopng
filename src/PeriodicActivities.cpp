@@ -99,7 +99,8 @@ void PeriodicActivities::sendShutdownSignal() {
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
   ThreadedActivity *startup_activity;
-  u_int8_t num_threads = DEFAULT_THREAD_POOL_SIZE;
+  u_int8_t num_threads = ntop->get_num_interfaces() + 1; /* +1 for the system interface */
+  u_int8_t num_threads_no_priority = DEFAULT_THREAD_POOL_SIZE;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
 
@@ -122,19 +123,19 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     startup_activity = NULL;
   }
 
-  if(num_threads < ntop->get_num_interfaces())
-    num_threads = ntop->get_num_interfaces();
+  if(num_threads_no_priority < num_threads)
+    num_threads_no_priority = num_threads;
 
-  if(num_threads > MAX_THREAD_POOL_SIZE)
-    num_threads = MAX_THREAD_POOL_SIZE;
+  if(num_threads_no_priority > MAX_THREAD_POOL_SIZE)
+    num_threads_no_priority = MAX_THREAD_POOL_SIZE;
 
-  high_priority_pool     = new ThreadPool(true,  ntop->get_num_interfaces());
-  standard_priority_pool = new ThreadPool(false, ntop->get_num_interfaces());
-  longrun_priority_pool  = new ThreadPool(false, ntop->get_num_interfaces());
+  high_priority_pool     = new ThreadPool(true,  num_threads);
+  standard_priority_pool = new ThreadPool(false, num_threads);
+  longrun_priority_pool  = new ThreadPool(false, num_threads);
   timeseries_pool        = new ThreadPool(false, 1);
   discover_pool          = new ThreadPool(false, 1);
   housekeeping_pool      = new ThreadPool(false, 1);
-  no_priority_pool       = new ThreadPool(false, num_threads);
+  no_priority_pool       = new ThreadPool(false, num_threads_no_priority);
   
   static activity_descr ad[] = {
     // Script           Periodicity (s) Max (s) Pool                    Align  !View  !PCAP  Reuse
