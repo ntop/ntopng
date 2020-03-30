@@ -120,7 +120,7 @@ Here is a commented snippet for the email endpoint.
 
   -- The function in charge of dequeuing alerts. Some code is boilerplate and
   -- can be copied to new endpoints.
-  function email.dequeueAlerts(queue)
+  function my_endpoint.dequeueAlerts(queue)
     while true do
       -- Retrieve a bulk of MAX_ALERTS_PER_EMAIL (or less) alerts
       local alerts = ntop.lrangeCache(queue, 0, MAX_ALERTS_PER_EMAIL-1)
