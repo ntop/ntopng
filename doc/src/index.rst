@@ -12,6 +12,8 @@ can be obtained from the traffic captured by the server.
    how_to_start/index
    cli_options
    web_gui/index
+   active_monitoring/index
+   self_monitoring/index
    using_with_nprobe
    using_with_nprobe_agent
    remote_assistance

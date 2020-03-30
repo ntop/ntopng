@@ -7,6 +7,7 @@ ntopng centers and has been developed around some basic concepts that include in
     :maxdepth: 2
 
     interfaces
+    system_interface
     hosts
     host_pools
     alerts

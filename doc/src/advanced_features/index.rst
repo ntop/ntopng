@@ -9,7 +9,6 @@ section.
     :numbered:
 
     authentication
-    snmp
     icinga2
     sflow_collection
     view_interfaces
