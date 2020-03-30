@@ -781,14 +781,7 @@
 			<key>TITLE</key>
 			<dict>
 				<key>LOCALIZATIONS</key>
-				<array>
-					<dict>
-						<key>LANGUAGE</key>
-						<string>English</string>
-						<key>VALUE</key>
-						<string>Welcome to ntopng for MacOS</string>
-					</dict>
-				</array>
+				<array/>
 			</dict>
 		</dict>
 		<key>PROJECT_REQUIREMENTS</key>

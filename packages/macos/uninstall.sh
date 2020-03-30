@@ -18,8 +18,11 @@ NUM=$((NUM+1))
 echo "$NUM. Uninstall startup file"
 sudo launchctl unload /Library/LaunchDaemons/org.ntop.ntopng.plist
 sudo /bin/rm -f /Library/LaunchDaemons/org.ntop.ntopng.plist
-sudo launchctl unload /Library/LaunchDaemons/io.redis.redis-server.plist
-sudo /bin/rm -f /Library/LaunchDaemons/io.redis.redis-server.plist
+
+if [ -f "/Library/LaunchDaemons/io.redis.redis-server.plist" ]; then
+    sudo launchctl unload /Library/LaunchDaemons/io.redis.redis-server.plist
+    sudo /bin/rm -f /Library/LaunchDaemons/io.redis.redis-server.plist
+fi
 
 NUM=$((NUM+1))
 echo "$NUM. Deleting package information"
