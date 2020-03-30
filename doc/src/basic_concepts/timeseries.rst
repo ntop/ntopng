@@ -31,6 +31,8 @@ the top protocols) can take some time. Moreover RRD has shown some limitations w
 a large volume of data, usually leading to gaps in the timeseries data points. With a large
 volume of data, the use of InfluxDB is suggested.
 
+.. _InfluxDB Driver:
+
 InfluxDB Driver
 ---------------
 
