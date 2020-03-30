@@ -230,7 +230,7 @@ class BlogFeed {
 
         newPosts.forEach((post, index) => {
 
-            if (!post) return;
+        if (!post) return;
 
             const $media = $("<li></li>");
             if (index < newPosts.length - 1) $media.addClass("border-bottom");
