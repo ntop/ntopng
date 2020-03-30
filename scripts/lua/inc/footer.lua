@@ -6,9 +6,12 @@ require "os"
 local ts_utils = require("ts_utils_core")
 
 local template = require "template_utils"
+local page_utils = require "page_utils"
 
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(true)
+local is_admin = isAdministrator()
+
 
 interface.select(ifname)
 local iface_id = interface.name2id(ifname)
@@ -37,8 +40,8 @@ end -- closes interface.isPcapDumpInterface() == false
 if not info.oem then
 
 print ([[
-<div id="n-footer" class="border-top">
-	<div class="container-fluid"> <!-- occupy the whole row -->
+<footer id="n-footer">
+	<div class="container-fluid border-top">
 		<div class="row mt-2">
 			<div class="col-4 text-left">
 				<small>
@@ -82,7 +85,7 @@ print [[
 			</div>
      	</div>
    </div>
-</div>
+</footer>
 ]]
 
 else -- info.oem
@@ -109,6 +112,54 @@ if ts_utils.getDriverName() == "influxdb" then
 	]])
    end
 end
+
+-- Toogle System Interface
+
+-- render switchable system view
+if is_admin then
+
+	print([[
+	<script type="text/javascript">
+
+	   const toggle_system_flag = (is_system_switch = false, $form = null) => {
+
+		  // if form it's empty it means the call was not invoked
+		  // by a form request
+		  const flag = (is_system_switch) ? "1" : "0";
+
+		  $.get(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
+			 system_interface: flag,
+			 csrf: "]].. ntop.getRandomCSRFValue() ..[["
+		  }, function(data) {
+
+			 if (data.success && $form == null) location.href = '/';
+			 if (data.success && $form != null) $form.submit();
+			 if (!data.success) {
+				console.error("An error has occurred!");
+			 }
+
+		  });
+	   }
+	]])
+
+	if (not page_utils.is_system_view()) then
+	print([[
+	   $(document).ready(function() {
+		  $("#btn-trigger-system-mode").click(function(e) {
+			 toggle_system_flag(true);
+		  });
+	   });
+	]])
+	end
+
+	print([[
+	   </script>
+	]])
+
+end
+
+-- End of Toggle System Interface
+
 
 -- Only show the message if the host protocol/category timeseries are enabled
 local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTimeseriesEnabled(ifid)) and

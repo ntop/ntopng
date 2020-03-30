@@ -14,6 +14,8 @@ local info = ntop.getInfo()
 
 local delete_data_utils = require "delete_data_utils"
 
+-- begin od container
+print("<div class='manage-data-modals'>")
 
 if _POST and table.len(_POST) > 0 and isAdministrator() then
 
@@ -143,3 +145,6 @@ print([[
 
    </script>
 ]])
+
+-- end of the container
+print("</div>")

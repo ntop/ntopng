@@ -163,8 +163,6 @@ class BlogFeed {
             return emptyBlogSettings;
         }
 
-        console.log(jsonBlog);
-
         return blogFeedSettings;
     }
 
@@ -270,7 +268,6 @@ class BlogFeed {
 
                     // mark the post as old
                     const downloadedPosts = BlogFeed.getUserLocalStorage(currentLocalStorage, currentUserName).downloadedPosts;
-                    console.log(downloadedPosts);
 
                     const oldPosts = downloadedPosts.map((p) => {
                         if (p.id == post.id) p.isNew = false;
@@ -290,8 +287,6 @@ class BlogFeed {
     }
 
     static saveDownloadedPosts(currentLocalStorage, downloadedPosts, currentUserName) {
-
-        console.log(downloadedPosts);
 
         // remove the current local storage
         localStorage.removeItem(BlogFeed.getLocalStorageKey());
@@ -335,12 +330,8 @@ class BlogFeed {
 
                 const toShow = currentUserLocalStorage.downloadedPosts;
                 let counter = 0;
-                console.log(currentLocalStorage);
-                console.log(currentUserLocalStorage);
-
                 // count how many post have not been read
                 toShow.forEach((p) => {
-                    console.log(p);
                     if (!p) return;
                     if (p.isNew) counter++;
                 });
