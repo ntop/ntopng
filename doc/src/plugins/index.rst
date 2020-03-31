@@ -14,6 +14,7 @@ Developing Plugins
     user_script_hooks
     localization
     web_ui
+    custom_pages
     examples
     tutorial
     distributing_plugins
