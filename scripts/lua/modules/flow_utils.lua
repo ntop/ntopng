@@ -262,7 +262,8 @@ function handleCustomFlowField(key, value, snmpdevice)
       return(formatInterfaceId(value, "outIfIdx", snmpdevice))
    elseif key == 'EXPORTER_IPV4_ADDRESS' or
           key == 'NPROBE_IPV4_ADDRESS' then
-      local res = getResolvedAddress(hostkey2hostinfo(value))
+      local hinfo = hostkey2hostinfo(value)
+      local res = host2name(hinfo["host"], hinfo["vlan"])
 
       local ret = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..value.."\">"
 
@@ -1494,7 +1495,9 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 	    dev_name = dev_name .. "["..shortenString(snmp_name).."]"
 	 end
       else
-	 local resname = getResolvedAddress(hostkey2hostinfo(dev_name))
+	 local hinfo = hostkey2hostinfo(dev_name)
+	 local resname = host2name(hinfo["host"], hinfo["vlan"])
+
 	 if not isEmptyString(resname) and resname ~= dev_name then
 	    dev_name = dev_name .. "["..shortenString(resname).."]"
 	 end

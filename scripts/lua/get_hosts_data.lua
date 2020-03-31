@@ -43,7 +43,8 @@ local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 function update_host_name(h)
    if(h["name"] == nil) then
       if(h["ip"] ~= nil) then
-	 h["name"] = getResolvedAddress(hostkey2hostinfo(h["ip"]))
+         
+         h["name"] = host2name(h["ip"])
       else
 	 h["name"] = h["mac"]
       end
@@ -273,7 +274,8 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if(value["name"] == nil) then
-      value["name"] = getResolvedAddress(hostkey2hostinfo(key))
+      local hinfo = hostkey2hostinfo(word)
+      value["name"] = host2name(hinfo["host"], hinfo["vlan"])
    end
 
    if(value["name"] == "") then

@@ -1122,6 +1122,7 @@ end
 
 -- #################################
 
+-- NOTE: use host2name instead of this
 function hostVisualization(ip, name, vlan)
    if (ip ~= name) then
       if isIPv6(ip) then
@@ -1138,8 +1139,16 @@ end
 
 -- #################################
 
--- NOTE: prefer the getResolvedAddress on this function
+-- This function actively resolves an host if there is not information about it.
+-- NOTE: prefer the host2name on this function
 function resolveAddress(hostinfo, allow_empty)
+   local alt_name = getHostAltName(hostinfo["host"])
+
+   if(not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
+      -- The host label has priority
+      return(alt_name)
+   end
+
    local hostname = ntop.resolveName(hostinfo["host"])
    if isEmptyString(hostname) then
       -- Not resolved
@@ -1147,17 +1156,9 @@ function resolveAddress(hostinfo, allow_empty)
          return hostname
       else
          -- this function will take care of formatting the IP
-         return getResolvedAddress(hostinfo)
+         return host2name(hostinfo)
       end
    end
-   return hostVisualization(hostinfo["host"], hostname, hostinfo["vlan"])
-end
-
--- #################################
-
--- NOTE: use host2name when possible
-function getResolvedAddress(hostinfo)
-   local hostname = ntop.getResolvedName(hostinfo["host"])
    return hostVisualization(hostinfo["host"], hostname, hostinfo["vlan"])
 end
 
@@ -1400,6 +1401,12 @@ end
 -- Flow Utils --
 
 function host2name(name, vlan)
+   if(type(name) == "table") then
+      -- Called as host2name(hostkey2hostinfo(...))
+      name = name["host"]
+      vlan = name["vlan"]
+   end
+
    local orig_name = name
 
    vlan = tonumber(vlan or "0")
@@ -1407,7 +1414,9 @@ function host2name(name, vlan)
    name = getHostAltName(name)
 
    if(name == orig_name) then
-      local rname = getResolvedAddress({host=name, vlan=vlan})
+      -- Use the resolved name
+      local hostname = ntop.getResolvedName(name)
+      local rname = hostVisualization(name, hostname, vlan)
 
       if((rname ~= nil) and (rname ~= "")) then
 	 name = rname

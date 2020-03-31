@@ -223,7 +223,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 
 	    print("\"column_name\" : \"")
 	    if(value["protocol"] == 65535) then
-	       print(getResolvedAddress(hostkey2hostinfo(key)))
+	       local hinfo = hostkey2hostinfo(key)
+	       print(host2name(hinfo["host"], hinfo["vlan"]))
 	    else
 	       print(key)
 	    end
