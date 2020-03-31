@@ -1122,6 +1122,7 @@ end
 
 -- #################################
 
+-- NOTE: use host2name instead of this
 function hostVisualization(ip, name, vlan)
    if (ip ~= name) then
       if isIPv6(ip) then
@@ -1138,8 +1139,16 @@ end
 
 -- #################################
 
--- NOTE: prefer the getResolvedAddress on this function
+-- This function actively resolves an host if there is not information about it.
+-- NOTE: prefer the host2name on this function
 function resolveAddress(hostinfo, allow_empty)
+   local alt_name = getHostAltName(hostinfo["host"])
+
+   if(not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
+      -- The host label has priority
+      return(alt_name)
+   end
+
    local hostname = ntop.resolveName(hostinfo["host"])
    if isEmptyString(hostname) then
       -- Not resolved
@@ -1147,17 +1156,9 @@ function resolveAddress(hostinfo, allow_empty)
          return hostname
       else
          -- this function will take care of formatting the IP
-         return getResolvedAddress(hostinfo)
+         return host2name(hostinfo)
       end
    end
-   return hostVisualization(hostinfo["host"], hostname, hostinfo["vlan"])
-end
-
--- #################################
-
--- NOTE: use host2name when possible
-function getResolvedAddress(hostinfo)
-   local hostname = ntop.getResolvedName(hostinfo["host"])
    return hostVisualization(hostinfo["host"], hostname, hostinfo["vlan"])
 end
 
@@ -1400,6 +1401,12 @@ end
 -- Flow Utils --
 
 function host2name(name, vlan)
+   if(type(name) == "table") then
+      -- Called as host2name(hostkey2hostinfo(...))
+      name = name["host"]
+      vlan = name["vlan"]
+   end
+
    local orig_name = name
 
    vlan = tonumber(vlan or "0")
@@ -1407,7 +1414,9 @@ function host2name(name, vlan)
    name = getHostAltName(name)
 
    if(name == orig_name) then
-      local rname = getResolvedAddress({host=name, vlan=vlan})
+      -- Use the resolved name
+      local hostname = ntop.getResolvedName(name)
+      local rname = hostVisualization(name, hostname, vlan)
 
       if((rname ~= nil) and (rname ~= "")) then
 	 name = rname
@@ -1438,11 +1447,11 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
       end
    end
 
-   name = flow_info[host_type..".host"]
-
-   if((name == "") or (name == nil)) then
-      name = flow_info[host_type..".ip"]
-   end
+   -- Do not use host name here as we need first to check if there is
+   -- an host alias defined for the IP address in host2name. getResolvedAddress
+   -- in host2name will return the host name if no alias is defined.
+   --~ name = flow_info[host_type..".host"]
+   name = flow_info[host_type..".ip"]
 
    return(host2name(name, flow_info["vlan"]))
 end
@@ -3036,11 +3045,17 @@ end
 
 function stripVlan(name)
   local key = string.split(name, "@")
-  if(key ~= nil) then
-     return(key[1])
-  else
-     return(name)
+  if((key ~= nil) and (#key == 2)) then
+     -- Verify that the host is actually an IP address and the VLAN actually
+     -- a number to avoid stripping things that are not vlans (e.g. part of an host name)
+     local addr = key[1]
+
+     if((tonumber(key[2]) ~= nil) and (isIPv6(addr) or isIPv4(addr))) then
+      return(addr)
+     end
   end
+
+  return(name)
 end
 
 function getSafeChildIcon()

@@ -167,7 +167,9 @@ if (_GET["hosts"] ~= nil) then
         vlan_id = " "
       end
 
-      print ("\t{\"name\": \"" .. getResolvedAddress(hostkey2hostinfo(host_ip)) .. "\", \"ip\": \"" .. host_ip .. "\", \"vlan\": \"" .. vlan_id .. "\"}")
+      local name = host2name(host_ip, vlan_id)
+
+      print ("\t{\"name\": \"" .. name .. "\", \"ip\": \"" .. host_ip .. "\", \"vlan\": \"" .. vlan_id .. "\"}")
       node_size = node_size + 1
     end
 

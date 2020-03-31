@@ -21,6 +21,32 @@ http://packages.ntop.org/. Development and stable builds are
 available. Stable builds are intended for production environments whereas
 development builds are intended for testing or early feature access.
 
+Installing on MacOS
+-------------------
+
+MacOS installation packages can be found at
+http://packages.ntop.org/ and are installed with a graphical user interface.
+ntopng requires redis to be installed in order to start. During the ntopng installation,
+if redis is not present, redis is installed and activated, otherwise the one already installed on
+the system is used. After the installation, ntopng is started and active on local port 3000
+(i.e. ntopng is available at http://127.0.0.1:3000). If you want to deinstall ntopng you can
+open a terminal and type :code:`sudo /usr/local/bin/ntopng-uninstall.sh`
+
+Similar to the other platforms, the MacOS packages does not include geolocation files as
+described later in this section. Such files must be installed in /usr/local/share/ntopng/httpdocs/geoip
+and ntopng be restarted in order to use them.
+
+The ntopng configuration file is installed in /usr/local/etc/ntopng/ntopng.conf that can be edited
+(as privileged user) with a text editor.
+
+The ntopng service can be started/stopped using the launchctl command:
+
+- [Start] :code:`sudo launchctl load /Library/LaunchDaemons/org.ntop.ntopng.plist`
+- [Stop] :code:`sudo launchctl unload /Library/LaunchDaemons/org.ntop.ntopng.plist`
+   
+
+
+
 Installing on Windows
 ---------------------
 

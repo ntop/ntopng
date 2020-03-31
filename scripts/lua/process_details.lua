@@ -43,7 +43,7 @@ else
       local nav_url = ntop.getHttpPrefix().."/lua/process_details.lua?pid="..pid.."&pid_name="..name_key
 
       if host_info and host_info["host"] then
-	 name = getResolvedAddress(hostkey2hostinfo(host_info["host"]))
+	 name = host2name(host_info["host"])
 	 if isEmptyString(name) then
 	    name = host_info["host"]
 	 end

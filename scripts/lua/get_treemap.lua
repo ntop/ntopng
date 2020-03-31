@@ -39,7 +39,9 @@ for key, value in pairs(hosts_stats) do
    if(val > threshold) then
 
    if(num > 0) then print(",\n") else print("\n") end
-   res = getResolvedAddress(hostkey2hostinfo(key))
+
+   local hinfo = hostkey2hostinfo(key)
+   name = host2name(hinfo["host"], hinfo["vlan"])
 
    --if(res == nil) then res = "AAA" end
    print("{ \"name\": \"" .. res .. "\", \"size\": " .. (hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]).. "} ")

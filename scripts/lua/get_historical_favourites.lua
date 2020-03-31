@@ -73,11 +73,15 @@ elseif action == "set" or action == "del" then
    if favourite_type == "talker" or favourite_type == "apps_per_host_pair" then
       if host ~= "" and host ~= nil then
 	 entry = host
-	 resolved = getResolvedAddress(hostkey2hostinfo(host))
+
+	 local hinfo = hostkey2hostinfo(host)
+	 resolved = host2name(hinfo["host"], hinfo["vlan"])
 
 	 if peer ~= "" and peer ~= nil then
 	    entry = entry..','..peer
-	    resolved = resolved..','..getResolvedAddress(hostkey2hostinfo(peer))
+
+	    local hinfo = hostkey2hostinfo(peer)
+	    resolved = resolved..','..host2name(hinfo["host"], hinfo["vlan"])
 	 end
       end
 
@@ -88,7 +92,9 @@ elseif action == "set" or action == "del" then
 	 resolved = interface.getnDPIProtoName(tonumber(l7_proto_id))
 	 if host ~= "" and host ~= nil then
 	    entry = entry..','..host
-	    resolved = resolved..','..getResolvedAddress(hostkey2hostinfo(host))
+
+	    local hinfo = hostkey2hostinfo(host)
+	    resolved = resolved..','..host2name(hinfo["host"], hinfo["vlan"])
 	 end
       end
    end
