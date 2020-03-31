@@ -22,6 +22,7 @@ sudo /bin/rm -f /Library/LaunchDaemons/org.ntop.ntopng.plist
 if [ -f "/Library/LaunchDaemons/io.redis.redis-server.plist" ]; then
     sudo launchctl unload /Library/LaunchDaemons/io.redis.redis-server.plist
     sudo /bin/rm -f /Library/LaunchDaemons/io.redis.redis-server.plist
+    sudo /bin/rm -f /usr/local/etc/ntopng/ntopng.conf
 fi
 
 NUM=$((NUM+1))

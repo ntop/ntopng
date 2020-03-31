@@ -13,7 +13,7 @@ ntopng-build:
 	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/local/bin/ntopng-bin
 	cp ./ntopng ${NTOPNG_BUILD}/usr/local/bin/
 	cp ./uninstall.sh ${NTOPNG_BUILD}/usr/local/bin/ntopng-uninstall.sh
-	cp $(NTOPNG_HOME)/packages/etc/ntopng/ntopng.conf ${NTOPNG_BUILD}/usr/local/etc/ntopng/
+	cp ./ntopng-macos.conf ${NTOPNG_BUILD}/usr/local/etc/ntopng/ntopng.conf
 
 	cp /usr/local/opt/rrdtool/lib/librrd.8.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/json-c/lib/libjson-c.4.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng

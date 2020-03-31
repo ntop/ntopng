@@ -1,0 +1,5 @@
+Il codice sorgente di ntopng e' disponibile all'indirizzo
+https://github.com/ntop/ntopng
+
+I termini della licenza utente sono disponibili all'indirizzo
+https://www.ntop.org/legal/
