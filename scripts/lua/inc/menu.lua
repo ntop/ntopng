@@ -865,6 +865,23 @@ if not is_pcap_dump and not is_system_interface then
 
 end
 
+-- License Badge
+local info = ntop.getInfo(true)
+
+if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
+   print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
+   if(info["pro.release"]) then
+      if(info["pro.demo_ends_at"] ~= nil) then
+	 local rest = info["pro.demo_ends_at"] - os.time()
+	 if(rest > 0) then
+	    print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
+	 end
+      end
+   else
+      print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
+   end
+   print('</span></a></li>')
+end
 
 -- ########################################
 -- Network Load

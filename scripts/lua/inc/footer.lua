@@ -55,25 +55,6 @@ print ([[
 			<div class="col-4 text-center">
 				<small>]].. ntop.getInfo()["copyright"] ..[[</small>
 ]])
-
-
--- center element
-
-if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
-   print('<a href="https://shop.ntop.org"> <span class="badge badge-warning">')
-   if(info["pro.release"]) then
-      if(info["pro.demo_ends_at"] ~= nil) then
-	 local rest = info["pro.demo_ends_at"] - os.time()
-	 if(rest > 0) then
-	    print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
-	 end
-      end
-   else
-      print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
-   end
-   print('</span></a>')
-end
-
 print [[
 			</div>
 			<div class="col-4 text-right">
