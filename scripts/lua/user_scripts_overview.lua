@@ -12,109 +12,180 @@ sendHTTPContentTypeHeader('text/html')
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.user_scripts)
 
+local ifid = interface.getId()
+
+local function printUserScripts()
+
+    for _, info in ipairs(user_scripts.listSubdirs()) do
+
+        local scripts = user_scripts.load(ifid, user_scripts.getScriptType(info.id), info.id, {return_all = true})
+
+        for name, script in pairsByKeys(scripts.modules) do
+
+            local available = ""
+            local filters = {}
+            local hooks = {}
+
+            -- Hooks
+            for hook in pairsByKeys(script.hooks) do
+              if((hook == "periodicUpdate") and (script.periodic_update_seconds ~= nil)) then
+                hook = string.format("%s (%us)", hook, script.periodic_update_seconds)
+              end
+
+              hooks[#hooks + 1] = hook
+            end
+            hooks = table.concat(hooks, ", ")
+
+            -- Filters
+            if(script.is_alert) then filters[#filters + 1] = "alerts" end
+            if(script.l4_proto) then filters[#filters + 1] = "l4_proto=" .. script.l4_proto end
+            if(script.l7_proto) then filters[#filters + 1] = "l7_proto=" .. script.l7_proto end
+            if(script.packet_interface_only) then filters[#filters + 1] = "packet_interface" end
+            if(script.three_way_handshake_ok) then filters[#filters + 1] = "3wh_completed" end
+            if(script.local_only) then filters[#filters + 1] = "local_only" end
+            if(script.nedge_only) then filters[#filters + 1] = "nedge=true" end
+            if(script.nedge_exclude) then filters[#filters + 1] = "nedge=false" end
+            filters = table.concat(filters, ", ")
+
+            if (name == "my_custom_script") then
+              goto skip
+            end
+
+            -- Availability
+            if(script.edition == "enterprise") then
+              available = "Enterprise"
+            elseif(script.edition == "pro") then
+              available = "Pro"
+            else
+              available = "Community"
+            end
+
+            local edit_url = user_scripts.getScriptEditorUrl(script)
+
+            if(edit_url) then
+              edit_url = ' <a title="'.. i18n("plugins_overview.action_view") ..'" href="'.. edit_url ..'" class="badge badge-secondary" style="visibility: visible">' .. i18n("host_pools.view") ..'</a>'
+            end
+
+            print(string.format(([[
+                <tr>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td class="text-center">%s</td></tr>
+                ]]), name, info.label, available, hooks, filters, edit_url or ""))
+            ::skip::
+          end
+    end
+end
+
+
+-- #######################################################
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
--- print[[<hr>]]
+print([[
+    <div class='container-fluid'>
+        <div class='row'>
+            <div class='col-12'>
+                <h2>User Scripts</h2>
+            </div>
+            <div class='col-12 my-3'>
+                <table class='table table-bordered' id='user-scripts'>
+                    <thead>
+                        <tr>
+                            <th>]].. i18n("plugins_overview.script") ..[[</th>
+                            <th>]].. i18n("plugins_overview.type") ..[[</th>
+                            <th>]].. i18n("plugins_overview.availability") ..[[</th>
+                            <th>]].. i18n("plugins_overview.hooks") ..[[</th>
+                            <th>]].. i18n("plugins_overview.filters") ..[[</th>
+                            <th>]].. i18n("action") ..[[</th>
+                        </tr>
+                    </thead>
+                    <tbody>]])
+                    printUserScripts()
+print([[
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
+    <script type='text/javascript'>
 
-local ifid = interface.getId()
-local edition = _GET["edition"] or ""
+    $(document).ready(function() {
 
--- #######################################################
+        const addFilterDropdown = (title, values, column_index, datatableFilterId, tableApi) => {
 
-local function printUserScripts(title, scripts)
-  if table.empty(scripts.modules) then
-    return
-  end
+            const createEntry = (val, callback) => {
+                const $entry = $(`<li class='dropdown-item pointer'>${val}</li>`);
+                $entry.click(function(e) {
 
-  print[[<h3>]] print(title) print[[</h3>
-    <table class="table table-bordered table-sm table-striped">
-    <tr><th class='text-left' width="30%">]] print(i18n("plugins_overview.script"))
-    print[[</th><th width="10%">]] print(i18n("plugins_overview.availability"))
-    print[[</th><th width="30%">]] print(i18n("plugins_overview.hooks"))
-    print[[</th><th>]] print(i18n("plugins_overview.filters"))
-    print[[</th><th class="text-center">]] print(i18n("actions"))
-    print[[</th></tr>]]
+                    $dropdownTitle.html(`<i class='fas fa-filter'></i> ${val}`);
+                    $menuContainer.find('li').removeClass(`active`);
+                    $entry.addClass(`active`);
+                    callback(e);
+                });
 
-  for name, script in pairsByKeys(scripts.modules) do
-    local available = ""
-    local filters = {}
-    local hooks = {}
+                return $entry;
+            }
 
-    -- Hooks
-    for hook in pairsByKeys(script.hooks) do
-      if((hook == "periodicUpdate") and (script.periodic_update_seconds ~= nil)) then
-        hook = string.format("%s (%us)", hook, script.periodic_update_seconds)
-      end
+            const dropdownId = `${title}-filter-menu`;
+            const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
+            const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
+            const $dropdownTitle = $(`<span>${title}</span>`);
+            $dropdownButton.append($dropdownTitle);
 
-      hooks[#hooks + 1] = hook
-    end
-    hooks = table.concat(hooks, ", ")
+            const $menuContainer = $(`<ul class='dropdown-menu' id='${title}-filter'></ul>`);
+            values.forEach((val) => {
+                const $entry = createEntry(val, (e) => {
+                    tableApi.columns(column_index).search(val).draw(true);
+                });
+                $menuContainer.append($entry);
+            });
 
-    -- Filters
-    if(script.is_alert) then filters[#filters + 1] = "alerts" end
-    if(script.l4_proto) then filters[#filters + 1] = "l4_proto=" .. script.l4_proto end
-    if(script.l7_proto) then filters[#filters + 1] = "l7_proto=" .. script.l7_proto end
-    if(script.packet_interface_only) then filters[#filters + 1] = "packet_interface" end
-    if(script.three_way_handshake_ok) then filters[#filters + 1] = "3wh_completed" end
-    if(script.local_only) then filters[#filters + 1] = "local_only" end
-    if(script.nedge_only) then filters[#filters + 1] = "nedge=true" end
-    if(script.nedge_exclude) then filters[#filters + 1] = "nedge=false" end
-    filters = table.concat(filters, ", ")
+            const $allEntry = createEntry(']].. i18n('all') ..[[', (e) => {
+                $dropdownTitle.html(`${title}`);
+                $menuContainer.find('li').removeClass(`active`);
+                tableApi.columns().search('').draw(true);
+            });
+            $menuContainer.prepend($allEntry);
 
-    if(name == "my_custom_script") then
-      goto skip
-    end
+            $dropdownContainer.append($dropdownButton, $menuContainer);
+            $(datatableFilterId).prepend($dropdownContainer);
+        }
 
-    -- Availability
-    if(script.edition == "enterprise") then
-      available = "Enterprise"
-      if((edition ~= "") and (edition ~= "enterprise")) then goto skip end
-    elseif(script.edition == "pro") then
-      available = "Pro"
-      if((edition ~= "") and (edition ~= "pro")) then goto skip end
-    else
-      available = "Community"
-      if((edition ~= "") and (edition ~= "community")) then goto skip end
-    end
+        const $userScriptsTable = $('#user-scripts').DataTable({
+            pagingType: 'full_numbers',
+            initComplete: function(settings) {
 
-    local edit_url = user_scripts.getScriptEditorUrl(script)
+                const table = settings.oInstance.api();
+                const types = [... new Set(table.columns(1).data()[0].flat())];
+                const availability = [... new Set(table.columns(2).data()[0].flat())];
 
-    if(edit_url) then
-      edit_url = ' <a title="'.. i18n("plugins_overview.action_view") ..'" href="'.. edit_url ..'" class="badge badge-secondary" style="visibility: visible">' .. i18n("host_pools.view") ..'</a>'
-    end
+                addFilterDropdown(']].. i18n("plugins_overview.availability") ..[[', availability, 2, "#user-scripts_filter", table);
+                addFilterDropdown(']].. i18n("plugins_overview.type") ..[[', types, 1, "#user-scripts_filter", table);
+            },
+            pageLength: 25,
+            language: {
+                info: "]].. i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) ..[[",
+                search: "]].. i18n('search') ..[[:",
+                infoFiltered: "",
+                paginate: {
+                    previous: '&lt;',
+                    next: '&gt;',
+                    first: '«',
+                    last: '»'
+                },
+            },
+        });
 
-    print(string.format([[<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td class="text-center">%s</td></tr>]], name, available, hooks, filters, edit_url or ""))
-    ::skip::
-  end
+    });
 
-  print[[</table>]]
-end
+    </script>
+]])
 
--- #######################################################
-
-local ignore_disabled = true
-local return_all = true
-
-print[[<form class="form-inline" style="width:12em">
-<select id="filter_select" name="edition" class="form-control">
-<option value="" ]] print(ternary(isEmptyString(edition, "selected", ""))) print[[>All</option>
-<option value="community" ]] print(ternary(edition == "community", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Community"})) print[[</option>
-<option value="pro" ]] print(ternary(edition == "pro", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Pro"})) print[[</option>
-<option value="enterprise" ]] print(ternary(edition == "enterprise", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Enterprise"})) print[[</option>
-</select>
-</form>
-<script>
-  $("#filter_select").on("change", function() {
-    $("#filter_select").closest("form").submit();
-  });
-</script>]]
-
-print("<br><br>")
-
-for _, info in ipairs(user_scripts.listSubdirs()) do
-  printUserScripts(info.label, user_scripts.load(ifid, user_scripts.getScriptType(info.id), info.id, {return_all = true}))
-  print("<br>")
-end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 

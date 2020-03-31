@@ -2863,6 +2863,7 @@ local lang = {
     ["source_location"] = "Source Location",
     ["status_id"] = "Status ID",
     ["status_key"] = "Status Key",
+    ["type"] = "Type",
   },
   ["policy_presets"] = {
     ["business"] = "Business",
