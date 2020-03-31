@@ -13,8 +13,8 @@ Developing Plugins
     user_scripts
     user_script_hooks
     localization
-    web_ui
     custom_pages
+    timeseries_schemas
     examples
     tutorial
     distributing_plugins

@@ -31,6 +31,9 @@ The most complete example of plugin structure is the following
    |   |   `-- example.lua
    |   `-- system
    |       `-- example.lua
+   |-- ts_schemas
+   |   |-- min.lua
+   |   `-- 5mins.lua
    `-- web_gui
        |-- example_page.lua
        `-- menu.lua
@@ -52,6 +55,7 @@ representative for the plugin. Sub-directories contain:
   flow; files found under the :code:`host` directory will be executed for every host; and so on.
   Sub-directories can be missing or empty, depending
   on whether the plugins wants to perform certain actions or not. See :ref:`User Scripts`.
+- :code:`ts_schemas`: contains timeseries schemas definitions. See :ref:`Timeseries Schemas`.
 - :code:`web_gui`: file to create custom ntopng pages and link them in
-  the main ntopng menu. See :ref:`Web UI`.
+  the main ntopng menu. See :ref:`Custom Pages`.
 
