@@ -477,12 +477,7 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(host["ip"] ~= nil) then
-      if(isEmptyString(host["name"])) then
-	 host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"]))
-      end
-      if(isEmptyString(host["name"])) then
-         host["name"] = host["ip"]
-      end
+      host["name"] = host2name(host["ip"], host["vlan"])
 
       print("<tr><th>"..i18n("name").."</th>")
 
@@ -1947,7 +1942,9 @@ elseif(page == "contacts") then
 
 if(num > 0) then
    mode = "embed"
-   if(host["name"] == nil) then host["name"] = getResolvedAddress(hostkey2hostinfo(host["ip"])) end
+   if(host["name"] == nil) then
+      host["name"] = host2name(host["ip"], host["vlan"])
+   end
    name = host["name"]
    dofile(dirs.installdir .. "/scripts/lua/hosts_interaction.lua")
 
@@ -1983,7 +1980,7 @@ if(num > 0) then
    info = interface.getHostInfo(k)
 
    if(info ~= nil) then
-      if(info["name"] ~= nil) then n = info["name"] else n = getResolvedAddress(hostkey2hostinfo(info["ip"])) end
+      if(info["name"] ~= nil) then n = info["name"] else n = host2name(info["ip"], info["vlan"]) end
       url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(info).."\">"..n.."</A>"
    else
       url = k
@@ -2012,7 +2009,7 @@ if(num > 0) then
 	 v = host["contacts"]["server"][k]
    info = interface.getHostInfo(k)
 	 if(info ~= nil) then
-	    if(info["name"] ~= nil) then n = info["name"] else n = getResolvedAddress(hostkey2hostinfo(info["ip"])) end
+	    if(info["name"] ~= nil) then n = info["name"] else n = host2name(info["ip"], info["vlan"]) end
 	    url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(info).."\">"..n.."</A>"
 	 else
 	    url = k

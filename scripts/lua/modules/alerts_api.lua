@@ -703,7 +703,7 @@ function alerts_api.remoteToRemoteType(host_info, mac)
     alert_type = alert_consts.alert_types.alert_remote_to_remote,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
-      host = getResolvedAddress(host_info),
+      host = host2name(host_info["host"], host_info["vlan"]),
       mac = mac,
     },
   })
@@ -719,7 +719,7 @@ function alerts_api.ipOutsideDHCPRangeType(router_info, mac, client_mac, sender_
     alert_type_params = {
       router_info = hostinfo2hostkey(router_info),
       mac = mac, client_mac = client_mac, sender_mac = sender_mac,
-      router_host = getResolvedAddress(router_info),
+      router_host = host2name(router_info["host"], router_info["vlan"]),
     },
   })
 end

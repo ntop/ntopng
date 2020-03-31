@@ -108,7 +108,8 @@ while(num == 0) do
 		  host_info = hostkey2hostinfo(word)
 
 		  -- 3. print nodes
-		  name = shortHostName(getResolvedAddress(hostkey2hostinfo(word)))
+		  local hinfo = hostkey2hostinfo(word)
+		  name = host2name(hinfo["host"], hinfo["vlan"])
 
 		  print ("\t{\"name\": \"" .. name .. "\", \"host\": \"" .. host_info["host"] .. "\", \"vlan\": \"" .. host_info["vlan"] .. "\"}")
 		  num = num + 1
