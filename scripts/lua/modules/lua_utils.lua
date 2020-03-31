@@ -1438,11 +1438,11 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
       end
    end
 
-   name = flow_info[host_type..".host"]
-
-   if((name == "") or (name == nil)) then
-      name = flow_info[host_type..".ip"]
-   end
+   -- Do not use host name here as we need first to check if there is
+   -- an host alias defined for the IP address in host2name. getResolvedAddress
+   -- in host2name will return the host name if no alias is defined.
+   --~ name = flow_info[host_type..".host"]
+   name = flow_info[host_type..".ip"]
 
    return(host2name(name, flow_info["vlan"]))
 end
