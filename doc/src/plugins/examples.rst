@@ -326,4 +326,116 @@ input builder and upper and lower bounds for the input. Input
 builders, as it will be seen in the next section, are used by ntopng
 to render the configuration of the user script.
 
+Log Network Traffic
+-------------------
 
+This example shows how to log the traffic of a `local network`_.
+
+.. code:: bash
+
+	  network_monitor/
+	      |-- manifest.lua
+	      `-- user_scripts
+		  `-- network
+		      `-- traffic_log.lua
+
+The main structure is very similar to the `Flow Flooders` example above
+so it won't be discussed again. The core logic is contained into the
+`traffic_log.lua` script which can be seen below:
+
+.. code:: lua
+
+   local user_scripts = require("user_scripts")
+   require("lua_utils")
+
+   local script = {
+     -- This is a network related script
+     category = user_scripts.script_categories.network,
+
+     -- This module is enabled by default
+     default_enabled = true,
+
+     -- No configuration needed
+     default_value = {},
+
+     -- Hooks are defined below
+     hooks = {},
+
+     -- No GUI defined
+     gui = {},
+   }
+
+   -- #################################################################
+
+   function script.hooks.min(info)
+     print(string.format("[%s]: in=%u, out=%u, inner=%u",
+       info.entity_info.network_key,
+       bytesToSize(info.entity_info.ingress),
+       bytesToSize(info.entity_info.egress),
+       bytesToSize(info.entity_info.inner),
+     ))
+   end
+
+   -- #################################################################
+
+   return(user_scripts)
+
+The `script.hooks.min` hook is called by ntopng every minute for every
+local network. It prints into the console the local network CIDR along
+with the ingress, egress and inner traffic since startup.
+
+All the network information is contained into the `info`
+parameter. The most relevant fields are:
+
+- :code:`granularity`: how often this script is called (60 for this example)
+- :code:`alert_entity`: the alert entity, can be passed to the alerts API
+  to trigger alerts
+- :code:`entity_info`: information about the network, see below for details
+- :code:`user_script_config`: the current configuration of this user script
+
+The current network status is available into the `info.entity_info` field.
+Here are reported the most important fields:
+
+.. code::
+
+   network_key string fe80::3252:cbff:fe6c:9c1b/64
+   inner number 0
+   broadcast table
+   broadcast.inner number 0
+   broadcast.egress number 0
+   broadcast.ingress number 0
+   egress number 19661
+   num_hosts number 5
+   ingress number 0
+   throughput_bps number 35.692886352539
+   engaged_alerts number 0
+
+In particular:
+
+- :code:`network_key`: the local network CIDR
+- :code:`inner`: inner traffic value of the network since startup
+- :code:`ingress`: ingress traffic value of the network since startup
+- :code:`egress`: egress traffic value of the network since startup
+- :code:`broadcast`: a table which contains `inner`, `egress` and `ingress`
+  counters values for the broadcast traffic
+- :code:`num_hosts`: number of active hosts of the network
+- :code:`throughput_bps`: the current cumulative througput of the traffic
+  of the network.
+- :code:`engaged_alerts`: the currently engaged alerts of the network
+
+A straightforward modification to the above script is to retrieve the
+last minute ingress/egress/inner bytes instead of the startup values.
+This can be easily accomplished by using the `network_delta_val` function:
+
+.. code:: lua
+
+   local egress_delta_bytes = alerts_api.network_delta_val("egress_delta", info.granularity, info.entity_info.egress)
+
+The `egress_delta` identifier is a unique key that ntopng uses to hold the
+values in subsequent calls to the function. The current network id is automatically
+retrieved by ntopng. The granularity parameter is needed to differentiate between different
+granularities. The last parameter, `info.entity_info.egress`, specifies the current value.
+ntopng calculates the delta between this value and the previos one, which is stored into
+the `egress_delta_bytes` variable.
+
+.. _`local network`: ../basic_concepts/hosts.html#local-hosts
