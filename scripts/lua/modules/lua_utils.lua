@@ -3045,11 +3045,17 @@ end
 
 function stripVlan(name)
   local key = string.split(name, "@")
-  if(key ~= nil) then
-     return(key[1])
-  else
-     return(name)
+  if((key ~= nil) and (#key == 2)) then
+     -- Verify that the host is actually an IP address and the VLAN actually
+     -- a number to avoid stripping things that are not vlans (e.g. part of an host name)
+     local addr = key[1]
+
+     if((tonumber(key[2]) ~= nil) and (isIPv6(addr) or isIPv4(addr))) then
+      return(addr)
+     end
   end
+
+  return(name)
 end
 
 function getSafeChildIcon()
