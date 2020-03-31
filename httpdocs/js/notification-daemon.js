@@ -254,7 +254,7 @@ class BlogFeed {
 
             if (newPostsLength > 0) {
 
-                $link.click(function(e) {
+                const onLinkClick = function(e) {
 
                     // remove the badge
                     $link.find(`span.badge`).remove();
@@ -275,7 +275,12 @@ class BlogFeed {
                     });
 
                     BlogFeed.saveDownloadedPosts(currentLocalStorage, oldPosts, currentUserName);
+                };
+
+                $link.mousedown((e) => {
+                    if (e.which == 2) onLinkClick(e);
                 });
+                $link.click(onLinkClick);
             }
 
             $container.append($link);
