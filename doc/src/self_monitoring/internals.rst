@@ -66,7 +66,7 @@ Information shown is useful to troubleshoot the following issues:
 Periodic Activities
 -------------------
 
-Periodic activities are executed by ntopng periodically. Periodic activities include, but are not limited to:
+Periodic activities are Lua scripts executed by ntopng at regular intervals of time. Lua scripts are found in the `callbacks <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks>`_. They can be run, in parallel, for each interface or for the system. Periodic activities include, but are not limited to:
 
 - `Timeseries generation`.
 - `Execution of Plugins` as described in :ref:`Plugins`.
@@ -74,15 +74,78 @@ Periodic activities are executed by ntopng periodically. Periodic activities inc
 
 Multiple threads are available for the execution of periodic activities. A thread executes one periodic activity at time. Multiple periodic activities are executed sequentially by the same thread. Multiple parallel threads execute multiple periodic activities simultaneously.
 
-Issues:
+Each periodic activity has a `frequency` associated, that is, how often it needs to be executed. It also has a `max duration`, that is, the maximum execution time. For example, a periodic activity with `frequency` 5 and `max duration` 10 is executed every 5 seconds. Once in execution, it can take up to 10 seconds to complete. Assuming the activity actually takes 9 seconds to complete, this is what happens:
 
-- A task is taking too long
+- At time `t=0`  the periodic activity is executed.
+- At time `t=5`  the periodic activity is running so nothing is done, no new execution starts.
+- At time `t=9`  the periodic activity completes its execution.
+- At time `t=10` the periodic activity is executed.
+- ...
+
+To ensure smooth functionalities, periodic activities must:
+
+- Always take less than `max duration` to complete.
+- Be executed according to their `frequency`.
+- Not drop alerts.
+
+Failing to meet one or more of the conditions above can cause ntopng to malfunction. Normally, conditions are are verified. However, such conditions may fail when:
+
+- All threads are busy so no one can execute a periodic activity ad the right `frequency`.
+- A bug is causing a periodic activity to take more than its `max duration` to complete.
+- Too many alerts are being generated and the export cannot keep up with the generation.
+
+
+Aim of the `Periodic Activities` internals table is to monitor the execution of periodic activities to check and possibly highlight the issues above.
+
+.. figure:: ../img/internals_periodic_activities.png
+  :align: center
+  :alt: Internals: Periodic Activities
+
+  Internals: Periodic Activities
+
+Information shown in the table columns is:
+
+- `Periodic Activity`: The name of the periodic activity. Name equals the file name of the periodic activity Lua script which can be either found under the `system <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks/system>`_ periodic activities, `interface <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks/interface>`_ periodic activities, or both.
+- `Frequency`: How often a periodic activity has to be executed.
+- `Max Duration`: How long the periodic activity execution can take.
+- `Chart`: A link to the historical charts of the periodic activity.
+- `Time Utilization`: Periodic activity execution time, with reference to the `Max Duration`.
+- `Status`: :code:`sleeping` if the activity has completed and is waiting for the next execution, :code:`queued` if the activity has been scheduled for execution but it isn't running yet, :code:`running`if the activity is currently in execution.
+- `Last Start`: Indicates when the periodic activity was started the last time.
+- `Last Duration`: Indicates the most recent periodic activity execution time. If the activity is :code:`running` indicates the current execution time.
+- `Completion`: Is a percentage indicating the completion of the periodic activity. A slow periodic activity which would take more than `Max Duration` to complete, will not reach a 100% completion.
+- `TS Writes`: The total number of timeseries points written by the periodic activity.
+- `TS Drops`: The total number of timeseries points dropped by the periodic activity as writes were failing or slow.
+- `Not Executed`: Counts the number of times a periodic activity wasn't scheduled for execution, either because it was already running (running slow) or already scheduled (no thread was available to execute it).
+- `Running Slow`: Counts the number of times a periodic activity was taking more than `Time Utilization` to complete.
+
+
+Degraded Performance
+~~~~~~~~~~~~~~~~~~~~
+
+When ntopng detects issues with periodic activities, it shows a triangle left to the periodic activity name. Hovering the mouse on the triangle prints the description of the ongoing issue. A yellow triangle is also shown at the top of every page. Clicking on the triangle opens a page with a summary of all the periodic activities with issues.
+
+.. figure:: ../img/internals_periodic_activities_issues.png
+  :align: center
+  :alt: Internals: Periodic Activities with Issues
+
+  Internals: Periodic Activities with Issues
+
+The image above shows periodic activity :code:`stats_update.lua` which is taking too long to execute for interface `eno1`. This periodic activity has a `Max Duration` of 10 seconds as it can be seen from the table column. However, periodic activity `Last Duration` equals 15 seconds and thus it has exceeded `Max Duration` by 5 seconds. This is also evident by looking at the `Time Utilization` which it is all `Busy` has no green `Available` space. When this happens, the periodic activity is said to be slow and this is the actual ongoing issue for :code:`stats_update.lua`. The total number of times since startup this periodic activity has been detected to be slow is counted in column `Running Slow` and it equals 16.
+
+Degraded performance can be temporary. The triangle shown at the top of every page and triangles shown left to periodic activity names indicate currently ongoing issues and disappear if no issue is currently occurring.
+
+Periodic activities with issues also have their alerts. Alerts are engaged when the issue is ongoing, or past when the issue is no longer occurring. Following is an image showing the engaged alert associated to the slow periodic activity :code:`stats_update.lua` above.
+
+
+.. figure:: ../img/internals_periodic_activities_alerts.png
+  :align: center
+  :alt: Internals: Periodic Activities Alerts
+
+  Internals: Periodic Activities Alerts
+
 
 User Scripts
 ------------
-
-
-
-
 
 
