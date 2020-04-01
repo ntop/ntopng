@@ -256,6 +256,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   
   void resolveHostName();
   void set_host_label(char *label_name, bool ignoreIfPresent);
+  char *get_host_label(char * const buf, ssize_t buf_size);
   inline bool is_label_set() { return(host_label_set); };
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
   inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };

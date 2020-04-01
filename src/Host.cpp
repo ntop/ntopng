@@ -149,6 +149,17 @@ void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
 
 /* *************************************** */
 
+char *Host::get_host_label(char * const buf, ssize_t buf_size) {
+  char ip_buf[64], *host = ip.print(ip_buf, sizeof(ip_buf));
+
+  if(ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, host, buf, buf_size) != 0)
+    buf[0] = '\0';
+
+  return buf;
+}
+
+/* *************************************** */
+
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char buf[64];
 
