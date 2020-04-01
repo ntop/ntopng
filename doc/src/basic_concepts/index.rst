@@ -12,5 +12,6 @@ ntopng centers and has been developed around some basic concepts that include in
     host_pools
     alerts
     timeseries
+    plugins
     local_broadcast_domain
     disk_space
