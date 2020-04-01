@@ -52,13 +52,13 @@ Finally, in the right side of the footer there is the uptime information, direct
       
 .. toctree::
     :maxdepth: 2
-    :numbered:
 
     home_menu
     dashboard
     historical
     report
     flows
+    user_scripts
     categories
     hosts
     host_details
