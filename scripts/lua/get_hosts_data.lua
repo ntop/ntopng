@@ -43,7 +43,7 @@ local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 function update_host_name(h)
    if(h["name"] == nil) then
       if(h["ip"] ~= nil) then
-         
+
          h["name"] = host2name(h["ip"])
       else
 	 h["name"] = h["mac"]
@@ -355,9 +355,9 @@ for _key, _value in pairsByKeys(vals, funct) do
       if value["localhost"] == true --[[or value["systemhost"] == true --]] then
 	 column_location = "<span class='badge badge-success'>"..i18n("hosts_stats.label_local_host").."</span>"
       elseif value["is_multicast"] == true then
-	 column_location = "<span class='badge badge-secondary'>" ..i18n("multicast").. "</span>"
+	 column_location = "<span class='badge badge-primary'>" ..i18n("multicast").. "</span>"
       elseif value["is_broadcast"] == true then
-	 column_location = "<span class='badge badge-secondary'>" ..i18n("broadcast").. "</span>"
+	 column_location = "<span class='badge badge-dark'>" ..i18n("broadcast").. "</span>"
       else
 	 column_location = "<span class='badge badge-secondary'>"..i18n("hosts_stats.label_remote_host").."</span>"
       end
