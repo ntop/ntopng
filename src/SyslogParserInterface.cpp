@@ -28,7 +28,6 @@
 /* **************************************************** */
 
 SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *custom_interface_type) : ParserInterface(endpoint, custom_interface_type) {
-  log_producer = NULL;
   le = NULL;
 }
 
@@ -46,72 +45,82 @@ void SyslogParserInterface::startPacketPolling() {
 SyslogParserInterface::~SyslogParserInterface() {
   if (le)
     delete le;
-  if (log_producer)
-    free(log_producer);
-}
-
-/* **************************************************** */
-
-void SyslogParserInterface::setLogProducer(char *name) {
-  if (log_producer) {
-    free(log_producer);
-    log_producer = NULL;
-  }
-
-  if (name)
-    log_producer = strdup(name);
 }
 
 /* **************************************************** */
 
 u_int8_t SyslogParserInterface::parseLog(char *log_line) {
-  char *tmp, *content, *application = NULL;
-  int num_flows = 0;
+  char *prio = NULL, *host = NULL, *producer_name = NULL, *content = NULL;
+  char *tmp;
+
+  if (log_line == NULL || strlen(log_line) == 0)
+    return 0;
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Raw message: %s", log_line);
 #endif
 
   /*
-   * Extracting application name and message content from the syslog message.
-   * Expected Format:
-   * TIMESTAMP DEVICE APPLICATION[PID]: CONTENT
+   * Supported Log Format ({} are used to indicate optional items)
+   * {TIMESTAMP;HOST; }<PRIO>{TIMESTAMP DEVICE} APPLICATION{[PID]}: CONTENT
    */
-  tmp = strstr(log_line, "]: ");
-  if(tmp != NULL) {
-    tmp[1] = '\0';
-    content = &tmp[3];
 
+  /* Look for <PRIO> */
+  prio = strchr(log_line, '<');
+  if (prio == NULL)
+    return 0;
+
+  if (prio != log_line) { /* Parse TIMESTAMP;HOST; <PRIO> */
+    prio[0] = '\0';
+
+    host = strchr(log_line, ';');
+    if(host != NULL) {
+      host++;
+      tmp = strchr(host, ';');
+      if (tmp != NULL)
+        tmp[0] = '\0';
+    } 
+  }
+
+  prio++;
+  log_line = strchr(prio, '>');
+  if (log_line == NULL)
+    return 0;
+
+  log_line[0] = '\0';
+  log_line++;
+
+  if (strncmp(log_line, "date=", 5) == 0) { /* Parse custom Fortinet format */
+    content = log_line;
+  } else if ((tmp = strstr(log_line, "]: ")) != NULL) { /* Parse APPLICATION[PID]: */
+    content = &tmp[3];
+    tmp[1] = '\0';
     tmp = strrchr(log_line, '[');
     if(tmp != NULL) {
       tmp[0] = '\0';
-
       tmp = strrchr(log_line, ' ');
-      if(tmp != NULL) {
-        application = &tmp[1];
-      }
+      if(tmp != NULL)
+        producer_name = &tmp[1];
     }
+  } else if ((tmp = strstr(log_line, ": ")) != NULL) /* Parse APPLICATION: */
+    content = &tmp[2];
+  else {
+    return 0;
   }
-
-  /* If the log format has not been recognize, checking for a hint
-   * in the interface name (syslog://<producer>@<ip>:<port>) */
-  if (application == NULL) {
-    if (log_producer != NULL) {
-      application = log_producer;
-      content = log_line;
-    } else {
-      return 0; /* unexpected format and no hint for the producer */
-    }
+ 
+  if (producer_name == NULL) {
+    //TODO host to producer_name
+    return 0;
   }
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Application: %s Message: %s",
-    application, content);
+    producer_name, content);
 #endif
 
-  if (le) le->handleEvent(application, content);
+  if (le) le->handleEvent(producer_name, content);
 
-  return num_flows;
+  return 0;
 }
 
 /* **************************************************** */

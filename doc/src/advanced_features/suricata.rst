@@ -77,11 +77,9 @@ ntopng Configuration
 As last step, you should configure ntopng to ingest syslog messages by adding
 the Syslog interface :code:`syslog://<ip>:<port>` to the configuration file
 to listen for connections to the specified <ip> and <port>.
-An hint about the application can be provided through the interface name
-using the :code:`syslog://<producer>@<ip>:<port>` format. By default TCP
-is used, however UDP is also supported and can be enabled using
-:code:`syslog://<producer>:udp@<ip>:<port>` as interface name (example:
-:code:`syslog://suricata:udp@127.0.0.1:9999`)
+By default TCP is used, however UDP is also supported and can be enabled using
+:code:`syslog://<ip>:<port>@udp` as interface name (example:
+:code:`syslog://127.0.0.1:9999@udp`)
 
 If you are using Suricata for exporting flow metadata, and you enabled 
 :code:`netflow` in in the :code:`suricata.yaml` configuration file, you

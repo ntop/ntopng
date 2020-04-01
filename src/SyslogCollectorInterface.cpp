@@ -26,7 +26,7 @@
 /* **************************************************** */
 
 SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : SyslogParserInterface(_endpoint) {
-  char *tmp, *pos, *port, *server_address, *producer, *protocol;
+  char *tmp, *pos, *port, *server_address, *protocol;
   int server_port;
   int reuse = 1;
   int i;
@@ -45,7 +45,7 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
 
   /* 
    * Interface name format:
-   * syslog://[<producer>[:udp]@]<ip>:<port>
+   * syslog://<ip>:<port>[@udp]
    */
 
   if(strncmp(tmp, (char*) "syslog://", 9) == 0) {
@@ -57,23 +57,12 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
   pos = strchr(server_address, '@');
 
   if (pos != NULL) {
-    producer = server_address;
     pos[0] = '\0';
     pos++;
-    server_address = pos;
+    protocol = pos;
 
-    pos = strchr(producer, ':');
-
-    if (pos != NULL) {
-      pos[0] = '\0';
-      pos++;
-      protocol = pos;
-
-      if (strcmp(protocol, "udp") == 0)
-        use_udp = true;
-    }
-
-    setLogProducer(producer);
+    if (strcmp(protocol, "udp") == 0)
+      use_udp = true;
   }
 
   port = strchr(server_address, ':');
