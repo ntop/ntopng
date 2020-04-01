@@ -287,3 +287,7 @@ text, g text.tick {
 .border-right {
   border-right: 1px solid #2d2d2d!important;
 }
+
+.btn-primary, .primary {
+  color: #000;
+}

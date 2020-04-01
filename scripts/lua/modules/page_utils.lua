@@ -219,8 +219,14 @@ function page_utils.print_header(title)
     <title>]] print(page_title) print[[</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
+   ]]
+    if (dark_mode) then
+      print[[<link href="]] print(http_prefix) print[[/css/minified/bootstrap-orange.min.css" rel="stylesheet">]]
+      print[[<link href="]] print(http_prefix) print[[/css/minified/dark-mode.min.css" rel="stylesheet">]]
+    else
+      print[[ <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">]]
+    end
+    print[[
     <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(startup_epoch) print[[" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/fontawesome-custom.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/tempusdominus.min.css" rel="stylesheet">
@@ -240,11 +246,6 @@ function page_utils.print_header(title)
     <!-- http://kamisama.github.io/cal-heatmap/v2/ -->
     <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
-    ]]
-    if (dark_mode) then
-      print[[<link href="]] print(http_prefix) print[[/css/dark-mode.css" rel="stylesheet">]]
-    end
-    print[[
     <!--[if lt IE 9]>
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
