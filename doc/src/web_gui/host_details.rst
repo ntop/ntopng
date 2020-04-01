@@ -88,6 +88,42 @@ name redirects the user to the page with detailed statistics about the selected 
 
   The Protocols View of the Host Details Page
 
+TLS
+---
+
+.. figure:: ../img/web_gui_host_details_tls_info.png
+  :align: center
+  :alt: Host Protocols View
+
+  The TLS View of the Host Details Page
+
+ntopng registers the `JA3`_ TLS fingerprints of an host (either when the host is a client or a server) along with their the number of uses.
+As explained in the `Flows section`_, this information is very important in order to uncover possible threats on the encrypted
+traffic. By clicking on the signature it is possible to manually check if the JA3 signature
+corresponds to a known malware into the `abuse.ch database`_.
+
+By taking a snapshot of the signatures registered on an host it is possible to know, for example,
+if the host has installed a new program or has updated an existing one. This may be very important
+on environments where the programs installed into an host are not supposed to change.
+
+By enabling the `nProbe Agent integration`_, this view can be further augumented
+with the name of the process which initiated or received the TLS connection.
+
+.. _`nProbe Agent integration`: https://www.ntop.org/guides/ntopng/using_with_nprobe_agent.html
+.. _`abuse.ch database`: https://sslbl.abuse.ch/ja3-fingerprints
+.. _`JA3`: https://github.com/salesforce/ja3
+.. _`Flows section`: flows.html#tls-information
+
+SSH
+---
+
+ntopng registers the `HASSH`_ fingerprints of an host, either when the host initiates or receives an SSH connection,
+along with their the number of uses. As explained in the `related Flows section`_, this information can be used to identify
+malicious applications or vulnerable SSH versions.
+
+.. _`HASSH`: https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c
+.. _`related Flows section`: flows.html#ssh-signature
+
 DNS
 ---
 
