@@ -219,6 +219,10 @@ of the Host Pools page.
 Once an Host Pool is created, it is possible to add members to it. Host Pool members are added using the
 “plus” button in the “Manage Pool Membership” tab of the Host Pools page.
 
+The interface host pools configuration, which includes the defined host pools along with
+the pools members, can be easily exported to JSON and imported into another ntopng instance.
+The imported host pools will replace the existing ones.
+
 An “Alias” can be associated to each pool member to ease the its identification. Typically, one would
 assign a mnemonic label as member alias (e.g., “John’s iPhone” or “Smart TV”). A “Device Type” can be
 associated to each member as well. Devices types are used to categorise members on the basis of the
