@@ -12,6 +12,7 @@ Developing Plugins
     flow_status_definitions
     user_scripts
     user_script_hooks
+    user_script_gui
     localization
     custom_pages
     timeseries_schemas
