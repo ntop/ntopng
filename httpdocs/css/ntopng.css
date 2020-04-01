@@ -1237,3 +1237,7 @@ td.dt-body-right {
   right: 1rem;
   top: 0.2rem;
 }
+
+.status-code-title {
+  font-size: 6rem;
+}
