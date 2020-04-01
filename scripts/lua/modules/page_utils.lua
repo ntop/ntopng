@@ -116,7 +116,7 @@ page_utils.menu_entries = {
     -- Developer
     directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev", visible_iface = true, visible_system = true},
     plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev", visible_iface = true, visible_system = true},
-    user_scripts 	 = {key = "user_scripts", i18n_title = "about.user_scripts", section = "dev", visible_iface = true, visible_system = true},
+    user_scripts_dev 	 = {key = "user_scripts_dev", i18n_title = "about.user_scripts", section = "dev", visible_iface = true, visible_system = true},
     plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev", visible_iface = true, visible_system = true},
     alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", visible_iface = true, visible_system = true},
     api 	         = {key = "api", i18n_title = "lua_c_api", section = "dev"},

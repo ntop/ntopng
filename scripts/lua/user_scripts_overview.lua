@@ -10,7 +10,7 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.user_scripts)
+page_utils.set_active_menu_entry(page_utils.menu_entries.user_scripts_dev)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

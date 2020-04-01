@@ -497,7 +497,7 @@ if not info.oem then
 	    url = '/lua/plugins_overview.lua',
 	 },
 	 {
-	    entry = page_utils.menu_entries.user_scripts,
+	    entry = page_utils.menu_entries.user_scripts_dev,
 	    url = '/lua/user_scripts_overview.lua',
 	 },
 	 {
