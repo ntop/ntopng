@@ -50,7 +50,8 @@ SyslogParserInterface::~SyslogParserInterface() {
 /* **************************************************** */
 
 u_int8_t SyslogParserInterface::parseLog(char *log_line) {
-  char *prio = NULL, *host = NULL, *producer_name = NULL, *content = NULL;
+  const char *producer_name = NULL;
+  char *prio = NULL, *host = NULL, *content = NULL;
   char *tmp;
 
   if (log_line == NULL || strlen(log_line) == 0)
@@ -109,8 +110,11 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   }
  
   if (producer_name == NULL) {
-    //TODO host to producer_name
-    return 0;
+    if (host != NULL)
+      producer_name = getProducerName(host);
+
+    if (producer_name == NULL)
+      return 0;
   }
 
 #ifdef SYSLOG_DEBUG
@@ -127,6 +131,31 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
 void SyslogParserInterface::lua(lua_State* vm) {
   NetworkInterface::lua(vm);
+}
+
+/* **************************************************** */
+
+void SyslogParserInterface::addProducerMapping(const char *host, const char *producer) {
+  string host_ip(host);
+  string producer_name(producer);
+  producers_map_t::iterator it;
+
+  if((it = producers_map.find(host_ip)) == producers_map.end())
+    producers_map.insert(make_pair(host_ip, producer_name));
+  else
+    it->second = producer_name;
+}
+
+/* **************************************************** */
+
+const char *SyslogParserInterface::getProducerName(const char *host) {
+  string host_ip(host);
+  producers_map_t::const_iterator it;
+
+  if((it = producers_map.find(host_ip)) != producers_map.end())
+    return it->second.c_str();
+
+  return NULL;
 }
 
 /* **************************************************** */
