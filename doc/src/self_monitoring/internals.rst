@@ -92,6 +92,7 @@ Failing to meet one or more of the conditions above can cause ntopng to malfunct
 
 - All threads are busy so no one can execute a periodic activity ad the right `frequency`.
 - A bug is causing a periodic activity to take more than its `max duration` to complete.
+- A user activity is executing too many :ref:`User Scripts` that make it slow.
 - Too many alerts are being generated and the export cannot keep up with the generation.
 
 
@@ -119,6 +120,7 @@ Information shown in the table columns is:
 - `Not Executed`: Counts the number of times a periodic activity wasn't scheduled for execution, either because it was already running (running slow) or already scheduled (no thread was available to execute it).
 - `Running Slow`: Counts the number of times a periodic activity was taking more than `Time Utilization` to complete.
 
+.. _Degraded Performance:
 
 Degraded Performance
 ~~~~~~~~~~~~~~~~~~~~
@@ -137,15 +139,35 @@ Degraded performance can be temporary. The triangle shown at the top of every pa
 
 Periodic activities with issues also have their alerts. Alerts are engaged when the issue is ongoing, or past when the issue is no longer occurring. Following is an image showing the engaged alert associated to the slow periodic activity :code:`stats_update.lua` above.
 
-
 .. figure:: ../img/internals_periodic_activities_alerts.png
   :align: center
   :alt: Internals: Periodic Activities Alerts
 
   Internals: Periodic Activities Alerts
 
+Periodic activities are in charge of running plugin user scripts.
 
 User Scripts
 ------------
 
+:ref:`User Scripts` are part of ntopng plugins. They are executed periodically or when a certain event occurs.
 
+Aim of the `User Scripts` internals table is to monitor the execution of scripts.
+
+.. figure:: ../img/internals_user_scripts.png
+  :align: center
+  :alt: Internals: User Scripts
+
+  Internals: User Scripts
+
+Information shown in the table columns is:
+
+- `User Script`: The name of the user script which is executed.
+- `Target`: The target of the user script, either an `host`, a `flow` or one of the other :ref:`Other User Scripts` targets.
+- `Hook`: One of the :ref:`User Script Hooks`.
+- `Last Num Calls`: The number of times the user script has been called the last time a periodic activity has executed it.
+- `Last Duration`: The total duration of the user script, computed as the sum of the duration of any of its `Last Num Calls`.
+
+Information shown is useful to troubleshoot the following issues:
+
+- `Troubleshoot` periodic activities with :ref:`Degraded Performance`: A periodic activity may be slow because it is executing too many user scripts. Combining data from the `Periodic Activities` internals table with this table can highlight this condition.
