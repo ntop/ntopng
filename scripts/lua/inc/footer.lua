@@ -161,8 +161,7 @@ if not info.oem then
 
 	print([[
 		$(document).ready(function() {
-			let user_name = `]].. user_name ..[[`;
-			BlogFeed.queryBlog(user_name);
+			BlogFeed.queryBlog(']].. ntop.getRandomCSRFValue() ..[[');
 		});
 	]])
 

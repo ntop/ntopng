@@ -1507,6 +1507,7 @@ local known_parameters = {
    ["send_test_slack"]                             = validateEmpty,
    ["send_test_webhook"]                           = validateEmpty,
    ["network_discovery_interval"]                  = validateNumber,
+   ["blog_notification_id"]                        = validateNumber,
    ["mud_recording"]                               = validateChoiceInline({"default", "general_purpose", "special_purpose", "disabled"}),
    ["captive_portal_id_method"]                    = validateChoiceInline({"mac", "ip"}),
 

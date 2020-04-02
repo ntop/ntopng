@@ -101,139 +101,38 @@ class NotificationManager {
 
 }
 
+let csrfBlogNotification = null
+
 class BlogFeed {
 
-    static getLocalStorageKey() {
-
-        const VERSION = 'v2';
-        return `blogFeed${VERSION}`;
+    static countNewPosts(posts) {
+        let newPostsCounter = 0;
+        posts.forEach(p => {
+            if (p.isNew) newPostsCounter++;
+        });
+        return newPostsCounter;
     }
 
-    static settingsExists(storage, currentUserName) {
-
-        if (storage == undefined) return false;
-        if (storage.users == undefined) return false;
-        if (!(currentUserName in storage.users)) return false;
-
-        return true;
-    }
-
-    static removeLegacyVersion() {
-        localStorage.removeItem('blog_feed');
-    }
-
-    /**
-     * Initialize the local storage options. If there aren't any options
-     * then create new ones with default paramaters.
-     * The function return the localStorage[BlogFeed.getLocalStorageKey()].
-     *
-     * @return {object}
-     */
-    static initializeLocalStorage(currentUserName) {
-
-        // check if the settings exists inside the local storage
-        const jsonBlog = localStorage.getItem(BlogFeed.getLocalStorageKey());
-        const blogFeedSettings = JSON.parse(jsonBlog);
-
-        // force the user to remove the old version of the local storage
-        BlogFeed.removeLegacyVersion();
-
-        if (!BlogFeed.settingsExists(blogFeedSettings, currentUserName)) {
-
-            // create empty settings for blog feed
-
-            if (blogFeedSettings != undefined) {
-                blogFeedSettings.users[currentUserName] = {
-                    lastCheck: Date.now(),
-                    downloadedPosts: []
-                };
-
-                return blogFeedSettings;
-            }
-
-            let emptyBlogSettings = {
-                users: {
-                    [currentUserName]: {
-                        lastCheck: Date.now(),
-                        downloadedPosts: []
-                    }
-                }
-            };
-
-            return emptyBlogSettings;
-        }
-
-        return blogFeedSettings;
-    }
-
-    static getUserLocalStorage(currentLocalStorage, currentUserName) {
-        return currentLocalStorage.users[currentUserName];
-    }
-
-    static async checkNewPosts(currentLocalStorage) {
-
-        // initialize the local storage to store information
-        // about new posts
-        let aDayIsPassed;
-
-        if (currentLocalStorage.downloadedPosts == undefined) {
-            aDayIsPassed = true;
-        }
-        else {
-            aDayIsPassed = (currentLocalStorage.downloadedPosts.length == 0)
-                ? true : Math.floor((Date.now() - currentLocalStorage.lastCheck) / 86400000) >= 1;
-        }
-
-        // if a day is passed since the last check then check if there is a new post
-        // inside the blog
-        if (aDayIsPassed) {
-
-            try {
-
-                const request = await fetch('/lua/get_new_blog_posts.lua');
-                const response = await request.json();
-                const {posts} = response;
-                const notificationToShow = [];
-                if (!posts) return {fetchedPosts: [], aDayIsPassed: aDayIsPassed};
-
-                posts.forEach((post) => {
-
-                    const postId = post.id;
-                    if (currentLocalStorage.downloadedPosts.find(shownId => shownId == postId)) return;
-                    post.isNew = true;
-                    notificationToShow.push(post);
-
-                });
-
-                return {fetchedPosts: notificationToShow, aDayIsPassed: aDayIsPassed};
-            }
-            catch (err) {
-                if (NOTIFICATION_DEBUG) console.error("BlogFeed :: Ops, an error appeared!", err);
-            }
-        }
-
-        return {fetchedPosts: [], aDayIsPassed: aDayIsPassed};
-    }
-
-    static showNotifications(newPosts, newPostsLength, currentUserName, currentLocalStorage) {
-
-        if (newPosts.length == 0) return;
+    static showNotifications(posts) {
 
         const $notificationBell = $("#notification-list");
-        const $badgeNotificationCount = $(`<span class="badge notification-bell badge-pill badge-danger">${newPostsLength}</span>`);
+        let newPostsCounter = BlogFeed.countNewPosts(posts);
 
-        if (newPostsLength > 0) $notificationBell.prepend($badgeNotificationCount);
+        const $badgeNotificationCount = $(`
+            <span class="badge notification-bell badge-pill badge-danger">${newPostsCounter}</span>
+        `);
+
+        if (newPostsCounter > 0) $notificationBell.prepend($badgeNotificationCount);
 
         const $blogSection = $(".blog-section");
-        const $list = $blogSection.find("ul");
-        $list.empty();
+        const $list = $blogSection.find("ul"); $list.empty();
 
-        newPosts.forEach((post, index) => {
+        posts.forEach((post, index) => {
 
-        if (!post) return;
+            if (!post) return;
 
             const $media = $("<li></li>");
-            if (index < newPosts.length - 1) $media.addClass("border-bottom");
+            if (index < posts.length - 1) $media.addClass("border-bottom");
 
             const $container = $("<div class='media-body pt-2 pr-2 pl-2 pb-1'></div>");
             const $link = $("<a class='text-dark'></a>");
@@ -252,37 +151,21 @@ class BlogFeed {
                 $("<small class='mb-0'></small>").html(`posted on ${new Date(post.date).toLocaleDateString()}`)
             );
 
-            if (newPostsLength > 0) {
+            if (post.isNew) {
 
                 const onLinkClick = function(e) {
 
-                    // remove the badge
+                    $badgeNotificationCount.html(--newPostsCounter);
                     $link.find(`span.badge`).remove();
-                    // remove click listener
-                    $link.off('click');
-                    $link.off('mousedown');
+                    if (newPostsCounter == 0) $badgeNotificationCount.remove();
 
-                    // decrease the counter
-                    let currentCounter = parseInt($badgeNotificationCount.text());
-                    $badgeNotificationCount.html(--currentCounter);
-                    if (currentCounter == 0) $badgeNotificationCount.empty();
-
-                    // mark the post as old
-                    const downloadedPosts = BlogFeed.getUserLocalStorage(currentLocalStorage, currentUserName).downloadedPosts;
-
-                    const oldPosts = downloadedPosts.map((p) => {
-                        if (p.id == post.id) p.isNew = false;
-                        return p;
-                    });
-
-                    BlogFeed.saveDownloadedPosts(currentLocalStorage, oldPosts, currentUserName);
-
+                    BlogFeed.updateNotifcationState(post.id);
+                    $(this).off('click').off('mousedown');
                 };
 
-                $link.mousedown((e) => {
+                $link.click(onLinkClick).mousedown((e) => {
                     if (e.which == 2) onLinkClick(e);
                 });
-                $link.click(onLinkClick);
             }
 
             $container.append($link);
@@ -293,77 +176,29 @@ class BlogFeed {
 
     }
 
-    static saveDownloadedPosts(currentLocalStorage, downloadedPosts, currentUserName) {
+    static updateNotifcationState(id) {
 
-        // remove the current local storage
-        localStorage.removeItem(BlogFeed.getLocalStorageKey());
+        if (id == undefined) throw 'The notification id is not defined!';
 
-        // update the new local storage per user
-        let currentEpoch = Date.now();
-
-        currentLocalStorage.users[currentUserName] = {
-            lastCheck: currentEpoch,
-            downloadedPosts: downloadedPosts
-        };
-
-        localStorage.setItem(BlogFeed.getLocalStorageKey(), JSON.stringify(currentLocalStorage));
+        $.post(`/lua/update_blog_posts.lua`, { blog_notification_id: id, csrf: csrfBlogNotification }, (data) => {
+            csrfBlogNotification = data.csrf;
+        });
     }
 
-    static filterNewPosts(currentLocalStorage, newPosts) {
+    static queryBlog(csrf) {
 
-        const downloadedPosts = currentLocalStorage.downloadedPosts;
+        csrfBlogNotification = csrf;
 
-        switch (newPosts.length) {
-            case 1:
-                return [newPosts[0], downloadedPosts[0], downloadedPosts[1]];
-            case 2:
-                return [newPosts[0], newPosts[1], downloadedPosts[0]];
-            case 3:
-                return newPosts;
-            default:
-                return downloadedPosts;
-        }
-    }
+        (async () => {
 
-    static queryBlog(currentUserName) {
+            const request = await fetch('/lua/get_new_blog_posts.lua');
+            const response = await request.json();
+            const {posts} = response;
 
-        const currentLocalStorage = BlogFeed.initializeLocalStorage(currentUserName);
-        const currentUserLocalStorage = BlogFeed.getUserLocalStorage(currentLocalStorage, currentUserName);
-
-        (async() => {
-
-            const {fetchedPosts, aDayIsPassed} = await BlogFeed.checkNewPosts(currentUserLocalStorage);
-            if (!aDayIsPassed) {
-
-                const toShow = currentUserLocalStorage.downloadedPosts;
-                let counter = 0;
-                // count how many post have not been read
-                toShow.forEach((p) => {
-                    if (!p) return;
-                    if (p.isNew) counter++;
-                });
-
-                BlogFeed.showNotifications(toShow, counter, currentUserName, currentLocalStorage);
-                return;
-            }
-
-            const newPosts = fetchedPosts.filter(post => {
-                return !(currentUserLocalStorage.downloadedPosts.find(post2 => post.id == post2.id));
-            });
-
-            // remove the older posts from the local storage
-            for (let i = 0; i < newPosts; i++) currentUserLocalStorage.downloadedPosts.pop();
-
-            // filter post notification
-            const toShow = BlogFeed.filterNewPosts(currentUserLocalStorage, newPosts);
-            // show new post notifications
-            BlogFeed.showNotifications(toShow, newPosts.length, currentUserName, currentLocalStorage);
-
-            // merge the arrays and save it into local storage
-            const newUserLocalStorage = [...newPosts, ...currentUserLocalStorage.downloadedPosts];
-            BlogFeed.saveDownloadedPosts(currentLocalStorage, newUserLocalStorage, currentUserName);
+            BlogFeed.showNotifications(posts);
 
         })();
+
     }
 
 }

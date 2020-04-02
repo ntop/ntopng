@@ -13,5 +13,5 @@ sendHTTPContentTypeHeader('application/json')
 
 print(json.encode({
     success = true,
-    posts = blog_utils.readPostsFromRedis()
+    posts = blog_utils.readPostsFromRedis(_SESSION['user'])
 }))
