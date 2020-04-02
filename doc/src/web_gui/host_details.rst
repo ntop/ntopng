@@ -75,8 +75,8 @@ down and find insights.
 
   The Peers View of the Host Details Page
 
-Protocols
----------
+Applications
+------------
 
 Using the DPI information, this page provides in pie chart and tabular format the amount of traffic divided
 by application. An additional pie chart provides a statistics about protocol type. A click on the protocol
@@ -237,13 +237,7 @@ Alerts Configuration page enables the user to set custom thresholds on multiple 
 alerts based on those thresholds. Alerts can be armed, among other metrics, per total bytes, DNS traffic,
 P2P traffic or packets, in a fixed time interval. Available time intervals are 1 and 5 minutes, 60 minutes,
 and 1 day. Two columns are available for configuration. The first affects only the selected local host,
-whereas the second affects all local hosts.
-
-.. figure:: ../img/web_gui_host_details_alerts.png
-  :align: center
-  :alt: Host Alerts View
-
-  The Alerts View of the Host Details Page
+whereas the second affects all local hosts. Alerts can be configured from the host :ref:`WebUIUserScripts`.
 
 Statistics
 ----------
