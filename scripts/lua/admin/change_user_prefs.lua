@@ -51,6 +51,13 @@ if(networks ~= nil) then
   end
 end
 
+if(allowed_interface ~= nil) then
+   if(not ntop.changeAllowedIfname(username, getInterfaceName(allowed_interface))) then
+     print ("{ \"result\" : -1, \"message\" : \"Error in changing the allowed interface\" }")
+     return
+   end
+end
+
 local allow_pcap_download_enabled = false
 if allow_pcap_download and allow_pcap_download == "1" then
   allow_pcap_download_enabled = true;
