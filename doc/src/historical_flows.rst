@@ -46,7 +46,6 @@ for the specified time frame.
 .. figure:: img/historical_flows_top_l7_contacts.png
   :align: center
   :alt: Historical Flows Top L7 Contacts
-  :scale: 80
 
 Here is an overview of the currently available flows views:
 
