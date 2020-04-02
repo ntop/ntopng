@@ -14,7 +14,6 @@ function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
 --! @param flow_status_type the flow status to clear. The possible values can be obtained by printing `flow_consts.status_types`
 function flow.clearStatus(flow_status_type)
 
-
 --! @brief Set a bit into the flow status bitmap, and trigger an alert.
 --! @param flow_status_type the flow status to set. The possible values can be obtained by printing `flow_consts.status_types`
 --! @param status_info a string message or lua table to associate to this status

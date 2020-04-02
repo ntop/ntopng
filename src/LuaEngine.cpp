@@ -9022,29 +9022,15 @@ static int ntop_host_get_ip(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_host_get_localhost_info(lua_State* vm) {
-  Host *h = ntop_host_get_context_host(vm);
-
-  lua_newtable(vm);
-
-  if(h)
-    h->lua_get_localhost_info(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_host_get_application_bytes(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
   u_int app_id;
 
-  lua_newtable(vm);
-
   if(h && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
     app_id = lua_tonumber(vm, 1);
     h->lua_get_app_bytes(vm, app_id);
-  }
+  } else
+    lua_pushnumber(vm, 0);
 
   return(CONST_LUA_OK);
 }
@@ -9054,8 +9040,6 @@ static int ntop_host_get_application_bytes(lua_State* vm) {
 static int ntop_host_get_category_bytes(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
   ndpi_protocol_category_t cat_id;
-
-  lua_newtable(vm);
 
   if(h && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
     cat_id = (ndpi_protocol_category_t)lua_tointeger(vm, 1);
@@ -9074,6 +9058,8 @@ static int ntop_host_get_bytes(lua_State* vm) {
 
   if(h)
     h->lua_get_bytes(vm);
+  else
+    lua_pushnumber(vm, 0);
 
   return(CONST_LUA_OK);
 }
@@ -11615,6 +11601,20 @@ static const luaL_Reg ntop_interface_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_host_reg[] = {
+/* Public User Scripts API, documented at doc/src/api/lua_c/host_user_scripts/host.lua */
+  { "getIp",                  ntop_host_get_ip                  },
+  { "getApplicationBytes",    ntop_host_get_application_bytes   },
+  { "getCategoryBytes",       ntop_host_get_category_bytes      },
+  { "getBytes",               ntop_host_get_bytes               },
+  { "getPackets",             ntop_host_get_packets             },
+  { "getNumFlows",            ntop_host_get_num_total_flows     },
+  { "getTime",                ntop_host_get_time                },
+  { "getDNSInfo",             ntop_host_get_dns_info            },
+  { "getHTTPInfo",            ntop_host_get_http_info           },
+  { "isLocal",                ntop_host_is_local                },
+  { "getTsKey",               ntop_host_get_ts_key              },
+/* END Public API */
+
   { "getInfo",                ntop_host_get_basic_fields        },
   { "getFullInfo",            ntop_host_get_all_fields          },
   { "getCachedAlertValue",    ntop_host_get_cached_alert_value  },
@@ -11623,23 +11623,10 @@ static const luaL_Reg ntop_host_reg[] = {
   { "releaseTriggeredAlert",  ntop_host_release_triggered_alert },
   { "getAlerts",              ntop_host_get_alerts              },
   { "checkContext",           ntop_host_check_context           },
-
-  { "getIp",                  ntop_host_get_ip                  },
-  { "getLocalhostInfo",       ntop_host_get_localhost_info      },
-  { "getApplicationBytes",    ntop_host_get_application_bytes   },
-  { "getCategoryBytes",       ntop_host_get_category_bytes      },
-  { "getBytes",               ntop_host_get_bytes               },
-  { "getPackets",             ntop_host_get_packets             },
-  { "getNumFlows",            ntop_host_get_num_total_flows     },
-  { "getTime",                ntop_host_get_time                },
   { "getSynFlood",            ntop_host_get_syn_flood           },
   { "getFlowFlood",           ntop_host_get_flow_flood          },
   { "getSynScan",             ntop_host_get_syn_scan            },
-  { "getDNSInfo",             ntop_host_get_dns_info            },
-  { "getHTTPInfo",            ntop_host_get_http_info           },
   { "refreshScore",           ntop_host_refresh_score           },
-  { "isLocal",                ntop_host_is_local                },
-  { "getTsKey",               ntop_host_get_ts_key              },
 
   { NULL,                     NULL }
 };
@@ -11647,7 +11634,10 @@ static const luaL_Reg ntop_host_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_network_reg[] = {
+/* Public User Scripts API, documented at doc/src/api/lua_c/network_user_scripts/network.lua */
   { "getNetworkStats",          ntop_network_get_network_stats       },
+/* END Public API */
+
   { "getCachedAlertValue",      ntop_network_get_cached_alert_value  },
   { "setCachedAlertValue",      ntop_network_set_cached_alert_value  },
   { "storeTriggeredAlert",      ntop_network_store_triggered_alert   },
@@ -11661,7 +11651,7 @@ static const luaL_Reg ntop_network_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_flow_reg[] = {
-/* Public User Scripts API, documented at api/lua_c/flow_user_scripts/flow.lua.cpp */
+/* Public User Scripts API, documented at doc/src/api/lua_c/flow_user_scripts/flow.lua */
   { "getStatus",                ntop_flow_get_status                 },
   { "setStatus",                ntop_flow_set_status                 },
   { "clearStatus",              ntop_flow_clear_status               },

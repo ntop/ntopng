@@ -34,7 +34,7 @@ local script = {
 -- #################################################################
 
 function script.hooks.all(params)
-  local value = alerts_api.host_delta_val(script.key, params.granularity, host.getApplicationBytes(script.env.dns_app_id)["bytes"])
+  local value = alerts_api.host_delta_val(script.key, params.granularity, host.getApplicationBytes(script.env.dns_app_id))
 
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
   alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_threshold_cross, value)

@@ -385,7 +385,7 @@ void Host::lua_get_ip(lua_State *vm) const {
 /* ***************************************************** */
 
 void Host::lua_get_localhost_info(lua_State *vm) const {
-  lua_push_bool_table_entry(vm, "localhost", isLocalHost());
+  lua_pushboolean(vm, isLocalHost());
 }
 
 /* ***************************************************** */
@@ -409,7 +409,7 @@ void Host::lua_get_bytes(lua_State *vm) const {
 /* ***************************************************** */
 
 void Host::lua_get_app_bytes(lua_State *vm, u_int app_id) const {
-  lua_push_uint64_table_entry(vm, "bytes", get_ndpi_stats()->getProtoBytes(app_id));
+  lua_pushinteger(vm, get_ndpi_stats()->getProtoBytes(app_id));
 }
 
 /* ***************************************************** */
