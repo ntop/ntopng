@@ -144,7 +144,7 @@ for _key,_value in ipairs(alerts) do
    end
 
    local column_id = tostring(alert_id)
-   if(ntop.isEnterprise()) then
+   if(ntop.isEnterpriseM()) then
       if (status == "historical-flows") then
 	 record["column_explorer"] = getExplorerLink(_value["cli_addr"], _value["srv_addr"], _value["alert_tstamp"])
       end

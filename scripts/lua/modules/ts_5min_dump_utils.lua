@@ -192,11 +192,11 @@ function ts_dump.getConfig()
 
   -- ########################################################
   -- Populate some defaults
-  if(tostring(config.flow_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
+  if(tostring(config.flow_devices_rrd_creation) == "1" and ntop.isEnterpriseM() == false) then
      config.flow_devices_rrd_creation = "0"
   end
 
-  if(tostring(config.snmp_devices_rrd_creation) == "1" and ntop.isEnterprise() == false) then
+  if(tostring(config.snmp_devices_rrd_creation) == "1" and ntop.isEnterpriseM() == false) then
      config.snmp_devices_rrd_creation = "0"
   end
 
@@ -513,7 +513,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
     end
 
     -- Create RRDs for flow and sFlow devices
-    if(config.flow_devices_rrd_creation == "1" and ntop.isEnterprise()) then
+    if(config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM()) then
       ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
       ts_dump.flow_device_update_rrds(when, ifstats, verbose)
     end

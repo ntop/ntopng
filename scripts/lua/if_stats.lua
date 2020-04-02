@@ -303,7 +303,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 label = "<i class=\"fas fa-lg fa-wrench\"></i>",
 			      },
 			      {
-				 hidden = have_nedge or not isAdministrator() or not ntop.isEnterprise() or ifstats.isDynamic or ifstats.isView,
+				 hidden = have_nedge or not isAdministrator() or not ntop.isEnterpriseM() or ifstats.isDynamic or ifstats.isView,
 				 active = page == "sub_interfaces",
 				 page_name = "sub_interfaces",
 				 label = "<i class=\"fas fa-lg fa-code-branch\"></i>",
@@ -1241,7 +1241,7 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
       print('<li class="nav-item '.. ternary(tab == "status", "active", "") ..'"><a class="nav-link '.. ternary(tab == "status", "active", "") ..'" href="?ifid='.. ifstats.id
 	 ..'&page=traffic_recording&tab=status">'.. i18n("status") ..'</a></li>')
 
-      if ntop.isEnterprise() then
+      if ntop.isEnterpriseM() then
 	 print('<li class="nav-item '.. ternary(tab == "jobs", "active", "") ..'"><a class="nav-link '.. ternary(tab == "jobs", "active", "") ..'" href="?ifid='.. ifstats.id
 	    ..'&page=traffic_recording&tab=jobs">'.. i18n("traffic_recording.jobs") ..'</a></li>')
       end
@@ -1252,7 +1252,7 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
 
    if recording_enabled and tab == "status" then
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_status.lua")
-   elseif recording_enabled and ntop.isEnterprise() and tab == "jobs" then
+   elseif recording_enabled and ntop.isEnterpriseM() and tab == "jobs" then
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_jobs.lua")
    elseif config_enabled and tab == "config" then -- config, default
       dofile(dirs.installdir .. "/scripts/lua/inc/traffic_recording_config.lua")
@@ -1991,7 +1991,7 @@ elseif(page == "snmp_bind") then
    });
 </script>]]
 elseif(page == "sub_interfaces") then
-   if(isAdministrator() and ntop.isEnterprise()) then
+   if(isAdministrator() and ntop.isEnterpriseM()) then
       dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/sub_interfaces.lua")
    end
 elseif(page == "pools") then

@@ -13,7 +13,7 @@ sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
-if ntop.isEnterprise() and hasNindexSupport() then
+if ntop.isEnterpriseM() and hasNindexSupport() then
   local nindex_utils = require "nindex_utils"
   nindex_utils.deleteOldFLows(true --[[ verbose ]])
 else

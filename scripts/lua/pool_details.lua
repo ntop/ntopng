@@ -68,7 +68,7 @@ local title = i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool")).
 				 label = "<i class='fas fa-lg fa-chart-area'></i>",
 			      },
 			      {
-				 hidden = not ntop.isEnterprise() or not ntop.isnEdge() or not ifstats or pool_id == host_pools_utils.DEFAULT_POOL_ID,
+				 hidden = not ntop.isEnterpriseM() or not ntop.isnEdge() or not ifstats or pool_id == host_pools_utils.DEFAULT_POOL_ID,
 				 active = page == "quotas",
 				 page_name = "quotas",
 				 label = i18n("quotas"),
@@ -79,7 +79,7 @@ local title = i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool")).
 local pools_stats = interface.getHostPoolsStats()
 local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 
-if (ntop.isEnterprise() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
+if (ntop.isEnterpriseM() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
   print(
     template.gen("modal_confirm_dialog.html", {
       dialog={

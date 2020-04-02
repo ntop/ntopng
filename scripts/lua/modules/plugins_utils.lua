@@ -63,7 +63,7 @@ function plugins_utils.listPlugins()
   if ntop.isPro() then
     source_dirs[#source_dirs + 1] = {"pro", plugins_utils.PRO_SOURCE_DIR}
 
-    if ntop.isEnterprise() then
+    if ntop.isEnterpriseM() then
       source_dirs[#source_dirs + 1] = {"enterprise", plugins_utils.ENTERPRISE_SOURCE_DIR}
     end
   end
