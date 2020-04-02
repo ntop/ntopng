@@ -35,7 +35,6 @@ historical charts `tabular view`_ dropdown:
 .. figure:: img/historical_flows_dropdown.png
   :align: center
   :alt: Historical Charts dropdown with flows
-  :scale: 80
 
 Browsing Flows
 --------------
@@ -59,7 +58,6 @@ or host and analize the raw flows.
 .. figure:: img/historical_flows_raw_flows.png
   :align: center
   :alt: Raw Flows
-  :scale: 70
 
 The picture above, for example, shows the raw flows between `PC local` and
 `17.248.146.148` having the `AppleiCloud` protocol.
@@ -84,12 +82,11 @@ Retention Time
 --------------
 
 The retention of the flows dump on disk can be configured from the
-"Flow Database Dump" preferences:
+"Data Retention" preferences:
 
 .. figure:: img/historical_flows_retention.png
   :align: center
   :alt: Flow Dump Retention
-  :scale: 80
 
 .. |drilldown_icon| image:: img/drilldown_icon.png
 .. |flow_export_icon| image:: img/flow_export_icon.png
