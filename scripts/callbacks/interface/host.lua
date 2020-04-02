@@ -101,7 +101,7 @@ function runScripts(granularity)
 
   benchmark_begin()
   local cur_alerts = host.getAlerts(granularity_id)
-  local is_localhost = host.getLocalhostInfo()["localhost"]
+  local is_localhost = host.isLocal()
   benchmark_end()
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
