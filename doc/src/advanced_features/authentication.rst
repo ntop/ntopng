@@ -31,7 +31,6 @@ re-authenticate again, regardless of their residual session duration.
 .. figure:: ../img/advanced_features_authentication_duration.png
   :align: center
   :alt: ntopng Authentication Duration
-  :scale: 40
 
   ntopng Authentication Duration
 
@@ -42,7 +41,6 @@ can be enabled from the ntopng "User Authentication" preferences.
 .. figure:: ../img/advanced_features_authentication_methods.png
   :align: center
   :alt: ntopng Authentication Methods
-  :scale: 80
 
   ntopng Authentication Methods
 
