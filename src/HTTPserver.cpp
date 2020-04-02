@@ -955,7 +955,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     }
 
     if(strstr(request_info->uri, "/lua/pro/enterprise")
-       && (!ntop->getPrefs()->is_enterprise_edition())) {
+       && (!ntop->getPrefs()->is_enterprise_m_edition())) {
       return(send_error(conn, 403 /* Forbidden */, request_info->uri,
 			"Enterprise edition license required"));
     }

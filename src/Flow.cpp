@@ -1060,7 +1060,7 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_
       return rc; /* Nothing to dump */
 
 #ifdef NTOPNG_PRO
-    if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_edition())
+    if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_m_edition())
       dumper->aggregatePartialFlow(tv, this);
 #endif
 
@@ -4586,7 +4586,7 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
     status_map.setBit(status);
 
 #ifdef NTOPNG_PRO
-    if(ntop->getPrefs()->is_enterprise_edition()) {
+    if(ntop->getPrefs()->is_enterprise_m_edition()) {
       flow_score += flow_inc;
       cli_score += cli_inc;
       srv_score += srv_inc;

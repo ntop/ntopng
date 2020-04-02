@@ -519,6 +519,28 @@ static int ntop_process_flow(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_update_syslog_producers(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  SyslogParserInterface *syslog_parser_interface;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) 
+    return(CONST_LUA_ERROR);
+
+  syslog_parser_interface = dynamic_cast<SyslogParserInterface*>(ntop_interface);
+  if(!syslog_parser_interface)
+    return(CONST_LUA_ERROR);
+
+  syslog_parser_interface->updateProducersMapping();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
 #endif
 
 /* ****************************************** */
@@ -6442,9 +6464,17 @@ static int ntop_is_pro(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_is_enterprise(lua_State *vm) {
+static int ntop_is_enterprise_m(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_edition());
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_m_edition());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_is_enterprise_l(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_l_edition());
   return(CONST_LUA_OK);
 }
 
@@ -7139,7 +7169,9 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.geoip", (char*)MMDB_lib_version());
 #endif
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
-    lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_m_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_m_edition", ntop->getPrefs()->is_enterprise_m_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_l_edition", ntop->getPrefs()->is_enterprise_l_edition());
     lua_push_bool_table_entry(vm, "version.embedded_edition", ntop->getPrefs()->is_embedded_edition());
     lua_push_bool_table_entry(vm, "version.nedge_edition", ntop->getPrefs()->is_nedge_edition());
     lua_push_bool_table_entry(vm, "version.nedge_enterprise_edition", ntop->getPrefs()->is_nedge_enterprise_edition());
@@ -11358,6 +11390,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
 #ifndef HAVE_NEDGE
   { "processFlow",              ntop_process_flow },
+  { "updateSyslogProducers",    ntop_update_syslog_producers },
 #endif
 
   { "getActiveFlowsStats",      ntop_get_active_flows_stats },
@@ -11801,7 +11834,9 @@ static const luaL_Reg ntop_reg[] = {
 #endif
 
   { "isPro",                  ntop_is_pro },
-  { "isEnterprise",           ntop_is_enterprise },
+  { "isEnterprise",           ntop_is_enterprise_m },
+  { "isEnterpriseM",          ntop_is_enterprise_m },
+  { "isEnterpriseL",          ntop_is_enterprise_l },
   { "isnEdge",                ntop_is_nedge },
   { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
   { "isPackage",              ntop_is_package },

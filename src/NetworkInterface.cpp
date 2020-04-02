@@ -387,7 +387,7 @@ void NetworkInterface::checkDisaggregationMode() {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   if (flowHashingMode == flowhashing_none)
-    sub_interfaces = ntop->getPro()->has_valid_enterprise_license() ? new SubInterfaces(this) : NULL;
+    sub_interfaces = ntop->getPro()->has_valid_enterprise_m_license() ? new SubInterfaces(this) : NULL;
 #endif
 #endif
 }
@@ -650,7 +650,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv) {
   if(db
      && f && (f->get_packets() > 0)
-     && ntop->getPrefs()->is_enterprise_edition()) {
+     && ntop->getPrefs()->is_enterprise_m_edition()) {
 #ifdef DUMP_AGGREGATED_FLOW_DEBUG
     char buf[256];
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -6743,7 +6743,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     if(ntop->getPrefs()->do_dump_flows_on_mysql()
        || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_edition()
+      if(ntop->getPrefs()->is_enterprise_m_edition()
 	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef HAVE_MYSQL
 	db = new BatchedMySQLDB(this);
