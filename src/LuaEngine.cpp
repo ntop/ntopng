@@ -2159,7 +2159,7 @@ static int non_blocking_connect(int sock, struct sockaddr_in *sa, int timeout) {
   wset = rset; //structure assignment ok
 
 #ifdef WIN32
-  // Wndows sockets are created in blocking mode by default
+  // Windows sockets are created in blocking mode by default
   // currently on windows, there is no easy way to obtain the socket's current blocking mode since WSAIsBlocking was deprecated
   u_long f = 1;
   if(ioctlsocket(sock, FIONBIO, &f) != NO_ERROR)
@@ -12685,8 +12685,14 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     const char *err = lua_tostring(L, -1);
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
+
+    /* Do not use redirect_to_error_page() as this might lead to loops */
+#if 1
+    return(redirect_to_error_page(conn, request_info, "internal_error", script_path, (char*)err));
+#else
     return(send_error(conn, 500 /* Internal server error */,
 		      "Internal server error", PAGE_ERROR, script_path, err));
+#endif
   }
 
   return(CONST_LUA_OK);

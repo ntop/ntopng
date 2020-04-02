@@ -177,6 +177,11 @@ local function validateSingleWord(w)
 end
 http_lint.validateSingleWord = validateSingleWord
 
+local function validateMessage(w)
+   return true
+end
+http_lint.validateSingleWord = validateMessage
+
 local function validateSingleAlphanumericWord(w)
    if (w:match("%W")) then
      return false
@@ -1504,6 +1509,12 @@ local known_parameters = {
    ["network_discovery_interval"]                  = validateNumber,
    ["mud_recording"]                               = validateChoiceInline({"default", "general_purpose", "special_purpose", "disabled"}),
    ["captive_portal_id_method"]                    = validateChoiceInline({"mac", "ip"}),
+
+   -- Error report
+   ["message"]                                     = validateSingleWord,
+   ["script_path"]                                 = validateLuaScriptPath,
+   ["error_message"]                               = validateMessage,
+      
 --
 
 -- LIVE CAPTURE

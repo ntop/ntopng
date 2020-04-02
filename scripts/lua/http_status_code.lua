@@ -14,14 +14,13 @@ local page_utils = require("page_utils")
 sendHTTPContentTypeHeader('text/html')
 page_utils.print_header()
 
-local status_code = _GET["status_code"] or 200
-local referal_url = _GET["referal_url"] or '/'
+local message        = _GET["message"] or "forbidden"
+local referal_url    = _GET["referer"] or '/'
+local error_message  = _GET["error_message"] or ""
 
-local error_descriptions = {
-    [404] = "Page not found!",
-    [403] = "Forbidden page!",
-    [200] = "Success!",
-}
+message = "http_status_code."..message
+
+status_code = "" -- Can we remove it?
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -32,8 +31,9 @@ print([[
             <h2 class='text-center status-code-title mt-3 mb-1'>]].. status_code ..[[</h2>
             <h3 class='text-center mt-1 mb-3 text-muted'>Ops! Something went wrong!</h3>
             <p class='text-center mt-3 mb-4 lead'>
-                ]].. error_descriptions[status_code] ..[[
+                ]].. i18n(message) ..[[
             </p>
+            <p><font color=red>]] .. error_message .. [[</font></p>
             <a class='text-center d-block mb-5' href="]]..referal_url..[[">
                 <i class="fas fa-arrow-left"></i>
                 Bring me back

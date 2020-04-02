@@ -2091,6 +2091,15 @@ local lang = {
     ["local_http_servers"] = "Local HTTP Servers",
     ["total_requests"] = "Total Requests",
   },
+  ["http_status_code"] = {
+    ["bad_request"] = "The URL specified contains invalid/dangerous characters",
+    ["enterprise_only"] = "Enterprise edition license required",
+    ["forbidden"] = "Forbidden page",
+    ["internal_error"] = "Internal server error",
+    ["not_found"] = "The requested page cannot be found",
+    ["pro_only"] = "Professional edition license required",
+    ["shut_start"] = "Unable to serve requests at this time, possibly starting up or shutting down",
+  },
   ["icmp_page"] = {
     ["icmp_code"] = "Code",
     ["icmp_message"] = "ICMP Message",

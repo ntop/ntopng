@@ -76,6 +76,11 @@ class HTTPserver {
 };
 
 extern int send_error(struct mg_connection *conn, int status, const char *reason, const char *fmt, ...);
+extern int redirect_to_error_page(struct mg_connection *conn,
+				  const struct mg_request_info *request_info,
+				  const char *i18n_message,
+				  char *script_path, char *error_message);
+
 const char *get_secure_cookie_attributes(const struct mg_request_info *request_info);
 
 /* mongoose */

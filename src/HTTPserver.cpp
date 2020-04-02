@@ -634,6 +634,42 @@ static void redirect_to_login(struct mg_connection *conn,
 
 /* ****************************************** */
 
+int redirect_to_error_page(struct mg_connection *conn,
+			   const struct mg_request_info *request_info,
+			   const char *i18n_message,
+			   char *script_path, char *error_message) {
+  char session_id[NTOP_SESSION_ID_LENGTH];
+  char referer[255];
+  char *referer_enc = NULL, *msg;
+  const char* url = "/lua/http_status_code.lua";
+    
+  make_referer(conn, referer, sizeof(referer));
+  mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
+
+  msg = error_message ? Utils::urlEncode(error_message) : NULL;
+
+  mg_printf(conn,
+	    "HTTP/1.1 302 Found\r\n"
+	    "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
+	    "Location: %s%s?message=%s%s%s&error_message=%s\r\n\r\n", /* FIX */
+	    session_id,
+	    get_secure_cookie_attributes(request_info),
+	    ntop->getPrefs()->get_http_prefix(),
+	    url,
+	    i18n_message,
+	    (referer[0] != '\0') ? (char*)"&referer=" : (char*)"",
+	    (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
+	    msg ? msg : "");
+
+  if(msg) free(msg);
+  if(referer_enc) free(referer_enc);
+
+  return(1);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_MYSQL
 /* Redirect user to a courtesy page that is used when database schema is being updated.
    In the cookie, store the original URL we came from, so that after the authorization
@@ -814,10 +850,12 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   if((ntop->getRedis() == NULL /* Starting up... */)
      || (ntop->get_HTTPserver() == NULL)
-     || (!ntop->get_HTTPserver()->accepts_requests()))
+     || (!ntop->get_HTTPserver()->accepts_requests())) {
+    /* return(redirect_to_error_page(conn, request_info, "shut_start", NULL, NULL)); */
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
 		      "Unable to serve requests at this time, possibly starting up or shutting down."));
-
+  }
+  
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "################# [HTTP] %s [%s]",
 			       request_info->uri, referer);
@@ -935,8 +973,7 @@ static int handle_lua_request(struct mg_connection *conn) {
      ) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] The URL %s is invalid/dangerous",
 				 request_info->uri);
-    return(send_error(conn, 400 /* Bad Request */, request_info->uri,
-		      "The URL specified contains invalid/dangerous characters"));
+    return(redirect_to_error_page(conn, request_info, "bad_request", NULL, NULL));
   }
 
   if((strncmp(request_info->uri, "/lua/", 5) == 0)
@@ -950,14 +987,12 @@ static int handle_lua_request(struct mg_connection *conn) {
 
     if(strstr(request_info->uri, "/lua/pro")
        && (!ntop->getPrefs()->is_pro_edition())) {
-      return(send_error(conn, 403 /* Forbidden */, request_info->uri,
-			"Professional edition license required"));
+      return(redirect_to_error_page(conn, request_info, "pro_only", NULL, NULL));
     }
 
     if(strstr(request_info->uri, "/lua/pro/enterprise")
        && (!ntop->getPrefs()->is_enterprise_edition())) {
-      return(send_error(conn, 403 /* Forbidden */, request_info->uri,
-			"Enterprise edition license required"));
+      return(redirect_to_error_page(conn, request_info, "enterprise_only", NULL, NULL));
     }
 
     if((!whitelisted)
@@ -1018,12 +1053,11 @@ static int handle_lua_request(struct mg_connection *conn) {
 
     uri_encode(request_info->uri, uri, sizeof(uri)-1);
 
-    return(send_error(conn, 404, "Not Found", PAGE_NOT_FOUND, uri));
+    return(redirect_to_error_page(conn, request_info, "not_found", NULL, NULL)); 
   } else {
     /* Prevent short URI or .inc files to be served */
     if((len < 4) || (strncmp(&request_info->uri[len-4], ".inc", 4) == 0)) {
-      return(send_error(conn, 403, "Forbidden",
-			ACCESS_FORBIDDEN, request_info->uri));
+      return(redirect_to_error_page(conn, request_info, "forbidden", NULL, NULL));
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Serving file %s%s",
 				   ntop->get_HTTPserver()->get_docs_dir(), request_info->uri);
