@@ -3,6 +3,7 @@
 --
 
 require "os"
+require "lua_utils"
 local ts_utils = require("ts_utils_core")
 
 local template = require "template_utils"
@@ -116,16 +117,17 @@ end
 -- Toogle System Interface
 
 -- render switchable system view
-if is_admin then
 
-	print([[
+print([[
 	<script type="text/javascript">
 
 	   const toggle_system_flag = (is_system_switch = false, $form = null) => {
 
 		  // if form it's empty it means the call was not invoked
 		  // by a form request
-		  const flag = (is_system_switch) ? "1" : "0";
+		  // prevent the non admin user to switch in system interface
+		  const is_admin = ]].. (is_admin and "true" or "false") ..[[;
+		  const flag = (is_system_switch && is_admin) ? "1" : "0";
 
 		  $.get(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
 			 system_interface: flag,
@@ -143,20 +145,21 @@ if is_admin then
 	]])
 
 	if (not page_utils.is_system_view()) then
-	print([[
-	   $(document).ready(function() {
-		  $("#btn-trigger-system-mode").click(function(e) {
-			 toggle_system_flag(true);
-		  });
-	   });
-	]])
+
+		print([[
+		$(document).ready(function() {
+			$("#btn-trigger-system-mode").click(function(e) {
+				toggle_system_flag(]].. (is_admin and "true" or "false") ..[[);
+			});
+		});
+		]])
 	end
 
-	print([[
-	   </script>
-	]])
+print([[
+	</script>
+]])
 
-end
+
 
 -- End of Toggle System Interface
 
