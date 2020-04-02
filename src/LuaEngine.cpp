@@ -11661,27 +11661,27 @@ static const luaL_Reg ntop_network_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_flow_reg[] = {
-  /* Documented */
+/* Public User Scripts API, documented at api/lua_c/flow_user_scripts/flow.lua.cpp */
   { "getStatus",                ntop_flow_get_status                 },
-  { "isBlacklisted",            ntop_flow_is_blacklisted             },
   { "setStatus",                ntop_flow_set_status                 },
   { "clearStatus",              ntop_flow_clear_status               },
-  { "getInfo",                  ntop_flow_get_info                   },
-  { "getFullInfo",              ntop_flow_get_full_info              },
-  { "getUnicastInfo",           ntop_flow_get_unicast_info           },
-
-  { "triggerAlert",             ntop_flow_trigger_alert              },
-  { "getPredominantStatus",     ntop_get_predominant_status          },
   { "isStatusSet",              ntop_flow_is_status_set              },
+
+  { "isClientUnicast",          ntop_flow_is_client_unicast          },
+  { "isServerUnicast",          ntop_flow_is_server_unicast          },
+  { "isUnicast",                ntop_flow_is_unicast                 },
+  { "isRemoteToRemote",         ntop_flow_is_remote_to_remote        },
+  { "isLocalToRemote",          ntop_flow_is_local_to_remote         },
+  { "isRemoteToLocal",          ntop_flow_is_remote_to_local         },
+  { "isLocal",                  ntop_flow_is_local                   },
+  { "isBlacklisted",            ntop_flow_is_blacklisted             },
+  { "isTwhOK",                  ntop_flow_is_twh_ok                  },
+  { "isBidirectional",          ntop_flow_is_bidirectional           },
+  { "getFullInfo",              ntop_flow_get_full_info              },
   { "getKey",                   ntop_flow_get_key                    },
-  { "getHashEntryId",           ntop_flow_get_hash_entry_id          },
-  { "getICMPStatusInfo",        ntop_flow_get_icmp_status_info       },
-  { "getAlertedStatusScore",    ntop_flow_get_alerted_status_score   },
   { "getFirstSeen",             ntop_flow_get_first_seen             },
   { "getLastSeen",              ntop_flow_get_last_seen              },
   { "getDuration",              ntop_flow_get_duration               },
-  { "isTwhOK",                  ntop_flow_is_twh_ok                  },
-  { "isBidirectional",          ntop_flow_is_bidirectional           },
   { "getPacketsSent",           ntop_flow_get_packets_sent           },
   { "getPacketsRcvd",           ntop_flow_get_packets_rcvd           },
   { "getPackets",               ntop_flow_get_packets                },
@@ -11691,17 +11691,31 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getGoodputBytes",          ntop_flow_get_goodput_bytes          },
   { "getClientKey",             ntop_flow_get_client_key             },
   { "getServerKey",             ntop_flow_get_server_key             },
-  { "isClientUnicast",          ntop_flow_is_client_unicast          },
-  { "isServerUnicast",          ntop_flow_is_server_unicast          },
-  { "isUnicast",                ntop_flow_is_unicast                 },
-  { "isRemoteToRemote",         ntop_flow_is_remote_to_remote        },
-  { "isLocalToRemote",          ntop_flow_is_local_to_remote         },
-  { "isRemoteToLocal",          ntop_flow_is_remote_to_local         },
   { "getnDPICategoryName",      ntop_flow_get_ndpi_cat_name          },
   { "getnDPIProtocolName",      ntop_flow_get_ndpi_protocol_name     },
   { "getnDPICategoryId",        ntop_flow_get_ndpi_category_id       },
   { "getnDPIMasterProtoId",     ntop_flow_get_ndpi_master_proto_id   },
   { "getnDPIAppProtoId",        ntop_flow_get_ndpi_app_proto_id      },
+  { "getDnsQuery",              ntop_flow_get_dns_query              },
+  { "getClientCountry",         ntop_flow_get_client_country         },
+  { "getServerCountry",         ntop_flow_get_server_country         },
+  { "getTLSVersion",            ntop_flow_get_tls_version            },
+
+#ifdef NTOPNG_PRO
+  { "getScore",                 ntop_flow_get_score                  },
+#endif
+#ifdef HAVE_NEDGE
+  { "isPassVerdict",            ntop_flow_is_pass_verdict            },
+#endif
+/* END Public API */
+
+  { "getInfo",                  ntop_flow_get_info                   },
+  { "getUnicastInfo",           ntop_flow_get_unicast_info           },
+  { "triggerAlert",             ntop_flow_trigger_alert              },
+  { "getPredominantStatus",     ntop_get_predominant_status          },
+  { "getHashEntryId",           ntop_flow_get_hash_entry_id          },
+  { "getICMPStatusInfo",        ntop_flow_get_icmp_status_info       },
+  { "getAlertedStatusScore",    ntop_flow_get_alerted_status_score   },
   { "getClientTCPIssues",       ntop_flow_get_cli_tcp_issues         },
   { "getServerTCPIssues",       ntop_flow_get_srv_tcp_issues         },
   { "isDeviceProtocolNotAllowed", ntop_flow_is_dp_not_allowed        },
@@ -11711,25 +11725,14 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getICMPType",              ntop_flow_get_icmp_type              },
   { "getMaxSeenIcmpPayloadSize", ntop_flow_get_max_seen_icmp_size    },
   { "dnsQueryHasInvalidChars",  ntop_flow_dns_query_invalid_chars    },
-  { "getDnsQuery",              ntop_flow_get_dns_query              },
   { "getProtoBreed",            ntop_flow_get_proto_breed            },
   { "hasMaliciousTlsSignature", ntop_flow_has_malicious_tls_signature },
-  { "getClientCountry",         ntop_flow_get_client_country         },
-  { "getServerCountry",         ntop_flow_get_server_country         },
-
-  /* TODO document */
-  { "isLocal",                  ntop_flow_is_local                   },
-#ifdef NTOPNG_PRO
-  { "getScore",                 ntop_flow_get_score                  },
-  { "getScoreInfo",             ntop_flow_get_score_info             },
-#endif
   { "getMUDInfo",               ntop_flow_get_mud_info               },
   { "isNotPurged",              ntop_flow_is_not_purged              },
-  { "getTLSVersion",            ntop_flow_get_tls_version            },
   { "getTCPStats",              ntop_flow_get_tcp_stats              },
   { "getBlacklistedInfo",       ntop_flow_get_blacklisted_info       },
-#ifdef HAVE_NEDGE
-  { "isPassVerdict",            ntop_flow_is_pass_verdict            },
+#ifdef NTOPNG_PRO
+  { "getScoreInfo",             ntop_flow_get_score_info             },
 #endif
   { "retrieveExternalAlertInfo", ntop_flow_retrieve_external_alert_info },
   { "getDeviceProtoAllowedInfo", ntop_flow_get_device_proto_allowed_info},
