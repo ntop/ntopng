@@ -52,8 +52,10 @@ local function printUserScripts()
             end
 
             -- Availability
-            if(script.edition == "enterprise") then
-              available = "Enterprise"
+            if(script.edition == "enterprise_m") then
+              available = "Enterprise M"
+            elseif(script.edition == "enterprise_l") then
+              available = "Enterprise L"
             elseif(script.edition == "pro") then
               available = "Pro"
             else
