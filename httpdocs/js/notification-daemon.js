@@ -260,6 +260,7 @@ class BlogFeed {
                     $link.find(`span.badge`).remove();
                     // remove click listener
                     $link.off('click');
+                    $link.off('mousedown');
 
                     // decrease the counter
                     let currentCounter = parseInt($badgeNotificationCount.text());
@@ -275,6 +276,7 @@ class BlogFeed {
                     });
 
                     BlogFeed.saveDownloadedPosts(currentLocalStorage, oldPosts, currentUserName);
+
                 };
 
                 $link.mousedown((e) => {
