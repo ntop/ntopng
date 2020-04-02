@@ -1023,8 +1023,8 @@ print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 local stats = data.statistics
 
 if(stats ~= nil) then
-  local minval_time = stats.min_val_idx and (data.start + data.step * stats.min_val_idx) or ""
-  local maxval_time = stats.max_val_idx and (data.start + data.step * stats.max_val_idx) or ""
+  local minval_time = stats.min_val_idx and (data.start + data.step * stats.min_val_idx) or 0
+  local maxval_time = stats.max_val_idx and (data.start + data.step * stats.max_val_idx) or 0
   local lastval_time = data.start + data.step * (data.count-1)
   local lastval = 0
 
@@ -1033,20 +1033,20 @@ if(stats ~= nil) then
   end
 
    if format_as_bytes then
-      print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bytesToSize((stats.min_val*8) or "") .. '</td></tr>\n')
-      print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bytesToSize((stats.max_val*8) or "") .. '</td></tr>\n')
+      if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bytesToSize((stats.min_val*8) or "") .. '</td></tr>\n') end
+      if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bytesToSize((stats.max_val*8) or "") .. '</td></tr>\n') end
       print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. bytesToSize(lastval*8)  .. '</td></tr>\n')
       print('   <tr><th>Average</th><td colspan=2>' .. bytesToSize(stats.average*8) .. '</td></tr>\n')
       print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bytesToSize(stats["95th_percentile"]*8) .. '</td></tr>\n')
    elseif(not format_as_bps) then
-     print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. formatValue(stats.min_val or "") .. '</td></tr>\n')
-     print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. formatValue(stats.max_val or "") .. '</td></tr>\n')
+     if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. formatValue(stats.min_val or "") .. '</td></tr>\n') end
+     if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. formatValue(stats.max_val or "") .. '</td></tr>\n') end
      print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval), 1) .. '</td></tr>\n')
      print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats.average, 2)) .. '</td></tr>\n')
      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(stats["95th_percentile"], 2)) .. '</td></tr>\n')
    else
-     print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bitsToSize((stats.min_val*8) or "") .. '</td></tr>\n')
-     print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bitsToSize((stats.max_val*8) or "") .. '</td></tr>\n')
+     if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bitsToSize((stats.min_val*8) or "") .. '</td></tr>\n') end
+     if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bitsToSize((stats.max_val*8) or "") .. '</td></tr>\n') end
      print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. bitsToSize(lastval*8)  .. '</td></tr>\n')
      print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(stats.average*8) .. '</td></tr>\n')
      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bitsToSize(stats["95th_percentile"]*8) .. '</td></tr>\n')
