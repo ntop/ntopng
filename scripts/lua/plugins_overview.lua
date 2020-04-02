@@ -41,9 +41,12 @@ local function printPlugins()
     local available = ""
 
     -- Availability
-    if(plugin.edition == "enterprise") then
-      available = "Enterprise"
-      if((edition ~= "") and (edition ~= "enterprise")) then goto skip end
+    if(plugin.edition == "enterprise_m") then
+      available = "Enterprise M"
+      if((edition ~= "") and (edition ~= "enterprise_m")) then goto skip end
+    elseif(plugin.edition == "enterprise_l") then
+      available = "Enterprise L"
+      if((edition ~= "") and (edition ~= "enterprise_l")) then goto skip end
     elseif(plugin.edition == "pro") then
       available = "Pro"
       if((edition ~= "") and (edition ~= "pro")) then goto skip end
@@ -76,7 +79,8 @@ print[[<div class="row mb-3">
     <option value="" ]] print(ternary(isEmptyString(edition, "selected", ""))) print[[>]] print(i18n("all")) print[[</option>
     <option value="community" ]] print(ternary(edition == "community", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Community"})) print[[</option>
     <option value="pro" ]] print(ternary(edition == "pro", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Pro"})) print[[</option>
-    <option value="enterprise" ]] print(ternary(edition == "enterprise", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Enterprise"})) print[[</option>
+    <option value="enterprise_m" ]] print(ternary(edition == "enterprise_m", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Enterprise M"})) print[[</option>
+    <option value="enterprise_l" ]] print(ternary(edition == "enterprise_l", "selected", "")) print[[>]] print(i18n("plugins_overview.edition_only", {edition="Enterprise L"})) print[[</option>
     </select>
   </form>
 </div>]]
