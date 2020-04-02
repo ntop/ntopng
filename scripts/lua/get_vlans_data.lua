@@ -69,7 +69,7 @@ vlans_stats = vlans_stats["VLANs"]
 local res_formatted = {}
 
 for _, vlan in ipairs(vlans_stats) do
-   local record = vlan2record(getInterfaceId(ifname), vlan)
+   local record = vlan2record(interface.getId(), vlan)
    res_formatted[#res_formatted + 1] = record
 end
 

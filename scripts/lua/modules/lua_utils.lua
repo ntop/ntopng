@@ -3459,7 +3459,7 @@ function areCountryTimeseriesEnabled(ifid)
    return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"))
 end
 
-function areVlanTimeseriesEnabled()
+function areVlanTimeseriesEnabled(ifid)
    return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.vlan_rrd_creation") == "1"))
 end
 
