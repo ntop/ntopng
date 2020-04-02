@@ -348,7 +348,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = "<i class='fas fa-lg fa-file-alt report-icon'></i>",
 			      },
 			      {
-				 hidden = only_historical or not ntop.isEnterprise() or not ifstats.inline or not host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID,
+				 hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID,
 				 active = page == "quotas",
 				 page_name = "quotas",
 				 label = i18n("quotas"),
@@ -1849,7 +1849,7 @@ print[[
 
    ]]
 
-elseif(page == "snmp" and ntop.isEnterprise() and isAllowedSystemInterface()) then
+elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) then
    local snmp_devices = get_snmp_devices()
 
    if snmp_devices[host_ip] == nil then -- host has not been configured
@@ -2036,7 +2036,7 @@ elseif(page == "alerts") then
       host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
          enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = host_name})})
 
-elseif (page == "quotas" and ntop.isEnterprise() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
+elseif (page == "quotas" and ntop.isEnterpriseM() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
    host_pools_utils.printQuotas(host_pool_id, host, page_params)
 

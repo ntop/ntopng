@@ -62,7 +62,7 @@ If the `Temporary Admin Access` flag is checked, you enable a temporary access a
 Remote Assistance Status
 ------------------------
 
-As long as the remote assistance is active, an icon will be displayed in the footer:
+As long as the remote assistance is active, an icon will be displayed in the top status bar:
 
 .. figure:: img/remote_assistance_footer.png
   :align: center

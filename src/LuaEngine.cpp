@@ -519,6 +519,28 @@ static int ntop_process_flow(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
+
+// ***API***
+static int ntop_update_syslog_producers(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  SyslogParserInterface *syslog_parser_interface;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) 
+    return(CONST_LUA_ERROR);
+
+  syslog_parser_interface = dynamic_cast<SyslogParserInterface*>(ntop_interface);
+  if(!syslog_parser_interface)
+    return(CONST_LUA_ERROR);
+
+  syslog_parser_interface->updateProducersMapping();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
 #endif
 
 /* ****************************************** */
@@ -6442,9 +6464,17 @@ static int ntop_is_pro(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_is_enterprise(lua_State *vm) {
+static int ntop_is_enterprise_m(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_edition());
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_m_edition());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_is_enterprise_l(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_l_edition());
   return(CONST_LUA_OK);
 }
 
@@ -7139,7 +7169,9 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.geoip", (char*)MMDB_lib_version());
 #endif
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
-    lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_m_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_m_edition", ntop->getPrefs()->is_enterprise_m_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_l_edition", ntop->getPrefs()->is_enterprise_l_edition());
     lua_push_bool_table_entry(vm, "version.embedded_edition", ntop->getPrefs()->is_embedded_edition());
     lua_push_bool_table_entry(vm, "version.nedge_edition", ntop->getPrefs()->is_nedge_edition());
     lua_push_bool_table_entry(vm, "version.nedge_enterprise_edition", ntop->getPrefs()->is_nedge_enterprise_edition());
@@ -8990,29 +9022,15 @@ static int ntop_host_get_ip(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_host_get_localhost_info(lua_State* vm) {
-  Host *h = ntop_host_get_context_host(vm);
-
-  lua_newtable(vm);
-
-  if(h)
-    h->lua_get_localhost_info(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_host_get_application_bytes(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
   u_int app_id;
 
-  lua_newtable(vm);
-
   if(h && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
     app_id = lua_tonumber(vm, 1);
     h->lua_get_app_bytes(vm, app_id);
-  }
+  } else
+    lua_pushnumber(vm, 0);
 
   return(CONST_LUA_OK);
 }
@@ -9022,8 +9040,6 @@ static int ntop_host_get_application_bytes(lua_State* vm) {
 static int ntop_host_get_category_bytes(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
   ndpi_protocol_category_t cat_id;
-
-  lua_newtable(vm);
 
   if(h && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
     cat_id = (ndpi_protocol_category_t)lua_tointeger(vm, 1);
@@ -9042,6 +9058,8 @@ static int ntop_host_get_bytes(lua_State* vm) {
 
   if(h)
     h->lua_get_bytes(vm);
+  else
+    lua_pushnumber(vm, 0);
 
   return(CONST_LUA_OK);
 }
@@ -11358,6 +11376,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
 #ifndef HAVE_NEDGE
   { "processFlow",              ntop_process_flow },
+  { "updateSyslogProducers",    ntop_update_syslog_producers },
 #endif
 
   { "getActiveFlowsStats",      ntop_get_active_flows_stats },
@@ -11582,6 +11601,20 @@ static const luaL_Reg ntop_interface_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_host_reg[] = {
+/* Public User Scripts API, documented at doc/src/api/lua_c/host_user_scripts/host.lua */
+  { "getIp",                  ntop_host_get_ip                  },
+  { "getApplicationBytes",    ntop_host_get_application_bytes   },
+  { "getCategoryBytes",       ntop_host_get_category_bytes      },
+  { "getBytes",               ntop_host_get_bytes               },
+  { "getPackets",             ntop_host_get_packets             },
+  { "getNumFlows",            ntop_host_get_num_total_flows     },
+  { "getTime",                ntop_host_get_time                },
+  { "getDNSInfo",             ntop_host_get_dns_info            },
+  { "getHTTPInfo",            ntop_host_get_http_info           },
+  { "isLocal",                ntop_host_is_local                },
+  { "getTsKey",               ntop_host_get_ts_key              },
+/* END Public API */
+
   { "getInfo",                ntop_host_get_basic_fields        },
   { "getFullInfo",            ntop_host_get_all_fields          },
   { "getCachedAlertValue",    ntop_host_get_cached_alert_value  },
@@ -11590,23 +11623,10 @@ static const luaL_Reg ntop_host_reg[] = {
   { "releaseTriggeredAlert",  ntop_host_release_triggered_alert },
   { "getAlerts",              ntop_host_get_alerts              },
   { "checkContext",           ntop_host_check_context           },
-
-  { "getIp",                  ntop_host_get_ip                  },
-  { "getLocalhostInfo",       ntop_host_get_localhost_info      },
-  { "getApplicationBytes",    ntop_host_get_application_bytes   },
-  { "getCategoryBytes",       ntop_host_get_category_bytes      },
-  { "getBytes",               ntop_host_get_bytes               },
-  { "getPackets",             ntop_host_get_packets             },
-  { "getNumFlows",            ntop_host_get_num_total_flows     },
-  { "getTime",                ntop_host_get_time                },
   { "getSynFlood",            ntop_host_get_syn_flood           },
   { "getFlowFlood",           ntop_host_get_flow_flood          },
   { "getSynScan",             ntop_host_get_syn_scan            },
-  { "getDNSInfo",             ntop_host_get_dns_info            },
-  { "getHTTPInfo",            ntop_host_get_http_info           },
   { "refreshScore",           ntop_host_refresh_score           },
-  { "isLocal",                ntop_host_is_local                },
-  { "getTsKey",               ntop_host_get_ts_key              },
 
   { NULL,                     NULL }
 };
@@ -11614,7 +11634,10 @@ static const luaL_Reg ntop_host_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_network_reg[] = {
+/* Public User Scripts API, documented at doc/src/api/lua_c/network_user_scripts/network.lua */
   { "getNetworkStats",          ntop_network_get_network_stats       },
+/* END Public API */
+
   { "getCachedAlertValue",      ntop_network_get_cached_alert_value  },
   { "setCachedAlertValue",      ntop_network_set_cached_alert_value  },
   { "storeTriggeredAlert",      ntop_network_store_triggered_alert   },
@@ -11628,27 +11651,27 @@ static const luaL_Reg ntop_network_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_flow_reg[] = {
-  /* Documented */
+/* Public User Scripts API, documented at doc/src/api/lua_c/flow_user_scripts/flow.lua */
   { "getStatus",                ntop_flow_get_status                 },
-  { "isBlacklisted",            ntop_flow_is_blacklisted             },
   { "setStatus",                ntop_flow_set_status                 },
   { "clearStatus",              ntop_flow_clear_status               },
-  { "getInfo",                  ntop_flow_get_info                   },
-  { "getFullInfo",              ntop_flow_get_full_info              },
-  { "getUnicastInfo",           ntop_flow_get_unicast_info           },
-
-  { "triggerAlert",             ntop_flow_trigger_alert              },
-  { "getPredominantStatus",     ntop_get_predominant_status          },
   { "isStatusSet",              ntop_flow_is_status_set              },
+
+  { "isClientUnicast",          ntop_flow_is_client_unicast          },
+  { "isServerUnicast",          ntop_flow_is_server_unicast          },
+  { "isUnicast",                ntop_flow_is_unicast                 },
+  { "isRemoteToRemote",         ntop_flow_is_remote_to_remote        },
+  { "isLocalToRemote",          ntop_flow_is_local_to_remote         },
+  { "isRemoteToLocal",          ntop_flow_is_remote_to_local         },
+  { "isLocal",                  ntop_flow_is_local                   },
+  { "isBlacklisted",            ntop_flow_is_blacklisted             },
+  { "isTwhOK",                  ntop_flow_is_twh_ok                  },
+  { "isBidirectional",          ntop_flow_is_bidirectional           },
+  { "getFullInfo",              ntop_flow_get_full_info              },
   { "getKey",                   ntop_flow_get_key                    },
-  { "getHashEntryId",           ntop_flow_get_hash_entry_id          },
-  { "getICMPStatusInfo",        ntop_flow_get_icmp_status_info       },
-  { "getAlertedStatusScore",    ntop_flow_get_alerted_status_score   },
   { "getFirstSeen",             ntop_flow_get_first_seen             },
   { "getLastSeen",              ntop_flow_get_last_seen              },
   { "getDuration",              ntop_flow_get_duration               },
-  { "isTwhOK",                  ntop_flow_is_twh_ok                  },
-  { "isBidirectional",          ntop_flow_is_bidirectional           },
   { "getPacketsSent",           ntop_flow_get_packets_sent           },
   { "getPacketsRcvd",           ntop_flow_get_packets_rcvd           },
   { "getPackets",               ntop_flow_get_packets                },
@@ -11658,17 +11681,31 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getGoodputBytes",          ntop_flow_get_goodput_bytes          },
   { "getClientKey",             ntop_flow_get_client_key             },
   { "getServerKey",             ntop_flow_get_server_key             },
-  { "isClientUnicast",          ntop_flow_is_client_unicast          },
-  { "isServerUnicast",          ntop_flow_is_server_unicast          },
-  { "isUnicast",                ntop_flow_is_unicast                 },
-  { "isRemoteToRemote",         ntop_flow_is_remote_to_remote        },
-  { "isLocalToRemote",          ntop_flow_is_local_to_remote         },
-  { "isRemoteToLocal",          ntop_flow_is_remote_to_local         },
   { "getnDPICategoryName",      ntop_flow_get_ndpi_cat_name          },
   { "getnDPIProtocolName",      ntop_flow_get_ndpi_protocol_name     },
   { "getnDPICategoryId",        ntop_flow_get_ndpi_category_id       },
   { "getnDPIMasterProtoId",     ntop_flow_get_ndpi_master_proto_id   },
   { "getnDPIAppProtoId",        ntop_flow_get_ndpi_app_proto_id      },
+  { "getDnsQuery",              ntop_flow_get_dns_query              },
+  { "getClientCountry",         ntop_flow_get_client_country         },
+  { "getServerCountry",         ntop_flow_get_server_country         },
+  { "getTLSVersion",            ntop_flow_get_tls_version            },
+
+#ifdef NTOPNG_PRO
+  { "getScore",                 ntop_flow_get_score                  },
+#endif
+#ifdef HAVE_NEDGE
+  { "isPassVerdict",            ntop_flow_is_pass_verdict            },
+#endif
+/* END Public API */
+
+  { "getInfo",                  ntop_flow_get_info                   },
+  { "getUnicastInfo",           ntop_flow_get_unicast_info           },
+  { "triggerAlert",             ntop_flow_trigger_alert              },
+  { "getPredominantStatus",     ntop_get_predominant_status          },
+  { "getHashEntryId",           ntop_flow_get_hash_entry_id          },
+  { "getICMPStatusInfo",        ntop_flow_get_icmp_status_info       },
+  { "getAlertedStatusScore",    ntop_flow_get_alerted_status_score   },
   { "getClientTCPIssues",       ntop_flow_get_cli_tcp_issues         },
   { "getServerTCPIssues",       ntop_flow_get_srv_tcp_issues         },
   { "isDeviceProtocolNotAllowed", ntop_flow_is_dp_not_allowed        },
@@ -11678,25 +11715,14 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getICMPType",              ntop_flow_get_icmp_type              },
   { "getMaxSeenIcmpPayloadSize", ntop_flow_get_max_seen_icmp_size    },
   { "dnsQueryHasInvalidChars",  ntop_flow_dns_query_invalid_chars    },
-  { "getDnsQuery",              ntop_flow_get_dns_query              },
   { "getProtoBreed",            ntop_flow_get_proto_breed            },
   { "hasMaliciousTlsSignature", ntop_flow_has_malicious_tls_signature },
-  { "getClientCountry",         ntop_flow_get_client_country         },
-  { "getServerCountry",         ntop_flow_get_server_country         },
-
-  /* TODO document */
-  { "isLocal",                  ntop_flow_is_local                   },
-#ifdef NTOPNG_PRO
-  { "getScore",                 ntop_flow_get_score                  },
-  { "getScoreInfo",             ntop_flow_get_score_info             },
-#endif
   { "getMUDInfo",               ntop_flow_get_mud_info               },
   { "isNotPurged",              ntop_flow_is_not_purged              },
-  { "getTLSVersion",            ntop_flow_get_tls_version            },
   { "getTCPStats",              ntop_flow_get_tcp_stats              },
   { "getBlacklistedInfo",       ntop_flow_get_blacklisted_info       },
-#ifdef HAVE_NEDGE
-  { "isPassVerdict",            ntop_flow_is_pass_verdict            },
+#ifdef NTOPNG_PRO
+  { "getScoreInfo",             ntop_flow_get_score_info             },
 #endif
   { "retrieveExternalAlertInfo", ntop_flow_retrieve_external_alert_info },
   { "getDeviceProtoAllowedInfo", ntop_flow_get_device_proto_allowed_info},
@@ -11801,7 +11827,9 @@ static const luaL_Reg ntop_reg[] = {
 #endif
 
   { "isPro",                  ntop_is_pro },
-  { "isEnterprise",           ntop_is_enterprise },
+  { "isEnterprise",           ntop_is_enterprise_m },
+  { "isEnterpriseM",          ntop_is_enterprise_m },
+  { "isEnterpriseL",          ntop_is_enterprise_l },
   { "isnEdge",                ntop_is_nedge },
   { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
   { "isPackage",              ntop_is_package },
@@ -12685,14 +12713,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     const char *err = lua_tostring(L, -1);
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
-
-    /* Do not use redirect_to_error_page() as this might lead to loops */
-#if 1
     return(redirect_to_error_page(conn, request_info, "internal_error", script_path, (char*)err));
-#else
-    return(send_error(conn, 500 /* Internal server error */,
-		      "Internal server error", PAGE_ERROR, script_path, err));
-#endif
   }
 
   return(CONST_LUA_OK);

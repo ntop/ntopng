@@ -5,7 +5,7 @@ ntopng is a passive network monitoring tool focused on flows and statistics that
 can be obtained from the traffic captured by the server. 
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    what_is_ntopng
    basic_concepts/index

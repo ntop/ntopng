@@ -62,8 +62,12 @@ Furthermore, a script may define the following extra functions, which are only c
 Flow User Scripts
 -----------------
 
-Flow user scripts are executed on each network flow. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things. Refer to :ref:`Flow User Script Hooks` for available hooks.
+Flow user scripts are executed on each network flow. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
+This information can be retrieved via the `Flow User Scripts API`_.
 
+Refer to :ref:`Flow User Script Hooks` for available hooks.
+
+.. _`Flow User Scripts API`: ../api/lua_c/flow_user_scripts/index.html
 
 .. _Setting Flow Statuses:
 
@@ -106,13 +110,17 @@ Other User Scripts
 
 ntopng supports users scripts for the following traffic elements:
 
-  - :code:`interface`: a network interface of ntopng
-  - :code:`network`: a local network of ntopng
-  - :code:`host`: a local/remote host of ntopng
+  - :code:`interface`: a network interface of ntopng. Check out the `Interface User Scripts API`_.
+  - :code:`network`: a local network of ntopng. Check out the `Network User Scripts API`_.
+  - :code:`host`: a local/remote host of ntopng. Check out the `Host User Scripts API`_.
   - :code:`system`: the system on top of which is running ntopng
   - :code:`SNMP interfaces`: interfaces of monitored SNMP devices
 
 Refer to :ref:`Other User Script Hooks` for available hooks.
+
+.. _`Interface User Scripts API`: ../api/lua_c/interface_user_scripts/index.html
+.. _`Network User Scripts API`: ../api/lua_c/network_user_scripts/index.html
+.. _`Host User Scripts API`: ../api/lua_c/host_user_scripts/index.html
 
 Syslog User Scripts
 -------------------

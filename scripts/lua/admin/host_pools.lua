@@ -354,7 +354,7 @@ end
       </form>
       ]]
 
-  if not ntop.isEnterprise() and not ntop.isnEdgeEnterprise() then
+  if not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise() then
      print[[<span style="float:left;">]]
      print(i18n("notes"))
      print[[<ul>
@@ -388,7 +388,7 @@ print[[
       <ul>
         <li>]] print(i18n("host_pools.cannot_delete_cp")) print[[.</li>]]
 
-if not ntop.isEnterprise() and not ntop.isnEdgeEnterprise() then
+if not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise() then
   print("<li>"..i18n("host_pools.max_pools_message", {maxnum=host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS}).."</li>")
 end
 

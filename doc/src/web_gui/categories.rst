@@ -15,7 +15,6 @@ With Categories it's possible, for example, to get an idea of the network traffi
 .. figure:: ../img/host_category_overview.png
   :align: center
   :alt: Host Category Overview
-  :scale: 70
 
   Host Category Overview
 
@@ -24,12 +23,6 @@ Some use cases solved by the Categories include:
 - Block all advertisement sites (nEdge)
 - Trigger an alert whenever my employees access a malware site (ntopng, whereas in nEdge there is the ability to block this traffic)
 - Prevent clients from accessing the WiFi sites of competitors as they are using them for comparing prices (nEdge)
-
-.. figure:: ../img/web_gui_flow_category.png
-  :align: center
-  :alt: The Category reported on the flow details
-
-The picture above shows the *Collaborative* category being reported on the flow details of a Github/DNS flow. 
 
 Custom Applications
 -------------------
@@ -76,7 +69,6 @@ after a restart of ntopng.
 .. figure:: ../img/web_gui_application_edit.png
   :align: center
   :alt: The Protocol Category editor
-  :height: 400px
 
   Editing Application Rules
 
@@ -116,15 +108,14 @@ them to the category.
 .. figure:: ../img/web_gui_edit_category_hosts.png
   :align: center
   :alt: Edit Category Hosts
-  :height: 400px
 
   Edit Category Hosts
 
-The picture above shows some custom hosts defined for the Advertisement category.
-For example, the `.ads.` host rule will match any host containing `.ads.` . It is important
-to play with the dots to avoid excessive matching (e.g. a simple `ads` rule would also match `mads.com`).
+The picture above shows some custom hosts defined for the `Web` category.
 
-Note: host matching based on IP addresses is currently limited to IPv4 flows.
+.. note::
+
+  host matching based on IP addresses is currently limited to IPv4 flows.
 
 ntopng also supports external lists to define custom categories, loaded from text file (local) or online 
 services (e.g. *emergingthreats* for the *Malware* category). Since lists are also used to raise alerts 

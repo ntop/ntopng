@@ -88,7 +88,7 @@ Networks
 
 Networks shows all networks discovered by ntopng.
 
-.. figure:: ../img/web_gui_hosts_networks_list.jpg
+.. figure:: ../img/web_gui_hosts_networks_list.png
   :align: center
   :alt: Networks List
 
@@ -101,9 +101,9 @@ network selected.
 Autonomous Systems
 ------------------
 
-Autonomous Systems shows all autonomous systems discovered by ntopng.
+Autonomous Systems shows all autonomous systems discovered by ntopng. Autonomous Systems require :ref:`Geolocation` enabled.
 
-.. figure:: ../img/web_gui_hosts_as_list.jpg
+.. figure:: ../img/web_gui_hosts_as_list.png
   :align: center
   :alt: AS List
 
@@ -116,9 +116,9 @@ Countries
 ---------
 
 Countries page provides all countries discovered by ntopng. Any country can be clicked to be redirected to
-a page containing the full list of hosts localised in that country.
+a page containing the full list of hosts localised in that country. Countries require :ref:`Geolocation` enabled.
 
-.. figure:: ../img/web_gui_hosts_countries_list.jpg
+.. figure:: ../img/web_gui_hosts_countries_list.png
   :align: center
   :alt: Hosts Countries List
 
@@ -130,7 +130,7 @@ Operating Systems
 Operating Systems page shows a list of all OS detected by ntopng. OSes can be clicked to see the detailed
 list of hosts.
 
-.. figure:: ../img/web_gui_hosts_os_list.jpg
+.. figure:: ../img/web_gui_hosts_os_list.png
   :align: center
   :alt: Hosts Operating Systems List
 
@@ -144,7 +144,7 @@ server IP, which is specified in the second column. Additional information such 
 are available for each HTTP virtual host. By clicking on the magnifying lens icon near to the HTTP virtual
 host, it is possible to display all active flows involving it.
 
-.. figure:: ../img/web_gui_hosts_http_servers_list.jpg
+.. figure:: ../img/web_gui_hosts_http_servers_list.png
   :align: center
   :alt: Local HTTP Servers List
 
@@ -157,7 +157,7 @@ Top hosts page provides hosts activity on time basis. The page should be kept op
 graph to dynamical update itself with real-time freshly collected data for each host. The time axis is
 divided in 5-minute bars and goes backwards in time in a right-to-left fashion, starting from the present.
 
-.. figure:: ../img/web_gui_hosts_top.jpg
+.. figure:: ../img/web_gui_hosts_top.png
   :align: center
   :alt: Top Hosts
 
@@ -167,7 +167,7 @@ Geo Map
 -------
 
 The Hosts Geo Map page provides world map where hosts are arranged according to their
-geographical position.
+geographical position. :ref:`Geolocation` must be enabled.
 
 .. figure:: ../img/web_gui_hosts_geomap.png
   :align: center
@@ -181,21 +181,9 @@ Tree Map
 This page provides a tree map of all monitored hosts. By clicking on hosts it is possible to visit the
 corresponding ‘Host Details’ page.
 
-.. figure:: ../img/web_gui_hosts_treemap.jpg
+.. figure:: ../img/web_gui_hosts_treemap.png
   :align: center
   :alt: Tree Map
 
   The Hosts Tree Map Summary Page
 
-Local Flow Matrix
------------------
-
-Local Hosts Active Flows Matrix page visualises a matrix of local hosts versus local hosts. Each cell
-contains the amount of traffic exchanged between every pair of hosts. Since flows are bi-directional, up to
-two values can be indicated in each cell.
-
-.. figure:: ../img/web_gui_hosts_flow_matrix.png
-  :align: center
-  :alt: Flows Matrix
-
-  The Active Flows Matrix Page

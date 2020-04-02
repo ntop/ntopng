@@ -515,7 +515,7 @@ function printSeries(options, tags, start_time, end_time, base_url, params)
    local mac_params = nil
    local mac_baseurl = ntop.getHttpPrefix() .. "/lua/mac_details.lua?page=historical"
    local is_pro = ntop.isPro()
-   local is_enterprise = ntop.isEnterprise()
+   local is_enterprise = ntop.isEnterpriseM()
    local tdiff = (end_time - start_time)
 
    if params.tskey then
@@ -1395,7 +1395,7 @@ function poolDropdown(ifId, pool_id, exclude)
 
          local limit_reached = false
 
-         if not ntop.isEnterprise() then
+         if not ntop.isEnterpriseM() then
             local n_members = table.len(host_pools_utils.getPoolMembers(ifId, pool.id) or {})
 
             if n_members >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then

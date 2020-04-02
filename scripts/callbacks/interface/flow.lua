@@ -146,7 +146,7 @@ function setup()
       end
    end
 
-   if(ntop.isEnterprise()) then
+   if(ntop.isEnterpriseM()) then
       ids_utils = require("ids_utils")
    end
 end

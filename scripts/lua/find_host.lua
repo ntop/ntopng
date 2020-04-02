@@ -89,7 +89,7 @@ if not hosts_only then
    -- test if it'a an IPv4, an IPv6, or a mac as they would yield
    -- wrong results. We can just check for a dot in the string as if
    -- there's a dot then we're sure it can't be a mac
-   if ntop.isEnterprise() and not query:find("%.") then
+   if ntop.isEnterpriseM() and not query:find("%.") then
       local mac = string.upper(query)
       local matches = find_mac_snmp_ports(mac, true)
       cur_results = 0
@@ -117,7 +117,7 @@ if not hosts_only then
    end
 
    -- Look by SNMP interface name
-   if ntop.isEnterprise() then
+   if ntop.isEnterpriseM() then
       local name = string.upper(query)
       local matches = find_snmp_ports_by_name(name, true)
       cur_results = 0
@@ -145,7 +145,7 @@ if not hosts_only then
    end
 
    -- Look by SNMP device
-   if ntop.isEnterprise() then
+   if ntop.isEnterpriseM() then
       local name = string.upper(query)
       local matches = find_snmp_devices(name, true)
       cur_results = 0

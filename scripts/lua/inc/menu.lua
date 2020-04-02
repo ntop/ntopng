@@ -123,16 +123,16 @@ else
 	    },
 	    {
 	       entry = page_utils.menu_entries.alerts_dashboard,
-	       hidden = not ntop.isEnterprise(),
+	       hidden = not ntop.isEnterpriseM(),
 	       url = '/lua/pro/enterprise/alerts_dashboard.lua',
 	    },
 	    {
 	       entry = page_utils.menu_entries.divider,
-	       hidden = not ntop.isEnterprise(),
+	       hidden = not ntop.isEnterpriseM(),
 	    },
 	    {
 	       entry = page_utils.menu_entries.flow_alerts_explorer,
-	       hidden = not ntop.isEnterprise(),
+	       hidden = not ntop.isEnterpriseM(),
 	       url = '/lua/pro/enterprise/flow_alerts_explorer.lua',
 	    },
 	 },
@@ -238,7 +238,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.exporters,
-	 hidden = (ifs.type ~= "zmq" or not ntop.isEnterprise()) or is_system_interface,
+	 hidden = (ifs.type ~= "zmq" or not ntop.isEnterpriseM()) or is_system_interface,
 	 entries = {
 	    {
 	       entry = page_utils.menu_entries.event_exporters,
@@ -296,7 +296,7 @@ page_utils.add_menubar_section({
 -- SNMP
 
 page_utils.add_menubar_section({
-   hidden = not is_system_interface or not ntop.isEnterprise(),
+   hidden = not is_system_interface or not ntop.isEnterpriseM(),
    url = "/lua/pro/enterprise/snmpdevices_stats.lua",
    section = page_utils.menu_sections.snmp
 })

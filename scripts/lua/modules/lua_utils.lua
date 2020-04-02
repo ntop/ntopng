@@ -565,14 +565,14 @@ function areAlertsEnabled()
 end
 
 function isScoreEnabled()
-  return(ntop.isEnterprise())
+  return(ntop.isEnterpriseM())
 end
 
 function hasTrafficReport()
    local ts_utils = require("ts_utils_core")
    local is_pcap_dump = interface.isPcapDumpInterface()
 
-   return((not is_pcap_dump) and (ts_utils.getDriverName() == "rrd") and ntop.isEnterprise())
+   return((not is_pcap_dump) and (ts_utils.getDriverName() == "rrd") and ntop.isEnterpriseM())
 end
 
 function mustScanAlerts(ifstats)
@@ -593,7 +593,7 @@ function hasNagiosSupport()
 end
 
 function hasNindexSupport()
-   if not ntop.isEnterprise() or ntop.isWindows() then
+   if not ntop.isEnterpriseM() or ntop.isWindows() then
       return false
    end
 
@@ -3014,7 +3014,7 @@ function isBridgeInterface(ifstats)
 end
 
 function hasSnmpDevices(ifid)
-  if (not ntop.isEnterprise()) or (not isAdministrator()) then
+  if (not ntop.isEnterpriseM()) or (not isAdministrator()) then
     return false
   end
 

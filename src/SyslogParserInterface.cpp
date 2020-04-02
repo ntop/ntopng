@@ -29,6 +29,7 @@
 
 SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *custom_interface_type) : ParserInterface(endpoint, custom_interface_type) {
   le = NULL;
+  producers_reload_requested = false;
 }
 
 /* **************************************************** */
@@ -53,6 +54,11 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   const char *producer_name = NULL;
   char *prio = NULL, *host = NULL, *content = NULL;
   char *tmp;
+
+  if (producers_reload_requested) {
+    doProducersMappingUpdate();
+    producers_reload_requested = false;
+  }
 
   if (log_line == NULL || strlen(log_line) == 0)
     return 0;
@@ -144,6 +150,12 @@ void SyslogParserInterface::addProducerMapping(const char *host, const char *pro
     producers_map.insert(make_pair(host_ip, producer_name));
   else
     it->second = producer_name;
+}
+
+/* **************************************************** */
+
+void SyslogParserInterface::doProducersMappingUpdate() {
+  //TODO (re)load mapping from redis
 }
 
 /* **************************************************** */

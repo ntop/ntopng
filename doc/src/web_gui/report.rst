@@ -27,7 +27,6 @@ menu.
 .. figure:: ../img/web_gui_report_filter.png
   :align: center
   :alt: Report Filter
-  :scale: 45
 
   Report Filter Overlay
 
@@ -45,13 +44,13 @@ traffic, as well as the traffic grouped by:
 
 In the remainder of this section are screenshots of reported information discussed above.
 
-.. figure:: ../img/web_gui_report_traffic.jpg
+.. figure:: ../img/web_gui_report_traffic.png
   :align: center
   :alt: Interfaces Traffic
 
   Report - Network Interfaces and Traffic
 
-.. figure:: ../img/web_gui_report_networks.jpg
+.. figure:: ../img/web_gui_report_networks.png
   :align: center
   :alt: Top Networks
 
@@ -66,6 +65,8 @@ In the remainder of this section are screenshots of reported information discuss
 .. figure:: ../img/web_gui_report_top_networks.png
   :align: center
   :alt:  Top Networks
+
+  Report - Top Networks
 
 .. figure:: ../img/web_gui_report_countries.png
   :align: center

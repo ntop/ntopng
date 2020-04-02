@@ -217,7 +217,7 @@ print [[
 <li>]] print(i18n("traffic_profiles.note_1")) print[[.
 ]]
 
-if not ntop.isEnterprise() then
+if not ntop.isEnterpriseM() then
    print[[<li>]] print(i18n("traffic_profiles.max_profiles_num", {maxnum=max_profiles_num})) print[[.]]
 end
 

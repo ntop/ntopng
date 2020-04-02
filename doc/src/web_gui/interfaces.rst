@@ -45,10 +45,10 @@ Packets page shows a pie chart of packets size distribution.
 
   The Packets View of the Interface Details Page
 
-Protocols
----------
+Applications
+------------
 
-Protocols page provides three pie charts and a specific table with nDPI-detected protocols for the selected
+Applications page provides three pie charts and a specific table with nDPI-detected protocols for the selected
 interface.
 
 In the two top pie charts ntopng shows the application distribution and its categorisation. The bottom pie
@@ -121,7 +121,7 @@ is VLAN aware, hence if several VLANs are detected, traffic is accounted also on
 Historical interface minute top talkers are shown on the right of the page, and get refreshed automatically
 when the mouse moves over the chart.
 
-An historical “Flows” tab is present next to the “Chart” when ntopng is started with the -F switch. This
+An historical “Flows” tab is present next to the “Chart” when ntopng is started with the -F switch to export flows to MySQL. This
 historical table shows flows data that have been recorded and dumped during the selected observation
 period. The Professional/Enterprise version of ntopng also feature two extra tabs, namely, “Talkers” and
 “Protocols” to drill down historical data by talkers and application protocols.

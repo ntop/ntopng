@@ -18,7 +18,7 @@ The default login is
 
 During the first access, a prompt will require the user to change the default password.
 
-Administrator privileges are granted to user *admin*. If an unauthenticated user attempts to access a specific ntopng URL, the system will redirect the browser to the login page and then, upon successful authentication, to the requested resource. Ntopng GUI web pages have a common structure the user will soon be familiar with. The pages are mostly composed of a top toolbar, some body content, and a 'dashboard' footer.
+Administrator privileges are granted to user *admin*. If an unauthenticated user attempts to access a specific ntopng URL, the system will redirect the browser to the login page and then, upon successful authentication, to the requested resource. Ntopng GUI web pages have a common structure the user will soon be familiar with. The pages are mostly composed of an always-on-top status bar and some body content.
 
 .. figure:: ../img/web_gui_header_bar.png
   :align: center
@@ -26,34 +26,15 @@ Administrator privileges are granted to user *admin*. If an unauthenticated user
 
   The Header Bar
 
-The items list are Home, Flows, Hosts, Protocols, Interfaces, Setting, Logout, and Search Host. An extra item Alert pops out when some alerts fired in reaction of user configuration.
+The header bar show status information such as the currently selected interface with its throughput, active hosts, flows and engaged alerts. In the right part of the header bar, a search box is available along with information on the currently logged-in user.
 
-In the left part of the footer, ntopng summarizes some information such as logged-in user, monitored interfaces, and used version (Community or Professional).
-
-In the center it is shown a gauge which provides the bandwidth saturation level for monitored interfaces. The same information is also reported as a function of time in two dynamic graphs, for upstream and downstream traffic, respectively.
-
-.. figure:: ../img/web_gui_center_of_footer_bar.png
-  :align: center
-  :alt: The Center of the Footer Bar
-
-  The Center of the Footer Bar
-
-Finally, in the right side of the footer there is the uptime information, direct links to current Alerts (if any), Hosts, Layer-2 Devices, and Flows counters monitored by ntopng.
-
-.. figure:: ../img/web_gui_right_side_of_footer_bar.png
-  :align: center
-  :alt: The Right Side of the Footer Bar
-
-  The Right Side of the Footer Bar
-
-.. warning::
-   Gauge scale is calculated according to physical interfaces features. It is not always possible to determine maximum nominal interfaces speed. For this reason, scale can me manually configured simply by clicking on the gauge. Changes will be automatically saved to persistent storage.
-
+A menu bar is always available on the right to navigate across ntopng pages.
       
 .. toctree::
     :maxdepth: 2
 
-    home_menu
+    help_menu
+    dashboard_menu
     dashboard
     historical
     report

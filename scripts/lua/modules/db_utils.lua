@@ -54,7 +54,7 @@ local function flowsTableName(version, force_raw)
 
    local tblname = "flowsv"..version
 
-   if force_raw ~= true and ntop.isEnterprise() == true then
+   if force_raw ~= true and ntop.isEnterpriseM() == true then
       if useAggregatedFlows() == true then
 	 tblname = "aggr"..tblname
       end

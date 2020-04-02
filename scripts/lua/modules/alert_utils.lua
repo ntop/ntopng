@@ -27,7 +27,7 @@ if(ntop.isnEdge()) then
    shaper_utils = require("shaper_utils")
 end
 
-if ntop.isEnterprise() then
+if ntop.isEnterpriseM() then
    local dirs = ntop.getDirs()
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
    require "enterprise_alert_utils"

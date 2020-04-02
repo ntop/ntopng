@@ -79,13 +79,12 @@ the *Interfaces* menu, click on the disk icon, and configure the recording insta
 
   The Traffic Recording Page
 
-At this point a new badge should appear on the right side of the footer. 
+At this point a new badge should appear on the top status bar. 
 When the badge is blue, it means that traffic recording is running. Instead, when 
 the badge is red, it means that there is a failure. 
 
 .. figure:: img/web_gui_interfaces_recording_badge.png
   :align: center
-  :scale: 50 %
   :alt: Traffic Recording Badge
 
   The Traffic Recording Bagde in the Footer
@@ -112,7 +111,6 @@ available recording providers is shown.
 
 .. figure:: img/web_gui_interfaces_recording_external_providers.png
   :align: center
-  :scale: 50 %
   :alt: Traffic Recording External Providers Selection
 
   The Selection of External Traffic Recording Providers
@@ -156,7 +154,6 @@ ntopng).
 
 .. figure:: img/web_gui_interfaces_extract_pcap_dialog.png
   :align: center
-  :scale: 40 %
   :alt: Extract pcap dialog
 
   The Extract Pcap Dialog
@@ -167,7 +164,6 @@ The filter format is described at `Packet Filtering <https://www.ntop.org/guides
 
 .. figure:: img/web_gui_interfaces_extract_pcap_dialog_filter.png
   :align: center
-  :scale: 40 %
   :alt: Extract pcap dialog filter
 
   The Extract Pcap Dialog Filter
@@ -175,7 +171,7 @@ The filter format is described at `Packet Filtering <https://www.ntop.org/guides
 The extraction button is also available in several other places while browsing the
 historical data, an example is the list of the *Top Receivers* or *Top Senders* available 
 at the bottom of the *Interface Historical Traffic Statistics* page. In this case, a button
-on the left side of the row lets you download the traffic matching a specific host in the
+on the right side of the row lets you download the traffic matching a specific host in the
 selected time interval.
 
 .. figure:: img/web_gui_interfaces_extract_pcap_from_list.png
@@ -202,14 +198,13 @@ long, or removed using the *Delete* button (this will also delete the correspond
   The Traffic Extraction Jobs page
 
 It is possible to access the *Traffic Extraction Jobs* page also by clicking on the badge that 
-appears on the right side of the footer when there is at least one extraction job scheduled.
+appears on the top status bar when there is at least one extraction job scheduled.
 
 .. figure:: img/web_gui_interfaces_extraction_badge.png
   :align: center
-  :scale: 50 %
   :alt: Traffic Extraction Jobs Badge
 
-  The Traffic Extraction Jobs Bagde in the Footer
+  The Traffic Extraction Jobs Bagde in the Top Status Bar
 
 REST API
 ~~~~~~~~
@@ -257,7 +252,6 @@ data to disk, and export flow metadata in JSON format through ZMQ to ntopng at t
 
 .. figure:: ./img/n2disk_zmq_export.png
   :align: center
-  :scale: 20 %
   :alt: Support for n2disk ZMQ export
 
   Support for n2disk ZMQ export

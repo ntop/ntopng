@@ -7,7 +7,6 @@ store timeseries data, ntopng supports RRD_ and InfluxDB_ as timeseries drivers.
 .. figure:: ../img/basic_concepts_timeseries_preferences.png
   :align: center
   :alt: Timeseries Preferences
-  :scale: 80
 
   Timeseries Preferences
 
@@ -47,7 +46,6 @@ on an external host.
 .. figure:: ../img/basic_concepts_influxdb_settings.png
   :align: center
   :alt: InfluxDB Preferences
-  :scale: 80
 
   InfluxDB Preferences
 
@@ -87,55 +85,7 @@ get more detailed historical data. This can be configured from the
   It is possible to review the current InfluxDB storage size used by ntopng from the
   "Runtime Status" page.
 
-InfluxDB status can be monitored from the System menu, entry "InfluxDB".
-
-.. figure:: ../img/basic_concepts_influxdb_status.png
-  :align: center
-  :alt: InfluxDB Status
-
-  InfluxDB Status
-
-The InfluxDB status home page shows a series of measures useful to
-understand the current health of InfluxDB and export status. The
-"Health" badge can be "green", "yellow" or "red", depending on the
-current export status:
-
- - A "green" badge means that the export is working properly;
- - A "yellow" badge means there are issues with the export (for
-   example ntopng is not able to reach InfluxDB) but such errors are
-   recoverable and no data is lost;
- - A "red" badge means there are issues with the export that are
-   non-recoverable and this led to the loss of data points.
-
-It is important to note that the "Health" represent a current
-picture, for past issues one should browse the "Alerts" page.
-
-The other metrics shown in the status page have the following meaning:
-
- - "Storage Utilization" indicates the disk space taken by the
-   InfluxDB database which is being populated by ntopng. The number
-   takes into account all the shards, in case of a distributed setup.
- - "RAM" is an estimation of the amount of memory which is taken by
-   the InfluxDB process.
- - "Total Exports" is a counter of the number of times ntopng has
-   successfully performed :code:`POST` operations to the InfluxDB
-   :code:`/write` endpoint to write points.
- - "Total Points" is a counter of the total number of points ntopng
-   has successfully written to InfluxDB, across all the "Total Exports".
- - "Dropped Points" counts the number of points ntopng has dropped as
-   it could not successfully export them to InfluxDB. Points are only
-   dropped after several attempts, that is, ntopng will try and
-   contact InfluxDB several times before actually dropping
-   points. Reasons for dropped points could be an unreachable, down, overloaded or
-   significantly impaired InfluxDB.
- - "Series Cardinality" provides an indication of how challenging it is
-   for InfluxDB to handle written points. High  series cardinality is
-   a primary driver of high memory usage for many database workloads.
-   Hardware sizing guidelines for series cardinality
-   recommendations are available based on the hardware.
-
-"Total Exports", "Total Points" and "Dropped Points" are cumulative
-counters since the startup of ntopng.
+InfluxDB status can be monitored using the  :ref:`InfluxDB Monitor`.
    
 Timeseries Configuration
 ------------------------
@@ -153,7 +103,6 @@ Moreover, having a lot of timeseries usually means slower query time.
 .. figure:: ../img/basic_concepts_timeseries_to_enable.png
   :align: center
   :alt: InfluxDB Preferences
-  :scale: 80
 
 Enabling a "Traffic" timeseries usually has little impact on the performance. On the
 other hand, enabling the "Layer-7 Applications" (in particular for the local hosts)
@@ -168,7 +117,6 @@ all the local hosts belonging to it.
 .. figure:: ../img/basic_concepts_timeseries_to_enable_interface.png
   :align: center
   :alt: Per Interface Settings
-  :scale: 80
 
 ntopng also provides timeseries on other traffic elements such as Autonomous Systems,
 Countries, VLANs and so on, which can be enabled independently.
@@ -176,7 +124,6 @@ Countries, VLANs and so on, which can be enabled independently.
 .. figure:: ../img/basic_concepts_timeseries_to_enable_2.png
   :align: center
   :alt: InfluxDB Preferences
-  :scale: 80
 
 
 .. _RRD: https://oss.oetiker.ch/rrdtool

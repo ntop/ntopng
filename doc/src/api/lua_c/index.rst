@@ -28,4 +28,7 @@ so it's available through the interface object API via `interface.getFlowsInfo()
 
     ntop/index
     interface/index
-    flow/index
+    flow_user_scripts/index
+    interface_user_scripts/index
+    host_user_scripts/index
+    network_user_scripts/index

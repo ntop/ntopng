@@ -43,8 +43,6 @@ The ntopng service can be started/stopped using the launchctl command:
 
 - [Start] :code:`sudo launchctl load /Library/LaunchDaemons/org.ntop.ntopng.plist`
 - [Stop] :code:`sudo launchctl unload /Library/LaunchDaemons/org.ntop.ntopng.plist`
-   
-
 
 
 Installing on Windows
@@ -149,6 +147,8 @@ Alternatively, the license key can be placed in a one-line file
 
    An ntopng restart is recommended once the license has been applied
    to make sure all the new functionalities will be unlocked.
+
+.. _Geolocation:
 
 Geolocation
 ===========

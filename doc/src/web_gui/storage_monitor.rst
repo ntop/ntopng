@@ -12,7 +12,7 @@ retention for each component, the number of hosts and flows. Monitoring the spac
 on disk becomes crucial to make sure you are now exceeding the expected amount of resources, 
 and check that the automatic space reclaim facilities in ntopng have been configured properly.
 
-The Runtime Status page in ntopng shows the current *Storage Utilization*, providing the total
+The Runtime Status page of the :ref:`BasicConceptSystemInterface` in ntopng shows the current *Storage Utilization*, providing the total
 disk space in use, and a breakdown with the disk space used by ntopng to for storing information
 for each interface.
 

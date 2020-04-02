@@ -17,7 +17,8 @@ local do_trace = false
 
 plugins_utils.COMMUNITY_SOURCE_DIR = os_utils.fixPath(dirs.scriptdir .. "/plugins")
 plugins_utils.PRO_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/pro_plugins")
-plugins_utils.ENTERPRISE_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_plugins")
+plugins_utils.ENTERPRISE_M_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_m_plugins")
+plugins_utils.ENTERPRISE_L_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_l_plugins")
 
 local RUNTIME_PATHS = {}
 local METADATA = nil
@@ -63,8 +64,12 @@ function plugins_utils.listPlugins()
   if ntop.isPro() then
     source_dirs[#source_dirs + 1] = {"pro", plugins_utils.PRO_SOURCE_DIR}
 
-    if ntop.isEnterprise() then
-      source_dirs[#source_dirs + 1] = {"enterprise", plugins_utils.ENTERPRISE_SOURCE_DIR}
+    if ntop.isEnterpriseM() then
+      source_dirs[#source_dirs + 1] = {"enterprise_m", plugins_utils.ENTERPRISE_M_SOURCE_DIR}
+    end
+
+    if ntop.isEnterpriseL() then
+      source_dirs[#source_dirs + 1] = {"enterprise_l", plugins_utils.ENTERPRISE_L_SOURCE_DIR}
     end
   end
 

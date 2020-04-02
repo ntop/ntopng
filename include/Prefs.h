@@ -153,7 +153,8 @@ class Prefs {
   virtual ~Prefs();
 
   bool is_pro_edition();
-  bool is_enterprise_edition();
+  bool is_enterprise_m_edition();
+  bool is_enterprise_l_edition();
   bool is_nedge_edition();
   bool is_nedge_enterprise_edition();
 
