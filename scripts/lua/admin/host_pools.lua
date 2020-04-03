@@ -563,12 +563,13 @@ print[[
       if (is_mac_address(member)) {
         vlan_field.attr("disabled", true);
         vlanicon_disabled = false;
+        select_field.attr("disabled", false);
       } else {
         var cidr = is_network_mask(member, true);
+        select_field.attr("disabled", true);
 
         if (cidr) {
           vlan_field.removeAttr("disabled");
-          select_field.attr("disabled", true);
 
           if((cidr.type == "ipv6" && cidr.mask == 128)
               || (cidr.type == "ipv4" && cidr.mask == 32)) {
@@ -582,7 +583,6 @@ print[[
 
       if (vlanicon_disabled != null) {
         icon_field.attr("disabled", vlanicon_disabled);
-        select_field.attr("disabled", vlanicon_disabled);
       }
 
       if (]] print(ternary(ifstats.has_macs, "false", "true")) print[[)
