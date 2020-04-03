@@ -29,6 +29,11 @@ function interface.getnDPIProtoCategory(int proto)
 --! @param category the category id
 function interface.setnDPIProtoCategory(int proto, int category)
 
+--! @brief Get the nDPI protocol breed associated to the protocol
+--! @param proto the protocol id to query
+--! @return the protocol breed string on success, nil otherwise.
+function interface.getnDPIProtoBreed(int proto, int category)
+
 --! @brief Get the available nDPI protocols
 --! @param category_filter only show protocols of this category
 --! @param skip_critical if true, skip protocols marked as critical for a network (e.g. DNS)

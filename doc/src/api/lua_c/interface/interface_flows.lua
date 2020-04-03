@@ -1,7 +1,7 @@
 --! @brief Get active flows information.
 --! @param host_ip filter by host/host@vlan.
 --! @param pag_options options for the paginator.
---! @return table (num_flows, flows) on success, nil otherwise.
+--! @return table (num_flows, flows) on success (see Flow::lua), nil otherwise.
 function interface.getFlowsInfo(string host_ip=nil, table pag_options=nil)
 
 --! @brief Get active flows status statistics
@@ -25,20 +25,33 @@ function interface.getnDPIFlowsCount()
 
 --! @brief Computes the unique flow identifier.
 --! @param cli_ip host/host@vlan.
---! @param cli_vlan specify the cli_ip vlan separately.
+--! @param cli_port the client port.
 --! @param srv_ip host/host@vlan.
---! @param srv_vlan specify the srv_ip vlan separately.
+--! @param srv_port the server port.
 --! @param l4_proto l4 protocol id
 --! @return the numeric flow key on success, nil otherwise.
-function interface.getFlowKey(string cli_ip, int cli_vlan, string srv_ip, int srv_vlan, int l4_proto)
+function interface.getFlowKey(string cli_ip, int cli_port, string srv_ip, int srv_port, int l4_proto)
+
+--! @brief Get flow information by specifying the 5-tuple.
+--! @param cli_ip host.
+--! @param srv_ip host.
+--! @param vlan the VLAN.
+--! @param cli_port the client port.
+--! @param srv_port the server port.
+--! @param l4_proto l4 protocol id
+--! @return a table with the flow information (see Flow::lua) on success, nil otherwise.
+function interface.findFlowByTuple(string cli_ip, string srv_ip, int vlan, int cli_port, int srv_port, int l4_proto)
 
 --! @brief Returns a single active flow information.
 --! @param key the flow key.
+--! @param hashid the flow hash ID.
 --! @return the flow information on success, nil otherwise.
-function interface.findFlowByKey(int key)
+function interface.findFlowByKeyAndHashId(int key, int hashid)
 
 --! @brief Drops an active flow traffic.
 --! @param key the flow key.
---! @note this is only effective when running in inline mode.
-function interface.dropFlowTraffic(int key)
+--! @param hashid the flow hash ID.
+--! @note this is only effective when using nEdge.
+--! @return true on success, false otherwise
+function interface.dropFlowTraffic(int key, int hashid)
 

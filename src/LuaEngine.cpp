@@ -3790,13 +3790,13 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
 
   f = ntop_interface->findFlowByKeyAndHashId(key, hash_id, ptree);
 
-  if(f == NULL)
-    return(CONST_LUA_ERROR);
-  else {
+  if(f) {
     f->setDropVerdict();
-    lua_pushnil(vm);
-    return(CONST_LUA_OK);
-  }
+    lua_pushboolean(vm, true);
+  } else
+    lua_pushboolean(vm, false);
+ 
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */

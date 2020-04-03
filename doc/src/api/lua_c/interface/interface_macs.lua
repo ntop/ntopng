@@ -17,6 +17,11 @@ function interface.getMacsInfo(string sortColumn="column_mac", int maxHits=32768
 --! @return device information on success, nil otherwise.
 function interface.getMacInfo(string mac)
 
+--! @brief Get the L2 hosts which have the specified MAC address.
+--! @param mac the mac.
+--! @return a table containing the matching hosts.
+function interface.getMacHosts(string mac)
+
 --! @brief Get a list of MAC manufacturers from active devices.
 --! @param maxHits maximum number of returned items.
 --! @param sourceMacsOnly if true, only sender devices will be returned.

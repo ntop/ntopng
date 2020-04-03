@@ -13,12 +13,16 @@
 --! @param pool_filter filter hosts by host pool ID.
 --! @param ipver_filter filter hosts by IP version, must be 4 or 6.
 --! @param proto_filter filter hosts by nDPI protocol ID.
+--! @param traffic_type_filter used to filter one/bidirectional flows
 --! @param filtered_hosts if true, only return hosts with blocked flows.
 --! @param blacklisted_hosts if true, only return blacklisted hosts.
 --! @param hide_top_hidden if true, avoid returning hosts marked as "top hidden".
+--! @param anomalousOnly if true, only return hosts with anomalies (beta feature).
+--! @param dhcpOnly if true, only return hosts for which DHCP traffic was seen.
+--! @param cidr_filter filter the hosts to return by using a network CIDR.
 --! @return a table (numHosts, nextSlot, hosts) where hosts is a table (hostkey -> hostinfo) on success, nil on error.
 --! @note it's better to use the more efficient helper `callback_utils.foreachHost` for generic hosts iteration.
-function interface.getHostsInfo(bool show_details=true, string sortColumn="column_ip", int maxHits=32768, int toSkip=0, bool a2zSortOrder=true, string country=nil, string os_filter=nil, int vlan_filter=nil, int asn_filter=nil, int network_filter=nil, string mac_filter=nil, int pool_filter=nil, int ipver_filter=nil, int proto_filter=nil, bool filtered_hosts=false, bool blacklisted_hosts=false, bool hide_top_hidden=false)
+function interface.getHostsInfo(bool show_details=true, string sortColumn="column_ip", int maxHits=32768, int toSkip=0, bool a2zSortOrder=true, string country=nil, string os_filter=nil, int vlan_filter=nil, int asn_filter=nil, int network_filter=nil, string mac_filter=nil, int pool_filter=nil, int ipver_filter=nil, int proto_filter=nil, int traffic_type_filter=nil, bool filtered_hosts=false, bool blacklisted_hosts=false, bool hide_top_hidden=false, bool anomalousOnly=false, bool dhcpOnly=false, string cidr_filter=nil)
 
 --! @brief Get active local hosts information. See `getHostsInfo` for parameters description.
 --! @note it's better to use the more efficient helper `callback_utils.foreachLocalHost` for generic hosts iteration.
@@ -26,6 +30,9 @@ function interface.getLocalHostsInfo(...)
 
 --! @brief Get active remote hosts information. See `getHostsInfo` for parameters description.
 function interface.getRemoteHostsInfo(...)
+
+--! @brief Get active hosts information for hosts which are in the broadcast domain. See `getHostsInfo` for parameters description.
+function interface.getBroadcastDomainHostsInfo(...)
 
 --! @brief Group active hosts by a specific criteria.
 --! @param show_details enable extended information.
@@ -71,3 +78,21 @@ function interface.resetHostStats(string host_ip)
 --! @param host_ip host/host@vlan.
 --! @return true if the delete request was successful, false otherwise.
 function interface.deleteHostData(string host_ip)
+
+--! @brief Set the operating system ID of an host
+--! @param host_ip host/host@vlan.
+--! @param os_id the operating system ID.
+function interface.setHostOperatingSystem(string host_ip, int os_id)
+
+--! @brief Get the number of active local hosts.
+--! @return the local hosts number.
+function interface.getNumLocalHosts()
+
+--! @brief Lists all the detected HTTP hosts
+--! @return a table containing the HTTP hosts information (see HTTPstats::luaVirtualHosts)
+function interface.listHTTPhosts()
+
+--! @brief Try to resolve an host name via MDNS.
+--! @param host_ip the host to resolve
+--! @return the resolved host name on success, an empty otherwise.
+function interface.mdnsResolveName(string host_ip)
