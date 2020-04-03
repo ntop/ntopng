@@ -303,7 +303,6 @@ static int ntop_dump_binary_file(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_set_active_interface_id(lua_State* vm) {
   NetworkInterface *iface;
   int id;
@@ -334,7 +333,6 @@ static inline bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_names(lua_State* vm) {
   char *allowed_ifname = getLuaVMUserdata(vm, allowed_ifname);
   bool exclude_viewed_interfaces = false;
@@ -431,7 +429,6 @@ static NetworkInterface* getCurrentInterface(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_select_interface(lua_State* vm) {
   char *ifname;
 
@@ -467,7 +464,6 @@ static int ntop_get_interface_id(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_max_if_speed(lua_State* vm) {
   char *ifname = NULL;
   int ifid;
@@ -495,7 +491,6 @@ static int ntop_get_max_if_speed(lua_State* vm) {
 /* ****************************************** */
 
 #ifndef HAVE_NEDGE
-// ***API***
 static int ntop_process_flow(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -522,7 +517,6 @@ static int ntop_process_flow(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_update_syslog_producers(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   SyslogParserInterface *syslog_parser_interface;
@@ -545,7 +539,6 @@ static int ntop_update_syslog_producers(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_active_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats ndpi_stats;
@@ -586,7 +579,6 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_host_pools_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -725,7 +717,6 @@ static int ntop_get_host_used_quotas_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -742,7 +733,6 @@ static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_ndpi_interface_flows_status(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -759,7 +749,6 @@ static int ntop_get_ndpi_interface_flows_status(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_ndpi_protocol_name(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -784,7 +773,6 @@ static int ntop_get_ndpi_protocol_name(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_ndpi_protocol_id(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -805,7 +793,6 @@ static int ntop_get_ndpi_protocol_id(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_ndpi_category_id(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -826,7 +813,6 @@ static int ntop_get_ndpi_category_id(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_ndpi_category_name(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -1129,7 +1115,6 @@ static int ntop_add_macs_ip_addresses(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
@@ -1182,7 +1167,6 @@ static u_int8_t str_2_location(const char *s) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_macs_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char*)"column_mac";
@@ -1247,7 +1231,6 @@ static int ntop_get_batched_interface_macs_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_mac_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
@@ -1266,7 +1249,6 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_mac_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
@@ -1284,7 +1266,6 @@ static int ntop_get_interface_mac_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_set_host_operating_system(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip = NULL, buf[64];
@@ -1342,7 +1323,6 @@ static int ntop_get_num_local_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_set_mac_device_type(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
@@ -1371,7 +1351,6 @@ static int ntop_set_mac_device_type(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_mac_device_types(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int16_t maxHits = CONST_MAX_NUM_HITS;
@@ -1401,7 +1380,6 @@ static int ntop_get_mac_device_types(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_ases_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1428,7 +1406,6 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_countries_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1470,7 +1447,6 @@ static int ntop_get_interface_country_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_vlans_list(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1523,7 +1499,6 @@ static int ntop_get_interface_vlans_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_as_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t asn;
@@ -1540,7 +1515,6 @@ static int ntop_get_interface_as_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_vlan_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int16_t vlan_id;
@@ -1557,7 +1531,6 @@ static int ntop_get_interface_vlan_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t maxHits = CONST_MAX_NUM_HITS;
@@ -1588,7 +1561,6 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_mac_manufacturer(lua_State* vm) {
   const char *mac = NULL;
 
@@ -1602,7 +1574,6 @@ static int ntop_get_mac_manufacturer(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_host_information(lua_State* vm) {
   struct in_addr management_addr;
   management_addr.s_addr = Utils::getHostManagementIPv4Address();
@@ -1682,7 +1653,6 @@ static int ntop_shutdown(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_is_shutdown(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getGlobals()->isShutdownRequested());
@@ -1691,7 +1661,6 @@ static int ntop_is_shutdown(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_list_interfaces(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_newtable(vm);
@@ -1773,22 +1742,18 @@ static int ntop_is_routing_mode(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_all));
 }
 
-// ***API***
 static int ntop_get_interface_local_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_local_only));
 }
 
-// ***API***
 static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_remote_only));
 }
 
-// ***API***
 static int ntop_get_interface_broadcast_domain_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_broadcast_domain_only));
 }
@@ -1814,7 +1779,6 @@ static int ntop_get_batched_interface_local_hosts_ts(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_is_dir(lua_State* vm) {
   char *path;
 
@@ -1830,7 +1794,6 @@ static int ntop_is_dir(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_is_not_empty_file(lua_State* vm) {
   char *path;
   struct stat buf;
@@ -1850,7 +1813,6 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_file_dir_exists(lua_State* vm) {
   char *path;
   struct stat buf;
@@ -1869,7 +1831,6 @@ static int ntop_get_file_dir_exists(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_file_last_change(lua_State* vm) {
   char *path;
  struct stat buf;
@@ -1889,7 +1850,6 @@ static int ntop_get_file_last_change(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_has_vlans(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1905,7 +1865,6 @@ static int ntop_interface_has_vlans(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_has_ebpf(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1921,7 +1880,6 @@ static int ntop_interface_has_ebpf(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_has_high_res_ts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -1935,7 +1893,6 @@ static int ntop_interface_has_high_res_ts(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_has_geoip(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1945,7 +1902,6 @@ static int ntop_has_geoip(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_is_windows(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2115,7 +2071,6 @@ static int ntop_dropWriteCapabilities(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_getservbyport(lua_State* vm) {
   int port;
   char *proto;
@@ -2146,7 +2101,6 @@ static int ntop_getservbyport(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_msleep(lua_State* vm) {
   u_int duration, max_duration = 60000 /* 1 min */;
 
@@ -2312,7 +2266,6 @@ static int ntop_tcp_probe(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_list_dir_files(lua_State* vm) {
   char *path;
   DIR *dirp;
@@ -2342,7 +2295,6 @@ static int ntop_list_dir_files(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_remove_dir_recursively(lua_State* vm) {
   char *path = NULL;
 
@@ -2361,7 +2313,6 @@ static int ntop_remove_dir_recursively(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_gettimemsec(lua_State* vm) {
   struct timeval tp;
   double ret;
@@ -2379,7 +2330,6 @@ static int ntop_gettimemsec(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_getticks(lua_State* vm) {
   lua_pushnumber(vm, Utils::getticks());
   return(CONST_LUA_OK);
@@ -2388,7 +2338,6 @@ static int ntop_getticks(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_gettickspersec(lua_State* vm) {
   lua_pushnumber(vm, Utils::gettickspersec());
   return(CONST_LUA_OK);
@@ -2431,7 +2380,6 @@ static int ntop_round_time(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_inet_ntoa(lua_State* vm) {
   u_int32_t ip;
   struct in_addr in;
@@ -2452,7 +2400,6 @@ static int ntop_inet_ntoa(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_network_prefix(lua_State* vm) {
   char *address;
   char buf[64];
@@ -2511,7 +2458,6 @@ static int ntop_zmq_connect(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_redis_stats(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2535,7 +2481,6 @@ static int ntop_delete_redis_key(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_flush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2548,7 +2493,6 @@ static int ntop_flush_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_add_set_member_redis(lua_State* vm) {
   char *key, *value;
 
@@ -2569,7 +2513,6 @@ static int ntop_add_set_member_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_del_set_member_redis(lua_State* vm) {
   char *key, *value;
 
@@ -2590,7 +2533,6 @@ static int ntop_del_set_member_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_set_members_redis(lua_State* vm) {
   char *key;
 
@@ -2699,7 +2641,6 @@ static int ntop_zmq_receive(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_reload_preferences(lua_State* vm) {
   lua_newtable(vm);
   ntop->getPrefs()->reloadPrefsFromRedis();
@@ -2709,7 +2650,6 @@ static int ntop_reload_preferences(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_reload_plugins(lua_State* vm) {
 #ifdef NTOPNG_PRO
   ntop->getPro()->set_plugins_reloaded();
@@ -2721,7 +2661,6 @@ static int ntop_reload_plugins(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_has_plugins_reloaded(lua_State* vm) {
 #ifdef NTOPNG_PRO
   lua_pushboolean(vm, ntop->getPro()->has_plugins_reloaded());
@@ -2849,7 +2788,6 @@ static int ntop_set_default_file_permissions(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_verbose_trace(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -2859,7 +2797,6 @@ static int ntop_verbose_trace(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_send_udp_data(lua_State* vm) {
   int rc, port, sockfd = ntop->getUdpSock();
   char *host, *data;
@@ -2910,7 +2847,6 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_script_is_deadline_approaching(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
 
@@ -2924,7 +2860,6 @@ static int ntop_script_is_deadline_approaching(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_script_get_deadline(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
 
@@ -3016,7 +2951,6 @@ static int ntop_rrd_queue_length(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
@@ -3056,7 +2990,6 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_batched_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
@@ -3099,7 +3032,6 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Paginator *p = NULL;
@@ -3132,7 +3064,6 @@ static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3144,7 +3075,6 @@ static int ntop_get_interface_flows_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_network_get_network_stats(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
@@ -3160,7 +3090,6 @@ static int ntop_network_get_network_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_networks_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3175,7 +3104,6 @@ static int ntop_get_interface_networks_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_network_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int8_t network_id;
@@ -3197,7 +3125,6 @@ static int ntop_get_interface_network_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_checkpoint_host_talker(lua_State* vm) {
   int ifid;
   NetworkInterface *iface = NULL;
@@ -3225,7 +3152,6 @@ static int ntop_checkpoint_host_talker(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_host_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -3288,7 +3214,6 @@ static int ntop_get_interface_timeseries(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_host_country(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -3585,7 +3510,6 @@ static int ntop_mdns_read_queued_responses(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_getsflowdevices(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3601,7 +3525,6 @@ static int ntop_getsflowdevices(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_getsflowdeviceinfo(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *device_ip;
@@ -3650,7 +3573,6 @@ static int ntop_restore_interface_host(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_flow_key(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Host *cli, *srv;
@@ -3696,7 +3618,6 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
@@ -3724,7 +3645,6 @@ static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress src_ip_addr, dst_ip_addr;
@@ -3770,7 +3690,6 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_drop_flow_traffic(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
@@ -3901,7 +3820,6 @@ static int ntop_list_http_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_find_host(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *key;
@@ -3919,7 +3837,6 @@ static int ntop_get_interface_find_host(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac;
@@ -4103,7 +4020,6 @@ static int ntop_interface_is_bridge_interface(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -4119,7 +4035,6 @@ static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_is_view(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -4133,7 +4048,6 @@ static int ntop_interface_is_view(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_viewed_by(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4149,7 +4063,6 @@ static int ntop_interface_viewed_by(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_is_viewed(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -4163,7 +4076,6 @@ static int ntop_interface_is_viewed(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_is_loopback(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -4177,7 +4089,6 @@ static int ntop_interface_is_loopback(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_is_running(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -4191,7 +4102,6 @@ static int ntop_interface_is_running(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_is_idle(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -4205,7 +4115,6 @@ static int ntop_interface_is_idle(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_set_idle(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool state;
@@ -4225,7 +4134,6 @@ static int ntop_interface_set_idle(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_dump_live_captures(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
 
@@ -4243,7 +4151,6 @@ static int ntop_interface_dump_live_captures(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
@@ -4332,7 +4239,6 @@ static int ntop_interface_live_capture(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_stop_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   int capture_id;
@@ -4381,7 +4287,6 @@ static int ntop_interface_name2id(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_ndpi_protocols(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   ndpi_protocol_category_t category_filter = (ndpi_protocol_category_t)((u_int8_t)-1);
@@ -4411,7 +4316,6 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_ndpi_categories(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5155,7 +5059,6 @@ static int ntop_rrd_tune(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_rrd_inc_num_drops(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   u_long num_drops = 1;
@@ -5511,7 +5414,6 @@ static int ntop_http_get(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_http_get_prefix(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5521,7 +5423,6 @@ static int ntop_http_get_prefix(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_http_get_startup_epoch(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5531,7 +5432,6 @@ static int ntop_http_get_startup_epoch(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_http_purify_param(lua_State* vm) {
   char *str, *buf;
   bool strict = false, allowURL = false, allowDots = false;
@@ -5564,7 +5464,6 @@ static int ntop_http_purify_param(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_prefs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5653,7 +5552,6 @@ static int ntop_get_nologin_username(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_users(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5663,7 +5561,6 @@ static int ntop_get_users(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_allowed_interface(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5673,7 +5570,6 @@ static int ntop_get_allowed_interface(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_allowed_networks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5683,7 +5579,6 @@ static int ntop_get_allowed_networks(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_is_pcap_download_allowed(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -5695,7 +5590,6 @@ static int ntop_is_pcap_download_allowed(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_is_administrator(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5705,7 +5599,6 @@ static int ntop_is_administrator(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_reset_user_password(lua_State* vm) {
   char *who, *username, *old_password, *new_password;
   bool is_admin = ntop->isUserAdministrator(vm);
@@ -5743,7 +5636,6 @@ static int ntop_reset_user_password(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_change_user_role(lua_State* vm) {
   char *username, *user_role;
 
@@ -5763,7 +5655,6 @@ static int ntop_change_user_role(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_change_allowed_nets(lua_State* vm) {
   char *username, *allowed_nets;
 
@@ -5782,7 +5673,6 @@ static int ntop_change_allowed_nets(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_change_allowed_ifname(lua_State* vm) {
   char *username, *allowed_ifname;
 
@@ -5819,7 +5709,6 @@ static int ntop_change_user_host_pool(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_change_user_language(lua_State* vm) {
   char *username, *language;
 
@@ -5838,7 +5727,6 @@ static int ntop_change_user_language(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_change_user_permission(lua_State* vm) {
   char *username;
   bool allow_pcap_download = false;
@@ -5858,7 +5746,6 @@ static int ntop_change_user_permission(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json;
   HTTPTranferStats stats;
@@ -5887,7 +5774,6 @@ static int ntop_post_http_json_data(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_http_post(lua_State* vm) {
   char *username = (char*)"", *password = (char*)"", *url, *form_data;
   int timeout = 30;
@@ -6021,7 +5907,6 @@ static int ntop_send_mail(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_add_user(lua_State* vm) {
   char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface;
   char *host_pool_id = NULL, *language = NULL;
@@ -6106,7 +5991,6 @@ static int ntop_clear_user_lifetime(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_delete_user(lua_State* vm) {
   char *username;
 
@@ -6344,7 +6228,6 @@ static int ntop_get_interface_stats_update_freq(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_reset_counters(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool only_drops = true;
@@ -6392,14 +6275,12 @@ static int ntop_interface_reset_host_stats(lua_State* vm, bool delete_data) {
 
 /* ****************************************** */
 
-// ***API***
 static inline int ntop_interface_reset_host_stats(lua_State* vm) {
   return(ntop_interface_reset_host_stats(vm, false));
 }
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_delete_host_data(lua_State* vm) {
   return(ntop_interface_reset_host_stats(vm, true));
 }
@@ -6423,14 +6304,12 @@ static int ntop_interface_reset_mac_stats(lua_State* vm, bool delete_data) {
 
 /* ****************************************** */
 
-// ***API***
 static inline int ntop_interface_reset_mac_stats(lua_State* vm) {
   return(ntop_interface_reset_mac_stats(vm, false));
 }
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_interface_delete_mac_data(lua_State* vm) {
   return(ntop_interface_reset_mac_stats(vm, true));
 }
@@ -6496,7 +6375,6 @@ static int ntop_is_nedge_enterprise(lua_State *vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_reload_host_pools(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -6632,7 +6510,6 @@ static int ntop_find_member_pool(lua_State *vm) {
 
 /* *******************************************/
 
-// ***API***
 static int ntop_find_mac_pool(lua_State *vm) {
   const char *mac;
   u_int8_t mac_parsed[6];
@@ -6820,7 +6697,6 @@ static int ntop_get_extraction_status(lua_State *vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_run_live_extraction(lua_State *vm) {
   struct ntopngLuaContext *c;
   NetworkInterface *iface;
@@ -6980,7 +6856,6 @@ static int ntop_interface_exec_single_sql_query(lua_State *vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_reset_stats(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -7023,7 +6898,6 @@ static int ntop_swap_plugins_dir(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -7040,7 +6914,6 @@ static int ntop_get_dirs(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_uptime(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -7050,7 +6923,6 @@ static int ntop_get_uptime(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_system_host_stat(lua_State* vm) {
   float cpu_load;
   u_int64_t dropped_alerts = 0, written_alerts = 0, alerts_queries = 0;
@@ -7109,7 +6981,6 @@ static int ntop_check_license(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_info(lua_State* vm) {
   char rsp[256];
 #ifndef HAVE_NEDGE
@@ -7347,7 +7218,6 @@ static int ntop_snmpgetnext(lua_State* vm) { SNMP s; return(s.getnext(vm)); }
 
 /* ****************************************** */
 
-// ***API***
 #ifndef WIN32
 static int ntop_syslog(lua_State* vm) {
   char *msg;
@@ -7377,7 +7247,6 @@ static int ntop_syslog(lua_State* vm) {
  * @brief Generate a random value to prevent CSRF and XSRF attacks
  * @details See http://blog.codinghorror.com/preventing-csrf-and-xsrf-attacks/
  */
-// ***API***
 static int ntop_generate_csrf_value(lua_State* vm) {
   char random_a[32], random_b[32], csrf[33];
   Redis *redis = ntop->getRedis();
@@ -8039,7 +7908,6 @@ static int ntop_delete_old_rrd_files(lua_State *vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_mkdir_tree(lua_State* vm) {
   char *dir;
 
@@ -8088,7 +7956,6 @@ static int ntop_list_reports(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_info_redis(lua_State* vm) {
   char *rsp;
   u_int rsp_len = CONST_MAX_LEN_REDIS_VALUE;
@@ -8109,7 +7976,6 @@ static int ntop_info_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_redis(lua_State* vm) {
   char *key, *rsp;
   u_int rsp_len = CONST_MAX_LEN_REDIS_VALUE;
@@ -8130,7 +7996,6 @@ static int ntop_get_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_incr_redis(lua_State* vm) {
   char *key;
   u_int rsp;
@@ -8154,7 +8019,6 @@ static int ntop_incr_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_hash_redis(lua_State* vm) {
   char *key, *member, *rsp;
   Redis *redis = ntop->getRedis();
@@ -8174,7 +8038,6 @@ static int ntop_get_hash_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_set_hash_redis(lua_State* vm) {
   char *key, *member, *value;
   Redis *redis = ntop->getRedis();
@@ -8213,7 +8076,6 @@ static void ntop_reset_host_name(lua_State* vm, char *address) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_set_resolved_address(lua_State* vm) {
   char *ip, *name;
   Redis *redis = ntop->getRedis();
@@ -8234,7 +8096,6 @@ static int ntop_set_resolved_address(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_delete_hash_redis_key(lua_State* vm) {
   char *key, *member;
 
@@ -8253,7 +8114,6 @@ static int ntop_delete_hash_redis_key(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_hash_keys_redis(lua_State* vm) {
   char *key, **vals;
   Redis *redis = ntop->getRedis();
@@ -8282,7 +8142,6 @@ static int ntop_get_hash_keys_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_hash_all_redis(lua_State* vm) {
   char *key, **keys, **values;
   Redis *redis = ntop->getRedis();
@@ -8314,7 +8173,6 @@ static int ntop_get_hash_all_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_get_keys_redis(lua_State* vm) {
   char *pattern, **keys = NULL;
   Redis *redis = ntop->getRedis();
@@ -8344,7 +8202,6 @@ static int ntop_get_keys_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_lrange_redis(lua_State* vm) {
   char *l_name, **l_elements;
   Redis *redis = ntop->getRedis();
@@ -8494,21 +8351,18 @@ static int ntop_lrpop_redis(lua_State* vm, bool lpop) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_lpop_redis(lua_State* vm) {
   return ntop_lrpop_redis(vm, true /* LPOP */);
 }
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_rpop_redis(lua_State* vm) {
   return ntop_lrpop_redis(vm, false /* RPOP */);
 }
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_lrem_redis(lua_State* vm) {
   char *list_name, *rem_value;
   int ret;
@@ -8534,7 +8388,6 @@ static int ntop_lrem_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_ltrim_redis(lua_State* vm) {
   char *list_name;
   int start_idx, end_idx;
@@ -8591,7 +8444,6 @@ static int ntop_push_redis(lua_State* vm, bool use_lpush) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_lpush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   return ntop_push_redis(vm, true);
@@ -8599,7 +8451,6 @@ static int ntop_lpush_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_rpush_redis(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   return ntop_push_redis(vm, false);
@@ -8607,7 +8458,6 @@ static int ntop_rpush_redis(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_add_local_network(lua_State* vm) {
   char *local_network;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -9221,7 +9071,6 @@ static Flow* ntop_flow_get_context_flow(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_flow_get_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -9247,7 +9096,6 @@ static int ntop_flow_get_full_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_flow_get_unicast_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -9977,7 +9825,6 @@ static int ntop_flow_get_mud_info(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_flow_get_status(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   if(!f) return(CONST_LUA_ERROR);
@@ -9989,7 +9836,6 @@ static int ntop_flow_get_status(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_flow_set_status(lua_State* vm) {
   FlowStatus new_status;
   u_int16_t flow_score, cli_score, srv_score;
@@ -10019,7 +9865,6 @@ static int ntop_flow_set_status(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_flow_clear_status(lua_State* vm) {
   FlowStatus new_status;
   Bitmap old_bitmap;
@@ -10233,7 +10078,6 @@ static int ntop_pop_internal_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_flow_is_blacklisted(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -11173,7 +11017,6 @@ static int ntop_lua_loadfile(lua_State* L) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_is_login_disabled(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -11200,7 +11043,6 @@ static int ntop_is_login_blacklisted(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_network_name_by_id(lua_State* vm) {
   int id;
   char *name;
@@ -11276,7 +11118,6 @@ static int ntop_service_restart(lua_State* vm) {
 
 /* ****************************************** */
 
-// ***API***
 static int ntop_set_logging_level(lua_State* vm) {
   char *lvlStr;
 
