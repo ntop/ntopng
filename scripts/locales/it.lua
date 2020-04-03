@@ -938,7 +938,7 @@ local lang = {
   },
   ["error_page"] = {
     ["go_back"] = "Torna indietro",
-    ["greeting"] = "Sembra che ci sia stato un errore",
+    ["greeting"] = "&Egrave; stato rilevato un errore",
     ["presence"] = "Non dovresti essere qui!",
   },
   ["event_exporters"] = {
