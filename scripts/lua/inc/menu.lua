@@ -965,7 +965,7 @@ if (not info.oem) then
          print([[
             <li class='media-body pt-2 pr-2 pl-2 pb-1'>
                <a target="_about"
-                  class="blog-notification"
+                  class="blog-notification text-dark"
                   data-read="]].. (user_has_read_post and "true" or "false") ..[["
                   data-id="]].. p.id ..[["
                   class='text-dark'
