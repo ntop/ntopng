@@ -6,12 +6,6 @@ not able to access the rest of the network unless the authenticate successfully
 via the web captive portal. Devices already belonging to a nEdge user will not
 need to authenticate again.
 
-.. figure:: img/captive_portal.png
-  :align: center
-  :alt: Captive Portal
-
-  nEdge captive portal login
-
 The redirection to the captive portal usually happens automatically when the
 device first connects to the network.
 
@@ -63,12 +57,6 @@ is just shown to newely connected users, to present them the terms and
 conditions of the Internet access that is being provided. Users will
 be able to access the Internet upon acceptance of the presented terms
 and conditions.
-
-.. figure:: img/captive_portal_informative.png
-  :align: center
-  :alt: Informative Captive Portal Page
-
-  Informative Captive Portal Page
 
 Active users will be forced to renew their acceptance of the terms and
 conditions every day. Inactive users will be presented with the
