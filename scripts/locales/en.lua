@@ -939,7 +939,7 @@ local lang = {
   },
   ["error_page"] = {
     ["go_back"] = "Go Back",
-    ["greeting"] = "It seems you got an error",
+    ["greeting"] = "An error has been detected",
     ["presence"] = "You're not supposed to be here!",
   },
   ["event_exporters"] = {
