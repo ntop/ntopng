@@ -78,15 +78,11 @@ CSV format:
   143|443|1544718821|175770|1544718548|1544718821|38928|PC local|4|192.168.1.6||370|17.248.146.148|1|ssl|p66-ckdatabasews.icloud.com|::|0|6|::
   143|443|1544723738|14663|1544723557|1544723738|49328|PC local|4|192.168.1.6||45|17.248.146.148|1|ssl|p66-pushws.icloud.com|::|0|6|::
 
-Retention Time
+Data Retention
 --------------
 
 The retention of the flows dump on disk can be configured from the
-"Data Retention" preferences:
-
-.. figure:: img/historical_flows_retention.png
-  :align: center
-  :alt: Flow Dump Retention
+:ref:`Data Retention` setting.
 
 .. |drilldown_icon| image:: img/drilldown_icon.png
 .. |flow_export_icon| image:: img/flow_export_icon.png

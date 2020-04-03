@@ -38,6 +38,29 @@ Preferences
 Preferences menu entry enables the user to change runtime configurations. A thorough help is reported
 below every preference directly into ntopng web GUI.
 
+.. _Data Retention:
+
+Data Retention
+--------------
+
+Data retention is configurable from the preferences.
+
+.. figure:: ../img/web_gui_settings_retention.png
+  :align: center
+  :alt: Data Retention Configuration
+
+  Data Retention Configuration
+
+Data retention is expressed in days and it affects:
+
+- Top Talkers stored in sqlite
+- Timeseries
+- Historical Flows dumped with MySQL and nIndex.
+
+.. note::
+
+  When using RRDs for timeseries, changing the data retention only affects new RRDs created after the change.
+
 Manage Data
 -----------
 

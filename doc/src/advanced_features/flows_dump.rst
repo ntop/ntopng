@@ -79,13 +79,7 @@ Here are some tips to tune MySQL:
     a large number then an increase in the sort_buffer_size will have a positive effect.
 
 To improve performance, it's also important to set an appropriate retention time on data, because the more data
-MySQL has, the more it slows down. This can be configured from the "Data Retention" preference. Old data to delete is checked on a daily basis.
-
-.. figure:: ../img/mysql_storage_preference.png
-  :align: center
-  :alt: Data Retention Preference
-
-  Data Retention Preference
+MySQL has, the more it slows down. This can be configured from the :ref:`Data Retention` setting.
 
 The followings are the expected MySQL flow export rates with ntopng, assuming a fast disk and CPU are used:
 

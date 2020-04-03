@@ -19,8 +19,7 @@ RRD Driver
 ----------
 
 RRD is the default driver used. It writes data in the form of local `.rrd` files.
-With RRD the retention time for recorded data is fixed 1 year. RRD automatically
-aggregates old data to save space, reducing its resolution. Hence older data will be
+RRD automatically aggregates old data to save space, reducing its resolution. Hence older data will be
 aggregated together and finally be removed after 1 year (in fact RRD stands for *Round Robin*
 Database).
 
@@ -53,7 +52,6 @@ Here is an overview of the features ntopng provides:
 
 - A database is automatically configured according to the *InfluxDB Database* field value
 - It is possible to specify the db authentication credentials if the InfluxDB database is protected
-- It is possible to specify the maximum retention time for data
 
 InfluxDB is really suitable to export high frequency data due to the high insertion
 throughput. For this reason it's possible to increase the timeseries resolution to
@@ -78,7 +76,7 @@ get more detailed historical data. This can be configured from the
   InfluxDB configuration file, usually located at `/etc/influxdb/influxdb.conf`. Please note
   that an high cardinality of timeseries may lead to writes/reads performance degradation.
   You can reduce the cardinality by disabling some timeseries and decreasing the maximum
-  timeseries retention time.
+  timeseries :ref:`Data Retention`.
 
 .. note::
 
