@@ -318,6 +318,12 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("sites_page.sites"),
 			      },
 			      {
+				 hidden = not has_snmp_location,
+				 active = page == "snmp",
+				 page_name = "snmp",
+				 label = i18n("host_details.snmp"),
+			      },
+			      {
 				 hidden = only_historical or not host["systemhost"] or not interface.hasEBPF(),
 				 active = page == "processes",
 				 page_name = "processes",
