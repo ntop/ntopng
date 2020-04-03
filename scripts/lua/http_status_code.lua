@@ -20,24 +20,27 @@ local error_message  = _GET["error_message"] or ""
 
 message = "http_status_code."..message
 
-status_code = "" -- Can we remove it?
-
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print([[
-    <div class='row mb-4'>
-        <div class='col'>
-            <i class="fas fa-exclamation-triangle"></i>
-            <h2 class='text-center status-code-title mt-3 mb-1'>]].. status_code ..[[</h2>
-            <h3 class='text-center mt-1 mb-3 text-muted'>Ops! Something went wrong!</h3>
-            <p class='text-center mt-3 mb-4 lead'>
-                ]].. i18n(message) ..[[
+    <div style="height: 80vh" class='row my-4'>
+        <div class='col pl-5 d-flex justify-content-center flex-column align-items-center'>
+            <h2 class='mb-5' style='font-size: 4rem'>
+                <b>Whops!</b>
+                <br>
+                ]].. i18n("error_page.presence").. [[!
+            </h2>
+            <p class="lead mt-1 mb-5 text-danger">
+                ]].. i18n("error_page.greeting").. [[: <br>
+                <b>]].. error_message ..[[</b>
+                <small>(]].. message ..[[)</small>
             </p>
-            <p><font color=red>]] .. error_message .. [[</font></p>
-            <a class='text-center d-block mb-5' href="]]..referal_url..[[">
-                <i class="fas fa-arrow-left"></i>
-                Bring me back
+            <a class='btn-primary btn mb-5' href="]]..referal_url..[[">
+                <i class="fas fa-arrow-left"></i> ]].. i18n("error_page.go_back").. [[
             </a>
+        </div>
+        <div class='col p-2 text-center d-flex justify-content-center align-items-center'>
+            <i class="fas fa-exclamation-triangle bigger-icon"></i>
         </div>
     </div>
 ]])

@@ -937,6 +937,11 @@ local lang = {
     ["syn_victim_description"] = "Trigger an alert when the number of received SYNs/sec exceeds the threshold",
     ["syn_victim_title"] = "SYN Flood Victim Alert",
   },
+  ["error_page"] = {
+    ["go_back"] = "Go Back",
+    ["greeting"] = "It seems you got an error",
+    ["presence"] = "You're not supposed to be here!",
+  },
   ["event_exporters"] = {
     ["event_device_x"] = "Event Exporter %{device}",
     ["event_exporter_ip"] = "Event Exporter IP",
