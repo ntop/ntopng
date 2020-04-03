@@ -25,15 +25,15 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print([[
     <div style="height: 80vh" class='row my-4'>
         <div class='col pl-5 d-flex justify-content-center flex-column align-items-center'>
-            <h2 class='mb-5' style='font-size: 4rem'>
+            <h2 class='mb-5 w-100' style='font-size: 4rem'>
                 <b>Whops!</b>
                 <br>
-                ]].. i18n("error_page.presence").. [[!
+                ]].. i18n("error_page.presence").. [[
             </h2>
             <p class="lead mt-1 mb-5 text-danger">
                 ]].. i18n("error_page.greeting").. [[: <br>
                 <b>]].. error_message ..[[</b>
-                <small>(]].. message ..[[)</small>
+                <small>(]].. i18n(message) ..[[)</small>
             </p>
             <a class='btn-primary btn mb-5' href="]]..referal_url..[[">
                 <i class="fas fa-arrow-left"></i> ]].. i18n("error_page.go_back").. [[

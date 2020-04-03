@@ -936,6 +936,11 @@ local lang = {
     ["syn_victim_description"] = "Numero massimo di pacchetti TCP SYN ricevuti oltre i quali un host è considerato sotto attacco SYN flood",
     ["syn_victim_title"] = "Allarme Vittima SYN Flood",
   },
+  ["error_page"] = {
+    ["go_back"] = "Torna indietro",
+    ["greeting"] = "Sembra che ci sia stato un errore",
+    ["presence"] = "Non dovresti essere qui!",
+  },
   ["event_exporters"] = {
     ["event_device_x"] = "Esportatore di Eventi %{device}",
     ["event_exporter_ip"] = "IP dell'Esporatore di Eventi",
@@ -2086,6 +2091,15 @@ local lang = {
     ["http_virtual_host"] = "Host Virtuale HTTP",
     ["local_http_servers"] = "Server HTTP locali",
     ["total_requests"] = "Richieste Totali",
+  },
+  ["http_status_code"] = {
+    ["bad_request"] = "L'URL specificato contiene caratteri invalidi/pericolosi",
+    ["enterprise_only"] = "È richiesta la licenza Enterprise per accedere a questa pagina!",
+    ["forbidden"] = "Pagina proibita!",
+    ["internal_error"] = "Errore interno del server",
+    ["not_found"] = "La pagina richiesta non è stata trovata.",
+    ["pro_only"] = "È richiesta la licenza Professional per accedere a questa pagina!",
+    ["shut_start"] = "Impossibile soddisfare la richiesta in questo momento (probabile booting up o shutting down)",
   },
   ["icmp_page"] = {
     ["icmp_code"] = "Codice",
