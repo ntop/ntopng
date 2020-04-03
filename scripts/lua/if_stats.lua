@@ -295,7 +295,7 @@ local title = i18n("interface") .. ": " .. short_name
 				 hidden = not isAdministrator() or is_pcap_dump,
 				 active = page == "config",
 				 page_name = "config",
-				 label = "<i class=\"fas fa-lg fa-cog\"></i></a></li>",
+				 label = "<i class=\"fas fa-lg fa-cog\"></i>",
 			      },
 			      {
 				 active = page == "internals",

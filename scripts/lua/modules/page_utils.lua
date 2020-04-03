@@ -303,7 +303,6 @@ end
 -- #################################
 
 function page_utils.print_navbar(title, base_url, items_table, label_url)
-
    -- label_url: is the link for navabr-brand, the default link is #
 
    print[[
@@ -361,7 +360,6 @@ end
 -- #################################
 
 function page_utils.print_menubar()
-
    local logo_path = nil
 
    if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.png") then
