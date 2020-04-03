@@ -1,16 +1,16 @@
-Device Protocols
-================
+Device Applications
+===================
 
 ntopng implements different techniques to automatically identify the device type
 of the devices connected to a network. This includes printers, IoT and phone devices.
 
 For each device type, ntopng provides a configurable set of policies to determine
-which protocols are acceptable for the specific device type. When a non-acceptable
-protocol is detected, ntopng generates an alert.
+which applications are acceptable for the specific device type. When a non-acceptable
+application is detected, ntopng generates an alert.
 
 ntopng provides some built-in policies which should suit most environments. The
-`Device Protocols Alerts` must be enabled in order to be able to configure the policies.
-Policies can be reviewed and customized in the `Device Protocols` page.
+`Device Applications Alerts` must be enabled in order to be able to configure the policies.
+Policies can be reviewed and customized in the `Device Applications` page.
 
 .. figure:: ../img/advanced_features_device_protocols_config.png
   :align: center

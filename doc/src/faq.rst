@@ -52,7 +52,7 @@ After executing the above command and restarting ntopng, the device will be able
 login again.
 
 Reset ntopng Preferences
-########################
+========================
 
 In order to reset the ntopng preferences the following commands can be used:
 
