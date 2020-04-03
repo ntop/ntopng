@@ -3089,7 +3089,11 @@ function getNtopngRelease(ntopng_info)
       return ""
    end
 
-   if(ntopng_info["version.enterprise_edition"]) or (ntopng_info["version.nedge_enterprise_edition"]) then
+   if(ntopng_info["version.enterprise_l_edition"]) then
+      return "Enterprise L"
+   elseif(ntopng_info["version.enterprise_m_edition"]) then
+      return "Enterprise M"
+   elseif(ntopng_info["version.enterprise_edition"]) or (ntopng_info["version.nedge_enterprise_edition"]) then
       return "Enterprise"
    elseif(ntopng_info["pro.release"]) then
       return "Professional"
