@@ -38,8 +38,7 @@ Chrome, Firefox and Safari are the web browser officially supported.
 
 The credentials for accessing the gui the first time are user **admin** and password **admin**.
 
-After logging in into the gui for the first time, the nEdge system configuration page will
-open. The first thing to look at is the `Operating Mode`. The following operating modes
+After logging in into the gui for the first time, visit the System Interface and accesss the System Setup. The first thing to look at is the `Operating Mode`. The following operating modes
 are available:
 
 .. figure:: img/operating_mode.png
@@ -82,16 +81,8 @@ to access the nEdge gui after the reboot. In case of bridge mode where the LAN i
 set in DHCP client mode, it's necessary to view the DHCP server log or other
 tools in order to figure out, after the reboot, the IP address assigned to the LAN.
 
-After setting up the basic configuration, clicking the `apply` button will write
-the system configuration to disk and reboot the device.
-
-.. figure:: img/apply_config.png
-  :align: center
-  :alt: Apply Config
-
-  Message with button to apply the configuration and reboot
-
-After the reboot, the nEdge device will be available at the configured LAN address,
+After setting up the basic configuration, clicking the `Apply` button on the top of the page to write
+the system configuration to disk and reboot the device. After the reboot, the nEdge device will be available at the configured LAN address,
 port 3000.
 
 In case of troubles reaching the device, the nEdge device should still be reachable

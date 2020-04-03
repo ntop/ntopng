@@ -56,7 +56,6 @@ and VPN tunnels.
 .. figure:: img/alert_new_devices.png
   :align: center
   :alt: Alert on New Devices
-  :scale: 85
 
 To get a full visibility of the network, by enabling `Network Discovery`
 it will also be possible to discover and correctly identify idle devices like printers

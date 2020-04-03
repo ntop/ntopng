@@ -44,12 +44,11 @@ Assigning Devices to a User
 
 When creating a user, the *user* and *password* fields will be used as the access
 credentials for the captive portal user authentication. After a successfull authentication,
-the device will the added to the specified user.
+the device will be added to the specified user.
 
 .. figure:: img/add_user.png
   :align: center
   :alt: Add a New User
-  :scale: 70
 
   Add a new user
 
@@ -96,13 +95,12 @@ create a user "private" and then to add the network `192.168.1.0/24` to its memb
 
 .. figure:: img/adding_network_to_user.png
   :align: center
-  :scale: 80%
   :alt: Binding the private LAN to a user
 
   Binding the private LAN to a user
 
 All the devices with an IP address inside the `192.168.1.0/24` will now be part of the
-"private" user, so no captive portal will be shown for them.
+"simone" user, so no captive portal will be shown for them.
 
 .. note::
   The LAN network now consists of two subnets. In order to correctly identify both
