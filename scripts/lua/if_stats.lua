@@ -224,7 +224,7 @@ print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000;
 
 local short_name = getHumanReadableInterfaceName(ifname)
 local title = i18n("interface") .. ": " .. short_name
-   page_utils.print_navbar(title, url,
+page_utils.print_navbar(title, url,
 			   {
 			      {
 				 hidden = only_historical,
@@ -307,6 +307,12 @@ local title = i18n("interface") .. ": " .. short_name
 				 active = page == "sub_interfaces",
 				 page_name = "sub_interfaces",
 				 label = "<i class=\"fas fa-lg fa-code-branch\"></i>",
+			      },
+			      {
+				 hidden = have_nedge or not isAdministrator() or not ntop.isEnterpriseL() or not ifstats.isSyslog,
+				 active = page == "syslog_producers",
+				 page_name = "syslog_producers",
+				 label = "<i class=\"fas fa-lg fa-hand-holding\"></i>",
 			      },
 			      {
 				 hidden = not isAdministrator() or have_nedge,
@@ -1993,6 +1999,10 @@ elseif(page == "snmp_bind") then
 elseif(page == "sub_interfaces") then
    if(isAdministrator() and ntop.isEnterpriseM()) then
       dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/sub_interfaces.lua")
+   end
+elseif(page == "syslog_producers") then
+   if(isAdministrator() and ntop.isEnterpriseL()) then
+      dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/syslog_producers.lua")
    end
 elseif(page == "pools") then
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")

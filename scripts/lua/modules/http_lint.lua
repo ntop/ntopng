@@ -1713,6 +1713,10 @@ local known_parameters = {
    ["redis_command"]           = validateSingleWord,
    ["flow_calls_drops"]        = validateOnOff,
    ["global_flow_calls_drops"] = validateOnOff,
+   ["syslog_producer"]         = validateSingleWord,
+   ["syslog_producer_host"]    = validateSingleWord,
+   ["old_syslog_producer"]     = validateSingleWord,
+   ["old_syslog_producer_host"]= validateSingleWord,
 
    -- Containers
    ["pod"]                     = validateSingleWord,

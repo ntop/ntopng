@@ -393,6 +393,8 @@ bool SyslogCollectorInterface::set_packet_filter(char *filter) {
 void SyslogCollectorInterface::lua(lua_State* vm) {
   SyslogParserInterface::lua(vm);
 
+  lua_push_bool_table_entry(vm, "isSyslog", true);
+
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows);
   lua_pushstring(vm, "syslogRecvStats");
