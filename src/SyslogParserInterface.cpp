@@ -29,7 +29,7 @@
 
 SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *custom_interface_type) : ParserInterface(endpoint, custom_interface_type) {
   le = NULL;
-  producers_reload_requested = false;
+  producers_reload_requested = true;
 }
 
 /* **************************************************** */
@@ -155,7 +155,30 @@ void SyslogParserInterface::addProducerMapping(const char *host, const char *pro
 /* **************************************************** */
 
 void SyslogParserInterface::doProducersMappingUpdate() {
-  //TODO (re)load mapping from redis
+  char key[64];
+  char **keys, **values;
+  int rc;
+
+  producers_map.clear();
+
+  snprintf(key, sizeof(key), SYSLOG_PRODUCERS_MAP_KEY, get_id()); 
+
+  rc = ntop->getRedis()->hashGetAll(key, &keys, &values);
+
+  if (rc > 0) {
+    for (int i = 0; i < rc; i++) {
+      if (keys[i] && values[i]) {
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Adding syslog producer %s (%s)", keys[i], values[i]);
+        addProducerMapping(keys[i], values[i]);
+      }
+
+      if(values[i]) free(values[i]);
+      if(keys[i]) free(keys[i]);
+    }
+
+    free(keys);
+    free(values);
+  }
 }
 
 /* **************************************************** */
