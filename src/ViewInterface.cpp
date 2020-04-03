@@ -403,6 +403,11 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
   if(f->get_last_seen() > getTimeLastPktRcvd())
     setTimeLastPktRcvd(f->get_last_seen());
 
+  /* NOTE: partials are calculated as a delta between the current and the past traffic.
+   * When the hash tables are full and hosts cannot be allocated during the
+   * first iteration of this method on the flow (when first_partial is true),
+   * such stats on the hosts will be lost.
+   */
   if(f->get_partial_traffic_stats_view(&partials, &first_partial)) {
     if(!cli_ip || !srv_ip)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get flow hosts. Out of memory? Expect issues.");
@@ -410,9 +415,20 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
     if(cli_ip && srv_ip) {
       Host *cli_host = NULL, *srv_host = NULL;
 
-      findFlowHosts(f->get_vlan_id(),
-		    NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
-		    NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
+      /* Important: findFlowHosts can allocate new hosts. The first_partial condition
+       * is used to call `incNumFlows` and `incUses` on the hosts below, so it is essential that
+       * findFlowHosts is called only when first_partial is true. */
+      if(first_partial)
+	findFlowHosts(f->get_vlan_id(),
+		      NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
+		      NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
+      else {
+	/* The unsafe pointers can be used here as ViewInterface::viewed_flows_walker is
+	 * called synchronously with the ViewInterface purgeIdle. This also saves some
+	 * unnecessary hash table lookup time. */
+	cli_host = f->unsafeGetClient();
+	srv_host = f->unsafeGetServer();
+      }
 
       f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
 
