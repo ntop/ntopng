@@ -141,7 +141,7 @@ page_utils.print_navbar(title, url,
 			      hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 			      active = page == "config",
 			      page_name = "config",
-			      label = "<i class=\"fas fa-lg fa-lg\"></i></a></li>",
+			      label = "<i class=\"fas fa-lg fa-cog\"></i>",
 			   },
 			}
 )
