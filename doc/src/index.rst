@@ -1,8 +1,7 @@
 ntopng Documentation
 ====================
 
-ntopng is a passive network monitoring tool focused on flows and statistics that
-can be obtained from the traffic captured by the server. 
+ntopng can be used in combination with other ntop tools. Documentation to use ntopng with other tools is the object of this section.
 
 .. toctree::
    :maxdepth: 2
@@ -14,8 +13,7 @@ can be obtained from the traffic captured by the server.
    web_gui/index
    active_monitoring/index
    self_monitoring/index
-   using_with_nprobe
-   using_with_nprobe_agent
+   using_with_other_tools/index
    remote_assistance
    traffic_recording
    historical_flows
