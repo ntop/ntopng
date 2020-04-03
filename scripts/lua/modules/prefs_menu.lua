@@ -326,7 +326,7 @@ local menu_subpages = {
       title       = i18n("prefs.network_discovery_interval_title"),
       description = i18n("prefs.network_discovery_interval_description"),
     },
-  }}, {id="telemetry",     label=i18n("prefs.telemetry"), advanced=false,  pro_only=false,   hidden=have_nedge, entries={
+  }}, {id="telemetry",     label=i18n("prefs.telemetry"), advanced=false,  pro_only=false, entries={
     toggle_send_telemetry_data = {
       title       = i18n("prefs.toggle_send_telemetry_data_title"),
       description = i18n("prefs.toggle_send_telemetry_data_description", {product = info.product, url = ntop.getHttpPrefix() .. "/lua/telemetry.lua", ntop_org="https://www.ntop.org"}),
