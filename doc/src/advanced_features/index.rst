@@ -21,3 +21,4 @@ section.
     live_pcap_download
     suricata
     additional_features
+    oem
