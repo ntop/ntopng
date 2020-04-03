@@ -108,7 +108,7 @@ class BlogFeed {
     static countNewPosts(posts) {
         let newPostsCounter = 0;
         posts.forEach(p => {
-            if (p.isNew) newPostsCounter++;
+            if (p && p.isNew) newPostsCounter++;
         });
         return newPostsCounter;
     }
