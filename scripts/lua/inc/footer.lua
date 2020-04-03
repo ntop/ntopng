@@ -140,10 +140,7 @@ print([[
 	</script>
 ]])
 
-
-
 -- End of Toggle System Interface
-
 
 -- Only show the message if the host protocol/category timeseries are enabled
 local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTimeseriesEnabled(ifid)) and
@@ -157,53 +154,84 @@ print [[
 
 if not info.oem then
 
-	local user_name = isNoLoginUser() and 'admin' or _SESSION['user']
-
+	-- Blog Notification click handling
 	print([[
 		$(document).ready(function() {
-			BlogFeed.queryBlog(']].. ntop.getRandomCSRFValue() ..[[');
+
+			let csrf_notification = "]].. ntop.getRandomCSRFValue() ..[[";
+			function blogNotifcationClick(e) {
+
+				if (e.type == "mousedown" && (e.metaKey || e.ctrlKey || e.which !== 2)) return;
+
+				const id = $(this).data('id');
+				$.post(`]].. ntop.getHttpPrefix() ..[[/lua/update_blog_posts.lua`, {
+					blog_notification_id: id,
+					csrf: csrf_notification
+				},
+				(data) => {
+
+					if (data.success) {
+						$(this)
+							.off('click').off('mousedown')
+							.attr('data-read', 'true').data('read', 'true')
+							.find('.badge').remove();
+						const count = $(`.blog-notification[data-read='false']`).length;
+
+						if (count == 0) {
+							$('.notification-bell').remove();
+							return;
+						}
+						$('.notification-bell').html(count);
+					}
+					csrf_notification = data.csrf;
+				});
+			}
+
+			$(`.blog-notification[data-read='false']`)
+				.click(blogNotifcationClick)
+				.mousedown(blogNotifcationClick);
 		});
 	]])
 
-  -- Major release check
-  local latest_major = ntop.getCache("ntopng.cache.major_release")
+	-- Major release check
+	local latest_major = ntop.getCache("ntopng.cache.major_release")
 
-  latest_major = trimSpace(string.gsub(latest_major, "\n", ""))
+	latest_major = trimSpace(string.gsub(latest_major, "\n", ""))
 
-  if isEmptyString(latest_major) then
-    print[[
-    $.ajax({
-	type: 'GET',
-	  url: ']]
-  print (ntop.getHttpPrefix())
-  print [[/lua/check_major_release.lua',
-	  data: {},
-	  success: function(rsp) {
-	    if(rsp && rsp.msg) {
-	      $("#ntopng_update_available").html(rsp.msg);
-	      $("#major-release-alert").show();
-	    }
-	  }
-      });
-    ]]
-  else
-    local msg = get_version_update_msg(info, latest_major)
+	if isEmptyString(latest_major) then
+		print[[
+		$.ajax({
+		type: 'GET',
+		url: ']]
+			print (ntop.getHttpPrefix())
+			print [[/lua/check_major_release.lua',
+		data: {},
+		success: function(rsp) {
+			if(rsp && rsp.msg) {
+			$("#ntopng_update_available").html(rsp.msg);
+			$("#major-release-alert").show();
+			}
+		}
+		});
+		]]
+	else
+		local msg = get_version_update_msg(info, latest_major)
 
-    if not isEmptyString(msg) then
-      print[[
-	$("#ntopng_update_available").html(`]] print(msg) print[[`);
-	$("#major-release-alert").show();
-      ]]
-    end
-  end
+		if not isEmptyString(msg) then
+		print[[
+		$("#ntopng_update_available").html(`]] print(msg) print[[`);
+		$("#major-release-alert").show();
+		]]
+		end
+	end
 end
 
 print[[
 var is_historical = false;
 
 function checkMigrationMessage(data) {
-  var max_local_hosts = 500;
-  var enabled = ]] print(ternary(message_enabled, "true", "false")) print[[;
+  const max_local_hosts = 500;
+  let enabled = ]] print(ternary(message_enabled, "true", "false")) print[[;
 
   if(enabled && (data.num_local_hosts > max_local_hosts))
     $("#move-rrd-to-influxdb").show();
@@ -221,11 +249,11 @@ $("#move-rrd-to-influxdb, #host-id-message-warning, #influxdb-error-msg").on("cl
 	});
 });
 
-var updatingChart_upload = $(".network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
-var updatingChart_download = $(".network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
-var updatingChart_total = $(".network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null});
+let updatingChart_upload = $(".network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
+let updatingChart_download = $(".network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
+let updatingChart_total = $(".network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null});
 
-var footerRefresh = function() {
+const footerRefresh = function() {
     $.ajax({
       type: 'GET',
 	  url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/get/interface/data.lua',

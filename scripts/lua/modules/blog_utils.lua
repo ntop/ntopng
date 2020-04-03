@@ -4,58 +4,70 @@
 
 local json = require("dkjson")
 
+local MAX_POSTS = 3
 local blog_utils = {}
 
-function intersect_posts(s1, s2)
+-- Parse the date string, following this pattern: yyyy-mm-ddTH:M:S+00:00
+-- Return 0 if the date string is empty, otherwise it returns the right epoch
+function blog_utils.parseDate(date)
 
-    local newSet = {}
-    local post1 = s1[1]
+    if (isEmptyString(date)) then return 0 end
+
+    local pattern = "(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)+(%d+):(%d+)"
+    local year, month, day, hour, minutes = date:match(pattern)
+
+    local epoch = os.time({year=year, month=month, day=day, hour=hour, min=minutes})
+    return epoch
+end
+
+function blog_utils.intersectPosts(s1, s2)
 
     -- if there aren't any old post then return the new ones
-    if (s1[1] == nil) then
-        for _, p in ipairs(s2) do
-            p.users = {}
-            for username, _ in pairs(ntop.getUsers()) do
-                p["users"][username] = {}
-                p["users"][username]["isNew"] = true
-            end
-        end
-        return s2
-    end
+    if (s1[1] == nil) then return s2 end
+    -- do integrity check on old set
+    if (s1[1].epoch == nil) then return s2 end
     -- if there aren't any new post then return the old ones
-    if (s2[1] == nil) then
-        return s1
-    end
+    if (s2[1] == nil) then return s1 end
 
-    for i = 1, 3 do
+    local intersected = {}
+    local firstOlderPost = s1[1]
+    local j = 1
 
-        local post2 = s2[i]
-
-        if (post1.epoch < post2.epoch) then
-            newSet[i] = post2
-            newSet[i + 1] = s1[i]
-            newSet[i]["users"] = {}
-            for username, _ in pairs(ntop.getUsers()) do
-                newSet[i]["users"][username] = {}
-                newSet[i]["users"][username]["isNew"] = true
-            end
-        elseif (post1.epoch == post2.epoch) then
-            newSet[i + 1] = s1[i]
+    -- insert the new posts
+    for i = 1, MAX_POSTS do
+        if (firstOlderPost.epoch < s2[i].epoch) then
+            intersected[i] = s2[i]
+            j = j + 1
         end
     end
 
-    return newSet
+    -- insert the olds posts if the array is not full
+    for i = j, MAX_POSTS do
+        intersected[i] = s1[i]
+    end
+
+    return (intersected)
+
 end
 
 function blog_utils.updatePostState(blogNotificationId, username)
 
+    if (blogNotificationId == nil) then return false end
+    if (isEmptyString(username)) then return false end
+
     local postsJSON = ntop.getPref("ntopng.prefs.blog_feed")
-    local posts = json.decode(postsJSON)
+    local posts = {}
+
+    if (not isEmptyString(postsJSON)) then
+        posts = json.decode(postsJSON)
+    end
+
     local success = false
 
-    for _, p in ipairs(posts) do
-        if p.id == blogNotificationId then
-            p.users[username].isNew = false
+    for _, p in pairs(posts) do
+        if (p.id == blogNotificationId) then
+            if (p.users_read == nil) then p.users_read = {} end
+            p.users_read[username] = true
             success = true
         end
     end
@@ -75,7 +87,8 @@ function blog_utils.updateRedis(newPosts)
     end
 
     -- intersect two notifications sets and marks the new
-    local intersected = intersect_posts(oldPosts, newPosts)
+    local intersected = blog_utils.intersectPosts(oldPosts, newPosts)
+
     -- save the posts inside redis
     ntop.setPref("ntopng.prefs.blog_feed", json.encode(intersected))
 
@@ -86,14 +99,14 @@ function blog_utils.fetchLatestPosts()
     local JSON_FEED = "https://www.ntop.org/blog/feed/json"
     local response = ntop.httpGet(JSON_FEED)
 
-    if((response == nil) or (response["CONTENT"] == nil)) then
-        return(false)
+    if ((response == nil) or (response["CONTENT"] == nil)) then
+        return (false)
     end
 
     local jsonFeed = json.decode(response["CONTENT"])
 
-    if((jsonFeed == nil) or table.empty(jsonFeed["items"])) then
-        return(false)
+    if ((jsonFeed == nil) or table.empty(jsonFeed["items"])) then
+        return (false)
     end
 
     local posts = jsonFeed["items"]
@@ -108,19 +121,16 @@ function blog_utils.fetchLatestPosts()
             local splittedLink = split(post.id, "?p=")
             local postId = tonumber(splittedLink[2])
             local postTitle = post.title
-            local postDate = post.date_published
-            local year, month, day = string.match(postDate, "(%d+)-(%d+)-(%d+)")
-            local postEpoch = os.time({year = tonumber(year), month = tonumber(month), day = tonumber(day)})
             local postURL = post.url
             local postShortDesc = string.sub(post.content_text, 1, 48) .. '...'
+            local postEpoch = blog_utils.parseDate(post.date_published)
 
-            local post =  {
+            local post = {
                 id = postId,
                 title = postTitle,
                 link = postURL,
-                date = postDate,
-                epoch = postEpoch,
-                shortDesc = postShortDesc
+                shortDesc = postShortDesc,
+                epoch = postEpoch
             }
 
             table.insert(formattedPosts, post)
@@ -130,28 +140,37 @@ function blog_utils.fetchLatestPosts()
     -- updates redis
     blog_utils.updateRedis(formattedPosts)
 
-    return(true)
+    return (true)
 end
 
 function blog_utils.readPostsFromRedis(username)
 
-    local postsJSON = ntop.getPref("ntopng.prefs.blog_feed")
-    local posts = nil
+    if (username == nil) then return {} end
+    if (isEmptyString(username)) then return {} end
 
-    if not isEmptyString(postsJSON) then
+    local postsJSON = ntop.getPref("ntopng.prefs.blog_feed")
+    local posts = {}
+
+    if (not isEmptyString(postsJSON)) then
         posts = json.decode(postsJSON)
     end
 
-    if(posts == nil) then
-        posts = {}
+    local newPostCounter = 0
+
+    -- post.users_read is an array which contains
+    -- the users who read the notification
+    for _, post in pairs(posts) do
+        if (post.users_read == nil) then
+            post.users_read = {}
+            newPostCounter = newPostCounter + 1
+        else
+            if (not post.users_read[username]) then
+                newPostCounter = newPostCounter + 1
+            end
+        end
     end
 
-    -- normalize the post data
-    for i, p in pairs(posts) do
-        p.isNew = p.users[username].isNew
-    end
-
-    return posts
+    return posts, newPostCounter
 end
 
 return blog_utils

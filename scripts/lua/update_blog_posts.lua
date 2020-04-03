@@ -17,7 +17,10 @@ if (blog_notification_id == nil) then
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'blog_notification_id' parameter. Bad CSRF?")
 end
 
+local username = _SESSION["user"] or ''
+if (isNoLoginUser()) then username = 'no_login' end
+
 print(json.encode({
-    success = blog_utils.updatePostState(tonumber(blog_notification_id), _SESSION['user']),
+    success = blog_utils.updatePostState(tonumber(blog_notification_id), username),
     csrf = ntop.getRandomCSRFValue()
 }))
