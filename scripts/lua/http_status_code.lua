@@ -25,7 +25,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print([[
     <div style="height: 80vh" class='row my-4'>
-        <div class='col pl-5 d-flex justify-content-left flex-column align-items-left'>
+        <div class='col pl-5 d-flex justify-content-center flex-column align-items-left'>
             <h2 class='mb-5 w-100' style='font-size: 4rem'>
                 <b>]].. i18n("error_page.presence").. [[</b>
             </h2>
@@ -37,10 +37,10 @@ print(i18n(message))
 print([[</p>
 
             <a class='btn-primary btn mb-3' href="]]..referal_url..[[">
-               ]].. i18n("error_page.go_back").. [[
+               <i class='fas fa-arrow-left'></i> ]].. i18n("error_page.go_back").. [[
             </a>
         </div>
-        <div class='col p-2 text-left d-flex justify-content-left align-items-left'>
+        <div class='col p-2 text-left d-flex justify-content-center align-items-center'>
             <i class="fas fa-exclamation-triangle bigger-icon"></i>
         </div>
     </div>

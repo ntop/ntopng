@@ -66,8 +66,11 @@ end
 
 print([[
 <div class="row mb-3">
-  <div class="col-md-12">
-    <h3>]].. i18n("plugins_overview.loaded_plugins") ..[[</h3>
+  <div class="col-md-12">]])
+
+page_utils.print_page_header(i18n("plugins_overview.loaded_plugins"))
+
+print([[
   </div>
 </div>
 ]])

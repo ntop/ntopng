@@ -43,6 +43,8 @@ page_utils.menu_sections = {
 -- visible_system: this flags is true when the page belong to system view
 -- if both flags are true it means the pages are shared between views
 
+-- help_link: this variable contains the contextual link to the documentation
+
 page_utils.menu_entries = {
     -- Dashboard
     traffic_dashboard 	= {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", visible_iface = true},
@@ -115,7 +117,7 @@ page_utils.menu_entries = {
 
     -- Developer
     directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev", visible_iface = true, visible_system = true},
-    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev", visible_iface = true, visible_system = true},
+    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev", visible_iface = true, visible_system = true, help_link = "http://ntop.org"},
     user_scripts_dev 	 = {key = "user_scripts_dev", i18n_title = "about.user_scripts", section = "dev", visible_iface = true, visible_system = true},
     plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev", visible_iface = true, visible_system = true},
     alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", visible_iface = true, visible_system = true},
@@ -151,6 +153,22 @@ if entries_data then
     for k, v in pairs(entries_data) do
 	page_utils.menu_entries[k] = v
     end
+end
+
+
+-- #################################
+
+-- NOTE: this function must be called after page_utils.set_active_menu_entry
+function page_utils.print_page_header(title)
+
+   local help_link = page_utils.menu_entries[active_entry].help_link or ""
+   print("<header class='mb-3'>")
+   print("<h2 class='d-inline-block'>".. title .."</h2>")
+   if (not isEmptyString(help_link)) then
+      print("<a target='_newtab' href='".. help_link .."' class='btn btn-dark float-right'><i class='fas fa-question-circle'></i></a>")
+   end
+   print("</header>")
+
 end
 
 -- #################################

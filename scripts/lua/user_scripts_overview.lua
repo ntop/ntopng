@@ -90,8 +90,11 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print([[
     <div class='container-fluid'>
         <div class='row'>
-            <div class='col-12'>
-                <h2>User Scripts</h2>
+            <div class='col-12'>]])
+
+page_utils.print_page_header('User Scripts')
+
+print([[
             </div>
             <div class='col-12 my-3'>
                 <table class='table table-bordered' id='user-scripts'>
