@@ -304,15 +304,15 @@ static void *read_oid(void *src, char **oid, int size)
   len = num_parts-1;
   for (i = 0; i < num_parts; i++)
     {
-      len += snprintf(NULL, 0, "%lu", parts[i]);
+      len += snprintf(NULL, 0, "%lu", (unsigned long)parts[i]);
     }
     
   *oid = (char*)malloc(len+1);
   p = *oid;
-  p += sprintf(p, "%lu", parts[0]);
+  p += sprintf(p, "%lu", (unsigned long)parts[0]);
   for (i =1; i < num_parts; i++)
     {
-      p += sprintf(p, ".%lu", parts[i]);
+      p += sprintf(p, ".%lu", (unsigned long)parts[i]);
     }
     
   return src;
