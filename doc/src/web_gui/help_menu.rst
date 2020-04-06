@@ -1,7 +1,7 @@
 Help Menu
 #########
 
-The help menu shows several entries useful to know ntopng on the current ntopng as well as to find extra information from external sources.
+The help menu shows several entries useful to know more about ntopng as well as to find extra information from external sources.
 
 .. figure:: ../img/web_gui_home_menu_help.png
   :align: center

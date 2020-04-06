@@ -7,7 +7,7 @@ in ntopng.
 
 Plugins can contain different resources, for example `localization files`_, `custom pages`_
 and `alert definitions`_. The `User Scripts`_ are one particular resource which
-implement allow the user to implement a custom logic in response to an event (such
+allow the user to implement a custom logic in response to an event (such
 events are called Hooks in ntopng).
 
 For an extensive discussion on how to develop new plugins check out the `Plugins section`_ .

@@ -69,6 +69,7 @@ after a restart of ntopng.
 .. figure:: ../img/web_gui_application_edit.png
   :align: center
   :alt: The Protocol Category editor
+  :scale: 65%
 
   Editing Application Rules
 
@@ -108,6 +109,7 @@ them to the category.
 .. figure:: ../img/web_gui_edit_category_hosts.png
   :align: center
   :alt: Edit Category Hosts
+  :scale: 65%
 
   Edit Category Hosts
 
@@ -137,5 +139,6 @@ or category.
 .. figure:: ../img/web_gui_add_host_to_category_dialog.png
   :align: center
   :alt: Add Host Rule
+  :scale: 85%
 
   Add Host Rule

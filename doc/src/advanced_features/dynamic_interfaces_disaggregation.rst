@@ -55,7 +55,7 @@ overlapping filters.
 
 .. figure:: ./../img/custom_interface_disaggregation_dialog.png
   :align: center
-  :scale: 30 %
+  :scale: 60 %
   :alt: Custom Interfaces Disaggregation Dialog
 
   Custom Disaggregation Dialog

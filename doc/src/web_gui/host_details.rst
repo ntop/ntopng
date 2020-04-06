@@ -1,12 +1,10 @@
 Host Details
 ############
 
-Host Details page is as follows.
+The host details pages provide many insights on the information collected for an host.
 
-A contextual menu with labels and badges appears right below the top toolbar. Menu entries are
-dynamic, hence, some of them may not always be present.
-
-Menu entries are discussed below.
+The navigation bar entries are discussed below. Since the entries are contextual,
+some of them may be hidden.
 
 Home
 ----
@@ -218,17 +216,17 @@ Talkers
 Talkers page provides top talkers having active flows with selected host. Similarly to the Community
 edition dashboard, top talkers are laid out in a Sankey Diagram.
 
-Geography
----------
+Geomap
+------
 
-Geography page provides an interactive map that shows the selected hosts, its flows, and its
+Geomap page provides an interactive map that shows the selected hosts, its flows, and its
 peers.
 
 .. figure:: ../img/web_gui_host_details_geo.png
   :align: center
-  :alt: Host Geography View
+  :alt: Host Geomap View
 
-  The Geography View of the Host Details Page
+  The Geomap View of the Host Details Page
 
 Alerts Configuration
 --------------------

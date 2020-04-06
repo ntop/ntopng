@@ -22,12 +22,9 @@ information such as Date, Severity, Type and Description.
 
   Global Alerts Toggle
 
-:ref:`WebUIUserScripts` are responsible for the generation of alerts. Enabling and disabling a user scripts enables or disables the corresponding alerts. Alerts can also be disabled globally from the preferences.
-
-
 .. _ThirdPartyAlertEndpoints:
 
-Alert Endopints
+Alert Endpoints
 ---------------
 
 Generated alerts can also be sent to third-party endpoints. Currently supported endpoints are:

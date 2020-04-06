@@ -17,7 +17,7 @@ Configuring a user script means:
 
 - Choosing the network elements the script is going to be executed for.
 - Enabling/disabling it.
-- Setting it configuration values.
+- Setting its configuration values.
 
 `Configurations` are used to accomplish this.
 
@@ -50,7 +50,7 @@ Creating New Configurations
 
 New configurations can be created by `cloning` the default or any other existing configuration. To clone a configuration select the `clone` button in the `Actions` column. The cloned configuration has user scripts configurations which are equal to the configuration it has been cloned from.
 
-A newly cloned configuration shows a message `Warning: this config is not applied to any specific target!` in the Applied To` column. Clicking on the `edit` button in the `Actions` column allows to specify the scope of application:
+A newly cloned configuration shows a message `Warning: this config is not applied to any specific target!` in the `Applied To` column. Clicking on the `edit` button in the `Actions` column allows to specify the scope of application:
 
 - Under `Hosts`, a comma separated list of IPv4 and IPv6 CIDR prefixes can be specified to choose to which hosts the configuration is going to be applied. Hosts matching these prefixes will have this configuration applied. The longest-match principle holds. When an host matches multiple configurations, the one with the longest-match is chosen for application to the host. Prefixes are applied to hosts in any interface.
 - Under `Interfaces` and `flows`, a multi-selection allows to choose to which interfaces the configuration is going to be applied.

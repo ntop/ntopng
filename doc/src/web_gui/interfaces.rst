@@ -3,7 +3,8 @@ Interfaces
 
 The Interfaces dropdown menu entry in the top toolbar contains lists all the interfaces that are currently
 monitored by ntopng. Among all interfaces listed, one has a check mark that indicates the interface is
-currently selected. Every data and information shown in ntopng web GUI relates to the currently selected
+currently selected. A special interface is always present in ntopng, the `System Interface`_.
+Most of the data and information shown in ntopng web GUI is related to the currently selected
 interface. Any interface listed can be selected simply by clicking on its name.
 
 .. figure:: ../img/web_gui_interfaces_dropdown.png
@@ -24,6 +25,8 @@ interface.
 
 A contextual menu with multiple options and badges appear right below the top toolbar. Menu
 entries are discussed below.
+
+.. _`System Interface`: ../basic_concepts/system_interface.html
 
 Home
 ----
@@ -178,16 +181,22 @@ containing hosts that have to be hidden from the top statistics.
 Hosts belonging to the specified networks will not be shown in the top
 statistics.
 
-**Trigger Interface Alerts**:
-This setting toggles the alert generation of the selected
-interface. No alert will be generated when this setting is unticked,
-including alerts associated with hosts, blacklisted flows, and
-networks.
-
 **Create Interface Timeseries**:
 This setting toggles the generation of timeseries for the selected
 interface. No timeseries will be generated when this setting in
 unticked, including timeseries associated with local hosts and networks.
+
+**Create One-Way Traffic Timeseries**:
+This setting toggles the generation of timeseries for one way traffic, which
+are otherwise ignored. Can be disabled to save disk space.
+
+**Create Interface Top Talkers**:
+This setting toggles the creation of top talkers hosts, which are then shown into
+the ntopng report.
+
+**Dump Flows to Database**:
+This setting specifies on which interfaces the flows dump (`-F` startup option) is
+enabled. Disabling the flow dump on some interfaces can reduce the disk load.
 
 **Mirrored Traffic**:
 Tick this setting when the interface is receiving traffic from a
@@ -196,13 +205,27 @@ address associated. ntopng uses this information to skip certain kind
 of activities that cannot be performed on mirrored interfaces,
 including network device discovery and eBPF events processing.
 
+**Flows-only Interface**:
+This setting provides a performance boost by disabling the hosts allocation
+on the interface. However this means that the per-host traffic will not be accounted.
+
 **Periodic Interface Network Discovery**:
 This setting toggles ntopng periodic network discovery. Network
 discovery frequency can be controlled from the preferences and it
 defaults to 15 minutes.
 
+**Dynamic Traffic Disaggregation**:
+Controls the interface disaggregation as explained in the `Interfaces Disaggregation`_
+section.
+
 .. _`Local Broadcast Domain`: ../basic_concepts/local_broadcast_domain.html
 .. _`DHCP range`: #id1
+.. _`Interfaces Disaggregation`: ../advanced_features/dynamic_interfaces_disaggregation.html
+
+**Duplicate Disaggregated Traffic**:
+When the Dynamic Traffic Disaggregation option is set, normally ntopng will only report the
+traffic on the disaggregated interfaces, hence the main interface will have no traffic. By
+enabling this option it's possible to also report the traffic on the main interface.
 
 Host Pools
 ----------

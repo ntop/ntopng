@@ -38,15 +38,6 @@ Host and flow information shown in the Sankey is interactive. Indeed, both host 
 
   A double-click on any host name redirects the user the 'Host Details' page, that contains a great deal of host-related information. This page will be discussed later in the manual.
 
-Similarly, a double-click on any bar representing a flow redirects the user to the 'Hosts Comparison' page. Hosts can be pairwise compared in terms of Applications, Layer-4 Protocols, and Ports. A pie chart of exchanged traffic can be shown as well.
-Below is shown an Application comparison between two hosts. The diagram shows that both hosts on the left have used DNS services (on the right). It is also possible to visually spot behaviors and trends. For example it is possible to see that jake.unipi.it is much more prone to use Google’s DNS than the other host.
-
-.. figure:: ../img/web_gui_dashboard_sankey_pairwise_host_comparison.png
-  :align: center
-  :alt: Pairwise Host Comparison
-
-  Pairwise Host Comparison
-
 Hosts
 ^^^^^
 Hosts View provides a pie chart representation of the captured traffic. Aggregation is done on a per-host basis. Similarly to the Sankey Diagram discussed above, any host name (or non-resolved IP address) shown can be double-clicked to visit the corresponding ‘Host Details’ page.

@@ -23,8 +23,7 @@ Host-related information pages available have the following content
 - Top Hosts Traffic page presents traffic of top hosts in order to typology selected;
 - Geo Map page lays out hosts in a geographic map to give visual insights into the geographical
   locations of seen hosts
-- Tree Map page shows a tree representation of the monitored environment
-- Local Matrix page displays a matrix representation of local systems
+- The Host Explorer, clusters the active hosts to quickly identify outliers
 
 All Hosts
 ---------
@@ -175,15 +174,15 @@ geographical position. :ref:`Geolocation` must be enabled.
 
   The Hosts Geo Map Summary Page
 
-Tree Map
---------
+Host Explorer
+-------------
 
-This page provides a tree map of all monitored hosts. By clicking on hosts it is possible to visit the
-corresponding ‘Host Details’ page.
+The page shows a bubble chart with visual data clustering, according to a selectable criteria.
+Anomalies can be easily spotted by looking at the groups which are distant from the others.
 
-.. figure:: ../img/web_gui_hosts_treemap.png
+.. figure:: ../img/web_gui_hosts_explorer.png
   :align: center
-  :alt: Tree Map
+  :alt: Hosts Explorer
 
-  The Hosts Tree Map Summary Page
+  The Hosts Explorer page
 

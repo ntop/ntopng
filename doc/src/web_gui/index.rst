@@ -28,7 +28,7 @@ Administrator privileges are granted to user *admin*. If an unauthenticated user
 
 The header bar show status information such as the currently selected interface with its throughput, active hosts, flows and engaged alerts. In the right part of the header bar, a search box is available along with information on the currently logged-in user.
 
-A menu bar is always available on the right to navigate across ntopng pages. Entries in the menu bar change depending on the currently selected interface. The :ref:`BasicConceptSystemInterface` has menu entries which are different from the other interfaces.
+A menu bar is always available on the left to navigate across ntopng pages. Entries in the menu bar change depending on the currently selected interface. The :ref:`BasicConceptSystemInterface` has menu entries which are different from the other interfaces.
       
 .. toctree::
     :maxdepth: 2
