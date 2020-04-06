@@ -145,7 +145,7 @@ print[[
   </div>
 ]]
 
-print[[<h2>]] print(i18n("category_lists.category_lists")) print[[</h2>]]
+page_utils.print_page_title(i18n("category_lists.category_lists"))
 
 print[[
 <div id="table-edit-lists-form"></div>]]

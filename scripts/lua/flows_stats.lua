@@ -71,6 +71,9 @@ local page_params = {}
 
 if (page == "flows" or page == nil) then
 
+   local active_msg = getFlowsTableTitle()
+   page_utils.print_page_title(active_msg)
+
 print [[
       <div id="table-flows"></div>]]
 
@@ -184,9 +187,7 @@ if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
-local active_msg = getFlowsTableTitle()
-
-print(" title: \""..active_msg)
+print(" title: \"")
 
 
 print [[",

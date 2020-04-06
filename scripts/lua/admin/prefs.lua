@@ -157,9 +157,7 @@ if(haveAdminPrivileges()) then
       print[[</div>]]
    end
 
-   print [[
-	    <h2>]] print(i18n("prefs.runtime_prefs")) print[[</h2>
-      ]]
+   page_utils.print_page_title(i18n("prefs.runtime_prefs"))
 
    if(false) then
       io.write("------- SERVER ----------------\n")

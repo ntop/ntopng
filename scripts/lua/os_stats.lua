@@ -16,6 +16,8 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.operating_systems)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+page_utils.print_page_title(i18n("os_stats.hosts_by_operating_system"))
+
 print [[
       <div id="table-os"></div>
 	 <script>
@@ -32,7 +34,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "' .. i18n("os_stats.hosts_by_operating_system") .. '",\n')
+print('title: "",\n')
 print ('rowCallback: function ( row ) { return os_table_setID(row); },')
 
 -- Set the preference table
@@ -84,7 +86,7 @@ print [[
 			     }
 
 				 },
-		
+
 			     {
 			     title: "]] print(i18n("seen_since")) print[[",
 				 field: "column_since",

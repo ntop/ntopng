@@ -20,15 +20,15 @@ local hosts_stats = interface.getHostsInfo()
 local num = hosts_stats["numHosts"]
 hosts_stats = hosts_stats["hosts"]
 
-if(num > 0) then
+if (num > 0) then
 
   print ([[
     <div class="container-fluid">
       <div class="row">
         <div class='col-md-12 col-lg-12 col-xs-12'>
-          <div class='border-bottom pb-2 mb-3'> 
-            <h1 class='h2'>]].. i18n("geo_map.hosts_geomap").. [[</h1>
-          </div>
+  ]])
+  page_utils.print_page_title(i18n("geo_map.hosts_geomap"))
+  print([[
           <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger'>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -36,7 +36,7 @@ if(num > 0) then
             <p id='error-message'></p>
           </div>
           <div style="height: 720px" id="map-canvas"></div>
-          <div class='border-top mt-4'>
+          <div class='mt-5'>
             <p id='my-location'></p>
           </div>
         </div>
@@ -49,6 +49,7 @@ if(num > 0) then
     <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.Default.css"/>
     <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.css"/>
     <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js" type="text/javascript"></script>
+    <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.curve.js" type="text/javascript"></script>
     <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js" type="text/javascript"></script>
     <script type='text/javascript'>
 
@@ -61,7 +62,7 @@ if(num > 0) then
 
       const display_localized_position = (position) => {
           $('#my-location').html(`
-          ]].. i18n("geo_map.browser_reported_home_map")..[[: 
+          ]].. i18n("geo_map.browser_reported_home_map")..[[:
           <a href='https://www.openstreetmap.org/#map=6/${position[0]}/${position[1]}'>
           ]]..i18n("geo_map.latitude").. [[: ${position[0]}, ]].. i18n("geo_map.longitude").. [[: ${position[1]} </a>
         `);
@@ -74,10 +75,10 @@ if(num > 0) then
 
       }
     </script>
-    <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js"  type='text/javascript'></script>
+    <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js" type='text/javascript'></script>
   ]])
 
-else 
+else
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_results_found") .. "</div>")
 end
 

@@ -1527,7 +1527,7 @@ function toggleAlert(disable) {
 	 end
 	 print ('sort: [ ["' .. getDefaultTableSort("alerts") ..'","' .. getDefaultTableSortOrder("alerts").. '"] ],\n')
 	 print [[
-	        title: "]] print(title) print[[",
+	        title: "",
       columns: [
 	 {
 	    title: "]]print(i18n("show_alerts.alert_datetime"))print[[",

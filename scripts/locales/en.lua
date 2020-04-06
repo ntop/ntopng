@@ -378,6 +378,7 @@ local lang = {
     ["alert_snmp_interface_mac_changed_description"] = "MAC <a href=\"%{mac_url}\">%{mac}</a> seen on SNMP device <a href=\"%{url}\">%{device}</a> interface <a href=\"%{port_url}\">%{port}</a> previously seen on  SNMP device <a href=\"%{prev_device_url}\">%{prev_device}</a> interface <a href=\"%{prev_port_url}\">%{prev_port}</a>",
     ["alert_snmp_interface_mac_changed_title"] = "SNMP Interface MAC Changed",
     ["alert_type"] = "Type",
+    ["alerts"] = "Alerts",
     ["alerts_dashboard"] = "Alerts Dashboard",
     ["alerts_ts"] = "Process Alerts Timeseries",
     ["alerts_ts_description"] = "Generate process alerts timeseries",
@@ -3757,9 +3758,9 @@ local lang = {
     ["host_edit_ok"] = "Host %{host} was successfully edited!",
     ["host_exists"] = "Host \"%{host}\" already exists",
     ["host_not_exists"] = "Host \"%{host}\" not found",
-    ["producers"] = "Syslog Log Producers",
     ["producer_host"] = "Log Producer IP",
     ["producer_type"] = "Log Producer Type",
+    ["producers"] = "Syslog Log Producers",
   },
   ["system_interfaces_stats"] = {
     ["local_hosts"] = "Local Hosts",

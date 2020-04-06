@@ -12,7 +12,7 @@ if _POST and isAdministrator() then
 
    if not isEmptyString(dismiss_missing_geoip_reminder) then
       if dismiss_missing_geoip_reminder == "true" then
-	 ntop.setPref("ntopng.prefs.geoip.reminder_dismissed", "true")
+	      ntop.setPref("ntopng.prefs.geoip.reminder_dismissed", "true")
       end
    end
 end

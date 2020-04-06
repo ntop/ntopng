@@ -47,22 +47,22 @@ page_utils.menu_sections = {
 
 page_utils.menu_entries = {
     -- Dashboard
-    traffic_dashboard 	= {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", visible_iface = true},
+    traffic_dashboard 	= {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/dashboard.html"},
     network_discovery 	= {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard", visible_iface = true},
-    traffic_report    	= {key = "traffic_report",    i18n_title = "report.traffic_report",	section = "dashboard", visible_iface = true},
+    traffic_report    	= {key = "traffic_report",    i18n_title = "report.traffic_report",	section = "dashboard", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/report.html"},
     db_explorer    	= {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "dashboard", visible_iface = true},
 
     -- Alerts
-    detected_alerts  	 = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts", visible_iface = true},
+    detected_alerts  	 = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html"},
     alerts_dashboard  	 = {key = "alerts_dashboard", i18n_title = "alerts_dashboard.alerts_dashboard", section = "alerts", visible_iface = true},
     flow_alerts_explorer = {key = "flow_alerts_explorer", i18n_title = "flow_alerts_explorer.label", section = "alerts", visible_iface = true},
 
     -- Flows
-    flows 	     	 = {key = "flows", i18n_title = "flows", section = "flows", visible_iface = true},
+    flows 	     	 = {key = "flows", i18n_title = "flows", section = "flows", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/flows.html"},
     flow_details 	 = {key = "flow_details", i18n_title = "flow_details.flow_details", section = "flows", visible_iface = true},
 
     -- Hosts
-    hosts 	     	 = {key = "hosts", i18n_title = "hosts", section = "hosts", visible_iface = true},
+    hosts 	     	 = {key = "hosts", i18n_title = "hosts", section = "hosts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html#"},
     devices	     	 = {key = "devices", i18n_title = "layer_2", section = "hosts", visible_iface = true},
     networks	     	 = {key = "networks", i18n_title = "networks", section = "hosts", visible_iface = true},
     vlans	     	 = {key = "vlans", i18n_title = "vlan_stats.vlans", section = "hosts", visible_iface = true},
@@ -97,16 +97,16 @@ page_utils.menu_entries = {
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters"},
 
     -- Settings
-    manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true},
-    preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", visible_iface = true, visible_system = true},
-    scripts_config	 = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin", visible_iface = true, visible_system = true},
+    manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
+    preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#preferences"},
+    scripts_config	 = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
     profiles	      	 = {key = "profiles", i18n_title = "traffic_profiles.traffic_profiles", section = "admin", visible_iface = true, visible_system = true},
-    categories	      	 = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin", visible_iface = true, visible_system = true},
+    categories	      	 = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"},
     category_lists    	 = {key = "category_lists", i18n_title = "category_lists.category_lists", section = "admin", visible_iface = true, visible_system = true},
     device_protocols   	 = {key = "device_protocols", i18n_title = "device_protocols.device_protocols", section = "admin", visible_iface = true, visible_system = true},
     conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin", visible_iface = true, visible_system = true},
     conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin", visible_iface = true, visible_system = true},
-    manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin", visible_iface = true, visible_system = false},
+    manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin", visible_iface = true, visible_system = false, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-data"},
 
     -- Tools
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
@@ -117,7 +117,7 @@ page_utils.menu_entries = {
 
     -- Developer
     directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev", visible_iface = true, visible_system = true},
-    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev", visible_iface = true, visible_system = true, help_link = "http://ntop.org"},
+    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev", visible_iface = true, visible_system = true},
     user_scripts_dev 	 = {key = "user_scripts_dev", i18n_title = "about.user_scripts", section = "dev", visible_iface = true, visible_system = true},
     plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev", visible_iface = true, visible_system = true},
     alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", visible_iface = true, visible_system = true},
@@ -151,7 +151,7 @@ page_utils.plugins_menu = menu or {}
 
 if entries_data then
     for k, v in pairs(entries_data) do
-	page_utils.menu_entries[k] = v
+		page_utils.menu_entries[k] = v
     end
 end
 
@@ -159,15 +159,15 @@ end
 -- #################################
 
 -- NOTE: this function must be called after page_utils.set_active_menu_entry
-function page_utils.print_page_header(title)
+function page_utils.print_page_title(title)
 
-   local help_link = page_utils.menu_entries[active_entry].help_link or ""
-   print("<header class='mb-3'>")
-   print("<h2 class='d-inline-block'>".. title .."</h2>")
-   if (not isEmptyString(help_link)) then
-      print("<a target='_newtab' href='".. help_link .."' class='btn btn-dark float-right'><i class='fas fa-question-circle'></i></a>")
-   end
-   print("</header>")
+	local help_link = page_utils.menu_entries[active_entry].help_link or ""
+   	print("<header class='mb-3'>")
+   	print("<h2 class='d-inline-block'>".. title .."</h2>")
+   	if (not isEmptyString(help_link)) then
+    	print("<a target='_newtab' href='".. help_link .."' class='btn btn-dark float-right'><i class='fas fa-question-circle'></i></a>")
+   	end
+   	print("</header>")
 
 end
 

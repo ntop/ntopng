@@ -15,9 +15,16 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.alert_definitions)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print("<H2>".. i18n("about.alert_defines") .."</H2>")
+print([[
+<div class="row">
+  <div class="col-md-12">]])
+page_utils.print_page_title(i18n("about.alert_defines"))
+print([[
+  </div>
+</div>
+]])
+
 print [[
-<p>
 <div class="row">
 <div class="col col-md-4 offset-1">
 <table class="table table-bordered table-sm">

@@ -51,7 +51,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.network_discovery)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- print('<hr><H2>'..i18n("discover.network_discovery")..'&nbsp;</H2><br>')
-print('<H2>'..i18n("discover.discovered_devices", {sys = title.operating_system, manuf = title.manufacturer, dev = title.device_type})..'&nbsp;'..refresh_button..'</H2><br>')
+page_utils.print_page_title(i18n("discover.discovered_devices", {sys = title.operating_system, manuf = title.manufacturer, dev = title.device_type})..' '..refresh_button)
 
 local discovered = discover.discover2table(ifname)
 local manufactures = {}

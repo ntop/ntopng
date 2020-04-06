@@ -24,9 +24,10 @@ if(_POST["ntopng_license"] ~= nil) then
 end
 print("<div class='container-fluid'>")
 
-print("<div class='row mb-3'>")
+
+print("<div class='row'>")
 print("<div class='col-12'>")
-print("<h2>"..i18n("about.directories").."</h2>")
+page_utils.print_page_title(i18n("about.directories"))
 print("</div>")
 print("</div>")
 

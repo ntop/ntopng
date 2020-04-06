@@ -9,7 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.p
 require "lua_utils"
 require "graph_utils"
 local template = require "template_utils"
-
+local page_utils = require("page_utils")
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"
 local presets_utils = require "presets_utils"
@@ -107,14 +107,12 @@ local function printDeviceProtocolsPage()
    local form_id = "device-protocols-form"
    local table_id = "device-protocols-table"
 
-   print[[ <h2 style="margin-top: 0; margin-bottom: 20px;">]]
    if is_nedge then
       local pool_name = host_pools_utils.DEFAULT_POOL_NAME
-      print(i18n("nedge.user_device_protocols", {user=pool_name}))
+      page_utils.print_page_title(i18n("nedge.user_device_protocols", {user=pool_name}))
    else
-      print(i18n("device_protocols.filter_device_protocols", {filter=filter_msg}))
+      page_utils.print_page_title(i18n("device_protocols.filter_device_protocols", {filter=filter_msg}))
    end
-   print[[</h2>]]
 
    print[[<table style="width:100%; margin-bottom: 20px;"><tbody>
      <tr>

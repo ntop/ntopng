@@ -65,11 +65,9 @@ end
 -- #######################################################
 
 print([[
-<div class="row mb-3">
+<div class="row">
   <div class="col-md-12">]])
-
-page_utils.print_page_header(i18n("plugins_overview.loaded_plugins"))
-
+page_utils.print_page_title(i18n("plugins_overview.loaded_plugins"))
 print([[
   </div>
 </div>

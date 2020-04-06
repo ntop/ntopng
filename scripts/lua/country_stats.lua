@@ -16,6 +16,8 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.countries)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+page_utils.print_page_title(i18n("countries"))
+
 print [[
       <div id="table-country"></div>
 	 <script>
@@ -32,7 +34,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "'.. i18n("countries")..'",\n')
+print('title: "",\n')
 print ('rowCallback: function ( row ) { return country_table_setID(row); },')
 
 -- Set the preference table

@@ -47,7 +47,38 @@ if ((mode ~= "all") or (not isEmptyString(pool))) then
    hosts_filter = '<span class="fas fa-filter"></span>'
 end
 
+function getPageTitle()
+   local mode_label = ""
+
+   if mode == "remote" then
+      mode_label = i18n("hosts_stats.remote")
+   elseif mode == "local" then
+      mode_label = i18n("hosts_stats.local")
+   elseif mode == "filtered" then
+      mode_label = i18n("hosts_stats.filtered")
+   elseif mode == "blacklisted" then
+      mode_label = i18n("hosts_stats.blacklisted")
+   elseif mode == "dhcp" then
+      mode_label = i18n("nedge.network_conf_dhcp")
+   end
+
+   -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
+   return i18n("hosts_stats.hosts_page_title", {
+        all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
+        traffic_type = traffic_type_title or "",
+        local_remote = mode_label,
+        protocol = protocol_name or "",
+        network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
+        network_cidr = not isEmptyString(cidr) and i18n("hosts_stats.in_network", {network=cidr}) or "",
+        ip_version = ipver_title or "",
+        ["os"] = discover.getOsName(os_),
+        country_asn_or_mac = country or asninfo or mac or pool_ or "",
+        vlan = vlan_title or "",
+   }) .. charts_icon
+end
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+page_utils.print_page_title(getPageTitle())
 
 prefs = ntop.getPrefs()
 
@@ -171,23 +202,23 @@ if (_GET["page"] ~= "historical") then
 
    if(protocol == nil) then protocol = "" end
 
-   if(asn ~= nil) then 
+   if(asn ~= nil) then
       asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
 	 "<small>&nbsp;<i class='fas fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
 	 asn .. "'><i class='fas fa-external-link-alt fa-sm' title=\\\"".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
 	 "\\\"></i></A></small>"
    end
 
-   if(_GET["country"] ~= nil) then 
+   if(_GET["country"] ~= nil) then
       country = " " .. i18n("hosts_stats.country_title",{country=_GET["country"]})
    end
 
-   if(_GET["mac"] ~= nil) then 
+   if(_GET["mac"] ~= nil) then
       mac = " " .. i18n("hosts_stats.mac_title",{mac=_GET["mac"]})
    end
 
-   if(_GET["os"] ~= nil) then 
-      os_ = " ".._GET["os"] 
+   if(_GET["os"] ~= nil) then
+      os_ = " ".._GET["os"]
    end
 
    if(_GET["pool"] ~= nil) then
@@ -236,37 +267,7 @@ if (_GET["page"] ~= "historical") then
          "'><i class='fas fa-sm fa-chart-area'></i></a>"
    end
 
-   function getPageTitle()
-      local mode_label = ""
-
-      if mode == "remote" then
-	 mode_label = i18n("hosts_stats.remote")
-      elseif mode == "local" then
-	 mode_label = i18n("hosts_stats.local")
-      elseif mode == "filtered" then
-	 mode_label = i18n("hosts_stats.filtered")
-      elseif mode == "blacklisted" then
-	 mode_label = i18n("hosts_stats.blacklisted")
-      elseif mode == "dhcp" then
-	 mode_label = i18n("nedge.network_conf_dhcp")
-      end
-
-      -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
-      return i18n("hosts_stats.hosts_page_title", {
-		     all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
-		     traffic_type = traffic_type_title or "",
-		     local_remote = mode_label,
-		     protocol = protocol_name or "",
-		     network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
-		     network_cidr = not isEmptyString(cidr) and i18n("hosts_stats.in_network", {network=cidr}) or "",
-		     ip_version = ipver_title or "",
-		     ["os"] = discover.getOsName(os_),
-		     country_asn_or_mac = country or asninfo or mac or pool_ or "",
-		     vlan = vlan_title or "",
-      }) .. charts_icon
-   end
-
-   print('title: "'..getPageTitle()..'",\n')
+   print('title: "",\n')
    print ('rowCallback: function ( row ) { return host_table_setID(row); },')
 
    print [[
@@ -286,7 +287,7 @@ if (_GET["page"] ~= "historical") then
 
    print('buttons: [ ')
 
-   
+
    --[[ if((page_params.network ~= nil) and (page_params.network ~= "-1")) then
       print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fas fa-chart-area fa-lg\"></i></A></div>\', ')
       elseif (page_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
@@ -297,7 +298,7 @@ if (_GET["page"] ~= "historical") then
    print[['<div class="btn-group float-right">]]
    custom_column_utils.printCustomColumnDropdown(base_url, page_params)
    print[[</div>']]
-   
+
 
    -- Ip version selector
    print[[, '<div class="btn-group float-right">]]
@@ -428,16 +429,16 @@ if (_GET["page"] ~= "historical") then
 			     title: "]] print(i18n("hosts_stats.location")) print[[",
 				 field: "column_location",
 				 sortable: false,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 
-				 },			     
+				 },
 			     {
 			     title: "]] print(i18n("flows")) print[[",
 				 field: "column_num_flows",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 
@@ -452,7 +453,7 @@ if (_GET["page"] ~= "historical") then
       print("true")
    end
    print[[,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 
@@ -481,7 +482,7 @@ if (_GET["page"] ~= "historical") then
 			     title: "]] print(i18n("seen_since")) print[[",
 				 field: "column_since",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 }, {
@@ -496,7 +497,7 @@ if (_GET["page"] ~= "historical") then
 			     title: "]] print(i18n("throughput")) print[[",
 				 field: "column_thpt",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 },
@@ -504,7 +505,7 @@ if (_GET["page"] ~= "historical") then
 			     title: "]] print(i18n("flows_page.total_bytes")) print[[",
 				 field: "column_traffic",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 }

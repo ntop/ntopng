@@ -16,6 +16,8 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.autonomous_systems)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+page_utils.print_page_title(i18n("as_stats.autonomous_systems"))
+
 print [[
       <div id="table-as"></div>
 	 <script>
@@ -32,7 +34,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "' .. i18n("as_stats.autonomous_systems") .. '",\n')
+print('title: "",\n')
 print ('rowCallback: function ( row ) { return as_table_setID(row); },')
 
 -- Set the preference table

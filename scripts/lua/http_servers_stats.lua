@@ -11,10 +11,9 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-
 page_utils.set_active_menu_entry(page_utils.menu_entries.http_servers)
-
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+page_utils.print_page_title(i18n("http_servers_stats.local_http_servers"))
 
 print [[
       <div id="table-http"></div>
@@ -32,7 +31,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "' .. i18n("http_servers_stats.local_http_servers") .. '",\n')
+print('title: "",\n')
 print ('rowCallback: function ( row ) { return http_table_setID(row); },')
 
 -- Set the preference table

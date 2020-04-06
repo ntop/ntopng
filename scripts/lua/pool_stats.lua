@@ -21,6 +21,16 @@ end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local title
+
+if have_nedge then
+    title = i18n("nedge.users_list") .. " <small><a title='".. i18n("manage_users.manage_users") .."' href='".. ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_list_users.lua'><i class='fas fa-cog'></i></a></small>"
+else
+    title = i18n("pool_stats.host_pool_list")
+end
+
+page_utils.print_page_title(title)
+
 print [[
     <div id="table-pool"></div>
     <script>
@@ -36,15 +46,7 @@ print [[
         url: url_update ,
         ]]
 
-local title
-
-if have_nedge then
-    title = i18n("nedge.users_list") .. " <small><a title='".. i18n("manage_users.manage_users") .."' href='".. ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_list_users.lua'><i class='fas fa-cog'></i></a></small>"
-else
-    title = i18n("pool_stats.host_pool_list")
-end
-
-print('title: "'..title..'",\n')
+print('title: "",\n')
 print ('rowCallback: function ( row ) { return pool_table_setID(row); },')
 
 -- Set the preference table

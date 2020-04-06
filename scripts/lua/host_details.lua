@@ -1895,8 +1895,8 @@ elseif not host.privatehost and page == "geomap" then
       <div class="container-fluid">
         <div class="row">
           <div class='col-md-12 col-lg-12 col-xs-12'>
-            <div class='border-bottom pb-2 mb-3'>
-              <h1 class='h2'>]].. i18n("geo_map.hosts_geomap").. [[</h1>
+            <div class='mb-4'>
+              <h2 class='h2'>]].. i18n("geo_map.hosts_geomap").. [[</h2>
             </div>
             <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger'>
               <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -1905,7 +1905,7 @@ elseif not host.privatehost and page == "geomap" then
               <p id='error-message'></p>
             </div>
             <div style="height: 720px" id="map-canvas"></div>
-            <div class='border-top mt-4'>
+            <div class='my-3'>
               <p id='my-location'></p>
             </div>
           </div>
@@ -1915,10 +1915,12 @@ elseif not host.privatehost and page == "geomap" then
       <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.Default.css"/>
       <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.css"/>
       <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js" type="text/javascript"></script>
+      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.curve.js" type="text/javascript"></script>
       <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js" type="text/javascript"></script>
       <script type='text/javascript'>
 
         const zoomIP = "ifid=]]..ifId..[[&]].. hostinfo2url(host_info) ..[[";
+         console.log(zoomIP);
 
         const display_localized_error = (error_code) => {
           $('#geomap-alert p').html(`]].. i18n("geo_map.geolocation_error") ..[[[${error_code}]: ]].. i18n("geo_map.using_default_location") ..[[`);

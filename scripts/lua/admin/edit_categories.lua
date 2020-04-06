@@ -27,8 +27,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.categories)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print("<h2>") print(i18n("custom_categories.apps_and_categories")) print("</h2>")
-print("<br>")
+page_utils.print_page_title(i18n("custom_categories.apps_and_categories"))
 
 print [[
 <ul id="n2n-nav" class="nav nav-tabs" role="tablist">]]

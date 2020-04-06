@@ -28,6 +28,8 @@ function getPageTitle()
    return t
 end
 
+page_utils.print_page_title(getPageTitle())
+
 print [[
       <div id="table-network"></div>
 	 <script>
@@ -41,7 +43,7 @@ print [[
                         title: "Network List",
 			url: url_update,]]
 
-print('title: "'..getPageTitle()..'",\n')
+print('title: "",\n')
 print ('rowCallback: function ( row ) { return network_table_setID(row); },')
 
 -- Set the preference table
@@ -100,7 +102,7 @@ print [[
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",
 				 sortable: false,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'center'
 			     }
 				 },
@@ -108,7 +110,7 @@ print [[
 			     title: "]] print(i18n("throughput")) print[[",
 				 field: "column_thpt",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 },
@@ -116,7 +118,7 @@ print [[
 			     title: "]] print(i18n("traffic")) print[[",
 				 field: "column_traffic",
 				 sortable: true,
-	 	             css: { 
+	 	             css: {
 			        textAlign: 'right'
 			     }
 				 }

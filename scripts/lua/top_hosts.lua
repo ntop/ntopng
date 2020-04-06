@@ -38,11 +38,9 @@ end
 
 if(found) then
 
-print [[
+page_utils.print_page_title(i18n("top_hosts.top_hosts_local"))
 
-<div class="page-header">
-<h2>]] print(i18n("top_hosts.top_hosts_local")) print[[</H2>
-</div>
+print [[
 
 <script type="text/javascript">
   var http_prefix = "]] print(ntop.getHttpPrefix()) print [[";
@@ -63,7 +61,7 @@ var prev = {};
 
 function fetchData(name, symname) {
 	var value = 0,
-	values = [],	
+	values = [],
 	i = 0,
 	last;
 	return context.metric(function(start, stop, step, callback) {
@@ -85,7 +83,7 @@ print [[/lua/get_host_traffic.lua?host="+name, function(data) {
 		    prev[name] = data.value;
 		  });
 
-	      }	     
+	      }
 	    }
 	    callback(null, values = values.slice((start - stop) / step));
 	  }, (name + "|" + symname));
@@ -105,7 +103,7 @@ sortTable = {}
 for k,v in pairs(localhosts) do sortTable[v]=k end
 
 num = 0
-for _v,k in pairsByKeys(sortTable, rev) do key = k   
+for _v,k in pairsByKeys(sortTable, rev) do key = k
    if(num < max_num) then
       local hinfo = hostkey2hostinfo(key)
       symname = host2name(hinfo["host"], hinfo["vlan"])
@@ -154,7 +152,7 @@ context.on("focus", function(i) {
 </script>
 
 ]]
-else 
+else
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_results_found") .. "</div>")
 end
 

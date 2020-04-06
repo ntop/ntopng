@@ -92,9 +92,9 @@ print(
    })
 )
 
+page_utils.print_page_title(i18n("manage_data.manage_data"))
+
 print[[
-<h2>]] print(i18n("manage_data.manage_data")) print[[</h2>
-<br>
 <ul id="manage-data-nav" class="nav nav-pills mb-3">]]
 
 local tab_export_active = ""

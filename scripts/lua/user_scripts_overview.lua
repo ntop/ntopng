@@ -92,7 +92,7 @@ print([[
         <div class='row'>
             <div class='col-12'>]])
 
-page_utils.print_page_header('User Scripts')
+page_utils.print_page_title('User Scripts')
 
 print([[
             </div>

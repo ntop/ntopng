@@ -19,6 +19,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.detected_alerts)
 checkDeleteStoredAlerts()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+page_utils.print_page_title(i18n('alerts_dashboard.alerts'))
 
 local has_engaged_alerts = hasAlerts("engaged", getTabParameters(_GET, "engaged"))
 local has_past_alerts = hasAlerts("historical", getTabParameters(_GET, "historical"))

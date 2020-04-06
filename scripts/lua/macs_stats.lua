@@ -50,6 +50,8 @@ if(not isEmptyString(_GET["device_type"])) then
    devtype_filter = '<span class="fas fa-filter"></span>'
 end
 
+page_utils.print_page_title('Mac List')
+
 print [[
       <div id="table-mac"></div>
 	 <script>
@@ -62,7 +64,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
 
 print [[
            $("#table-mac").datatable({
-                        title: "Mac List",
+              title: '',
 			url: url_update ,
 ]]
 
@@ -86,7 +88,6 @@ if manufacturer ~= nil then
  title = i18n("mac_stats.layer_2_devices_with_manufacturer",{title=title, manufacturer=manufacturer})
 end
 
-print('title: "'..title..'",\n')
 
 print ('rowCallback: function ( row ) { return mac_table_setID(row); },')
 print[[
