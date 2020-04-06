@@ -27,21 +27,16 @@ information such as Date, Severity, Type and Description.
 Alert Endpoints
 ---------------
 
-Generated alerts can also be sent to third-party endpoints. Currently supported endpoints are:
-
-- Email
-- Slack
-- Syslog
-- Nagios
-- Webhook
+Endpoints are a way to export the ntopng alerts to external programs.
 
 Endpoints can be enabled and configured from the ntopng preferences page. Users can create custom
-endpoints via a custom plugin. Check out the `example plugin <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/example/alert_endpoints>`_
-for more details.
+endpoints via a custom plugin. Check out the `Plugins Section <../plugins/alert_endpoints.html>`_
+for more details. Here is a list of the alerts endpoints built into ntopng.
 
 Email
 ~~~~~
 
+This endpoint is designed to send emails to the administrator when an alert occurs.
 Ntopng only supports sending emails to a SMTP server without authentication. Since ntopng
 does not authenticate with the SMTP server, the server may reject the email. For
 this reason, it is suggested to setup a local mail server (e.g. postfix_) and use
@@ -55,6 +50,24 @@ log will be printed in the console. It is advisable to use the `grep` command
 (e.g. `ntopng -v6 | grep "Utils.cpp"`) to only filter out the email log information.
 
 .. _postfix: https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-on-ubuntu-16-04
+
+Slack
+~~~~~
+
+ntopng can send alerts as text messages into `Slack <https://slack.com>`_ channels.
+
+.. figure:: ../img/web_gui_alerts_endpoints_slack.png
+  :align: center
+  :alt: Slack Notification Preferences
+
+  The Slack Notification Preferences Page
+
+Each alert entity is sent to a different Slack channel, whose name can be configured
+by the user. The channels must be manually created by the user. The `Notification Severity`
+allow the user to specify which is the minimum alert severity for the alerts to report.
+
+The `Notification Webhook` is the API key provided linked to the Slack account. Detailed
+instructions on how to get it can be found in the `README.slack <https://github.com/ntop/ntopng/blob/dev/doc/README.slack>`_ file.
 
 Webhook
 ~~~~~~~
@@ -145,3 +158,16 @@ Examples of JSON alerts sent to syslog are
 
    develv ntopng: {"entity_value":"ntopng","ifid":1,"action":"store","tstamp":1536245738,"type":"process_notification","entity_type":"host","message":"[<tstamp>]][Process] Stopped ntopng v.3.7.180906 (CentOS Linux release 7.5.1804 (Core) ) [pid: 4783][options: --interface \"eno1\" --interface \"lo\" --dump-flows \"[hidden]\" --https-port \"4433\" --dont-change-user ]","severity":"info"}
    devel ntopng: {"message":"[<tstamp>][Threshold Cross][Engaged] Minute traffic crossed by interface eno1 [891.58 KB > 1 Byte]","entity_value":"iface_0","ifid":0,"alert_key":"min_bytes","tstamp":1536247320,"type":"threshold_cross","action":"engage","severity":"error","entity_type":"interface"}
+
+Nagios
+~~~~~~
+
+ntopng can send alerts to `Nagios <https://www.nagios.org/>`_ so that they will
+be reported into the Nagios gui. A number of parameters need to be configured:
+
+- `Nagios NSCA Host`: the host where the Nagios daemon is running
+- `Nagios NSCA Port`: the daemon port
+- `Nagios send_nsca executable`: the full path to the `send_nsca` Nagios executable
+- `Nagios send_nsca configuration`: The full path to the `send_nsca.cfg` configuration
+- `Nagios host_name`: the host name of the machine as known to Nagios
+- `Nagios service_description`: the service description exactly as specified in Nagios passive service definition
