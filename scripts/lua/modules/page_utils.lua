@@ -27,8 +27,8 @@ page_utils.menu_sections = {
    if_stats     = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
    admin        = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
-   dev   	    = {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
-   about	       = {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
+   dev   	= {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
+   about	= {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
    snmp         = {key = "snmp", i18n_title = "prefs.snmp", icon = "fas fa-tablet"},
    health       = {key = "system_health", i18n_title = "health", icon = "fas fa-heartbeat"},
    tools        = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
@@ -161,13 +161,13 @@ end
 -- NOTE: this function must be called after page_utils.set_active_menu_entry
 function page_utils.print_page_title(title)
 
-	local help_link = page_utils.menu_entries[active_entry].help_link or ""
-   	print("<header class='mb-3'>")
-   	print("<h2 class='d-inline-block'>".. title .."</h2>")
-   	if (not isEmptyString(help_link)) then
-    	print("<a target='_newtab' href='".. help_link .."' class='btn btn-dark float-right'><i class='fas fa-question-circle'></i></a>")
-   	end
-   	print("</header>")
+   local help_link = page_utils.menu_entries[active_entry].help_link or ""
+   print("<header class='mb-3'>")
+   print("<h2 class='d-inline-block'>".. title .."</h2>")
+   if (not isEmptyString(help_link)) then
+      print("<a target='_newtab' href='".. help_link .."' class='btn btn-link float-right'><i class='fas fa-sm fa-question-circle'></i><sup><i class='fas fa-sm fa-external-link-alt'></i></sup></a>")
+   end
+   print("</header>")
 
 end
 
