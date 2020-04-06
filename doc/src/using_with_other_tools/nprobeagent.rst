@@ -9,7 +9,7 @@ by means of system introspection. It enriches classical network data such as IP 
 bytes and packets with system-introspected processes, users, containers, orchestrators, and 
 other performance indicators.
 
-For further information about nProbe Agent please visit the `product page <https://www.ntop.org/products/netflow/nprobe-agent/>`_ and the `nProbe Agent documentation <https://www.ntop.org/guides/nprobeagent/>`_.
+For further information about nProbe Agent please visit the `product page <https://www.ntop.org/products/netflow/nprobe-agent/>`_.
 
 ntopng can be used to analyse and visualize data that has been generated or collected by nProbe Agent.
 The picture below shows how they can be combined together.

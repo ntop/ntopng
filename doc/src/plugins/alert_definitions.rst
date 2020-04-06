@@ -42,7 +42,7 @@ Examples
 --------
 
 The first example considers :ref:`Blacklisted Flows` created in the :ref:`Plugin Examples`. It's
-:code:`./alert_definitions` `sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/blacklisted/alert_definitions>`_ contains file :code:`alert_flow_blacklisted.lua`. Contents of this file are
+:code:`./alert_definitions` `blacklisted sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/blacklisted/alert_definitions>`_ contains file :code:`alert_flow_blacklisted.lua`. Contents of this file are
 
 .. code:: lua
 
@@ -56,7 +56,7 @@ keys. :code:`i18n_title` is localized in `en.lua <https://github.com/ntop/ntopng
 next to the title. :code:`i18n_description` has been omitted as the alert does not need any extra description apart from the title.
 
 Second example considers plugin :ref:`Flow Flooders`.
-It's :code:`./alert_definitions` `sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/flow_flood/alert_definitions>`_ contains file :code:`alert_flows_flood.lua`. Contents of this file are
+It's :code:`./alert_definitions` `flow_flood sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/flow_flood/alert_definitions>`_ contains file :code:`alert_flows_flood.lua`. Contents of this file are
 
 .. code:: lua
 
