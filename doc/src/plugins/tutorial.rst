@@ -124,7 +124,7 @@ The final thing which is required to set the flow status and trigger the alert i
 
 	local flow_consts = require("flow_consts")
 
-An modify :code:`function script.hooks.protocolDetected(now)` as follow:
+And modify :code:`function script.hooks.protocolDetected(now)` as follow:
 
 .. code:: lua
 

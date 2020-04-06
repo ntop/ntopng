@@ -26,6 +26,14 @@ span[id^='group__module__flow'] + code.descname:before {
     content: "flow." !important;
 }
 
+span[id^='group__module__host'] + code.descname:before {
+    content: "host." !important;
+}
+
+span[id^='group__module__network'] + code.descname:before {
+    content: "network." !important;
+}
+
 span[id^='group__module__ts__utils'] + code.descname:before {
     content: "ts_utils." !important;
 }

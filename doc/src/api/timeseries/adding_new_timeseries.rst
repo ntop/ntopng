@@ -1,6 +1,15 @@
 Adding New Metrics
 ##################
 
+Plugins allow users to create their own scripts and `custom pages`_ as long as
+long as defining their own `timeseries schemas`_. This is often enough to add
+custom metrics and visualize them. Some user however need to export
+internal metrics from the ntopng core. The information that follow should give
+a good starting point to do this.
+
+.. _`custom pages`: ../../plugins/custom_pages.html
+.. _`timeseries schemas`: ../../plugins/timeseries_schemas.html
+
 General Overview
 ================
 

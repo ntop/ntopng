@@ -9,7 +9,7 @@ MySQL database. Check out the `Flows Dump documentation`_ for more details on
 how to setup the connection and the historical views available for this mode.
 
 However, due to the users feedback on the MySQL low performance with high flow
-insertion rates, ntopng now integrates a *beta version* of a specialized flows
+insertion rates, ntopng now integrates a specialized flows
 dump database called nIndex which overcomes the limits of MySQL. This is currently
 available only in the enterprise version of ntopng.
 
@@ -22,11 +22,6 @@ The rest of this page documents the use of nIndex as flows storage.
 
 Enabling Flow Dump
 ------------------
-
-.. warning::
-
-  This is a beta feature. It may contain bugs which corrupt the flows data.
-  Use the MySQL flow dump for a stable flow storage.
 
 In order to dump flows to disk ntopng requires the `-F nindex` option to be
 specified. After this is enabled, new "Flows" entries will appear into the

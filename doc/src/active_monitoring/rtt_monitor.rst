@@ -81,3 +81,9 @@ Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->S
   :alt: The RTT Timeseries Configuration
 
   The RTT Timeseries Configuration
+
+In case of HTTP monitoring, the "HTTP Stats" timeseries show more insights on the HTTP traffic:
+
+- Name Lookup: time spent resolving the host name
+- App Connect: time spent in the SSL handshake
+- Other: remaining time for the HTTP request and response

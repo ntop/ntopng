@@ -53,3 +53,10 @@ Here is how to perform some recurrent operations on the documentation:
     it's necessary to:
       - create `api/lua_c/db/index.rst`. Adapt this from an existing `.rst`.
       - edit `api/lua_c/index.rst` and add `db/index` to the `toctree` section.
+
+### Fixing API prefixes
+
+Lua C API usually have a prefix which indicates the lua table under which the api is present,
+e.g. `ntop.isAdministrator` has the `ntop` prefix, whereas `interface.getid()` has the interface `interface`
+prefix. In order to correctly show such prefix in the documentation its necessary to edit the `_static/css/ntop.css`
+file and add a css `content` definition.
