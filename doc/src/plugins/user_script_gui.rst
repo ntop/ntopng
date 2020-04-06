@@ -46,7 +46,7 @@ Input Builders
 Input builders defines which template to use to render the gui. The currently
 available input builders are:
 
-- :code:`threshold_cross`: allow the user to define a threashold and an operator (">" or "<")
+- :code:`threshold_cross`: allow the user to define a threshold and an operator (">" or "<")
 - :code:`items_list`: allows the user to insert a list of items
 - :code:`long_lived`: template specialized for the long lived flows plugin
 - :code:`elephant_flows`: template specialized for the elephant flows plugin
@@ -61,7 +61,7 @@ Here is a description of the most useful input builders.
 Threshold Cross
 ---------------
 
-The Threshold Cross input builder allows the user to configure a threashold for a specific
+The Threshold Cross input builder allows the user to configure a threshold for a specific
 metric (e.g. the DNS traffic) for one or more granularities. Each granularity can be separately
 enabled.
 
@@ -112,7 +112,7 @@ Here is an example showing the usage of the `threshold_cross` input builder:
 The current script configuration is available into `params.user_script_config`:
 
 - :code:`operator`: contains :code:`gt` for ">" or :code:`lt` for "<"
-- :code:`threshold`: contains the numberic value for the threshold
+- :code:`threshold`: contains the numeric value for the threshold
 
 This information is internally used by `alerts_api.checkThresholdAlert` to
 check if the threshold is currently crossed and in such case trigger a threshold cross alert.

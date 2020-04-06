@@ -14,7 +14,7 @@ taken to provide proper localization support. Consider the following example:
 	}
 
 this is valid in ntopng and will produce the expected result into the gui, but it will only
-work for the english language. By contrast, the proper way to provide localization
+work for the English language. By contrast, the proper way to provide localization
 support is the following:
 
 .. code:: lua
@@ -34,8 +34,8 @@ Plugins and Localization
 Plugins can put their own localized strings into localization files under the
 `locales` subdirectory of the plugin (see `an example here`_). Each file has
 the country code as the file name, e.g. `it.lua` contains localization strings
-in the italian language. ntopng currently supports the following languages:
-English, Czech, German, Italian, Japanese, Portuguese. Providing the english
+in the Italian language. ntopng currently supports the following languages:
+English, Czech, German, Italian, Japanese, Portuguese. Providing the English
 localization file is mandatory for the plugin as it is the fallback
 used when a particular string is missing for a specific language.
 
@@ -60,7 +60,7 @@ following contents:
 		description = "Monitora e grafica la temperatura della stanza",
 	}
 
-ntopng will now automatically use the italian localized strings for italian users.
+ntopng will now automatically use the Italian localized strings for Italian users.
 
 In the declarative part of the plugins it's not necessary to manually call the `i18n`
 function. These keys are identified by a `i18n_` prefix. For example in this code:

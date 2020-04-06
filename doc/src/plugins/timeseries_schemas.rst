@@ -5,7 +5,7 @@ Timeseries Schemas
 
 User scripts invoked via the `user scripts hooks`_ can use the `Timeseries
 API`_ to write their own timeseries data and then visualize it in `Custom
-Pages`_. A full example of a plugin specialed in collecting Redis metrics
+Pages`_. A full example of a plugin specialized in collecting Redis metrics
 is the `Redis monitor plugin`_ .
 
 In order to write timeseries, it is first necessary to define the timeseries

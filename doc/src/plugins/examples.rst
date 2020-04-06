@@ -435,7 +435,7 @@ The `egress_delta` identifier is a unique key that ntopng uses to hold the
 values in subsequent calls to the function. The current network id is automatically
 retrieved by ntopng. The granularity parameter is needed to differentiate between different
 granularities. The last parameter, `info.entity_info.egress`, specifies the current value.
-ntopng calculates the delta between this value and the previos one, which is stored into
+ntopng calculates the delta between this value and the previous one, which is stored into
 the `egress_delta_bytes` variable.
 
 .. _`local network`: ../basic_concepts/hosts.html#local-hosts
