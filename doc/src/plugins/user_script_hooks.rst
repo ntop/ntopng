@@ -17,19 +17,19 @@ Flow User Script Hooks
 
 Available hooks for flow user scripts are the following:
 
-  - :code:`protocolDetected`: Called after the Layer-7 application protocol has been detected.
-  - :code:`statusChanged`: Called when the internal status of the flow has changed since the previous invocation.
-  - :code:`periodicUpdate`: Called every few minutes on long-lived flows.
-  - :code:`flowEnd`: Called when the flow is considered finished.
-  - :code:`all`: A special hook which will cause the associated callback to be called for all the available hooks.
+- :code:`protocolDetected`: Called after the Layer-7 application protocol has been detected.
+- :code:`statusChanged`: Called when the internal status of the flow has changed since the previous invocation.
+- :code:`periodicUpdate`: Called every few minutes on long-lived flows.
+- :code:`flowEnd`: Called when the flow is considered finished.
+- :code:`all`: A special hook which will cause the associated callback to be called for all the available hooks.
 
 Flow User Script Hooks Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ntopng calls flow user scripts with two parameters:
 
-  - :code:`now`: An integer indicating the current epoch
-  - :code:`script_config`: A table containing the user script configuration submitted by the user from the :ref:`Web UI`. Table can be empty if the script doesn not require user-submitted configuration.
+- :code:`now`: An integer indicating the current epoch
+- :code:`script_config`: A table containing the user script configuration submitted by the user from the :ref:`Web UI`. Table can be empty if the script doesn not require user-submitted configuration.
 
 Flow User Script Hook Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,11 +52,11 @@ Other User Script Hooks
 
 Available hooks for non-flow user scripts are the following:
 
-  - :code:`min`: Called every minute.
-  - :code:`5mins`: Called every 5 minutes.
-  - :code:`hour`: Called every hour.
-  - :code:`day`: Called every day (at midnight localtime).
-  - :code:`all`: A special hook name which will cause the associated callback to be called for all the available hooks.
+- :code:`min`: Called every minute.
+- :code:`5mins`: Called every 5 minutes.
+- :code:`hour`: Called every hour.
+- :code:`day`: Called every day (at midnight localtime).
+- :code:`all`: A special hook name which will cause the associated callback to be called for all the available hooks.
 
 Other User Script Hooks Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,15 +71,15 @@ ntopng calls every user script hook function with a :code:`params` Lua table as 
 
 The :code:`params` contains the following keys:
 
-  - :code:`granularity`: one of :code:`aperiodic`, :code:`min`, :code:`5mins`, :code:`hour`, :code:`day`.
-  - :code:`alert_entity`: A table carrying information on the current entity which can be used to generate alerts.
-  - :code:`entity_info`: A string identifying the current entity.
-  - :code:`cur_alerts`: Currently engaged alert for the entity.
-  - :code:`user_script_config`: The user script configuration submitted by the user from the :ref:`Web UI`. Table can be empty if the script doesn not require user-submitted configuration.
-  - :code:`user_script`: The name of the user script which is being called.
-  - :code:`when`: An integer indicating the current epoch.
-  - :code:`ifid`: The interface id of the current interface.
-  - :code:`ts_enabled`: True when the timeseries generation is enabled for the current timeseries.
+- :code:`granularity`: one of :code:`aperiodic`, :code:`min`, :code:`5mins`, :code:`hour`, :code:`day`.
+- :code:`alert_entity`: A table carrying information on the current entity which can be used to generate alerts.
+- :code:`entity_info`: A string identifying the current entity.
+- :code:`cur_alerts`: Currently engaged alert for the entity.
+- :code:`user_script_config`: The user script configuration submitted by the user from the :ref:`Web UI`. Table can be empty if the script doesn not require user-submitted configuration.
+- :code:`user_script`: The name of the user script which is being called.
+- :code:`when`: An integer indicating the current epoch.
+- :code:`ifid`: The interface id of the current interface.
+- :code:`ts_enabled`: True when the timeseries generation is enabled for the current timeseries.
 
 It is ntopng which takes care of calling the hook callback function with table :code:`params` opportunely populated.
 
