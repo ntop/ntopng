@@ -898,24 +898,23 @@ print('</ul>')
 -- Searchbox hosts
 -- append searchbox
 
-if not is_system_interface then
 print(
-  template.gen("typeahead_input.html", {
-    typeahead={
-      base_id     = "host_search",
-      action      = "", -- see makeFindHostBeforeSubmitCallback
-      json_key    = "ip",
-      query_field = "host",
-      class       = "typeahead-dropdown-right",
-      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
-      query_title = i18n("search_host"),
-      style       = "width: 16em;",
-      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
-      max_items   = "'all'" --[[ let source script decide ]],
-    }
-  })
+   template.gen("typeahead_input.html", {
+		   typeahead={
+		      base_id     = "host_search",
+		      action      = "", -- see makeFindHostBeforeSubmitCallback
+		      json_key    = "ip",
+		      query_field = "host",
+		      class       = "typeahead-dropdown-right",
+		      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
+		      query_title = i18n("search_host"),
+		      style       = "width: 16em;",
+		      before_submit = [[makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
+		      max_items   = "'all'" --[[ let source script decide ]],
+		      parameters  = { ifid = ternary(is_system_interface, getSystemInterfaceId(), ifId) },
+		   }
+   })
 )
-end
 
 -- #########################################
 -- User Navbar Menu

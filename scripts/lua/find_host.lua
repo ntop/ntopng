@@ -27,7 +27,11 @@ local query = _GET["query"]
 local hosts_only = _GET["hosts_only"]
 if(query == nil) then query = "" end
 
-interface.select(ifname)
+if not isEmptyString(_GET["ifid"]) then
+   interface.select(_GET["ifid"])
+else
+   interface.select(ifname)
+end
 
 if not hosts_only then
    -- Look by network
