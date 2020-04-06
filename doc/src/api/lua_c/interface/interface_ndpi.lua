@@ -18,17 +18,6 @@ function interface.getnDPICategoryId(string category)
 --! @return the category name on success, nil otherwise.
 function interface.getnDPICategoryName(int category)
 
---! @brief Get the nDPI category currently associated to the protocol
---! @param proto the protocol id to query the category for
---! @return a table (id->category_id, name->category_name) on success, nil otherwise.
---! @note the protocol to category mapping can be changed dynamically via *setnDPICategory*
-function interface.getnDPIProtoCategory(int proto)
-
---! @brief Associate the protocol to the specified nDPI category
---! @param proto the protocol id
---! @param category the category id
-function interface.setnDPIProtoCategory(int proto, int category)
-
 --! @brief Get the nDPI protocol breed associated to the protocol
 --! @param proto the protocol id to query
 --! @return the protocol breed string on success, nil otherwise.

@@ -18,6 +18,13 @@ function ntop.getPrefs()
 --! @return true on success, false otherwise.
 function ntop.flushCache()
 
+--! @brief Retrieve a specific item in a redis list.
+--! @param key the list item identifier.
+--! @param index the list index.
+--! @return the item on success, nil otherwise.
+--! @note this is equivalent to the lindex operation (https://redis.io/commands/lindex)
+function ntop.listIndexCache(string key, int index)
+
 --! @brief Left push a persistent value on a queue.
 --! @param queue_name the queue name.
 --! @param value the value to push.
@@ -35,6 +42,17 @@ function ntop.rpushCache(string queue_name, string value, trim_size=nil)
 --! @return the poped value on success, nil otherwise.
 function ntop.lpopCache(string queue_name)
 
+--! @brief Right pop a value from a persistent queue.
+--! @param queue_name the queue_name name.
+--! @return the poped value on success, nil otherwise.
+function ntop.rpopCache(string queue_name)
+
+--! @brief Removes the first of the item in the queue.
+--! @param queue_name the queue_name name.
+--! @param item the item to remove.
+--! @return true on success, false otherwise.
+function ntop.lremCache(string queue_name, string item)
+
 --! @brief Modify a persistent queue to only keep the items within the specified index range.
 --! @param queue_name the queue_name name.
 --! @param start_idx the lower index for item range.
@@ -47,6 +65,11 @@ function ntop.ltrimCache(string queue_name, int start_idx, int end_idx)
 --! @param end_idx the upper index for item range.
 --! @return table with retrieved item on success, nil otherwise.
 function ntop.lrangeCache(string queue_name, int start_idx=0, int end_idx=-1)
+
+--! @brief Get the length of a queue.
+--! @param queue_name the queue_name name.
+--! @return the queue length.
+function ntop.llenCache(string queue_name)
 
 --! @brief Insert the specified value into the set.
 --! @param set_name the name of the set.

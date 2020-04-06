@@ -54,3 +54,36 @@ function ntop.changeAllowedIfname(string username, string allowed_ifname)
 --! @param language the new language code.
 --! @return true on success, false otherwise.
 function ntop.changeUserLanguage(string username, string language)
+
+--! @brief Change the host pool a ntopng user.
+--! @param username the target user.
+--! @param host_pool_id the new host pool ID.
+--! @return true on success, false otherwise.
+function ntop.changeUserHostPool(string username, int host_pool_id)
+
+--! @brief Check if the provided interface is allowed for the current user
+--! @param ifid the interface ID to check
+--! @return true if the interface is allowed, false otherwise.
+function ntop.isAllowedInterface(int ifid)
+
+--! @brief Check if the provided network is allowed for the current user
+--! @param network the network CIDR to check
+--! @return true if the network is allowed, false otherwise.
+function ntop.isAllowedNetwork(string network)
+
+--! @brief Get the user name for the "nologin" user.
+--! @return the nologin user name
+function ntop.getNologinUser()
+
+--! @brief Check if the current user is an administrator.
+--! @return true if the user is administrator, false otherwise.
+function ntop.isAdministrator()
+
+--! @brief Check if login to the ntopng gui is disabled.
+--! @return true if the login is disabled, false otherwise.
+function ntop.isLoginDisabled()
+
+--! @brief Check if the login for the seccion is blacklisted.
+--! @return true if the login is blacklisted, false otherwise.
+--! @note An IP address can get blacklisted when too many unsuccesful login attempts are performed.
+function ntop.isLoginBlacklisted()

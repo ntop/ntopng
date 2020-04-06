@@ -31,3 +31,17 @@ function ntop.readdir(string path)
 --! @brief Recursively remove a file or directory.
 --! @param path the path to remove.
 function ntop.rmdir(string path)
+
+--! @brief Dump a file contents to the webserver.
+--! @param path the file path.
+function ntop.dumpBinaryFile(string path)
+
+--! @brief Set the default ntopng file permissions on the given path.
+--! @param file_path the path to the file
+--! @note this function can fix some permission mismatches on Ubuntu 18.
+function ntop.setDefaultFilePermissions(string file_path)
+
+--! @brief Delete RRDs older than the specified deadline.
+--! @param ifpath starting path for the delete operation
+--! @param deadline maximum modification date for the files
+function ntop.deleteOldRRDs(string ifpath, int deadline)

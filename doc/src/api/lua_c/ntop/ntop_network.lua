@@ -60,3 +60,67 @@ function ntop.httpPurifyParam(string str)
 --! @param proto service protocol, e.g. "tcp".
 --! @return getservbyport result on success, the port value on failure.
 function ntop.getservbyport(int port, string proto)
+
+--! @brief Send UDP data to an host
+--! @param host the host name/IP address.
+--! @param port the UDP port.
+--! @param data the data to send.
+function ntop.send_udp_data(string host, int port, string data)
+
+--! @brief Send an ICMP request to the given host.
+--! @param host the host name/IP address.
+--! @param is_v6 true for IPv6 connections, false for IPv4.
+--! @note this can be called multiple times on different hosts and then ntop.collectPingResults() can be used to collect the results.
+function ntop.pingHost(string host, bool is_v6)
+
+--! @brief Collect the ICMP replies after ntop.pingHost() calles.
+--! @return a table with IP address -> RTT mappings
+function ntop.collectPingResults()
+
+--! @brief Send an email to the specified address.
+--! @param from sender email and name
+--! @param to recipient email and name
+--! @param msg the message to send
+--! @param smtp_server the SMTP server address (e.g. smtp://myserver.com)
+--! @param username an optional username for the SMTP authentication
+--! @param password an optional password for the SMTP authentication
+--! @return true on success, false otherwise
+function ntop.sendMail(string from, string to, string msg, string smtp_server, string username=nil, string password=nil)
+
+--! @brief Resolve the given IP into an host name
+--! @param ip the host IP
+--! @return the resolved host on success, nil otherwise.
+--! @note this call is blocking. Use getResolvedAddress() for a non blocking approach.
+function ntop.resolveHost(string ip)
+
+--! @brief Perform an SNMP GET request.
+--! @param agent_host the target SNMP host
+--! @param community the SNMP community
+--! @param oid the OID to query
+--! @param timeout maximum seconds before aborting the request
+--! @param version the SNMP version to use
+--! @param oids additional OIDs to query
+--! @return a table with the results on success, nil otherwise
+function ntop.snmpget(string agent_host, string community, string oid, int timeout=5, int version=1, string oids=...)
+
+--! @brief Perform an SNMP GETNEXT request.
+--! @param agent_host the target SNMP host
+--! @param community the SNMP community
+--! @param oid the OID to query
+--! @param timeout maximum seconds before aborting the request
+--! @param version the SNMP version to use
+--! @param oids additional OIDs to query
+--! @return a table with the results on success, nil otherwise
+function ntop.snmpgetnext(string agent_host, string community, string oid, int timeout=5, int version=1, string oids=...)
+
+--! @brief Send a TCP probe and get the returned banner string.
+--! @param server_ip the server IP address
+--! @param server_port the TCP service port
+--! @param timeout maximum timeout for the operation
+--! @return the banner string on success, nil otherwise.
+function ntop.tcpProbe(string server_ip, int server_port=5, int timeout=3)
+
+--! @brief Check if the given address is an IPv6 address
+--! @param addr the IP address to check
+--! @return true if the addtess is a valid IPv6 address, false otherwise.
+function ntop.isIPv6(string addr)

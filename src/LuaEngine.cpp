@@ -5561,15 +5561,6 @@ static int ntop_get_users(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_allowed_interface(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  ntop->getAllowedInterface(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_allowed_networks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -8322,7 +8313,8 @@ static int ntop_list_index_redis(lua_State* vm) {
 
   if(redis->lindex(index_name, idx, rsp, CONST_MAX_LEN_REDIS_VALUE) != 0) {
     free(rsp);
-    return(CONST_LUA_ERROR);
+    lua_pushnil(vm);
+    return(CONST_LUA_OK);
   }
 
   lua_pushfstring(vm, "%s", rsp);
@@ -8378,12 +8370,12 @@ static int ntop_lrem_redis(lua_State* vm) {
 
   ret = redis->lrem(list_name, rem_value);
 
-  lua_pushnil(vm);
-
   if(ret == 0)
-    return(CONST_LUA_OK);
+    lua_pushboolean(vm, true);
   else
-    return(CONST_LUA_ERROR);
+    lua_pushboolean(vm, false);
+
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -11107,9 +11099,10 @@ static int ntop_service_restart(lua_State* vm) {
     /* See also ntop_shutdown (used by nEdge) */
     afterShutdownAction = after_shutdown_restart_self;
     ntop->getGlobals()->requestShutdown();
-    lua_pushnil(vm);
+    lua_pushboolean(vm, true);
   }
 
+  lua_pushboolean(vm, false);
   return(CONST_LUA_OK);
 #else
   return(CONST_LUA_ERROR);
@@ -11733,7 +11726,6 @@ static const luaL_Reg ntop_reg[] = {
   { "getUsers",             ntop_get_users },
   { "isAdministrator",      ntop_is_administrator },
   { "isPcapDownloadAllowed",ntop_is_pcap_download_allowed },
-  { "getAllowedInterface",  ntop_get_allowed_interface },
   { "getAllowedNetworks",   ntop_get_allowed_networks },
   { "resetUserPassword",    ntop_reset_user_password },
   { "changeUserRole",       ntop_change_user_role },
