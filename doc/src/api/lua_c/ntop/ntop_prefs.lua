@@ -1,6 +1,6 @@
 --! @brief Set a persistent preference.
 --! @param key the preference key.
---! @param key the preference value.
+--! @param value the preference value.
 --! @note by convention, preference keys should start with "ntopng.prefs." .
 function ntop.setPref(string key, string value)
 
@@ -29,13 +29,13 @@ function ntop.listIndexCache(string key, int index)
 --! @param queue_name the queue name.
 --! @param value the value to push.
 --! @param trim_size the maximum number of elements to keep in the queue.
-function ntop.lpushCache(string queue_name, string value, trim_size=nil)
+function ntop.lpushCache(string queue_name, string value, int trim_size=nil)
 
 --! @brief Right push a persistent value on a queue.
 --! @param queue_name the queue_name name.
 --! @param value the value to push.
 --! @param trim_size the maximum number of elements to keep in the queue.
-function ntop.rpushCache(string queue_name, string value, trim_size=nil)
+function ntop.rpushCache(string queue_name, string value, int trim_size=nil)
 
 --! @brief Left pop a value from a persistent queue.
 --! @param queue_name the queue_name name.

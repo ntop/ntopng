@@ -8,11 +8,11 @@ function flow.getStatus()
 --! @param cli_score the score increment on the client host.
 --! @param srv_score the score increment on the server host.
 --! @return true if the flow status was updated, false if the flow status is unchanged.
-function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
+function flow.setStatus(table flow_status_type, int flow_score, int cli_score, int srv_score)
 
 --! @brief Clear a bit into the flow status bitmap.
 --! @param flow_status_type the flow status to clear. The possible values can be obtained by printing `flow_consts.status_types`
-function flow.clearStatus(flow_status_type)
+function flow.clearStatus(table flow_status_type)
 
 --! @brief Set a bit into the flow status bitmap, and trigger an alert.
 --! @param flow_status_type the flow status to set. The possible values can be obtained by printing `flow_consts.status_types`
@@ -20,12 +20,12 @@ function flow.clearStatus(flow_status_type)
 --! @param flow_score the score (a quantitative indicator of the problem) to associate to this status
 --! @param cli_score the score increment on the client host.
 --! @param srv_score the score increment on the server host.
-function flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score, srv_score)
+function flow.triggerStatus(table flow_status_type, table status_info, int flow_score, int cli_score, int srv_score)
 
 --! @brief Check if a a bit into the flow status bitmap is set
 --! @param status_id the numberic ID of the status, e.g. `flow_consts.status_types.status_blacklisted.status_id`
 --! @return true if the provided status is set, false otherwise
-function flow.isStatusSet(status_id)
+function flow.isStatusSet(int status_id)
 
 --! @brief Get full information about the flow.
 --! @return a table with flow information, see Flow::lua

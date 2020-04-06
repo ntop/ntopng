@@ -51,7 +51,7 @@ function ntop.networkPrefix(string address, int netmask)
 function ntop.httpRedirect(string url)
 
 --! @brief Purify a string from the HTTP standpoint. Used to purify HTTP params
---! @param the string to purify
+--! @param str the string to purify
 --! @note The ourigied inout string with _ that replaced chars not allowed
 function ntop.httpPurifyParam(string str)
 
@@ -60,12 +60,6 @@ function ntop.httpPurifyParam(string str)
 --! @param proto service protocol, e.g. "tcp".
 --! @return getservbyport result on success, the port value on failure.
 function ntop.getservbyport(int port, string proto)
-
---! @brief Send UDP data to an host
---! @param host the host name/IP address.
---! @param port the UDP port.
---! @param data the data to send.
-function ntop.send_udp_data(string host, int port, string data)
 
 --! @brief Send an ICMP request to the given host.
 --! @param host the host name/IP address.
@@ -101,7 +95,7 @@ function ntop.resolveHost(string ip)
 --! @param version the SNMP version to use
 --! @param oids additional OIDs to query
 --! @return a table with the results on success, nil otherwise
-function ntop.snmpget(string agent_host, string community, string oid, int timeout=5, int version=1, string oids=...)
+function ntop.snmpget(string agent_host, string community, string oid, int timeout=5, int version=1, string oids)
 
 --! @brief Perform an SNMP GETNEXT request.
 --! @param agent_host the target SNMP host
@@ -111,7 +105,7 @@ function ntop.snmpget(string agent_host, string community, string oid, int timeo
 --! @param version the SNMP version to use
 --! @param oids additional OIDs to query
 --! @return a table with the results on success, nil otherwise
-function ntop.snmpgetnext(string agent_host, string community, string oid, int timeout=5, int version=1, string oids=...)
+function ntop.snmpgetnext(string agent_host, string community, string oid, int timeout=5, int version=1, string oids)
 
 --! @brief Send a TCP probe and get the returned banner string.
 --! @param server_ip the server IP address

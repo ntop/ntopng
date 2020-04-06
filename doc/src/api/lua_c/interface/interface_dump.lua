@@ -1,5 +1,5 @@
 --! @brief Starts a live packet capture from the selected interface.
---! @param cli_ip host/host@vlan to restrict capture only to the selected host. If nil, all interface traffic will be captured
+--! @param host host/host@vlan to restrict capture only to the selected host. If nil, all interface traffic will be captured
 --! @return Success, or nil in case of failure.
 function interface.liveCapture(string host)
 

@@ -171,7 +171,7 @@ function ntop.bitmapSet(int bitmap, int bit)
 --! @param bitmap the numeric bitmap
 --! @param bit the bit index to clear
 --! @return true if the bitmap has changed, false otherwise
-function ntop.bitmapSet(int bitmap, int bit)
+function ntop.bitmapClear(int bitmap, int bit)
 
 --! @brief Associate the protocol to the specified nDPI category
 --! @param proto the protocol id

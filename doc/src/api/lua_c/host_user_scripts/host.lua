@@ -11,7 +11,7 @@ function host.isLocal()
 --! @brief Get the nDPI application bytes.
 --! @param app_id the nDPI application ID
 --! @return the nDPI application bytes
-function host.getApplicationBytes(app_id)
+function host.getApplicationBytes(int app_id)
 
 --! @brief Get the bytes sent and received by the host.
 --! @return table:<br>

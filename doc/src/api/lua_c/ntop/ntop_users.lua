@@ -8,6 +8,7 @@ function ntop.getUsers()
 --! @param password the user password.
 --! @param host_role the user group, should be "unprivileged" or "administrator".
 --! @param allowed_networks comma separated list of allowed networks for the user. Use "0.0.0.0/0,::/0" for all networks.
+--! @param allowed_interface the only network interface name that this user case see.
 --! @param host_pool_id this can be used to create a Captive Portal user.
 --! @param language user language code.
 --! @return true on success, false otherwise.

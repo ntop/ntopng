@@ -20,12 +20,12 @@ function interface.getId()
 function interface.select(string ifname)
 
 --! @brief Check if the network interface has seen VLAN traffic.
---! @param true if the interface has VLANs, false otherwise.
-function interface.hasVLANs(string ifname)
+--! @return true if the interface has VLANs, false otherwise.
+function interface.hasVLANs()
 
 --! @brief Check if the network interface is capturing eBPF events.
 --! @param true if the interface has eBPF, false otherwise.
-function interface.hasEBPF(string ifname)
+function interface.hasEBPF()
 
 --! @brief Get statistics including nDPI protocol information of the network interface/a specific host.
 --! @param host_ip filter by a specific host/host@vlan

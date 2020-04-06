@@ -10,7 +10,7 @@
 --! @param location_filter filter by device location, "lan" or "wan".
 --! @return a table (numMacs, nextSlot, macs) on success, nil otherwise.
 --! @note it's better to use the more efficient helper `callback_utils.getDevicesIterator` for generic devices iteration.
-function interface.getMacsInfo(string sortColumn="column_mac", int maxHits=32768, int toSkip=0, bool a2zSortOrder=true, sourceMacsOnly=false, string manufacturer=nil, int pool_filter=nil, int devtype_filter=nil, string location_filter=nil)
+function interface.getMacsInfo(string sortColumn="column_mac", int maxHits=32768, int toSkip=0, bool a2zSortOrder=true, bool sourceMacsOnly=false, string manufacturer=nil, int pool_filter=nil, int devtype_filter=nil, string location_filter=nil)
 
 --! @brief Retrieve information about a specific L2 device.
 --! @param mac the mac to query information for.
@@ -47,7 +47,7 @@ function interface.setMacDeviceType(string mac, int device_type, bool overwrite)
 --! @param manufacturer filter by device manufacturer.ed.
 --! @param location_filter filter by device location, "lan" or "wan".
 --! @return table (device_type -> num_active_devices) on success, nil otherwise.
-function interface.getMacDeviceTypes(int max_hits=32768, bool sourceMacsOnly=false, string manufacturer=nil, string location_filter=nil)
+function interface.getMacDeviceTypes(int maxHits=32768, bool sourceMacsOnly=false, string manufacturer=nil, string location_filter=nil)
 
 --! @brief Get the pool of the specified L2 device. This also works for inactive devices.
 --! @oaram mac L2 device MAC address.
