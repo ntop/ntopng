@@ -347,7 +347,7 @@ void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow
 /* **************************************************** */
 
 void NetworkInterface::checkDisaggregationMode() {
-  char rkey[128], rsp[16];
+  char rkey[128], rsp[64];
 
   if(customIftype || isSubInterface()) 
     return;
