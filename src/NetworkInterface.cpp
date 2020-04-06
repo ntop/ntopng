@@ -5432,7 +5432,6 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool create_if_not_present, bo
       return(NULL);
 
     try {
-
       if((ret = new Vlan(this, vlanId)) != NULL) {
 	if(!vlans_hash->add(ret,
 			    !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
@@ -5464,7 +5463,7 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool create_if_not_pre
   if((!ipa) || (!ases_hash))
     return(NULL);
 
-  ret = ases_hash->get(ipa, is_inline_call, create_if_not_present);
+  ret = ases_hash->get(ipa, is_inline_call);
 
   if((ret == NULL) && create_if_not_present) {
 
@@ -5473,7 +5472,6 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool create_if_not_pre
 
     try {
       if((ret = new AutonomousSystem(this, ipa)) != NULL) {
-	ret->incUses();
 	if(!ases_hash->add(ret,
 			   !is_inline_call /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
           /* Note: this should never happen as we are checking hasEmptyRoom() */

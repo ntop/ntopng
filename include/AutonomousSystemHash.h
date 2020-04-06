@@ -31,7 +31,7 @@ class AutonomousSystemHash : public GenericHash {
  public:
   AutonomousSystemHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-  AutonomousSystem* get(IpAddress *ipa, bool is_inline_call, bool do_inc_uses);
+  AutonomousSystem* get(IpAddress *ipa, bool is_inline_call);
 
 #ifdef AS_DEBUG
   void printHash();

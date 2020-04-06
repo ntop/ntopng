@@ -201,6 +201,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     char country_name[64];
     
     if((as = iface->getAS(&ip, true /* Create if missing */, true /* Inline call */)) != NULL) {
+      as->incUses();
       asn = as->get_asn();
       asname = as->get_asname();
     }

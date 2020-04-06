@@ -31,7 +31,7 @@ AutonomousSystemHash::AutonomousSystemHash(NetworkInterface *_iface, u_int _num_
 
 /* ************************************ */
 
-AutonomousSystem* AutonomousSystemHash::get(IpAddress *ipa, bool is_inline_call, bool do_inc_uses) {
+AutonomousSystem* AutonomousSystemHash::get(IpAddress *ipa, bool is_inline_call) {
   u_int32_t asn, hash;
 
   ntop->getGeolocation()->getAS(ipa, &asn, NULL /* Don't care about AS name here */);
@@ -56,9 +56,6 @@ AutonomousSystem* AutonomousSystemHash::get(IpAddress *ipa, bool is_inline_call,
 	head = (AutonomousSystem*)head->next();
     }
 
-    if((head != NULL) && do_inc_uses)
-      head->incUses();  /* Increment uses before lock is released */
-	
     if(!is_inline_call)
       locks[hash]->unlock(__FILE__, __LINE__);
 
