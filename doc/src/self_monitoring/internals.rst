@@ -69,7 +69,7 @@ Periodic Activities
 Periodic activities are Lua scripts executed by ntopng at regular intervals of time. Lua scripts are found in the `callbacks <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks>`_. They can be run, in parallel, for each interface or for the system. Periodic activities include, but are not limited to:
 
 - `Timeseries generation`.
-- `Execution of Plugins` as described in :ref:`Plugins`.
+- `Execution of User Scripts` as described in :ref:`WebUIUserScripts`.
 - `Handling idle and active hash table entries` as described in :ref:`InternalsHashTables`.
 
 Multiple threads are available for the execution of periodic activities. A thread executes one periodic activity at time. Multiple periodic activities are executed sequentially by the same thread. Multiple parallel threads execute multiple periodic activities simultaneously.
@@ -111,7 +111,7 @@ Information shown in the table columns is:
 - `Max Duration`: How long the periodic activity execution can take.
 - `Chart`: A link to the historical charts of the periodic activity.
 - `Time Utilization`: Periodic activity execution time, with reference to the `Max Duration`.
-- `Status`: :code:`sleeping` if the activity has completed and is waiting for the next execution, :code:`queued` if the activity has been scheduled for execution but it isn't running yet, :code:`running`if the activity is currently in execution.
+- `Status`: :code:`sleeping` if the activity has completed and is waiting for the next execution, :code:`queued` if the activity has been scheduled for execution but it isn't running yet, :code:`running` if the activity is currently in execution.
 - `Last Start`: Indicates when the periodic activity was started the last time.
 - `Last Duration`: Indicates the most recent periodic activity execution time. If the activity is :code:`running` indicates the current execution time.
 - `Completion`: Is a percentage indicating the completion of the periodic activity. A slow periodic activity which would take more than `Max Duration` to complete, will not reach a 100% completion.

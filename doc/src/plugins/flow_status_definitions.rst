@@ -15,7 +15,7 @@ A flow status definition file must return a Lua table with the following keys:
 .. _Flow Status Description:
 
 Flow Status Description
------------------
+-----------------------
 
 Flow Status description :code:`i18n_description` can be either a string with the flow status description or a function returning a flow status description string.
 

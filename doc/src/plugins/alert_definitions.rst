@@ -3,10 +3,7 @@
 Alert Definitions
 =================
 
-A plugin enables alerts to be generated. All the alerts a plugin is willing to generate require a
-file in plugin sub-directory :code:`./alert_definitions/`. The file
-contains all the necessary information which is required to properly
-show, localize and format an alert.
+A plugin enables alerts to be generated. All the alerts a plugin is willing to generate require a file in plugin subdirectory :code:`./alert_definitions/`. The file contains all the necessary information which is required to properly show, localize and format an alert.
 
 The file must return a Lua table with the following keys:
 

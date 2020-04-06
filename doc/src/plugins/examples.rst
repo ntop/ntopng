@@ -125,7 +125,7 @@ The first thing to observe, is that :code:`blacklisted.lua` contains a
 single :code:`function` with a predefined
 name :code:`script.hooks.protocolDetected`. This name tells
 ntopng to execute the plugin for every flow, as soon as the flow has
-its :code:`protocolDetected`, which is one of the several :ref:`Hooks`
+its :code:`protocolDetected`, which is one of the several :ref:`User Script Hooks`
 a plugin can attach to.
 
 The body of the function has access to a :code:`flow` Lua table, with
@@ -280,7 +280,7 @@ scripts executed on hosts (the other Lua script are similar):
    return script
 
 The first thing to observe is that the script has only one function
-with a predefined name :code:`script.hooks.min` which is part of the :ref:`Hooks` table. This name tells
+with a predefined name :code:`script.hooks.min` which is part of the :ref:`User Script Hooks` table. This name tells
 ntopng to call this function on every host, *every minute*. The body
 of the function is fairly straightforward. It access a Lua table
 :code:`host`, with several methods available to be called. This Lua
@@ -302,7 +302,7 @@ evaluate :code:`value` and possibly trigger the alert.
 
 Let's now have a closer look at the :code:`local script` table, which
 basically contains all the necessary configuration, default values, and
-information to properly render a configuration page on the :ref:`Web UI.
+information to properly render a configuration page on the :ref:`Web UI`.
 
 The table tells ntopng this script is enabled by default
 (:code:`default_enabled = true`) and also specify the default
