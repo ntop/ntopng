@@ -66,10 +66,12 @@ base on that parse the content and ingest all the contained information. However
 in some cases, this is not explicitly specified in the message and an hint is required
 in order to figure out who is the producer of the log message and parse it correctly,
 expecially when the same syslog stream contains log messages from multiple producers.
-For this reason, a *Syslog Log Producers* tab is available in the syslog interface in 
-the web GUI, where it is possible to configure all syslog sources by providing the 
-source IP address (as it appears in the log) and the source type (e.g. Fortinet, 
-SonicWALL, Suricata).
+This is usually not required with logs produced by IDS systems like Suricata for instance,
+however it is mandatory with some Firewalls supporting *Identity Management* like
+Fortinet and SonicWALL. For this reason, a *Syslog Log Producers* tab is available in the 
+syslog interface in the web GUI, where it is possible to configure all syslog sources by 
+providing the source IP address (as it appears in the log) and the source type (e.g. Fortinet, 
+or SonicWALL).
 
 .. figure:: ../img/advanced_features_syslog.png
   :align: center
@@ -77,6 +79,9 @@ SonicWALL, Suricata).
 
   Syslog Log Producers Configuration
 
-Please note that adding or removing sources does *not* require an application
-restart.
+Note:
+
+- adding or removing sources does *not* require an application restart
+- if the *Syslog Log Producers* tab does not happear, the *Identity Management* 
+  plugins are probably not installed or available
 
