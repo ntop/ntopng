@@ -266,12 +266,8 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
    print(table.tconcat({username = username, pid_name = pid_name, host = hostinfo2hostkey(host_info)}, "=", "&"))
    print ('";')
 
-   ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
-
    local show_vlan
    if ifstats.vlan then show_vlan = true else show_vlan = false end
-   -- Set the host table option
-   if show_vlan then print ('flow_rows_option["vlan"] = true;\n') end
 
    local active_flows_msg = i18n("flows_page.active_flows",{filter=""})
    if not interface.isPacketInterface() then
@@ -285,14 +281,12 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
    dt_buttons = "["..dt_buttons.."]"
 
    print [[
-  flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
 	 url: url_update,
 	 buttons: ]] print(dt_buttons) print[[,
-	 rowCallback: function ( row ) { return flow_table_setID(row); },
-	 tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
-   print(i18n('flows_page.idle_flows_not_listed'))
-   print[['); },
+	 tableCallback: function()  {
+	 ]] initFlowsRefreshRows() print[[
+	 },
 	 showPagination: true,
 	       ]]
 

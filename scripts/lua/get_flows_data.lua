@@ -15,7 +15,7 @@ local json = require "dkjson"
 
 local have_nedge = ntop.isnEdge()
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('application/json')
 local debug = false
 local debug_process = false -- Show flow processed information
 
@@ -24,14 +24,35 @@ local ifstats = interface.getStats()
 -- System host parameters
 local hosts  = _GET["hosts"]
 local host   = _GET["host"] -- TODO: merge
+local flows_to_update = _GET["custom_hosts"]
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
-
 local flows_filter = getFlowsFilter()
-local flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
-local total = flows_stats["numFlows"]
-flows_stats = flows_stats["flows"]
+local flows_stats
+local total = 0
+
+if not flows_to_update then
+   flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
+
+   total = flows_stats["numFlows"]
+   flows_stats = flows_stats["flows"]
+else
+   flows_stats = {}
+
+   -- Only update the requested rows
+   for _, k in pairs(split(flows_to_update, ",")) do
+      local flow_key_and_hash = string.split(k, "@") or {}
+
+      if(#flow_key_and_hash == 2) then
+         local flow = interface.findFlowByKeyAndHashId(tonumber(flow_key_and_hash[1]), tonumber(flow_key_and_hash[2]))
+
+         if flow then
+            flows_stats[#flows_stats + 1] = flow
+         end
+      end
+   end
+end
 
 -- Prepare host
 local host_list = {}
@@ -176,6 +197,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["column_key"] = column_key
    record["key"] = string.format("%u", value["ntopng.key"])
    record["hash_id"] = string.format("%u", value["hash_entry_id"])
+   record["key_and_hash"] = string.format("%s@%s", record["key"], record["hash_id"])
 
    local column_client = src_key
    local info = interface.getHostInfo(value["cli.ip"], value["cli.vlan"])
@@ -277,15 +299,16 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>"
    end
    record["column_duration"] = secondsToTime(value["duration"])
-   record["column_bytes"] = bytesToSize(value["bytes"])..""
+   record["column_bytes"] = value["bytes"]
 
    local column_thpt = ''
    if(throughput_type == "pps") then
-      column_thpt = column_thpt..pktsToSize(value["throughput_pps"]).. " "
+      column_thpt = value["throughput_pps"]
    else
-      column_thpt = column_thpt..bitsToSize(8*value["throughput_bps"]).. " "
+      column_thpt = 8*value["throughput_bps"]
    end
 
+if false then
    if((value["throughput_trend_"..throughput_type] ~= nil)
       and (value["throughput_trend_"..throughput_type] > 0)) then
       if(value["throughput_trend_"..throughput_type] == 1) then
@@ -296,6 +319,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 column_thpt = column_thpt.."<i class='fas fa-minus'></i>"
       end
    end
+end
    record["column_thpt"] = column_thpt
 
    local cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)

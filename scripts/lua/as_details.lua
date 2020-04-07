@@ -124,8 +124,6 @@ if not isEmptyString(application) then
 end
 print("&asn="..asn..'";')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
-
 local active_flows_msg = i18n("flows_page.active_flows",{filter = ""})
 if not interface.isPacketInterface() then
    active_flows_msg = i18n("flows_page.recently_active_flows",{filter = ""})
@@ -153,14 +151,12 @@ end
 dt_buttons = dt_buttons .. "</ul></div>']"
 
 print [[
-         flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
          url: url_update,
          buttons: ]] print(dt_buttons) print[[,
-         rowCallback: function ( row ) { return flow_table_setID(row); },
-         tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
-   print(i18n('flows_page.idle_flows_not_listed'))
-   print[['); },
+         tableCallback: function()  {
+	    ]] initFlowsRefreshRows() print[[
+	 },
 	       showPagination: true,
 	       ]]
 

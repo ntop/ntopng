@@ -3543,6 +3543,22 @@ end
 
 -- ###########################################
 
+-- To be called inside the flows tableCallback
+function initFlowsRefreshRows()
+   print[[
+datatableInitRefreshRows($("#table-flows"), "key_and_hash", 10000, {
+   /* List of rows with trend icons */
+   "column_thpt": ]] print(ternary(getThroughputType() ~= "bps", "fpackets", "bitsToSize")) print[[,
+   "column_bytes": bytesToSize,
+});
+
+$("#dt-bottom-details > .float-left > p").first().append('. ]]
+   print(i18n('flows_page.idle_flows_not_listed'))
+   print[[');]]
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions
