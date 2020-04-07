@@ -11794,17 +11794,17 @@ static const luaL_Reg ntop_reg[] = {
   { "dropWriteCapabilities",   ntop_dropWriteCapabilities },
 
   /* Misc */
-  { "getservbyport",        ntop_getservbyport        },
-  { "msleep",               ntop_msleep               },
-  { "tcpProbe",             ntop_tcp_probe            },
-  { "getMacManufacturer",   ntop_get_mac_manufacturer },
-  { "getHostInformation",   ntop_get_host_information },
-  { "isShutdown",           ntop_is_shutdown          },
-  { "listInterfaces",       ntop_list_interfaces      },
-  { "ipCmp",                ntop_ip_cmp               },
-  { "matchCustomCategory",    ntop_match_custom_category },
-  { "getTLSVersionName",    ntop_get_tls_version_name },
-  { "isIPv6",               ntop_is_ipv6              },
+  { "getservbyport",         ntop_getservbyport           },
+  { "msleep",                ntop_msleep                  },
+  { "tcpProbe",              ntop_tcp_probe               },
+  { "getMacManufacturer",    ntop_get_mac_manufacturer    },
+  { "getHostInformation",    ntop_get_host_information    },
+  { "isShutdown",            ntop_is_shutdown             },
+  { "listInterfaces",        ntop_list_interfaces         },
+  { "ipCmp",                 ntop_ip_cmp                  },
+  { "matchCustomCategory",   ntop_match_custom_category   },
+  { "getTLSVersionName",     ntop_get_tls_version_name    },
+  { "isIPv6",                ntop_is_ipv6                 },
   { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
 
   /* JA3 */
