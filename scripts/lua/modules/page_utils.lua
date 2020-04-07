@@ -110,21 +110,21 @@ page_utils.menu_entries = {
 
     -- Tools
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
-    remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools"},
+    remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools", help_link = "https://www.ntop.org/guides/ntopng/remote_assistance.html"},
 
     -- Home
     live_capture   	 = {key = "live_capture", i18n_title = "live_capture.active_live_captures", section = "home"},
 
     -- Developer
-    directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev", visible_iface = true, visible_system = true},
-    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev", visible_iface = true, visible_system = true},
-    user_scripts_dev 	 = {key = "user_scripts_dev", i18n_title = "about.user_scripts", section = "dev", visible_iface = true, visible_system = true},
+    directories    	 = {key = "directories", i18n_title = "about.directories", section = "dev", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/plugins/distributing_plugins.html"},
+    plugins    		 = {key = "plugins", i18n_title = "plugins", section = "dev", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/basic_concepts/plugins.html"},
+    user_scripts_dev 	 = {key = "user_scripts_dev", i18n_title = "about.user_scripts", section = "dev", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/plugins/user_scripts.html"},
     plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev", visible_iface = true, visible_system = true},
-    alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", visible_iface = true, visible_system = true},
+    alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/plugins/alert_definitions.html"},
     api 	         = {key = "api", i18n_title = "lua_c_api", section = "dev"},
 
     -- Help
-    about   		 = {key = "about", i18n_title = "about.about", section = "about", visible_iface = true, visible_system = true},
+    about   		 = {key = "about", i18n_title = "about.about", section = "about", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"},
     telemetry    	 = {key = "telemetry", i18n_title = "telemetry", section = "about", visible_iface = true, visible_system = true},
     blog         	 = {key = "blog", i18n_title = "about.ntop_blog", section = "about"},
     telegram         	 = {key = "telegram", i18n_title = "about.telegram", section = "about"},
@@ -139,10 +139,10 @@ page_utils.menu_entries = {
     gateways_users       = {key = "gateways_users", i18n_title = "dashboard.gateways_users", section = "dashboard"},
     nedge_flows    	 = {key = "nedge_flows", i18n_title = "flows", section = "hosts"},
     users	     	 = {key = "users", i18n_title = "users.users", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/authentication.html"},
-    system_setup         = {key = "system_setup", i18n_title = "nedge.system_setup", section = "system_stats"},
+    system_setup         = {key = "system_setup", i18n_title = "nedge.system_setup", section = "system_stats", help_link = "https://www.ntop.org/guides/nedge/get_started.html"},
     dhcp_leases          = {key = "dhcp_leases", i18n_title = "nedge.dhcp_leases", section = "system_stats"},
     port_forwarding      = {key = "port_forwarding", i18n_title = "nedge.port_forwarding", section = "system_stats"},
-    nedge_users          = {key = "nedge_users", i18n_title = "manage_users.manage_users", section = "system_stats"},
+    nedge_users          = {key = "nedge_users", i18n_title = "manage_users.manage_users", section = "system_stats", help_link = "https://www.ntop.org/guides/nedge/users.html#"},
 }
 
 -- Extend the menu entries with the plugins

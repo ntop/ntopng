@@ -70,9 +70,7 @@ print(template.gen("modal_confirm_dialog.html", {
  }
 }))
 
-print("<hr>")
-print("<h2>") print(i18n("remote_assistance.product_remote_assistance", {product=info.product})) print("</h2>")
-print("<br>")
+page_utils.print_page_title(i18n("remote_assistance.product_remote_assistance", {product=info.product}))
 
 local assistace_checked = ""
 local admin_checked = ""

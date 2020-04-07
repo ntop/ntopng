@@ -51,7 +51,7 @@ if(page == "overview") then
 <script type='text/javascript'>
 
 $("#table-system-interfaces-stats").datatable({
-   title: "]] print(i18n("system_interfaces_status")) print[[",]]
+   title: "",]]
 
    local preference = tablePreferences("rows_number",_GET["perPage"])
    if preference ~= "" then print ('perPage: '..preference.. ",\n") end
