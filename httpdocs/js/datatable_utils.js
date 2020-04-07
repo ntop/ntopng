@@ -252,6 +252,14 @@ function datatableInitRefreshRows(table, column_id, refresh_interval, trend_colu
   var first_load = true;
 
   var _process_result = function(result) {
+    if(typeof(result) === "string")
+      result = JSON.parse(result);
+
+    if(!result) {
+      console.error("Bad JSON result");
+      return;
+    }
+
     for(var row in result.data) {
        var data = result.data[row];
        var data_id = data[column_id];
@@ -261,10 +269,12 @@ function datatableInitRefreshRows(table, column_id, refresh_interval, trend_colu
           var row_html = $dt.rows[row_idx];
           var row_tds = $("td", row_html);
 
+          /* Try to update all the fields for the current row (row_html) */
           for(var key in data) {
              var col_idx = datatableGetColumnIndex(table, key);
              var cell = row_tds[col_idx];
              var $cell = $(cell);
+
              var old_val = $cell.data("dt-rr-cur-val") || $(cell).html();
              var trend_value_formatter = trend_columns[key];
              var new_val = data[key];

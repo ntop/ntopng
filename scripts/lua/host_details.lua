@@ -1701,11 +1701,7 @@ print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
 print('";')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
--- Set the host table option
-if(show_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
-
 local active_flows_msg = i18n("flows_page.active_flows",{filter=""})
 if not interface.isPacketInterface() then
    active_flows_msg = i18n("flows_page.recently_active_flows",{filter=""})
@@ -1716,14 +1712,12 @@ end
 local active_flows_msg = getFlowsTableTitle()
 
 print [[
-  flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
          url: url_update,
          buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
-         rowCallback: function ( row ) { return flow_table_setID(row); },
-         tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
-print(i18n('flows_page.idle_flows_not_listed'))
-print[['); },
+         tableCallback: function()  {
+	    ]] initFlowsRefreshRows() print[[
+	 },
          showPagination: true,
 	       ]]
 

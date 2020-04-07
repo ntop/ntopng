@@ -170,19 +170,13 @@ print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
 print ('";')
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
--- Set the flow table option
-
-if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
---if(ifstats.has_seen_ebpf_events) then print ('flow_rows_option["process"] = true;\n') end
-
    print [[
+
 	 var table = $("#table-flows").datatable({
 			url: url_update ,
-         rowCallback: function(row) { return flow_table_setID(row); },
-         tableCallback: function()  { $("#dt-bottom-details > .float-left > p").first().append('. ]]
-   print(i18n('flows_page.idle_flows_not_listed'))
-   print[['); },
+         tableCallback: function()  {
+            ]] initFlowsRefreshRows() print[[
+         },
 ]]
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
