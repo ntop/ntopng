@@ -6,7 +6,10 @@ local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 local json = require("dkjson")
-require("snmp_utils")
+
+if ntop.isPro() then
+   require("snmp_utils")
+end
 
 local script = {
    category = user_scripts.script_categories.network,
