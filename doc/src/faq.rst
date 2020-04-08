@@ -35,6 +35,8 @@ In it's standard setup, ntopng provides (near-)realtime visibility into what's h
 
 In terms of disk space used, timeseries take less space than flows which, in turn, take less space than pcaps. This `article <https://www.ntop.org/ntopng/ntopng-disk-requirements-for-timeseries-and-flows/>`_ gives useful indications on the space required.
 
+A good introduction and discussion of how to use timeseries, flows and pcaps to investigate issues is available in blog post `Drill Down Deeper: Using ntopng to Zoom In, Filter Out and Go Straight to the Packets <https://www.ntop.org/n2disk/drill-down-deeper-using-ntopng-to-zoom-in-filter-out-and-go-straight-to-the-packets/>`_.
+
 Timeseries
 ----------
 
