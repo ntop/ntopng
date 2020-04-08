@@ -10,5 +10,6 @@ Use Cases
     suricata
     processes_monitoring
     snmp_monitoring
-    timeseries_flows_pcaps
-    troubleshooting_with_netflow
+    netflow_sflow_monitoring
+    mirror_tap_monitoring
+    multiple_locations_monitoring
