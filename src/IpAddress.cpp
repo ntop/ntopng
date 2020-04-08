@@ -128,7 +128,8 @@ void IpAddress::checkIP() {
        || ((a & 0xFF000000) == 0x7F000000 /* 127.0.0.0/8 */)
        )
       addr.privateIP = true;
-    else if((a & 0xF0000000) == 0xE0000000 /* 224.0.0.0/4 */)
+
+    if((a & 0xF0000000) == 0xE0000000 /* 224.0.0.0/4 */)
       addr.multicastIP = true;
     else if((a == 0xFFFFFFFF) || (a == 0))
       addr.broadcastIP = true;
