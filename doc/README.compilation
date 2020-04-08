@@ -39,7 +39,7 @@ On Centos8
 - yum config-manager --set-enabled remi
 - yum clean all
 - yum update
-- yum install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect geoipupdate
+- yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect geoipupdate
 - Then list the streams which provide redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
 - yum install hiredis-devel
 
