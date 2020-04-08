@@ -1,3 +1,5 @@
+.. _Suricata Integration:
+
 Suricata Integration
 ====================
 

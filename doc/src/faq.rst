@@ -24,8 +24,38 @@ I'm using n2disk with ntopng. Do I need a license for it?
 
 Yes. See the `n2disk product page <https://www.ntop.org/products/traffic-recording-replay/n2disk/>`_.
 
+What to Save: Timeseries, Flows, pcaps
+======================================
+
+In it's standard setup, ntopng provides (near-)realtime visibility into what's happening on the network. Historical analyses can be done with ntopng using:
+
+- :ref:`BasicConceptsTimeseries`
+- Flows
+- pcaps
+
+In terms of disk space used, timeseries take less space than flows which, in turn, take less space than pcaps. This `article <https://www.ntop.org/ntopng/ntopng-disk-requirements-for-timeseries-and-flows/>`_ gives useful indications on the space required.
+
+Timeseries
+----------
+
+Timeseries are used to chart metrics over time, such as the bytes sent and received by an host, or the number of bytes for a Layer-7 application.
+
+Use timeseries when neither flows nor packets are required for historical analyses.
+
+Flows
+-----
+
+Monitored :ref:`WebGuiFlows` can be saved so they can be accessed when doing historical analyses. This allows to go back in time and browse all the past flows. To dump flows refer to :ref:`Flows Dump` and :ref:`Historical Flows`.
+
+pcaps
+-----
+
+Saving pcaps means saving all the traffic seen into files. This allows to go back in time and fetch all the traffic packets seen at any past point in time. This can be highly challenging in terms of space used. To save pcaps, refer to :ref:`UsingNtopngWithN2disk`.
+
 Hardware Sizing
 ===============
+
+Indications on process, memory and disk required are given below for networks with three different sizes.
 
 Network Size
 ------------

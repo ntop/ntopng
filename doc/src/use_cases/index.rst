@@ -7,6 +7,7 @@ Use Cases
     :maxdepth: 2
 
     mikrotik
+    suricata
     processes_monitoring
     snmp_monitoring
     timeseries_flows_pcaps
