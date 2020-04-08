@@ -16,7 +16,6 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    self_monitoring/index
    using_with_other_tools/index
    remote_assistance
-   traffic_recording
    historical_flows
    advanced_features/index
    operating_ntopng_on_large_networks
