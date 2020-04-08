@@ -152,6 +152,7 @@ local lang = {
   ["num_different_ports"] = "%{num} ports. None doing %{threshold}%%+ of the traffic.",
   ["num_uses"] = "Num Uses",
   ["off"] = "Off",
+  ["open_documentation"] = "Open in Documentation",
   ["operating_systems"] = "Operating Systems",
   ["os"] = "OS",
   ["other"] = "Other",
