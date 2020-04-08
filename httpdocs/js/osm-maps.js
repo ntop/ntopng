@@ -47,24 +47,26 @@ $(document).ready(function () {
 
     const init_map = () => {
 
-        const timeout_val = 10 * 1000 * 1000;
-
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(show_positions, display_errors, { enableHighAccuracy: true, timeout: timeout_val, maximumAge: 0 });
+            navigator.geolocation.getCurrentPosition(show_positions, display_errors, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }
     }
 
     const draw_markers = (json, map_markers, map) => {
 
         const { center, objects } = json;
-        const hosts = objects.map((h) => {
-            return {
-                lat: h.host[0].lat,
-                lng: h.host[0].lng,
-                html: h.host[0].html,
-                ip_address: h.host[0].name
-            }
+        const response_hosts = new Set();
+        objects.forEach((hosts) => {
+            hosts.host.forEach((h) => {
+                response_hosts.add({
+                    lat: h.lat,
+                    lng: h.lng,
+                    html: h.html,
+                    ip_address: h.name
+                });
+            })
         });
+        const hosts = [...response_hosts];
 
         hosts.forEach(h => {
             const marker = L.marker([h.lat, h.lng], { title: h.ip_address }).bindPopup(`
