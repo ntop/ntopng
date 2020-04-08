@@ -330,7 +330,7 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("user_info.processes"),
 			      },
 			      {
-				 hidden = only_historical or host["privatehost"] or not ntop.hasGeoIP(),
+				 hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),
 				 active = page == "geomap",
 				 page_name = "geomap",
 				 label = "<i class='fas fa-lg fa-globe'></i>",
@@ -1889,7 +1889,7 @@ elseif(page == "snmp" and ntop.isEnterprise() and isAllowedSystemInterface()) th
 elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
    ebpf_utils.draw_processes_graph(host_info)
-elseif not host.privatehost and page == "geomap" then
+elseif page == "geomap" then
 
    print ([[
       <div class="container-fluid">
