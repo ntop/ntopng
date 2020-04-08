@@ -12,11 +12,6 @@ allows you to retrieve and analyse all the raw traffic in that period of time.
 Enabling Traffic Recording
 --------------------------
 
-.. warning::
-
-  This is a beta feature. The dump format may change in future releases without
-  backward compatibility.
-
 *ntopng*, since version 3.7, includes support for continuous traffic recording 
 leveraging on *n2disk*, an optimized traffic recording application part of the 
 *ntop* suite available on Linux systems. For this reason, in order to be able to 

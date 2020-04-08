@@ -18,6 +18,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    traffic_recording
    historical_flows
    advanced_features/index
+   use_cases/index
    operating_ntopng_on_large_networks
    faq
    plugins/index
