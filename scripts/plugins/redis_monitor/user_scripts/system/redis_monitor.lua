@@ -97,7 +97,7 @@ local function getHealth(redis_status)
    if redis_status["aof_enabled"] and redis_status["aof_enabled"] ~= 0 then
       -- If here the use of Redis Append Only File (AOF) is enabled
       -- so we should check for its errors
-      if redis_stats["aof_last_bgrewrite_status"] ~= "ok" or redis_status["aof_last_write_status"] ~= "ok" then
+      if redis_status["aof_last_bgrewrite_status"] ~= "ok" or redis_status["aof_last_write_status"] ~= "ok" then
 	 health = "red"
       end
    end
