@@ -3,6 +3,9 @@
 Use Cases
 #########
 
+Here is a list of common ntopng use cases. Each use case contains detailed instuctions on how
+to setup ntopng to solve it.
+
 .. toctree::
     :maxdepth: 2
 
