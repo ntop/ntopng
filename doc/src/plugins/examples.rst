@@ -439,3 +439,147 @@ ntopng calculates the delta between this value and the previous one, which is st
 the `egress_delta_bytes` variable.
 
 .. _`local network`: ../basic_concepts/hosts.html#local-hosts
+
+SNMP Topology Changed
+---------------------
+
+The full plugin source is available at the `GitHub SNMP topology change page
+<https://github.com/ntop/ntopng/tree/dev/scripts/plugins/snmp_topology_change>`_.
+The script requires the ntopng Enterprise M license in order to be run.
+
+The complete structure of the plugin is as follows:
+
+.. code:: bash
+
+	  snmp_topology_change/
+	      |-- manifest.lua
+	      |-- alert_definitions
+	      |	  `-- alert_snmp_topology_changed.lua
+	      `-- user_scripts
+		  `-- snmp_device
+		      `-- lldp_topology_changed.lua
+
+This plugin uses the `LLDP <https://en.wikipedia.org/wiki/Link_Layer_Discovery_Protocol>`_
+information that ntopng has collected to determine changes in the SNMP network topology.
+When a new link is added or an old link is removed, the `alert_snmp_topology_changed` alert is generated.
+
+Here is an analysis of the user script reponsible for the alert generation.
+
+.. code:: lua
+
+   local script = {
+      category = user_scripts.script_categories.network,
+
+      hooks = {},
+
+      default_enabled = false,
+
+      gui = {
+	 i18n_title = "snmp.lldp_topology_changed_title",
+	 i18n_description = "snmp.lldp_topology_changed_description",
+      },
+   }
+
+   -- #################################################################
+
+   function script.setup()
+      return(ntop.isEnterpriseM())
+   end
+
+   -- #################################################################
+
+   local function storeTopologyChangedAlert(info, arc, nodes, subtype)
+      local parts = split(arc, "@")
+
+      if(#parts == 2) then
+	 alerts_api.store(
+	    info.alert_entity, {
+	       alert_type = alert_consts.alert_types.alert_snmp_topology_changed,
+	       alert_subtype = subtype,
+	       alert_severity = alert_consts.alert_severities.warning,
+	       alert_granularity = info.granularity,
+	       alert_type_params = {
+		  node1 = parts[1], ip1 = nodes[parts[1]],
+		  node2 = parts[2], ip2 = nodes[parts[2]],
+	       },
+	 })
+      end
+   end
+
+   -- #################################################################
+
+   function script.hooks.snmpDevice(device_ip, info)
+      local arcs_key = "ntopng.cache.snmp_topology_arcs_monitor." .. device_ip
+      local old_arcs = ntop.getPref(arcs_key)
+
+      if not isEmptyString(old_arcs) then
+	 old_arcs = json.decode(old_arcs) or {}
+      else
+	 old_arcs = {}
+      end
+
+      local nodes, arcs = snmp_load_devices_topology(device_ip)
+      local is_first_run = table.empty(old_arcs)
+      local new_arcs = {}
+
+      for arc in pairs(arcs) do
+	 if(not is_first_run) then
+	    if(not old_arcs[arc]) then
+	       storeTopologyChangedAlert(info, arc, nodes, "arc_added")
+	    else
+	       old_arcs[arc] = nil
+	    end
+	 end
+
+	 new_arcs[arc] = true
+      end
+
+      for arc in pairs(old_arcs) do
+	 storeTopologyChangedAlert(info, arc, nodes, "arc_removed")
+      end
+
+      ntop.setPref(arcs_key, json.encode(new_arcs))
+   end
+
+   -- ################################################################
+
+   return script
+
+Here is a description of the general structure:
+
+- :code:`script.category` the category for this script is `network`
+- :code:`script.default_enabled` the script is disabled by default
+- :code:`script.gui` defines the essential metadata, necessary to print the configuration into the gui
+- :code:`script.setup`: this returns false if the Enterprise M edition is not available, disabling the script
+- :code:`script.hooks.snmpDevice`: defines the hook to be called after ntopng has processed a specific SNMP device.
+  The `device_ip` contains the IP address of the SNMP device, whereas the `info` field contains some computed information
+  on the device (use `tprint(info)` to get a list of fields). See below for a detailed description of this example.
+- :code:`storeTopologyChangedAlert`: this function is responsible for the alert triggering part.
+
+The `script.hooks.snmpDevice` function uses the `snmp_load_devices_topology` function to retrieve the
+latest LLDP information for the current SNMP device. The function returns a list of nodes and arcs involved
+in this particular SNMP device topology. The `nodes` are a lua table which maps `node_name` -> `node_ip`, for example:
+
+.. code:: lua
+
+    table
+   AccessSW-1 string 172.16.24.1
+   NetworkSpine-2 string 172.16.23.1
+
+The `arcs` are a lua table which contains links information between the SNMP device and other devices. Here is an example:
+
+.. code:: lua
+
+    table
+   AccessSW-1@NetworkSpine-2 table
+   AccessSW-1@NetworkSpine-2.1 number 25151496709
+   AccessSW-1@NetworkSpine-2.2 string 2111493
+
+The above information can be interpreted as:
+
+- Exists a link between `AccessSW-1` and `NetworkSpine-2`
+- `AccessSW-1` is connected to `NetworkSpine-2` via the interface with index `2111493`
+- The total traffic registered from `AccessSW-1` to `NetworkSpine-2` is 25151496709 bytes
+
+The user script keeps track of the old arcs by storing them into the redis key `ntopng.cache.snmp_topology_arcs_monitor.<device_ip>`.
+By comparing the old registered arcs with the new ones it can determine if an arc was removed or added.
