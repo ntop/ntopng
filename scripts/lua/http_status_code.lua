@@ -18,7 +18,7 @@ local message        = _GET["message"] or "forbidden"
 local referal_url    = _GET["referer"] or '/'
 local error_message  = _GET["error_message"] or ""
 
-referal_url = string.sub(referal_url, string.find(referal_url, "/"))
+referal_url = string.sub(referal_url, string.find(referal_url, "/"), string.len(referal_url))
 message = "http_status_code."..message
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -36,7 +36,7 @@ print(i18n(message))
    print('</b></p><p class="text-danger">'..error_message)
 print([[</p>
 
-            <a class='btn-primary btn mb-3' href="]]..referal_url..[[">
+            <a class='btn-primary btn mb-3' href="]].. referal_url ..[[">
                <i class='fas fa-arrow-left'></i> ]].. i18n("error_page.go_back").. [[
             </a>
         </div>
