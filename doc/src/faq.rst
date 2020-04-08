@@ -70,6 +70,10 @@ Network Size
 | Active Flows | Thousands     | Hundreds of thoudsands    | Millions              |
 +--------------+---------------+---------------------------+-----------------------+
 
+.. note::
+
+  On large networks, special extra configuration is required as explained in :ref:`OperatingNtopngOnLargeNetworks`.
+
 Processor and Memory
 --------------------
 
