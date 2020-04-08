@@ -116,6 +116,10 @@ end
 -- ##############################################
 
 function snmpDeviceUrl(snmp_device)
+  if not snmp_device then
+   return "#"
+  end
+
   return ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_device)
 end
 
