@@ -1,6 +1,62 @@
 FAQ
 ###
 
+Licenses
+========
+
+I'm using nProbe with ntopng. Do I need a license for it?
+---------------------------------------------------------
+
+Yes. See the `nProbe product page <https://www.ntop.org/products/netflow/nprobe/>`_.
+
+I'm using nProbe Agent with ntopng. Do I need a license for it?
+---------------------------------------------------------------
+
+Yes. See the `nProbe Agent product page <https://www.ntop.org/products/netflow/nprobe-agent/>`_.
+
+I'm using nProbe Cento with ntopng. Do I need a license for it?
+---------------------------------------------------------------
+
+Yes. See the `nProbe Cento product page <https://www.ntop.org/products/netflow/nprobe-cento/>`_.
+
+I'm using n2disk with ntopng. Do I need a license for it?
+---------------------------------------------------------
+
+Yes. See the `n2disk product page <https://www.ntop.org/products/traffic-recording-replay/n2disk/>`_.
+
+Hardware Sizing
+===============
+
+Network Size
+------------
+
++--------------+---------------+---------------------------+-----------------------+
+|              | Small Network | Medium Network            | Large Network         |
++--------------+---------------+---------------------------+-----------------------+
+| Traffic      | < 100Mbps     | Between 100Mbps and 1Gbps | Above 1Gbps           |
++--------------+---------------+---------------------------+-----------------------+
+| Active Hosts | Hundredhs     | Thoushands                | Hundreds of thousands |
++--------------+---------------+---------------------------+-----------------------+
+| Active Flows | Thousands     | Hundreds of thoudsands    | Millions              |
++--------------+---------------+---------------------------+-----------------------+
+
+Processor and Memory
+--------------------
+
++-----------+---------------+----------------+---------------+
+|           | Small Network | Medium Network | Large Network |
++-----------+---------------+----------------+---------------+
+| Processor | 2cores+       | 4cores+        | 8cores+       |
++-----------+---------------+----------------+---------------+
+| Memory    | 2GB+          | 4GB+           | 16GB+         |
++-----------+---------------+----------------+---------------+
+
+Disk
+----
+
+See `ntopng Disk Requirements for Timeseries and Flows <https://www.ntop.org/ntopng/ntopng-disk-requirements-for-timeseries-and-flows/>`_.
+
+
 Cannot Login into the GUI
 =========================
 
