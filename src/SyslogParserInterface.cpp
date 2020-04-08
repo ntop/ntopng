@@ -69,7 +69,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
 
   /*
    * Supported Log Format ({} are used to indicate optional items)
-   * {TIMESTAMP;HOST; }<PRIO>{TIMESTAMP DEVICE} APPLICATION{[PID]}: CONTENT
+   * {TIMESTAMP;HOST; }<PRIO>{TIMESTAMP DEVICE} APPLICATION{[PID]}{: }CONTENT
    */
 
   /* Look for <PRIO> */
@@ -111,8 +111,8 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
     }
   } else if ((tmp = strstr(log_line, ": ")) != NULL) /* Parse APPLICATION: */
     content = &tmp[2];
-  else {
-    return 0;
+  else { /* Ignore ':' as last resort  */
+    content = log_line;
   }
  
   if (producer_name == NULL) {
