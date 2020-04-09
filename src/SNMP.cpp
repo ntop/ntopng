@@ -86,12 +86,11 @@ void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
 /* ******************************************* */
 
 int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
-  int i = 0, rc = CONST_LUA_OK;
+  int i = 0;
   
   if(ntop->getGlobals()->isShutdown()
      || input_timeout(udp_sock, timeout) == 0) {
     /* Timeout or shutdown in progress */
-    rc = CONST_LUA_ERROR;
     lua_pushnil(vm);
   } else {
     char buf[BUFLEN];
@@ -115,10 +114,10 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
     free(message); /* malloc'd by snmp_parse_message */
 
     if(!added)
-      lua_pushnil(vm), rc = CONST_LUA_ERROR;    
+      lua_pushnil(vm);
   }
 
-  return(rc);
+  return(CONST_LUA_OK);
 }
 
 /* ******************************************* */

@@ -510,7 +510,8 @@ static int ntop_process_flow(lua_State* vm) {
     ParsedFlow flow;
     flow.fromLua(vm, 1);
     ntop_parser_interface->processFlow(&flow);
-  }
+  } else
+    lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -2057,16 +2058,16 @@ static int ntop_reload_periodic_scripts(lua_State* vm) {
 
 static int ntop_gainWriteCapabilities(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushnil(vm);
-  return(Utils::gainWriteCapabilities() == 0 ? CONST_LUA_OK : CONST_LUA_ERROR);
+  lua_pushboolean(vm, Utils::gainWriteCapabilities() == 0);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
 static int ntop_dropWriteCapabilities(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushnil(vm);
-  return(Utils::dropWriteCapabilities() == 0 ? CONST_LUA_OK : CONST_LUA_ERROR);
+  lua_pushboolean(vm, Utils::dropWriteCapabilities() == 0);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -2958,7 +2959,6 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   u_int16_t vlan_id = 0;
   Host *host = NULL;
   Paginator *p = NULL;
-  int numFlows = -1;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
 
@@ -2980,12 +2980,12 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
   if(ntop_interface
      && (!host_ip || host))
-    numFlows = ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
   else
     lua_pushnil(vm);
 
   if(p) delete p;
-  return numFlows < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -2997,7 +2997,6 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
   u_int16_t vlan_id = 0;
   Host *host = NULL;
   Paginator *p = NULL;
-  int numFlows = -1;
   u_int32_t begin_slot = 0;
   bool walk_all = false;
 
@@ -3022,12 +3021,12 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
 
   if(ntop_interface
      && (!host_ip || host))
-    numFlows = ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
   else
     lua_pushnil(vm);
 
   if(p) delete p;
-  return numFlows < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -3035,7 +3034,6 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
 static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Paginator *p = NULL;
-  int numGroups = -1;
   const char *group_col;
 
   if(!ntop_interface)
@@ -3053,13 +3051,13 @@ static int ntop_get_interface_get_grouped_flows(lua_State* vm) {
     p->readOptions(vm, 2);
 
   if(ntop_interface)
-    numGroups = ntop_interface->getFlowsGroup(vm, get_allowed_nets(vm), p, group_col);
+    ntop_interface->getFlowsGroup(vm, get_allowed_nets(vm), p, group_col);
   else
     lua_pushnil(vm);
 
   delete p;
 
-  return numGroups < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -3450,6 +3448,7 @@ static int ntop_snmp_batch_get(lua_State* vm) {
 			  false /* SNMP GET */, oid,
 			  (u_int)lua_tonumber(vm, 4));
 
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 #endif
@@ -3831,7 +3830,6 @@ static int ntop_get_interface_find_host(lua_State* vm) {
 
   if(!ntop_interface) return(CONST_LUA_ERROR);
   ntop_interface->findHostsByName(vm, get_allowed_nets(vm), key);
-  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -3851,7 +3849,6 @@ static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
   Utils::parseMac(_mac, mac);
 
   ntop_interface->findHostsByMac(vm, _mac);
-  /* TODO check if we need lua_pushnil(vm); in case of no match */
   return(CONST_LUA_OK);
 }
 
@@ -5123,10 +5120,6 @@ static int __ntop_rrd_status(lua_State* vm, int status, char *filename, char *cf
       ntop->getTrace()->traceEvent(TRACE_ERROR,
                                    "Error '%s' while calling rrd_fetch_r(%s, %s): is the RRD corrupted perhaps?",
                                    err, filename, cf);
-      lua_pushnil(vm);
-      lua_pushnil(vm);
-      lua_pushnil(vm);
-      lua_pushnil(vm);
       return(CONST_LUA_ERROR);
     }
   }
@@ -7216,10 +7209,7 @@ static int ntop_syslog(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)  != CONST_LUA_OK) {
-    lua_pushnil(vm);
-    return(CONST_LUA_ERROR);
-  }
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)  != CONST_LUA_OK) return(CONST_LUA_ERROR);
 
   msg = (char*)lua_tostring(vm, 1);
   if(lua_type(vm, 2) == LUA_TNUMBER)
@@ -7907,7 +7897,11 @@ static int ntop_mkdir_tree(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((dir = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
-  if(dir[0] == '\0')                                   return(CONST_LUA_OK); /* Nothing to do */
+
+  if(dir[0] == '\0') {
+    lua_pushboolean(vm, true);
+    return(CONST_LUA_OK); /* Nothing to do */
+  }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Trying to created directory %s", dir);
     
@@ -8253,9 +8247,10 @@ static int ntop_redis_dump(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!redis->haveRedisDump())
+  if(!redis->haveRedisDump()) {
     lua_pushnil(vm); /* This is old redis */
-  else {
+    return(CONST_LUA_OK);
+  } else {
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
     if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -8264,11 +8259,10 @@ static int ntop_redis_dump(lua_State* vm) {
     if(dump) {
       lua_pushfstring(vm, "%s", dump);
       free(dump);
+      return(CONST_LUA_OK);
     } else
       return(CONST_LUA_ERROR);
   }
-
-  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -8289,7 +8283,8 @@ static int ntop_redis_restore(lua_State* vm) {
     if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
     if((dump = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-    return((redis->restore(key, dump) != 0) ? CONST_LUA_ERROR : CONST_LUA_OK);
+    lua_pushboolean(vm, (redis->restore(key, dump) != 0));
+    return(CONST_LUA_OK);
   }
 }
 
@@ -8624,6 +8619,7 @@ static int ntop_interface_reload_companions(lua_State* vm) {
   if((iface = ntop->getInterfaceById(ifid)))
     iface->reloadCompanions();
 
+  lua_pushnil(vm);
   return CONST_LUA_OK;
 }
 
@@ -8700,6 +8696,7 @@ static int ntop_host_set_cached_alert_value(lua_State* vm) {
     return(CONST_LUA_PARAM_ERROR);
 
   h->setAlertCacheValue(std::string(key), std::string(value), periodicity);
+  lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -10242,6 +10239,7 @@ static int ntop_network_set_cached_alert_value(lua_State* vm) {
     return(CONST_LUA_PARAM_ERROR);
 
   ns->setAlertCacheValue(std::string(key), std::string(value), periodicity);
+  lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -10294,6 +10292,7 @@ static int ntop_interface_set_cached_alert_value(lua_State* vm) {
     return(CONST_LUA_PARAM_ERROR);
 
   c->iface->setAlertCacheValue(std::string(key), std::string(value), periodicity);
+  lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -10563,6 +10562,7 @@ static int ntop_interface_optimize_alerts(lua_State* vm) {
   if(am->optimizeStore())
     return(CONST_LUA_ERROR);
 
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -10784,12 +10784,8 @@ static int ntop_set_redis(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TNUMBER)
     expire_secs = (u_int)lua_tonumber(vm, 3);
 
-  lua_pushnil(vm);
-
-  if(redis->set(key, value, expire_secs) == 0)
-    return(CONST_LUA_OK);
-
-  return(CONST_LUA_ERROR);
+  lua_pushboolean(vm, (redis->set(key, value, expire_secs) == 0));
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
