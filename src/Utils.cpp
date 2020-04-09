@@ -1026,16 +1026,11 @@ char* Utils::stripHTML(const char * const str) {
   if(!str) return NULL;
   int len = strlen(str), j = 0;
   char *stripped_str = NULL;
-  try {
-    stripped_str = new char[len + 1];
-  } catch(std::bad_alloc& ba) {
-    static bool oom_warning_sent = false;
-    if(!oom_warning_sent) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-      oom_warning_sent = true;
-    }
-    return NULL;
-  }
+
+  stripped_str = (char *) malloc(len + 1);
+
+  if(!stripped_str)
+    return(NULL);
 
   // scan string
   for (int i = 0; i < len; i++) {
