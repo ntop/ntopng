@@ -122,6 +122,11 @@ int main(int argc, char *argv[])
 
   if(rc < 0) return(-1);
 
+  /* Create the working dir before dropping the provileges, otherwise the
+   * user might not be able to create it. Utils::dropPrivileges will move
+   * the directory ownership to the user. */
+  Utils::mkdir_tree(ntop->get_working_dir());
+
 #ifndef WIN32
   ntop->lockNtopInstance();
 #endif
@@ -349,8 +354,6 @@ int main(int argc, char *argv[])
     We have created the network interface and thus changed user. Let's now check
     if we can write on the data directory
   */
-  Utils::mkdir_tree(ntop->get_working_dir());
-
   snprintf(path, sizeof(path), "%s/.test", ntop->get_working_dir());
   ntop->fixPath(path);
   
