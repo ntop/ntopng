@@ -713,7 +713,7 @@ int Utils::dropPrivileges() {
     /* Change the working dir ownership */
     rv = chown(ntop->get_working_dir(), pw->pw_uid, pw->pw_gid);
     if(rv != 0)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change %s owner to %s", ntop->get_working_dir(), ntop->getPrefs()->get_pid_path());
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change working dir '%s' owner", ntop->get_working_dir());
 
     if(ntop->getPrefs()->get_pid_path() != NULL) {
       /* Change PID file ownership to be able to delete it on shutdown */
