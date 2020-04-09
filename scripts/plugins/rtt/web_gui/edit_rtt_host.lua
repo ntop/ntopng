@@ -73,7 +73,8 @@ end
 
 if(action == "add") then
    local existing
-   local rtt_value = _POST["rtt_max"] or 500
+   local rtt_value = _POST["rtt_max"]
+   local granularity = _POST["granularity"]
    local url = rtt_utils.formatRttHost(host, measurement)
 
    if(isValidHostMeasurementCombination(host, measurement) == false) then
@@ -88,11 +89,12 @@ if(action == "add") then
       return
    end
 
-   rtt_utils.addHost(host, measurement, rtt_value)
+   rtt_utils.addHost(host, measurement, rtt_value, granularity)
    rv.message = i18n("rtt_stats.host_add_ok", {host=url})
 elseif(action == "edit") then
    local existing
-   local rtt_value = _POST["rtt_max"] or 500
+   local rtt_value = _POST["rtt_max"]
+   local granularity = _POST["granularity"]
    local url = rtt_utils.formatRttHost(host, measurement)
    local old_rtt_host = _POST["old_rtt_host"]
    local old_measurement = _POST["old_measurement"]
@@ -131,10 +133,10 @@ elseif(action == "edit") then
       end
 
       rtt_utils.deleteHost(old_rtt_host, old_measurement)
-      rtt_utils.addHost(host, measurement, rtt_value)
+      rtt_utils.addHost(host, measurement, rtt_value, granularity)
    else
       -- The key is the same, only update the rtt
-      rtt_utils.addHost(host, measurement, rtt_value)
+      rtt_utils.addHost(host, measurement, rtt_value, granularity)
    end
 
    rv.message = i18n("rtt_stats.host_edit_ok", {host=old_url})

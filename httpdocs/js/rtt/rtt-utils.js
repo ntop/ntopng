@@ -7,9 +7,10 @@ $(document).ready(function() {
         event.preventDefault();
 
         const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
+        const granularity = $("#select-add-granularity").val();
         const threshold = $("#input-add-threshold").val();
 
-        perform_request(make_data_to_send('add', host, threshold, measurement, rtt_csrf));
+        perform_request(make_data_to_send('add', host, threshold, measurement, granularity, rtt_csrf));
 
     });
 
@@ -37,13 +38,15 @@ $(document).ready(function() {
 
         const fill_form = (data) => {
 
-            const DEFAULT_THRESHOLD     = 100;
+            const DEFAULT_THRESHOLD     = 500;
+            const DEFAULT_GRANULARITY   = "min";
             const DEFAULT_MEASUREMENT   = "icmp";
             const DEFAULT_HOST          = "";
 
             // fill input boxes
             $('#input-edit-threshold').val(data.threshold || DEFAULT_THRESHOLD);
             $('#select-edit-measurement').val(data.measurement || DEFAULT_MEASUREMENT);
+            $('#select-edit-granularity').val(data.granularity || DEFAULT_GRANULARITY);
             $('#input-edit-host').val(data.host || DEFAULT_HOST);
         }
 
@@ -55,6 +58,7 @@ $(document).ready(function() {
             event.preventDefault();
 
             const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
+            const granularity = $("#select-edit-granularity").val();
             const threshold = $("#input-edit-threshold").val();
 
             const data_to_send = {
@@ -64,6 +68,7 @@ $(document).ready(function() {
                 measurement: measurement,
                 old_rtt_host: data.host,
                 old_measurement: data.measurement,
+                granularity: granularity,
                 csrf: rtt_csrf
             };
 
@@ -81,12 +86,13 @@ $(document).ready(function() {
 
     });
 
-    const make_data_to_send = (action, rtt_host, rtt_max, rtt_measure, csrf) => {
+    const make_data_to_send = (action, rtt_host, rtt_max, rtt_measure, granularity, csrf) => {
         return {
             action: action,
             rtt_host: rtt_host,
             rtt_max: rtt_max,
             measurement: rtt_measure,
+            granularity: granularity,
             csrf: csrf
         }
     }

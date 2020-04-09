@@ -5,12 +5,19 @@
 local rtt_utils = {}
 local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
+local json = require("dkjson")
 
 rtt_utils.probe_types = {
    { title = "icmp",   value = "icmp"  },
    { title = "icmp6",  value = "icmp6" },
    { title = "http",   value = "http"  },
    { title = "https",  value = "https" }
+}
+
+rtt_utils.granularities = {
+   { title = i18n("alerts_thresholds_config.every_minute"),     value = "min"   },
+   { title = i18n("alerts_thresholds_config.every_5_minutes"),   value = "5mins" },
+   { title = i18n("alerts_thresholds_config.hourly"),    value = "hour"  },
 }
 
 -- ##############################################
@@ -86,7 +93,6 @@ end
 
 -- ##############################################
 
--- Host (de)serialization functions. For now, only the RTT is saved.
 local function deserializeRttPrefs(host_key, val, config_only)
   local rv
 
@@ -96,13 +102,25 @@ local function deserializeRttPrefs(host_key, val, config_only)
     rv = rtt_utils.key2host(host_key)
   end
 
-  rv.max_rtt = tonumber(val)
+  if(tonumber(val) ~= nil) then
+    -- Old format is only a number
+    rv.max_rtt = tonumber(val)
+    rv.granularity = "min"
+  else
+    -- New format: json
+    local v = json.decode(val)
+
+    if v then
+      rv.max_rtt = tonumber(v.max_rtt) or 500
+      rv.granularity = v.granularity or "min"
+    end
+  end
 
   return(rv)
 end
 
 local function serializeRttPrefs(val)
-  return string.format("%u", math.floor(tonumber(val)))
+  return json.encode(val)
 end
 
 -- ##############################################
@@ -116,12 +134,16 @@ end
 
 -- ##############################################
 
-function rtt_utils.getHosts(config_only)
+function rtt_utils.getHosts(config_only, granularity)
   local hosts = ntop.getHashAllCache(rtt_hosts_key) or {}
   local rv = {}
 
   for host_key, val in pairs(hosts) do
-    rv[host_key] = deserializeRttPrefs(host_key, val, config_only)
+    local host = deserializeRttPrefs(host_key, val, config_only)
+
+    if host and ((granularity == nil) or (host.granularity == granularity)) then
+      rv[host_key] = host
+    end
   end
 
   return rv
@@ -152,10 +174,13 @@ end
 
 -- ##############################################
 
-function rtt_utils.addHost(host, measurement, rtt_value)
+function rtt_utils.addHost(host, measurement, rtt_value, granularity)
   local host_key = rtt_utils.getRttHostKey(host, measurement)
 
-  ntop.setHashCache(rtt_hosts_key, host_key, serializeRttPrefs(rtt_value))
+  ntop.setHashCache(rtt_hosts_key, host_key, serializeRttPrefs({
+    max_rtt = tonumber(rtt_value) or 500,
+    granularity = granularity or "min",
+  }))
 end
 
 -- ##############################################

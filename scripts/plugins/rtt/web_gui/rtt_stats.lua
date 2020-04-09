@@ -163,6 +163,12 @@ if(page == "overview") then
                   <input placeholder="yourhostname.org" required id="input-edit-host" type="text" name="host" class="form-control" />
                 </div>
               </div>
+	      <div class="form-group row">
+                <label class="col-sm-3 col-form-label">]] .. i18n("internals.periodicity") .. [[</label>
+                <div class="col-sm-5">
+                  ]].. generate_select("select-edit-granularity", "granularity", true, false, rtt_utils.granularities) ..[[
+                </div>
+              </div>
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.rtt_threshold") .. [[</label>
                 <div class="col-sm-5">
@@ -216,6 +222,12 @@ if(page == "overview") then
                 <label class="col-sm-3 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
                 <div class="col-sm-5">
                   <input placeholder="yourhostname.org" required id="input-add-host" type="text" name="host" class="form-control" />
+                </div>
+              </div>
+	      <div class="form-group row">
+                <label class="col-sm-3 col-form-label">]] .. i18n("internals.periodicity") .. [[</label>
+                <div class="col-sm-5">
+                  ]].. generate_select("select-add-granularity", "granularity", true, false, rtt_utils.granularities) ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -316,22 +328,23 @@ if(page == "overview") then
 
 elseif((page == "historical") and (host ~= nil)) then
 
-  local schema = _GET["ts_schema"] or "rtt_host:rtt"
+  local suffix = "_" .. host.granularity
+  local schema = _GET["ts_schema"] or ("rtt_host:rtt" .. suffix)
   local selected_epoch = _GET["epoch"] or ""
   local tags = {ifid=getSystemInterfaceId(), host=host.host, measure=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
   local notes = {}
   url = url.."&page=historical"
 
   local timeseries = {
-    { schema="rtt_host:rtt", label=i18n("graphs.num_ms_rtt") },
+    { schema="rtt_host:rtt" .. suffix, label=i18n("graphs.num_ms_rtt") },
   }
 
   if(host.measurement == "https") then
-    timeseries[#timeseries + 1] = { schema="rtt_host:https_stats", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }}
+    timeseries[#timeseries + 1] = { schema="rtt_host:https_stats" .. suffix, label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }}
     notes[#notes + 1] = i18n("rtt_stats.app_connect_descr")
     notes[#notes + 1] = i18n("rtt_stats.other_https_descr")
   elseif(host.measurement == "http") then
-    timeseries[#timeseries + 1] = { schema="rtt_host:http_stats_v2", label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("other") }}
+    timeseries[#timeseries + 1] = { schema="rtt_host:http_stats_v2" .. suffix, label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("other") }}
     notes[#notes + 1] = i18n("rtt_stats.other_http_descr")
   end
 

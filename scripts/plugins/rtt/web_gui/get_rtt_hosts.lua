@@ -58,6 +58,7 @@ for key, rtt_host in pairs(rtt_hosts) do
        last_rtt = column_last_rtt,
        last_mesurement_time = column_last_update,
        last_ip = column_last_ip,
+       granularity = rtt_host.granularity,
     }
 end
 
