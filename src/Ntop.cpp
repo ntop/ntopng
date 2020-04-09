@@ -188,6 +188,12 @@ Ntop::Ntop(char *appName) {
 void Ntop::lockNtopInstance() {
   char lockPath[MAX_PATH+8];
   struct flock lock;
+  struct stat st;
+
+  if((stat(working_dir, &st) != 0) || !S_ISDIR(st.st_mode)) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Working dir does not exist yet");
+    return;
+  }
   
   snprintf(lockPath, sizeof(lockPath), "%s/.lock", working_dir);
   
