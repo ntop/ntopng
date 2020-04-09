@@ -157,12 +157,42 @@ print [[
 
 if not info.oem then
 
-	local user_name = isNoLoginUser() and 'admin' or _SESSION['user']
-
+	-- Blog Notification click handling
 	print([[
 		$(document).ready(function() {
-			let user_name = `]].. user_name ..[[`;
-			BlogFeed.queryBlog(user_name);
+
+			let csrf_notification = "]].. ntop.getRandomCSRFValue() ..[[";
+			function blogNotifcationClick(e) {
+
+				if (e.type == "mousedown" && (e.metaKey || e.ctrlKey || e.which !== 2)) return;
+
+				const id = $(this).data('id');
+				$.post(`]].. ntop.getHttpPrefix() ..[[/lua/update_blog_posts.lua`, {
+					blog_notification_id: id,
+					csrf: csrf_notification
+				},
+				(data) => {
+
+					if (data.success) {
+						$(this)
+							.off('click').off('mousedown')
+							.attr('data-read', 'true').data('read', 'true')
+							.find('.badge').remove();
+						const count = $(`.blog-notification[data-read='false']`).length;
+
+						if (count == 0) {
+							$('.notification-bell').remove();
+							return;
+						}
+						$('.notification-bell').html(count);
+					}
+					csrf_notification = data.csrf;
+				});
+			}
+
+			$(`.blog-notification[data-read='false']`)
+				.click(blogNotifcationClick)
+				.mousedown(blogNotifcationClick);
 		});
 	]])
 

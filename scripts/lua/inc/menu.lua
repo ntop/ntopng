@@ -13,7 +13,7 @@ local telemetry_utils = require "telemetry_utils"
 local ts_utils = require("ts_utils_core")
 local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
-
+local blog_utils = require("blog_utils")
 local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
@@ -923,17 +923,72 @@ print([[
 <ul class='navbar-nav'>
 ]])
 
-if not info.oem then
+-- Render Blog Notifications
+if (not info.oem) then
+
+   local username = _SESSION["user"] or ''
+   if (isNoLoginUser()) then username = 'no_login' end
+
+   local posts, new_posts_counter = blog_utils.readPostsFromRedis(username)
+
    print([[
    <li class="nav-item">
       <a id="notification-list" href="#" class="nav-link dropdown-toggle mx-2 dark-gray position-relative" data-toggle="dropdown">
          <i class='fas fa-bell'></i>
+         ]])
+
+   if (new_posts_counter > 0) then
+      print([[<span class="badge notification-bell badge-pill badge-danger">]].. new_posts_counter ..[[</span>]])
+   end
+
+   print([[
       </a>
       <div class="dropdown-menu dropdown-menu-right p-1">
          <div class="blog-section">
             <span class="dropdown-header p-2 mb-0">]].. i18n("blog_feed.news_from_blog") ..[[</span>
-            <ul class="list-unstyled">
-               <li class="text-muted p-2">]].. i18n("blog_feed.nothing_to_show") ..[[</li>
+            <ul class="list-unstyled">]])
+
+   if (posts ~= nil) then
+
+      for _, p in pairs(posts) do
+
+         local user_has_read_post = not (p.users_read[username] == nil)
+         local post_date = os.date("%x", p.epoch)
+
+         local post_title = p.title or ''
+         if (string.len(post_title)) then
+            post_title = string.sub(p.title, 1, 48) .. "..."
+         end
+
+         print([[
+            <li class='media-body pt-2 pr-2 pl-2 pb-1'>
+               <a target="_newtab"
+                  class="blog-notification text-dark"
+                  data-read="]].. (user_has_read_post and "true" or "false") ..[["
+                  data-id="]].. p.id ..[["
+                  class='text-dark'
+                  href="]].. (p.link or '/') ..[[">
+                     <h6 class='mt-0 mb-1'>
+                        ]].. ((not user_has_read_post) and "<span class='badge badge-primary'>".. i18n('new') .."</span>" or '') ..[[
+                        ]].. post_title ..[[
+                        <i class='fas fa-external-link-alt float-right ml-1'></i>
+                     </h6>
+                     <p class='mb-0'>
+                        ]].. (p.shortDesc) ..[[]
+                     </p>
+                     <small>
+                        ]].. i18n('posted') .. " " .. post_date ..[[
+                     </small>
+               </a>
+            </li>
+         ]])
+      end
+
+   else
+      print([[<li class="text-muted p-2">]].. i18n("blog_feed.nothing_to_show") ..[[</li>]])
+   end
+
+   print([[
             </ul>
          </div>
       </div>
