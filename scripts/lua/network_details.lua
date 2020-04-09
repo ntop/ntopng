@@ -11,7 +11,7 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 require "alert_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
@@ -94,7 +94,7 @@ if page == "historical" then
       subnet = network_name,
     }
 
-    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
 	 {schema="subnet:traffic",             label=i18n("traffic")},
 	 {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},

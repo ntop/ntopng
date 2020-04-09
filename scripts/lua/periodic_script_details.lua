@@ -11,7 +11,7 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local page_utils = require("page_utils")
 local internals_utils = require "internals_utils"
 

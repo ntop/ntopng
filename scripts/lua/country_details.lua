@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 
 local page_utils = require("page_utils")
 
@@ -64,7 +64,7 @@ if page == "historical" then
       country = country,
     }
 
-    drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
         {schema="country:traffic",             label=i18n("traffic")},
       }

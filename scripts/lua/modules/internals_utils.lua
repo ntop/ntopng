@@ -9,6 +9,7 @@ local dirs = ntop.getDirs()
 local user_scripts = require "user_scripts"
 local periodic_activities_utils = require "periodic_activities_utils"
 local ts_utils = require "ts_utils_core"
+local graph_utils = require "graph_utils"
 
 -- ###########################################
 
@@ -691,7 +692,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
       })
    end
 
-   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, { timeseries = timeseries })
+   graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, { timeseries = timeseries })
 
 
 end

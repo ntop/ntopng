@@ -10,7 +10,7 @@ require "lua_utils"
 local page_utils = require("page_utils")
 local alert_consts = require("alert_consts")
 local plugins_utils = require("plugins_utils")
-require("graph_utils")
+local graph_utils = require("graph_utils")
 require("alert_utils")
 
 local charts_available = plugins_utils.timeseriesCreationEnabled()
@@ -184,7 +184,7 @@ elseif(page == "historical" and charts_available) then
       end
    end
 
-   drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
+   graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
        top_redis_hits = "top:redis:hits",
 		 timeseries = timeseries,
    })

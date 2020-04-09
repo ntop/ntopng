@@ -143,7 +143,7 @@ print [[
 
 local system_used = storage_info.total - storage_info.avail - storage_info.if_used - storage_info.extraction_used
 
-print(stackedProgressBars(storage_info.total, {
+print(graph_utils.stackedProgressBars(storage_info.total, {
   {
     title = i18n("system"),
     value = system_used,

@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
@@ -61,7 +61,7 @@ if page == "historical" then
     pod = pod,
   }
 
-  drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+  graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
     timeseries = {
       {schema="pod:num_flows",             label=i18n("graphs.active_flows")},
       {schema="pod:num_containers",        label=i18n("containers_stats.containers")},

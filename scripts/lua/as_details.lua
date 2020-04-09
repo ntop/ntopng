@@ -11,7 +11,7 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
 
@@ -85,7 +85,7 @@ if isEmptyString(page) or page == "historical" then
          protocol = _GET["protocol"],
        }
 
-       drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
+       graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
          top_protocols = "top:asn:ndpi",
          timeseries = {
             {schema="asn:traffic",             label=i18n("traffic")},

@@ -241,13 +241,13 @@ modify depends on the specific traffic element, here are some examples:
  - For local hosts, modify `host_details.lua`
  - For network interfaces, modify `if_stats.lua`
 
-The script should contain a call to :code:`drawGraphs` with a :code:`timeseries` field.
+The script should contain a call to :code:`graph_utils.drawGraphs` with a :code:`timeseries` field.
 The new timeseries should be added to it. Here is for example a modified host_stats.lua
 with a new `host:low_goodput_flows` metric:
 
 .. code:: lua
 
-   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+   graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_protocols = "top:host:ndpi",
    ...
       timeseries = {

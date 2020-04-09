@@ -11,7 +11,7 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 require "alert_utils"
 local page_utils = require("page_utils")
 local os_utils = require "os_utils"
@@ -61,7 +61,7 @@ local tags = {
    hash_table = hash_table,
 }
 
-drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    timeseries = {
       {schema = "ht:state", label = i18n("hash_table.CountriesHash"), extra_params = {hash_table = "CountriesHash"}},
       {schema = "ht:state", label = i18n("hash_table.HostHash"), extra_params = {hash_table = "HostHash"}},

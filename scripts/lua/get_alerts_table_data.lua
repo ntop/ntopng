@@ -137,9 +137,13 @@ for _key,_value in ipairs(alerts) do
    local column_chart = nil
 
    if ntop.isPro() then
-      column_chart    = getAlertGraphLink(getInterfaceId(ifname), _value)
-      if not isEmptyString(column_chart) then
-	 column_chart = "<a href='".. column_chart .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
+      local graph_utils = require "graph_utils"
+
+      if graph_utils.getAlertGraphLink then
+	 column_chart    = graph_utils.getAlertGraphLink(getInterfaceId(ifname), _value)
+	 if not isEmptyString(column_chart) then
+	    column_chart = "<a href='".. column_chart .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
+	 end
       end
    end
 

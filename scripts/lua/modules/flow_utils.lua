@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 require "voip_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require("format_utils")
 local flow_consts = require "flow_consts"
@@ -1314,7 +1314,7 @@ function printFlowQuota(ifid, info, as_client)
 
   if flow_quota ~= nil then
     print("<table style='width:100%; table-layout: fixed;'><tr>")
-    print(string.gsub(printProtocolQuota(flow_quota, proto_stats, category_stats, {traffic=true, time=true}, true), "\n", ""))
+    print(string.gsub(graph_utils.printProtocolQuota(flow_quota, proto_stats, category_stats, {traffic=true, time=true}, true), "\n", ""))
     print("</tr></table>")
   else
     print(i18n("shaping.no_quota_applied"))

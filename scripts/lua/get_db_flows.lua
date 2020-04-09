@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 require "db_utils"
 require "flow_aggregation_utils"
 require "template"

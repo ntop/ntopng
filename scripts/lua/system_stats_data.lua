@@ -10,7 +10,7 @@ local json = require ("dkjson")
 local page_utils = require("page_utils")
 local tracker = require("tracker")
 local storage_utils = require("storage_utils")
-require("graph_utils")
+local graph_utils = require("graph_utils")
 
 if not isAllowedSystemInterface() then
    sendHTTPContentTypeHeader('text/html')
@@ -68,7 +68,7 @@ if not ntop.isWindows() then
 
    info.storage =
       "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.volume_dev..")</span><br />"..
-      stackedProgressBars(storage_info.volume_size, storage_items, i18n("available"), bytesToSize)
+      graph_utils.stackedProgressBars(storage_info.volume_size, storage_items, i18n("available"), bytesToSize)
 
    if storage_info.pcap_volume_dev ~= nil then
       storage_items = {}
@@ -104,7 +104,7 @@ if not ntop.isWindows() then
 
       info.pcap_storage =
         "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.pcap_volume_dev..")</span><br />"..
-        stackedProgressBars(storage_info.pcap_volume_size, storage_items, i18n("available"), bytesToSize)
+        graph_utils.stackedProgressBars(storage_info.pcap_volume_size, storage_items, i18n("available"), bytesToSize)
    end
 
    ::out::

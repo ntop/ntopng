@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local template = require "template_utils"
 local page_utils = require("page_utils")
 local host_pools_utils = require "host_pools_utils"
@@ -334,7 +334,7 @@ local function printDeviceProtocolsPage()
       return cat_count
    end
 
-   printCategoryDropdownButton(false, category, base_url, page_params, categoryCountCallback)
+   graph_utils.printCategoryDropdownButton(false, category, base_url, page_params, categoryCountCallback)
 
    -- datatable columns definition
    print[[],

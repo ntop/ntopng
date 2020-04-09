@@ -8,6 +8,7 @@ require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
 local discover = require "discover_utils"
 local template = require "template_utils"
+local graph_utils = require "graph_utils"
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -277,7 +278,7 @@ print[[
 ]]
 
 print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline; width:14em;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
-print(poolDropdown(ifId, selected_pool.id, {[host_pools_utils.DEFAULT_POOL_ID]=true}))
+print(graph_utils.poolDropdown(ifId, selected_pool.id, {[host_pools_utils.DEFAULT_POOL_ID]=true}))
 print('</select>')
 
 local no_pools = (#available_pools <= 1)
@@ -451,7 +452,7 @@ print(
       title   = i18n("host_pools.change_member_pool"),
       message = i18n("host_pools.select_new_pool", {member='<span id="change_member_pool_dialog_member"></span>'}) ..
         '<br><br><select class="form-control" id="changed_host_pool" style="width:15em;">'..
-        poolDropdown(ifId, "", {[selected_pool.id]=true, [host_pools_utils.DEFAULT_POOL_ID]=true})..
+        graph_utils.poolDropdown(ifId, "", {[selected_pool.id]=true, [host_pools_utils.DEFAULT_POOL_ID]=true})..
         '</select>',
       custom_alert_class = "",
       confirm = i18n("host_pools.change_pool"),

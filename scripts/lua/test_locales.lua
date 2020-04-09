@@ -11,7 +11,7 @@ if (ntop.isPro()) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local json = require("dkjson")
 local i18n = require "i18n"
 

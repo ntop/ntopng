@@ -11,7 +11,7 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local page_utils = require("page_utils")
 
 local info = ntop.getInfo(false)
@@ -68,7 +68,7 @@ else
          protocol = _GET["protocol"],
       }
 
-      drawGraphs(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {
+      graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {
          top_protocols = "top:vlan:ndpi",
          timeseries = {
             {schema="vlan:traffic",             	  label=i18n("traffic")},

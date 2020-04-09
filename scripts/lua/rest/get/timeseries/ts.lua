@@ -9,16 +9,12 @@
 --
 
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-local nv_graph_utils
 
-if ntop.isPro() then
-  package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-  nv_graph_utils = require "nv_graph_utils"
-end
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_common = require "graph_common"
+local graph_utils = require "graph_utils"
 local ts_utils = require("ts_utils")
 local ts_common = require("ts_common")
 local json = require("dkjson")
@@ -117,8 +113,8 @@ if(ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation") == "1") then
   end
 end
 
-if starts(ts_schema, "custom:") and ntop.isPro() then
-  res = performCustomQuery(ts_schema, tags, tstart, tend, options)
+if starts(ts_schema, "custom:") and graph_utils.performCustomQuery then
+  res = graph_utils.performCustomQuery(ts_schema, tags, tstart, tend, options)
   compare_backward = nil
 else
   res = performQuery(tstart, tend)
@@ -142,7 +138,7 @@ res.query = tags
 res.max_points = options.max_num_points
 
 if not isEmptyString(compare_backward) and compare_backward ~= "1Y" and (res.step ~= nil) then
-  local backward_sec = getZoomDuration(compare_backward)
+  local backward_sec = graph_common.getZoomDuration(compare_backward)
   local tstart_cmp = res.start - backward_sec
   local tend_cmp = tstart_cmp + res.step * (res.count - 1)
 
@@ -169,12 +165,12 @@ end
 -- TODO make a script parameter?
 local extend_labels = true
 
-if extend_labels and ntop.isPro() then
-  extendLabels(res)
+if extend_labels and graph_utils.extendLabels then
+   graph_utils.extendLabels(res)
 end
 
 -- Add layout information
-local layout = get_timeseries_layout(ts_schema)
+local layout = graph_utils.get_timeseries_layout(ts_schema)
 
 for _, serie in pairs(res.series) do
 

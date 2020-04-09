@@ -14,7 +14,7 @@ if (if_stats.has_seen_pods or if_stats.has_seen_containers) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 require "flow_utils"
 
 local page_utils = require("page_utils")

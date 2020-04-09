@@ -12,7 +12,7 @@ local ts_utils = require("ts_utils")
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 local plugins_utils = require("plugins_utils")
-require("graph_utils")
+local graph_utils = require("graph_utils")
 require("alert_utils")
 
 local probe = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.script_types.system, "system", "influxdb_monitor")
@@ -177,7 +177,7 @@ elseif(page == "historical" and charts_available) then
    local tags = {ifid = getSystemInterfaceId()}
    url = url.."&page=historical"
 
-   drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
+   graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
       {schema="influxdb:storage_size",                      label=i18n("traffic_recording.storage_utilization")},
       {schema="influxdb:memory_size",                       label=i18n("about.ram_memory")},

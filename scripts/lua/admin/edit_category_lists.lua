@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
@@ -184,7 +184,7 @@ for _, list in pairs(lists) do
   categories[catid] = categories[catid] + 1
 end
 
-  printCategoryDropdownButton(false, page_params.category, base_url, page_params, function (catid, catname)
+  graph_utils.printCategoryDropdownButton(false, page_params.category, base_url, page_params, function (catid, catname)
     return(categories[catid] or 0)
   end)
 

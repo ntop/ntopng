@@ -1,5 +1,5 @@
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()

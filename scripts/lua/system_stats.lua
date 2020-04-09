@@ -13,7 +13,7 @@ local alert_consts = require("alert_consts")
 local internals_utils = require "internals_utils"
 local system_utils = require("system_utils")
 local ts_utils = require "ts_utils"
-require("graph_utils")
+local graph_utils = require("graph_utils")
 require("alert_utils")
 
 local ts_creation = plugins_utils.timeseriesCreationEnabled()
@@ -164,7 +164,7 @@ elseif(page == "historical" and ts_creation) then
    local schema = _GET["ts_schema"] or ternary(skip_cpu_load, "process:num_alerts", "system:cpu_load")
    url = url.."&page=historical"
 
-   drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
+   graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
 	 {
 	    schema = "system:cpu_load",

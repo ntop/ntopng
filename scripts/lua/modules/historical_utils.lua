@@ -6,7 +6,7 @@ require "lua_utils"
 require "flow_aggregation_utils"
 
 local json = require ("dkjson")
-
+local graph_common = require "graph_common"
 local favourites_url = ntop.getHttpPrefix().."/lua/get_historical_favourites.lua"
 local flows_download_url = ntop.getHttpPrefix().."/lua/get_db_flows.lua"
 
@@ -94,8 +94,8 @@ function buildRequestData(source_div_id){
 var zoom_vals = {
 ]]
 
-if zoom_vals ~= nil then
-  for _, zv in pairs(zoom_vals) do
+if graph_common.zoom_vals ~= nil then
+  for _, zv in pairs(graph_common.zoom_vals) do
      print('"'..zv[1]..'": '..zv[3]..', ')
   end
 end

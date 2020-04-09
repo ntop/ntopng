@@ -544,6 +544,18 @@ end
 
 -- ##############################################
 
+function page_utils.print_notes(notes_items)
+   print("<b>" .. i18n("notes").. "</b><ul>")
+
+   for _, note in ipairs(notes_items) do
+      print("<li>" ..note .. "</li>")
+   end
+
+   print("</ul>")
+end
+
+-- ##############################################
+
 function page_utils.is_system_view()
    return ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and isAdministrator())
 end

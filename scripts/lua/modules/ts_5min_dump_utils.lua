@@ -3,7 +3,7 @@
 --
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 require "alert_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"

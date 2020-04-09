@@ -10,7 +10,7 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local page_utils = require("page_utils")
 local os_utils = require "os_utils"
 local ts_utils = require "ts_utils"
@@ -61,7 +61,7 @@ local tags = {
    subdir = subdir,
 }
 
-drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_user_script = "top:".. schema_prefix ..":duration",
 
    timeseries = {

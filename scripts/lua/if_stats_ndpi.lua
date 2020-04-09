@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 
 local ifid = _GET["ifid"]
 
@@ -106,7 +106,7 @@ for _k in pairsByKeys(vals, asc) do
      if(k ~= "ARP") then print(" <A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."\"><i class=\"fas fa-search-plus\"></i></A>") end
      print("</th><td class=\"text-right\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
-     percentageBar(total, t, "") -- k
+     graph_utils.percentageBar(total, t, "") -- k
      -- print("</td>\n")
      print("</span><span style=\"width: 40%; margin-left: 15px;\" >" ..round((t * 100)/total, 1).. " %</span></td></tr>\n")
   else

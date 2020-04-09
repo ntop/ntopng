@@ -6,7 +6,7 @@
 
 require "lua_utils"
 require "alert_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 
 local os_utils = require "os_utils"
 local top_talkers_utils = require "top_talkers_utils"

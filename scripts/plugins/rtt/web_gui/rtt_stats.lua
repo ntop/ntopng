@@ -13,7 +13,7 @@ local plugins_utils = require("plugins_utils")
 local template = require("template_utils")
 local rtt_utils = require("rtt_utils")
 
-require("graph_utils")
+local graph_utils = require("graph_utils")
 require("alert_utils")
 
 local ts_creation = plugins_utils.timeseriesCreationEnabled()
@@ -348,7 +348,7 @@ elseif((page == "historical") and (host ~= nil)) then
     notes[#notes + 1] = i18n("rtt_stats.other_http_descr")
   end
 
-  drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
+  graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
     timeseries = timeseries,
     notes = notes,
   })

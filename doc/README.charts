@@ -10,12 +10,12 @@ Depending on the timeseries subject, the following files should be modified:
   - `interfaces`: modify `scripts/lua/if_stats.lua`
   - `networks`: modify `scripts/lua/network_details.lua`
 
-The `drawGraphs` function is responsible for drawing the charts. In order to
+The `graph_utils.drawGraphs` function is responsible for drawing the charts. In order to
 add a new chart, it is necessary to add the chart definition into the `timeseries`
-field of the last parameter of drawGraphs. For example:
+field of the last parameter of graph_utils.drawGraphs. For example:
 
 ```
-drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
+graph_utils.drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
   ...
   timeseries = {
     ...
@@ -25,7 +25,7 @@ drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
 })
 ```
 
-instructs drawGraphs that a chart containing the timeseries data of schema "iface:flows"
+instructs graph_utils.drawGraphs that a chart containing the timeseries data of schema "iface:flows"
 should be presented into the interface menu, with a given label. The following parameters
 are accepted:
 

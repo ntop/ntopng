@@ -23,7 +23,7 @@ local page_utils = require("page_utils")
 
 require "lua_utils"
 require "prefs_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 require "alert_utils"
 require "db_utils"
 
@@ -732,7 +732,7 @@ if((page == "overview") or (page == nil)) then
 
 	 if #storage_items > 0 then
 	    print("<tr><th>"..i18n("traffic_recording.storage_utilization").."</th><td colspan=5>")
-	    print(stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
+	    print(graph_utils.stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
 	    print("</td></tr>\n")
 	 end
       end
@@ -1136,7 +1136,7 @@ elseif(page == "historical") then
 
    local top_enabled = top_talkers_utils.areTopEnabled(ifid)
 
-   drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
+   graph_utils.drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_protocols = "top:iface:ndpi",
       top_categories = "top:iface:ndpi_categories",
       top_profiles = "top:profile:traffic",
@@ -1144,7 +1144,7 @@ elseif(page == "historical") then
       top_receivers = ternary(top_enabled, "top:local_receivers", nil),
       l4_protocols = "iface:l4protos",
       show_historical = not ifstats.isViewed,
-      timeseries = get_default_timeseries()
+      timeseries = graph_utils.get_default_timeseries()
    })
 elseif(page == "trafficprofiles") then
    print("<table class=\"table table-striped table-bordered\">\n")

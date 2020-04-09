@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 
 local ifid = _GET["ifid"]
 
@@ -66,7 +66,7 @@ for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
   if(not(json_format)) then
      print("</th><td class=\"text-right\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
-     percentageBar(total, t, "") -- k
+     graph_utils.percentageBar(total, t, "") -- k
      -- print("</td>\n")
      print("</span><span style=\"width: 40%; margin-left: 15px;\" >" ..round((t * 100)/total, 1).. " %</span></td></tr>\n")
   else

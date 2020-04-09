@@ -11,7 +11,7 @@ if(ntop.isPro()) then
 end
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 require "discover_utils"
@@ -246,7 +246,7 @@ if((page == "overview") or (page == nil)) then
 
    if((mac_info["bytes.sent"]+mac_info["bytes.rcvd"]) > 0) then
       print("<tr><th>" .. i18n("details.sent_vs_received_traffic_breakdown") .. "</th><td colspan=2>")
-      breakdownBar(mac_info["bytes.sent"], i18n("sent"), mac_info["bytes.rcvd"], i18n("details.rcvd"), 0, 100)
+      graph_utils.breakdownBar(mac_info["bytes.sent"], i18n("sent"), mac_info["bytes.rcvd"], i18n("details.rcvd"), 0, 100)
       print("</td></tr>\n")
    end
 
@@ -383,11 +383,11 @@ elseif(page == "historical") then
       category = _GET["category"],
    }
 
-   drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+   graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_categories = "top:mac:ndpi_categories",
       timeseries = table.merge({
          {schema="mac:traffic",                 label=i18n("traffic")},
-      }, getDeviceCommonTimeseries())
+      }, graph_utils.getDeviceCommonTimeseries())
    })
 
 elseif(page == "config") then
@@ -414,7 +414,7 @@ elseif(page == "config") then
       </tr>]]
 
       if not ifstats.isView then
-	 printPoolChangeDropdown(ifId, pool_id, have_nedge)
+	 graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
       end
 
 print[[

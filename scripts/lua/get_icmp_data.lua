@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 require "flow_utils"
 require "historical_utils"
 local icmp_utils = require "icmp_utils"
@@ -82,7 +82,7 @@ if(stats ~= nil) then
 	       print('</td>')
 
 	       print('<td>')
-	       breakdownBar(value.sent, "Sent", value.rcvd, "Rcvd", 0, 100)
+	       graph_utils.breakdownBar(value.sent, "Sent", value.rcvd, "Rcvd", 0, 100)
 	       print('</td')
 
 	       print('</td><td align=right>'..formatPackets(value.sent).. '</td>')

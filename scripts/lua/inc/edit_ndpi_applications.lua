@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "graph_utils"
+local graph_utils = require "graph_utils"
 local template = require "template_utils"
 
 local proto_filter = _GET["l7proto"]
@@ -304,7 +304,7 @@ print[[
   end
 
   if isEmptyString(proto_filter) then
-    printCategoryDropdownButton(true, catid, base_url, page_params, nil,
+    graph_utils.printCategoryDropdownButton(true, catid, base_url, page_params, nil,
       true --[[ skip unknown, see get_ndpi_applications.lua ]])
   end
   print[[],
