@@ -208,7 +208,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   syn_recvd_last_min = synack_sent_last_min = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
-  if(init_all) {
+  if(init_all && ip.getVersion() /* IP is set */) {
     char country_name[64];
     
     if((as = iface->getAS(&ip, true /* Create if missing */, true /* Inline call */)) != NULL) {
