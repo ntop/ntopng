@@ -175,6 +175,9 @@ local function init_runtime_paths()
     -- HTTP lint
     http_lint = os_utils.fixPath(runtime_path) .. "/http_lint",
 
+    -- Plugins Data Directories
+    plugins_data = os_utils.fixPath(runtime_path) .. "/plugins_data",
+
     -- User scripts
     interface_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/interface"),
     host_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/host"),
@@ -445,6 +448,27 @@ end
 
 -- ##############################################
 
+-- A plugin can specify additional directories to load with the "data_dirs"
+-- field in its manifest.lua . The plugin can then retrieve the runtime path
+-- by using the plugins_utils.getPluginDataDir() api
+local function load_plugin_data_dirs(plugin)
+  for _, dir in pairs(plugin.data_dirs or {}) do
+    local data_dir = os_utils.fixPath(plugin.path .. "/" .. dir)
+
+    if ntop.exists(data_dir) then
+      local dest_path = os_utils.fixPath(RUNTIME_PATHS.plugins_data .. "/" .. plugin.key .. "/" .. dir)
+
+      ntop.mkdir(dest_path)
+
+      file_utils.recursive_copy(data_dir, dest_path)
+    end
+  end
+
+  return(true)
+end
+
+-- ##############################################
+
 -- @brief Loads the ntopng plugins into a single directory tree.
 -- @notes This should be called at startup. It clears and populates the
 -- shadow_dir first, then swaps it with the current_dir. This prevents
@@ -527,6 +551,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
         load_plugin_lint(plugin) and
         load_plugin_ts_schemas(plugin) and
         load_plugin_web_gui(plugin) and
+        load_plugin_data_dirs(plugin) and
         load_plugin_user_scripts(path_map, plugin) and
         load_plugin_alert_endpoints(endpoints_prefs_entries, plugin) then
       loaded_plugins[plugin.key] = plugin
@@ -720,6 +745,24 @@ function plugins_utils.getUserScriptSourcePath(script_path)
   if info then
     return(info.source_path)
   end
+end
+
+-- ##############################################
+
+-- @brief Retrieve the runtime data directory of the plugin, which is specified in the "data_dirs" directive of the plugin manifest.lua
+-- @param plugin_key the plugin name
+-- @param subdir an optional subdirectory of the datadir
+-- @return the runtime directory path
+function plugins_utils.getPluginDataDir(plugin_key, subdir)
+  init_runtime_paths()
+
+  local path = RUNTIME_PATHS.plugins_data .. "/" .. plugin_key
+
+  if subdir then
+    path = path .. "/" .. subdir
+  end
+
+  return os_utils.fixPath(path)
 end
 
 -- ##############################################

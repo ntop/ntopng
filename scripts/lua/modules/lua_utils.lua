@@ -3355,7 +3355,7 @@ end
 
 --- Return an HTML `select` element with passed options.
 --
-function generate_select(id, name, is_required, is_disabled, options)
+function generate_select(id, name, is_required, is_disabled, options, additional_classes)
    local required_flag = (is_required and "required" or "")
    local disabled_flag = (is_disabled and "disabled" or "")
    local name_attr = (name == "" and "name='" .. name .. "'" or "")
@@ -3368,7 +3368,7 @@ function generate_select(id, name, is_required, is_disabled, options)
    end
 
    return ([[
-      <select id="]].. id ..[[" class="form-control" ]].. name_attr ..[[ ]].. required_flag ..[[ ]] .. disabled_flag ..[[>
+      <select id="]].. id ..[[" class="form-control ]] .. (additional_classes or "") .. [[" ]].. name_attr ..[[ ]].. required_flag ..[[ ]] .. disabled_flag ..[[>
          ]].. parsed_options ..[[
       </select>
    ]])

@@ -6,18 +6,13 @@ local rtt_utils = {}
 local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
 local json = require("dkjson")
+local plugins_utils = require("plugins_utils")
+local os_utils = require("os_utils")
 
-rtt_utils.probe_types = {
-   { title = "icmp",   value = "icmp"  },
-   { title = "icmp6",  value = "icmp6" },
-   { title = "http",   value = "http"  },
-   { title = "https",  value = "https" }
-}
-
-rtt_utils.granularities = {
-   { title = i18n("alerts_thresholds_config.every_minute"),     value = "min"   },
-   { title = i18n("alerts_thresholds_config.every_5_minutes"),   value = "5mins" },
-   { title = i18n("alerts_thresholds_config.hourly"),    value = "hour"  },
+local supported_granularities = {
+  ["min"] = "alerts_thresholds_config.every_minute",
+  ["5mins"] = "alerts_thresholds_config.every_5_minutes",
+  ["hour"] = "alerts_thresholds_config.hourly",
 }
 
 -- ##############################################
@@ -211,6 +206,165 @@ function rtt_utils.deleteHost(host, measurement)
 
   -- Select the old interface
   interface.select(old_iface)
+end
+
+-- ##############################################
+
+local loaded_rtt_plugins = {}
+local loaded_measurements = {}
+
+local function loadRttPlugins()
+  if not table.empty(loaded_rtt_plugins) then
+    return
+  end
+
+  local measurements_path = plugins_utils.getPluginDataDir("rtt", "measurements")
+
+  for fname in pairs(ntop.readdir(measurements_path)) do
+    if(not string.ends(fname, ".lua")) then
+      goto continue
+    end
+
+    local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+    local full_path = os_utils.fixPath(measurements_path .. "/" .. fname)
+    local plugin = dofile(full_path)
+
+    if(plugin == nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load '%s'", full_path))
+      goto continue
+    end
+
+    if(not (plugin.measurements)) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("'measurements' section missing in '%s'", full_path))
+      goto continue
+    end
+
+    -- Check that the measurements does not exist
+    for _, measurement in pairs(plugin.measurements) do
+      if(measurement.check == nil) then
+	traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'check' function in '%s' measurement", measurement.key))
+	goto skip
+      end
+
+      if(measurement.collect_results == nil) then
+	traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'collect_results' function in '%s' measurement", measurement.key))
+	goto skip
+      end
+
+      if(loaded_measurements[measurement.key]) then
+	traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Measurement '%s' already defined in '%s'", measurement.key, loaded_measurements[measurement.key].key))
+	goto skip
+      end
+
+      loaded_measurements[measurement.key] = {plugin=plugin, measurement=measurement}
+
+      ::skip::
+    end
+
+    plugin.key = mod_fname
+    loaded_rtt_plugins[mod_fname] = plugin
+
+    ::continue::
+  end
+end
+
+-- ##############################################
+
+function rtt_utils.getHostsByPlugin(all_hosts)
+  local hosts_by_plugin = {}
+
+  loadRttPlugins()
+
+  for key, host in pairs(all_hosts) do
+    local measurement = host.measurement
+    local m_info = loaded_measurements[measurement]
+
+    if not m_info then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown measurement: " .. measurement)
+    else
+      local plugin_key = m_info.plugin.key
+
+      if not hosts_by_plugin[plugin_key] then
+	hosts_by_plugin[plugin_key] = {plugin = m_info.plugin, measurement = m_info.measurement, hosts = {}}
+      end
+
+      hosts_by_plugin[plugin_key].hosts[key] = host
+    end
+  end
+
+  return(hosts_by_plugin)
+end
+
+-- ##############################################
+
+function rtt_utils.getAvailableMeasurements()
+  local measurements = {}
+
+  loadRttPlugins()
+
+  for k, v in pairsByKeys(loaded_measurements, asc) do
+    measurements[#measurements + 1] = {
+      title = k,
+      value = k,
+    }
+  end
+
+  return(measurements)
+end
+
+-- ##############################################
+
+function rtt_utils.getAvailableGranularities(measurement)
+  local granularities = {}
+
+  loadRttPlugins()
+
+  local m_info = loaded_measurements[measurement]
+
+  if(not m_info) then
+    return(granularities)
+  end
+
+  for _, k in ipairs(m_info.measurement.granularities) do
+    local i18n_title = supported_granularities[k]
+
+    if i18n_title then
+      granularities[#granularities + 1] = {
+	title = i18n(i18n_title),
+	value = k,
+      }
+    end
+  end
+
+  return granularities
+end
+
+-- ##############################################
+
+function rtt_utils.getMeasurementInfo(measurement)
+  loadRttPlugins()
+
+  local m_info = loaded_measurements[measurement]
+
+  if(not m_info) then
+    return(nil)
+  end
+
+  return(m_info.measurement)
+end
+
+-- ##############################################
+
+function rtt_utils.getMeasurementsInfo()
+  loadRttPlugins()
+
+  local rv = {}
+
+  for k, v in pairs(loaded_measurements) do
+    rv[k] = v.measurement
+  end
+
+  return(rv)
 end
 
 -- ##############################################

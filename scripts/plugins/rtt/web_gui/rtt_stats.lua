@@ -12,6 +12,7 @@ local rtt_utils = require("rtt_utils")
 local plugins_utils = require("plugins_utils")
 local template = require("template_utils")
 local rtt_utils = require("rtt_utils")
+local json = require("dkjson")
 
 local graph_utils = require("graph_utils")
 require("alert_utils")
@@ -35,9 +36,11 @@ local measurement = _GET["measurement"]
 local base_url = plugins_utils.getUrl("rtt_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
 local url = base_url
 local info = ntop.getInfo()
+local measurement_info
 
 if(not isEmptyString(host) and not isEmptyString(measurement)) then
   host = rtt_utils.getHost(host, measurement)
+  measurement_info = rtt_utils.getMeasurementInfo(host.measurement)
 else
   host = nil
 end
@@ -154,7 +157,7 @@ if(page == "overview") then
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
-                  ]].. generate_select("select-edit-measurement", "measurement", true, false, rtt_utils.probe_types) ..[[
+                  ]].. generate_select("select-edit-measurement", "measurement", true, false, rtt_utils.getAvailableMeasurements(), "measurement-select") ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -166,7 +169,7 @@ if(page == "overview") then
 	      <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("internals.periodicity") .. [[</label>
                 <div class="col-sm-5">
-                  ]].. generate_select("select-edit-granularity", "granularity", true, false, rtt_utils.granularities) ..[[
+                  ]].. generate_select("select-edit-granularity", "granularity", true, false, {}, "measurement-granularity") ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -174,10 +177,10 @@ if(page == "overview") then
                 <div class="col-sm-5">
                   <div class="input-group">
                     <div class="input-group-prepend">
-                      <span class="input-group-text">&gt;</span>
+                      <span class="input-group-text measurement-operator"></span>
                     </div>
                     <input placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right" min="10" max="10000">
-                    <span class="my-auto ml-1">]] .. i18n("rtt_stats.msec") .. [[</span>
+                    <span class="my-auto ml-1 measurement-unit"></span>
                   </div>
                 </div>
               </div>
@@ -215,7 +218,7 @@ if(page == "overview") then
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
-                  ]] .. generate_select("select-add-measurement", "measurement", true, false, rtt_utils.probe_types) ..[[
+                  ]] .. generate_select("select-add-measurement", "measurement", true, false, rtt_utils.getAvailableMeasurements(), "measurement-select") ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -227,7 +230,7 @@ if(page == "overview") then
 	      <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("internals.periodicity") .. [[</label>
                 <div class="col-sm-5">
-                  ]].. generate_select("select-add-granularity", "granularity", true, false, rtt_utils.granularities) ..[[
+                  ]].. generate_select("select-add-granularity", "granularity", true, false, {}, "measurement-granularity") ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -235,10 +238,10 @@ if(page == "overview") then
                 <div class="col-sm-5">
                   <div class="input-group">
                     <div class="input-group-prepend">
-                      <span class="input-group-text">&gt;</span>
+                      <span class="input-group-text measurement-operator"></span>
                     </div>
                     <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right" min="1" max="10000">
-                    <span class="my-auto ml-1">]] .. i18n("rtt_stats.msec") .. [[</span>
+                    <span class="my-auto ml-1 measurement-unit"></span>
                   </div>
                 </div>
               </div>
@@ -306,6 +309,18 @@ if(page == "overview") then
     </div>
   ]])
 
+  local measurements_info = {}
+
+  -- This information is required in rtt-utils.js in order to properly
+  -- render the template
+  for key, info in pairs(rtt_utils.getMeasurementsInfo()) do
+    measurements_info[key] = {
+      granularities = rtt_utils.getAvailableGranularities(key),
+      operator = info.operator,
+      unit = i18n(info.i18n_unit) or info.i18n_unit,
+    }
+  end
+
   print([[
     <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
     <script type="text/javascript">
@@ -320,32 +335,36 @@ if(page == "overview") then
       let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
       let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
       let import_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+      let measurements_info = ]] .. json.encode(measurements_info) .. [[;
 
     </script>
     <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/rtt/rtt-utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
   ]])
 
 
-elseif((page == "historical") and (host ~= nil)) then
+elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
 
   local suffix = "_" .. host.granularity
   local schema = _GET["ts_schema"] or ("rtt_host:rtt" .. suffix)
   local selected_epoch = _GET["epoch"] or ""
   local tags = {ifid=getSystemInterfaceId(), host=host.host, measure=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
   local notes = {}
+
   url = url.."&page=historical"
 
   local timeseries = {
     { schema="rtt_host:rtt" .. suffix, label=i18n("graphs.num_ms_rtt") },
   }
 
-  if(host.measurement == "https") then
-    timeseries[#timeseries + 1] = { schema="rtt_host:https_stats" .. suffix, label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") }}
-    notes[#notes + 1] = i18n("rtt_stats.app_connect_descr")
-    notes[#notes + 1] = i18n("rtt_stats.other_https_descr")
-  elseif(host.measurement == "http") then
-    timeseries[#timeseries + 1] = { schema="rtt_host:http_stats" .. suffix, label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("other") }}
-    notes[#notes + 1] = i18n("rtt_stats.other_http_descr")
+  for _, note in ipairs(measurement_info.i18n_chart_notes or {}) do
+    notes[#notes + 1] = i18n(note) or note
+  end
+
+  for _, ts_info in ipairs(measurement_info.additional_timeseries or {}) do
+    -- Add the per-granularity suffix (e.g. _min)
+    ts_info.schema = ts_info.schema .. suffix
+
+    timeseries[#timeseries + 1] = ts_info
   end
 
   graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {

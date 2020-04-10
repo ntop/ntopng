@@ -48,6 +48,7 @@ $(document).ready(function() {
             $('#select-edit-measurement').val(data.measurement || DEFAULT_MEASUREMENT);
             $('#select-edit-granularity').val(data.granularity || DEFAULT_GRANULARITY);
             $('#input-edit-host').val(data.host || DEFAULT_HOST);
+            dialogRefreshMeasurement($('#rtt-edit-modal'));
         }
 
         const data = get_rtt_data($rtt_table, $(this));
@@ -85,6 +86,27 @@ $(document).ready(function() {
         $(`#rtt-edit-modal span.invalid-feedback`).hide();
 
     });
+
+    const dialogRefreshMeasurement = ($dialog) => {
+        const measurement = $dialog.find(".measurement-select").val();
+
+        if(!measurement || !measurements_info[measurement]) return;
+
+        const info = measurements_info[measurement];
+
+        $dialog.find(".measurement-operator").html("&" + (info.operator || "gt") + ";");
+        $dialog.find(".measurement-unit").html(info.unit || i18n.msec);
+
+        // Populate the granularities dropdown
+        const $granularities = $dialog.find(".measurement-granularity");
+        $granularities.find('option').remove();
+
+        for(var i=0; i<info.granularities.length; i++) {
+            var g_info = info.granularities[i];
+
+            $granularities.append(`<option value="${g_info.value}">${g_info.title}</option>`);
+        }
+    }
 
     const make_data_to_send = (action, rtt_host, rtt_max, rtt_measure, granularity, csrf) => {
         return {
@@ -189,6 +211,7 @@ $(document).ready(function() {
                         $('#input-add-threshold').val(100);
                         $(`#rtt-add-modal span.invalid-feedback`).hide();
                         $('#rtt-add-modal').modal('show');
+                        dialogRefreshMeasurement($('#rtt-add-modal'));
                     }
                 }
             ],
@@ -213,8 +236,8 @@ $(document).ready(function() {
             {
                 data: 'threshold',
                 className: 'text-center',
-                render: function(threshold) {
-                    return `${threshold} ${i18n.msec}`
+                render: function(data, type, row) {
+                    return `${row.threshold} ${row.unit}`
                 }
             },
             {
@@ -227,7 +250,10 @@ $(document).ready(function() {
             },
             {
                 data: 'last_rtt',
-                className: 'dt-body-right dt-head-center'
+                className: 'dt-body-right dt-head-center',
+                render: function(data, type, row) {
+                    return `${row.last_rtt} ${row.unit}`
+                }
 
             },
             {
@@ -255,5 +281,13 @@ $(document).ready(function() {
         }, reset_csrf: (new_csrf) => {
             import_csrf = new_csrf;
         }
+    });
+
+    $("#select-add-measurement").on('change', function(event) {
+        dialogRefreshMeasurement($("#rtt-add-modal"));
+    });
+
+    $("#select-edit-measurement").on('change', function(event) {
+        dialogRefreshMeasurement($("#rtt-edit-modal"));
     });
 });

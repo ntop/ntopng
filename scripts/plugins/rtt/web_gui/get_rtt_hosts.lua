@@ -23,6 +23,11 @@ local res = {}
 
 for key, rtt_host in pairs(rtt_hosts) do
     local chart = ""
+    local m_info = rtt_utils.getMeasurementInfo(rtt_host.measurement)
+
+    if not m_info then
+      goto continue
+    end
 
     if charts_available then
       chart = plugins_utils.getUrl('rtt_stats.lua') .. '?rtt_host='.. rtt_host.host ..'&measurement='.. rtt_host.measurement ..'&page=historical'
@@ -42,7 +47,7 @@ for key, rtt_host in pairs(rtt_hosts) do
         column_last_update = format_utils.formatPastEpochShort(last_update.when)
       end
 
-      column_last_rtt = last_update.value .. " ms"
+      column_last_rtt = last_update.value
       column_last_ip = last_update.ip
     end
 
@@ -59,7 +64,10 @@ for key, rtt_host in pairs(rtt_hosts) do
        last_mesurement_time = column_last_update,
        last_ip = column_last_ip,
        granularity = rtt_host.granularity,
+       unit = i18n(m_info.i18n_unit) or m_info.i18n_unit,
     }
+
+    ::continue::
 end
 
 -- ################################################

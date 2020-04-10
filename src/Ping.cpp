@@ -253,8 +253,10 @@ void Ping::collectResponses(lua_State* vm) {
 
   m.lock(__FILE__, __LINE__);
 
-  for(std::map<std::string,float>::iterator it=results.begin(); it!=results.end(); ++it)
-    lua_push_float_table_entry(vm, it->first.c_str(), it->second);  
+  for(std::map<std::string,float>::iterator it=results.begin(); it!=results.end(); ++it) {
+    if(it->first.c_str()[0])
+      lua_push_float_table_entry(vm, it->first.c_str(), it->second);
+  }
 
   results.clear();
 
