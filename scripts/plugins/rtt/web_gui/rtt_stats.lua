@@ -344,7 +344,7 @@ elseif((page == "historical") and (host ~= nil)) then
     notes[#notes + 1] = i18n("rtt_stats.app_connect_descr")
     notes[#notes + 1] = i18n("rtt_stats.other_https_descr")
   elseif(host.measurement == "http") then
-    timeseries[#timeseries + 1] = { schema="rtt_host:http_stats_v2" .. suffix, label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("other") }}
+    timeseries[#timeseries + 1] = { schema="rtt_host:http_stats" .. suffix, label=i18n("graphs.http_stats"), metrics_labels = { i18n("graphs.name_lookup"), i18n("other") }}
     notes[#notes + 1] = i18n("rtt_stats.other_http_descr")
   end
 

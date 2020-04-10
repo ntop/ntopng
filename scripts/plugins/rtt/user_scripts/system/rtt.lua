@@ -159,7 +159,7 @@ local function run_rtt_check(params, all_hosts, granularity)
 	      other_ms = (total_time - lookup_time - connect_time),
 	   }, when)
 	 else
-	   ts_utils.append("rtt_host:http_stats_v2_" .. granularity, {
+	   ts_utils.append("rtt_host:http_stats_" .. granularity, {
 	      ifid = getSystemInterfaceId(),
 	      host = host.host,
 	      measure = host.measurement,
