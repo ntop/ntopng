@@ -120,7 +120,7 @@ local function validateSyslogFormat(p)
 end
 
 local function validateMeasurement(p)
-   if p == "icmp" or p == "icmp6" or p == "http" or p == "https" then
+   if p == "icmp" or p == "icmp6" or p == "http" or p == "https" or "speedtest" then
       return true
    end
 
