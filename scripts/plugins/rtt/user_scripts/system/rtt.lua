@@ -91,6 +91,7 @@ local function run_rtt_check(params, all_hosts, granularity)
   -- Get the results
   for _, info in pairs(hosts_by_plugin) do
     for k, v in pairs(info.measurement.collect_results(granularity) or {}) do
+      v.measurement = info.measurement
       hosts_rtt[k] = v
     end
   end
@@ -101,6 +102,7 @@ local function run_rtt_check(params, all_hosts, granularity)
     local rtt = info.value
     local resolved_host = info.resolved_addr or host.host
     local max_rtt = host.max_rtt
+    local operator = info.measurement.operator or "gt"
 
     if params.ts_enabled then
        ts_utils.append("rtt_host:rtt_" .. granularity, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = rtt}, when)
@@ -108,7 +110,8 @@ local function run_rtt_check(params, all_hosts, granularity)
 
     rtt_utils.setLastRttUpdate(key, when, rtt, resolved_host)
 
-    if(max_rtt and (rtt > max_rtt)) then
+    if(max_rtt and ((operator == "lt" and (rtt < max_rtt))
+        or (operator == "gt" and (rtt > max_rtt)))) then
       if(do_trace) then print("[TRIGGER] Host "..resolved_host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
       triggerRttAlert(resolved_host, key, rtt, max_rtt, granularity)
     else

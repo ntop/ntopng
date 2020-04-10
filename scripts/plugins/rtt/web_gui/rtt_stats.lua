@@ -353,7 +353,7 @@ elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) t
   url = url.."&page=historical"
 
   local timeseries = {
-    { schema="rtt_host:rtt" .. suffix, label=i18n("graphs.num_ms_rtt") },
+    { schema="rtt_host:rtt" .. suffix, label=i18n("graphs.num_ms_rtt"), value_formatter=(measurement_info.value_js_formatter or "fmillis") },
   }
 
   for _, note in ipairs(measurement_info.i18n_chart_notes or {}) do
