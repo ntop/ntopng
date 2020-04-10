@@ -4,6 +4,7 @@
 
 require "lua_utils"
 local json = require "dkjson"
+local alert_consts = require("alert_consts")
 
 local script = {}
 
@@ -43,7 +44,7 @@ function script.dequeueAlerts(queue)
 
     -- Can filter the alerts based on some criteria
     if (alert.action == "engage") then
-      if (alertTypeRaw(alert.type) == "alert_threshold_cross") and
+      if (alert_consts.alertTypeRaw(alert.type) == "alert_threshold_cross") and
             (alert.alert_key == "min_active_local_hosts") then
 
         -- Export the alert, e.g. by running a custom bash script

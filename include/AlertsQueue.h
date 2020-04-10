@@ -25,7 +25,7 @@
 class NetworkInterface;
 
 /* This class provides a way to send asynchronous alerts from C to Lua.
- * Alerts are processed by Lua in processStoreAlertFromQueue. */
+ * Alerts are processed by Lua in alert_utils.processStoreAlertFromQueue. */
 class AlertsQueue {
  private:
   NetworkInterface *iface;

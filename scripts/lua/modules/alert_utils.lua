@@ -27,84 +27,23 @@ if(ntop.isnEdge()) then
    shaper_utils = require("shaper_utils")
 end
 
+-- ##############################################
+
+local alert_utils = {}
+
+-- ##############################################
+
 if ntop.isEnterpriseM() then
    local dirs = ntop.getDirs()
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
-   require "enterprise_alert_utils"
+   -- add enterprise utils to this module
+   alert_utils = require "enterprise_alert_utils"
 end
 
 -- ##############################################
 
-function alertSeverityRaw(severity_id)
-  severity_id = tonumber(severity_id)
-
-  for key, severity_info in pairs(alert_consts.alert_severities) do
-    if(severity_info.severity_id == severity_id) then
-      return(key)
-    end
-  end
-end
-
-function alertSeverityLabel(v, nohtml)
-   local severity_id = alertSeverityRaw(v)
-
-   if(severity_id) then
-      local severity_info = alert_consts.alert_severities[severity_id]
-      local title = i18n(severity_info.i18n_title) or severity_info.i18n_title
-
-      if(nohtml) then
-        return(title)
-      else
-        return(string.format('<span class="badge %s">%s</span>', severity_info.label, title))
-      end
-   end
-
-   return "(unknown severity)"
-end
-
-function alertSeverity(v)
-  return(alert_consts.alert_severities[v].severity_id)
-end
-
--- ##############################################
-
-function alertTypeRaw(type_id)
-  type_id = tonumber(type_id)
-
-  for key, type_info in pairs(alert_consts.alert_types) do
-    if(type_info.alert_id == type_id) then
-      return(key)
-    end
-  end
-end
-
-function alertTypeLabel(v, nohtml)
-   local alert_id = alertTypeRaw(v)
-
-   if(alert_id) then
-      local type_info = alert_consts.alert_types[alert_id]
-      local title = i18n(type_info.i18n_title) or type_info.i18n_title
-
-      if(nohtml) then
-        return(title)
-      else
-        return(string.format('<i class="%s"></i> %s', type_info.icon, title))
-      end
-   end
-
-   return(i18n("unknown"))
-end
-
-function alertType(v)
-  if(alert_consts.alert_types[v] == nil) then
-     tprint(debug.traceback())
-  end
-
-  return(alert_consts.alert_types[v].alert_id)
-end
-
-function alertTypeDescription(v)
-  local alert_id = alertTypeRaw(v)
+local function alertTypeDescription(v)
+  local alert_id = alert_consts.alertTypeRaw(v)
 
   if(alert_id) then
     return(alert_consts.alert_types[alert_id].i18n_description)
@@ -113,68 +52,7 @@ end
 
 -- ##############################################
 
--- Rename engine -> granulariy
-function alertEngineRaw(granularity_id)
-  granularity_id = tonumber(granularity_id)
-
-  for key, granularity_info in pairs(alert_consts.alerts_granularities) do
-    if(granularity_info.granularity_id == granularity_id) then
-      return(key)
-    end
-  end
-end
-
-function alertEngine(v)
-   if(alert_consts.alerts_granularities[v] == nil) then
-      tprint(debug.traceback())
-   end
-
-   return(alert_consts.alerts_granularities[v].granularity_id)
-end
-
-function alertEngineLabel(v)
-  local granularity_id = alertEngineRaw(v)
-
-  if(granularity_id ~= nil) then
-    return(i18n(alert_consts.alerts_granularities[granularity_id].i18n_title))
-  end
-end
-
-function alertEngineDescription(v)
-  local granularity_id = alertEngineRaw(v)
-
-  if(granularity_id ~= nil) then
-    return(i18n(alert_consts.alerts_granularities[granularity_id].i18n_description))
-  end
-end
-
-function granularity2sec(v)
-   if(alert_consts.alerts_granularities[v] == nil) then
-      tprint(debug.traceback())
-   end
-
-  return(alert_consts.alerts_granularities[v].granularity_seconds)
-end
-
--- See NetworkInterface::checkHostsAlerts()
-function granularity2id(granularity)
-  -- TODO replace alertEngine
-  return(alertEngine(granularity))
-end
-
-function sec2granularity(seconds)
-  seconds = tonumber(seconds)
-
-  for key, granularity_info in pairs(alert_consts.alerts_granularities) do
-    if(granularity_info.granularity_seconds == seconds) then
-      return(key)
-    end
-  end
-end
-
--- ##############################################################################
-
-function get_make_room_keys(ifId)
+local function get_make_room_keys(ifId)
    return {flows="ntopng.cache.alerts.ifid_"..ifId..".make_room_flow_alerts",
 	   entities="ntopng.cache.alerts.ifid_"..ifId..".make_room_closed_alerts"}
 end
@@ -194,7 +72,7 @@ end
 
 -- #################################
 
-function performAlertsQuery(statement, what, opts, force_query, group_by)
+local function performAlertsQuery(statement, what, opts, force_query, group_by)
    local wargs = {"1=1"}
    local oargs = {}
 
@@ -347,7 +225,24 @@ end
 
 -- #################################
 
-function getNumAlerts(what, options)
+-- Remove pagination options from the options
+local function getUnpagedAlertOptions(options)
+   local res = {}
+
+   local paged_option = { currentPage=1, perPage=1, sortColumn=1, sortOrder=1 }
+
+   for k,v in pairs(options) do
+      if not paged_option[k] then
+         res[k] = v
+      end
+   end
+
+   return res
+end
+
+-- #################################
+
+function alert_utils.getNumAlerts(what, options)
    local num = 0
 
    if(what == "engaged") then
@@ -364,7 +259,7 @@ end
 -- #################################
 
 -- Faster than of getNumAlerts
-function hasAlerts(what, options)
+function alert_utils.hasAlerts(what, options)
   if(what == "engaged") then
     return(getNumEngagedAlerts(options) > 0)
   end
@@ -439,7 +334,7 @@ end
 
 -- #################################
 
-function getAlerts(what, options, with_counters)
+function alert_utils.getAlerts(what, options, with_counters)
    local alerts, num_alerts
 
    if what == "engaged" then
@@ -452,7 +347,7 @@ function getAlerts(what, options, with_counters)
       alerts = performAlertsQuery("SELECT rowid, *", what, options)
 
       if with_counters then
-        num_alerts = getNumAlerts(what, options)
+        num_alerts = alert_utils.getNumAlerts(what, options)
       end
    end
 
@@ -468,7 +363,7 @@ end
 
 -- #################################
 
-function deleteAlerts(what, options)
+local function deleteAlerts(what, options)
    local opts = getUnpagedAlertOptions(options or {})
    performAlertsQuery("DELETE", what, opts)
 end
@@ -476,7 +371,7 @@ end
 -- #################################
 
 -- this function returns an object with parameters specific for one tab
-function getTabParameters(_get, what)
+function alert_utils.getTabParameters(_get, what)
    local opts = {}
    for k,v in pairs(_get) do opts[k] = v end
 
@@ -488,23 +383,6 @@ function getTabParameters(_get, what)
    if not isEmptyString(what) then opts.status = what end
    opts.ifid = interface.getId()
    return opts
-end
-
--- #################################
-
--- Remove pagination options from the options
-function getUnpagedAlertOptions(options)
-   local res = {}
-
-   local paged_option = { currentPage=1, perPage=1, sortColumn=1, sortOrder=1 }
-
-   for k,v in pairs(options) do
-      if not paged_option[k] then
-         res[k] = v
-      end
-   end
-
-   return res
 end
 
 -- #################################
@@ -533,7 +411,7 @@ end
 
 -- #################################
 
-function checkDeleteStoredAlerts()
+function alert_utils.checkDeleteStoredAlerts()
    _GET["status"] = _GET["status"] or _POST["status"]
 
    if((_POST["id_to_delete"] ~= nil) and (_GET["status"] ~= nil)) then
@@ -553,7 +431,7 @@ function checkDeleteStoredAlerts()
       -- in case of delete "older than" button, resets the time period after the delete took place
       if isEmptyString(_GET["epoch_begin"]) then _GET["epoch_end"] = nil end
 
-      local has_alerts = hasAlerts(_GET["status"], _GET)
+      local has_alerts = alert_utils.hasAlerts(_GET["status"], _GET)
       if(not has_alerts) then
          -- reset the filter to avoid hiding the tab
          _GET["alert_severity"] = nil
@@ -570,10 +448,10 @@ function checkDeleteStoredAlerts()
       }
 
       local type_info = {
-         alert_type = alert_consts.alert_types[alertTypeRaw(_POST["alert_type"])],
-         alert_severity = alert_consts.alert_severities[alertSeverityRaw(_POST["alert_severity"])],
+         alert_type = alert_consts.alert_types[alert_consts.alertTypeRaw(_POST["alert_type"])],
+         alert_severity = alert_consts.alert_severities[alert_consts.alertSeverityRaw(_POST["alert_severity"])],
          alert_subtype = _POST["alert_subtype"],
-         alert_granularity = alert_consts.alerts_granularities[sec2granularity(_POST["alert_granularity"])],
+         alert_granularity = alert_consts.alerts_granularities[alert_consts.sec2granularity(_POST["alert_granularity"])],
       }
 
       alerts_api.release(entity_info, type_info)
@@ -760,9 +638,9 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
    local id_to_label
    if selection_name == "severity" then
-      id_to_label = alertSeverityLabel
+      id_to_label = alert_consts.alertSeverityLabel
    elseif selection_name == "type" then
-      id_to_label = alertTypeLabel
+      id_to_label = alert_consts.alertTypeLabel
    end
 
    actual_entries = actual_entries or getMenuEntries(status, selection_name, get_params)
@@ -969,7 +847,7 @@ end
 
 -- #################################
 
-function printAlertTables(entity_type, alert_source, page_name, page_params, alt_name, show_entity, options)
+function alert_utils.printAlertTables(entity_type, alert_source, page_name, page_params, alt_name, show_entity, options)
    local has_engaged_alerts, has_past_alerts, has_flow_alerts = false,false,false
    local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
    local tab = _GET["tab"]
@@ -1002,12 +880,12 @@ function printAlertTables(entity_type, alert_source, page_name, page_params, alt
 
    if(show_entity) then
       -- possibly process pending delete arguments
-      checkDeleteStoredAlerts()
+      alert_utils.checkDeleteStoredAlerts()
 
       -- possibly add a tab if there are alerts configured for the host
-      has_engaged_alerts = hasAlerts("engaged", getTabParameters(_GET, "engaged"))
-      has_past_alerts = hasAlerts("historical", getTabParameters(_GET, "historical"))
-      has_flow_alerts = hasAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+      has_engaged_alerts = alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(_GET, "engaged"))
+      has_past_alerts = alert_utils.hasAlerts("historical", alert_utils.getTabParameters(_GET, "historical"))
+      has_flow_alerts = alert_utils.hasAlerts("historical-flows", alert_utils.getTabParameters(_GET, "historical-flows"))
 
       if(has_engaged_alerts or has_past_alerts or has_flow_alerts) then
          if(has_engaged_alerts) then
@@ -1046,7 +924,7 @@ function printAlertTables(entity_type, alert_source, page_name, page_params, alt
    print('</ul>')
 
    if((show_entity) and is_alert_list_tab) then
-      drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
+      alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
    elseif(tab == "config") then
       printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
    elseif(tab == "probes") and #entity_probes > 0 then
@@ -1056,7 +934,7 @@ end
 
 -- #################################
 
-function optimizeAlerts()
+function alert_utils.optimizeAlerts()
    if(not areAlertsEnabled()) then
       return
    end
@@ -1066,7 +944,7 @@ end
 
 -- #################################
 
-function housekeepingAlertsMakeRoom(ifId)
+function alert_utils.housekeepingAlertsMakeRoom(ifId)
    local prefs = ntop.getPrefs()
    local max_num_alerts_per_entity = prefs.max_num_alerts_per_entity
    local max_num_flow_alerts = prefs.max_num_flow_alerts
@@ -1166,7 +1044,7 @@ end
 
 -- #################################
 
-function drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
+function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
    local options = options or {}
@@ -1458,7 +1336,7 @@ function toggleAlert(disable) {
          // append the li to the tabs
 
 	 $("#]] print(t["div-id"]) print[[").datatable({
-			url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_alerts_table_data.lua?" + $.param(]] print(tableToJsObject(getTabParameters(url_params, t["status"]))) print [[),
+			url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_alerts_table_data.lua?" + $.param(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, t["status"]))) print [[),
                showFilter: true,
 	       showPagination: true,
                buttons: [']]
@@ -1488,8 +1366,8 @@ function toggleAlert(disable) {
 
 	    local a_type, a_severity = nil, nil
 	    if clicked == "1" then
-	       if tonumber(_GET["alert_type"]) ~= nil then a_type = alertTypeLabel(_GET["alert_type"], true) end
-	       if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alertSeverityLabel(_GET["alert_severity"], true) end
+	       if tonumber(_GET["alert_type"]) ~= nil then a_type = alert_consts.alertTypeLabel(_GET["alert_type"], true) end
+	       if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alert_consts.alertSeverityLabel(_GET["alert_severity"], true) end
 	    end
 
 	    if t["status"] == "engaged" then
@@ -1648,7 +1526,7 @@ function toggleAlert(disable) {
 
                $("form", this).submit(function() {
                   // add "status" parameter to the form
-                  var get_params = paramsExtend(]] print(tableToJsObject(getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
+                  var get_params = paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
                   $(this).attr("action", "?" + $.param(get_params));
 
                   return true;
@@ -1731,7 +1609,7 @@ $("[clicked=1]").trigger("click");
     ]]
 
 	    -- we need to dynamically modify parameters at js-time because we switch tab
-	 local delete_params = getTabParameters(url_params, nil)
+	 local delete_params = alert_utils.getTabParameters(url_params, nil)
 	 delete_params.epoch_end = -1
 
 	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-secondary"> <span id="purgeBtnMessage">]]
@@ -1755,7 +1633,7 @@ function getTabSpecificParams() {
    }
 
    // merge the general parameters to the tab specific ones
-   return paramsExtend(]] print(tableToJsObject(getTabParameters(url_params, nil))) print[[, tab_specific);
+   return paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, tab_specific);
 }
 
 function checkModalDelete() {
@@ -1781,9 +1659,9 @@ $('#buttonOpenDeleteModal').on('click', function() {
 
    $(".modal-body #modalDeleteAlertsMsg").html(zoomsel.data('msg') + ']]
 	 if tonumber(_GET["alert_severity"]) ~= nil then
-	    print(' with severity "'..alertSeverityLabel(_GET["alert_severity"], true)..'" ')
+	    print(' with severity "'..alert_consts.alertSeverityLabel(_GET["alert_severity"], true)..'" ')
 	 elseif tonumber(_GET["alert_type"]) ~= nil then
-	    print(' with type "'..alertTypeLabel(_GET["alert_type"], true)..'" ')
+	    print(' with type "'..alert_consts.alertTypeLabel(_GET["alert_type"], true)..'" ')
 	 end
 	 print[[');
    if (lb.length == 1)
@@ -1824,32 +1702,19 @@ end
 
 -- #################################
 
-function drawAlerts(options)
-   local has_engaged_alerts = hasAlerts("engaged", getTabParameters(_GET, "engaged"))
-   local has_past_alerts = hasAlerts("historical", getTabParameters(_GET, "historical"))
+function alert_utils.drawAlerts(options)
+   local has_engaged_alerts = alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(_GET, "engaged"))
+   local has_past_alerts = alert_utils.hasAlerts("historical", alert_utils.getTabParameters(_GET, "historical"))
    local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
    local has_flow_alerts = false
 
    if _GET["entity"] == nil then
-     has_flow_alerts = hasAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+     has_flow_alerts = alert_utils.hasAlerts("historical-flows", alert_utils.getTabParameters(_GET, "historical-flows"))
    end
 
-   checkDeleteStoredAlerts()
+   alert_utils.checkDeleteStoredAlerts()
    checkDisableAlerts()
-   return drawAlertTables(has_past_alerts, has_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, options)
-end
-
--- #################################
-
-function newAlertsWorkingStatus(ifstats, granularity)
-   local res = {
-      granularity = granularity,
-      engine = alertEngine(granularity),
-      ifid = ifstats.id,
-      now = os.time(),
-      interval = granularity2sec(granularity),
-   }
-   return res
+   return alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, options)
 end
 
 -- #################################
@@ -1859,7 +1724,7 @@ local function getActiveDevicesHashKey(ifid)
    return "ntopng.cache.active_devices.ifid_" .. ifid
 end
 
-function deleteActiveDevicesKey(ifid)
+function alert_utils.deleteActiveDevicesKey(ifid)
    ntop.delCache(getActiveDevicesHashKey(ifid))
 end
 
@@ -1879,7 +1744,7 @@ local function getSavedDeviceName(mac)
    return ntop.getCache(key)
 end
 
-function check_macs_alerts(ifid)
+function alert_utils.check_macs_alerts(ifid)
    local alert_new_devices_enabled = ntop.getPref("ntopng.prefs.alerts.device_first_seen_alert") == "1"
    local alert_device_connection_enabled = ntop.getPref("ntopng.prefs.alerts.device_connection_alert") == "1"
 
@@ -1968,7 +1833,7 @@ local function getActivePoolsHashKey(ifid)
    return "ntopng.cache.active_pools.ifid_" .. ifid
 end
 
-function deleteActivePoolsKey(ifid)
+function alert_utils.deleteActivePoolsKey(ifid)
    ntop.delCache(getActivePoolsHashKey(ifid))
 end
 
@@ -1979,13 +1844,9 @@ local function getPoolsQuotaExceededItemsKey(ifid)
    return "ntopng.cache.quota_exceeded_pools.ifid_" .. ifid
 end
 
-function deletePoolsQuotaExceededItemsKey(ifid)
-   ntop.delCache(getPoolsQuotaExceededItemsKey(ifid))
-end
-
 -- #################################
 
-function check_host_pools_alerts(ifid)
+function alert_utils.check_host_pools_alerts(ifid)
    local active_pools_set = getActivePoolsHashKey(ifid)
    local prev_active_pools = swapKeysValues(ntop.getMembersCache(active_pools_set)) or {}
    local alert_pool_connection_enabled = ntop.getPref("ntopng.prefs.alerts.pool_connection_alert") == "1"
@@ -2105,7 +1966,7 @@ end
 
 -- #################################
 
-function disableAlertsGeneration()
+function alert_utils.disableAlertsGeneration()
    if not haveAdminPrivileges() then
       return
    end
@@ -2118,7 +1979,7 @@ end
 
 -- #################################
 
-function flushAlertsData()
+function alert_utils.flushAlertsData()
    if not haveAdminPrivileges() then
       return
    end
@@ -2164,7 +2025,7 @@ end
 
 -- #################################
 
-function alertNotificationActionToLabel(action)
+local function alertNotificationActionToLabel(action)
    local label = ""
 
    if action == "engage" then
@@ -2178,7 +2039,7 @@ end
 
 -- #################################
 
-function getConfigsetAlertLink(alert_json)
+function alert_utils.getConfigsetAlertLink(alert_json)
    local configsets = user_scripts.getConfigsets()
    local info = alert_json.alert_generation or (alert_json.status_info and alert_json.status_info.alert_generation)
 
@@ -2196,7 +2057,7 @@ end
 
 -- #################################
 
-function formatAlertMessage(ifid, alert)
+function alert_utils.formatAlertMessage(ifid, alert)
   local msg
   local alert_json = alert["alert_json"]
 
@@ -2234,7 +2095,7 @@ function formatAlertMessage(ifid, alert)
 	    host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
       end
     else
-      msg = msg .. getConfigsetAlertLink(alert_json)
+      msg = msg .. alert_utils.getConfigsetAlertLink(alert_json)
     end
   end
 
@@ -2243,16 +2104,12 @@ end
 
 -- #################################
 
-function notification_timestamp_asc(a, b)
-   return (a.alert_tstamp < b.alert_tstamp)
-end
-
-function notification_timestamp_rev(a, b)
+function alert_utils.notification_timestamp_rev(a, b)
    return (a.alert_tstamp > b.alert_tstamp)
 end
 
 -- Returns a summary of the alert as readable text
-function formatAlertNotification(notif, options)
+function alert_utils.formatAlertNotification(notif, options)
    local defaults = {
       nohtml = false,
       show_severity = true,
@@ -2260,8 +2117,8 @@ function formatAlertNotification(notif, options)
    options = table.merge(defaults, options)
 
    local msg = "[" .. formatEpoch(notif.alert_tstamp or 0) .. "]"
-   msg = msg .. ternary(options.show_severity == false, "", "[" .. alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]") ..
-      "[" .. alertTypeLabel(notif.alert_type, options.nohtml) .."]"
+   msg = msg .. ternary(options.show_severity == false, "", "[" .. alert_consts.alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]") ..
+      "[" .. alert_consts.alertTypeLabel(notif.alert_type, options.nohtml) .."]"
 
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
@@ -2280,7 +2137,7 @@ function formatAlertNotification(notif, options)
 
    -- add the label, that is, engaged or released
    msg = msg .. alertNotificationActionToLabel(notif.action).. " "
-   local alert_message = formatAlertMessage(notif.ifid, notif)
+   local alert_message = alert_utils.formatAlertMessage(notif.ifid, notif)
 
    if options.nohtml then
       msg = msg .. noHtml(alert_message)
@@ -2343,7 +2200,7 @@ end
 -- Check for alerts pushed by the datapath to an internal queue (from C)
 -- and store them (push them to the SQLite and Notification queues).
 -- NOTE: this is executed in a system VM, with no interfaces references
-function checkStoreAlertsFromC()
+function alert_utils.checkStoreAlertsFromC()
   if(not areAlertsEnabled()) then
     return
   end
@@ -2369,7 +2226,7 @@ end
 
 -- Check for alerts in the notification queue and process them.
 -- NOTE: this is executed in a system VM, with no interfaces references
-function processAlertNotifications(now, periodic_frequency, force_export)
+function alert_utils.processAlertNotifications(now, periodic_frequency, force_export)
    if(not areAlertsEnabled()) then
       return
    end
@@ -2422,7 +2279,7 @@ end
 
 local function notify_ntopng_status(started)
    local info = ntop.getInfo()
-   local severity = alertSeverity("info")
+   local severity = alert_consts.alertSeverity("info")
    local msg
    local msg_details = string.format("%s v.%s (%s) [OS: %s][pid: %s][options: %s]", info.product, info.version, info.revision, info.OS, info.pid, info.command_line)
    local anomalous = false
@@ -2441,7 +2298,7 @@ local function notify_ntopng_status(started)
       if not recovery_utils.check_clean_shutdown() then
         -- anomalous termination
         msg = string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), msg_details)
-        severity = alertSeverity("error")
+        severity = alert_consts.alertSeverity("error")
         anomalous = true
         event = "anomalous_termination"
       elseif not isEmptyString(last_version) and last_version ~= curr_version then
@@ -2462,7 +2319,7 @@ local function notify_ntopng_status(started)
 
    obj = {
       entity_type = alert_consts.alertEntity("process"), entity_value=entity_value,
-      type = alertType("alert_process_notification"),
+      type = alert_consts.alertType("alert_process_notification"),
       severity = severity,
       message = msg,
       when = os.time() }
@@ -2478,10 +2335,12 @@ local function notify_ntopng_status(started)
   return(alerts_api.store(entity_info, type_info))
 end
 
-function notify_ntopng_start()
+function alert_utils.notify_ntopng_start()
    return(notify_ntopng_status(true))
 end
 
-function notify_ntopng_stop()
+function alert_utils.notify_ntopng_stop()
    return(notify_ntopng_status(false))
 end
+
+return alert_utils

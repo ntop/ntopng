@@ -4,7 +4,7 @@
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local host_pools_utils = require "host_pools_utils"
 local callback_utils = require "callback_utils"
 local ts_utils = require "ts_utils_core"
@@ -403,7 +403,7 @@ end
 function ts_dump.run_5min_tasks(_ifname, ifstats)
   user_scripts.runPeriodicScripts("5mins")
 
-  housekeepingAlertsMakeRoom(ifstats.id)
+  alert_utils.housekeepingAlertsMakeRoom(ifstats.id)
 end
 
 -- ########################################################

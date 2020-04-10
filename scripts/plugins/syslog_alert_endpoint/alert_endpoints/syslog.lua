@@ -4,6 +4,7 @@
 
 require "lua_utils"
 local json = require "dkjson"
+local alert_utils = require "alert_utils"
 local alert_consts = require "alert_consts"
 
 local syslog = {}
@@ -46,23 +47,23 @@ function syslog.dequeueAlerts(queue)
 
    for _, by_severity in pairs(alerts_by_types) do
       for severity, notifications in pairs(by_severity) do
-        severity = alertSeverityRaw(severity)
+        severity = alert_consts.alertSeverityRaw(severity)
 
 	 -- Most recent notifications first
-	 for _, notif in pairsByValues(notifications, notification_timestamp_rev) do
+	 for _, notif in pairsByValues(notifications, alert_utils.notification_timestamp_rev) do
 	    local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
 
 	    local msg
 
 	    if syslog_format == "plaintext" then
 	       -- prepare a plaintext message
-	       msg = formatAlertNotification(notif, {nohtml = true,
+	       msg = alert_utils.formatAlertNotification(notif, {nohtml = true,
 						     show_severity = true,
 						     show_entity = true})
 	    else -- syslog_format == "json" then
 	       -- send out the json message but prepare a nice
 	       -- message
-	       notif.message  = formatAlertNotification(notif, {nohtml = true,
+	       notif.message  = alert_utils.formatAlertNotification(notif, {nohtml = true,
 								show_severity = false,
 								show_entity = false})
 	       msg = json.encode(notif)

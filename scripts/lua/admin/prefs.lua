@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 require "prefs_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local template = require "template_utils"
 local callback_utils = require "callback_utils"
 local lists_utils = require "lists_utils"
@@ -80,11 +80,11 @@ if(haveAdminPrivileges()) then
    end
 
    if(_POST["flush_alerts_data"] ~= nil) then
-      require "alert_utils"
-      flushAlertsData()
+    local alert_utils = require "alert_utils"
+      alert_utils.flushAlertsData()
    elseif(_POST["disable_alerts_generation"] == "1") then
-      require "alert_utils"
-      disableAlertsGeneration()
+    local alert_utils = require "alert_utils"
+      alert_utils.disableAlertsGeneration()
    elseif (_POST["timeseries_driver"] == "influxdb") then
       local url = string.gsub(string.gsub( _POST["ts_post_data_url"], "http:__", "http://"), "https:__", "https://")
 

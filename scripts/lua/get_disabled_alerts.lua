@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
 local json = require "dkjson"
@@ -115,7 +115,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
     res[#res + 1] = {
       column_entity_formatted = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(item.entity_id), item.entity_value)),
-      column_type = alertTypeLabel(item.alert.alert_id),
+      column_type = alert_consts.alertTypeLabel(item.alert.alert_id),
       column_entity_id = item.entity_id,
       column_entity_val = item.entity_value,
       column_type_id = item.alert.alert_id,

@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 require "flow_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
@@ -32,7 +32,7 @@ end
 interface.select(ifname)
 
 local alert_options = _GET
-local alerts = getAlerts(status, alert_options)
+local alerts = alert_utils.getAlerts(status, alert_options)
 
 if alerts == nil then alerts = {} end
 
@@ -62,9 +62,9 @@ for _key,_value in ipairs(alerts) do
       column_duration = tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"])
    end
 
-   local column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]), true)
-   local column_type     = alertTypeLabel(tonumber(_value["alert_type"]), true)
-   local column_msg      = formatAlertMessage(ifid, _value)
+   local column_severity = alert_consts.alertSeverityLabel(tonumber(_value["alert_severity"]), true)
+   local column_type     = alert_consts.alertTypeLabel(tonumber(_value["alert_type"]), true)
+   local column_msg      = alert_utils.formatAlertMessage(ifid, _value)
    local column_id = tostring(_value["rowid"])
    local column_date = _value["alert_tstamp"]
 

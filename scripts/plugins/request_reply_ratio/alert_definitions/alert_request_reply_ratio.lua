@@ -6,7 +6,7 @@ function requestReplyRatioFormatter(ifid, alert, info)
   local alert_consts = require("alert_consts")
 
   local entity = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"]))
-  local engine_label = alertEngineLabel(alertEngine(sec2granularity(alert["alert_granularity"])))
+  local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"])))
   local ratio = round(math.min((info.replies * 100) / (info.requests + 1), 100), 1)
 
   -- {i18_string, what}

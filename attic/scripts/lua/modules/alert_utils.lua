@@ -40,7 +40,7 @@ function drawAlertSourceSettings(entity_type, alert_source, delete_button_msg, d
       end
 
       if tab ~= "flows" then
-         local granularity_label = alertEngineLabel(alertEngine(tab))
+         local granularity_label = alertEngineLabel(alert_consts.alertEngine(tab))
 
          print(
 	    template.gen("modal_confirm_dialog.html", {

@@ -137,7 +137,7 @@ Here is a commented snippet for the email endpoint.
         local alert = json.decode(json_message)
 
         -- Get a standard message for the alert
-        message_body[#message_body + 1] = formatAlertNotification(alert, {nohtml=true})
+        message_body[#message_body + 1] = alert_utils.formatAlertNotification(alert, {nohtml=true})
       end
 
       if email.sendEmail(subject, message_body) then
@@ -163,14 +163,14 @@ order to make space for new alerts and avoid processing them again.
 Alert Format
 ------------
 
-By using the `formatAlertNotification` function it is not necessary to know the internal alerts format, however
+By using the `alert_utils.formatAlertNotification` function it is not necessary to know the internal alerts format, however
 it is in order to perform specific actions based on the alert. The alerts in the queue have the following format:
 
 - :code:`ifid`: the interface id on which the alert has been generated.
 - :code:`action`: `engage`, `release` or `store`. Check the alerts api for more details. [4]
 - :code:`alert_tstamp`: the unix timestamp when the alert was triggered
 - :code:`alert_tstamp_end`: in case of released alerts, contains the unix timestamp of the release event
-- :code:`alert_type`: the `alert type`_ ID. `alertTypeRaw` can be used to convert it to a string.
+- :code:`alert_type`: the `alert type`_ ID. `alert_consts.alertTypeRaw` can be used to convert it to a string.
 - :code:`alert_subtype`: an optional alert subtype.
 - :code:`alert_severity`: the `alert severity`_ ID. `alertSeverityRaw` can be used to convert it to a string.
 - :code:`alert_json`: a JSON which contains information which is specific for the alert_type.
@@ -206,7 +206,7 @@ how to log to console `flow flood attackers alerts`_.
 
   function email.dequeueAlerts(queue)
     local alert_consts = require("alert_consts")
-    require("alert_utils")
+    local alert_utils = require("alert_utils")
 
     while true do
       -- Process 100 alerts at a time
@@ -222,10 +222,10 @@ how to log to console `flow flood attackers alerts`_.
         local alert = json.decode(json_message)
 
         if((alert_consts.alertEntityRaw(alert.alert_entity) == "host") and
-          (alertTypeRaw(alert.alert_type) == "alert_flows_flood") and
+          (alert_consts.alertTypeRaw(alert.alert_type) == "alert_flows_flood") and
           (alert.alert_subtype == "flow_flood_attacker")) then
            -- Put your custom action here
-           traceError(TRACE_NORMAL, TRACE_CONSOLE, "Flow Flood Attacker: " .. formatAlertNotification(alert, {nohtml=true}))
+           traceError(TRACE_NORMAL, TRACE_CONSOLE, "Flow Flood Attacker: " .. alert_utils.formatAlertNotification(alert, {nohtml=true}))
         end
       end
 

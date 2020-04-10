@@ -12,7 +12,7 @@ end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 
@@ -137,7 +137,7 @@ elseif (page == "config") then
 
 elseif(page == "alerts") then
 
-    printAlertTables("network", network_name,
+    alert_utils.printAlertTables("network", network_name,
       "network_details.lua", {network=network}, network_name, "network",
       {enable_label = i18n("show_alerts.trigger_network_alert_descr", {network = network_name})})
 

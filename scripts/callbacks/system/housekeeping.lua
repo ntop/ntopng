@@ -11,7 +11,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local alerts_api = require "alerts_api"
 local lists_utils = require "lists_utils"
 local recording_utils = require "recording_utils"
@@ -20,7 +20,7 @@ local now = os.time()
 local periodicity = 3
 
 -- Check for alerts from the datapath
-checkStoreAlertsFromC()
+alert_utils.checkStoreAlertsFromC()
 
 -- Check and possibly reload plugins
 plugins_utils.checkReloadPlugins(now)
@@ -35,4 +35,4 @@ if recording_utils.isAvailable() then
 end
 
 -- Check for alerts to be notified
-processAlertNotifications(now, periodicity)
+alert_utils.processAlertNotifications(now, periodicity)

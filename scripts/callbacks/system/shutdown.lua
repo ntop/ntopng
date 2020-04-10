@@ -14,12 +14,12 @@ local prefs_dump_utils = require "prefs_dump_utils"
 local recovery_utils = require "recovery_utils"
 
 require "lua_utils" -- NOTE: required by alert_utils
-require "alert_utils"
+local alert_utils = require "alert_utils"
 
 local now = os.time()
 local ifnames = interface.getIfNames()
 
-notify_ntopng_stop()
+alert_utils.notify_ntopng_stop()
 prefs_dump_utils.savePrefsToDisk()
 
 for _, ifname in pairs(ifnames) do
@@ -27,6 +27,6 @@ for _, ifname in pairs(ifnames) do
   interface.releaseEngagedAlerts()
 end
 
-processAlertNotifications(now, 3 --[[ deadline ]], true --[[ force ]])
+alert_utils.processAlertNotifications(now, 3 --[[ deadline ]], true --[[ force ]])
 
 recovery_utils.mark_clean_shutdown()

@@ -29,7 +29,7 @@ local script = {
 -- #################################################################
 
 function script.hooks.all(params)
-  local value = alerts_api.interface_delta_val(script.key, params.granularity, params.entity_info["stats"]["bytes"]) * 8 / granularity2sec(params.granularity)
+  local value = alerts_api.interface_delta_val(script.key, params.granularity, params.entity_info["stats"]["bytes"]) * 8 / alert_consts.granularity2sec(params.granularity)
 
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
   alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_threshold_cross, value)

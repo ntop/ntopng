@@ -242,7 +242,36 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
    -- Success
    return(true)
 end
+ 
+-- ##############################################
 
+function alert_consts.alertTypeLabel(v, nohtml)
+   local alert_id = alert_consts.alertTypeRaw(v)
+
+   if(alert_id) then
+      local type_info = alert_consts.alert_types[alert_id]
+      local title = i18n(type_info.i18n_title) or type_info.i18n_title
+
+      if(nohtml) then
+        return(title)
+      else
+        return(string.format('<i class="%s"></i> %s', type_info.icon, title))
+      end
+   end
+
+   return(i18n("unknown"))
+end
+ 
+-- ##############################################
+
+function alert_consts.alertType(v)
+   if(alert_consts.alert_types[v] == nil) then
+      tprint(debug.traceback())
+   end
+ 
+   return(alert_consts.alert_types[v].alert_id)
+ end
+ 
 -- ##############################################
 
 function alert_consts.getAlertType(alert_id)
@@ -342,9 +371,118 @@ alert_consts.ids_rule_maker = {
   ET = "Emerging Threats",
 }
 
+-- ################################################################################
+
+function alert_consts.alertSeverityRaw(severity_id)
+   severity_id = tonumber(severity_id)
+ 
+   for key, severity_info in pairs(alert_consts.alert_severities) do
+     if(severity_info.severity_id == severity_id) then
+       return(key)
+     end
+   end
+ end
+
+ -- ################################################################################
+
+function alert_consts.alertSeverityLabel(v, nohtml)
+   local severity_id = alert_consts.alertSeverityRaw(v)
+
+   if(severity_id) then
+      local severity_info = alert_consts.alert_severities[severity_id]
+      local title = i18n(severity_info.i18n_title) or severity_info.i18n_title
+
+      if(nohtml) then
+        return(title)
+      else
+        return(string.format('<span class="badge %s">%s</span>', severity_info.label, title))
+      end
+   end
+
+   return "(unknown severity)"
+end
 
 -- ################################################################################
 
+function alert_consts.alertSeverity(v)
+   return(alert_consts.alert_severities[v].severity_id)
+ end
+ 
+-- ################################################################################
+ 
+function alert_consts.alertTypeRaw(type_id)
+   type_id = tonumber(type_id)
+ 
+   for key, type_info in pairs(alert_consts.alert_types) do
+     if(type_info.alert_id == type_id) then
+       return(key)
+     end
+   end
+ end
+
+ -- ################################################################################
+
+-- Rename engine -> granulariy
+local function alertEngineRaw(granularity_id)
+   granularity_id = tonumber(granularity_id)
+ 
+   for key, granularity_info in pairs(alert_consts.alerts_granularities) do
+     if(granularity_info.granularity_id == granularity_id) then
+       return(key)
+     end
+   end
+ end
+ 
+-- ################################################################################
+ 
+function alert_consts.alertEngine(v)
+   if(alert_consts.alerts_granularities[v] == nil) then
+      tprint(debug.traceback())
+   end
+
+   return(alert_consts.alerts_granularities[v].granularity_id)
+end
+
+-- ################################################################################
+
+function alert_consts.alertEngineLabel(v)
+   local granularity_id = alertEngineRaw(v)
+ 
+   if(granularity_id ~= nil) then
+     return(i18n(alert_consts.alerts_granularities[granularity_id].i18n_title))
+   end
+ end
+
+ -- ################################################################################
+
+function alert_consts.granularity2sec(v)
+   if(alert_consts.alerts_granularities[v] == nil) then
+      tprint(debug.traceback())
+   end
+
+  return(alert_consts.alerts_granularities[v].granularity_seconds)
+end
+
+-- ################################################################################
+
+-- See NetworkInterface::checkHostsAlerts()
+function alert_consts.granularity2id(granularity)
+   -- TODO replace alertEngine
+   return(alert_consts.alertEngine(granularity))
+ end
+
+-- ################################################################################
+
+function alert_consts.sec2granularity(seconds)
+   seconds = tonumber(seconds)
+ 
+   for key, granularity_info in pairs(alert_consts.alerts_granularities) do
+     if(granularity_info.granularity_seconds == seconds) then
+       return(key)
+     end
+   end
+ end
+ 
 -- Load definitions now
 loadAlertsDefs()
 

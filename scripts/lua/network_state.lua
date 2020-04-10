@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 ignore_post_payload_parse = 1
 require "lua_utils"
+local alert_consts = require "alert_consts"
 
 local network_state = {}
 local if_stats = interface.getStats()
@@ -248,24 +249,24 @@ end
 
 ------------------------ALERTS----------------------------
 
-require "alert_utils"
+local alert_utils = require "alert_utils"
 
 function network_state.check_alerts()
-  local engaged_alerts = getAlerts("engaged", getTabParameters(_GET, "engaged"))
-  local past_alerts    = getAlerts("historical", getTabParameters(_GET, "historical"))
-  local flow_alerts    = getAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+  local engaged_alerts = alert_utils.getAlerts("engaged", alert_utils.getTabParameters(_GET, "engaged"))
+  local past_alerts    = alert_utils.getAlerts("historical", alert_utils.getTabParameters(_GET, "historical"))
+  local flow_alerts    = alert_utils.getAlerts("historical-flows", alert_utils.getTabParameters(_GET, "historical-flows"))
 
   return engaged_alerts, past_alerts, flow_alerts
 end
 
 
 function network_state.check_num_alerts_and_severity()
-  local num_engaged_alerts  = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
-  local num_past_alerts     = getNumAlerts("historical", getTabParameters(_GET, "historical"))
-  local num_flow_alerts     = getNumAlerts("historical-flows", getTabParameters(_GET,"historical-flows"))
-  local engaged_alerts      = getAlerts("engaged", getTabParameters(_GET, "engaged"))
-  local past_alerts         = getAlerts("historical", getTabParameters(_GET, "historical"))
-  local flow_alerts         = getAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
+  local num_engaged_alerts  = alert_utils.getNumAlerts("engaged", alert_utils.getTabParameters(_GET, "engaged"))
+  local num_past_alerts     = alert_utils.getNumAlerts("historical", alert_utils.getTabParameters(_GET, "historical"))
+  local num_flow_alerts     = alert_utils.getNumAlerts("historical-flows", alert_utils.getTabParameters(_GET,"historical-flows"))
+  local engaged_alerts      = alert_utils.getAlerts("engaged", alert_utils.getTabParameters(_GET, "engaged"))
+  local past_alerts         = alert_utils.getAlerts("historical", alert_utils.getTabParameters(_GET, "historical"))
+  local flow_alerts         = alert_utils.getAlerts("historical-flows", alert_utils.getTabParameters(_GET, "historical-flows"))
 
   local severity = {} --severity: (none,) info, warning, error
   local alert_num = num_engaged_alerts + num_past_alerts + num_flow_alerts
@@ -275,7 +276,7 @@ function network_state.check_num_alerts_and_severity()
 
     for i,v in pairs(alerts) do
       if v.alert_severity then 
-        severity_text = alertSeverityLabel(v.alert_severity, true)
+        severity_text = alert_consts.alertSeverityLabel(v.alert_severity, true)
         severity_table[severity_text] = (severity_table[severity_text] or 0) + 1 
       end
     end
@@ -323,14 +324,14 @@ function network_state.alerts_details()
 
   for i,v in pairs(tmp_alerts) do 
 
-    if v.alert_type       then alert_type = alertTypeLabel( v.alert_type, true )      else  alert_type      = "Sconosciuto" end
+    if v.alert_type       then alert_type = alert_consts.alertTypeLabel( v.alert_type, true )      else  alert_type      = "Sconosciuto" end
     if v.rowid            then rowid  =  v.rowid                                      else  rowid           = "Sconosciuto" end
     if v.alert_tstamp     then t_stamp =  os.date( "%c", tonumber(v.alert_tstamp))    else  t_stamp         = "Sconosciuto" end
     if v.srv_addr         then srv_addr = v.srv_addr                                  else  srv_addr        = "Sconosciuto" end
     if v.srv_port         then srv_port = v.srv_port                                  else  srv_port        = "Sconosciuto" end
     if v.cli_addr         then cli_addr = v.cli_addr                                  else  cli_addr        = "Sconosciuto" end
     if v.cli_port         then cli_port = v.cli_port                                  else  cli_port        = "Sconosciuto" end
-    if v.alert_severity   then severity = alertSeverityLabel(v.alert_severity, true)  else  severity        = "Sconosciuto" end
+    if v.alert_severity   then severity = alert_consts.alertSeverityLabel(v.alert_severity, true)  else  severity        = "Sconosciuto" end
     if v.alert_json       then alert_json = v.alert_json                              else  alert_json      = "Sconosciuto" end 
     
     local e = {

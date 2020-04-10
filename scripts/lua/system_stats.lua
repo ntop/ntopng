@@ -14,7 +14,7 @@ local internals_utils = require "internals_utils"
 local system_utils = require("system_utils")
 local ts_utils = require "ts_utils"
 local graph_utils = require("graph_utils")
-require("alert_utils")
+local alert_utils = require("alert_utils")
 
 local ts_creation = plugins_utils.timeseriesCreationEnabled()
 
@@ -203,7 +203,7 @@ elseif((page == "alerts") and isAdministrator()) then
       alert_consts.alertEntity("influx_db"), alert_consts.alertEntity("snmp_device"),
       alert_consts.alertEntity("pinged_host"))
 
-   drawAlerts()
+   alert_utils.drawAlerts()
 
    interface.select(tostring(cur_id))
 elseif page == "internals" then

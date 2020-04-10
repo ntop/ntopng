@@ -15,7 +15,7 @@ local rtt_utils = require("rtt_utils")
 local json = require("dkjson")
 
 local graph_utils = require("graph_utils")
-require("alert_utils")
+local alert_utils = require("alert_utils")
 
 local ts_creation = plugins_utils.timeseriesCreationEnabled()
 
@@ -387,7 +387,7 @@ elseif((page == "alerts") and isAdministrator()) then
       _GET["entity_val"] = rtt_utils.getRttHostKey(host.host, host.measurement)
    end
 
-   drawAlerts()
+   alert_utils.drawAlerts()
 
    interface.select(old_ifname)
 end

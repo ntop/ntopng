@@ -381,10 +381,10 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
     -- NOTE: do not pass alerts here as a parameters as deleting items while
     -- does not work in lua
     alerts_api.release(entity_info, {
-      alert_type = alert_consts.alert_types[alertTypeRaw(alert.alert_type)],
-      alert_severity = alert_consts.alert_severities[alertSeverityRaw(alert.alert_severity)],
+      alert_type = alert_consts.alert_types[alert_consts.alertTypeRaw(alert.alert_type)],
+      alert_severity = alert_consts.alert_severities[alert_consts.alertSeverityRaw(alert.alert_severity)],
       alert_subtype = alert.alert_subtype,
-      alert_granularity = alert_consts.alerts_granularities[sec2granularity(alert.alert_granularity)],
+      alert_granularity = alert_consts.alerts_granularities[alert_consts.sec2granularity(alert.alert_granularity)],
     })
   end
 end
@@ -541,7 +541,7 @@ end
 function alerts_api.processNotificationType(event_type, severity, msg_details)
   return({
     alert_type = alert_consts.alert_types.alert_process_notification,
-    alert_severity = alert_consts.alert_severities[alertSeverityRaw(severity)],
+    alert_severity = alert_consts.alert_severities[alert_consts.alertSeverityRaw(severity)],
     alert_type_params = {
       msg_details = msg_details,
       event_type = event_type,
@@ -898,7 +898,7 @@ end
 -- @param skip_first if true, 0 will be returned when no cached value is present
 -- @return the difference between current and previous value
 local function delta_val(reg, metric_name, granularity, curr_val, skip_first)
-   local granularity_num = granularity2id(granularity)
+   local granularity_num = alert_consts.granularity2id(granularity)
    local key = string.format("%s:%s", metric_name, granularity_num)
 
    -- Read cached value and purify it

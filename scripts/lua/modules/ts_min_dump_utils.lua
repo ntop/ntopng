@@ -5,7 +5,7 @@
 -- ########################################################
 
 require "lua_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local graph_utils = require "graph_utils"
 
 local os_utils = require "os_utils"
@@ -315,8 +315,8 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when)
   dumpTopTalkers(_ifname, ifstats, verbose)
 
   user_scripts.runPeriodicScripts("min")
-  check_macs_alerts(ifstats.id)
-  check_host_pools_alerts(ifstats.id)
+  alert_utils.check_macs_alerts(ifstats.id)
+  alert_utils.check_host_pools_alerts(ifstats.id)
 
   local iface_rrd_creation_enabled = areInterfaceTimeseriesEnabled(ifstats.id)
 

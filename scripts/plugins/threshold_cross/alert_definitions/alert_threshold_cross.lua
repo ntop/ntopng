@@ -5,7 +5,7 @@
 local function formatThresholdCross(ifid, alert, threshold_info)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-  local engine_label = alertEngineLabel(alertEngine(sec2granularity(alert["alert_granularity"])))
+  local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"])))
 
   return i18n("alert_messages.threshold_crossed", {
     granularity = engine_label,

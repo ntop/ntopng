@@ -13,7 +13,7 @@ end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local page_utils = require("page_utils")
 local host_pools_utils = require "host_pools_utils"
 local template = require "template_utils"

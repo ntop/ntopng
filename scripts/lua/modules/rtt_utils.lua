@@ -183,7 +183,7 @@ end
 function rtt_utils.deleteHost(host, measurement)
   local ts_utils = require("ts_utils")
   local alerts_api = require("alerts_api")
-  require("alert_utils")
+  local alert_utils = require("alert_utils")
 
   -- NOTE: system interface must be manually sected and then unselected
   local old_iface = tostring(interface.getId())

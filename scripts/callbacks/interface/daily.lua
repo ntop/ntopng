@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 
 local callback_utils = require "callback_utils"
 local db_utils = require "db_utils"
@@ -41,4 +41,4 @@ if ntop.getPrefs()["is_dump_flows_to_mysql_enabled"] and not ifstats.isViewed th
 end
 
 ts_utils.deleteOldData(interface_id)
-optimizeAlerts()
+alert_utils.optimizeAlerts()

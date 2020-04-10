@@ -24,7 +24,7 @@ local page_utils = require("page_utils")
 require "lua_utils"
 require "prefs_utils"
 local graph_utils = require "graph_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 require "db_utils"
 
 local recording_utils = require "recording_utils"
@@ -1271,7 +1271,7 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
    print('</div></div>')
 elseif(page == "alerts") then
 
-   printAlertTables("interface", ifname_clean,
+   alert_utils.printAlertTables("interface", ifname_clean,
       "if_stats.lua", {ifid=ifid}, if_name, "interface",
       {enable_label = i18n("show_alerts.trigger_iface_alert_descr", {iface = short_name})})
 

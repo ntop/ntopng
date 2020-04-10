@@ -14,7 +14,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")
@@ -208,8 +208,8 @@ local function triggerFlowAlert(now, l4_proto)
 
    if do_trace then
       trace_f(string.format("flow.triggerAlert(type=%s, severity=%s)",
-			 alertTypeRaw(alerted_status.alert_type.alert_id),
-			 alertSeverityRaw(alerted_status.alert_severity.severity_id)))
+			 alert_consts.alertTypeRaw(alerted_status.alert_type.alert_id),
+			 alert_consts.alertSeverityRaw(alerted_status.alert_severity.severity_id)))
    end
 
    alerted_status_msg = alerted_status_msg or {}

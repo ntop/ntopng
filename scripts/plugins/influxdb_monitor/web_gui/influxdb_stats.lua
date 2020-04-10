@@ -13,7 +13,7 @@ local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 local plugins_utils = require("plugins_utils")
 local graph_utils = require("graph_utils")
-require("alert_utils")
+local alert_utils = require("alert_utils")
 
 local probe = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.script_types.system, "system", "influxdb_monitor")
 
@@ -204,7 +204,7 @@ elseif((page == "alerts") and isAdministrator()) then
    _GET["ifid"] = getSystemInterfaceId()
    _GET["entity"] = alert_consts.alertEntity("influx_db")
 
-   drawAlerts()
+   alert_utils.drawAlerts()
 
    interface.select(old_ifname)
 end

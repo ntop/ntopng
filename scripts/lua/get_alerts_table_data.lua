@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 require "flow_utils"
 
 local format_utils = require "format_utils"
@@ -88,7 +88,7 @@ if alert_options.entity_val ~= nil then
    alert_options.entity_val = string.gsub(alert_options.entity_val, "https:__", "https://")
 end
 
-local alerts, num_alerts = getAlerts(status, alert_options, true --[[ with_counters ]])
+local alerts, num_alerts = alert_utils.getAlerts(status, alert_options, true --[[ with_counters ]])
 
 if alerts == nil then alerts = {} end
 
@@ -129,11 +129,11 @@ for _key,_value in ipairs(alerts) do
       column_duration = secondsToTime(tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"]))
    end
 
-   local column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
-   local column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
+   local column_severity = alert_consts.alertSeverityLabel(tonumber(_value["alert_severity"]))
+   local column_type     = alert_consts.alertTypeLabel(tonumber(_value["alert_type"]))
    local column_count    = format_utils.formatValue(tonumber(_value["alert_counter"]))
    local column_score    = format_utils.formatValue(tonumber(_value["score"]))
-   local column_msg      = string.gsub(formatAlertMessage(ifid, _value), '"', "'")
+   local column_msg      = string.gsub(alert_utils.formatAlertMessage(ifid, _value), '"', "'")
    local column_chart = nil
 
    if ntop.isPro() then

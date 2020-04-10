@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local shaper_utils
 require "lua_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local NfConfig = nil
@@ -1023,7 +1023,7 @@ else
       if status_info then
 	 message = message .. string.format(" [%s: %d]", i18n("score"), status_info.score)
       end
-      message = message .. getConfigsetAlertLink(alert_info)
+      message = message .. alert_utils.getConfigsetAlertLink(alert_info)
 
       print("<tr><th width=30%><i class='fas fa-exclamation-triangle' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
@@ -1061,7 +1061,7 @@ else
 
 	    if status_info then
 	       detail = string.format(" [%s: %d]", i18n("score"), status_info.score)
-	       detail = detail .. getConfigsetAlertLink({alert_generation = {confset_id = confset_id, subdir = "flow", script_key = status_info.user_script}})
+	       detail = detail .. alert_utils.getConfigsetAlertLink({alert_generation = {confset_id = confset_id, subdir = "flow", script_key = status_info.user_script}})
 	    end
 
             print(flow_consts.getStatusDescription(id, flow2statusinfo(flow))..detail.."<br />")

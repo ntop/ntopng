@@ -20,7 +20,7 @@ require "lua_utils"
 local plugins_utils = require "plugins_utils"
 plugins_utils.loadPlugins()
 
-require "alert_utils"
+local alert_utils = require "alert_utils"
 
 local discover_utils = require "discover_utils"
 local host_pools_utils = require "host_pools_utils"
@@ -92,14 +92,11 @@ local function cleanupIfname(ifname)
    ntop.rmdir(alerts_status_path)
 
    -- Remove the active devices and pools keys
-   deleteActiveDevicesKey(ifid)
-   deleteActivePoolsKey(ifid)
+   alert_utils.deleteActiveDevicesKey(ifid)
+   alert_utils.deleteActivePoolsKey(ifid)
 
    -- Remove network discovery request on startup
    discover_utils.clearNetworkDiscovery(ifid)
-
-   -- Note: we do not delete this as quotas are persistent across ntopng restart
-   --deletePoolsQuotaExceededItemsKey(ifid)
 
    -- Clean old InfluxDB export cache
    local export_dir = os_utils.fixPath(dirs.workingdir .. "/".. ifid .."/ts_export")
@@ -157,8 +154,8 @@ if  ntop.isnEdge() then
    http_bridge_conf_utils.configureBridge()
 end
 
-processAlertNotifications(os.time(), 0, true --[[ force ]])
-notify_ntopng_start()
+alert_utils.processAlertNotifications(os.time(), 0, true --[[ force ]])
+alert_utils.notify_ntopng_start()
 
 if not recovery_utils.check_clean_shutdown() then
    package.path = dirs.installdir .. "/scripts/callbacks/system/?.lua;" .. package.path

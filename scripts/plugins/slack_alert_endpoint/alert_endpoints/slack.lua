@@ -5,7 +5,7 @@
 require "lua_utils"
 local json = require "dkjson"
 local alert_consts = require("alert_consts")
-require "alert_utils"
+local alert_utils = require "alert_utils"
 
 local slack = {}
 
@@ -83,11 +83,11 @@ function slack.dequeueAlerts(queue)
     for severity, notifications in pairs(by_severity) do
       local messages = {}
       entity_type = alert_consts.alertEntityRaw(entity_type)
-      severity = alertSeverityRaw(severity)
+      severity = alert_consts.alertSeverityRaw(severity)
 
       -- Most recent notifications first
-      for _, notif in pairsByValues(notifications, notification_timestamp_rev) do
-        local msg = formatAlertNotification(notif, {nohtml=true, show_severity=false})
+      for _, notif in pairsByValues(notifications, alert_utils.notification_timestamp_rev) do
+        local msg = alert_utils.formatAlertNotification(notif, {nohtml=true, show_severity=false})
         table.insert(messages, msg)
 
         if #messages >= MAX_ALERTS_PER_MESSAGE then

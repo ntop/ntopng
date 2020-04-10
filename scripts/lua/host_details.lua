@@ -14,7 +14,7 @@ end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-require "alert_utils"
+local alert_utils = require "alert_utils"
 require "historical_utils"
 
 local json = require ("dkjson")
@@ -2033,7 +2033,7 @@ else
 end
 
 elseif(page == "alerts") then
-   printAlertTables("host", hostkey,
+   alert_utils.printAlertTables("host", hostkey,
       "host_details.lua", {ifid=ifId, host=hostkey},
       host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
          enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = host_name})})

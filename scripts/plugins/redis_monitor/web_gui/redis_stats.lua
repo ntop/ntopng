@@ -11,7 +11,7 @@ local page_utils = require("page_utils")
 local alert_consts = require("alert_consts")
 local plugins_utils = require("plugins_utils")
 local graph_utils = require("graph_utils")
-require("alert_utils")
+local alert_utils = require("alert_utils")
 
 local charts_available = plugins_utils.timeseriesCreationEnabled()
 
@@ -195,7 +195,7 @@ elseif((page == "alerts") and isAdministrator()) then
    _GET["ifid"] = getSystemInterfaceId()
    -- _GET["entity"] = alert_consts.alertEntity("redis")
 
-   drawAlerts()
+   alert_utils.drawAlerts()
 
    interface.select(old_ifname)
 end

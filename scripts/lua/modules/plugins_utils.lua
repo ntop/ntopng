@@ -703,7 +703,7 @@ end
 
 function plugins_utils.hasAlerts(ifid, options)
   -- Requiring alert_utils here to optimize second.lua
-  require("alert_utils")
+  local alert_utils = require("alert_utils")
 
   local opts = table.merge(options, {ifid = ifid})
   local old_iface = iface
@@ -711,8 +711,8 @@ function plugins_utils.hasAlerts(ifid, options)
   interface.select(ifid)
 
   rv = (areAlertsEnabled() and
-    (hasAlerts("historical", getTabParameters(opts, "historical")) or
-     hasAlerts("engaged", getTabParameters(opts, "engaged"))))
+    (alert_utils.hasAlerts("historical", alert_utils.getTabParameters(opts, "historical")) or
+     alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(opts, "engaged"))))
 
   interface.select(old_iface)
   return(rv)
