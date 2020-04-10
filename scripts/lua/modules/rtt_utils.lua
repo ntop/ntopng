@@ -270,6 +270,9 @@ end
 
 -- ##############################################
 
+--! @brief Splits the hosts list by plugin.
+--! @param all_hosts the host list, whose format matches rtt_utils.getHosts()
+--! @return a table plugin_key -> <plugin, measurement, hosts>
 function rtt_utils.getHostsByPlugin(all_hosts)
   local hosts_by_plugin = {}
 
@@ -297,6 +300,8 @@ end
 
 -- ##############################################
 
+--! @brief Get a list of measurements from the loaded RTT plugins
+--! @return a list of measurements <title, value> for the gui.
 function rtt_utils.getAvailableMeasurements()
   local measurements = {}
 
@@ -314,6 +319,9 @@ end
 
 -- ##############################################
 
+--! @brief Get a list of granularities allowed the the measurements
+--! @param measurement the measurement key for which the granularities should be returned
+--! @return a list of allowed granularities <titlae, value> for the gui.
 function rtt_utils.getAvailableGranularities(measurement)
   local granularities = {}
 
@@ -341,6 +349,9 @@ end
 
 -- ##############################################
 
+--! @brief Get the metadata of a specific measurement
+--! @param measurement the measurement key
+--! @return the measurement metadata on success, nil on failure
 function rtt_utils.getMeasurementInfo(measurement)
   loadRttPlugins()
 
@@ -355,6 +366,8 @@ end
 
 -- ##############################################
 
+--! @brief Get the metadata of all the loaded measurements
+--! @return a list containing the measurements metadata
 function rtt_utils.getMeasurementsInfo()
   loadRttPlugins()
 
