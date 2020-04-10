@@ -99,13 +99,20 @@ $(document).ready(function() {
 
         // Populate the granularities dropdown
         const $granularities = $dialog.find(".measurement-granularity");
+        const old_val = $granularities.val();
+        let old_val_ok = false;
         $granularities.find('option').remove();
 
         for(var i=0; i<info.granularities.length; i++) {
             var g_info = info.granularities[i];
+            if(g_info.value == old_val)
+                old_val_ok = true;
 
             $granularities.append(`<option value="${g_info.value}">${g_info.title}</option>`);
         }
+
+        if(old_val_ok)
+            $granularities.val(old_val);
     }
 
     const make_data_to_send = (action, rtt_host, rtt_max, rtt_measure, granularity, csrf) => {
@@ -237,7 +244,10 @@ $(document).ready(function() {
                 data: 'threshold',
                 className: 'text-center',
                 render: function(data, type, row) {
-                    return `${row.threshold} ${row.unit}`
+                    if(row.threshold)
+                        return `${row.threshold} ${row.unit}`
+                    else
+                        return "";
                 }
             },
             {
@@ -252,7 +262,10 @@ $(document).ready(function() {
                 data: 'last_rtt',
                 className: 'dt-body-right dt-head-center',
                 render: function(data, type, row) {
-                    return `${row.last_rtt} ${row.unit}`
+                    if(row.last_rtt)
+                        return `${row.last_rtt} ${row.unit}`
+                    else
+                        return "";
                 }
 
             },
