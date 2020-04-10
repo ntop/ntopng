@@ -70,8 +70,10 @@ This is usually not required with logs produced by IDS systems like Suricata for
 however it is mandatory with some Firewalls supporting *Identity Management* like
 Fortinet and SonicWALL. For this reason, a *Syslog Log Producers* tab is available in the 
 syslog interface in the web GUI, where it is possible to configure all syslog sources by 
-providing the source IP address (as it appears in the log) and the source type (e.g. Fortinet, 
-or SonicWALL).
+providing the source IP address or the device name (as they appear in the log) and the 
+source type (e.g. Fortinet, or SonicWALL). Please note that some firewalls do not add
+the IP address and device name to the log, in that case it is possible to use :code:`*` 
+as IP address, it will be used as default in case no configured IP is matching.
 
 .. figure:: ../img/advanced_features_syslog.png
   :align: center

@@ -130,6 +130,9 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
     producer_name = getProducerName(device);
 
   if (producer_name == NULL)
+    producer_name = getProducerName("*");
+
+  if (producer_name == NULL)
     return 0;
 
 #ifdef SYSLOG_DEBUG
