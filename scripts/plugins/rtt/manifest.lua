@@ -3,8 +3,8 @@
 --
 
 return {
-  title = "RTT Monitor",
-  description = "Monitors the round trip time of an host",
+  title = "Active Monitoring",
+  description = "Monitors the status and the response time of specific hosts",
   author = "ntop",
   dependencies = {},
   data_dirs = {

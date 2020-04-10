@@ -686,34 +686,6 @@ end
 
 -- #################################
 
-local function printProbesTab(entity_probes, entity_type, entity_value, page_name, page_params, alt_name, options)
-   -- TODO migrate probes
-   --~ local system_scripts = require("system_scripts_utils")
-
-   --~ if #entity_probes > 0 then
-      --~ print[[
-   --~ <br>
-   --~ <table class="table table-bordered table-striped">
-     --~ <tr>
-       --~ <th width="10%">]] print(i18n("system_stats.probe")) print[[</th>
-       --~ <th width="25%">]] print(i18n("system_stats.probe_config")) print[[</th>
-     --~ </tr>]]
-
-      --~ for _, probe in ipairs(entity_probes) do
-      --~ print[[
-     --~ <tr>
-       --~ <td>]] print(probe["probe"]["name"]) print[[</td>
-       --~ <td><a href="]] print(probe["config"]["url"]) print[["><i class="fas fa-cog" aria-hidden="true"></i></a></td>
-     --~ </tr>]]
-
-      --~ end
-
-      --~ print[[</table>]]
-   --~ end
-end
-
--- #################################
-
 local function printConfigTab(entity_type, entity_value, page_name, page_params, alt_name, options)
    local trigger_alerts = true
    local ifid = interface.getId()
@@ -910,15 +882,6 @@ function alert_utils.printAlertTables(entity_type, alert_source, page_name, page
    if(tab == nil) then tab = "config" end
    local is_alert_list_tab = ((tab == "alert_list") or (tab == "past_alert_list") or (tab == "flow_alert_list"))
 
-   --[[ TODO migrate probes
-   local system_scripts = require("system_scripts_utils")
-   local entity_probes = system_scripts.getEntityProbes(entity_type, alert_source)
-
-   if #entity_probes > 0 then
-      printTab("probes", i18n("system_stats.probes"), tab)
-   end
-   ]]
-
    printTab("config", '<i class="fas fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
 
    print('</ul>')
@@ -927,8 +890,6 @@ function alert_utils.printAlertTables(entity_type, alert_source, page_name, page
       alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
    elseif(tab == "config") then
       printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
-   elseif(tab == "probes") and #entity_probes > 0 then
-      printProbesTab(entity_probes, entity_type, alert_source, page_name, page_params, alt_name, options)
    end
 end
 

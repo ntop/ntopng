@@ -20,13 +20,13 @@ local result = {}
 -- #################################################################
 
 -- The function called periodically to send the host probes.
--- icmp_hosts contains the list of hosts to probe, The table keys are
+-- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
 -- see (rtt_utils.key2host for the details on such format).
-local function check_http(http_hosts, granularity)
+local function check_http(hosts, granularity)
   result = {}
 
-  for key, host in pairs(http_hosts) do
+  for key, host in pairs(hosts) do
     local domain_name = host.host
     local full_url = string.format("%s://%s", host.measurement, domain_name)
 

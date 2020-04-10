@@ -28,7 +28,7 @@ local function pingIssuesFormatter(ifid, alert, info)
 		  host = host.label,
 		  numeric_ip = numeric_ip})
    else -- host too slow
-      msg = i18n("alert_messages.ping_rtt_too_slow_v3",
+      msg = i18n("alert_messages.measurement_too_high_msg",
 		 {
 		  host = host.label,
 		  numeric_ip = numeric_ip,
@@ -42,7 +42,7 @@ end
 -- #######################################################
 
 return {
-  i18n_title = "graphs.rtt",
+  i18n_title = "graphs.active_monitoring",
   i18n_description = pingIssuesFormatter,
   icon = "fas fa-exclamation",
 }

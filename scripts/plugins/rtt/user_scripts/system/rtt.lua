@@ -28,8 +28,8 @@ local script = {
   hooks = {},
 
   gui = {
-    i18n_title = "host_config.rtt_monitor",
-    i18n_description = "host_config.rtt_monitor_description",
+    i18n_title = "rtt_stats.active_monitoring",
+    i18n_description = "rtt_stats.active_monitoring_description",
   },
 }
 

@@ -617,8 +617,8 @@ if not rtt_script_found then
   print(template.gen("modal_confirm_dialog.html", {
 		      dialog={
 			 id      = "enable-rtt-monitor",
-			 title   = i18n("host_config.rtt_monitor"),
-			 message = i18n("host_config.rtt_monitor_enable",
+			 title   = i18n("rtt_stats.active_monitoring"),
+			 message = i18n("host_config.active_monitor_enable",
 			  {url=ntop.getHttpPrefix() .. '/lua/admin/edit_configset.lua?confset_id=0&subdir=system&user_script=rtt#all'}),
 		      }
       }))

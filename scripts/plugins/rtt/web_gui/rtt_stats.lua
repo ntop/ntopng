@@ -49,7 +49,7 @@ if host then
   url = url .. "&rtt_host=" .. host.host .. "&measurement=" .. host.measurement
 end
 
-local title = i18n("graphs.rtt")
+local title = i18n("graphs.active_monitoring")
 
 if((host ~= nil) and (page ~= "overview")) then
    title = title..": " .. host.label
@@ -115,7 +115,7 @@ if(page == "overview") then
       <div class='row'>
         <div class="col-md-12">
           <div id="rtt-alert" class="alert alert-success" style="display: none" role="alert">
-            <strong>Success!</strong> <span class="alert-body"></span>
+            <strong>]] .. i18n("success") .. [[</strong> <span class="alert-body"></span>
             <button type="button" class="close" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -129,10 +129,10 @@ if(page == "overview") then
               <tr>
                 <th>]].. i18n("flow_details.url") ..[[</th>
                 <th>]].. i18n("chart") ..[[</th>
-                <th>]].. i18n("rtt_stats.rtt_threshold") .. [[</th>
+                <th>]].. i18n("threshold") .. [[</th>
                 <th>]].. i18n("rtt_stats.last_measurement") .. [[</th>
                 <th>]].. i18n("system_stats.last_ip") .. [[</th>
-                <th>]].. i18n("rtt_stats.measurement_time") .. [[</th>
+                <th>]].. i18n("rtt_stats.measurement") .. [[</th>
                 <th>]].. i18n("actions") .. [[</th>
               </tr>
             </thead>
@@ -148,7 +148,7 @@ if(page == "overview") then
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">]] .. i18n("rtt_stats.edit_rtt") .. [[</h5>
+              <h5 class="modal-title">]] .. i18n("rtt_stats.edit_record") .. [[</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -173,7 +173,7 @@ if(page == "overview") then
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.rtt_threshold") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("threshold") .. [[</label>
                 <div class="col-sm-5">
                   <div class="input-group">
                     <div class="input-group-prepend">
@@ -189,7 +189,7 @@ if(page == "overview") then
               <ul>
                 <li>]] .. i18n("rtt_stats.rtt_note_icmp") ..[[</li>
                 <li>]] .. i18n("rtt_stats.rtt_note_http") ..[[</li>
-                <li>]] .. i18n("rtt_stats.rtt_note_rtt_alert") ..[[</li>
+                <li>]] .. i18n("rtt_stats.note_alert") ..[[</li>
               </ul>
               </div>
               <span class="invalid-feedback"></span>
@@ -209,7 +209,7 @@ if(page == "overview") then
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">]] .. i18n("rtt_stats.add_rtt") .. [[</h5>
+              <h5 class="modal-title">]] .. i18n("rtt_stats.add_record") .. [[</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -234,7 +234,7 @@ if(page == "overview") then
                 </div>
               </div>
               <div class="form-group row">
-                <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.rtt_threshold") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("threshold") .. [[</label>
                 <div class="col-sm-5">
                   <div class="input-group">
                     <div class="input-group-prepend">
@@ -250,7 +250,7 @@ if(page == "overview") then
               <ul>
                 <li>]] .. i18n("rtt_stats.rtt_note_icmp") ..[[</li>
                 <li>]] .. i18n("rtt_stats.rtt_note_http") ..[[</li>
-                <li>]] .. i18n("rtt_stats.rtt_note_rtt_alert") ..[[</li>
+                <li>]] .. i18n("rtt_stats.note_alert") ..[[</li>
               </ul>
               </div>
               <span class="invalid-feedback"></span>
@@ -302,9 +302,9 @@ if(page == "overview") then
 
     <div>
       ]].. i18n("notes") .. [[<ul>
-	<li>]].. i18n("rtt_stats.rtt_note1", {product=info.product}) ..[[</li>
-	<li>]].. i18n("rtt_stats.rtt_note2") ..[[</li>
-	<li>]].. i18n("rtt_stats.rtt_note3") ..[[</li>
+	<li>]].. i18n("rtt_stats.note1", {product=info.product}) ..[[</li>
+	<li>]].. i18n("rtt_stats.note2") ..[[</li>
+	<li>]].. i18n("rtt_stats.note_alert") ..[[</li>
       </ul>
     </div>
   ]])

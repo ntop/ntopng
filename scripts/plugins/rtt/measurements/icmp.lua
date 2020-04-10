@@ -48,14 +48,14 @@ end
 -- #################################################################
 
 -- The function called periodically to send the host probes.
--- icmp_hosts contains the list of hosts to probe, The table keys are
+-- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
 -- see (rtt_utils.key2host for the details on such format).
-local function check_icmp(icmp_hosts, granularity)
+local function check_icmp(hosts, granularity)
   pinged_hosts = {}
   resolved_hosts = {}
 
-  for key, host in pairs(icmp_hosts) do
+  for key, host in pairs(hosts) do
     local domain_name = host.host
     local is_v6 = (host.measurement == "icmp6")
     local ip_address = resolveRttHost(domain_name, is_v6)

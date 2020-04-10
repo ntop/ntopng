@@ -19,7 +19,7 @@ if not haveAdminPrivileges() then
   return
 end
 
-sendHTTPContentTypeHeader('application/json', 'attachment; filename="rtt_configuration.json"')
+sendHTTPContentTypeHeader('application/json', 'attachment; filename="active_monitoring_conf.json"')
 
 local conf = rtt_utils.getHosts(true --[[ only retrieve the configuration ]])
 

@@ -85,7 +85,7 @@ page_utils.menu_entries = {
     snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "snmp", visible_system = true},
 
     -- System
-    rtt_monitor_enable   = {key = "rtt_monitor_enable", i18n_title = "host_config.rtt_monitor", section = "system", is_modal = true},
+    rtt_monitor_enable   = {key = "rtt_monitor_enable", i18n_title = "rtt_stats.active_monitoring", section = "system", is_modal = true},
 
     -- Status (Health)
     system_status	 = {key = "status", i18n_title = "system_status", section = "system_health", visible_system = true},
@@ -176,6 +176,7 @@ end
 -- NOTE: this function is called by the web pages in order to
 -- set the active entry and section and highlight it into the menu
 function page_utils.set_active_menu_entry(entry, i18n_params, alt_title)
+   entry = entry or page_utils.menu_entries.traffic_dashboard
 
    active_section = entry.section
    active_entry = entry.key
