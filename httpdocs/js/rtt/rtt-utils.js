@@ -48,7 +48,7 @@ $(document).ready(function() {
             $('#select-edit-measurement').val(data.measurement || DEFAULT_MEASUREMENT);
             $('#select-edit-granularity').val(data.granularity || DEFAULT_GRANULARITY);
             $('#input-edit-host').val(data.host || DEFAULT_HOST);
-            dialogRefreshMeasurement($('#rtt-edit-modal'));
+            dialogRefreshMeasurement($('#rtt-edit-modal'), data.granularity);
         }
 
         const data = get_rtt_data($rtt_table, $(this));
@@ -87,7 +87,7 @@ $(document).ready(function() {
 
     });
 
-    const dialogRefreshMeasurement = ($dialog) => {
+    const dialogRefreshMeasurement = ($dialog, granularity) => {
         const measurement = $dialog.find(".measurement-select").val();
 
         if(!measurement || !measurements_info[measurement]) return;
@@ -111,7 +111,9 @@ $(document).ready(function() {
             $granularities.append(`<option value="${g_info.value}">${g_info.title}</option>`);
         }
 
-        if(old_val_ok)
+        if(granularity)
+            $granularities.val(granularity);
+        else if(old_val_ok)
             $granularities.val(old_val);
     }
 

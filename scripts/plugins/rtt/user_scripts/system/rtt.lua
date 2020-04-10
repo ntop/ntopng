@@ -119,7 +119,7 @@ local function run_rtt_check(params, all_hosts, granularity)
 
   -- Find the unreachable hosts
   for key, host in pairs(all_hosts) do
-     local ip = all_hosts[key] or host.host
+     local ip = host.host
 
      if(hosts_rtt[key] == nil) then
        if(do_trace) then print("[TRIGGER] Host "..ip.."/"..key.." is unreacheable\n") end

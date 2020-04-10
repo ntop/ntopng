@@ -15,7 +15,8 @@ local function pingIssuesFormatter(ifid, alert, info)
       return ""
    end
 
-   if((not isEmptyString(numeric_ip)) and (numeric_ip ~= ip_label)) then
+   if((not isEmptyString(numeric_ip)) and (numeric_ip ~= ip_label) and
+	 (type(numeric_ip) == "string")) then
       numeric_ip = string.format("(%s)", numeric_ip)
    else
       numeric_ip = ""
