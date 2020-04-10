@@ -10,6 +10,7 @@ local function pingIssuesFormatter(ifid, alert, info)
    local host = rtt_utils.key2host(alert.alert_entity_val)
    local numeric_ip = info.ip
    local ip_label = host and host.host
+   local m_info = rtt_utils.getMeasurementInfo(host.measurement)
 
    if not host then
       return ""
@@ -28,7 +29,13 @@ local function pingIssuesFormatter(ifid, alert, info)
 		  host = host.label,
 		  numeric_ip = numeric_ip})
    else -- host too slow
-      msg = i18n("alert_messages.measurement_too_high_msg",
+      if(m_info and (m_info.operator == "lt")) then
+	 i18n_s = "alert_messages.measurement_too_low_msg"
+      else
+	 i18n_s = "alert_messages.measurement_too_high_msg"
+      end
+
+      msg = i18n(i18n_s,
 		 {
 		  host = host.label,
 		  numeric_ip = numeric_ip,

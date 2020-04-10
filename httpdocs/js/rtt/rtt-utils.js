@@ -97,6 +97,15 @@ $(document).ready(function() {
         $dialog.find(".measurement-operator").html("&" + (info.operator || "gt") + ";");
         $dialog.find(".measurement-unit").html(info.unit || i18n.msec);
 
+        // Check if host is forced
+        const host = $dialog.find(".measurement-host")
+        if(info.force_host) {
+            host.attr("disabled", "disabled");
+            host.val(info.force_host);
+        } else {
+            host.removeAttr("disabled");
+        }
+
         // Populate the granularities dropdown
         const $granularities = $dialog.find(".measurement-granularity");
         const old_val = $granularities.val();

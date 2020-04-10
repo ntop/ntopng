@@ -163,7 +163,7 @@ if(page == "overview") then
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
                 <div class="col-sm-5">
-                  <input placeholder="yourhostname.org" required id="input-edit-host" type="text" name="host" class="form-control" />
+                  <input placeholder="yourhostname.org" required id="input-edit-host" type="text" name="host" class="form-control measurement-host" />
                 </div>
               </div>
 	      <div class="form-group row">
@@ -224,7 +224,7 @@ if(page == "overview") then
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("about.host_callbacks_directory") .. [[</label>
                 <div class="col-sm-5">
-                  <input placeholder="yourhostname.org" required id="input-add-host" type="text" name="host" class="form-control" />
+                  <input placeholder="yourhostname.org" required id="input-add-host" type="text" name="host" class="form-control measurement-host" />
                 </div>
               </div>
 	      <div class="form-group row">
@@ -318,6 +318,7 @@ if(page == "overview") then
       granularities = rtt_utils.getAvailableGranularities(key),
       operator = info.operator,
       unit = i18n(info.i18n_unit) or info.i18n_unit,
+      force_host = info.force_host,
     }
   end
 

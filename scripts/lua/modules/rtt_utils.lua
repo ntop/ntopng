@@ -239,6 +239,13 @@ local function loadRttPlugins()
       goto continue
     end
 
+    if(plugin.setup ~= nil) then
+      -- A setup function exists, call it to determine if the plugin is available
+      if(plugin.setup() == false) then
+	goto continue
+      end
+    end
+
     -- Check that the measurements does not exist
     for _, measurement in pairs(plugin.measurements) do
       if(measurement.check == nil) then

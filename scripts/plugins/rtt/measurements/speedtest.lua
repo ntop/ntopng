@@ -3,46 +3,26 @@
 --
 
 --
--- This module implements the ICMP RTT probe.
+-- This module implements an internet download bandwidth monitor.
 --
 
-local do_trace = false
+local os_utils = require("os_utils")
+
+local do_trace = true
+local binary_path = "/usr/local/bin/speedtest"
 
 -- #################################################################
 
 -- This is the script state, which must be manually cleared in the check
 -- function. Can be then used in the collect_results function to match the
 -- probe requests with probe replies.
-local pinged_hosts = {}
-local resolved_hosts = {}
+local collected_results = {}
 
 -- #################################################################
 
--- Resolve the domain name into an IP if necessary
-local function resolveRttHost(domain_name, is_v6)
-   local ip_address = nil
-
-   if not isIPv4(domain_name) and not is_v6 then
-     ip_address = ntop.resolveHost(domain_name, true --[[IPv4 --]])
-
-     if not ip_address then
-	if do_trace then
-	   print("[RTT] Could not resolve IPv4 host: ".. domain_name .."\n")
-	end
-     end
-   elseif not isIPv6(domain_name) and is_v6 then
-      ip_address = ntop.resolveHost(domain_name, false --[[IPv6 --]])
-
-      if not ip_address then
-	if do_trace then
-	   print("[RTT] Could not resolve IPv6 host: ".. domain_name .."\n")
-	end
-      end
-   else
-     ip_address = domain_name
-   end
-
-  return(ip_address)
+-- The setup function, called once. It can return false to disable this plugin.
+local function check_binary()
+  return(ntop.exists(binary_path))
 end
 
 -- #################################################################
@@ -51,30 +31,48 @@ end
 -- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
 -- see (rtt_utils.key2host for the details on such format).
-local function check_icmp(hosts, granularity)
-  pinged_hosts = {}
-  resolved_hosts = {}
+local function run_speedtest(hosts, granularity)
+  collected_results = {}
+  local rsp, rc = os_utils.execWithOutput(binary_path .. " -f json")
 
-  for key, host in pairs(hosts) do
-    local domain_name = host.host
-    local is_v6 = (host.measurement == "icmp6")
-    local ip_address = resolveRttHost(domain_name, is_v6)
+  if(not rsp) then
+    return
+  end
 
-    if not ip_address then
-      goto continue
+  if do_trace then
+    print(rsp)
+  end
+
+  rsp = json.decode(rsp)
+
+  if(not rsp) then
+    return
+  end
+
+  if do_trace then
+    print("External IP", rsp.interface.externalIp)
+    print("\nUpload", string.format("%.2f Mbit", (rsp.upload.bandwidth*8)/(1024*1024)))
+    print("\nDownload", string.format("%.2f Mbit", (rsp.download.bandwidth*8)/(1024*1024)))
+    print("\nPing", string.format("%.2f msec (%.2f msec jitter)", rsp.ping.latency, rsp.ping.jitter))
+    print("\nISP", rsp.isp)
+    print("\n")
+  end
+
+  if(rsp.download and (tonumber(rsp.download.bandwidth) ~= nil)) then
+    local isp = nil
+    local download_mbit = (rsp.download.bandwidth*8)/(1024*1024)
+
+    if(type(rsp.isp) == "string") then
+      isp = noHtml(rsp.isp)
     end
 
-    if do_trace then
-      print("[RTT] Pinging "..ip_address.."/"..domain_name.."\n")
+    -- NOTE: force_host is set, only a single host will be available
+    for key, host in pairs(hosts) do
+      collected_results[key] = {
+        value = download_mbit,
+        resolved_addr = isp,
+      }
     end
-
-    -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
-    ntop.pingHost(ip_address, is_v6)
-
-    pinged_hosts[ip_address] = key
-    resolved_hosts[key] = ip_address
-
-    ::continue::
   end
 end
 
@@ -86,26 +84,8 @@ end
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
 --	value: the measurement numeric value
-local function collect_icmp(granularity)
-  local rv = {}
-
-  -- Collect possible ICMP results
-  local res = ntop.collectPingResults()
-
-  for host, rtt in pairs(res or {}) do
-    local key = pinged_hosts[host]
-
-    if(do_trace) then
-      print("[RTT] Reading ICMP response for host ".. host .."\n")
-    end
-
-    rv[key] = {
-      resolved_addr = resolved_hosts[key],
-      value = tonumber(rtt),
-    }
-  end
-
-  return(rv)
+local function collect_speedtest(granularity)
+  return(collected_results)
 end
 
 -- #################################################################
@@ -127,40 +107,29 @@ return {
   measurements = {
     {
       -- The unique key for the measurement
-      key = "icmp",
+      key = "speedtest",
       -- The function called periodically to send the host probes
-      check = check_icmp,
+      check = run_speedtest,
       -- The function responsible for collecting the results
-      collect_results = collect_icmp,
+      collect_results = collect_speedtest,
       -- The granularities allowed for the probe. See supported_granularities in rtt.lua
-      granularities = {"min", "5mins", "hour"},
+      granularities = {"5mins", "hour"},
       -- The localization string for the measurement unit (e.g. "ms", "Mbits")
-      i18n_unit = "rtt_stats.msec",
+      i18n_unit = "field_units.mbits",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
-      operator = "gt",
+      operator = "lt",
       -- A list of additional timeseries (the rtt_host:rtt_* is always shown) to show in the charts.
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
       additional_timeseries = {},
       -- Js function to call to format the rtt_host:rtt_* chart value. See ntopng_utils.js .
-      value_js_formatter = "fmillis",
+      value_js_formatter = "fbits",
       -- A list of additional notes (localization strings) to show into the timeseries charts
       i18n_chart_notes = {},
       -- If set, the user cannot change the host
-      force_host = nil,
-    }, {
-      key = "icmp6",
-      check = check_icmp,
-      collect_results = collect_icmp,
-      granularities = {"min", "5mins", "hour"},
-      i18n_unit = "rtt_stats.msec",
-      operator = "gt",
-      additional_timeseries = {},
-      value_js_formatter = "fmillis",
-      i18n_chart_notes = {},
-      force_host = nil,
+      force_host = "speedtest.net",
     },
   },
 
   -- A setup function to possibly disable the plugin
-  setup = nil,
+  setup = check_binary,
 }

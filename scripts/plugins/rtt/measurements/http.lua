@@ -127,7 +127,9 @@ return {
       -- A list of additional notes (localization strings) to show into the timeseries charts
       i18n_chart_notes = {
 	"rtt_stats.other_http_descr",
-      }
+      },
+      -- If set, the user cannot change the host
+      force_host = nil,
     }, {
       key = "https",
       check = check_http,
@@ -144,7 +146,11 @@ return {
       i18n_chart_notes = {
 	"rtt_stats.app_connect_descr",
 	"rtt_stats.other_https_descr"
-      }
+      },
+      force_host = nil,
     },
   },
+
+  -- A setup function to possibly disable the plugin
+  setup = nil,
 }
