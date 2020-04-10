@@ -29,3 +29,6 @@ redis-cli set "ntopng.prefs.periodic_activities_stats_to_stdout" "1"
 
 ## [Experimental] Hourly interfaces/hosts traffic delta charts
 redis-cli set "ntopng.prefs.enable_ts_deltas_writes" "1"
+
+## [Debug] Log VPN events from firewalls plugins (2 for more verbosity)
+redis-cli set "ntopng.prefs.vpn_debug_enabled" "1"
