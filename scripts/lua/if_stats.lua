@@ -63,6 +63,10 @@ local is_pcap_dump = interface.isPcapDumpInterface()
 
 local ifstats = interface.getStats()
 
+if page == "syslog_producers" and not ifstats.isSyslog then
+   page = "overview"
+end
+
 local disaggregation_criterion_key = "ntopng.prefs.dynamic_sub_interfaces.ifid_"..tostring(ifid)..".mode"
 local charts_available = areInterfaceTimeseriesEnabled(ifid)
 
