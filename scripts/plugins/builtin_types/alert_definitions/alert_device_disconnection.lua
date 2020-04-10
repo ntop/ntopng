@@ -5,8 +5,14 @@
 local alert_keys = require "alert_keys"
 
 local function formatDeviceDisconnectionAlert(ifid, alert, info)
+  local device = info.device
+
+  if not device or device == "" then
+    device = alert.alert_entity_val
+  end
+
   return(i18n("alert_messages.device_has_disconnected", {
-    device = info.device,
+    device = device,
     url = getMacUrl(alert.alert_entity_val),
   }))
 end
