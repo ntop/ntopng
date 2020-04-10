@@ -52,7 +52,7 @@ SyslogParserInterface::~SyslogParserInterface() {
 
 u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   const char *producer_name = NULL;
-  char *prio = NULL, *host = NULL, *content = NULL;
+  char *prio = NULL, *host = NULL, *device = NULL, *content = NULL;
   char *tmp;
 
   if (producers_reload_requested) {
@@ -109,19 +109,28 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
       if(tmp != NULL)
         producer_name = &tmp[1];
     }
-  } else if ((tmp = strstr(log_line, ": ")) != NULL) /* Parse APPLICATION: */
+  } else if ((tmp = strstr(log_line, ": ")) != NULL) { /* Parse APPLICATION: */
     content = &tmp[2];
-  else { /* Ignore ':' as last resort  */
+    tmp[0] = '\0';
+    tmp = strrchr(log_line, ' ');
+    if(tmp != NULL) {
+      tmp[0] = '\0';
+      tmp = strrchr(log_line, ' ');
+      if(tmp != NULL)
+        device = &tmp[1];
+    }
+  } else { /* Ignore ':' as last resort  */
     content = log_line;
   }
  
-  if (producer_name == NULL) {
-    if (host != NULL)
-      producer_name = getProducerName(host);
+  if (producer_name == NULL && host != NULL)
+    producer_name = getProducerName(host);
 
-    if (producer_name == NULL)
-      return 0;
-  }
+  if (producer_name == NULL && device != NULL)
+    producer_name = getProducerName(device);
+
+  if (producer_name == NULL)
+    return 0;
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Application: %s Message: %s",
