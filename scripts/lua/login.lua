@@ -89,6 +89,11 @@ print [[">
 
    print [[>]] print(i18n("login.login")) print[[</button>
   	<div class="row">
+
+      <div >&nbsp;</div>
+      <div class="col-lg-12"><small><center> <i class="fas fa-lock"></i> <A target="_blank" HREF="https://www.ntop.org/guides/ntopng/faq.html#cannot-login-into-the-gui">]]
+      print(i18n("login.unable_to_login"))
+   print [[</A> <i class='fas fa-external-link-alt'></i> </center></small></div>
       <div >&nbsp;</div>
       <div class="col-lg-12">]]
 if not info.oem then

@@ -2373,6 +2373,7 @@ local lang = {
     ["password_pattern_error"] = "Inserisci almeno 5 caratteri validi.",
     ["password_ph"] = "Password (default admin)",
     ["passwords_dont_match"] = "Le password non coincidono.",
+    ["unable_to_login"] = "Non riesci ad accedere ?",
     ["unsupported_browser"] = "Il browser che usi non è supportato.<br>Si consiglia l'utilizzo di una versione recente di Firefox o Chrome.",
     ["username"] = "Nome Utente",
     ["username_ph"] = "Nome Utente (default admin)",
