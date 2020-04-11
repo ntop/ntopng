@@ -1,6 +1,6 @@
-/* 
+/*
    Code taken from
-   https://github.com/compex-systems/speedtest-cli 
+   https://github.com/compex-systems/speedtest-cli
 */
 
 #ifdef HAVE_EXPAT
@@ -456,8 +456,9 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
   return speed;
 }
 
+#ifdef FULL_REPORT
 static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
-{    
+{
   struct  thread_para* para = (struct thread_para*)userp;
   int     length;
   char    data[16284] = {0};
@@ -510,7 +511,7 @@ static void* do_upload(void *p) {
 
     double size_upload;
 
-    para->chunk_size = size - para->result> UPLOAD_CHRUNK_SIZE_MAX ? 
+    para->chunk_size = size - para->result> UPLOAD_CHRUNK_SIZE_MAX ?
       UPLOAD_CHRUNK_SIZE_MAX : size - para->result;
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE , (curl_off_t)para->chunk_size);
 
@@ -533,7 +534,9 @@ static void* do_upload(void *p) {
   return(NULL);
 }
 
-static int test_upload(char *p_url, int num_thread, long size, char *p_ext, char init)
+
+static int test_upload(char *p_url, int num_thread, long size,
+		       char *p_ext, char init)
 {
   struct timeval s_time;
   int i, error;
@@ -579,6 +582,7 @@ static int test_upload(char *p_url, int num_thread, long size, char *p_ext, char
   free(instant_speed);
   return speed;
 }
+#endif
 
 static int get_download_filename(double speed, int num_thread)
 {
@@ -730,12 +734,15 @@ static int get_best_server(int *p_index)
 json_object* speedtest() {
   int     num_thread;
   char    server_url[URL_LENGTH_MAX], ext[UPLOAD_EXT_LENGTH_MAX];
-  double  latency, speed, download_speed, upload_speed;
+#ifdef FULL_REPORT
+  double  latency, upload_speed;
+#endif
+  double  speed, download_speed;
   int     dsize, sindex;
   json_object *rc = json_object_new_object();
 
   if(rc == NULL) return(rc);
-  
+
   //Initialization
 
   sindex      = -1;
@@ -753,7 +760,7 @@ json_object* speedtest() {
 
     json_object_object_add(rc, "client.isp", json_object_new_string(client.isp));
     json_object_object_add(rc, "client.ip", json_object_new_string(client.ip));
-    
+
     // printf("Selecting best server based on ping...\n");
     get_best_server(&sindex);
     sscanf(servers[sindex].url, "http://%[^/]/speedtest/upload.%4s", server_url, ext);
@@ -765,12 +772,14 @@ json_object* speedtest() {
   /* Must initialize libcurl before any threads are started */
   curl_global_init(CURL_GLOBAL_ALL);
 
+#ifdef FULL_REPORT
   latency = test_latency(server_url);
   if (latency == DBL_MAX)
     return(rc);
 
   //printf("Server latency is %0.0fms\n", latency);
   json_object_object_add(rc, "server.latency", json_object_new_double(latency));
+#endif
 
   speed = test_download(server_url, num_thread, dsize, 0);
 
@@ -784,14 +793,16 @@ json_object* speedtest() {
   if (ext[0] == 0 && get_upload_extension(server_url, ext) != OK)
     return(rc);
 
+#ifdef FULL_REPORT
   speed = test_upload(server_url, num_thread, speed, ext, 0);
 
   // // fprintf(stderr, "Testing upload speed");
   upload_speed = test_upload(server_url, num_thread, speed*SPEEDTEST_TIME_MAX, ext, 1);
 
   // printf("Upload speed: %0.2fMbps\n", ((upload_speed*8)/(1024*1024)));
-  json_object_object_add(rc, "upload.speed", json_object_new_double(((upload_speed*8)/(1024*1024)))); 
-  
+  json_object_object_add(rc, "upload.speed", json_object_new_double(((upload_speed*8)/(1024*1024))));
+#endif
+
   return(rc);
 }
 
