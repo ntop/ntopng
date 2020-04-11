@@ -206,3 +206,7 @@ function ntop.isDeadlineApproaching()
 --! @brief Get the current periodic script deadline.
 --! @return the periodic script deadline on success, 0 otherwise
 function ntop.getDeadline()
+
+--! @brief Check Internet speed using speedtest.net services
+--! @return JSON that includes the speedtest report, or NULL in case of error
+function ntop.speedtest()
