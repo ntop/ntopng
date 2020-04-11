@@ -94,7 +94,7 @@ return {
 	 -- The function responsible for collecting the results
 	 collect_results = collect_speedtest,
 	 -- The granularities allowed for the probe. See supported_granularities in rtt.lua
-	 granularities = {"min", "5mins", "hour"},
+	 granularities = { "5mins", "hour", "daily"},
 	 -- The localization string for the measurement unit (e.g. "ms", "Mbits")
 	 i18n_unit = "field_units.mbits",
 	 -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
