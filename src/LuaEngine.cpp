@@ -34,6 +34,8 @@ extern "C" {
 #include "rrd.h"
 };
 
+#include "../third-party/speedtest.c"
+
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } }; /* TODO remove */
 static int live_extraction_num = 0;
 static Mutex live_extraction_num_lock;
@@ -2867,6 +2869,20 @@ static int ntop_script_get_deadline(lua_State* vm) {
   lua_pushinteger(vm, ctx && ctx->deadline ? ctx->deadline : 0);
 
   return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+static int ntop_speedtest(lua_State* vm) {
+  json_object *rc = speedtest();
+
+  if(rc) {
+    lua_pushstring(vm, json_object_to_json_string(rc));
+    json_object_put(rc);
+  } else
+    lua_pushnil(vm);
+  
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -11860,6 +11876,9 @@ static const luaL_Reg ntop_reg[] = {
   { "isDeadlineApproaching",     ntop_script_is_deadline_approaching },
   { "getDeadline",               ntop_script_get_deadline            },
 
+  /* Speedtest */
+  { "speedtest",                 ntop_speedtest                      },
+  
   { NULL,          NULL}
 };
 

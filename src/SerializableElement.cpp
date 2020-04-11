@@ -33,7 +33,8 @@ bool SerializableElement::serializeToRedis() {
     serialize(my_obj, details_max);
 
     rc = ntop->getRedis()->set(getSerializationKey(key, sizeof(key)),
-      json_object_to_json_string(my_obj), ntop->getPrefs()->get_local_host_cache_duration());
+      json_object_to_json_string(my_obj),
+			       ntop->getPrefs()->get_local_host_cache_duration());
 
     json_object_put(my_obj);
     return(rc == 0);

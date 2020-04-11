@@ -555,6 +555,14 @@ if test "${with_nedge+set}" != set; then
   fi
 fi
 
+AC_CHECK_LIB([expat], [XML_ParserCreate], expat=true)
+if test x$expat = xtrue; then
+     AC_DEFINE_UNQUOTED(HAVE_EXPAT, 1, [Expath present, needed by speedtest])
+     EXPAT_LIB="-lexpat"
+else
+   echo "Missing libexpat-devl (speedtest disabled)"
+fi
+
 AC_CHECK_LIB([radcli], [rc_read_config], radcli=true)
 if test x$radcli = xtrue; then
   RADCLI_LIB="-lradcli"
@@ -672,6 +680,7 @@ AC_SUBST(NDPI_LIB_DEP)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
 AC_SUBST(MAXMINDDB_LIB)
+AC_SUBST(EXPAT_LIB)
 AC_SUBST(RADCLI_LIB)
 AC_SUBST(SSL_INC)
 AC_SUBST(SSL_LIB)

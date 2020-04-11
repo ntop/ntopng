@@ -34,26 +34,10 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print("Testing. Please be patient...<br>\n")
 
-local cmd = "/usr/local/bin/speedtest -f json"
-local _rsp,rc = osExecute(cmd)
+local rc = ntop.speedtest()
 
--- io.write(_rsp.."\n")   
-
-if(rc == 0) then
-   local rsp = json.decode(_rsp)
-   
-   print('<table class="table table-bordered table-sm">')
-   printRow("ISP", rsp.isp)
-   printRow("External IP", rsp.interface.externalIp)
-   printRow("Upload", string.format("%.2f Mbit", (rsp.upload.bandwidth*8)/(1024*1024)))
-   printRow("Download", string.format("%.2f Mbit", (rsp.download.bandwidth*8)/(1024*1024)))
-   printRow("Ping", string.format("%.2f msec (%.2f msec jitter)", rsp.ping.latency, rsp.ping.jitter))
-   
-   print('</table>\n')
-
-   -- tprint(rsp)
-else
-   print("<font color=red><b>Error during test. Is https://www.speedtest.net/apps/cli installed ?</b></font><p>")
+if(rc ~= nil) then
+   print(rc)
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
