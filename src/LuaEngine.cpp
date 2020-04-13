@@ -10872,6 +10872,26 @@ static int ntop_lua_http_print(lua_State* vm) {
   }
   break;
 
+  case LUA_TTABLE:
+    {
+      lua_pushnil(vm);
+      
+      while(lua_next(vm, -2) != 0) {
+	const char *key = lua_tostring(vm, -2);
+
+	if(lua_isstring(vm, -1))
+	  mg_printf(conn, "%s = %s", key, lua_tostring(vm, -1));
+	else if(lua_isnumber(vm, -1))
+	  mg_printf(conn, "%s = %d", key, (int)lua_tonumber(vm, -1));
+	else if(lua_istable(vm, -1)) {
+	  mg_printf(conn, "%s", key);
+	  // PrintTable(vm);
+	}
+	lua_pop(vm, 1);
+      }
+    }
+  break;
+  
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
 				 __FUNCTION__, t);

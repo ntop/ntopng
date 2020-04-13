@@ -1297,7 +1297,7 @@ local known_parameters = {
    ["search"]                  = validateBool,                  -- When set, a search should be performed
    ["search_flows"]            = validateBool,                  -- When set, a flow search should be performed
    ["custom_column"]           = validateCustomColumn,
-   ["criteria"]           = validateCustomColumn,
+   ["criteria"]                = validateCustomColumn,
    ["row_id"]                  = validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                = validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    = validatePort,                  -- An application port
@@ -1320,6 +1320,9 @@ local known_parameters = {
    ["script_type"]             = validateSingleWord,
    ["script_subdir"]           = validateSingleWord,
    ["script_key"]              = validateSingleWord,
+
+   -- Widget and Datasources
+   ["ds_hash"]                 = validateSingleWord,
 
 -- Topology SNMP Devices
    ["topology_host"]                   = validateIPV4,

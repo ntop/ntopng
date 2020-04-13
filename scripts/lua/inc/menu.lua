@@ -24,6 +24,7 @@ local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows(
 -- this is a global variable
 local is_system_interface = page_utils.is_system_view()
 
+
 print([[
    <div id='wrapper'>
 ]])
@@ -74,7 +75,6 @@ page_utils.init_menubar()
 if is_nedge then
    dofile(dirs.installdir .. "/pro/scripts/lua/nedge/inc/menubar.lua")
 else
-
    -- ##############################################
 
    -- Dashboard
@@ -479,7 +479,6 @@ page_utils.add_menubar_section(
 	    hidden = not is_admin,
 	    url = '/lua/admin/edit_device_protocols.lua',
 	 },
-
       },
    }
 )
@@ -488,34 +487,49 @@ page_utils.add_menubar_section(
 
 -- Developer
 
+   
 if not info.oem then
-  page_utils.add_menubar_section(
-   {
-      section = page_utils.menu_sections.dev,
-      entries = {
-	 {
-	    entry = page_utils.menu_entries.plugins,
-	    url = '/lua/plugins_overview.lua',
+   page_utils.add_menubar_section(
+      {
+	 section = page_utils.menu_sections.dev,
+	 entries = {
+	    {
+	       entry = page_utils.menu_entries.plugins,
+	       url = '/lua/plugins_overview.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.user_scripts_dev,
+	       url = '/lua/user_scripts_overview.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.alert_definitions,
+	       url = '/lua/defs_overview.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.directories,
+	       url = '/lua/directories.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.api,
+	       url = 'https://www.ntop.org/guides/ntopng/api/',
+	    },
+	    {
+	       entry = page_utils.menu_entries.divider,
+	       hidden = not is_admin,
+	    },
+	    {
+	       entry = page_utils.menu_entries.widgets_list,
+	       hidden = not is_admin,
+	       url = '/lua/widgets_list.lua',
+	    },
+	    {
+	       entry = page_utils.menu_entries.datasources_list,
+	       hidden = not is_admin,
+	       url = '/lua/datasources_list.lua',
+	    },
 	 },
-	 {
-	    entry = page_utils.menu_entries.user_scripts_dev,
-	    url = '/lua/user_scripts_overview.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.alert_definitions,
-	    url = '/lua/defs_overview.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.directories,
-	    url = '/lua/directories.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.api,
-	    url = 'https://www.ntop.org/guides/ntopng/api/',
-	 }
-      },
-   }
-  )
+      }
+   )
 end
 
 -- ##############################################
@@ -566,7 +580,6 @@ page_utils.add_menubar_section(
 -- ##############################################
 
 page_utils.print_menubar()
-
 
 -- ##############################################
 -- Interface

@@ -122,7 +122,9 @@ page_utils.menu_entries = {
     plugin_browser 	 = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev", visible_iface = true, visible_system = true},
     alert_definitions 	 = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/plugins/alert_definitions.html"},
     api 	         = {key = "api", i18n_title = "lua_c_api", section = "dev"},
-
+    widgets_list         = {key = "widgets_list", i18n_title = "developer.widgets_list", section = "dev"},
+    datasources_list     = {key = "datasources_list", i18n_title = "developer.datasources_list", section = "dev"},
+    
     -- Help
     about   		 = {key = "about", i18n_title = "about.about", section = "about", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"},
     telemetry    	 = {key = "telemetry", i18n_title = "telemetry", section = "about", visible_iface = true, visible_system = true},
@@ -410,7 +412,6 @@ function page_utils.print_menubar()
       print(addLogoSvg())
    end
 
-
    print([[
 	       </a>
 	 </h3>
@@ -474,7 +475,7 @@ function page_utils.print_menubar()
 	 if section_has_submenu then
 	    print[[<div data-parent='#sidebar' class='collapse side-collapse' id=']] print(section_id) print[['>
 		  <ul class='nav flex-column'>
-   ]]
+            ]]
 
 	    for _, section_entry in ipairs(section.entries) do
 	       if not section_entry.hidden then
@@ -483,7 +484,7 @@ function page_utils.print_menubar()
 		  elseif section_entry.entry.key == "divider" then
 		     print[[
 		   <li class="dropdown-divider"></li>
-]]
+                  ]]
 		  else
 		     local external_link = false
 
@@ -534,7 +535,6 @@ function page_utils.print_menubar()
 	 end
       end
    end
-
 
    print([[
      </ul>
