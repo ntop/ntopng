@@ -48,6 +48,7 @@ local lang = {
   ["delete"] = "Delete",
   ["description"] = "Description",
   ["destination"] = "Destination",
+  ["developer"] = "Developer",
   ["device_protocols_description"] = "In this page it is possible to configure the list of acceptable applications per device type and direction (device as client or server with respect to the application). By enabling Device Applications Alerts in the Alerts configuration page under Preferences, alerts are generated when an anomalous application is detected.",
   ["devices"] = "Devices",
   ["difference"] = "Difference",
@@ -868,7 +869,7 @@ local lang = {
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Whois Lookup",
   },
-  ["developer"] = {
+  ["developer_section"] = {
     ["datasources_list"] = "Datasources",
     ["widgets_list"] = "Widgets",
   },
