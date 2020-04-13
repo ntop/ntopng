@@ -874,6 +874,11 @@
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
+#define NTOPNG_DATASOURCE_KEY                "ntopng.datasources"
+#define NTOPNG_DATASOURCE_URL                "/datasources/"
+#define NTOPNG_WIDGET_KEY                    "ntopng.widgets"
+#define NTOPNG_WIDGET_URL                    "/widgets/"
+
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 #define STARTUP_SCRIPT_PATH        "startup.lua"
 #define BOOT_SCRIPT_PATH           "boot.lua" /* Executed as root before networking is setup */

@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
-local datasource_utils = require("datasource_utils")
+local datasources_utils = require("datasources_utils")
 local http_lint = require("http_lint")
 
 local action = _POST["action"]
@@ -32,11 +32,11 @@ local response = {
 }
 
 if (action == "add") then
-    response.success, response.message = datasource_utils.add_source(data.alias, tonumber(data.data_retention), data.scope, data.origin)
+    response.success, response.message = datasources_utils.add_source(data.alias, tonumber(data.data_retention), data.scope, data.origin)
 elseif (action == "edit") then
-    response.success, response.message = datasource_utils.edit_source(data.ds_key, data.alias, tonumber(data.data_retention), data.scope, data.origin)
+    response.success, response.message = datasources_utils.edit_source(data.ds_key, data.alias, tonumber(data.data_retention), data.scope, data.origin)
 elseif (action == "remove") then
-    response.success, response.message = datasource_utils.delete_source(data.ds_key)
+    response.success, response.message = datasources_utils.delete_source(data.ds_key)
 else
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid 'action' parameter.")
     response.success = false

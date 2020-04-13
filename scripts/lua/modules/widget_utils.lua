@@ -5,7 +5,7 @@ local widgets_utils = {}
 
 require ("lua_utils")
 local json = require("dkjson")
-local datasource_utils = require("datasource_utils")
+local datasources_utils = require("datasources_utils")
 
 local REDIS_BASE_KEY = "ntopng.widgets"
 local DEFAULT_WIDGET_SRC = ntop.getHttpPrefix() .. "/lua/datasource/main.lua"
@@ -42,7 +42,7 @@ local function check_widget_params(name, ds_hash, widget_type, params)
         return false, "The associated datasource hash cannot be empty!"
     end
     -- Check if the passed ds hash is valid
-    if (not datasource_utils.is_hash_valid(ds_hash)) then
+    if (not datasources_utils.is_hash_valid(ds_hash)) then
         return false, "The passed hash is not valid!"
     end
 

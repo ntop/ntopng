@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local widgets_utils = require("widget_utils")
-local datasources_utils = require("datasource_utils")
+local datasources_utils = require("datasources_utils")
 local ts_utils = require("ts_utils")
 local info = ntop.getInfo()
 local page_utils = require("page_utils")

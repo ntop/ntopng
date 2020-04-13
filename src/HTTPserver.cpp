@@ -149,7 +149,7 @@ static void set_cookie(const struct mg_connection * const conn,
 
   if(HTTPserver::authorized_localhost_user_login(conn))
     return;
-  
+
   // Authentication success:
   //   1. create new session
   //   2. set session ID token in the cookie
@@ -543,7 +543,7 @@ void HTTPserver::setCaptiveRedirectAddress(const char *addr) {
   "ntopng"
 #endif
     ;
-  
+
   snprintf(wispr_captive_data, max_wispr_size, "<HTML>\n\
 <!--\n\
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
@@ -642,7 +642,7 @@ int redirect_to_error_page(struct mg_connection *conn,
   char referer[255];
   char *referer_enc = NULL, *msg;
   const char* url = "/lua/http_status_code.lua";
-    
+
   make_referer(conn, referer, sizeof(referer));
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
@@ -811,7 +811,7 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 
 static int handle_lua_request(struct mg_connection *conn) {
   struct mg_request_info *request_info = (struct mg_request_info *)mg_get_request_info(conn);
-  char *crlf;
+  char *crlf, *original_uri = NULL, tmp_uri[256];
   u_int len;
   char username[NTOP_USERNAME_MAXLEN] = { 0 };
   char group[NTOP_GROUP_MAXLEN] = { 0 };
@@ -855,7 +855,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
 		      "Unable to serve requests at this time, possibly starting up or shutting down."));
   }
-  
+
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "################# [HTTP] %s [%s]",
 			       request_info->uri, referer);
@@ -884,7 +884,78 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
     return(1);
+  } else if(strncmp(request_info->uri, NTOPNG_DATASOURCE_URL, 12) == 0) {
+    char *ds_hash = &request_info->uri[12];
+    char rsp[1024];
+    int rc = ntop->getRedis()->hashGet(NTOPNG_DATASOURCE_KEY, ds_hash, rsp, sizeof(rsp));
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", ds_hash);
+
+    if(rc == 0) {
+      json_object *j = json_tokener_parse(rsp);
+
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", rsp);
+
+      if(j) {
+	/*  {"scope":"private","alias":"luca2","origin":"main.lua","data_retention":1,"hash":"543c484ea2af859a9157480cea8b5903"} */
+	const char *scope  = json_object_get_string(json_object_object_get(j, "scope"));
+	const char *origin = json_object_get_string(json_object_object_get(j, "origin"));
+	
+	if(strcmp(scope, "public") != 0) {
+	  /* This is a private URL and it needs authentication */
+	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, &localuser);
+
+	  if(!authorized) {
+	    char referer[255];
+
+	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+	    return(1); /* Handled */
+	  }
+	}
+
+	original_uri = request_info->uri;       
+	snprintf(tmp_uri, sizeof(tmp_uri),  "/lua/datasources/%s", origin);
+	json_object_put(j);
+      }
+    }
+  } else if(strncmp(request_info->uri, NTOPNG_WIDGET_URL, 9) == 0) {
+    char *ds_hash = &request_info->uri[9];
+    char rsp[1024];
+    int rc = ntop->getRedis()->hashGet(NTOPNG_WIDGET_KEY, ds_hash, rsp, sizeof(rsp));
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", ds_hash);
+
+    if(rc == 0) {
+      json_object *j = json_tokener_parse(rsp);
+
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", rsp);
+
+      if(j) {
+	/*  {"scope":"private","alias":"luca2","origin":"main.lua","data_retention":1,"hash":"543c484ea2af859a9157480cea8b5903"} */
+	const char *origin = json_object_get_string(json_object_object_get(j, "origin"));
+
+#if 0
+	const char *scope  = json_object_get_string(json_object_object_get(j, "scope"));
+	if(strcmp(scope, "public") != 0) {
+	  /* This is a private URL and it needs authentication */
+	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, &localuser);
+
+	  if(!authorized) {
+	    char referer[255];
+
+	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+	    return(1); /* Handled */
+	  }
+	}
+#endif
+	
+	original_uri = request_info->uri;       
+	snprintf(tmp_uri, sizeof(tmp_uri),  "/lua/widgets/%s", origin);
+	json_object_put(j);
+      }
+    }
   }
+
 #if 0
  else if(!strcmp(request_info->uri, KINDLE_WIFISTUB_URL)) {
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
@@ -964,6 +1035,10 @@ static int handle_lua_request(struct mg_connection *conn) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Username = %s", username);
 #endif
 
+  if(original_uri) {
+    request_info->uri = tmp_uri;
+  }
+  
   if(strstr(request_info->uri, "//")
      || strstr(request_info->uri, "&&")
      || strstr(request_info->uri, "??")
@@ -973,6 +1048,7 @@ static int handle_lua_request(struct mg_connection *conn) {
      ) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] The URL %s is invalid/dangerous",
 				 request_info->uri);
+    if(original_uri) request_info->uri  = original_uri;
     return(redirect_to_error_page(conn, request_info, "bad_request", NULL, NULL));
   }
 
@@ -987,11 +1063,13 @@ static int handle_lua_request(struct mg_connection *conn) {
 
     if(strstr(request_info->uri, "/lua/pro")
        && (!ntop->getPrefs()->is_pro_edition())) {
+      if(original_uri) request_info->uri  = original_uri;
       return(redirect_to_error_page(conn, request_info, "pro_only", NULL, NULL));
     }
 
     if(strstr(request_info->uri, "/lua/pro/enterprise")
        && (!ntop->getPrefs()->is_enterprise_m_edition())) {
+      if(original_uri) request_info->uri  = original_uri;
       return(redirect_to_error_page(conn, request_info, "enterprise_only", NULL, NULL));
     }
 
@@ -999,6 +1077,7 @@ static int handle_lua_request(struct mg_connection *conn) {
        && isCaptiveConnection(conn)
        && (!isCaptiveURL(request_info->uri))) {
       redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
+      if(original_uri) request_info->uri  = original_uri;
       return(0);
     } else {
       if(strcmp(request_info->uri, "/metrics") == 0)
@@ -1029,6 +1108,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	l = new LuaEngine(NULL);
       } catch(std::bad_alloc& ba) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "[HTTP] Unable to start Lua interpreter.");
+	if(original_uri) request_info->uri  = original_uri;
 	return(send_error(conn, 500 /* Internal server error */,
 			  "Internal server error", "%s", "Unable to start Lua interpreter."));
       }
@@ -1041,21 +1121,23 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       if(attack_attempt) {
 	char buf[32];
-	  
+
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Potential attack from %s on %s",
 				     Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
 				     request_info->uri);
       }
 
       delete l;
+      if(original_uri) request_info->uri  = original_uri;
       return(1); /* Handled */
     }
 
+    if(original_uri) request_info->uri  = original_uri;
     uri_encode(request_info->uri, uri, sizeof(uri)-1);
 
-    return(redirect_to_error_page(conn, request_info, "not_found", NULL, NULL)); 
+    return(redirect_to_error_page(conn, request_info, "not_found", NULL, NULL));
   } else {
-    /* Prevent short URI or .inc files to be served */
+      /* Prevent short URI or .inc files to be served */
     if((len < 4) || (strncmp(&request_info->uri[len-4], ".inc", 4) == 0)) {
       return(redirect_to_error_page(conn, request_info, "forbidden", NULL, NULL));
     } else {
@@ -1159,7 +1241,7 @@ int handle_ssl_verify(int ok, X509_STORE_CTX *ctx) {
   X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof(buf));
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "ssl verify pre=%d cert=%s err=%i depth=%i",ok,buf,err,depth);
-  // Never fail, continue SSL/TLS handshake, if client cert is invalid we want to fallback to explicit login 
+  // Never fail, continue SSL/TLS handshake, if client cert is invalid we want to fallback to explicit login
   return 1;
 };
 
@@ -1216,7 +1298,7 @@ int init_client_x509_auth(void *ctx) {
 HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   bool good_ssl_cert = false;
   struct timeval tv;
-  
+
   memset(ports, 0, sizeof(ports)), memset(access_log_path, 0, sizeof(access_log_path));
   use_http = true;
 
@@ -1249,7 +1331,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
       || http_binding_addr1[0] || http_binding_addr2[0]
       || https_binding_addr1[0] || https_binding_addr2[0])
     gui_access_restricted = true;
-  
+
   docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   ssl_enabled = false;
   httpserver = this;
@@ -1428,7 +1510,7 @@ void HTTPserver::startCaptiveServer() {
     mg_stop(httpd_captive_v4);
     httpd_captive_v4 = NULL;
   }
-  
+
   if(ntop->getPrefs()->isCaptivePortalEnabled()) {
     /* TODO: make simpler callbacks for the captive portal */
     memset(&captive_callbacks, 0, sizeof(captive_callbacks));
@@ -1436,24 +1518,24 @@ void HTTPserver::startCaptiveServer() {
     captive_callbacks.log_message = handle_http_message;
 
     httpd_captive_v4 = mg_start(&captive_callbacks, NULL, http_captive_options);
-    
+
     if(httpd_captive_v4 == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Unable to start HTTP (captive) server (IPv4) on port %s. "
 				   "Captive portal needs port %s. Make sure this port"
 				   "is not in use by ntopng (option -w) or by any other process.",
 				   captive_port, captive_port);
-      
+
       if(errno)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", strerror(errno));
-      
+
       exit(-1);
     } else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP (captive) server listening on port %s",
 				   captive_port);
   }
 }
-#endif 
+#endif
 
 /* ****************************************** */
 
