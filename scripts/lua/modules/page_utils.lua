@@ -84,9 +84,6 @@ page_utils.menu_entries = {
     -- SNMP
     snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "snmp", visible_system = true},
 
-    -- System
-    rtt_monitor_enable   = {key = "rtt_monitor_enable", i18n_title = "rtt_stats.active_monitoring", section = "system", is_modal = true},
-
     -- Status (Health)
     system_status	 = {key = "status", i18n_title = "system_status", section = "system_health", visible_system = true},
     interfaces_status	 = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_health", visible_system = true},
