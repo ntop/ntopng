@@ -884,17 +884,13 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
     return(1);
-  } else if(strncmp(request_info->uri, NTOPNG_DATASOURCE_URL, 12) == 0) {
-    char *ds_hash = &request_info->uri[12];
+  } else if(strncmp(request_info->uri, NTOPNG_DATASOURCE_URL, 13) == 0) {
+    char *ds_hash = &request_info->uri[13];
     char rsp[1024];
     int rc = ntop->getRedis()->hashGet(NTOPNG_DATASOURCE_KEY, ds_hash, rsp, sizeof(rsp));
 
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", ds_hash);
-
     if(rc == 0) {
       json_object *j = json_tokener_parse(rsp);
-
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", rsp);
 
       if(j) {
 	/*  {"scope":"private","alias":"luca2","origin":"main.lua","data_retention":1,"hash":"543c484ea2af859a9157480cea8b5903"} */
@@ -923,12 +919,8 @@ static int handle_lua_request(struct mg_connection *conn) {
     char rsp[1024];
     int rc = ntop->getRedis()->hashGet(NTOPNG_WIDGET_KEY, ds_hash, rsp, sizeof(rsp));
 
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", ds_hash);
-
     if(rc == 0) {
       json_object *j = json_tokener_parse(rsp);
-
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", rsp);
 
       if(j) {
 	/*  {"scope":"private","alias":"luca2","origin":"main.lua","data_retention":1,"hash":"543c484ea2af859a9157480cea8b5903"} */

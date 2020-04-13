@@ -38,7 +38,9 @@
                         <label class="col-form-label col-sm-3" for="datasource-origin-select"><b>Datasource Origin</b>:</label>
                         <div class="col-sm-5">
                             <select required name="origin" class="form-control" id="edit-datasource-origin-select">
-                                <option selected value="main.lua">main.lua</option>
+                                {% for _, script in pairsByKeys(datasources, asc) do %}
+                                    <option value="{* script *}">{* script *}</option>
+                                {% end %}
                             </select>
                         </div>
                     </div>

@@ -70,16 +70,13 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'name' },
-            { data: 'type',
-	      render: (type) => `${capitaliseFirstLetter(type)}`
+            { data: 'key',
+                render: (key) => `<a target=\"_blank\" href=\"/widgets/${key}\"'>${key}</a>`
 	    },
+            { data: 'type', render: (type) => `${capitaliseFirstLetter(type)}` },
             {
                 data: 'params',
                 render: (params) => `<code>${JSON.stringify(params)}</code>`
-            },
-            {
-                data: 'ds_hash',
-                render: (ds_hash) => `<a href=\"datasources_list.lua?ds_hash=${ds_hash}\"'>${ds_hash}</a>`
             },
             {
                 targets: -1,

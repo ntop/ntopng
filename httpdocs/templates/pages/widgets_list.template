@@ -10,9 +10,9 @@
                 <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Key</th>
                         <th>Type</th>
                         <th>Params</th>
-                        <th>Datasource</th>
                         <th>Actions</th>
                     </tr>
                 </thead>

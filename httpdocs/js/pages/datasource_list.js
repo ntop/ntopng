@@ -34,8 +34,10 @@ $(document).ready(function() {
             dataSrc: ''
         },
         columns: [
-            { data: 'hash' },
-            { data: 'alias' },
+	    { data: 'alias' },
+            { data: 'hash',
+                render: (hash) => `<a target=\"_blank\" href=\"/datasources/${hash}\"'>${hash}</a>`
+	    },
             { data: 'scope' },
             { data: 'origin' },
             { data: 'data_retention' },

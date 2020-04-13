@@ -23,8 +23,13 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.datasources_list)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title("Datasources")
 
+-- List available datasources
+local dss = ntop.readdir(dirs.installdir .. "/scripts/lua/datasources")
+
+
 local context = {
-    datasource_list = {
+   datasources_list = {
+      datasources = dss
     },
     template_utils = template,
     page_utils = page_utils,
