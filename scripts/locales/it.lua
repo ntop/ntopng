@@ -3135,7 +3135,7 @@ local lang = {
     ["restart_now"] = "Riavvia adesso",
     ["restarting"] = "Riavvio in corso... (potrebbero esser necessari alcuni secondi)",
   },
-  ["rtt_stats"] = {
+  ["active_monitoring_stats"] = {
     ["active_monitoring"] = "Monitoraggio Attivo",
     ["active_monitoring_description"] = "Monitora lo stato e il tempo di risposta di host specifici",
     ["add_record"] = "Aggiungi Record di Monitoraggio",

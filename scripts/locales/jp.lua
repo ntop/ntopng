@@ -1926,7 +1926,6 @@ local lang = {
     ["mud_is_recording"] = "MUDが記録されています",
     ["mud_recording"] = "MUDレコーディング",
     ["mud_special_purpose"] = "特別な目的",
-    ["rtt_monitor"] = "RTTモニター",
     ["rtt_monitor_description"] = "特定のホストのRTTを構成および監視する",
     ["rtt_monitor_enable"] = "RTT モニタはホストのステータスと遅延時間をモニタするのに利用されます. <a href=\"%{url}\">here</a>で有効化できます",
     ["trigger_alerts_for_host"] = "ホスト%{host}のアラートをトリガー",
@@ -3390,7 +3389,7 @@ local lang = {
     ["restart_now"] = "今すぐ再起動",
     ["restarting"] = "%{product}を再起動しています...（これには数秒かかります）",
   },
-  ["rtt_stats"] = {
+  ["active_monitoring_stats"] = {
     ["add_rtt"] = "RTTレコードの追加",
     ["bad_action_param"] = "不正な\"action\"パラメータ",
     ["config_reset_confirm"] = "本当に現在の設定を破棄してデフォルトにリセットしますか?",

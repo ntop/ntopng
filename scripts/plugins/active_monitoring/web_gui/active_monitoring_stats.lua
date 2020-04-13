@@ -8,10 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local page_utils = require("page_utils")
 local alert_consts = require("alert_consts")
-local rtt_utils = require("rtt_utils")
+local active_monitoring_utils = require("active_monitoring_utils")
 local plugins_utils = require("plugins_utils")
 local template = require("template_utils")
-local rtt_utils = require("rtt_utils")
+local active_monitoring_utils = require("active_monitoring_utils")
 local json = require("dkjson")
 
 local graph_utils = require("graph_utils")
@@ -26,27 +26,27 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.rtt_monitor)
+page_utils.set_active_menu_entry(page_utils.menu_entries.active_monitor)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
-local host = _GET["rtt_host"]
+local host = _GET["am_host"]
 local measurement = _GET["measurement"]
-local base_url = plugins_utils.getUrl("rtt_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local base_url = plugins_utils.getUrl("active_monitoring_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info
 
 if(not isEmptyString(host) and not isEmptyString(measurement)) then
-  host = rtt_utils.getHost(host, measurement)
-  measurement_info = rtt_utils.getMeasurementInfo(host.measurement)
+  host = active_monitoring_utils.getHost(host, measurement)
+  measurement_info = active_monitoring_utils.getMeasurementInfo(host.measurement)
 else
   host = nil
 end
 
 if host then
-  url = url .. "&rtt_host=" .. host.host .. "&measurement=" .. host.measurement
+  url = url .. "&am_host=" .. host.host .. "&measurement=" .. host.measurement
 end
 
 local title = i18n("graphs.active_monitoring")
@@ -57,7 +57,7 @@ end
 
 if isAdministrator() then
   if(_POST["action"] == "reset_config") then
-    rtt_utils.resetConfig()
+    active_monitoring_utils.resetConfig()
   end
 end
 
@@ -92,7 +92,7 @@ if(page == "overview") then
 	  id      = "reset-modal",
 	  action  = "$('#reset-form').submit()",
 	  title   = i18n("config_scripts.config_reset"),
-	  message = i18n("rtt_stats.config_reset_confirm"),
+	  message = i18n("active_monitoring_stats.config_reset_confirm"),
 	  confirm = i18n("reset")
        }
   }))
@@ -130,9 +130,9 @@ if(page == "overview") then
                 <th>]].. i18n("flow_details.url") ..[[</th>
                 <th>]].. i18n("chart") ..[[</th>
                 <th>]].. i18n("threshold") .. [[</th>
-                <th>]].. i18n("rtt_stats.last_measurement") .. [[</th>
+                <th>]].. i18n("active_monitoring_stats.last_measurement") .. [[</th>
                 <th>]].. i18n("system_stats.last_ip") .. [[</th>
-                <th>]].. i18n("rtt_stats.measurement") .. [[</th>
+                <th>]].. i18n("active_monitoring_stats.measurement") .. [[</th>
                 <th>]].. i18n("actions") .. [[</th>
               </tr>
             </thead>
@@ -148,16 +148,16 @@ if(page == "overview") then
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">]] .. i18n("rtt_stats.edit_record") .. [[</h5>
+              <h5 class="modal-title">]] .. i18n("active_monitoring_stats.edit_record") .. [[</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body container-fluid">
               <div class="form-group row">
-                <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("active_monitoring_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
-                  ]].. generate_select("select-edit-measurement", "measurement", true, false, rtt_utils.getAvailableMeasurements(), "measurement-select") ..[[
+                  ]].. generate_select("select-edit-measurement", "measurement", true, false, active_monitoring_utils.getAvailableMeasurements(), "measurement-select") ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -187,9 +187,9 @@ if(page == "overview") then
               <div id='script-description' class='alert alert-light' role='alert'>
               ]] .. i18n("notes") ..[[
               <ul>
-                <li>]] .. i18n("rtt_stats.rtt_note_icmp") ..[[</li>
-                <li>]] .. i18n("rtt_stats.rtt_note_http") ..[[</li>
-                <li>]] .. i18n("rtt_stats.note_alert") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.rtt_note_icmp") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.rtt_note_http") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.note_alert") ..[[</li>
               </ul>
               </div>
               <span class="invalid-feedback"></span>
@@ -209,16 +209,16 @@ if(page == "overview") then
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">]] .. i18n("rtt_stats.add_record") .. [[</h5>
+              <h5 class="modal-title">]] .. i18n("active_monitoring_stats.add_record") .. [[</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body container-fluid">
               <div class="form-group row">
-                <label class="col-sm-3 col-form-label">]] .. i18n("rtt_stats.measurement") .. [[</label>
+                <label class="col-sm-3 col-form-label">]] .. i18n("active_monitoring_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
-                  ]] .. generate_select("select-add-measurement", "measurement", true, false, rtt_utils.getAvailableMeasurements(), "measurement-select") ..[[
+                  ]] .. generate_select("select-add-measurement", "measurement", true, false, active_monitoring_utils.getAvailableMeasurements(), "measurement-select") ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -248,9 +248,9 @@ if(page == "overview") then
               <div id='script-description' class='alert alert-light' role='alert'>
               ]] .. i18n("notes") ..[[
               <ul>
-                <li>]] .. i18n("rtt_stats.rtt_note_icmp") ..[[</li>
-                <li>]] .. i18n("rtt_stats.rtt_note_http") ..[[</li>
-                <li>]] .. i18n("rtt_stats.note_alert") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.rtt_note_icmp") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.rtt_note_http") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.note_alert") ..[[</li>
               </ul>
               </div>
               <span class="invalid-feedback"></span>
@@ -276,7 +276,7 @@ if(page == "overview") then
             </div>
             <div class="modal-body">
               <p>
-		              ]] .. i18n("rtt_stats.confirm_delete") .. [[
+		              ]] .. i18n("active_monitoring_stats.confirm_delete") .. [[
               </p>
               <span class="invalid-feedback"></span>
             </div>
@@ -290,7 +290,7 @@ if(page == "overview") then
     </div>
 
     <div style="margin-bottom: 1rem">
-        <form action="]] .. ntop.getHttpPrefix() .. [[/plugins/get_rtt_config.lua" class="form-inline" method="GET">
+        <form action="]] .. ntop.getHttpPrefix() .. [[/plugins/get_active_monitoring_config.lua" class="form-inline" method="GET">
             <button type="submit" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_export') .. [[</span></button>
         </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_import') .. [[</span></button>
 	<form class="form-inline" method="POST" id="reset-form">
@@ -302,9 +302,9 @@ if(page == "overview") then
 
     <div>
       ]].. i18n("notes") .. [[<ul>
-	<li>]].. i18n("rtt_stats.note1", {product=info.product}) ..[[</li>
-	<li>]].. i18n("rtt_stats.note2") ..[[</li>
-	<li>]].. i18n("rtt_stats.note_alert") ..[[</li>
+	<li>]].. i18n("active_monitoring_stats.note1", {product=info.product}) ..[[</li>
+	<li>]].. i18n("active_monitoring_stats.note2") ..[[</li>
+	<li>]].. i18n("active_monitoring_stats.note_alert") ..[[</li>
       </ul>
     </div>
   ]])
@@ -313,9 +313,9 @@ if(page == "overview") then
 
   -- This information is required in rtt-utils.js in order to properly
   -- render the template
-  for key, info in pairs(rtt_utils.getMeasurementsInfo()) do
+  for key, info in pairs(active_monitoring_utils.getMeasurementsInfo()) do
     measurements_info[key] = {
-      granularities = rtt_utils.getAvailableGranularities(key),
+      granularities = active_monitoring_utils.getAvailableGranularities(key),
       operator = info.operator,
       unit = i18n(info.i18n_unit) or info.i18n_unit,
       force_host = info.force_host,
@@ -328,7 +328,7 @@ if(page == "overview") then
 
       i18n.showing_x_to_y_rows = "]].. i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) ..[[";
       i18n.search = "]].. i18n("search") ..[[:";
-      i18n.msec = "]] .. i18n("rtt_stats.msec") .. [[";
+      i18n.msec = "]] .. i18n("active_monitoring_stats.msec") .. [[";
       i18n.edit = "]] .. i18n("users.edit") .. [[";
       i18n.delete = "]] .. i18n("delete") .. [[";
       i18n.expired_csrf = "]] .. i18n("expired_csrf") .. [[";
@@ -339,14 +339,14 @@ if(page == "overview") then
       let measurements_info = ]] .. json.encode(measurements_info) .. [[;
 
     </script>
-    <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/rtt/rtt-utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
+    <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/active_monitoring/active_monitoring_utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
   ]])
 
 
 elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
 
   local suffix = "_" .. host.granularity
-  local schema = _GET["ts_schema"] or ("rtt_host:rtt" .. suffix)
+  local schema = _GET["ts_schema"] or ("am_host:rtt" .. suffix)
   local selected_epoch = _GET["epoch"] or ""
   local tags = {ifid=getSystemInterfaceId(), host=host.host, measure=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
   local notes = {}
@@ -354,7 +354,7 @@ elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) t
   url = url.."&page=historical"
 
   local timeseries = {
-    { schema="rtt_host:rtt" .. suffix, label=i18n("graphs.num_ms_rtt"), value_formatter=(measurement_info.value_js_formatter or "fmillis") },
+    { schema="am_host:rtt" .. suffix, label=i18n("graphs.num_ms_rtt"), value_formatter=(measurement_info.value_js_formatter or "fmillis") },
   }
 
   for _, note in ipairs(measurement_info.i18n_chart_notes or {}) do
@@ -385,7 +385,7 @@ elseif((page == "alerts") and isAdministrator()) then
    _GET["entity"] = alert_consts.alertEntity("pinged_host")
 
    if host then
-      _GET["entity_val"] = rtt_utils.getRttHostKey(host.host, host.measurement)
+      _GET["entity_val"] = active_monitoring_utils.getRttHostKey(host.host, host.measurement)
    end
 
    alert_utils.drawAlerts()

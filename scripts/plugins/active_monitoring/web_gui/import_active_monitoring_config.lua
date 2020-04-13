@@ -8,7 +8,7 @@ require "lua_utils"
 
 local json = require ("dkjson")
 local page_utils = require("page_utils")
-local rtt_utils = require "rtt_utils"
+local active_monitoring_utils = require "active_monitoring_utils"
 
 local json = require ("dkjson")
 
@@ -44,12 +44,12 @@ end
 
 -- ################################################
 
-rtt_utils.resetConfig()
+active_monitoring_utils.resetConfig()
 
 for host_key, conf in pairs(data) do
-  host = rtt_utils.key2host(host_key)
+  host = active_monitoring_utils.key2host(host_key)
 
-  rtt_utils.addHost(host.host, host.measurement, conf.max_rtt, conf.granularity)
+  active_monitoring_utils.addHost(host.host, host.measurement, conf.max_rtt, conf.granularity)
 end
 
 -- ################################################

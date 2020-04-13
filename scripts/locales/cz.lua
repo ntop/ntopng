@@ -1667,7 +1667,6 @@ local lang = {
     ["mud_general_purpose"] = "Obecný účel",
     ["mud_recording"] = "Nahrávání MUD",
     ["mud_special_purpose"] = "Speciální účel",
-    ["rtt_monitor"] = "RTT Monitor",
     ["trigger_alerts_for_host"] = "Spustit upozornění pro hostitele %{host}",
     ["trigger_host_alerts"] = "Spouštěcí upozornění hostitele",
     ["unblock_host_traffic"] = "Odblokovat provoz hostitele",

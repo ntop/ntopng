@@ -3,14 +3,14 @@
 --
 
 local format_utils = require("format_utils")
-local rtt_utils = require("rtt_utils")
+local active_monitoring_utils = require("active_monitoring_utils")
 
 local function pingIssuesFormatter(ifid, alert, info)
    local msg
-   local host = rtt_utils.key2host(alert.alert_entity_val)
+   local host = active_monitoring_utils.key2host(alert.alert_entity_val)
    local numeric_ip = info.ip
    local ip_label = host and host.host
-   local m_info = rtt_utils.getMeasurementInfo(host.measurement)
+   local m_info = active_monitoring_utils.getMeasurementInfo(host.measurement)
 
    if not host then
       return ""

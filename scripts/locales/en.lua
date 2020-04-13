@@ -3396,7 +3396,7 @@ local lang = {
     ["restart_now"] = "Restart now",
     ["restarting"] = "Restarting %{product}... (this should take a few seconds)",
   },
-  ["rtt_stats"] = {
+  ["active_monitoring_stats"] = {
     ["active_monitoring"] = "Active Monitoring",
     ["active_monitoring_description"] = "Monitors the status and the response time of specific hosts",
     ["add_record"] = "Add Active Monitoring Record",

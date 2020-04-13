@@ -5,7 +5,7 @@
 local ts_utils = require "ts_utils_core"
 local schema
 
-schema = ts_utils.newSchema("rtt_host:rtt_hour", {
+schema = ts_utils.newSchema("am_host:rtt_hour", {
   step = 3600,
   metrics_type = ts_utils.metrics.gauge,
   aggregation_function = ts_utils.aggregation.max,
@@ -19,7 +19,7 @@ schema:addMetric("millis_rtt")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("rtt_host:http_stats_hour", {
+schema = ts_utils.newSchema("am_host:http_stats_hour", {
   step = 3600,
   metrics_type = ts_utils.metrics.gauge,
   aggregation_function = ts_utils.aggregation.max,
@@ -34,7 +34,7 @@ schema:addMetric("other_ms")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("rtt_host:https_stats_hour", {
+schema = ts_utils.newSchema("am_host:https_stats_hour", {
   step = 3600,
   metrics_type = ts_utils.metrics.gauge,
   aggregation_function = ts_utils.aggregation.max,

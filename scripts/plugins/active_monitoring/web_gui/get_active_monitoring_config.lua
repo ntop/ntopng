@@ -8,7 +8,7 @@ require "lua_utils"
 
 local json = require ("dkjson")
 local page_utils = require("page_utils")
-local rtt_utils = require "rtt_utils"
+local active_monitoring_utils = require "active_monitoring_utils"
 
 if not haveAdminPrivileges() then
    sendHTTPContentTypeHeader('text/html')
@@ -21,6 +21,6 @@ end
 
 sendHTTPContentTypeHeader('application/json', 'attachment; filename="active_monitoring_conf.json"')
 
-local conf = rtt_utils.getHosts(true --[[ only retrieve the configuration ]])
+local conf = active_monitoring_utils.getHosts(true --[[ only retrieve the configuration ]])
 
 print(json.encode(conf, nil))

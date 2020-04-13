@@ -26,7 +26,7 @@ local mud_utils = require "mud_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
-local rtt_utils = require("rtt_utils")
+local active_monitoring_utils = require("active_monitoring_utils")
 
 local info = ntop.getInfo()
 
@@ -551,7 +551,7 @@ if (not ntop.isWindows()) then
       <tr>
          <th>RTT</th>
    ]])
-   if (not rtt_utils.hasHost(host["ip"], icmp)) then
+   if (not active_monitoring_utils.hasHost(host["ip"], icmp)) then
 
       print([[
          <td colspan="2">
@@ -566,13 +566,13 @@ if (not ntop.isWindows()) then
                   e.preventDefault();
                   const data_to_send = {
                      action: 'add',
-                     rtt_host: ']].. host["ip"] ..[[',
+                     am_host: ']].. host["ip"] ..[[',
                      rtt_max: 100,
                      measurement: ']].. icmp ..[[',
                      csrf: rtt_csrf
                   };
 
-                  $.post(`${http_prefix}/plugins/edit_rtt_host.lua`, data_to_send)
+                  $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
                   .then((data, result, xhr) => {
 
                      // always update the token
@@ -611,7 +611,7 @@ if (not ntop.isWindows()) then
    else
 
 
-      local last_update = rtt_utils.getLastRttUpdate(host['ip'], icmp)
+      local last_update = active_monitoring_utils.getLastRttUpdate(host['ip'], icmp)
       local last_rtt = ""
 
       if(last_update ~= nil) then
@@ -620,7 +620,7 @@ if (not ntop.isWindows()) then
 
       print([[
          <td colspan="2">
-            <a href=']].. ntop.getHttpPrefix() ..[[/plugins/rtt_stats.lua?host=]].. host['ip'] ..[['>]].. (isEmptyString(last_rtt) and 'No updates yet' or last_rtt) ..[[</a>
+            <a href=']].. ntop.getHttpPrefix() ..[[/plugins/active_monitoring_stats.lua?host=]].. host['ip'] ..[['>]].. (isEmptyString(last_rtt) and 'No updates yet' or last_rtt) ..[[</a>
          </td>
       ]])
 

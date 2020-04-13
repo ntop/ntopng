@@ -5,7 +5,7 @@
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
-local rtt_utils = require("rtt_utils")
+local active_monitoring_utils = require("active_monitoring_utils")
 local ts_utils = require("ts_utils_core")
 
 -- Enable do_trace messages
@@ -28,8 +28,8 @@ local script = {
   hooks = {},
 
   gui = {
-    i18n_title = "rtt_stats.active_monitoring",
-    i18n_description = "rtt_stats.active_monitoring_description",
+    i18n_title = "active_monitoring_stats.active_monitoring",
+    i18n_description = "active_monitoring_stats.active_monitoring_description",
   },
 }
 
@@ -78,7 +78,7 @@ local function run_rtt_check(params, all_hosts, granularity)
     return
   end
 
-  local hosts_by_plugin = rtt_utils.getHostsByPlugin(all_hosts)
+  local hosts_by_plugin = active_monitoring_utils.getHostsByPlugin(all_hosts)
 
   -- Invoke the check functions
   for _, info in pairs(hosts_by_plugin) do
@@ -105,10 +105,10 @@ local function run_rtt_check(params, all_hosts, granularity)
     local operator = info.measurement.operator or "gt"
 
     if params.ts_enabled then
-       ts_utils.append("rtt_host:rtt_" .. granularity, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = rtt}, when)
+       ts_utils.append("am_host:rtt_" .. granularity, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = rtt}, when)
     end
 
-    rtt_utils.setLastRttUpdate(key, when, rtt, resolved_host)
+    active_monitoring_utils.setLastRttUpdate(key, when, rtt, resolved_host)
 
     if(max_rtt and ((operator == "lt" and (rtt < max_rtt))
         or (operator == "gt" and (rtt > max_rtt)))) then
@@ -139,7 +139,7 @@ end
 
 -- Defines an hook which is executed every minute
 function script.hooks.min(params)
-  local hosts = rtt_utils.getHosts(nil, "min")
+  local hosts = active_monitoring_utils.getHosts(nil, "min")
 
   run_rtt_check(params, hosts, "min")
 end
@@ -148,7 +148,7 @@ end
 
 -- Defines an hook which is executed every 5 minutes
 script.hooks["5mins"] = function(params)
-  local hosts = rtt_utils.getHosts(nil, "5mins")
+  local hosts = active_monitoring_utils.getHosts(nil, "5mins")
 
   run_rtt_check(params, hosts, "5mins")
 end
@@ -157,7 +157,7 @@ end
 
 -- Defines an hook which is executed every hour
 function script.hooks.hour(params)
-  local hosts = rtt_utils.getHosts(nil, "hour")
+  local hosts = active_monitoring_utils.getHosts(nil, "hour")
 
   run_rtt_check(params, hosts, "hour")
 end

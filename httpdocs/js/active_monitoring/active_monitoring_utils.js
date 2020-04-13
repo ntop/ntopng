@@ -25,7 +25,7 @@ $(document).ready(function() {
             e.preventDefault();
             perform_request({
                 action: 'delete',
-                rtt_host: row_data.host,
+                am_host: row_data.host,
                 measurement: row_data.measurement,
                 csrf: rtt_csrf
             })
@@ -65,7 +65,7 @@ $(document).ready(function() {
             const data_to_send = {
                 action: 'edit',
                 rtt_max: threshold,
-                rtt_host: host,
+                am_host: host,
                 measurement: measurement,
                 old_rtt_host: data.host,
                 old_measurement: data.measurement,
@@ -126,10 +126,10 @@ $(document).ready(function() {
             $granularities.val(old_val);
     }
 
-    const make_data_to_send = (action, rtt_host, rtt_max, rtt_measure, granularity, csrf) => {
+    const make_data_to_send = (action, am_host, rtt_max, rtt_measure, granularity, csrf) => {
         return {
             action: action,
-            rtt_host: rtt_host,
+            am_host: am_host,
             rtt_max: rtt_max,
             measurement: rtt_measure,
             granularity: granularity,
@@ -149,7 +149,7 @@ $(document).ready(function() {
         $('#rtt-alert').hide();
         $(`form#rtt-${action}-modal button[type='submit']`).attr("disabled", "disabled");
 
-        $.post(`${http_prefix}/plugins/edit_rtt_host.lua`, data_to_send)
+        $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
         .then((data, result, xhr) => {
 
             // always update the token
@@ -215,7 +215,7 @@ $(document).ready(function() {
             }, 15000);
         },
         ajax: {
-            url: `${http_prefix}/plugins/get_rtt_hosts.lua`,
+            url: `${http_prefix}/plugins/get_active_monitoring_hosts.lua`,
             type: 'get',
             dataSrc: ''
         },
@@ -270,11 +270,11 @@ $(document).ready(function() {
                 className: 'dt-body-right dt-head-center'
             },
             {
-                data: 'last_rtt',
+                data: 'last_measure',
                 className: 'dt-body-right dt-head-center',
                 render: function(data, type, row) {
-                    if(row.last_rtt)
-                        return `${row.last_rtt} ${row.unit}`
+                    if(row.last_measure)
+                        return `${row.last_measure} ${row.unit}`
                     else
                         return "";
                 }
@@ -298,7 +298,7 @@ $(document).ready(function() {
 
     importModalHelper({
         load_config_xhr: (json_conf) => {
-          return $.post(http_prefix + "/plugins/import_rtt_config.lua", {
+          return $.post(http_prefix + "/plugins/import_active_monitoring_config.lua", {
             csrf: import_csrf,
             JSON: json_conf,
           });
