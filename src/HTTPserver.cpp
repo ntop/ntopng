@@ -1021,7 +1021,10 @@ static int handle_lua_request(struct mg_connection *conn) {
     return(send_error(conn, 404, "Not Found", PAGE_NOT_FOUND, uri));
   } else {
     /* Prevent short URI or .inc files to be served */
-    if((len < 4) || (strncmp(&request_info->uri[len-4], ".inc", 4) == 0)) {
+    if((len < 4) 
+       || (strncmp(&request_info->uri[len-4], ".inc", 4) == 0)
+       || (strncmp(&request_info->uri[len-4], ".pem", 4) == 0)
+      ) {
       return(send_error(conn, 403, "Forbidden",
 			ACCESS_FORBIDDEN, request_info->uri));
     } else {
