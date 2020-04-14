@@ -1519,7 +1519,7 @@ local known_parameters = {
    ["message"]                                     = validateSingleWord,
    ["script_path"]                                 = validateLuaScriptPath,
    ["error_message"]                               = validateMessage,
-      
+
 --
 
 -- LIVE CAPTURE
@@ -1711,6 +1711,7 @@ local known_parameters = {
    ["old_rtt_host"]            = validateSingleWord,
    ["rtt_max"]                 = validateEmptyOr(validateNumber),
    ["rtt_url"]                 = validateUnquoted,
+   ["referal_url"]             = validateUnquoted,
    ["measurement"]             = validateMeasurement,
    ["old_measurement"]         = validateMeasurement,
    ["disabled_status"]         = validateListOfTypeInline(validateNumber),

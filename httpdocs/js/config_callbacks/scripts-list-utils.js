@@ -1741,4 +1741,11 @@ $(document).ready(function() {
        return [enabled_count, disabled_count];
    }
 
+   $(`.filter-scripts-button`).click(function() {
+      $(`#scripts-config a[href^='/lua/code_viewer.lua']`).each(function() {
+         const encoded = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`);
+         $(this).attr('href', `${$(this).attr('href')}&referal_url=${encoded}`);
+      });
+   });
+
 });

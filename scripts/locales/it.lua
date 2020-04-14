@@ -3168,6 +3168,7 @@ local lang = {
     ["all"] = "Tutti",
     ["are_you_sure"] = "Le modifiche non sono ancora state salvate. Sei veramente sicuro di volere chiudere la finestra?",
     ["attention"] = "Attenzione",
+    ["back_scripts_page"] = "Torna agli Scripts",
     ["blacklisted_country"] = "Scrivere i codici dei paesi separati da virgole, e.g., IT,FR,DE,UK",
     ["config"] = "Configurazione",
     ["filter_dropdown"] = "Filtra Categorie",

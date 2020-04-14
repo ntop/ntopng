@@ -70,9 +70,10 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'name' },
-            { data: 'key',
-                render: (key) => `<a target=\"_blank\" href=\"/widgets/${key}\"'>${key}</a>`
-	    },
+            {
+                data: 'key',
+                render: (key) => `<a target="_newtab" href="/widgets/${key}'>${key}</a>`
+	        },
             { data: 'type', render: (type) => `${capitaliseFirstLetter(type)}` },
             {
                 data: 'params',
@@ -118,7 +119,7 @@ $(document).ready(function() {
         row_data.key_asn = row_data.params.key_asn;
         row_data.interface = row_data.params.ifid;
 
-        // fill edit modal input fields
+        // Luca this is the magic line, it fills edit-modal input fields
         $('#edit-widget-modal form [name]').each(function(e) {
             $(this).val(row_data[$(this).attr('name')]);
         });

@@ -13,24 +13,14 @@ local code_editor = require("code_editor")
 
 sendHTTPContentTypeHeader('text/html')
 
-
-local title = i18n("plugin_browser", {plugin_name = _GET["plugin_path"]})
-local url = ntop.getHttpPrefix().."/lua/code_viewer.lua"
+local title = string.gsub(i18n("plugin_browser", {plugin_name = _GET["plugin_path"]}), "/plugins/", "")
+local referal_script_page = _GET["referal_url"]
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.plugin_browser, {plugin_name = _GET["plugin_path"]})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_navbar(title, url,
-			{
-			   {
-			      active = true,
-			      page_name = "overview",
-			      label = "<i class=\"fas fa-lg fa-home\"></i>",
-			   },
-			}
-)
-
-code_editor.editor(_GET["plugin_file_path"], _GET["plugin_path"])
+page_utils.print_page_title(title)
+code_editor.editor(_GET["plugin_file_path"], _GET["plugin_path"], referal_script_page)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

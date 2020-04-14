@@ -1,0 +1,77 @@
+<div class="container-fluid">
+    <div class="row">
+        {% if (not isEmptyString(monaco_editor.referarl_script_page)) then %}
+        <div class="col-2">
+            <a class="btn w-100 btn-primary" href="{{ ntop.getHttpPrefix() }}{* monaco_editor.referarl_script_page *}">
+                <i class="fas fa-arrow-left"></i>
+                {{ i18n('scripts_list.back_scripts_page') }}
+            </a>
+        </div>
+        {% end %}
+        <div class="col-10">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {{ i18n("plugin_contents") }}
+                    </button>
+                    <div class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item {* monaco_editor.dropdown.class_dropdown_item *}" href="{* monaco_editor.dropdown.href_dropdown_item *}">manifest.lua</a>
+                        {% for _, tree in ipairs(monaco_editor.dropdown.elements) do %}
+                            <h6 class="dropdown-header">{* tree.header *}</h6>
+                            {% for _, entry in ipairs(tree.flatten_subdirs) do %}
+                                <a class="dropdown-item {{ (entry.active and 'active' or '') }}" href="{* entry.href *}">{* entry.title *}</a>
+                            {% end %}
+                        {% end %}
+                    </div>
+                </div>
+               <input readonly value="{* monaco_editor.plugin_file_path *}" class="form-control">
+            </div>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-12">
+            <div id="code-editor" class="border" style="height: 720px;"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var require = { paths: { 'vs': '{{ ntop.getHttpPrefix() }}/monaco-editor/min/vs' } };
+</script>
+<script src="{{ ntop.getHttpPrefix() }}/monaco-editor/min/vs/loader.js"></script>
+<script src="{{ ntop.getHttpPrefix() }}/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+<script src="{{ ntop.getHttpPrefix() }}/monaco-editor/min/vs/editor/editor.main.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+
+    function getSourceFile(theURL) {
+        let strReturn = "";
+        jQuery.ajax({
+            url: theURL,
+            success: function(html) {
+                strReturn = html;
+            },
+            async: false
+        });
+        return strReturn;
+    }
+
+    {% if (monaco_editor.plugin_file_url == nil) then %}
+    const src = "";
+    {% else %}
+    const src = getSourceFile('{* monaco_editor.plugin_file_url *}');
+    {% end %}
+
+    require.config({ paths: { 'vs': '{{ ntop.getHttpPrefix() }}/monaco-editor/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+        const editor = monaco.editor.create(document.getElementById('code-editor'), {
+            value: src,
+            readOnly: true,
+            language: 'lua'
+        });
+    });
+
+
+});
+
+</script>
