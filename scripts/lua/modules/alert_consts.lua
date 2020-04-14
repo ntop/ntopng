@@ -4,10 +4,10 @@
 -- This file contains the alert constats
 
 local alert_consts = {}
+local alert_keys = require "alert_keys"
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
 local plugins_utils = require("plugins_utils")
-local plugins_consts_utils = require("plugins_consts_utils")
 require("ntop_utils")
 
 if(ntop.isPro()) then
@@ -39,15 +39,6 @@ alert_consts.alert_severities = {
     syslog_severity = 3,
   }
 }
-
--- ##############################################
-
--- Custom User Alerts
-alert_consts.custom_alert_1 = 59
-alert_consts.custom_alert_2 = 60
-alert_consts.custom_alert_3 = 61
-alert_consts.custom_alert_4 = 62
-alert_consts.custom_alert_5 = 63
 
 -- ##############################################
 
@@ -208,22 +199,38 @@ end
 -- ##############################################
 
 function alert_consts.loadDefinition(def_script, mod_fname, script_path)
-   local required_fields = {"i18n_title", "icon"}
+   local required_fields = {"alert_key", "i18n_title", "icon"}
 
    -- Check the required fields
    for _, k in pairs(required_fields) do
       if(def_script[k] == nil) then
-         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in", k, script_path))
+         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s", k, script_path))
          return(false)
       end
    end
 
    -- local def_id = tonumber(def_script.alert_id)
-   local def_id = plugins_consts_utils.get_assigned_id("alert", mod_fname)
+   local def_id = def_script.alert_key
 
    if(def_id == nil) then
        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing alert ID", script_path))
        return(false)
+   end
+
+   -- Sanity check: make sure this is a valid alert key
+   local valid = false
+   for pen, pen_keys in pairs(alert_keys) do
+      for _, key in pairs(pen_keys) do
+	 if key == def_id then
+	    valid = true
+	    break
+	 end
+      end
+   end
+
+   if not valid then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: unknown alert ID", script_path))
+      return(false)
    end
 
    if(alerts_by_id[def_id] ~= nil) then

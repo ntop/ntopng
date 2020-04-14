@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local format_utils = require "format_utils"
 
@@ -19,6 +21,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_slow_periodic_activity,
   i18n_title = "alerts_dashboard.slow_periodic_activity",
   i18n_description = slowPeriodicActivityFormatter,
   icon = "fas fa-undo",

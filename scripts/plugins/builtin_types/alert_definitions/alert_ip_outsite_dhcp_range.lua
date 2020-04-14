@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function outsideDhcpRangeFormatter(ifid, alert, info)
   local hostinfo = hostkey2hostinfo(alert.alert_entity_val)
   local hostkey = hostinfo2hostkey(hostinfo)
@@ -24,6 +26,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_ip_outsite_dhcp_range,
   i18n_title = "alerts_dashboard.misconfigured_dhcp_range",
   i18n_description = outsideDhcpRangeFormatter,
   icon = "fas fa-exclamation",

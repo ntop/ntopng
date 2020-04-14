@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local status_keys = require "flow_keys"
+
 local alert_consts = require("alert_consts")
 
 -- #################################################################
@@ -28,6 +30,7 @@ end
 -- #################################################################
 
 return {
+  status_key = status_keys.ntopng.status_blacklisted_country,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_blacklisted_country,
   i18n_title = "alerts_dashboard.blacklisted_country",

@@ -1,6 +1,8 @@
 --
 -- (C) 2019-20 - ntop.org
 --
+
+local alert_keys = require "alert_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local format_utils = require "format_utils"
 
@@ -15,6 +17,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_periodic_activity_not_executed,
   i18n_title = "alerts_dashboard.periodic_activity_not_executed",
   i18n_description = formatPeriodicActivityNotExecuted,
   icon = "fas fa-undo",

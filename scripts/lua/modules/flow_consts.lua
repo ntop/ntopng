@@ -4,18 +4,11 @@
 -- This file contains the alert constats
 
 local flow_consts = {}
+local status_keys = require "flow_keys"
 local locales_utils = require "locales_utils"
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
 local plugins_utils = require("plugins_utils")
-local plugins_consts_utils = require("plugins_consts_utils")
-
--- Custom User Status
-flow_consts.custom_status_1 = 59
-flow_consts.custom_status_2 = 60
-flow_consts.custom_status_3 = 61
-flow_consts.custom_status_4 = 62
-flow_consts.custom_status_5 = 63
 
 flow_consts.max_score = 1000
 
@@ -79,7 +72,7 @@ end
 -- ################################################################################
 
 function flow_consts.loadDefinition(def_script, mod_fname, script_path)
-    local required_fields = {"alert_severity", "alert_type", "i18n_title"}
+    local required_fields = {"status_key", "alert_severity", "alert_type", "i18n_title"}
 
     -- print("Loading "..script_path.."\n")
     
@@ -91,12 +84,27 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
         end
     end
 
-    -- local def_id = tonumber(def_script.status_id)
-    local def_id = plugins_consts_utils.get_assigned_id("flow", mod_fname)
+    local def_id = def_script.status_key
 
     if(def_id == nil) then
         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing status ID", script_path))
         return(false)
+    end
+
+    -- Sanity check: make sure this is a valid status id
+    local valid = false
+    for pen, pen_keys in pairs(status_keys) do
+       for _, key in pairs(pen_keys) do
+	  if def_id == key then
+	     valid = true
+	     break
+	  end
+       end
+    end
+
+    if not valid then
+       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: invalid status ID", script_path))
+       return(false)
     end
 
     if(status_by_id[def_id] ~= nil) then

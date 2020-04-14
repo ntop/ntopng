@@ -3,7 +3,6 @@
 --
 
 local plugins_utils = {}
-local plugins_consts_utils = require("plugins_consts_utils")
 
 local os_utils = require("os_utils")
 local persistence = require("persistence")
@@ -183,31 +182,6 @@ end
 
 -- ##############################################
 
-local function init_plugin_consts_ids(defs_dir, const_type)
-   for fname in pairs(ntop.readdir(defs_dir) or {}) do
-      if string.ends(fname, ".lua") then
-	 local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-	 plugins_consts_utils.request_id(const_type, mod_fname)
-      end
-   end
-end
-
--- ##############################################
-
-local function init_plugins(plugins)
-   for _, plugin in ipairs(plugins) do
-      init_plugin_consts_ids(os_utils.fixPath(plugin.path .. "/alert_definitions"), "alert")
-   end
-   plugins_consts_utils.assign_requested_ids("alert")
-
-   for _, plugin in ipairs(plugins) do
-      init_plugin_consts_ids(os_utils.fixPath(plugin.path .. "/status_definitions"), "flow")
-   end
-   plugins_consts_utils.assign_requested_ids("flow")
-end
-
--- ##############################################
-
 -- NOTE: cannot save the definitions to a single file via the persistance
 -- module because they may contain functions (e.g. in the i18n_description)
 local function load_definitions(defs_dir, runtime_path, validator)
@@ -216,7 +190,6 @@ local function load_definitions(defs_dir, runtime_path, validator)
       local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
       local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
       local def_script = dofile(full_path)
-
       -- Verify the definitions
       if(type(def_script) ~= "table") then
         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading definition from %s", full_path))
@@ -496,8 +469,6 @@ function plugins_utils.loadPlugins(community_plugins_only)
   -- Reset the definitions before loading
   alert_consts.resetDefinitions()
   flow_consts.resetDefinitions()
-
-  init_plugins(plugins)
 
   -- Load the plugins following the dependecies order
   for _, plugin in ipairs(plugins) do

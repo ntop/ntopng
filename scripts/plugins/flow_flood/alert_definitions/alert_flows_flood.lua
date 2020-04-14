@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function formatFlowsFlood(ifid, alert, threshold_info)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
@@ -27,6 +29,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_flows_flood,
   i18n_title = "alerts_dashboard.flows_flood",
   i18n_description = formatFlowsFlood,
   icon = "fas fa-life-ring",

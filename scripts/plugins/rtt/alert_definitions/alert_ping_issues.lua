@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local format_utils = require("format_utils")
 local rtt_utils = require("rtt_utils")
 
@@ -41,6 +43,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_ping_issues,
   i18n_title = "graphs.rtt",
   i18n_description = pingIssuesFormatter,
   icon = "fas fa-exclamation",

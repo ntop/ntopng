@@ -2,11 +2,14 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 -- This file defines a new alert, with key "alert_example" (the file name)
 -- Alerts can be triggered by the user scripts located into the "user_scripts"
 -- directory of the plugin.
 
 return {
+  alert_key = alert_keys.ntopng.alert_example,
   -- The name associated to this alert. Localized strings are defined in
   -- example/locales/en.lua
   i18n_title = "example.alert_title",
