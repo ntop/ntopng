@@ -2,7 +2,7 @@
 
 # bin paths
 LSB_RELEASE="/usr/bin/lsb_release -i"
-APT_GET="/usr/bin/apt-get"
+APT_GET="/usr/bin/apt-get -qq"
 YUM="/usr/bin/yum"
 NTOPNG_CONFIG_TOOL="/usr/bin/ntopng-utils-manage-config"
 REDIS_CLI="/usr/bin/redis-cli"
