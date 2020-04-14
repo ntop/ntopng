@@ -26,7 +26,8 @@ local mud_utils = require "mud_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
-local active_monitoring_utils = require("active_monitoring_utils")
+local plugins_utils = require "plugins_utils"
+local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 local info = ntop.getInfo()
 

@@ -2047,8 +2047,9 @@ function alert_utils.formatAlertMessage(ifid, alert)
   end
 
   if(msg) then
-    if(alert_consts.getAlertType(alert.alert_type) == "alert_ping_issues") then
-      local active_monitoring_utils = require("active_monitoring_utils")
+     if(alert_consts.getAlertType(alert.alert_type) == "alert_ping_issues") then
+      local plugins_utils = require "plugins_utils"
+      local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
       local host = active_monitoring_utils.key2host(alert.alert_entity_val)
 
       if host and host.measurement then
