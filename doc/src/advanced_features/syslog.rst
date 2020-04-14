@@ -14,44 +14,21 @@ activities. An example is the *Identity Management*, in fact it is possible to t
 all connection/disconnection events logged by a VPN server, in order to associate 
 traffic to users.
 
-Syslog Configuration
-~~~~~~~~~~~~~~~~~~~~
-
-ntopng implements a daemon able to listen for syslog logs on TCP or UDP at one (or
-more) configured endpoint. The log producer should be configured to send logs to 
-that endpoint.
-
-Let's assume an IDS is running on the same host. *rsyslog* should be installed and 
-configured to export logs to ntopng. This is possible by creating a new configuration
-file under :code:`/etc/rsyslog.d` specifying the IP, the port and the protocol where
-ntopng will listen for connections.
-
-.. code:: bash
-
-   cat /etc/rsyslog.d/99-remote.conf 
-   *.*  action(type="omfwd" target="127.0.0.1" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
-
-Please remember to *restart* the *rsyslog* service in order to apply the configuration.
-
-Note: if log messages from the IDS are printed to the console by journalctl 
-as broadcast messages, you probably want to suppress them by setting 
-:code:`ForwardToWall=no` in */etc/systemd/journald.conf*.
-Please remember to *restart* the *systemd-journald* service to apply the change.
-
 ntopng Configuration
 ~~~~~~~~~~~~~~~~~~~~
 
 In order to enable log ingestion from syslog in ntopng, a new syslog interface
 should be added to the configuration file, with the syntax :code:`syslog://<ip>:<port>`
+Note that :code:`*` is also supported to listen on any IP.
 Example:
 
 .. code:: text
 
-   -i=syslog://127.0.0.1:9999
+   -i=syslog://*:9999
    -i=eth1
 
 By default, ntopng uses the TCP protocol, in order to switch to UDP, the :code:`@udp`
-suffix should be appended to the interface name (example :code:`syslog://127.0.0.1:9999@udp`).
+suffix should be appended to the interface name (example :code:`syslog://*:9999@udp`).
 
 Note:
 
@@ -86,4 +63,28 @@ Note:
 - adding or removing sources does *not* require an application restart
 - if the *Syslog Log Producers* tab does not happear, the *Identity Management* 
   plugins are probably not installed or available
+
+Syslog Relay Configuration (Optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ntopng already includes a daemon able to listen for syslog logs on TCP or UDP at one 
+(or more) configured endpoint. The log producer should be configured to send logs to 
+that endpoint.
+
+In some cases (e.g. an IDS running on the same host) a syslog client (the same applies
+to relay configurations)  *rsyslog* should be installed and configured to export logs 
+to ntopng. This is possible by creating a new configuration file under :code:`/etc/rsyslog.d` 
+specifying the IP, the port and the protocol where ntopng will listen for connections.
+
+.. code:: bash
+
+   cat /etc/rsyslog.d/99-remote.conf 
+   *.*  action(type="omfwd" target="127.0.0.1" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
+
+Please remember to *restart* the *rsyslog* service in order to apply the configuration.
+
+Note: if log messages from the IDS are printed to the console by journalctl 
+as broadcast messages, you probably want to suppress them by setting 
+:code:`ForwardToWall=no` in */etc/systemd/journald.conf*.
+Please remember to *restart* the *systemd-journald* service to apply the change.
 
