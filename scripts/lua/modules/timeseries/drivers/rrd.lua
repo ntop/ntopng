@@ -100,7 +100,7 @@ local function schema_get_path(schema, tags)
 
   if((string.find(schema.name, "iface:") ~= 1) and  -- interfaces are only identified by the first tag
       (#schema._tags >= 1)) then                    -- some schema do not have any tag, e.g. "process:*" schemas
-    host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. tags[schema._tags[2] or schema._tags[1]]
+    host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. (tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]])
   end
 
   -- Some exceptions to avoid conflicts / keep compatibility
@@ -144,6 +144,11 @@ end
 
 function driver.schema_get_full_path(schema, tags)
   local base, rrd = schema_get_path(schema, tags)
+
+  if((not base) or (not rrd)) then
+    return nil
+  end
+
   local full_path = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 
   return full_path
@@ -950,57 +955,80 @@ local function deleteAllData(ifid)
   return true
 end
 
-function driver:delete(schema_prefix, tags)
-  -- NOTE: delete support in this driver is currently limited to a specific set of schemas and tags
-  local supported_prefixes = {
-    host = {
-      tags = {ifid=1, host=1},
-      path = function(tags) return getRRDName(tags.ifid, tags.host) end,
-    }, mac = {
-      tags = {ifid=1, mac=1},
-      path = function(tags) return getRRDName(tags.ifid, tags.mac) end,
-    }, snmp_if = {
-      tags = {ifid=1, device=1},
-      path = function(tags) return getRRDName(tags.ifid, "snmp:" .. tags.device) end,
-    }, host_pool = {
-      tags = {ifid = 1, pool = 1},
-      path = function(tags) return getRRDName(tags.ifid, "pool:" .. tags.pool) end,
-    }, subnet = {
-      tags = {ifid=1, subnet=1},
-      path = function(tags) return getRRDName(tags.ifid, "net:" .. tags.subnet) end,
-    }, am_host = {
-      tags = {ifid=1, host=1, measure=1},
-      path = function(tags) return getRRDName(tags.ifid, "am_host:" .. tags.host) end,
-    }
-  }
+-- ##############################################
 
+function driver:delete(schema_prefix, tags)
   if schema_prefix == "" then
     -- Delete all data
     return deleteAllData(tags.ifid)
   end
 
-  local delete_info = supported_prefixes[schema_prefix]
+  -- In RRD we must determine the root path of a given entity (e.g. of an
+  -- host if schema_prefix is "host", of a network if schema_prefix is "subnet"
+  -- and so on). In order to do so, we list all the schemas starting with the
+  -- given prefix, then determine the shortest path to be deleted.
+  -- 
+  -- E.g. for ts_utils.delete("mac", {ifid=1, mac="11:22:33:44:55:66"})
+  -- we find the following paths:
+  --  - /var/lib/ntopng/-1/rrd/macs/11_22_33/44/55/66 (schema "mac:traffic")
+  --  - /var/lib/ntopng/-1/rrd/macs/11_22_33/44/55/66/ndpi_categories (schema "mac:ndpi_categories")
+  -- We delete the shortest ("/var/lib/ntopng/-1/rrd/macs/11_22_33/44/55/66") as it includes the other.
+  --
+  -- NOTE: this logic assumes that schemas are well defined, which
+  -- means that:
+  --  - The first tag is the "ifid" tag
+  --  - Tags are defined in order of cardinality, e.g. the "host" tag is
+  --    defined before the "protocol" tag
+  local ts_utils = require "ts_utils" -- required to get the schemas
+  local num_valorized_tags = table.len(tags)
+  local s_prefix = schema_prefix .. ""
 
-  if not delete_info then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "unsupported schema prefix for delete: " .. schema_prefix)
+  if(num_valorized_tags < 1) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "At least 1 tags must be specified for the delete operation")
     return false
   end
 
-  for tag in pairs(delete_info.tags) do
-    if not tags[tag] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '".. tag .."' for schema prefix " .. schema_prefix)
-      return false
+  local found = nil
+
+  -- Iterate the entity schemas and find the shortest RRD directory path
+  for k, s in pairs(ts_utils.getLoadedSchemas()) do
+    if starts(k, s_prefix) then
+      local unreleted = false
+
+      -- Ensure that all the tags are valorized in order to avoid
+      -- deleting unrelated data
+      for k in pairs(tags) do
+        if(s.tags[k] == nil) then
+          -- Missing tag, this schema is possibly unrelated
+          unreleted = true
+          break
+        end
+      end
+
+      if(not unreleted) then
+        local check_tags = {}
+
+        -- Fill the missing tags with empty strings to account them as
+        -- possible shortest paths
+        for k in pairs(s.tags) do
+          check_tags[k] = tags[k] or ""
+        end
+
+        local path = schema_get_path(s, check_tags)
+
+        -- Choose the shortest string to pick the path that includes the others
+        if path and ((found == nil) or (string.len(path) < string.len(found))) then
+          found = path
+        end
+      end
     end
   end
 
-  for tag in pairs(tags) do
-    if not delete_info.tags[tag] then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "unexpected tag '".. tag .."' for schema prefix " .. schema_prefix)
-      return false
-    end
+  if(not found) then
+    return false
   end
 
-  local path_to_del = os_utils.fixPath(delete_info.path(tags))
+  local path_to_del = os_utils.fixPath(found)
 
   if ntop.exists(path_to_del) and not ntop.rmdir(path_to_del) then
      return false
