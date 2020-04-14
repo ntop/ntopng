@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function formatBroadcastDomainAlert(ifid, alert, info)
   return(i18n("alert_messages.broadcast_domain_too_large", {
     src_mac = info.src_mac,
@@ -18,6 +20,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_broadcast_domain_too_large,
   i18n_title = "alerts_dashboard.broadcast_domain_too_large",
   i18n_description = formatBroadcastDomainAlert,
   icon = "fas fa-sitemap",

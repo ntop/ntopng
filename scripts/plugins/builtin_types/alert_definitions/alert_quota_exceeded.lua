@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function quotaExceededFormatter(ifid, alert, info)
   local quota_str
   local value_str
@@ -29,6 +31,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_quota_exceeded,
   i18n_title = "alerts_dashboard.quota_exceeded",
   i18n_description = quotaExceededFormatter,
   icon = "fas fa-thermometer-full",

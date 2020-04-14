@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function misbehavingFlowsRatioFormatter(ifid, alert, info)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
@@ -16,6 +18,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_misbehaving_flows_ratio,
   i18n_title = "alerts_dashboard.misbehaving_flows_ratio",
   i18n_description = misbehavingFlowsRatioFormatter,
   icon = "fas fa-exclamation",

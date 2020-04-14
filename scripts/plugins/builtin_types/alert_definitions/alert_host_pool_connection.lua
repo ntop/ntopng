@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function poolConnectionFormat(ifid, alert, info)
   return(i18n("alert_messages.host_pool_has_connected", {
     pool = info.pool,
@@ -12,6 +14,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_host_pool_connection,
   i18n_title = "alerts_dashboard.host_pool_connection",
   i18n_description = poolConnectionFormat,
   icon = "fas fa-sign-in",

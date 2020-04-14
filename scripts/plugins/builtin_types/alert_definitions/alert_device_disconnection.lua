@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function formatDeviceDisconnectionAlert(ifid, alert, info)
   local device = info.device
 
@@ -18,6 +20,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_device_disconnection,
   i18n_title = "alerts_dashboard.device_disconnection",
   i18n_description = formatDeviceDisconnectionAlert,
   icon = "fas fa-sign-out",

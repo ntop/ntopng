@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local status_keys = require "flow_keys"
+
 local alert_consts = require("alert_consts")
 
 -- This file defines a new flow status, with key "status_example" (the file name).
@@ -23,6 +25,7 @@ end
 -- #################################################################
 
 return {
+  status_key = status_keys.ntopng.status_example,
   -- alert_type: the alert type associated to this status
   -- alert_severity: the alert severity associated to this status
   -- i18n_title: a localization string for the status

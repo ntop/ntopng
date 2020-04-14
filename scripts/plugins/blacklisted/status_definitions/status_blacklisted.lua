@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local status_keys = require "flow_keys"
+
 local alert_consts = require("alert_consts")
 
 -- #################################################################
@@ -41,6 +43,7 @@ end
 -- #################################################################
 
 return {
+  status_key = status_keys.ntopng.status_blacklisted,
   alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_flow_blacklisted,
   i18n_title = "flow_details.blacklisted_flow",

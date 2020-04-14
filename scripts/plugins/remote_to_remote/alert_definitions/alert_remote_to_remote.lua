@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function remoteToRemoteFormatter(ifid, alert, info)
   local alert_consts = require "alert_consts"
 
@@ -17,6 +19,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_remote_to_remote,
   i18n_title = "alerts_dashboard.remote_to_remote",
   i18n_description = remoteToRemoteFormatter,
   icon = "fas fa-exclamation",

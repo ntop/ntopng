@@ -2,6 +2,8 @@
 -- (C) 2019 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local function formatTopologyChanged(ifid, alert, alert_info)
   if not ntop.isPro() then
     return ""
@@ -29,6 +31,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_snmp_topology_changed,
   i18n_title = i18n("snmp.lldp_topology_changed"),
   i18n_description = formatTopologyChanged,
   icon = "fas fa-topology-alt",

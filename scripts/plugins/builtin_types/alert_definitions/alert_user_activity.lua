@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 local format_utils = require("format_utils")
 
 local function userActivityFormatter(ifid, alert, info)
@@ -215,6 +217,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_user_activity,
   i18n_title = "alerts_dashboard.user_activity",
   i18n_description = userActivityFormatter,
   icon = "fas fa-user",

@@ -2,6 +2,8 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_keys = require "alert_keys"
+
 function requestReplyRatioFormatter(ifid, alert, info)
   local alert_consts = require("alert_consts")
 
@@ -37,6 +39,7 @@ end
 -- #######################################################
 
 return {
+  alert_key = alert_keys.ntopng.alert_request_reply_ratio,
   i18n_title = "entity_thresholds.request_reply_ratio_title",
   i18n_description = requestReplyRatioFormatter,
   icon = "fas fa-exclamation",

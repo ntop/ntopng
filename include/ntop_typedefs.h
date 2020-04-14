@@ -129,7 +129,7 @@ typedef enum {
 } L7PolicySource_t;
 
 /* Status are handled in Lua (alert_consts.lua) */
-typedef u_int8_t AlertType;
+typedef u_int32_t AlertType;
 #define alert_none ((u_int8_t)-1)
 
 typedef enum {
