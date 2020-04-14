@@ -29,7 +29,6 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
   char *tmp, *pos, *port, *server_address, *protocol;
   int server_port;
   int reuse = 1;
-  int i;
 
   use_udp = false;
 
@@ -108,8 +107,7 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Accepting connections on %s:%d",
     server_address, server_port);
 
-  for(i = 0; i < MAX_SYSLOG_SUBSCRIBERS; ++i)
-    connections[i].socket = 0;
+  memset(connections, 0, sizeof(connections));
 
   free(tmp);
 }
@@ -175,6 +173,7 @@ int SyslogCollectorInterface::handleNewConnection() {
     if(connections[i].socket == 0) {
       connections[i].socket = new_client_sock;
       connections[i].address = client_addr;
+      snprintf(connections[i].ip_str, sizeof(connections[i].ip_str), "%s", client_ipv4_str);
       return 0;
     }
   }
@@ -189,23 +188,10 @@ int SyslogCollectorInterface::handleNewConnection() {
 
 /* **************************************************** */
 
-char *SyslogCollectorInterface::clientAddr2Str(syslog_client *client, char *buff) {
-  char client_ipv4_str[INET_ADDRSTRLEN];
-
-  inet_ntop(AF_INET, &client->address.sin_addr, client_ipv4_str, INET_ADDRSTRLEN);
-
-  sprintf(buff, "%s:%d", client_ipv4_str, client->address.sin_port);
-  
-  return buff;
-}
-
-/* **************************************************** */
-
 void SyslogCollectorInterface::closeConnection(syslog_client *client) {
-  char buff[INET_ADDRSTRLEN + 10];
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Closing client socket for %s\n", 
-    clientAddr2Str(client, buff));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Closing client socket for %s:%d\n", 
+    client->ip_str, client->address.sin_port);
   
   close(client->socket);
   client->socket = 0;
@@ -213,7 +199,7 @@ void SyslogCollectorInterface::closeConnection(syslog_client *client) {
 
 /* **************************************************** */
 
-int SyslogCollectorInterface::receive(int socket) {
+int SyslogCollectorInterface::receive(int socket, char *client_ip) {
   char buffer[8192];
   int len, received_total = 0;
   int buffer_size = sizeof(buffer) - 1;
@@ -246,7 +232,7 @@ int SyslogCollectorInterface::receive(int socket) {
       buffer[len] = '\0';
       line = strtok_r(buffer, "\n", &pos);
       while (line) {
-        recvStats.num_flows += parseLog(line);
+        recvStats.num_flows += parseLog(line, client_ip);
         line = strtok_r(NULL, "\n", &pos);
       }
     }
@@ -261,12 +247,11 @@ int SyslogCollectorInterface::receive(int socket) {
 /* **************************************************** */
 
 int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
-  char buff[INET_ADDRSTRLEN + 10];
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to receive from %s", 
-    clientAddr2Str(client, buff));
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to receive from %s:%d", 
+    client->ip_str, client->address.sin_port);
 
-  return receive(client->socket);
+  return receive(client->socket, client->ip_str);
 }
 
 /* **************************************************** */
@@ -313,7 +298,7 @@ void SyslogCollectorInterface::collect_flows() {
           
       if(FD_ISSET(listen_sock, &read_fds)) {
         if (use_udp) {
-          if(receive(listen_sock) != 0) {
+          if(receive(listen_sock, NULL) != 0) {
             ntop->getTrace()->traceEvent(TRACE_ERROR, "Error receiving from socket fd");
             continue;
           }

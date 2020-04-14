@@ -31,6 +31,7 @@ class LuaEngine;
 typedef struct {
   int socket;
   struct sockaddr_in address;
+  char ip_str[INET_ADDRSTRLEN];
 } syslog_client;
 
 class SyslogCollectorInterface : public SyslogParserInterface {
@@ -52,11 +53,10 @@ class SyslogCollectorInterface : public SyslogParserInterface {
   int initFDSets(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
 
   int handleNewConnection();
-  char *clientAddr2Str(syslog_client *client, char *buff);
   void closeConnection(syslog_client *client);
   int receiveFromClient(syslog_client *client);
 
-  int receive(int socket);
+  int receive(int socket, char *client_ip);
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_SYSLOG); };
   virtual InterfaceType getIfType() const { return(interface_type_SYSLOG); }

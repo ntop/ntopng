@@ -50,9 +50,9 @@ SyslogParserInterface::~SyslogParserInterface() {
 
 /* **************************************************** */
 
-u_int8_t SyslogParserInterface::parseLog(char *log_line) {
+u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
   const char *producer_name = NULL;
-  char *prio = NULL, *host = NULL, *device = NULL, *content = NULL;
+  char *prio = NULL, *parsed_client_ip = NULL, *device = NULL, *content = NULL;
   char *tmp;
 
   if (producers_reload_requested) {
@@ -80,10 +80,10 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
   if (prio != log_line) { /* Parse TIMESTAMP;HOST; <PRIO> */
     prio[0] = '\0';
 
-    host = strchr(log_line, ';');
-    if(host != NULL) {
-      host++;
-      tmp = strchr(host, ';');
+    parsed_client_ip = strchr(log_line, ';');
+    if(parsed_client_ip != NULL) {
+      parsed_client_ip++;
+      tmp = strchr(parsed_client_ip, ';');
       if (tmp != NULL)
         tmp[0] = '\0';
     } 
@@ -123,11 +123,14 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line) {
     content = log_line;
   }
  
-  if (producer_name == NULL && host != NULL)
-    producer_name = getProducerName(host);
+  if (producer_name == NULL && parsed_client_ip != NULL)
+    producer_name = getProducerName(parsed_client_ip);
 
   if (producer_name == NULL && device != NULL)
     producer_name = getProducerName(device);
+
+  if (producer_name == NULL && client_ip != NULL)
+    producer_name = getProducerName(client_ip);
 
   if (producer_name == NULL)
     producer_name = getProducerName("*");
