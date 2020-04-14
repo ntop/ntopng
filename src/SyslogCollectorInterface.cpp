@@ -27,6 +27,7 @@
 
 SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : SyslogParserInterface(_endpoint) {
   char *tmp, *pos, *port, *server_address, *protocol;
+  bool any_address = false;
   int server_port;
   int reuse = 1;
 
@@ -74,6 +75,9 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
     throw("bad tcp bind address format"); 
   }
   
+  if (strcmp(server_address, "*") == 0)
+    any_address = true;
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting %s collector on %s:%d", 
     use_udp ? "UDP" : "TCP", server_address, server_port);
 
@@ -93,7 +97,7 @@ SyslogCollectorInterface::SyslogCollectorInterface(const char *_endpoint) : Sysl
   memset(&listen_addr, 0, sizeof(listen_addr));
 
   listen_addr.sin_family = AF_INET;
-  listen_addr.sin_addr.s_addr = inet_addr(server_address);
+  listen_addr.sin_addr.s_addr = inet_addr(any_address ? "0.0.0.0" : server_address);
   listen_addr.sin_port = htons(server_port);
  
   if(bind(listen_sock, (struct sockaddr *) &listen_addr, sizeof(struct sockaddr)) != 0)
