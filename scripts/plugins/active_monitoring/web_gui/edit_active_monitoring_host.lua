@@ -7,7 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
-local active_monitoring_utils = require("active_monitoring_utils")
+local plugins_utils = require("plugins_utils")
+local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 sendHTTPContentTypeHeader('application/json')
 

@@ -6898,6 +6898,16 @@ static int ntop_swap_plugins_dir(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_plugins0_dir(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ntop->is_plugins0_dir());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -11624,6 +11634,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getCurrentPluginsDir", ntop_get_current_plugins_dir },
   { "getShadowPluginsDir",  ntop_get_shadow_plugins_dir },
   { "swapPluginsDir",   ntop_swap_plugins_dir },
+  { "isPlugins0Dir",    ntop_is_plugins0_dir },
 
   /* Redis */
   { "getCacheStatus",    ntop_info_redis },

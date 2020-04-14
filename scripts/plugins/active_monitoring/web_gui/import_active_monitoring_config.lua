@@ -8,7 +8,8 @@ require "lua_utils"
 
 local json = require ("dkjson")
 local page_utils = require("page_utils")
-local active_monitoring_utils = require "active_monitoring_utils"
+local plugins_utils = require("plugins_utils")
+local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 local json = require ("dkjson")
 

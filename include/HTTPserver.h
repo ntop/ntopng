@@ -37,6 +37,7 @@ class HTTPserver {
   char *wispr_captive_data;
   bool check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len);
   char ports[256], acl_management[64], ssl_cert_path[MAX_PATH], access_log_path[MAX_PATH];
+  char plugins_httpdocs_rewrite[MAX_PATH];
   const char *http_binding_addr1, *http_binding_addr2;
   const char *https_binding_addr1, *https_binding_addr2;
   const char *http_options[32];

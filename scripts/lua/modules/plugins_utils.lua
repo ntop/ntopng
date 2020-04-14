@@ -8,6 +8,7 @@ local plugins_consts_utils = require("plugins_consts_utils")
 local os_utils = require("os_utils")
 local persistence = require("persistence")
 local file_utils = require("file_utils")
+local template_utils = require("template_utils")
 require "lua_trace"
 
 local dirs = ntop.getDirs()
@@ -177,6 +178,11 @@ local function init_runtime_paths()
 
     -- Plugins Data Directories
     plugins_data = os_utils.fixPath(runtime_path) .. "/plugins_data",
+
+    -- Other
+    templates = os_utils.fixPath(runtime_path) .. "/templates",
+    modules = os_utils.fixPath(runtime_path) .. "/modules",
+    httpdocs = os_utils.fixPath(runtime_path) .. "/httpdocs",
 
     -- User scripts
     interface_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/interface"),
@@ -469,6 +475,35 @@ end
 
 -- ##############################################
 
+local function load_plugin_other(plugin)
+  local templates_dir = os_utils.fixPath(plugin.path .. "/templates")
+  local modules_dir = os_utils.fixPath(plugin.path .. "/modules")
+  local httpdocs_dir = os_utils.fixPath(plugin.path .. "/httpdocs")
+  local rv = true
+
+  if ntop.exists(templates_dir) then
+    local path = os_utils.fixPath(RUNTIME_PATHS.templates.. "/" ..plugin.key)
+    ntop.mkdir(path)
+    rv = rv and file_utils.recursive_copy(templates_dir, path)
+  end
+
+  if ntop.exists(modules_dir) then
+    local path = os_utils.fixPath(RUNTIME_PATHS.modules.. "/" ..plugin.key)
+    ntop.mkdir(path)
+    rv = rv and file_utils.recursive_copy(modules_dir, path)
+  end
+
+  if ntop.exists(httpdocs_dir) then
+    local path = os_utils.fixPath(RUNTIME_PATHS.httpdocs.. "/" ..plugin.key)
+    ntop.mkdir(path)
+    rv = rv and file_utils.recursive_copy(httpdocs_dir, path)
+  end
+
+  return(rv)
+end
+
+-- ##############################################
+
 -- @brief Loads the ntopng plugins into a single directory tree.
 -- @notes This should be called at startup. It clears and populates the
 -- shadow_dir first, then swaps it with the current_dir. This prevents
@@ -552,6 +587,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
         load_plugin_ts_schemas(plugin) and
         load_plugin_web_gui(plugin) and
         load_plugin_data_dirs(plugin) and
+        load_plugin_other(plugin) and
         load_plugin_user_scripts(path_map, plugin) and
         load_plugin_alert_endpoints(endpoints_prefs_entries, plugin) then
       loaded_plugins[plugin.key] = plugin
@@ -889,6 +925,44 @@ function plugins_utils.extendLintParams(http_lint, params)
 
     ::continue::
   end
+end
+
+-- ##############################################
+
+-- @brief Render an html template located into the plugin templates directory
+function plugins_utils.renderTemplate(plugin_name, template_file, context)
+  init_runtime_paths()
+
+  local full_path = os_utils.fixPath(RUNTIME_PATHS.templates .. "/" .. plugin_name .. "/" .. template_file)
+
+  return template_utils.gen(full_path, context, true --[[ using full path ]])
+end
+
+-- ##############################################
+
+-- @brief Load a module located inside a plugin. This is equivalent to the
+-- lua "require ..." of the builting ntopng modules
+function plugins_utils.loadModule(plugin_name, module_name)
+  init_runtime_paths()
+
+  local lua_path = os_utils.fixPath(RUNTIME_PATHS.modules .. "/" .. plugin_name .. "/" .. module_name .. ".lua")
+
+  if not ntop.exists(lua_path) then
+    return(nil)
+  end
+
+  return dofile(lua_path)
+end
+
+-- ##############################################
+
+-- @brief Get the httpdocs directory of the plugin. This can be used to access
+-- javascript, css and similar files
+function plugins_utils.getHttpdocsDir(plugin_name)
+  local dir = ternary(ntop.isPlugins0Dir(), "plugins0_httpdocs", "plugins1_httpdocs")
+
+  -- See url_rewrite_patterns in HTTPserver.cpp
+  return(os_utils.fixPath(ntop.getHttpPrefix() .. "/".. dir .."/" .. plugin_name))
 end
 
 -- ##############################################

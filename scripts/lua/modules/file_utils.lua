@@ -12,8 +12,8 @@ function file_utils.copy_file(fname, src_path, dst_path)
    local dst
 
    if(fname == nil) then
-      src = src_path
-      dst = dst_path
+      src = os_utils.fixPath(src_path)
+      dst = os_utils.fixPath(dst_path)
    else
       src = os_utils.fixPath(src_path .. "/" .. fname)
       dst = os_utils.fixPath(dst_path .. "/" .. fname)

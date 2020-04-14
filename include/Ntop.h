@@ -350,6 +350,7 @@ class Ntop {
 
   inline char* get_plugins_dir()                     { return(plugins_dir);         };
   inline char* get_shadow_plugins_dir()              { return(shadow_plugins_dir);  };
+  inline bool is_plugins0_dir()                      { return(cur_plugins_dir);     };
   inline void swap_plugins_dir()                     { cur_plugins_dir = !cur_plugins_dir; refreshPluginsDir(); };
 
   inline Bloom*            getResolutionBloom()      { return(resolvedHostsBloom);  };

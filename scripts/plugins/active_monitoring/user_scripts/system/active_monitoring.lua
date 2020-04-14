@@ -5,8 +5,9 @@
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
-local active_monitoring_utils = require("active_monitoring_utils")
 local ts_utils = require("ts_utils_core")
+local plugins_utils = require("plugins_utils")
+local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 -- Enable do_trace messages
 local do_trace = false

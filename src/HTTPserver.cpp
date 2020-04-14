@@ -1308,10 +1308,19 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   cur_http_options = 0;
 
+  /* Build the URL rewrite pattern, required to handle the additional
+   * httpdocs directory for the plugins. Need to configure the rewrite for both the
+   * plugins0 and plugins1 directories. See plugins_utils.getHttpdocsDir */
+  snprintf(plugins_httpdocs_rewrite, sizeof(plugins_httpdocs_rewrite),
+    "/plugins0_httpdocs/=%s/httpdocs/,/plugins1_httpdocs/=%s/httpdocs/",
+    ntop->is_plugins0_dir() ? ntop->get_plugins_dir() : ntop->get_shadow_plugins_dir(),
+    ntop->is_plugins0_dir() ? ntop->get_shadow_plugins_dir() : ntop->get_plugins_dir());
+
   /* HTTP options */
   addHTTPOption("listening_ports", ports);
   addHTTPOption("enable_directory_listing", "no");
   addHTTPOption("document_root", _docs_dir);
+  addHTTPOption("url_rewrite_patterns", plugins_httpdocs_rewrite);
   addHTTPOption("access_control_list", acl_management);
   /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
   addHTTPOption("num_threads", "5");

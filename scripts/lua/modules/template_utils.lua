@@ -1,4 +1,5 @@
 local template = require "resty.template"
+local os_utils = require "os_utils"
 
 -- This can be used inside templates
 -- range(a) returns an iterator from 1 to a (step = 1)
@@ -25,8 +26,16 @@ function range(a, b, step)
   return f, nil, a - step
 end
 
-function template.gen(template_file, context)
-  return template.compile(dirs.installdir.."/httpdocs/templates/"..template_file, nil, nil)(context)
+function template.gen(template_file, context, is_full_path)
+  local path
+
+  if is_full_path then
+    path = template_file
+  else
+    path = dirs.installdir.."/httpdocs/templates/"..template_file
+  end
+
+  return template.compile(os_utils.fixPath(path), nil, nil)(context)
 end
 
 return template

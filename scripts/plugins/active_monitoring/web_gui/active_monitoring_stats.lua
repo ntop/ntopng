@@ -8,11 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local page_utils = require("page_utils")
 local alert_consts = require("alert_consts")
-local active_monitoring_utils = require("active_monitoring_utils")
 local plugins_utils = require("plugins_utils")
 local template = require("template_utils")
-local active_monitoring_utils = require("active_monitoring_utils")
 local json = require("dkjson")
+local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 local graph_utils = require("graph_utils")
 local alert_utils = require("alert_utils")
@@ -339,7 +338,7 @@ if(page == "overview") then
       let measurements_info = ]] .. json.encode(measurements_info) .. [[;
 
     </script>
-    <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/active_monitoring/active_monitoring_utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
+    <script type='text/javascript' src=']].. plugins_utils.getHttpdocsDir("active_monitoring") ..[[/active_monitoring_utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
   ]])
 
 

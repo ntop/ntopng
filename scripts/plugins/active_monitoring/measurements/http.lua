@@ -22,7 +22,7 @@ local result = {}
 -- The function called periodically to send the host probes.
 -- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
--- see (active_monitoring_utils.key2host for the details on such format).
+-- see (am_utils.key2host for the details on such format).
 local function check_http(hosts, granularity)
   result = {}
 

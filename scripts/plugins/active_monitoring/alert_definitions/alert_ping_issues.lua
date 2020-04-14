@@ -3,9 +3,11 @@
 --
 
 local format_utils = require("format_utils")
-local active_monitoring_utils = require("active_monitoring_utils")
 
 local function pingIssuesFormatter(ifid, alert, info)
+   local plugins_utils = require("plugins_utils")
+   local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+
    local msg
    local host = active_monitoring_utils.key2host(alert.alert_entity_val)
    local numeric_ip = info.ip
