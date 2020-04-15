@@ -312,6 +312,7 @@ local lang = {
     ["bad_action_param"] = "Bad \"action\" paramater",
     ["config_reset_confirm"] = "Do you really want to discard the current configuration and reset it to default?",
     ["confirm_delete"] = "Do you want really remove this record?",
+    ["download_speed"] = "Download Speed",
     ["edit_record"] = "Edit Active Monitoring Record",
     ["empty_action"] = "Something went wrong (empty action). Reload the page and try again.",
     ["host_add_ok"] = "Host %{host} was successfully added!",
@@ -2902,7 +2903,6 @@ local lang = {
   },
   ["plugins_overview"] = {
     ["action_view"] = "Open the user script source in the code editor",
-    ["alert_key"] = "Alert ID",
     ["alert_key"] = "Alert Key",
     ["availability"] = "Availability",
     ["edition_only"] = "%{edition} Only",
@@ -2913,7 +2913,6 @@ local lang = {
     ["reload_plugins"] = "Reload Plugins",
     ["script"] = "Script",
     ["source_location"] = "Source Location",
-    ["status_key"] = "Status ID",
     ["status_key"] = "Status Key",
     ["type"] = "Type",
   },

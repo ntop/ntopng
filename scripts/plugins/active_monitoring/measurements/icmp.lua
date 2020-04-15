@@ -136,6 +136,8 @@ return {
       granularities = {"min", "5mins", "hour"},
       -- The localization string for the measurement unit (e.g. "ms", "Mbits")
       i18n_unit = "active_monitoring_stats.msec",
+      -- The localization string for the RTT timeseries menu entry
+      i18n_rtt_ts_label = "graphs.num_ms_rtt",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
       operator = "gt",
       -- A list of additional timeseries (the am_host:rtt_* is always shown) to show in the charts.
@@ -153,6 +155,7 @@ return {
       collect_results = collect_icmp,
       granularities = {"min", "5mins", "hour"},
       i18n_unit = "active_monitoring_stats.msec",
+      i18n_rtt_ts_label = "graphs.num_ms_rtt",
       operator = "gt",
       additional_timeseries = {},
       value_js_formatter = "fmillis",

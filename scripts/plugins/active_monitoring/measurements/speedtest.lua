@@ -97,6 +97,8 @@ return {
 	 granularities = { "5mins", "hour", "daily"},
 	 -- The localization string for the measurement unit (e.g. "ms", "Mbits")
 	 i18n_unit = "field_units.mbits",
+	 -- The localization string for the RTT timeseries menu entry
+	 i18n_rtt_ts_label = "active_monitoring_stats.download_speed",
 	 -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
 	 operator = "lt",
 	 -- A list of additional timeseries (the am_host:rtt_* is always shown) to show in the charts.
