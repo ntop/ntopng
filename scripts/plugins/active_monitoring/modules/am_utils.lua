@@ -95,6 +95,21 @@ end
 
 -- ##############################################
 
+function am_utils.getRttSchemaForGranularity(granularity)
+  local alert_consts = require("alert_consts")
+  local str_granularity
+
+  if(tonumber(granularity) ~= nil) then
+    str_granularity = alert_consts.sec2granularity(granularity)
+  else
+    str_granularity = granularity
+  end
+
+  return("am_host:rtt_" .. (str_granularity or "min"))
+end
+
+-- ##############################################
+
 local function deserializeRttPrefs(host_key, val, config_only)
   local rv
 

@@ -40,7 +40,7 @@ local function pingIssuesType(value, threshold, ip, granularity)
   return({
     alert_type = alert_consts.alert_types.alert_ping_issues,
     alert_severity = alert_consts.alert_severities.warning,
-    alert_granularity = granularity,
+    alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_type_params = {
       value = value, threshold = threshold, ip = ip,
     }
@@ -70,6 +70,7 @@ end
 local function run_rtt_check(params, all_hosts, granularity)
   local hosts_rtt = {}
   local when = params.when
+  local rtt_schema = active_monitoring_utils.getRttSchemaForGranularity(granularity)
 
   if(do_trace) then
      print("[RTT] Script started\n")
@@ -106,7 +107,7 @@ local function run_rtt_check(params, all_hosts, granularity)
     local operator = info.measurement.operator or "gt"
 
     if params.ts_enabled then
-       ts_utils.append("am_host:rtt_" .. granularity, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = rtt}, when)
+       ts_utils.append(rtt_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = rtt}, when)
     end
 
     active_monitoring_utils.setLastRttUpdate(key, when, rtt, resolved_host)
