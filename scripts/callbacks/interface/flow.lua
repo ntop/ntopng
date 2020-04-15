@@ -208,7 +208,7 @@ local function triggerFlowAlert(now, l4_proto)
 
    if do_trace then
       trace_f(string.format("flow.triggerAlert(type=%s, severity=%s)",
-			 alert_consts.alertTypeRaw(alerted_status.alert_type.alert_id),
+			 alert_consts.alertTypeRaw(alerted_status.alert_type.alert_key),
 			 alert_consts.alertSeverityRaw(alerted_status.alert_severity.severity_id)))
    end
 
@@ -225,7 +225,7 @@ local function triggerFlowAlert(now, l4_proto)
    end
 
    local triggered = flow.triggerAlert(status_id,
-      alerted_status.alert_type.alert_id,
+      alerted_status.alert_type.alert_key,
       alerted_custom_severity or alerted_status.alert_severity.severity_id,
       now, alerted_status_msg)
 

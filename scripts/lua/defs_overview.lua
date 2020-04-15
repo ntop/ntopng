@@ -28,15 +28,15 @@ print [[
 <div class="row">
 <div class="col col-md-4 offset-1">
 <table class="table table-bordered table-sm">
-<tr><th class='text-center'>]] print(i18n("plugins_overview.alert_id")) print[[</th><th>]] print(i18n("plugins_overview.alert_key")) print[[</th></tr>]]
+<tr><th class='text-center'>]] print(i18n("plugins_overview.alert_key")) print[[</th><th>]] print(i18n("plugins_overview.alert_key")) print[[</th></tr>]]
 
 local id_start = 0
 local id_end = 63
 
-for alert_id=id_start,id_end do
-  local alert_key = alert_consts.getAlertType(alert_id) or "-"
+for alert_key=id_start,id_end do
+  local alert_key = alert_consts.getAlertType(alert_key) or "-"
 
-  print[[<tr><td class='text-center'>]] print(string.format("%s", alert_id)) print[[</td>]]
+  print[[<tr><td class='text-center'>]] print(string.format("%s", alert_key)) print[[</td>]]
   print[[<td>]] print(alert_key) print[[</td></tr>]]
 end
 

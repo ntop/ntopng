@@ -242,7 +242,7 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
       return(false)
    end
 
-   def_script.alert_id = def_id
+   def_script.alert_key = def_id
    alert_consts.alert_types[mod_fname] = def_script
    alerts_by_id[def_id] = mod_fname
 
@@ -253,10 +253,10 @@ end
 -- ##############################################
 
 function alert_consts.alertTypeLabel(v, nohtml)
-   local alert_id = alert_consts.alertTypeRaw(v)
+   local alert_key = alert_consts.alertTypeRaw(v)
 
-   if(alert_id) then
-      local type_info = alert_consts.alert_types[alert_id]
+   if(alert_key) then
+      local type_info = alert_consts.alert_types[alert_key]
       local title = i18n(type_info.i18n_title) or type_info.i18n_title
 
       if(nohtml) then
@@ -276,13 +276,13 @@ function alert_consts.alertType(v)
       tprint(debug.traceback())
    end
  
-   return(alert_consts.alert_types[v].alert_id)
+   return(alert_consts.alert_types[v].alert_key)
  end
  
 -- ##############################################
 
-function alert_consts.getAlertType(alert_id)
-    return(alerts_by_id[tonumber(alert_id)])
+function alert_consts.getAlertType(alert_key)
+    return(alerts_by_id[tonumber(alert_key)])
 end
 
 -- ##############################################
@@ -421,7 +421,7 @@ function alert_consts.alertTypeRaw(type_id)
    type_id = tonumber(type_id)
  
    for key, type_info in pairs(alert_consts.alert_types) do
-     if(type_info.alert_id == type_id) then
+     if(type_info.alert_key == type_id) then
        return(key)
      end
    end

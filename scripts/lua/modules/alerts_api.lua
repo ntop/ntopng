@@ -48,7 +48,7 @@ local function get_alert_triggered_key(type_info)
     tprint(debug.traceback())
   end
 
-  return(string.format("%d@%s", type_info.alert_type.alert_id, type_info.alert_subtype or ""))
+  return(string.format("%d@%s", type_info.alert_type.alert_key, type_info.alert_subtype or ""))
 end
 
 -- ##############################################
@@ -139,7 +139,7 @@ function alerts_api.store(entity_info, type_info, when)
     return(false)
   end
 
-  if alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id) then
+  if alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_key) then
     return(false)
   end
 
@@ -150,7 +150,7 @@ function alerts_api.store(entity_info, type_info, when)
   local alert_to_store = {
     ifid = ifid,
     action = "store",
-    alert_type = type_info.alert_type.alert_id,
+    alert_type = type_info.alert_type.alert_key,
     alert_subtype = subtype,
     alert_granularity = granularity_sec,
     alert_entity = entity_info.alert_entity.entity_id,
@@ -163,7 +163,7 @@ function alerts_api.store(entity_info, type_info, when)
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     -- NOTE: for engaged alerts this operation is performed during trigger in C
-    interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_id)
+    interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_key)
   end
 
   local alert_json = json.encode(alert_to_store)
@@ -229,7 +229,7 @@ end
 --! @note false is also returned if an existing alert is found and refreshed
 function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   local ifid = interface.getId()
-  local is_disabled = alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_id)
+  local is_disabled = alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_key)
 
   -- Check if the alerts has been disabled and, in case return, before checking already_triggered,
   -- so that the alert will be automatically released during the next check.
@@ -252,7 +252,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   local subtype = type_info.alert_subtype or ""
 
   if(cur_alerts and already_triggered(cur_alerts, type_info.alert_severity.severity_id,
-	  type_info.alert_type.alert_id, granularity_sec, subtype) == true) then
+	  type_info.alert_type.alert_key, granularity_sec, subtype) == true) then
      return(true)
   end
 
@@ -267,7 +267,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   local params = {
     alert_key_name, granularity_id,
-    type_info.alert_severity.severity_id, type_info.alert_type.alert_id,
+    type_info.alert_severity.severity_id, type_info.alert_type.alert_key,
     subtype, alert_json,
   }
 
@@ -318,7 +318,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local subtype = type_info.alert_subtype or ""
 
   if(cur_alerts and (not already_triggered(cur_alerts, type_info.alert_severity.severity_id,
-	  type_info.alert_type.alert_id, granularity_sec, subtype))) then
+	  type_info.alert_type.alert_key, granularity_sec, subtype))) then
      return(true)
   end
 
@@ -333,7 +333,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   end
 
   if(type_info.alert_severity == nil) then
-    alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_id or ""))
+    alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_key or ""))
     return(false)
   end
 
@@ -1025,7 +1025,7 @@ end
 local cache_disabled_by_entity_type = {}
 
 -- @brief Check if the alert_type is disabled for the given entity
-function alerts_api.isEntityAlertDisabled(ifid, entity_type, entity_val, alert_id)
+function alerts_api.isEntityAlertDisabled(ifid, entity_type, entity_val, alert_key)
   local entities_disabled = cache_disabled_by_entity_type[entity_type]
 
   if(entities_disabled == nil) then
@@ -1036,7 +1036,7 @@ function alerts_api.isEntityAlertDisabled(ifid, entity_type, entity_val, alert_i
 
   local bitmap = entities_disabled[entity_val]
 
-  if((bitmap ~= nil) and ntop.bitmapIsSet(bitmap, alert_id)) then
+  if((bitmap ~= nil) and ntop.bitmapIsSet(bitmap, alert_key)) then
     return(true)
   end
 

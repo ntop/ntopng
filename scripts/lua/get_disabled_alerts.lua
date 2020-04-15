@@ -79,7 +79,7 @@ for entity_key, disabled_entities in pairsByKeys(entitites) do
 
   for entity_value, disabled_alerts in pairsByKeys(disabled_entities) do
     for _, alert in pairs(alert_consts.alert_types) do
-      if((alert.alert_id > 0) and ntop.bitmapIsSet(disabled_alerts, alert.alert_id)) then
+      if((alert.alert_key > 0) and ntop.bitmapIsSet(disabled_alerts, alert.alert_key)) then
         totalRows = totalRows + 1
         local idx = totalRows
 
@@ -91,7 +91,7 @@ for entity_key, disabled_entities in pairsByKeys(entitites) do
         }
 
         if sortColumn == "column_type" then
-          sort_to_key[idx] = alert.alert_id
+          sort_to_key[idx] = alert.alert_key
         else -- default
           sort_to_key[idx] = data[idx].entity_formatted
         end
@@ -115,10 +115,10 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
     res[#res + 1] = {
       column_entity_formatted = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(item.entity_id), item.entity_value)),
-      column_type = alert_consts.alertTypeLabel(item.alert.alert_id),
+      column_type = alert_consts.alertTypeLabel(item.alert.alert_key),
       column_entity_id = item.entity_id,
       column_entity_val = item.entity_value,
-      column_type_id = item.alert.alert_id,
+      column_type_id = item.alert.alert_key,
     }
   end
 

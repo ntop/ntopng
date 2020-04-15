@@ -2902,7 +2902,7 @@ local lang = {
   },
   ["plugins_overview"] = {
     ["action_view"] = "Open the user script source in the code editor",
-    ["alert_id"] = "Alert ID",
+    ["alert_key"] = "Alert ID",
     ["alert_key"] = "Alert Key",
     ["availability"] = "Availability",
     ["edition_only"] = "%{edition} Only",

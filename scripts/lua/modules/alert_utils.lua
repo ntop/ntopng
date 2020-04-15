@@ -43,10 +43,10 @@ end
 -- ##############################################
 
 local function alertTypeDescription(v)
-  local alert_id = alert_consts.alertTypeRaw(v)
+  local alert_key = alert_consts.alertTypeRaw(v)
 
-  if(alert_id) then
-    return(alert_consts.alert_types[alert_id].i18n_description)
+  if(alert_key) then
+    return(alert_consts.alert_types[alert_key].i18n_description)
   end
 end
 
@@ -1164,9 +1164,9 @@ function getCurrentStatus() {
    return val;
 }
 
-function deleteAlertById(alert_id) {
+function deleteAlertById(alert_key) {
   var params = {};
-  params.id_to_delete = alert_id;
+  params.id_to_delete = alert_key;
   params.status = getCurrentStatus();
   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
@@ -1462,7 +1462,7 @@ function toggleAlert(disable) {
 
             datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {
                var alert_key = $("td:nth(8)", this).html().split("|");
-               var alert_id = alert_key[0];
+               var alert_key = alert_key[0];
                var data = table_data[row_id];
                var explorer_url = data["column_explorer"];
 
@@ -1482,7 +1482,7 @@ function toggleAlert(disable) {
                  datatableAddActionButtonCallback.bind(this)(10, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "]] print(i18n("show_alerts.release_alert_action")) print[[");
 
                if(]] print(ternary(t["status"] ~= "engaged", "true", "false")) print[[) {
-                 datatableAddDeleteButtonCallback.bind(this)(10, "delete_alert_id ='" + alert_id + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+                 datatableAddDeleteButtonCallback.bind(this)(10, "delete_alert_id ='" + alert_key + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 }
 
                $("form", this).submit(function() {

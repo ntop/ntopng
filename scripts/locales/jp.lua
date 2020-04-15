@@ -2866,7 +2866,7 @@ local lang = {
   },
   ["plugins_overview"] = {
     ["action_view"] = "コードエディタでユーザースクリプトソースを開く",
-    ["alert_id"] = "アラートID",
+    ["alert_key"] = "アラートID",
     ["alert_key"] = "アラートキー",
     ["availability"] = "対応ライセンス",
     ["edition_only"] = "%{edition} のみ",

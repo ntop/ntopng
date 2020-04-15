@@ -2640,7 +2640,7 @@ local lang = {
   },
   ["plugins_overview"] = {
     ["action_view"] = "Apri il codice dello user script nell'editor di codice",
-    ["alert_id"] = "ID dell'Allarme",
+    ["alert_key"] = "ID dell'Allarme",
     ["alert_key"] = "Chiave dell'Allarme",
     ["availability"] = "Disponibilità",
     ["edition_only"] = "Solo %{edition}",
