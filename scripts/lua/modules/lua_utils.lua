@@ -2564,8 +2564,14 @@ end
 
 -- ####################################################
 
+local cached_tz_offset_secs = nil
+
 -- Get the local (backend) timezone offset in seconds
 function getTzOffsetSeconds()
+   if(cached_tz_offset_secs ~= nil) then
+      return(cached_tz_offset_secs)
+   end
+
    local now = os.time()
    local local_t = os.date("*t", now)
    local utc_t = os.date("!*t", now)
@@ -2584,16 +2590,26 @@ function getTzOffsetSeconds()
    -- tprint(string.format("local_t %u [%s][isdst: %s]", os.time(local_t), formatEpoch(os.time(local_t)), local_t.isdst))
    -- tprint(string.format("utc_t   %u [%s][isdst: %s]", os.time(utc_t), formatEpoch(os.time(utc_t)), utc_t.isdst))
 
+   cached_tz_offset_secs = delta
    return delta
 end
 
 -- ####################################################
 
 -- Get the delta between the frontend local time and the backend local time in seconds
-function getFrontendTzDeltaSeconds(frontend_tz_offset)
+function getFrontendTzDeltaSeconds()
+  local frontend_tz_offset = nil
+
+  if _COOKIE and _COOKIE.tzoffset then
+    -- The timezone offset can be passed from the client as a cookie.
+    -- This allows to format the dates in the frontend timezone.
+    frontend_tz_offset = tonumber(_COOKIE.tzoffset)
+  end
+
    if frontend_tz_offset == nil then
       return 0
    end
+
    return frontend_tz_offset - getTzOffsetSeconds()
 end
 

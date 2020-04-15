@@ -184,26 +184,24 @@ function format_utils.bitsToSize(bits)
 end
 
 -- format an epoch
--- timezone is the frontend timezone offset in seconds (optional)
-function format_utils.formatEpoch(epoch, timezone)
+function format_utils.formatEpoch(epoch)
   if epoch == 0 then
     return("")
   else
-    return(os.date("%d/%m/%Y %X", epoch + getFrontendTzDeltaSeconds(timezone)))
+    return(os.date("%d/%m/%Y %X", epoch + getFrontendTzDeltaSeconds()))
   end
 end
 
 -- shorten an epoch when there is a well defined interval
--- timezone is the frontend timezone offset in seconds (optional)
-function format_utils.formatEpochShort(epoch_begin, epoch_end, epoch, timezone)
-   local begin_day = os.date("%d", epoch_begin + getFrontendTzDeltaSeconds(timezone))
-   local end_day = os.date("%d", epoch_end + getFrontendTzDeltaSeconds(timezone))
+function format_utils.formatEpochShort(epoch_begin, epoch_end, epoch)
+   local begin_day = os.date("%d", epoch_begin + getFrontendTzDeltaSeconds())
+   local end_day = os.date("%d", epoch_end + getFrontendTzDeltaSeconds())
 
    if begin_day == end_day then
-      return os.date("%X", epoch + getFrontendTzDeltaSeconds(timezone))
+      return os.date("%X", epoch + getFrontendTzDeltaSeconds())
    end
 
-   return format_utils.formatEpoch(epoch, timezone)
+   return format_utils.formatEpoch(epoch)
 end
 
 function format_utils.formatPastEpochShort(epoch)

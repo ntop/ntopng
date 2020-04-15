@@ -12506,8 +12506,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   lua_setglobal(L, (char*)"_SERVER");
 
-#ifdef NOT_USED
-  /* NOTE: ntopng cannot rely on user provided cookies, it must use session data */
+  /* NOTE: ntopng cannot rely on user provided cookies for security data (e.g. user or group),
+   * use the session data instead! */
   char *_cookies;
 
   /* Cookies */
@@ -12535,7 +12535,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     free(cookies);
   }
   lua_setglobal(L, "_COOKIE"); /* Like in php */
-#endif
 
   /* Put the _SESSION params into the environment */
   lua_newtable(L);

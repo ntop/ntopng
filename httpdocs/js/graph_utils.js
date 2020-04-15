@@ -1185,7 +1185,6 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
 
   var graph_table = $("#chart1-flows");
   nindex_query = nindex_query + "&begin_time_clause=" + graph_params.epoch_begin + "&end_time_clause=" + graph_params.epoch_end;
-  nindex_query = nindex_query + "&timezone=" + (new Date().getTimezoneOffset() * 60 * -1);
   var nindex_buttons = "";
   var params_obj = tsQueryToTags(graph_params.ts_query);
 
@@ -1254,7 +1253,6 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
         // TODO change topk
         // TODO disable statistics
         params.detail_view = view.id;
-        params.timezone = (new Date().getTimezoneOffset() * 60 * -1);
 
         return params;
       },

@@ -46,6 +46,11 @@ print[[
    };
    const system_view_enabled = ]] print(ternary(is_system_interface, "true", "false")) print[[;
    const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
+
+   if(document.cookie.indexOf("tzoffset=") < 0) {
+      // Tell the server the client timezone
+      document.cookie = "tzoffset=" + (new Date().getTimezoneOffset() * 60 * -1);
+   }
 </script>]]
 
 local template = require "template_utils"
