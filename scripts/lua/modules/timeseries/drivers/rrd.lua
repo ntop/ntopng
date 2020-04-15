@@ -206,11 +206,18 @@ local function getConsolidationFunction(schema)
   return("AVERAGE")
 end
 
-local function create_rrd(schema, path)
+local function create_rrd(schema, path, timestamp)
   local heartbeat = schema.options.rrd_heartbeat or (schema.options.insertion_step * 2)
   local rrd_type = type_to_rrdtype[schema.options.metrics_type]
   local params = {path, schema.options.insertion_step}
   local cf = getConsolidationFunction(schema)
+
+  if(timestamp ~= nil) then
+    -- RRD start time (--start/-b)
+    -- It must be tuned so that the first point of the chart in the subsequent
+    -- rrd_update will not be discarded
+    params[#params + 1] = timestamp - heartbeat
+  end
 
   local metrics_map = map_metrics_to_rrd_columns(#schema._metrics)
   if not metrics_map then
@@ -248,7 +255,7 @@ end
 
 -- ##############################################
 
-local function handle_old_rrd_tune(schema, rrdfile)
+local function handle_old_rrd_tune(schema, rrdfile, timestamp)
   -- In this case the only thing we can do is to remove the file and create a new one
   if ntop.getCache("ntopng.cache.rrd_format_change_warning_shown") ~= "1" then
     traceError(TRACE_WARNING, TRACE_CONSOLE, "RRD format change detected, incompatible RRDs will be moved to '.rrd.bak' files")
@@ -257,14 +264,14 @@ local function handle_old_rrd_tune(schema, rrdfile)
 
   os.rename(rrdfile, rrdfile .. ".bak")
 
-  if(not create_rrd(schema, rrdfile)) then
+  if(not create_rrd(schema, rrdfile, timestamp)) then
     return false
   end
 
   return true
 end
 
-local function add_missing_ds(schema, rrdfile, cur_ds)
+local function add_missing_ds(schema, rrdfile, cur_ds, timestamp)
   local cur_metrics = map_metrics_to_rrd_columns(cur_ds)
   local new_metrics = map_metrics_to_rrd_columns(#schema._metrics)
 
@@ -298,7 +305,7 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
   if(err ~= nil) then
     if(string.find(err, "unknown data source name") ~= nil) then
       -- the RRD was already mangled by incompatible rrd_tune
-      return handle_old_rrd_tune(schema, rrdfile)
+      return handle_old_rrd_tune(schema, rrdfile, timestamp)
     else
       traceError(TRACE_ERROR, TRACE_CONSOLE, err)
       return false
@@ -308,7 +315,7 @@ local function add_missing_ds(schema, rrdfile, cur_ds)
   -- Double check as some older implementations do not support adding a column and will silently fail
   local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
   if num_ds ~= #new_metrics then
-    return handle_old_rrd_tune(schema, rrdfile)
+    return handle_old_rrd_tune(schema, rrdfile, timestamp)
   end
 
   traceError(TRACE_INFO, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
@@ -389,7 +396,7 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
       local retry = false
 
       if((num_ds ~= nil) and (num_ds < #schema._metrics)) then
-        if add_missing_ds(schema, rrdfile, num_ds) then
+        if add_missing_ds(schema, rrdfile, num_ds, timestamp) then
           retry = true
         end
       elseif((num_ds == 2) and (schema.name == "iface:traffic")) then
@@ -402,7 +409,7 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
           return false
         end
 
-        if(not create_rrd(schema, rrdfile)) then
+        if(not create_rrd(schema, rrdfile, timestamp)) then
           return false
         end
 
@@ -474,7 +481,7 @@ function driver:append(schema, timestamp, tags, metrics)
 
   if not ntop.notEmptyFile(rrdfile) then
     ntop.mkdir(base)
-    if not create_rrd(schema, rrdfile) then
+    if not create_rrd(schema, rrdfile, timestamp) then
       return false
     end
   end
@@ -1167,7 +1174,7 @@ function driver:export()
 
 	 if not ntop.notEmptyFile(rrdfile) then
 	    ntop.mkdir(base)
-	    if not create_rrd(schema, rrdfile) then
+	    if not create_rrd(schema, rrdfile, timestamp) then
 	       return false
 	    end
 	 end
