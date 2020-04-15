@@ -118,7 +118,7 @@ contents of :code:`blacklisted.lua`:
 	    srv_score = 10
 	 end
 
-	 flow.triggerStatus(flow_consts.status_types.status_blacklisted.status_id, info,
+	 flow.triggerStatus(flow_consts.status_types.status_blacklisted.status_key, info,
 	    flow_score, cli_score, srv_score)
       end
    end

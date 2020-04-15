@@ -192,15 +192,15 @@ local function triggerFlowAlert(now, l4_proto)
    local srv_key = flow.getServerKey()
    local cli_disabled_status = hosts_disabled_status[cli_key] or 0
    local srv_disabled_status = hosts_disabled_status[srv_key] or 0
-   local status_id = alerted_status.status_id
+   local status_key = alerted_status.status_key
 
    -- Ensure that this status was not disabled by the user on the client/server
-   if (cli_disabled_status ~= 0 and ntop.bitmapIsSet(cli_disabled_status, status_id)) or
-       (srv_disabled_status ~= 0 and ntop.bitmapIsSet(srv_disabled_status, status_id)) then
+   if (cli_disabled_status ~= 0 and ntop.bitmapIsSet(cli_disabled_status, status_key)) or
+       (srv_disabled_status ~= 0 and ntop.bitmapIsSet(srv_disabled_status, status_key)) then
 
       if do_trace then
 	  trace_f(string.format("Not triggering flow alert for status %u [cli_bitmap: %s/%d][srv_bitmap: %s/%d]",
-				status_id, cli_key, cli_disabled_status, srv_key, srv_disabled_status))
+				status_key, cli_key, cli_disabled_status, srv_key, srv_disabled_status))
       end
 
       return(false)
@@ -224,7 +224,7 @@ local function triggerFlowAlert(now, l4_proto)
       alerted_status_msg = json.encode(alerted_status_msg)
    end
 
-   local triggered = flow.triggerAlert(status_id,
+   local triggered = flow.triggerAlert(status_key,
       alerted_status.alert_type.alert_key,
       alerted_custom_severity or alerted_status.alert_severity.severity_id,
       now, alerted_status_msg)
@@ -402,8 +402,8 @@ end
 -- set a flow status bit. The status_info of the predominant status is
 -- saved for later use.
 function flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score, srv_score, custom_severity)
-   local status_id = flow_status_type.status_id
-   local new_status = flow_consts.getStatusInfo(status_id)
+   local status_key = flow_status_type.status_key
+   local new_status = flow_consts.getStatusInfo(status_key)
    flow_score = flow_score or 0
 
    if(tonumber(status_info) ~= nil) then
@@ -413,7 +413,7 @@ function flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score
    end
 
    if(new_status and status_info and ids_utils and
-      status_id == flow_consts.status_types.status_external_alert.status_id and
+      status_key == flow_consts.status_types.status_external_alert.status_key and
       status_info and (status_info.source == "suricata")) then
       local fs, cs, ss = ids_utils.computeScore(status_info)
       flow_score = fs
@@ -421,11 +421,11 @@ function flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score
       srv_score = ss
    end
 
-   -- NOTE: The "new_status.status_id < alerted_status.status_id" check must
+   -- NOTE: The "new_status.status_key < alerted_status.status_key" check must
    -- correspond to the Flow::getPredominantStatus logic in order to determine
    -- the same predominant status
    if((not alerted_status) or (flow_score > alerted_status_score) or
-	 ((flow_score == alerted_status_score) and (new_status.status_id < alerted_status.status_id))) then
+	 ((flow_score == alerted_status_score) and (new_status.status_key < alerted_status.status_key))) then
       -- The new alerted status as an higher score
       alerted_status = new_status
       alerted_status_msg = status_info
@@ -441,14 +441,14 @@ end
 
 -- NOTE: overrides the C flow.setStatus (now saved in c_flow_set_status)
 function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
-   local status_id = flow_status_type.status_id
+   local status_key = flow_status_type.status_key
 
-   if(not flow.isStatusSet(status_id)) then
+   if(not flow.isStatusSet(status_key)) then
       flow_score = math.min(math.max(flow_score or 0, 0), max_score)
       cli_score = math.min(math.max(cli_score or 0, 0), max_score)
       srv_score = math.min(math.max(srv_score or 0, 0), max_score)
 
-      c_flow_set_status(status_id, flow_score, cli_score, srv_score, cur_user_script.key)
+      c_flow_set_status(status_key, flow_score, cli_score, srv_score, cur_user_script.key)
       return(true)
    end
 
@@ -459,9 +459,9 @@ end
 
 -- NOTE: overrides the C flow.clearStatus (now saved in c_flow_clear_status)
 function flow.clearStatus(flow_status_type)
-   local status_id = flow_status_type.status_id
+   local status_key = flow_status_type.status_key
 
-   if c_flow_clear_status(status_id) then
+   if c_flow_clear_status(status_key) then
       -- The status has actually changed
       if do_trace then
 	 trace_f(string.format("flow.clearStatus: predominant status changed to %d", flow.getPredominantStatus()))

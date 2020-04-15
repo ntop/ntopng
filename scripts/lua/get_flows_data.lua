@@ -266,11 +266,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    if value["alerted_status"] then
       local status_info = flow_consts.getStatusDescription(value["alerted_status"], flow2statusinfo(value))
       column_proto_l4 = "<i class='fas fa-exclamation-triangle' style='color: #B94A48' title='"..noHtml(status_info) .."'></i> "
-   elseif value["status_map"] and value["flow.status"] ~= flow_consts.status_types.status_normal.status_id then
+   elseif value["status_map"] and value["flow.status"] ~= flow_consts.status_types.status_normal.status_key then
       local title = ''
 
       for _, t in pairs(flow_consts.status_types) do
-         local id = t.status_id
+         local id = t.status_key
 	 if ntop.bitmapIsSet(value["status_map"], id) then
 	    if title ~= '' then
 	       title = title..'\n'

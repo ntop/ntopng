@@ -23,9 +23,9 @@ function flow.clearStatus(table flow_status_type)
 function flow.triggerStatus(table flow_status_type, table status_info, int flow_score, int cli_score, int srv_score)
 
 --! @brief Check if a a bit into the flow status bitmap is set
---! @param status_id the numberic ID of the status, e.g. `flow_consts.status_types.status_blacklisted.status_id`
+--! @param status_key the numberic ID of the status, e.g. `flow_consts.status_types.status_blacklisted.status_key`
 --! @return true if the provided status is set, false otherwise
-function flow.isStatusSet(int status_id)
+function flow.isStatusSet(int status_key)
 
 --! @brief Get full information about the flow.
 --! @return a table with flow information, see Flow::lua

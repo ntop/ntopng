@@ -2651,7 +2651,7 @@ local lang = {
     ["reload_plugins"] = "Ricarica Plugin",
     ["script"] = "Script",
     ["source_location"] = "Posizione del Sorgente",
-    ["status_id"] = "ID dello Stato",
+    ["status_key"] = "ID dello Stato",
     ["status_key"] = "Chiave dello Stato",
     ["type"] = "Tipo",
   },

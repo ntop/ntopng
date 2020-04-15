@@ -26,32 +26,36 @@ print([[
 
 print [[
 <div class="row">
-<div class="col col-md-4 offset-1">
+<div class="col col-md-5">
 <table class="table table-bordered table-sm">
 <tr><th class='text-center'>]] print(i18n("plugins_overview.alert_key")) print[[</th><th>]] print(i18n("plugins_overview.alert_key")) print[[</th></tr>]]
 
 local id_start = 0
 local id_end = 63
 
-for alert_key=id_start,id_end do
-  local alert_key = alert_consts.getAlertType(alert_key) or "-"
+for alert_key = 0, 65535 do
+  local alert_type = alert_consts.getAlertType(alert_key)
 
-  print[[<tr><td class='text-center'>]] print(string.format("%s", alert_key)) print[[</td>]]
-  print[[<td>]] print(alert_key) print[[</td></tr>]]
+  if alert_type then 
+     print[[<td class='text-right'>]] print(string.format("%i", alert_key)) print[[</td>]]
+     print[[<td>]] print(string.format("%s", alert_type)) print[[</td></tr>]]
+  end
 end
 
 print[[</table>
 </div>
-<div class="col offset-1 col-md-4">
+<div class="col offset-1 col-md-5">
 <table class="table table-bordered table-sm">
-<tr><th class='text-center'>]] print(i18n("plugins_overview.status_id")) print[[</th><th>]] print(i18n("plugins_overview.status_key")) print[[</th></tr>]]
+<tr><th class='text-center'>]] print(i18n("plugins_overview.status_key")) print[[</th><th>]] print(i18n("plugins_overview.status_key")) print[[</th></tr>]]
 
-for status_id=id_start,id_end do
-  local status_key = flow_consts.getStatusType(status_id) or "-"
-  local status_info = flow_consts.status_types[status_key]
+for status_id = id_start,id_end do
+  local status_type = flow_consts.getStatusType(status_id)
+  local status_info = flow_consts.status_types[status_type]
 
-  print[[<tr><td class='text-center'>]] print(string.format("%d", status_id)) print[[</td>]]
-  print[[<td>]] print(status_key) print[[</td>]]
+  if status_type and status_info then
+    print[[<tr><td class='text-center'>]] print(string.format("%d", status_id)) print[[</td>]]
+    print[[<td>]] print(status_type) print[[</td>]]
+   end  
 end
 
 print[[</table>

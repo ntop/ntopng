@@ -113,7 +113,7 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
     end
 
     -- Success
-    def_script.status_id = def_id
+    def_script.status_key = def_id
     status_by_id[def_id] = def_script
     status_key_by_id[def_id] = mod_fname
     flow_consts.status_types[mod_fname] = def_script
@@ -123,8 +123,8 @@ end
 
 -- ################################################################################
 
-function flow_consts.getStatusDescription(status_id, flowstatus_info)
-    local status_def = status_by_id[tonumber(status_id)]
+function flow_consts.getStatusDescription(status_key, flowstatus_info)
+    local status_def = status_by_id[tonumber(status_key)]
 
     if(status_def == nil) then
         return(i18n("flow_details.unknown_status",{status=status}))
@@ -142,8 +142,8 @@ end
 
 -- ################################################################################
 
-function flow_consts.getStatusTitle(status_id)
-    local status_def = status_by_id[tonumber(status_id)]
+function flow_consts.getStatusTitle(status_key)
+    local status_def = status_by_id[tonumber(status_key)]
 
     if(status_def == nil) then
         return(i18n("flow_details.unknown_status",{status=status}))
@@ -154,14 +154,14 @@ end
 
 -- ################################################################################
 
-function flow_consts.getStatusInfo(status_id)
-    return(status_by_id[tonumber(status_id)])
+function flow_consts.getStatusInfo(status_key)
+    return(status_by_id[tonumber(status_key)])
 end
 
 -- ################################################################################
 
-function flow_consts.getStatusType(status_id)
-    return(status_key_by_id[tonumber(status_id)])
+function flow_consts.getStatusType(status_key)
+    return(status_key_by_id[tonumber(status_key)])
 end
 
 -- ################################################################################
@@ -1125,7 +1125,7 @@ flow_consts.mobile_country_code = {
 
 local function dumpStatusDefs()
    for _, a in pairsByKeys(status_by_id) do
-      print("[status_id: ".. a.status_id .."][title: ".. a.i18n_title.."]\n")
+      print("[status_key: ".. a.status_key .."][title: ".. a.i18n_title.."]\n")
       -- tprint(k)
    end
 end

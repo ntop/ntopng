@@ -726,7 +726,7 @@ end
    if(false) then
       print("<tr><th>"..i18n("details.misbehaving_flows_reasons").."</th><td nowrap><span id=misbehaving_flows_status_map_as_client>")
       for _, t in pairs(flow_consts.status_types) do
-         local id = t.status_id
+         local id = t.status_key
          if ntop.bitmapIsSet(host["misbehaving_flows_status_map.as_client"], id) then
             print(flow_consts.getStatusDescription(id).."<br />")
          end
@@ -734,7 +734,7 @@ end
       print("</span></td>\n")
       print("<td  width='35%'><span id=misbehaving_flows_status_map_as_server>")
       for _, t in pairs(flow_consts.status_types) do
-         local id = t.status_id
+         local id = t.status_key
          if ntop.bitmapIsSet(host["misbehaving_flows_status_map.as_server"], id) then
             print(flow_consts.getStatusDescription(id).."<br />")
          end

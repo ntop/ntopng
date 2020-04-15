@@ -879,7 +879,7 @@ else
 	    end
 	 end
 
-	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_tls_certificate_mismatch.status_id)) then
+	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_tls_certificate_mismatch.status_key)) then
 	    print("\n<br><i class=\"fas fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
@@ -1032,7 +1032,7 @@ else
    
    local additional_status = flow["status_map"]
 
-   additional_status = ntop.bitmapClear(additional_status, flow_consts.status_types.status_normal.status_id)
+   additional_status = ntop.bitmapClear(additional_status, flow_consts.status_types.status_normal.status_key)
 
    if(alerted_status ~= nil) then
       additional_status = ntop.bitmapClear(additional_status, alerted_status)
@@ -1053,7 +1053,7 @@ else
 
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
       for _, t in pairsByKeys(flow_consts.status_types) do
-	 local id = t.status_id
+	 local id = t.status_key
 
          if ntop.bitmapIsSet(additional_status, id) then
 	    local status_info = status_infos[id]

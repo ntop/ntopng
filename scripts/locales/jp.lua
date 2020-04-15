@@ -2877,7 +2877,7 @@ local lang = {
     ["reload_plugins"] = "プラグインをリロードする",
     ["script"] = "スクリプト",
     ["source_location"] = "ソースの場所",
-    ["status_id"] = "ステータスID",
+    ["status_key"] = "ステータスID",
     ["status_key"] = "ステータスキー",
   },
   ["policy_presets"] = {

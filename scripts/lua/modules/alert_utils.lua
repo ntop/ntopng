@@ -764,14 +764,14 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
            <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
 
       for _, status in pairsByKeys(flow_consts.status_types, asc) do
-        local status_id = status.status_id
+        local status_key = status.status_key
 
-        if(status_id == flow_consts.status_types.status_normal.status_id) then
+        if(status_key == flow_consts.status_types.status_normal.status_key) then
           goto continue
         end
 
-        print[[<option value="]] print(string.format("%d", status_id))
-        if ntop.bitmapIsSet(cur_bitmap, tonumber(status_id)) then
+        print[[<option value="]] print(string.format("%d", status_key))
+        if ntop.bitmapIsSet(cur_bitmap, tonumber(status_key)) then
           print[[" selected="selected]]
         end
         print[[">]]
