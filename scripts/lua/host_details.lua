@@ -23,6 +23,7 @@ local discover = require "discover_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
 local mud_utils = require "mud_utils"
+local fingerprint_utils = require "fingerprint_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
@@ -282,13 +283,13 @@ local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_l
 				 label = i18n("dns"),
 			      },
 			      {
-				 hidden = have_nedge or only_historical or not host["ja3_fingerprint"],
+				 hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "ja3"),
 				 active = page == "tls",
 				 page_name = "tls",
 				 label = i18n("tls"),
 			      },
 			      {
-				 hidden = have_nedge or only_historical or not host["hassh_fingerprint"],
+				 hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "hassh"),
 				 active = page == "ssh",
 				 page_name = "ssh",
 				 label = i18n("ssh"),

@@ -9,7 +9,7 @@ require "lua_utils"
 local graph_utils = require "graph_utils"
 require "flow_utils"
 require "historical_utils"
-local companion_interface_utils = require "companion_interface_utils"
+local fingerprint_utils = require "fingerprint_utils"
 
 local available_fingerprints = {
    ja3 = {
@@ -30,33 +30,10 @@ local fingerprint_type = _GET["fingerprint_type"]
 
 -- #####################################################################
 
-function revFP(a,b)
-   return (a.num_uses > b.num_uses)
-end
-
--- #####################################################################
+local stats
 
 if(host_info["host"] ~= nil) then
    stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
 end
 
-if stats and available_fingerprints[fingerprint_type] then
-   local fk = available_fingerprints[fingerprint_type]["stats_key"]
-   local fp = stats[fk]
-
-   num = 0
-   max_num = 50 -- set a limit
-   for key,value in pairsByValues(fp, revFP) do
-      if(num == max_num) then
-	 break
-      else
-	 num = num + 1
-	 print('<tr><td>'..available_fingerprints[fingerprint_type]["href"](key)..'</td>')
-	 if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifid)) then
-	    print('<td align=left nowrap>'..value.app_name..'</td>')
-	 end
-	 print('<td align="right">'..formatValue(value.num_uses)..'</td>')
-	 print('</tr>\n')
-      end
-   end
-end
+fingerprint_utils.fingerprint2record(stats, fingerprint_type)
