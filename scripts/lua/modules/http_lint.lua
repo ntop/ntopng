@@ -1317,6 +1317,7 @@ local known_parameters = {
    ["senders_receivers"]       = validateSendersReceivers,      -- Used in top scripts
    ["fingerprint_type"]        = validateFingerprintType,
    ["granularity"]             = validateSingleWord,
+   ["old_granularity"]         = validateSingleWord,
    ["script_type"]             = validateSingleWord,
    ["script_subdir"]           = validateSingleWord,
    ["script_key"]              = validateSingleWord,

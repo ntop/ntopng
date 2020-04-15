@@ -189,6 +189,7 @@ if(page == "overview") then
                 <li>]] .. i18n("active_monitoring_stats.rtt_note_icmp") ..[[</li>
                 <li>]] .. i18n("active_monitoring_stats.rtt_note_http") ..[[</li>
                 <li>]] .. i18n("active_monitoring_stats.note_alert") ..[[</li>
+		<li>]] .. i18n("active_monitoring_stats.note_periodiciy_change") ..[[</li>
               </ul>
               </div>
               <span class="invalid-feedback"></span>

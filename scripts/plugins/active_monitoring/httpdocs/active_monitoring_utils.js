@@ -70,6 +70,7 @@ $(document).ready(function() {
                 old_rtt_host: data.host,
                 old_measurement: data.measurement,
                 granularity: granularity,
+                old_granularity: data.granularity,
                 csrf: rtt_csrf
             };
 

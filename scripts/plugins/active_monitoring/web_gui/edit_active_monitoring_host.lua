@@ -99,6 +99,7 @@ elseif(action == "edit") then
    local url = active_monitoring_utils.formatRttHost(host, measurement)
    local old_rtt_host = _POST["old_rtt_host"]
    local old_measurement = _POST["old_measurement"]
+   local old_granularity = _POST["old_granularity"]
 
    if(isValidHostMeasurementCombination(host, measurement) == false) then
       -- NOTE: reportError already called
@@ -112,6 +113,11 @@ elseif(action == "edit") then
 
    if isEmptyString(old_measurement) then
       reportError(i18n("missing_x_parameter", {param='old_measurement'}))
+      return
+   end
+
+   if isEmptyString(old_granularity) then
+      reportError(i18n("missing_x_parameter", {param='old_granularity'}))
       return
    end
 
@@ -133,10 +139,15 @@ elseif(action == "edit") then
 	 return
       end
 
-      active_monitoring_utils.deleteHost(old_rtt_host, old_measurement)
+      active_monitoring_utils.deleteHost(old_rtt_host, old_measurement) -- also calls discardHostTimeseries
       active_monitoring_utils.addHost(host, measurement, rtt_value, granularity)
    else
-      -- The key is the same, only update the rtt
+      -- The key is the same, only update the rtt/granularity
+      if(old_granularity ~= granularity) then
+	 -- Need to discard the old timeseries as the granularity has changed
+	 active_monitoring_utils.discardHostTimeseries(host, measurement)
+      end
+
       active_monitoring_utils.addHost(host, measurement, rtt_value, granularity)
    end
 

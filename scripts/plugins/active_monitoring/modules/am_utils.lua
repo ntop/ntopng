@@ -180,6 +180,12 @@ end
 
 -- ##############################################
 
+function am_utils.discardHostTimeseries(host, measurement)
+  ts_utils.delete("am_host", {ifid=getSystemInterfaceId(), host=host, measure=measurement})
+end
+
+-- ##############################################
+
 function am_utils.deleteHost(host, measurement)
   local ts_utils = require("ts_utils")
   local alerts_api = require("alerts_api")
@@ -196,8 +202,7 @@ function am_utils.deleteHost(host, measurement)
   -- Release any engaged alerts of the host
   alerts_api.releaseEntityAlerts(rtt_host_entity)
 
-  -- Delete the host RRDs
-  ts_utils.delete("am_host", {ifid=getSystemInterfaceId(), host=host, measure=measurement})
+  am_utils.discardHostTimeseries(host, measurement)
 
   -- Remove the redis keys of the host
   ntop.delCache(rtt_last_updates_key(host_key))
