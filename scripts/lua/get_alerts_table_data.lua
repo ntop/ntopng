@@ -133,14 +133,15 @@ for _key,_value in ipairs(alerts) do
    local column_type     = alert_consts.alertTypeLabel(tonumber(_value["alert_type"]))
    local column_count    = format_utils.formatValue(tonumber(_value["alert_counter"]))
    local column_score    = format_utils.formatValue(tonumber(_value["score"]))
-   local column_msg      = string.gsub(alert_utils.formatAlertMessage(ifid, _value), '"', "'")
+   local alert_info      = alert_utils.getAlertInfo(_value)
+   local column_msg      = string.gsub(alert_utils.formatAlertMessage(ifid, _value, alert_info), '"', "'")
    local column_chart = nil
 
    if ntop.isPro() then
       local graph_utils = require "graph_utils"
 
       if graph_utils.getAlertGraphLink then
-	 column_chart    = graph_utils.getAlertGraphLink(getInterfaceId(ifname), _value)
+	 column_chart    = graph_utils.getAlertGraphLink(getInterfaceId(ifname), _value, alert_info)
 	 if not isEmptyString(column_chart) then
 	    column_chart = "<a href='".. column_chart .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
 	 end

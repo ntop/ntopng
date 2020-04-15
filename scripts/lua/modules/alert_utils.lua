@@ -2018,14 +2018,25 @@ end
 
 -- #################################
 
-function alert_utils.formatAlertMessage(ifid, alert)
-  local msg
+function alert_utils.getAlertInfo(alert)
   local alert_json = alert["alert_json"]
 
   if isEmptyString(alert_json) then
     alert_json = {}
   elseif(string.sub(alert_json, 1, 1) == "{") then
-    alert_json = json.decode(alert_json)
+    alert_json = json.decode(alert_json) or {}
+  end
+
+  return alert_json
+end
+
+-- #################################
+
+function alert_utils.formatAlertMessage(ifid, alert, alert_json)
+  local msg
+
+  if(alert_json == nil) then
+   alert_json = alert_utils.getAlertInfo(alert)
   end
 
   if(alert.alert_entity == alert_consts.alertEntity("flow") or (alert.alert_entity == nil)) then
