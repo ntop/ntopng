@@ -1,0 +1,35 @@
+<div class="container-fluid mt-3">
+  <div class="row">
+    <div class="col-md-12 col-lg-12 mt-3">
+      {{ page_utils.print_page_title(i18n("about.alert_defines")) }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col col-md-5">
+      <table class="table table-bordered table-sm">
+	<tr><th colspan="2"> {{ i18n("plugins_overview.alert_key") }} </th></tr>
+	{% for alert_key = 0, 65535 do %}
+	{% if alert_consts.getAlertType(alert_key) then %}
+	<tr>
+	  <td class="text-right"> {{ string.format("%i", alert_key) }} </td>
+	  <td> {{ string.format("%s", alert_consts.getAlertType(alert_key)) }} </td>
+	</tr>
+	{% end %}
+	{% end %}
+      </table>
+    </div>
+    <div class="col offset-1 col-md-5">
+      <table class="table table-bordered table-sm">
+	<tr><th colspan="2"> {{ i18n("plugins_overview.status_key") }} </th></tr>
+	{% for status_id = 0, 63 do %}
+	{% if flow_consts.getStatusType(status_id) then %}
+	<tr>
+	  <td class="text-right"> {{ string.format("%i", status_id) }} </td>
+	  <td> {{ string.format("%s", flow_consts.getStatusType(status_id)) }} </td>
+	</tr>
+	{% end %}
+	{% end %}
+      </table>
+    </div>
+  </div>
+</div>
