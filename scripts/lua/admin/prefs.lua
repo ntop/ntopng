@@ -1031,7 +1031,7 @@ function printStatsTimeseries()
   if not force_rrd then
     multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
 				    subpage_active.entries["multiple_timeseries_database"].description,
-				    {"RRD", "InfluxDB"}, {"rrd", "influxdb" },
+				    {"RRD", "InfluxDB 1.x"}, {"rrd", "influxdb" },
 				    "rrd",
 				    "primary",
 				    "timeseries_driver",
