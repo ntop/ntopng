@@ -103,7 +103,7 @@ return {
 	 -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
 	 additional_timeseries = {},
 	 -- Js function to call to format the am_host:rtt_* chart value. See ntopng_utils.js .
-	 value_js_formatter = "fbits",
+	 value_js_formatter = "fmbits",
 	 -- A list of additional notes (localization strings) to show into the timeseries charts
 	 i18n_chart_notes = {},
 	 -- If set, the user cannot change the host

@@ -75,11 +75,12 @@ function is_network_mask(what, optional_mask) {
    return null;
 }
 
-function fbits(bits) {
+function fbits(bits, sizes) {
     if(typeof(bits) === "undefined")
       return "-";
 
-    var sizes = ['bit/s', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+    if(!sizes)
+      sizes = ['bit/s', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits == 0) return '0';
     if((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' bps');
     var bits_log1000 = Math.log(bits) / Math.log(1000)
@@ -100,6 +101,10 @@ function fbits(bits) {
     }
 //    console.log('bits:' + bits+ ' ' + parseFloat(bits / Math.pow(1000, i)))
 //    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
+}
+
+function fmbits(mbits) {
+  return fbits(mbits, ['Mbit/s', 'Gbit/s', 'Tbit/s']);
 }
 
 function export_rate(eps) {
