@@ -96,27 +96,32 @@ Set the alert definition file :code:`alert_exe_download.lua` contents as:
 
 .. code:: lua
 
+	local alert_keys = require "alert_keys"
+
 	return {
+	  alert_key = alert_keys.user.alert_user_01,
 	  i18n_title = "EXE download",
 	  icon = "fas fa-exclamation",
 	}
 
-The file contains the alert title and an icon which will be used by ntopng to print the alerts.
+The file contains the alert title and an icon which will be used by ntopng to print the alerts. As this is a user-developed plugin, and no other user-developed plugin is using it, key :code:`alert_keys.user.alert_user_01` is chosen as :code:`alert_key`. 
 
 Set the status definition file :code:`status_exe_download.lua` as:
 
 .. code:: lua
 
 	local alert_consts = require("alert_consts")
+	local status_keys = require "flow_keys"
 
 	return {
+	  status_key = status_keys.user.status_user_01,
 	  alert_severity = alert_consts.alert_severities.error,
 	  alert_type = alert_consts.alert_types.alert_exe_download,
 	  i18n_title = "EXE download",
 	  i18n_description = "Flow has downloaded an executable file",
 	}
 
-The file contains a status title and a description which will be used by ntopng when showing the flow status. It also contains :code:`alert_severity` and :code:`alert_type` which tell ntopng the status is going to cause an alert of type :code:`alert_exe_download` to be triggered.
+The file contains a status title and a description which will be used by ntopng when showing the flow status. It also contains :code:`alert_severity` and :code:`alert_type` which tell ntopng the status is going to cause an alert of type :code:`alert_exe_download` to be triggered. As this is a user-developed plugin, and no other user-developed plugin is using it, key :code:`status_keys.user.status_user_01` is chosen as :code:`status_key`.
 
 The final thing which is required to set the flow status and trigger the alert is to add an extra require to the user script
 
