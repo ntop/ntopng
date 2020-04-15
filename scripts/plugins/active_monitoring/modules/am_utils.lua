@@ -71,6 +71,13 @@ end
 -- Only used for the formatting, don't use as a key as the "/"
 -- character is escaped in HTTP parameters
 function am_utils.formatRttHost(host, measurement)
+  local m_info = am_utils.getMeasurementInfo(measurement)
+
+  if m_info and m_info.force_host then
+    -- Only a single host is present, return it
+    return(host)
+  end
+
   return(string.format("%s://%s", measurement, host))
 end
 

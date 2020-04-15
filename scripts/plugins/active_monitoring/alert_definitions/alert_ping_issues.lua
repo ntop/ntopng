@@ -39,12 +39,21 @@ local function pingIssuesFormatter(ifid, alert, info)
 	 i18n_s = "alert_messages.measurement_too_high_msg"
       end
 
-      msg = i18n(i18n_s,
-		 {
-		  host = host.label,
-		  numeric_ip = numeric_ip,
-		  rtt_value = format_utils.round(info.value, 2),
-		  maximum_rtt = info.threshold})
+      local unit = "active_monitoring_stats.msec"
+
+      if m_info and m_info.i18n_unit then
+	 unit = m_info.i18n_unit
+      end
+
+      unit = i18n(unit) or unit
+
+      msg = i18n(i18n_s, {
+	 host = host.label,
+	 numeric_ip = numeric_ip,
+	 rtt_value = format_utils.round(info.value, 2),
+	 maximum_rtt = info.threshold,
+	 unit = unit,
+      })
    end
 
    return msg
