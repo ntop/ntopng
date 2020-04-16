@@ -280,19 +280,30 @@ $(document).ready(function() {
             {
                 data: 'chart',
                 class: 'text-center',
-                render: function(href) {
-                    if (href == "" || href == undefined) return "";
-                    return `<a href='${href}'><i class='fas fa-chart-area'></i></a>`
+                sortable: false,
+                render: function(href, type, row) {
+                    if(type === 'display' || type === 'filter') {
+                        if (href == "" || href == undefined) return "";
+                        return `<a href='${href}'><i class='fas fa-chart-area'></i></a>`
+                    }
+
+                    // The raw data must be returned here for sorting
+                    return(href);
                 }
             },
             {
                 data: 'threshold',
                 className: 'text-center',
                 render: function(data, type, row) {
-                    if(row.threshold)
-                        return `${row.threshold} ${row.unit}`
-                    else
-                        return "";
+                    if(type === 'display' || type === 'filter') {
+                        if(row.threshold)
+                            return `${row.threshold} ${row.unit}`
+                        else
+                            return "";
+                    }
+
+                    // The raw data must be returned here for sorting
+                    return(data);
                 }
             },
             {
@@ -306,14 +317,20 @@ $(document).ready(function() {
             {
                 data: 'last_measure',
                 className: 'dt-body-right dt-head-center',
+                sortable: false,
                 render: function(data, type, row) {
-                    if(row.value_js_formatter && row.last_measure)
-                        // Call the provided formatting function
-                        return window[row.value_js_formatter](row.last_measure);
-                    else if(row.last_measure)
-                        return `${row.last_measure} ${row.unit}`
-                    else
-                        return "";
+                    if(type === 'display' || type === 'filter') {
+                        if(row.value_js_formatter && row.last_measure)
+                            // Call the provided formatting function
+                            return window[row.value_js_formatter](row.last_measure);
+                        else if(row.last_measure)
+                            return `${row.last_measure} ${row.unit}`
+                        else
+                            return "";
+                    }
+
+                    // The raw data must be returned here for sorting
+                    return(data);
                 }
 
             },
