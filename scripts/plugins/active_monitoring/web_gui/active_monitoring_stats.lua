@@ -302,8 +302,7 @@ if(page == "overview") then
 
     <div>
       ]].. i18n("notes") .. [[<ul>
-	<li>]].. i18n("active_monitoring_stats.note1", {product=info.product}) ..[[</li>
-	<li>]].. i18n("active_monitoring_stats.note2") ..[[</li>
+	<li>]].. i18n("active_monitoring_stats.note3", {product=info.product}) ..[[</li>
 	<li>]].. i18n("active_monitoring_stats.note_alert") ..[[</li>
       </ul>
     </div>
