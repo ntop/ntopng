@@ -43,12 +43,16 @@ $(document).ready(function() {
             const DEFAULT_MEASUREMENT   = "icmp";
             const DEFAULT_HOST          = "";
 
+            const cur_measurement = data.measurement || DEFAULT_MEASUREMENT;
+            const $dialog = $('#rtt-edit-modal');
+            dialogDisableUniqueMeasurements($dialog, cur_measurement);
+
             // fill input boxes
             $('#input-edit-threshold').val(data.threshold || DEFAULT_THRESHOLD);
-            $('#select-edit-measurement').val(data.measurement || DEFAULT_MEASUREMENT);
+            $('#select-edit-measurement').val(cur_measurement);
             $('#select-edit-granularity').val(data.granularity || DEFAULT_GRANULARITY);
             $('#input-edit-host').val(data.host || DEFAULT_HOST);
-            dialogRefreshMeasurement($('#rtt-edit-modal'), data.granularity);
+            dialogRefreshMeasurement($dialog, data.granularity);
         }
 
         const data = get_rtt_data($rtt_table, $(this));
@@ -87,6 +91,29 @@ $(document).ready(function() {
         $(`#rtt-edit-modal span.invalid-feedback`).hide();
 
     });
+
+    // Disable the already defined measurements for forced_hosts since
+    // they are unique
+    const dialogDisableUniqueMeasurements = ($dialog, cur_measurement) => {
+        const $m_sel = $dialog.find(".measurement-select");
+        const defined_unique_mes = {};
+
+        // find out wich unique measurements are already defined
+        $rtt_table.rows().data().each(function(row_data) {
+            var m_info = measurements_info[row_data.measurement];
+
+            if(m_info && m_info.force_host)
+                defined_unique_mes[row_data.measurement] = true;
+        });
+
+        // enable/disable the measurements in the select
+        $m_sel.find("option").each(function() {
+            if((this.value != cur_measurement) && defined_unique_mes[this.value])
+                $(this).attr("disabled", "disabled");
+            else
+                $(this).removeAttr("disabled");
+        });
+    }
 
     const dialogRefreshMeasurement = ($dialog, granularity) => {
         const measurement = $dialog.find(".measurement-select").val();
@@ -226,11 +253,17 @@ $(document).ready(function() {
                     text: '<i class="fas fa-plus"></i>',
                     className: 'btn-link',
                     action: function(e, dt, node, config) {
+                        const $dialog = $('#rtt-add-modal');
+                        dialogDisableUniqueMeasurements($dialog);
+
+                        // select the first non-disabled option (after dialogDisableUniqueMeasurements)
+                        $("#select-add-measurement").val($("#select-add-measurement").find("option:not([disabled]):first").val());
+
                         $('#input-add-host').val('');
                         $('#input-add-threshold').val(100);
                         $(`#rtt-add-modal span.invalid-feedback`).hide();
                         $('#rtt-add-modal').modal('show');
-                        dialogRefreshMeasurement($('#rtt-add-modal'));
+                        dialogRefreshMeasurement($dialog);
                     }
                 }
             ],
