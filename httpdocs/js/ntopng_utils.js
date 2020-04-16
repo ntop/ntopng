@@ -75,12 +75,10 @@ function is_network_mask(what, optional_mask) {
    return null;
 }
 
-function fbits(bits, sizes) {
+function fbits(bits) {
     if(typeof(bits) === "undefined")
       return "-";
 
-    if(!sizes)
-      sizes = ['bit/s', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits == 0) return '0';
     if((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' bps');
     var bits_log1000 = Math.log(bits) / Math.log(1000)
