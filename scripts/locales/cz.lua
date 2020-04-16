@@ -1503,7 +1503,6 @@ local lang = {
     ["local_only"] = "Pouze místní",
     ["local_srv_remote_cli"] = "Lokální Server - Vzdálený Klient",
     ["misbehaving"] = "Chovajicí se spatně",
-    ["misbehaving_flows_node"] = "Podívejte se na <a href=\"%{url}\">online dokumentaci</a> pro popis chybných toků.",
     ["multicast"] = "vysílání",
     ["network"] = " [ Síť %{network} ]",
     ["non_multicast"] = "Nevysílá",

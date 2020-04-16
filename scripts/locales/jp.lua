@@ -1736,7 +1736,6 @@ local lang = {
     ["local_only"] = "ローカルのみ",
     ["local_srv_remote_cli"] = "ローカルサーバ - リモートクライアント",
     ["misbehaving"] = "不正な動作",
-    ["misbehaving_flows_node"] = "不正なフローの説明については、<a href=\"%{url}\">オンラインドキュメント</a>をご覧ください。 ",
     ["multicast"] = "マルチキャスト/ブロードキャスト",
     ["network"] = " [ ネットワーク %{network} ]",
     ["non_multicast"] = "非マルチキャスト/非ブロードキャスト",

@@ -75,18 +75,8 @@ if (page == "flows" or page == nil) then
    page_utils.print_page_title(active_msg)
 
 print [[
-      <div id="table-flows"></div>]]
-
-print(i18n("notes"))
-print[[<ul>
-  <li>]]
-print(i18n("flows_page.misbehaving_flows_node",
-    {url = "https://www.ntop.org/guides/ntopng/basic_concepts/alerts.html#misbehaving-flows"}))
-print[[</li>
-</ul>]]
-
-print[[
-	 <script>
+      <div id="table-flows"></div>
+        <script>
    var url_update = "]]
 
 if(category ~= nil) then

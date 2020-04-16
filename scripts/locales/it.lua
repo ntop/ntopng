@@ -1774,7 +1774,6 @@ local lang = {
     ["local_only"] = "Solo Locali",
     ["local_srv_remote_cli"] = "Server Locale - Client Remoto",
     ["misbehaving"] = "Misbehaving",
-    ["misbehaving_flows_node"] = "Consultare la <a href=\"%{url}\">documentazione</a> per la descrizione dettagliata dei flussi misbehaving.",
     ["multicast"] = "Multicast/Broadcast",
     ["network"] = " [ Rete %{network} ]",
     ["non_multicast"] = "Non-Multicast/Non-Broadcast",
