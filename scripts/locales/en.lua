@@ -101,7 +101,9 @@ local lang = {
   ["hour"] = "Hour",
   ["http"] = "HTTP",
   ["http_s"] = "HTTP(S)",
+  ["https"] = "HTTPS",
   ["icmp"] = "ICMP",
+  ["icmpv6"] = "ICMPv6",
   ["iface_download"] = "%{iface} download",
   ["iface_upload"] = "%{iface} upload",
   ["incomingflows"] = "Active Incoming Flows",
@@ -334,6 +336,7 @@ local lang = {
     ["other_https_descr"] = "The sum of \"App Connect\", \"Name Lookup\" and \"Other\" is the total time took to complete the HTTPS request.",
     ["rtt_note_http"] = "Measurements http and https retrieve a web page using HTTP and HTTPS",
     ["rtt_note_icmp"] = "Measurements icmp and icmp6 ping the host using ICMP and ICMPv6",
+    ["speedtest"] = "Speedtest",
   },
   ["activities_page"] = {
     ["host_activity"] = "Host Activity",

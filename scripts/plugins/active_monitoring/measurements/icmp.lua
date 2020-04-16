@@ -128,6 +128,8 @@ return {
     {
       -- The unique key for the measurement
       key = "icmp",
+      -- The localization string for this measurement
+      i18n_label = "icmp",
       -- The function called periodically to send the host probes
       check = check_icmp,
       -- The function responsible for collecting the results
@@ -153,6 +155,7 @@ return {
       force_host = nil,
     }, {
       key = "icmp6",
+      i18n_label = "icmpv6",
       check = check_icmp,
       collect_results = collect_icmp,
       granularities = {"min", "5mins", "hour"},

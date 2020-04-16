@@ -105,6 +105,8 @@ return {
     {
       -- The unique key for the measurement
       key = "http",
+      -- The localization string for this measurement
+      i18n_label = "http",
       -- The function called periodically to send the host probes
       check = check_http,
       -- The function responsible for collecting the results
@@ -136,6 +138,7 @@ return {
       force_host = nil,
     }, {
       key = "https",
+      i18n_label = "https",
       check = check_http,
       collect_results = collect_http,
       granularities = {"min", "5mins", "hour"},

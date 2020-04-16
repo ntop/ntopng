@@ -342,8 +342,10 @@ function am_utils.getAvailableMeasurements()
   loadRttPlugins()
 
   for k, v in pairsByKeys(loaded_measurements, asc) do
+    local m = v.measurement
+
     measurements[#measurements + 1] = {
-      title = k,
+      title = i18n(m.i18n_label) or m.i18n_label,
       value = k,
     }
   end

@@ -89,6 +89,8 @@ return {
       {
 	 -- The unique key for the measurement
 	 key = "speedtest",
+	 -- The localization string for this measurement
+	 i18n_label = "active_monitoring_stats.speedtest",
 	 -- The function called periodically to send the host probes
 	 check = run_speedtest,
 	 -- The function responsible for collecting the results
