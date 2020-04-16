@@ -156,7 +156,7 @@ if(page == "overview") then
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("active_monitoring_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
-                  ]].. generate_select("select-edit-measurement", "measurement", true, false, active_monitoring_utils.getAvailableMeasurements(), "measurement-select") ..[[
+                  ]].. generate_select("select-edit-measurement", "measurement", true, false, {}, "measurement-select") ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -218,7 +218,7 @@ if(page == "overview") then
               <div class="form-group row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("active_monitoring_stats.measurement") .. [[</label>
                 <div class="col-sm-5">
-                  ]] .. generate_select("select-add-measurement", "measurement", true, false, active_monitoring_utils.getAvailableMeasurements(), "measurement-select") ..[[
+                  ]] .. generate_select("select-add-measurement", "measurement", true, false, {}, "measurement-select") ..[[
                 </div>
               </div>
               <div class="form-group row">
@@ -314,6 +314,7 @@ if(page == "overview") then
   -- render the template
   for key, info in pairs(active_monitoring_utils.getMeasurementsInfo()) do
     measurements_info[key] = {
+      label = i18n(info.i18n_label) or info.i18n_label,
       granularities = active_monitoring_utils.getAvailableGranularities(key),
       operator = info.operator,
       unit = i18n(info.i18n_unit) or info.i18n_unit,

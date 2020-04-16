@@ -96,23 +96,27 @@ $(document).ready(function() {
     // they are unique
     const dialogDisableUniqueMeasurements = ($dialog, cur_measurement) => {
         const $m_sel = $dialog.find(".measurement-select");
-        const defined_unique_mes = {};
+        const measurements_to_skip = {};
 
         // find out wich unique measurements are already defined
         $rtt_table.rows().data().each(function(row_data) {
             var m_info = measurements_info[row_data.measurement];
 
             if(m_info && m_info.force_host)
-                defined_unique_mes[row_data.measurement] = true;
+                measurements_to_skip[row_data.measurement] = true;
         });
 
-        // enable/disable the measurements in the select
-        $m_sel.find("option").each(function() {
-            if((this.value != cur_measurement) && defined_unique_mes[this.value])
-                $(this).attr("disabled", "disabled");
-            else
-                $(this).removeAttr("disabled");
-        });
+        // Populate the measurements dropdown
+        $m_sel.find('option').remove();
+        var sorted_measurements = $.map(measurements_info, (v,k) => {return(k)}).sort();
+
+        for(var i=0; i<sorted_measurements.length; i++) {
+            var k = sorted_measurements[i];
+            var m_info = measurements_info[k];
+
+            if((k == cur_measurement) || !measurements_to_skip[k])
+                $m_sel.append(`<option value="${k}">${m_info.label}</option>`);
+        }
     }
 
     const dialogRefreshMeasurement = ($dialog, granularity) => {
