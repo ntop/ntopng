@@ -8,5 +8,5 @@ ntopng supports active monitoring of hosts and devices. Active monitoring means 
 .. toctree::
     :maxdepth: 2
 
-    rtt_monitor
+    active_monitor
     snmp

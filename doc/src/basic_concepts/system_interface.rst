@@ -12,5 +12,5 @@ Monitoring features above are performed by the system interface. The system inte
 
 Network monitoring tasks that are not specific to a single interface are performed by the system interface as well. Indeed, the system interface features:
 
-- An :ref:`RTT Monitor` to monitor hosts Round Trip Time (RTT)
+- An :ref:`Active Monitor` to actively monitored hosts in the network
 - The monitoring of :ref:`SNMP` devices
