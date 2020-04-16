@@ -115,6 +115,8 @@ return {
       i18n_unit = "active_monitoring_stats.msec",
       -- The localization string for the RTT timeseries menu entry
       i18n_rtt_ts_label = "graphs.num_ms_rtt",
+      -- The localization string for the RTT metric in the chart
+      i18n_rtt_ts_metric = "flow_details.round_trip_time",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
       operator = "gt",
       -- A list of additional timeseries (the am_host:rtt_* is always shown) to show in the charts.
@@ -139,6 +141,7 @@ return {
       granularities = {"min", "5mins", "hour"},
       i18n_unit = "active_monitoring_stats.msec",
       i18n_rtt_ts_label = "graphs.num_ms_rtt",
+      i18n_rtt_ts_metric = "flow_details.round_trip_time",
       operator = "gt",
       additional_timeseries = {{
 	schema="am_host:https_stats",
