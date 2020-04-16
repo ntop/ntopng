@@ -69,13 +69,7 @@ local function tracker_filter_pref(key)
      k == "alerts.slack_notifications_enabled" or
      k == "alerts.syslog_notifications_enabled" or
      k == "alerts.nagios_notifications_enabled" or
-     k == "alerts.webhook_notifications_enabled" or
-     starts(k, "alerts.email_") or 
-     starts(k, "alerts.smtp_") or 
-     starts(k, "alerts.slack_") or 
-     starts(k, "alerts.webhook_") or 
-     starts(k, "alerts.nagios_") or 
-     starts(k, "nagios_")
+     k == "alerts.webhook_notifications_enabled"
   then
     return true
   end
