@@ -61,6 +61,7 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
        chart = chart,
        threshold = active_monitoring_host.max_rtt,
        last_measure = column_last_rtt,
+       value_js_formatter = m_info.value_js_formatter,
        last_mesurement_time = column_last_update,
        last_ip = column_last_ip,
        granularity = active_monitoring_host.granularity,

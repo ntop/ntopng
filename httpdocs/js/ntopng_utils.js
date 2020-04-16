@@ -103,10 +103,6 @@ function fbits(bits, sizes) {
 //    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 }
 
-function fmbits(mbits) {
-  return fbits(mbits, ['Mbit/s', 'Gbit/s', 'Tbit/s']);
-}
-
 function export_rate(eps) {
   if(typeof(eps) === "undefined")
       return "-";

@@ -50,7 +50,7 @@ local function run_speedtest(hosts, granularity)
       -- NOTE: force_host is set, only a single host will be available
       for key, host in pairs(hosts) do
 	 collected_results[key] = {
-	    value = download_mbit,
+	    value = download_mbit * 1000000,
 	    resolved_addr = isp,
 	 }
       end
@@ -104,8 +104,8 @@ return {
 	 -- A list of additional timeseries (the am_host:rtt_* is always shown) to show in the charts.
 	 -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
 	 additional_timeseries = {},
-	 -- Js function to call to format the am_host:rtt_* chart value. See ntopng_utils.js .
-	 value_js_formatter = "fmbits",
+	 -- Js function to call to format the measurement value. See ntopng_utils.js .
+	 value_js_formatter = "fbits",
 	 -- A list of additional notes (localization strings) to show into the timeseries charts
 	 i18n_chart_notes = {},
 	 -- If set, the user cannot change the host

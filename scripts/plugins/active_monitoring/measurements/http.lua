@@ -124,7 +124,7 @@ return {
 	label=i18n("graphs.http_stats"),
 	metrics_labels = { i18n("graphs.name_lookup"), i18n("other")},
       }},
-      -- Js function to call to format the am_host:rtt_* chart value. See ntopng_utils.js .
+      -- Js function to call to format the measurement value. See ntopng_utils.js .
       value_js_formatter = "fmillis",
       -- A list of additional notes (localization strings) to show into the timeseries charts
       i18n_chart_notes = {

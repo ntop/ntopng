@@ -274,7 +274,10 @@ $(document).ready(function() {
                 data: 'last_measure',
                 className: 'dt-body-right dt-head-center',
                 render: function(data, type, row) {
-                    if(row.last_measure)
+                    if(row.value_js_formatter && row.last_measure)
+                        // Call the provided formatting function
+                        return window[row.value_js_formatter](row.last_measure);
+                    else if(row.last_measure)
                         return `${row.last_measure} ${row.unit}`
                     else
                         return "";
