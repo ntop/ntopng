@@ -58,8 +58,8 @@ function am_utils.getLastRttUpdate(host, measurement)
 
     if(parts and (#parts == 3)) then
       return {
-        when = parts[1],
-        value = parts[2],
+        when = tonumber(parts[1]),
+        value = tonumber(parts[2]),
         ip = parts[3],
       }
     end
