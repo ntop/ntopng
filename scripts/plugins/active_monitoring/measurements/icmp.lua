@@ -139,7 +139,7 @@ return {
       -- The localization string for the measurement unit (e.g. "ms", "Mbits")
       i18n_unit = "active_monitoring_stats.msec",
       -- The localization string for the RTT timeseries menu entry
-      i18n_rtt_ts_label = "graphs.num_ms_rtt",
+      i18n_am_ts_label = "graphs.num_ms_rtt",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
       operator = "gt",
       -- A list of additional timeseries (the am_host:rtt_* is always shown) to show in the charts.
@@ -148,7 +148,7 @@ return {
       -- Js function to call to format the measurement value. See ntopng_utils.js .
       value_js_formatter = "fmillis",
       -- The localization string for the RTT metric in the chart
-      i18n_rtt_ts_metric = "flow_details.round_trip_time",
+      i18n_am_ts_metric = "flow_details.round_trip_time",
       -- A list of additional notes (localization strings) to show into the timeseries charts
       i18n_chart_notes = {},
       -- If set, the user cannot change the host
@@ -160,8 +160,8 @@ return {
       collect_results = collect_icmp,
       granularities = {"min", "5mins", "hour"},
       i18n_unit = "active_monitoring_stats.msec",
-      i18n_rtt_ts_label = "graphs.num_ms_rtt",
-      i18n_rtt_ts_metric = "flow_details.round_trip_time",
+      i18n_am_ts_label = "graphs.num_ms_rtt",
+      i18n_am_ts_metric = "flow_details.round_trip_time",
       operator = "gt",
       additional_timeseries = {},
       value_js_formatter = "fmillis",

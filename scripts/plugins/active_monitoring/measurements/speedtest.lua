@@ -100,9 +100,9 @@ return {
 	 -- The localization string for the measurement unit (e.g. "ms", "Mbits")
 	 i18n_unit = "field_units.mbits",
 	 -- The localization string for the RTT timeseries menu entry
-	 i18n_rtt_ts_label = "active_monitoring_stats.download_speed",
+	 i18n_am_ts_label = "active_monitoring_stats.download_speed",
 	 -- The localization string for the RTT metric in the chart
-	 i18n_rtt_ts_metric = "active_monitoring_stats.download_speed",
+	 i18n_am_ts_metric = "active_monitoring_stats.download_speed",
 	 -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
 	 operator = "lt",
 	 -- A list of additional timeseries (the am_host:rtt_* is always shown) to show in the charts.

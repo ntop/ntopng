@@ -348,28 +348,28 @@ elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) t
   local schema = _GET["ts_schema"] or ("am_host:rtt" .. suffix)
   local selected_epoch = _GET["epoch"] or ""
   local tags = {ifid=getSystemInterfaceId(), host=host.host, measure=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
-  local rtt_ts_label
-  local rtt_metric_label
+  local am_ts_label
+  local am_metric_label
   local notes = {}
 
-  if measurement_info.i18n_rtt_ts_label then
-    rtt_ts_label = i18n(measurement_info.i18n_rtt_ts_label) or measurement_info.i18n_rtt_ts_label
+  if measurement_info.i18n_am_ts_label then
+    am_ts_label = i18n(measurement_info.i18n_am_ts_label) or measurement_info.i18n_am_ts_label
   else
-    rtt_ts_label = i18n("graphs.num_ms_rtt")
+    am_ts_label = i18n("graphs.num_ms_rtt")
   end
 
-  if measurement_info.i18n_rtt_ts_metric then
-    rtt_metric_label = i18n(measurement_info.i18n_rtt_ts_metric) or measurement_info.i18n_rtt_ts_metric
+  if measurement_info.i18n_am_ts_metric then
+    am_metric_label = i18n(measurement_info.i18n_am_ts_metric) or measurement_info.i18n_am_ts_metric
   else
-    rtt_metric_label = i18n("flow_details.round_trip_time")
+    am_metric_label = i18n("flow_details.round_trip_time")
   end
 
   url = url.."&page=historical"
 
   local timeseries = {
-    { schema="am_host:rtt" .. suffix, label=rtt_ts_label,
+    { schema="am_host:rtt" .. suffix, label=am_ts_label,
       value_formatter=(measurement_info.value_js_formatter or "fmillis"),
-      metrics_labels={rtt_metric_label},
+      metrics_labels={am_metric_label},
     },
   }
 
