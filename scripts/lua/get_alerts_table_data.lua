@@ -141,7 +141,7 @@ for _key,_value in ipairs(alerts) do
       local graph_utils = require "graph_utils"
 
       if graph_utils.getAlertGraphLink then
-	 column_chart    = graph_utils.getAlertGraphLink(getInterfaceId(ifname), _value, alert_info)
+	 column_chart    = graph_utils.getAlertGraphLink(getInterfaceId(ifname), _value, alert_info, engaged)
 	 if not isEmptyString(column_chart) then
 	    column_chart = "<a href='".. column_chart .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
 	 end
