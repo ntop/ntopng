@@ -76,6 +76,8 @@ function is_network_mask(what, optional_mask) {
 }
 
 function fbits(bits) {
+    const sizes = ['bit/s', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+
     if(typeof(bits) === "undefined")
       return "-";
 
