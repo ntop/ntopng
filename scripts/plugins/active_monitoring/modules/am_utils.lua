@@ -105,7 +105,7 @@ function am_utils.getRttSchemaForGranularity(granularity)
     str_granularity = granularity
   end
 
-  return("am_host:rtt_" .. (str_granularity or "min"))
+  return("am_host:value_" .. (str_granularity or "min"))
 end
 
 -- ##############################################

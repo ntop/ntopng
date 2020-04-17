@@ -852,7 +852,6 @@ function ts_utils.getPossiblyChangedSchemas()
     "redis:memory",
     "host:score",
     "periodic_script:timeseries_writes",
-    "am_host:rtt",
     "mac:arp_rqst_sent_rcvd_rpls",
   }
 end
