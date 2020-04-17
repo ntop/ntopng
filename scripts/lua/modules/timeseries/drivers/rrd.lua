@@ -216,7 +216,7 @@ local function create_rrd(schema, path, timestamp)
     -- RRD start time (--start/-b)
     -- It must be tuned so that the first point of the chart in the subsequent
     -- rrd_update will not be discarded
-    params[#params + 1] = timestamp - heartbeat
+    params[#params + 1] = timestamp - schema.options.insertion_step
   end
 
   local metrics_map = map_metrics_to_rrd_columns(#schema._metrics)
