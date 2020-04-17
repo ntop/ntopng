@@ -72,7 +72,9 @@ $(document).ready(function() {
             { data: 'name' },
             {
                 data: 'key',
-                render: (key) => `<a target="_newtab" href="/widgets/${key}'>${key}</a>`
+                render: (key) => {
+                    return `<a target="_newtab" href="/widgets/${key}">${key}</a>`
+                }
 	        },
             { data: 'type', render: (type) => `${capitaliseFirstLetter(type)}` },
             {

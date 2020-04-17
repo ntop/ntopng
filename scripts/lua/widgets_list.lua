@@ -32,7 +32,6 @@ local interfaces_list = {}
 interfaces_list[-1] = "None"
 
 for v, k in pairs(iface_names) do
-
     interface.select(k)
     local _ifstats = interface.getStats()
     interfaces_list[_ifstats.id] = getHumanReadableInterfaceName(_ifstats.description .. "")
@@ -49,7 +48,6 @@ local context = {
     info = ntop.getInfo(),
 }
 
--- print config_list.html template
 print(template.gen("pages/widgets_list.template", context))
 
 -- append the menu below the page

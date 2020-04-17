@@ -7,17 +7,22 @@ require ("lua_utils")
 local json = require("dkjson")
 local datasources_utils = require("datasources_utils")
 
+-- Widget Element Model:
+-- name: the widget name
+-- key: the string which identify the widget
+-- type: the default type to render a widget
+
 local REDIS_BASE_KEY = "ntopng.widgets"
 local DEFAULT_WIDGET_SRC = ntop.getHttpPrefix() .. "/lua/datasource/main.lua"
 
 local WIDGET_TYPES = {
     pie = {
-        i18n = 'Pie'
+        i18n = "Pie"
     },
     doughnut = {
         i18n = "Doughnut"
     },
-    polar = {
+    polarArea = {
         i18n = "Polar"
     },
     table = {
@@ -25,7 +30,22 @@ local WIDGET_TYPES = {
     },
     line = {
         i18n = "Line"
-    }
+    },
+    bar = {
+        i18n = "Bar"
+    },
+    radar = {
+        i18n = "radar"
+    },
+    bubble = {
+        i18n = "Bubble"
+    },
+    scatter = {
+        i18n = "Scatter"
+    },
+    horizontalBar = {
+        i18n = "Horizontal Bar"
+    },
 }
 
 local function create_hash_widget(name, ds_hash)
@@ -158,6 +178,39 @@ function widgets_utils.get_all_widgets()
     end
 
     return all_widgets
+end
+
+-------------------------------------------------------------------------------
+-- Get a widget stored in redis
+-- @return The searched widget if the key is valid, otherwise a nil value
+-------------------------------------------------------------------------------
+function widgets_utils.get_widget(widget_key)
+
+    local widget = ntop.getHashCache(REDIS_BASE_KEY, widget_key)
+    if isEmptyString(widget) then return nil end
+
+    return json.decode(widget)
+end
+
+-------------------------------------------------------------------------------
+-- Answer to a widget request
+-- @param widget Is a widget defined above
+-- @param params Is a table which contains overriding params.
+--               Example: {ifid, keyMAC, keyIP, keyASN, keyMETRIC }
+-------------------------------------------------------------------------------
+function widgets_utils.generate_response(widget, params)
+
+    -- This is a stub function right now
+
+    return json.encode({
+        widgetName = widget.name,
+        widgetType = widget.type,
+        success = true,
+        data = {
+            header = {"x", "y"},
+            rows = { {1, 1}, {1, 2}, {1, 2} }
+        }
+    })
 end
 
 return widgets_utils
