@@ -76,7 +76,7 @@ Prefs::Prefs(Ntop *_ntop) {
   categorization_key = NULL, zmq_encryption_pwd = NULL;
   enable_zmq_encryption = false, zmq_encryption_priv_key = NULL;
   export_zmq_encryption_key = NULL;
-  es_index = es_url = es_user = es_pwd = NULL;
+  es_index = es_url = es_user = es_pwd = es_host = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
@@ -123,7 +123,7 @@ Prefs::Prefs(Ntop *_ntop) {
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
-    es_user = strdup((char*)""), es_pwd = strdup((char*)"");
+    es_user = strdup((char*)""), es_pwd = strdup((char*)""), es_host = strdup((char*)"");
 
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
@@ -179,6 +179,7 @@ Prefs::~Prefs() {
   if(es_url)           free(es_url);
   if(es_user)          free(es_user);
   if(es_pwd)           free(es_pwd);
+  if(es_host)          free(es_host);
   if(instance_name)    free(instance_name);
   free(http_prefix);
   free(local_networks);
@@ -1233,15 +1234,24 @@ int Prefs::setOption(int optkey, char *optarg) {
       if(elastic_index_type
 	 && elastic_index_name
 	 && elastic_url) {
-	free(es_type), free(es_index), free(es_url), free(es_user), free(es_pwd);
+	free(es_type), free(es_index), free(es_url), free(es_user), free(es_pwd), free(es_host);
 
 	es_type  = strdup(elastic_index_type);
 	es_index = strdup(elastic_index_name);
 	es_url   = strdup(elastic_url);
 	es_user  = strdup(elastic_user ? elastic_user : "");
 	es_pwd   = strdup(elastic_pwd ? elastic_pwd : "");
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using ElasticSearch for data dump [%s][%s][%s]",
-				     es_type, es_index, es_url);
+
+	es_host = strdup(es_url);
+	if(!strncmp(es_host, "http://", 7))  // url starts either with http or https
+	  Utils::tokenizer(es_host + 7, '/', NULL);
+        else if(!strncmp(es_host, "https://", 8))
+	  Utils::tokenizer(es_host + 8, '/', NULL);
+	else
+	  Utils::tokenizer(es_host, '/', NULL);
+
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using ElasticSearch for data dump [%s][%s][%s][%s]",
+				     es_type, es_index, es_url, es_host);
 	dump_flows_on_es = true;
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,

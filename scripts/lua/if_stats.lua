@@ -335,6 +335,8 @@ page_utils.print_navbar(title, url,
    )
 
 if((page == "overview") or (page == nil)) then
+   tprint(os.date("!%Y-%m-%dT%H:%M:%S.0Z", os.time()))
+
    local tags = {ifid = ifstats.id}
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")

@@ -2308,6 +2308,7 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
 
   ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
   ndpi_serialize_string_int32(s, "proto", protocol);
+  ndpi_serialize_string_string(s, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
   ndpi_serialize_string_int32(s, "l7_master_proto", ndpiDetectedProtocol.master_protocol);
   ndpi_serialize_string_int32(s, "l7_proto", ndpiDetectedProtocol.app_protocol);
 

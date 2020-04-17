@@ -351,36 +351,53 @@ end
 -- ##############################################
 
 local function load_plugin_alert_endpoints(endpoints_prefs_entries, plugin)
-  local endpoints_path = os_utils.fixPath(plugin.path .. "/alert_endpoints")
+   local endpoints_path = os_utils.fixPath(plugin.path .. "/alert_endpoints")
 
-  for fname in pairs(ntop.readdir(endpoints_path)) do
-    if(fname == "prefs_entries.lua") then
-      local prefs_entries = dofile(os_utils.fixPath(endpoints_path .. "/" .. fname))
+   if not ntop.exists(endpoints_path) then
+      -- No alert endpoints for this plugin
+      return true
+   end
 
-      if(prefs_entries) then
-        if(prefs_entries.entries == nil) then
-          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing field 'entries' in %s (prefs_entries.lua)", plugin.key))
-          return(false)
-        end
-        if(prefs_entries.endpoint_key == nil) then
-          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing field 'endpoint_key' in %s (prefs_entries.lua)", plugin.key))
-          return(false)
-        end
-        if(endpoints_prefs_entries[prefs_entries.endpoint_key] ~= nil) then
-          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Endpoint key '%s' already defined, error in %s (prefs_entries.lua)", prefs_entries.endpoint_key, plugin.key))
-          return(false)
-        end
+   local prefs_entries_fname = os_utils.fixPath(endpoints_path .. "/prefs_entries.lua")
+   if not ntop.exists(prefs_entries_fname) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required 'prefs_entries.lua' in %s", plugin.key))
+      return false
+   end
 
-        endpoints_prefs_entries[prefs_entries.endpoint_key] = prefs_entries
+   local prefs_entries = dofile(prefs_entries_fname)
+   if prefs_entries then
+      if not prefs_entries.entries then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing field 'entries' in %s (prefs_entries.lua)", plugin.key))
+	 return false
       end
-    else
-      if not file_utils.copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
-        return(false)
+      if not prefs_entries.endpoint_key then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing field 'endpoint_key' in %s (prefs_entries.lua)", plugin.key))
+	 return false
       end
-    end
-  end
+      if endpoints_prefs_entries[prefs_entries.endpoint_key] then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Endpoint key '%s' already defined, error in %s (prefs_entries.lua)", prefs_entries.endpoint_key, plugin.key))
+	 return false
+      end
 
-  return(true)
+      endpoints_prefs_entries[prefs_entries.endpoint_key] = prefs_entries
+   end
+
+   for fname in pairs(ntop.readdir(endpoints_path)) do
+      if fname ~= "prefs_entries.lua" then
+	 -- Execute the alert endpoint and call its method onLoad, if present
+	 local fname_path = os_utils.fixPath(endpoints_path .. "/" .. fname)
+	 local endpoint = dofile(fname_path)
+	 if endpoint and endpoint.onLoad then
+	    endpoint.onLoad()
+	 end
+
+	 if not file_utils.copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
+	    return false
+	 end
+      end
+   end
+
+   return true
 end
 
 -- ##############################################

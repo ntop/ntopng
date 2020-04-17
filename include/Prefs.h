@@ -122,7 +122,7 @@ class Prefs {
   int redis_port;
   int dns_mode;
   bool json_labels_string_format;
-  char *es_type, *es_index, *es_url, *es_user, *es_pwd;
+  char *es_type, *es_index, *es_url, *es_user, *es_pwd, *es_host;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
   int mysql_port;
   char *ls_host,*ls_port,*ls_proto;
@@ -285,6 +285,7 @@ class Prefs {
   inline char* get_es_url()   { return(es_url);   };
   inline char* get_es_user()  { return(es_user);  };
   inline char* get_es_pwd()   { return(es_pwd);   };
+  const inline char* get_es_host()  { return(es_host);  };
   inline bool shutdownWhenDone() { return(shutdown_when_done); }
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
   inline bool use_promiscuous()         { return(use_promiscuous_mode);  };

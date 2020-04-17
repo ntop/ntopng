@@ -36,37 +36,19 @@ static void* esLoop(void* ptr) {
 /* **************************************** */
 
 ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
-  char *es_url, *es_host;
-
   snprintf(es_version, sizeof(es_version), "%c", '0');
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
   reportDrops = false;
 
-  if (!(es_template_push_url = (char*)malloc(MAX_PATH))
-      || !(es_version_query_url = (char*)malloc(MAX_PATH))
-      || !(es_url = strdup(ntop->getPrefs()->get_es_url())))
+  if(!(es_template_push_url = (char*)malloc(MAX_PATH))
+     || !(es_version_query_url = (char*)malloc(MAX_PATH)))
     throw "Not enough memory";
 
   es_template_push_url[0] = '\0', es_version_query_url[0] = '\0';
-
-  // Prepare ES urls (keep only host and port by retaining only characters left of the first slash)
-  if(!strncmp(es_url, "http://", 7)){  // url starts either with http or https
-    Utils::tokenizer(es_url + 7, '/', &es_host);
-    snprintf(es_template_push_url, MAX_PATH, "http://%s/_template/ntopng_template", es_host);
-    snprintf(es_version_query_url, MAX_PATH, "http://%s/", es_host);
-  } else if(!strncmp(es_url, "https://", 8)){
-    Utils::tokenizer(es_url + 8, '/', &es_host);
-    snprintf(es_template_push_url, MAX_PATH, "https://%s/_template/ntopng_template", es_host);
-    snprintf(es_version_query_url, MAX_PATH, "https://%s/", es_host);
-  } else {
-    Utils::tokenizer(es_url, '/', &es_host);
-    snprintf(es_template_push_url, MAX_PATH, "%s/_template/ntopng_template", es_host);
-    snprintf(es_version_query_url, MAX_PATH, "%s/", es_host);
-  }
-
-  free(es_url);
+  snprintf(es_template_push_url, MAX_PATH, "%s/_template/ntopng_template", ntop->getPrefs()->get_es_host());
+  snprintf(es_version_query_url, MAX_PATH, "%s/", ntop->getPrefs()->get_es_host());
 }
 
 /* **************************************** */
