@@ -183,12 +183,12 @@ for _, serie in pairs(res.series) do
 end
 
 if extended_times then
-  if res.series then
+  if res.series and res.step then
     for k, serie in pairs(res.series) do
       serie.data = ts_common.serieWithTimestamp(serie.data, tstart, res.step)
     end
   end
-  if res.additional_series then
+  if res.additional_series and res.step then
     for k, serie in pairs(res.additional_series) do
       res.additional_series[k] = ts_common.serieWithTimestamp(serie, tstart, res.step)
     end

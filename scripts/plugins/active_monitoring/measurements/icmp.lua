@@ -147,6 +147,8 @@ return {
       additional_timeseries = {},
       -- Js function to call to format the measurement value. See ntopng_utils.js .
       value_js_formatter = "fmillis",
+      -- The raw measurement value is multiplied by this factor before being written into the chart
+      chart_scaling_value = 1,
       -- The localization string for the RTT metric in the chart
       i18n_am_ts_metric = "flow_details.round_trip_time",
       -- A list of additional notes (localization strings) to show into the timeseries charts
@@ -165,6 +167,7 @@ return {
       operator = "gt",
       additional_timeseries = {},
       value_js_formatter = "fmillis",
+      chart_scaling_value = 1,
       i18n_chart_notes = {},
       force_host = nil,
     },

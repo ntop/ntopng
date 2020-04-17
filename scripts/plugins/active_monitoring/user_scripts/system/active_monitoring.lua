@@ -107,7 +107,13 @@ local function run_rtt_check(params, all_hosts, granularity)
     local operator = info.measurement.operator or "gt"
 
     if params.ts_enabled then
-       ts_utils.append(rtt_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = rtt}, when)
+       local value = rtt
+
+       if info.measurement.chart_scaling_value then
+         value = value * info.measurement.chart_scaling_value
+       end
+
+       ts_utils.append(rtt_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = value}, when)
     end
 
     active_monitoring_utils.setLastRttUpdate(key, when, rtt, resolved_host)

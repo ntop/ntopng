@@ -50,7 +50,7 @@ local function run_speedtest(hosts, granularity)
       -- NOTE: force_host is set, only a single host will be available
       for key, host in pairs(hosts) do
 	 collected_results[key] = {
-	    value = download_mbit * 1000000,
+	    value = download_mbit,
 	    resolved_addr = isp,
 	 }
       end
@@ -110,6 +110,8 @@ return {
 	 additional_timeseries = {},
 	 -- Js function to call to format the measurement value. See ntopng_utils.js .
 	 value_js_formatter = "fbits",
+	 -- The raw measurement value is multiplied by this factor before being written into the chart
+	 chart_scaling_value = 1000000,
 	 -- A list of additional notes (localization strings) to show into the timeseries charts
 	 i18n_chart_notes = {},
 	 -- If set, the user cannot change the host

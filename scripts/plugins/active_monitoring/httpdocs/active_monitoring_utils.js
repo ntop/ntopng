@@ -324,10 +324,7 @@ $(document).ready(function() {
                 sortable: false,
                 render: function(data, type, row) {
                     if(type === 'display' || type === 'filter') {
-                        if(row.value_js_formatter && row.last_measure)
-                            // Call the provided formatting function
-                            return window[row.value_js_formatter](row.last_measure);
-                        else if(row.last_measure)
+                        if(row.last_measure)
                             return `${row.last_measure} ${row.unit}`
                         else
                             return "";

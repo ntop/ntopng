@@ -128,6 +128,8 @@ return {
 	label=i18n("graphs.http_stats"),
 	metrics_labels = { i18n("graphs.name_lookup"), i18n("other")},
       }},
+      -- The raw measurement value is multiplied by this factor before being written into the chart
+      chart_scaling_value = 1,
       -- Js function to call to format the measurement value. See ntopng_utils.js .
       value_js_formatter = "fmillis",
       -- A list of additional notes (localization strings) to show into the timeseries charts
@@ -151,6 +153,7 @@ return {
 	label=i18n("graphs.http_stats"),
 	metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") },
       }},
+      chart_scaling_value = 1,
       value_js_formatter = "fmillis",
       i18n_chart_notes = {
 	"active_monitoring_stats.app_connect_descr",
