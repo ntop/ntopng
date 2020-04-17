@@ -443,7 +443,10 @@ static u_int64_t getCounterInc(u_int64_t old_v, u_int64_t new_v) {
 
 /* **************************************************** */
 
-/* This method is only executed by the periodic script second.lua */
+/* This method is only executed by the periodic script second.lua 
+ * Note: this is required as libpcap does not provide packets/bytes
+ * statistics per direction. Make sure ethStats are not increased
+ * by the packet processing function when this is in place. */
 void PcapInterface::updateDirectionStats() {
   ProtoStats current_stats_in, current_stats_out;
 
