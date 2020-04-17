@@ -1967,7 +1967,7 @@ local lang = {
     ["VlanHash"] = "VLANs",
   },
   ["host_config"] = {
-    ["active_monitor_enable"] = "Active Monitoring can be used to monitor the status and latency of hosts. It can be enabled <a href=\"%{url}\">here</a>.",
+    ["active_monitor_enable"] = "Active Monitoring is currently disabled. It can be enabled <a href=\"%{url}\">here</a>.",
     ["drop_all_host_traffic"] = "Drop All Host Traffic",
     ["hide_from_top"] = "Hide From Top Talkers",
     ["hide_host_from_top_descr"] = "Do not account host %{host} in top talkers computation",

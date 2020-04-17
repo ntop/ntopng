@@ -5,8 +5,8 @@ return {
   menu_entry = {key = "active_monitor", i18n_title = "active_monitoring_stats.active_monitoring", section = "system_stats"},
 
   is_shown = function()
-    local user_scripts = require("user_scripts")
-
-    return(user_scripts.isSystemScriptEnabled("active_monitoring"))
+    -- The active monitoring page is always shown. If the plugin is disabled,
+    -- the page itself will show a warning
+    return(true)
   end
 }

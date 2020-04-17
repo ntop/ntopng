@@ -15,6 +15,7 @@ local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "a
 
 local graph_utils = require("graph_utils")
 local alert_utils = require("alert_utils")
+local user_scripts = require("user_scripts")
 
 local ts_creation = plugins_utils.timeseriesCreationEnabled()
 
@@ -36,6 +37,19 @@ local base_url = plugins_utils.getUrl("active_monitoring_stats.lua") .. "?ifid="
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info
+
+if(not user_scripts.isSystemScriptEnabled("active_monitoring")) then
+  -- The active monitoring is disabled
+  print[[<div class="alert alert-warning" role="alert">]]
+  print(i18n("host_config.active_monitor_enable", {
+    url=ntop.getHttpPrefix() .. '/lua/admin/edit_configset.lua?confset_id=0&subdir=system&user_script=active_monitoring#all'
+  }))
+  print[[</div>]]
+
+  dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+
+  return
+end
 
 if(not isEmptyString(host) and not isEmptyString(measurement)) then
   host = active_monitoring_utils.getHost(host, measurement)
