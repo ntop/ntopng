@@ -91,6 +91,7 @@ local function validateEmptyOr(other_validation)
       end
    end
 end
+http_lint.validateEmptyOr = validateEmptyOr
 
 -- #################################################################
 
@@ -110,17 +111,10 @@ local function validateNumber(p)
       return false
    end
 end
+http_lint.validateNumber = validateNumber
 
 local function validateSyslogFormat(p)
    if p == "plaintext" or p == "json" then
-      return true
-   end
-
-   return false
-end
-
-local function validateMeasurement(p)
-   if p == "icmp" or p == "icmp6" or p == "http" or p == "https" or "speedtest" then
       return true
    end
 
@@ -1706,14 +1700,7 @@ local known_parameters = {
    ["icmp_type"]               = validateNumber,
    ["icmp_cod"]                = validateNumber,
    ["hosts_only"]              = validateBool,
-   ["rtt_hosts"]               = validateListOfTypeInline(validateSingleWord), -- TODO
-   ["am_host"]                = validateSingleWord,
-   ["old_rtt_host"]            = validateSingleWord,
-   ["rtt_max"]                 = validateEmptyOr(validateNumber),
-   ["rtt_url"]                 = validateUnquoted,
    ["referal_url"]             = validateUnquoted,
-   ["measurement"]             = validateMeasurement,
-   ["old_measurement"]         = validateMeasurement,
    ["disabled_status"]         = validateListOfTypeInline(validateNumber),
    ["redis_command"]           = validateSingleWord,
    ["flow_calls_drops"]        = validateOnOff,
