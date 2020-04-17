@@ -374,12 +374,17 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
   virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
 
+  inline virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
+		u_int32_t num_bytes, u_int pkt_overhead) {
+    ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
+  };
+
   inline void _incStats(bool ingressPacket, time_t when,
 			u_int16_t eth_proto,
 			u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
 			u_int8_t l4proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
-    ethStats.incStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
+    incEthStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
     ndpiStats->incCategoryStats(when, ndpi_category, 0 /* see above comment */, pkt_len);
