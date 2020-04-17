@@ -27,6 +27,7 @@ local compare_backward = _GET["ts_compare"]
 local tags      = _GET["ts_query"]
 local extended_times  = _GET["extended"]
 local ts_aggregation  = _GET["ts_aggregation"]
+local no_fill = tonumber(_GET["no_fill"])
 
 if _POST["payload"] ~= nil then
   -- REST request, use extended mode
@@ -51,6 +52,9 @@ local options = {
   target_aggregation = ts_aggregation,
 }
 
+if(no_fill == 1) then
+  options.fill_value = 0/0 -- NaN
+end
 
 -- Not necessary anymore as the influxdb driver:query method uses the
 -- series last timestamp to avoid going in the future

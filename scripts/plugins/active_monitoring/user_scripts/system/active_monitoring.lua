@@ -135,6 +135,11 @@ local function run_rtt_check(params, all_hosts, granularity)
      if(hosts_rtt[key] == nil) then
        if(do_trace) then print("[TRIGGER] Host "..ip.."/"..key.." is unreacheable\n") end
        triggerRttAlert(ip, key, 0, 0, granularity)
+
+       if params.ts_enabled then
+         -- Also write 0 in its timeseries to indicate that the host is unreacheable
+         ts_utils.append(rtt_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = 0}, when)
+       end
      end
   end
 

@@ -1674,6 +1674,7 @@ local known_parameters = {
    ["ts_schema"]               = validateSingleWord,
    ["ts_query"]                = validateListOfTypeInline(validateUnquoted),
    ["ts_compare"]              = validateZoom,
+   ["no_fill"]                 = validateBool,
    ["detail_view"]             = validateSingleWord,
    ["initial_point"]           = validateBool,
    ["extract_now"]             = validateBool,
