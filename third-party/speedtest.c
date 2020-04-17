@@ -410,7 +410,7 @@ static int init_instant_speed(double **p_speed, int *p_speed_num)
 static int test_download(char *p_url, int num_thread, int dsize, char init)
 {
   struct timeval s_time;
-  int time, i, error;
+  int time, i;
   struct thread_para paras[THREAD_NUM_MAX];
   double sum = 0;
   double speed = 0;
@@ -421,11 +421,14 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
   init_instant_speed(&instant_speed, &speed_num);
 
   for ( i = 0; i < num_thread; i++) {
+    //int error;
 
     memset(&paras[i], 0, sizeof(struct thread_para));
     sprintf(paras[i].url, "%s/speedtest/random%dx%d.jpg", p_url, dsize, dsize);
     paras[i].result = 0;
-    error = pthread_create(&paras[i].tid, NULL, do_download, (void*)&paras[i]);
+
+    //error = 
+    pthread_create(&paras[i].tid, NULL, do_download, (void*)&paras[i]);
 
     // if ( error != 0) printf("Can't Run thread num %d, error %d\n", i, error);
   }
