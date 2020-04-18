@@ -92,9 +92,8 @@ end
 local modules = nil
 
 local function loadModules()
-  if modules == nil then
-    modules = getEnabledAlertNotificationModules()
-  end
+  -- Don't cache modules as otherwise GUI preferences such as enable/disable will become ineffective
+  modules = getEnabledAlertNotificationModules()
 
   return(modules)
 end
