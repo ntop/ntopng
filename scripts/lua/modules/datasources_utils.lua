@@ -139,6 +139,16 @@ function datasources_utils.delete_source(hash_source)
 end
 
 -------------------------------------------------------------------------------
+-- Get a datasource stored in redis
+-- @return The searched datasources stored in redis, or nil in case of error
+-------------------------------------------------------------------------------
+function datasources_utils.get(ds_hash)
+   local ds = ntop.getHashCache(REDIS_BASE_KEY, ds_hash) or "{}"
+   
+   return(json.decode(ds))
+end
+
+-------------------------------------------------------------------------------
 -- Get all datasources stored in redis
 -- @return An array of datasources stored in redis, if no any sources was found
 -- it returns an empty array
@@ -160,20 +170,20 @@ function datasources_utils.get_all_sources()
 end
 
 function datasources_utils.prepareResponse(datasets, timestamps, unit)
-
-    local response = {}
-    if (datasets == nil) then return {} end
-
-    if (timestamps ~= nil) then
-        response.timestamps = timestamps
-    end
-    if (unit ~= nil) then
-        response.unit = unit
-    end
-
-    response.data = datasets
-
-    return response
+   local response = {}
+   
+   if (datasets == nil) then return {} end
+   
+   if (timestamps ~= nil) then
+      response.timestamps = timestamps
+   end
+   if (unit ~= nil) then
+      response.unit = unit
+   end
+   
+   response.data = datasets
+   
+   return response
 end
 
 return datasources_utils

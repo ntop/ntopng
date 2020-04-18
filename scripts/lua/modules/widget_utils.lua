@@ -1,6 +1,7 @@
 --
 -- (C) 2020 - ntop.org
 --
+
 local widgets_utils = {}
 
 require ("lua_utils")
@@ -13,7 +14,6 @@ local datasources_utils = require("datasources_utils")
 -- type: the default type to render a widget
 
 local REDIS_BASE_KEY = "ntopng.widgets"
-local DEFAULT_WIDGET_SRC = ntop.getHttpPrefix() .. "/lua/datasource/main.lua"
 
 local WIDGET_TYPES = {
     pie = {
@@ -53,7 +53,6 @@ local function create_hash_widget(name, ds_hash)
 end
 
 local function check_widget_params(name, ds_hash, widget_type, params)
-
     if (isEmptyString(name)) then
         return false, "The widget name cannot be empty!"
     end
@@ -61,6 +60,7 @@ local function check_widget_params(name, ds_hash, widget_type, params)
     if (isEmptyString(ds_hash)) then
         return false, "The associated datasource hash cannot be empty!"
     end
+
     -- Check if the passed ds hash is valid
     if (not datasources_utils.is_hash_valid(ds_hash)) then
         return false, "The passed hash is not valid!"
@@ -88,8 +88,8 @@ end
 --         arguments meet the precondition, otherwise `false`
 -------------------------------------------------------------------------------
 function widgets_utils.add_widget(name, ds_hash, widget_type, params)
-
     local args_are_valid, message = check_widget_params(name, ds_hash, widget_type, params)
+
     if (not args_are_valid) then
         return args_are_valid, message
     end
@@ -101,8 +101,7 @@ function widgets_utils.add_widget(name, ds_hash, widget_type, params)
         name = name,
         ds_hash = ds_hash,
         params = params,
-        type = widget_type,
-        src = DEFAULT_WIDGET_SRC
+        type = widget_type
     }
 
     ntop.setHashCache(REDIS_BASE_KEY, key_widget, json.encode(new_widget))
@@ -132,7 +131,7 @@ function widgets_utils.edit_widget(widget_key, name, ds_hash, widget_type, param
     widget.ds_hash = ds_hash
     widget.type = widget_type
     widget.params = params
-
+    
     ntop.delHashCache(REDIS_BASE_KEY, widget_key)
     ntop.setHashCache(REDIS_BASE_KEY, widget_key, json.encode(widget))
 
@@ -198,19 +197,26 @@ end
 -- @param params Is a table which contains overriding params.
 --               Example: {ifid, keyMAC, keyIP, keyASN, keyMETRIC }
 -------------------------------------------------------------------------------
-function widgets_utils.generate_response(widget, params)
+function widgets_utils.generate_response(widget, params)   
+   local ds = datasources_utils.get(widget.ds_hash)
 
-    -- This is a stub function right now
+   local dirs = ntop.getDirs()
+   package.path = dirs.installdir .. "/scripts/lua/datasources/?.lua;" .. package.path
 
-    return json.encode({
-        widgetName = widget.name,
-        widgetType = widget.type,
-        success = true,
-        data = {
-            header = {"x", "y"},
-            rows = { {1, 1}, {1, 2}, {1, 2} }
-        }
-    })
+   -- Remove trailer .lua from the origin
+   local origin = ds.origin:gsub("%.lua", "")   
+
+   -- Call the origin to return
+   local response = require(origin)
+
+   response = response:getData(widget.type)
+   
+   return json.encode({
+	 widgetName = widget.name,
+	 widgetType = widget.type,
+	 success = true,
+	 data = response
+   })
 end
 
 return widgets_utils

@@ -1,0 +1,11 @@
+{% for _, id in ipairs(context.widgets) do %}
+<div class="container-fluid mb-5">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="ntop-widget" data-ntop-widget-key="{* id *}"></div>
+        </div>
+    </div>
+</div>
+{% end %}
+
+<script type="module" src="{{ ntop.getHttpPrefix() }}/js/widgets/ntopWidgetUtils.js"></script>

@@ -68,9 +68,7 @@ export default class NtopWidget {
         return fetch(endpoint);
     }
     buildWidgetEndpoint(ntopngEndpointUrl) {
-        // http://localhost:3000/lua/widgets/sample.lua
-        // `/lua/widgets/${this.widgetKey}`
-        return new URL(`/lua/widgets/sample.lua`, ntopngEndpointUrl.toString());
+        return new URL(`/lua/widgets/widget.lua`, ntopngEndpointUrl.toString());
     }
     serializeParamaters() {
         return {

@@ -15,6 +15,7 @@ local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local template = require "template_utils"
 local json = require "dkjson"
+local widget_utils = require("widget_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -24,15 +25,24 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.widgets_list)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title("Widgets Test")
 
+-- List all defined widgets
+local all_widgets = widget_utils.get_all_widgets()
+
+-- Extract the widget keys
+local widgets = {}
+for _, w in ipairs(all_widgets) do
+   table.insert(widgets, w.key)
+end
+
+-- Display them all
 local context = {
-    widgets_test = {
-    },
+   widgets = widgets,
     template_utils = template,
     page_utils = page_utils,
     info = ntop.getInfo(),
 }
 
-print(template.gen("pages/widgets_test.template", context))
+print(template.gen("pages/simple_widgets_list.template", context))
 
 -- append the menu below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
