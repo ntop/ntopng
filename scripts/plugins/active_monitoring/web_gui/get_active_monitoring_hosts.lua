@@ -37,7 +37,8 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
     local column_last_update = ""
     local column_last_rtt = ""
     local last_update = active_monitoring_utils.getLastRttUpdate(active_monitoring_host.host, active_monitoring_host.measurement)
-
+    local alerted = 0
+    
     if(last_update ~= nil) then
       local tdiff = os.time() - last_update.when
 
@@ -53,10 +54,21 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
 
     if(column_last_rtt == "") then chart = "" end
 
+    if(m_info.operator == "gt") then
+       if(column_last_rtt > active_monitoring_host.max_rtt) then
+	  alerted = 1
+       end
+    else
+       if(column_last_rtt < active_monitoring_host.max_rtt) then
+	  alerted = 1
+       end
+    end
+    
     res[#res + 1] = {
        key = key,
        url = active_monitoring_host.label,
        host = active_monitoring_host.host,
+       alerted = alerted,
        measurement = active_monitoring_host.measurement,
        chart = chart,
        threshold = active_monitoring_host.max_rtt,

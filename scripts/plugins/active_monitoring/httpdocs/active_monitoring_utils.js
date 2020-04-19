@@ -46,7 +46,6 @@ $(document).ready(function() {
             const cur_measurement = data.measurement || DEFAULT_MEASUREMENT;
             const $dialog = $('#rtt-edit-modal');
             dialogDisableUniqueMeasurements($dialog, cur_measurement);
-
             // fill input boxes
             $('#input-edit-threshold').val(data.threshold || DEFAULT_THRESHOLD);
             $('#select-edit-measurement').val(cur_measurement);
@@ -190,7 +189,6 @@ $(document).ready(function() {
             $('#rtt-alert').addClass('alert-success').removeClass('alert-danger');
 
             if (data.success) {
-
                 if (!rtt_alert_timeout) clearTimeout(rtt_alert_timeout);
                 rtt_alert_timeout = setTimeout(() => {
                     $('#rtt-alert').fadeOut();
@@ -205,7 +203,6 @@ $(document).ready(function() {
 
             const error_message = data.error;
             $(`#rtt-${action}-modal span.invalid-feedback`).html(error_message).show();
-
         })
         .fail((status) => {
             $('#rtt-alert').removeClass('alert-success').addClass('alert-danger');
@@ -279,7 +276,22 @@ $(document).ready(function() {
         },
         columns: [
             {
-                data: 'url'
+                data: 'url',
+		
+		render: function(href, type, row) {
+                    if(type === 'display' || type === 'filter') {
+                        if (href == "" || href == undefined) return "";
+
+			if(row.alerted) {
+			    return ` ${href} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
+			} else {
+                            return `${href}`
+			}
+                    }
+		    
+                    // The raw data must be returned here for sorting
+                    return(href);
+                }
             },
             {
                 data: 'chart',
