@@ -1,9 +1,4 @@
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <button data-toggle="modal" data-target="#add-datasource-modal" class="btn btn-primary my-3">Add Datasource</button>
-        </div>
-    </div>
     <div class="row mb-3">
         <div class="col-12">
             <table class="table w-100 table-bordered table-striped table-hover my-3" id="datasources-list">

@@ -26,20 +26,22 @@ export default class NtopWidget {
                 this.widgetName = widgetEndPointResponse.widgetName;
                 this.widgetType = this.widgetType || widgetEndPointResponse.widgetType;
                 this.widgetFetchedData = widgetEndPointResponse.data;
-                console.log(this.widgetFetchedData);
+                this.widgetInitialized = true;
             }
             catch (e) {
-                console.error(e);
                 throw new Error(`Something went wrong when fetching widget data.`);
             }
         });
     }
-    async renderWidget() {
-        if (this.widgetFetchedData == null) throw new Error('The widget has not been initialzed yet!');
-        const selectedType = this.widgetType;
-        const widgetTemplate = this.getWidgetTemplate(selectedType);
-        this.widgetTemplate = widgetTemplate;
-        this.widgetElementDom.appendChild(widgetTemplate.render(this.widgetFetchedData))
+    renderWidget() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.widgetInitialized)
+                throw new Error('The widget has not been initialzed yet!');
+            const selectedType = this.widgetType;
+            const widgetTemplate = this.getWidgetTemplate(selectedType);
+            this.widgetTemplate = widgetTemplate;
+            this.widgetElementDom.appendChild(widgetTemplate.render(this.widgetFetchedData))
+        });
     }
     getWidgetTemplate(widgetType) {
         switch (widgetType) {
@@ -54,18 +56,18 @@ export default class NtopWidget {
             case 'bubble':
             case 'pie':
             case 'scatter':
-                return new ChartTemplate();
+                return new ChartTemplate(widgetType);
             default:
                 throw new Error('The widget type is not valid!');
-                break;
         }
     }
     fetchWidgetData() {
         const endpoint = this.widgetEndPoint;
-        endpoint.search = new URLSearchParams({
+        const searchParams = new URLSearchParams({
             JSON: JSON.stringify(this.serializeParamaters())
-        })
-        return fetch(endpoint);
+        });
+        endpoint.search = searchParams.toString();
+        return fetch(endpoint.toString());
     }
     buildWidgetEndpoint(ntopngEndpointUrl) {
         return new URL(`/lua/widgets/widget.lua`, ntopngEndpointUrl.toString());

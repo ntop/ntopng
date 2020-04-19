@@ -14,6 +14,7 @@ $(document).ready(function() {
         lengthChange: false,
         pagingType: 'full_numbers',
         stateSave: true,
+        dom: 'lfBrtip',
         initComplete: function() {
 
         },
@@ -28,7 +29,23 @@ $(document).ready(function() {
                 last: '»'
             }
         },
-       ajax: {
+        buttons: {
+            buttons: [
+                {
+                    text: '<i class="fas fa-plus"></i>',
+                    className: 'btn-link',
+                    action: function(e, dt, node, config) {
+                        $('#add-datasource-modal').modal('show');
+                    }
+                }
+            ],
+            dom: {
+                button: {
+                    className: 'btn btn-link'
+                }
+            }
+        },
+        ajax: {
             url: `${http_prefix}/lua/get_datasources.lua`,
             type: 'GET',
             dataSrc: ''
@@ -48,7 +65,7 @@ $(document).ready(function() {
                 render: function() {
                     return (`
                         <a data-toggle='modal' href='#edit-datasource-modal' class="badge badge-info">Edit</a>
-                        <a data-toggle='modal' href='#remove-datasource-modal' class="badge badge-danger">Remove</a>
+                        <a data-toggle='modal' href='#remove-datasource-modal' class="badge badge-danger">Delete</a>
                     `);
                 }
             }

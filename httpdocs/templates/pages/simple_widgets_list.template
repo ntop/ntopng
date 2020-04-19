@@ -1,11 +1,12 @@
-{% for _, id in ipairs(context.widgets) do %}
 <div class="container-fluid mb-5">
     <div class="row">
+        {% for _, id in ipairs(context.widgets) do %}
         <div class="col-md-6">
             <div class="ntop-widget" data-ntop-widget-key="{* id *}"></div>
         </div>
+        {% end %}
     </div>
 </div>
-{% end %}
 
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/Chart.bundle.js"></script>
 <script type="module" src="{{ ntop.getHttpPrefix() }}/js/widgets/ntopWidgetUtils.js"></script>

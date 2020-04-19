@@ -144,8 +144,8 @@ $(document).ready(function() {
         let old_val_ok = false;
         $granularities.find('option').remove();
 
-        for(var i=0; i<info.granularities.length; i++) {
-            var g_info = info.granularities[i];
+        for(let i=0; i<info.granularities.length; i++) {
+            let g_info = info.granularities[i];
             if(g_info.value == old_val)
                 old_val_ok = true;
 

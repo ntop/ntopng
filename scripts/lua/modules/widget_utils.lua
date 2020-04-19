@@ -35,7 +35,7 @@ local WIDGET_TYPES = {
         i18n = "Bar"
     },
     radar = {
-        i18n = "radar"
+        i18n = "Radar"
     },
     bubble = {
         i18n = "Bubble"
@@ -131,7 +131,7 @@ function widgets_utils.edit_widget(widget_key, name, ds_hash, widget_type, param
     widget.ds_hash = ds_hash
     widget.type = widget_type
     widget.params = params
-    
+
     ntop.delHashCache(REDIS_BASE_KEY, widget_key)
     ntop.setHashCache(REDIS_BASE_KEY, widget_key, json.encode(widget))
 
@@ -195,22 +195,51 @@ end
 -- Answer to a widget request
 -- @param widget Is a widget defined above
 -- @param params Is a table which contains overriding params.
---               Example: {ifid, keyMAC, keyIP, keyASN, keyMETRIC }
+--               Example: {ifid, keyMAC, keyIP, keyASN, keyMetric }
 -------------------------------------------------------------------------------
-function widgets_utils.generate_response(widget, params)   
+function widgets_utils.generate_response(widget, params)
    local ds = datasources_utils.get(widget.ds_hash)
 
    local dirs = ntop.getDirs()
    package.path = dirs.installdir .. "/scripts/lua/datasources/?.lua;" .. package.path
 
    -- Remove trailer .lua from the origin
-   local origin = ds.origin:gsub("%.lua", "")   
+   local origin = ds.origin:gsub("%.lua", "")
 
    -- Call the origin to return
    local response = require(origin)
 
-   response = response:getData(widget.type)
-   
+   if (widget.type == "doughnut") then
+    response = {
+        data = {
+            labels = {'Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'},
+            datasets = {{
+                label = '# of Votes',
+                data = {12, 19, 3, 5, 2, 3},
+                backgroundColor = {
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                },
+                borderColor = {
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                },
+                borderWidth = 1
+            }}
+        }
+    }
+   else
+    response = response:getData(widget.type)
+   end
+
    return json.encode({
 	 widgetName = widget.name,
 	 widgetType = widget.type,

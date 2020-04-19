@@ -1,9 +1,4 @@
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <button data-toggle="modal" data-target="#add-widget-modal" class="btn btn-primary my-3">Add Widget</button>
-        </div>
-    </div>
     <div class="row mb-3">
         <div class="col-12">
             <table class="table w-100 table-bordered table-striped table-hover my-3" id="widgets-list">
@@ -25,8 +20,8 @@
 
 {* template_utils.gen("pages/modals/widgets/add.template", widgets_list) *}
 {* template_utils.gen("pages/modals/widgets/remove.template", widgets_list) *}
+{* template_utils.gen("pages/modals/widgets/embed.template", widgets_list) *}
 {* template_utils.gen("pages/modals/widgets/edit.template", widgets_list) *}
-
 
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">

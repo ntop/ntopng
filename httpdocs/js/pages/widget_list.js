@@ -46,11 +46,28 @@ $(document).ready(function() {
     }
 
     const $widgets_table = $(`#widgets-list`).DataTable({
-        lengthChange: false,
         pagingType: 'full_numbers',
+        lengthChange: false,
         stateSave: true,
+        dom: 'lfBrtip',
         initComplete: function() {
 
+        },
+        buttons: {
+            buttons: [
+                {
+                    text: '<i class="fas fa-plus"></i>',
+                    className: 'btn-link',
+                    action: function(e, dt, node, config) {
+                        $('#add-widget-modal').modal('show');
+                    }
+                }
+            ],
+            dom: {
+                button: {
+                    className: 'btn btn-link'
+                }
+            }
         },
         language: {
             info: i18n.showing_x_to_y_rows,
@@ -63,7 +80,7 @@ $(document).ready(function() {
                 last: '»'
             }
         },
-       ajax: {
+        ajax: {
             url: `${http_prefix}/lua/get_widgets.lua`,
             type: 'GET',
             dataSrc: ''
@@ -88,12 +105,21 @@ $(document).ready(function() {
                 render: function() {
                     return (`
                         <a href='#edit-widget-modal' data-toggle='modal' class="badge badge-info">Edit</a>
-                        <a href='#embded-widget-modal' data-toggle='modal' class="badge badge-info">Embeded</a>
-                        <a href='#remove-widget-modal' data-toggle='modal' class="badge badge-danger">Remove</a>
+                        <a href='#embed-widget-modal' data-toggle='modal' class="badge badge-info">Embed</a>
+                        <a href='#remove-widget-modal' data-toggle='modal' class="badge badge-danger">Delete</a>
                     `);
                 }
             }
         ]
+    });
+
+    $(`#widgets-list`).on('click', `a[href='#embed-widget-modal']`, function(e) {
+
+        const row_data = $widgets_table.row($(this).parent()).data();
+        $(`#embded-container`).text(`
+            <div class='ntop-widget' data-ntop-widget-key='${row_data.key}'></div>
+        `);
+
     });
 
     $(`#widgets-list`).on('click', `a[href='#remove-widget-modal']`, function(e) {

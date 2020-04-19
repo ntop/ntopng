@@ -22,17 +22,15 @@ local function reportError(msg)
 
 local json = _GET["JSON"]
 
-local widget_data
+local widget_data = {}
 
-if(json == nil) then
-   widget_data = {}
-else
+if (json ~= nil) then
    widget_data = dkjson.decode(json)
 end
 
 sendHTTPContentTypeHeader('application/json')
 
-if(widget_data.widgetKey == nil) then
+if (widget_data.widgetKey == nil) then
    reportError("Missing widget_key parameter")
    return
 end
