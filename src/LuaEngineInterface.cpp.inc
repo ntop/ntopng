@@ -192,6 +192,7 @@ static int ntop_get_max_if_speed(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifdef NTOPNG_PRO
 /**
  * @brief Get the SNMP statistics of interface.
  *
@@ -210,6 +211,7 @@ static int ntop_interface_get_snmp_stats(lua_State* vm) {
   } else
     return(CONST_LUA_ERROR);
 }
+#endif
 
 /* ****************************************** */
 
