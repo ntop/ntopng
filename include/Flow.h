@@ -691,6 +691,10 @@ class Flow : public GenericHashEntry {
   }
 
   inline u_int16_t getTLSVersion()  { return(isTLS() ? (protos.tls.tls_version) : 0); }
+
+  inline void getnDPIMatchPacket(u_int16_t *payload_len, u_int8_t **payload) {
+    *payload_len = packet_payload_match.payload_len, *payload = packet_payload_match.payload;
+  }
 };
 
 #endif /* _FLOW_H_ */

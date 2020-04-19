@@ -139,12 +139,13 @@ all: default
 
 OBJECTS = $(patsubst src/%.cpp, src/%.o, $(wildcard src/*.cpp)) @PRO_OBJECTS@
 HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
+INC     = $(wildcard src/*.inc)
 OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 
-%.o: %.c $(HEADERS) Makefile
+%.o: %.c $(HEADERS) $(INC) Makefile
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-%.o: %.cpp $(HEADERS) Makefile
+%.o: %.cpp $(HEADERS) $(INC) Makefile
 	$(GPP) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)

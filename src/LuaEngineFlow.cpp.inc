@@ -1032,6 +1032,29 @@ static int ntop_flow_get_dns_info(lua_State* vm) {
   return CONST_LUA_OK;
 }
 
+/* ****************************************** */
+
+static int ntop_flow_get_ndpi_match_packet(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  lua_newtable(vm);
+
+  if(f) {
+    u_int16_t payload_len;
+    u_int8_t *payload;
+
+    f->getnDPIMatchPacket(&payload_len, &payload);
+    lua_push_int32_table_entry(vm, "payload_len", payload_len);
+
+    if(payload_len == 0)
+      lua_push_nil_table_entry(vm, "payload");
+    else
+      lua_push_rawdata_table_entry(vm, "payload", payload_len, payload);
+  }
+  
+  return CONST_LUA_OK;
+}
+
 /* **************************************************************** */
 
 static const luaL_Reg ntop_flow_reg[] = {
@@ -1075,7 +1098,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getClientCountry",         ntop_flow_get_client_country         },
   { "getServerCountry",         ntop_flow_get_server_country         },
   { "getTLSVersion",            ntop_flow_get_tls_version            },
-
+  { "getnDPIMatchPacket",       ntop_flow_get_ndpi_match_packet      },
+  
 #ifdef NTOPNG_PRO
   { "getScore",                 ntop_flow_get_score                  },
 #endif
@@ -1117,6 +1141,6 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getHTTPInfo",              ntop_flow_get_http_info              },
   { "getDNSInfo",               ntop_flow_get_dns_info               },
 
-  { NULL,                     NULL }
+  { NULL,                       NULL }
 };
 

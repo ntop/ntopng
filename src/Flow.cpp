@@ -564,7 +564,7 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 
 /* *************************************** */
 
-void Flow::setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len) {
+void Flow::setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len) { 
   if((payload_len > 0) && (packet_payload_match.payload_len == 0)) {
     if((packet_payload_match.payload = (u_int8_t*)malloc(payload_len*sizeof(u_int8_t))) != NULL) {
       memcpy(packet_payload_match.payload, payload, payload_len);

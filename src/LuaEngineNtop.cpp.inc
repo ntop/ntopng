@@ -2098,6 +2098,16 @@ void lua_push_float_table_entry(lua_State *L, const char *key, float value) {
 
 /* ****************************************** */
 
+void lua_push_rawdata_table_entry(lua_State *L, const char *key, u_int32_t len, u_int8_t *payload) {
+  if(L) {
+    lua_pushstring(L, key);
+    lua_pushlstring(L, (const char*)payload, (size_t)len);
+    lua_settable(L, -3);
+  }
+}
+
+/* ****************************************** */
+
 static int ntop_is_package(lua_State *vm) {
   bool is_package = false;
 

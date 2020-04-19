@@ -159,3 +159,7 @@ function flow.getServerCountry()
 --! @brief Get the TLS version as number.
 --! @return the TLS version number if detected, 0 otherwise.
 function flow.getTLSVersion()
+
+--! @brief Get the nDPI matching packet 
+--! @return the lenght and payload of the packet matching nDPI
+function flow.getnDPIMatchPacket()
