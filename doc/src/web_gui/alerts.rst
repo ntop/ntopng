@@ -36,7 +36,7 @@ for more details. Here is a list of the alerts endpoints built into ntopng.
 Elasticsearch
 ~~~~~~~~~~~~~
 
-This endpoint is designed to send emails to `Elasticsearch <https://www.elastic.co/>`_. The endpoint becomes available when ntopng is configured to dump flows to :ref:`FlowDumpElasticsearch` and it uses the *same Elasticsearch connection parameters* used to dump flows.
+This endpoint is designed to send alerts to `Elasticsearch <https://www.elastic.co/>`_. The endpoint becomes available when ntopng is configured to dump flows to :ref:`FlowDumpElasticsearch` and it uses the *same Elasticsearch connection parameters* used to dump flows.
 
 .. note::
 
