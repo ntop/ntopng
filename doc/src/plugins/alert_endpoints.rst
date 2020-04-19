@@ -65,6 +65,7 @@ The file `email.lua` contains the actual logic of the endpoint. The module has t
   is fine for most practical cases.
 - :code:`endpoint.prio`: defines the priority for the execution of `endpoint.dequeueAlerts` in relation to other endpoints.
   Endpoints with higher priority will be invoked first (so they are privileged, in particular when the time is strict).
+- :code:`endpoint.onLoad()`: can be used to programmatically perform certain actions when the plugin is loaded.
 - :code:`endpoint.isAvailable()`: can be used to programmatically disable the endpoint (e.g. disable the endpoint on
   some platform). Must return true if the endpoint can be currently used (once the user enables it from the
   endpoints preferences), or false if the endpoint should not be used and its preferences should be hidden.

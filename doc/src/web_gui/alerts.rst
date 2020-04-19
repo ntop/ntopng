@@ -33,6 +33,65 @@ Endpoints can be enabled and configured from the ntopng preferences page. Users 
 endpoints via a custom plugin. Check out the `Plugins Section <../plugins/alert_endpoints.html>`_
 for more details. Here is a list of the alerts endpoints built into ntopng.
 
+Elasticsearch
+~~~~~~~~~~~~~
+
+This endpoint is designed to send emails to `Elasticsearch <https://www.elastic.co/>`_. The endpoint becomes available when ntopng is configured to dump flows to :ref:`FlowDumpElasticsearch` and it uses the *same Elasticsearch connection parameters* used to dump flows.
+
+.. note::
+
+  Elasticsearch alert endpoint is only available in ntopng Enterprise M or above.
+
+Alerts are sent to Elasticsearch indexes :code:`alerts-ntopng-<year>.<month>.<day>`. A new index is created every day. For example, index names used for two consecutive days of April 17th and 18th 2020 are :code:`alerts-ntopng-2020-04-17` and :code:`alerts-ntopng-2020-04-18`.
+
+This plugin can be enabled from the preferences.
+
+
+The Elasticsearch connection can be tested by clicking the "Test Connection" button of the preferences.
+
+.. note::
+
+  Elasticsearch alert endpoint requires at least Elasticsearch version 7. Version can be tested by clicking the "Test Connection" button of the preferences.
+
+Alerts are sent to Elasticsearch in JSON format. The the following keys are always present:
+
+- :code:`@timestamp`: UTC/GMT alert detection date and time in ISO format yyyy-MM-dd'T'HH:mm:ss.SSSZ.
+- :code:`alert_tstamp`: Alert detection unix epoch
+- :code:`alert_tstamp_end`: Alert release unix epoch for :ref:`Released Alerts`, otherwise this key is not present.
+- :code:`alert_type`:  one of {`alert_blacklisted_country`, ` alert_broadcast_domain_too_large`, `alert_device_connection`, ...}. Strings list available at `/lua/defs_overview.lua`.
+- :code:`alert_severity`: one of {`info`, `warning`, `error`}.
+- :code:`alert_entity`: one of {`interface`, `host`, `network`, ...}. `List of all the available types <https://github.com/ntop/ntopng/blob/fae050b90a8eacf8d1dd64b9142b02b5f54753c8/scripts/lua/modules/alert_consts.lua#L299>`_.
+- :code:`alert_entity_val`: A string representing the current alert entity. For hosts the format is `<ip>@<vlan>`, e.g.,  `127.0.0.1@0`.
+- :code:`ifname`: The interface name string where the alert was detected, e.g., `eno1`.
+- :code:`ntopng_instance_id`: The ntopng instance name string where the alert was detected., e.g., `ntopng-instance-brx1`. Instance name can be configured with option :code:`--instance-name`.
+- :code:`engaged`: A boolean which is true for :ref:`Engaged Alerts`, false otherwise.
+- :code:`alert_subtype`: A string subtype which depends on the :code:`alert_type`. For example threshold cross can have subtype `bytes`, `packets`, `score`, etc.
+- :code:`alert_granularity`: one of {`min`, `5min`, `hour`, `day`}, empty. Empty when the alert doesn't come out of a periodic check (e.g., broadcast domain too large). `List of all the available granularities <https://github.com/ntop/ntopng/blob/fae050b90a8eacf8d1dd64b9142b02b5f54753c8/scripts/lua/modules/alert_consts.lua#L346>`_.
+- :code:`alert_json`: A JSON string with additional, alert-specific information (e.g., the broadcast domain, the threshold set, the exceeded value).
+- :code:`alert_msg`: A human readable string text message of the alert.
+
+:ref:`Flow Alerts` have the following additional fields:
+
+- :code:`flow_status`: one of {`status_blacklisted`, `status_data_exfiltration`, `status_suspicious_tcp_probing`}. Strings list available at `/lua/defs_overview.lua`.
+- :code:`first_seen`: Flow first seen unix epoch.
+- :code:`l7_proto`: A string with the detected nDPI protocol, e.g., `HTTP.Google`.
+- :code:`cli_asn`: Integer with the client ASN or empty when asn information is not available.
+- :code:`srv_asn`: Integer with the server ASN or empty when asn information is not available.
+- :code:`cli_country`: ISO 3166 alpha-2 country code string for the client or empty when country information is not available.
+- :code:`srv_country`: ISO 3166 alpha-2 country code string for the server or empty when country information is not available.
+- :code:`cli_port`: Integer of the client flow port.
+- :code:`srv_port`: Integer of the server flow port.
+- :code:`cli_os`: A string with the detected client operating system or empty when operating system is not available.
+- :code:`srv_os`: A string with the detected server operating system or empty when operating system is not available.
+- :code:`vlan_id`: Integer of the flow VLAN. Integer is zero when the flow has no VLAN.
+- :code:`srv2cli_bytes`: Integer with the number of bytes transferred from the server to the client when the alert was generated.
+- :code:`cli2srv_bytes`: Integer with the number of bytes transferred from the client to the server when the alert was generated.
+- :code:`cli2srv_packets`: Integer with the number of packets transferred from the client to the server when the alert was generated.
+- :code:`srv2cli_packets`: Integer with the number of packets transferred from the server to the client when the alert was generated.
+- :code:`cli_addr`: A string with the client IPv4 or IPv6 address.
+- :code:`srv_addr`: A string with the server IPv4 or IPv6 address.
+- :code:`score`: The flow score integer.
+
 Email
 ~~~~~
 

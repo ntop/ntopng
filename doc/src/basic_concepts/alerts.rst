@@ -34,6 +34,7 @@ ntopng :ref:`WebUIUserScripts` perform the evaluation of thresholds periodically
 
 Alerts associated with a threshold have a duration, that is, they are active for a certain period of time. This period of time starts then the threshold is first met and stops when the threshold is no longer met. For this reason, such alerts are said to be *engaged* or *released*, depending on whether the triggering threshold is still met or not.
 
+.. _Engaged Alerts:
 
 Engaged Alerts
 --------------
@@ -45,6 +46,8 @@ When the threshold is first met, puts the corresponding alert in an *engaged* st
   :alt: Engaged Alerts Page
 
   Engaged Alerts Page
+
+.. _Released Alerts:
 
 Released Alerts
 ---------------
@@ -59,6 +62,8 @@ When the triggering threshold of an engaged alert is no longer met, the alert is
 
 
 Alerts associated with events don't have a duration associated. They are triggered *at the time of the event* but any duration is not meaningful for them. For this reason, such alerts are never *engaged*  or *released*, they are just *stored* as soon as they are detected, and they are placed under the past alerts page without any duration indicated.
+
+.. _Flow Alerts:
 
 Flow Alerts
 -----------

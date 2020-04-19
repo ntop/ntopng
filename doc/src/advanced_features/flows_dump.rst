@@ -88,6 +88,8 @@ The followings are the expected MySQL flow export rates with ntopng, assuming a 
   - ~2k flows/sec (ntopng community, professional)
   - ~10k flows/sec (ntopng enterprise)
 
+.. _FlowDumpElasticsearch:
+
 ElasticSearch
 -------------
 
