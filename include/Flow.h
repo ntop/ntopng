@@ -95,7 +95,17 @@ class Flow : public GenericHashEntry {
   bool pending_lua_call_protocol_detected; /* Whether the protocol detected lua script has been called on this flow */
   time_t next_lua_call_periodic_update; /* The time at which the periodic lua script on this flow shall be called */
   u_int32_t periodic_update_ctr;
- 
+
+  /* 
+     The structure below is used to store the packet payload of
+     nDPI protocol match (one packet only). In case of protocol
+     guess, no payload is saved (i.e. length will be zero)
+  */
+  struct {
+    u_int16_t payload_len;
+    u_int8_t *payload;
+  } packet_payload_match;
+    
   union {
     struct {
       char *last_url, *last_method;
@@ -352,7 +362,9 @@ class Flow : public GenericHashEntry {
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void setDetectedProtocol(ndpi_protocol proto_id);
-  void processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time);
+  void processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time,
+		     u_int8_t *payload, u_int16_t payload_len);
+  void setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len);
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time);
   void endProtocolDissection();
   inline void setCustomApp(custom_app_t ca) {

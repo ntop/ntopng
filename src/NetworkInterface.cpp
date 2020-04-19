@@ -1414,7 +1414,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if(!flow->isDetectionCompleted() || flow->needsExtraDissection()) {
     if(!is_fragment)
-      flow->processPacket(ip, trusted_ip_len, packet_time);
+      flow->processPacket(ip, trusted_ip_len, packet_time, payload, trusted_payload_len);
     else {
       // FIX - only handle unfragmented packets
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");

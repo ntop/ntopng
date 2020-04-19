@@ -77,7 +77,7 @@ Flow::Flow(NetworkInterface *_iface,
   bytes_thpt_srv2cli  = 0, goodput_bytes_thpt_srv2cli = 0;
   pkts_thpt = 0, pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
-
+  packet_payload_match.payload = NULL, packet_payload_match.payload_len = 0;
   external_alert = NULL;
   trigger_immediate_periodic_update = false;
   pending_lua_call_protocol_detected = false;
@@ -297,9 +297,13 @@ Flow::~Flow() {
       if(status_infos[i].script_key)
 	free(status_infos[i].script_key);
     }
+    
     free(status_infos);
   }
 
+  if(packet_payload_match.payload)
+    free(packet_payload_match.payload);
+  
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
   if(external_alert) free(external_alert);
@@ -512,7 +516,8 @@ bool Flow::needsExtraDissection() {
 /* *************************************** */
 
 /* Process a packet and advance the flow detection state. */
-void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time) {
+void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time,
+			 u_int8_t *payload, u_int16_t payload_len) {
   bool detected;
   ndpi_protocol proto_id;
 
@@ -521,8 +526,9 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
    * be able to guess the protocol. */
 
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
-    ip_packet, ip_len, packet_time,
-    (struct ndpi_id_struct*) cli_id, (struct ndpi_id_struct*) srv_id);
+					   ip_packet, ip_len, packet_time,
+					   (struct ndpi_id_struct*) cli_id,
+					   (struct ndpi_id_struct*) srv_id);
 
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
 
@@ -549,10 +555,22 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
   if(detected) {
     updateProtocol(proto_id);
     setProtocolDetectionCompleted();
+    setMatchedPacketPayload(payload, payload_len);
   }
 
   if(detection_completed && !needsExtraDissection())
     setExtraDissectionCompleted();
+}
+
+/* *************************************** */
+
+void Flow::setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len) {
+  if((payload_len > 0) && (packet_payload_match.payload_len == 0)) {
+    if((packet_payload_match.payload = (u_int8_t*)malloc(payload_len*sizeof(u_int8_t))) != NULL) {
+      memcpy(packet_payload_match.payload, payload, payload_len);
+      packet_payload_match.payload_len = payload_len;
+    }
+  }
 }
 
 /* *************************************** */
@@ -2385,7 +2403,8 @@ void Flow::housekeep(time_t t) {
 
 /* *************************************** */
 
-bool Flow::get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *fts, bool *first_partial) const {
+bool Flow::get_partial_traffic_stats(PartializableFlowTrafficStats **dst,
+				     PartializableFlowTrafficStats *fts, bool *first_partial) const {
   if(!fts || !dst)
     return(false);
 
@@ -2458,7 +2477,8 @@ bool Flow::isBlacklistedFlow() const {
   if(res) {
     char buf[512];
     print(buf, sizeof(buf));
-    snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf), "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s]", isBlacklistedClient(), isBlacklistedServer(), get_protocol_category_name());
+    snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf), "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s]",
+	     isBlacklistedClient(), isBlacklistedServer(), get_protocol_category_name());
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
   }
 #endif
