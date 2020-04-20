@@ -52,7 +52,7 @@ SyslogParserInterface::~SyslogParserInterface() {
 
 u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
   const char *producer_name = NULL;
-  char *prio = NULL, *parsed_client_ip = NULL, *device = NULL, *content = NULL;
+  char *prio = NULL, *parsed_client_ip = NULL, *device = NULL, *application = NULL, *content = NULL;
   char *tmp;
 
   if (producers_reload_requested) {
@@ -105,16 +105,28 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
     tmp = strrchr(log_line, '[');
     if(tmp != NULL) {
       tmp[0] = '\0';
+
+      /* Parse APPLICATION */
       tmp = strrchr(log_line, ' ');
-      if(tmp != NULL)
-        producer_name = &tmp[1];
+      if(tmp != NULL) {
+        tmp[0] = '\0';
+        application = &tmp[1];
+ 
+        /* Parse DEVICE */
+        tmp = strrchr(log_line, ' ');
+        if(tmp != NULL)
+          device = &tmp[1];
+      }
     }
   } else if ((tmp = strstr(log_line, ": ")) != NULL) { /* Parse APPLICATION: */
     content = &tmp[2];
     tmp[0] = '\0';
+
     tmp = strrchr(log_line, ' ');
     if(tmp != NULL) {
       tmp[0] = '\0';
+
+      /* Parse DEVICE */
       tmp = strrchr(log_line, ' ');
       if(tmp != NULL)
         device = &tmp[1];
@@ -131,6 +143,9 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
 
   if (producer_name == NULL && client_ip != NULL)
     producer_name = getProducerName(client_ip);
+
+  if (producer_name == NULL && application != NULL)
+    producer_name = application;
 
   if (producer_name == NULL)
     producer_name = getProducerName("*");
