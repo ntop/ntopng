@@ -100,7 +100,15 @@ local function schema_get_path(schema, tags)
 
   if((string.find(schema.name, "iface:") ~= 1) and  -- interfaces are only identified by the first tag
       (#schema._tags >= 1)) then                    -- some schema do not have any tag, e.g. "process:*" schemas
-    host_or_network = (HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")) .. (tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]])
+    local prefix = HOST_PREFIX_MAP[parts[1]] or (parts[1] .. ":")
+    local suffix = tags[schema._tags[2] or schema._tags[1]] or tags[schema._tags[1]]
+
+    if(suffix ~= ifid) then
+      host_or_network = prefix .. suffix
+    else
+      -- Avoid repeating the ifid suffix in the path
+      host_or_network = prefix .. ""
+    end
   end
 
   -- Some exceptions to avoid conflicts / keep compatibility
