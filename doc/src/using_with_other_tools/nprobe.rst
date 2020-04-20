@@ -3,7 +3,14 @@
 Using ntopng with nProbe
 ########################
 
-ntopng can be used to visualize traffic data that has been generated or collected by nProbe. Using ntopng with nProbe is convenient in several scenarios, including:
+ntopng can be used to visualize traffic data that has been generated or collected by nProbe. 
+
+.. note::
+
+   ntopng Enterprise L already includes a nProbe Pro license, there is no need
+   to buy a nProbe license if a ntopng Enterprise L license is installed.
+
+Using ntopng with nProbe is convenient in several scenarios, including:
 
 - *The visualization of NetFlow/sFlow data originated by routers, switches, and network devices in general.* In this scenario, nProbe collects and parse NetFlow/sFlow traffic from the devices, and send the resulting flows to ntopng for the visualization.
 - *The monitoring of physical network interfaces that are attached to remote systems.*  In this scenario, ntopng cannot directly monitor network interfaces nor it can see their packets. One or multiple nProbe can be used to capture remote network interfaces traffic and send the resulting flows towards a central ntopng for the analysis and visualization.

@@ -42,6 +42,12 @@ The *n2disk* license can be installed directly from *ntopng* through the
 the installed *n2disk* version and SystemID, both required to generate
 the license.
 
+.. note::
+
+   ntopng Enterprise L already includes a n2disk 1 Gbit license, there is no need
+   to buy a n2disk license if a ntopng Enterprise L license is installed.
+
+
 .. figure:: ../img/web_gui_preferences_recording_license.png
   :align: center
   :alt: Traffic Recording License

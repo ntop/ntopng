@@ -94,19 +94,41 @@ reported later in this section. So you need to download the geolocation files
 and then copy them into C:\\Program Files\\ntopng\\httpdocs\\geoip\\ directory, and
 then restart ntopng.
    
-  
+Versions
+========
+
+The ntopng software comes in four versions: Community, Professional, Enterprise M, Enterprise L
+each version unlocks additional features with respect to the smaller one.
+
+A full list of features and a comparison table is available in the ntopng 
+`Product Page <https://www.ntop.org/products/traffic-analysis/ntop/>`_
+
+ntopng Community
+----------------
+
+The Community version is free to use and opensource. The full source code can be found on `Github <https://github.com/ntop/ntopng>`_.
+
+ntopng Professional
+-------------------
+
+The Professional version offers some extra features with respect to the Community, which are particularly useful for SMEs, including graphical reports, traffic profiles, LDAP authentication, Nagios integration.
+
+ntopng Enterprise M
+-------------------
+
+The Enterprise M version offers some extra features with respect to the Professional version, which are articularly useful for large organizations, including SNMP support, fast MySQL export, advanced alerts management, high performance flow indexing.
+
+ntopng Enterprise L
+-------------------
+
+The Enterprise L version offers some extra features with respect to the Enterprise M version, including Identity Management (the ability to correlate users to traffic). This version also unlocks n2disk 1 Gbit (Continuous Recording) and nProbe Pro (Flow Collection) with no need for additional licenses.
+
 Licensing
 =========
 
-Three versions of ntopng are available, namely Community, Professional
-and Enterprise. ntopng automatically switches to one of these three
-versions, depending on the presence of a license.
-
-Features and comparisons of these three versions are available at
-https://www.ntop.org/products/traffic-analysis/ntop/.
-
-The Community does not need any license. Professional and Enterprise
-versions require a license.
+The Community edition does not need any license. Professional and Enterprise
+versions require a license. ntopng automatically switches to one of these four versions, 
+depending on the presence of a license.
 
 License is per-server and is released according to the EULA (End User
 License Agreement). Each license is perpetual (i.e. it does not
