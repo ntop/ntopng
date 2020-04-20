@@ -66,6 +66,9 @@ $(document).ready(function() {
             dom: {
                 button: {
                     className: 'btn btn-link'
+                },
+                container: {
+                    className: 'float-right'
                 }
             }
         },
