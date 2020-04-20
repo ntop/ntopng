@@ -74,9 +74,9 @@ end
 
 if(action == "add") then
    local existing
-   local rtt_value = _POST["rtt_max"]
+   local am_value = _POST["threshold"]
    local granularity = _POST["granularity"]
-   local url = active_monitoring_utils.formatRttHost(host, measurement)
+   local url = active_monitoring_utils.formatAmHost(host, measurement)
 
    if(isValidHostMeasurementCombination(host, measurement) == false) then
       -- NOTE: reportError already called
@@ -90,14 +90,14 @@ if(action == "add") then
       return
    end
 
-   active_monitoring_utils.addHost(host, measurement, rtt_value, granularity)
+   active_monitoring_utils.addHost(host, measurement, am_value, granularity)
    rv.message = i18n("active_monitoring_stats.host_add_ok", {host=url})
 elseif(action == "edit") then
    local existing
-   local rtt_value = _POST["rtt_max"]
+   local am_value = _POST["threshold"]
    local granularity = _POST["granularity"]
-   local url = active_monitoring_utils.formatRttHost(host, measurement)
-   local old_rtt_host = _POST["old_rtt_host"]
+   local url = active_monitoring_utils.formatAmHost(host, measurement)
+   local old_am_host = _POST["old_am_host"]
    local old_measurement = _POST["old_measurement"]
    local old_granularity = _POST["old_granularity"]
 
@@ -106,8 +106,8 @@ elseif(action == "edit") then
       return
    end
 
-   if isEmptyString(old_rtt_host) then
-      reportError(i18n("missing_x_parameter", {param='old_rtt_host'}))
+   if isEmptyString(old_am_host) then
+      reportError(i18n("missing_x_parameter", {param='old_am_host'}))
       return
    end
 
@@ -121,16 +121,16 @@ elseif(action == "edit") then
       return
    end
 
-   local old_url = active_monitoring_utils.formatRttHost(old_rtt_host, old_measurement)
+   local old_url = active_monitoring_utils.formatAmHost(old_am_host, old_measurement)
 
-   existing = active_monitoring_utils.hasHost(old_rtt_host, old_measurement)
+   existing = active_monitoring_utils.hasHost(old_am_host, old_measurement)
 
    if not existing then
       reportError(i18n("active_monitoring_stats.host_not_exists", {host=old_url}))
       return
    end
 
-   if((old_rtt_host ~= host) or (old_measurement ~= measurement)) then
+   if((old_am_host ~= host) or (old_measurement ~= measurement)) then
       -- The key has changed, delete the old host and create a new one
       existing = active_monitoring_utils.hasHost(host, measurement)
 
@@ -139,21 +139,21 @@ elseif(action == "edit") then
 	 return
       end
 
-      active_monitoring_utils.deleteHost(old_rtt_host, old_measurement) -- also calls discardHostTimeseries
-      active_monitoring_utils.addHost(host, measurement, rtt_value, granularity)
+      active_monitoring_utils.deleteHost(old_am_host, old_measurement) -- also calls discardHostTimeseries
+      active_monitoring_utils.addHost(host, measurement, am_value, granularity)
    else
-      -- The key is the same, only update the rtt/granularity
+      -- The key is the same, only update the value/granularity
       if(old_granularity ~= granularity) then
 	 -- Need to discard the old timeseries as the granularity has changed
 	 active_monitoring_utils.discardHostTimeseries(host, measurement)
       end
 
-      active_monitoring_utils.addHost(host, measurement, rtt_value, granularity)
+      active_monitoring_utils.addHost(host, measurement, am_value, granularity)
    end
 
    rv.message = i18n("active_monitoring_stats.host_edit_ok", {host=old_url})
 elseif(action == "delete") then
-   local url = active_monitoring_utils.formatRttHost(host, measurement)
+   local url = active_monitoring_utils.formatAmHost(host, measurement)
    local existing = active_monitoring_utils.hasHost(host, measurement)
 
    if not existing then

@@ -35,8 +35,8 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
 
     local column_last_ip = ""
     local column_last_update = ""
-    local column_last_rtt = ""
-    local last_update = active_monitoring_utils.getLastRttUpdate(active_monitoring_host.host, active_monitoring_host.measurement)
+    local column_last_value = ""
+    local last_update = active_monitoring_utils.getLastAmUpdate(active_monitoring_host.host, active_monitoring_host.measurement)
     local alerted = 0
     
     if(last_update ~= nil) then
@@ -48,20 +48,24 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
         column_last_update = format_utils.formatPastEpochShort(last_update.when)
       end
 
-      column_last_rtt = last_update.value
+      column_last_value = last_update.value
       column_last_ip = last_update.ip
     end
 
-    if(column_last_rtt == "") then chart = "" end
+    column_last_value = tonumber(column_last_value)
 
-    if(m_info.operator == "gt") then
-       if(column_last_rtt > active_monitoring_host.max_rtt) then
-	  alerted = 1
-       end
+    if(column_last_value == nil) then
+      chart = ""
     else
-       if(column_last_rtt < active_monitoring_host.max_rtt) then
-	  alerted = 1
-       end
+      if(m_info.operator == "gt") then
+	 if(column_last_value > active_monitoring_host.threshold) then
+	    alerted = 1
+	 end
+      else
+	 if(column_last_value < active_monitoring_host.threshold) then
+	    alerted = 1
+	 end
+      end
     end
     
     res[#res + 1] = {
@@ -71,8 +75,8 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
        alerted = alerted,
        measurement = active_monitoring_host.measurement,
        chart = chart,
-       threshold = active_monitoring_host.max_rtt,
-       last_measure = column_last_rtt,
+       threshold = active_monitoring_host.threshold,
+       last_measure = column_last_value or "",
        value_js_formatter = m_info.value_js_formatter,
        last_mesurement_time = column_last_update,
        last_ip = column_last_ip,

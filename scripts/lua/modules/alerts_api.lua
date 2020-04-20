@@ -486,9 +486,9 @@ end
 
 -- ##############################################
 
-function alerts_api.pingedHostEntity(host)
+function alerts_api.amThresholdCrossEntity(host)
   return {
-    alert_entity = alert_consts.alert_entities.pinged_host,
+    alert_entity = alert_consts.alert_entities.am_host,
     alert_entity_val = host
   }
 end

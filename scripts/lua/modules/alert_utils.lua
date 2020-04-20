@@ -2058,7 +2058,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   end
 
   if(msg) then
-     if(alert_consts.getAlertType(alert.alert_type) == "alert_ping_issues") then
+     if(alert_consts.getAlertType(alert.alert_type) == "alert_am_threshold_cross") then
       local plugins_utils = require "plugins_utils"
       local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
       local host = active_monitoring_utils.key2host(alert.alert_entity_val)

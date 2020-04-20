@@ -93,7 +93,7 @@ function script.hooks.min(info)
 
   -- The alert entity must be built manually for system scripts
   local alert_entity = {
-    alert_entity = alert_consts.alert_entities.pinged_host,
+    alert_entity = alert_consts.alert_entities.am_host,
     alert_entity_val = info.user_script_config.ip_address,
   }
 

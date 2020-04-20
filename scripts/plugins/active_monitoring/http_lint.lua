@@ -35,8 +35,8 @@ function script.getAdditionalParameters(http_lint)
     -- The toggle_example_notification parameter will be validated using the
     -- 'validateBool' validator.
     ["am_host"]                = http_lint.validateSingleWord,
-    ["old_rtt_host"]           = http_lint.validateSingleWord,
-    ["rtt_max"]                = http_lint.validateEmptyOr(http_lint.validateNumber),
+    ["old_am_host"]            = http_lint.validateSingleWord,
+    ["threshold"]              = http_lint.validateEmptyOr(http_lint.validateNumber),
     ["measurement"]            = validateMeasurement,
     ["old_measurement"]        = validateMeasurement,
   }

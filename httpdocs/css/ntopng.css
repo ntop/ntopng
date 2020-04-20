@@ -1215,10 +1215,8 @@ div.help-block.with-errors .list-unstyled {
   margin-bottom: 0px !important;
 }
 
-#rtt-table_wrapper div.dt-buttons,
-#widgets-list_wrapper div.dt-buttons,
-#datasources-list_wrapper div.dt-buttons {
-  float: right;
+div.dataTables_wrapper div.dt-buttons {
+  float: right !important;
 }
 
 th.dt-head-center {

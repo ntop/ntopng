@@ -1,8 +1,8 @@
 $(document).ready(function() {
 
-    let rtt_alert_timeout = null;
+    let am_alert_timeout = null;
 
-    $("#rtt-add-form").on('submit', function(event) {
+    $("#am-add-form").on('submit', function(event) {
 
         event.preventDefault();
 
@@ -10,31 +10,31 @@ $(document).ready(function() {
         const granularity = $("#select-add-granularity").val();
         const threshold = $("#input-add-threshold").val();
 
-        perform_request(make_data_to_send('add', host, threshold, measurement, granularity, rtt_csrf));
+        perform_request(make_data_to_send('add', host, threshold, measurement, granularity, am_csrf));
 
     });
 
-    $('#rtt-table').on('click', `a[href='#rtt-delete-modal']`, function(e) {
+    $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
 
-        const row_data = get_rtt_data($rtt_table, $(this));
+        const row_data = get_am_data($am_table, $(this));
         $("#delete-host").html(`<b>${row_data.url}</b>`);
-        $(`#rtt-delete-modal span.invalid-feedback`).hide();
+        $(`#am-delete-modal span.invalid-feedback`).hide();
 
-        $('#rtt-delete-form').off('submit').on('submit', function(e) {
+        $('#am-delete-form').off('submit').on('submit', function(e) {
 
             e.preventDefault();
             perform_request({
                 action: 'delete',
                 am_host: row_data.host,
                 measurement: row_data.measurement,
-                csrf: rtt_csrf
+                csrf: am_csrf
             })
         });
 
 
     });
 
-    $('#rtt-table').on('click', `a[href='#rtt-edit-modal']`, function(e) {
+    $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
 
         const fill_form = (data) => {
 
@@ -44,7 +44,7 @@ $(document).ready(function() {
             const DEFAULT_HOST          = "";
 
             const cur_measurement = data.measurement || DEFAULT_MEASUREMENT;
-            const $dialog = $('#rtt-edit-modal');
+            const $dialog = $('#am-edit-modal');
             dialogDisableUniqueMeasurements($dialog, cur_measurement);
             // fill input boxes
             $('#input-edit-threshold').val(data.threshold || DEFAULT_THRESHOLD);
@@ -54,10 +54,10 @@ $(document).ready(function() {
             dialogRefreshMeasurement($dialog, data.granularity);
         }
 
-        const data = get_rtt_data($rtt_table, $(this));
+        const data = get_am_data($am_table, $(this));
 
         // bind submit to form for edits
-        $("#rtt-edit-form").off('submit').on('submit', function(event) {
+        $("#am-edit-form").off('submit').on('submit', function(event) {
 
             event.preventDefault();
 
@@ -67,14 +67,14 @@ $(document).ready(function() {
 
             const data_to_send = {
                 action: 'edit',
-                rtt_max: threshold,
+                threshold: threshold,
                 am_host: host,
                 measurement: measurement,
-                old_rtt_host: data.host,
+                old_am_host: data.host,
                 old_measurement: data.measurement,
                 granularity: granularity,
                 old_granularity: data.granularity,
-                csrf: rtt_csrf
+                csrf: am_csrf
             };
 
             perform_request(data_to_send);
@@ -87,7 +87,7 @@ $(document).ready(function() {
         });
 
         fill_form(data);
-        $(`#rtt-edit-modal span.invalid-feedback`).hide();
+        $(`#am-edit-modal span.invalid-feedback`).hide();
 
     });
 
@@ -98,7 +98,7 @@ $(document).ready(function() {
         const measurements_to_skip = {};
 
         // find out wich unique measurements are already defined
-        $rtt_table.rows().data().each(function(row_data) {
+        $am_table.rows().data().each(function(row_data) {
             var m_info = measurements_info[row_data.measurement];
 
             if(m_info && m_info.force_host)
@@ -157,12 +157,12 @@ $(document).ready(function() {
             $granularities.val(old_val);
     }
 
-    const make_data_to_send = (action, am_host, rtt_max, rtt_measure, granularity, csrf) => {
+    const make_data_to_send = (action, am_host, threshold, am_measure, granularity, csrf) => {
         return {
             action: action,
             am_host: am_host,
-            rtt_max: rtt_max,
-            measurement: rtt_measure,
+            threshold: threshold,
+            measurement: am_measure,
             granularity: granularity,
             csrf: csrf
         }
@@ -176,47 +176,47 @@ $(document).ready(function() {
             return;
         }
 
-        $(`#rtt-${action}-modal span.invalid-feedback`).hide();
-        $('#rtt-alert').hide();
-        $(`form#rtt-${action}-modal button[type='submit']`).attr("disabled", "disabled");
+        $(`#am-${action}-modal span.invalid-feedback`).hide();
+        $('#am-alert').hide();
+        $(`form#am-${action}-modal button[type='submit']`).attr("disabled", "disabled");
 
         $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
         .then((data, result, xhr) => {
 
             // always update the token
-            rtt_csrf = data.csrf;
-            $(`form#rtt-${action}-modal button[type='submit']`).removeAttr("disabled");
-            $('#rtt-alert').addClass('alert-success').removeClass('alert-danger');
+            am_csrf = data.csrf;
+            $(`form#am-${action}-modal button[type='submit']`).removeAttr("disabled");
+            $('#am-alert').addClass('alert-success').removeClass('alert-danger');
 
             if (data.success) {
-                if (!rtt_alert_timeout) clearTimeout(rtt_alert_timeout);
-                rtt_alert_timeout = setTimeout(() => {
-                    $('#rtt-alert').fadeOut();
+                if (!am_alert_timeout) clearTimeout(am_alert_timeout);
+                am_alert_timeout = setTimeout(() => {
+                    $('#am-alert').fadeOut();
                 }, 1000)
 
-                $('#rtt-alert .alert-body').text(data.message);
-                $('#rtt-alert').fadeIn();
-                $(`#rtt-${action}-modal`).modal('hide');
-                $rtt_table.ajax.reload();
+                $('#am-alert .alert-body').text(data.message);
+                $('#am-alert').fadeIn();
+                $(`#am-${action}-modal`).modal('hide');
+                $am_table.ajax.reload();
                 return;
             }
 
             const error_message = data.error;
-            $(`#rtt-${action}-modal span.invalid-feedback`).html(error_message).show();
+            $(`#am-${action}-modal span.invalid-feedback`).html(error_message).show();
         })
         .fail((status) => {
-            $('#rtt-alert').removeClass('alert-success').addClass('alert-danger');
-            $('#rtt-alert .alert-body').text(i18n.expired_csrf);
+            $('#am-alert').removeClass('alert-success').addClass('alert-danger');
+            $('#am-alert .alert-body').text(i18n.expired_csrf);
         });
     }
 
-    const get_rtt_data = ($rtt_table, $button_caller) => {
+    const get_am_data = ($am_table, $button_caller) => {
 
-        const row_data = $rtt_table.row($button_caller.parent()).data();
+        const row_data = $am_table.row($button_caller.parent()).data();
         return row_data;
     }
 
-    const $rtt_table = $("#rtt-table").DataTable({
+    const $am_table = $("#am-table").DataTable({
         pagingType: 'full_numbers',
         lengthChange: false,
         stateSave: true,
@@ -235,12 +235,12 @@ $(document).ready(function() {
         initComplete: function() {
 
             if (get_host != "") {
-                $rtt_table.search(get_host).draw(true);
-                $rtt_table.state.clear();
+                $am_table.search(get_host).draw(true);
+                $am_table.state.clear();
             }
 
             setInterval(() => {
-                $rtt_table.ajax.reload()
+                $am_table.ajax.reload()
             }, 15000);
         },
         ajax: {
@@ -254,7 +254,7 @@ $(document).ready(function() {
                     text: '<i class="fas fa-plus"></i>',
                     className: 'btn-link',
                     action: function(e, dt, node, config) {
-                        const $dialog = $('#rtt-add-modal');
+                        const $dialog = $('#am-add-modal');
                         dialogDisableUniqueMeasurements($dialog);
 
                         // select the first non-disabled option (after dialogDisableUniqueMeasurements)
@@ -262,8 +262,8 @@ $(document).ready(function() {
 
                         $('#input-add-host').val('');
                         $('#input-add-threshold').val(100);
-                        $(`#rtt-add-modal span.invalid-feedback`).hide();
-                        $('#rtt-add-modal').modal('show');
+                        $(`#am-add-modal span.invalid-feedback`).hide();
+                        $('#am-add-modal').modal('show');
                         dialogRefreshMeasurement($dialog);
                     }
                 }
@@ -355,8 +355,8 @@ $(document).ready(function() {
                 class: 'text-center',
                 render: function() {
                     return `
-                        <a class="badge badge-info" data-toggle="modal" href="#rtt-edit-modal">${i18n.edit}</a>
-                        <a class="badge badge-danger" data-toggle="modal" href="#rtt-delete-modal">${i18n.delete}</a>
+                        <a class="badge badge-info" data-toggle="modal" href="#am-edit-modal">${i18n.edit}</a>
+                        <a class="badge badge-danger" data-toggle="modal" href="#am-delete-modal">${i18n.delete}</a>
                     `;
                 }
             }
@@ -375,10 +375,10 @@ $(document).ready(function() {
     });
 
     $("#select-add-measurement").on('change', function(event) {
-        dialogRefreshMeasurement($("#rtt-add-modal"));
+        dialogRefreshMeasurement($("#am-add-modal"));
     });
 
     $("#select-edit-measurement").on('change', function(event) {
-        dialogRefreshMeasurement($("#rtt-edit-modal"));
+        dialogRefreshMeasurement($("#am-edit-modal"));
     });
 });

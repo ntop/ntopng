@@ -6,7 +6,7 @@ local alert_keys = require "alert_keys"
 
 local format_utils = require("format_utils")
 
-local function pingIssuesFormatter(ifid, alert, info)
+local function thresholdCrossFormatter(ifid, alert, info)
    local plugins_utils = require("plugins_utils")
    local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
@@ -50,8 +50,8 @@ local function pingIssuesFormatter(ifid, alert, info)
       msg = i18n(i18n_s, {
 	 host = host.label,
 	 numeric_ip = numeric_ip,
-	 rtt_value = format_utils.round(info.value, 2),
-	 maximum_rtt = info.threshold,
+	 am_value = format_utils.round(info.value, 2),
+	 threshold = info.threshold,
 	 unit = unit,
       })
    end
@@ -62,8 +62,8 @@ end
 -- #######################################################
 
 return {
-  alert_key = alert_keys.ntopng.alert_ping_issues,
+  alert_key = alert_keys.ntopng.alert_am_threshold_cross,
   i18n_title = "graphs.active_monitoring",
-  i18n_description = pingIssuesFormatter,
+  i18n_description = thresholdCrossFormatter,
   icon = "fas fa-exclamation",
 }

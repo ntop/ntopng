@@ -17,29 +17,29 @@ local supported_granularities = {
 
 -- ##############################################
 
-local rtt_hosts_key = string.format("ntopng.prefs.ifid_%d.system_rtt_hosts_v3", getSystemInterfaceId())
+local am_hosts_key = string.format("ntopng.prefs.ifid_%d.am_hosts", getSystemInterfaceId())
 
 -- ##############################################
 
-local function rtt_last_updates_key(key)
-  return string.format("ntopng.cache.ifid_%d.system_rtt_hosts.last_update." .. key, getSystemInterfaceId())
+local function am_last_updates_key(key)
+  return string.format("ntopng.cache.ifid_%d.am_hosts.last_update." .. key, getSystemInterfaceId())
 end
 
 -- ##############################################
 
-function am_utils.setLastRttUpdate(key, when, rtt, ipaddress)
-  ntop.setCache(rtt_last_updates_key(key), string.format("%u@%.2f@%s", when, rtt, ipaddress))
+function am_utils.setLastAmUpdate(key, when, value, ipaddress)
+  ntop.setCache(am_last_updates_key(key), string.format("%u@%.2f@%s", when, value, ipaddress))
 end
 
 -- ##############################################
 
 -- Note: alerts requires a unique key to be used in order to identity the
 -- entity. This key is also used internally as a key into the lua tables.
-function am_utils.getRttHostKey(host, measurement)
+function am_utils.getAmHostKey(host, measurement)
   return(string.format("%s@%s", measurement, host))
 end
 
-local function key2rtthost(host)
+local function key2amhost(host)
   local parts = string.split(host, "@")
 
   if(parts and (#parts == 2)) then
@@ -49,9 +49,9 @@ end
 
 -- ##############################################
 
-function am_utils.getLastRttUpdate(host, measurement)
-  local key = am_utils.getRttHostKey(host, measurement)
-  local val = ntop.getCache(rtt_last_updates_key(key))
+function am_utils.getLastAmUpdate(host, measurement)
+  local key = am_utils.getAmHostKey(host, measurement)
+  local val = ntop.getCache(am_last_updates_key(key))
 
   if(val ~= nil)then
     local parts = string.split(val, "@")
@@ -70,7 +70,7 @@ end
 
 -- Only used for the formatting, don't use as a key as the "/"
 -- character is escaped in HTTP parameters
-function am_utils.formatRttHost(host, measurement)
+function am_utils.formatAmHost(host, measurement)
   local m_info = am_utils.getMeasurementInfo(measurement)
 
   if m_info and m_info.force_host then
@@ -84,10 +84,10 @@ end
 -- ##############################################
 
 function am_utils.key2host(host_key)
-  local host, measurement = key2rtthost(host_key)
+  local host, measurement = key2amhost(host_key)
 
   return {
-    label = am_utils.formatRttHost(host, measurement),
+    label = am_utils.formatAmHost(host, measurement),
     measurement = measurement,
     host = host,
   }
@@ -95,7 +95,7 @@ end
 
 -- ##############################################
 
-function am_utils.getRttSchemaForGranularity(granularity)
+function am_utils.getAmSchemaForGranularity(granularity)
   local alert_consts = require("alert_consts")
   local str_granularity
 
@@ -105,12 +105,12 @@ function am_utils.getRttSchemaForGranularity(granularity)
     str_granularity = granularity
   end
 
-  return("am_host:value_" .. (str_granularity or "min"))
+  return("am_host:val_" .. (str_granularity or "min"))
 end
 
 -- ##############################################
 
-local function deserializeRttPrefs(host_key, val, config_only)
+local function deserializeAmPrefs(host_key, val, config_only)
   local rv
 
   if config_only then
@@ -121,14 +121,14 @@ local function deserializeRttPrefs(host_key, val, config_only)
 
   if(tonumber(val) ~= nil) then
     -- Old format is only a number
-    rv.max_rtt = tonumber(val)
+    rv.threshold = tonumber(val)
     rv.granularity = "min"
   else
     -- New format: json
     local v = json.decode(val)
 
     if v then
-      rv.max_rtt = tonumber(v.max_rtt) or 500
+      rv.threshold = tonumber(v.threshold) or 500
       rv.granularity = v.granularity or "min"
     end
   end
@@ -136,15 +136,15 @@ local function deserializeRttPrefs(host_key, val, config_only)
   return(rv)
 end
 
-local function serializeRttPrefs(val)
+local function serializeAmPrefs(val)
   return json.encode(val)
 end
 
 -- ##############################################
 
 function am_utils.hasHost(host, measurement)
-  local host_key = am_utils.getRttHostKey(host, measurement)
-  local res = ntop.getHashCache(rtt_hosts_key, host_key)
+  local host_key = am_utils.getAmHostKey(host, measurement)
+  local res = ntop.getHashCache(am_hosts_key, host_key)
 
   return(not isEmptyString(res))
 end
@@ -152,11 +152,11 @@ end
 -- ##############################################
 
 function am_utils.getHosts(config_only, granularity)
-  local hosts = ntop.getHashAllCache(rtt_hosts_key) or {}
+  local hosts = ntop.getHashAllCache(am_hosts_key) or {}
   local rv = {}
 
   for host_key, val in pairs(hosts) do
-    local host = deserializeRttPrefs(host_key, val, config_only)
+    local host = deserializeAmPrefs(host_key, val, config_only)
 
     if host and ((granularity == nil) or (host.granularity == granularity)) then
       rv[host_key] = host
@@ -175,27 +175,27 @@ function am_utils.resetConfig()
     am_utils.deleteHost(v.host, v.measurement)
   end
 
-  ntop.delCache(rtt_hosts_key)
+  ntop.delCache(am_hosts_key)
 end
 
 -- ##############################################
 
 function am_utils.getHost(host, measurement)
-  local host_key = am_utils.getRttHostKey(host, measurement)
-  local val = ntop.getHashCache(rtt_hosts_key, host_key)
+  local host_key = am_utils.getAmHostKey(host, measurement)
+  local val = ntop.getHashCache(am_hosts_key, host_key)
 
   if not isEmptyString(val) then
-    return deserializeRttPrefs(host_key, val)
+    return deserializeAmPrefs(host_key, val)
   end
 end
 
 -- ##############################################
 
-function am_utils.addHost(host, measurement, rtt_value, granularity)
-  local host_key = am_utils.getRttHostKey(host, measurement)
+function am_utils.addHost(host, measurement, am_value, granularity)
+  local host_key = am_utils.getAmHostKey(host, measurement)
 
-  ntop.setHashCache(rtt_hosts_key, host_key, serializeRttPrefs({
-    max_rtt = tonumber(rtt_value) or 500,
+  ntop.setHashCache(am_hosts_key, host_key, serializeAmPrefs({
+    threshold = tonumber(am_value) or 500,
     granularity = granularity or "min",
   }))
 end
@@ -217,19 +217,19 @@ function am_utils.deleteHost(host, measurement)
   local old_iface = tostring(interface.getId())
   interface.select(getSystemInterfaceId())
 
-  local host_key = am_utils.getRttHostKey(host, measurement)
-  local rtt_host_entity = alerts_api.pingedHostEntity(host_key)
+  local host_key = am_utils.getAmHostKey(host, measurement)
+  local am_host_entity = alerts_api.amThresholdCrossEntity(host_key)
   local old_ifname = ifname
 
   -- Release any engaged alerts of the host
-  alerts_api.releaseEntityAlerts(rtt_host_entity)
+  alerts_api.releaseEntityAlerts(am_host_entity)
 
   am_utils.discardHostTimeseries(host, measurement)
 
   -- Remove the redis keys of the host
-  ntop.delCache(rtt_last_updates_key(host_key))
+  ntop.delCache(am_last_updates_key(host_key))
 
-  ntop.delHashCache(rtt_hosts_key, host_key)
+  ntop.delHashCache(am_hosts_key, host_key)
 
   -- Select the old interface
   interface.select(old_iface)
@@ -237,11 +237,11 @@ end
 
 -- ##############################################
 
-local loaded_rtt_plugins = {}
+local loaded_am_plugins = {}
 local loaded_measurements = {}
 
-local function loadRttPlugins()
-  if not table.empty(loaded_rtt_plugins) then
+local function loadAmPlugins()
+  if not table.empty(loaded_am_plugins) then
     return
   end
 
@@ -296,7 +296,7 @@ local function loadRttPlugins()
     end
 
     plugin.key = mod_fname
-    loaded_rtt_plugins[mod_fname] = plugin
+    loaded_am_plugins[mod_fname] = plugin
 
     ::continue::
   end
@@ -310,7 +310,7 @@ end
 function am_utils.getHostsByPlugin(all_hosts)
   local hosts_by_plugin = {}
 
-  loadRttPlugins()
+  loadAmPlugins()
 
   for key, host in pairs(all_hosts) do
     local measurement = host.measurement
@@ -334,12 +334,12 @@ end
 
 -- ##############################################
 
---! @brief Get a list of measurements from the loaded RTT plugins
+--! @brief Get a list of measurements from the loaded Active Monitoring plugins
 --! @return a list of measurements <title, value> for the gui.
 function am_utils.getAvailableMeasurements()
   local measurements = {}
 
-  loadRttPlugins()
+  loadAmPlugins()
 
   for k, v in pairsByKeys(loaded_measurements, asc) do
     local m = v.measurement
@@ -361,7 +361,7 @@ end
 function am_utils.getAvailableGranularities(measurement)
   local granularities = {}
 
-  loadRttPlugins()
+  loadAmPlugins()
 
   local m_info = loaded_measurements[measurement]
 
@@ -389,7 +389,7 @@ end
 --! @param measurement the measurement key
 --! @return the measurement metadata on success, nil on failure
 function am_utils.getMeasurementInfo(measurement)
-  loadRttPlugins()
+  loadAmPlugins()
 
   local m_info = loaded_measurements[measurement]
 
@@ -405,7 +405,7 @@ end
 --! @brief Get the metadata of all the loaded measurements
 --! @return a list containing the measurements metadata
 function am_utils.getMeasurementsInfo()
-  loadRttPlugins()
+  loadAmPlugins()
 
   local rv = {}
 

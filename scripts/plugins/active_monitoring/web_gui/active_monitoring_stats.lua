@@ -89,7 +89,7 @@ page_utils.print_navbar(title, url,
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
-			      hidden = not isAdministrator() or not plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("pinged_host")}),
+			      hidden = not isAdministrator() or not plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("am_host")}),
 			      active = page == "alerts",
 			      page_name = "alerts",
 			      label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
@@ -127,7 +127,7 @@ if(page == "overview") then
     <div class='container-fluid my-3'>
       <div class='row'>
         <div class="col-md-12">
-          <div id="rtt-alert" class="alert alert-success" style="display: none" role="alert">
+          <div id="am-alert" class="alert alert-success" style="display: none" role="alert">
             <strong>]] .. i18n("success") .. [[</strong> <span class="alert-body"></span>
             <button type="button" class="close" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -137,7 +137,7 @@ if(page == "overview") then
       </div>
       <div class='row'>
         <div class='col-md-12 col-12'>
-          <table class="table w-100 table-striped table-hover table-bordered" id="rtt-table">
+          <table class="table w-100 table-striped table-hover table-bordered" id="am-table">
             <thead>
               <tr>
                 <th>]].. i18n("flow_details.url") ..[[</th>
@@ -156,8 +156,8 @@ if(page == "overview") then
       </div>
     </div>
 
-    <div id='rtt-edit-modal' class="modal fade" tabindex="-1" role="dialog">
-      <form method="post" id='rtt-edit-form'>
+    <div id='am-edit-modal' class="modal fade" tabindex="-1" role="dialog">
+      <form method="post" id='am-edit-form'>
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
@@ -200,8 +200,8 @@ if(page == "overview") then
               <div id='script-description' class='alert alert-light' role='alert'>
               ]] .. i18n("notes") ..[[
               <ul>
-                <li>]] .. i18n("active_monitoring_stats.rtt_note_icmp") ..[[</li>
-                <li>]] .. i18n("active_monitoring_stats.rtt_note_http") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.am_note_icmp") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.am_note_http") ..[[</li>
                 <li>]] .. i18n("active_monitoring_stats.note_alert") ..[[</li>
 		<li>]] .. i18n("active_monitoring_stats.note_periodicity_change") ..[[</li>
               </ul>
@@ -218,8 +218,8 @@ if(page == "overview") then
       </form>
     </div>
 
-    <div id='rtt-add-modal' class="modal fade" tabindex="-1" role="dialog">
-      <form method="post" id='rtt-add-form'>
+    <div id='am-add-modal' class="modal fade" tabindex="-1" role="dialog">
+      <form method="post" id='am-add-form'>
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
@@ -262,8 +262,8 @@ if(page == "overview") then
               <div id='script-description' class='alert alert-light' role='alert'>
               ]] .. i18n("notes") ..[[
               <ul>
-                <li>]] .. i18n("active_monitoring_stats.rtt_note_icmp") ..[[</li>
-                <li>]] .. i18n("active_monitoring_stats.rtt_note_http") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.am_note_icmp") ..[[</li>
+                <li>]] .. i18n("active_monitoring_stats.am_note_http") ..[[</li>
                 <li>]] .. i18n("active_monitoring_stats.note_alert") ..[[</li>
               </ul>
               </div>
@@ -278,8 +278,8 @@ if(page == "overview") then
       </form>
     </div>
 
-    <div id='rtt-delete-modal' class="modal fade" tabindex="-1" role="dialog">
-      <form id='rtt-delete-form'>
+    <div id='am-delete-modal' class="modal fade" tabindex="-1" role="dialog">
+      <form id='am-delete-form'>
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
@@ -296,7 +296,7 @@ if(page == "overview") then
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
-              <button id="btn-delete-rtt" type="submit" class="btn btn-danger">]] .. i18n("delete") .. [[</button>
+              <button id="btn-delete-am" type="submit" class="btn btn-danger">]] .. i18n("delete") .. [[</button>
             </div>
           </div>
         </div>
@@ -324,7 +324,7 @@ if(page == "overview") then
 
   local measurements_info = {}
 
-  -- This information is required in rtt-utils.js in order to properly
+  -- This information is required in active_monitoring_utils.js in order to properly
   -- render the template
   for key, info in pairs(active_monitoring_utils.getMeasurementsInfo()) do
     measurements_info[key] = {
@@ -348,7 +348,7 @@ if(page == "overview") then
       i18n.expired_csrf = "]] .. i18n("expired_csrf") .. [[";
 
       let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
-      let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+      let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
       let import_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
       let measurements_info = ]] .. json.encode(measurements_info) .. [[;
 
@@ -360,7 +360,7 @@ if(page == "overview") then
 elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
 
   local suffix = "_" .. host.granularity
-  local schema = _GET["ts_schema"] or ("am_host:value" .. suffix)
+  local schema = _GET["ts_schema"] or ("am_host:val" .. suffix)
   local selected_epoch = _GET["epoch"] or ""
   local tags = {ifid=getSystemInterfaceId(), host=host.host, measure=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
   local am_ts_label
@@ -370,6 +370,7 @@ elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) t
   if measurement_info.i18n_am_ts_label then
     am_ts_label = i18n(measurement_info.i18n_am_ts_label) or measurement_info.i18n_am_ts_label
   else
+    -- Fallback
     am_ts_label = i18n("graphs.num_ms_rtt")
   end
 
@@ -382,7 +383,7 @@ elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) t
   url = url.."&page=historical"
 
   local timeseries = {
-    { schema="am_host:value" .. suffix, label=am_ts_label,
+    { schema="am_host:val" .. suffix, label=am_ts_label,
       value_formatter=(measurement_info.value_js_formatter or "fmillis"),
       metrics_labels={am_metric_label},
     },
@@ -413,10 +414,10 @@ elseif((page == "alerts") and isAdministrator()) then
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
-   _GET["entity"] = alert_consts.alertEntity("pinged_host")
+   _GET["entity"] = alert_consts.alertEntity("am_host")
 
    if host then
-      _GET["entity_val"] = active_monitoring_utils.getRttHostKey(host.host, host.measurement)
+      _GET["entity_val"] = active_monitoring_utils.getAmHostKey(host.host, host.measurement)
    end
 
    alert_utils.drawAlerts()

@@ -50,7 +50,7 @@ active_monitoring_utils.resetConfig()
 for host_key, conf in pairs(data) do
   host = active_monitoring_utils.key2host(host_key)
 
-  active_monitoring_utils.addHost(host.host, host.measurement, conf.max_rtt, conf.granularity)
+  active_monitoring_utils.addHost(host.host, host.measurement, conf.threshold, conf.granularity)
 end
 
 -- ################################################

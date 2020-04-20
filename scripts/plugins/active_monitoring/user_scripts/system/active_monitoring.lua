@@ -36,9 +36,9 @@ local script = {
 
 -- ##############################################
 
-local function pingIssuesType(value, threshold, ip, granularity)
+local function amThresholdCrossType(value, threshold, ip, granularity)
   return({
-    alert_type = alert_consts.alert_types.alert_ping_issues,
+    alert_type = alert_consts.alert_types.alert_am_threshold_cross,
     alert_severity = alert_consts.alert_severities.warning,
     alert_granularity = alert_consts.alerts_granularities[granularity],
     alert_type_params = {
@@ -49,31 +49,31 @@ end
 
 -- ##############################################
 
-local function triggerRttAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
-  local entity_info = alerts_api.pingedHostEntity(ip_label)
-  local type_info = pingIssuesType(current_value, upper_threshold, numeric_ip, granularity)
+local function triggerAmAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
+  local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
+  local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity)
 
   return alerts_api.trigger(entity_info, type_info)
 end
 
 -- ##############################################
 
-local function releaseRttAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
-  local entity_info = alerts_api.pingedHostEntity(ip_label)
-  local type_info = pingIssuesType(current_value, upper_threshold, numeric_ip, granularity)
+local function releaseAmAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
+  local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
+  local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity)
 
   return alerts_api.release(entity_info, type_info)
 end
 
 -- ##############################################
 
-local function run_rtt_check(params, all_hosts, granularity)
-  local hosts_rtt = {}
+local function run_am_check(params, all_hosts, granularity)
+  local hosts_am = {}
   local when = params.when
-  local rtt_schema = active_monitoring_utils.getRttSchemaForGranularity(granularity)
+  local am_schema = active_monitoring_utils.getAmSchemaForGranularity(granularity)
 
   if(do_trace) then
-     print("[RTT] Script started\n")
+     print("[ActiveMonitoring] Script started\n")
   end
 
   if table.empty(all_hosts) then
@@ -94,37 +94,37 @@ local function run_rtt_check(params, all_hosts, granularity)
   for _, info in pairs(hosts_by_plugin) do
     for k, v in pairs(info.measurement.collect_results(granularity) or {}) do
       v.measurement = info.measurement
-      hosts_rtt[k] = v
+      hosts_am[k] = v
     end
   end
 
   -- Parse the results
-  for key, info in pairs(hosts_rtt) do
+  for key, info in pairs(hosts_am) do
     local host = all_hosts[key]
-    local rtt = info.value
+    local host_value = info.value
     local resolved_host = info.resolved_addr or host.host
-    local max_rtt = host.max_rtt
+    local threshold = host.threshold
     local operator = info.measurement.operator or "gt"
 
     if params.ts_enabled then
-       local value = rtt
+       local value = host_value
 
        if info.measurement.chart_scaling_value then
          value = value * info.measurement.chart_scaling_value
        end
 
-       ts_utils.append(rtt_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = value}, when)
+       ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, value = value}, when)
     end
 
-    active_monitoring_utils.setLastRttUpdate(key, when, rtt, resolved_host)
+    active_monitoring_utils.setLastAmUpdate(key, when, host_value, resolved_host)
 
-    if(max_rtt and ((operator == "lt" and (rtt < max_rtt))
-        or (operator == "gt" and (rtt > max_rtt)))) then
-      if(do_trace) then print("[TRIGGER] Host "..resolved_host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
-      triggerRttAlert(resolved_host, key, rtt, max_rtt, granularity)
+    if(threshold and ((operator == "lt" and (host_value < threshold))
+        or (operator == "gt" and (host_value > threshold)))) then
+      if(do_trace) then print("[TRIGGER] Host "..resolved_host.."/"..key.." [value: "..host_value.."][threshold: "..threshold.."]\n") end
+      triggerAmAlert(resolved_host, key, host_value, threshold, granularity)
     else
-      if(do_trace) then print("[OK] Host "..resolved_host.."/"..key.." [value: "..rtt.."][threshold: "..max_rtt.."]\n") end
-      releaseRttAlert(resolved_host, key, rtt, max_rtt, granularity)
+      if(do_trace) then print("[OK] Host "..resolved_host.."/"..key.." [value: "..host_value.."][threshold: "..threshold.."]\n") end
+      releaseAmAlert(resolved_host, key, host_value, threshold, granularity)
     end
   end
 
@@ -132,19 +132,19 @@ local function run_rtt_check(params, all_hosts, granularity)
   for key, host in pairs(all_hosts) do
      local ip = host.host
 
-     if(hosts_rtt[key] == nil) then
+     if(hosts_am[key] == nil) then
        if(do_trace) then print("[TRIGGER] Host "..ip.."/"..key.." is unreacheable\n") end
-       triggerRttAlert(ip, key, 0, 0, granularity)
+       triggerAmAlert(ip, key, 0, 0, granularity)
 
        if params.ts_enabled then
          -- Also write 0 in its timeseries to indicate that the host is unreacheable
-         ts_utils.append(rtt_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, millis_rtt = 0}, when)
+         ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, value = 0}, when)
        end
      end
   end
 
   if(do_trace) then
-     print("[RTT] Script is over\n")
+     print("[ActiveMonitoring] Script is over\n")
   end
 end
 
@@ -154,7 +154,7 @@ end
 function script.hooks.min(params)
   local hosts = active_monitoring_utils.getHosts(nil, "min")
 
-  run_rtt_check(params, hosts, "min")
+  run_am_check(params, hosts, "min")
 end
 
 -- ##############################################
@@ -163,7 +163,7 @@ end
 script.hooks["5mins"] = function(params)
   local hosts = active_monitoring_utils.getHosts(nil, "5mins")
 
-  run_rtt_check(params, hosts, "5mins")
+  run_am_check(params, hosts, "5mins")
 end
 
 -- ##############################################
@@ -172,7 +172,7 @@ end
 function script.hooks.hour(params)
   local hosts = active_monitoring_utils.getHosts(nil, "hour")
 
-  run_rtt_check(params, hosts, "hour")
+  run_am_check(params, hosts, "hour")
 end
 
 -- ##############################################
