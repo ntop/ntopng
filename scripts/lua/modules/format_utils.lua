@@ -188,17 +188,18 @@ function format_utils.formatEpoch(epoch)
   if epoch == 0 then
     return("")
   else
-    return(os.date("%d/%m/%Y %X", epoch + getFrontendTzDeltaSeconds()))
+    -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
+    return(os.date("!%d/%m/%Y %X", epoch + getFrontendTzSeconds()))
   end
 end
 
 -- shorten an epoch when there is a well defined interval
 function format_utils.formatEpochShort(epoch_begin, epoch_end, epoch)
-   local begin_day = os.date("%d", epoch_begin + getFrontendTzDeltaSeconds())
-   local end_day = os.date("%d", epoch_end + getFrontendTzDeltaSeconds())
+   local begin_day = os.date("!%d", epoch_begin + getFrontendTzSeconds())
+   local end_day = os.date("!%d", epoch_end + getFrontendTzSeconds())
 
    if begin_day == end_day then
-      return os.date("%X", epoch + getFrontendTzDeltaSeconds())
+      return os.date("!%X", epoch + getFrontendTzSeconds())
    end
 
    return format_utils.formatEpoch(epoch)

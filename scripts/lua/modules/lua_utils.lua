@@ -2596,8 +2596,9 @@ end
 
 -- ####################################################
 
--- Get the delta between the frontend local time and the backend local time in seconds
-function getFrontendTzDeltaSeconds()
+-- @brief Get the frontend timezone offset in seconds
+-- @return The offset of the frontend timezone
+function getFrontendTzSeconds()
   local frontend_tz_offset = nil
 
   if _COOKIE and _COOKIE.tzoffset then
@@ -2610,7 +2611,7 @@ function getFrontendTzDeltaSeconds()
       return 0
    end
 
-   return frontend_tz_offset - getTzOffsetSeconds()
+   return frontend_tz_offset
 end
 
 -- ####################################################
