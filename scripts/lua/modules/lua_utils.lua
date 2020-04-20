@@ -2616,28 +2616,43 @@ end
 
 -- ####################################################
 
--- Converts a string (with the timezone offset) into an epoch
-function makeTimeStamp(d, tzoffset)
-   -- tzoffset is the timezone difference between UTC and Local Time in the browser
+-- @brief Converts a datetime string into an epoch, adjusted with the client time
+function makeTimeStamp(d)
    local pattern = "(%d+)%/(%d+)%/(%d+) (%d+):(%d+):(%d+)"
-   local day,month, year, hour, minute, seconds = string.match(d, pattern);
+   local day, month, year, hour, minute, seconds = string.match(d, pattern);
 
-   local timestamp = os.time({year=year, month=month, day=day, hour=hour, min=minute, sec=seconds});
+   -- Get the epoch out of d. The epoch gets adjusted by os.time in the server timezone, that is, in
+   -- the timezone of this running ntopng instance
+   -- See https://www.lua.org/pil/22.1.html
+   local server_epoch = os.time({year = year, month = month, day = day, hour = hour, min = minute, sec = seconds});
 
-   -- tprint(string.format("pre-timestamp is %u [%s]", timestamp, formatEpoch(timestamp)))
-   if tzoffset then
-      -- from browser local time to UTC
-      timestamp = timestamp - (tzoffset or 0)
+   -- Convert the server_epoch into a gmt_epoch which is adjusted to GMT
+   local gmt_datetable = os.date("!*t", server_epoch)
+   local gmt_epoch = os.time(gmt_datetable)
 
-      -- from UTC to machine local time
-      local delta = getTzOffsetSeconds()
+   -- Finally, compute a client_epoch by adding the seconds of getFrontendTzSeconds() to the GMT epoch just computed
+   local client_datetable = gmt_datetable
+   client_datetable.sec = client_datetable.sec + getFrontendTzSeconds()
+   local client_epoch = os.time(client_datetable)
 
-      timestamp = math.floor(timestamp + (delta or 0))
-      -- tprint("delta: "..delta.." tzoffset is: "..tzoffset)
-      -- tprint(string.format("post-timestamp is %u [%s]", timestamp, formatEpoch(timestamp)))
-   end
+   -- Now we can compute the deltas to know the extact number of seconds between the server and the client timezone
+   local server_to_gmt_delta = gmt_epoch - server_epoch
+   local gmt_to_client_delta = client_epoch - gmt_epoch
+   local server_to_client_delta = client_epoch - server_epoch
 
-   return string.format("%u", timestamp)
+   -- Make sure everything is OK...
+   assert(server_to_client_delta == server_to_gmt_delta + gmt_to_client_delta)
+
+   -- tprint({
+   --    server_ts = server_epoch,
+   --    gmt_ts = gmt_epoch,
+   --    server_to_gmt_delta = (server_to_gmt_delta) / 60 / 60,
+   --    gmt_to_client_delta = (gmt_to_client_delta) / 60 / 60,
+   --    server_to_client_delta = (server_to_client_delta) / 60 / 60
+   -- })
+
+   -- Return the epoch in the client timezone
+   return string.format("%u", math.floor(server_epoch - server_to_client_delta))
 end
 
 -- ###########################################
