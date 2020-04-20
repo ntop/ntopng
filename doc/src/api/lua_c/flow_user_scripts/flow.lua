@@ -163,3 +163,12 @@ function flow.getTLSVersion()
 --! @brief Get the nDPI matching packet 
 --! @return the lenght and payload of the packet matching nDPI
 function flow.getnDPIMatchPacket()
+
+--! @brief Get the total flow score (see flow.setStatus).
+--! @return the flow score.
+function flow.getScore()
+
+--! @brief Check if the flow traffic is not blocked.
+--! @return true if the flow traffic is not blocked, false otherwise.
+--! @note This requires nEdge.
+function flow.isPassVerdict()
