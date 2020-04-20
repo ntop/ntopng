@@ -67,9 +67,9 @@ Network Size
 +--------------+---------------+---------------------------+-----------------------+
 | Traffic      | < 100Mbps     | Between 100Mbps and 1Gbps | Above 1Gbps           |
 +--------------+---------------+---------------------------+-----------------------+
-| Active Hosts | Hundredhs     | Thoushands                | Hundreds of thousands |
+| Active Hosts | Hundredths    | Thousands                 | Hundreds of thousands |
 +--------------+---------------+---------------------------+-----------------------+
-| Active Flows | Thousands     | Hundreds of thoudsands    | Millions              |
+| Active Flows | Thousands     | Hundreds of thousands     | Millions              |
 +--------------+---------------+---------------------------+-----------------------+
 
 .. note::
