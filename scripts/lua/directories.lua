@@ -44,8 +44,8 @@ print("<td>"..i18n("about.host_callbacks_directory").."</td><td>".. user_scripts
 print("<td>"..i18n("about.network_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath(user_scripts.script_types.traffic_element, "network") .."</td></tr>\n")
 print("<td>"..i18n("about.interface_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath(user_scripts.script_types.traffic_element, "interface") .."</td></tr>\n")
 
-print("<tr><th nowrap rowspan=2>"..i18n("about.defs_directories").."</th><td>"..i18n("show_alerts.alerts").."</td><td>".. alert_consts.getDefinititionsDir() .."</td></tr>\n")
-print("<td>"..i18n("flow_details.flow_status").."</td><td>".. flow_consts.getDefinititionsDir() .."</td></tr>\n")
+print("<tr><th nowrap rowspan=2>"..i18n("about.defs_directories").."</th><td>"..i18n("show_alerts.alerts").."</td><td>".. table.concat(alert_consts.getDefinititionDirs(), "\n") .."</td></tr>\n")
+print("<td>"..i18n("flow_details.flow_status").."</td><td>".. table.concat(flow_consts.getDefinititionDirs(), "\n") .."</td></tr>\n")
 
 print("</table>\n")
 print("</div>")

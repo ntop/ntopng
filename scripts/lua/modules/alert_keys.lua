@@ -61,6 +61,7 @@ local alert_keys = {
       alert_user_activity                  = 53,
       alert_user_script_calls_drops        = 54,
       alert_web_mining                     = 55,
+      alert_connection_issues              = 56,
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
       -- WARNING: make sure integers do NOT OVERLAP with

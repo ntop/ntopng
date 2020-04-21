@@ -156,7 +156,6 @@ local function init_runtime_paths()
     -- Definitions
     alert_definitions = os_utils.fixPath(runtime_path .. "/alert_definitions"),
     status_definitions = os_utils.fixPath(runtime_path .. "/status_definitions"),
-    pro_alert_definitions = os_utils.fixPath(runtime_path .. "/alert_definitions/pro"),
     pro_status_definitions = os_utils.fixPath(runtime_path .. "/status_definitions/pro"),
 
     -- Locales
@@ -198,7 +197,7 @@ end
 
 -- NOTE: cannot save the definitions to a single file via the persistance
 -- module because they may contain functions (e.g. in the i18n_description)
-local function load_definitions(defs_dir, runtime_path, validator)
+local function load_definitions(defs_dir, runtime_path)
   for fname in pairs(ntop.readdir(defs_dir) or {}) do
     if string.ends(fname, ".lua") then
       local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
@@ -207,10 +206,6 @@ local function load_definitions(defs_dir, runtime_path, validator)
       -- Verify the definitions
       if(type(def_script) ~= "table") then
         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading definition from %s", full_path))
-        return(false)
-      end
-
-      if(validator and not validator(def_script, mod_fname, full_path)) then
         return(false)
       end
 
@@ -224,23 +219,19 @@ end
 -- ##############################################
 
 local function load_plugin_definitions(plugin, alert_definitions, status_definitions)
-  local alert_consts = require("alert_consts")
-  local flow_consts = require("flow_consts")
-  local alert_definitions
+  local alert_definitions = RUNTIME_PATHS.alert_definitions
   local status_definitions
 
   if(plugin.edition == "community") then
-    alert_definitions = RUNTIME_PATHS.alert_definitions
     status_definitions = RUNTIME_PATHS.status_definitions
   else
     -- It's necessary to split pro plugins to avoid errors on demo mode end
     -- while loading pro scripts
-    alert_definitions = RUNTIME_PATHS.pro_alert_definitions
     status_definitions = RUNTIME_PATHS.pro_status_definitions
   end
 
-  return(load_definitions(os_utils.fixPath(plugin.path .. "/alert_definitions"), alert_definitions, alert_consts.loadDefinition)
-    and load_definitions(os_utils.fixPath(plugin.path .. "/status_definitions"), status_definitions, flow_consts.loadDefinition))
+  return(load_definitions(os_utils.fixPath(plugin.path .. "/alert_definitions"), alert_definitions)
+	    and load_definitions(os_utils.fixPath(plugin.path .. "/status_definitions"), status_definitions))
 end
 
 -- ##############################################
@@ -518,11 +509,6 @@ function plugins_utils.loadPlugins(community_plugins_only)
 
   init_runtime_paths()
 
-  -- Note: load these only after cleaning the old plugins, to avoid
-  -- errors due to ntopng version change (e.g. after adding the --community switch)
-  local alert_consts = require("alert_consts")
-  local flow_consts = require("flow_consts")
-
   -- Ensure that the directory is writable
   ntop.mkdir(shadow_dir)
   local test_file = os_utils.fixPath(shadow_dir .. "/test")
@@ -546,10 +532,6 @@ function plugins_utils.loadPlugins(community_plugins_only)
   for _, path in pairs(RUNTIME_PATHS) do
     ntop.mkdir(path)
   end
-
-  -- Reset the definitions before loading
-  alert_consts.resetDefinitions()
-  flow_consts.resetDefinitions()
 
   -- Load the plugins following the dependecies order
   for _, plugin in ipairs(plugins) do

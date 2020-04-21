@@ -122,8 +122,16 @@ end
 
 -- ##############################################
 
-function alert_consts.getDefinititionsDir()
-   return(os_utils.fixPath(plugins_utils.getRuntimePath() .. "/alert_definitions"))
+function alert_consts.getDefinititionDirs()
+   local dirs = ntop.getDirs()
+
+   return({
+	 -- Path for ntopng-defined builtin alerts
+	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions"),
+	 -- Path for user-defined alerts written in plugins
+	 os_utils.fixPath(plugins_utils.getRuntimePath() .. "/alert_definitions"),
+	  }
+   )
 end
 
 -- ##############################################
@@ -164,12 +172,7 @@ local function loadAlertsDefs()
       end
    end
 
-   local dirs = ntop.getDirs()
-   local defs_dirs = {alert_consts.getDefinititionsDir()}
-
-   if ntop.isPro() then
-      defs_dirs[#defs_dirs + 1] = alert_consts.getDefinititionsDir() .. "/pro"
-   end
+   local defs_dirs = alert_consts.getDefinititionDirs()
 
    alert_consts.resetDefinitions()
 

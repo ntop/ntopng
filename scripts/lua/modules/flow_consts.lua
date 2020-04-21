@@ -14,9 +14,16 @@ flow_consts.max_score = 1000
 
 -- ################################################################################
 
-function flow_consts.getDefinititionsDir()
+function flow_consts.getDefinititionDirs()
     local dirs = ntop.getDirs()
-    return(os_utils.fixPath(plugins_utils.getRuntimePath() .. "/status_definitions"))
+
+    return({
+	  -- Path for ntopng-defined builtin flow status definitions
+	  os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/flow_status_definitions"),
+	  -- Path for user-defined alerts written in plugins
+	  os_utils.fixPath(plugins_utils.getRuntimePath() .. "/status_definitions"),
+	   }
+    )
 end
 
 -- ################################################################################
@@ -33,11 +40,7 @@ local function loadStatusDefs()
       end
     end
 
-    local defs_dirs = {flow_consts.getDefinititionsDir()}
-
-    if ntop.isPro() then
-      defs_dirs[#defs_dirs + 1] = flow_consts.getDefinititionsDir() .. "/pro"
-    end
+    local defs_dirs = flow_consts.getDefinititionDirs()
 
     flow_consts.resetDefinitions()
 
