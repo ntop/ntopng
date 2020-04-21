@@ -43,6 +43,7 @@ print[[
       "no_file": "]] print(i18n("config_scripts.no_file")) print[[",
       "invalid_file": "]] print(i18n("config_scripts.invalid_file")) print[[",
       "request_failed_message": "]] print(i18n("request_failed_message")) print[[",
+      "unreachable_host": "]] print(i18n("graphs.unreachable_host")) print[[",
    };
    const system_view_enabled = ]] print(ternary(is_system_interface, "true", "false")) print[[;
    const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";

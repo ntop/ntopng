@@ -368,6 +368,30 @@ function chart_data_sum(series) {
   }, 0));
 }
 
+function redrawExtraLines(chart, chart_id, extra_lines) {
+  /* Remove the previous extra lines */
+  d3.selectAll(chart_id + " line.extra-line").remove();
+
+  if(extra_lines.length > 0) {
+    var xValueScale = chart.xAxis.scale();
+    var yValueScale = chart.yAxis1.scale();
+    var g = d3.select(chart_id + " .stack1Wrap");
+
+    for(var i=0; i<extra_lines.length; i++) {
+      var d = extra_lines[i];
+
+      g.append("line")
+        .style("stroke", "#FF5B56")
+        .style("stroke-width", "2.5px")
+        .attr("x1", xValueScale(d[0]))
+        .attr("y1", yValueScale(d[2]))
+        .attr("x2", xValueScale(d[1]))
+        .attr("y2", yValueScale(d[3]))
+        .attr("class", "extra-line")
+    }
+  }
+}
+
 // add a new updateStackedChart function
 function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id, params, step,
           metric_type, align_step, show_all_smooth, initial_range, ts_table_shown) {
@@ -391,7 +415,12 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var seconds_before_query_slow = 6;
   var query_completed = 0;
   var query_was_aborted = false;
+  const visualization = chart.visualization_options || {};
   chart.is_zoomed = ((current_zoom_level > 0) || has_initial_zoom());
+
+  /* Extra lines to draw into the chart. Each item is in the format [x_start, x_end, y_start, y_end] */
+  let extra_lines = [];
+  let unreachable_timestamps = {};
 
   //var spinner = $("<img class='chart-loading-spinner' src='" + spinner_url + "'/>");
   var spinner = $('<i class="chart-loading-spinner fas fa-spinner fa-lg fa-spin"></i>');
@@ -410,6 +439,18 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   ];
 
   var chart_colors_min = ["#7CC28F", "#FCD384", "#FD977B"];
+
+  /* This is used to show the "unreachable" label when the chart "show_unreachable"
+   * options is set. See the extra_lines computation below. */
+  function format_unreachable(formatter) {
+    return function(y, d) {
+      if(d && unreachable_timestamps[d[0]])
+        return(i18n.unreachable_host);
+
+      // Not unreachable, use the provided formatter
+      return(formatter(y));
+    }
+  }
 
   /* The default number of y points */
   var num_ticks_y1 = null;
@@ -473,7 +514,12 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     /* Refresh the chart */
     d3_sel.call(chart);
-    nv.utils.windowResize(chart.update);
+    nv.utils.windowResize(function() {
+      chart.update();
+      redrawExtraLines(chart, chart_id, extra_lines);
+    })
+    redrawExtraLines(chart, chart_id, extra_lines);
+
     spinner.remove();
   }
 
@@ -741,6 +787,11 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     if(!canCompareBackwards(req_params.epoch_begin, req_params.epoch_end))
       delete req_params.ts_compare;
 
+    /* Disable the null data filling only for the charts which support the
+     * "unreachable" status (unreachable reported as a 0 value instead of null). */
+    if(visualization.show_unreachable)
+      req_params.no_fill = 1;
+
     // Load data via ajax
     pending_chart_request = $.get(url, req_params, function(data) {
       if(data && data.error)
@@ -774,7 +825,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           t += data.step;
         }
 
-        var visualization = chart.visualization_options || {};
         var label = getSerieLabel(schema_name, series[j], visualization, j);
         var legend_key = schema_name + ":" + label;
         chart.current_step = data.step;
@@ -958,13 +1008,50 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           add_smoothed_serie("trend");
       }
 
+      /* Add extra lines. These are different from the extra series as
+       * they are simple lines, so they are not bound to an axis. */
+      extra_lines = [];
+
+      if((visualization.show_unreachable) && (res.length > 0)) {
+        var ref_serie = res[0].values;
+        let tok = ref_serie[0][0];
+        let was_unreachable = false;
+        unreachable_timestamps = {};
+
+        for(var i=0; i<ref_serie.length; i++) {
+          const is_unreachable = (ref_serie[i][1] === 0);
+          const tval = ref_serie[i][0];
+
+          if(!is_unreachable) {
+            if(was_unreachable)
+              extra_lines.push([tok, tval, 0, 0]);
+
+            tok = tval;
+            was_unreachable = false;
+          } else {
+            /* Change the reference serie point to null to fix interpolation issues */
+            ref_serie[i][1] = null;
+            unreachable_timestamps[tval] = true;
+
+            was_unreachable = true;
+          }
+        }
+
+        if(was_unreachable) {
+          const tlast = ref_serie[ref_serie.length - 1][0];
+
+          if(tlast != tok)
+            extra_lines.push([tok, tlast, 0, 0]);
+        }
+      }
+
       // get the value formatter
       var formatter1 = getValueFormatter(schema_name, metric_type, series.filter(function(d) { return(d.axis != 2); }), visualization.value_formatter, data.statistics);
       var value_formatter = formatter1[0];
       var tot_formatter = formatter1[1] || value_formatter;
       var stats_formatter = formatter1[2] || value_formatter;
       chart.yAxis1.tickFormat(value_formatter);
-      chart.yAxis1_formatter = value_formatter;
+      chart.yAxis1_formatter = visualization.show_unreachable ? format_unreachable(value_formatter) : value_formatter;
 
       var second_axis_series = series.filter(function(d) { return(d.axis == 2); });
       var formatter2 = getValueFormatter(schema_name, metric_type, second_axis_series, visualization.value_formatter2 || visualization.value_formatter, data.statistics);

@@ -1934,6 +1934,7 @@ local lang = {
     ["trend"] = "Trend",
     ["udp_packets"] = "UDP Packets",
     ["udp_sent_unicast_vs_non_unicast"] = "UDP sent Unicast vs Non Unicast",
+    ["unreachable_host"] = "Unreachable Host",
     ["zmq_flow_coll_drops"] = "Flow Collection Drops",
     ["zmq_flow_coll_udp_drops"] = "Collection Socket Drops",
     ["zmq_msg_rcvd_vs_drops"] = "Collected vs Dropped ZMQ Messages",
