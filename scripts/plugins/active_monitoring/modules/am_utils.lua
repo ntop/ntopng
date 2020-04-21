@@ -450,7 +450,7 @@ end
 
 function am_utils.releaseAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
   local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
-  local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity)
+  local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity, entity_info)
 
   return alerts_api.release(entity_info, type_info)
 end
