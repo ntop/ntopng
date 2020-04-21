@@ -353,8 +353,9 @@ function addCommas(nStr) {
   return x1 + x2;
 }
 
-function scaleValue(val, sizes, scale) {
+function scaleValue(val, sizes, scale, decimals) {
   if(val == 0) return [0, sizes[0]];
+  let factor = decimals ? (10 * decimals) : 10;
 
   var i = parseInt(Math.floor(Math.log(val) / Math.log(scale)));
   if (i < 0 || isNaN(i)) {
@@ -362,7 +363,7 @@ function scaleValue(val, sizes, scale) {
   } else if (i >= sizes.length)
     i = sizes.length - 1;
 
-  return [Math.round((val / Math.pow(scale, i)) * 10) / 10, sizes[i]];
+  return [Math.round((val / Math.pow(scale, i)) * factor) / factor, sizes[i]];
 }
 
 function formatValue(val) {
@@ -396,7 +397,7 @@ function fmillis(value) {
 
   if(value == 0) return '0 ms';
   if((value > 0) && (value < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' ms');
-  var res = scaleValue(value, ["ms", "s"], 1000);
+  var res = scaleValue(value, ["ms", "s"], 1000, 2 /* 2 decimals */);
 
   return res[0] + " " + res[1];
 }
