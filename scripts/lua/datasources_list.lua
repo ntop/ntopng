@@ -15,6 +15,10 @@ local format_utils = require("format_utils")
 local template = require "template_utils"
 local json = require "dkjson"
 
+local function ends_with(str, ending)
+   return ending == "" or str:sub(-#ending) == ending
+end
+
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.datasources_list)
@@ -26,6 +30,14 @@ page_utils.print_page_title("Datasources")
 -- List available datasources
 local dss = ntop.readdir(dirs.installdir .. "/scripts/lua/datasources")
 
+-- Cleanup results and allow only .lua filea
+for k,v in pairs(dss) do
+   if(not(ends_with(k, ".lua"))) then
+      dss[k] = nil
+   end
+end
+
+-- Prepare the response
 
 local context = {
    datasources_list = {

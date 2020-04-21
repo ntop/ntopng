@@ -92,10 +92,7 @@ $(document).ready(function() {
             { data: 'name' },
             {
                 data: 'key',
-                render: (key) => {
-                    return `<a target="_newtab" href="/widgets/${key}">${key}</a>`
-                }
-	        },
+	    },
             { data: 'type', render: (type) => `${capitaliseFirstLetter(type)}` },
             {
                 data: 'params',
