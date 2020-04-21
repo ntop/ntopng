@@ -293,6 +293,7 @@ local lang = {
     ["runtime_status"] = "Runtime Status",
     ["save_licence"] = "Save Licence",
     ["scripts_directory"] = "Scripts",
+    ["server_time"] = "Server Time",
     ["specify_licence"] = "Specify here your ntopng License",
     ["startup_line"] = "Startup Line",
     ["suggest_feature"] = "Suggest a Feature",

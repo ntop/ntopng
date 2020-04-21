@@ -61,7 +61,7 @@ print [[
 			<div class="col-4 text-right">
 				<small>
 					<div class="text-right">
-						<i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
+						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
 					</div>
 				</small>
 			</div>
@@ -74,7 +74,7 @@ else -- info.oem
   print[[<div class="col-12 text-right">
     <small>
 	    <div class="text-right">
-		    <i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
+		    <i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock' title="]] print(i18n("about.server_time")) print[["></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
 	    </div>
     </small>
 </div>]]
