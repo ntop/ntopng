@@ -8,6 +8,8 @@ local format_utils = require "format_utils"
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local os_utils = require("os_utils")
+local alerts_api = require("alerts_api")
+local alert_consts = require("alert_consts")
 
 local supported_granularities = {
   ["min"] = "alerts_thresholds_config.every_minute",
@@ -96,7 +98,6 @@ end
 -- ##############################################
 
 function am_utils.getAmSchemaForGranularity(granularity)
-  local alert_consts = require("alert_consts")
   local str_granularity
 
   if(tonumber(granularity) ~= nil) then
@@ -210,7 +211,6 @@ end
 
 function am_utils.deleteHost(host, measurement)
   local ts_utils = require("ts_utils")
-  local alerts_api = require("alerts_api")
   local alert_utils = require("alert_utils")
 
   -- NOTE: system interface must be manually sected and then unselected
@@ -414,6 +414,50 @@ function am_utils.getMeasurementsInfo()
   end
 
   return(rv)
+end
+
+-- ##############################################
+
+local function amThresholdCrossType(value, threshold, ip, granularity)
+  return({
+    alert_type = alert_consts.alert_types.alert_am_threshold_cross,
+    alert_severity = alert_consts.alert_severities.warning,
+    alert_granularity = alert_consts.alerts_granularities[granularity],
+    alert_type_params = {
+      value = value, threshold = threshold, ip = ip,
+    }
+  })
+end
+
+-- ##############################################
+
+function am_utils.triggerAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
+  local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
+  local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity)
+
+  return alerts_api.trigger(entity_info, type_info)
+end
+
+-- ##############################################
+
+function am_utils.releaseAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
+  local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
+  local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity)
+
+  return alerts_api.release(entity_info, type_info)
+end
+
+-- ##############################################
+
+function am_utils.hasExceededThreshold(threshold, operator, value)
+  operator = operator or "gt"
+
+  if(threshold and ((operator == "lt" and (value < threshold))
+      or (operator == "gt" and (value > threshold)))) then
+    return(true)
+  else
+    return(false)
+  end
 end
 
 -- ##############################################

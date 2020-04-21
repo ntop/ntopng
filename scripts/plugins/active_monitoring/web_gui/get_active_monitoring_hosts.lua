@@ -9,7 +9,7 @@ require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
-local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -17,13 +17,13 @@ local charts_available = plugins_utils.timeseriesCreationEnabled()
 
 -- ################################################
 
-local active_monitoring_hosts = active_monitoring_utils.getHosts()
+local active_monitoring_hosts = am_utils.getHosts()
 
 local res = {}
 
 for key, active_monitoring_host in pairs(active_monitoring_hosts) do
     local chart = ""
-    local m_info = active_monitoring_utils.getMeasurementInfo(active_monitoring_host.measurement)
+    local m_info = am_utils.getMeasurementInfo(active_monitoring_host.measurement)
 
     if not m_info then
       goto continue
@@ -36,7 +36,7 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
     local column_last_ip = ""
     local column_last_update = ""
     local column_last_value = ""
-    local last_update = active_monitoring_utils.getLastAmUpdate(active_monitoring_host.host, active_monitoring_host.measurement)
+    local last_update = am_utils.getLastAmUpdate(active_monitoring_host.host, active_monitoring_host.measurement)
     local alerted = 0
     
     if(last_update ~= nil) then
@@ -57,14 +57,10 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
     if(column_last_value == nil) then
       chart = ""
     else
-      if(m_info.operator == "gt") then
-	 if(column_last_value > active_monitoring_host.threshold) then
-	    alerted = 1
-	 end
+      if am_utils.hasExceededThreshold(active_monitoring_host.threshold, m_info.operator, column_last_value) then
+	alerted = 1
       else
-	 if(column_last_value < active_monitoring_host.threshold) then
-	    alerted = 1
-	 end
+	alerted = 0
       end
     end
     

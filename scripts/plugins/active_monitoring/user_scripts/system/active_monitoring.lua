@@ -2,12 +2,10 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local alerts_api = require("alerts_api")
-local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 local ts_utils = require("ts_utils_core")
 local plugins_utils = require("plugins_utils")
-local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 -- Enable do_trace messages
 local do_trace = false
@@ -36,41 +34,10 @@ local script = {
 
 -- ##############################################
 
-local function amThresholdCrossType(value, threshold, ip, granularity)
-  return({
-    alert_type = alert_consts.alert_types.alert_am_threshold_cross,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_type_params = {
-      value = value, threshold = threshold, ip = ip,
-    }
-  })
-end
-
--- ##############################################
-
-local function triggerAmAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
-  local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
-  local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity)
-
-  return alerts_api.trigger(entity_info, type_info)
-end
-
--- ##############################################
-
-local function releaseAmAlert(numeric_ip, ip_label, current_value, upper_threshold, granularity)
-  local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
-  local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity)
-
-  return alerts_api.release(entity_info, type_info)
-end
-
--- ##############################################
-
 local function run_am_check(params, all_hosts, granularity)
   local hosts_am = {}
   local when = params.when
-  local am_schema = active_monitoring_utils.getAmSchemaForGranularity(granularity)
+  local am_schema = am_utils.getAmSchemaForGranularity(granularity)
 
   if(do_trace) then
      print("[ActiveMonitoring] Script started\n")
@@ -80,7 +47,7 @@ local function run_am_check(params, all_hosts, granularity)
     return
   end
 
-  local hosts_by_plugin = active_monitoring_utils.getHostsByPlugin(all_hosts)
+  local hosts_by_plugin = am_utils.getHostsByPlugin(all_hosts)
 
   -- Invoke the check functions
   for _, info in pairs(hosts_by_plugin) do
@@ -104,7 +71,7 @@ local function run_am_check(params, all_hosts, granularity)
     local host_value = info.value
     local resolved_host = info.resolved_addr or host.host
     local threshold = host.threshold
-    local operator = info.measurement.operator or "gt"
+    local operator = info.measurement.operator 
 
     if params.ts_enabled then
        local value = host_value
@@ -116,15 +83,16 @@ local function run_am_check(params, all_hosts, granularity)
        ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, value = value}, when)
     end
 
-    active_monitoring_utils.setLastAmUpdate(key, when, host_value, resolved_host)
+    am_utils.setLastAmUpdate(key, when, host_value, resolved_host)
 
-    if(threshold and ((operator == "lt" and (host_value < threshold))
-        or (operator == "gt" and (host_value > threshold)))) then
+    if am_utils.hasExceededThreshold(threshold, operator, host_value) then
       if(do_trace) then print("[TRIGGER] Host "..resolved_host.."/"..key.." [value: "..host_value.."][threshold: "..threshold.."]\n") end
-      triggerAmAlert(resolved_host, key, host_value, threshold, granularity)
+
+      am_utils.triggerAlert(resolved_host, key, host_value, threshold, granularity)
     else
       if(do_trace) then print("[OK] Host "..resolved_host.."/"..key.." [value: "..host_value.."][threshold: "..threshold.."]\n") end
-      releaseAmAlert(resolved_host, key, host_value, threshold, granularity)
+
+      am_utils.releaseAlert(resolved_host, key, host_value, threshold, granularity)
     end
   end
 
@@ -134,7 +102,7 @@ local function run_am_check(params, all_hosts, granularity)
 
      if(hosts_am[key] == nil) then
        if(do_trace) then print("[TRIGGER] Host "..ip.."/"..key.." is unreacheable\n") end
-       triggerAmAlert(ip, key, 0, 0, granularity)
+       am_utils.triggerAlert(ip, key, 0, 0, granularity)
 
        if params.ts_enabled then
          -- Also write 0 in its timeseries to indicate that the host is unreacheable
@@ -152,7 +120,7 @@ end
 
 -- Defines an hook which is executed every minute
 function script.hooks.min(params)
-  local hosts = active_monitoring_utils.getHosts(nil, "min")
+  local hosts = am_utils.getHosts(nil, "min")
 
   run_am_check(params, hosts, "min")
 end
@@ -161,7 +129,7 @@ end
 
 -- Defines an hook which is executed every 5 minutes
 script.hooks["5mins"] = function(params)
-  local hosts = active_monitoring_utils.getHosts(nil, "5mins")
+  local hosts = am_utils.getHosts(nil, "5mins")
 
   run_am_check(params, hosts, "5mins")
 end
@@ -170,7 +138,7 @@ end
 
 -- Defines an hook which is executed every hour
 function script.hooks.hour(params)
-  local hosts = active_monitoring_utils.getHosts(nil, "hour")
+  local hosts = am_utils.getHosts(nil, "hour")
 
   run_am_check(params, hosts, "hour")
 end
