@@ -952,12 +952,6 @@ function addGauge(name, url, maxValue, width, height)
   if(url ~= nil) then print('</A>\n') end
 end
 
--- Compute the difference in seconds between local time and UTC.
-function get_timezone()
-  local now = os.time()
-  return math.floor(os.difftime(now, os.time(os.date("!*t", now))))
-end
-
 function getCategoriesWithProtocols()
    local protocol_categories = interface.getnDPICategories()
 
@@ -2581,7 +2575,7 @@ function getTzOffsetSeconds()
       -- DST is the practice of advancing clocks during summer months
       -- so that evening daylight lasts longer, while sacrificing normal sunrise times.
       -- utc_t is increased by one hour when the time is DST.
-      -- For example, an UTC time of 2pm would be reported by lua as 3pm with
+      -- For example, an GMT time of 2pm would be reported by lua as 3pm with
       -- the isdst flag set.
       -- For this reason, we need to add back the hour to the computed delta.
       delta = delta + 3600
@@ -2616,6 +2610,27 @@ end
 
 -- ####################################################
 
+-- @brief The difference, in seconds, between the local time of this instance and GMT
+local server_timezone_diff_seconds
+
+-- @brief Compute and return the difference, in seconds, between the local time of this instance and GMT
+-- @return A positive or negative number corresponding to the seconds between local time and GMT
+local function get_server_timezone_diff_seconds()
+   if not server_timezone_diff_seconds then
+      local tmp_time = os.time()
+      local d1 = os.date("*t",  tmp_time)
+      local d2 = os.date("!*t", tmp_time)
+      -- Forcefully set isdst to false otherwise difference won't work during DST
+      d1.isdst = false
+      -- Use a minus to have the difference between loca ltime and GMT, rather than between GMT and loca ltime
+      server_timezone_diff_seconds = -os.difftime(os.time(d1), os.time(d2))
+   end
+
+   return server_timezone_diff_seconds
+end
+
+-- ####################################################
+
 -- @brief Converts a datetime string into an epoch, adjusted with the client time
 function makeTimeStamp(d)
    local pattern = "(%d+)%/(%d+)%/(%d+) (%d+):(%d+):(%d+)"
@@ -2627,13 +2642,10 @@ function makeTimeStamp(d)
    local server_epoch = os.time({year = year, month = month, day = day, hour = hour, min = minute, sec = seconds});
 
    -- Convert the server_epoch into a gmt_epoch which is adjusted to GMT
-   local gmt_datetable = os.date("!*t", server_epoch)
-   local gmt_epoch = os.time(gmt_datetable)
+   local gmt_epoch = server_epoch + get_server_timezone_diff_seconds()
 
    -- Finally, compute a client_epoch by adding the seconds of getFrontendTzSeconds() to the GMT epoch just computed
-   local client_datetable = gmt_datetable
-   client_datetable.sec = client_datetable.sec + getFrontendTzSeconds()
-   local client_epoch = os.time(client_datetable)
+   local client_epoch = gmt_epoch + getFrontendTzSeconds()
 
    -- Now we can compute the deltas to know the extact number of seconds between the server and the client timezone
    local server_to_gmt_delta = gmt_epoch - server_epoch
@@ -2652,7 +2664,7 @@ function makeTimeStamp(d)
    -- })
 
    -- Return the epoch in the client timezone
-   return string.format("%u", math.floor(server_epoch - server_to_client_delta))
+   return string.format("%u", server_epoch - server_to_client_delta)
 end
 
 -- ###########################################
