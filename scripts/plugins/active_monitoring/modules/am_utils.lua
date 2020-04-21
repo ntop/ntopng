@@ -17,6 +17,11 @@ local supported_granularities = {
   ["hour"] = "alerts_thresholds_config.hourly",
 }
 
+-- Indexes in the hour stats array
+local HOUR_STATS_OK = 1
+local HOUR_STATS_EXCEEDED = 2
+local HOUR_STATS_UNREACHABLE = 3
+
 -- ##############################################
 
 local am_hosts_key = string.format("ntopng.prefs.ifid_%d.am_hosts", getSystemInterfaceId())
@@ -27,10 +32,114 @@ local function am_last_updates_key(key)
   return string.format("ntopng.cache.ifid_%d.am_hosts.last_update." .. key, getSystemInterfaceId())
 end
 
+local function am_hour_stats_key(key)
+  return string.format("ntopng.cache.ifid_%d.am_hosts.hour_stats." .. key, getSystemInterfaceId())
+end
+
 -- ##############################################
 
 function am_utils.setLastAmUpdate(key, when, value, ipaddress)
   ntop.setCache(am_last_updates_key(key), string.format("%u@%.2f@%s", when, value, ipaddress))
+end
+
+-- ##############################################
+
+-- key: the host key
+-- when: the update time
+-- update_idx is one of HOUR_STATS_OK, HOUR_STATS_EXCEEDED, HOUR_STATS_UNREACHABLE
+local function updateHourStats(key, when, update_idx)
+  local redis_k = am_hour_stats_key(key)
+  local hstats_data = ntop.getCache(redis_k)
+
+  if(not isEmptyString(hstats_data)) then
+    hstats_data = json.decode(hstats_data) or {}
+  else
+    hstats_data = {}
+  end
+
+  if(hstats_data.hstats == nil) then
+    hstats_data.hstats = {}
+
+    -- Initialize the per-hour stats
+    -- Using Lua based index to avoid json conversion issues
+    for i=1,24 do
+      -- Keep compact, the format is {num_ok, num_exceeded, num_unreachable}
+      hstats_data.hstats[i] = {0, 0, 0}
+    end
+  end
+
+  local prev_dt = os.date("*t", hstats_data.when or 0)
+  local cur_dt = os.date("*t", when)
+  local hour_idx = (cur_dt.hour + 1)
+
+  if(cur_dt.hour ~= prev_dt.hour) then
+    -- Hour has changed, reset the bucket stats
+    hstats_data.hstats[hour_idx] = {0, 0, 0}
+  end
+
+  local hour_stats = hstats_data.hstats[hour_idx]
+  hour_stats[update_idx] = hour_stats[update_idx] + 1
+  hstats_data.when = when
+
+  ntop.setCache(redis_k, json.encode(hstats_data))
+end
+
+-- ##############################################
+
+function am_utils.incNumOkChecks(key, when)
+  return(updateHourStats(key, when, HOUR_STATS_OK))
+end
+
+function am_utils.incNumExceededChecks(key, when)
+  return(updateHourStats(key, when, HOUR_STATS_EXCEEDED))
+end
+
+function am_utils.incNumUnreachableChecks(key, when)
+  return(updateHourStats(key, when, HOUR_STATS_UNREACHABLE))
+end
+
+-- ##############################################
+
+-- Retrieve the per-hour stats of the host.
+-- The returned data has the hour as the table key (0 for midnight).
+-- 
+-- Example:
+--
+--  0 table
+--  0.num_ok number 0
+--  0.num_exceeded number 0
+--  0.num_unreachable number 0
+-- ...
+function am_utils.getHourStats(host, measurement)
+  local key = am_utils.getAmHostKey(host, measurement)
+  local redis_k = am_hour_stats_key(key)
+  local hour_stats = ntop.getCache(redis_k)
+
+  if(isEmptyString(hour_stats)) then
+    return(nil)
+  end
+
+  hour_stats = json.decode(hour_stats)
+
+  if((hour_stats == nil) or (hour_stats.hstats == nil)) then
+    return(nil)
+  end
+
+  local res = {}
+
+  -- Expand the result with labels
+  for i=1,24 do
+    local pt = hour_stats.hstats[i]
+
+    -- Convert in an hour based table
+    res[tostring(i-1)] = {
+      num_ok = pt[HOUR_STATS_OK],
+      num_exceeded = pt[HOUR_STATS_EXCEEDED],
+      num_unreachable = pt[HOUR_STATS_UNREACHABLE],
+    }
+  end
+
+  return(res)
 end
 
 -- ##############################################

@@ -89,10 +89,12 @@ local function run_am_check(params, all_hosts, granularity)
       if(do_trace) then print("[TRIGGER] Host "..resolved_host.."/"..key.." [value: "..host_value.."][threshold: "..threshold.."]\n") end
 
       am_utils.triggerAlert(resolved_host, key, host_value, threshold, granularity)
+      am_utils.incNumExceededChecks(key, when)
     else
       if(do_trace) then print("[OK] Host "..resolved_host.."/"..key.." [value: "..host_value.."][threshold: "..threshold.."]\n") end
 
       am_utils.releaseAlert(resolved_host, key, host_value, threshold, granularity)
+      am_utils.incNumOkChecks(key, when)
     end
   end
 
@@ -103,6 +105,7 @@ local function run_am_check(params, all_hosts, granularity)
      if(hosts_am[key] == nil) then
        if(do_trace) then print("[TRIGGER] Host "..ip.."/"..key.." is unreacheable\n") end
        am_utils.triggerAlert(ip, key, 0, 0, granularity)
+       am_utils.incNumUnreachableChecks(key, when)
 
        if params.ts_enabled then
          -- Also write 0 in its timeseries to indicate that the host is unreacheable
