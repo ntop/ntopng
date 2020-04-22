@@ -1,6 +1,7 @@
 import TableTemplate from './templates/table-template.js';
 import PieChartTemplate from './templates/pie-chart-template.js';
 import DonutChartTemplate from './templates/donut-chart-template.js';
+import MultiBarChartTemplate from './templates/multibar-chart-template.js';
 
 export default class NtopWidget {
 
@@ -10,17 +11,17 @@ export default class NtopWidget {
         this.widgetPostParams = params.widgetPostParams;
         this.widgetElementDom = params.widgetElementDom;
         this.widgetInitialized = false;
+        this.intervalTime = 0;
         this.widgetEndPoint = this._buildWidgetEndpoint(params.ntopngEndpointUrl);
     }
 
     async initWidget() {
 
         try {
-            const response = await this._fetchWidgetData();
-            const data = await response.json();
-            const widgetEndPointResponse = await data;
+            const widgetEndPointResponse = await this.getWidgetData();
             this.widgetName = widgetEndPointResponse.widgetName;
             this.widgetType = this.widgetType || widgetEndPointResponse.widgetType;
+            this.intervalTime = widgetEndPointResponse.dsRetention;
             this.widgetFetchedData = widgetEndPointResponse.data;
             this.widgetInitialized = true;
         }
@@ -28,6 +29,12 @@ export default class NtopWidget {
             console.error(e);
             throw new Error(`Error! Something went wrong when fetching widget data.`);
         }
+    }
+
+    async getWidgetData() {
+        const response = await this._fetchWidgetData();
+        const data = await response.json();
+        return await data;
     }
 
     async renderWidget() {
@@ -43,16 +50,13 @@ export default class NtopWidget {
     _getWidgetTemplate(widgetType) {
 
         const params = {
-            widgetType: this.widgetType,
-            widgetKey: this.widgetKey,
-            widgetName: this.widgetName,
-            data: this.widgetFetchedData
+            widget: this,
         };
-
         switch (widgetType) {
-            case 'table':   return new TableTemplate(params);
-            case 'pie':     return new PieChartTemplate(params);
-            case 'donut':   return new DonutChartTemplate(params);
+            case 'table':       return new TableTemplate(params);
+            case 'pie':         return new PieChartTemplate(params);
+            case 'donut':       return new DonutChartTemplate(params);
+            case 'multibar':    return new MultiBarChartTemplate(params);
             default: throw new Error('The widget type is not valid!');
         }
     }

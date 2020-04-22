@@ -5,6 +5,7 @@ export default class PieChartTemplate extends ChartTemplate {
     constructor(params) {
         super(params);
         this._isDonut = false;
+        console.log(this);
     }
 
     _addGraph() {
@@ -23,17 +24,26 @@ export default class PieChartTemplate extends ChartTemplate {
             pieChart.labelType("percent");
 
             d3.select(`#${self._defaultOptions.domId}`)
+            .append('b')
+            .text(self._defaultOptions.widget.widgetFetchedData.title);
+
+            d3.select(`#${self._defaultOptions.domId}`)
                 .append('svg')
                 .datum(self._data.data)
                 .transition()
-                .duration(1000)
+                .duration(1750)
                 .call(pieChart);
 
-            if (self._defaultOptions.intervalTime) {
-                self._intervalId = setInterval(function() {
-                    // TODO: set interval callback
-                    pieChart.update();
-                }, self._defaultOptions.intervalTime);
+            if (self._defaultOptions.widget.intervalTime) {
+                self._intervalId = setInterval(async function() {
+                    const newData = await self._updateData();
+                    self._data = newData.data;
+                    d3.select(`#${self._defaultOptions.domId}>svg`)
+                        .datum(newData.data)
+                        .transition()
+                        .duration(1750)
+                        .call(pieChart);
+                }, self._defaultOptions.widget.intervalTime);
             }
 
             self._chart = pieChart;

@@ -25,6 +25,9 @@ local WIDGET_TYPES = {
     table = {
         i18n = "Table"
     },
+    multibar = {
+        i18n = "MultiBar"
+    }
 }
 
 local function create_hash_widget(name, ds_hash)
@@ -178,7 +181,6 @@ end
 -------------------------------------------------------------------------------
 function widgets_utils.generate_response(widget, params)
    local ds = datasources_utils.get(widget.ds_hash)
-
    local dirs = ntop.getDirs()
    package.path = dirs.installdir .. "/scripts/lua/datasources/?.lua;" .. package.path
 
@@ -193,7 +195,8 @@ function widgets_utils.generate_response(widget, params)
 
    return json.encode({
 	 widgetName = widget.name,
-	 widgetType = widget.type,
+     widgetType = widget.type,
+     dsRetention = ds.data_retention * 1000, -- msec
 	 success = true,
 	 data = response
    })
