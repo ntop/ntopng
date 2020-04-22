@@ -1349,14 +1349,14 @@ end
 function printDumpSettings()
    print('<form method="post">')
    print('<table class="table">')
-   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.flows_export")..'</th></tr></thead>')
+   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.flows_dump")..'</th></tr></thead>')
 
    prefsToggleButton(subpage_active, {
     field = "toggle_enable_runtime_flows_dump",
     default = "1",
     pref = "enable_runtime_flows_dump",
     to_switch = {
-       "row_toggle_tiny_flows_dump_export",
+       "row_toggle_tiny_flows_dump",
        "max_num_packets_per_tiny_flow",
        "max_num_bytes_per_tiny_flow",
        "row_toggle_aggregated_flows_export_limit",
@@ -1367,7 +1367,7 @@ function printDumpSettings()
    local showAllElements = ntop.getPref("ntopng.prefs.enable_runtime_flows_dump") ~= "0"
 
    prefsToggleButton(subpage_active, {
-			field = "toggle_tiny_flows_dump_export",
+			field = "toggle_tiny_flows_dump",
 			default = "1",
 			pref = "tiny_flows_export_enabled",
 			to_switch = {
