@@ -10,8 +10,6 @@ export default class PieChartTemplate extends ChartTemplate {
     _addGraph() {
 
         const self = this;
-        console.log(self);
-
         nv.addGraph(function() {
 
             const pieChart = nv.models.pieChart();
@@ -46,8 +44,11 @@ export default class PieChartTemplate extends ChartTemplate {
     render() {
 
         const container = super.render();
-        container.setAttribute('style', `width:${this._width}px;height:${this._width}px`);
-        this._addGraph();
+        /* if I have no data to show then don't add the graph! */
+        if (this._data.length != 0) {
+            container.setAttribute('style', `width:${this._width}px;height:${this._width}px`);
+            this._addGraph();
+        }
 
         return container;
     }
