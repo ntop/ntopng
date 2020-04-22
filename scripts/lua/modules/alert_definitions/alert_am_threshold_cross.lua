@@ -8,10 +8,8 @@ local format_utils = require("format_utils")
 local json = require "dkjson"
 
 local function thresholdCrossFormatter(ifid, alert, info)
-   local alert_json = json.decode(alert.alert_json)
-
    local msg
-   local host = alert_json.host
+   local host = info.host
    local numeric_ip = info.ip
    local ip_label = host and host.label or numeric_ip
 
@@ -26,7 +24,7 @@ local function thresholdCrossFormatter(ifid, alert, info)
 		 {host = ip_label,
 		  numeric_ip = numeric_ip})
    else -- host too slow
-      if alert_json.operator == "lt" then
+      if info.operator == "lt" then
 	 i18n_s = "alert_messages.measurement_too_low_msg"
       else
 	 i18n_s = "alert_messages.measurement_too_high_msg"
@@ -34,8 +32,8 @@ local function thresholdCrossFormatter(ifid, alert, info)
 
       local unit = "active_monitoring_stats.msec"
 
-      if alert_json.unit then
-	 unit = alert_json.unit
+      if info.unit then
+	 unit = info.unit
       end
 
       unit = i18n(unit) or unit

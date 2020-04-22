@@ -21,7 +21,7 @@ return {
   -- A list of plugin keys which this plugin depends on. A plugin key
   -- corresponds to the directory name of the plugin (e.g. the key of
   -- this plugin is "example")
-  dependencies = {"builtin_types"},
+  dependencies = {},
 
   -- A disabled plugin will not be loaded.
   -- Comment this and reload the plugins to activate this test plugin.
