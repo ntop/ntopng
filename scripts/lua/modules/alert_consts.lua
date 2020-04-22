@@ -216,38 +216,23 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
       end
    end
 
-   -- local def_id = tonumber(def_script.alert_id)
-   local def_id = def_script.alert_key
-
-   if(def_id == nil) then
-       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing alert ID", script_path))
-       return(false)
-   end
-
    -- Sanity check: make sure this is a valid alert key
-   local valid = false
-   for pen, pen_keys in pairs(alert_keys) do
-      for _, key in pairs(pen_keys) do
-	 if key == def_id then
-	    valid = true
-	    break
-	 end
-      end
-   end
+   local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.alert_key)
 
-   if not valid then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: unknown alert ID", script_path))
+   if not parsed_alert_key then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: invalid alert key specified: %s",
+							   script_path, status))
       return(false)
    end
 
-   if(alerts_by_id[def_id] ~= nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: alert ID %d redefined, skipping", script_path, def_id))
+   if(alerts_by_id[parsed_alert_key] ~= nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: alert key %d redefined, skipping", script_path, parsed_alert_key))
       return(false)
    end
 
-   def_script.alert_key = def_id
+   def_script.alert_key = parsed_alert_key
    alert_consts.alert_types[mod_fname] = def_script
-   alerts_by_id[def_id] = mod_fname
+   alerts_by_id[parsed_alert_key] = mod_fname
 
    -- Success
    return(true)

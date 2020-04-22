@@ -80,6 +80,75 @@ local alert_keys = {
 
 -- ##############################################
 
+-- A table to keep the reverse mapping between integer alert keys and string alert keys
+local alert_id_to_alert_key = {}
+
+for _, ntopng_user in ipairs({"ntopng", "user"}) do
+   for cur_key, cur_id in pairs(alert_keys[ntopng_user]) do
+      alert_id_to_alert_key[cur_id] = cur_key
+   end
+end
+
+-- ##############################################
+
+-- @brief Parse an alert key, check if it is compliant with the expected format, and returns the parsed key and a status message
+--
+--        Alert keys must have one of these two formats:
+--        1) Number: In this case the alert key is assumed to have no PEN and it is searched among the predefined alert keys
+--                   for ntopng and user. Failing to find the alert key among those keys causes the parse function to fail.
+--        2) Array:  In this case the alert key must be specified as an array of two numbers as {<PEN>, <pen_key>}:
+--                   - <PEN> is an integer greater than zero and less than 65535 and can be used to uniquely identify an enterprise.
+--                   - <pen_key> is an integer greater than or equal to zero and less than 65535 which is combined with <PEN>
+--                     to uniquely identify an alert. The resulting alert key is a 32bit integer where the 16 most significant bits
+--                     reserved for the <PEN> and the 16 least significant bits reserved for the <pen_key>.
+--        Any other format is discarded and the parse function fails.
+--
+-- @param key The alert key to be parsed.
+--            Examples:
+--              Number: `alert_keys.ntopng.alert_connection_issues`
+--              Number: `alert_keys.user.alert_user_01`
+--              Array: `{312, 513}`.
+--              Array: `{0, alert_keys.user.alert_user_01}`. In this case where PEN equals zero only the <pen_key> is taken
+--
+-- @return An integer corresponding to the parsed alert key and a status message which equals "OK" when no error occurred during parsing.
+--
+function alert_keys.parse_alert_key(key)
+   local parsed_alert_key
+   local status = "OK"
+
+   if type(key) == "number" then
+      -- Plain number, let's make sure it is among the predefined keys
+      if not alert_id_to_alert_key[key] then
+	 status = "Alert key specified is not among the available alert keys."
+      else
+	 parsed_alert_key = key
+      end
+   elseif type(key) == "table" and #key == 2 then
+      -- A table, let's parse it with PEN and key
+      local pen, pen_key = key[1], key[2]
+
+      if not type(pen) == "number" or pen < 0 or pen >= 0xFFFF then
+	 -- PEN is out of bounds or not a number
+	 status = "Invalid PEN specified. PEN must be between 0 and 65535."
+      elseif not type(pen_key) == "number" or pen_key < 0 or pen_key >= 0xFFFF then
+	 -- pen_key is out of bounds or not a number
+	 status = "Invalid alert key specified. Alert key must be between 0 and 65535."
+      elseif pen == 0 then
+	 -- PEN is zero, let's treat pen_key as if it was just a number
+	 return alert_keys.parse_alert_key(pen_key)
+      else
+	 -- PEN in the 16 MSB and pen_key in the 16 LSB
+	 parsed_alert_key = (pen << 16) + pen_key
+      end
+   else
+      status = "Unexpected alert key type."
+   end
+
+   return parsed_alert_key, status
+end
+
+-- ##############################################
+
 return alert_keys
 
 -- ##############################################
