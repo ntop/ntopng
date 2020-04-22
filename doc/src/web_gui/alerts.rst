@@ -33,6 +33,8 @@ Endpoints can be enabled and configured from the ntopng preferences page. Users 
 endpoints via a custom plugin. Check out the `Plugins Section <../plugins/alert_endpoints.html>`_
 for more details. Here is a list of the alerts endpoints built into ntopng.
 
+.. _ElasticsearchAlerts:
+
 Elasticsearch
 ~~~~~~~~~~~~~
 
