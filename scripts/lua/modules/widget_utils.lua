@@ -19,32 +19,11 @@ local WIDGET_TYPES = {
     pie = {
         i18n = "Pie"
     },
-    doughnut = {
-        i18n = "Doughnut"
-    },
-    polarArea = {
-        i18n = "Polar"
+    donut = {
+        i18n = "Donut"
     },
     table = {
         i18n = "Table"
-    },
-    line = {
-        i18n = "Line"
-    },
-    bar = {
-        i18n = "Bar"
-    },
-    radar = {
-        i18n = "Radar"
-    },
-    bubble = {
-        i18n = "Bubble"
-    },
-    scatter = {
-        i18n = "Scatter"
-    },
-    horizontalBar = {
-        i18n = "Horizontal Bar"
     },
 }
 
@@ -207,7 +186,7 @@ function widgets_utils.generate_response(widget, params)
    local origin = ds.origin:gsub("%.lua", "")
 
    -- io.write("Executing "..origin.."\n")
-   
+
    -- Call the origin to return
    local response = require(origin)
    response = response:getData(widget.type)

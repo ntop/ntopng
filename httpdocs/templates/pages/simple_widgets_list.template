@@ -8,5 +8,4 @@
     </div>
 </div>
 
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/Chart.bundle.js"></script>
-<script type="module" src="{{ ntop.getHttpPrefix() }}/js/widgets/ntopWidgetUtils.js"></script>
+<script type="module" src="{{ ntop.getHttpPrefix() }}/js/widgets/ntop-widget-utils.js"></script>
