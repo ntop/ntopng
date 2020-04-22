@@ -1830,7 +1830,8 @@ bool Prefs::is_pro_edition() {
 bool Prefs::is_enterprise_edition() {
   return
 #ifdef NTOPNG_PRO
-    ntop->getPro()->has_valid_enterprise_license()
+    ntop->getPro()->has_valid_enterprise_m_license() ||
+    ntop->getPro()->has_valid_enterprise_l_license()
 #else
   false
 #endif

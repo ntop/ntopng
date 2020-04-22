@@ -387,7 +387,7 @@ void NetworkInterface::checkDisaggregationMode() {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   if (flowHashingMode == flowhashing_none)
-    sub_interfaces = ntop->getPro()->has_valid_enterprise_license() ? new SubInterfaces(this) : NULL;
+    sub_interfaces = ntop->getPrefs()->is_enterprise_edition() ? new SubInterfaces(this) : NULL;
 #endif
 #endif
 }
