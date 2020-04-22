@@ -72,40 +72,23 @@ end
 -- ######################################
 
 -- Return the data formatted as expected by a table widget
-function datamodel:getAsDoughnut()
+function datamodel:getAsDonut()
    local ret = { data = {}}
-
-   ret.data.labels   = self.column_labels
-   ret.data.datasets = {}
    
    for k,v in pairs(self.datasets) do
-      local ds = {}
-
-      ds.label = k
-      ds.data  = { }
+      local i = 1
       
       for k1,v1 in pairs(v.rows) do
-	 -- We expect only one entry
-	 ds.data = v1
+	 for k2,v2 in pairs(v1) do	 
+	    table.insert(ret.data, { label = self.column_labels[i], value = v2 })
+	    i = i + 1
+	 end
+
+	 ret.title = k
+	 break 	 -- We expect only one entry
       end
 
-      ds.backgroundColor = {}
-      ds.borderColor = {}
-      
-      for a,_ in pairs(ds.data) do
-	 local c = datamodel_colors[a]
-	 table.insert(ds.backgroundColor, c)
-	 table.insert(ds.borderColor, c)
-      end
-      
-      table.insert(ret.data.datasets, ds)
    end
-
-   ret.options = {}
-   ret.options.responsive = true
-   ret.options.animation = {}
-   ret.options.animation.animateScale = true
-   ret.options.animation.animateRotate = true
    
    return(ret)
 end
@@ -116,8 +99,8 @@ end
 function datamodel:getData(transformation, dataset_name)
    if(transformation == "table") then
       return(self:getAsTable())
-   elseif(transformation == "doughnut") then
-      return(self:getAsDoughnut())
+   elseif(transformation == "donut") then
+      return(self:getAsDonut())
    else
       return({})
    end
