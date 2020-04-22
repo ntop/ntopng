@@ -5,4 +5,8 @@ export default class DonutChartTemplate extends PieChart {
         super(params);
         this._isDonut = true;
     }
+
+    render() {
+        return super.render();
+    }
 }

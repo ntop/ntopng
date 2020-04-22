@@ -16,15 +16,17 @@ export default class WidgetTemplate {
             intervalTime: intervalTime,
             widgetKey: params.widgetKey,
             widgetName: params.widgetName,
-            widgetType: params.widgetType
+            widgetType: params.widgetType,
+            domId: `ntop-widget-${params.widgetKey}-${params.widgetType}`
         };
         this._data = params.data || [];
     }
 
     render() {
+
         const container = document.createElement('div');
         container.setAttribute('class', 'ntop-widget-container');
-        container.setAttribute('id', `ntop-widget-${this._defaultOptions.widgetKey}-${this._defaultOptions.widgetType}`);
+        container.setAttribute('id', this._defaultOptions.domId);
 
         if (this._data.length == 0) {
             const emptyContainer = document.createElement('div');
@@ -42,6 +44,7 @@ export class ChartTemplate extends WidgetTemplate {
     constructor(params) {
         super(params);
         this._chart = {};
+        this._intervalId = 0;
         this._width = params.width || 400;
         this._height = params.height || 400;
     }

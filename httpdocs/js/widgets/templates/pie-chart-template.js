@@ -5,28 +5,30 @@ export default class PieChartTemplate extends ChartTemplate {
     constructor(params) {
         super(params);
         this._isDonut = false;
-        this._intervalId = 0;
     }
 
-    _addGraph(container) {
+    _addGraph() {
 
         const self = this;
+        console.log(self);
 
         nv.addGraph(function() {
 
             const pieChart = nv.models.pieChart();
+
             pieChart.x(d => d.label);
             pieChart.y(d => d.value);
             pieChart.height(self._height);
             pieChart.width(self._width);
             pieChart.showTooltipPercent(true);
             pieChart.donut(self._isDonut);
+            pieChart.labelType("percent");
 
-            d3.select(container.getAttribute('id'))
-                .datum(self._data)
-                .transition().duration(1200)
-                .attr('width', self._width)
-                .attr('height', self._height)
+            d3.select(`#${self._defaultOptions.domId}`)
+                .append('svg')
+                .datum(self._data.data)
+                .transition()
+                .duration(1000)
                 .call(pieChart);
 
             if (self._defaultOptions.intervalTime) {
@@ -37,7 +39,6 @@ export default class PieChartTemplate extends ChartTemplate {
             }
 
             self._chart = pieChart;
-
             return pieChart;
         });
     }
@@ -45,7 +46,8 @@ export default class PieChartTemplate extends ChartTemplate {
     render() {
 
         const container = super.render();
-        super._addGraph(container);
+        container.setAttribute('style', `width:${this._width}px;height:${this._width}px`);
+        this._addGraph();
 
         return container;
     }
