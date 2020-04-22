@@ -108,6 +108,7 @@ Prefs::Prefs(Ntop *_ntop) {
   dump_flows_on_nindex = false;
 #endif
   read_flows_from_mysql = false;
+  enable_runtime_flows_dump = true;
   enable_activities_debug = false;
 
   if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
@@ -651,6 +652,7 @@ void Prefs::reloadPrefsFromRedis() {
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
   refreshDeviceProtocolsPolicyPref();
+  refreshDbDumpPrefs();
 
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
@@ -1809,6 +1811,12 @@ void Prefs::refreshHostsAlertsPrefs() {
 
 void Prefs::refreshDeviceProtocolsPolicyPref() {
   device_protocol_policies_enabled = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_DEVICE_PROTOCOL_POLICIES, false);
+}
+
+/* *************************************** */
+
+void Prefs::refreshDbDumpPrefs() {
+  enable_runtime_flows_dump = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_RUNTIME_FLOWS_DUMP, true);
 }
 
 /* *************************************** */

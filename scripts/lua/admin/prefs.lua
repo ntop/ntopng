@@ -1346,73 +1346,100 @@ function printSnmp()
   </table>]]
 end
 
-function printFlowDBDump()
-  print('<form method="post">')
-  print('<table class="table">')
-  print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.tiny_flows")..'</th></tr></thead>')
+function printDumpSettings()
+   print('<form method="post">')
+   print('<table class="table">')
+   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.flows_export")..'</th></tr></thead>')
 
-  local tiny_to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"}
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_flow_db_dump_export",
+   prefsToggleButton(subpage_active, {
+    field = "toggle_enable_runtime_flows_dump",
     default = "1",
-    pref = "tiny_flows_export_enabled",
-  })
+    pref = "enable_runtime_flows_dump",
+    to_switch = {
+       "row_toggle_tiny_flows_dump_export",
+       "max_num_packets_per_tiny_flow",
+       "max_num_bytes_per_tiny_flow",
+       "row_toggle_aggregated_flows_export_limit",
+       "max_num_aggregated_flows_per_export",
+    },
+   })
 
-  prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title, subpage_active.entries["max_num_packets_per_tiny_flow"].description,
-        "ntopng.prefs.", "max_num_packets_per_tiny_flow", prefs.max_num_packets_per_tiny_flow, "number",
-	true, false, nil, {min=1, max=2^32-1})
+   local showAllElements = ntop.getPref("ntopng.prefs.enable_runtime_flows_dump") ~= "0"
 
-  prefsInputFieldPrefs(subpage_active.entries["max_num_bytes_per_tiny_flow"].title, subpage_active.entries["max_num_bytes_per_tiny_flow"].description,
-        "ntopng.prefs.", "max_num_bytes_per_tiny_flow", prefs.max_num_bytes_per_tiny_flow, "number",
-	true, false, nil, {min=1, max=2^32-1})
+   prefsToggleButton(subpage_active, {
+			field = "toggle_tiny_flows_dump_export",
+			default = "1",
+			pref = "tiny_flows_export_enabled",
+			to_switch = {
+			   "max_num_packets_per_tiny_flow",
+			   "max_num_bytes_per_tiny_flow"
+			},
+			hidden = not showAllElements,
+   })
 
-  print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.aggregated_flows")..'</th></tr></thead>')
+   local showTinyElements = showAllElements and ntop.getPref("ntopng.prefs.tiny_flows_export_enabled") ~= "0"
 
-  local dump_to_switch = {"max_num_aggregated_flows_per_export"}
-  prefsToggleButton(subpage_active, {
-    field = "toggle_aggregated_flows_export_limit",
-    default = "0",
-    pref = "aggregated_flows_export_limit_enabled",
-    to_switch = dump_to_switch,
-  })
+   prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title,
+			subpage_active.entries["max_num_packets_per_tiny_flow"].description,
+			"ntopng.prefs.", "max_num_packets_per_tiny_flow",
+			prefs.max_num_packets_per_tiny_flow, "number",
+			showTinyElements,
+			false, nil, {min=1, max=2^32-1})
 
-  local showElement = ntop.getPref("ntopng.prefs.aggregated_flows_export_limit_enabled") == "1"
+   prefsInputFieldPrefs(subpage_active.entries["max_num_bytes_per_tiny_flow"].title,
+			subpage_active.entries["max_num_bytes_per_tiny_flow"].description,
+			"ntopng.prefs.", "max_num_bytes_per_tiny_flow",
+			prefs.max_num_bytes_per_tiny_flow, "number",
+			showTinyElements,
+			false, nil, {min=1, max=2^32-1})
 
-  prefsInputFieldPrefs(subpage_active.entries["max_num_aggregated_flows_per_export"].title,
-		       subpage_active.entries["max_num_aggregated_flows_per_export"].description,
-		       "ntopng.prefs.", "max_num_aggregated_flows_per_export",
-		       prefs.max_num_aggregated_flows_per_export, "number", showElement, false, nil,
-		       {min = 1000, max = 2^32-1})
+   prefsToggleButton(subpage_active, {
+			field = "toggle_aggregated_flows_export_limit",
+			default = "0",
+			pref = "aggregated_flows_export_limit_enabled",
+			to_switch = {
+			   "max_num_aggregated_flows_per_export"
+			},
+			hidden = not showAllElements,
+   })
 
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+   local showAggrElements = showAllElements and ntop.getPref("ntopng.prefs.aggregated_flows_export_limit_enabled") == "1"
 
-  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+   prefsInputFieldPrefs(subpage_active.entries["max_num_aggregated_flows_per_export"].title,
+			subpage_active.entries["max_num_aggregated_flows_per_export"].description,
+			"ntopng.prefs.", "max_num_aggregated_flows_per_export",
+			prefs.max_num_aggregated_flows_per_export, "number",
+			showAggrElements, false, nil,
+			{min = 1000, max = 2^32-1})
+
+   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+
+   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   </table>]]
 end
 
-   print[[
+print[[
        <table class="table">
          <col width="20%">
          <col width="80%">
          <tr><td style="padding-right: 20px;">]]
 
-   print(
-      template.gen("typeahead_input.html", {
-        typeahead={
-          base_id     = "prefs_search",
-          action      = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua",
-          json_key    = "tab",
-          query_field = "tab",
-          query_url   = ntop.getHttpPrefix() .. "/lua/find_prefs.lua",
-          query_title = i18n("prefs.search_preferences"),
-          style       = "width:20em; margin:auto; margin-top: 0.4em; margin-bottom: 1.5em;",
-        }
-      })
-    )
+print(
+   template.gen("typeahead_input.html", {
+		   typeahead={
+		      base_id     = "prefs_search",
+		      action      = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua",
+		      json_key    = "tab",
+		      query_field = "tab",
+		      query_url   = ntop.getHttpPrefix() .. "/lua/find_prefs.lua",
+		      query_title = i18n("prefs.search_preferences"),
+		      style       = "width:20em; margin:auto; margin-top: 0.4em; margin-bottom: 1.5em;",
+		   }
+   })
+)
 
-   print[[
+print[[
            <div class="list-group">]]
 
 printMenuSubpages(tab)
@@ -1464,6 +1491,10 @@ end
 
 if(tab == "in_memory") then
    printInMemory()
+end
+
+if(tab == "dump_settings") then
+   printDumpSettings()
 end
 
 if(tab == "on_disk_ts") then
@@ -1525,9 +1556,6 @@ if(tab == "logging") then
 end
 if(tab == "snmp") then
    printSnmp()
-end
-if(tab == "flow_db_dump") then
-   printFlowDBDump()
 end
 
 print[[

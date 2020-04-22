@@ -620,6 +620,7 @@
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               NTOPNG_PREFS_PREFIX".thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"
 #define CONST_PREFS_ENABLE_DEVICE_PROTOCOL_POLICIES    NTOPNG_PREFS_PREFIX".device_protocols_policing"
+#define CONST_PREFS_ENABLE_RUNTIME_FLOWS_DUMP          NTOPNG_PREFS_PREFIX".enable_runtime_flows_dump"
 #define CONST_HOST_SYN_ATTACKER_ALERT_THRESHOLD_KEY    "syn_attacker_threshold"
 #define CONST_HOST_SYN_VICTIM_ALERT_THRESHOLD_KEY      "syn_victim_threshold"
 #define CONST_HOST_FLOW_ATTACKER_ALERT_THRESHOLD_KEY   "flow_attacker_threshold"

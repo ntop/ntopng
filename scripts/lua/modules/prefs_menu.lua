@@ -165,6 +165,26 @@ local menu_subpages = {
       title       = i18n("prefs.local_host_cache_duration_title"),
       description = i18n("prefs.local_host_cache_duration_description"),
     },
+  }}, {id="dump_settings",  label=i18n("prefs.dump_settings"),   advanced=true,  pro_only=false,  hidden=(prefs.is_dump_flows_enabled == false), entries={
+    toggle_enable_runtime_flows_dump = {
+      title       = i18n("prefs.toggle_enable_runtime_flows_dump_title"),
+      description = i18n("prefs.toggle_enable_runtime_flows_dump_description"),
+    }, toggle_tiny_flows_dump_export = {
+      title       = i18n("prefs.toggle_tiny_flows_dump_export_title"),
+      description = i18n("prefs.toggle_tiny_flows_dump_export_description"),
+    }, max_num_packets_per_tiny_flow = {
+      title       = i18n("prefs.max_num_packets_per_tiny_flow_title"),
+      description = i18n("prefs.max_num_packets_per_tiny_flow_description"),
+    }, max_num_bytes_per_tiny_flow = {
+      title       = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
+      description = i18n("prefs.max_num_bytes_per_tiny_flow_description"),
+    }, toggle_aggregated_flows_export_limit = {
+      title       = i18n("prefs.toggle_aggregated_flows_export_limit_title"),
+      description = i18n("prefs.toggle_aggregated_flows_export_limit_description"),
+    }, max_num_aggregated_flows_per_export = {
+      title       = i18n("prefs.max_num_aggregated_flows_per_export_title"),
+      description = i18n("prefs.max_num_aggregated_flows_per_export_description"),
+    },
   }}, {id="on_disk_ts",    label=i18n("prefs.timeseries"),       advanced=false, pro_only=false,  hidden=false, entries={
     toggle_interface_traffic_rrd_creation = {
       title       = i18n("prefs.toggle_traffic_rrd_creation_title"),
@@ -287,23 +307,7 @@ local menu_subpages = {
       title       = i18n("prefs.toggle_host_pools_log_title"),
       description = i18n("prefs.toggle_host_pools_log_description", {product=info["product"]}),
     },
-  }}, {id="flow_db_dump",  label=i18n("prefs.flow_database_dump"),   advanced=true,  pro_only=false,  hidden=(prefs.is_dump_flows_enabled == false), entries={
-    toggle_flow_db_dump_export = {
-      title       = i18n("prefs.toggle_flow_db_dump_export_title"),
-      description = i18n("prefs.toggle_flow_db_dump_export_description"),
-    }, max_num_packets_per_tiny_flow = {
-      title       = i18n("prefs.max_num_packets_per_tiny_flow_title"),
-      description = i18n("prefs.max_num_packets_per_tiny_flow_description"),
-    }, max_num_bytes_per_tiny_flow = {
-      title       = i18n("prefs.max_num_bytes_per_tiny_flow_title"),
-      description = i18n("prefs.max_num_bytes_per_tiny_flow_description"),
-    }, toggle_aggregated_flows_export_limit = {
-      title       = i18n("prefs.toggle_aggregated_flows_export_limit_title"),
-      description = i18n("prefs.toggle_aggregated_flows_export_limit_description"),
-    }, max_num_aggregated_flows_per_export = {
-      title       = i18n("prefs.max_num_aggregated_flows_per_export_title"),
-      description = i18n("prefs.max_num_aggregated_flows_per_export_description"),
-    }
+
   }}, {id="snmp",          label=i18n("prefs.snmp"),                 advanced=true,  pro_only=true,   hidden=false, nedge_hidden=true, entries={
     toggle_snmp_rrds = {
       title       = i18n("prefs.toggle_snmp_rrds_title"),

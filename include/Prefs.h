@@ -95,6 +95,7 @@ class Prefs {
   bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex,
     dump_flows_on_disk, load_flows_from_disk, dump_ext_json;
   bool read_flows_from_mysql;
+  bool enable_runtime_flows_dump; /**< runtime preference to enable/disable flows dump from the UI */
   InterfaceInfo *ifNames;
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs;
@@ -203,6 +204,7 @@ class Prefs {
   inline bool  do_dump_flows_on_disk()                  { return(dump_flows_on_disk);     };
   inline bool  do_load_flows_from_disk()                { return(load_flows_from_disk);     };
   inline bool  do_dump_flows()                          { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls || dump_flows_on_nindex); };
+  inline bool is_runtime_flows_dump_enabled()     const { return(enable_runtime_flows_dump); };
     
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
@@ -269,6 +271,8 @@ class Prefs {
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
   void refreshDeviceProtocolsPolicyPref();
+  /* Runtime database dump prefs. Allows the user to toggle flows dump from the UI at runtime. */
+  void refreshDbDumpPrefs();
 
   void bind_http_to_address(const char * const addr1, const char * const addr2);
   void bind_https_to_address(const char * const addr1, const char * const addr2);
