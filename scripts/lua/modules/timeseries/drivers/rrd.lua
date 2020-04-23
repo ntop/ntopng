@@ -501,14 +501,28 @@ end
 
 local function makeTotalSerie(series, count)
   local total = {}
+  local nan = 0/0
 
   for i=1, count do
-    total[i] = 0
+    total[i] = nan
   end
 
   for _, serie in pairs(series) do
     for i, val in pairs(serie.data) do
-      total[i] = total[i] + val
+      local old_v = total[i]
+      local old_is_nan = (old_v ~= old_v)
+      local val_is_nan = (val ~= val)
+
+      if(old_is_nan and (not val_is_nan)) then
+        -- Avoid NaN sum
+        total[i] = val
+      elseif((not old_is_nan) and val_is_nan) then
+        -- Avoid NaN sum
+        total[i] = old_v
+      else
+        -- Both are NaN / non NaN
+        total[i] = old_v + val
+      end
     end
   end
 

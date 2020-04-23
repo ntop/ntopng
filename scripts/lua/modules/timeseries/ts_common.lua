@@ -32,7 +32,17 @@ function ts_common.ninetififthPercentile(serie)
     return serie[1]
   end
 
-  N = table.clone(serie)
+  local N = {}
+
+  for i, val in ipairs(serie) do
+    if val ~= val then
+      -- Convert NaN to 0
+      val = 0
+    end
+
+    N[i] = val
+  end
+
   table.sort(N) -- <<== Sort first
   return(percentile(N, 0.95))
 end
@@ -44,13 +54,16 @@ function ts_common.calculateMinMax(total_serie)
   local min_val_pt, max_val_pt
 
   for idx, val in pairs(total_serie) do
-    if (min_val_pt == nil) or (val < min_val) then
-      min_val = val
-      min_val_pt = idx - 1
-    end
-    if (max_val_pt == nil) or (val > max_val) then
-      max_val = val
-      max_val_pt = idx - 1
+    -- Exclude NaN points
+    if val == val then
+      if (min_val_pt == nil) or (val < min_val) then
+        min_val = val
+        min_val_pt = idx - 1
+      end
+      if (max_val_pt == nil) or (val > max_val) then
+        max_val = val
+        max_val_pt = idx - 1
+      end
     end
   end
 
@@ -69,6 +82,11 @@ function ts_common.calculateStatistics(total_serie, step, tdiff, data_type)
   local pt_sum = 0
 
   for idx, val in pairs(total_serie) do
+    if val ~= val then
+      -- Convert NaN to 0
+      val = 0
+    end
+
     -- integrate
     total = total + val * step
     pt_sum = pt_sum + val
