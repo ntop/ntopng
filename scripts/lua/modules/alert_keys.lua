@@ -4,75 +4,82 @@
 
 -- ##############################################
 
+-- This is the ZERO pen used for ntopng builtin alerts found in the alert_keys.ntopng table below
+-- Some ZERO PENs are also available to users when creating user plugins. They are specified in the alert_keys.user table below.
+-- Other PENs may be specified by users when creating custom plugins.
+local NO_PEN = 0
+
+-- ##############################################
+
 local alert_keys = {
    ntopng = {
-      alert_blacklisted_country            = 1,
-      alert_broadcast_domain_too_large     = 2,
-      alert_device_connection              = 3,
-      alert_device_disconnection           = 4,
-      alert_device_protocol_not_allowed    = 5,
-      alert_dropped_alerts                 = 6,
-      alert_external                       = 7,
-      alert_flow_blacklisted               = 8,
-      alert_flow_blocked                   = 9,
-      alert_flow_misbehaviour              = 10,
-      alert_flows_flood                    = 11,
-      alert_ghost_network                  = 12,
-      alert_host_pool_connection           = 13,
-      alert_host_pool_disconnection        = 14,
-      alert_influxdb_dropped_points        = 15,
-      alert_influxdb_error                 = 16,
-      alert_influxdb_export_failure        = 17,
-      alert_internals                      = 18,
-      alert_ip_outsite_dhcp_range          = 19,
-      alert_list_download_failed           = 20,
-      alert_login_failed                   = 21,
-      alert_mac_ip_association_change      = 22,
-      alert_malicious_signature            = 23,
-      alert_misbehaving_flows_ratio        = 24,
-      alert_misconfigured_app              = 25,
-      alert_new_device                     = 26,
-      alert_nfq_flushed                    = 27,
-      alert_none                           = 28,
-      alert_periodic_activity_not_executed = 29,
-      alert_am_threshold_cross             = 30,
-      alert_port_duplexstatus_change       = 31,
-      alert_port_errors                    = 32,
-      alert_port_load_threshold_exceeded   = 33,
-      alert_port_mac_changed               = 34,
-      alert_port_status_change             = 35,
-      alert_potentially_dangerous_protocol = 36,
-      alert_process_notification           = 37,
-      alert_quota_exceeded                 = 38,
-      alert_remote_to_remote               = 39,
-      alert_request_reply_ratio            = 40,
-      alert_slow_periodic_activity         = 41,
-      alert_slow_purge                     = 42,
-      alert_snmp_device_reset              = 43,
-      alert_snmp_topology_changed          = 44,
-      alert_suspicious_activity            = 45,
-      alert_tcp_syn_flood                  = 46,
-      alert_tcp_syn_scan                   = 47,
-      alert_test_failed                    = 48,
-      alert_threshold_cross                = 49,
-      alert_too_many_drops                 = 50,
-      alert_udp_unidirectional             = 51,
-      alert_unresponsive_device            = 52,
-      alert_user_activity                  = 53,
-      alert_user_script_calls_drops        = 54,
-      alert_web_mining                     = 55,
-      alert_connection_issues              = 56,
+      alert_blacklisted_country            = {NO_PEN, 1},
+      alert_broadcast_domain_too_large     = {NO_PEN, 2},
+      alert_device_connection              = {NO_PEN, 3},
+      alert_device_disconnection           = {NO_PEN, 4},
+      alert_device_protocol_not_allowed    = {NO_PEN, 5},
+      alert_dropped_alerts                 = {NO_PEN, 6},
+      alert_external                       = {NO_PEN, 7},
+      alert_flow_blacklisted               = {NO_PEN, 8},
+      alert_flow_blocked                   = {NO_PEN, 9},
+      alert_flow_misbehaviour              = {NO_PEN, 10},
+      alert_flows_flood                    = {NO_PEN, 11},
+      alert_ghost_network                  = {NO_PEN, 12},
+      alert_host_pool_connection           = {NO_PEN, 13},
+      alert_host_pool_disconnection        = {NO_PEN, 14},
+      alert_influxdb_dropped_points        = {NO_PEN, 15},
+      alert_influxdb_error                 = {NO_PEN, 16},
+      alert_influxdb_export_failure        = {NO_PEN, 17},
+      alert_internals                      = {NO_PEN, 18},
+      alert_ip_outsite_dhcp_range          = {NO_PEN, 19},
+      alert_list_download_failed           = {NO_PEN, 20},
+      alert_login_failed                   = {NO_PEN, 21},
+      alert_mac_ip_association_change      = {NO_PEN, 22},
+      alert_malicious_signature            = {NO_PEN, 23},
+      alert_misbehaving_flows_ratio        = {NO_PEN, 24},
+      alert_misconfigured_app              = {NO_PEN, 25},
+      alert_new_device                     = {NO_PEN, 26},
+      alert_nfq_flushed                    = {NO_PEN, 27},
+      alert_none                           = {NO_PEN, 28},
+      alert_periodic_activity_not_executed = {NO_PEN, 29},
+      alert_am_threshold_cross             = {NO_PEN, 30},
+      alert_port_duplexstatus_change       = {NO_PEN, 31},
+      alert_port_errors                    = {NO_PEN, 32},
+      alert_port_load_threshold_exceeded   = {NO_PEN, 33},
+      alert_port_mac_changed               = {NO_PEN, 34},
+      alert_port_status_change             = {NO_PEN, 35},
+      alert_potentially_dangerous_protocol = {NO_PEN, 36},
+      alert_process_notification           = {NO_PEN, 37},
+      alert_quota_exceeded                 = {NO_PEN, 38},
+      alert_remote_to_remote               = {NO_PEN, 39},
+      alert_request_reply_ratio            = {NO_PEN, 40},
+      alert_slow_periodic_activity         = {NO_PEN, 41},
+      alert_slow_purge                     = {NO_PEN, 42},
+      alert_snmp_device_reset              = {NO_PEN, 43},
+      alert_snmp_topology_changed          = {NO_PEN, 44},
+      alert_suspicious_activity            = {NO_PEN, 45},
+      alert_tcp_syn_flood                  = {NO_PEN, 46},
+      alert_tcp_syn_scan                   = {NO_PEN, 47},
+      alert_test_failed                    = {NO_PEN, 48},
+      alert_threshold_cross                = {NO_PEN, 49},
+      alert_too_many_drops                 = {NO_PEN, 50},
+      alert_udp_unidirectional             = {NO_PEN, 51},
+      alert_unresponsive_device            = {NO_PEN, 52},
+      alert_user_activity                  = {NO_PEN, 53},
+      alert_user_script_calls_drops        = {NO_PEN, 54},
+      alert_web_mining                     = {NO_PEN, 55},
+      alert_connection_issues              = {NO_PEN, 56},
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
       -- WARNING: make sure integers do NOT OVERLAP with
       -- user alerts
    },
    user = {
-      alert_user_01                        = 32768,
-      alert_user_02                        = 32769,
-      alert_user_03                        = 32770,
-      alert_user_04                        = 32771,
-      alert_user_05                        = 32772,
+      alert_user_01                        = {NO_PEN, 32768},
+      alert_user_02                        = {NO_PEN, 32769},
+      alert_user_03                        = {NO_PEN, 32770},
+      alert_user_04                        = {NO_PEN, 32771},
+      alert_user_05                        = {NO_PEN, 32772},
       -- Add here additional keys generated by
       -- user plugin
    },
@@ -84,8 +91,14 @@ local alert_keys = {
 local alert_id_to_alert_key = {}
 
 for _, ntopng_user in ipairs({"ntopng", "user"}) do
-   for cur_key, cur_id in pairs(alert_keys[ntopng_user]) do
-      alert_id_to_alert_key[cur_id] = cur_key
+   for cur_key_string, cur_key_array in pairs(alert_keys[ntopng_user]) do
+      local cur_pen, cur_id = cur_key_array[1], cur_key_array[2]
+
+      if not alert_id_to_alert_key[cur_pen] then
+	 alert_id_to_alert_key[cur_pen] = {}
+      end
+
+      alert_id_to_alert_key[cur_pen][cur_id] = cur_key_string
    end
 end
 
@@ -93,22 +106,21 @@ end
 
 -- @brief Parse an alert key, check if it is compliant with the expected format, and returns the parsed key and a status message
 --
---        Alert keys must have one of these two formats:
---        1) Number: In this case the alert key is assumed to have no PEN and it is searched among the predefined alert keys
---                   for ntopng and user. Failing to find the alert key among those keys causes the parse function to fail.
---        2) Array:  In this case the alert key must be specified as an array of two numbers as {<PEN>, <pen_key>}:
---                   - <PEN> is an integer greater than zero and less than 65535 and can be used to uniquely identify an enterprise.
---                   - <pen_key> is an integer greater than or equal to zero and less than 65535 which is combined with <PEN>
---                     to uniquely identify an alert. The resulting alert key is a 32bit integer where the 16 most significant bits
---                     reserved for the <PEN> and the 16 least significant bits reserved for the <pen_key>.
+--        Alert keys must be specified as an array of two numbers as {<PEN>, <pen_key>}:
+--          - <PEN> is an integer greater than or equal to zero and less than 65535 and can be used to uniquely identify an enterprise.
+--            A <PEN> equal to zero is reserved for ntopng builtin alerts.
+--          - <pen_key> is an integer greater than or equal to zero and less than 65535 which is combined with <PEN>
+--            to uniquely identify an alert. The resulting alert key is a 32bit integer where the 16 most significant bits
+--            reserved for the <PEN> and the 16 least significant bits reserved for the <pen_key>.
+--
 --        Any other format is discarded and the parse function fails.
 --
 -- @param key The alert key to be parsed.
 --            Examples:
---              Number: `alert_keys.ntopng.alert_connection_issues`
---              Number: `alert_keys.user.alert_user_01`
---              Array: `{312, 513}`.
---              Array: `{0, alert_keys.user.alert_user_01}`. In this case where PEN equals zero only the <pen_key> is taken
+--              `alert_keys.ntopng.alert_connection_issues`
+--              `alert_keys.user.alert_user_01`
+--              `{312, 513}`.
+--              `{0, alert_keys.user.alert_user_01}`. In this case where PEN equals zero only the <pen_key> is taken
 --
 -- @return An integer corresponding to the parsed alert key and a status message which equals "OK" when no error occurred during parsing.
 --
@@ -116,14 +128,7 @@ function alert_keys.parse_alert_key(key)
    local parsed_alert_key
    local status = "OK"
 
-   if type(key) == "number" then
-      -- Plain number, let's make sure it is among the predefined keys
-      if not alert_id_to_alert_key[key] then
-	 status = "Alert key specified is not among the available alert keys."
-      else
-	 parsed_alert_key = key
-      end
-   elseif type(key) == "table" and #key == 2 then
+   if type(key) == "table" and #key == 2 then
       -- A table, let's parse it with PEN and key
       local pen, pen_key = key[1], key[2]
 
@@ -134,8 +139,12 @@ function alert_keys.parse_alert_key(key)
 	 -- pen_key is out of bounds or not a number
 	 status = "Invalid alert key specified. Alert key must be between 0 and 65535."
       elseif pen == 0 then
-	 -- PEN is zero, let's treat pen_key as if it was just a number
-	 return alert_keys.parse_alert_key(pen_key)
+	 -- PEN is zero, this is a builtin key and we need to verify its exsistance
+	 if not alert_id_to_alert_key[pen] or not alert_id_to_alert_key[pen][pen_key] then
+	    status = "Alert key specified is not among the available alert keys."
+	 else
+	    parsed_alert_key = pen_key
+	 end
       else
 	 -- PEN in the 16 MSB and pen_key in the 16 LSB
 	 parsed_alert_key = (pen << 16) + pen_key
