@@ -3,9 +3,7 @@
 --
 
 local alert_keys = require "alert_keys"
-
 local format_utils = require("format_utils")
-local json = require "dkjson"
 
 local function thresholdCrossFormatter(ifid, alert, info)
    local msg
