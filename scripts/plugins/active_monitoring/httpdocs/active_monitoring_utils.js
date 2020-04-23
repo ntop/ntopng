@@ -216,6 +216,25 @@ $(document).ready(function() {
         return row_data;
     }
 
+    const create_hours_heatmap = (td, data) => {
+
+        const svgWidth = 240, svgHeight = 10;
+        const squareLength = 8;
+        const colors = ['#d3d3d3', '#28a745', '#f00', '#ffc107'];
+        const $svg = $(td).find('svg');
+
+        for (let x = 0; x < svgWidth; x += 10) {
+
+            const index = x / svgHeight;
+            const $rect = $(document.createElementNS("http://www.w3.org/2000/svg", "rect"));
+            $rect.attr('x', x).attr('y', 0).attr('width', squareLength).attr('height', squareLength);
+            $rect.attr('fill', colors[data[index]]);
+            if (new Date().getHours() == index) $rect.attr('stroke', '#000');
+            $svg.append($rect);
+        }
+
+    }
+
     const $am_table = $("#am-table").DataTable({
         pagingType: 'full_numbers',
         lengthChange: false,
@@ -280,18 +299,16 @@ $(document).ready(function() {
         columns: [
             {
                 data: 'url',
-		
-		render: function(href, type, row) {
-                    if(type === 'display' || type === 'filter') {
+		        render: function(href, type, row) {
+                    if (type === 'display' || type === 'filter') {
                         if (href == "" || href == undefined) return "";
-
-			if(row.alerted) {
-			    return ` ${href} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
-			} else {
-                            return `${href}`
-			}
+			                if(row.alerted) {
+			                    return ` ${href} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
+                            }
+                            else {
+                                return `${href}`
+			                }
                     }
-		    
                     // The raw data must be returned here for sorting
                     return(href);
                 }
@@ -314,6 +331,7 @@ $(document).ready(function() {
                 data: 'threshold',
                 className: 'text-center',
                 render: function(data, type, row) {
+
                     if(type === 'display' || type === 'filter') {
                         if(row.threshold)
                             return `${row.threshold} ${row.unit}`
@@ -341,9 +359,18 @@ $(document).ready(function() {
                 }
             },
             {
-                data: 'hourly_stats',
+                data: 'hours',
                 className: 'text-center dt-head-center',
-		sortable: false,
+                sortable: false,
+                render: function(data, type) {
+                    if (type == 'display') {
+                        return `<svg width='240' height='10' viewBox='0 0 240 10'></svg>`;
+                    }
+                    return data;
+                },
+                createdCell: function(td, data) {
+                    create_hours_heatmap(td, data);
+                }
             },
             {
                 data: 'last_mesurement_time',
