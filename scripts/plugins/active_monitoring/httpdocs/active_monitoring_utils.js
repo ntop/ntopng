@@ -341,6 +341,11 @@ $(document).ready(function() {
                 }
             },
             {
+                data: 'hourly_stats',
+                className: 'text-center dt-head-center',
+		sortable: false,
+            },
+            {
                 data: 'last_mesurement_time',
                 className: 'dt-body-right dt-head-center'
             },

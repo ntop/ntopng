@@ -144,6 +144,7 @@ if(page == "overview") then
                 <th>]].. i18n("chart") ..[[</th>
                 <th>]].. i18n("threshold") .. [[</th>
                 <th>]].. i18n("plugins_overview.availability") .. [[</th>
+                <th>]].. i18n("active_monitoring.24h") .. [[</th>
                 <th>]].. i18n("active_monitoring_stats.last_measurement") .. [[</th>
                 <th>]].. i18n("system_stats.last_ip") .. [[</th>
                 <th>]].. i18n("active_monitoring_stats.measurement") .. [[</th>
