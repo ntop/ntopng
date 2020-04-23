@@ -165,8 +165,7 @@ function am_utils.getAvailability(host, measurement)
 
   local tot_available = 0
   local tot_unavailable = 0
-  local rc = '<svg width="240" height="15">'
-  local time = os.date("*t")
+  local rc = {}
   
   for i=1,24 do
     local pt = hour_stats.hstats[i]
@@ -176,26 +175,18 @@ function am_utils.getAvailability(host, measurement)
       tot_unavailable = tot_unavailable + pt[HOUR_STATS_EXCEEDED] + pt[HOUR_STATS_UNREACHABLE]
 
       if((pt[HOUR_STATS_OK]+pt[HOUR_STATS_UNREACHABLE]+pt[HOUR_STATS_EXCEEDED]) == 0) then
-	 color = 'lightgray'
+	 color = 0
       elseif((pt[HOUR_STATS_UNREACHABLE]+pt[HOUR_STATS_EXCEEDED]) == 0) then
-   	 color = '#28a745'
+   	 color = 1
       elseif(((pt[HOUR_STATS_UNREACHABLE]+pt[HOUR_STATS_EXCEEDED]) > 0) and (pt[HOUR_STATS_OK] == 0)) then
-   	 color = 'red'
+   	 color = 2
       else
-   	 color = '#ffc107'
+   	 color = 3
       end
 
-      if((i-1) == time.hour) then
-	 stroke = ';stroke-width:1;stroke:rgb(0,0,0)'
-      else
-	 stroke = ''
-      end
-      
-      rc = rc ..' <rect x="'.. ((i-1)*8) ..'" y="0" width="5" height="15" style="fill:'..color.. stroke..'" />'
+      table.insert(rc, color)
     end
   end
-
-  rc = rc .. '</svg>'
   
   return rc, (tot_available * 100 / (tot_available + tot_unavailable))
 end

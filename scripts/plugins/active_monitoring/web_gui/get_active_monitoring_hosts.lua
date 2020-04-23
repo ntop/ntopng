@@ -79,7 +79,7 @@ for key, am_host in pairs(am_hosts) do
        last_ip = column_last_ip,
        granularity = am_host.granularity,
        availability = availability or "",
-       hourly_stats = hourly_stats or {},
+       hours = hourly_stats or {},
        unit = i18n(m_info.i18n_unit) or m_info.i18n_unit,
     }
 
