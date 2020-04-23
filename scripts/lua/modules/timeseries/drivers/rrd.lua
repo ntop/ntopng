@@ -520,29 +520,49 @@ end
 local function sampleSeries(schema, cur_points, step, max_points, series)
   local sampled_dp = math.ceil(cur_points / max_points)
   local count = nil
+  local nan = 0/0
 
   for _, data_serie in pairs(series) do
     local serie = data_serie.data
     local num = 0
     local sum = 0
+    local all_nan = true
     local end_idx = 1
 
-    for _, dp in ipairs(serie) do
+    for idx, dp in ipairs(serie) do
+      if(dp ~= dp) then
+        -- Convert NaN to 0 to calculate the sums
+        dp = 0
+      else
+        all_nan = false
+      end
+
       sum = sum + dp
       num = num + 1
 
       if num == sampled_dp then
         -- A data group is ready
+        if all_nan then
+          -- If all the points into the datagroup are NaN, calculate them
+          -- as NaN
+          sum = nan
+        end
+
         serie[end_idx] = sum / num
         end_idx = end_idx + 1
 
         num = 0
         sum = 0
+        all_nan = true
       end
     end
 
     -- Last group
     if num > 0 then
+      if all_nan then
+        sum = nan
+      end
+
       serie[end_idx] = sum / num
       end_idx = end_idx + 1
     end
