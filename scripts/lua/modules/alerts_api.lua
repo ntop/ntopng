@@ -792,40 +792,6 @@ end
 
 -- ##############################################
 
-function alerts_api.anomalousTCPFlagsType(num_syn, num_rst, ratio, is_sent, granularity)
-  return({
-    alert_type = alert_consts.alert_types.alert_anomalous_tcp_flags,
-    alert_subtype = ternary(is_sent, "sent", "rcvd"),
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      num_syn = num_syn,
-      num_rst = num_rst,
-      is_sent = is_sent,
-      ratio = ratio,
-    }
-  })
-end
-
--- ##############################################
-
-function alerts_api.misbehavingFlowsRatioType(misbehaving_flows, total_flows, ratio, is_sent, granularity)
-  return({
-    alert_type = alert_consts.alert_types.alert_misbehaving_flows_ratio,
-    alert_subtype = ternary(is_sent, "sent", "rcvd"),
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      misbehaving_flows = misbehaving_flows,
-      total_flows = total_flows,
-      is_sent = is_sent,
-      ratio = ratio,
-    }
-  })
-end
-
--- ##############################################
-
 function alerts_api.ghostNetworkType(network, granularity)
   return({
     alert_type = alert_consts.alert_types.alert_ghost_network,
