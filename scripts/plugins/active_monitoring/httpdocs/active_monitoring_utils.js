@@ -326,6 +326,21 @@ $(document).ready(function() {
                 }
             },
             {
+                data: 'availability',
+                className: 'text-center',
+                render: function(data, type, row) {
+                    if(type === 'display' || type === 'filter') {
+                        if(row.availability != "")
+                            return Math.round(row.availability) + "%";
+                        else
+                            return "";
+                    }
+
+                    // The raw data must be returned here for sorting
+                    return(data);
+                }
+            },
+            {
                 data: 'last_mesurement_time',
                 className: 'dt-body-right dt-head-center'
             },

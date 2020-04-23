@@ -144,6 +144,42 @@ end
 
 -- ##############################################
 
+-- Get the total host availability in the past day (0-100)%
+-- nil is returned when no data is available.
+-- An host is considered available when it is reachable and within the
+-- threshold.
+function am_utils.getAvailability(host, measurement)
+  local key = am_utils.getAmHostKey(host, measurement)
+  local redis_k = am_hour_stats_key(key)
+  local hour_stats = ntop.getCache(redis_k)
+
+  if(isEmptyString(hour_stats)) then
+    return(nil)
+  end
+
+  hour_stats = json.decode(hour_stats)
+
+  if((hour_stats == nil) or (hour_stats.hstats == nil)) then
+    return(nil)
+  end
+
+  local tot_available = 0
+  local tot_unavailable = 0
+
+  for i=1,24 do
+    local pt = hour_stats.hstats[i]
+
+    if pt then
+      tot_available = tot_available + pt[HOUR_STATS_OK]
+      tot_unavailable = tot_unavailable + pt[HOUR_STATS_EXCEEDED] + pt[HOUR_STATS_UNREACHABLE]
+    end
+  end
+
+  return(tot_available * 100 / (tot_available + tot_unavailable))
+end
+
+-- ##############################################
+
 -- Note: alerts requires a unique key to be used in order to identity the
 -- entity. This key is also used internally as a key into the lua tables.
 function am_utils.getAmHostKey(host, measurement)

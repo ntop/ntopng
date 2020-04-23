@@ -17,26 +17,27 @@ local charts_available = plugins_utils.timeseriesCreationEnabled()
 
 -- ################################################
 
-local active_monitoring_hosts = am_utils.getHosts()
+local am_hosts = am_utils.getHosts()
 
 local res = {}
 
-for key, active_monitoring_host in pairs(active_monitoring_hosts) do
+for key, am_host in pairs(am_hosts) do
     local chart = ""
-    local m_info = am_utils.getMeasurementInfo(active_monitoring_host.measurement)
+    local m_info = am_utils.getMeasurementInfo(am_host.measurement)
+    local availability = am_utils.getAvailability(am_host.host, am_host.measurement)
 
     if not m_info then
       goto continue
     end
 
     if charts_available then
-      chart = plugins_utils.getUrl('active_monitoring_stats.lua') .. '?am_host='.. active_monitoring_host.host ..'&measurement='.. active_monitoring_host.measurement ..'&page=historical'
+      chart = plugins_utils.getUrl('active_monitoring_stats.lua') .. '?am_host='.. am_host.host ..'&measurement='.. am_host.measurement ..'&page=historical'
     end
 
     local column_last_ip = ""
     local column_last_update = ""
     local column_last_value = ""
-    local last_update = am_utils.getLastAmUpdate(active_monitoring_host.host, active_monitoring_host.measurement)
+    local last_update = am_utils.getLastAmUpdate(am_host.host, am_host.measurement)
     local alerted = 0
     
     if(last_update ~= nil) then
@@ -57,7 +58,7 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
     if(column_last_value == nil) then
       chart = ""
     else
-      if am_utils.hasExceededThreshold(active_monitoring_host.threshold, m_info.operator, column_last_value) then
+      if am_utils.hasExceededThreshold(am_host.threshold, m_info.operator, column_last_value) then
 	alerted = 1
       else
 	alerted = 0
@@ -66,17 +67,18 @@ for key, active_monitoring_host in pairs(active_monitoring_hosts) do
     
     res[#res + 1] = {
        key = key,
-       url = active_monitoring_host.label,
-       host = active_monitoring_host.host,
+       url = am_host.label,
+       host = am_host.host,
        alerted = alerted,
-       measurement = active_monitoring_host.measurement,
+       measurement = am_host.measurement,
        chart = chart,
-       threshold = active_monitoring_host.threshold,
+       threshold = am_host.threshold,
        last_measure = column_last_value or "",
        value_js_formatter = m_info.value_js_formatter,
        last_mesurement_time = column_last_update,
        last_ip = column_last_ip,
-       granularity = active_monitoring_host.granularity,
+       granularity = am_host.granularity,
+       availability = availability or "",
        unit = i18n(m_info.i18n_unit) or m_info.i18n_unit,
     }
 
