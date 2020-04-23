@@ -217,24 +217,22 @@ $(document).ready(function() {
     }
 
     const create_hours_heatmap = (td, data) => {
-
-        const svgWidth = 240, svgHeight = 10;
-        const squareLength = 8;
+        const squareLength = 10, squareHeight = 20;
         const colors = ['#d3d3d3', '#28a745', '#f00', '#ffc107'];
         const $svg = $(td).find('svg');
-
-        for (let x = 0; x < svgWidth; x += 10) {
-
-            const index = x / svgHeight;
+	const this_hour = new Date().getHours();
+	
+        for (let x = 0; x<24; x++) {
             const $rect = $(document.createElementNS("http://www.w3.org/2000/svg", "rect"));
-            $rect.attr('x', x).attr('y', 0).attr('width', squareLength).attr('height', squareLength);
-            $rect.attr('fill', colors[data[index]]);
-            if (new Date().getHours() == index) $rect.attr('stroke', '#000');
+            $rect.attr('x', x*(squareLength+2)).attr('y', 0).attr('width', squareLength).attr('height', squareHeight);
+            $rect.attr('fill', colors[data[x]]);
+            if (this_hour == x) {
+		$rect.attr('stroke', '#000'); /* Add stroke for the current hour */
+	    }
             $svg.append($rect);
         }
-
     }
-
+    
     const $am_table = $("#am-table").DataTable({
         pagingType: 'full_numbers',
         lengthChange: false,
@@ -364,7 +362,7 @@ $(document).ready(function() {
                 sortable: false,
                 render: function(data, type) {
                     if (type == 'display') {
-                        return `<svg width='240' height='10' viewBox='0 0 240 10'></svg>`;
+                        return `<svg width='288' height='20' viewBox='0 0 288 20'></svg>`;
                     }
                     return data;
                 },
