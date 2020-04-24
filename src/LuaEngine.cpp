@@ -7140,7 +7140,9 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.geoip", (char*)MMDB_lib_version());
 #endif
     lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
-    lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_edition", ntop->getPrefs()->is_enterprise_m_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_m_edition", ntop->getPrefs()->is_enterprise_m_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_l_edition", ntop->getPrefs()->is_enterprise_l_edition());
     lua_push_bool_table_entry(vm, "version.embedded_edition", ntop->getPrefs()->is_embedded_edition());
     lua_push_bool_table_entry(vm, "version.nedge_edition", ntop->getPrefs()->is_nedge_edition());
     lua_push_bool_table_entry(vm, "version.nedge_enterprise_edition", ntop->getPrefs()->is_nedge_enterprise_edition());
