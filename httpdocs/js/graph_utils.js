@@ -715,6 +715,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     if(tstart) params.epoch_begin = tstart;
     if(tend) params.epoch_end = tend;
 
+    const now = Date.now() / 1000;
+
     var cur_interval = (params.epoch_end - params.epoch_begin);
     var actual_step = findActualStep(step, params.epoch_begin);
     max_interval = actual_step * 6; /* host traffic 30 min */
@@ -730,7 +732,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         var epoch = params.epoch_begin + (params.epoch_end - params.epoch_begin) / 2;
         var new_end = Math.floor(epoch + max_interval / 2);
 
-        if(new_end * 1000 >= Date.now()) {
+        if(new_end >= now) {
           /* Only expand on the left side of the interval */
           params.epoch_begin = params.epoch_end - max_interval;
         } else {
@@ -1114,6 +1116,18 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         //if(stats_table.find("td").filter(function(){ return $(this).css("display") != "none"; }).length > 0)
       }
       stats_table.show();
+
+      if(visualization.show_unreachable && (data.start + data.count * data.step >= now)) {
+        /* For the active monitoring chart, we show an additional point with the
+         * last value and the now timestamp as requested for
+         * https://github.com/ntop/ntopng/issues/3822 */
+        for(var j=0; j<res.length; j++) {
+          const serie = res[j].values;
+
+          if(serie.length > 0)
+            serie[serie.length] = [now, serie[serie.length - 1][1]];
+        }
+      }
 
       var enabled_series = res.filter(function(d) { return(d.disabled !== true); });
 
