@@ -3,6 +3,9 @@
 --
 
 local alert_keys = require "alert_keys"
+local alert_builders = require "alert_builders"
+
+-- #######################################################
 
 local function formatThresholdCross(ifid, alert, threshold_info)
   local alert_consts = require("alert_consts")
@@ -26,4 +29,5 @@ return {
   i18n_title = "alerts_dashboard.threashold_cross",
   i18n_description = formatThresholdCross,
   icon = "fas fa-arrow-circle-up",
+  builder = alert_builders.buildThresholdCross,
 }

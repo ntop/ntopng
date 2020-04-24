@@ -11,7 +11,7 @@ local script = {
   category = user_scripts.script_categories.internals,
 
   always_enabled = true,
-  anomaly_type_builder = alerts_api.misconfiguredAppType,
+  anomaly_type_builder = alert_consts.alert_types.alert_misconfigured_app.builder,
 
   -- This script is only for alerts generation
   is_alert = true,

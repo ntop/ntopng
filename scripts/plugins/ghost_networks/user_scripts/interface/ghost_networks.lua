@@ -14,7 +14,11 @@ local function check_ghost_networks(params)
     if(domain_info.ghost_network) then
       local key = params.user_script.key .. "__" .. domain
       local delta_hits = alerts_api.interface_delta_val(key, params.granularity, domain_info.hits)
-      local ghost_network_type = alerts_api.ghostNetworkType(domain, params.granularity)
+      local ghost_network_type = alert_consts.alert_types.alert_ghost_network.builder(
+	 alert_consts.alert_severities.warning,
+	 alert_consts.alerts_granularities[params.granularity],
+	 domain
+      )
 
       if(delta_hits > 0) then
         alerts_api.trigger(params.alert_entity, ghost_network_type, nil, params.cur_alerts)

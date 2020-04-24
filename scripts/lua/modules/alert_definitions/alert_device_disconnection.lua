@@ -3,6 +3,9 @@
 --
 
 local alert_keys = require "alert_keys"
+local alert_builders = require "alert_builders"
+
+-- #######################################################
 
 local function formatDeviceDisconnectionAlert(ifid, alert, info)
   local device = info.device
@@ -24,4 +27,5 @@ return {
   i18n_title = "alerts_dashboard.device_disconnection",
   i18n_description = formatDeviceDisconnectionAlert,
   icon = "fas fa-sign-out",
+  builder = alert_builders.buildDeviceConnectionDisconnection,
 }

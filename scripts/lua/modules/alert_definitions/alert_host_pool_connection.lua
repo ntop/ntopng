@@ -3,6 +3,9 @@
 --
 
 local alert_keys = require "alert_keys"
+local alert_builders = require "alert_builders"
+
+-- #######################################################
 
 local function poolConnectionFormat(ifid, alert, info)
   return(i18n("alert_messages.host_pool_has_connected", {
@@ -18,4 +21,5 @@ return {
   i18n_title = "alerts_dashboard.host_pool_connection",
   i18n_description = poolConnectionFormat,
   icon = "fas fa-sign-in",
+  builder = alert_builders.buildPoolConnectionDisconnection,
 }

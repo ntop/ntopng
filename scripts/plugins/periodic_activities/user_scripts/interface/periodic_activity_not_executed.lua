@@ -11,16 +11,14 @@ local script
 -- ##############################################
 
 local function alert_info(ps_name, last_queued_time)
-  return({
-    alert_type = alert_consts.alert_types.alert_periodic_activity_not_executed,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_granularity = alert_consts.alerts_granularities.min,
-    alert_subtype = ps_name,
-    alert_type_params = {
-       ps_name = ps_name,
-       last_queued_time = last_queued_time
-    },
-  })
+   local alert_info = alert_consts.alert_types.alert_periodic_activity_not_executed.builder(
+      alert_consts.alert_severities.warning,
+      alert_consts.alerts_granularities.min,
+      ps_name,
+      last_queued_time
+   )
+
+   return alert_info
 end
 
 -- #################################################################

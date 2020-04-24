@@ -13,6 +13,7 @@ local tracker = {}
 function tracker.log(f_name, f_args)
   local alert_utils = require("alert_utils")
   local alerts_api = require("alerts_api")
+  local alert_consts = require "alert_consts"
   local stats = interface.getStats()
 
   if stats == nil then
@@ -38,8 +39,14 @@ function tracker.log(f_name, f_args)
   interface.select(getSystemInterfaceId())
 
   alerts_api.store(
-    alerts_api.userEntity(entity_value),
-    alerts_api.userActivityType('function', f_name, f_args, remote_addr)
+     alerts_api.userEntity(entity_value),
+     alert_consts.alert_types.alert_user_activity.builder(
+	alert_consts.alert_severities.info,
+	'function',
+	f_name,
+	f_args,
+	remote_addr
+     )
   )
 
   interface.select(tostring(old_iface))

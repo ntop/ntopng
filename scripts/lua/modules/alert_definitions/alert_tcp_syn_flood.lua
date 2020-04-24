@@ -3,6 +3,7 @@
 --
 
 local alert_keys = require "alert_keys"
+local alert_builders = require "alert_builders"
 
 local function formatSynFlood(ifid, alert, threshold_info)
   local alert_consts = require "alert_consts"
@@ -30,4 +31,5 @@ return {
   i18n_title = "alerts_dashboard.tcp_syn_flood",
   i18n_description = formatSynFlood,
   icon = "fas fa-life-ring",
+  builder = alert_builders.buildThresholdCross,
 }

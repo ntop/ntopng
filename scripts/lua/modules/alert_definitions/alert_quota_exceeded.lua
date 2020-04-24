@@ -4,6 +4,35 @@
 
 local alert_keys = require "alert_keys"
 
+-- #######################################################
+
+-- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_subtype A string with the subtype of the alert
+-- @param pool The host pool structure
+-- @param proto The Layer-7 application which exceeded the quota
+-- @param value The latest measured value
+-- @param quota The quota set
+-- @return A table with the alert built
+local function buildPoolQuotaExceeded(alert_severity, alert_subtype, pool, proto, value, quota)
+   local host_pools_utils = require("host_pools_utils")
+
+   local built = {
+      alert_subtype = alert_subtype,
+      alert_severity = alert_severity,
+      alert_type_params = {
+	 pool = host_pools_utils.getPoolName(interface.getId(), pool),
+	 proto = proto,
+	 value = value,
+	 quota = quota,
+      },
+   }
+
+   return built
+end
+
+-- #######################################################
+
 local function quotaExceededFormatter(ifid, alert, info)
   local quota_str
   local value_str
@@ -35,4 +64,5 @@ return {
   i18n_title = "alerts_dashboard.quota_exceeded",
   i18n_description = quotaExceededFormatter,
   icon = "fas fa-thermometer-full",
+  builder = buildPoolQuotaExceeded,
 }

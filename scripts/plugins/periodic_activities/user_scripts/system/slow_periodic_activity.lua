@@ -11,16 +11,14 @@ local script
 -- ##############################################
 
 local function alert_info(ps_name, max_duration_ms)
-   return({
-	 alert_type = alert_consts.alert_types.alert_slow_periodic_activity,
-	 alert_severity = alert_consts.alert_severities.warning,
-	 alert_granularity = alert_consts.alerts_granularities.min,
-	 alert_subtype = ps_name,
-	 alert_type_params = {
-	    ps_name = ps_name,
-	    max_duration_ms = max_duration_ms,
-	 },
-   })
+   local alert_info = alert_consts.alert_types.alert_slow_periodic_activity.builder(
+      alert_consts.alert_severities.warning,
+      alert_consts.alerts_granularities.min,
+      ps_name,
+      max_duration_ms
+   )
+
+   return alert_info
 end
 
 -- #################################################################

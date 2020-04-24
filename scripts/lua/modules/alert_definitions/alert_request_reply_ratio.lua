@@ -4,6 +4,31 @@
 
 local alert_keys = require "alert_keys"
 
+-- #######################################################
+
+-- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
+-- @param alert_subtype A string with the subtype of the alert
+-- @param requests The number of requests
+-- @param replies The number of replies
+-- @return A table with the alert built
+local function buildRequestReplyRatio(alert_severity, alert_granularity, alert_subtype, requests, replies)
+   local built = {
+      alert_subtype = alert_subtype,
+      alert_granularity = alert_granularity,
+      alert_severity = alert_severity,
+      alert_type_params = {
+	 requests = requests,
+	 replies = replies,
+      }
+   }
+
+   return built
+end
+
+-- #######################################################
+
 function requestReplyRatioFormatter(ifid, alert, info)
   local alert_consts = require("alert_consts")
 
@@ -43,4 +68,5 @@ return {
   i18n_title = "entity_thresholds.request_reply_ratio_title",
   i18n_description = requestReplyRatioFormatter,
   icon = "fas fa-exclamation",
+  builder = buildRequestReplyRatio,
 }

@@ -9,6 +9,7 @@ local os_utils = require("os_utils")
 local categories_utils = require("categories_utils")
 local json = require("dkjson")
 local alerts_api = require("alerts_api")
+local alert_consts = require "alert_consts"
 
 -- ##############################################
 
@@ -369,7 +370,11 @@ local function checkListsUpdate(timeout)
 
 	    alerts_api.store(
 	       alerts_api.categoryListsEntity(list_name),
-	       alerts_api.listDownloadFailedType(list_name, last_error)
+	       alert_consts.alert_types.alert_list_download_failed.builder(
+		  alert_consts.alert_severities.error,
+		  list_name,
+		  last_error
+	       )
 	    )
 	 end
 

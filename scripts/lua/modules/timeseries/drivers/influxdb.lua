@@ -960,10 +960,15 @@ function driver:_droppedPointsAlert()
 
    if ntop.getCache(k) ~= "1" then
       local alerts_api = require("alerts_api")
+      local alert_consts = require "alert_consts"
 
       alerts_api.store(
         alerts_api.influxdbEntity(self.url),
-        alerts_api.influxdbDroppedPointsType(self.url)
+        alert_consts.alert_types.alert_influxdb_export_failure.builder(
+	   alert_consts.alert_severities.error,
+	   alert_consts.alerts_granularities.min,
+	   self.url
+	)
       )
 
       -- Just to avoid doing :trigger too often

@@ -3,6 +3,7 @@
 --
 
 local alert_keys = require "alert_keys"
+local alert_builders = require "alert_builders"
 
 local function formatNewDeviceConnectionAlert(ifid, alert, info)
   return(i18n("alert_messages.a_new_device_has_connected", {
@@ -18,4 +19,5 @@ return {
   i18n_title = "alerts_dashboard.new_device",
   i18n_description = formatNewDeviceConnectionAlert,
   icon = "fas fa-asterisk",
+  builder = alert_builders.buildDeviceConnectionDisconnection,
 }

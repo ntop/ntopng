@@ -230,7 +230,20 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
       return(false)
    end
 
+   local cur_builder = def_script.builder
+   local builder = function(...)
+      local built = {}
+
+      if cur_builder then
+	 built = cur_builder(...)
+      end
+
+      built["alert_type"] = def_script
+      return built
+   end
+
    def_script.alert_key = parsed_alert_key
+   def_script.builder = builder
    alert_consts.alert_types[mod_fname] = def_script
    alerts_by_id[parsed_alert_key] = mod_fname
 

@@ -3,6 +3,7 @@
 --
 
 local alerts_api = require("alerts_api")
+local alert_consts = require "alert_consts"
 local user_scripts = require("user_scripts")
 
 local script
@@ -13,7 +14,12 @@ local function check_interface_drops(params)
   local info = params.entity_info
   local num_dropped = info.stats.num_dropped_flow_scripts_calls
   local delta_dropped = alerts_api.interface_delta_val(script.key, params.granularity, num_dropped)
-  local drops_type = alerts_api.userScriptCallsDrops("flow", delta_dropped)
+  local drops_type = alert_consts.alert_types.alert_user_script_calls_drops.builder(
+     alert_consts.alert_severities.error,
+     alert_consts.alerts_granularities.min,
+     "flow",
+     delta_dropped
+  )
 
   if(delta_dropped > 0) then
     alerts_api.trigger(params.alert_entity, drops_type, nil, params.cur_alerts)

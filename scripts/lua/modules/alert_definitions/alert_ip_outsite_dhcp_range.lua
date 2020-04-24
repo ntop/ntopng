@@ -4,6 +4,33 @@
 
 local alert_keys = require "alert_keys"
 
+-- ##############################################
+
+-- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param router_info The host info of the router
+-- @param mac The mac address of the device outside the range
+-- @param client_mac The client mac as seen in the DHCP packet as string
+-- @param sender_mac The sender mac as seen in the DHCP packet as string
+-- @return A table with the alert built
+local function buildIpOutsideDHCPRangeType(alert_severity, router_info, mac, client_mac, sender_mac)
+  local built = {
+     alert_severity = alert_severity,
+     alert_subtype = string.format("%s_%s_%s", hostinfo2hostkey(router_info), client_mac, sender_mac),
+     alert_type_params = {
+	router_info = hostinfo2hostkey(router_info),
+	mac = mac,
+	client_mac = client_mac,
+	sender_mac = sender_mac,
+	router_host = host2name(router_info["host"], router_info["vlan"]),
+     },
+  }
+
+  return built
+end
+
+-- #######################################################
+
 local function outsideDhcpRangeFormatter(ifid, alert, info)
   local hostinfo = hostkey2hostinfo(alert.alert_entity_val)
   local hostkey = hostinfo2hostkey(hostinfo)
@@ -30,4 +57,5 @@ return {
   i18n_title = "alerts_dashboard.misconfigured_dhcp_range",
   i18n_description = outsideDhcpRangeFormatter,
   icon = "fas fa-exclamation",
+  builder = buildIpOutsideDHCPRangeType,
 }

@@ -35,15 +35,12 @@ function script.hooks.min(params)
 
     local new_dropped_alerts = interface.checkDroppedAlerts()
 
-    local alert_type = {
-      alert_type = alert_consts.alert_types.alert_dropped_alerts,
-      alert_granularity = alert_consts.alerts_granularities.min,
-      alert_severity = alert_consts.alert_severities.error,
-      alert_type_params = {
-        ifid = interface.getId(),
-        num_dropped = new_dropped_alerts,
-      }
-    }
+    local alert_type = alert_consts.alert_types.alert_dropped_alerts.builder(
+       alert_consts.alert_severities.error,
+       alert_consts.alerts_granularities.min,
+       interface.getId(),
+       new_dropped_alerts
+    )
 
     -- Note: required for the trigger/release below
     interface.select(getSystemInterfaceId())

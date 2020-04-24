@@ -27,7 +27,14 @@ local function check_interface_idle(params)
     end
   end
 
-  local idle_type = alerts_api.slowPurgeType(max_idle, max_idle_perc, threshold)
+  local idle_type = alert_consts.alert_types.alert_slow_purge.builder(
+     alert_consts.alert_severities.warning,
+     alert_consts.alerts_granularities.min,
+     max_idle,
+     max_idle_perc,
+     threshold
+  )
+
   if max_idle_perc > threshold then
     alerts_api.trigger(params.alert_entity, idle_type, nil, params.cur_alerts)
   else

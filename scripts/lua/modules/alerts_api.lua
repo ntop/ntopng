@@ -515,189 +515,6 @@ end
 -- type_info building functions
 -- ##############################################
 
-function alerts_api.userActivityType(scope, name, params, remote_addr, status)
-  return({
-    alert_type = alert_consts.alert_types.alert_user_activity,
-    alert_severity = alert_consts.alert_severities.info,
-    alert_type_params = {
-      scope = scope, name = name, params = params,
-      remote_addr = remote_addr, status = status,
-    }
-  })
-end
-
--- ##############################################
-
-function alerts_api.loginFailedType()
-  return({
-    alert_type = alert_consts.alert_types.alert_login_failed,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {},
-  })
-end
-
--- ##############################################
-
-function alerts_api.processNotificationType(event_type, severity, msg_details)
-  return({
-    alert_type = alert_consts.alert_types.alert_process_notification,
-    alert_severity = alert_consts.alert_severities[alert_consts.alertSeverityRaw(severity)],
-    alert_type_params = {
-      msg_details = msg_details,
-      event_type = event_type,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.listDownloadFailedType(list_name, last_error)
-  return({
-    alert_type = alert_consts.alert_types.alert_list_download_failed,
-    alert_severity = alert_consts.alert_severities.error,
-    alert_type_params = {
-      name=list_name, err=last_error
-    }
-  })
-end
-
--- ##############################################
-
-function alerts_api.influxdbDroppedPointsType(influxdb_url)
-  return({
-    alert_type = alert_consts.alert_types.alert_influxdb_export_failure,
-    alert_severity = alert_consts.alert_severities.error,
-    alert_granularity = alert_consts.alerts_granularities.min,
-    alert_type_params = {
-      influxdb = influxdb_url,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.newDeviceType(device_name)
-  return({
-    alert_type = alert_consts.alert_types.alert_new_device,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      device = device_name,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.deviceHasConnectedType(device_name)
-  return({
-    alert_type = alert_consts.alert_types.alert_device_connection,
-    alert_severity = alert_consts.alert_severities.info,
-    alert_type_params = {
-      device = device_name,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.deviceHasDisconnectedType(device_name)
-  return({
-    alert_type = alert_consts.alert_types.alert_device_disconnection,
-    alert_severity = alert_consts.alert_severities.info,
-    alert_type_params = {
-      device = device_name,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.poolQuotaExceededType(pool, proto, subtype, value, quota)
-  local host_pools_utils = require("host_pools_utils")
-
-  return({
-    alert_type = alert_consts.alert_types.alert_quota_exceeded,
-    alert_subtype = subtype,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      pool = host_pools_utils.getPoolName(interface.getId(), pool),
-      proto = proto, value = value, quota = quota,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.poolConnectionType(pool)
-  local host_pools_utils = require("host_pools_utils")
-
-  return({
-    alert_type = alert_consts.alert_types.alert_host_pool_connection,
-    alert_severity = alert_consts.alert_severities.info,
-    alert_type_params = {
-      pool = host_pools_utils.getPoolName(interface.getId(), pool),
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.poolDisconnectionType(pool)
-  local host_pools_utils = require("host_pools_utils")
-
-  return({
-    alert_type = alert_consts.alert_types.alert_host_pool_disconnection,
-    alert_severity = alert_consts.alert_severities.info,
-    alert_type_params = {
-      pool = host_pools_utils.getPoolName(interface.getId(), pool),
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.macIpAssociationChangeType(device, ip, old_mac, new_mac)
-  return({
-    alert_type = alert_consts.alert_types.alert_mac_ip_association_change,
-    alert_subtype = string.format("%s_%s_%s", ip, old_mac, new_mac),
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      device = device, ip = ip,
-      old_mac = old_mac, new_mac = new_mac,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.broadcastDomainTooLargeType(src_mac, dst_mac, vlan, spa, tpa)
-  return({
-    alert_type = alert_consts.alert_types.alert_broadcast_domain_too_large,
-    -- Subtype is the concatenation of src and dst macs and ips and the VLAN. This
-    -- allows the elerts engine to properly aggregate alerts when they have the same type and subtype
-    alert_subtype = string.format("%u_%s_%s_%s_%s", vlan, src_mac, spa, dst_mac, tpa),
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      src_mac = src_mac, dst_mac = dst_mac,
-      spa = spa, tpa = tpa, vlan_id = vlan,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.nfqFlushedType(ifname, pct, tot, dropped)
-  return({
-    alert_type = alert_consts.alert_types.alert_nfq_flushed,
-    alert_severity = alert_consts.alert_severities.error,
-    alert_type_params = {
-      ifname = ifname, pct = pct, tot = tot, dropped = dropped,
-    },
-  })
-end
-
--- ##############################################
-
 function alerts_api.remoteToRemoteType(host_info, mac)
   return({
     alert_type = alert_consts.alert_types.alert_remote_to_remote,
@@ -706,33 +523,6 @@ function alerts_api.remoteToRemoteType(host_info, mac)
       host = host2name(host_info["host"], host_info["vlan"]),
       mac = mac,
     },
-  })
-end
-
--- ##############################################
-
-function alerts_api.ipOutsideDHCPRangeType(router_info, mac, client_mac, sender_mac)
-  return({
-    alert_type = alert_consts.alert_types.alert_ip_outsite_dhcp_range,
-    alert_subtype = string.format("%s_%s_%s", hostinfo2hostkey(router_info), client_mac, sender_mac),
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      router_info = hostinfo2hostkey(router_info),
-      mac = mac, client_mac = client_mac, sender_mac = sender_mac,
-      router_host = host2name(router_info["host"], router_info["vlan"]),
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.misconfiguredAppType(subtype)
-  return({
-    alert_type = alert_consts.alert_types.alert_misconfigured_app,
-    alert_subtype = subtype,
-    alert_severity = alert_consts.alert_severities.error,
-    alert_granularity = alert_consts.alerts_granularities.min,
-    alert_type_params = {},
   })
 end
 
@@ -751,77 +541,21 @@ end
 
 -- ##############################################
 
-function alerts_api.userScriptCallsDrops(subdir, drops)
-  return({
-    alert_type = alert_consts.alert_types.alert_user_script_calls_drops,
-    alert_severity = alert_consts.alert_severities.error,
-    alert_granularity = alert_consts.alerts_granularities.min,
-    alert_subtype = subdir,
-    alert_type_params = {
-      drops = drops,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.slowPurgeType(idle, idle_perc, threshold)
-  return({
-    alert_type = alert_consts.alert_types.alert_slow_purge,
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_granularity = alert_consts.alerts_granularities.min,
-    alert_type_params = {
-      idle = idle, idle_perc = idle_perc, edge = threshold,
-    },
-  })
-end
-
--- ##############################################
-
-function alerts_api.requestReplyRatioType(key, requests, replies, granularity)
-  return({
-    alert_type = alert_consts.alert_types.alert_request_reply_ratio,
-    alert_subtype = key,
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {
-      requests = requests, replies = replies,
-    }
-  })
-end
-
--- ##############################################
-
-function alerts_api.ghostNetworkType(network, granularity)
-  return({
-    alert_type = alert_consts.alert_types.alert_ghost_network,
-    alert_subtype = network,
-    alert_granularity = alert_consts.alerts_granularities[granularity],
-    alert_severity = alert_consts.alert_severities.warning,
-    alert_type_params = {},
-  })
-end
-
--- ##############################################
-
 -- TODO document
 function alerts_api.checkThresholdAlert(params, alert_type, value)
   local script = params.user_script
   local threshold_config = params.user_script_config
   local alarmed = false
 
-  local threshold_type = {
-    alert_type = alert_type,
-    alert_subtype = script.key,
-    alert_granularity = alert_consts.alerts_granularities[params.granularity],
-    alert_severity = alert_consts.alert_severities.error,
-    alert_type_params = {
-      metric = params.user_script.key,
-      value = value,
-      operator = threshold_config.operator,
-      threshold = threshold_config.threshold,
-    }
-  }
+  local threshold_type = alert_type.builder(
+     alert_consts.alert_severities.error,
+     script.key,
+     alert_consts.alerts_granularities[params.granularity],
+     params.user_script.key,
+     value,
+     threshold_config.operator,
+     threshold_config.threshold
+  )
 
   if(threshold_config.operator == "lt") then
     if(value < threshold_config.threshold) then alarmed = true end
@@ -844,7 +578,11 @@ end
 -- which returns a type_info for the given anomaly.
 function alerts_api.anomaly_check_function(params)
   local anomal_key = params.user_script.key
-  local type_info = params.user_script.anomaly_type_builder(anomal_key)
+  local type_info = params.user_script.anomaly_type_builder(
+     alert_consts.alert_severities.error,
+     alert_consts.alerts_granularities.min,
+     anomal_key
+  )
 
   if params.entity_info.anomalies[anomal_key] then
     return alerts_api.trigger(params.alert_entity, type_info, nil, params.cur_alerts)

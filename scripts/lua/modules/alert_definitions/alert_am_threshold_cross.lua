@@ -5,6 +5,37 @@
 local alert_keys = require "alert_keys"
 local format_utils = require("format_utils")
 
+-- #######################################################
+
+-- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
+-- @param value A number indicating the measure which crossed the threshold
+-- @param threshold A number indicating the threshold compared with `value`  using operator
+-- @param ip A string with the ip address of the host crossing the threshold
+-- @param host A string with the host key
+-- @param operator A string indicating the operator used when evaluating the threshold, one of "gt", ">", "<"
+-- @param unit The unit of measure of value and threshold
+-- @return A table with the alert built
+local function buildActiveMonitoringTxCross(alert_severity, alert_granularity, value, threshold, ip, host, operator, unit)
+   local threshold_type = {
+      alert_severity = alert_severity,
+      alert_granularity = alert_granularity,
+      alert_type_params = {
+	 value = value,
+	 threshold = threshold,
+	 ip = ip,
+	 host = host,
+	 operator = operator,
+	 unit = unit
+      },
+   }
+
+   return threshold_type
+end
+
+-- #######################################################
+
 local function thresholdCrossFormatter(ifid, alert, info)
    local msg
    local host = info.host
@@ -57,4 +88,5 @@ return {
   i18n_title = "graphs.active_monitoring",
   i18n_description = thresholdCrossFormatter,
   icon = "fas fa-exclamation",
+  builder = buildActiveMonitoringTxCross,
 }

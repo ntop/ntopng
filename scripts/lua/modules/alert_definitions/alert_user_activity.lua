@@ -6,6 +6,33 @@ local alert_keys = require "alert_keys"
 
 local format_utils = require("format_utils")
 
+-- #######################################################
+
+-- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param scope A string indicating the scope, one of 'function' or 'login'
+-- @param name The name of the function when the scope is 'function' or nil
+-- @param params Function parameters when the scope is 'function' or nil
+-- @param remote_addr The ip address of the remote user when available
+-- @param status A string indicating the action status or nil
+-- @return A table with the alert built
+local function buildUserActivity(alert_severity, scope, name, params, remote_addr, status)
+   local builder = {
+	 alert_severity = alert_severity,
+	 alert_type_params = {
+	    scope = scope,
+	    name = name,
+	    params = params,
+	    remote_addr = remote_addr,
+	    status = status,
+	 }
+   }
+
+   return builder
+end
+
+-- #######################################################
+
 local function userActivityFormatter(ifid, alert, info)
   local decoded = info
   local user = alert.alert_entity_val
@@ -221,4 +248,5 @@ return {
   i18n_title = "alerts_dashboard.user_activity",
   i18n_description = userActivityFormatter,
   icon = "fas fa-user",
+  builder = buildUserActivity,
 }

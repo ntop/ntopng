@@ -57,13 +57,18 @@ script.hooks["min"] = function(params)
    if(not isEmptyString(last_error)) then
       local influxdb = ts_utils.getQueryDriver()
 
+      local alert_type = alert_consts.alert_types.alert_influxdb_error.builder(
+	 alert_consts.alert_severities.error,
+	 alert_consts.alerts_granularities.min,
+	 last_error
+      )
+
+      tprint(alert_type)
+
       alerts_api.store(
-         alerts_api.influxdbEntity(influxdb.url), {
-            alert_type = alert_consts.alert_types.alert_influxdb_error,
-            alert_severity = alert_consts.alert_severities.error,
-            alert_granularity = alert_consts.alerts_granularities.min,
-            alert_type_params = {error_msg = last_error},
-      }, params.when)
+         alerts_api.influxdbEntity(influxdb.url),
+	 alert_type,
+	 params.when)
    end
 end
 
