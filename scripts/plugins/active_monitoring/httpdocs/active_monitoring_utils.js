@@ -197,7 +197,9 @@ $(document).ready(function() {
                 $('#am-alert .alert-body').text(data.message);
                 $('#am-alert').fadeIn();
                 $(`#am-${action}-modal`).modal('hide');
-                $am_table.ajax.reload();
+                $am_table.ajax.reload(function(data) {
+                    addMeasurementFilter($am_table, data);
+                });
                 return;
             }
 
@@ -217,26 +219,89 @@ $(document).ready(function() {
     }
 
     const create_hours_heatmap = (td, data) => {
+
         const squareLength = 10, squareHeight = 20;
         const colors = ['#d3d3d3', '#28a745', '#f00', '#ffc107'];
         const $svg = $(td).find('svg');
-	const this_hour = new Date().getHours();
-	
-        for (let x = 0; x<24; x++) {
+	    const this_hour = new Date().getHours();
+
+        for (let x = 0; x < 24; x++) {
             const $rect = $(document.createElementNS("http://www.w3.org/2000/svg", "rect"));
             $rect.attr('x', x*(squareLength+2)).attr('y', 0).attr('width', squareLength).attr('height', squareHeight);
-            $rect.attr('fill', colors[data[x]]);
+            const colorIndex = (data.length > 0) ? data[x] : 0;
+            $rect.attr('fill', colors[colorIndex]);
             if (this_hour == x) {
-		$rect.attr('stroke', '#000'); /* Add stroke for the current hour */
-	    }
+		        $rect.attr('stroke', '#000'); /* Add stroke for the current hour */
+	        }
             $svg.append($rect);
         }
     }
-    
+
+    const addFilterDropdown = (title, values, column_index, datatableFilterId, tableApi) => {
+
+        const createEntry = (val, callback) => {
+            const $entry = $(`<li class='dropdown-item pointer'>${val}</li>`);
+            $entry.click(function(e) {
+
+                $dropdownTitle.html(`<i class='fas fa-filter'></i> ${val}`);
+                $menuContainer.find('li').removeClass(`active`);
+                $entry.addClass(`active`);
+                callback(e);
+            });
+
+            return $entry;
+        }
+
+        const dropdownId = `${title}-filter-menu`;
+        if ($(`#${title}-filter-menu`).length > 0) $(`#${title}-filter-menu`).remove();
+
+        const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
+        const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
+        const $dropdownTitle = $(`<span>${title}</span>`);
+        $dropdownButton.append($dropdownTitle);
+
+        const $menuContainer = $(`<ul class='dropdown-menu' id='${title}-filter'></ul>`);
+        for (let [key, value] of Object.entries(values)) {
+            const $entry = createEntry(`${key} (${value})`, (e) => {
+                tableApi.column(column_index).search(`${key}://`).draw(true);
+            });
+            $menuContainer.append($entry);
+        }
+
+        const $allEntry = createEntry(i18n.all, (e) => {
+            $dropdownTitle.html(`${title}`);
+            $menuContainer.find('li').removeClass(`active`);
+            tableApi.columns().search('').draw(true);
+        });
+
+        $menuContainer.prepend($allEntry);
+
+        $dropdownContainer.append($dropdownButton, $menuContainer);
+        $(datatableFilterId).prepend($dropdownContainer);
+
+    }
+
+    const addMeasurementFilter = (tableInstance, data) => {
+
+        // get all the measurements available and their count
+        const measurements = {};
+        data.forEach((v) => {
+
+            const measurement = v.measurement.toUpperCase();
+
+            if (!(measurement in measurements)) {
+                measurements[measurement] = 1;
+                return;
+            }
+            measurements[measurement]++;
+        });
+
+        addFilterDropdown(i18n.measurement, measurements, 0, "#am-table_filter", tableInstance);
+    }
+
     const $am_table = $("#am-table").DataTable({
         pagingType: 'full_numbers',
         lengthChange: false,
-        stateSave: true,
         dom: 'lfBrtip',
         language: {
             info: i18n.showing_x_to_y_rows,
@@ -249,12 +314,15 @@ $(document).ready(function() {
                last: '»'
             }
         },
-        initComplete: function() {
+        initComplete: function(settings, data) {
 
             if (get_host != "") {
                 $am_table.search(get_host).draw(true);
                 $am_table.state.clear();
             }
+
+            const table = settings.oInstance.api();
+            addMeasurementFilter(table, data);
 
             setInterval(() => {
                 $am_table.ajax.reload()
