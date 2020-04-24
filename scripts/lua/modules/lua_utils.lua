@@ -3069,7 +3069,11 @@ function printntopngRelease(info)
       return ""
    end
 
-   if(info["version.enterprise_edition"]) or (info["version.nedge_enterprise_edition"]) then
+   if(info["version.enterprise_l_edition"]) then
+      print(" Enterprise L")
+   elseif(info["version.enterprise_m_edition"]) then
+      print(" Enterprise M")
+   elseif(info["version.enterprise_edition"]) or (info["version.nedge_enterprise_edition"]) then
       print(" Enterprise")
    elseif(info["version.nedge_edition"] or info["pro.release"]) then
       print(" Professional")
