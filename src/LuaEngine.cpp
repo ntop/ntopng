@@ -6435,9 +6435,17 @@ static int ntop_is_pro(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_is_enterprise(lua_State *vm) {
+static int ntop_is_enterprise_m(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_edition());
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_m_edition());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_is_enterprise_l(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_l_edition());
   return(CONST_LUA_OK);
 }
 
@@ -11756,7 +11764,9 @@ static const luaL_Reg ntop_reg[] = {
 #endif
 
   { "isPro",                  ntop_is_pro },
-  { "isEnterprise",           ntop_is_enterprise },
+  { "isEnterprise",           ntop_is_enterprise_m },
+  { "isEnterpriseM",          ntop_is_enterprise_m },
+  { "isEnterpriseL",          ntop_is_enterprise_l },
   { "isnEdge",                ntop_is_nedge },
   { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
   { "isPackage",              ntop_is_package },
