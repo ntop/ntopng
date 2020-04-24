@@ -88,7 +88,7 @@ if isEmptyString(page) or page == "historical" then
        graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
          top_protocols = "top:asn:ndpi",
          timeseries = {
-            {schema="asn:traffic",             label=i18n("traffic")},
+            {schema="asn:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
             {schema="asn:rtt",                 label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
 	    {schema="asn:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
 	    {schema="asn:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},

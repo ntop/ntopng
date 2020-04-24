@@ -439,6 +439,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   ];
 
   var chart_colors_min = ["#7CC28F", "#FCD384", "#FD977B"];
+  var split_directions_colors = ["#69B87F", "#FF7C00", "#FF4700"];
 
   /* This is used to show the "unreachable" label when the chart "show_unreachable"
    * options is set. See the extra_lines computation below. */
@@ -830,13 +831,25 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         var label = getSerieLabel(schema_name, series[j], visualization, j);
         var legend_key = schema_name + ":" + label;
         chart.current_step = data.step;
+        let serie_type = series[j].type;
+        let serie_color = chart_colors[color_i++]
+
+        if(!serie_type) {
+          if(visualization.split_directions) {
+            /* RX and TX directions are splitted, drow the second serie
+             * (TX) as a line */
+            serie_type = (j == 0) ? "area" : "line";
+            serie_color = split_directions_colors[j] || serie_color;
+          } else
+            serie_type = "area";
+        }
 
         res.push({
           key: label,
           yAxis: series[j].axis || 1,
           values: values,
-          type: series[j].type || "area",
-          color: chart_colors[color_i++],
+          type: serie_type,
+          color: serie_color,
           legend_key: legend_key,
           disabled: isLegendDisabled(legend_key, false),
         });
