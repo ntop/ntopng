@@ -696,6 +696,14 @@ function driver:query(schema, tstart, tend, tags, options)
   if options.calculate_stats then
     total_serie = makeTotalSerie(series, count)
     stats = ts_common.calculateStatistics(makeTotalSerie(unsampled_series, unsampled_count), unsampled_fstep, tend - tstart, schema.options.metrics_type)
+    stats = stats or {}
+    stats.by_serie = {}
+
+    -- Also calculate per-serie statistics
+    for k, v in pairs(series) do
+      local s = ts_common.calculateStatistics(v.data, unsampled_fstep, tend - tstart, schema.options.metrics_type)
+      stats.by_serie[k] = s
+    end
   end
 
   if options.initial_point then

@@ -773,6 +773,17 @@ function driver:query(schema, tstart, tend, tags, options)
     if total_serie then
       stats = ts_common.calculateStatistics(total_serie, time_step, tend - tstart, data_type)
 
+      stats = stats or {}
+      stats.by_serie = {}
+
+      for k, v in pairs(series) do
+        local s = ts_common.calculateStatistics(v.data, time_step, tend - tstart, data_type)
+        stats.by_serie[k] = s
+
+        -- Remove the total for now as it requires a complex computation (see below)
+        s.total = nil
+      end
+
       if stats.total ~= nil then
         -- override total and average
         -- NOTE: using -1 to avoid overflowing into the next hour

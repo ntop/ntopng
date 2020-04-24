@@ -715,6 +715,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   chart.updateStackedChart = function (tstart, tend, no_spinner, is_user_zoom, on_load_callback, force_update) {
     if(tstart) params.epoch_begin = tstart;
     if(tend) params.epoch_end = tend;
+    const series_formatted_labels = {};
 
     const now = Date.now() / 1000;
 
@@ -843,6 +844,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           } else
             serie_type = "area";
         }
+
+        series_formatted_labels[j] = label;
 
         res.push({
           key: label,
@@ -1109,20 +1112,38 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         if((stats.max_val || max_cell.is(':visible')) && res[0].values[stats.max_val_idx])
           max_cell.show().find("span").html(stats_formatter(stats.max_val) + " @ " + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format(datetime_format));
         if(stats["95th_percentile"] || perc_cell.is(':visible')) {
-          perc_cell.show().find("span").html(stats_formatter(stats["95th_percentile"]));
+          let perc_val = "";
 
-          var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
+          if(visualization.split_directions && stats.by_serie) {
+            const values = [];
 
-          res.push({
-            key: graph_i18n["95_perc"],
-            yAxis: 1,
-            values: values,
-            type: "line",
-            classed: "line-dashed line-animated",
-            color: "#476DFF",
-            legend_key: "95perc",
-            disabled: isLegendDisabled("95perc", true),
-          });
+            for(var i=0; i<series.length; i++) {
+              if(stats.by_serie[i])
+                values.push(stats_formatter(stats.by_serie[i]["95th_percentile"]) + " [" + series_formatted_labels[i] + "]");
+            }
+
+            perc_val = values.join(", ");
+          } else
+            perc_val = stats_formatter(stats["95th_percentile"]);
+
+          if(perc_val)
+            perc_cell.show().find("span").html(perc_val);
+
+          if(!visualization.split_directions) {
+            /* When directions are split, hide the total 95th percentile */
+            var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
+
+            res.push({
+              key: graph_i18n["95_perc"],
+              yAxis: 1,
+              values: values,
+              type: "line",
+              classed: "line-dashed line-animated",
+              color: "#476DFF",
+              legend_key: "95perc",
+              disabled: isLegendDisabled("95perc", true),
+            });
+          }
         }
 
         // check if there are visible elements
