@@ -346,10 +346,7 @@ $(document).ready(function() {
                 className: 'text-center',
                 render: function(data, type, row) {
                     if(type === 'display' || type === 'filter') {
-                        if(row.availability != "")
-                            return Math.round(row.availability) + "%";
-                        else
-                            return "";
+                        return Math.round(row.availability) + " %";
                     }
 
                     // The raw data must be returned here for sorting
