@@ -349,6 +349,9 @@ if(page == "overview") then
       i18n.edit = "]] .. i18n("users.edit") .. [[";
       i18n.delete = "]] .. i18n("delete") .. [[";
       i18n.expired_csrf = "]] .. i18n("expired_csrf") .. [[";
+      i18n.all = "]] .. i18n("all") .. [[";
+      i18n.measurement = "]] .. i18n("active_monitoring_stats.measurement") .. [[";
+
 
       let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
       let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
