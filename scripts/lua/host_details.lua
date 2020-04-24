@@ -2216,7 +2216,7 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    show_historical = true,
    tskey = tskey,
    timeseries = table.merge({
-      {schema="host:traffic",                label=i18n("traffic")},
+      {schema="host:traffic",                label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
       {schema="host:score",                  label=i18n("score"), enterprise_only=true},
       {schema="host:active_flows",           label=i18n("graphs.active_flows")},
       {schema="host:total_flows",            label=i18n("db_explorer.total_flows")},

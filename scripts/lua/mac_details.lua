@@ -386,7 +386,7 @@ elseif(page == "historical") then
    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_categories = "top:mac:ndpi_categories",
       timeseries = table.merge({
-         {schema="mac:traffic",                 label=i18n("traffic")},
+         {schema="mac:traffic",                 label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
       }, graph_utils.getDeviceCommonTimeseries())
    })
 

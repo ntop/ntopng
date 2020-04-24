@@ -125,7 +125,7 @@ elseif page == "historical" then
     graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       top_protocols = "top:host_pool:ndpi",
       timeseries = {
-        {schema="host_pool:traffic",           label=i18n("traffic")},
+        {schema="host_pool:traffic",           label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
         {schema="host_pool:blocked_flows",     label=i18n("graphs.blocked_flows")},
         {schema="host_pool:hosts",             label=i18n("graphs.active_hosts")},
         {schema="host_pool:devices",           label=i18n("graphs.active_devices")},
