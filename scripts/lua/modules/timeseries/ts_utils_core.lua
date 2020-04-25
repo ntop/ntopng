@@ -300,8 +300,8 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
   local schema = ts_utils.getSchema(schema_name)
 
   if not schema then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
-    return nil
+     -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+     return nil
   end
 
   if not schema:verifyTags(tags) then

@@ -71,7 +71,7 @@ end
 
 -- ######################################
 
--- Return the data formatted as expected by a table widget
+-- Return the data formatted as expected by a donut chart
 function datamodel:getAsDonut()
    local ret = { data = {}}
    
@@ -95,12 +95,39 @@ end
 
 -- ######################################
 
+-- Return the data formatted as expected by a multibar chart
+function datamodel:getAsMultibar()
+   local ret = { }
+   local i = 0
+   
+   for k,v in pairs(self.datasets) do
+      local serie = { values = {} }
+      local label = self.column_labels[i+1]
+   
+      for k1,v1 in pairs(v.rows) do
+	 table.insert(serie.values, { x = v.timestamps[k1], y = v1, series = i, y0 = 0, y1 = v1, key = label })
+      end
+
+      serie.key = label
+      serie.nonStackable = false
+      
+      table.insert(ret, serie)
+      i = i + 1
+   end
+   
+   return(ret)
+end
+
+-- ######################################
+
 -- Return the data
 function datamodel:getData(transformation, dataset_name)
    if(transformation == "table") then
       return(self:getAsTable())
    elseif(transformation == "donut") then
       return(self:getAsDonut())
+   elseif(transformation == "multibar") then
+      return(self:getAsMultibar())
    else
       return({})
    end
