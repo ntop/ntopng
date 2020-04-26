@@ -1488,6 +1488,8 @@ static int ntop_ping_host(lua_State* vm) {
 #else
   char *host;
   bool is_v6;
+  bool continuous = false;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -1496,33 +1498,43 @@ static int ntop_ping_host(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   is_v6 = (bool)lua_toboolean(vm, 2);
 
-  if(getLuaVMUservalue(vm, ping) == NULL) {
-    Ping *ping;
+  if(lua_type(vm, 3) == LUA_TBOOLEAN)
+    continuous = lua_toboolean(vm, 3) ? true : false;  
 
-    try {
-      #if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
-      if(Utils::gainWriteCapabilities() == -1)
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
+  if(!continuous) {
+    /* One shot ping */
+    
+    if(getLuaVMUservalue(vm, ping) == NULL) {
+      Ping *ping;
+
+      try {
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+	if(Utils::gainWriteCapabilities() == -1)
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
 
-      ping = new Ping();
+	ping = new Ping();
 
 #if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
-      Utils::dropWriteCapabilities();
+	Utils::dropWriteCapabilities();
 #endif
-    } catch(...) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
-      ping = NULL;
-    }
+      } catch(...) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
+	ping = NULL;
+      }
     
-    if(ping == NULL) {
-      lua_pushnil(vm);
-      return(CONST_LUA_PARAM_ERROR);
-    } else
-      getLuaVMUservalue(vm, ping) = ping;
-  }
+      if(ping == NULL) {
+	lua_pushnil(vm);
+	return(CONST_LUA_PARAM_ERROR);
+      } else
+	getLuaVMUservalue(vm, ping) = ping;
+    }
 
-  getLuaVMUservalue(vm, ping)->ping(host, is_v6);
+    getLuaVMUservalue(vm, ping)->ping(host, is_v6);
+  } else {
+    /* This is a continuous ping */
+    ntop->getContinuousPing()->ping(host, is_v6);
+  }
   
   return(CONST_LUA_OK);
 #endif
@@ -1535,15 +1547,26 @@ static int ntop_collect_ping_results(lua_State* vm) {
   lua_pushnil(vm);
   return(CONST_LUA_PARAM_ERROR);
 #else
+  bool continuous = false;
+  
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    continuous = lua_toboolean(vm, 1) ? true : false;  
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(getLuaVMUservalue(vm, ping) == NULL) {
-    lua_pushnil(vm);
-    return(CONST_LUA_PARAM_ERROR);
+  if(!continuous) {
+    if(getLuaVMUservalue(vm, ping) == NULL) {
+      lua_pushnil(vm);
+      return(CONST_LUA_PARAM_ERROR);
+    } else {
+      getLuaVMUservalue(vm, ping)->collectResponses(vm);  
+      return(CONST_LUA_OK);
+    }
   } else {
-    getLuaVMUservalue(vm, ping)->collectResponses(vm);  
+    ntop->getContinuousPing()->collectResponses(vm);  
     return(CONST_LUA_OK);
   }
+  
   #endif
 }
 

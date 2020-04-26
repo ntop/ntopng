@@ -34,12 +34,14 @@ struct ping_packet {
   char msg[PACKETSIZE-sizeof(struct ndpi_icmphdr)];
 };
 
+// #define TRACE_PING 1
+
 /* ****************************************** */
 
 static void* resultPollerFctn(void* ptr) {
   Utils::setThreadName("PingLoop");
 
-  ((Ping*)ptr)->pollResults();
+  ((Ping*)ptr)->pollResults(false);
   return(NULL);
 }
 
@@ -120,16 +122,22 @@ int Ping::ping(char *_addr, bool use_v6) {
   struct timeval *tv;
   ssize_t res;
 
+#ifdef TRACE_PING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s, v6: %u)", __FUNCTION__, _addr, use_v6 ? 1 : 0);
+#endif
+  
   if(hname == NULL)
     return(-1);
 
   if(use_v6) {
     bzero(&addr6, sizeof(addr6));
+    
     addr6.sin6_family = hname->h_addrtype;
     addr6.sin6_port = 0;
     memcpy(&addr6.sin6_addr, hname->h_addr, sizeof(addr6.sin6_addr));
   } else {
     bzero(&addr, sizeof(addr));
+    
     addr.sin_family = hname->h_addrtype;
     addr.sin_port = 0;
     addr.sin_addr.s_addr = *(long*)hname->h_addr;
@@ -137,12 +145,16 @@ int Ping::ping(char *_addr, bool use_v6) {
 
   bzero(&pckt, sizeof(pckt));
   pckt.hdr.type = use_v6 ? ICMP6_ECHO_REQUEST : ICMP_ECHO;
-
-  /* NOTE: each connection must have a unique ID, otherwise some replies
-   * will not arrive. */
+  
+  /*
+    NOTE:
+    each connection must have a unique ID, otherwise some replies
+    will not arrive.
+  */
   pckt.hdr.un.echo.id = ping_id + cnt;
 
   for(i = 0; i < sizeof(pckt.msg)-1; i++) pckt.msg[i] = i+'0';
+  
   pckt.msg[i] = 0;
   pckt.hdr.un.echo.sequence = cnt++;
   tv = (struct timeval*)pckt.msg;
@@ -159,16 +171,21 @@ int Ping::ping(char *_addr, bool use_v6) {
 		 (struct sockaddr*)&addr,
 		 sizeof(addr));
 
+#ifdef TRACE_PING
   if(res == -1)
     /* NOTE: This also happens when network is unreachable */
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to send ping [address: %s][v6: %u][reason: %s]", _addr, use_v6 ? 1 : 0, strerror(errno));
-
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to send ping [address: %s][v6: %u][reason: %s]",
+				 _addr, use_v6 ? 1 : 0, strerror(errno));
+  else
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging [address: %s][v6: %u]", _addr, use_v6 ? 1 : 0);
+#endif
+  
   return res;
 }
 
 /* ****************************************** */
 
-void Ping::pollResults() {
+void Ping::pollResults(bool wait_forever) {
   while(running) {
     int bytes, fd_max = max(sd, sd6);
     fd_set mask;
@@ -196,6 +213,9 @@ void Ping::pollResults() {
 	bytes = recvfrom(sd6, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
 	handleICMPResponse(buf, bytes, NULL, &addr.sin6_addr);
       }
+    } else {
+      if(!wait_forever)
+	break;
     }
   }
 }
@@ -217,6 +237,10 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
    icmp = (struct ndpi_icmphdr*)buf;
    pckt  = (struct ping_packet*)icmp;
  }
+
+#ifdef TRACE_PING
+ ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__);
+#endif
  
  if((ip && (icmp->type != ICMP_ECHOREPLY))
     || (ip6 && (icmp->type != ICMP6_ECHO_REPLY)))
@@ -282,5 +306,27 @@ float Ping::ms_timeval_diff(struct timeval *begin, struct timeval *end) {
   } else
     return(0);
 }
+
+/* ****************************************************** */
+
+float Ping::getRTT(std::string who) {  
+  std::map<std::string /* IP */, float /* RTT */>::iterator it;
+  float f;
+  
+  m.lock(__FILE__, __LINE__);
+  
+  it = results.find(who);
+
+  if(it != results.end())
+    f = it->second;
+  else
+    f = -1;
+
+  m.unlock(__FILE__, __LINE__);
+
+  return(f);
+}
+
+/* ****************************************************** */
 
 #endif /* WIN32 */

@@ -86,7 +86,10 @@ class Ntop {
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue;
   FifoSerializerQueue *internal_alerts_queue;
-
+#ifndef WIN32
+  ContinuousPing cping;
+#endif
+  
 #ifdef __linux__
   int inotify_fd;
 #endif
@@ -487,6 +490,7 @@ class Ntop {
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   inline void reloadPeriodicScripts() { if(pa) pa->reloadVMs(); };
+  inline ContinuousPing* getContinuousPing() { return(&cping); }
 };
 
 extern Ntop *ntop;
