@@ -415,6 +415,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var seconds_before_query_slow = 6;
   var query_completed = 0;
   var query_was_aborted = false;
+  let last_known_t = null; // only set if show_unreachable is set
   const visualization = chart.visualization_options || {};
   chart.is_zoomed = ((current_zoom_level > 0) || has_initial_zoom());
 
@@ -1040,6 +1041,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           const is_unreachable = (ref_serie[i][1] === 0);
           const tval = ref_serie[i][0];
 
+          if((ref_serie[i][1] == ref_serie[i][1]))
+            /* The most recent time for non NaN values */
+            last_known_t = tval;
+
           if(!is_unreachable) {
             if(was_unreachable)
               extra_lines.push([tok, tval, 0, 0]);
@@ -1151,7 +1156,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       }
       stats_table.show();
 
-      if(visualization.show_unreachable && (data.start + data.count * data.step >= now)) {
+      if(visualization.show_unreachable && last_known_t &&
+          (last_known_t + data.step > now) && (now < last_known_t + 2*data.step)) {
         /* For the active monitoring chart, we show an additional point with the
          * last value and the now timestamp as requested for
          * https://github.com/ntop/ntopng/issues/3822 */
