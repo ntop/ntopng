@@ -1,6 +1,6 @@
 import { ChartTemplate } from './default-template.js';
 
-export default class TimeseriesChartTemplate extends ChartTemplate {
+export default class MultiBarChartTemplate extends ChartTemplate {
 
     constructor(params) { super(params); console.log(this); }
 
@@ -9,29 +9,29 @@ export default class TimeseriesChartTemplate extends ChartTemplate {
         const self = this;
         nv.addGraph(function() {
 
-            const timeseriesChart = nv.models.timeseriesChart();
-            timeseriesChart.height(self._height);
-            timeseriesChart.width(self._width);
-            timeseriesChart.stacked(true);
+            const multibarChart = nv.models.multiBarChart();
+            multibarChart.height(self._height);
+            multibarChart.width(self._width);
+            multibarChart.stacked(true);
 
             d3.select(`#${self._defaultOptions.domId}`)
                 .append('svg')
-                .datum(self._data.data)
+                .datum(self._data)
                 .transition()
                 .duration(1000)
-                .call(timeseriesChart);
+                .call(multibarChart);
 
             if (self._defaultOptions.widget.intervalTime) {
                self._intervalId = setInterval(async function() {
                     const newData = await self._updateData();
                     self._data = newData.data;
-                    timeseriesChart.update();
+                    multibarChart.update();
                 }, self._defaultOptions.widget.intervalTime);
             }
 
-            self._chart = timeseriesChart;
+            self._chart = multibarChart;
 
-            return timeseriesChart;
+            return multibarChart;
         });
     }
 

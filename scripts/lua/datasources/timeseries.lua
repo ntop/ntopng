@@ -22,9 +22,9 @@ local begin_time = _GET["begin_time"] or os.time()-3600
 local end_time   = _GET["end_time"]   or os.time()
 
 -- Remove
-key   = "www.ntop.org"
+key    = "spaziogames.it"
 metric = "http"
-schema = "am_host:http_stats_5mins"
+schema = "am_host:http_stats_min"
 
 
 local rsp = ts_utils.query(
@@ -58,7 +58,10 @@ if (rsp ~= nil) then
    for k, v in pairs(rsp.series) do
       local when = start
       for k1, val in pairs(v.data) do
-	      m:appendRow(when, v.label, val)
+
+         local real_val = val
+         if real_val == nil then real_val = 0 end
+	      m:appendRow(when, v.label, real_val)
 	      when = when + step
       end
    end

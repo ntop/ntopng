@@ -1,7 +1,7 @@
 import TableTemplate from './templates/table-template.js';
 import PieChartTemplate from './templates/pie-chart-template.js';
 import DonutChartTemplate from './templates/donut-chart-template.js';
-import TimeseriesChartTemplate from './templates/timeseries-chart-template.js';
+import MultiBarChartTemplate from './templates/multibar-chart-template.js';
 
 export default class NtopWidget {
 
@@ -67,7 +67,7 @@ export default class NtopWidget {
             case 'table':       return new TableTemplate(params);
             case 'pie':         return new PieChartTemplate(params);
             case 'donut':       return new DonutChartTemplate(params);
-            case 'timeseries':  return new TimeseriesChartTemplate(params);
+            case 'multibar':  return new MultiBarChartTemplate(params);
             default: throw new Error('The widget type is not valid!');
         }
     }

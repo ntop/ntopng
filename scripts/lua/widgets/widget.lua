@@ -42,7 +42,5 @@ if (widget == nil) then
 end
 
 widget.type = widget_data.widget_type or widget.type
-tprint(widget)
-
 -- Generate the widget response
 print(widget_utils.generate_response(widget, widget_data))

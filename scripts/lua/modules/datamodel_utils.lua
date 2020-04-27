@@ -24,7 +24,7 @@ function datamodel:create(labels)
    local ret = {}
 
    setmetatable(ret,datamodel)  -- Create the class
-   
+
    ret.column_labels = labels
    ret.datasets      = {}
 
@@ -57,7 +57,7 @@ function datamodel:getAsTable()
    for k,v in pairs(self.datasets) do
       dataset_name = k
    end
-   
+
    ret.header = self.column_labels
 
    if(dataset_name == nil) then
@@ -65,7 +65,7 @@ function datamodel:getAsTable()
    else
       ret.rows = self.datasets[dataset_name].rows
    end
-   
+
    return(ret)
 end
 
@@ -74,12 +74,12 @@ end
 -- Return the data formatted as expected by a donut chart
 function datamodel:getAsDonut()
    local ret = { data = {}}
-   
+
    for k,v in pairs(self.datasets) do
       local i = 1
-      
+
       for k1,v1 in pairs(v.rows) do
-	 for k2,v2 in pairs(v1) do	 
+	 for k2,v2 in pairs(v1) do
 	    table.insert(ret.data, { label = self.column_labels[i], value = v2 })
 	    i = i + 1
 	 end
@@ -89,7 +89,7 @@ function datamodel:getAsDonut()
       end
 
    end
-   
+
    return(ret)
 end
 
@@ -99,22 +99,22 @@ end
 function datamodel:getAsMultibar()
    local ret = { }
    local i = 0
-   
+
    for k,v in pairs(self.datasets) do
       local serie = { values = {} }
       local label = self.column_labels[i+1]
-   
+
       for k1,v1 in pairs(v.rows) do
-	 table.insert(serie.values, { x = v.timestamps[k1], y = v1, series = i, y0 = 0, y1 = v1, key = label })
+	      table.insert(serie.values, { x = v.timestamps[k1], y = v1, series = i, y0 = 0, y1 = v1, key = label })
       end
 
       serie.key = label
       serie.nonStackable = false
-      
+
       table.insert(ret, serie)
       i = i + 1
    end
-   
+
    return(ret)
 end
 

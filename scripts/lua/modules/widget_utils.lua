@@ -25,8 +25,8 @@ local WIDGET_TYPES = {
     table = {
         i18n = "Table"
     },
-    timeseries = {
-        i18n = "Timeseries"
+    multibar = {
+        i18n = "Multibar"
     }
 }
 
@@ -193,6 +193,8 @@ function widgets_utils.generate_response(widget, params)
    -- Call the origin to return
    local response = require(origin)
    response = response:getData(widget.type)
+
+   tprint(widget.type)
 
    return json.encode({
 	 widgetName = widget.name,
