@@ -1484,7 +1484,7 @@ static int ntop_get_prefs(lua_State* vm) {
 static int ntop_ping_host(lua_State* vm) {
 #ifdef WIN32
   lua_pushnil(vm);
-  return(CONST_LUA_PARAM_ERROR);
+  return(CONST_LUA_OK);
 #else
   char *host;
   bool is_v6;
@@ -1525,7 +1525,7 @@ static int ntop_ping_host(lua_State* vm) {
     
       if(ping == NULL) {
 	lua_pushnil(vm);
-	return(CONST_LUA_PARAM_ERROR);
+	return(CONST_LUA_OK);
       } else
 	getLuaVMUservalue(vm, ping) = ping;
     }
@@ -1539,7 +1539,7 @@ static int ntop_ping_host(lua_State* vm) {
       c->ping(host, is_v6);
     else {
       lua_pushnil(vm);
-      return(CONST_LUA_PARAM_ERROR);
+      return(CONST_LUA_OK);
     }
   }
   
@@ -1552,7 +1552,7 @@ static int ntop_ping_host(lua_State* vm) {
 static int ntop_collect_ping_results(lua_State* vm) {
 #ifdef WIN32
   lua_pushnil(vm);
-  return(CONST_LUA_PARAM_ERROR);
+  return(CONST_LUA_OK);
 #else
   bool continuous = false;
   
@@ -1564,7 +1564,7 @@ static int ntop_collect_ping_results(lua_State* vm) {
   if(!continuous) {
     if(getLuaVMUservalue(vm, ping) == NULL) {
       lua_pushnil(vm);
-      return(CONST_LUA_PARAM_ERROR);
+      return(CONST_LUA_OK);
     } else {
       getLuaVMUservalue(vm, ping)->collectResponses(vm);  
       return(CONST_LUA_OK);
