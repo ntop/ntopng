@@ -173,12 +173,6 @@ end
 
 -- ################################################################################
 
-function flow_consts.getStatusInfo(status_key)
-    return(status_by_id[tonumber(status_key)])
-end
-
--- ################################################################################
-
 function flow_consts.getStatusType(status_key)
     return(status_key_by_id[tonumber(status_key)])
 end

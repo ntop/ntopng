@@ -403,7 +403,6 @@ end
 function flow.triggerStatus(status_info, flow_score, cli_score, srv_score, custom_severity)
    local flow_status_type = status_info.status_type
    local status_key = flow_status_type.status_key
-   local new_status = flow_consts.getStatusInfo(status_key)
    flow_score = flow_score or 0
 
    if(tonumber(status_info) ~= nil) then
@@ -412,7 +411,7 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score, custo
       return
    end
 
-   if(new_status and status_info and ids_utils and
+   if(flow_status_type and status_info and ids_utils and
       status_key == flow_consts.status_types.status_external_alert.status_key and
       status_info and (status_info.source == "suricata")) then
       local fs, cs, ss = ids_utils.computeScore(status_info)
@@ -421,13 +420,13 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score, custo
       srv_score = ss
    end
 
-   -- NOTE: The "new_status.status_key < alerted_status.status_key" check must
+   -- NOTE: The "flow_status_type.status_key < alerted_status.status_key" check must
    -- correspond to the Flow::getPredominantStatus logic in order to determine
    -- the same predominant status
    if((not alerted_status) or (flow_score > alerted_status_score) or
-	 ((flow_score == alerted_status_score) and (new_status.status_key < alerted_status.status_key))) then
+	 ((flow_score == alerted_status_score) and (flow_status_type.status_key < alerted_status.status_key))) then
       -- The new alerted status as an higher score
-      alerted_status = new_status
+      alerted_status = flow_status_type
       alert_type_params = status_info["alert_type_params"] or {}
       alerted_custom_severity = custom_severity -- possibly nil
       alerted_status_score = flow_score
