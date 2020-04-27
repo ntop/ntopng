@@ -28,7 +28,11 @@ If you prefer to handle updates manually, you may skip `ntopng-data` installatio
 In case package `ntopng-data` or `geoipupdate` is not available on your platform:
 
 0. Manually download database files `GeoLite2-ASN.mmdb` and `GeoLite2-City.mmdb` from the download section of your MaxMind account page
-1. Place downloaded files under `/var/lib/GeoIP/` or `/usr/share/GeoIP/`. If on Windows, downloaded files must be placed under `Program Files/ntopng/httpdocs/geoip/`.
+1. Then place the downloaded files under a specifiy folder which depends on the platform:
+
+    - **Linux**: place downloaded files under `/var/lib/GeoIP/` or `/usr/share/GeoIP/`
+    - **Windows**: place downloaded files under `Program Files/ntopng/httpdocs/geoip/`
+    - **OS X package**: place downloaded files under `/usr/local/share/ntopng/httpdocs/geoip` (in case the `geoip` folder is missing, it is necessary to create it with `mkdir -p /usr/local/share/ntopng/httpdocs/geoip` before copying the files)
 
 ### Upgrading from a previous version of `ntopng-data`
 
