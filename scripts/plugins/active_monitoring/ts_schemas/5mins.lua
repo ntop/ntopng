@@ -14,7 +14,7 @@ schema = ts_utils.newSchema("am_host:val_5mins", {
 
 schema:addTag("ifid")
 schema:addTag("host")
-schema:addTag("measure")
+schema:addTag("metric")
 schema:addMetric("value")
 
 -- ##############################################
@@ -28,7 +28,7 @@ schema = ts_utils.newSchema("am_host:http_stats_5mins", {
 
 schema:addTag("ifid")
 schema:addTag("host")
-schema:addTag("measure")
+schema:addTag("metric")
 schema:addMetric("lookup_ms")
 schema:addMetric("other_ms")
 
@@ -43,7 +43,7 @@ schema = ts_utils.newSchema("am_host:https_stats_5mins", {
 
 schema:addTag("ifid")
 schema:addTag("host")
-schema:addTag("measure")
+schema:addTag("metric")
 schema:addMetric("lookup_ms")
 schema:addMetric("connect_ms")
 schema:addMetric("other_ms")

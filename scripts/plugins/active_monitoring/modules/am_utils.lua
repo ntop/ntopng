@@ -367,7 +367,7 @@ end
 -- ##############################################
 
 function am_utils.discardHostTimeseries(host, measurement)
-  ts_utils.delete("am_host", {ifid=getSystemInterfaceId(), host=host, measure=measurement})
+  ts_utils.delete("am_host", {ifid=getSystemInterfaceId(), host=host, metric=measurement})
 end
 
 -- ##############################################

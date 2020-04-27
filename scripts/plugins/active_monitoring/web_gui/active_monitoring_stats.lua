@@ -368,7 +368,7 @@ elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) t
   local suffix = "_" .. host.granularity
   local schema = _GET["ts_schema"] or ("am_host:val" .. suffix)
   local selected_epoch = _GET["epoch"] or ""
-  local tags = {ifid=getSystemInterfaceId(), host=host.host, measure=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
+  local tags = {ifid=getSystemInterfaceId(), host=host.host, metric=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
   local am_ts_label
   local am_metric_label
   local notes = {}

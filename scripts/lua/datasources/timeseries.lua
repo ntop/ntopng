@@ -28,7 +28,7 @@ schema = "am_host:http_stats_5mins"
 
 
 local rsp = ts_utils.query(schema,
-			   { ifid=ifid, host=key, measure=metric },
+			   { ifid=ifid, host=key, metric=metric },
 			   begin_time, end_time,
 			   {
 			      fill_value = 0/0, -- Show unknown values as NaN

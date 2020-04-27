@@ -53,7 +53,7 @@ local function check_http(hosts, granularity)
 	ts_utils.append("am_host:https_stats_" .. granularity, {
 	    ifid = getSystemInterfaceId(),
 	    host = host.host,
-	    measure = host.measurement,
+	    metric = host.measurement,
 	    lookup_ms = lookup_time,
 	    connect_ms = connect_time,
 	    other_ms = (total_time - lookup_time - connect_time),
@@ -62,7 +62,7 @@ local function check_http(hosts, granularity)
 	ts_utils.append("am_host:http_stats_" .. granularity, {
 	    ifid = getSystemInterfaceId(),
 	    host = host.host,
-	    measure = host.measurement,
+	    metric = host.measurement,
 	    lookup_ms = lookup_time,
 	    other_ms = (total_time - lookup_time),
 	}, when)

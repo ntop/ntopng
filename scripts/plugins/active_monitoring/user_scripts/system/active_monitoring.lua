@@ -80,7 +80,7 @@ local function run_am_check(params, all_hosts, granularity)
          value = value * info.measurement.chart_scaling_value
        end
 
-       ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, value = value}, when)
+       ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, metric = host.measurement, value = value}, when)
     end
 
     am_utils.setLastAmUpdate(key, when, host_value, resolved_host)
@@ -109,7 +109,7 @@ local function run_am_check(params, all_hosts, granularity)
 
        if params.ts_enabled then
          -- Also write 0 in its timeseries to indicate that the host is unreacheable
-         ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, measure = host.measurement, value = 0}, when)
+         ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, metric = host.measurement, value = 0}, when)
        end
      end
   end
