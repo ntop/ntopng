@@ -142,10 +142,11 @@ $(document).ready(function() {
 
         const $submit_button = $(this).find(`[type='submit']`);
         const row_data = $widgets_table.row($(this).parent()).data();
-        row_data.key_ip = row_data.params.key_ip;
-        row_data.key_mac = row_data.params.key_mac;
-        row_data.key_asn = row_data.params.key_asn;
-        row_data.interface = row_data.params.ifid;
+        row_data.key = row_data.params.key;
+        row_data.metric = row_data.params.metric;
+        row_data.schema = row_data.params.schema;
+        row_data.begin_time = row_data.params.begin_time;
+        row_data.end_time = row_data.params.end_time;
 
         // Luca this is the magic line, it fills edit-modal input fields
         $('#edit-widget-modal form [name]').each(function(e) {
@@ -172,6 +173,8 @@ $(document).ready(function() {
         e.preventDefault();
         const $submit_button = $(this).find(`[type='submit']`);
         const data_to_send = serializeFormArrayIntoObject($(this).serializeArray());
+
+        console.log(data_to_send);
 
         submitPost(
             { action: 'add', csrf: add_csrf, JSON: JSON.stringify(data_to_send) },

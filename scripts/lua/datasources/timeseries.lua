@@ -27,35 +27,42 @@ metric = "http"
 schema = "am_host:http_stats_5mins"
 
 
-local rsp = ts_utils.query(schema,
-			   { ifid=ifid, host=key, metric=metric },
-			   begin_time, end_time,
-			   {
-			      fill_value = 0/0, -- Show unknown values as NaN
-			   }
-			   )
+local rsp = ts_utils.query(
+   schema,
+	{
+      ifid = ifid,
+      host = key,
+      metric = metric
+   },
+   begin_time,
+   end_time,
+	{
+		fill_value = 0/0, -- Show unknown values as NaN
+	}
+)
 
-if(rsp ~= nil) then
+if (rsp ~= nil) then
+
    local labels = {}
    local values = {}
-   local start = rsp.start
-   local step  = rsp.step
+   local start  = rsp.start
+   local step   = rsp.step
    local m
-   
-   for k,v in pairs(rsp.series) do
+
+   for k, v in pairs(rsp.series) do
       table.insert(labels, v.label)
    end
 
    m = datamodel:create(labels)
-   
-   for k,v in pairs(rsp.series) do
+
+   for k, v in pairs(rsp.series) do
       local when = start
-      for k1,val in pairs(v.data) do
-	 m:appendRow(when, v.label, val)
-	 when = when + step
+      for k1, val in pairs(v.data) do
+	      m:appendRow(when, v.label, val)
+	      when = when + step
       end
    end
-   
+
    return(m)
 end
 

@@ -1,24 +1,36 @@
 import TableTemplate from './templates/table-template.js';
 import PieChartTemplate from './templates/pie-chart-template.js';
 import DonutChartTemplate from './templates/donut-chart-template.js';
-import MultiBarChartTemplate from './templates/multibar-chart-template.js';
+import TimeseriesChartTemplate from './templates/timeseries-chart-template.js';
 
 export default class NtopWidget {
 
     constructor(params) {
+
+        /* this is widget indentifier inside ntopng */
         this.widgetKey = params.widgetKey;
+        /* the widget type which indicate the template will be chosen */
         this.widgetType = params.widgetType;
-        this.widgetPostParams = params.widgetPostParams;
+        /* this object contains all the paramters that will be sent to datasource assocaited to the widget */
+        this.widgetGetParams = params.widgetGetParams;
+        /* the dom element container of the widget */
         this.widgetElementDom = params.widgetElementDom;
+        /* this boolean indicate if the data fetch has been completed successfully */
         this.widgetInitialized = false;
+        /* the widget refresh time to fetch new data from ds */
         this.intervalTime = 0;
+        /* this variable will contain the url endpoint to make requests */
         this.widgetEndPoint = this._buildWidgetEndpoint(params.ntopngEndpointUrl);
+
+        console.log(this);
     }
 
     async initWidget() {
 
         try {
+
             const widgetEndPointResponse = await this.getWidgetData();
+
             this.widgetName = widgetEndPointResponse.widgetName;
             this.widgetType = this.widgetType || widgetEndPointResponse.widgetType;
             this.intervalTime = widgetEndPointResponse.dsRetention;
@@ -49,14 +61,13 @@ export default class NtopWidget {
 
     _getWidgetTemplate(widgetType) {
 
-        const params = {
-            widget: this,
-        };
+        const params = { widget: this };
+
         switch (widgetType) {
             case 'table':       return new TableTemplate(params);
             case 'pie':         return new PieChartTemplate(params);
             case 'donut':       return new DonutChartTemplate(params);
-            case 'multibar':    return new MultiBarChartTemplate(params);
+            case 'timeseries':  return new TimeseriesChartTemplate(params);
             default: throw new Error('The widget type is not valid!');
         }
     }
@@ -76,11 +87,14 @@ export default class NtopWidget {
 
     _serializeParamaters() {
         return {
-            ifid: this.widgetPostParams.ifid,
-            keyIP: this.widgetPostParams.keyIP,
-            keyMAC: this.widgetPostParams.keyMAC,
-            keyASN: this.widgetPostParams.keyASN,
-            widgetKey: this.widgetKey
+            ifid: this.widgetGetParams.ifid,
+            key: this.widgetGetParams.key,
+            metric: this.widgetGetParams.metric,
+            begin_time: this.widgetGetParams.beginTime,
+            end_time: this.widgetGetParams.endTime,
+            schema: this.widgetGetParams.schema,
+            widget_key: this.widgetKey,
+            widget_type: this.widgetType
         }
     }
 

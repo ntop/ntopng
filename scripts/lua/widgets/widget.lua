@@ -30,16 +30,19 @@ end
 
 sendHTTPContentTypeHeader('application/json')
 
-if (widget_data.widgetKey == nil) then
+if (widget_data.widget_key == nil) then
    reportError("Missing widget_key parameter")
    return
 end
 
-local widget = widget_utils.get_widget(widget_data.widgetKey)
+local widget = widget_utils.get_widget(widget_data.widget_key)
 if (widget == nil) then
     reportError("The requested widget was not found")
     return
 end
+
+widget.type = widget_data.widget_type or widget.type
+tprint(widget)
 
 -- Generate the widget response
 print(widget_utils.generate_response(widget, widget_data))

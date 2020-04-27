@@ -47,23 +47,38 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="widget-ip-input">IP Address:</label>
+                        <label class="col-form-label col-sm-3" for="widget-key-input">Key (IP, ASN, MAC):</label>
                         <div class="col-sm-5">
-                            <input max="32" min="1" name="key_ip" type="text" class="form-control" id="widget-ip-input">
+                            <input max="32" min="1" name="key" type="text" class="form-control" id="widget-key-input">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="widget-mac-input">Mac Address:</label>
+                        <label class="col-form-label col-sm-3" for="widget-metric-select">Metric:</label>
                         <div class="col-sm-5">
-                            <input max="32" min="1" name="key_mac" type="text" class="form-control" id="widget-mac-mac">
+                            <select name="metric" id="widget-metric-select" class="form-control">
+                                <option value="msec">msec</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="widget-asn-input">ASN:</label>
+                        <label class="col-form-label col-sm-3" for="widget-schema-input">Schema:</label>
                         <div class="col-sm-5">
-                            <input max="32" min="1" name="key_asn" type="text" class="form-control" id="widget-asn-input">
+                            <input max="32" min="1" name="schema" type="text" class="form-control" id="widget-schema-input">
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="widget-begin-time-input">Begin Time:</label>
+                        <div class="col-sm-5">
+                            <input min="0" name="begin_time" type="text" class="form-control" id="widget-begin-time-input">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="widget-end-time-input">End Time:</label>
+                        <div class="col-sm-5">
+                            <input min="0" name="end_time" type="number" class="form-control" id="widget-end-time-input">
+                        </div>
+                    </div>
+
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">

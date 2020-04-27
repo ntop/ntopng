@@ -1,7 +1,14 @@
 import NtopWidget from './ntop-widgets.js';
 
 class NtopWidgetUtils {
+
+
     static async initAllWidgets() {
+
+        const buildWidgetEndpointURL = (endpoint) => {
+            return (!endpoint) ? new URL(location.origin) : new URL(endpoint);
+        }
+
         const widgetDomElements = document.querySelectorAll(`[data-ntop-widget-key]`);
         const widgets = [];
 
@@ -9,28 +16,33 @@ class NtopWidgetUtils {
 
             const widgetDomElement = widgetDomElements.item(i);
 
-            const key = widgetDomElement.dataset.ntopWidgetKey;
-            const type = widgetDomElement.dataset.ntopWidgetType;
-            const jsonParams = widgetDomElement.dataset.ntopWidgetParams || "{}";
+            const widgetKey = widgetDomElement.dataset.ntopWidgetKey;
+            const widgetType = widgetDomElement.dataset.ntopWidgetType;
+            const widgetEndpoint = buildWidgetEndpointURL(widgetDomElement.dataset.ntopWidgetEndpoint);
 
-            const { ifid, keyIP, keyMAC, keyASN, keyMetric } = JSON.parse(jsonParams);
+            const jsonParams = widgetDomElement.dataset.ntopWidgetParams || "{}";
+            const { ifid, key, metric, beginTime, endTime, schema } = JSON.parse(jsonParams);
 
             const widget = new NtopWidget({
-                widgetKey: key,
-                widgetPostParams: {
-                    ifid: ifid,
-                    keyIP: keyIP,
-                    keyMAC: keyMAC,
-                    keyASN: keyASN,
-                    keyMetric: keyMetric,
-                },
+                widgetKey: widgetKey,
                 widgetElementDom: widgetDomElement,
-                ntopngEndpointUrl: new URL(`http://localhost:3000`),
-                widgetType: type
+                ntopngEndpointUrl: widgetEndpoint,
+                widgetType: widgetType,
+                widgetGetParams: {
+                    ifid: ifid,
+                    key: key,
+                    metric: metric,
+                    beginTime: beginTime,
+                    endTime: endTime,
+                    schema: schema
+                },
             });
 
+            /* do a GET request to fetch data for the widget */
             await widget.initWidget();
+            /* render the widget inside the document */
             await widget.renderWidget();
+
             widgets.push(widget);
         }
     }

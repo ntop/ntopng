@@ -17,9 +17,11 @@ end
 local function format_params(data)
     return {
         ifid = data.interface,
-        key_ip = data.key_ip,
-        key_mac = data.key_mac,
-        key_asn = data.key_asn
+        key = data.key,
+        begin_time = data.begin_time,
+        end_time = data.end_time,
+        schema = data.schema,
+        metric = data.metric
     }
 end
 

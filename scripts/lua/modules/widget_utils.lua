@@ -25,8 +25,8 @@ local WIDGET_TYPES = {
     table = {
         i18n = "Table"
     },
-    multibar = {
-        i18n = "MultiBar"
+    timeseries = {
+        i18n = "Timeseries"
     }
 }
 
@@ -35,6 +35,7 @@ local function create_hash_widget(name, ds_hash)
 end
 
 local function check_widget_params(name, ds_hash, widget_type, params)
+
     if (isEmptyString(name)) then
         return false, "The widget name cannot be empty!"
     end
@@ -177,7 +178,7 @@ end
 -- Answer to a widget request
 -- @param widget Is a widget defined above
 -- @param params Is a table which contains overriding params.
---               Example: {ifid, keyMAC, keyIP, keyASN, keyMetric }
+--               Example: {ifid, key, metric, begin_time, end_time, schema }
 -------------------------------------------------------------------------------
 function widgets_utils.generate_response(widget, params)
    local ds = datasources_utils.get(widget.ds_hash)
