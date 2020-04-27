@@ -78,13 +78,10 @@ Ntop::Ntop(char *appName) {
   new_malicious_ja3 = new std::set<std::string>();
   system_interface = NULL;
   cping = NULL;
+  privileges_dropped = false;
   
   if((can_send_icmp = Ping::isSupported()) == true)
-#if 0
     cping = new ContinuousPing();
-#else
-    cping = NULL;
-#endif
 
   /* nDPI handling */
   last_ndpi_reload = 0;

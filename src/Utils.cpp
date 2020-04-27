@@ -735,7 +735,10 @@ int Utils::dropPrivileges() {
 				   strerror(errno));
       return -1;
     }
-    
+
+    if(ntop)
+      ntop->setDroppedPrivileges();
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "User changed to %s", username);
 #ifndef WIN32
     ntop->getTrace()->traceEvent(TRACE_INFO, "Umask: %#o", umask(0077));
@@ -3401,6 +3404,9 @@ static int _setWriteCapabilities(int enable) {
 */
 
 int Utils::gainWriteCapabilities() {
+  if(ntop && !ntop->hasDroppedPrivileges())
+    return(0);
+
 #ifndef __APPLE__
   return(_setWriteCapabilities(true));
 #else
@@ -3411,6 +3417,9 @@ int Utils::gainWriteCapabilities() {
 /* ****************************************************** */
 
 int Utils::dropWriteCapabilities() {
+  if(ntop && !ntop->hasDroppedPrivileges())
+    return(0);
+
 #ifndef __APPLE__
   return(_setWriteCapabilities(false));
 #else

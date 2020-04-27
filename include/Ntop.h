@@ -82,7 +82,7 @@ class Ntop {
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
   cpu_load_stats cpu_stats;
   float cpu_load;
-  bool is_started, cur_plugins_dir, can_send_icmp;
+  bool is_started, cur_plugins_dir, can_send_icmp, privileges_dropped;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue;
   FifoSerializerQueue *internal_alerts_queue;
@@ -492,6 +492,8 @@ class Ntop {
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   inline void reloadPeriodicScripts() { if(pa) pa->reloadVMs(); };
   inline ContinuousPing* getContinuousPing() { return(cping); }
+  inline bool hasDroppedPrivileges()         { return(privileges_dropped); }
+  inline void setDroppedPrivileges()         { privileges_dropped = true; }
 };
 
 extern Ntop *ntop;
