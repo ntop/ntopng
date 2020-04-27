@@ -47,8 +47,18 @@ function script.hooks.protocolDetected(now)
       srv_score = 80
     end
 
-    flow.triggerStatus(flow_consts.status_types.status_device_protocol_not_allowed, alert_info,
-      flow_score, cli_score, srv_score)
+    flow.triggerStatus(
+       flow_consts.status_types.status_device_protocol_not_allowed.builder(
+	  flow_consts.status_types.status_device_protocol_not_allowed.alert_severity,
+	  alert_info["cli.devtype"],
+	  alert_info["srv.devtype"],
+	  alert_info["devproto_forbidden_peer"],
+	  alert_info["devproto_forbidden_id"]
+       ),
+       flow_score,
+       cli_score,
+       srv_score
+    )
   end
 end
 

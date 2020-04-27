@@ -734,7 +734,11 @@ end
 
 local function load_metadata()
   if(METADATA == nil) then
-    METADATA = dofile(getMetadataPath())
+    local path = getMetadataPath()
+
+    if ntop.exists(path) then
+      METADATA = dofile(path)
+    end
   end
 end
 
@@ -745,6 +749,10 @@ end
 -- @return the user script source path
 function plugins_utils.getUserScriptSourcePath(script_path)
   load_metadata()
+
+  if(not METADATA) then
+    return(nil)
+  end
 
   local info = METADATA.path_map[script_path]
 
@@ -779,6 +787,10 @@ end
 function plugins_utils.getUserScriptPlugin(script_path)
   load_metadata()
 
+  if(not METADATA) then
+    return(nil)
+  end
+
   local info = METADATA.path_map[script_path]
 
   if info then
@@ -792,6 +804,10 @@ end
 -- @return the loaded plugins metadata
 function plugins_utils.getLoadedPlugins()
   load_metadata()
+
+  if(not METADATA) then
+    return({})
+  end
 
   return(METADATA.plugins)
 end

@@ -42,12 +42,13 @@ class Ping {
  public:
   Ping();
   ~Ping();
-  
+
   int  ping(char *_addr, bool use_v6);
   void pollResults(bool wait_forever);
   void collectResponses(lua_State* vm);
   float getRTT(std::string who);
   void cleanup();
+  static bool isSupported();
 };
 
 #endif /* WIN32    */

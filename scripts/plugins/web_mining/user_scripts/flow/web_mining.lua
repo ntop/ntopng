@@ -23,10 +23,15 @@ local script = {
 -- #################################################################
 
 function script.hooks.protocolDetected(now)
-  if(flow.getnDPICategoryName() == "Mining") then
-    flow.triggerStatus(flow_consts.status_types.status_web_mining_detected, nil,
-      50--[[ flow score]], 50--[[ cli score ]], 10--[[ srv score ]])
-  end
+   if(flow.getnDPICategoryName() == "Mining") then
+      flow.triggerStatus(
+	 flow_consts.status_types.status_web_mining_detected.builder(
+	    flow_consts.status_types.status_web_mining_detected.alert_severity
+	 ),
+	 50 --[[ flow score]],
+	 50 --[[ cli score ]],
+	 10 --[[ srv score ]])
+   end
 end
 
 -- #################################################################
