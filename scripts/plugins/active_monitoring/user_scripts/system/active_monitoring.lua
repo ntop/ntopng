@@ -36,6 +36,7 @@ local script = {
 
 local function run_am_check(params, all_hosts, granularity)
   local hosts_am = {}
+  local resolved_unreachable_hosts = {}
   local when = params.when
   local am_schema = am_utils.getAmSchemaForGranularity(granularity)
 
@@ -61,7 +62,14 @@ local function run_am_check(params, all_hosts, granularity)
   for _, info in pairs(hosts_by_plugin) do
     for k, v in pairs(info.measurement.collect_results(granularity) or {}) do
       v.measurement = info.measurement
-      hosts_am[k] = v
+
+      if(v.value ~= nil) then
+        hosts_am[k] = v
+      elseif(v.resolved_addr ~= nil) then
+        -- For unreachable hosts, still save the resolved address in order to
+        -- properly report it into the alert message.
+        resolved_unreachable_hosts[k] = v.resolved_addr
+      end
     end
   end
 
@@ -104,7 +112,9 @@ local function run_am_check(params, all_hosts, granularity)
 
      if(hosts_am[key] == nil) then
        if(do_trace) then print("[TRIGGER] Host "..ip.."/"..key.." is unreacheable\n") end
-       am_utils.triggerAlert(ip, key, 0, 0, granularity)
+       local resolved_host = resolved_unreachable_hosts[key] or ip
+
+       am_utils.triggerAlert(resolved_host, key, 0, 0, granularity)
        am_utils.incNumUnreachableChecks(key, when)
 
        if params.ts_enabled then

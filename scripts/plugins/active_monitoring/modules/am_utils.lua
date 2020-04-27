@@ -391,6 +391,7 @@ function am_utils.deleteHost(host, measurement)
 
   -- Remove the redis keys of the host
   ntop.delCache(am_last_updates_key(host_key))
+  ntop.delCache(am_hour_stats_key(host_key))
 
   ntop.delHashCache(am_hosts_key, host_key)
 

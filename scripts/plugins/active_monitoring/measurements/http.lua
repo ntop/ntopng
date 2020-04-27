@@ -78,7 +78,7 @@ end
 -- measurement. The keys of the table are the host key. The values have the following format:
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
---	value: the measurement numeric value
+--	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
 local function collect_http(granularity)
   -- TODO: curl_multi_perform could be used to perform the requests
   -- asynchronously, see https://curl.haxx.se/libcurl/c/curl_multi_perform.html

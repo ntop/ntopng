@@ -734,7 +734,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
   -- Perform an additional query to determine the last point in the raw data
   local last_ts_query = getLastTsQuery(schema, query_schema, tags)
-  tprint(query)
+
   local jres = influx_query_multi(url .. "/query?db=".. getDatabaseName(schema, self.db) .."&epoch=s", string.format("%s;%s", query, last_ts_query), self.username, self.password, options)
   local last_ts = os.time()
 

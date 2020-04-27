@@ -72,7 +72,9 @@ local function check_icmp(hosts, granularity)
     ntop.pingHost(ip_address, is_v6)
 
     am_hosts[ip_address] = key
-    resolved_hosts[key] = ip_address
+    resolved_hosts[key] = {
+      resolved_addr = ip_address,
+    }
 
     ::continue::
   end
@@ -85,10 +87,8 @@ end
 -- measurement. The keys of the table are the host key. The values have the following format:
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
---	value: the measurement numeric value
+--	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
 local function collect_icmp(granularity)
-  local rv = {}
-
   -- Collect possible ICMP results
   local res = ntop.collectPingResults()
 
@@ -99,13 +99,15 @@ local function collect_icmp(granularity)
       print("[ActiveMonitoring] Reading ICMP response for host ".. host .."\n")
     end
 
-    rv[key] = {
-      resolved_addr = resolved_hosts[key],
-      value = tonumber(measurement),
-    }
+    if resolved_hosts[key] then
+      -- Report the host as reachable with its measurement value
+      resolved_hosts[key].value = tonumber(measurement)
+    end
   end
 
-  return(rv)
+  -- NOTE: unreachable hosts can still be reported in order to properly
+  -- display their resolved address
+  return resolved_hosts
 end
 
 -- #################################################################

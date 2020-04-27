@@ -42,7 +42,7 @@ local function thresholdCrossFormatter(ifid, alert, info)
    local numeric_ip = info.ip
    local ip_label = host and host.label or numeric_ip
 
-   if numeric_ip ~= ip_label then
+   if numeric_ip ~= host.host then
       numeric_ip = string.format("(%s)", numeric_ip)
    else
       numeric_ip = ""

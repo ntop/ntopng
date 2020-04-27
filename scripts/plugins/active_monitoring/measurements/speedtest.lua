@@ -64,7 +64,7 @@ end
 -- measurement. The keys of the table are the host key. The values have the following format:
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
---	value: the measurement numeric value
+--	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
 local function collect_speedtest(granularity)
    return(collected_results)
 end
