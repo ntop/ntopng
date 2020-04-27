@@ -80,8 +80,12 @@ Ntop::Ntop(char *appName) {
   cping = NULL;
   
   if((can_send_icmp = Ping::isSupported()) == true)
+#if 0
     cping = new ContinuousPing();
-  
+#else
+    cping = NULL;
+#endif
+
   /* nDPI handling */
   last_ndpi_reload = 0;
   ndpi_struct_shadow = NULL;
