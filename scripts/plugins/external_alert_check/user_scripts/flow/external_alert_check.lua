@@ -29,8 +29,13 @@ function script.hooks.periodicUpdate(now)
     -- NOTE: the same info will *not* be returned in the next periodicUpdate
     local info = json.decode(info_json)
     if info ~= nil then
-      flow.triggerStatus(flow_consts.status_types.status_external_alert, 
-        info, nil, nil, nil, info.severity_id)
+       flow.triggerStatus(
+	  flow_consts.status_types.status_external_alert.builder(
+	     alert_consts.alert_severities.error,
+	     info
+	  ),
+	  nil, nil, nil,
+	  info.severity_id)
     end
   end
 end

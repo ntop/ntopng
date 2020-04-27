@@ -221,6 +221,8 @@ local function triggerFlowAlert(now, l4_proto)
       alerts_api.addAlertGenerationInfo(alerted_status_msg, alerted_user_script, confset_id)
 
       -- Need to convert to JSON
+      alerted_status_msg["status_type"] = nil -- Remove status_type reference added by flow_consts.lua wrapper
+      alerted_status_msg["alert_type"] = nil -- Remove alert_type reference added by alert_consts.lua wrapper
       alerted_status_msg = json.encode(alerted_status_msg)
    end
 
@@ -401,7 +403,8 @@ end
 -- @brief This provides an API that flow user_scripts can call in order to
 -- set a flow status bit. The status_info of the predominant status is
 -- saved for later use.
-function flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score, srv_score, custom_severity)
+function flow.triggerStatus(status_info, flow_score, cli_score, srv_score, custom_severity)
+   local flow_status_type = status_info.status_type
    local status_key = flow_status_type.status_key
    local new_status = flow_consts.getStatusInfo(status_key)
    flow_score = flow_score or 0
