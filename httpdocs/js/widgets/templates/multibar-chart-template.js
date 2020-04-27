@@ -2,7 +2,7 @@ import { ChartTemplate } from './default-template.js';
 
 export default class MultiBarChartTemplate extends ChartTemplate {
 
-    constructor(params) { super(params); console.log(this); }
+    constructor(params) { super(params); }
 
     _addGraph() {
 

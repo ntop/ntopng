@@ -6,7 +6,6 @@ import MultiBarChartTemplate from './templates/multibar-chart-template.js';
 export default class NtopWidget {
 
     constructor(params) {
-
         /* this is widget indentifier inside ntopng */
         this.widgetKey = params.widgetKey;
         /* the widget type which indicate the template will be chosen */
@@ -21,8 +20,6 @@ export default class NtopWidget {
         this.intervalTime = 0;
         /* this variable will contain the url endpoint to make requests */
         this.widgetEndPoint = this._buildWidgetEndpoint(params.ntopngEndpointUrl);
-
-        console.log(this);
     }
 
     async initWidget() {
@@ -35,11 +32,11 @@ export default class NtopWidget {
             this.widgetType = this.widgetType || widgetEndPointResponse.widgetType;
             this.intervalTime = widgetEndPointResponse.dsRetention;
             this.widgetFetchedData = widgetEndPointResponse.data;
+
             this.widgetInitialized = true;
         }
         catch (e) {
-            console.error(e);
-            throw new Error(`Error! Something went wrong when fetching widget data.`);
+            throw new Error(`Something went wrong when fetching widget data: ${e}`);
         }
     }
 
@@ -67,7 +64,7 @@ export default class NtopWidget {
             case 'table':       return new TableTemplate(params);
             case 'pie':         return new PieChartTemplate(params);
             case 'donut':       return new DonutChartTemplate(params);
-            case 'multibar':  return new MultiBarChartTemplate(params);
+            case 'multibar':    return new MultiBarChartTemplate(params);
             default: throw new Error('The widget type is not valid!');
         }
     }

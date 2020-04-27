@@ -126,10 +126,11 @@ $(document).ready(function() {
 
         const row_data = $widgets_table.row($(this).parent()).data();
         const $submit_button = $(this).find(`[type='submit']`);
+        const widget_key = row_data.key;
 
         $(`#remove-widget-button`).off('click').click(function () {
 
-            const data_to_send = { widget_key: row_data.key };
+            const data_to_send = { widget_key: widget_key };
             submitPost(
                 { action: 'remove', JSON: JSON.stringify(data_to_send), csrf: remove_csrf },
                 '#remove-widget-modal',
@@ -142,15 +143,20 @@ $(document).ready(function() {
 
         const $submit_button = $(this).find(`[type='submit']`);
         const row_data = $widgets_table.row($(this).parent()).data();
-        row_data.key = row_data.params.key;
-        row_data.metric = row_data.params.metric;
-        row_data.schema = row_data.params.schema;
-        row_data.begin_time = row_data.params.begin_time;
-        row_data.end_time = row_data.params.end_time;
+        const widget_key = row_data.key;
+
+        const edit_params = Object.assign({
+            name: row_data.name,
+            type: row_data.type,
+            ds_hash: row_data.ds_hash,
+            interface: row_data.params.ifid
+        }, row_data.params);
+
+        delete edit_params.ifid;
 
         // Luca this is the magic line, it fills edit-modal input fields
         $('#edit-widget-modal form [name]').each(function(e) {
-            $(this).val(row_data[$(this).attr('name')]);
+            $(this).val(edit_params[$(this).attr('name')]);
         });
 
         $(`#edit-widget-modal form`).off('submit').submit(function (e) {
@@ -158,7 +164,7 @@ $(document).ready(function() {
             e.preventDefault();
 
             const data_to_send = serializeFormArrayIntoObject($(this).serializeArray());
-            data_to_send.widget_key = row_data.key;
+            data_to_send.widget_key = widget_key;
 
             submitPost(
                 { action: 'edit', JSON: JSON.stringify(data_to_send), csrf: edit_csrf },
