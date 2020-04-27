@@ -110,6 +110,12 @@ end
 
 -- #################################################################
 
+local function check_icmp_available()
+  return(ntop.isPingAvailable())
+end
+
+-- #################################################################
+
 return {
   -- Defines a list of measurements implemented by this script.
   -- The probing logic is implemented into the check() and collect_results().
@@ -174,5 +180,5 @@ return {
   },
 
   -- A setup function to possibly disable the plugin
-  setup = nil,
+  setup = check_icmp_available,
 }

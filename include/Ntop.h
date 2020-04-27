@@ -82,7 +82,7 @@ class Ntop {
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
   cpu_load_stats cpu_stats;
   float cpu_load;
-  bool is_started, cur_plugins_dir;
+  bool is_started, cur_plugins_dir, can_send_icmp;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue;
   FifoSerializerQueue *internal_alerts_queue;
@@ -443,6 +443,7 @@ class Ntop {
 
   inline u_int getNumCPUs()             { return(num_cpus); }
   inline void setNumCPUs(u_int num)     { num_cpus = num; }
+  inline bool canSendIcmp()             { return(can_send_icmp); }
 
   inline NtopPro* getPro()              { return((NtopPro*)pro); };
 

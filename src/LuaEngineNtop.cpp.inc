@@ -1481,6 +1481,16 @@ static int ntop_get_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_ping_available(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ntop->canSendIcmp());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_ping_host(lua_State* vm) {
 #ifdef WIN32
   lua_pushnil(vm);
@@ -4832,6 +4842,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getPrefs",          ntop_get_prefs },
 
   /* Ping */
+  { "isPingAvailable",	    ntop_is_ping_available      },
   { "pingHost",             ntop_ping_host              },
   { "collectPingResults",   ntop_collect_ping_results   },
   
