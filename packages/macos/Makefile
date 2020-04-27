@@ -35,7 +35,7 @@ ntopng-build:
 	cp /usr/local/opt/fontconfig/lib/libfontconfig.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/fribidi/lib/libfribidi.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/pcre/lib/libpcre.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/libffi/lib/libffi.6.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/libffi/lib/libffi.7.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/freetype/lib/libfreetype.6.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/graphite2/lib/libgraphite2.3.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/pixman/lib/libpixman-1.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
