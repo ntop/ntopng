@@ -77,7 +77,8 @@ Ntop::Ntop(char *appName) {
   malicious_ja3 = malicious_ja3_shadow = NULL;
   new_malicious_ja3 = new std::set<std::string>();
   system_interface = NULL;
-
+  cping = NULL;
+  
   /* nDPI handling */
   last_ndpi_reload = 0;
   ndpi_struct_shadow = NULL;
@@ -253,7 +254,8 @@ Ntop::~Ntop() {
   if(system_interface)    delete system_interface;
   if(extract)             delete extract;
 
-  if(udp_socket != -1) closesocket(udp_socket);
+  if(cping)               delete cping;
+  if(udp_socket != -1)    closesocket(udp_socket);
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
   if(custom_ndpi_protos)  free(custom_ndpi_protos);

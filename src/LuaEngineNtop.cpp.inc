@@ -1533,7 +1533,14 @@ static int ntop_ping_host(lua_State* vm) {
     getLuaVMUservalue(vm, ping)->ping(host, is_v6);
   } else {
     /* This is a continuous ping */
-    ntop->getContinuousPing()->ping(host, is_v6);
+    ContinuousPing *c = ntop->getContinuousPing();
+    
+    if(c)
+      c->ping(host, is_v6);
+    else {
+      lua_pushnil(vm);
+      return(CONST_LUA_PARAM_ERROR);
+    }
   }
   
   return(CONST_LUA_OK);

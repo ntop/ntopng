@@ -87,7 +87,7 @@ class Ntop {
   FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue;
   FifoSerializerQueue *internal_alerts_queue;
 #ifndef WIN32
-  ContinuousPing cping;
+  ContinuousPing *cping;
 #endif
   
 #ifdef __linux__
@@ -490,7 +490,7 @@ class Ntop {
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   inline void reloadPeriodicScripts() { if(pa) pa->reloadVMs(); };
-  inline ContinuousPing* getContinuousPing() { return(&cping); }
+  inline ContinuousPing* getContinuousPing() { return(cping); }
 };
 
 extern Ntop *ntop;

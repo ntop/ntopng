@@ -182,6 +182,11 @@ void ContinuousPing::collectResponses(lua_State* vm) {
 /* ***************************************** */
 
 void ContinuousPing::runPingCampaign() {
+  if(!ntop->isStarted()) {
+    sleep(1);
+    return;
+  }
+  
   try {
     Ping *pinger = new Ping();
 
