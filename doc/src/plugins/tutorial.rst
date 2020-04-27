@@ -98,13 +98,35 @@ Set the alert definition file :code:`alert_exe_download.lua` contents as:
 
 	local alert_keys = require "alert_keys"
 
+	-- #######################################################
+
+	-- @brief Prepare an alert table used to generate the alert
+	-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+	-- @param tls_info A lua table with HTTP info gererated calling `flow.getHTTPInfo()`
+	-- @return A table with the alert built
+	local function createExeDownload(alert_severity, http_info)
+	   local built = {
+	      alert_severity = alert_severity,
+	      alert_type_params = http_info -- This info will go into the alert JSON
+	   }
+
+	   return built
+	end
+
+	-- #######################################################
+
 	return {
-	  alert_key = alert_keys.user.alert_user_01,
+	   alert_key = alert_keys.user.alert_user_01,
+	   -- equivalent
+	   -- alert_key = {0, alert_keys.user.alert_user_01},
+	   -- custom pens
+	   -- alert_key = {312 -- PEN -- , 513 --alert id --]]},
 	  i18n_title = "EXE download",
 	  icon = "fas fa-exclamation",
+	  creator = createExeDownload,
 	}
 
-The file contains the alert title and an icon which will be used by ntopng to print the alerts. As this is a user-developed plugin, and no other user-developed plugin is using it, key :code:`alert_keys.user.alert_user_01` is chosen as :code:`alert_key`. 
+The file contains the alert title and an icon which will be used by ntopng to print the alerts. As this is a user-developed plugin, and no other user-developed plugin is using it, key :code:`alert_keys.user.alert_user_01` is chosen as :code:`alert_key`. A :code:`createExeDownload` is implemented as well to add the detected HTTP information straight into the alert JSON.
 
 Set the status definition file :code:`status_exe_download.lua` as:
 
@@ -141,14 +163,18 @@ And modify :code:`function script.hooks.protocolDetected(now)` as follow:
 	   if http_info and http_info["protos.http.last_url"] then
 	      -- if an .exe is found in the URL...
 	      if http_info["protos.http.last_url"]:match("%.exe") then
-			 flow.triggerStatus(flow_consts.status_types.status_exe_download, http_info,
-		                            100 --[[ flow_score --]],
-		                            100 --[[ cli_score ]],
-		                            10 --[[ srv_score]])
+		 flow.triggerStatus(
+		    flow_consts.status_types.status_exe_download.create(
+		       flow_consts.status_types.status_exe_download.alert_severity,
+		       http_info
+		    ),
+		    100 --[[ flow_score --]],
+		    100 --[[ cli_score ]],
+		    10 --[[ srv_score]])
 	      end
 	   end
 	end
 
-Basically, a new function :code:`flow.triggerStatus` is added. This function wants the status definition which as been created as first parameter, then a lua table containing generic information which has been set to :code:`http_info`. Then, it takes thress scores which are added to the flow, client and server scores, respectively.
+Basically, a new function :code:`flow.triggerStatus` is added. This function wants the result of a call to :code:`create` as first parameter. Function :code:`create` takes a severity and an :code:`http_info` as first and second parameters, respectively. These two parameters are be passed to function :code:`createExeDownload` created in the alert definition file above. Then :code:`flow.triggerStatus` takes thress scores which are added to the flow, client and server scores, respectively.
 
 Now the plugin is fully functional and ready to set flow statuses and trigger alerts when it detects and :code:`.exe` file. English strings can be localized as described in :ref:`Plugin Localization`.
