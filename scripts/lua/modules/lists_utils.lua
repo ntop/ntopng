@@ -370,7 +370,7 @@ local function checkListsUpdate(timeout)
 
 	    alerts_api.store(
 	       alerts_api.categoryListsEntity(list_name),
-	       alert_consts.alert_types.alert_list_download_failed.builder(
+	       alert_consts.alert_types.alert_list_download_failed.create(
 		  alert_consts.alert_severities.error,
 		  list_name,
 		  last_error

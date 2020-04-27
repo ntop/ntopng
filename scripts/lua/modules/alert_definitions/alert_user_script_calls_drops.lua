@@ -12,7 +12,7 @@ local alert_keys = require "alert_keys"
 -- @param subdir The subdirectory of the script (e.g., 'flow', 'host', ...)
 -- @param drops The number of dropped calls
 -- @return A table with the alert built
-local function buildUserScriptCallsDrops(alert_severity, alert_granularity, subdir, drops)
+local function createUserScriptCallsDrops(alert_severity, alert_granularity, subdir, drops)
    local built = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -45,5 +45,5 @@ return {
   i18n_title = "alerts_dashboard.user_scripts_calls_drops",
   icon = "fas fa-tint",
   i18n_description = formatUserScriptsCallsDrops,
-  builder = buildUserScriptCallsDrops,
+  creator = createUserScriptCallsDrops,
 }

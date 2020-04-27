@@ -11,7 +11,7 @@ local script
 -- ##############################################
 
 local function alert_info(ps_name, max_duration_ms)
-   local alert_info = alert_consts.alert_types.alert_slow_periodic_activity.builder(
+   local alert_info = alert_consts.alert_types.alert_slow_periodic_activity.create(
       alert_consts.alert_severities.warning,
       alert_consts.alerts_granularities.min,
       ps_name,

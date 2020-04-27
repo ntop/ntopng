@@ -13,7 +13,7 @@ local alert_keys = require "alert_keys"
 -- @param drop_perc The percentage of dropped packets with reference to the total number of packets (recevied + dropped)
 -- @param threshold A number indicating the threshold compared with `drop_perc`
 -- @return A table with the alert built
-local function buildTooManyDrops(alert_severity, alert_granularity, drops, drop_perc, threshold)
+local function createTooManyDrops(alert_severity, alert_granularity, drops, drop_perc, threshold)
    return({
 	 alert_severity = alert_severity,
 	 alert_granularity = alert_granularity,
@@ -40,5 +40,5 @@ return {
   i18n_title = "alerts_dashboard.too_many_drops",
   icon = "fas fa-tint",
   i18n_description = formatTooManyPacketDrops,
-  builder = buildTooManyDrops
+  creator = createTooManyDrops
 }

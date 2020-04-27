@@ -12,7 +12,7 @@ local alert_keys = require "alert_keys"
 -- @param if_index The index of the port that changed
 -- @param interface_name The string with the name of the port that changed
 -- @return A table with the alert built
-local function buildPortErrors(alert_severity, device_ip, if_index, interface_name)
+local function createPortErrors(alert_severity, device_ip, if_index, interface_name)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
@@ -44,5 +44,5 @@ return {
   i18n_title = "alerts_dashboard.snmp_port_errors",
   i18n_description = snmpInterfaceErrorsFormatter,
   icon = "fas fa-exclamation",
-  builder = buildPortErrors,
+  creator = createPortErrors,
 }

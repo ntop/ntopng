@@ -3,7 +3,7 @@
 --
 
 local alert_keys = require "alert_keys"
-local alert_builders = require "alert_builders"
+local alert_creators = require "alert_creators"
 
 -- #######################################################
 
@@ -27,5 +27,5 @@ return {
   i18n_title = "alerts_dashboard.device_disconnection",
   i18n_description = formatDeviceDisconnectionAlert,
   icon = "fas fa-sign-out",
-  builder = alert_builders.buildDeviceConnectionDisconnection,
+  creator = alert_creators.createDeviceConnectionDisconnection,
 }

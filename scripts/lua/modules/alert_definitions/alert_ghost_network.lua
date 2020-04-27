@@ -11,7 +11,7 @@ local alert_keys = require "alert_keys"
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param network The string CIDR of the ghost network
 -- @return A table with the alert built
-local function buildGhostNetwork(alert_severity, alert_granularity, network)
+local function createGhostNetwork(alert_severity, alert_granularity, network)
    local built = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -40,5 +40,5 @@ return {
   i18n_title = "alerts_dashboard.ghost_network_detected",
   i18n_description = ghostNetworkFormatter,
   icon = "fas fa-ghost",
-  builder = buildGhostNetwork,
+  creator = createGhostNetwork,
 }

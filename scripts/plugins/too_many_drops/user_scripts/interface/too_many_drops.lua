@@ -15,7 +15,7 @@ local function check_interface_drops(params)
   local stats = info.stats_since_reset
   local threshold = tonumber(params.user_script_config.threshold)
   local drop_perc = math.min(stats.drops * 100.0 / (stats.drops + stats.packets + 1), 100)
-  local drops_type = alert_consts.alert_types.alert_too_many_drops.builder(
+  local drops_type = alert_consts.alert_types.alert_too_many_drops.create(
      alert_consts.alert_severities.error,
      alert_consts.alerts_granularities.min,
      stats.drops,

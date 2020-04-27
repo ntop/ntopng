@@ -230,22 +230,22 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
       return(false)
    end
 
-   -- Save the original builder to wrap it with the aim of attaching the `alert_type`
+   -- Save the original creator to wrap it with the aim of attaching the `alert_type`
    -- This avoids repeating the alert type twice in every alert definition file
-   local cur_builder = def_script.builder
-   local builder = function(...)
-      local built = {}
+   local cur_creator = def_script.creator
+   local creator = function(...)
+      local created = {}
 
-      if cur_builder then
-	 built = cur_builder(...)
+      if cur_creator then
+         created = cur_creator(...)
       end
 
-      built["alert_type"] = def_script
-      return built
+      created["alert_type"] = def_script
+      return created
    end
 
    def_script.alert_key = parsed_alert_key
-   def_script.builder = builder
+   def_script.create = creator
    alert_consts.alert_types[mod_fname] = def_script
    alerts_by_id[parsed_alert_key] = mod_fname
 

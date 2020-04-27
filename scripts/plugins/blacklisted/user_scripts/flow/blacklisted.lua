@@ -37,7 +37,7 @@ function script.hooks.protocolDetected(now)
       end
 
       flow.triggerStatus(
-	 flow_consts.status_types.status_blacklisted.builder(
+	 flow_consts.status_types.status_blacklisted.create(
 	    flow_consts.status_types.status_blacklisted.alert_severity,
 	    info
 	 ),

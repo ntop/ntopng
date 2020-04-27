@@ -15,7 +15,7 @@ local format_utils = require "format_utils"
 -- @param ps_name A string with the name of the periodic activity
 -- @param max_duration_ms The maximum duration taken by this periodic activity to run, in milliseconds
 -- @return A table with the alert built
-local function buildSlowPeriodicActivity(alert_severity, alert_granularity, ps_name, max_duration_ms)
+local function createSlowPeriodicActivity(alert_severity, alert_granularity, ps_name, max_duration_ms)
    local threshold_type = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -49,5 +49,5 @@ return {
   i18n_title = "alerts_dashboard.slow_periodic_activity",
   i18n_description = slowPeriodicActivityFormatter,
   icon = "fas fa-undo",
-  builder = buildSlowPeriodicActivity,
+  creator = createSlowPeriodicActivity,
 }

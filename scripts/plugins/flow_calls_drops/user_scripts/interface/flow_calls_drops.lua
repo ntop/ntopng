@@ -14,7 +14,7 @@ local function check_interface_drops(params)
   local info = params.entity_info
   local num_dropped = info.stats.num_dropped_flow_scripts_calls
   local delta_dropped = alerts_api.interface_delta_val(script.key, params.granularity, num_dropped)
-  local drops_type = alert_consts.alert_types.alert_user_script_calls_drops.builder(
+  local drops_type = alert_consts.alert_types.alert_user_script_calls_drops.create(
      alert_consts.alert_severities.error,
      alert_consts.alerts_granularities.min,
      "flow",

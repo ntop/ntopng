@@ -13,7 +13,7 @@ local alert_keys = require "alert_keys"
 -- @param idle_perc Fraction of entries in state idle, with reference to the total number of entries (idle + active)
 -- @param threshold Threshold compared against idle_perc
 -- @return A table with the alert built
-local function buildSlowPurge(alert_severity, alert_granularity, idle, idle_perc, threshold)
+local function createSlowPurge(alert_severity, alert_granularity, idle, idle_perc, threshold)
    local built = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -47,5 +47,5 @@ return {
   i18n_title = "alerts_dashboard.slow_purge",
   icon = "fas fa-exclamation",
   i18n_description = formatSlowPurge,
-  builder = buildSlowPurge,
+  creator = createSlowPurge,
 }

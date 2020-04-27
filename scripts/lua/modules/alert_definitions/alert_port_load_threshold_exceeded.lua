@@ -15,7 +15,7 @@ local alert_keys = require "alert_keys"
 -- @param out_load The egress load in percentage
 -- @param load_threshold The threshold configured for the load
 -- @return A table with the alert built
-local function buildPortLoadThresholdExceeded(alert_severity, device_ip, if_index, interface_name, in_load, out_load, load_threshold)
+local function createPortLoadThresholdExceeded(alert_severity, device_ip, if_index, interface_name, in_load, out_load, load_threshold)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
@@ -56,5 +56,5 @@ return {
   i18n_title = "alerts_dashboard.snmp_port_load_threshold_exceeded",
   i18n_description = snmpPortLoadThresholdFormatter,
   icon = "fas fa-exclamation",
-  builder = buildPortLoadThresholdExceeded,
+  creator = createPortLoadThresholdExceeded,
 }

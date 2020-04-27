@@ -13,7 +13,7 @@ local alert_keys = require "alert_keys"
 -- @param requests The number of requests
 -- @param replies The number of replies
 -- @return A table with the alert built
-local function buildRequestReplyRatio(alert_severity, alert_granularity, alert_subtype, requests, replies)
+local function createRequestReplyRatio(alert_severity, alert_granularity, alert_subtype, requests, replies)
    local built = {
       alert_subtype = alert_subtype,
       alert_granularity = alert_granularity,
@@ -68,5 +68,5 @@ return {
   i18n_title = "entity_thresholds.request_reply_ratio_title",
   i18n_description = requestReplyRatioFormatter,
   icon = "fas fa-exclamation",
-  builder = buildRequestReplyRatio,
+  creator = createRequestReplyRatio,
 }

@@ -72,7 +72,7 @@ function script.hooks.protocolDetected(now, conf)
     info.srv_country = srv_country
 
     flow.triggerStatus(
-       flow_consts.status_types.status_blacklisted_country.builder(
+       flow_consts.status_types.status_blacklisted_country.create(
 	  flow_consts.status_types.status_blacklisted_country.alert_severity,
 	  cli_country,
 	  srv_country,

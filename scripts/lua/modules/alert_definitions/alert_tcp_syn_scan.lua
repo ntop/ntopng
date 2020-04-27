@@ -3,7 +3,7 @@
 --
 
 local alert_keys = require "alert_keys"
-local alert_builders = require "alert_builders"
+local alert_creators = require "alert_creators"
 
 local function formatSynScan(ifid, alert, threshold_info)
   local alert_consts = require("alert_consts")
@@ -31,5 +31,5 @@ return {
   i18n_title = "alerts_dashboard.tcp_syn_scan",
   i18n_description = formatSynScan,
   icon = "fas fa-life-ring",
-  builder = alert_builders.buildThresholdCross,
+  creator = alert_creators.createThresholdCross,
 }

@@ -14,7 +14,7 @@ local alert_keys = require "alert_keys"
 -- @param spa The source protocol address (usually the ip address) as a string
 -- @param tpa The target protocol address (usually the ip address) as a string
 -- @return A table with the alert built
-local function buildBroadcastDomainTooLargeType(alert_severity, src_mac, dst_mac, vlan, spa, tpa)
+local function createBroadcastDomainTooLargeType(alert_severity, src_mac, dst_mac, vlan, spa, tpa)
   local built = {
     -- Subtype is the concatenation of src and dst macs and ips and the VLAN. This
     -- allows the elerts engine to properly aggregate alerts when they have the same type and subtype
@@ -51,5 +51,5 @@ return {
   i18n_title = "alerts_dashboard.broadcast_domain_too_large",
   i18n_description = formatBroadcastDomainAlert,
   icon = "fas fa-sitemap",
-  builder = buildBroadcastDomainTooLargeType,
+  creator = createBroadcastDomainTooLargeType,
 }

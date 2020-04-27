@@ -116,23 +116,23 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
     end
 
     -- If this flow status has an alert associated,
-    -- the alert builder is attached straigth to this flow for the flow.tirggerStatus
-    -- Save the alert builder and wrap it to add the current script as a `status_key`.
-    -- This makes the builder self contained and avoids repetition in the flow status definition files
-    local builder = function(...)
-       local built = {}
+    -- the alert creator is attached straigth to this flow for the flow.tirggerStatus
+    -- Save the alert creator and wrap it to add the current script as a `status_key`.
+    -- This makes the creator self contained and avoids repetition in the flow status definition files
+    local creator = function(...)
+       local created = {}
 
-       if def_script.alert_type and def_script.alert_type.builder then
-	  built = def_script.alert_type.builder(...)
+       if def_script.alert_type and def_script.alert_type.creator then
+        created = def_script.alert_type.create(...)
        end
 
-       built["status_type"] = def_script
-       return built
+       created["status_type"] = def_script
+       return created
     end
 
     -- Success
     def_script.status_key = def_id
-    def_script.builder = builder
+    def_script.create = creator
     status_by_id[def_id] = def_script
     status_key_by_id[def_id] = mod_fname
     flow_consts.status_types[mod_fname] = def_script

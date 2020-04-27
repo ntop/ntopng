@@ -11,7 +11,7 @@ local alert_keys = require "alert_keys"
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param last_error A string with the lastest influxdb error
 -- @return A table with the alert built
-local function buildInfluxdbError(alert_severity, alert_granularity, last_error)
+local function createInfluxdbError(alert_severity, alert_granularity, last_error)
    local threshold_type = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -36,5 +36,5 @@ return {
   i18n_title = "alerts_dashboard.influxdb_error",
   i18n_description = formatInfluxdbErrorMessage,
   icon = "fas fa-database",
-  builder = buildInfluxdbError,
+  creator = createInfluxdbError,
 }

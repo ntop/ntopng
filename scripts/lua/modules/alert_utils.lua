@@ -1742,7 +1742,7 @@ function alert_utils.check_macs_alerts(ifid)
 
 	       alerts_api.store(
 	          alerts_api.macEntity(mac),
-	          alert_consts.alert_types.alert_new_device.builder(
+	          alert_consts.alert_types.alert_new_device.create(
 		     alert_consts.alert_severities.warning,
 		     name
 		  )
@@ -1764,7 +1764,7 @@ function alert_utils.check_macs_alerts(ifid)
 
 	          alerts_api.store(
 	             alerts_api.macEntity(mac),
-		     alert_consts.alert_types.alert_device_connection.builder(
+		     alert_consts.alert_types.alert_device_connection.create(
 			alert_consts.alert_severities.info,
 			name
 		     )
@@ -1788,7 +1788,7 @@ function alert_utils.check_macs_alerts(ifid)
             if alert_device_connection_enabled then
                alerts_api.store(
 		  alerts_api.macEntity(mac),
-		  alert_consts.alert_types.alert_device_disconnection.builder(
+		  alert_consts.alert_types.alert_device_disconnection.create(
 		     alert_consts.alert_severities.info,
 		     name
 		  )
@@ -1869,7 +1869,7 @@ function alert_utils.check_host_pools_alerts(ifid)
 		  if info.bytes_exceeded and not prev_exceeded[1] then
 		     alerts_api.store(
 			alerts_api.hostPoolEntity(pool),
-			alert_consts.alert_types.alert_quota_exceeded.builder(
+			alert_consts.alert_types.alert_quota_exceeded.create(
 			   alert_consts.alert_severities.warning,
 			   "traffic_quota",
 			   pool,
@@ -1883,7 +1883,7 @@ function alert_utils.check_host_pools_alerts(ifid)
 		  if info.time_exceeded and not prev_exceeded[2] then
 		     alerts_api.store(
 			alerts_api.hostPoolEntity(pool),
-			alert_consts.alert_types.alert_quota_exceeded.builder(
+			alert_consts.alert_types.alert_quota_exceeded.create(
 			   alert_consts.alert_severities.warning,
 			   "time_quota",
 			   pool,
@@ -1927,7 +1927,7 @@ function alert_utils.check_host_pools_alerts(ifid)
 	       if alert_pool_connection_enabled then
             alerts_api.store(
 	       alerts_api.hostPoolEntity(pool),
-	       alert_consts.alert_types.alert_host_pool_connection.builder(
+	       alert_consts.alert_types.alert_host_pool_connection.create(
 		  alert_consts.alert_severities.info,
 		  pool
 	       )
@@ -1947,7 +1947,7 @@ function alert_utils.check_host_pools_alerts(ifid)
          if alert_pool_connection_enabled then
             alerts_api.store(
 	       alerts_api.hostPoolEntity(pool),
-	       alert_consts.alert_types.alert_host_pool_disconnection.builder(
+	       alert_consts.alert_types.alert_host_pool_disconnection.create(
 		  alert_consts.alert_severities.info,
 		  pool
 	       )
@@ -2167,7 +2167,7 @@ local function processStoreAlertFromQueue(alert)
   if(alert.alert_type == "misconfigured_dhcp_range") then
     local router_info = {host = alert.router_ip, vlan = alert.vlan_id}
     entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
-    type_info = alert_consts.alert_types.alert_ip_outsite_dhcp_range.builder(
+    type_info = alert_consts.alert_types.alert_ip_outsite_dhcp_range.create(
        alert_consts.alert_severities.warning,
        router_info,
        alert.mac_address,
@@ -2178,7 +2178,7 @@ local function processStoreAlertFromQueue(alert)
     if(ntop.getPref("ntopng.prefs.ip_reassignment_alerts") == "1") then
       local name = getSavedDeviceName(alert.new_mac)
       entity_info = alerts_api.macEntity(alert.new_mac)
-      type_info = alert_consts.alert_types.alert_mac_ip_association_change.builder(
+      type_info = alert_consts.alert_types.alert_mac_ip_association_change.create(
 	 alert_consts.alert_severities.warning,
 	 name,
 	 alert.ip,
@@ -2188,12 +2188,12 @@ local function processStoreAlertFromQueue(alert)
     end
   elseif(alert.alert_type == "login_failed") then
     entity_info = alerts_api.userEntity(alert.user)
-    type_info = alert_consts.alert_types.alert_login_failed.builder(
+    type_info = alert_consts.alert_types.alert_login_failed.create(
        alert_consts.alert_severities.warning
     )
   elseif(alert.alert_type == "broadcast_domain_too_large") then
     entity_info = alerts_api.macEntity(alert.src_mac)
-    type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.builder(alert_consts.alert_severities.warning, alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
+    type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.create(alert_consts.alert_severities.warning, alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
   elseif(alert.alert_type == "remote_to_remote") then
     if(ntop.getPref("ntopng.prefs.remote_to_remote_alerts") == "1") then
       local host_info = {host = alert.host, vlan = alert.vlan}
@@ -2202,7 +2202,7 @@ local function processStoreAlertFromQueue(alert)
     end
   elseif((alert.alert_type == "user_activity") and (alert.scope == "login")) then
     entity_info = alerts_api.userEntity(alert.user)
-    type_info = alert_consts.alert_types.alert_user_activity.builder(
+    type_info = alert_consts.alert_types.alert_user_activity.create(
        alert_consts.alert_severities.info,
        "login",
        nil,
@@ -2212,7 +2212,7 @@ local function processStoreAlertFromQueue(alert)
     )
   elseif(alert.alert_type == "nfq_flushed") then
     entity_info = alerts_api.interfaceAlertEntity(alert.ifid)
-    type_info = alert_consts.alert_types.alert_nfq_flushed.builder(
+    type_info = alert_consts.alert_types.alert_nfq_flushed.create(
        alert_consts.alert_severities.error,
        getInterfaceName(alert.ifid),
        alert.pct,
@@ -2361,7 +2361,7 @@ local function notify_ntopng_status(started)
    end
 
   local entity_info = alerts_api.processEntity(entity_value)
-  local type_info = alert_consts.alert_types.alert_process_notification.builder(
+  local type_info = alert_consts.alert_types.alert_process_notification.create(
      alert_consts.alert_severities[alert_consts.alertSeverityRaw(severity)],
      event,
      msg_details

@@ -13,7 +13,7 @@ local alert_keys = require "alert_keys"
 -- @param tot Thee total number of packets in the NFQ
 -- @param dropped The number of packets dropped
 -- @return A table with the alert built
-local function buildNfqFlushedType(alert_severity, ifname, pct, tot, dropped)
+local function createNfqFlushedType(alert_severity, ifname, pct, tot, dropped)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
@@ -44,5 +44,5 @@ return {
   i18n_title = "alerts_dashboard.nfq_flushed",
   i18n_description = nfwFlushedFormatter,
   icon = "fas fa-angle-double-down",
-  builder = buildNfqFlushedType,
+  creator = createNfqFlushedType,
 }

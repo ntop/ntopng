@@ -11,7 +11,7 @@ local alert_keys = require "alert_keys"
 -- @param l2r_threshold Local-to-Remote threshold, in bytes, for a flow to be considered an elephant
 -- @param r2l_threshold Remote-to-Local threshold, in bytes, for a flow to be considered an elephant
 -- @return A table with the alert built
-local function buildFlowMisbehaviour(alert_severity, l2r_threshold, r2l_threshold)
+local function createFlowMisbehaviour(alert_severity, l2r_threshold, r2l_threshold)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
@@ -29,5 +29,5 @@ return {
   alert_key = alert_keys.ntopng.alert_flow_misbehaviour,
   i18n_title = "alerts_dashboard.flow_misbehaviour",
   icon = "fas fa-exclamation",
-  builder = buildFlowMisbehaviour,
+  creator = createFlowMisbehaviour,
 }

@@ -14,7 +14,7 @@ local function check_ghost_networks(params)
     if(domain_info.ghost_network) then
       local key = params.user_script.key .. "__" .. domain
       local delta_hits = alerts_api.interface_delta_val(key, params.granularity, domain_info.hits)
-      local ghost_network_type = alert_consts.alert_types.alert_ghost_network.builder(
+      local ghost_network_type = alert_consts.alert_types.alert_ghost_network.create(
 	 alert_consts.alert_severities.warning,
 	 alert_consts.alerts_granularities[params.granularity],
 	 domain

@@ -14,7 +14,7 @@ local format_utils = require "format_utils"
 -- @param ps_name A string with the name of the periodic activity
 -- @param last_queued_time The time when the periodic activity was executed for the last time, as a unix epoch
 -- @return A table with the alert built
-local function buildPeriodicActivityNotExecuted(alert_severity, alert_granularity, ps_name, last_queued_time)
+local function createPeriodicActivityNotExecuted(alert_severity, alert_granularity, ps_name, last_queued_time)
    local threshold_type = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -45,5 +45,5 @@ return {
   i18n_title = "alerts_dashboard.periodic_activity_not_executed",
   i18n_description = formatPeriodicActivityNotExecuted,
   icon = "fas fa-undo",
-  builder = buildPeriodicActivityNotExecuted,
+  creator = createPeriodicActivityNotExecuted,
 }

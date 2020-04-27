@@ -15,7 +15,7 @@ local alert_keys = require "alert_keys"
 -- @param prev_seen_device A string with the ip address of the previous snmp device
 -- @param prev_seen_port The index of the previous port
 -- @return A table with the alert built
-local function buildPortMacChange(alert_severity, device_ip, if_index, interface_name, mac, prev_seen_device, prev_seen_port)
+local function createPortMacChange(alert_severity, device_ip, if_index, interface_name, mac, prev_seen_device, prev_seen_port)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
@@ -56,5 +56,5 @@ return {
    i18n_title = "alerts_dashboard.alert_snmp_interface_mac_changed_title",
    i18n_description = portMacChangedFormatter,
    icon = "fas fa-exclamation",
-   builder = buildPortMacChange,
+   creator = createPortMacChange,
 }

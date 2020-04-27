@@ -17,7 +17,7 @@ local format_utils = require("format_utils")
 -- @param operator A string indicating the operator used when evaluating the threshold, one of "gt", ">", "<"
 -- @param unit The unit of measure of value and threshold
 -- @return A table with the alert built
-local function buildActiveMonitoringTxCross(alert_severity, alert_granularity, value, threshold, ip, host, operator, unit)
+local function createActiveMonitoringTxCross(alert_severity, alert_granularity, value, threshold, ip, host, operator, unit)
    local threshold_type = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -88,5 +88,5 @@ return {
   i18n_title = "graphs.active_monitoring",
   i18n_description = thresholdCrossFormatter,
   icon = "fas fa-exclamation",
-  builder = buildActiveMonitoringTxCross,
+  creator = createActiveMonitoringTxCross,
 }

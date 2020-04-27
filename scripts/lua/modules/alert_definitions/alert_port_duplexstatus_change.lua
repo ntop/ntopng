@@ -13,7 +13,7 @@ local alert_keys = require "alert_keys"
 -- @param interface_name The string with the name of the port that changed
 -- @param status The new duplex status
 -- @return A table with the alert built
-local function buildPortDuplexstatusChange(alert_severity, device_ip, if_index, interface_name, status)
+local function createPortDuplexstatusChange(alert_severity, device_ip, if_index, interface_name, status)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
@@ -47,5 +47,5 @@ return {
   i18n_title = "alerts_dashboard.snmp_port_duplexstatus_change",
   i18n_description = snmpPortDuplexChangeFormatter,
   icon = "fas fa-exclamation",
-  builder = buildPortDuplexstatusChange,
+  creator = createPortDuplexstatusChange,
 }

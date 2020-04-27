@@ -39,7 +39,7 @@ local function storeTopologyChangedAlert(info, arc, nodes, subtype)
    local parts = split(arc, "@")
 
    if(#parts == 2) then
-      local alert_type = alert_consts.alert_types.alert_snmp_topology_changed.builder(
+      local alert_type = alert_consts.alert_types.alert_snmp_topology_changed.create(
 	 alert_consts.alert_severities.warning,
 	 subtype,
 	 info.granularity,

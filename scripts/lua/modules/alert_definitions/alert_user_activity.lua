@@ -16,8 +16,8 @@ local format_utils = require("format_utils")
 -- @param remote_addr The ip address of the remote user when available
 -- @param status A string indicating the action status or nil
 -- @return A table with the alert built
-local function buildUserActivity(alert_severity, scope, name, params, remote_addr, status)
-   local builder = {
+local function createUserActivity(alert_severity, scope, name, params, remote_addr, status)
+   local creator = {
 	 alert_severity = alert_severity,
 	 alert_type_params = {
 	    scope = scope,
@@ -28,7 +28,7 @@ local function buildUserActivity(alert_severity, scope, name, params, remote_add
 	 }
    }
 
-   return builder
+   return creator
 end
 
 -- #######################################################
@@ -248,5 +248,5 @@ return {
   i18n_title = "alerts_dashboard.user_activity",
   i18n_description = userActivityFormatter,
   icon = "fas fa-user",
-  builder = buildUserActivity,
+  creator = createUserActivity,
 }

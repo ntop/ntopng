@@ -27,7 +27,7 @@ local function check_interface_idle(params)
     end
   end
 
-  local idle_type = alert_consts.alert_types.alert_slow_purge.builder(
+  local idle_type = alert_consts.alert_types.alert_slow_purge.create(
      alert_consts.alert_severities.warning,
      alert_consts.alerts_granularities.min,
      max_idle,

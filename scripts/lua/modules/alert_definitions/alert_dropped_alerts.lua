@@ -12,7 +12,7 @@ local alert_keys = require "alert_keys"
 -- @param ifid The integer id of the interface which is dropping alerts
 -- @param num_dropped The number of alerts dropped
 -- @return A table with the alert built
-local function buildDroppedAlerts(alert_severity, alert_granularity, ifid, num_dropped)
+local function createDroppedAlerts(alert_severity, alert_granularity, ifid, num_dropped)
    local threshold_type = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -42,5 +42,5 @@ return {
   i18n_title = i18n("show_alerts.dropped_alerts"),
   icon = "fas fa-exclamation-triangle",
   i18n_description = formatDroppedAlerts,
-  builder = buildDroppedAlerts,
+  creator = createDroppedAlerts,
 }

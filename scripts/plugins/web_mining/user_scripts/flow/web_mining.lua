@@ -25,7 +25,7 @@ local script = {
 function script.hooks.protocolDetected(now)
    if(flow.getnDPICategoryName() == "Mining") then
       flow.triggerStatus(
-	 flow_consts.status_types.status_web_mining_detected.builder(
+	 flow_consts.status_types.status_web_mining_detected.create(
 	    flow_consts.status_types.status_web_mining_detected.alert_severity
 	 ),
 	 50 --[[ flow score]],

@@ -976,7 +976,7 @@ function driver:_droppedPointsAlert()
 
       alerts_api.store(
         alerts_api.influxdbEntity(self.url),
-        alert_consts.alert_types.alert_influxdb_export_failure.builder(
+        alert_consts.alert_types.alert_influxdb_export_failure.create(
 	   alert_consts.alert_severities.error,
 	   alert_consts.alerts_granularities.min,
 	   self.url

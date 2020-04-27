@@ -11,7 +11,7 @@ local alert_keys = require "alert_keys"
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param influxdb The url used to export the points
 -- @return A table with the alert built
-local function buildInfluxdbDroppedPoints(alert_severity, alert_granularity, influxdb)
+local function createInfluxdbDroppedPoints(alert_severity, alert_granularity, influxdb)
    local built = {
       alert_severity = alert_severity,
       alert_granularity = alert_granularity,
@@ -30,5 +30,5 @@ return {
   i18n_title = "alerts_dashboard.influxdb_export_failure",
   i18n_description = "alert_messages.influxdb_dropped_points",
   icon = "fas fa-database",
-  builder = buildInfluxdbDroppedPoints,
+  creator = createInfluxdbDroppedPoints,
 }

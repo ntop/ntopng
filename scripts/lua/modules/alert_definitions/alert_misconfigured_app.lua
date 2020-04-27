@@ -11,7 +11,7 @@ local alert_keys = require "alert_keys"
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param alert_subtype A string with the subtype of the alert
 -- @return A table with the alert built
-local function buildMisconfiguredApp(alert_severity, alert_granularity, alert_subtype)
+local function createMisconfiguredApp(alert_severity, alert_granularity, alert_subtype)
    local built = {
       alert_severity = alert_severity,
       alert_subtype = alert_subtype,
@@ -45,5 +45,5 @@ return {
   i18n_title = "alerts_dashboard.misconfigured_app",
   icon = "fas fa-cog",
   i18n_description = formatMisconfiguredApp,
-  builder = buildMisconfiguredApp,
+  creator = createMisconfiguredApp,
 }

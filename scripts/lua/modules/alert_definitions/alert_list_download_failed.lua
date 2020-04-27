@@ -11,7 +11,7 @@ local alert_keys = require "alert_keys"
 -- @param list_name The name of the failed list as string
 -- @param last_error The string of the error which caused the failure
 -- @return A table with the alert built
-local function buildListDownloadFailedType(alert_severity, list_name, last_error)
+local function createListDownloadFailedType(alert_severity, list_name, last_error)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
@@ -30,5 +30,5 @@ return {
   i18n_title = "alerts_dashboard.list_download_failed",
   i18n_description = "category_lists.error_occurred",
   icon = "fas fa-sticky-note",
-  builder = buildListDownloadFailedType,
+  creator = createListDownloadFailedType,
 }

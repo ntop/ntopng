@@ -8,7 +8,7 @@
 -- @param alert_severity A severity as defined in `alert_consts.alert_severities`
 -- @param info A flow info table fetched with `flow.getBlacklistedInfo()`
 -- @return A table with the alert built
-local function buildBlacklisted(alert_severity, info)
+local function createBlacklisted(alert_severity, info)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = info,
@@ -25,5 +25,5 @@ return {
   alert_key = alert_keys.ntopng.alert_flow_blacklisted,
   i18n_title = "alerts_dashboard.blacklisted_flow",
   icon = "fas fa-exclamation",
-  builder = buildBlacklisted,
+  creator = createBlacklisted,
 }

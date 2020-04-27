@@ -13,7 +13,7 @@ local alert_keys = require "alert_keys"
 -- @param client_mac The client mac as seen in the DHCP packet as string
 -- @param sender_mac The sender mac as seen in the DHCP packet as string
 -- @return A table with the alert built
-local function buildIpOutsideDHCPRangeType(alert_severity, router_info, mac, client_mac, sender_mac)
+local function createIpOutsideDHCPRangeType(alert_severity, router_info, mac, client_mac, sender_mac)
   local built = {
      alert_severity = alert_severity,
      alert_subtype = string.format("%s_%s_%s", hostinfo2hostkey(router_info), client_mac, sender_mac),
@@ -57,5 +57,5 @@ return {
   i18n_title = "alerts_dashboard.misconfigured_dhcp_range",
   i18n_description = outsideDhcpRangeFormatter,
   icon = "fas fa-exclamation",
-  builder = buildIpOutsideDHCPRangeType,
+  creator = createIpOutsideDHCPRangeType,
 }

@@ -11,7 +11,7 @@ local script
 -- ##############################################
 
 local function alert_info(ps_name, last_queued_time)
-   local alert_info = alert_consts.alert_types.alert_periodic_activity_not_executed.builder(
+   local alert_info = alert_consts.alert_types.alert_periodic_activity_not_executed.create(
       alert_consts.alert_severities.warning,
       alert_consts.alerts_granularities.min,
       ps_name,

@@ -3,7 +3,7 @@
 --
 
 local alert_keys = require "alert_keys"
-local alert_builders = require "alert_builders"
+local alert_creators = require "alert_creators"
 
 -- #######################################################
 
@@ -11,7 +11,7 @@ local alert_builders = require "alert_builders"
 -- @param alert_severity A severity as defined in `alert_consts.alert_severities`
 -- @param device The a string with the name or ip address of the device that connected the network
 -- @return A table with the alert built
-local function buildDeviceConnection(alert_severity, device)
+local function createDeviceConnection(alert_severity, device)
   local built = {
     alert_severity = alert_severity,
     alert_type_params = {
@@ -38,5 +38,5 @@ return {
   i18n_title = "alerts_dashboard.device_connection",
   i18n_description = formatDeviceConnectionAlert,
   icon = "fas fa-sign-in",
-  builder = alert_builders.buildDeviceConnectionDisconnection,
+  creator = alert_creators.createDeviceConnectionDisconnection,
 }

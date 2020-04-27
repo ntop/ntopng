@@ -40,7 +40,7 @@ function tracker.log(f_name, f_args)
 
   alerts_api.store(
      alerts_api.userEntity(entity_value),
-     alert_consts.alert_types.alert_user_activity.builder(
+     alert_consts.alert_types.alert_user_activity.create(
 	alert_consts.alert_severities.info,
 	'function',
 	f_name,

@@ -11,7 +11,7 @@ local alert_keys = require "alert_keys"
 -- @param tls_version A string indicating the TLS version detected, or nil when version is not available
 -- @param tls_info A lua table with TLS info gererated calling `flow.getTLSInfo()`
 -- @return A table with the alert built
-local function buildPotentiallyDangerous(alert_severity, tls_version, tls_info)
+local function createPotentiallyDangerous(alert_severity, tls_version, tls_info)
    tls_info = tls_info or {}
    local server_cn = tls_info["protos.tls.server_names"] or ""
    local client_cn = tls_info["protos.tls.client_requested_server_name"] or ""
@@ -39,5 +39,5 @@ return {
   i18n_title = "alerts_dashboard.potentially_dangerous_protocol",
   i18n_description = "alert_messages.potentially_dangerous_protocol_description",
   icon = "fas fa-exclamation",
-  builder = buildPotentiallyDangerous,
+  creator = createPotentiallyDangerous,
 }

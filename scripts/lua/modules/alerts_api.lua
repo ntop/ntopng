@@ -547,7 +547,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value)
   local threshold_config = params.user_script_config
   local alarmed = false
 
-  local threshold_type = alert_type.builder(
+  local threshold_type = alert_type.create(
      alert_consts.alert_severities.error,
      script.key,
      alert_consts.alerts_granularities[params.granularity],

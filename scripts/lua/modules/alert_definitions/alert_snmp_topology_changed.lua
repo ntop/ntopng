@@ -15,7 +15,7 @@ local alert_keys = require "alert_keys"
 -- @param node2 A string with the name of the second of the two peers involved in the change
 -- @param ip2 A string with the ip of the second of the two peers involved in the change
 -- @return A table with the alert built
-local function buildTopologyChanged(alert_severity, alert_subtype, alert_granularity, node1, ip1, node2, ip2)
+local function createTopologyChanged(alert_severity, alert_subtype, alert_granularity, node1, ip1, node2, ip2)
    local built = {
       alert_subtype = alert_subtype,
       alert_severity = alert_severity,
@@ -62,5 +62,5 @@ return {
   i18n_title = i18n("snmp.lldp_topology_changed"),
   i18n_description = formatTopologyChanged,
   icon = "fas fa-topology-alt",
-  builder = buildTopologyChanged,
+  creator = createTopologyChanged,
 }

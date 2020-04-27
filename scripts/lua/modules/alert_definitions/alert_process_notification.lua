@@ -11,7 +11,7 @@ local alert_keys = require "alert_keys"
 -- @param event_type The string with the type of event
 -- @param msg_details The details of the event
 -- @return A table with the alert built
-local function buildProcessNotification(alert_severity, event_type, msg_details)
+local function createProcessNotification(alert_severity, event_type, msg_details)
   local built = {
      alert_severity = alert_severity,
      alert_type_params = {
@@ -46,5 +46,5 @@ return {
   i18n_title = "alerts_dashboard.process",
   i18n_description = processNotificationFormatter,
   icon = "fas fa-truck",
-  builder = buildProcessNotification,
+  creator = createProcessNotification,
 }

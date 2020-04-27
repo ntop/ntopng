@@ -14,7 +14,7 @@ local alert_keys = require "alert_keys"
 -- @param value The latest measured value
 -- @param quota The quota set
 -- @return A table with the alert built
-local function buildPoolQuotaExceeded(alert_severity, alert_subtype, pool, proto, value, quota)
+local function createPoolQuotaExceeded(alert_severity, alert_subtype, pool, proto, value, quota)
    local host_pools_utils = require("host_pools_utils")
 
    local built = {
@@ -64,5 +64,5 @@ return {
   i18n_title = "alerts_dashboard.quota_exceeded",
   i18n_description = quotaExceededFormatter,
   icon = "fas fa-thermometer-full",
-  builder = buildPoolQuotaExceeded,
+  creator = createPoolQuotaExceeded,
 }

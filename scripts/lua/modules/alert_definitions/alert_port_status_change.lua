@@ -13,7 +13,7 @@ local alert_keys = require "alert_keys"
 -- @param interface_name The string with the name of the port that changed
 -- @param status A string with the new status
 -- @return A table with the alert built
-local function buildPortStatusChange(alert_severity, device_ip, if_index, interface_name, status)
+local function createPortStatusChange(alert_severity, device_ip, if_index, interface_name, status)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
@@ -47,5 +47,5 @@ return {
   i18n_title = "alerts_dashboard.snmp_port_status_change",
   i18n_description = portStatusChangeFormatter,
   icon = "fas fa-exclamation",
-  builder = buildPortStatusChange,
+  creator = createPortStatusChange,
 }

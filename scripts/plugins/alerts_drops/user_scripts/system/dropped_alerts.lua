@@ -35,7 +35,7 @@ function script.hooks.min(params)
 
     local new_dropped_alerts = interface.checkDroppedAlerts()
 
-    local alert_type = alert_consts.alert_types.alert_dropped_alerts.builder(
+    local alert_type = alert_consts.alert_types.alert_dropped_alerts.create(
        alert_consts.alert_severities.error,
        alert_consts.alerts_granularities.min,
        interface.getId(),

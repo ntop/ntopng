@@ -48,7 +48,7 @@ function script.hooks.protocolDetected(now)
     end
 
     flow.triggerStatus(
-       flow_consts.status_types.status_device_protocol_not_allowed.builder(
+       flow_consts.status_types.status_device_protocol_not_allowed.create(
 	  flow_consts.status_types.status_device_protocol_not_allowed.alert_severity,
 	  alert_info["cli.devtype"],
 	  alert_info["srv.devtype"],
