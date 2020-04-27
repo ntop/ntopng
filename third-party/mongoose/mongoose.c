@@ -4802,15 +4802,11 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
 }
 #endif // NO_SSL_DL
 
-// #ifdef UNUSED_CODE
+#if !defined(NO_SSL)
 
 static unsigned long ssl_id_callback(void) {
   return (unsigned long) pthread_self();
 }
-
-// #endif /* UNUSED_CODE */
-
-#if !defined(NO_SSL)
 
 static void ssl_locking_callback(int mode, int mutex_num, const char *file,
 				 int line) {
