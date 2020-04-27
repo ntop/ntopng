@@ -318,7 +318,12 @@ function am_utils.getHosts(config_only, granularity)
     local host = deserializeAmPrefs(host_key, val, config_only)
 
     if host and ((granularity == nil) or (host.granularity == granularity)) then
-      rv[host_key] = host
+      -- Ensure that the measurement is still available
+      local m_info = am_utils.getMeasurementInfo(host.measurement)
+
+      if(m_info ~= nil) then
+        rv[host_key] = host
+      end
     end
   end
 
