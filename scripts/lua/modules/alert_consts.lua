@@ -416,8 +416,18 @@ end
 
 function alert_consts.alertSeverity(v)
    return(alert_consts.alert_severities[v].severity_id)
- end
+end
  
+-- ################################################################################
+
+function alert_consts.alertSeverityById(severity_id)
+   local key = alert_consts.alertSeverityRaw(severity_id)
+   if key == nil then 
+      return alert_consts.alert_severities.error
+   end
+   return(alert_consts.alert_severities[key])
+end
+
 -- ################################################################################
  
 function alert_consts.alertTypeRaw(type_id)
@@ -428,7 +438,7 @@ function alert_consts.alertTypeRaw(type_id)
        return(key)
      end
    end
- end
+end
 
  -- ################################################################################
 
@@ -441,7 +451,7 @@ local function alertEngineRaw(granularity_id)
        return(key)
      end
    end
- end
+end
  
 -- ################################################################################
  

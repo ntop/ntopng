@@ -63,6 +63,7 @@ end
 
 local function parseAlertMetadata(event_alert, flow)
    local severity = alert_consts.alert_severities.error
+
    if event_alert.severity ~= nil and event_alert.severity > 1 then
       severity = alert_consts.alert_severities.warning
    end

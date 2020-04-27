@@ -5,6 +5,7 @@
 local flow_consts = require("flow_consts")
 local json = require ("dkjson")
 local user_scripts = require ("user_scripts")
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -31,11 +32,10 @@ function script.hooks.periodicUpdate(now)
     if info ~= nil then
        flow.triggerStatus(
 	  flow_consts.status_types.status_external_alert.create(
-	     alert_consts.alert_severities.error,
-	     info
+             alert_consts.alertSeverityById(info.severity_id),
+             info
 	  ),
-	  nil, nil, nil,
-	  info.severity_id)
+	  nil, nil, nil)
     end
   end
 end

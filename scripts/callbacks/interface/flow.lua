@@ -39,7 +39,6 @@ local available_modules = nil
 local alerted_status
 local alert_type_params
 local alerted_status_score
-local alerted_custom_severity
 local hosts_disabled_status
 local confset_id
 local alerted_user_script
@@ -225,7 +224,7 @@ local function triggerFlowAlert(now, l4_proto)
 
    local triggered = flow.triggerAlert(status_key,
       alerted_status.alert_type.alert_key,
-      alerted_custom_severity or alerted_status.alert_severity.severity_id,
+      alerted_status.alert_severity.severity_id,
       now, alert_type_params)
 
    return(triggered)
@@ -296,7 +295,6 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    -- Reset predominant status information
    alerted_status = nil
    alert_type_params = nil
-   alerted_custom_severity = nil
    alerted_status_score = -1
 
    if hooks then
@@ -400,7 +398,7 @@ end
 -- @brief This provides an API that flow user_scripts can call in order to
 -- set a flow status bit. The status_info of the predominant status is
 -- saved for later use.
-function flow.triggerStatus(status_info, flow_score, cli_score, srv_score, custom_severity)
+function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
    local flow_status_type = status_info.status_type
    local status_key = flow_status_type.status_key
    flow_score = flow_score or 0
@@ -428,7 +426,6 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score, custo
       -- The new alerted status as an higher score
       alerted_status = flow_status_type
       alert_type_params = status_info["alert_type_params"] or {}
-      alerted_custom_severity = custom_severity -- possibly nil
       alerted_status_score = flow_score
       alerted_user_script = cur_user_script
    end
