@@ -32,9 +32,7 @@ the system is used. After the installation, ntopng is started and active on loca
 (i.e. ntopng is available at http://127.0.0.1:3000). If you want to deinstall ntopng you can
 open a terminal and type :code:`sudo /usr/local/bin/ntopng-uninstall.sh`
 
-Similar to the other platforms, the MacOS packages does not include geolocation files as
-described later in this section. Such files must be installed in /usr/local/share/ntopng/httpdocs/geoip
-and ntopng be restarted in order to use them.
+To enable geolocation, MacOS packages require database files to be manually placed under :code:`/usr/local/share/ntopng/httpdocs/geoip`. Detailed instructions on how to obtain database files and install them are available at https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md/. Once the files have been downloaded and placed in the folder, a restart of ntopng is necessary to read load them.
 
 The ntopng configuration file is installed in /usr/local/etc/ntopng/ntopng.conf that can be edited
 (as privileged user) with a text editor.
