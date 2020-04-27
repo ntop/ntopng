@@ -16,10 +16,12 @@ local alert_keys = require "alert_keys"
 local function buildDeviceProtocolNotAllowed(alert_severity, cli_devtype, srv_devtype, devproto_forbidden_peer, devproto_forbidden_id)
    local built = {
       alert_severity = alert_severity,
-      ["cli.devtype"] = cli_devtype,
-      ["srv.devtype"] = srv_devtype,
-      devproto_forbidden_peer = devproto_forbidden_peer,
-      devproto_forbidden_id = devproto_forbidden_id
+      alert_type_params = {
+	 ["cli.devtype"] = cli_devtype,
+	 ["srv.devtype"] = srv_devtype,
+	 devproto_forbidden_peer = devproto_forbidden_peer,
+	 devproto_forbidden_id = devproto_forbidden_id
+      }
    }
 
    return built

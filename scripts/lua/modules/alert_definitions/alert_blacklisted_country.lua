@@ -16,10 +16,12 @@ local alert_keys = require "alert_keys"
 local function buildBlacklistedCountry(alert_severity, cli_country, srv_country, cli_blacklisted, srv_blacklisted)
    local built = {
       alert_severity = alert_severity,
-      cli_country = cli_country,
-      srv_country = srv_country,
-      cli_blacklisted = cli_blacklisted,
-      srv_blacklisted = srv_blacklisted,
+      alert_type_params = {
+	 cli_country = cli_country,
+	 srv_country = srv_country,
+	 cli_blacklisted = cli_blacklisted,
+	 srv_blacklisted = srv_blacklisted,
+      }
    }
 
    return built

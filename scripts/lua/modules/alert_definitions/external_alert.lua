@@ -13,7 +13,7 @@ local alert_keys = require "alert_keys"
 local function buildExternal(alert_severity, info)
    local built = {
       alert_severity = alert_severity,
-      info = info
+      alert_type_params = info,
    }
 
    return built

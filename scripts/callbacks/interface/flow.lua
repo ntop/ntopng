@@ -37,7 +37,7 @@ local available_modules = nil
 
 -- Keeps information about the current predominant alerted status
 local alerted_status
-local alerted_status_msg
+local alert_type_params
 local alerted_status_score
 local alerted_custom_severity
 local hosts_disabled_status
@@ -212,24 +212,21 @@ local function triggerFlowAlert(now, l4_proto)
 			 alert_consts.alertSeverityRaw(alerted_status.alert_severity.severity_id)))
    end
 
-   alerted_status_msg = alerted_status_msg or {}
+   alert_type_params = alert_type_params or {}
 
-   if type(alerted_status_msg) == "table" then
+   if type(alert_type_params) == "table" then
       -- NOTE: porting this to C is not feasable as the lua table can contain
       -- arbitrary data
-      augumentFlowStatusInfo(l4_proto, alerted_status_msg)
-      alerts_api.addAlertGenerationInfo(alerted_status_msg, alerted_user_script, confset_id)
+      augumentFlowStatusInfo(l4_proto, alert_type_params)
+      alerts_api.addAlertGenerationInfo(alert_type_params, alerted_user_script, confset_id)
 
-      -- Need to convert to JSON
-      alerted_status_msg["status_type"] = nil -- Remove status_type reference added by flow_consts.lua wrapper
-      alerted_status_msg["alert_type"] = nil -- Remove alert_type reference added by alert_consts.lua wrapper
-      alerted_status_msg = json.encode(alerted_status_msg)
+      alert_type_params = json.encode(alert_type_params)
    end
 
    local triggered = flow.triggerAlert(status_key,
       alerted_status.alert_type.alert_key,
       alerted_custom_severity or alerted_status.alert_severity.severity_id,
-      now, alerted_status_msg)
+      now, alert_type_params)
 
    return(triggered)
 end
@@ -298,7 +295,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 
    -- Reset predominant status information
    alerted_status = nil
-   alerted_status_msg = nil
+   alert_type_params = nil
    alerted_custom_severity = nil
    alerted_status_score = -1
 
@@ -431,7 +428,7 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score, custo
 	 ((flow_score == alerted_status_score) and (new_status.status_key < alerted_status.status_key))) then
       -- The new alerted status as an higher score
       alerted_status = new_status
-      alerted_status_msg = status_info
+      alert_type_params = status_info["alert_type_params"] or {}
       alerted_custom_severity = custom_severity -- possibly nil
       alerted_status_score = flow_score
       alerted_user_script = cur_user_script

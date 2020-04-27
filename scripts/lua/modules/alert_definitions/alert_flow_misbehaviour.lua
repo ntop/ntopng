@@ -14,8 +14,10 @@ local alert_keys = require "alert_keys"
 local function buildFlowMisbehaviour(alert_severity, l2r_threshold, r2l_threshold)
    local built = {
       alert_severity = alert_severity,
-      ["elephant.l2r_threshold"] = l2r_threshold,
-      ["elephant.r2l_threshold"] = r2l_threshold,
+      alert_type_params = {
+	 ["elephant.l2r_threshold"] = l2r_threshold,
+	 ["elephant.r2l_threshold"] = r2l_threshold,
+      }
    }
 
    return built

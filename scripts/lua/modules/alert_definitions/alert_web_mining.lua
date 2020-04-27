@@ -12,6 +12,8 @@ local alert_keys = require "alert_keys"
 local function buildWebMining(alert_severity)
    local built = {
       alert_severity = alert_severity,
+      alert_type_params = {
+      }
    }
 
    return built
