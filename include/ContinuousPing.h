@@ -64,11 +64,12 @@ class ContinuousPingStats {
 class ContinuousPing {
  private:
   std::map<std::string /* IP */, ContinuousPingStats* /* stats */> v4_results, v6_results;
+  Ping *pinger;
   pthread_t poller;
   Mutex m;
 
-  void pingAll(Ping *pinger);
-  void readPingResults(Ping *pinger);
+  void pingAll();
+  void readPingResults();
   
  public:
   ContinuousPing();

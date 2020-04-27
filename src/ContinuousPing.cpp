@@ -53,7 +53,15 @@ static void* pollerFctn(void* ptr) {
 /* ***************************************** */
 
 ContinuousPing::ContinuousPing() {
-  pthread_create(&poller, NULL, pollerFctn, (void*)this);
+  try {
+    pinger = new Ping();
+
+    if(pinger)
+      pthread_create(&poller, NULL, pollerFctn, (void*)this);
+  } catch(...) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to crete continuous pinger");
+    pinger = NULL;
+  }
 }
 
 /* ***************************************** */
@@ -64,6 +72,8 @@ ContinuousPing::~ContinuousPing() {
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it)
     delete it->second;
+
+  delete pinger;
 }
 
 /* ***************************************** */
@@ -98,7 +108,7 @@ void ContinuousPing::ping(char *_addr, bool use_v6) {
 
 /* ***************************************** */
 
-void ContinuousPing::pingAll(Ping *pinger) {
+void ContinuousPing::pingAll() {
   m.lock(__FILE__, __LINE__);
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it)
@@ -112,7 +122,7 @@ void ContinuousPing::pingAll(Ping *pinger) {
 
 /* ***************************************** */
 
-void ContinuousPing::readPingResults(Ping *pinger) {
+void ContinuousPing::readPingResults() {
   m.lock(__FILE__, __LINE__);
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
@@ -182,28 +192,19 @@ void ContinuousPing::collectResponses(lua_State* vm) {
 /* ***************************************** */
 
 void ContinuousPing::runPingCampaign() {
-  if(!ntop->isStarted()) {
-    sleep(1);
-    return;
-  }
-  
-  try {
-    Ping *pinger = new Ping();
-
+  if(ntop->isStarted() && (v4_results.size() || v6_results.size())) {
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting ping campaign");
 #endif
 
-    pingAll(pinger);
+    pinger->cleanup();
+    pingAll();
     sleep(1);
     pinger->pollResults(false);
-    readPingResults(pinger);
-
-    delete pinger;
-    sleep(1);
-  } catch(std::bad_alloc& ba) {
-    sleep(1);
+    readPingResults();
   }
+
+  sleep(1);
 }
 
 #endif /* WIN32 */

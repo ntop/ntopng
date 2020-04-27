@@ -60,12 +60,21 @@ Ping::Ping() {
   ping_id = rand(), cnt = 0;
   running = true;
 
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+  if(Utils::gainWriteCapabilities() == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
+#endif
+
 #if defined(__APPLE__)
   sd  = socket(AF_INET,  SOCK_DGRAM, IPPROTO_ICMP);
   sd6 = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 #else
   sd  = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
   sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+#endif
+  
+#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+  Utils::dropWriteCapabilities();
 #endif
 
   if(sd == -1)
@@ -325,6 +334,14 @@ float Ping::getRTT(std::string who) {
   m.unlock(__FILE__, __LINE__);
 
   return(f);
+}
+
+/* ****************************************************** */
+
+void Ping::cleanup() {
+  m.lock(__FILE__, __LINE__);
+  results.clear();
+  m.unlock(__FILE__, __LINE__);
 }
 
 /* ****************************************************** */

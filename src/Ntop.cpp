@@ -77,7 +77,11 @@ Ntop::Ntop(char *appName) {
   malicious_ja3 = malicious_ja3_shadow = NULL;
   new_malicious_ja3 = new std::set<std::string>();
   system_interface = NULL;
+#if 1
   cping = NULL;
+#else
+  cping = new ContinuousPing();
+#endif
   
   /* nDPI handling */
   last_ndpi_reload = 0;

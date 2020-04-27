@@ -1502,22 +1502,13 @@ static int ntop_ping_host(lua_State* vm) {
     continuous = lua_toboolean(vm, 3) ? true : false;  
 
   if(!continuous) {
-    /* One shot ping */
+    /* Pin one shot */
     
     if(getLuaVMUservalue(vm, ping) == NULL) {
       Ping *ping;
 
       try {
-#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
-	if(Utils::gainWriteCapabilities() == -1)
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
-#endif
-
 	ping = new Ping();
-
-#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
-	Utils::dropWriteCapabilities();
-#endif
       } catch(...) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
 	ping = NULL;
@@ -1532,7 +1523,7 @@ static int ntop_ping_host(lua_State* vm) {
 
     getLuaVMUservalue(vm, ping)->ping(host, is_v6);
   } else {
-    /* This is a continuous ping */
+    /* This is a continuous ping instead */
     ContinuousPing *c = ntop->getContinuousPing();
     
     if(c)

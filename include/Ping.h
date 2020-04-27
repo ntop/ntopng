@@ -47,6 +47,7 @@ class Ping {
   void pollResults(bool wait_forever);
   void collectResponses(lua_State* vm);
   float getRTT(std::string who);
+  void cleanup();
 };
 
 #endif /* WIN32    */
