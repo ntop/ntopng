@@ -138,6 +138,8 @@ return {
       },
       -- If set, the user cannot change the host
       force_host = nil,
+      -- An alternative localization string for the unrachable alert message
+      unreachable_alert_i18n = nil,
     }, {
       key = "https",
       i18n_label = "https",
@@ -160,6 +162,7 @@ return {
 	"active_monitoring_stats.other_https_descr"
       },
       force_host = nil,
+      unreachable_alert_i18n = nil,
     },
   },
 

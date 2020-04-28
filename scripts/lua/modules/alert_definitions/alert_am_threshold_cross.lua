@@ -49,9 +49,17 @@ local function thresholdCrossFormatter(ifid, alert, info)
    end
 
    if(info.value == 0) then -- host unreachable
-      msg = i18n("alert_messages.ping_host_unreachable_v3",
+      if(info.alt_i18n) then
+	 -- The measurement may have defined a custom message via unreachable_alert_i18n
+	 msg = i18n(info.alt_i18n) or info.alt_i18n
+      end
+
+      -- Fallback
+      if isEmptyString(msg) then
+	 msg = i18n("alert_messages.ping_host_unreachable_v3",
 		 {host = ip_label,
 		  numeric_ip = numeric_ip})
+      end
    else -- host too slow
       if info.operator == "lt" then
 	 i18n_s = "alert_messages.measurement_too_low_msg"

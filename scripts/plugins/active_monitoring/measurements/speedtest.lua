@@ -116,6 +116,8 @@ return {
 	 i18n_chart_notes = {},
 	 -- If set, the user cannot change the host
 	 force_host = "speedtest.net",
+	 -- An alternative localization string for the unrachable alert message
+	 unreachable_alert_i18n = "alert_messages.speedtest_failed",
       },
    },
 

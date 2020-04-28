@@ -606,6 +606,17 @@ function am_utils.triggerAlert(numeric_ip, ip_label, current_value, upper_thresh
   local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
   local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity, entity_info)
 
+  if(current_value == 0) then
+    -- Unreachable
+    local host, measurement = key2amhost(ip_label)
+    local info = am_utils.getMeasurementInfo(measurement)
+
+    if info and info.unreachable_alert_i18n then
+      -- The measurement provides an alternative message for the alert
+      type_info.alert_type_params.alt_i18n = info.unreachable_alert_i18n
+    end
+  end
+
   return alerts_api.trigger(entity_info, type_info)
 end
 

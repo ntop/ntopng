@@ -396,6 +396,7 @@ local lang = {
     ["slow_periodic_activity"] = "Periodic activity \"%{script}\" running for too long [more than %{max_duration}] or executed too late (blocked in queue).",
     ["slow_purge"] = "<a href=\"%{url}\">Hash table idle entries</a> purging on %{iface} is too slow. This could lead to high memory utilization, data accuracy loss and missing alerts. [&gt %{max_idle}%%]",
     ["slow_stats_update"] = "Statistics update on %{iface} is too slow. This could lead to data accuracy loss and missing alerts. Update frequency can be tuned by the <a href=\"%{url}\">%{pref_name}</a> preference.",
+    ["speedtest_failed"] = "Speedtest execution failed",
     ["subject_quota_exceeded"] = "Host pool <a href=\"%{url}\">%{pool}</a> exceeded %{subject} quota [%{value} &gt; %{quota}]",
     ["syn_flood_attacker"] = "%{entity} is a SYN flooder [%{value} &gt; %{threshold} SYN sent]",
     ["syn_flood_victim"] = "%{entity} is under SYN flood attack [%{value} &gt; %{threshold} SYN received]",
