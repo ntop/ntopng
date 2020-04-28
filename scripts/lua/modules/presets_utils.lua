@@ -49,6 +49,11 @@ end
 local function addProtocolByName(device_type_name, client_or_server, proto_name, action)
    createPreset(device_type_name)
    local proto_id = interface.getnDPIProtoId(proto_name)
+
+   if(proto_id == -1) then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown device protocol: " .. proto_name)
+   end
+
    presets_utils.policies[device_type_name][client_or_server][tonumber(proto_id)] = action
 end
 
@@ -90,8 +95,8 @@ function presets_utils.init()
    addPreset('iot', basic_policy)
    addProtocolByName('iot', 'client', 'HTTP',      presets_utils.ALLOW)
    addProtocolByName('iot', 'server', 'HTTP',      presets_utils.ALLOW)
-   addProtocolByName('iot', 'client', 'SSL',       presets_utils.ALLOW)
-   addProtocolByName('iot', 'server', 'SSL',       presets_utils.ALLOW)
+   addProtocolByName('iot', 'client', 'TLS',       presets_utils.ALLOW)
+   addProtocolByName('iot', 'server', 'TLS',       presets_utils.ALLOW)
 
    addPresetFrom('video', 'iot')
    addProtocolByName('video', 'server', 'RTP',     presets_utils.ALLOW)
@@ -100,7 +105,7 @@ function presets_utils.init()
    -- Multimedia like devices
    addPreset('multimedia', basic_policy)
    addProtocolByName('multimedia', 'client', 'HTTP',        presets_utils.ALLOW)
-   addProtocolByName('multimedia', 'client', 'SSL',         presets_utils.ALLOW)
+   addProtocolByName('multimedia', 'client', 'TLS',         presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'RTP',         presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'RTSP',        presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'NetFlix',     presets_utils.ALLOW)
@@ -113,6 +118,7 @@ function presets_utils.init()
    addProtocolByName('multimedia', 'client', 'Spotify',     presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'Skype',       presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'SkypeCall',   presets_utils.ALLOW)
+   addProtocolByName('multimedia', 'client', 'SSDP',        presets_utils.ALLOW)
 
    addPresetFrom('tv', 'multimedia')
 
@@ -129,7 +135,7 @@ function presets_utils.init()
    -- Printer devices
    addPreset('printer', basic_policy)
    addProtocolByName('printer', 'server', 'HTTP',    presets_utils.ALLOW)
-   addProtocolByName('printer', 'server', 'SSL',     presets_utils.ALLOW)
+   addProtocolByName('printer', 'server', 'TLS',     presets_utils.ALLOW)
    addProtocolByName('printer', 'server', 'SNMP',    presets_utils.ALLOW)
 
    -----------------------------------------------------------------------------
