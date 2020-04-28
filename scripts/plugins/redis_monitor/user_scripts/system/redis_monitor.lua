@@ -18,10 +18,6 @@ local script = {
   -- See below
   hooks = {},
 
-  -- This script is disabled on windows since many of the required stats
-  -- (e.g. aof_last_bgrewrite_status) are not available.
-  windows_exclude = true,
-
   gui = {
     i18n_title = "system_stats.redis.redis_monitor",
     i18n_description = "system_stats.redis.redis_monitor_description",
@@ -47,8 +43,13 @@ function script.hooks.min(params)
 	 old_hits_stats = {}
       end
 
-      ts_utils.append("redis:memory", {ifid = ifid, resident_bytes = stats["memory"]}, when)
-      ts_utils.append("redis:keys", {ifid = ifid, num_keys = stats["dbsize"]}, when)
+      if stats["memory"] then
+         ts_utils.append("redis:memory", {ifid = ifid, resident_bytes = stats["memory"]}, when)
+      end
+
+      if stats["dbsize"] then
+         ts_utils.append("redis:keys", {ifid = ifid, num_keys = stats["dbsize"]}, when)
+      end
 
       for key, val in pairs(hits_stats) do
 	 if(old_hits_stats[key] ~= nil) then
@@ -94,6 +95,11 @@ end
 local function getHealth(redis_status)
    local health = "green"
 
+   if ntop.isWindows() then
+      -- See Windows note in script.getStats()
+      return health
+   end
+
    if redis_status["aof_enabled"] and redis_status["aof_enabled"] ~= 0 then
       -- If here the use of Redis Append Only File (AOF) is enabled
       -- so we should check for its errors
@@ -111,6 +117,11 @@ end
 
 -- ##############################################
 
+-- NOTE: on Windows, some stats are missing from script.getRedisStatus():
+--    - aof_last_bgrewrite_status
+--    - aof_last_write_status
+--    - rdb_last_bgsave_status
+--    - dbsize
 function script.getStats()
    local redis_status = script.getRedisStatus()
 
