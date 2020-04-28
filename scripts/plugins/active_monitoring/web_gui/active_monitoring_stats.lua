@@ -148,6 +148,7 @@ if(page == "overview") then
                 <th>]].. i18n("active_monitoring_stats.last_measurement") .. [[</th>
                 <th>]].. i18n("system_stats.last_ip") .. [[</th>
                 <th>]].. i18n("active_monitoring_stats.measurement") .. [[</th>
+                <th>]].. i18n("active_monitoring_stats.alerted") .. [[</th>
                 <th>]].. i18n("actions") .. [[</th>
               </tr>
             </thead>
@@ -351,7 +352,9 @@ if(page == "overview") then
       i18n.expired_csrf = "]] .. i18n("expired_csrf") .. [[";
       i18n.all = "]] .. i18n("all") .. [[";
       i18n.measurement = "]] .. i18n("active_monitoring_stats.measurement") .. [[";
-
+      i18n.alert_status = "]].. i18n("active_monitoring_stats.alert_status") ..[[";
+      i18n.alerted = "]].. i18n("active_monitoring_stats.alerted") ..[[";
+      i18n.not_alerted = "]].. i18n("active_monitoring_stats.not_alerted") ..[[";
 
       let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
       let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";

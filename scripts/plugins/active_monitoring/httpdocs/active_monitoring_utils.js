@@ -237,58 +237,69 @@ $(document).ready(function() {
         }
     }
 
-    const addFilterDropdown = (title, values, column_index, datatableFilterId, tableApi) => {
+    const addFilterDropdown = (title, filters, column_index, filter_id, table_api) => {
 
-        const createEntry = (val, callback) => {
-            const $entry = $(`<li class='dropdown-item pointer'>${val}</li>`);
+        /*
+            This example show how to define a filters array:
+                [
+                    {
+                        key: '',
+                        label: 'label1',
+                        regex: 'http://'
+                    }
+                ]
+        */
+
+        const createEntry = (val, key, callback) => {
+            const $entry = $(`<li data-filter-key='${key}' class='dropdown-item pointer'>${val}</li>`);
             $entry.click(function(e) {
 
+                // set active filter title
                 $dropdownTitle.html(`<i class='fas fa-filter'></i> ${val}`);
+                // remove the active class from the li elements
                 $menuContainer.find('li').removeClass(`active`);
+                // add active class to current entry
                 $entry.addClass(`active`);
-                callback(e);
+                // if there is a callback then invoked it
+                if (callback) callback(e);
             });
-
             return $entry;
         }
 
         const dropdownId = `${title}-filter-menu`;
-        if ($(`#${title}-filter-menu`).length > 0) $(`#${title}-filter-menu`).remove();
-
         const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
         const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
         const $dropdownTitle = $(`<span>${title}</span>`);
         $dropdownButton.append($dropdownTitle);
 
         const $menuContainer = $(`<ul class='dropdown-menu' id='${title}-filter'></ul>`);
-        for (let [key, value] of Object.entries(values)) {
-            const $entry = createEntry(`${key} (${value})`, (e) => {
-                tableApi.column(column_index).search(`${key}://`).draw(true);
+
+        // for each filter defined in filters create a dropdown item <li>
+        for (let filter of filters) {
+
+            const $entry = createEntry(filter.label, filter.key, (e) => {
+                table_api.column(column_index).search(filter.regex, true).draw(true);
             });
             $menuContainer.append($entry);
         }
 
-        const $allEntry = createEntry(i18n.all, (e) => {
+        // add all filter
+        const $allEntry = createEntry(i18n.all, 'all', (e) => {
             $dropdownTitle.html(`${title}`);
-            $menuContainer.find('li').removeClass(`active`);
-            tableApi.columns().search('').draw(true);
+            table_api.columns(column_index).search('').draw(true);
         });
 
-        $menuContainer.prepend($allEntry);
-
-        $dropdownContainer.append($dropdownButton, $menuContainer);
-        $(datatableFilterId).prepend($dropdownContainer);
+        // append the created dropdown inside
+        $(filter_id).prepend($dropdownContainer.append($dropdownButton, $menuContainer.prepend($allEntry)));
 
     }
 
-    const addMeasurementFilter = (tableInstance, data) => {
+    const addMeasurementFilter = (table_api, data) => {
 
         // get all the measurements available and their count
         const measurements = {};
         data.forEach((v) => {
-
-            const measurement = v.measurement.toUpperCase();
-
+            const measurement = v.measurement;
             if (!(measurement in measurements)) {
                 measurements[measurement] = 1;
                 return;
@@ -296,7 +307,48 @@ $(document).ready(function() {
             measurements[measurement]++;
         });
 
-        addFilterDropdown(i18n.measurement, measurements, 0, "#am-table_filter", tableInstance);
+        const measurements_labels = {
+            icmp: "ICMP",
+            http: "HTTP",
+            https: "HTTPS",
+            icmp6: "ICMPv6",
+            speedtest: "SpeedTest"
+        };
+
+        // build filters for datatable
+        const filters = [];
+        for (let [measurement, count] of Object.entries(measurements)) {
+            filters.push({
+                key: measurement,
+                label: `${measurements_labels[measurement]} (${count})`,
+                regex: `${measurement}\:\/\/`
+            });
+        }
+
+        // sort the created filters
+        filters.sort((a, b) => a.label.localeCompare(b.label));
+
+        const MEASUREMENT_COLUMN_INDEX = 0;
+        addFilterDropdown(i18n.measurement, filters, MEASUREMENT_COLUMN_INDEX, "#am-table_filter", table_api);
+    }
+
+    const addAlertedFilter = (table_api) => {
+
+        const filters = [
+            {
+                key: 'alerted',
+                label: i18n.alerted,
+                regex: `1`
+            },
+            {
+                key: 'not_alerted',
+                label: i18n.not_alerted,
+                regex: `0`
+            }
+        ]
+
+        const ALERTED_COLUMN_INDEX = 8;
+        addFilterDropdown(i18n.alert_status, filters, ALERTED_COLUMN_INDEX, "#am-table_filter", table_api);
     }
 
     const $am_table = $("#am-table").DataTable({
@@ -323,6 +375,7 @@ $(document).ready(function() {
 
             const table = settings.oInstance.api();
             addMeasurementFilter(table, data);
+            addAlertedFilter(table);
 
             setInterval(() => {
                 $am_table.ajax.reload()
@@ -383,7 +436,7 @@ $(document).ready(function() {
                 data: 'chart',
                 class: 'text-center',
                 sortable: false,
-                render: function(href, type, row) {
+                 render: function(href, type, row) {
                     if(type === 'display' || type === 'filter') {
                         if (href == "" || href == undefined) return "";
                         return `<a href='${href}'><i class='fas fa-chart-area'></i></a>`
@@ -461,6 +514,11 @@ $(document).ready(function() {
 
             },
             {
+                data: 'alerted',
+                visible: false,
+                sortable: false,
+            },
+            {
                 targets: -1,
                 data: null,
                 sortable: false,
@@ -476,6 +534,14 @@ $(document).ready(function() {
         ]
     });
 
+    $("#select-add-measurement").on('change', function(event) {
+        dialogRefreshMeasurement($("#am-add-modal"));
+    });
+
+    $("#select-edit-measurement").on('change', function(event) {
+        dialogRefreshMeasurement($("#am-edit-modal"));
+    });
+
     importModalHelper({
         load_config_xhr: (json_conf) => {
           return $.post(http_prefix + "/plugins/import_active_monitoring_config.lua", {
@@ -487,11 +553,4 @@ $(document).ready(function() {
         }
     });
 
-    $("#select-add-measurement").on('change', function(event) {
-        dialogRefreshMeasurement($("#am-add-modal"));
-    });
-
-    $("#select-edit-measurement").on('change', function(event) {
-        dialogRefreshMeasurement($("#am-edit-modal"));
-    });
 });
