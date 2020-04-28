@@ -17,9 +17,6 @@ local script = {
   -- This module is enabled by default
   default_enabled = true,
 
-  -- Exclude this script in Windows (as the ICMP monitor is not working there)
-  windows_exclude = true,
-
   -- No default configuration is provided
   default_value = {},
 
