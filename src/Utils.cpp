@@ -4303,3 +4303,22 @@ bool Utils::isNumber(const char *s, unsigned int s_len, bool *is_float) {
 
 /* ****************************************************** */
 
+bool Utils::isPingSupported() {
+#ifndef WIN32
+    int sd;
+
+#if defined(__APPLE__)
+    sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+#else
+    sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
+#endif
+
+    if (sd != -1) {
+        close(sd);
+
+        return(true);
+    }
+#endif
+
+    return(false);
+}

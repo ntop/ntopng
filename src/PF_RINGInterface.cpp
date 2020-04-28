@@ -171,7 +171,7 @@ void PF_RINGInterface::singlePacketPollLoop() {
       }
     } else {
       if(sleep_time < max_sleep) sleep_time += step_sleep;
-      usleep(sleep_time);
+      _usleep(sleep_time);
       purgeIdle(time(NULL));
     }
   }
@@ -218,7 +218,7 @@ void PF_RINGInterface::multiPacketPollLoop() {
       }
     } else {
       if(sleep_time < max_sleep) sleep_time += step_sleep;
-      usleep(sleep_time);
+      _usleep(sleep_time);
       purgeIdle(time(NULL));
     }
 

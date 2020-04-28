@@ -206,6 +206,7 @@ class Utils {
   static u_int16_t country2u16(const char *country_code);
   static int snappend(char *str, size_t size, const char *tobeappended, const char *separator);
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
+  static bool isPingSupported();
 };
 
 #endif /* _UTILS_H_ */

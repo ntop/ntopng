@@ -81,9 +81,10 @@ Ntop::Ntop(char *appName) {
   cping = NULL;
 #endif
   privileges_dropped = false;
+  can_send_icmp = Utils::isPingSupported();
 
 #ifndef WIN32
-  if((can_send_icmp = Ping::isSupported()) == true)
+  if(can_send_icmp)
     cping = new ContinuousPing();
 #endif
 

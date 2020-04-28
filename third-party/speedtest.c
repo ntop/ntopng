@@ -329,7 +329,7 @@ static void loop_threads(struct thread_para *p_thread,
       //printf("p_thread[i].now = %lf\n", p_thread[i].now);
     }
 
-    usleep(RECORED_EVERY_SEC*1000*1000); //0.2s
+    _usleep(RECORED_EVERY_SEC*1000*1000); //0.2s
     if (sum == 0 && num_speed == 0)
       continue;
 

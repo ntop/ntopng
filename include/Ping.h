@@ -48,7 +48,6 @@ class Ping {
   void collectResponses(lua_State* vm);
   float getRTT(std::string who);
   void cleanup();
-  static bool isSupported();
 };
 
 #endif /* WIN32    */

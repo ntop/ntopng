@@ -102,7 +102,7 @@ void ZCCollectorInterface::collect_flows() {
       }
       // fprintf(stdout, "."); fflush(stdout);
     } else if(rc == 0) {
-      usleep(1);
+      _usleep(1);
       purgeIdle(time(NULL));
       // fprintf(stdout, "*"); fflush(stdout);
     } else {

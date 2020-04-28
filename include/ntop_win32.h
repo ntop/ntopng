@@ -105,6 +105,9 @@ extern void win_usleep(__int64 usec);
 #define HAS_POLL
 #define NO_CGI
 
+/* speedtest */
+#define HAVE_EXPAT
+
 #ifndef PATH_MAX
 #define PATH_MAX MAX_PATH
 #endif
