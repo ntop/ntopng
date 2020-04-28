@@ -10,7 +10,7 @@
 #include "expat.h"
 
 #define URL_LENGTH_MAX       255
-#define THREAD_NUM_MAX       10
+#define THREAD_NUM_MAX       1
 #define UPLOAD_EXT_LENGTH_MAX 5
 #define SPEEDTEST_TIME_MAX   10
 #define CUNTRY_NAME_MAX      64
@@ -46,7 +46,9 @@ struct thread_para
   long         chunk_size;
   double       now;
   char         finish;
+#if THREAD_NUM_MAX > 1
   pthread_mutex_t lock;
+#endif
 };
 
 
@@ -88,9 +90,13 @@ static size_t write_data(void* ptr, size_t size, size_t nmemb, void *stream)
   struct thread_para *p_thread = (struct thread_para*)stream;
   if (p_thread) {
     //p_thread->data++;
+#if THREAD_NUM_MAX > 1
     pthread_mutex_lock(&p_thread->lock);
+#endif
     p_thread->now += size * nmemb;
+#if THREAD_NUM_MAX > 1
     pthread_mutex_unlock(&p_thread->lock);
+#endif
   }
   return size * nmemb;
 }
@@ -322,10 +328,14 @@ static void loop_threads(struct thread_para *p_thread,
     for (i = 0;i < num_thread; i++) {
       if (p_thread[i].finish == 0)
         alive = 1;
+#if THREAD_NUM_MAX > 1
       pthread_mutex_lock(&p_thread->lock);
+#endif
       sum += p_thread[i].now;
       p_thread[i].now = 0;
+#if THREAD_NUM_MAX > 1
       pthread_mutex_unlock(&p_thread->lock);
+#endif
       //printf("p_thread[i].now = %lf\n", p_thread[i].now);
     }
 
@@ -428,6 +438,11 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
     paras[i].result = 0;
 
     //error = 
+
+#if THREAD_NUM_MAX > 1
+    pthread_mutex_init(paras[i].lock, NULL);
+#endif
+
     pthread_create(&paras[i].tid, NULL, do_download, (void*)&paras[i]);
 
     // if ( error != 0) printf("Can't Run thread num %d, error %d\n", i, error);
@@ -484,9 +499,13 @@ static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
 
   para->chunk_size -= length;
 
-  pthread_mutex_lock(&para->lock);
+#if THREAD_NUM_MAX > 1
+  pthread_mutex_lock(&para);
+#endif
   para->now += length;
+#if THREAD_NUM_MAX > 1
   pthread_mutex_unlock(&para->lock);
+#endif
   //printf("length = %d\n", length);
   return  length;
 }
