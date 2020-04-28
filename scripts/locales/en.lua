@@ -357,7 +357,8 @@ local lang = {
   ["alert_messages"] = {
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
     ["anomalous_tcp_flags"] = "%{entity} has %{sent_or_rcvd} too many TCP RST flags vs SYN [Ratio: %{ratio}%%]",
-    ["broadcast_domain_too_large"] = "ARP traffic from <a href=\"%{src_mac_url}\">%{src_mac}</a>/<a href=\"%{spa_url}\">%{spa}</a> to <a href=\"%{dst_mac_url}\">%{dst_mac}</a>/<a href=\"%{tpa_url}\">%{tpa}</a> detected. It is unlikely to see ARP traffic between those IPs as they are seemingly belonging to different broadcast domains. Check for hosts and networks configurations.",
+    ["broadcast_domain_info"] = "It is unlikely to see ARP traffic between those IPs as they are seemingly belonging to different broadcast domains. Check for hosts and networks configurations.",
+    ["broadcast_domain_too_large"] = "ARP traffic from <a href=\"%{src_mac_url}\">%{src_mac}</a>/<a href=\"%{spa_url}\">%{spa}</a> to <a href=\"%{dst_mac_url}\">%{dst_mac}</a>/<a href=\"%{tpa_url}\">%{tpa}</a> detected.",
     ["device_has_connected"] = "The device <a href=\"%{url}\">%{device}</a> has connected to the network.",
     ["device_has_disconnected"] = "The device <a href=\"%{url}\">%{device}</a> has disconnected from the network.",
     ["flow_flood_attacker"] = "%{entity} is a flow flooder [%{value} &gt; %{threshold} flows sent]",

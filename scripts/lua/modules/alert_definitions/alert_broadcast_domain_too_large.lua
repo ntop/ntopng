@@ -32,6 +32,9 @@ end
 -- #######################################################
 
 local function formatBroadcastDomainAlert(ifid, alert, info)
+
+
+
   return(i18n("alert_messages.broadcast_domain_too_large", {
     src_mac = info.src_mac,
     src_mac_url = getMacUrl(info.src_mac),
@@ -41,7 +44,7 @@ local function formatBroadcastDomainAlert(ifid, alert, info)
     spa_url = getHostUrl(info.spa, info.vlan_id),
     tpa = info.tpa,
     tpa_url = getHostUrl(info.tpa, info.vlan_id),
-  }))
+  }) .. " <i class=\"fa fa-sm fa-info-circle\" title=\"".. i18n("alert_messages.broadcast_domain_info") .."\"></i>")
 end
 
 -- #######################################################
