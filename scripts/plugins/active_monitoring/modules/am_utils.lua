@@ -193,6 +193,12 @@ end
 
 -- ##############################################
 
+function am_utils.dropHourStats(host_key)
+  ntop.delCache(am_hour_stats_key(host_key))
+end
+
+-- ##############################################
+
 -- Note: alerts requires a unique key to be used in order to identity the
 -- entity. This key is also used internally as a key into the lua tables.
 function am_utils.getAmHostKey(host, measurement)
@@ -391,7 +397,7 @@ function am_utils.deleteHost(host, measurement)
 
   -- Remove the redis keys of the host
   ntop.delCache(am_last_updates_key(host_key))
-  ntop.delCache(am_hour_stats_key(host_key))
+  am_utils.dropHourStats(host_key)
 
   ntop.delHashCache(am_hosts_key, host_key)
 

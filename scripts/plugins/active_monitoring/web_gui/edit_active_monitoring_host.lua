@@ -163,10 +163,13 @@ elseif(action == "edit") then
 	 local old_iface = tostring(interface.getId())
 	 interface.select(getSystemInterfaceId())
 
-    -- Always release the old alert because:
-    --  - If the granularity has changed, since the alert is bound to a specific granularity, it must be released
-    --  - If the threshold has changed, we want to change the threshold in the alert message (if engaged)
-    am_utils.releaseAlert(last_update.ip, key, value, threshold, old_granularity)
+	 -- Drop the hour stats
+	 am_utils.dropHourStats(key)
+
+	 -- Always release the old alert because:
+	 --  - If the granularity has changed, since the alert is bound to a specific granularity, it must be released
+	 --  - If the threshold has changed, we want to change the threshold in the alert message (if engaged)
+	 am_utils.releaseAlert(last_update.ip, key, value, threshold, old_granularity)
 
 	 if am_utils.hasExceededThreshold(threshold, m_info.operator, value) then
 	    am_utils.triggerAlert(last_update.ip, key, value, threshold, granularity)
