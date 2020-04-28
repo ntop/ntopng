@@ -377,7 +377,10 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    end
 
    if do_trace then
-      trace_f(string.format("%s()[END]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), flow.getPredominantStatus()))
+      trace_f(string.format("%s()[END]: bitmap=0x%x predominant=%d score=%d flow.score=%d", 
+         mod_fn, flow.getStatus(), flow.getPredominantStatus(), 
+         alerted_status_score, flow.getAlertedStatusScore())
+)
    end
 
    -- Only trigger the alert if its score is greater than the currently
@@ -411,7 +414,7 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
 
    if(flow_status_type and status_info and ids_utils and
       status_key == flow_consts.status_types.status_external_alert.status_key and
-      status_info and (status_info.source == "suricata")) then
+      status_info.alert_type_params and (status_info.alert_type_params.source == "suricata")) then
       local fs, cs, ss = ids_utils.computeScore(status_info)
       flow_score = fs
       cli_score = cs
