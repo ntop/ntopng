@@ -2564,12 +2564,14 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 /* *************************************** */
 
 void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len) {
-  Host *from = src2dst_direction ? cli_host : srv_host;
-  Host *to   = src2dst_direction ? srv_host : cli_host;
+  const IpAddress *from = src2dst_direction ? get_cli_ip_addr() : get_srv_ip_addr();
+  const IpAddress *to   = src2dst_direction ? get_srv_ip_addr() : get_cli_ip_addr();
+  int16_t from_id = 0;
+  int16_t to_id = 0;
 
   iface->incLocalStats(num_pkts, pkt_len,
-		       from ? from->isLocalHost() : false,
-		       to ? to->isLocalHost() : false);
+		       from ? from->isLocalHost(&from_id) : false,
+		       to ? to->isLocalHost(&to_id) : false);
 }
 
 /* *************************************** */
