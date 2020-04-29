@@ -87,6 +87,10 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("IPV4_SRC_MASK", IPV4_SRC_MASK);
   addMapping("IPV4_DST_MASK", IPV4_DST_MASK);
   addMapping("IPV4_NEXT_HOP", IPV4_NEXT_HOP);
+  addMapping("SRC_AS", SRC_AS);
+  addMapping("DST_AS", DST_AS);
+  addMapping("BGP_NEXT_ADJACENT_ASN", BGP_NEXT_ADJACENT_ASN);
+  addMapping("BGP_PREV_ADJACENT_ASN", BGP_PREV_ADJACENT_ASN);
   addMapping("OOORDER_IN_PKTS", OOORDER_IN_PKTS, NTOP_PEN);
   addMapping("OOORDER_OUT_PKTS", OOORDER_OUT_PKTS, NTOP_PEN);
   addMapping("RETRANSMITTED_IN_PKTS", RETRANSMITTED_IN_PKTS, NTOP_PEN);
@@ -484,6 +488,18 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     if(strcmp(value->string, "0.0.0.0"))
       return false;
     break;
+  case SRC_AS:
+    flow->src_as = value->int_num;
+    break;
+  case DST_AS:
+    flow->dst_as = value->int_num;
+    break;
+  case BGP_NEXT_ADJACENT_ASN:
+    flow->next_adjacent_as = value->int_num;
+    break;
+  case BGP_PREV_ADJACENT_ASN:
+    flow->prev_adjacent_as = value->int_num;
+    break;
   default:
     ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping no-PEN flow fieldId %u", field);
     return false;
@@ -735,6 +751,22 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
   case INGRESS_VRFID:
     if (value->string) return (flow->vrfId == (u_int) atoi(value->string));
     else return (flow->vrfId == value->int_num);
+
+  case SRC_AS:
+    if (value->string) return (flow->src_as == (u_int32_t) atoi(value->string));
+    else return (flow->src_as == value->int_num);
+
+  case DST_AS:
+    if (value->string) return (flow->dst_as == (u_int32_t) atoi(value->string));
+    else return (flow->dst_as == value->int_num);
+
+  case BGP_NEXT_ADJACENT_ASN:
+    if (value->string) return (flow->next_adjacent_as == (u_int32_t) atoi(value->string));
+    else return (flow->next_adjacent_as == value->int_num);
+
+  case BGP_PREV_ADJACENT_ASN:
+    if (value->string) return (flow->prev_adjacent_as == (u_int32_t) atoi(value->string));
+    else return (flow->prev_adjacent_as == value->int_num);
 
   default:
     ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping no-PEN flow fieldId %u", field);

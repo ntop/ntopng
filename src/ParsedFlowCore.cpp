@@ -42,6 +42,7 @@ ParsedFlowCore::ParsedFlowCore() {
   memset(&tcp, 0, sizeof(tcp));
   first_switched = last_switched = 0;
   direction = source_id = 0;
+  src_as = dst_as = prev_adjacent_as = next_adjacent_as = 0;
 }
 
 /* *************************************** */
@@ -67,6 +68,8 @@ ParsedFlowCore::ParsedFlowCore(const ParsedFlowCore &pfc) {
   first_switched = pfc.first_switched, last_switched = pfc.last_switched;
   direction = pfc.direction;
   source_id = pfc.source_id;
+  src_as = pfc.src_as, dst_as = pfc.dst_as;
+  prev_adjacent_as = pfc.prev_adjacent_as, next_adjacent_as = pfc.next_adjacent_as;
 }
 
 /* *************************************** */
@@ -85,7 +88,8 @@ void ParsedFlowCore::swap() {
   u_int8_t tmp_tcp_flags;
   u_int32_t tmp_ooo_pkts, tmp_retr_pkts, tmp_lost_pkts;
   struct timeval tmp_nw_latency;
-
+  u_int32_t tmp_src_as, tmp_prev_adjacent_as;
+  
   memcpy(&tmp_mac, &src_mac, sizeof(tmp_mac));
   tmp_ip.set(&src_ip);
   tmp_port = src_port, tmp_index = inIndex;
@@ -94,6 +98,7 @@ void ParsedFlowCore::swap() {
   tmp_tcp_flags = tcp.client_tcp_flags;
   tmp_ooo_pkts = tcp.ooo_in_pkts, tmp_retr_pkts = tcp.retr_in_pkts, tmp_lost_pkts = tcp.lost_in_pkts;
   memcpy(&tmp_nw_latency, &tcp.clientNwLatency, sizeof(tcp.clientNwLatency));
+  tmp_src_as = src_as, tmp_prev_adjacent_as = prev_adjacent_as;
 
   memcpy(&src_mac, &dst_mac, sizeof(src_mac));
   src_ip.set(&dst_ip);
@@ -103,6 +108,7 @@ void ParsedFlowCore::swap() {
   tcp.client_tcp_flags = tcp.server_tcp_flags;
   tcp.ooo_in_pkts = tcp.ooo_out_pkts, tcp.retr_in_pkts = tcp.retr_out_pkts, tcp.lost_in_pkts = tcp.lost_out_pkts;
   memcpy(&tcp.clientNwLatency, &tcp.serverNwLatency, sizeof(tcp.clientNwLatency));
+  src_as = dst_as, prev_adjacent_as = next_adjacent_as;
 
   memcpy(&dst_mac, &tmp_mac, sizeof(dst_mac));
   dst_ip.set(&tmp_ip);
@@ -112,6 +118,7 @@ void ParsedFlowCore::swap() {
   tcp.server_tcp_flags = tmp_tcp_flags;
   tcp.ooo_out_pkts = tmp_ooo_pkts, tcp.retr_out_pkts = tmp_retr_pkts, tcp.lost_out_pkts = tmp_lost_pkts;
   memcpy(&tcp.serverNwLatency, &tmp_nw_latency, sizeof(tcp.serverNwLatency));
+  dst_as = tmp_src_as, next_adjacent_as = tmp_prev_adjacent_as;
 }
 
 /* *************************************** */

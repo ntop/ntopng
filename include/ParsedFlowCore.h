@@ -40,6 +40,7 @@ class ParsedFlowCore {
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
   u_int32_t in_fragments, out_fragments;
   u_int8_t absolute_packet_octet_counters;
+  u_int32_t src_as, dst_as, prev_adjacent_as, next_adjacent_as;
   struct {
     u_int8_t tcp_flags, client_tcp_flags, server_tcp_flags;
     u_int32_t ooo_in_pkts, ooo_out_pkts;
