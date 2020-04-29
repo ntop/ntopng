@@ -139,6 +139,10 @@ return {
       i18n_am_ts_label = "active_monitoring_stats.response_rate",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
       operator = "lt",
+      -- If set, indicates a maximum threshold value
+      max_threshold = 100,
+      -- If set, indicates the default threshold value
+      default_threshold = 99,
       -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
       additional_timeseries = {{
@@ -170,6 +174,8 @@ return {
       i18n_am_ts_label = "active_monitoring_stats.response_rate",
       i18n_am_ts_metric = "active_monitoring_stats.response_rate",
       operator = "lt",
+      max_threshold = 100,
+      default_threshold = 99,
       additional_timeseries = {{
         schema="am_host:cicmp_stats",
         label=i18n("flow_details.round_trip_time"),

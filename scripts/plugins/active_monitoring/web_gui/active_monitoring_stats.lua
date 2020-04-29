@@ -195,7 +195,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text measurement-operator"></span>
                     </div>
-                    <input placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right" min="10" max="10000">
+                    <input placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right measurement-threshold" min="10" max="10000">
                     <span class="my-auto ml-1 measurement-unit"></span>
                   </div>
                 </div>
@@ -257,7 +257,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text measurement-operator"></span>
                     </div>
-                    <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right" min="1" max="10000">
+                    <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right measurement-threshold" min="1" max="10000">
                     <span class="my-auto ml-1 measurement-unit"></span>
                   </div>
                 </div>
@@ -337,6 +337,8 @@ if(page == "overview") then
       operator = info.operator,
       unit = i18n(info.i18n_unit) or info.i18n_unit,
       force_host = info.force_host,
+      max_threshold = info.max_threshold,
+      default_threshold = info.default_threshold,
     }
   end
 
@@ -374,7 +376,9 @@ elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) t
   local tags = {ifid=getSystemInterfaceId(), host=host.host, metric=host.measurement --[[ note: measurement is a reserved InfluxDB keyword ]]}
   local am_ts_label
   local am_metric_label
-  local notes = {}
+  local notes = {
+    i18n("graphs.red_line_unreachable")
+  }
 
   if measurement_info.i18n_am_ts_label then
     am_ts_label = i18n(measurement_info.i18n_am_ts_label) or measurement_info.i18n_am_ts_label

@@ -122,7 +122,8 @@ $(document).ready(function() {
         }
     }
 
-    const dialogRefreshMeasurement = ($dialog, granularity) => {
+    /* Called whenever the measurment of a dialog changes/is initialized. */
+    const dialogRefreshMeasurement = ($dialog, granularity, use_defaults) => {
         const measurement = $dialog.find(".measurement-select").val();
 
         if(!measurement || !measurements_info[measurement]) return;
@@ -154,6 +155,16 @@ $(document).ready(function() {
 
             $granularities.append(`<option value="${g_info.value}">${g_info.title}</option>`);
         }
+
+        const $threshold = $dialog.find(".measurement-threshold");
+
+        if(info.max_threshold)
+            $threshold.attr("max", info.max_threshold);
+        else
+            $threshold.removeAttr("max");
+
+        if(use_defaults && info.default_threshold)
+            $threshold.val(info.default_threshold);
 
         if(granularity)
             $granularities.val(granularity);
@@ -420,7 +431,7 @@ $(document).ready(function() {
                         $('#input-add-threshold').val(100);
                         $(`#am-add-modal span.invalid-feedback`).hide();
                         $('#am-add-modal').modal('show');
-                        dialogRefreshMeasurement($dialog);
+                        dialogRefreshMeasurement($dialog, null, true /* use defaults */);
                     }
                 }
             ],

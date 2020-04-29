@@ -122,6 +122,10 @@ return {
 	 i18n_am_ts_metric = "active_monitoring_stats.download_speed",
 	 -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
 	 operator = "lt",
+	 -- If set, indicates a maximum threshold value
+	 max_threshold = nil,
+	 -- If set, indicates the default threshold value
+	 default_threshold = nil,
 	 -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
 	 -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
 	 additional_timeseries = {{

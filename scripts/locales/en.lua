@@ -1913,6 +1913,7 @@ local lang = {
     ["query_was_aborted"] = "Query was aborted",
     ["raw_flows"] = "Raw Flows",
     ["raw_proto_flows"] = "Raw %{proto} Flows",
+    ["red_line_unreachable"] = "A red line indicates the time the host has been unreachable.",
     ["reset_zoom"] = "Reset Zoom",
     ["right_axis_note"] = "(right axis)",
     ["tcp_finack_packets"] = "TCP FIN+ACK Packets",
