@@ -24,45 +24,6 @@
 
 #ifndef WIN32
 
-struct cp_stats {
-  time_t last_refresh;
-  u_int32_t num_ping_sent, num_ping_rcvd;
-  float min_rtt, max_rtt, last_rtt;
-};
-
-/* ***************************************** */
-  
-class ContinuousPingStats {
- private:
-  struct cp_stats stats;
-
- public:
-  ContinuousPingStats() { reset(); }
-
-  inline void getStats(struct cp_stats *out) { memcpy(&out, &stats, sizeof(struct cp_stats)); }
-  inline void heartbeat()                    { stats.last_refresh = time(NULL);               }
-  inline void incSent()                      { stats.num_ping_sent++;                         }
-  inline void update(float rtt) {
-    stats.num_ping_rcvd++;
-    
-    if(rtt > 0) {
-      stats.last_rtt = rtt;
-      stats.min_rtt = (stats.num_ping_rcvd == 1) ? rtt : min(stats.min_rtt, rtt);
-      stats.max_rtt = max(stats.max_rtt, rtt);
-    }
-  }  
-
-  inline float getSuccessRate(float *min_rtt, float *max_rtt) {
-    float pctg = min((stats.num_ping_sent == 0) ? 0 : (float)(stats.num_ping_rcvd*100)/(float)(stats.num_ping_sent), 100.f);
-
-    *min_rtt = stats.min_rtt, *max_rtt = stats.max_rtt;
-
-    return(pctg);
-  }
-  
-  inline void reset() { memset(&stats, 0, sizeof(stats)); heartbeat(); }
-};
-
 /* ***************************************** */
 
 class ContinuousPing {

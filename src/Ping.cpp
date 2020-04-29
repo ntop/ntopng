@@ -330,6 +330,7 @@ float Ping::getRTT(std::string who) {
 void Ping::cleanup() {
   m.lock(__FILE__, __LINE__);
   results.clear();
+  ping_id = rand(), cnt = 0;
   m.unlock(__FILE__, __LINE__);
 }
 

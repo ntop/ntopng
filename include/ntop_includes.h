@@ -201,6 +201,7 @@ using namespace std;
 #include "BroadcastDomains.h"
 #include "IpAddress.h"
 #include "Ping.h"
+#include "ContinuousPingStats.h"
 #include "ContinuousPing.h"
 #include "TrafficStats.h"
 #include "TcpPacketStats.h"

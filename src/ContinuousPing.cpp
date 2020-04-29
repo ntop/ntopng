@@ -23,6 +23,8 @@
 
 #include "ntop_includes.h"
 
+#define TRACE_PING_DROPS
+
 /* #define TRACE_PING */
 
 /*
@@ -114,10 +116,10 @@ void ContinuousPing::pingAll() {
   m.lock(__FILE__, __LINE__);
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it)
-    pinger->ping((char*)it->first.c_str(), false), it->second->incSent();
+    pinger->ping((char*)it->first.c_str(), false);
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it)
-    pinger->ping((char*)it->first.c_str(), true), it->second->incSent();
+    pinger->ping((char*)it->first.c_str(), true);
 
   m.unlock(__FILE__, __LINE__);
 }
@@ -133,7 +135,15 @@ void ContinuousPing::readPingResults() {
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [IPv4] %s=%f", __FUNCTION__, it->first.c_str(), f);
 #endif
-    if(f != -1) it->second->update(f);
+
+    if(f != -1)
+      it->second->update(f);
+    else {
+      it->second->incSent();
+#ifdef TRACE_PING_DROPS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IPv4] Missing ping response for %s", it->first.c_str());
+#endif
+    }
   }
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it) {
@@ -142,7 +152,15 @@ void ContinuousPing::readPingResults() {
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [IPv6] %s=%f", __FUNCTION__, it->first.c_str(), f);
 #endif
-    if(f != -1) it->second->update(f);
+   
+    if(f != -1)
+      it->second->update(f);
+    else {
+      it->second->incSent();
+#ifdef TRACE_PING_DROPS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IPv6] Missing ping response for %s", it->first.c_str());
+#endif
+    }
   }
 
   m.unlock(__FILE__, __LINE__);
