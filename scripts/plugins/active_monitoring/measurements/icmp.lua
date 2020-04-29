@@ -51,7 +51,7 @@ end
 -- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
 -- see (am_utils.key2host for the details on such format).
-local function check_icmp(hosts, granularity)
+local function check_icmp(hosts, granularity, is_continuous)
   am_hosts = {}
   resolved_hosts = {}
 
@@ -69,7 +69,7 @@ local function check_icmp(hosts, granularity)
     end
 
     -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
-    ntop.pingHost(ip_address, is_v6)
+    ntop.pingHost(ip_address, is_v6, is_continuous)
 
     am_hosts[ip_address] = key
     resolved_hosts[key] = {
@@ -88,9 +88,9 @@ end
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
 --	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
-local function collect_icmp(granularity)
+local function collect_icmp(granularity, is_continuous)
   -- Collect possible ICMP results
-  local res = ntop.collectPingResults()
+  local res = ntop.collectPingResults(is_continuous)
 
   for host, measurement in pairs(res or {}) do
     local key = am_hosts[host]
@@ -100,8 +100,12 @@ local function collect_icmp(granularity)
     end
 
     if resolved_hosts[key] then
-      -- Report the host as reachable with its measurement value
-      resolved_hosts[key].value = tonumber(measurement)
+      if is_continuous then
+        resolved_hosts[key].value = measurement.response_rate
+      else
+        -- Report the host as reachable with its measurement value
+        resolved_hosts[key].value = tonumber(measurement)
+      end
     end
   end
 
@@ -114,6 +118,26 @@ end
 
 local function check_icmp_available()
   return(ntop.isPingAvailable())
+end
+
+-- #################################################################
+
+local function collect_icmp_oneshot(granularity)
+  return(collect_icmp(granularity, false --[[ one shot ]]))
+end
+
+local function collect_icmp_continuous(granularity)
+  return(collect_icmp(granularity, true --[[ continuous ]]))
+end
+
+-- #################################################################
+
+local function check_icmp_oneshot(hosts, granularity, is_continuous)
+  return(check_icmp(hosts, granularity, false --[[ one shot ]]))
+end
+
+local function check_icmp_continuous(hosts, granularity, is_continuous)
+  return(check_icmp(hosts, granularity, true --[[ continuous ]]))
 end
 
 -- #################################################################
@@ -139,9 +163,9 @@ return {
       -- The localization string for this measurement
       i18n_label = "icmp",
       -- The function called periodically to send the host probes
-      check = check_icmp,
+      check = check_icmp_oneshot,
       -- The function responsible for collecting the results
-      collect_results = collect_icmp,
+      collect_results = collect_icmp_oneshot,
       -- The granularities allowed for the probe. See supported_granularities in active_monitoring.lua
       granularities = {"min", "5mins", "hour"},
       -- The localization string for the measurement unit (e.g. "ms", "Mbits")
@@ -168,8 +192,8 @@ return {
     }, {
       key = "icmp6",
       i18n_label = "icmpv6",
-      check = check_icmp,
-      collect_results = collect_icmp,
+      check = check_icmp_oneshot,
+      collect_results = collect_icmp_oneshot,
       granularities = {"min", "5mins", "hour"},
       i18n_unit = "active_monitoring_stats.msec",
       i18n_am_ts_label = "graphs.num_ms_rtt",
@@ -177,6 +201,22 @@ return {
       operator = "gt",
       additional_timeseries = {},
       value_js_formatter = "fmillis",
+      chart_scaling_value = 1,
+      i18n_chart_notes = {},
+      force_host = nil,
+      unreachable_alert_i18n = nil,
+    }, {
+      key = "continuous_icmp",
+      i18n_label = "active_monitoring_stats.icmp_continuous",
+      check = check_icmp_continuous,
+      collect_results = collect_icmp_continuous,
+      granularities = {"min", "5mins", "hour"},
+      i18n_unit = "field_units.percentage",
+      i18n_am_ts_label = "active_monitoring_stats.response_rate",
+      i18n_am_ts_metric = "active_monitoring_stats.response_rate",
+      operator = "lt",
+      additional_timeseries = {},
+      value_js_formatter = "fpercent",
       chart_scaling_value = 1,
       i18n_chart_notes = {},
       force_host = nil,

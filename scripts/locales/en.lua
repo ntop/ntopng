@@ -327,6 +327,8 @@ local lang = {
     ["host_edit_ok"] = "Host %{host} was successfully edited!",
     ["host_exists"] = "Host \"%{host}\" already exists",
     ["host_not_exists"] = "Host \"%{host}\" not found",
+    ["icmp_continuous"] = "Continuous ICMP",
+    ["icmp_continuous_v6"] = "Continuous ICMPv6",
     ["invalid_combination"] = "Invalid measurement/host combination",
     ["invalid_host"] = "Invalid host specified",
     ["last_measurement"] = "Last Measurement",
@@ -340,6 +342,7 @@ local lang = {
     ["note_periodicity_change"] = "Changing Periodicity causes old timeseries data to be deleted.",
     ["other_http_descr"] = "The sum of \"Name Lookup\" and \"Other\" is the total time took to complete the HTTP request.",
     ["other_https_descr"] = "The sum of \"App Connect\", \"Name Lookup\" and \"Other\" is the total time took to complete the HTTPS request.",
+    ["response_rate"] = "Response Rate",
     ["speedtest"] = "Speedtest",
   },
   ["activities_page"] = {
