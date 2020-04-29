@@ -123,7 +123,7 @@ elseif(action == "edit") then
 
    local old_url = am_utils.formatAmHost(old_am_host, old_measurement)
 
-   existing = am_utils.hasHost(old_am_host, old_measurement)
+   existing = am_utils.getHost(old_am_host, old_measurement)
 
    if not existing then
       reportError(i18n("active_monitoring_stats.host_not_exists", {host=old_url}))
@@ -163,8 +163,10 @@ elseif(action == "edit") then
 	 local old_iface = tostring(interface.getId())
 	 interface.select(getSystemInterfaceId())
 
-	 -- Drop the hour stats
-	 am_utils.dropHourStats(key)
+	 -- Drop the hour stats if the threshold has changed
+	 if(existing.threshold ~= threshold) then
+	    am_utils.dropHourStats(key)
+	 end
 
 	 -- Always release the old alert because:
 	 --  - If the granularity has changed, since the alert is bound to a specific granularity, it must be released

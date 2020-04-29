@@ -34,6 +34,8 @@ $(document).ready(function() {
 
     });
 
+    let old_submit_handler = null;
+
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
 
         const fill_form = (data) => {
@@ -57,8 +59,10 @@ $(document).ready(function() {
         const data = get_am_data($am_table, $(this));
 
         // bind submit to form for edits
-        $("#am-edit-form").off('submit').on('submit', function(event) {
+        if(old_submit_handler)
+            $("#am-edit-form").off('submit', old_submit_handler);
 
+        old_submit_handler = function(event) {
             event.preventDefault();
 
             const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
@@ -78,8 +82,9 @@ $(document).ready(function() {
             };
 
             perform_request(data_to_send);
+        };
 
-        });
+        $("#am-edit-form").on('submit', old_submit_handler);
 
         // create a closure for reset button
         $('#btn-reset-defaults').off('click').on('click', function() {
@@ -552,5 +557,8 @@ $(document).ready(function() {
             import_csrf = new_csrf;
         }
     });
+
+    aysHandleModal("#am-edit-modal", "#am-edit-form");
+    aysHandleModal("#am-add-modal", "#am-add-form");
 
 });

@@ -171,3 +171,37 @@ function aysGetDirty(form_selector, fields_selector) {
 
   return l;
 }
+
+/* Apply are-you-sure on dialogs.
+ * modal_sel: The jquery selector for the dialog
+ * form_sel: The jquery selector for the form */
+function aysHandleModal(modal_sel, form_sel) {
+  aysHandleForm(form_sel);
+
+  // handle modal-script close event
+  $(modal_sel).on("hide.bs.modal", function(e) {
+    // If the form data has changed, ask the user if he wants to discard
+    // the changes
+    if($(form_sel).hasClass('dirty')) {
+      // ask to user if he REALLY wants close modal
+      const result = confirm(`${i18n.are_you_sure}`);
+
+      if(!result)
+        e.preventDefault();
+      else
+        aysResetForm(form_sel);
+    }
+  }).on("shown.bs.modal", function(e) {
+    // add focus to btn apply to enable focusing on the modal hence user can press escape button to
+    // close the modal
+    $(modal_sel + " [type='submit']").trigger('focus');
+
+    // Reinitialize the form AYS state with the new data
+    aysResetForm(form_sel);
+  });
+
+  $(form_sel).on("submit", function(e) {
+    // TODO only reset the form when the request was successful
+    aysResetForm(form_sel);
+  });
+}

@@ -3374,7 +3374,7 @@ end
 function generate_select(id, name, is_required, is_disabled, options, additional_classes)
    local required_flag = (is_required and "required" or "")
    local disabled_flag = (is_disabled and "disabled" or "")
-   local name_attr = (name == "" and "name='" .. name .. "'" or "")
+   local name_attr = (name ~= "" and "name='" .. name .. "'" or "")
    local parsed_options = ""
 
    for i, option in ipairs(options) do

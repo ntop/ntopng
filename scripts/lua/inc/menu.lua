@@ -34,6 +34,7 @@ print[[
    /* Some localization strings to pass from lua to javascript */
    const i18n = {
       "no_results_found": "]] print(i18n("no_results_found")) print[[",
+      "are_you_sure": "]] print(i18n("scripts_list.are_you_sure")) print[[",
       "change_number_of_rows": "]] print(i18n("change_number_of_rows")) print[[",
       "no_data_available": "]] print(i18n("no_data_available")) print[[",
       "showing_x_to_y_rows": "]] print(i18n("showing_x_to_y_rows", {x="{0}", y="{1}", tot="{2}"})) print[[",
