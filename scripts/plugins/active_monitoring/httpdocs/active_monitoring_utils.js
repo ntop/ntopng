@@ -201,7 +201,9 @@ $(document).ready(function() {
                 $('#am-alert .alert-body').text(data.message);
                 $('#am-alert').fadeIn();
                 $(`#am-${action}-modal`).modal('hide');
-                $am_table.ajax.reload();
+                $am_table.ajax.reload(function(data) {
+                    updateMeasurementFilter(data);
+                });
                 return;
             }
 
@@ -253,11 +255,16 @@ $(document).ready(function() {
         */
 
         const createEntry = (val, key, callback) => {
-            const $entry = $(`<li data-filter-key='${key}' class='dropdown-item pointer'>${val}</li>`);
-            $entry.click(function(e) {
 
-                // set active filter title
-                $dropdownTitle.html(`<i class='fas fa-filter'></i> ${val}`);
+            const $entry = $(`<li data-filter-key='${key}' class='dropdown-item pointer'>${val}</li>`);
+
+            $entry.click(function(e) {
+                // set active filter title and key
+                if ($dropdownTitle.parent().find(`i.fas`).length == 0) {
+                    $dropdownTitle.parent().prepend(`<i class='fas fa-filter'></i>`);
+                }
+                $dropdownTitle.html($entry.html());
+                $dropdownTitle.attr(`data-filter-key`, key);
                 // remove the active class from the li elements
                 $menuContainer.find('li').removeClass(`active`);
                 // add active class to current entry
@@ -287,7 +294,8 @@ $(document).ready(function() {
 
         // add all filter
         const $allEntry = createEntry(i18n.all, 'all', (e) => {
-            $dropdownTitle.html(`${title}`);
+            $dropdownTitle.parent().find('i.fas.fa-filter').remove();
+            $dropdownTitle.html(`${title}`).removeAttr(`data-filter-key`);
             table_api.columns(column_index).search('').draw(true);
         });
 
@@ -296,8 +304,7 @@ $(document).ready(function() {
 
     }
 
-    const addMeasurementFilter = (table_api, data) => {
-
+    const getMeasurementCount = (data) => {
         // get all the measurements available and their count
         const measurements = {};
         data.forEach((v) => {
@@ -308,6 +315,12 @@ $(document).ready(function() {
             }
             measurements[measurement]++;
         });
+        return measurements;
+    }
+
+    const addMeasurementFilter = (table_api, data) => {
+
+        const measurements = getMeasurementCount(data);
 
         // build filters for datatable
         const filters = [];
@@ -324,6 +337,15 @@ $(document).ready(function() {
 
         const MEASUREMENT_COLUMN_INDEX = 0;
         addFilterDropdown(i18n.measurement, filters, MEASUREMENT_COLUMN_INDEX, "#am-table_filter", table_api);
+    }
+
+    const updateMeasurementFilter = (data) => {
+
+        const measurements = getMeasurementCount(data);
+        for (let [measurement, count] of Object.entries(measurements)) {
+            const label = `${measurements_info[measurement].label} (${count})`;
+            $(`[data-filter-key='${measurement}']`).text(label);
+        }
     }
 
     const addAlertedFilter = (table_api) => {
@@ -372,7 +394,9 @@ $(document).ready(function() {
             addAlertedFilter(table);
 
             setInterval(() => {
-                $am_table.ajax.reload()
+                $am_table.ajax.reload(function(data) {
+                    updateMeasurementFilter(data);
+                });
             }, 15000);
         },
         ajax: {
