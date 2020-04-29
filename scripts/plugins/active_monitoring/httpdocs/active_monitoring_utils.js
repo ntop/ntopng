@@ -31,7 +31,6 @@ $(document).ready(function() {
             })
         });
 
-
     });
 
     let old_submit_handler = null;
@@ -202,9 +201,7 @@ $(document).ready(function() {
                 $('#am-alert .alert-body').text(data.message);
                 $('#am-alert').fadeIn();
                 $(`#am-${action}-modal`).modal('hide');
-                $am_table.ajax.reload(function(data) {
-                    addMeasurementFilter($am_table, data);
-                });
+                $am_table.ajax.reload();
                 return;
             }
 
@@ -312,20 +309,12 @@ $(document).ready(function() {
             measurements[measurement]++;
         });
 
-        const measurements_labels = {
-            icmp: "ICMP",
-            http: "HTTP",
-            https: "HTTPS",
-            icmp6: "ICMPv6",
-            speedtest: "SpeedTest"
-        };
-
         // build filters for datatable
         const filters = [];
         for (let [measurement, count] of Object.entries(measurements)) {
             filters.push({
                 key: measurement,
-                label: `${measurements_labels[measurement]} (${count})`,
+                label: `${measurements_info[measurement].label} (${count})`,
                 regex: `${measurement}\:\/\/`
             });
         }

@@ -359,7 +359,7 @@ if(page == "overview") then
       let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
       let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
       let import_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
-      let measurements_info = ]] .. json.encode(measurements_info) .. [[;
+      const measurements_info = ]] .. json.encode(measurements_info) .. [[;
 
     </script>
     <script type='text/javascript' src=']].. plugins_utils.getHttpdocsDir("active_monitoring") ..[[/active_monitoring_utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
