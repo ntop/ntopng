@@ -75,6 +75,10 @@ local function thresholdCrossFormatter(ifid, alert, info)
 
       unit = i18n(unit) or unit
 
+      if unit == "%" then
+	 unit = "%%"
+      end
+
       local msg_table = {
 	 host = ip_label,
 	 numeric_ip = numeric_ip,
