@@ -474,11 +474,11 @@ end
 
 -- ##############################################
 
---! @brief Splits the hosts list by plugin.
+--! @brief Splits the hosts list by measurement.
 --! @param all_hosts the host list, whose format matches am_utils.getHosts()
---! @return a table plugin_key -> <plugin, measurement, hosts>
-function am_utils.getHostsByPlugin(all_hosts)
-  local hosts_by_plugin = {}
+--! @return a table measurement_key -> <plugin, measurement, hosts>
+function am_utils.getHostsByMeasurement(all_hosts)
+  local hosts_by_measurement = {}
 
   loadAmPlugins()
 
@@ -489,17 +489,17 @@ function am_utils.getHostsByPlugin(all_hosts)
     if not m_info then
       traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown measurement: " .. measurement)
     else
-      local plugin_key = m_info.plugin.key
+      local measurement_key = m_info.measurement.key
 
-      if not hosts_by_plugin[plugin_key] then
-	hosts_by_plugin[plugin_key] = {plugin = m_info.plugin, measurement = m_info.measurement, hosts = {}}
+      if not hosts_by_measurement[measurement_key] then
+	hosts_by_measurement[measurement_key] = {plugin = m_info.plugin, measurement = m_info.measurement, hosts = {}}
       end
 
-      hosts_by_plugin[plugin_key].hosts[key] = host
+      hosts_by_measurement[measurement_key].hosts[key] = host
     end
   end
 
-  return(hosts_by_plugin)
+  return(hosts_by_measurement)
 end
 
 -- ##############################################
