@@ -35,7 +35,6 @@ class Ping {
   std::map<std::string /* IP */, float /* RTT */> results;
   
   u_int16_t checksum(void *b, int len);
-  float ms_timeval_diff(struct timeval *begin, struct timeval *end);
   void setOpts(int fd);
   void handleICMPResponse(unsigned char *buf, u_int buf_len, struct in_addr *ip, struct in6_addr *ip6);
   
@@ -44,7 +43,7 @@ class Ping {
   ~Ping();
 
   int  ping(char *_addr, bool use_v6);
-  void pollResults(bool wait_forever);
+  void pollResults(u_int8_t max_wait_time_sec = 1);
   void collectResponses(lua_State* vm);
   float getRTT(std::string who);
   void cleanup();

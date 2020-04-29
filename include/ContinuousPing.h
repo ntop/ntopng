@@ -43,9 +43,13 @@ class ContinuousPingStats {
   inline void heartbeat()                    { stats.last_refresh = time(NULL);               }
   inline void incSent()                      { stats.num_ping_sent++;                         }
   inline void update(float rtt) {
-    stats.num_ping_rcvd++, stats.last_rtt = rtt;
-    stats.min_rtt = (stats.num_ping_rcvd == 1) ? rtt : min(stats.min_rtt, rtt);
-    stats.max_rtt = max(stats.max_rtt, rtt);
+    stats.num_ping_rcvd++;
+    
+    if(rtt > 0) {
+      stats.last_rtt = rtt;
+      stats.min_rtt = (stats.num_ping_rcvd == 1) ? rtt : min(stats.min_rtt, rtt);
+      stats.max_rtt = max(stats.max_rtt, rtt);
+    }
   }  
 
   inline float getSuccessRate(float *min_rtt, float *max_rtt) {

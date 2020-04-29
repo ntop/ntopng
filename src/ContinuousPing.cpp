@@ -23,6 +23,8 @@
 
 #include "ntop_includes.h"
 
+/* #define TRACE_PING */
+
 /*
   Usage example (minute.lua):
   
@@ -199,8 +201,7 @@ void ContinuousPing::runPingCampaign() {
 
     pinger->cleanup();
     pingAll();
-    sleep(1);
-    pinger->pollResults(false);
+    pinger->pollResults(2);
     readPingResults();
   }
 

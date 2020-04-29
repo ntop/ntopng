@@ -29,6 +29,10 @@
 
 #define PACKETSIZE	64
 
+/* #define PING_DEBUG */
+
+/* ****************************************** */
+
 struct ping_packet {
   struct ndpi_icmphdr hdr;
   char msg[PACKETSIZE-sizeof(struct ndpi_icmphdr)];
@@ -41,7 +45,7 @@ struct ping_packet {
 static void* resultPollerFctn(void* ptr) {
   Utils::setThreadName("PingLoop");
 
-  ((Ping*)ptr)->pollResults(false);
+  ((Ping*)ptr)->pollResults(2 /* sec */);
   return(NULL);
 }
 
@@ -194,19 +198,22 @@ int Ping::ping(char *_addr, bool use_v6) {
 
 /* ****************************************** */
 
-void Ping::pollResults(bool wait_forever) {
-  while(running) {
-    int bytes, fd_max = max(sd, sd6);
-    fd_set mask;
-    struct timeval wait_time = { 1, 0 };
+void Ping::pollResults(u_int8_t max_wait_time_sec) {
+  int bytes, fd_max = max(sd, sd6);
+  fd_set mask;
+  struct timeval wait_time = { 1, 0 };
+  time_t now = time(NULL), max_time;
 
+  max_time = now + max_wait_time_sec;
+  
+  while(now < max_time) {
     FD_ZERO(&mask);
     if(sd != -1)  FD_SET(sd, &mask);
     if(sd6 != -1) FD_SET(sd6, &mask);
-
+    
     if(select(fd_max+1, &mask, 0, 0, &wait_time) > 0) {
       unsigned char buf[1024];
-
+      
       if(FD_ISSET(sd, &mask)) {
 	struct sockaddr_in addr;
 	socklen_t len = sizeof(addr);
@@ -214,7 +221,7 @@ void Ping::pollResults(bool wait_forever) {
 	bytes = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
 	handleICMPResponse(buf, bytes, &addr.sin_addr, NULL);
       }
-
+      
       if(FD_ISSET(sd6, &mask)) {
 	struct sockaddr_in6 addr;
 	socklen_t len = sizeof(addr);
@@ -222,10 +229,9 @@ void Ping::pollResults(bool wait_forever) {
 	bytes = recvfrom(sd6, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
 	handleICMPResponse(buf, bytes, NULL, &addr.sin6_addr);
       }
-    } else {
-      if(!wait_forever)
-	break;
     }
+
+    now = time(NULL);
   }
 }
 
@@ -263,8 +269,7 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
     char *h, buf[64];
     
     gettimeofday(&end, NULL);
-
-    rtt = ms_timeval_diff(begin, &end);
+    rtt = ((float)Utils::usecTimevalDiff(&end,begin))/1000.0;
 
     m.lock(__FILE__, __LINE__);
 
@@ -274,6 +279,10 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
       h = Utils::intoaV6(*((struct ndpi_in6_addr*)ip6), 128, buf, sizeof(buf));
 
     results[std::string(h)] = rtt;
+
+#ifdef PING_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s: %.3f msec", h, rtt);
+#endif
     
     m.unlock(__FILE__, __LINE__);
   }
@@ -294,26 +303,6 @@ void Ping::collectResponses(lua_State* vm) {
   results.clear();
 
   m.unlock(__FILE__, __LINE__);
-}
-
-/* ****************************************************** */
-
-float Ping::ms_timeval_diff(struct timeval *begin, struct timeval *end) {
-  if(end->tv_sec >= begin->tv_sec) {
-    struct timeval result;
-
-    result.tv_sec = end->tv_sec-begin->tv_sec;
-
-    if((end->tv_usec - begin->tv_usec) < 0) {
-      result.tv_usec = 1000000 + end->tv_usec - begin->tv_usec;
-      if(result.tv_usec > 1000000) begin->tv_usec = 1000000;
-      result.tv_sec--;
-    } else
-      result.tv_usec = end->tv_usec-begin->tv_usec;
-
-    return((result.tv_sec*1000) + ((float)result.tv_usec/(float)1000));
-  } else
-    return(0);
 }
 
 /* ****************************************************** */

@@ -39,7 +39,7 @@ local function check_icmp_oneshot(hosts, granularity)
     end
 
     if do_trace then
-      print("[ActiveMonitoring] Pinging "..ip_address.."/"..domain_name.."\n")
+      print("[icmp] Pinging "..ip_address.."/"..domain_name.."\n")
     end
 
     -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
@@ -70,7 +70,7 @@ local function collect_icmp_oneshot(granularity)
     local key = am_hosts[host]
 
     if(do_trace) then
-      print("[ActiveMonitoring] Reading ICMP response for host ".. host .."\n")
+      print("[icmp] Reading ICMP response for host ".. host .."\n")
     end
 
     if resolved_hosts[key] then

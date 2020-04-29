@@ -41,7 +41,7 @@ local function check_icmp_continuous(hosts, granularity)
     end
 
     if do_trace then
-      print("[ActiveMonitoring] Pinging "..ip_address.."/"..domain_name.."\n")
+      print("[cicmp] Pinging "..ip_address.."/"..domain_name.."\n")
     end
 
     -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
@@ -75,7 +75,7 @@ local function collect_icmp_continuous(granularity)
     local h = am_hosts[host]
 
     if(do_trace) then
-      print("[ActiveMonitoring] Reading ICMP response for host ".. host .."\n")
+      print("[cicmp] Reading ICMP response for host ".. host .."\n")
     end
 
     if h and resolved_hosts[h.key] then
