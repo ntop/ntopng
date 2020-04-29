@@ -650,4 +650,33 @@ end
 
 -- ##############################################
 
+-- Resolve the domain name into an IP if necessary
+function am_utils.resolveHost(domain_name, is_v6)
+   local ip_address = nil
+
+   if not isIPv4(domain_name) and not is_v6 then
+     ip_address = ntop.resolveHost(domain_name, true --[[IPv4 --]])
+
+     if not ip_address then
+	if do_trace then
+	   print("[ActiveMonitoring] Could not resolve IPv4 host: ".. domain_name .."\n")
+	end
+     end
+   elseif not isIPv6(domain_name) and is_v6 then
+      ip_address = ntop.resolveHost(domain_name, false --[[IPv6 --]])
+
+      if not ip_address then
+	if do_trace then
+	   print("[ActiveMonitoring] Could not resolve IPv6 host: ".. domain_name .."\n")
+	end
+      end
+   else
+     ip_address = domain_name
+   end
+
+  return(ip_address)
+end
+
+-- ##############################################
+
 return am_utils

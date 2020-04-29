@@ -22,7 +22,7 @@ local resolved_hosts = {}
 -- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
 -- see (am_utils.key2host for the details on such format).
-local function check_icmp_oneshot(hosts, granularity)
+local function check_icmp_continuous(hosts, granularity)
   local plugins_utils = require("plugins_utils")
   local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
@@ -43,7 +43,7 @@ local function check_icmp_oneshot(hosts, granularity)
     end
 
     -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
-    ntop.pingHost(ip_address, is_v6, false --[[ one shot ICMP]])
+    ntop.pingHost(ip_address, is_v6, true --[[ continuous ICMP]])
 
     am_hosts[ip_address] = key
     resolved_hosts[key] = {
@@ -62,9 +62,9 @@ end
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
 --	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
-local function collect_icmp_oneshot(granularity)
+local function collect_icmp_continuous(granularity)
   -- Collect possible ICMP results
-  local res = ntop.collectPingResults(false --[[ one shot ICMP]])
+  local res = ntop.collectPingResults(true --[[ continuous ICMP]])
 
   for host, measurement in pairs(res or {}) do
     local key = am_hosts[host]
@@ -75,7 +75,7 @@ local function collect_icmp_oneshot(granularity)
 
     if resolved_hosts[key] then
       -- Report the host as reachable with its measurement value
-      resolved_hosts[key].value = tonumber(measurement)
+      resolved_hosts[key].value = measurement.response_rate
     end
   end
 
@@ -109,30 +109,30 @@ return {
   measurements = {
     {
       -- The unique key for the measurement
-      key = "icmp",
+      key = "cicmp",
       -- The localization string for this measurement
-      i18n_label = "icmp",
+      i18n_label = "active_monitoring_stats.icmp_continuous",
       -- The function called periodically to send the host probes
-      check = check_icmp_oneshot,
+      check = check_icmp_continuous,
       -- The function responsible for collecting the results
-      collect_results = collect_icmp_oneshot,
+      collect_results = collect_icmp_continuous,
       -- The granularities allowed for the probe. See supported_granularities in active_monitoring.lua
-      granularities = {"min", "5mins", "hour"},
+      granularities = {"min"},
       -- The localization string for the measurement unit (e.g. "ms", "Mbits")
-      i18n_unit = "active_monitoring_stats.msec",
+      i18n_unit = "field_units.percentage",
       -- The localization string for the Active Monitoring timeseries menu entry
-      i18n_am_ts_label = "graphs.num_ms_rtt",
+      i18n_am_ts_label = "active_monitoring_stats.response_rate",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
-      operator = "gt",
+      operator = "lt",
       -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
       additional_timeseries = {},
       -- Js function to call to format the measurement value. See ntopng_utils.js .
-      value_js_formatter = "fmillis",
+      value_js_formatter = "fpercent",
       -- The raw measurement value is multiplied by this factor before being written into the chart
       chart_scaling_value = 1,
       -- The localization string for the Active Monitoring metric in the chart
-      i18n_am_ts_metric = "flow_details.round_trip_time",
+      i18n_am_ts_metric = "active_monitoring_stats.response_rate",
       -- A list of additional notes (localization strings) to show into the timeseries charts
       i18n_chart_notes = {},
       -- If set, the user cannot change the host
@@ -140,17 +140,17 @@ return {
       -- An alternative localization string for the unrachable alert message
       unreachable_alert_i18n = nil,
     }, {
-      key = "icmp6",
-      i18n_label = "icmpv6",
-      check = check_icmp_oneshot,
-      collect_results = collect_icmp_oneshot,
-      granularities = {"min", "5mins", "hour"},
-      i18n_unit = "active_monitoring_stats.msec",
-      i18n_am_ts_label = "graphs.num_ms_rtt",
-      i18n_am_ts_metric = "flow_details.round_trip_time",
-      operator = "gt",
+      key = "cicmp6",
+      i18n_label = "active_monitoring_stats.icmp_continuous_v6",
+      check = check_icmp_continuous,
+      collect_results = collect_icmp_continuous,
+      granularities = {"min"},
+      i18n_unit = "field_units.percentage",
+      i18n_am_ts_label = "active_monitoring_stats.response_rate",
+      i18n_am_ts_metric = "active_monitoring_stats.response_rate",
+      operator = "lt",
       additional_timeseries = {},
-      value_js_formatter = "fmillis",
+      value_js_formatter = "fpercent",
       chart_scaling_value = 1,
       i18n_chart_notes = {},
       force_host = nil,
