@@ -638,7 +638,7 @@ int redirect_to_error_page(struct mg_connection *conn,
 			   const struct mg_request_info *request_info,
 			   const char *i18n_message,
 			   char *script_path, char *error_message) {
-  char session_id[NTOP_SESSION_ID_LENGTH];
+  char session_id[NTOP_SESSION_ID_LENGTH], decoded[512];
   char referer[255];
   char *referer_enc = NULL, *msg;
   const char* url = "/lua/http_status_code.lua";
@@ -649,10 +649,15 @@ int redirect_to_error_page(struct mg_connection *conn,
 
   msg = error_message ? Utils::urlEncode(error_message) : NULL;
 
+  if(msg) {
+    url_decode(msg, strlen(msg), decoded, sizeof(decoded)-1, 1);
+  } else
+    decoded[0] = '\0';
+  
   mg_printf(conn,
 	    "HTTP/1.1 302 Found\r\n"
 	    "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
-	    "Location: %s%s?message=%s%s%s&error_message=%s\r\n\r\n", /* FIX */
+	    "Location: %s%s?message=%s%s%s&error_message=%s\r\n\r\n%s\n\r", /* FIX */
 	    session_id,
 	    get_secure_cookie_attributes(request_info),
 	    ntop->getPrefs()->get_http_prefix(),
@@ -660,8 +665,8 @@ int redirect_to_error_page(struct mg_connection *conn,
 	    i18n_message,
 	    (referer[0] != '\0') ? (char*)"&referer=" : (char*)"",
 	    (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
-	    msg ? msg : "");
-
+	    msg ? msg : "", decoded);
+  
   if(msg) free(msg);
   if(referer_enc) free(referer_enc);
 
