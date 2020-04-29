@@ -6,6 +6,8 @@
 -- This module implements the ICMP probe.
 --
 
+local ts_utils = require("ts_utils_core")
+
 local do_trace = false
 
 -- #################################################################
@@ -45,7 +47,10 @@ local function check_icmp_continuous(hosts, granularity)
     -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
     ntop.pingHost(ip_address, is_v6, true --[[ continuous ICMP]])
 
-    am_hosts[ip_address] = key
+    am_hosts[ip_address] = {
+      key = key,
+      info = host,
+    }
     resolved_hosts[key] = {
       resolved_addr = ip_address,
     }
@@ -67,15 +72,25 @@ local function collect_icmp_continuous(granularity)
   local res = ntop.collectPingResults(true --[[ continuous ICMP]])
 
   for host, measurement in pairs(res or {}) do
-    local key = am_hosts[host]
+    local h = am_hosts[host]
 
     if(do_trace) then
       print("[ActiveMonitoring] Reading ICMP response for host ".. host .."\n")
     end
 
-    if resolved_hosts[key] then
+    if h and resolved_hosts[h.key] then
       -- Report the host as reachable with its measurement value
-      resolved_hosts[key].value = measurement.response_rate
+      resolved_hosts[h.key].value = measurement.response_rate
+
+      if((measurement.min_rtt ~= nil) and (measurement.max_rtt ~= nil)) then
+        ts_utils.append("am_host:cicmp_stats_" .. granularity, {
+          ifid = getSystemInterfaceId(),
+          host = h.info.host,
+          metric = h.info.measurement,
+          min_rtt = measurement.min_rtt,
+          max_rtt = measurement.max_rtt,
+        })
+      end
     end
   end
 
@@ -126,7 +141,13 @@ return {
       operator = "lt",
       -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
-      additional_timeseries = {},
+      additional_timeseries = {{
+        schema="am_host:cicmp_stats",
+        label=i18n("flow_details.round_trip_time"),
+        metrics_labels = { i18n("graphs.min_rtt"), i18n("graphs.max_rtt") },
+        value_formatter = {"fmillis", "fmillis"},
+        split_directions = true,
+      }},
       -- Js function to call to format the measurement value. See ntopng_utils.js .
       value_js_formatter = "fpercent",
       -- The raw measurement value is multiplied by this factor before being written into the chart

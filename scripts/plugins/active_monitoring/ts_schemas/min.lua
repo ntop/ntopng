@@ -47,3 +47,17 @@ schema:addTag("metric")
 schema:addMetric("lookup_ms")
 schema:addMetric("connect_ms")
 schema:addMetric("other_ms")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("am_host:cicmp_stats_min", {
+  step = 60,
+  metrics_type = ts_utils.metrics.gauge,
+  is_system_schema = true,
+})
+
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addTag("metric")
+schema:addMetric("min_rtt")
+schema:addMetric("max_rtt")
