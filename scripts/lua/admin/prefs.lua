@@ -509,13 +509,14 @@ function printRecording()
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.license")..'</th></tr></thead>')
 
-  prefsInputFieldPrefs(subpage_active.entries["n2disk_license"].title, subpage_active.entries["n2disk_license"].description.."<br>"
+  prefsInputFieldPrefs(subpage_active.entries["n2disk_license"].title, subpage_active.entries["n2disk_license"].description
+      ..i18n("prefs.n2disk_license_description_enterprise_l").."<br>"
       ..ternary(n2disk_info.version ~= nil, i18n("prefs.n2disk_license_version", {version=n2disk_info.version}).."<br>", "")
       ..ternary(n2disk_info.systemid ~= nil, i18n("prefs.n2disk_license_systemid", {systemid=n2disk_info.systemid}), ""),
     "ntopng.prefs.", "n2disk_license",
     ternary(n2disk_info.license ~= nil, n2disk_info.license, ""),
     false, nil, nil, nil, {style={width="25em;"}, min = 50, max = 64,
-    pattern = getLicensePattern()})
+    pattern = getLicensePattern(), disabled = ntop.isEnterpriseL() })
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("traffic_recording.settings")..'</th></tr></thead>')
 
