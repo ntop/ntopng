@@ -22,9 +22,9 @@ local begin_time = _GET["begin_time"] or os.time()-3600
 local end_time   = _GET["end_time"]   or os.time()
 
 -- Remove
-key    = "spaziogames.it"
+key    = "www.ntop.org"
 metric = "http"
-schema = "am_host:http_stats_min"
+schema = "am_host:http_stats_5mins"
 
 
 local rsp = ts_utils.query(
@@ -41,8 +41,8 @@ local rsp = ts_utils.query(
 	}
 )
 
-if (rsp ~= nil) then
 
+if (rsp ~= nil) then   
    local labels = {}
    local values = {}
    local start  = rsp.start
@@ -67,6 +67,8 @@ if (rsp ~= nil) then
    end
 
    return(m)
+else
+   return(nil)
 end
 
 

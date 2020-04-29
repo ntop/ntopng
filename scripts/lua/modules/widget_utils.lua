@@ -188,18 +188,22 @@ function widgets_utils.generate_response(widget, params)
    -- Remove trailer .lua from the origin
    local origin = ds.origin:gsub("%.lua", "")
 
-   -- io.write("Executing "..origin.."\n")
-
+   -- io.write("Executing "..origin..".lua\n")
+   --tprint(widget)
+   
    -- Call the origin to return
    local response = require(origin)
-   response = response:getData(widget.type)
 
-   tprint(widget.type)
+   if((response == nil) or (response == true)) then
+      response = "{}"
+   else
+      response = response:getData(widget.type)
+   end
 
    return json.encode({
 	 widgetName = widget.name,
-     widgetType = widget.type,
-     dsRetention = ds.data_retention * 1000, -- msec
+	 widgetType = widget.type,
+	 dsRetention = ds.data_retention * 1000, -- msec
 	 success = true,
 	 data = response
    })

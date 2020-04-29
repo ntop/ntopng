@@ -122,6 +122,8 @@ end
 
 -- Return the data
 function datamodel:getData(transformation, dataset_name)
+   transformation = string.lower(transformation)
+   
    if(transformation == "table") then
       return(self:getAsTable())
    elseif(transformation == "donut") then
