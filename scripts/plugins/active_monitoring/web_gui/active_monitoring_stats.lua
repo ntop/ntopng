@@ -195,7 +195,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text measurement-operator"></span>
                     </div>
-                    <input placeholder="100" required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right measurement-threshold" min="10" max="10000">
+                    <input required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right measurement-threshold" min="10" max="10000">
                     <span class="my-auto ml-1 measurement-unit"></span>
                   </div>
                 </div>
@@ -257,7 +257,7 @@ if(page == "overview") then
                     <div class="input-group-prepend">
                       <span class="input-group-text measurement-operator"></span>
                     </div>
-                    <input placeholder="100" required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right measurement-threshold" min="1" max="10000">
+                    <input required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right measurement-threshold" min="1" max="10000">
                     <span class="my-auto ml-1 measurement-unit"></span>
                   </div>
                 </div>
