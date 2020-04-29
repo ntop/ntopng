@@ -47,3 +47,27 @@ schema:addTag("metric")
 schema:addMetric("lookup_ms")
 schema:addMetric("connect_ms")
 schema:addMetric("other_ms")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("am_host:upload_5mins", {
+  step = 300,
+  metrics_type = ts_utils.metrics.gauge,
+  is_system_schema = true,
+})
+
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("speed")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("am_host:latency_5mins", {
+  step = 300,
+  metrics_type = ts_utils.metrics.gauge,
+  is_system_schema = true,
+})
+
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("latency")

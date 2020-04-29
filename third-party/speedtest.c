@@ -34,6 +34,7 @@
 
 #define OK  0
 #define NOK 1
+#define FULL_REPORT
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
 

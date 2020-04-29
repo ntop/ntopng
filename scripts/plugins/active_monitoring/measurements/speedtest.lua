@@ -8,6 +8,7 @@
 
 local os_utils = require("os_utils")
 local json = require("dkjson")
+local ts_utils = require("ts_utils_core")
 
 local do_trace = false
 local collected_results = {}
@@ -39,20 +40,36 @@ local function run_speedtest(hosts, granularity)
       return
    end
 
-   if(rsp["download.speed"] ~= nil) then
-      local isp = nil
-      local download_mbit = rsp["download.speed"]
-      
-      if(type(rsp["client.isp"] == "string")) then
-	 isp = noHtml(rsp["client.isp"])
-      end
+   -- NOTE: force_host is set, only a single host will be available
+   for key, host in pairs(hosts) do
+      if(rsp["download.speed"] ~= nil) then
+	 local isp = nil
+	 local download_mbit = rsp["download.speed"]
 
-      -- NOTE: force_host is set, only a single host will be available
-      for key, host in pairs(hosts) do
+	 if(type(rsp["client.isp"] == "string")) then
+	    isp = noHtml(rsp["client.isp"])
+	 end
+
 	 collected_results[key] = {
 	    value = download_mbit,
 	    resolved_addr = isp,
 	 }
+      end
+
+      if(rsp["upload.speed"]) then
+	 ts_utils.append("am_host:upload_" .. granularity, {
+	    ifid = getSystemInterfaceId(),
+	    speed = rsp["upload.speed"] * 1000000,
+	    host = host.host,
+	 })
+      end
+
+      if(rsp["server.latency"]) then
+	 ts_utils.append("am_host:latency_" .. granularity, {
+	    ifid = getSystemInterfaceId(),
+	    latency = rsp["server.latency"],
+	    host = host.host,
+	 })
       end
    end
 end
@@ -107,7 +124,19 @@ return {
 	 operator = "lt",
 	 -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
 	 -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
-	 additional_timeseries = {},
+	 additional_timeseries = {{
+	    schema="am_host:upload",
+	    label=i18n("active_monitoring_stats.upload_speed"),
+	    metrics_labels = { i18n("active_monitoring_stats.upload_speed"), },
+	    value_formatter = {"fbits", "fbits"},
+	    show_unreachable = true, -- Show the unreachable host status as a red line
+	 }, {
+	    schema="am_host:latency",
+	    label=i18n("flow_details.round_trip_time"),
+	    metrics_labels = { i18n("graphs.num_ms_rtt"), },
+	    value_formatter = {"fmillis", "fmillis"},
+	    show_unreachable = true, -- Show the unreachable host status as a red line
+	 }},
 	 -- Js function to call to format the measurement value. See ntopng_utils.js .
 	 value_js_formatter = "fbits",
 	 -- The raw measurement value is multiplied by this factor before being written into the chart

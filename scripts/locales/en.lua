@@ -344,6 +344,7 @@ local lang = {
     ["other_https_descr"] = "The sum of \"App Connect\", \"Name Lookup\" and \"Other\" is the total time took to complete the HTTPS request.",
     ["response_rate"] = "Response Rate",
     ["speedtest"] = "Speedtest",
+    ["upload_speed"] = "Upload Speed",
   },
   ["activities_page"] = {
     ["host_activity"] = "Host Activity",

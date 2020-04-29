@@ -131,20 +131,25 @@ function ts_schema:allTagsDefined(tags)
 end
 
 function ts_schema:verifyTags(tags)
+  local actual_tags = {}
+
   local all_defined, missing_tag = self:allTagsDefined(tags)
   if not all_defined then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '" .. missing_tag .. "' in schema " .. self.name)
-    return false
+    return nil
   end
 
   for tag in pairs(tags) do
     if self.tags[tag] == nil then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown tag '" .. tag .. "' in schema " .. self.name)
-      return false
+      -- NOTE: just ignore the additional tags
+      --traceError(TRACE_ERROR, TRACE_CONSOLE, "unknown tag '" .. tag .. "' in schema " .. self.name)
+      --return false
+    else
+      actual_tags[tag] = tags[tag]
     end
   end
 
-  return true
+  return actual_tags
 end
 
 function ts_schema:verifyTagsAndMetrics(tags_and_metrics)

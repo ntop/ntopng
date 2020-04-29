@@ -239,10 +239,10 @@ end
 function am_utils.formatAmHost(host, measurement)
   local m_info = am_utils.getMeasurementInfo(measurement)
 
-  if m_info and m_info.force_host then
+  --if m_info and m_info.force_host then
     -- Only a single host is present, return it
-    return(host)
-  end
+    --return(host)
+  --end
 
   return(string.format("%s://%s", measurement, host))
 end

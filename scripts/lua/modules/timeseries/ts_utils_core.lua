@@ -304,7 +304,9 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
      return nil
   end
 
-  if not schema:verifyTags(tags) then
+  local actual_tags = schema:verifyTags(tags)
+
+  if not actual_tags then
     return nil
   end
 
@@ -316,7 +318,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
 
   ts_common.clearLastError()
 
-  local rv = driver:query(schema, tstart, tend, tags, query_options)
+  local rv = driver:query(schema, tstart, tend, actual_tags, query_options)
 
   if rv == nil then
     return nil
@@ -324,7 +326,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
 
   -- Add tags information for consistency with queryTopk
   for _, serie in pairs(rv.series) do
-    serie.tags = tags
+    serie.tags = actual_tags
   end
 
   return rv
