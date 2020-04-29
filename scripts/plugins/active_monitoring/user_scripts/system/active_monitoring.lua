@@ -45,10 +45,10 @@ local function run_am_check(params, all_hosts, granularity)
     return
   end
 
-  local hosts_by_plugin = am_utils.getHostsByPlugin(all_hosts)
+  local hosts_by_measurement = am_utils.getHostsByMeasurement(all_hosts)
 
   -- Invoke the check functions
-  for _, info in pairs(hosts_by_plugin) do
+  for _, info in pairs(hosts_by_measurement) do
     info.measurement.check(info.hosts, granularity)
   end
 
@@ -56,7 +56,7 @@ local function run_am_check(params, all_hosts, granularity)
   ntop.msleep(3000)
 
   -- Get the results
-  for _, info in pairs(hosts_by_plugin) do
+  for _, info in pairs(hosts_by_measurement) do
     for k, v in pairs(info.measurement.collect_results(granularity) or {}) do
       v.measurement = info.measurement
 
