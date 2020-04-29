@@ -49,8 +49,8 @@ class ContinuousPingStats {
   }  
 
   inline float getSuccessRate(float *min_rtt, float *max_rtt) {
-    float pctg = (stats.num_ping_sent == 0) ? 0 : (float)(stats.num_ping_rcvd*100)/(float)(stats.num_ping_sent);
-      
+    float pctg = min((stats.num_ping_sent == 0) ? 0 : (float)(stats.num_ping_rcvd*100)/(float)(stats.num_ping_sent), 100.f);
+
     *min_rtt = stats.min_rtt, *max_rtt = stats.max_rtt;
 
     return(pctg);
