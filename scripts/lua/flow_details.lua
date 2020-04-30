@@ -1198,6 +1198,22 @@ else
       print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">"..i18n("flow_details.profile_name").."</A></th><td colspan=2><span class='badge badge-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
 
+   if(flow.src_as or flow.dst_as) then
+      print("<tr>")
+      print("<th width=30%>"..i18n("flow_details.as_src_dst").."</th>")
+      print("<td>"..ternary(flow.src_as, flow.src_as, "").."</td>\n")
+      print("<td>"..ternary(flow.dst_as, flow.dst_as, "").."</td>\n")
+      print("</tr>\n")
+   end
+
+   if(flow.prev_adjacent_as or flow.next_adjacent_as) then
+      print("<tr>")
+      print("<th width=30%>"..i18n("flow_details.as_prev_next").."</th>")
+      print("<td>"..ternary(flow.prev_adjacent_as, flow.prev_adjacent_as, "").."</td>\n")
+      print("<td>"..ternary(flow.next_adjacent_as, flow.next_adjacent_as, "").."</td>\n")
+      print("</tr>\n")
+   end
+
    if (flow["moreinfo.json"] ~= nil) then
       local flow_field_value_maps = require "flow_field_value_maps"
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)

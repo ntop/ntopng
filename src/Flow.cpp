@@ -42,6 +42,7 @@ Flow::Flow(NetworkInterface *_iface,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli_host = srv_host = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
+  srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
   flow_score = cli_score = srv_score = 0;
   alert_status_info = alert_status_info_shadow = NULL;
   alert_type = alert_none;
@@ -1733,6 +1734,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(vrfId) lua_push_uint64_table_entry(vm, "vrfId", vrfId);
     lua_push_uint64_table_entry(vm, "vlan", get_vlan_id());
+
+    if(srcAS) lua_push_int32_table_entry(vm, "src_as", srcAS);
+    if(dstAS) lua_push_int32_table_entry(vm, "dst_as", dstAS);
+    if(prevAdjacentAS) lua_push_int32_table_entry(vm, "prev_adjacent_as", prevAdjacentAS);
+    if(nextAdjacentAS)lua_push_int32_table_entry(vm, "next_adjacent_as", nextAdjacentAS);
 
     lua_get_protocols(vm);
 

@@ -44,6 +44,7 @@ class Flow : public GenericHashEntry {
   ICMPinfo *icmp_info;
   u_int16_t cli_port, srv_port, vlanId;
   u_int32_t vrfId;
+  u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t cli_score, srv_score, flow_score;
   bool peers_score_accounted;
@@ -604,8 +605,13 @@ class Flow : public GenericHashEntry {
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); };
   inline bool isTCPRefused()     const { return (!isThreeWayHandshakeOK() && (dst2src_tcp_flags & TH_RST) == TH_RST); };
-  inline bool isFlowAlerted() const         { return(alerted_status != status_normal); };
-  inline void      setVRFid(u_int32_t v)  { vrfId = v;                              }
+  inline bool isFlowAlerted() const      { return(alerted_status != status_normal); };
+  inline void setVRFid(u_int32_t v) { vrfId = v; }
+  inline void setSrcAS(u_int32_t v) { srcAS = v; }
+  inline void setDstAS(u_int32_t v) { dstAS = v; }
+  inline void setPrevAdjacentAS(u_int32_t v) { prevAdjacentAS = v; }
+  inline void setNextAdjacentAS(u_int32_t v) { nextAdjacentAS = v; }
+
   inline ViewInterfaceFlowStats* getViewInterfaceFlowStats() { return(viewFlowStats); }
   u_int16_t getAlertedStatusScore();
 
