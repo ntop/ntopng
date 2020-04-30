@@ -31,7 +31,7 @@ void ContinuousPingStats::update(float rtt) {
   stats.num_ping_sent++, stats.num_ping_rcvd++;
   
   if(rtt > 0) {
-    stats.diff_sum += abs(stats.last_rtt - rtt);
+    stats.diff_sum += fabs(stats.last_rtt - rtt);
     stats.rtt_sum += rtt, stats.last_rtt = rtt;
     stats.min_rtt  = (stats.num_ping_rcvd == 1) ? rtt : min(stats.min_rtt, rtt);
     stats.max_rtt  = max(stats.max_rtt, rtt);
