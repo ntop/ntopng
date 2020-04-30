@@ -959,9 +959,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         var num_smoothed_points = Math.min(Math.max(Math.floor(total_serie.length / 5), 3), 12);
 
         var smooth_functions = {
-          trend: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
-          ema: ["EMA", "#F96BFF", exponentialMovingAverageArray, {periods: num_smoothed_points}],
-          sma: ["SMA", "#A900FF", simpleMovingAverageArray, {periods: num_smoothed_points}],
+          //trend: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
+          //ema: ["EMA", "#F96BFF", exponentialMovingAverageArray, {periods: num_smoothed_points}],
+          //sma: ["SMA", "#A900FF", simpleMovingAverageArray, {periods: num_smoothed_points}],
           rsi: ["RSI cur vs past", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
         }
 
