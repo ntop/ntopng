@@ -18,7 +18,14 @@ if((host_info ~= nil) and (host_info["host"] ~= nil)) then
    if(host == nil) then
       host = "{}"
    else
+      local hostinfo = {host=host["ip"], vlan=host["vlan"]}
+
       host["name"] = host2name(host["ip"], host["vlan"])
+
+      if((host["ip"] == host["name"]) and ntop.shouldResolveHost(host["ip"])) then
+         -- Actively resolve host if resolution is enabled
+         host["name"] = resolveAddress(hostinfo)
+      end
    end
 else
    host = "{}"

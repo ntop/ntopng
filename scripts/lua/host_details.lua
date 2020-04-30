@@ -495,7 +495,7 @@ if((page == "overview") or (page == nil)) then
 	 print("<td colspan=2>")
       end
 
-      if(host["ip"] == host["name"]) then
+      if((host["ip"] == host["name"]) and ntop.shouldResolveHost(host["ip"])) then
 	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
       end
 

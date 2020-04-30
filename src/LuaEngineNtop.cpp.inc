@@ -649,6 +649,19 @@ static int ntop_reload_periodic_scripts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_should_resolve_host(lua_State* vm) {
+  char *ip;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((ip = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  lua_pushboolean(vm, Utils::shouldResolveHost(ip));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_gainWriteCapabilities(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, Utils::gainWriteCapabilities() == 0);
@@ -4930,6 +4943,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getTLSVersionName",     ntop_get_tls_version_name    },
   { "isIPv6",                ntop_is_ipv6                 },
   { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
+  { "shouldResolveHost",     ntop_should_resolve_host     },
 
   /* JA3 */
   { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
