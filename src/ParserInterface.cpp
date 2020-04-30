@@ -323,13 +323,15 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 #endif
 
-  flow->addFlowStats(src2dst_direction,
+  flow->addFlowStats(new_flow,
+		     src2dst_direction,
 		     zflow->pkt_sampling_rate*zflow->in_pkts,
 		     zflow->pkt_sampling_rate*zflow->in_bytes, 0,
 		     zflow->pkt_sampling_rate*zflow->out_pkts,
 		     zflow->pkt_sampling_rate*zflow->out_bytes, 0,
 		     zflow->pkt_sampling_rate*zflow->in_fragments,
 		     zflow->pkt_sampling_rate*zflow->out_fragments,
+		     zflow->first_switched,
 		     zflow->last_switched);
 
   p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;

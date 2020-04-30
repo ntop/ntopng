@@ -1379,6 +1379,100 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     break;
   }
 }
+/* *************************************** */
+
+void Flow::updateThroughputStats(float tdiff_msec,
+				 u_int32_t diff_sent_packets, u_int64_t diff_sent_bytes, u_int64_t diff_sent_goodput_bytes,
+				 u_int32_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes, u_int64_t diff_rcvd_goodput_bytes) {
+  if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
+    u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
+    u_int64_t diff_pkts  = diff_sent_packets + diff_rcvd_packets;
+
+    // bps
+    float bytes_msec_cli2srv         = ((float)(diff_sent_bytes*1000))/tdiff_msec;
+    float bytes_msec_srv2cli         = ((float)(diff_rcvd_bytes*1000))/tdiff_msec;
+    float bytes_msec                 = bytes_msec_cli2srv + bytes_msec_srv2cli;
+
+    float goodput_bytes_msec_cli2srv = ((float)(diff_sent_goodput_bytes*1000))/tdiff_msec;
+    float goodput_bytes_msec_srv2cli = ((float)(diff_rcvd_goodput_bytes*1000))/tdiff_msec;
+    float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
+
+    /* Just to be safe */
+    if(bytes_msec < 0)                 bytes_msec                 = 0;
+    if(bytes_msec_cli2srv < 0)         bytes_msec_cli2srv         = 0;
+    if(bytes_msec_srv2cli < 0)         bytes_msec_srv2cli         = 0;
+    if(goodput_bytes_msec < 0)         goodput_bytes_msec         = 0;
+    if(goodput_bytes_msec_cli2srv < 0) goodput_bytes_msec_cli2srv = 0;
+    if(goodput_bytes_msec_srv2cli < 0) goodput_bytes_msec_srv2cli = 0;
+
+    if((bytes_msec > 0) || iface->isPacketInterface()) {
+      // refresh trend stats for the overall throughput
+      if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
+      else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;
+      else                             bytes_thpt_trend = trend_stable;
+
+      // refresh goodput stats for the overall throughput
+      if(goodput_bytes_thpt < goodput_bytes_msec)      goodput_bytes_thpt_trend = trend_up;
+      else if(goodput_bytes_thpt > goodput_bytes_msec) goodput_bytes_thpt_trend = trend_down;
+      else                                             goodput_bytes_thpt_trend = trend_stable;
+
+      if(false)
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
+				     bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
+
+      // update the old values with the newly calculated ones
+      bytes_thpt_cli2srv         = bytes_msec_cli2srv;
+      bytes_thpt_srv2cli         = bytes_msec_srv2cli;
+      goodput_bytes_thpt_cli2srv = goodput_bytes_msec_cli2srv;
+      goodput_bytes_thpt_srv2cli = goodput_bytes_msec_srv2cli;
+
+      bytes_thpt = bytes_msec, goodput_bytes_thpt = goodput_bytes_msec;
+      if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
+      if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
+
+#ifdef NTOPNG_PRO
+      throughputTrend.update(bytes_thpt), goodputTrend.update(goodput_bytes_thpt);
+      thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec);
+
+#ifdef DEBUG_TREND
+      if((get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli()) > 0) {
+	char buf[256];
+
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodput long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
+				     print(buf, sizeof(buf)),
+				     goodputTrend.getLongTerm(), goodputTrend.getMidTerm(), goodputTrend.getShortTerm(),
+				     goodputTrend.getTrendMsg(),
+				     ((float)(100*(get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli())))/(float)(get_bytes_cli2srv() + get_bytes_srv2cli()));
+      }
+#endif
+#endif
+
+      // pps
+      float pkts_msec_cli2srv     = ((float)(diff_sent_packets*1000))/tdiff_msec;
+      float pkts_msec_srv2cli     = ((float)(diff_rcvd_packets*1000))/tdiff_msec;
+      float pkts_msec             = pkts_msec_cli2srv + pkts_msec_srv2cli;
+
+      /* Just to be safe */
+      if(pkts_msec < 0)         pkts_msec         = 0;
+      if(pkts_msec_cli2srv < 0) pkts_msec_cli2srv = 0;
+      if(pkts_msec_srv2cli < 0) pkts_msec_srv2cli = 0;
+
+      if(pkts_thpt < pkts_msec)      pkts_thpt_trend = trend_up;
+      else if(pkts_thpt > pkts_msec) pkts_thpt_trend = trend_down;
+      else                           pkts_thpt_trend = trend_stable;
+
+      pkts_thpt_cli2srv = pkts_msec_cli2srv;
+      pkts_thpt_srv2cli = pkts_msec_srv2cli;
+      pkts_thpt = pkts_msec;
+      if(top_pkts_thpt < pkts_thpt) top_pkts_thpt = pkts_thpt;
+
+      if(false)
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
+				     pkts_msec, tdiff_msec, diff_pkts, pkts_thpt);
+
+    }
+  }
+}
 
 /* *************************************** */
 
@@ -1397,8 +1491,6 @@ void Flow::periodic_stats_update(void *user_data) {
   u_int64_t diff_rcvd_bytes = partial.get_srv2cli_bytes();
   u_int64_t diff_rcvd_goodput_bytes = partial.get_srv2cli_goodput_bytes();
 
-  u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
-  u_int64_t diff_pkts  = diff_sent_packets + diff_rcvd_packets;
 
   Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
   Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
@@ -1457,93 +1549,11 @@ void Flow::periodic_stats_update(void *user_data) {
   } /* Closes if(cli_host && srv_host) */
 
   if(last_update_time.tv_sec > 0) {
-    float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
+    float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
+    updateThroughputStats(tdiff_msec,
+			  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+			  diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
 
-    if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
-      // bps
-      float bytes_msec_cli2srv         = ((float)(diff_sent_bytes*1000))/tdiff_msec;
-      float bytes_msec_srv2cli         = ((float)(diff_rcvd_bytes*1000))/tdiff_msec;
-      float bytes_msec                 = bytes_msec_cli2srv + bytes_msec_srv2cli;
-
-      float goodput_bytes_msec_cli2srv = ((float)(diff_sent_goodput_bytes*1000))/tdiff_msec;
-      float goodput_bytes_msec_srv2cli = ((float)(diff_rcvd_goodput_bytes*1000))/tdiff_msec;
-      float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
-
-      /* Just to be safe */
-      if(bytes_msec < 0)                 bytes_msec                 = 0;
-      if(bytes_msec_cli2srv < 0)         bytes_msec_cli2srv         = 0;
-      if(bytes_msec_srv2cli < 0)         bytes_msec_srv2cli         = 0;
-      if(goodput_bytes_msec < 0)         goodput_bytes_msec         = 0;
-      if(goodput_bytes_msec_cli2srv < 0) goodput_bytes_msec_cli2srv = 0;
-      if(goodput_bytes_msec_srv2cli < 0) goodput_bytes_msec_srv2cli = 0;
-
-      if((bytes_msec > 0) || iface->isPacketInterface()) {
-	// refresh trend stats for the overall throughput
-	if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
-	else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;
-	else                             bytes_thpt_trend = trend_stable;
-
-	// refresh goodput stats for the overall throughput
-	if(goodput_bytes_thpt < goodput_bytes_msec)      goodput_bytes_thpt_trend = trend_up;
-	else if(goodput_bytes_thpt > goodput_bytes_msec) goodput_bytes_thpt_trend = trend_down;
-	else                                             goodput_bytes_thpt_trend = trend_stable;
-
-	if(false)
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
-				       bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
-
-	// update the old values with the newly calculated ones
-	bytes_thpt_cli2srv         = bytes_msec_cli2srv;
-	bytes_thpt_srv2cli         = bytes_msec_srv2cli;
-	goodput_bytes_thpt_cli2srv = goodput_bytes_msec_cli2srv;
-	goodput_bytes_thpt_srv2cli = goodput_bytes_msec_srv2cli;
-
-	bytes_thpt = bytes_msec, goodput_bytes_thpt = goodput_bytes_msec;
-	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
-	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
-
-#ifdef NTOPNG_PRO
-	throughputTrend.update(bytes_thpt), goodputTrend.update(goodput_bytes_thpt);
-	thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec);
-
-#ifdef DEBUG_TREND
-	if((get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli()) > 0) {
-	  char buf[256];
-
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodput long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
-				       print(buf, sizeof(buf)),
-				       goodputTrend.getLongTerm(), goodputTrend.getMidTerm(), goodputTrend.getShortTerm(),
-				       goodputTrend.getTrendMsg(),
-				       ((float)(100*(get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli())))/(float)(get_bytes_cli2srv() + get_bytes_srv2cli()));
-	}
-#endif
-#endif
-
-	// pps
-	float pkts_msec_cli2srv     = ((float)(diff_sent_packets*1000))/tdiff_msec;
-	float pkts_msec_srv2cli     = ((float)(diff_rcvd_packets*1000))/tdiff_msec;
-	float pkts_msec             = pkts_msec_cli2srv + pkts_msec_srv2cli;
-
-	/* Just to be safe */
-	if(pkts_msec < 0)         pkts_msec         = 0;
-	if(pkts_msec_cli2srv < 0) pkts_msec_cli2srv = 0;
-	if(pkts_msec_srv2cli < 0) pkts_msec_srv2cli = 0;
-
-	if(pkts_thpt < pkts_msec)      pkts_thpt_trend = trend_up;
-	else if(pkts_thpt > pkts_msec) pkts_thpt_trend = trend_down;
-	else                           pkts_thpt_trend = trend_stable;
-
-	pkts_thpt_cli2srv = pkts_msec_cli2srv;
-	pkts_thpt_srv2cli = pkts_msec_srv2cli;
-	pkts_thpt = pkts_msec;
-	if(top_pkts_thpt < pkts_thpt) top_pkts_thpt = pkts_thpt;
-
-	if(false)
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
-				       pkts_msec, tdiff_msec, diff_pkts, pkts_thpt);
-
-      }
-    }
   }
 
   memcpy(&last_update_time, tv, sizeof(struct timeval));
@@ -2582,15 +2592,28 @@ void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_i
 
 /* *************************************** */
 
-void Flow::addFlowStats(bool cli2srv_direction,
+void Flow::addFlowStats(bool new_flow,
+			bool cli2srv_direction,
 			u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 			u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes,
-			u_int in_fragments, u_int out_fragments, time_t last_seen) {
+			u_int in_fragments, u_int out_fragments,
+			time_t first_seen, time_t last_seen) {
 
   /* Don't update seen if no traffic has been observed */
-  if((in_bytes == 0) && (out_bytes == 0)) return;
+  if(!(in_bytes || out_bytes || in_pkts || out_pkts))
+    return;
 
   updateSeen(last_seen);
+
+  /*
+    If the flow is new, the throughput is updated roughly by estimating
+    the average throughput between first and last seen. This prevents
+    having flows with seemingly zero throughput.
+  */
+  if(new_flow)
+    updateThroughputStats((last_seen - first_seen) * 1000,
+			  in_pkts, in_bytes, 0,
+			  out_pkts, out_bytes, 0);
 
   if(cli2srv_direction) {
     stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);

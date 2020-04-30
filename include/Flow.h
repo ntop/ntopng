@@ -230,6 +230,9 @@ class Flow : public GenericHashEntry {
   void allocDPIMemory();
   bool checkTor(char *hostname);
   void setBittorrentHash(char *hash);
+  void updateThroughputStats(float tdiff_msec,
+			     u_int32_t diff_sent_packets, u_int64_t diff_sent_bytes, u_int64_t diff_sent_goodput_bytes,
+			     u_int32_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes, u_int64_t diff_rcvd_goodput_bytes);
   static void updatePacketStats(InterarrivalStats *stats, const struct timeval *when, bool update_iat);
   bool isReadyToBeMarkedAsIdle();
   char * printTCPState(char * const buf, u_int buf_len) const;
@@ -387,9 +390,11 @@ class Flow : public GenericHashEntry {
 		u_int8_t *payload, u_int payload_len, 
                 u_int8_t l4_proto, u_int8_t is_fragment,
 		u_int16_t tcp_flags, const struct timeval *when);
-  void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
+  void addFlowStats(bool new_flow,
+		    bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
-		    u_int in_fragments, u_int out_fragments, time_t last_seen);
+		    u_int in_fragments, u_int out_fragments,
+		    time_t first_seen, time_t last_seen);
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
   inline bool isOneWay()                 const { return(get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli())); };
