@@ -525,6 +525,16 @@ end
 
 -- ##############################################
 
+--! @brief Check if the specified measurement is available
+--! @return true if available, false otherwise
+function am_utils.isMeasurementAvailable(measurement)
+  loadAmPlugins()
+
+  return(loaded_measurements[measurement] ~= nil)
+end
+
+-- ##############################################
+
 --! @brief Get a list of granularities allowed the the measurements
 --! @param measurement the measurement key for which the granularities should be returned
 --! @return a list of allowed granularities <titlae, value> for the gui.

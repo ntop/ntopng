@@ -28,7 +28,7 @@ local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
 local plugins_utils = require "plugins_utils"
-local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 local info = ntop.getInfo()
 
@@ -549,39 +549,39 @@ if isScoreEnabled() then
    print("<tr><th>"..i18n("score").." " .. score_chart .."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
 end
 
--- RTT Host
-if (not ntop.isWindows()) then
+-- Active monitoring
+if am_utils and am_utils.isMeasurementAvailable('icmp') then
    local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
    print([[
       <tr>
-         <th>RTT</th>
+         <th>]] .. i18n("active_monitoring_stats.active_monitoring") .. [[</th>
    ]])
-   if (not active_monitoring_utils.hasHost(host["ip"], icmp)) then
-
+   if (not am_utils.hasHost(host["ip"], icmp)) then
       print([[
          <td colspan="2">
-            <a href='#' id='btn-add-rtt'>]].. i18n('add') ..[[ RTT <i class='fas fa-plus'></i></a>
+            <a href='#' id='btn-add-am-host'>]].. i18n('active_monitoring_stats.add_icmp') ..[[ <i class='fas fa-plus'></i></a>
          </td>
          <script type='text/javascript'>
             $(document).ready(function() {
 
-               let rtt_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
-               $('#btn-add-rtt').click(function(e) {
+               let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+               $('#btn-add-am-host').click(function(e) {
 
                   e.preventDefault();
                   const data_to_send = {
                      action: 'add',
                      am_host: ']].. host["ip"] ..[[',
-                     rtt_max: 100,
+                     threshold: 100,
+		     granularity: "min",
                      measurement: ']].. icmp ..[[',
-                     csrf: rtt_csrf
+                     csrf: am_csrf,
                   };
 
                   $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
                   .then((data, result, xhr) => {
 
                      // always update the token
-                     rtt_csrf = data.csrf;
+                     am_csrf = data.csrf;
                      const $alert_message = $('<div class="alert"></div>');
                      if (data.success) {
                         $alert_message.addClass('alert-success').text(data.message);
@@ -602,7 +602,6 @@ if (not ntop.isWindows()) then
 
                   })
                   .fail(() => {
-
                      const $alert_message = $('<div class="alert"></div>');
                      $alert_message.addClass('alert-danger').text("]].. i18n('expired_csrf') ..[[");
 
@@ -616,16 +615,18 @@ if (not ntop.isWindows()) then
    else
 
 
-      local last_update = active_monitoring_utils.getLastRttUpdate(host['ip'], icmp)
+      local last_update = am_utils.getLastAmUpdate(host['ip'], icmp)
       local last_rtt = ""
 
       if(last_update ~= nil) then
-         last_rtt = last_update.value .. " ms"
+         last_rtt = last_update.value .. " " .. i18n("active_monitoring_stats.msec")
+      else
+	 last_rtt = i18n("active_monitoring_stats.no_updates_yet")
       end
 
       print([[
          <td colspan="2">
-            <a href=']].. ntop.getHttpPrefix() ..[[/plugins/active_monitoring_stats.lua?host=]].. host['ip'] ..[['>]].. (isEmptyString(last_rtt) and 'No updates yet' or last_rtt) ..[[</a>
+            <a href=']].. ntop.getHttpPrefix() ..[[/plugins/active_monitoring_stats.lua?host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
          </td>
       ]])
 
