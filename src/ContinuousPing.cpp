@@ -23,14 +23,14 @@
 
 #include "ntop_includes.h"
 
-#define TRACE_PING_DROPS
+/* #define TRACE_PING_DROPS */
 
 /* #define TRACE_PING */
 
 /*
   Usage example (minute.lua):
-  
-  local use_ipv4 = true  
+
+  local use_ipv4 = true
   ntop.pingHost(ntop.resolveHost("dns.ntop.org", use_ipv4), not(use_ipv4), true)
   ntop.pingHost("192.168.1.1", not(use_ipv4), true)
   ntop.pingHost("192.168.1.2", not(use_ipv4), true)
@@ -94,17 +94,31 @@ void ContinuousPing::ping(char *_addr, bool use_v6) {
 
     if(it != v4_results.end()) {
       /* Already present */
+#ifdef TRACE_PING
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing %s", _addr);
+#endif
       it->second->heartbeat();
-    } else
+    } else {
       v4_results[key] = new ContinuousPingStats();
+#ifdef TRACE_PING
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding host to ping %s", _addr);
+#endif
+    }
   } else {
     it = v6_results.find(key);
 
     if(it != v6_results.end()) {
       /* Already present */
+#ifdef TRACE_PING
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing %s", _addr);
+#endif
       it->second->heartbeat();
-    } else
+    } else {
       v6_results[key] = new ContinuousPingStats();
+#ifdef TRACE_PING
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding host to ping %s", _addr);
+#endif
+    }
   }
 
   m.unlock(__FILE__, __LINE__);
@@ -113,14 +127,40 @@ void ContinuousPing::ping(char *_addr, bool use_v6) {
 /* ***************************************** */
 
 void ContinuousPing::pingAll() {
+  time_t last_beat, topurge = time(NULL) - 90 /* sec */;
+  bool todiscard = false;
+  
   m.lock(__FILE__, __LINE__);
 
-  for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it)
+  for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
     pinger->ping((char*)it->first.c_str(), false);
+    last_beat = it->second->getLastHeartbeat();
 
-  for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it)
+    if((last_beat > 0) && (last_beat < topurge))
+      inactiveHostsV4.push_back(it->first), todiscard = true;
+
+#ifdef TRACE_PING
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging host %s [last: %d][diff: %d]",
+				 (char*)it->first.c_str(), last_beat, last_beat-topurge);
+#endif
+  }
+
+  for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it) {
     pinger->ping((char*)it->first.c_str(), true);
+    last_beat = it->second->getLastHeartbeat();
 
+    if((last_beat > 0) && (last_beat < topurge))
+      inactiveHostsV6.push_back(it->first), todiscard = true;;
+
+#ifdef TRACE_PING
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging host %s [last: %d][diff: %d]",
+				 (char*)it->first.c_str(), last_beat, last_beat-topurge);
+#endif
+  }
+
+  if(todiscard)
+    cleanupInactiveHosts();
+  
   m.unlock(__FILE__, __LINE__);
 }
 
@@ -152,7 +192,7 @@ void ContinuousPing::readPingResults() {
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [IPv6] %s=%f", __FUNCTION__, it->first.c_str(), f);
 #endif
-   
+
     if(f != -1)
       it->second->update(f);
     else {
@@ -168,45 +208,82 @@ void ContinuousPing::readPingResults() {
 
 /* ***************************************** */
 
+void ContinuousPing::collectProtoResponse(lua_State* vm, std::map<std::string,ContinuousPingStats*> *w) {
+  for(std::map<std::string,ContinuousPingStats*>::iterator it=w->begin(); it!=w->end(); ++it) {
+    if(it->first.c_str()[0]) {
+      float min_rtt, max_rtt, jitter, mean;
+	
+      lua_newtable(vm);
+
+      lua_push_float_table_entry(vm, "response_rate",
+				 it->second->getSuccessRate(&min_rtt, &max_rtt, &jitter, &mean));
+      lua_push_float_table_entry(vm, "min_rtt",  min_rtt);
+      lua_push_float_table_entry(vm, "max_rtt",  max_rtt);
+      lua_push_float_table_entry(vm, "jitter",   jitter);
+      lua_push_float_table_entry(vm, "mean",     mean);
+
+      lua_pushstring(vm, it->first.c_str());
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
+      it->second->reset();
+    }
+  }
+}
+
+/* ***************************************** */
+
 void ContinuousPing::collectResponses(lua_State* vm) {
-  float min_rtt, max_rtt; /* Future use */
   lua_newtable(vm);
 
   m.lock(__FILE__, __LINE__);
 
-  for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
-    if(it->first.c_str()[0]) {
-      lua_newtable(vm);
-
-      lua_push_float_table_entry(vm, "response_rate", it->second->getSuccessRate(&min_rtt, &max_rtt));
-      lua_push_float_table_entry(vm, "min_rtt", min_rtt);
-      lua_push_float_table_entry(vm, "max_rtt", max_rtt);
-
-      lua_pushstring(vm, it->first.c_str());
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-
-      it->second->reset();
-    }
-  }
-
-  for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it) {
-    if(it->first.c_str()[0]) {
-      lua_newtable(vm);
-
-      lua_push_float_table_entry(vm, "response_rate", it->second->getSuccessRate(&min_rtt, &max_rtt));
-      lua_push_float_table_entry(vm, "min_rtt", min_rtt);
-      lua_push_float_table_entry(vm, "max_rtt", max_rtt);
-
-      lua_pushstring(vm, it->first.c_str());
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-
-      it->second->reset();
-    }
-  }
-
+  collectProtoResponse(vm, &v4_results);
+  collectProtoResponse(vm, &v6_results);
+  
   m.unlock(__FILE__, __LINE__);
+}
+
+/* ***************************************** */
+
+/*
+  Discard hosts for which there is not recent hearthbeat
+  as they have not been refreshed by the GUI and thus tha
+  have been deleted
+ */
+void ContinuousPing::cleanupInactiveHosts() {
+  std::vector<std::string>::iterator it;
+  std::map<std::string /* IP */, ContinuousPingStats* /* stats */>::iterator it1;
+
+  /* No Lock needed as this is called from a locked method */
+  
+  for(it = inactiveHostsV4.begin(); it != inactiveHostsV4.end(); ++it) {
+#ifdef TRACE_PING
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[v4] Discarding host %s", it->c_str());
+#endif
+    
+    if((it1 = v4_results.find(*it)) != v4_results.end()) {
+      ContinuousPingStats *s = it1->second;
+
+      delete s;
+    }
+    
+    v4_results.erase(*it);
+  }
+
+  for(it = inactiveHostsV6.begin(); it != inactiveHostsV6.end(); ++it) {
+#ifdef TRACE_PING
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[v6] Discarding host %s", it->c_str());
+#endif
+    
+    if((it1 = v6_results.find(*it)) != v6_results.end()) {
+      ContinuousPingStats *s = it1->second;
+      
+      delete s;
+    }
+    
+    v6_results.erase(*it);
+  }
 }
 
 /* ***************************************** */

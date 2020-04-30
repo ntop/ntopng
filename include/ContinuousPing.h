@@ -29,12 +29,15 @@
 class ContinuousPing {
  private:
   std::map<std::string /* IP */, ContinuousPingStats* /* stats */> v4_results, v6_results;
+  std::vector<std::string /* IP */> inactiveHostsV4, inactiveHostsV6;
   Ping *pinger;
   pthread_t poller;
   Mutex m;
 
   void pingAll();
   void readPingResults();
+  void cleanupInactiveHosts();
+  void collectProtoResponse(lua_State* vm, std::map<std::string,ContinuousPingStats*> *w);
   
  public:
   ContinuousPing();
