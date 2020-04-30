@@ -33,7 +33,7 @@ local function check_icmp_continuous(hosts, granularity)
 
   for key, host in pairs(hosts) do
     local domain_name = host.host
-    local is_v6 = (host.measurement == "icmp6")
+    local is_v6 = (host.measurement == "cicmp6")
     local ip_address = am_utils.resolveHost(domain_name, is_v6)
 
     if not ip_address then
