@@ -13,7 +13,7 @@
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="widget-name-input"><b>Widget Name</b>:</label>
                         <div class="col-sm-5">
-                            <input max="32" min="1" required name="name" type="text" class="form-control" id="widget-name-input">
+                            <input maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="widget-name-input">
                         </div>
                     </div>
                     <div class="form-group row">

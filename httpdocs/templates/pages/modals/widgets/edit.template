@@ -9,11 +9,12 @@
                 </button>
             </div>
             <form>
+                <input type="text" hidden name="widget_key">
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="edit-widget-name-input"><b>Widget Name</b>:</label>
                         <div class="col-sm-5">
-                            <input max="32" min="1" required name="name" type="text" class="form-control" id="edit-widget-name-input">
+                            <input maxlength="32" minlength="1" required name="name" type="text" class="form-control" id="edit-widget-name-input">
                         </div>
                     </div>
                     <div class="form-group row">
@@ -49,7 +50,7 @@
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="edit-widget-key-input">Key (IP, ASN, MAC):</label>
                         <div class="col-sm-5">
-                            <input max="32" min="1" name="key" type="text" class="form-control" id="edit-widget-key-input">
+                            <input maxlegnth="32" minlength="1" name="key" type="text" class="form-control" id="edit-widget-key-input">
                         </div>
                     </div>
                     <div class="form-group row">

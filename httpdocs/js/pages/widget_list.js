@@ -1,49 +1,4 @@
-function serializeFormArrayIntoObject(serializedArray) {
-
-    const serialized = {};
-    serializedArray.forEach((obj) => {
-        serialized[obj.name] = obj.value;
-    });
-
-    return serialized;
-}
-
 $(document).ready(function() {
-
-    function submitPost(data_to_send, modal_id, $submit_button) {
-
-        const $invalid_feedback = $(modal_id).find(`span.invalid-feedback`);
-        $invalid_feedback.fadeOut().html('');
-        $submit_button.attr("disabled", "true");
-
-        $.post(`${http_prefix}/lua/edit_widgets.lua`, data_to_send, function (data) {
-
-            switch (data_to_send.action) {
-                case 'add':
-                    add_csrf = data.csrf;
-                    break;
-                case 'edit':
-                    edit_csrf = data.csrf;
-                    break;
-                case 'remove':
-                    remove_csrf = data.csrf;
-                    break;
-            }
-
-            $submit_button.removeAttr("disabled");
-
-            if (data.success) {
-                $widgets_table.ajax.reload();
-                $(modal_id).modal('hide');
-                if ($(modal_id).find('form').length > 0) $(modal_id).find('form')[0].reset();
-            }
-            else {
-                $invalid_feedback.fadeIn().html(data.message);
-            }
-
-        });
-
-    }
 
     const $widgets_table = $(`#widgets-list`).DataTable({
         pagingType: 'full_numbers',
@@ -114,79 +69,77 @@ $(document).ready(function() {
     });
 
     $(`#widgets-list`).on('click', `a[href='#embed-widget-modal']`, function(e) {
-
         const row_data = $widgets_table.row($(this).parent()).data();
-        $(`#embded-container`).text(`
-            <div class='ntop-widget' data-ntop-widget-key='${row_data.key}'></div>
-        `);
-
+        $(`#embded-container`).text(`<div class='ntop-widget' data-ntop-widget-key='${row_data.key}'></div>`);
     });
 
     $(`#widgets-list`).on('click', `a[href='#remove-widget-modal']`, function(e) {
 
         const row_data = $widgets_table.row($(this).parent()).data();
-        const $submit_button = $(this).find(`[type='submit']`);
-        const widget_key = row_data.key;
 
-        $(`#remove-widget-button`).off('click').click(function () {
-
-            const data_to_send = { widget_key: widget_key };
-            submitPost(
-                { action: 'remove', JSON: JSON.stringify(data_to_send), csrf: remove_csrf },
-                '#remove-widget-modal',
-                $submit_button
-            );
+        $(`#remove-widget-modal form`).modalHandler({
+            method: 'post',
+            endpoint: `${http_prefix}/lua/edit_widgets.lua`,
+            csrf: remove_csrf,
+            submitOptions: { action: 'remove' },
+            loadFormData: function() {
+                return row_data.key;
+            },
+            onModalInit: function(data) {
+                $(`#remove-widget-modal form input[name='widget_key']`).val(data);
+            },
+            onSubmitSuccess: function(response) {
+                $widgets_table.ajax.reload();
+                $('#remove-widget-modal').modal('hide');
+            }
         });
     });
 
     $(`#widgets-list`).on('click', `a[href='#edit-widget-modal']`, function(e) {
 
-        const $submit_button = $(this).find(`[type='submit']`);
         const row_data = $widgets_table.row($(this).parent()).data();
-        const widget_key = row_data.key;
 
-        const edit_params = Object.assign({
-            name: row_data.name,
-            type: row_data.type,
-            ds_hash: row_data.ds_hash,
-            interface: row_data.params.ifid
-        }, row_data.params);
+        $(`#edit-widget-modal form`).modalHandler({
+            method: 'post',
+            endpoint: `${http_prefix}/lua/edit_widgets.lua`,
+            csrf: edit_csrf,
+            submitOptions: { action: 'edit' },
+            loadFormData: function() {
+                return row_data;
+            },
+            onModalInit: function(data) {
 
-        delete edit_params.ifid;
+                const editParams = Object.assign({
+                    name:       data.name,
+                    type:       data.type,
+                    ds_hash:    data.ds_hash,
+                    interface:  data.params.ifid,
+                    widget_key: data.key,
+                }, data.params);
 
-        // Luca this is the magic line, it fills edit-modal input fields
-        $('#edit-widget-modal form [name]').each(function(e) {
-            $(this).val(edit_params[$(this).attr('name')]);
+                delete editParams.ifid;
+
+                $(`#edit-widget-modal form`).find('[name]').each(function(e) {
+                    $(this).val(editParams[$(this).attr('name')]);
+                });
+            },
+            onSubmitSuccess: function(response) {
+                $widgets_table.ajax.reload();
+                $('#edit-widget-modal').modal('hide');
+            }
         });
 
-        $(`#edit-widget-modal form`).off('submit').submit(function (e) {
-
-            e.preventDefault();
-
-            const data_to_send = serializeFormArrayIntoObject($(this).serializeArray());
-            data_to_send.widget_key = widget_key;
-
-            submitPost(
-                { action: 'edit', JSON: JSON.stringify(data_to_send), csrf: edit_csrf },
-                `#edit-widget-modal`,
-                $submit_button
-            );
-        });
     });
 
-    $(`#add-widget-modal form`).submit(function(e) {
-
-        e.preventDefault();
-        const $submit_button = $(this).find(`[type='submit']`);
-        const data_to_send = serializeFormArrayIntoObject($(this).serializeArray());
-
-        console.log(data_to_send);
-
-        submitPost(
-            { action: 'add', csrf: add_csrf, JSON: JSON.stringify(data_to_send) },
-            `#add-widget-modal`,
-            $submit_button
-        );
+    $(`#add-widget-modal form`).modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/lua/edit_widgets.lua`,
+        csrf: add_csrf,
+        submitOptions: { action: 'add' },
+        onSubmitSuccess: function(response) {
+            $widgets_table.ajax.reload();
+            $('#add-widget-modal').modal('hide');
+        }
     });
 
 });
