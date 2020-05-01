@@ -5200,6 +5200,10 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 
   if(ndpiStats)
     ndpiStats->sum(_ndpiStats);
+
+#ifdef NTOPNG_PRO
+  ntop->getPro()->incPktStats(_pktStats);
+#endif
 }
 
 /* *************************************** */
