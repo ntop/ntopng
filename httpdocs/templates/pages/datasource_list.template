@@ -4,12 +4,12 @@
             <table class="table w-100 table-bordered table-striped table-hover my-3" id="datasources-list">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Key</th>
-                        <th>Scope</th>
-                        <th>Origin</th>
-                        <th>Retention</th>
-                        <th>Actions</th>
+                        <th>{{ i18n("name") }}</th>
+                        <th>{{ i18n("key") }}</th>
+                        <th>{{ i18n("datasources.scope") }}</th>
+                        <th>{{ i18n("datasources.origin") }}</th>
+                        <th>{{ i18n("datasources.retention") }}</th>
+                        <th>{{ i18n("actions") }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -18,6 +18,78 @@
         </div>
     </div>
 </div>
+
+<template id='ds-source'>
+    <div class="card my-1">
+        <div class="card-header">
+            <a data-toggle="collapse" class="text-dark" href="#" >
+                <b>{{ i18n("datasources.new_source") }}</b>
+            </a>
+            <a class='btn-remove-source text-secondary float-right' href="#">
+                <i class="fas fa-trash"></i>
+            </a>
+        </div>
+        <div class="collapse show">
+            <div class="card-body">
+                <fieldset>
+                    <div class="form-row">
+                        <div class="col-6">
+                            <label>{{ i18n("datasources.schema") }}:</label>
+                            <select required name="schemas[]" class="form-control">
+                                <option selected disabled>{{ i18n("datasources.select_schema") }}</option>
+                                {% for key, value in pairs(datasources_list.timeseries) do %}
+                                    <option value="{{ key }}">{{ key }}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <div class="step-1" style="display: none;">
+                                <label>{{ i18n("datasources.series") }}:</label>
+                                <select required name="series[]" class="form-control">
+                                    <option selected disabled>{{ i18n("datasources.select_series") }}</option>
+                                    {% for key, value in pairs(datasources_list.timeseries) do %}
+                                        <optgroup label="{{ key }}">
+                                            {% for i, content in ipairs(value) do %}
+                                                <option value="{{ content.schema }}">
+                                                    {{ content.schema }}
+                                                </option>
+                                            {% end %}
+                                        </optgroup>
+                                    {% end %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row my-1">
+                        <div class="col-6">
+                            <div class="step-2" style="display: none;">
+                                <label>{{ i18n("datasources.metrics") }}:</label>
+                                <select required name="metrics[]" class="form-control">
+                                    <option selected disabled>{{ i18n("datasources.select_metrics") }}</option>
+                                    {% for key, value in pairs(datasources_list.timeseries) do %}
+                                        {% for i, content in ipairs(value) do %}
+                                            <optgroup label="{{ content.schema }}">
+                                                {% for j, metric in ipairs(content.metrics) do %}
+                                                    <option value="{{metric}}">{{ metric }}</option>
+                                                {% end %}
+                                            </optgroup>
+                                        {% end %}
+                                    {% end %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="step-2" style="display: none;">
+                                <label>JSON:</label>
+                                <input class="form-control" name="jsonSource" minlength="2" maxlength="1024">
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+</template>
 
 {* template_utils.gen("pages/modals/datasources/add.template", datasources_list) *}
 {* template_utils.gen("pages/modals/datasources/remove.template", datasources_list) *}

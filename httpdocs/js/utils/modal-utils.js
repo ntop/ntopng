@@ -20,9 +20,19 @@
 
             const serialized = {};
             serializedArray.forEach((obj) => {
-                serialized[obj.name] = obj.value;
+                /* if the object is an array  */
+                if (obj.name.includes('[]')) {
+                    const arrayName = obj.name.split("[]")[0];
+                    if (arrayName in serialized) {
+                        serialized[arrayName].push(obj.value);
+                        return;
+                    }
+                    serialized[arrayName] = [obj.value];
+                }
+                else {
+                    serialized[obj.name] = obj.value;
+                }
             });
-
             return serialized;
         }
 

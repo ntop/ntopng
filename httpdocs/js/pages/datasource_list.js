@@ -2,9 +2,18 @@ function serializeFormArrayIntoObject(serializedArray) {
 
     const serialized = {};
     serializedArray.forEach((obj) => {
-        serialized[obj.name] = obj.value;
+        if (obj.name.includes('[]')) {
+            const arrayName = obj.name.split("[]")[0];
+            if (arrayName in serialized) {
+                serialized[arrayName].push(obj.value);
+                return;
+            }
+            serialized[arrayName] = [obj.value];
+        }
+        else {
+            serialized[obj.name] = obj.value;
+        }
     });
-
     return serialized;
 }
 
@@ -78,6 +87,7 @@ $(document).ready(function() {
     function submitPost(data_to_send, modal_id, $submit_button) {
 
         const $invalid_feedback = $(modal_id).find(`span.invalid-feedback`);
+
         $invalid_feedback.fadeOut().html('');
         $submit_button.attr("disabled", "true");
 
@@ -86,6 +96,7 @@ $(document).ready(function() {
             switch (data_to_send.action) {
                 case 'add':
                     add_csrf = data.csrf;
+                    resetSourceContainer();
                     break;
                 case 'edit':
                     edit_csrf = data.csrf;
@@ -163,6 +174,86 @@ $(document).ready(function() {
             `#add-datasource-modal`,
             $submit_button
         );
+    });
+
+    /* **************************************************************************************** */
+
+    function createNewSource(name) {
+
+        const template = $(`template#ds-source`)[0];
+        const clone = template.content.cloneNode(true);
+
+        const $cloneContainer = $(clone).find('.card');
+        const $cardTitle = $(clone).find(`a[data-toggle='collapse']`);
+        const $btnRemoveSource = $(clone).find(`.btn-remove-source`);
+        const $seriesSelect = $(clone).find(`select[name='series[]']`);
+        const $schemasSelect = $(clone).find(`select[name='schemas[]']`);
+        const $metricsSelect = $(clone).find(`select[name='metrics[]']`);
+
+        $cardTitle.attr('href', `#source-${name}`);
+        $(clone).find(`div.collapse.show`).attr('id', `source-${name}`)
+
+        const steps = [
+            $(clone).find('.step-1'), $(clone).find('.step-2')
+        ];
+
+        $schemasSelect.change(function() {
+            const value = $(this).val();
+            $seriesSelect.find(`optgroup[label!='${value}']`).hide();
+            $seriesSelect.find(`optgroup[label='${value}']`).show();
+            steps[0].fadeIn();
+        });
+
+        $seriesSelect.change(function() {
+            $cardTitle.html(`<b>${$(this).val()}</b>`);
+            const value = $(this).val();
+            $metricsSelect.find(`optgroup[label!='${value}']`).hide();
+            $metricsSelect.find(`optgroup[label='${value}']`).show();
+            steps[1].fadeIn();
+        });
+
+        $metricsSelect.change(function() {
+            $cardTitle.html(`<b>${$seriesSelect.val()} - ${$(this).val()}</b>`);
+        });
+
+        $btnRemoveSource.click(function(e) {
+            e.preventDefault();
+            $cloneContainer.fadeOut(200, function() {
+                $(this).remove();
+            });
+        })
+
+        return clone;
+    }
+
+    function resetSourceContainer() {
+        $(`#ds-source-container`).fadeOut().empty();
+        $(`#btn-add-source`).fadeOut();
+    }
+
+    let temp = 0;
+
+    $(`#btn-add-source`).click(function(e) {
+        e.preventDefault(); e.stopPropagation();
+        const $sourcesContainer = $(`#ds-source-container`);
+        $sourcesContainer.append(createNewSource(++temp));
+    });
+
+    $(`#add-datasource-modal form select[name='origin']`).change(function(e) {
+
+        const isTimeseries = $(this).val() == "timeseries.lua";
+        const $sourcesContainer = $(`#ds-source-container`);
+        const $btnAddSource = $(`#btn-add-source`);
+
+        if (!isTimeseries) {
+            $sourcesContainer.fadeOut().empty();
+            $btnAddSource.fadeOut();
+            return;
+        }
+
+        $sourcesContainer.append(createNewSource('0'));
+        $sourcesContainer.fadeIn();
+        $btnAddSource.fadeIn();
     });
 
 });

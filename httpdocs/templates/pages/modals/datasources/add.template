@@ -8,7 +8,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form>
+            <form id="add-ds-form">
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="datasource-name-input"><b>Datasource Alias</b>:</label>
@@ -43,6 +43,14 @@
                                 {% end %}
                             </select>
                         </div>
+                        <div class="col-sm-4">
+                            <button style="display: none;" class="btn btn-primary w-100" id="btn-add-source">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="ds-source-container" style="display: none;" class="border-top py-1">
+
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>

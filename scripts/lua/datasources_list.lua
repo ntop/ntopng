@@ -1,7 +1,6 @@
 --
 -- (C) 2019-20 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
@@ -16,7 +15,7 @@ local template = require "template_utils"
 local json = require "dkjson"
 
 local function ends_with(str, ending)
-   return ending == "" or str:sub(-#ending) == ending
+    return ending == "" or str:sub(-#ending) == ending
 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -31,21 +30,42 @@ page_utils.print_page_title("Datasources")
 local dss = ntop.readdir(dirs.installdir .. "/scripts/lua/datasources")
 
 -- Cleanup results and allow only .lua filea
-for k,v in pairs(dss) do
-   if(not(ends_with(k, ".lua"))) then
-      dss[k] = nil
-   end
+for k, v in pairs(dss) do if (not (ends_with(k, ".lua"))) then dss[k] = nil end end
+
+-- All the family schemas
+local schemas = ts_utils.getLoadedSchemas()
+local families = {}
+
+for k, v in pairs(schemas) do
+    if (type(v) == "table") then
+
+        local s = split(k, ":")
+
+        if ((s ~= nil) and (s[1] ~= nil)) then
+
+            local tags = {}
+            local metrics = {}
+
+            if (families[s[1]] == nil) then families[s[1]] = {} end
+
+            for t, _ in pairs(v.tags) do table.insert(tags, t) end
+            for m, _ in pairs(v.metrics) do table.insert(metrics, m) end
+
+            if (#metrics > 0) then
+                table.insert(families[s[1]],
+                             {schema = k, tags = tags, metrics = metrics})
+            end
+        end
+    end
 end
 
 -- Prepare the response
 
 local context = {
-   datasources_list = {
-      datasources = dss
-    },
+    datasources_list = {datasources = dss, timeseries = families},
     template_utils = template,
     page_utils = page_utils,
-    info = ntop.getInfo(),
+    info = ntop.getInfo()
 }
 
 -- print config_list.html template
