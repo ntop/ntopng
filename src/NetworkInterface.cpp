@@ -4916,6 +4916,10 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
 #endif
     n = (flows_hash ? flows_hash->purgeIdle(force_idle) : 0);
 
+#ifdef NTOPNG_PRO
+    ntop->getPro()->purgeIdleFlows(force_idle);
+#endif
+
     next_idle_flow_purge = last_packet_time + FLOW_PURGE_FREQUENCY;
     return(n);
   }
@@ -5200,10 +5204,6 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 
   if(ndpiStats)
     ndpiStats->sum(_ndpiStats);
-
-#ifdef NTOPNG_PRO
-  ntop->getPro()->incPktStats(_pktStats);
-#endif
 }
 
 /* *************************************** */
