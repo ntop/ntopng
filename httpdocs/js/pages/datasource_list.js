@@ -180,10 +180,8 @@ $(document).ready(function() {
 
     function createNewSource(name) {
 
-        const template = $(`template#ds-source`)[0];
-        const clone = template.content.cloneNode(true);
-
-        const $cloneContainer = $(clone).find('.card');
+        const template = $(`template#ds-source`).html();
+        const clone = $(template);
         const $cardTitle = $(clone).find(`a[data-toggle='collapse']`);
         const $btnRemoveSource = $(clone).find(`.btn-remove-source`);
         const $seriesSelect = $(clone).find(`select[name='series[]']`);
@@ -197,18 +195,22 @@ $(document).ready(function() {
             $(clone).find('.step-1'), $(clone).find('.step-2')
         ];
 
+        const cloned = {
+            series: $seriesSelect.clone(), metrics: $metricsSelect.clone()
+        };
+
         $schemasSelect.change(function() {
             const value = $(this).val();
-            $seriesSelect.find(`optgroup[label!='${value}']`).hide();
-            $seriesSelect.find(`optgroup[label='${value}']`).show();
+            $seriesSelect.find(`optgroup`).remove();
+            $seriesSelect.append(cloned.series.find(`optgroup[label='${value}']`).clone());
             steps[0].fadeIn();
         });
 
         $seriesSelect.change(function() {
             $cardTitle.html(`<b>${$(this).val()}</b>`);
             const value = $(this).val();
-            $metricsSelect.find(`optgroup[label!='${value}']`).hide();
-            $metricsSelect.find(`optgroup[label='${value}']`).show();
+            $metricsSelect.find(`optgroup`).remove();
+            $metricsSelect.append(cloned.metrics.find(`optgroup[label='${value}']`).clone());
             steps[1].fadeIn();
         });
 
@@ -218,10 +220,10 @@ $(document).ready(function() {
 
         $btnRemoveSource.click(function(e) {
             e.preventDefault();
-            $cloneContainer.fadeOut(200, function() {
+            clone.fadeOut(200, function() {
                 $(this).remove();
             });
-        })
+        });
 
         return clone;
     }
@@ -251,7 +253,7 @@ $(document).ready(function() {
             return;
         }
 
-        $sourcesContainer.append(createNewSource('0'));
+        $sourcesContainer.append(createNewSource(0));
         $sourcesContainer.fadeIn();
         $btnAddSource.fadeIn();
     });
