@@ -27,14 +27,15 @@ end
 local json_data = _POST["JSON"]
 local data = json.decode(json_data)
 
+
 local response = {
     csrf = ntop.getRandomCSRFValue()
 }
 
 if (action == "add") then
-    response.success, response.message = datasources_utils.add_source(data.alias, tonumber(data.data_retention), data.scope, data.origin)
+    response.success, response.message = datasources_utils.add_source(data.alias, tonumber(data.data_retention), data.scope, data.origin, data.schemas)
 elseif (action == "edit") then
-    response.success, response.message = datasources_utils.edit_source(data.ds_key, data.alias, tonumber(data.data_retention), data.scope, data.origin)
+    response.success, response.message = datasources_utils.edit_source(data.hash, data.alias, tonumber(data.data_retention), data.scope, data.origin, data.schemas)
 elseif (action == "remove") then
     response.success, response.message = datasources_utils.delete_source(data.ds_key)
 else

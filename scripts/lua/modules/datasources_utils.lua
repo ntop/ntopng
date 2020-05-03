@@ -61,7 +61,7 @@ end
 -- @return The function returns `true` if the passed
 --         arguments meet the precondition, otherwise `false`
 -------------------------------------------------------------------------------
-function datasources_utils.add_source(alias, data_retention, scope, origin)
+function datasources_utils.add_source(alias, data_retention, scope, origin, schemas)
 
     if (not is_source_valid(alias, data_retention, scope, origin)) then
         return false, "The provided arguments are not valid"
@@ -76,7 +76,8 @@ function datasources_utils.add_source(alias, data_retention, scope, origin)
         alias = alias,
         data_retention = data_retention,
         scope = scope,
-        origin = origin
+        origin = origin,
+        schemas = schemas
     }
 
     ntop.setHashCache(REDIS_BASE_KEY, ds_hash, json.encode(new_datasource))
@@ -92,19 +93,19 @@ end
 -- @param origin The lua script that will execute the data fetch (not nil)
 -- @return True if the edit was successful, false otherwise
 -------------------------------------------------------------------------------
-function datasources_utils.edit_source(hash_source, alias, data_retention, scope, origin)
+function datasources_utils.edit_source(hash_source, alias, data_retention, scope, origin, schemas)
 
     if (isEmptyString(hash_source)) then
-        return false
+        return false, "The has cannot be empty!"
     end
     if (not is_source_valid(alias, data_retention, scope, origin)) then
-        return false
+        return false, "The sources are not valid!"
     end
 
     local json_source = ntop.getHashCache(REDIS_BASE_KEY, hash_source)
 
     if (isEmptyString(json_source)) then
-        return false
+        return false, "Datasource not found!"
     end
 
     local source = json.decode(json_source)
@@ -112,6 +113,7 @@ function datasources_utils.edit_source(hash_source, alias, data_retention, scope
     source.data_retention = data_retention
     source.scope = scope
     source.origin = origin
+    source.schemas = schemas
 
     ntop.setHashCache(REDIS_BASE_KEY, hash_source, json.encode(source))
 
@@ -144,7 +146,7 @@ end
 -------------------------------------------------------------------------------
 function datasources_utils.get(ds_hash)
    local ds = ntop.getHashCache(REDIS_BASE_KEY, ds_hash) or "{}"
-   
+
    return(json.decode(ds))
 end
 
@@ -171,18 +173,18 @@ end
 
 function datasources_utils.prepareResponse(datasets, timestamps, unit)
    local response = {}
-   
+
    if (datasets == nil) then return {} end
-   
+
    if (timestamps ~= nil) then
       response.timestamps = timestamps
    end
    if (unit ~= nil) then
       response.unit = unit
    end
-   
+
    response.data = datasets
-   
+
    return response
 end
 

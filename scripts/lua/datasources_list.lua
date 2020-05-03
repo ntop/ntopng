@@ -52,8 +52,9 @@ for k, v in pairs(schemas) do
             for m, _ in pairs(v.metrics) do table.insert(metrics, m) end
 
             if (#metrics > 0) then
-                table.insert(families[s[1]],
-                             {schema = k, tags = tags, metrics = metrics})
+                families[s[1]][k] = {}
+                families[s[1]][k]['tags'] = tags
+                families[s[1]][k]['metrics'] = metrics
             end
         end
     end
@@ -65,6 +66,7 @@ local context = {
     datasources_list = {datasources = dss, timeseries = families},
     template_utils = template,
     page_utils = page_utils,
+    json = json,
     info = ntop.getInfo()
 }
 

@@ -44,12 +44,12 @@
                             </select>
                         </div>
                         <div class="col-sm-4">
-                            <button style="display: none;" class="btn btn-primary w-100" id="btn-add-source">
+                            <button style="display: none;" type="button" class="btn btn-primary w-100 btn-add-source">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
-                    <div id="ds-source-container" style="display: none;" class="border-top py-1">
+                    <div id="add-ds-source-container" style="display: none;" class="border-top py-1 ds-source-container">
 
                     </div>
                     <span class="invalid-feedback"></span>

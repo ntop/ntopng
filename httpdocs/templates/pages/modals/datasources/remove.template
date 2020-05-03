@@ -8,18 +8,21 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <div class="alert alert-danger">
-                    Are you really sure to remove this Datasource?
-                    <br>
-                    <b>Do it at your own risk!</b>
+            <form>
+                <input name="ds_key" type="text" hidden>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        Are you really sure to remove this Datasource?
+                        <br>
+                        <b>Do it at your own risk!</b>
+                    </div>
+                    <span class="invalid-feedback"></span>
                 </div>
-                <span class="invalid-feedback"></span>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button id="remove-datasource-button" type="button" class="btn btn-danger">Remove</button>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button id="remove-datasource-button" type="submit" class="btn btn-danger">Remove</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

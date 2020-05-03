@@ -75,37 +75,48 @@ $(document).ready(function() {
 
     $(`#widgets-list`).on('click', `a[href='#remove-widget-modal']`, function(e) {
 
-        const row_data = $widgets_table.row($(this).parent()).data();
+        const rowData = $widgets_table.row($(this).parent()).data();
 
         $(`#remove-widget-modal form`).modalHandler({
             method: 'post',
             endpoint: `${http_prefix}/lua/edit_widgets.lua`,
             csrf: remove_csrf,
-            submitOptions: { action: 'remove' },
-            loadFormData: function() {
-                return row_data.key;
+            beforeSumbit: () => {
+                return {
+                    action: 'remove',
+                    JSON: JSON.stringify({
+                        widget_key: rowData.key
+                    })
+                };
             },
             onModalInit: function(data) {
                 $(`#remove-widget-modal form input[name='widget_key']`).val(data);
             },
             onSubmitSuccess: function(response) {
-                $widgets_table.ajax.reload();
-                $('#remove-widget-modal').modal('hide');
+                if (response.success) {
+                    $widgets_table.ajax.reload();
+                    $('#remove-widget-modal').modal('hide');
+                }
             }
         });
     });
 
     $(`#widgets-list`).on('click', `a[href='#edit-widget-modal']`, function(e) {
 
-        const row_data = $widgets_table.row($(this).parent()).data();
+        const rowData = $widgets_table.row($(this).parent()).data();
 
         $(`#edit-widget-modal form`).modalHandler({
             method: 'post',
             endpoint: `${http_prefix}/lua/edit_widgets.lua`,
             csrf: edit_csrf,
-            submitOptions: { action: 'edit' },
+            beforeSumbit: function() {
+                return {
+                    action: 'edit',
+                    JSON: JSON.stringify(serializeFormArray($(`#edit-widget-modal form`).serializeArray()))
+                };
+            },
             loadFormData: function() {
-                return row_data;
+                return rowData;
             },
             onModalInit: function(data) {
 
@@ -135,7 +146,13 @@ $(document).ready(function() {
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_widgets.lua`,
         csrf: add_csrf,
-        submitOptions: { action: 'add' },
+        beforeSumbit: function() {
+            const submitOptions = {
+                action: 'add',
+                JSON: JSON.stringify(serializeFormArray($(`#add-widget-modal form`).serializeArray()))
+            };
+            return submitOptions;
+        },
         onSubmitSuccess: function(response) {
             $widgets_table.ajax.reload();
             $('#add-widget-modal').modal('hide');

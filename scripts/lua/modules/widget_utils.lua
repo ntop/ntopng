@@ -190,7 +190,7 @@ function widgets_utils.generate_response(widget, params)
 
    -- io.write("Executing "..origin..".lua\n")
    --tprint(widget)
-   
+
    -- Call the origin to return
    local response = require(origin)
 

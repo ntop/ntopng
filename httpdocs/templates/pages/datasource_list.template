@@ -19,6 +19,17 @@
     </div>
 </div>
 
+<template id="ds-source-tag">
+        <div class="col-6">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text"></span>
+                </div>
+                <input required name="tag[]" type="text" class="form-control tag">
+            </div>
+        </div>
+    </div>
+</template>
 <template id='ds-source'>
     <div class="card my-1">
         <div class="card-header">
@@ -34,55 +45,37 @@
                 <fieldset>
                     <div class="form-row">
                         <div class="col-6">
-                            <label>{{ i18n("datasources.schema") }}:</label>
-                            <select required name="schemas[]" class="form-control">
-                                <option selected disabled>{{ i18n("datasources.select_schema") }}</option>
-                                {% for key, value in pairs(datasources_list.timeseries) do %}
+                            <label>{{ i18n("datasources.families") }}:</label>
+                            <select name="family[]" required class="form-control family">
+                                <option selected disabled>{{ i18n("datasources.select_family") }}</option>
+                                {% for key, value in pairsByKeys(datasources_list.timeseries, asc) do %}
                                     <option value="{{ key }}">{{ key }}</option>
                                 {% end %}
                             </select>
                         </div>
                         <div class="col-6">
-                            <div class="step-1" style="display: none;">
-                                <label>{{ i18n("datasources.series") }}:</label>
-                                <select required name="series[]" class="form-control">
-                                    <option selected disabled>{{ i18n("datasources.select_series") }}</option>
-                                    {% for key, value in pairs(datasources_list.timeseries) do %}
-                                        <optgroup label="{{ key }}">
-                                            {% for i, content in ipairs(value) do %}
-                                                <option value="{{ content.schema }}">
-                                                    {{ content.schema }}
-                                                </option>
-                                            {% end %}
-                                        </optgroup>
-                                    {% end %}
+                            <div class="step step-1" style="display: none;">
+                                <label>{{ i18n("datasources.schema") }}:</label>
+                                <select name="schema[]" required class="form-control schema">
+                                    <option selected disabled>{{ i18n("datasources.select_schema") }}</option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <div class="form-row my-1">
-                        <div class="col-6">
-                            <div class="step-2" style="display: none;">
+                    <div class="form-row my-2">
+                        <div class="col-12">
+                            <div class="step step-2" style="display: none;">
                                 <label>{{ i18n("datasources.metrics") }}:</label>
-                                <select required name="metrics[]" class="form-control">
+                                <select name="metric[]" class="form-control metric">
                                     <option selected disabled>{{ i18n("datasources.select_metrics") }}</option>
-                                    {% for key, value in pairs(datasources_list.timeseries) do %}
-                                        {% for i, content in ipairs(value) do %}
-                                            <optgroup label="{{ content.schema }}">
-                                                {% for j, metric in ipairs(content.metrics) do %}
-                                                    <option value="{{metric}}">{{ metric }}</option>
-                                                {% end %}
-                                            </optgroup>
-                                        {% end %}
-                                    {% end %}
                                 </select>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="step-2" style="display: none;">
-                                <label>JSON:</label>
-                                <input class="form-control" name="jsonSource" minlength="2" maxlength="1024">
-                            </div>
+                    </div>
+                    <div class="step step-2" style="display: none;">
+                        <label>Tags:</label>
+                        <div class="form-row my-2 tags-container">
+
                         </div>
                     </div>
                 </fieldset>
@@ -107,5 +100,8 @@ i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
 i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 i18n.search = "{{ i18n('search') }}";
 
+const timeseriesFamilies = {* json.encode(datasources_list.timeseries) *};
+
 </script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/modal-utils.js"></script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/datasource_list.js"></script>

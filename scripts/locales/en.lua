@@ -780,6 +780,7 @@ local lang = {
     ["traffic_dashboard"] = "Traffic Dashboard",
   },
   ["datasources"] = {
+    ["families"] = "Families",
     ["key"] = "Key",
     ["metrics"] = "Metrics",
     ["new_source"] = "New Source",
@@ -787,6 +788,7 @@ local lang = {
     ["retention"] = "Retention",
     ["schema"] = "Schema",
     ["scope"] = "Scope",
+    ["select_family"] = "Select a family",
     ["select_metrics"] = "Select a metric",
     ["select_schema"] = "Select a schema",
     ["select_schema_first"] = "Select a schema first",
