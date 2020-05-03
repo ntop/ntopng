@@ -3,10 +3,16 @@
     class ModalHandler {
 
         constructor(element, settings) {
-
             this.element = element;
             this.settings = settings;
             this.csrf = settings.csrf;
+            this.observer = new MutationObserver((list) => {
+                this.bindFormValidation();
+            });
+            this.observer.observe(this.element[0], {
+                childList: true,
+                subtree: true
+            });
 
             const submitButton = $(this.element).find(`[type='submit']`);
             if (!submitButton) throw new Error("The submit button was not found inside the form!");
@@ -14,26 +20,6 @@
 
         fillFormModal() {
             return this.settings.loadFormData();
-        }
-
-        serializeFormArrayIntoObject(serializedArray) {
-
-            const serialized = {};
-            serializedArray.forEach((obj) => {
-                /* if the object is an array  */
-                if (obj.name.includes('[]')) {
-                    const arrayName = obj.name.split("[]")[0];
-                    if (arrayName in serialized) {
-                        serialized[arrayName].push(obj.value);
-                        return;
-                    }
-                    serialized[arrayName] = [obj.value];
-                }
-                else {
-                    serialized[obj.name] = obj.value;
-                }
-            });
-            return serialized;
         }
 
         invokeModalInit() {
@@ -46,7 +32,7 @@
 
         delegateSubmit() {
 
-            this.enableFormValidation();
+            this.bindFormValidation();
 
             const self = this;
             $(this.element).on('submit', function(e) {
@@ -55,8 +41,7 @@
             });
         }
 
-        enableFormValidation() {
-
+        bindFormValidation() {
             $(this.element).find(`input,textarea,select`).each(function(i, input) {
 
                 const $input = $(this);
@@ -102,8 +87,7 @@
         makeRequest() {
 
             const submitButton = $(this.element).find(`[type='submit']`);
-            const serializedData = this.serializeFormArrayIntoObject($(this.element).serializeArray());
-            let dataToSend = { JSON: JSON.stringify(serializedData) };
+            let dataToSend = this.settings.beforeSumbit();
 
             if (this.settings.method == 'post') dataToSend.csrf = this.csrf;
             dataToSend = $.extend(dataToSend, this.settings.submitOptions);
@@ -154,7 +138,8 @@
             onModalInit:        function(d) {},
             onSubmitSuccess:    function(r, s) {},
             onSubmitError:      function(s) {},
-            onModalReset:       function(d) {}
+            onModalReset:       function(d) {},
+            beforeSumbit:       function() {}
         }, args);
 
         const mh = new ModalHandler(this, settings);
