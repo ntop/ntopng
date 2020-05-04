@@ -271,6 +271,8 @@ void ContinuousPing::cleanupInactiveHosts() {
     v4_results.erase(*it);
   }
 
+  inactiveHostsV4.clear();
+
   for(it = inactiveHostsV6.begin(); it != inactiveHostsV6.end(); ++it) {
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[v6] Discarding host %s", it->c_str());
@@ -284,6 +286,8 @@ void ContinuousPing::cleanupInactiveHosts() {
     
     v6_results.erase(*it);
   }
+
+  inactiveHostsV6.clear();
 }
 
 /* ***************************************** */

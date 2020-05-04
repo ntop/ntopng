@@ -39,7 +39,7 @@ class ContinuousPingStats {
  public:
   ContinuousPingStats() { reset(); heartbeat(); }
 
-  inline void getStats(struct cp_stats *out) { memcpy(&out, &stats, sizeof(struct cp_stats)); }
+  inline void getStats(struct cp_stats *out) { memcpy(out, &stats, sizeof(struct cp_stats));  }
   inline void heartbeat()                    { last_refresh = time(NULL);                     }
   inline void incSent()                      { stats.num_ping_sent++;                         }
   inline time_t getLastHeartbeat()           { return(last_refresh);                          }
