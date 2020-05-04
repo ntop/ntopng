@@ -132,8 +132,8 @@ local timeseries = {{
   show_unreachable = true,
 }, {
   schema="am_host:jitter_stats",
-  label=i18n("active_monitoring_stats.latency_vs_jitter"),
-  metrics_labels = { i18n("sprobe_page.latency"), i18n("flow_details.jitter") },
+  label=i18n("active_monitoring_stats.rtt_vs_jitter"),
+  metrics_labels = { i18n("flow_details.mean_rtt"), i18n("flow_details.rtt_jitter") },
   value_formatter = {"fmillis", "fmillis"},
   split_directions = true,
   show_unreachable = true,
@@ -172,7 +172,7 @@ return {
       -- The localization string for the Jitter unit (e.g. "ms", "Mbits")
       i18n_jitter_unit = "active_monitoring_stats.msec",
       -- The localization string for the Active Monitoring timeseries menu entry
-      i18n_am_ts_label = "active_monitoring_stats.response_rate",
+      i18n_am_ts_label = "active_monitoring_stats.availability",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
       operator = "lt",
       -- If set, indicates a maximum threshold value
@@ -187,7 +187,7 @@ return {
       -- The raw measurement value is multiplied by this factor before being written into the chart
       chart_scaling_value = 1,
       -- The localization string for the Active Monitoring metric in the chart
-      i18n_am_ts_metric = "active_monitoring_stats.response_rate",
+      i18n_am_ts_metric = "active_monitoring_stats.availability",
       -- A list of additional notes (localization strings) to show into the timeseries charts
       i18n_chart_notes = {},
       -- If set, the user cannot change the host

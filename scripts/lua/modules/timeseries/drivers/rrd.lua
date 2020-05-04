@@ -178,6 +178,8 @@ local function map_metrics_to_rrd_columns(num)
     return {"sent", "rcvd"}
   elseif num == 3 then
     return {"ingress", "egress", "inner"}
+  elseif num == 4 then
+    return {"ingress", "egress", "inner", "other"}
   end
 
   -- error
@@ -617,6 +619,8 @@ local function touchRRD(rrdname)
     elseif(ds_count == 2) then
       ntop.rrd_update(rrdname, tdiff.."", "0", "0")
     elseif(ds_count == 3) then
+      ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
+    elseif(ds_count == 4) then
       ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
     end
   end
