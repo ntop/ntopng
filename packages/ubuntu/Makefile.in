@@ -11,7 +11,7 @@ ntopng-prep:
 	ln -s ./debian.ntopng ./debian
 	@SUDO@ /bin/rm -rf ./usr ./etc/ ./debian/@APP@
 	\mkdir -p ${NTOPNG_BUILD}/usr/bin ${NTOPNG_BUILD}/usr/share/man/man8 ${NTOPNG_BUILD}/usr/share/ntopng ./debian/@APP@
-	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/bin/
+	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/bin/; strip ${NTOPNG_BUILD}/usr/bin/ntopng
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8
 	cp -r $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
 	mv ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config ${NTOPNG_BUILD}/usr/bin/
