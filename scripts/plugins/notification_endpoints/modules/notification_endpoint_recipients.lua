@@ -21,6 +21,25 @@ local notification_endpoint_recipients = {}
 
 -- #################################################################
 
+-- @brief Check if an endpoint configuration with name `endpoint_recipient_name` exists
+-- @param endpoint_recipient_name A string with the endpoint recipient name
+-- @return true if the configuration exists, false otherwise
+local function is_endpoint_recipient_existing(endpoint_recipient_name)
+   if not endpoint_recipient_name or endpoint_recipient_name == "" then
+      return false
+   end
+
+   local res = ntop.getHashCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG, endpoint_recipient_name)
+
+   if res == nil or res == '' then
+      return false
+   end
+
+   return true
+end
+
+-- #################################################################
+
 local function check_endpoint_recipient_name(endpoint_recipient_name)
    if not endpoint_recipient_name or endpoint_recipient_name == "" then
       return false, {status = "failed", error = {type = "invalid_endpoint_recipient_name"}}
@@ -87,6 +106,11 @@ function notification_endpoint_recipients.add_endpoint_recipient(endpoint_conf_n
       return status
    end
 
+   -- Is the endpoint already existing?
+   if is_endpoint_recipient_existing(endpoint_recipient_name) then
+      return {status = "failed", error = {type = "endpoint_recipient_already_existing", endpoint_recipient_name = endpoint_recipient_name}}
+   end
+
    local endpoint_key = ec["endpoint_key"]
    ok, status = check_endpoint_recipient_params(endpoint_key, recipient_params)
 
@@ -123,7 +147,30 @@ end
 
 -- #################################################################
 
-function notification_endpoint_recipients.reset_endpoint_recipients(endpoint_conf_name)
+function notification_endpoint_recipients.delete_endpoint_recipient(endpoint_recipient_name)
+   local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
+   if not ok then
+      return status
+   end
+
+   -- Is the endpoint already existing?
+   if not is_endpoint_recipient_existing(endpoint_recipient_name) then
+      return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
+   end
+
+   local endpoint_conf_name = ntop.getHashCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG, endpoint_recipient_name)
+   if not endpoint_conf_name or endpoint_conf_name == '' then
+      return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
+   end
+
+   local k = string.format(ENDPOINT_RECIPIENTS_KEY, endpoint_conf_name)
+   ntop.delHashCache(k, endpoint_recipient_name)
+   ntop.delHashCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG, endpoint_recipient_name)
+end
+
+-- #################################################################
+
+function notification_endpoint_recipients.delete_endpoint_recipients(endpoint_conf_name)
    local ec = notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
@@ -131,6 +178,12 @@ function notification_endpoint_recipients.reset_endpoint_recipients(endpoint_con
    end
 
    local k = string.format(ENDPOINT_RECIPIENTS_KEY, endpoint_conf_name)
+   local all_recipients = ntop.getHashAllCache(k) or {}
+
+   for endpoint_recipient_name, endpoint_recipient_config in pairs(all_recipients) do
+      notification_endpoint_recipients.delete_endpoint_recipient(endpoint_recipient_name)
+   end
+
    ntop.delCache(k)
 
    return {status = "OK"}

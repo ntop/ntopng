@@ -227,7 +227,11 @@ function notification_endpoint_configs.delete_endpoint_config(endpoint_conf_name
       return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
    end
 
-   -- Delete the config
+   -- Delete the all the recipients associated to this config recipients
+   local notification_endpoint_recipients = plugins_utils.loadModule("notification_endpoints", "notification_endpoint_recipients")
+   notification_endpoint_recipients.delete_endpoint_recipients(endpoint_conf_name)
+
+   -- Now delete the actual config
    local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
    ntop.delHashCache(k, endpoint_conf_name)
    ntop.delHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
@@ -289,15 +293,12 @@ end
 -- @brief Clear all the existing endpoint configurations
 -- @return Always return a table {status = "OK"}
 function notification_endpoint_configs.reset_endpoint_configs()
-   local notification_endpoint_recipients = plugins_utils.loadModule("notification_endpoints", "notification_endpoint_recipients")
-
    for endpoint_key, endpoint in pairs(notification_endpoint_consts.endpoint_types) do
       local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
       local all_configs = ntop.getHashAllCache(k) or {}
 
       for conf_name, conf_params in pairs(all_configs) do
-	 notification_endpoint_recipients.reset_endpoint_recipients(endpoint_key, conf_name)
-	 ntop.delHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, conf_name)
+	 notification_endpoint_configs.delete_endpoint_config(conf_name)
       end
 
       ntop.delCache(k)
