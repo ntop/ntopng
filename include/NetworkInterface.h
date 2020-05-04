@@ -83,6 +83,12 @@ class NetworkInterface : public AlertableEntity {
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
 
+  /* Queue containing the ip@vlan strings of the hosts to restore. A lock is only
+   * used to allow multiple threads to insert concurrently. The dequeue does not
+   * use the lock. */
+  FifoStringsQueue *hosts_to_restore;
+  Mutex hosts_to_restore_lock;
+
   /* External alerts contain alertable entities other than host/interface/network
    * which are dynamically allocated when an alert for them occurs.
    * A lock is necessary to guard the insert/delete operations from lookup operations
@@ -440,6 +446,7 @@ class NetworkInterface : public AlertableEntity {
   void updateDiscardProbingTraffic();
   void updateFlowsOnlyInterface();
   bool restoreHost(char *host_ip, u_int16_t vlan_id);
+  void checkHostsToRestore();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
 		     Mac *src_mac, IpAddress *_src_ip, Host **src,

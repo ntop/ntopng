@@ -28,7 +28,7 @@
 /* A simple thread safe FIFO non-blocking bounded queue for strings */
 class FifoStringsQueue : public FifoQueue {
  public:
-  FifoStringsQueue(u_int32_t queue_size) : FifoQueue(queue_size) {}
+  FifoStringsQueue(u_int32_t queue_size, bool multi_producer=true) : FifoQueue(queue_size, multi_producer) {}
   ~FifoStringsQueue();
   bool enqueue(const char *item);
   char* dequeue();

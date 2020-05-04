@@ -36,7 +36,7 @@ class FifoQueue {
   u_int32_t tail;
 
  public:
-  FifoQueue(u_int32_t queue_size);
+  FifoQueue(u_int32_t queue_size, bool multi_producer=true);
   virtual ~FifoQueue();
 
   bool enqueue(void *item);

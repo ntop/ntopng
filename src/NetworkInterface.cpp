@@ -268,6 +268,7 @@ void NetworkInterface::init() {
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
   num_active_misbehaving_flows = num_idle_misbehaving_flows = 0;
+  hosts_to_restore = new FifoStringsQueue(64, false /* don't lock, we will manually lock only on producers */);
 
 #ifdef NTOPNG_PRO
   gettimeofday(&aggregated_flows_dump_last_dump, NULL);
@@ -562,6 +563,7 @@ NetworkInterface::~NetworkInterface() {
   if(alertsManager)  delete alertsManager;
   if(alertsQueue)    delete alertsQueue;
   if(ndpiStats)      delete ndpiStats;
+  if(hosts_to_restore) delete hosts_to_restore;
   if(networkStats) {
     u_int8_t numNetworks = ntop->getNumLocalNetworks();
 
@@ -1624,6 +1626,8 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
 	current->iface->purgeIdle(when, force_idle);
     }
   }
+
+  checkHostsToRestore();
 }
 
 /* **************************************************** */
@@ -3127,34 +3131,19 @@ static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data, bool *ma
 
 /* **************************************************** */
 
-/* NOTE: this is inteded to be called only by startup.lua */
+/* Enqueues an host restore request on the interface. The checkHostsToRestore
+ * function, in the datapath, will take care of restoring the host. */
 bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
-  Host *h;
-  int16_t local_network_id;
-  IpAddress ipa;
+  char buf[64];
+  bool rv;
 
-  if(!hosts_hash->hasEmptyRoom()) {
-    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
-    return(false);
-  }
+  snprintf(buf, sizeof(buf), "%s@%u", host_ip, vlan_id);
 
-  ipa.set(host_ip);
+  hosts_to_restore_lock.lock(__FILE__, __LINE__);
+  rv = hosts_to_restore->enqueue(buf);
+  hosts_to_restore_lock.unlock(__FILE__, __LINE__);
 
-  if(ipa.isLocalHost(&local_network_id))
-    h = new LocalHost(this, host_ip, vlan_id);
-  else
-    h = new RemoteHost(this, host_ip, vlan_id);
-
-  if(!h) return(false);
-
-  if(!hosts_hash->add(h, false /* don't lock, we are in startup.lua */)) {
-    /* Note: this should never happen as we are checking hasEmptyRoom() */
-    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
-    delete h;
-    return(false);
-  }
-
-  return(true);
+  return(rv);
 }
 
 /* **************************************************** */
@@ -7780,4 +7769,53 @@ u_int32_t NetworkInterface::checkDroppedAlerts() {
   checked_dropped_alerts = cur_dropped_alerts;
 
   return(new_drops);
+}
+
+/* *************************************** */
+
+void NetworkInterface::checkHostsToRestore() {
+  int i = 0;
+
+  if(!hosts_hash)
+    return;
+
+  /* Restore at maximum 10 hosts per run */
+  for(i = 0; (i < 10) && hosts_hash->hasEmptyRoom(); i++) {
+    char *ip, *d;
+    Host *h;
+    int16_t local_network_id;
+    u_int16_t vlan_id;
+    IpAddress ipa;
+
+    if(!(ip = hosts_to_restore->dequeue()))
+      break;
+
+    if(!(d = strchr(ip, '@')))
+      goto next_host;
+
+    /* Split IP from VLAN */
+    *d = '\0';
+    vlan_id = atoi(d+1);
+    ipa.set(ip);
+
+    if((h = getHost(ip, vlan_id, true /* inline call */)))
+      /* Host already exists */
+      goto next_host;
+
+    /* TODO provide the host MAC address when available to properly restore LBD hosts */
+    if(ipa.isLocalHost(&local_network_id) || ipa.isLocalInterfaceAddress())
+      h = new (std::nothrow) LocalHost(this, NULL, vlan_id, &ipa);
+    else
+      h = new (std::nothrow) RemoteHost(this, NULL, vlan_id, &ipa);
+
+    if(!h)
+      goto next_host;
+
+    if(!hosts_hash->add(h, false /* Don't lock, we're inline with the purgeIdle */))
+      delete h;
+
+next_host:
+    /* Always free the string retrieved from the queue */
+    free(ip);
+  }
 }
