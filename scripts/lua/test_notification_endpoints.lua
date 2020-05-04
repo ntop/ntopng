@@ -133,6 +133,7 @@ assert(#res == 2)
 -- TEST ENDPOINT RECIPIENTS --
 ------------------------------
 
+-- Test the addition
 res = notification_endpoint_recipients.add_endpoint_recipient("nonexisting_config_name", nil, nil)
 assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_config_not_existing")
 
@@ -152,9 +153,11 @@ local recipient_params = {
 res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", recipient_params)
 assert(res["status"] == "OK")
 
+-- See if duplicate recipient is detected
 res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", recipient_params)
 assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_recipient_already_existing")
 
+-- Test deletion
 res = notification_endpoint_recipients.delete_endpoint_recipient("sysadmins")
 assert(res["status"] == "OK")
 
@@ -172,6 +175,15 @@ assert(res["recipient_params"])
 assert(res["recipient_params"]["to"] == "ci@ntop.org")
 assert(not res["recipient_params"]["garbage"])
 
+-- Test edit
+recipient_params["to"] = "ci2@ntop.org"
+res = notification_endpoint_recipients.edit_endpoint_recipient_params("sysadmins", recipient_params)
+assert(res["status"] == "OK")
+
+res = notification_endpoint_recipients.get_endpoint_recipient("sysadmins")
+assert(res["status"] == "OK")
+assert(res["recipient_params"])
+assert(res["recipient_params"]["to"] == "ci2@ntop.org")
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 

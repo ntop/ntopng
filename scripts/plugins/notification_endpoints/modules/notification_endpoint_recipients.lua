@@ -144,6 +144,45 @@ end
 
 -- #################################################################
 
+-- @brief Edit the recipient parameters of an existing endpoint configuration
+-- @param endpoint_recipient_name A string with the recipient name
+-- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
+-- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
+function notification_endpoint_recipients.edit_endpoint_recipient_params(endpoint_recipient_name, recipient_params)   
+   local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
+   if not ok then
+      return status
+   end
+
+   -- Is the config already existing?
+   local rc = read_endpoint_recipient_raw(endpoint_recipient_name)
+   if not rc then
+      return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
+   end
+
+   local ec = notification_endpoint_configs.get_endpoint_config(rc["endpoint_conf_name"])
+
+   if ec["status"] ~= "OK" then
+      return ec
+   end
+
+   -- Are the submitted params those expected by the endpoint?
+   ok, status = check_endpoint_recipient_params(ec["endpoint_key"], recipient_params)
+
+   if not ok then
+      return status
+   end
+
+   local safe_params = status["safe_params"]
+
+   -- Overwrite the config
+   set_endpoint_recipient_params(rc["endpoint_conf_name"], endpoint_recipient_name, safe_params)
+
+   return {status = "OK"}
+end
+
+-- #################################################################
+
 function notification_endpoint_recipients.get_endpoint_recipient(endpoint_recipient_name)
    local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
    if not ok then
