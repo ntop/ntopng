@@ -2,10 +2,10 @@
 
     class ModalHandler {
 
-        constructor(element, settings) {
+        constructor(element, options) {
             this.element = element;
-            this.settings = settings;
-            this.csrf = settings.csrf;
+            this.options = options;
+            this.csrf = options.csrf;
             this.observer = new MutationObserver((list) => {
                 this.bindFormValidation();
             });
@@ -19,11 +19,11 @@
         }
 
         fillFormModal() {
-            return this.settings.loadFormData();
+            return this.options.loadFormData();
         }
 
         invokeModalInit() {
-            this.settings.onModalInit(this.fillFormModal());
+            this.options.onModalInit(this.fillFormModal());
         }
 
         updateCsrf(newCsrf) {
@@ -33,12 +33,12 @@
         delegateSubmit() {
 
             this.bindFormValidation();
-
             const self = this;
-            $(this.element).on('submit', function(e) {
+            this.submitHandler = function(e) {
                 e.preventDefault(); e.stopPropagation();
                 self.makeRequest();
-            });
+            };
+            $(this.element).on('submit', this.submitHandler);
         }
 
         bindFormValidation() {
@@ -87,28 +87,28 @@
         makeRequest() {
 
             const submitButton = $(this.element).find(`[type='submit']`);
-            let dataToSend = this.settings.beforeSumbit();
+            let dataToSend = this.options.beforeSumbit();
 
-            if (this.settings.method == 'post') dataToSend.csrf = this.csrf;
-            dataToSend = $.extend(dataToSend, this.settings.submitOptions);
+            if (this.options.method == 'post') dataToSend.csrf = this.csrf;
+            dataToSend = $.extend(dataToSend, this.options.submitOptions);
 
             /* clean previous state and disable button */
             submitButton.attr("disabled", "disabled");
 
             const self = this;
-            const method = (this.settings.method == 'post') ? $.post : $.get;
+            const method = (this.options.method == 'post') ? $.post : $.get;
 
-            method(this.settings.endpoint, dataToSend)
+            method(this.options.endpoint, dataToSend)
                 .done(function (response, textStatus) {
                     if (response.csrf) self.updateCsrf(response.csrf);
                     self.cleanForm();
-                    self.settings.onSubmitSuccess(response, dataToSend);
+                    self.options.onSubmitSuccess(response, dataToSend);
                     /* unbind the old closure on submit event and bind a new one */
-                    $(self.element).off('submit');
+                    $(self.element).off('submit', self.submitHandler);
                     self.delegateSubmit();
                 })
                 .fail(function (jqxhr, textStatus, errorThrown) {
-                    self.settings.onSubmitError(dataToSend, errorThrown);
+                    self.options.onSubmitError(dataToSend, textStatus, errorThrown);
                 })
                 .always(function (d) {
                     submitButton.removeAttr("disabled");
@@ -117,10 +117,10 @@
 
         delegateResetButton() {
 
-            const resetButton = $form.find(`button[type='reset']`);
+            const resetButton = $form.find(`[type='reset']`);
             if (!resetButton) return;
             resetButton.click(function(event) {
-
+                /* TODO: finisch the reset logic */
             });
         }
     }
@@ -129,20 +129,129 @@
 
         if (this.length != 1) throw new Error("Only an element can by initialized!");
 
-        const settings = $.extend({
+        const options = $.extend({
             csrf:               '',
             endpoint:           '',
             method:             'get',
-            submitOptions:      {},
+            /**
+             * Fetch data asynchronusly from the server or
+             * loads data directly from the current page.
+             * The function must returns the fetched data.
+             *
+             * @returns Returns the fetched data.
+             * @example Below there is an example showing
+             * how to use the function when fetching data from the server
+             * ```
+             * loadFormData: async function() {
+             *      const data = await fetch(`endpoint/to/data`);
+             *      const user = await data.json();
+             *      return user;
+             * }
+             * ```
+             */
             loadFormData:       function() {},
-            onModalInit:        function(d) {},
-            onSubmitSuccess:    function(r, s) {},
-            onSubmitError:      function(s) {},
-            onModalReset:       function(d) {},
-            beforeSumbit:       function() {}
+
+            /**
+             * onModalInit() is invoked when the plugin has been initialized.
+             * This function is used to load the fetched data from `loadFormData()`
+             * inside the form modal inputs.
+             *
+             * @param {object} loadedData This argument contains the fetched data obtained
+             * from `loadFormData()`
+             * @example Below there is an example showing how to use
+             * the function (we suppose that loadFormData() returns the following
+             * object: `loadedUser = {firstname: 'Foo', lastname: 'Bar', id: 1428103}`)
+             * ```
+             * onModalInit: function(loadedUser) {
+             *      $(`#userModal form input#firstname`).val(loadedUser.firstname);
+             *      $(`#userModal form input#lastname`).val(loadedUser.lastname);
+             *      $(`#userModal form input#id`).val(loadedUser.id);
+             * }
+             * ```
+             */
+            onModalInit:        function(loadedData) {},
+
+            /**
+             * The function beforeSubmit() is invoked after the user
+             * submit the form. The function must return the data to
+             * send to the endpoint. If the chosen method is `post`
+             * a csrf will be add to the returned object.
+             *
+             * @example We show below a simple example how to use the function:
+             * ```
+             * beforeSubmit: function() {
+             *      const body = {
+             *          action: 'edit',
+             *          JSON: JSON.stringify(serializeArrayForm($(`form`).serializeArray()))
+             *      };
+             *      return body;
+             * }
+             * ```
+             */
+            beforeSumbit:       function() {},
+
+            /**
+             * This function is invoked when the request to the endpoint
+             * terminates successfully (200). Before the call of this function
+             * a new csrf retrived from the server will be set for
+             * future calls.
+             *
+             * @param {object} response This object contains the response
+             * from the server
+             *
+             * @example Below there is an example showing a simple user case:
+             * ```
+             * onSubmitSuccess: function(response) {
+             *      if (response.success) {
+             *          console.log(`The user info has been edit with success!`);
+             *      }
+             * }
+             * ```
+             */
+            onSubmitSuccess:    function(response) {},
+
+            /**
+             * This function is invoked when the request to the endpoint
+             * terminates with failure (!= 200). Before the call of this function
+             * a new csrf retrived from the server will be set for
+             * future calls.
+             *
+             * @param {object} sent This object contains the sent data to the endpoint
+             * @param {string} textStatus It contains the error text status obtained
+             * @param {object} errorThrown This object contains info about the error
+             *
+             * @example Below there is an example showing a simple user case:
+             * ```
+             * onSubmitError: function(sent, textStatus, errorThrown) {
+             *      if (errorThrown) {
+             *          console.error(`Ops, something went wrong!`);
+             *          console.error(errorThrown);
+             *      }
+             * }
+             * ```
+             */
+            onSubmitError:      function(sent, textStatus, errorThrown) {},
+
+            /**
+             * This function is invoked when the user click the reset input
+             * inside the form.
+             *
+             * @param {object} defaultData It contains the fetched data from
+             * `loadFormData()`.
+             *
+             * @example Below there is an example how to use the function:
+             * ```
+             * onModalReset: function(defaultData) {
+             *      $(`input#id`).val(defaultData.id);
+             *      $(`input#name`).val(defaultData.name);
+             *      $(`input#address`).val(defaultData.address);
+             * }
+             * ```
+             */
+            onModalReset:       function(defaultData) {},
         }, args);
 
-        const mh = new ModalHandler(this, settings);
+        const mh = new ModalHandler(this, options);
         mh.invokeModalInit();
         mh.delegateSubmit();
 
