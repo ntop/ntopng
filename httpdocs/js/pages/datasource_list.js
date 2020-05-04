@@ -1,7 +1,21 @@
 $(document).ready(function () {
 
     class TimeserieSourceBuilder {
+
         counter = 0;
+        currentSources = [];
+
+        MIN_SOURCE_COUNTER = 1;
+        MAX_SOURCE_COUNTER = 4;
+
+        canCreateSource() {
+            return (this.currentSources.length <= this.MAX_SOURCE_COUNTER);
+        }
+
+        canRemoveSource() {
+            return (this.currentSources.length > this.MIN_SOURCE_COUNTER);
+        }
+
         buildNewSource(name = `source-${this.counter++}`) {
 
             const timeserieSourceTemplate = $(`template#ds-source`).html();
@@ -10,11 +24,18 @@ $(document).ready(function () {
                 name: name,
                 tagTemplate: tagTemplate,
                 timeseriesFamilies: timeseriesFamilies,
+                builder: this,
                 $domElement: $(timeserieSourceTemplate),
                 $tagElement: $(tagTemplate),
             });
 
+            this.currentSources.push(timeseriesSourceInstance);
+
             return timeseriesSourceInstance;
+        }
+
+        emptyCurrentSources() {
+            this.currentSources = [];
         }
     }
 
@@ -22,7 +43,7 @@ $(document).ready(function () {
 
         constructor(args) {
 
-            const { $domElement, $tagElement, name, timeseriesFamilies } = args;
+            const { $domElement, $tagElement, name, timeseriesFamilies, builder } = args;
             this.$domElement = $domElement;
             this.$cardTitle = $domElement.find(`a[data-toggle='collapse']`);
             this.$btnRemoveSource = $domElement.find(`.btn-remove-source`);
@@ -35,6 +56,7 @@ $(document).ready(function () {
             this.steps = [$domElement.find('.step-1'), $domElement.find('.step-2')];
             this.stepsCompleted = [false, false];
             this.timeseriesFamilies = timeseriesFamilies;
+            this.builder = builder;
 
             this.setSourceId(name);
             this.setEventListeners();
@@ -154,8 +176,18 @@ $(document).ready(function () {
         }
 
         onRemoveSourceClick(event) {
+
+            if (!this.builder.canRemoveSource()) return;
             event.preventDefault();
             this.$domElement.fadeOut(200, function () { $(this).remove(); });
+            this.removeSourceFromBuilder();
+        }
+
+        removeSourceFromBuilder() {
+            const index = this.builder.currentSources.indexOf(this);
+            if (index > -1) {
+                this.builder.currentSources.splice(index, 1);
+            }
         }
 
         fillSource(args) {
@@ -289,14 +321,15 @@ $(document).ready(function () {
                     $(this).val(data[$(this).attr('name')]);
                 });
                 const $sourcesContainer = $(`#edit-datasource-modal .ds-source-container`);
+                const $btnAddSource = $(`#edit-datasource-modal .btn-add-source`);
+                $btnAddSource.hide();
                 $sourcesContainer.hide().empty();
                 /* if the origin is of type timeseries then prepare sources */
                 if (data.origin != "timeseries.lua") return;
-                console.log(data);
                 const schemas = data.schemas;
                 for (const [key, schema] of Object.entries(schemas)) {
                     const source = timeseriesSourceBuilder.buildNewSource(`source-${data.hash}-${schema.metric}`);
-                    source.setCardTitle(`${key} - ${schema.metric}`);
+                    source.setCardTitle(`${key} / ${schema.metric}`);
                     source.fillSource({
                         schema: key,
                         metric: schema.metric,
@@ -305,10 +338,12 @@ $(document).ready(function () {
                     $sourcesContainer.append(source.$domElement);
                 }
                 $sourcesContainer.show();
+                $btnAddSource.show();
             },
             onSubmitSuccess: function(response) {
                 if (response.success) {
                     $datasources_table.ajax.reload();
+                    timeseriesSourceBuilder.emptyCurrentSources();
                     $('#edit-datasource-modal').modal('hide');
                 }
             }
@@ -331,6 +366,7 @@ $(document).ready(function () {
                 $('#add-datasource-modal').modal('hide');
                 $(`#add-ds-source-container`).fadeOut().empty();
                 $(`#btn-add-source`).fadeOut();
+                timeseriesSourceBuilder.emptyCurrentSources();
                 $datasources_table.ajax.reload();
             }
         }
@@ -369,7 +405,8 @@ $(document).ready(function () {
     $(`.btn-add-source`).click(function (e) {
         e.preventDefault(); e.stopPropagation();
         const $sourcesContainer = $(this).parents('form').find(`.ds-source-container`);
-        $sourcesContainer.append(timeseriesSourceBuilder.buildNewSource().$domElement);
+        if (timeseriesSourceBuilder.canCreateSource())
+            $sourcesContainer.append(timeseriesSourceBuilder.buildNewSource().$domElement);
     });
 
     $(`#add-datasource-modal select[name='origin'], #edit-datasource-modal select[name='origin']`).change(function (e) {
@@ -377,13 +414,13 @@ $(document).ready(function () {
         const isTimeseries = $(this).val() == "timeseries.lua";
         const $sourcesContainer = $(this).parents('form').find(`.ds-source-container`);
         const $btnAddSource = $(this).parents().find(`.btn-add-source`);
-
         if (!isTimeseries) {
             $sourcesContainer.fadeOut().empty();
             $btnAddSource.fadeOut();
             return;
         }
-
+        // be sure to create new elements
+        timeseriesSourceBuilder.emptyCurrentSources();
         $sourcesContainer.append(timeseriesSourceBuilder.buildNewSource().$domElement);
         $sourcesContainer.fadeIn();
         $btnAddSource.fadeIn();
