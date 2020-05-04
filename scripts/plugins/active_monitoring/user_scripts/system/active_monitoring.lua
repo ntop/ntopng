@@ -73,10 +73,15 @@ local function run_am_check(params, all_hosts, granularity)
   -- Parse the results
   for key, info in pairs(hosts_am) do
     local host = all_hosts[key]
-    local host_value = info.value
+    local host_value = round(info.value, 2)
     local resolved_host = info.resolved_addr or host.host
     local threshold = host.threshold
-    local operator = info.measurement.operator 
+    local operator = info.measurement.operator
+    local jitter = tonumber(info.jitter)
+    local mean = tonumber(info.mean)
+
+    if jitter then jitter = round(jitter, 2) end
+    if mean then mean = round(mean, 2) end
 
     if params.ts_enabled then
        local value = host_value
@@ -88,7 +93,7 @@ local function run_am_check(params, all_hosts, granularity)
        ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, metric = host.measurement, value = value}, when)
     end
 
-    am_utils.setLastAmUpdate(key, when, host_value, resolved_host)
+    am_utils.setLastAmUpdate(key, when, host_value, resolved_host, jitter, mean)
 
     if am_utils.hasExceededThreshold(threshold, operator, host_value) then
       if(do_trace) then print("[TRIGGER] Host "..resolved_host.."/"..key.." [value: "..host_value.."][threshold: "..threshold.."]\n") end

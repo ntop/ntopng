@@ -120,6 +120,8 @@ return {
       granularities = {"min", "5mins", "hour"},
       -- The localization string for the measurement unit (e.g. "ms", "Mbits")
       i18n_unit = "active_monitoring_stats.msec",
+      -- The localization string for the Jitter unit (e.g. "ms", "Mbits")
+      i18n_jitter_unit = nil,
       -- The localization string for the Active Monitoring timeseries menu entry
       i18n_am_ts_label = "graphs.num_ms_rtt",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
@@ -150,6 +152,7 @@ return {
       collect_results = collect_icmp_oneshot,
       granularities = {"min", "5mins", "hour"},
       i18n_unit = "active_monitoring_stats.msec",
+      i18n_jitter_unit = nil,
       i18n_am_ts_label = "graphs.num_ms_rtt",
       i18n_am_ts_metric = "flow_details.round_trip_time",
       operator = "gt",

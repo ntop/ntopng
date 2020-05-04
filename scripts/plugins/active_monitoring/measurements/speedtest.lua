@@ -116,6 +116,8 @@ return {
 	 granularities = { "5mins", "hour", "daily"},
 	 -- The localization string for the measurement unit (e.g. "ms", "Mbits")
 	 i18n_unit = "field_units.mbits",
+	 -- The localization string for the Jitter unit (e.g. "ms", "Mbits")
+	 i18n_jitter_unit = nil,
 	 -- The localization string for the Active Monitoring timeseries menu entry
 	 i18n_am_ts_label = "active_monitoring_stats.download_speed",
 	 -- The localization string for the Active Monitoring metric in the chart

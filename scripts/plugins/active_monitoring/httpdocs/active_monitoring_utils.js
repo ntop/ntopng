@@ -548,6 +548,11 @@ $(document).ready(function() {
                 sortable: false,
             },
             {
+                data: 'jitter',
+                className: 'dt-body-right dt-head-center',
+                sortable: false,
+            },
+            {
                 targets: -1,
                 data: null,
                 sortable: false,

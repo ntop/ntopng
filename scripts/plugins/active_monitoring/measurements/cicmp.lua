@@ -79,8 +79,14 @@ local function collect_icmp_continuous(granularity)
     end
 
     if h and resolved_hosts[h.key] then
+      local v = resolved_hosts[h.key]
+
       -- Report the host as reachable with its measurement value
-      resolved_hosts[h.key].value = measurement.response_rate
+      v.value = measurement.response_rate
+
+      -- Report jitter and mean
+      v.jitter = measurement.jitter
+      v.mean = measurement.mean
 
       if((measurement.min_rtt ~= nil) and (measurement.max_rtt ~= nil)) then
         ts_utils.append("am_host:cicmp_stats_" .. granularity, {
@@ -135,6 +141,8 @@ return {
       granularities = {"min"},
       -- The localization string for the measurement unit (e.g. "ms", "Mbits")
       i18n_unit = "field_units.percentage",
+      -- The localization string for the Jitter unit (e.g. "ms", "Mbits")
+      i18n_jitter_unit = "active_monitoring_stats.msec",
       -- The localization string for the Active Monitoring timeseries menu entry
       i18n_am_ts_label = "active_monitoring_stats.response_rate",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
@@ -171,6 +179,7 @@ return {
       collect_results = collect_icmp_continuous,
       granularities = {"min"},
       i18n_unit = "field_units.percentage",
+      i18n_jitter_unit = "active_monitoring_stats.msec",
       i18n_am_ts_label = "active_monitoring_stats.response_rate",
       i18n_am_ts_metric = "active_monitoring_stats.response_rate",
       operator = "lt",

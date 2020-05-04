@@ -29,7 +29,7 @@ local am_hosts_key = string.format("ntopng.prefs.ifid_%d.am_hosts", getSystemInt
 -- ##############################################
 
 local function am_last_updates_key(key)
-  return string.format("ntopng.cache.ifid_%d.am_hosts.last_update." .. key, getSystemInterfaceId())
+  return string.format("ntopng.cache.ifid_%d.am_hosts.last_update_v1." .. key, getSystemInterfaceId())
 end
 
 local function am_hour_stats_key(key)
@@ -38,8 +38,16 @@ end
 
 -- ##############################################
 
-function am_utils.setLastAmUpdate(key, when, value, ipaddress)
-  ntop.setCache(am_last_updates_key(key), string.format("%u@%.2f@%s", when, value, ipaddress))
+function am_utils.setLastAmUpdate(key, when, value, ipaddress, jitter, mean)
+  local v = {
+    when = when,
+    value = tonumber(value),
+    ip = ipaddress,
+    jitter = tonumber(jitter),
+    mean = tonumber(mean),
+  }
+
+  ntop.setCache(am_last_updates_key(key), json.encode(v))
 end
 
 -- ##############################################
@@ -219,16 +227,14 @@ function am_utils.getLastAmUpdate(host, measurement)
   local key = am_utils.getAmHostKey(host, measurement)
   local val = ntop.getCache(am_last_updates_key(key))
 
-  if(val ~= nil)then
-    local parts = string.split(val, "@")
+  if not isEmptyString(val) then
+    val = json.decode(val)
+  else
+    val = nil
+  end
 
-    if(parts and (#parts == 3)) then
-      return {
-        when = tonumber(parts[1]),
-        value = tonumber(parts[2]),
-        ip = parts[3],
-      }
-    end
+  if val ~= nil then
+    return val
   end
 end
 

@@ -149,6 +149,7 @@ if(page == "overview") then
                 <th>]].. i18n("system_stats.last_ip") .. [[</th>
                 <th>]].. i18n("active_monitoring_stats.measurement") .. [[</th>
                 <th>]].. i18n("active_monitoring_stats.alerted") .. [[</th>
+                <th>]].. i18n("active_monitoring_stats.jitter") .. [[</th>
                 <th>]].. i18n("actions") .. [[</th>
               </tr>
             </thead>

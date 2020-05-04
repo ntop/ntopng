@@ -332,6 +332,7 @@ local lang = {
     ["icmp_continuous_v6"] = "Continuous ICMPv6",
     ["invalid_combination"] = "Invalid measurement/host combination",
     ["invalid_host"] = "Invalid host specified",
+    ["jitter"] = "Mean / Jitter",
     ["last_measurement"] = "Last Measurement",
     ["measurement"] = "Measurement",
     ["measurement_time"] = "Measurement Time",

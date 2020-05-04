@@ -37,6 +37,7 @@ for key, am_host in pairs(am_hosts) do
     local column_last_ip = ""
     local column_last_update = ""
     local column_last_value = ""
+    local column_jitter = ""
     local last_update = am_utils.getLastAmUpdate(am_host.host, am_host.measurement)
     local alerted = 0
     
@@ -64,6 +65,16 @@ for key, am_host in pairs(am_hosts) do
 	alerted = 0
       end
     end
+
+    if last_update and last_update.jitter and last_update.mean then
+	local jitter_unit = ""
+
+	if m_info.i18n_jitter_unit then
+	    jitter_unit = i18n(m_info.i18n_jitter_unit) or m_info.i18n_jitter_unit or ""
+	end
+
+	column_jitter = string.format("%.1f / %.1f %s", last_update.mean, last_update.jitter, jitter_unit)
+    end
     
     res[#res + 1] = {
        key = key,
@@ -81,6 +92,7 @@ for key, am_host in pairs(am_hosts) do
        availability = availability or "",
        hours = hourly_stats or {},
        unit = i18n(m_info.i18n_unit) or m_info.i18n_unit,
+       jitter = column_jitter,
     }
 
     ::continue::
