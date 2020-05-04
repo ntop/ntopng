@@ -166,6 +166,11 @@ recipient_params["garbage"] = "trash"
 res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", recipient_params)
 assert(res["status"] == "OK")
 
+res = notification_endpoint_recipients.get_endpoint_recipient("sysadmins")
+assert(res["status"] == "OK")
+assert(res["recipient_params"])
+assert(res["recipient_params"]["to"] == "ci@ntop.org")
+assert(not res["recipient_params"]["garbage"])
 
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

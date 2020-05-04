@@ -40,6 +40,22 @@ end
 
 -- #################################################################
 
+-- @brief Read the recipient configuration parameters of an existing configuration
+-- @param endpoint_recipient_name A string with the configuration endpoint recipient name
+-- @return A table with two keys: endpoint_conf_name and recipient_params or nil if the configuration isn't found
+local function read_endpoint_recipient_raw(endpoint_recipient_name)
+   local endpoint_conf_name = ntop.getHashCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG, endpoint_recipient_name)
+
+   local k = string.format(ENDPOINT_RECIPIENTS_KEY, endpoint_conf_name)
+   local recipient_params = ntop.getHashCache(k, endpoint_recipient_name)
+
+   if recipient_params and recipient_params ~= '' then
+      return {endpoint_conf_name = endpoint_conf_name, recipient_params = recipient_params}
+   end
+end
+
+-- #################################################################
+
 local function check_endpoint_recipient_name(endpoint_recipient_name)
    if not endpoint_recipient_name or endpoint_recipient_name == "" then
       return false, {status = "failed", error = {type = "invalid_endpoint_recipient_name"}}
@@ -124,6 +140,27 @@ function notification_endpoint_recipients.add_endpoint_recipient(endpoint_conf_n
    set_endpoint_recipient_params(endpoint_conf_name, endpoint_recipient_name, safe_params)
 
    return {status = "OK"}
+end
+
+-- #################################################################
+
+function notification_endpoint_recipients.get_endpoint_recipient(endpoint_recipient_name)
+   local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
+   if not ok then
+      return status
+   end
+
+   -- Is the config already existing?
+   local rc = read_endpoint_recipient_raw(endpoint_recipient_name)
+   if not rc then
+      return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
+   end
+
+   return {
+      status = "OK",
+      endpoint_conf_name = rc["endpoint_conf_name"],
+      recipient_params = json.decode(rc["recipient_params"])
+   }
 end
 
 -- #################################################################
