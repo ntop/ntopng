@@ -95,12 +95,35 @@ assert(res["status"] == "OK")
 assert(res["endpoint_key"] == "email")
 assert(res["endpoint_conf_name"] == "ntop_email")
 assert(res["endpoint_conf"])
-assert(not res["endpoint_conf"]["trash"])
+assert(not res["endpoint_conf"]["garbage"])
 
 for k, v in pairs(res["endpoint_conf"]) do
    assert(conf_params[k])
    assert(conf_params[k] == v)
 end
+
+-- Edit the config
+conf_params["smtp_server_name"] = "mail2.ntop.org"
+res = notification_endpoint_configs.edit_endpoint_config_params("ntop_email", conf_params)
+assert(res["status"] == "OK")
+
+res = notification_endpoint_configs.get_endpoint_config("ntop_email")
+assert(res["status"] == "OK")
+assert(res["endpoint_key"] == "email")
+assert(res["endpoint_conf_name"] == "ntop_email")
+assert(res["endpoint_conf"])
+assert(res["endpoint_conf"]["smtp_server_name"] == "mail2.ntop.org")
+
+-- Add another endpoint
+conf_params = {
+   smtp_server_name = "mail.google.com",
+   sender = "tester@google.com",
+   username = "googleuser",
+   password = "googlepassword"
+}
+
+res = notification_endpoint_configs.add_endpoint_config("email", "google_email", conf_params)
+assert(res["status"] == "OK")
 
 ------------------------------
 -- TEST ENDPOINT RECIPIENTS --
