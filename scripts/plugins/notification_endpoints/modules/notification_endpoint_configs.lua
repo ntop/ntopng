@@ -264,6 +264,28 @@ end
 
 -- #################################################################
 
+-- @brief Retrieve all the available configurations and configuration params
+-- @return A lua array with a as many elements as the number of existing configurations.
+--         Each element is the result of `notification_endpoint_configs.get_endpoint_config`
+function notification_endpoint_configs.get_endpoint_configs()
+   local res = {}
+
+   for endpoint_key, endpoint in pairs(notification_endpoint_consts.endpoint_types) do
+      local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
+      local all_configs = ntop.getHashAllCache(k) or {}
+
+      for conf_name, conf_params in pairs(all_configs) do
+	 local ec = notification_endpoint_configs.get_endpoint_config(conf_name)
+
+	 res[#res + 1] = ec
+      end
+   end
+
+   return res
+end
+
+-- #################################################################
+
 -- @brief Clear all the existing endpoint configurations
 -- @return Always return a table {status = "OK"}
 function notification_endpoint_configs.reset_endpoint_configs()

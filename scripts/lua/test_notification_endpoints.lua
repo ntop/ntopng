@@ -125,6 +125,10 @@ conf_params = {
 res = notification_endpoint_configs.add_endpoint_config("email", "google_email", conf_params)
 assert(res["status"] == "OK")
 
+-- Get all configs
+res = notification_endpoint_configs.get_endpoint_configs()
+assert(#res == 2)
+
 ------------------------------
 -- TEST ENDPOINT RECIPIENTS --
 ------------------------------
