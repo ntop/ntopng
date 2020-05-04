@@ -140,6 +140,9 @@ res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", nil,
 assert(res["status"] == "failed" and res["error"]["type"] == "invalid_endpoint_recipient_name")
 
 res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", nil)
+assert(res["status"] == "failed" and res["error"]["type"] == "invalid_recipient_params")
+
+res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", {})
 assert(res["status"] == "failed" and res["error"]["type"] == "missing_mandatory_param")
 
 local recipient_params = {

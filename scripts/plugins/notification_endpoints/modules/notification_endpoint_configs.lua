@@ -117,7 +117,7 @@ end
 -- @param endpoint_key A string with the notification endpoint key
 -- @param conf_params A table with endpoint configuration params that will be possibly sanitized
 -- @return false with a description of the error, or true, with a table containing sanitized configuration params.
-local function check_endpoint_params(endpoint_key, conf_params)
+local function check_endpoint_config_params(endpoint_key, conf_params)
    if not conf_params or not type(conf_params) == "table" then
       return false, {status = "failed", error = {type = "invalid_conf_params"}}
    end
@@ -164,7 +164,7 @@ function notification_endpoint_configs.add_endpoint_config(endpoint_key, endpoin
    end
 
    -- Are the submitted params those expected by the endpoint?
-   ok, status = check_endpoint_params(endpoint_key, conf_params)
+   ok, status = check_endpoint_config_params(endpoint_key, conf_params)
 
    if not ok then
       return status
@@ -197,7 +197,7 @@ function notification_endpoint_configs.edit_endpoint_config_params(endpoint_conf
    end
 
    -- Are the submitted params those expected by the endpoint?
-   ok, status = check_endpoint_params(ec["endpoint_key"], conf_params)
+   ok, status = check_endpoint_config_params(ec["endpoint_key"], conf_params)
 
    if not ok then
       return status
