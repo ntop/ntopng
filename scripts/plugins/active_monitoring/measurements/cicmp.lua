@@ -85,8 +85,18 @@ local function collect_icmp_continuous(granularity)
       v.value = measurement.response_rate
 
       -- Report jitter and mean
-      v.jitter = measurement.jitter
-      v.mean = measurement.mean
+      if(measurement.jitter ~= nil) and (measurement.mean ~= nil) then
+        ts_utils.append("am_host:jitter_stats_" .. granularity, {
+          ifid = getSystemInterfaceId(),
+          host = h.info.host,
+          metric = h.info.measurement,
+          latency = measurement.mean,
+          jitter = measurement.jitter,
+        })
+
+        v.mean = measurement.mean
+        v.jitter = measurement.jitter
+      end
 
       if((measurement.min_rtt ~= nil) and (measurement.max_rtt ~= nil)) then
         ts_utils.append("am_host:cicmp_stats_" .. granularity, {
@@ -110,6 +120,24 @@ end
 local function check_icmp_available()
   return(ntop.isPingAvailable())
 end
+
+-- #################################################################
+
+local timeseries = {{
+  schema="am_host:cicmp_stats",
+  label=i18n("flow_details.round_trip_time"),
+  metrics_labels = { i18n("graphs.min_rtt"), i18n("graphs.max_rtt") },
+  value_formatter = {"fmillis", "fmillis"},
+  split_directions = true,
+  show_unreachable = true,
+}, {
+  schema="am_host:jitter_stats",
+  label=i18n("active_monitoring_stats.latency_vs_jitter"),
+  metrics_labels = { i18n("sprobe_page.latency"), i18n("flow_details.jitter") },
+  value_formatter = {"fmillis", "fmillis"},
+  split_directions = true,
+  show_unreachable = true,
+}}
 
 -- #################################################################
 
@@ -153,13 +181,7 @@ return {
       default_threshold = 99,
       -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
-      additional_timeseries = {{
-        schema="am_host:cicmp_stats",
-        label=i18n("flow_details.round_trip_time"),
-        metrics_labels = { i18n("graphs.min_rtt"), i18n("graphs.max_rtt") },
-        value_formatter = {"fmillis", "fmillis"},
-        split_directions = true,
-      }},
+      additional_timeseries = timeseries,
       -- Js function to call to format the measurement value. See ntopng_utils.js .
       value_js_formatter = "fpercent",
       -- The raw measurement value is multiplied by this factor before being written into the chart
@@ -185,13 +207,7 @@ return {
       operator = "lt",
       max_threshold = 100,
       default_threshold = 99,
-      additional_timeseries = {{
-        schema="am_host:cicmp_stats",
-        label=i18n("flow_details.round_trip_time"),
-        metrics_labels = { i18n("graphs.min_rtt"), i18n("graphs.max_rtt") },
-        value_formatter = {"fmillis", "fmillis"},
-        split_directions = true,
-      }},
+      additional_timeseries = timeseries,
       value_js_formatter = "fpercent",
       chart_scaling_value = 1,
       i18n_chart_notes = {},
