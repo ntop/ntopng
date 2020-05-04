@@ -21,7 +21,7 @@ class NtopWidgetUtils {
             const widgetEndpoint = buildWidgetEndpointURL(widgetDomElement.dataset.ntopWidgetEndpoint);
 
             const jsonParams = widgetDomElement.dataset.ntopWidgetParams || "{}";
-            const { ifid, key, metric, beginTime, endTime, schema } = JSON.parse(jsonParams);
+            const { ifid, key, beginTime, endTime } = JSON.parse(jsonParams);
 
             const widget = new NtopWidget({
                 widgetKey: widgetKey,
@@ -31,10 +31,8 @@ class NtopWidgetUtils {
                 widgetGetParams: {
                     ifid: ifid,
                     key: key,
-                    metric: metric,
                     beginTime: beginTime,
                     endTime: endTime,
-                    schema: schema
                 },
             });
 

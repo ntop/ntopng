@@ -141,8 +141,6 @@ $(document).ready(function () {
 
             for (const [key, value] of Object.entries(values).sort((a, b) => a[0].localeCompare(b[0])))
                 generateOption(key, key);
-
-
         }
 
         onFamilySelect(event) {

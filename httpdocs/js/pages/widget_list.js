@@ -69,8 +69,15 @@ $(document).ready(function() {
     });
 
     $(`#widgets-list`).on('click', `a[href='#embed-widget-modal']`, function(e) {
-        const row_data = $widgets_table.row($(this).parent()).data();
-        $(`#embded-container`).text(`<div class='ntop-widget' data-ntop-widget-key='${row_data.key}'></div>`);
+        const rowData = $widgets_table.row($(this).parent()).data();
+        console.log(rowData);
+        $(`#embded-container`).text(`
+            <div
+                class='ntop-widget'
+                data-ntop-widget-params='${JSON.stringify(rowData.params)}'
+                data-ntop-widget-key='${rowData.key}'>
+            </div>
+        `);
     });
 
     $(`#widgets-list`).on('click', `a[href='#remove-widget-modal']`, function(e) {

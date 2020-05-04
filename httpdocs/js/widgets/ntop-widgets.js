@@ -86,10 +86,8 @@ export default class NtopWidget {
         return {
             ifid: this.widgetGetParams.ifid,
             key: this.widgetGetParams.key,
-            metric: this.widgetGetParams.metric,
             begin_time: this.widgetGetParams.beginTime,
             end_time: this.widgetGetParams.endTime,
-            schema: this.widgetGetParams.schema,
             widget_key: this.widgetKey,
             widget_type: this.widgetType
         }
