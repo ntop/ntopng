@@ -166,6 +166,8 @@ function notification_endpoint_recipients.delete_endpoint_recipient(endpoint_rec
    local k = string.format(ENDPOINT_RECIPIENTS_KEY, endpoint_conf_name)
    ntop.delHashCache(k, endpoint_recipient_name)
    ntop.delHashCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG, endpoint_recipient_name)
+
+   return {status = "OK"}
 end
 
 -- #################################################################

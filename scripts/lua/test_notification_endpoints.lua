@@ -155,7 +155,18 @@ assert(res["status"] == "OK")
 res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", recipient_params)
 assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_recipient_already_existing")
 
+res = notification_endpoint_recipients.delete_endpoint_recipient("sysadmins")
+assert(res["status"] == "OK")
+
+res = notification_endpoint_recipients.delete_endpoint_recipient("sysadmins")
+assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_recipient_not_existing")
+
 recipient_params["garbage"] = "trash"
+
+res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", recipient_params)
+assert(res["status"] == "OK")
+
+
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
