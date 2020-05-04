@@ -907,11 +907,23 @@ function printInMemory()
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.local_hosts_cache_settings")..'</th></tr></thead>')
 
+  local javascriptAfterSwitch = "";
+  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#check-toggle_local_host_cache_enabled\").is(\":checked\")) {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#check-toggle_active_local_host_cache_enabled\").is(\":checked\")) {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#active_local_host_cache_interval\").css(\"display\",\"table-row\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#active_local_host_cache_interval\").css(\"display\",\"none\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  } else {\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#active_local_host_cache_interval\").css(\"display\",\"none\");\n"
+  javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
+
   prefsToggleButton(subpage_active, {
     field = "toggle_local_host_cache_enabled",
     default = "1",
     pref = "is_local_host_cache_enabled",
     to_switch = {"local_host_cache_duration","row_toggle_active_local_host_cache_enabled","active_local_host_cache_interval"},
+    js_after_switch = javascriptAfterSwitch,
   })
 
   local showLocalHostCacheInterval = false
