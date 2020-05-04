@@ -11,6 +11,24 @@ local json = require "dkjson"
 
 -- #################################################################
 
+-- A key to access a hash table containing mappings between endpoint_conf_name and endpoint_key
+-- endpoint_key s are defined inside ./endpoint lua files, such as email.lua
+--
+-- Example:
+-- ntop_mail -> mail
+-- customer_1_mail -> mail
+-- crew_es -> elasticsearch
+--
+local ENDPOINT_CONFIG_TO_ENDPOINT_KEY = "ntopng.prefs.notification_endpoint.endpoint_conf_name_endpoint_key"
+
+-- A key to access a hash table containing mappings, for each endpoint_key, between every endpoint_conf_name and conf_params
+--
+-- Example:
+-- notification endpoint mail has two configurations, `ntop_mail` and `customer_1_mail`, so the resulting entry
+-- ntopng.prefs.notification_endpoint.endpoint_key_mail.configs is as follows:
+-- ntop_mail -> {smtmp_server_name: "...", etc}
+-- customer_1_mail -> {smtp_server_name: "...", etc}
+--
 local ENDPOINT_CONFIGS_KEY = "ntopng.prefs.notification_endpoint.endpoint_key_%s.configs"
 
 -- #################################################################
@@ -19,11 +37,31 @@ local notification_endpoint_configs = {}
 
 -- #################################################################
 
-local function read_endpoint_config_raw(endpoint_key, endpoint_conf_name)
-   local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
-   local res = ntop.getHashCache(k, endpoint_conf_name)
+local function is_endpoint_config_existing(endpoint_conf_name)
+   if not endpoint_conf_name or endpoint_conf_name == "" then
+      return false
+   end
 
-   return res ~= '' and res or nil
+   local res = ntop.getHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
+
+   if res == nil or res == '' then
+      return false
+   end
+
+   return true
+end
+
+-- #################################################################
+
+local function read_endpoint_config_raw(endpoint_conf_name)
+   local endpoint_key = ntop.getHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
+
+   local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
+   local conf_params = ntop.getHashCache(k, endpoint_conf_name)
+
+   if conf_params and conf_params ~= '' then
+      return {endpoint_key = endpoint_key, conf_params = conf_params}
+   end
 end
 
 -- #################################################################
@@ -60,8 +98,7 @@ function notification_endpoint_configs.add_endpoint_config(endpoint_key, endpoin
    end
 
    -- Is the config already existing?
-   local ec = read_endpoint_config_raw(endpoint_key, endpoint_conf_name)
-   if ec then
+   if is_endpoint_config_existing(endpoint_conf_name) then
       return {status = "failed", error = {type = "endpoint_config_already_existing", endpoint_conf_name = endpoint_conf_name}}
    end
 
@@ -85,6 +122,7 @@ function notification_endpoint_configs.add_endpoint_config(endpoint_key, endpoin
    end
 
    -- Set the config
+   ntop.setHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name, endpoint_key)
    local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
    ntop.setHashCache(k, endpoint_conf_name, json.encode(safe_params))
 
@@ -93,51 +131,45 @@ end
 
 -- #################################################################
 
-function notification_endpoint_configs.delete_endpoint_config(endpoint_key, endpoint_conf_name)
-   local ok, status = check_endpoint_key(endpoint_key)
-   if not ok then
-      return status
-   end
-
-   ok, status = check_endpoint_conf_name(endpoint_conf_name)
+function notification_endpoint_configs.delete_endpoint_config(endpoint_conf_name)
+   local ok, status = check_endpoint_conf_name(endpoint_conf_name)
    if not ok then
       return status
    end
 
    -- Is the config already existing?
-   local ec = read_endpoint_config_raw(endpoint_key, endpoint_conf_name)
-   if not ec then
+   if not is_endpoint_config_existing(endpoint_conf_name) then
       return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
    end
 
-
-   -- Set the config
+   -- Delete the config
    local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
    ntop.delHashCache(k, endpoint_conf_name)
+   ntop.delHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
 
    return {status = "OK"}
 end
 
 -- #################################################################
 
-function notification_endpoint_configs.get_endpoint_config(endpoint_key, endpoint_conf_name)
-   local ok, status = check_endpoint_key(endpoint_key)
-   if not ok then
-      return status
-   end
-
-   ok, status = check_endpoint_conf_name(endpoint_conf_name)
+function notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
+   local ok, status = check_endpoint_conf_name(endpoint_conf_name)
    if not ok then
       return status
    end
 
    -- Is the config already existing?
-   local ec = read_endpoint_config_raw(endpoint_key, endpoint_conf_name)
+   local ec = read_endpoint_config_raw(endpoint_conf_name)
    if not ec then
       return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
    end
 
-   return {status = "OK", endpoint_key = endpoint_key, endpoint_conf_name = endpoint_conf_name, endpoint_conf =json.decode(ec)}
+   return {
+      status = "OK",
+      endpoint_conf_name = endpoint_conf_name,
+      endpoint_key = ec["endpoint_key"],
+      endpoint_conf = json.decode(ec["conf_params"])
+   }
 end
 
 -- #################################################################
@@ -151,6 +183,7 @@ function notification_endpoint_configs.reset_endpoint_configs()
 
       for conf_name, conf_params in pairs(all_configs) do
 	 notification_endpoint_recipients.reset_endpoint_recipients(endpoint_key, conf_name)
+	 ntop.delHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, conf_name)
       end
 
       ntop.delCache(k)

@@ -30,8 +30,8 @@ end
 
 -- #################################################################
 
-function notification_endpoint_recipients.add_endpoint_recipient(endpoint_key, endpoint_conf_name, endpoint_recipient_name, recipient_params)
-   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_key, endpoint_conf_name)
+function notification_endpoint_recipients.add_endpoint_recipient(endpoint_conf_name, endpoint_recipient_name, recipient_params)
+   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
       return ec
@@ -42,6 +42,7 @@ function notification_endpoint_recipients.add_endpoint_recipient(endpoint_key, e
       return status
    end
 
+   local endpoint_key = ec["endpoint_key"]
    -- Create a safe_params table with only expected params
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
@@ -67,7 +68,7 @@ end
 -- #################################################################
 
 function notification_endpoint_recipients.get_endpoint_recipients(endpoint_key, endpoint_conf_name, endpoint_recipient_name)
-   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_key, endpoint_conf_name)
+   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
       return ec
@@ -85,8 +86,8 @@ end
 
 -- #################################################################
 
-function notification_endpoint_recipients.reset_endpoint_recipients(endpoint_key, endpoint_conf_name)
-   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_key, endpoint_conf_name)
+function notification_endpoint_recipients.reset_endpoint_recipients(endpoint_conf_name)
+   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
       return ec

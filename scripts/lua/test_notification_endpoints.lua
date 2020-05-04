@@ -34,10 +34,7 @@ local res
 res = notification_endpoint_configs.reset_endpoint_configs()
 assert(res["status"] == "OK")
 
-res = notification_endpoint_configs.delete_endpoint_config("nonexisting", nil)
-assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_not_existing")
-
-res = notification_endpoint_configs.delete_endpoint_config("email", "nonexisting_config_name")
+res = notification_endpoint_configs.delete_endpoint_config("nonexisting_config_name")
 assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_config_not_existing")
 
 res = notification_endpoint_configs.add_endpoint_config("nonexisting", nil, nil)
@@ -47,6 +44,7 @@ res = notification_endpoint_configs.add_endpoint_config("email", nil, nil)
 assert(res["status"] == "failed" and res["error"]["type"] == "invalid_endpoint_conf_name")
 
 res = notification_endpoint_configs.add_endpoint_config("email", "ntop_email", nil)
+
 assert(res["status"] == "failed" and res["error"]["type"] == "invalid_conf_params")
 
 -- see email.lua for mandatory conf_params
@@ -64,8 +62,12 @@ conf_params = {
 res = notification_endpoint_configs.add_endpoint_config("email", "ntop_email", conf_params)
 assert(res["status"] == "OK")
 
+-- Duplicate addition
+res = notification_endpoint_configs.add_endpoint_config("email", "ntop_email", conf_params)
+assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_config_already_existing")
+
 -- Delete the endpoint
-res = notification_endpoint_configs.delete_endpoint_config("email", "ntop_email")
+res = notification_endpoint_configs.delete_endpoint_config("ntop_email")
 assert(res["status"] == "OK")
 
 -- Add also some optional params
@@ -79,7 +81,7 @@ conf_params = {
 res = notification_endpoint_configs.add_endpoint_config("email", "ntop_email", conf_params)
 assert(res["status"] == "OK")
 
-res = notification_endpoint_configs.delete_endpoint_config("email", "ntop_email")
+res = notification_endpoint_configs.delete_endpoint_config("ntop_email")
 assert(res["status"] == "OK")
 
 -- Add some garbage and make sure it is not written
@@ -88,7 +90,7 @@ conf_params["garbage"] = "trash"
 res = notification_endpoint_configs.add_endpoint_config("email", "ntop_email", conf_params)
 assert(res["status"] == "OK")
 
-res = notification_endpoint_configs.get_endpoint_config("email", "ntop_email")
+res = notification_endpoint_configs.get_endpoint_config("ntop_email")
 assert(res["status"] == "OK")
 assert(res["endpoint_key"] == "email")
 assert(res["endpoint_conf_name"] == "ntop_email")
@@ -104,23 +106,20 @@ end
 -- TEST ENDPOINT RECIPIENTS --
 ------------------------------
 
-res = notification_endpoint_recipients.add_endpoint_recipient("nonexisting", nil, nil, nil)
-assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_not_existing")
-
-res = notification_endpoint_recipients.add_endpoint_recipient("email", "nonexisting_config_name", nil, nil)
+res = notification_endpoint_recipients.add_endpoint_recipient("nonexisting_config_name", nil, nil)
 assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_config_not_existing")
 
-res = notification_endpoint_recipients.add_endpoint_recipient("email", "ntop_email", nil, nil)
+res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", nil, nil)
 assert(res["status"] == "failed" and res["error"]["type"] == "invalid_endpoint_recipient_name")
 
-res = notification_endpoint_recipients.add_endpoint_recipient("email", "ntop_email", "sysadmins", nil)
+res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", nil)
 assert(res["status"] == "failed" and res["error"]["type"] == "missing_mandatory_param")
 
 local recipient_params = {
    to = "ci@ntop.org"
 }
 
-res = notification_endpoint_recipients.add_endpoint_recipient("email", "ntop_email", "sysadmins", recipient_params)
+res = notification_endpoint_recipients.add_endpoint_recipient("ntop_email", "sysadmins", recipient_params)
 assert(res["status"] == "OK")
 
 recipient_params["garbage"] = "trash"
