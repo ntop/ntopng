@@ -23,12 +23,8 @@
 
 // #define DEBUG_FIFO_QUEUE
 
-FifoQueue::FifoQueue(u_int32_t queue_size, bool multi_producer) {
-  if(multi_producer)
-    m = new Mutex();
-  else
-    m = NULL;
-
+FifoQueue::FifoQueue(u_int32_t queue_size) {
+  m = new Mutex();
   size = queue_size;
   head = tail = 0;
   cur_items = 0;
@@ -52,8 +48,7 @@ bool FifoQueue::enqueue(void *item) {
   if (item == NULL)
     return rv;
 
-  if(m)
-    m->lock(__FILE__, __LINE__);
+  m->lock(__FILE__, __LINE__);
 
   if(canEnqueue()) {
     items[tail] = item;
@@ -72,8 +67,7 @@ bool FifoQueue::enqueue(void *item) {
 #endif
   }
 
-  if(m)
-    m->unlock(__FILE__, __LINE__);
+  m->unlock(__FILE__, __LINE__);
 
   return(rv);
 }
@@ -90,8 +84,7 @@ void* FifoQueue::dequeue() {
     return(NULL);
   }
 
-  if(m)
-    m->lock(__FILE__, __LINE__);
+  m->lock(__FILE__, __LINE__);
 
   rv = items[head];
   items[head] = NULL;
@@ -105,8 +98,7 @@ void* FifoQueue::dequeue() {
   if(++head >= size)
     head = 0;
 
-  if(m)
-    m->unlock(__FILE__, __LINE__);
+  m->unlock(__FILE__, __LINE__);
 
   return(rv);
 }

@@ -268,7 +268,7 @@ void NetworkInterface::init() {
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
   num_active_misbehaving_flows = num_idle_misbehaving_flows = 0;
-  hosts_to_restore = new FifoStringsQueue(64, false /* don't lock, we will manually lock only on producers */);
+  hosts_to_restore = new FifoStringsQueue(64);
 
 #ifdef NTOPNG_PRO
   gettimeofday(&aggregated_flows_dump_last_dump, NULL);
@@ -3139,9 +3139,7 @@ bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
 
   snprintf(buf, sizeof(buf), "%s@%u", host_ip, vlan_id);
 
-  hosts_to_restore_lock.lock(__FILE__, __LINE__);
   rv = hosts_to_restore->enqueue(buf);
-  hosts_to_restore_lock.unlock(__FILE__, __LINE__);
 
   return(rv);
 }
