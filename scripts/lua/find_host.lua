@@ -185,7 +185,7 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", 
 
    if(not res[h.host]) then
       -- Do not override active hosts
-      res[h.host] = i18n("host_details.inactive_host_x", {host = host2name(h.host, h.vlan)})
+      res[h.host] = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})})
    end
 end
 
@@ -197,7 +197,7 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u_
 
    if(not res[h.host]) then
       -- Do not override active hosts / hosts by MAC
-      res[h.host] = i18n("host_details.inactive_host_x", {host = host2name(h.host, h.vlan)})
+      res[h.host] = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})})
    end
 end
 
