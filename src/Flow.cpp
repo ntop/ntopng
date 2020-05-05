@@ -3203,7 +3203,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  }
 	}
 
-	if((ua = strstr(payload, "User-Agent:")) != NULL) {
+	if((ua = ndpi_strnstr(payload, "User-Agent:", payload_len)) != NULL) {
 	  char buf[128];
 	  u_int i;
 
