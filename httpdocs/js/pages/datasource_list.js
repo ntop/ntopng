@@ -2,12 +2,14 @@ $(document).ready(function () {
 
     class TimeserieSourceBuilder {
 
-        counter = 0;
-        currentSources = [];
-
-        MIN_SOURCE_COUNTER = 1;
-        MAX_SOURCE_COUNTER = 4;
-
+	constructor() {
+            this.counter = 0;
+            this.currentSources = [];
+	    
+            this.MIN_SOURCE_COUNTER = 1;
+            this.MAX_SOURCE_COUNTER = 4;
+	}
+	
         canCreateSource() {
             return (this.currentSources.length <= this.MAX_SOURCE_COUNTER);
         }
