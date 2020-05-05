@@ -2559,14 +2559,22 @@ static int ntop_get_info(lua_State* vm) {
     verbose = lua_toboolean(vm, 1) ? true : false;
 
   lua_newtable(vm);
-#ifdef HAVE_NEDGE
-  lua_push_str_table_entry(vm, "product", ntop->getPro()->get_product_name());
-  lua_push_bool_table_entry(vm, "oem", ntop->getPro()->is_oem());
+  lua_push_str_table_entry(vm, "product", 
+#ifdef NTOPNG_PRO
+                           ntop->getPro()->get_product_name()
 #else
-  lua_push_str_table_entry(vm, "product", (char*)"ntopng");
+                           (char*)"ntopng"
 #endif
+  );
+  lua_push_bool_table_entry(vm, "oem", 
+#ifdef NTOPNG_PRO
+                            ntop->getPro()->is_oem()
+#else
+                            false
+#endif
+  );
   lua_push_str_table_entry(vm, "copyright",
-#ifdef HAVE_NEDGE
+#ifdef NTOPNG_PRO
 			   ntop->getPro()->is_oem() ? (char*)"" :
 #endif
 			   (char*)"&copy; 1998-20 - ntop.org");
