@@ -490,7 +490,7 @@ static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
     data[i] = i%26 + 'a';
   }
 
-  if (para->chunk_size > size * nmemb) {
+  if ((size_t) para->chunk_size > size * nmemb) {
 
     length = size * nmemb < 16284 ? size*nmemb : 16284;
   }
@@ -562,7 +562,7 @@ static int test_upload(char *p_url, int num_thread, long size,
 		       char *p_ext, char init)
 {
   struct timeval s_time;
-  int i, error;
+  int i;
   struct thread_para paras[THREAD_NUM_MAX];
   double sum = 0, speed = 0;
   double *instant_speed = NULL;
@@ -578,8 +578,8 @@ static int test_upload(char *p_url, int num_thread, long size,
     paras[i].finish = 0;
     paras[i].upload_size = size/num_thread;
     //printf("szeleft = %ld\n", paras[i].upload_size);
-    error = pthread_create(&paras[i].tid, NULL, do_upload, (void*)&paras[i]);
-
+    //int error = 
+    pthread_create(&paras[i].tid, NULL, do_upload, (void*)&paras[i]);
     // if ( error != 0) printf("Can't Run thread num %d, error %d\n", i, error);
   }
   if (init != 0)

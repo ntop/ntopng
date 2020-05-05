@@ -3548,7 +3548,7 @@ static int ntop_list_reports(lua_State* vm) {
     struct dirent *ent;
 
     while ((ent = readdir(dir)) != NULL) {
-      char filepath[MAX_PATH+16];
+      char filepath[MAX_PATH+MAX_PATH+64+1];
 	  struct stat buf;
 
       snprintf(filepath, sizeof(filepath), "%s/%s", fullpath, ent->d_name);
