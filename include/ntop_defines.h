@@ -245,6 +245,7 @@
 #define CONST_STR_NEDGE_KEY            "nedge.key"
 #define CONST_STR_NTOPNG_LICENSE       "ntopng.license"
 #define CONST_STR_NTOPNG_KEY           "ntopng.key"
+#define CONST_STR_PRODUCT_NAME_KEY     "ntopng.product_name"
 #define CONST_STR_USER_GROUP           "ntopng.user.%s.group"
 #define CONST_STR_USER_FULL_NAME       "ntopng.user.%s.full_name"
 #define CONST_STR_USER_PASSWORD        "ntopng.user.%s.password"
