@@ -33,6 +33,8 @@ else
    interface.select(ifname)
 end
 
+local ifid = interface.getId()
+
 if not hosts_only then
    -- Look by network
    local network_stats = interface.getNetworksStats()
@@ -171,8 +173,33 @@ if not hosts_only then
 
 end -- not hosts only
 
--- Hosts
+-- Active Hosts
 local res = interface.findHost(query)
+
+-- Inactive hosts (by MAC)
+local key_to_ip_offset = string.len(string.format("ntopng.ip_to_mac.ifid_%u__", ifid)) + 1
+
+for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", ifid, query)) or {}) do
+   -- Serialization by MAC address found
+   local h = hostkey2hostinfo(string.sub(k, key_to_ip_offset))
+
+   if(not res[h.host]) then
+      -- Do not override active hosts
+      res[h.host] = i18n("host_details.inactive_host_x", {host = host2name(h.host, h.vlan)})
+   end
+end
+
+-- Inactive hosts (by IP)
+local key_to_ip_offset = string.len(string.format("ntopng.serialized_hosts.ifid_%u__", ifid)) + 1
+
+for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u__%s*", ifid, query)) or {}) do
+   local h = hostkey2hostinfo(string.sub(k, key_to_ip_offset))
+
+   if(not res[h.host]) then
+      -- Do not override active hosts / hosts by MAC
+      res[h.host] = i18n("host_details.inactive_host_x", {host = host2name(h.host, h.vlan)})
+   end
+end
 
 -- Also look at the custom names
 local ip_to_name = ntop.getHashAllCache(getHostAltNamesKey()) or {}

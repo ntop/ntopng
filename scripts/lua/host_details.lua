@@ -180,14 +180,15 @@ if(host == nil) and (not only_historical) then
 	 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
       else
 	 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-	 print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i> '.. i18n("host_details.host_cannot_be_found_message",{host=hostinfo2hostkey(host_info)}) .. " ")
+	 print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i>')
 	 if(not(restoreFailed) and (host_info ~= nil) and canRestoreHost(ifId, host_info["host"], host_vlan)) then
 	    print[[<form class="form-inline" id="host_restore_form" method="post">]]
 	    print[[<input name="mode" type="hidden" value="restore" />]]
 	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
 	    print[[</form>]]
-	    print[[ ]] print(i18n("host_details.restore_from_cache_message",{js_code="\"javascript:void(0);\" onclick=\"$(\'#host_restore_form\').submit();\""}))
+	    print[[ ]] print(i18n("host_details.restore_from_cache_message_v1",{host=hostinfo2hostkey(host_info), js_code="\"javascript:void(0);\" onclick=\"$(\'#host_restore_form\').submit();\""}))
 	 else
+	    print(i18n("host_details.host_cannot_be_found_message",{host=hostinfo2hostkey(host_info)}) .. " ")
 	    print(purgedErrorString())
 	 end
 
