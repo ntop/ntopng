@@ -417,7 +417,17 @@ page_utils.add_menubar_section(
 	    entry = page_utils.menu_entries.scripts_config,
 	    hidden = not is_admin,
 	    url = '/lua/admin/scripts_config.lua',
-	 },
+    },
+    {
+      entry = page_utils.menu_entries.endpoint_notifications,
+      hidden = not is_admin,
+      url = '/lua/admin/endpoint_notifications_list.lua',
+   },
+   {
+      entry = page_utils.menu_entries.endpoint_recipients,
+      hidden = not is_admin,
+      url = '/lua/admin/endpoint_nrecipients_list.lua',
+   },
 	 {
 	    entry = page_utils.menu_entries.divider,
 	    hidden = not is_admin,
@@ -478,7 +488,7 @@ page_utils.add_menubar_section(
 
 -- Developer
 
-   
+
 if not info.oem then
    page_utils.add_menubar_section(
       {

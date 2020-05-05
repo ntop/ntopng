@@ -1,0 +1,25 @@
+<div class="modal fade" id="edit-endpoint-modal" tabindex="-1" role="dialog" aria-labelledby="edit-endpoint-modal-title"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="edit-endpoint-modal-title">{{ i18n("endpoint_notifications.edit_endpoint") }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form>
+                <div class="modal-body">
+                    <input type="text" hidden name="name">
+                    <div class="endpoint-template-container pt-2">
+                    </div>
+                    <span class="invalid-feedback"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
+                    <button type="submit" class="btn btn-primary">{{i18n("edit")}}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

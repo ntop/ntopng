@@ -997,6 +997,17 @@ local lang = {
     ["reply_breakdown"] = "Reply Breakdown",
     ["request_vs_reply"] = "Request vs Reply Ratio",
   },
+  ["endpoint_notifications"] = {
+    ["actions"] = "Actions",
+    ["add_new_endpoint"] = "Add New Endpoint",
+    ["edit_endpoint"] = "Edit Endpoint",
+    ["endpoint_list"] = "Notifications Endpoint List",
+    ["enpoint_recipients_list"] = "Recipients Endpoint List",
+    ["name"] = "Endpoint Name",
+    ["remove_endpoint"] = "Remove Endpoint",
+    ["remove_endpoint_message"] = "Are you really sure to remove this notification endpoint?",
+    ["type"] = "Endpoint Type",
+  },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "Trigger an alert when the new client Flows/sec exceeds the threshold",
     ["flow_attacker_title"] = "Flow Flood Attacker Alert",

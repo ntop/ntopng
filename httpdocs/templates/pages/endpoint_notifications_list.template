@@ -1,0 +1,55 @@
+<div class="row mb-5">
+    <div class="col-md-12">
+        <table class="table w-100 table-bordered table-striped table-hover my-3" id="notification-list">
+            <thead>
+                <tr>
+                    <th>{{ i18n('endpoint_notifications.name') }}</th>
+                    <th>{{ i18n('endpoint_notifications.type') }}</th>
+                    <th>{{ i18n('actions') }}</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+{# Generate a template for each endpoint entry #}
+{% for k, endpoints in pairs(notifications.endpoints) do %}
+    {% for endpoint_key, endpoint in pairs(endpoints) do %}
+        <template id="{{ endpoint_key }}-template">
+            {% for i, param in ipairs(endpoint.conf_params) do %}
+            <div class="form-group row">
+                <label class="col-form-label col-sm-3">
+                    {{ param.param_name }}
+                </label>
+                <div class="col-sm-5">
+                    <input name="{{ param.param_name }}" type="{{ param.param_type }}" class="form-control" {{ (param.optional and '' or 'required') }}>
+                </div>
+            </div>
+            {% end %}
+        </template>
+    {% end %}
+{% end %}
+
+{* template_utils.gen("pages/modals/notifications/add.template", notifications) *}
+{* template_utils.gen("pages/modals/notifications/remove.template", notifications) *}
+{* template_utils.gen("pages/modals/notifications/edit.template", notifications) *}
+
+
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<script type="text/javascript">
+
+    let add_csrf = "{{ ntop.getRandomCSRFValue() }}";
+    let remove_csrf = "{{ ntop.getRandomCSRFValue() }}";
+    let edit_csrf = "{{ ntop.getRandomCSRFValue() }}";
+
+    i18n.warning ="{{ i18n('warning', {}) }}";
+    i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
+    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n.search = "{{ i18n('search') }}";
+    i18n.edit = "{{ i18n('edit') }}";
+    i18n.remove = "{{ i18n('remove') }}";
+
+
+</script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/modal-utils.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/notifications_list.js"></script>
