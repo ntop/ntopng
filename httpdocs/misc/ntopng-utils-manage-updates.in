@@ -142,6 +142,26 @@ function stall_check() {
 	fi
 }
 
+function maintenance_check() {
+	APP_BIN="/usr/local/bin/${PRODUCT}"
+
+	NOW=`date +'%s'`
+	EXPIRY_EPOCH=`${APP_BIN} --check-maintenance | cut -d' ' -f 1`
+
+	if [ "${EXPIRY_EPOCH}" = "Invalid" ]; then
+		# Missing or invalid license.
+		exit 0
+	elif echo "${EXPIRY_EPOCH}${NOW}" | grep -q "^[0-9]\+$"; then
+		if [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
+			# Expired maintenance
+			exit 0
+		fi
+	else
+		# Unable to read maintenance
+		exit 0
+	fi
+}
+
 # Check if the user requested a ntopng update, and upgrade it in case
 function run_upgrade() {
 	RESULT=1
@@ -270,12 +290,16 @@ function handle_upgrade_requests() {
 	fi
 }
 
+# Check if the product is under maintenance
+maintenance_check
+
 # Run this cron script when the ntopng service is enabled only
 SERVICE_ENABLED=$(/bin/systemctl is-enabled ${PRODUCT} 2>/dev/null)
 if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
 	exit 0
 fi
 
+# Check OEM mode
 OEM_MODE=$(${REDIS_CLI} ${REDIS_CLI_OPT} EXISTS ${REDIS_PRODUCT_NAME_KEY} 2>/dev/null | grep 1)
 if [ "${OEM_MODE}" == "1" ]; then
 	exit 0
