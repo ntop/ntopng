@@ -118,14 +118,16 @@ if(page == "overview") then
    print("<div id='storage-pcap-info'></div>")
    print("</td></tr>")
 
-   print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
-   for i=0,32 do
-      msg = ntop.listIndexCache("ntopng.trace", i)
-      if(msg ~= nil) then
-         print(noHtml(msg).."<br>\n")
+   if not info.oem then
+      print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
+      for i=0,32 do
+         msg = ntop.listIndexCache("ntopng.trace", i)
+         if(msg ~= nil) then
+            print(noHtml(msg).."<br>\n")
+         end
       end
+      print("</code></td></tr>\n")
    end
-   print("</code></td></tr>\n")
 
    print("</table>\n")
 
