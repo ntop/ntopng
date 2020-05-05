@@ -2029,6 +2029,7 @@ local lang = {
     ["host"] = "Host",
     ["host_cannot_be_found_message"] = "Host %{host} cannot be found.",
     ["host_parameter_missing_message"] = "Host parameter is missing (internal error ?)",
+    ["host_restore_in_progress"] = "Restoring host %{host}...",
     ["host_traffic_blocked_quota"] = "Some host traffic has been blocked by an exceeded quota",
     ["host_traffic_blocked_quota_and_shaper"] = "Some host traffic has been blocked by an exceeded quota and a blocking shaper",
     ["host_traffic_blocked_shaper"] = "Some host traffic has been blocked by a blocking shaper",

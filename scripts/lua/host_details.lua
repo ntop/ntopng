@@ -97,16 +97,15 @@ else
 end
 
 local restoreFailed = false
+local restoreInProgress = false
 
--- NOTE: calling interface.restoreHost generates crashes!
---[[
 if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) then
-   if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.trace_debug_restored_host_info").."\n") end
-   interface.restoreHost(host_info["host"], host_vlan)
-   host = interface.getHostInfo(host_info["host"], host_vlan)
-   restoreFailed = true
+   restoreFailed = not interface.restoreHost(host_info["host"], host_vlan)
+
+   if(not restoreFailed) then
+      restoreInProgress = true
+   end
 end
-]]
 
 local top_sites     = ((host ~= nil) and host["sites"] and json.decode(host["sites"])) or {}
 local top_sites_old = ((host ~= nil) and host["sites.old"] and json.decode(host["sites.old"])) or {}
@@ -140,7 +139,6 @@ local only_historical = (host == nil) and ((page == "historical") or (page == "c
 
 if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
-      if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
       sendHTTPContentTypeHeader('text/html')
 
       page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
@@ -150,11 +148,41 @@ if(host == nil) and (not only_historical) then
 	 print('/lua/show_alerts.lua?entity='..alert_consts.alertEntity("host")..'&entity_val=')
 	 print(hostkey)
 	 print('";</script>')
+      elseif restoreInProgress then
+	 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+	 print('<div class=\"alert alert-info\"> '.. i18n("host_details.host_restore_in_progress",{host=hostinfo2hostkey(host_info)}) .. " ")
+	 print('<i class="fas fa-spinner fa-spin"></i>')
+	 print("</div>")
+	 print[[<script type='text/javascript'>
+   let recheckInterval = null;
+
+   function recheckHostRestore() {
+      $.ajax({
+	type: 'GET',
+	url: ']]
+      print (ntop.getHttpPrefix())
+      print [[/lua/host_stats.lua',
+	data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
+	success: function(content) {
+	 if(content && content != '"{}"') {
+	    /* Host found, reload the page */
+	    clearInterval(recheckInterval);
+	    recheckInterval = null;
+	    location.reload();
+	 }
+	}
+      });
+   }
+
+   recheckInterval = setInterval(recheckHostRestore, 2000);
+   recheckHostRestore();
+</script>]]
+	 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
       else
 	 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 	 print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i> '.. i18n("host_details.host_cannot_be_found_message",{host=hostinfo2hostkey(host_info)}) .. " ")
-	 if((json ~= nil) and (json ~= "")) then
-	    print[[<form id="host_restore_form" method="post">]]
+	 if(not(restoreFailed) and (host_info ~= nil) and canRestoreHost(ifId, host_info["host"], host_vlan)) then
+	    print[[<form class="form-inline" id="host_restore_form" method="post">]]
 	    print[[<input name="mode" type="hidden" value="restore" />]]
 	    print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
 	    print[[</form>]]

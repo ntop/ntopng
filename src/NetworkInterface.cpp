@@ -7777,10 +7777,11 @@ void NetworkInterface::checkHostsToRestore() {
   if(!hosts_hash)
     return;
 
-  /* Restore at maximum 10 hosts per run */
-  for(i = 0; (i < 10) && hosts_hash->hasEmptyRoom(); i++) {
+  /* Restore at maximum 5 hosts per run */
+  for(i = 0; (i < 5) && hosts_hash->hasEmptyRoom(); i++) {
     char *ip, *d;
     Host *h;
+    Mac *mac = NULL;
     int16_t local_network_id;
     u_int16_t vlan_id;
     IpAddress ipa;
@@ -7800,11 +7801,26 @@ void NetworkInterface::checkHostsToRestore() {
       /* Host already exists */
       goto next_host;
 
+    if(serializeLbdHostsAsMacs()) {
+      /* Try to retrieve the associated MAC address (only for LBD hosts) */
+      char key[CONST_MAX_LEN_REDIS_KEY];
+      char mac_buf[64];
+      u_int8_t mac_bytes[6];
+
+      snprintf(key, sizeof(key), IP_MAC_ASSOCIATION, get_id(), ip, vlan_id);
+
+      /* The host is possibly a LBD host in DHCP range, so also bring up its MAC for the deserialization */
+      if((!ntop->getRedis()->get(key, mac_buf, sizeof(mac_buf))) && (mac_buf[0] != '\0')) {
+	 Utils::parseMac(mac_bytes, mac_buf);
+	 mac = getMac(mac_bytes, true /* Create if not present */, true /* inline call */);
+       }
+    }
+
     /* TODO provide the host MAC address when available to properly restore LBD hosts */
     if(ipa.isLocalHost(&local_network_id) || ipa.isLocalInterfaceAddress())
-      h = new (std::nothrow) LocalHost(this, NULL, vlan_id, &ipa);
+      h = new (std::nothrow) LocalHost(this, mac, vlan_id, &ipa);
     else
-      h = new (std::nothrow) RemoteHost(this, NULL, vlan_id, &ipa);
+      h = new (std::nothrow) RemoteHost(this, mac, vlan_id, &ipa);
 
     if(!h)
       goto next_host;

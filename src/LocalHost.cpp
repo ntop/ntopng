@@ -55,8 +55,23 @@ void LocalHost::set_hash_entry_state_idle() {
   else if((ntop->getPrefs()->is_idle_local_host_cache_enabled()
       || ntop->getPrefs()->is_active_local_host_cache_enabled())
      && (!ip.isEmpty())) {
+    Mac *mac = getMac();
     checkStatsReset();
     serializeToRedis();
+
+    /* For LBD hosts in the DHCP range, also save the IP -> MAC
+     * association. This allows us to both search the host by IP and to
+     * bring up the host in memory with the correct stats. */
+    if(mac && serializeByMac()) {
+      char key[CONST_MAX_LEN_REDIS_KEY];
+      char buf[64], mac_buf[32];
+
+      snprintf(key, sizeof(key), IP_MAC_ASSOCIATION, iface->get_id(), ip.print(buf, sizeof(buf)), vlan_id);
+      mac->print(mac_buf, sizeof(mac_buf));
+
+      /* IP@VLAN -> MAC */
+      ntop->getRedis()->set(key, mac_buf, ntop->getPrefs()->get_local_host_cache_duration());
+    }
   }
 
   iface->decNumHosts(true /* A local host */);

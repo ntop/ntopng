@@ -3571,6 +3571,24 @@ end
 
 -- ###########################################
 
+function canRestoreHost(ifid, ip, vlan)
+   local ip_to_mac = string.format("ntopng.ip_to_mac.ifid_%u__%s@%d", ifid, ip, vlan)
+   local key_to_check
+
+   -- Check if there is a MAC address associated
+   local mac = ntop.getCache(ip_to_mac)
+
+   if not isEmptyString(mac) then
+      key_to_check = string.format("ntopng.serialized_hostsbymac.ifid_%u__%s_%s", ifid, mac, ternary(isIPv4(ip), "v4", "v6"))
+   else
+      key_to_check = string.format("ntopng.serialized_hosts.ifid_%u__%s@%d", ifid, ip, vlan)
+   end
+
+   return(not table.empty(ntop.getKeysCache(key_to_check)))
+end
+
+-- ###########################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions
