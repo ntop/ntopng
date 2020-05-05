@@ -15,6 +15,7 @@ REDIS_RUN_UPGRADE_KEY="ntopng.updates.run_upgrade"
 REDIS_UPGRADE_FAILURE_KEY="ntopng.updates.upgrade_failure"
 REDIS_AUTO_UPDATES_KEY="ntopng.prefs.is_autoupdates_enabled"
 REDIS_IN_PROGRESS_KEY="ntopng.updates.in_progress"
+REDIS_PRODUCT_NAME_KEY="ntopng.product_name"
 
 ACTION=""
 QUIET=true
@@ -272,6 +273,11 @@ function handle_upgrade_requests() {
 # Run this cron script when the ntopng service is enabled only
 SERVICE_ENABLED=$(/bin/systemctl is-enabled ${PRODUCT} 2>/dev/null)
 if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
+	exit 0
+fi
+
+OEM_MODE=$(${REDIS_CLI} ${REDIS_CLI_OPT} EXISTS ${REDIS_PRODUCT_NAME_KEY} 2>/dev/null | grep 1)
+if [ "${OEM_MODE}" == "1" ]; then
 	exit 0
 fi
 
