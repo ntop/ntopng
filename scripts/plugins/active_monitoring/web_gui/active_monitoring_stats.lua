@@ -111,7 +111,7 @@ if(page == "overview") then
   }))
 
   print(
-    template.gen("config_list_components/import_modal.html", {
+    template.gen("pages/modals/scripts_config/import_modal.html", {
       dialog={
 	id      = "import-modal",
 	title   = i18n("host_pools.config_import"),
