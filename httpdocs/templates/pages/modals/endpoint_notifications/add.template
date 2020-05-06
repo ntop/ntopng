@@ -25,10 +25,8 @@
                         <div class="col-sm-5">
                             <select required name="type" class="form-control" id="endpoint-type-select">
                                 <option selected disabled></option>
-                                {% for k, endpoints in pairs(endpoints) do %}
-                                    {% for endpoint_key, endpoint in pairs(endpoints) do %}
-                                        <option value="{{ endpoint_key }}">{{ endpoint_key }}</option>
-                                    {% end %}
+                                {% for endpoint_key, endpoint in pairs(endpoints) do %}
+                                    <option value="{{ endpoint_key }}">{{ endpoint_key }}</option>
                                 {% end %}
                             </select>
                         </div>

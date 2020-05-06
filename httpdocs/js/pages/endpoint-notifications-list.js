@@ -3,7 +3,7 @@ $(document).ready(function () {
     function makeFormData(formSelector) {
 
         const $inputsTemplate = $(`${formSelector} .endpoint-template-container [name]`);
-        const templateParams = {}
+        const templateParams = {};
         $inputsTemplate.each(function(i, input){
             templateParams[$(this).attr('name')] = $(this).val();
         });
@@ -110,8 +110,6 @@ $(document).ready(function () {
                 return rowData;
             },
             onModalInit: function (data) {
-                /* grant the ability to change template */
-                createTemplateOnSelect(`#edit-endpoint-modal form`);
                 /* load the right template from templates */
                 $(`#edit-endpoint-modal form .endpoint-template-container`)
                     .empty().append(loadTemplate(data.endpoint_key));
@@ -124,7 +122,6 @@ $(document).ready(function () {
             onSubmitSuccess: function (response) {
                 if (response.result.status == "OK") {
                     $(`#edit-endpoint-modal`).modal('hide');
-                    $(`#edit-endpoint-modal form .endpoint-template-container`).hide();
                     $endpointsTable.ajax.reload();
                 }
             }

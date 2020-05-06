@@ -48,4 +48,4 @@
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/modal-utils.js"></script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/notifications_list.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/endpoint-notifications-list.js"></script>

@@ -11,7 +11,7 @@
             <form>
                 <div class="modal-body">
                     <input type="text" hidden name="name">
-                    <div style="display: none;" class="endpoint-template-container pt-2">
+                    <div class="endpoint-template-container pt-2">
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>
