@@ -18,4 +18,5 @@ if not isAdministrator() then
 end
 
 local endpoints = notification_endpoint_configs.get_endpoint_configs()
+
 print(json.encode(endpoints))

@@ -195,6 +195,11 @@ function notification_endpoint_configs.edit_endpoint_config_params(endpoint_conf
    if not ec then
       return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
    end
+   -- Is the config already existing?
+   local ec = read_endpoint_config_raw(endpoint_conf_name)
+   if not ec then
+      return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
+   end
 
    -- Are the submitted params those expected by the endpoint?
    ok, status = check_endpoint_config_params(ec["endpoint_key"], conf_params)
@@ -223,7 +228,8 @@ function notification_endpoint_configs.delete_endpoint_config(endpoint_conf_name
    end
 
    -- Is the config already existing?
-   if not is_endpoint_config_existing(endpoint_conf_name) then
+   local ec = read_endpoint_config_raw(endpoint_conf_name)
+   if not ec then
       return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
    end
 
@@ -232,7 +238,7 @@ function notification_endpoint_configs.delete_endpoint_config(endpoint_conf_name
    notification_endpoint_recipients.delete_endpoint_recipients(endpoint_conf_name)
 
    -- Now delete the actual config
-   local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
+   local k = string.format(ENDPOINT_CONFIGS_KEY, ec["endpoint_key"])
    ntop.delHashCache(k, endpoint_conf_name)
    ntop.delHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
 
