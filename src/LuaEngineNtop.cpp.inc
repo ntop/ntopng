@@ -2814,30 +2814,18 @@ static int ntop_syslog(lua_State* vm) {
 /* ****************************************** */
 
 /**
- * @brief Generate a random value to prevent CSRF and XSRF attacks
- * @details See http://blog.codinghorror.com/preventing-csrf-and-xsrf-attacks/
+ * @brief Get the random value associated to the user session to prevent CSRF attacks
+ * @details See https://owasp.org/www-community/attacks/csrf . ntopng uses per-session
+ * tokens as explained in https://www.sjoerdlangkemper.nl/2019/12/18/different-csrf-token-for-each-form
  */
-static int ntop_generate_csrf_value(lua_State* vm) {
-  char random_a[32], random_b[32], csrf[33];
-  Redis *redis = ntop->getRedis();
-  const char *user = getLuaVMUservalue(vm, user);
+static int ntop_get_csrf_value(lua_State* vm) {
+  const char *csrf = getLuaVMUservalue(vm, csrf);
 
-  if(!user) return(CONST_LUA_ERROR);
+  if(!csrf) return(CONST_LUA_ERROR);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#ifdef __OpenBSD__
-  snprintf(random_a, sizeof(random_a), "%d", arc4random());
-  snprintf(random_b, sizeof(random_b), "%lu", time(NULL)*arc4random());
-#else
-  snprintf(random_a, sizeof(random_a), "%d", rand());
-  snprintf(random_b, sizeof(random_b), "%lu", time(NULL)*rand());
-#endif
-
-  mg_md5(csrf, random_a, random_b, NULL);
-
-  redis->set(csrf, (char*)user, MAX_CSRF_DURATION);
-  lua_pushfstring(vm, "%s", csrf);
+  lua_pushstring(vm, csrf);
   return(CONST_LUA_OK);
 }
 
@@ -5412,7 +5400,7 @@ static const luaL_Reg ntop_reg[] = {
   { "serviceRestart",       ntop_service_restart },
 
   /* Security */
-  { "getRandomCSRFValue",   ntop_generate_csrf_value },
+  { "getRandomCSRFValue",   ntop_get_csrf_value },
 
   /* HTTP */
   { "httpGet",              ntop_http_get            },

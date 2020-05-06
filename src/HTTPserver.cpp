@@ -114,6 +114,24 @@ static void generate_session_id(char *buf, const char *random, const char *user,
 
 /* ****************************************** */
 
+/* Generates a random token to protect against CSRF attacks.
+ * See ntop_get_csrf_value for more details. */
+static void generate_csrf_token(char *csrf) {
+  char random_a[32], random_b[32];
+
+#ifdef __OpenBSD__
+  snprintf(random_a, sizeof(random_a), "%d", arc4random());
+  snprintf(random_b, sizeof(random_b), "%lu", time(NULL)*arc4random());
+#else
+  snprintf(random_a, sizeof(random_a), "%d", rand());
+  snprintf(random_b, sizeof(random_b), "%lu", time(NULL)*rand());
+#endif
+
+  mg_md5(csrf, random_a, random_b, NULL);
+}
+
+/* ****************************************** */
+
 bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *conn) {
   if(ntop->getPrefs()->is_localhost_users_login_disabled()
      && (conn->request_info.remote_ip == 0x7F000001 /* 127.0.0.1 */))
@@ -138,6 +156,7 @@ static void set_cookie(const struct mg_connection * const conn,
 		       bool localuser,
 		       const char * const referer) {
   char key[256], session_id[64], random[64];
+  char csrf[NTOP_CSRF_TOKEN_LENGTH];
   char val[128];
   u_int session_duration = ntop->getPrefs()->get_auth_session_duration();
 
@@ -163,6 +182,7 @@ static void set_cookie(const struct mg_connection * const conn,
   snprintf(random, sizeof(random), "%d", rand());
 
   generate_session_id(session_id, random, user, group);
+  generate_csrf_token(csrf);
 
   // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
 
@@ -184,7 +204,7 @@ static void set_cookie(const struct mg_connection * const conn,
 
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
-  snprintf(val, sizeof(val), "%s|%s|%c", user, group, localuser ? '1' : '0');
+  snprintf(val, sizeof(val), "%s|%s|%s|%c", user, group, csrf, localuser ? '1' : '0');
 
   ntop->getRedis()->set(key, val, session_duration);
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
@@ -349,7 +369,8 @@ static bool ssl_client_x509_auth(const struct mg_connection * const conn, const 
 // which can also be "" or NTOP_NOLOGIN_USER .
 static int getAuthorizedUser(struct mg_connection *conn,
 			     const struct mg_request_info *request_info,
-			     char *username, ssize_t username_len, char *group, bool *localuser) {
+			     char *username, ssize_t username_len, char *group,
+			     char *csrf, bool *localuser) {
   char session_id[NTOP_SESSION_ID_LENGTH];
   char key[64], val[128];
   char password[MAX_PASSWORD_LEN];
@@ -466,15 +487,17 @@ static int getAuthorizedUser(struct mg_connection *conn,
     return(0);
   }
 
-  snprintf(key, sizeof(key), "%%%u[^|]|%%%u[^|]|%%c", NTOP_USERNAME_MAXLEN-1, NTOP_GROUP_MAXLEN-1);
+  snprintf(key, sizeof(key), "%%%u[^|]|%%%u[^|]|%%%u[^|]|%%c", NTOP_USERNAME_MAXLEN-1,
+	    NTOP_GROUP_MAXLEN-1, NTOP_CSRF_TOKEN_LENGTH-1);
 
-  if(sscanf(val, key, username, group, &localuser_ch) != 3) {
+  if(sscanf(val, key, username, group, csrf, &localuser_ch) != 4) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Old Session format %s not supported", session_id);
     return(0);
   }
 
   username[NTOP_USERNAME_MAXLEN-1] = '\0';
   group[NTOP_GROUP_MAXLEN-1] = '\0';
+  csrf[NTOP_CSRF_TOKEN_LENGTH-1] = '\0';
   *localuser = (localuser_ch == '1' ? true : false);
 
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HTTP] Session %s successfully authenticated for %s", session_id, username);
@@ -820,6 +843,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   u_int len;
   char username[NTOP_USERNAME_MAXLEN] = { 0 };
   char group[NTOP_GROUP_MAXLEN] = { 0 };
+  char csrf[NTOP_CSRF_TOKEN_LENGTH] = { 0 };
   bool localuser = false;
   char *referer = (char*)mg_get_header(conn, "Referer");
   u_int8_t whitelisted;
@@ -904,7 +928,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	
 	if(strcmp(scope, "public") != 0) {
 	  /* This is a private URL and it needs authentication */
-	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, &localuser);
+	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
 
 	  if(!authorized) {
 	    char referer[255];
@@ -935,7 +959,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	const char *scope  = json_object_get_string(json_object_object_get(j, "scope"));
 	if(strcmp(scope, "public") != 0) {
 	  /* This is a private URL and it needs authentication */
-	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, &localuser);
+	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
 
 	  if(!authorized) {
 	    char referer[255];
@@ -975,7 +999,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   if(!isStaticResourceUrl(request_info, len)) {
     /* Only check authorized for non-static resources */
-    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, &localuser);
+    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
 
     /* Make sure there are existing interfaces for username. */
     if(!ntop->checkUserInterfaces(username)) {
@@ -1114,7 +1138,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       // NOTE: username is stored into the engine context, so we must guarantee
       // that LuaEngine is destroyed after username goes out of context! Indeeed we delete LuaEngine below.
-      l->handle_script_request(conn, request_info, path, &attack_attempt, username, group, localuser);
+      l->handle_script_request(conn, request_info, path, &attack_attempt, username, group, csrf, localuser);
 
       if(attack_attempt) {
 	char buf[32];

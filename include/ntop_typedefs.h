@@ -595,7 +595,7 @@ class ThreadedActivity;
 class ThreadedActivityStats;
 
 struct ntopngLuaContext {
-  char *allowed_ifname, *user, *group;
+  char *allowed_ifname, *user, *group, *csrf;
   char *sqlite_hosts_filter, *sqlite_flows_filter;
   bool sqlite_filters_loaded;
   void *zmq_context, *zmq_subscriber;
