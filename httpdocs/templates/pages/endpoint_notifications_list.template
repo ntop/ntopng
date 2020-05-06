@@ -13,21 +13,19 @@
 </div>
 
 {# Generate a template for each endpoint entry #}
-{% for k, endpoints in pairs(notifications.endpoints) do %}
-    {% for endpoint_key, endpoint in pairs(endpoints) do %}
-        <template id="{{ endpoint_key }}-template">
-            {% for i, param in ipairs(endpoint.conf_params) do %}
-            <div class="form-group row">
-                <label class="col-form-label col-sm-3">
-                    {{ param.param_name }}
-                </label>
-                <div class="col-sm-5">
-                    <input name="{{ param.param_name }}" type="{{ param.param_type }}" class="form-control" {{ (param.optional and '' or 'required') }}>
-                </div>
+{% for endpoint_key, endpoint in pairs(notifications.endpoints) do %}
+    <template id="{{ endpoint_key }}-template">
+        {% for i, param in ipairs(endpoint.conf_params) do %}
+        <div class="form-group row">
+            <label class="col-form-label col-sm-3">
+                {{ param.param_name }}
+            </label>
+            <div class="col-sm-5">
+                <input name="{{ param.param_name }}" type="{{ param.param_type }}" class="form-control" {{ (param.optional and '' or 'required') }}>
             </div>
-            {% end %}
-        </template>
-    {% end %}
+        </div>
+        {% end %}
+    </template>
 {% end %}
 
 {* template_utils.gen("pages/modals/notifications/add.template", notifications) *}
