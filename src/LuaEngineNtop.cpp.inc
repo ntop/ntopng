@@ -582,7 +582,7 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
 static int ntop_match_custom_category(lua_State* vm) {
   char *host_to_match;
   NetworkInterface *iface;
-  unsigned long match;
+  u_int16_t match;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   iface = ntop->getFirstInterface();

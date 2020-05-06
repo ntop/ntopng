@@ -74,7 +74,7 @@ void IpAddress::set(union usa *ip) {
 void IpAddress::reloadBlacklist(ndpi_detection_module_struct* ndpi_struct) {
   char ipbuf[64];
   char *ip_str = print(ipbuf, sizeof(ipbuf));
-  unsigned long category;
+  u_int16_t category;
 
   if((ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str), &category) == 0)
      && category == CUSTOM_CATEGORY_MALWARE)
