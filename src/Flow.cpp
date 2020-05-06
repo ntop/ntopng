@@ -3949,7 +3949,7 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
   }
 
   if(dst_name) {
-    unsigned long id;
+    u_int16_t id;
     ndpi_protocol_match_result tmp;
 
     /* Match for custom protocols (protos.txt) */
