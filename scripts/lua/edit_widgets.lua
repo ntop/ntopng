@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
-local widget_utils = require("widget_utils")
+local widgets_utils = require("widgets_utils")
 local http_lint = require("http_lint")
 
 local function reportError(msg)
@@ -44,11 +44,11 @@ local response = {
 }
 
 if (action == "add") then
-    response.success, response.message = widget_utils.add_widget(data.name, data.ds_hash, data.type, params)
+    response.success, response.message = widgets_utils.add_widget(data.name, data.ds_hash, data.type, params)
 elseif (action == "edit") then
-    response.success, response.message = widget_utils.edit_widget(data.widget_key, data.name, data.ds_hash, data.type, params)
+    response.success, response.message = widgets_utils.edit_widget(data.widget_key, data.name, data.ds_hash, data.type, params)
 elseif (action == "remove") then
-    response.success, response.message = widget_utils.delete_widget(data.widget_key)
+    response.success, response.message = widgets_utils.delete_widget(data.widget_key)
 else
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid 'action' parameter.")
     reportError("Invalid 'action' parameter.")

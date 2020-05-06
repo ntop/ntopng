@@ -7,10 +7,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-local widget_utils = require("widget_utils")
+local widgets_utils = require("widgets_utils")
 local json = require "dkjson"
 
 sendHTTPContentTypeHeader('application/json')
 
-local widgets = widget_utils.get_all_widgets()
+local widgets = widgets_utils.get_all_widgets()
 print(json.encode(widgets))
