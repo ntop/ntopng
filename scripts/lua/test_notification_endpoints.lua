@@ -185,5 +185,20 @@ assert(res["status"] == "OK")
 assert(res["recipient_params"])
 assert(res["recipient_params"]["to"] == "ci2@ntop.org")
 
+-- Add another couple of recipients
+recipient_params["to"] = "devops2@ntop.org"
+res = notification_recipients.add_recipient("ntop_email", "devops", recipient_params)
+assert(res["status"] == "OK")
+
+recipient_params["to"] = "sres@gmail.com"
+res = notification_recipients.add_recipient("google_email", "sres", recipient_params)
+assert(res["status"] == "OK")
+
+res = notification_recipients.get_recipients()
+assert(#res == 3)
+for _, recipient in pairs(res) do
+   assert(recipient["status"] == "OK")
+end
+
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 

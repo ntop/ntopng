@@ -203,21 +203,15 @@ end
 
 -- #################################################################
 
-function notification_recipients.get_recipients(endpoint_key, endpoint_conf_name, endpoint_recipient_name)
-   local ec = notification_endpoints.get_endpoint_config(endpoint_conf_name)
+function notification_recipients.get_recipients()
+   local res = {}
+   local all_recipients = ntop.getHashAllCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG)
 
-   if ec["status"] ~= "OK" then
-      return ec
+   for recipient_name, config_name in pairs(all_recipients or {}) do
+      res[#res + 1] = notification_recipients.get_recipient(recipient_name)
    end
 
-   local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
-   if not ok then
-      return status
-   end
-
-   local k = string.format(ENDPOINT_RECIPIENTS_KEY, endpoint_conf_name)
-
-   return {status = "OK", recipients = ntop.getHashAllCache(k)}
+   return res
 end
 
 -- #################################################################
