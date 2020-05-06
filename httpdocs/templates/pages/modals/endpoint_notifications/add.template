@@ -33,7 +33,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="endpoint-template-container border-top pt-2">
+                    <div style="display: none;" class="endpoint-template-container border-top pt-2">
 
                     </div>
                     <span class="invalid-feedback"></span>

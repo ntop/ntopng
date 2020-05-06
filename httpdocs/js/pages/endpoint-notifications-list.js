@@ -21,7 +21,7 @@ $(document).ready(function () {
         $(`${formSelector} select[name='type']`).change(function(e) {
             const template = $(`template#${$(this).val()}-template`).html();
             const $cloned = $(template);
-            $templateContainer.empty().append($cloned);
+            $templateContainer.empty().append($cloned).fadeIn();
         });
     }
 
@@ -124,6 +124,7 @@ $(document).ready(function () {
             onSubmitSuccess: function (response) {
                 if (response.result.status == "OK") {
                     $(`#edit-endpoint-modal`).modal('hide');
+                    $(`#edit-endpoint-modal form .endpoint-template-container`).hide();
                     $endpointsTable.ajax.reload();
                 }
             }
@@ -147,6 +148,7 @@ $(document).ready(function () {
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {
                 $(`#add-endpoint-modal`).modal('hide');
+                $(`#add-endpoint-modal form .endpoint-template-container`).hide();
                 $endpointsTable.ajax.reload();
             }
         }
