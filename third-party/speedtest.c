@@ -103,17 +103,6 @@ static size_t write_data(void* ptr, size_t size, size_t nmemb, void *stream)
 }
 
 
-#if 1
-void *myrealloc(void *ptr, size_t size)
-{
-  /* There might be a realloc() out there that doesn't like reallocing
-     NULL pointers, so we take care of it here */
-  if(ptr)
-    return realloc(ptr, size);
-  else
-    return malloc(size);
-}
-
 size_t
 write_web_buf(void *ptr, size_t size, size_t nmemb, void *data)
 {
@@ -128,25 +117,7 @@ write_web_buf(void *ptr, size_t size, size_t nmemb, void *data)
   }
   return realsize;
 }
-#else
-static size_t write_web_buf(void* ptr, size_t size, size_t nmemb, void *data)
-{
-  struct web_buffer* buf = (struct web_buffer*)data;
-  char *p = NULL;
-  int length = buf->size + size*nmemb + 1;
-  //printf("le = %p %p %d %d %d\n", p, buf->data, length,  size*nmemb, buf->size);
-  p = (char*)realloc(buf->data, buf->size + size*nmemb + 1);
-  if (p == NULL) {
-    // printf("realloc failed\n");
-    return 0;
-  }
-  buf->data = p;
-  memcpy(&buf->data[buf->size], ptr, size*nmemb);
-  buf->size += size * nmemb;
-  buf->data[buf->size] = 0;
-  return size * nmemb;
-}
-#endif
+
 double radian(double d)
 {
   return d * PI / 180.0;
@@ -635,6 +606,7 @@ static int get_upload_extension(char *server, char *p_ext)
   CURLcode res;
   struct web_buffer web;
   char* p = NULL;
+  int rv = NOK;
 
   memset(&web, 0, sizeof(web));
 
@@ -648,17 +620,22 @@ static int get_upload_extension(char *server, char *p_ext)
   curl_easy_cleanup(curl);
   if (res != CURLE_OK) {
     // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    return NOK;
+    goto cleanup;
   }
   p = strstr(web.data, UPLOAD_EXTENSION_TAG);
   if (p == NULL ||
       sscanf(p + strlen(UPLOAD_EXTENSION_TAG), "%*[^a-zA-Z]%[a-zA-Z]", p_ext) <= 0) {
     // fprintf(stderr, "Upload extension not found\n");
-    return NOK;
+    goto cleanup;
   }
 
+  rv = OK;
+
+cleanup:
+  if(web.data) free(web.data);
+
   // printf("Upload extension: %s\n", p_ext);
-  return OK;
+  return rv;
 }
 
 static int get_client_info(struct client_info *p_client)
@@ -667,6 +644,7 @@ static int get_client_info(struct client_info *p_client)
   CURLcode res;
   XML_Parser xml = XML_ParserCreate(NULL);
   struct web_buffer web;
+  int rv = NOK;
 
   memset(&web, 0, sizeof(web));
 
@@ -681,18 +659,24 @@ static int get_client_info(struct client_info *p_client)
   curl_easy_cleanup(curl);
   if (res != CURLE_OK) {
     // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    return NOK;
+    goto cleanup;
   }
   XML_SetUserData(xml, p_client);
   XML_SetElementHandler(xml, start_element, end_element);
   if (XML_Parse(xml, web.data, web.size , 1) == XML_STATUS_ERROR) {
 
     // fprintf(stderr, "Parse client failed\n");
-    exit(-1);
+    // exit(-1);
+    goto cleanup;
   }
-  free(web.data);
 
-  return OK;
+  rv = OK;
+
+cleanup:
+  if(web.data) free(web.data);
+  XML_ParserFree(xml);
+
+  return rv;
 }
 
 static int get_closest_server()
@@ -702,6 +686,7 @@ static int get_closest_server()
   XML_Parser xml = XML_ParserCreate(NULL);
   struct web_buffer web;
   struct server_info server;
+  int rv = NOK;
 
   memset(&web, 0, sizeof(web));
 
@@ -717,7 +702,7 @@ static int get_closest_server()
   curl_easy_cleanup(curl);
   if (res != CURLE_OK) {
     // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    return NOK;
+    goto cleanup;
   }
   XML_SetUserData(xml, &server);
   depth = 0;
@@ -725,10 +710,17 @@ static int get_closest_server()
   if (XML_Parse(xml, web.data, web.size , 1) == XML_STATUS_ERROR) {
 
     // fprintf(stderr, "Parse servers list failed\n");
-    exit(-1);
+    // exit(-1);
+    goto cleanup;
   }
 
-  return OK;
+  rv = OK;
+
+cleanup:
+  if(web.data) free(web.data);
+  XML_ParserFree(xml);
+
+  return rv;
 }
 
 static int get_best_server(int *p_index)
