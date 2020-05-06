@@ -15,7 +15,7 @@ const get_configuration_data = ($config_table, $button_caller) => {
 
 const resetConfig = () => {
     var params = {};
-    params.csrf = reset_csrf;
+    params.csrf = pageCsrf;
     params.action = "reset_config";
 
     var form = paramsToForm('<form method="post"></form>', params);
@@ -50,7 +50,7 @@ $(document).ready(function() {
                 return flat.join(', ');
             }
         }
-        
+
         const name_column = {
             data: 'name',
             defaultContent: '{Config Name}',
@@ -72,7 +72,7 @@ $(document).ready(function() {
                 if(!default_config_only)
                     rv += `
                         <a href='#'
-                            title='${i18n.clone}' 
+                            title='${i18n.clone}'
                             class="badge badge-info"
                             data-toggle="modal"
                             data-target="#clone-modal">
@@ -89,7 +89,7 @@ $(document).ready(function() {
                                 ${i18n.apply_to}
                          </a>
                          <a href='#'
-                            title='${i18n.rename}' 
+                            title='${i18n.rename}'
                             class="badge badge-info"
                             data-toggle="modal"
                             data-target="#rename-modal">
@@ -184,8 +184,8 @@ $(document).ready(function() {
                 action: 'clone',
                 confset_id: config_id,
                 script_subdir: subdir,
-                csrf: clone_csrf,
-                confset_name: clonation_name    
+                csrf: pageCsrf,
+                confset_name: clonation_name
             })
             .then((data, result, xhr) => {
 
@@ -197,7 +197,6 @@ $(document).ready(function() {
                 // if the operation was not successful then show an error
                 if (!data.success) {
                     $("#clone-error").text(data.error).show();
-                    clone_csrf = data.csrf;
                     return;
                 }
                 // hide errors and clean modal
@@ -206,17 +205,12 @@ $(document).ready(function() {
                 $config_table.ajax.reload();
                 // hide modal
                 $("#clone-modal").modal('hide');
-                location.reload();
+
 
             })
             .fail(({status, statusText}) => {
 
                 check_status_code(status, statusText, $("#clone-error"));
-
-                if (status == 200) {
-                    $("#clone-error").text(`${i18n.expired_csrf}`).show();
-                }
-
                 // re-enable button
                 $button.removeAttr("disabled");
             })
@@ -259,14 +253,14 @@ $(document).ready(function() {
             let applied_value = null;
 
             if (subdir == "flow" || subdir == "interface") {
-                applied_value = $("#applied-interfaces").val().join(','); 
+                applied_value = $("#applied-interfaces").val().join(',');
             }
             else if (subdir == "network"){
                 applied_value = $("#applied-networks").val().join(',');
             }
             else {
                 applied_value = $("#applied-input").val().trim();
-            } 
+            }
 
             $button.attr("disabled", "");
 
@@ -275,7 +269,7 @@ $(document).ready(function() {
                 confset_id: config_id,
                 confset_targets: applied_value,
                 script_subdir: subdir,
-                csrf: apply_csrf
+                csrf: pageCsrf
             })
             .done((data, status, xhr) => {
 
@@ -285,7 +279,6 @@ $(document).ready(function() {
                 $button.removeAttr("disabled");
 
                 if (!data.success) {
-                    apply_csrf = data.csrf;
                     $("#apply-error").text(data.error).show();
                     return;
                 }
@@ -296,16 +289,12 @@ $(document).ready(function() {
                 $config_table.ajax.reload();
                 // hide modal
                 $("#applied-modal").modal('hide');
-                location.reload();
+
 
             })
             .fail(({status, statusText}) => {
 
                 check_status_code(status, statusText, $("#apply-error"));
-
-                if (status == 200) {
-                    $("#apply-error").text(`${i18n.expired_csrf}`).show();
-                }
 
                 // re-enable button
                 $button.removeAttr("disabled");
@@ -315,7 +304,7 @@ $(document).ready(function() {
         });
 
         $("#applied-modal").on("submit", "form", function (e) {
-            
+
             e.preventDefault();
             $("#btn-confirm-apply").trigger("click");
         });
@@ -360,7 +349,7 @@ $(document).ready(function() {
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'rename',
                 confset_id: config_id,
-                csrf: rename_csrf,
+                csrf: pageCsrf,
                 confset_name: input_value
             })
             .done((data, status, xhr) => {
@@ -372,7 +361,6 @@ $(document).ready(function() {
 
                 if (!data.success) {
                     $("#rename-error").text(data.error).show();
-                    rename_csrf = data.csrf;
                     return;
                 }
 
@@ -382,24 +370,20 @@ $(document).ready(function() {
                 $config_table.ajax.reload();
                 // hide modal
                 $("#rename-modal").modal('hide');
-                location.reload();
+
 
             })
             .fail(({status, statusText}, st, xhr) => {
 
                 check_status_code(status, statusText, $("#rename-error"));
 
-                if (status == 200) {
-                    $("#rename-error").text(`${i18n.expired_csrf}`).show();
-                }
-
                 // re-enable button
                 $button.removeAttr("disabled");
             })
-            
+
         })
 
-        $("#rename-modal").on("submit", "form", function (e) {                
+        $("#rename-modal").on("submit", "form", function (e) {
             e.preventDefault();
             $("#btn-confirm-rename").trigger("click");
         });
@@ -412,7 +396,7 @@ $(document).ready(function() {
         const {config_id, config_name} = get_configuration_data($config_table, $(this));
 
         $("#delete-name").html(`<b>${config_name}</b>`)
-        $("#delete-error").hide(); 
+        $("#delete-error").hide();
 
         $("#delete-modal form").off('submit');
         $("#btn-confirm-delete").off("click").click(function(e) {
@@ -423,11 +407,11 @@ $(document).ready(function() {
 
             $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
                 action: 'delete',
-                csrf: delete_csrf,
+                csrf: pageCsrf,
                 confset_id: config_id,
             })
             .done((data, status, xhr) => {
-                
+
                 // check if the status code is successfull
                 if (check_status_code(xhr.status, xhr.statusText, $("#delete-error"))) return;
 
@@ -438,30 +422,27 @@ $(document).ready(function() {
                     return;
                 }
 
-                $("#delete-error").hide(); 
+                $("#delete-error").hide();
                 // reload table
                 $config_table.ajax.reload();
                 // hide modal
                 $("#delete-modal").modal('hide');
 
-                location.reload();
+
 
             })
             .fail(({status, statusText}) => {
 
                 check_status_code(status, statusText, $("#delete-error"));
 
-                if (status == 200) {
-                    $("#delete-error").text(`${i18n.expired_csrf}`).show();
-                }
                 // re-enable button
                 $button.removeAttr("disabled");
             })
-            
+
         })
 
         $("#delete-modal").on("submit", "form", function (e) {
-            
+
             e.preventDefault();
             $("#btn-confirm-delete").trigger("click");
         });
@@ -472,11 +453,9 @@ $(document).ready(function() {
     importModalHelper({
         load_config_xhr: (json_conf) => {
           return $.post(`${http_prefix}/lua/rest/set/scripts/config.lua`, {
-            csrf: import_csrf,
+            csrf: pageCsrf,
             JSON: json_conf,
           });
-        }, reset_csrf: (new_csrf) => {
-            import_csrf = new_csrf;
         }
     });
 });

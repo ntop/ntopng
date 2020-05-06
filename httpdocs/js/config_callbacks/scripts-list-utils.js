@@ -322,7 +322,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
    $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
       script_subdir: script_subdir,
       script_key: script_key,
-      csrf: csrf_edit_config,
+      csrf: pageCsrf,
       JSON: JSON.stringify(template_data),
       confset_id: confset_id
    })
@@ -333,8 +333,6 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
          if (!d.success) {
 
             $error_label.text(d.error).show();
-            // update token
-            csrf_edit_config = d.csrf;
             // re enable button
             $apply_btn.removeAttr('disabled');
          }
@@ -1352,7 +1350,7 @@ const create_enabled_button = (row_data) => {
       $.post(`${http_prefix}/lua/toggle_user_script.lua`, {
          script_subdir: script_subdir,
          script_key: row_data.key,
-         csrf: csrf_toggle_buttons,
+         csrf: pageCsrf,
          action: (is_enabled) ? 'disable' : 'enable',
          confset_id: confset_id
       })
@@ -1360,8 +1358,6 @@ const create_enabled_button = (row_data) => {
 
          if (!d.success) {
             $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
-            // update csrf
-            csrf_toggle_buttons = d.csrf;
          }
 
          if (d.success) reloadPageAfterPOST();

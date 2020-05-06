@@ -60,8 +60,8 @@
   </div>
 </div>
 
-{# include modals for edit_configset.lua #} 
-{* script_list.template_utils.gen("script_list_components/edit_config_modal.html") *} 
+{# include modals for edit_configset.lua #}
+{* script_list.template_utils.gen("pages/modals/edit_configset/edit_config_modal.html") *}
 {# add css, js files #}
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">
@@ -70,7 +70,7 @@ const confset_id = {{ script_list.confset_id }};
 const script_subdir = "{{ script_list.script_subdir }}";
 
 const scripts_categories = [
-  { 
+  {
     label: "{{ i18n('scripts_list.all') }}",
     disableFilter: true
   },
@@ -82,8 +82,7 @@ const scripts_categories = [
   {% end %}
 ];
 
-let csrf_toggle_buttons = "{{ ntop.getRandomCSRFValue() }}";
-let csrf_edit_config = "{{ ntop.getRandomCSRFValue() }}";
+let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
 let script_key_filter = "{{ script_list.script_filter }}";
 let page_url = "{* script_list.page_url *}";
 let apps_and_categories = {* script_list.apps_and_categories *};

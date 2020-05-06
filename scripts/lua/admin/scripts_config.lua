@@ -54,8 +54,8 @@ if default_config_only == nil then
     default_config_only = false
 end
 
--- print config_list.html template
-print(template.gen("config_list.html", {
+-- print scripts_config template
+print(template.gen("pages/scripts_config.html", {
     config_list = {
         user_scripts = user_scripts,
         subdir = subdir,

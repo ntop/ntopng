@@ -60,9 +60,9 @@
 
 {# include modals for config_list.lua #}
 
-{* config_list.template_utils.gen("config_list_components/clone_modal.html") *}
-{* config_list.template_utils.gen("config_list_components/rename_modal.html") *}
-{* config_list.template_utils.gen("config_list_components/delete_modal.html") *}
+{* config_list.template_utils.gen("pages/modals/scripts_config/clone_modal.html") *}
+{* config_list.template_utils.gen("pages/modals/scripts_config/rename_modal.html") *}
+{* config_list.template_utils.gen("pages/modals/scripts_config/delete_modal.html") *}
 {* config_list.template_utils.gen("modal_confirm_dialog.html", {
     dialog={
         id      = "reset-modal",
@@ -72,10 +72,10 @@
         confirm = i18n("reset")
      }
 }) *}
-{* config_list.template_utils.gen("config_list_components/apply_modal.html", {
+{* config_list.template_utils.gen("pages/modals/scripts_config/apply_modal.html", {
     subdir = config_list.subdir
 }) *}
-{* config_list.template_utils.gen("config_list_components/import_modal.html") *}
+{* config_list.template_utils.gen("pages/modals/scripts_config/import_modal.html") *}
 
 {# include css and javascript code for the page #}
 
@@ -83,12 +83,7 @@
 <script type='text/javascript'>
 
 // hold a csrf token for apply targets
-let import_csrf = '{{ ntop.getRandomCSRFValue() }}';
-let apply_csrf = '{{ ntop.getRandomCSRFValue() }}';
-let clone_csrf = '{{ ntop.getRandomCSRFValue() }}';
-let rename_csrf = '{{ ntop.getRandomCSRFValue() }}';
-let reset_csrf = '{{ ntop.getRandomCSRFValue() }}';
-const delete_csrf = '{{ ntop.getRandomCSRFValue() }}';
+const pageCsrf = '{{ ntop.getRandomCSRFValue() }}';
 const default_config_only = {{ config_list.default_config_only_subdir }};
 const subdir = '{{ config_list.subdir }}';
 

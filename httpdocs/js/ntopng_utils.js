@@ -718,7 +718,6 @@ function check_status_code(status_code, status_text, $error_label) {
 // To be used in conjunction with httpdocs/templates/config_list_components/import_modal.html
 function importModalHelper(params) {
   if (!params.load_config_xhr) { alert("Missing 'load_config_xhr' param"); return; }
-  if (!params.reset_csrf) { alert("Missing 'reset_csrf' param"); return; }
 
   $('#import-modal-btn').on("click", function (e) {
     // hide previous errors
