@@ -7,8 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local plugins_utils = require("plugins_utils")
 local json = require "dkjson"
-local notification_endpoint_consts = plugins_utils.loadModule("notification_endpoints", "notification_endpoint_consts")
-local notification_endpoint_configs = plugins_utils.loadModule("notification_endpoints", "notification_endpoint_configs")
+local notification_endpoints = require("notification_endpoints")
 
 -- #################################################################
 
@@ -17,7 +16,7 @@ local ENDPOINT_RECIPIENTS_KEY = "ntopng.prefs.notification_endpoint.endpoint_con
 
 -- #################################################################
 
-local notification_endpoint_recipients = {}
+local notification_recipients = {}
 
 -- #################################################################
 
@@ -93,7 +92,7 @@ local function check_endpoint_recipient_params(endpoint_key, recipient_params)
    -- Create a safe_params table with only expected params
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
-   for _, param in ipairs(notification_endpoint_consts.endpoint_types[endpoint_key].recipient_params) do
+   for _, param in ipairs(notification_endpoints.get_types()[endpoint_key].recipient_params) do
       -- param is a lua table so we access its elements
       local param_name = param["param_name"]
       local optional = param["optional"]
@@ -110,8 +109,8 @@ end
 
 -- #################################################################
 
-function notification_endpoint_recipients.add_endpoint_recipient(endpoint_conf_name, endpoint_recipient_name, recipient_params)
-   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
+function notification_recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, recipient_params)
+   local ec = notification_endpoints.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
       return ec
@@ -148,7 +147,7 @@ end
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_endpoint_recipients.edit_endpoint_recipient_params(endpoint_recipient_name, recipient_params)   
+function notification_recipients.edit_recipient(endpoint_recipient_name, recipient_params)   
    local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
    if not ok then
       return status
@@ -160,7 +159,7 @@ function notification_endpoint_recipients.edit_endpoint_recipient_params(endpoin
       return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
    end
 
-   local ec = notification_endpoint_configs.get_endpoint_config(rc["endpoint_conf_name"])
+   local ec = notification_endpoints.get_endpoint_config(rc["endpoint_conf_name"])
 
    if ec["status"] ~= "OK" then
       return ec
@@ -183,7 +182,7 @@ end
 
 -- #################################################################
 
-function notification_endpoint_recipients.get_endpoint_recipient(endpoint_recipient_name)
+function notification_recipients.get_recipient(endpoint_recipient_name)
    local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
    if not ok then
       return status
@@ -204,8 +203,8 @@ end
 
 -- #################################################################
 
-function notification_endpoint_recipients.get_endpoint_recipients(endpoint_key, endpoint_conf_name, endpoint_recipient_name)
-   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
+function notification_recipients.get_recipients(endpoint_key, endpoint_conf_name, endpoint_recipient_name)
+   local ec = notification_endpoints.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
       return ec
@@ -223,7 +222,7 @@ end
 
 -- #################################################################
 
-function notification_endpoint_recipients.delete_endpoint_recipient(endpoint_recipient_name)
+function notification_recipients.delete_recipient(endpoint_recipient_name)
    local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
    if not ok then
       return status
@@ -248,8 +247,8 @@ end
 
 -- #################################################################
 
-function notification_endpoint_recipients.delete_endpoint_recipients(endpoint_conf_name)
-   local ec = notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
+function notification_recipients.delete_recipients(endpoint_conf_name)
+   local ec = notification_endpoints.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
       return ec
@@ -259,7 +258,7 @@ function notification_endpoint_recipients.delete_endpoint_recipients(endpoint_co
    local all_recipients = ntop.getHashAllCache(k) or {}
 
    for endpoint_recipient_name, endpoint_recipient_config in pairs(all_recipients) do
-      notification_endpoint_recipients.delete_endpoint_recipient(endpoint_recipient_name)
+      notification_recipients.delete_recipient(endpoint_recipient_name)
    end
 
    ntop.delCache(k)
@@ -269,4 +268,4 @@ end
 
 -- #################################################################
 
-return notification_endpoint_recipients
+return notification_recipients

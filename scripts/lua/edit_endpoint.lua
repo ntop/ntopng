@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require("dkjson")
 local plugins_utils = require "plugins_utils"
-local notification_endpoint_configs = plugins_utils.loadModule("notification_endpoints", "notification_endpoint_configs")
+local notification_endpoints = require("notification_endpoints")
 
 local action = _POST["action"]
 
@@ -32,11 +32,11 @@ local response = {
 }
 
 if (action == "add") then
-    response.result = notification_endpoint_configs.add_endpoint_config(data.type, data.name, data.conf_params)
+    response.result = notification_endpoints.add_config(data.type, data.name, data.conf_params)
 elseif (action == "edit") then
-    response.result = notification_endpoint_configs.edit_endpoint_config_params(data.name, data.conf_params)
+    response.result = notification_endpoints.edit_config(data.name, data.conf_params)
 elseif (action == "remove") then
-    response.result = notification_endpoint_configs.delete_endpoint_config(data.name)
+    response.result = notification_endpoints.delete_config(data.name)
 else
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid 'action' parameter.")
     response.success = false
