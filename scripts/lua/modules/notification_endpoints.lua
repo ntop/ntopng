@@ -6,7 +6,6 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local plugins_utils = require("plugins_utils")
-local notification_endpoint_consts = plugins_utils.loadModule("notification_endpoints", "notification_endpoint_consts")
 local json = require "dkjson"
 
 -- #################################################################
@@ -33,7 +32,24 @@ local ENDPOINT_CONFIGS_KEY = "ntopng.prefs.notification_endpoint.endpoint_key_%s
 
 -- #################################################################
 
-local notification_endpoint_configs = {}
+local notification_endpoints = {}
+
+-- #################################################################
+
+-- TODO load modules dynamically
+local endpoint_types = nil
+
+function notification_endpoints.get_types()
+   if(endpoint_types ~= nil) then
+      return(endpoint_types)
+   end
+
+   -- TODO laod dinamically
+   endpoint_types = {}
+   endpoint_types["email"] = dofile(dirs.installdir .. "/scripts/plugins/notification_endpoints/endpoints/email.lua")
+
+   return(endpoint_types)
+end
 
 -- #################################################################
 
@@ -91,7 +107,7 @@ end
 -- @param endpoint_key A string with the notification endpoint key
 -- @return true if the sanity checks are ok, false otherwise
 local function check_endpoint_key(endpoint_key)
-   if not notification_endpoint_consts.endpoint_types[endpoint_key] then
+   if not notification_endpoints.get_types()[endpoint_key] then
       return false, {status = "failed", error = {type = "endpoint_not_existing"}}
    end
 
@@ -125,7 +141,7 @@ local function check_endpoint_config_params(endpoint_key, conf_params)
    -- Create a safe_params table with only expected params
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
-   for _, param in ipairs(notification_endpoint_consts.endpoint_types[endpoint_key].conf_params) do
+   for _, param in ipairs(notification_endpoints.get_types()[endpoint_key].conf_params) do
       -- param is a lua table so we access its elements
       local param_name = param["param_name"]
       local optional = param["optional"]
@@ -147,7 +163,7 @@ end
 -- @param endpoint_conf_name A string with the configuration name
 -- @param conf_params A table with endpoint configuration params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_endpoint_configs.add_endpoint_config(endpoint_key, endpoint_conf_name, conf_params)
+function notification_endpoints.add_config(endpoint_key, endpoint_conf_name, conf_params)
    local ok, status = check_endpoint_key(endpoint_key)
    if not ok then
       return status
@@ -184,7 +200,7 @@ end
 -- @param endpoint_conf_name A string with the configuration name
 -- @param conf_params A table with endpoint configuration params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_endpoint_configs.edit_endpoint_config_params(endpoint_conf_name, conf_params)
+function notification_endpoints.edit_config(endpoint_conf_name, conf_params)
    local ok, status = check_endpoint_conf_name(endpoint_conf_name)
    if not ok then
       return status
@@ -216,23 +232,24 @@ end
 -- @brief Delete the configuration parameters of an existing endpoint configuration
 -- @param endpoint_conf_name A string with the configuration name
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_endpoint_configs.delete_endpoint_config(endpoint_conf_name)
+function notification_endpoints.delete_config(endpoint_conf_name)
    local ok, status = check_endpoint_conf_name(endpoint_conf_name)
    if not ok then
       return status
    end
 
    -- Is the config already existing?
-   if not is_endpoint_config_existing(endpoint_conf_name) then
+   local ec = read_endpoint_config_raw(endpoint_conf_name)
+   if not ec then
       return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
    end
 
    -- Delete the all the recipients associated to this config recipients
-   local notification_endpoint_recipients = plugins_utils.loadModule("notification_endpoints", "notification_endpoint_recipients")
-   notification_endpoint_recipients.delete_endpoint_recipients(endpoint_conf_name)
+   local notification_recipients = require "notification_recipients"
+   notification_recipients.delete_recipients(endpoint_conf_name)
 
    -- Now delete the actual config
-   local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
+   local k = string.format(ENDPOINT_CONFIGS_KEY, ec["endpoint_key"])
    ntop.delHashCache(k, endpoint_conf_name)
    ntop.delHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
 
@@ -246,7 +263,7 @@ end
 -- @return A table with a key status which is either "OK" or "failed".
 --         When "failed", the table contains another key "error" with an indication of the issue.
 --         When "OK", the table contains "endpoint_conf_name", "endpoint_key", and "endpoint_conf" with the results
-function notification_endpoint_configs.get_endpoint_config(endpoint_conf_name)
+function notification_endpoints.get_endpoint_config(endpoint_conf_name)
    local ok, status = check_endpoint_conf_name(endpoint_conf_name)
    if not ok then
       return status
@@ -270,16 +287,16 @@ end
 
 -- @brief Retrieve all the available configurations and configuration params
 -- @return A lua array with a as many elements as the number of existing configurations.
---         Each element is the result of `notification_endpoint_configs.get_endpoint_config`
-function notification_endpoint_configs.get_endpoint_configs()
+--         Each element is the result of `notification_endpoints.get_endpoint_config`
+function notification_endpoints.get_configs()
    local res = {}
 
-   for endpoint_key, endpoint in pairs(notification_endpoint_consts.endpoint_types) do
+   for endpoint_key, endpoint in pairs(notification_endpoints.get_types()) do
       local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
       local all_configs = ntop.getHashAllCache(k) or {}
 
       for conf_name, conf_params in pairs(all_configs) do
-	 local ec = notification_endpoint_configs.get_endpoint_config(conf_name)
+	 local ec = notification_endpoints.get_endpoint_config(conf_name)
 
 	 res[#res + 1] = ec
       end
@@ -292,13 +309,13 @@ end
 
 -- @brief Clear all the existing endpoint configurations
 -- @return Always return a table {status = "OK"}
-function notification_endpoint_configs.reset_endpoint_configs()
-   for endpoint_key, endpoint in pairs(notification_endpoint_consts.endpoint_types) do
+function notification_endpoints.reset_configs()
+   for endpoint_key, endpoint in pairs(notification_endpoints.get_types()) do
       local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
       local all_configs = ntop.getHashAllCache(k) or {}
 
       for conf_name, conf_params in pairs(all_configs) do
-	 notification_endpoint_configs.delete_endpoint_config(conf_name)
+	 notification_endpoints.delete_config(conf_name)
       end
 
       ntop.delCache(k)
@@ -309,4 +326,4 @@ end
 
 -- #################################################################
 
-return notification_endpoint_configs
+return notification_endpoints

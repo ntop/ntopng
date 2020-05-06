@@ -232,7 +232,6 @@
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
 #define MAX_NUM_INTERFACE_IDS   256
 #define DUMMY_BRIDGE_INTERFACE_ID       1 /* Anything but zero */
-#define MAX_CSRF_DURATION       300 /* 5 mins */
 #define MAX_FAILED_LOGIN_ATTEMPTS       5
 #define FAILED_LOGIN_ATTEMPTS_INTERVAL  300 /* seconds */
 #define CONST_STR_FAILED_LOGIN_KEY     "ntopng.cache.failed_logins.%s"
@@ -923,6 +922,7 @@
 #define NTOP_USERNAME_MAXLEN        33 /* NOTE: do not change, is this bound to mg_md5 ? */
 #define NTOP_GROUP_MAXLEN           33
 #define NTOP_SESSION_ID_LENGTH      33
+#define NTOP_CSRF_TOKEN_LENGTH      33
 #define NTOP_UNKNOWN_GROUP "unknown"
 #define PREF_NTOP_LDAP_AUTH           NTOPNG_PREFS_PREFIX".ldap.auth_enabled"
 #define PREF_LDAP_ACCOUNT_TYPE        NTOPNG_PREFS_PREFIX".ldap.account_type"

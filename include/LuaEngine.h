@@ -90,7 +90,8 @@ class LuaEngine {
    */
   int handle_script_request(struct mg_connection *conn,
 			    const struct mg_request_info *request_info, 
-			    char *script_path, bool *attack_attempt, const char *user, const char *group, bool localuser);
+			    char *script_path, bool *attack_attempt, const char *user, const char *group,
+          const char *session_csrf, bool localuser);
 
   bool setParamsTable(lua_State* vm,
 		      const struct mg_request_info *request_info,

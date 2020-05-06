@@ -630,7 +630,9 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 				     const struct mg_request_info *request_info,
 				     char *script_path, bool *attack_attempt,
 				     const char *user,
-				     const char *group, bool localuser) {
+				     const char *group,
+				     const char *session_csrf,
+				     bool localuser) {
   NetworkInterface *iface = NULL;
   char key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool is_interface_allowed;
@@ -639,7 +641,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   const char * content_type;
   u_int8_t valid_csrf = 1;
   char *post_data = NULL;
-  char rsp[32];
   char csrf[64] = { '\0' };
   char switch_interface[2] = { '\0' };
   char addr_buf[64];
@@ -685,12 +686,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       if(strstr(content_type, "application/json"))
 	valid_csrf = 1;
       else {
-	if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1) || (strcmp(rsp, user) != 0))
+	if(strcmp(session_csrf, csrf))
 	  valid_csrf = 0;
-	else {
-	  /* Invalidate csrf */
-	  ntop->getRedis()->del(csrf);
-	}
       }
     }
 
@@ -844,6 +841,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   getLuaVMUservalue(L, group) = (char*)(group ? (group) : "");
   getLuaVMUservalue(L, localuser) = localuser;
+  getLuaVMUservalue(L, csrf) = (char*)session_csrf;
 
   iface = ntop->getNetworkInterface(ifname); /* Can't be null */
   /* 'select' ther interface that has already been set into the _SESSION */

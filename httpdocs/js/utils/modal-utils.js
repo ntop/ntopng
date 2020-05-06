@@ -26,10 +26,6 @@
             this.options.onModalInit(this.fillFormModal());
         }
 
-        updateCsrf(newCsrf) {
-            this.csrf = newCsrf;
-        }
-
         delegateSubmit() {
 
             this.bindFormValidation();
@@ -89,7 +85,7 @@
             const submitButton = $(this.element).find(`[type='submit']`);
             let dataToSend = this.options.beforeSumbit();
 
-            if (this.options.method == 'post') dataToSend.csrf = this.csrf;
+            dataToSend.csrf = this.csrf;
             dataToSend = $.extend(dataToSend, this.options.submitOptions);
 
             /* clean previous state and disable button */
@@ -100,8 +96,7 @@
 
             method(this.options.endpoint, dataToSend)
                 .done(function (response, textStatus) {
-                    if (response.csrf) self.updateCsrf(response.csrf);
-                    self.cleanForm();
+                    if (self.options.resetAfterSubmit) self.cleanForm();
                     self.options.onSubmitSuccess(response, dataToSend);
                     /* unbind the old closure on submit event and bind a new one */
                     $(self.element).off('submit', self.submitHandler);
@@ -132,6 +127,7 @@
         const options = $.extend({
             csrf:               '',
             endpoint:           '',
+            resetAfterSubmit:   true,
             method:             'get',
             /**
              * Fetch data asynchronusly from the server or
