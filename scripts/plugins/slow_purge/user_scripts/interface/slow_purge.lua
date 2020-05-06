@@ -46,7 +46,7 @@ end
 
 local script = {
   -- Script category
-  category = user_scripts.script_categories.Internals,
+  category = user_scripts.script_categories.internals,
 
   default_enabled = true,
   default_value = {
