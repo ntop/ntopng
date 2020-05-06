@@ -12,7 +12,7 @@ require ("lua_utils")
 
 local dkjson = require("dkjson")
 local datasources_utils = require("datasources_utils")
-local widget_utils = require("widget_utils")
+local widgets_utils = require("widgets_utils")
 
 local function reportError(msg)
     print(dkjson.encode({ success = false, message = msg }))
@@ -35,7 +35,7 @@ if (widget_data.widget_key == nil) then
    return
 end
 
-local widget = widget_utils.get_widget(widget_data.widget_key)
+local widget = widgets_utils.get_widget(widget_data.widget_key)
 if (widget == nil) then
     reportError("The requested widget was not found")
     return
@@ -43,4 +43,4 @@ end
 
 widget.type = widget_data.widget_type or widget.type
 -- Generate the widget response
-print(widget_utils.generate_response(widget, widget_data))
+print(widgets_utils.generate_response(widget, widget_data))

@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-local widgets_utils = require("widget_utils")
+local widgets_utils = require("widgets_utils")
 local datasources_utils = require("datasources_utils")
 local ts_utils = require("ts_utils")
 local info = ntop.getInfo()
@@ -15,7 +15,7 @@ local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local template = require "template_utils"
 local json = require "dkjson"
-local widget_utils = require("widget_utils")
+local widgets_utils = require("widgets_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -26,7 +26,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title("Widgets Test")
 
 -- List all defined widgets
-local all_widgets = widget_utils.get_all_widgets()
+local all_widgets = widgets_utils.get_all_widgets()
 
 -- Extract the widget keys
 local widgets = {}
