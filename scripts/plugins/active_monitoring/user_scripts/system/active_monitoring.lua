@@ -57,7 +57,8 @@ local function run_am_check(params, all_hosts, granularity)
 
   -- Get the results
   for _, info in pairs(hosts_by_measurement) do
-    for k, v in pairs(info.measurement.collect_results(granularity) or {}) do
+     local collected = info.measurement.collect_results(granularity)
+     for k, v in pairs(collected or {}) do
       v.measurement = info.measurement
 
       if(v.value ~= nil) then
@@ -90,7 +91,8 @@ local function run_am_check(params, all_hosts, granularity)
          value = value * info.measurement.chart_scaling_value
        end
 
-       ts_utils.append(am_schema, {ifid = getSystemInterfaceId(), host = host.host, metric = host.measurement, value = value}, when)
+       local ts_data = {ifid = getSystemInterfaceId(), host = host.host, metric = host.measurement, value = value}
+       ts_utils.append(am_schema, ts_data, when)
     end
 
     am_utils.setLastAmUpdate(key, when, host_value, resolved_host, jitter, mean)

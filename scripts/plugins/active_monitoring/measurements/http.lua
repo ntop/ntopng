@@ -23,8 +23,8 @@ local result = {}
 -- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
 -- see (am_utils.key2host for the details on such format).
-local function check_http(hosts, granularity)
-  result = {}
+local function check(measurement, hosts, granularity)
+  result[measurement] = {}
 
   for key, host in pairs(hosts) do
     local domain_name = host.host
@@ -43,7 +43,7 @@ local function check_http(hosts, granularity)
       local lookup_time = (rv.HTTP_STATS.NAMELOOKUP_TIME or 0) * 1000
       local connect_time = (rv.HTTP_STATS.APPCONNECT_TIME or 0) * 1000
 
-      result[key] = {
+      result[measurement][key] = {
 	resolved_addr = rv.RESOLVED_IP,
 	value = total_time,
       }
@@ -73,16 +73,46 @@ end
 
 -- #################################################################
 
+-- @brief HTTPS check
+local function check_http(hosts, granularity)
+   check("http", hosts, granularity)
+end
+
+-- #################################################################
+
+-- @brief HTTP check
+local function check_https(hosts, granularity)
+   check("https", hosts, granularity)
+end
+
+-- #################################################################
+
 -- The function responsible for collecting the results.
 -- It must return a table containing a list of hosts along with their retrieved
 -- measurement. The keys of the table are the host key. The values have the following format:
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
 --	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
-local function collect_http(granularity)
+local function collect(measurement, granularity)
   -- TODO: curl_multi_perform could be used to perform the requests
   -- asynchronously, see https://curl.haxx.se/libcurl/c/curl_multi_perform.html
-  return(result)
+  return result[measurement]
+end
+
+-- #################################################################
+
+local function collect_http(granularity)
+   -- TODO: curl_multi_perform could be used to perform the requests
+   -- asynchronously, see https://curl.haxx.se/libcurl/c/curl_multi_perform.html
+   return collect("http", granularity)
+end
+
+-- #################################################################
+
+local function collect_https(granularity)
+   -- TODO: curl_multi_perform could be used to perform the requests
+   -- asynchronously, see https://curl.haxx.se/libcurl/c/curl_multi_perform.html
+   return collect("https", granularity)
 end
 
 -- #################################################################
@@ -149,8 +179,8 @@ return {
     }, {
       key = "https",
       i18n_label = "https",
-      check = check_http,
-      collect_results = collect_http,
+      check = check_https,
+      collect_results = collect_https,
       granularities = {"min", "5mins", "hour"},
       i18n_unit = "active_monitoring_stats.msec",
       i18n_jitter_unit = nil,

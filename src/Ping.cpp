@@ -273,12 +273,13 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 
     m.lock(__FILE__, __LINE__);
 
-    if(ip)
+    if(ip) {
       h = Utils::intoaV4(ntohl(ip->s_addr), buf, sizeof(buf));
-    else
+      results_v4[std::string(h)] = rtt;
+    } else {
       h = Utils::intoaV6(*((struct ndpi_in6_addr*)ip6), 128, buf, sizeof(buf));
-
-    results[std::string(h)] = rtt;
+      results_v6[std::string(h)] = rtt;
+    }
 
 #ifdef PING_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s: %.3f msec", h, rtt);
@@ -290,32 +291,34 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 
 /* ****************************************************** */
 
-void Ping::collectResponses(lua_State* vm) {
+void Ping::collectResponses(lua_State* vm, bool v6) {
+  std::map<std::string /* IP */, float /* RTT */> *results = v6 ? &results_v6 : &results_v4;
   lua_newtable(vm);
 
   m.lock(__FILE__, __LINE__);
 
-  for(std::map<std::string,float>::iterator it=results.begin(); it!=results.end(); ++it) {
+  for(std::map<std::string,float>::const_iterator it=results->begin(); it!=results->end(); ++it) {
     if(it->first.c_str()[0])
       lua_push_float_table_entry(vm, it->first.c_str(), it->second);
   }
 
-  results.clear();
+  results->clear();
 
   m.unlock(__FILE__, __LINE__);
 }
 
 /* ****************************************************** */
 
-float Ping::getRTT(std::string who) {  
-  std::map<std::string /* IP */, float /* RTT */>::iterator it;
+float Ping::getRTT(std::string who, bool v6) {  
+  std::map<std::string /* IP */, float /* RTT */>::const_iterator it;
+  std::map<std::string /* IP */, float /* RTT */> *results = v6 ? &results_v6 : &results_v4;
   float f;
   
   m.lock(__FILE__, __LINE__);
   
-  it = results.find(who);
+  it = results->find(who);
 
-  if(it != results.end())
+  if(it != results->end())
     f = it->second;
   else
     f = -1;
@@ -329,7 +332,8 @@ float Ping::getRTT(std::string who) {
 
 void Ping::cleanup() {
   m.lock(__FILE__, __LINE__);
-  results.clear();
+  results_v4.clear();
+  results_v6.clear();
   ping_id = rand(), cnt = 0;
   m.unlock(__FILE__, __LINE__);
 }

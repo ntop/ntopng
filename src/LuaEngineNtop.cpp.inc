@@ -1568,10 +1568,14 @@ static int ntop_collect_ping_results(lua_State* vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 #else
+  bool v6;
   bool continuous = false;
-  
-  if(lua_type(vm, 1) == LUA_TBOOLEAN)
-    continuous = lua_toboolean(vm, 1) ? true : false;  
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  v6 = lua_toboolean(vm, 1) ? true : false;
+
+  if(lua_type(vm, 2) == LUA_TBOOLEAN)
+    continuous = lua_toboolean(vm, 2) ? true : false;  
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1580,11 +1584,11 @@ static int ntop_collect_ping_results(lua_State* vm) {
       lua_pushnil(vm);
       return(CONST_LUA_OK);
     } else {
-      getLuaVMUservalue(vm, ping)->collectResponses(vm);  
+      getLuaVMUservalue(vm, ping)->collectResponses(vm, v6);  
       return(CONST_LUA_OK);
     }
   } else {
-    ntop->getContinuousPing()->collectResponses(vm);  
+    ntop->getContinuousPing()->collectResponses(vm, v6);  
     return(CONST_LUA_OK);
   }
   

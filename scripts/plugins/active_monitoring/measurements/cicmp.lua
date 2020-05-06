@@ -24,12 +24,12 @@ local resolved_hosts = {}
 -- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
 -- see (am_utils.key2host for the details on such format).
-local function check_icmp_continuous(hosts, granularity)
+local function check_continuous(measurement, hosts, granularity)
   local plugins_utils = require("plugins_utils")
   local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
-  am_hosts = {}
-  resolved_hosts = {}
+  am_hosts[measurement] = {}
+  resolved_hosts[measurement] = {}
 
   for key, host in pairs(hosts) do
     local domain_name = host.host
@@ -45,18 +45,32 @@ local function check_icmp_continuous(hosts, granularity)
     end
 
     -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
-    ntop.pingHost(ip_address, is_v6, true --[[ continuous ICMP]])
+    ntop.pingHost(ip_address, measurement == "cicmp6", true --[[ continuous ICMP]])
 
-    am_hosts[ip_address] = {
+    am_hosts[measurement][ip_address] = {
       key = key,
       info = host,
     }
-    resolved_hosts[key] = {
-      resolved_addr = ip_address,
+    resolved_hosts[measurement][key] = {
+       resolved_addr = ip_address,
     }
 
     ::continue::
   end
+end
+
+-- #################################################################
+
+-- @brief Async continuous ping (ipv4 icmp)
+local function check_icmp_continuous(hosts, granularity)
+   check_continuous("cicmp", hosts, granularity)
+end
+
+-- #################################################################
+
+-- @brief Async continuous ping (ipv6 icmp)
+local function check_icmp6_continuous(hosts, granularity)
+   check_continuous("cicmp6", hosts, granularity)
 end
 
 -- #################################################################
@@ -67,44 +81,44 @@ end
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
 --	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
-local function collect_icmp_continuous(granularity)
+local function collect_continuous(measurement, granularity)
   -- Collect possible ICMP results
-  local res = ntop.collectPingResults(true --[[ continuous ICMP]])
+  local res = ntop.collectPingResults(measurement == "cicmp6", true --[[ continuous ICMP]])
 
-  for host, measurement in pairs(res or {}) do
-    local h = am_hosts[host]
+  for host, value in pairs(res or {}) do
+    local h = am_hosts[measurement][host]
 
     if(do_trace) then
       print("[cicmp] Reading ICMP response for host ".. host .."\n")
     end
 
-    if h and resolved_hosts[h.key] then
-      local v = resolved_hosts[h.key]
+    if h and resolved_hosts[measurement][h.key] then
+      local v = resolved_hosts[measurement][h.key]
 
-      -- Report the host as reachable with its measurement value
-      v.value = measurement.response_rate
+      -- Report the host as reachable with its value value
+      v.value = value.response_rate
 
       -- Report jitter and mean
-      if(measurement.jitter ~= nil) and (measurement.mean ~= nil) then
+      if(value.jitter ~= nil) and (value.mean ~= nil) then
         ts_utils.append("am_host:jitter_stats_" .. granularity, {
           ifid = getSystemInterfaceId(),
           host = h.info.host,
           metric = h.info.measurement,
-          latency = measurement.mean,
-          jitter = measurement.jitter,
+          latency = value.mean,
+          jitter = value.jitter,
         })
 
-        v.mean = measurement.mean
-        v.jitter = measurement.jitter
+        v.mean = value.mean
+        v.jitter = value.jitter
       end
 
-      if((measurement.min_rtt ~= nil) and (measurement.max_rtt ~= nil)) then
+      if((value.min_rtt ~= nil) and (value.max_rtt ~= nil)) then
         ts_utils.append("am_host:cicmp_stats_" .. granularity, {
           ifid = getSystemInterfaceId(),
           host = h.info.host,
           metric = h.info.measurement,
-          min_rtt = measurement.min_rtt,
-          max_rtt = measurement.max_rtt,
+          min_rtt = value.min_rtt,
+          max_rtt = value.max_rtt,
         })
       end
     end
@@ -112,7 +126,21 @@ local function collect_icmp_continuous(granularity)
 
   -- NOTE: unreachable hosts can still be reported in order to properly
   -- display their resolved address
-  return resolved_hosts
+  return resolved_hosts[measurement]
+end
+
+-- #################################################################
+
+-- @brief Collect async ping results (ipv4 icmp)
+local function collect_icmp_continuous(granularity)
+   return collect_continuous("cicmp", granularity)
+end
+
+-- #################################################################
+
+-- @brief Collect async ping results (ipv6 icmp)
+local function collect_icmp6_continuous(granularity)
+   return collect_continuous("cicmp6", granularity)
 end
 
 -- #################################################################
@@ -197,8 +225,8 @@ return {
     }, {
       key = "cicmp6",
       i18n_label = "active_monitoring_stats.icmp_continuous_v6",
-      check = check_icmp_continuous,
-      collect_results = collect_icmp_continuous,
+      check = check_icmp6_continuous,
+      collect_results = collect_icmp6_continuous,
       granularities = {"min"},
       i18n_unit = "field_units.percentage",
       i18n_jitter_unit = "active_monitoring_stats.msec",

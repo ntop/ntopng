@@ -38,7 +38,7 @@ class ContinuousPing {
   void readPingResults();
   void cleanupInactiveHosts();
   void collectProtoResponse(lua_State* vm, std::map<std::string,ContinuousPingStats*> *w);
-  
+
  public:
   ContinuousPing();
   ~ContinuousPing();
@@ -46,7 +46,7 @@ class ContinuousPing {
   void runPingCampaign();
   void ping(char *_addr, bool use_v6);
   void pollResults();
-  void collectResponses(lua_State* vm);    
+  void collectResponses(lua_State* vm, bool v6);
 };
 
 #endif /* WIN32    */

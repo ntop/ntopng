@@ -19,15 +19,16 @@ local resolved_hosts = {}
 -- #################################################################
 
 -- The function called periodically to send the host probes.
+-- measurement is either `icmp` or `icmp6`
 -- hosts contains the list of hosts to probe, The table keys are
 -- the hosts identifiers, whereas the table values contain host information
 -- see (am_utils.key2host for the details on such format).
-local function check_icmp_oneshot(hosts, granularity)
+local function check_oneshot(measurement, hosts, granularity)
   local plugins_utils = require("plugins_utils")
   local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
-  am_hosts = {}
-  resolved_hosts = {}
+  am_hosts[measurement] = {}
+  resolved_hosts[measurement] = {}
 
   for key, host in pairs(hosts) do
     local domain_name = host.host
@@ -39,15 +40,15 @@ local function check_icmp_oneshot(hosts, granularity)
     end
 
     if do_trace then
-      print("[icmp] Pinging "..ip_address.."/"..domain_name.."\n")
+      print("["..measurement.."] Pinging "..ip_address.."/"..domain_name.."\n")
     end
 
     -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
-    ntop.pingHost(ip_address, is_v6, false --[[ one shot ICMP]])
+    ntop.pingHost(ip_address, measurement == "icmp6", false --[[ one shot ICMP]])
 
-    am_hosts[ip_address] = key
-    resolved_hosts[key] = {
-      resolved_addr = ip_address,
+    am_hosts[measurement][ip_address] = key
+    resolved_hosts[measurement][key] = {
+       resolved_addr = ip_address,
     }
 
     ::continue::
@@ -56,32 +57,62 @@ end
 
 -- #################################################################
 
+-- @brief Async ping (ipv4 icmp)
+local function check_icmp_oneshot(hosts, granularity)
+   check_oneshot("icmp", hosts, granularity)
+end
+
+-- #################################################################
+
+-- @brief Async ping (ipv6 icmp)
+local function check_icmp6_oneshot(hosts, granularity)
+   check_oneshot("icmp6", hosts, granularity)
+end
+
+-- #################################################################
+
 -- The function responsible for collecting the results.
+-- measurement is either `icmp` or `icmp6`
 -- It must return a table containing a list of hosts along with their retrieved
 -- measurement. The keys of the table are the host key. The values have the following format:
 --  table
 --	resolved_addr: (optional) the resolved IP address of the host
 --	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
-local function collect_icmp_oneshot(granularity)
+local function collect_oneshot(measurement, granularity)
   -- Collect possible ICMP results
-  local res = ntop.collectPingResults(false --[[ one shot ICMP]])
+  local res = ntop.collectPingResults(measurement == "icmp6", false --[[ one shot ICMP]])
 
-  for host, measurement in pairs(res or {}) do
-    local key = am_hosts[host]
+  for host, value in pairs(res or {}) do
+    local key = am_hosts[measurement][host]
 
     if(do_trace) then
-      print("[icmp] Reading ICMP response for host ".. host .."\n")
+       print("["..measurement.."] Reading ICMP response for host ".. host .."\n")
+       print("["..measurement.."] value: ".. value .." key: "..(key or "nil").."\n")
     end
 
-    if resolved_hosts[key] then
-      -- Report the host as reachable with its measurement value
-      resolved_hosts[key].value = tonumber(measurement)
+    if resolved_hosts[measurement][key] then
+      -- Report the host as reachable with its value
+       resolved_hosts[measurement][key].value = tonumber(value)
     end
   end
 
   -- NOTE: unreachable hosts can still be reported in order to properly
   -- display their resolved address
-  return resolved_hosts
+  return resolved_hosts[measurement]
+end
+
+-- #################################################################
+
+-- @brief Collect async ping results (ipv4 icmp)
+local function collect_icmp_oneshot(granularity)
+   return collect_oneshot("icmp", granularity)
+end
+
+-- #################################################################
+
+-- @brief Collect async ping results (ipv6 icmp)
+local function collect_icmp6_oneshot(granularity)
+   return collect_oneshot("icmp6", granularity)
 end
 
 -- #################################################################
@@ -148,8 +179,8 @@ return {
     }, {
       key = "icmp6",
       i18n_label = "icmpv6",
-      check = check_icmp_oneshot,
-      collect_results = collect_icmp_oneshot,
+      check = check_icmp6_oneshot,
+      collect_results = collect_icmp6_oneshot,
       granularities = {"min", "5mins", "hour"},
       i18n_unit = "active_monitoring_stats.msec",
       i18n_jitter_unit = nil,

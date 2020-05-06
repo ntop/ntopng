@@ -170,7 +170,7 @@ void ContinuousPing::readPingResults() {
   m.lock(__FILE__, __LINE__);
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
-    float f = pinger->getRTT(it->first.c_str());
+    float f = pinger->getRTT(it->first.c_str(), false /* v6 */);
 
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [IPv4] %s=%f", __FUNCTION__, it->first.c_str(), f);
@@ -187,7 +187,7 @@ void ContinuousPing::readPingResults() {
   }
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it) {
-    float f = pinger->getRTT(it->first.c_str());
+    float f = pinger->getRTT(it->first.c_str(), true /* v6 */);
 
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [IPv6] %s=%f", __FUNCTION__, it->first.c_str(), f);
@@ -233,13 +233,12 @@ void ContinuousPing::collectProtoResponse(lua_State* vm, std::map<std::string,Co
 
 /* ***************************************** */
 
-void ContinuousPing::collectResponses(lua_State* vm) {
+void ContinuousPing::collectResponses(lua_State* vm, bool v6) {
   lua_newtable(vm);
 
   m.lock(__FILE__, __LINE__);
 
-  collectProtoResponse(vm, &v4_results);
-  collectProtoResponse(vm, &v6_results);
+  collectProtoResponse(vm, v6 ? &v6_results : &v4_results);
   
   m.unlock(__FILE__, __LINE__);
 }

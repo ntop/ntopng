@@ -32,7 +32,7 @@ class Ping {
   bool running;
   pthread_t resultPoller;
   Mutex m;
-  std::map<std::string /* IP */, float /* RTT */> results;
+  std::map<std::string /* IP */, float /* RTT */> results_v4, results_v6;
   
   u_int16_t checksum(void *b, int len);
   void setOpts(int fd);
@@ -44,8 +44,8 @@ class Ping {
 
   int  ping(char *_addr, bool use_v6);
   void pollResults(u_int8_t max_wait_time_sec = 1);
-  void collectResponses(lua_State* vm);
-  float getRTT(std::string who);
+  void collectResponses(lua_State* vm, bool v6);
+  float getRTT(std::string who, bool v6);
   void cleanup();
 };
 
