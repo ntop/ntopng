@@ -195,11 +195,6 @@ function notification_endpoint_configs.edit_endpoint_config_params(endpoint_conf
    if not ec then
       return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
    end
-   -- Is the config already existing?
-   local ec = read_endpoint_config_raw(endpoint_conf_name)
-   if not ec then
-      return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
-   end
 
    -- Are the submitted params those expected by the endpoint?
    ok, status = check_endpoint_config_params(ec["endpoint_key"], conf_params)
