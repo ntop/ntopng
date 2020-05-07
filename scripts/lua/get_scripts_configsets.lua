@@ -39,7 +39,7 @@ for _, configset in pairs(config_sets) do
     elseif(target_type == "network") then
       label = getLocalNetworkAlias(target)
     elseif(target_type == "cidr") then
-      label = getHostAltName(target)
+      label = hostinfo2label(hostkey2hostinfo(target))
     end
 
     targets[#targets + 1] = {

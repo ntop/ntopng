@@ -224,7 +224,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    print("\"column_name\" : \"")
 	    if(value["protocol"] == 65535) then
 	       local hinfo = hostkey2hostinfo(key)
-	       print(host2name(hinfo["host"], hinfo["vlan"]))
+	       print(hostinfo2label(hinfo))
 	    else
 	       print(key)
 	    end

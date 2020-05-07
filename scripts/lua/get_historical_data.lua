@@ -127,7 +127,7 @@ if stats_type == "top_talkers" then
       res = getOverallTopTalkers(ifid, l4_proto_id, port, vlan, profile, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
       for _, record in pairs(res) do
 	 local hinfo = hostkey2hostinfo(record["addr"])
-	 record["label"] = host2name(hinfo["host"], hinfo["vlan"])
+	 record["label"] = hostinfo2label(hinfo)
       end
    elseif not peer1 and not peer2 and l7_proto_id and l7_proto_id ~= "" then
       -- CASE 02: compute top-talkers for the specified L7 protocol
@@ -135,7 +135,7 @@ if stats_type == "top_talkers" then
 
       for _, record in pairs(res) do
 	 local hinfo = hostkey2hostinfo(record["addr"])
-	 record["label"] = host2name(hinfo["host"], hinfo["vlan"])
+	 record["label"] = hostinfo2label(hinfo)
       end
    elseif peer1 and peer1 ~="" then
       -- CASE 03: compute top-talkers with the given peer1
@@ -145,7 +145,7 @@ if stats_type == "top_talkers" then
 
       for _, record in pairs(res) do
 	 local hinfo = hostkey2hostinfo(record["addr"])
-	 record["label"] = host2name(hinfo["host"], hinfo["vlan"])
+	 record["label"] = hostinfo2label(hinfo)
       end
       -- tprint(res)
    end

@@ -41,7 +41,7 @@ else
    local nav_url = ntop.getHttpPrefix().."/lua/username_details.lua?username="..user_key.."&uid="..uid
 
    if host_info and host_info["host"] then
-      name = host2name(host_info["host"], host_info["vlan"])
+      name = hostinfo2label(host_info)
       if isEmptyString(name) then
 	 name = host_info["host"]
       end

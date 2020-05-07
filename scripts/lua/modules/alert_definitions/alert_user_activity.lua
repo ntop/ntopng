@@ -86,7 +86,7 @@ local function userActivityFormatter(ifid, alert, info)
       elseif decoded.name == 'delete_host' and decoded.params[1] ~= nil then
         local host = decoded.params[1]
         local hostinfo = hostkey2hostinfo(host)
-        local hostname = host2name(hostinfo.host, hostinfo.vlan)
+        local hostname = hostinfo2label(hostinfo)
         local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
         return i18n('user_activity.deleted_host_data', {user=user, ifname=ifname, host=host_url})
 
@@ -128,7 +128,7 @@ local function userActivityFormatter(ifid, alert, info)
         if decoded.params[2] ~= nil then
           local host = decoded.params[1]
           local hostinfo = hostkey2hostinfo(host)
-          local hostname = host2name(hostinfo.host, hostinfo.vlan)
+          local hostname = hostinfo2label(hostinfo)
           local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
           return i18n('user_activity.exported_data_host', {user=user, mode=mode, host=host_url})
         else
@@ -138,7 +138,7 @@ local function userActivityFormatter(ifid, alert, info)
       elseif decoded.name == 'host_get_json' and decoded.params[1] ~= nil then
         local host = decoded.params[1]
         local hostinfo = hostkey2hostinfo(host)
-        local hostname = host2name(hostinfo.host, hostinfo.vlan)
+        local hostname = hostinfo2label(hostinfo)
         local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..(decoded.ifid or ifid).."&host="..host.."\">"..hostname .."</a>" 
         return i18n('user_activity.host_json_downloaded', {user=user, host=host_url})
 
@@ -153,7 +153,7 @@ local function userActivityFormatter(ifid, alert, info)
         if not isEmptyString(decoded.params[1]) then
           local host = decoded.params[1]
           local hostinfo = hostkey2hostinfo(host)
-          local hostname = host2name(hostinfo.host, hostinfo.vlan)
+          local hostname = hostinfo2label(hostinfo)
           local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
           if not isEmptyString(decoded.params[3]) then
             local filter = decoded.params[3]

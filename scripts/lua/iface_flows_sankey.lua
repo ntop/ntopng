@@ -109,7 +109,7 @@ while(num == 0) do
 
 		  -- 3. print nodes
 		  local hinfo = hostkey2hostinfo(word)
-		  name = host2name(hinfo["host"], hinfo["vlan"])
+		  name = hostinfo2label(hinfo)
 
 		  print ("\t{\"name\": \"" .. name .. "\", \"host\": \"" .. host_info["host"] .. "\", \"vlan\": \"" .. host_info["vlan"] .. "\"}")
 		  num = num + 1

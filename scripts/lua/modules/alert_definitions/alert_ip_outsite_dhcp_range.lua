@@ -22,7 +22,7 @@ local function createIpOutsideDHCPRangeType(alert_severity, router_info, mac, cl
 	mac = mac,
 	client_mac = client_mac,
 	sender_mac = sender_mac,
-	router_host = host2name(router_info["host"], router_info["vlan"]),
+	router_host = hostinfo2label(router_info),
      },
   }
 

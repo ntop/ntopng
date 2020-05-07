@@ -99,7 +99,7 @@ end
 local restoreFailed = false
 local restoreInProgress = false
 
-if((host == nil) and ((_GET["mode"] == "restore") or (page == "historical"))) then
+if((host == nil) and ((_GET["mode"] == "restore"))) then
    restoreFailed = not interface.restoreHost(host_info["host"], host_vlan)
 
    if(not restoreFailed) then
@@ -153,6 +153,7 @@ if (host ~= nil) then
 end
 
 local only_historical = (host == nil) and ((page == "historical") or (page == "config") or (page == "alerts"))
+local host_label
 
 if(host == nil) and (not only_historical) then
       -- We need to check if this is an aggregated host
@@ -245,15 +246,7 @@ else
       setHostAltName(hostinfo2hostkey(host_info), _POST["custom_name"])
    end
 
-   host["label"] = getHostAltName(hostinfo2hostkey(host_info), host["mac"])
-
-   if((host["label"] == nil) or (host["label"] == "")) then
-      host["label"] = getHostAltName(host["ip"])
-   end
-
-   if(host["name"] == nil) then
-     host["name"] = host["label"]
-   end
+   host_label = hostinfo2label(host)
 
    if canRestoreHost(ifId, host_info["host"], host_vlan) then
       printRestoreHostBanner(true --[[ hidden ]])
@@ -531,8 +524,6 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(host["ip"] ~= nil) then
-      host["name"] = host2name(host["ip"], host["vlan"])
-
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then
@@ -541,12 +532,12 @@ if((page == "overview") or (page == nil)) then
 	 print("<td colspan=2>")
       end
 
-      if((host["ip"] == host["name"]) and ntop.shouldResolveHost(host["ip"])) then
+      if((host_name == host_label) and ntop.shouldResolveHost(host["ip"])) then
 	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
       end
 
       -- tprint(host) io.write("\n")
-      print(host["name"] .. "</span></A> <i class=\"fas fa-external-link-alt\"></i> ")
+      print(host_label .. "</span></A> <i class=\"fas fa-external-link-alt\"></i> ")
 
       if host["is_blacklisted"] then
 	 print(" <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>")
@@ -832,7 +823,7 @@ end
          id      = "reset_host_stats_dialog",
          action  = "$('#reset_host_stats_form').submit();",
          title   = i18n("host_details.reset_host_stats"),
-         message = i18n("host_details.reset_host_stats_confirm", {host=host["name"]}) .. "<br><br>" .. i18n("host_details.reset_host_stats_note"),
+         message = i18n("host_details.reset_host_stats_confirm", {host=host_label}) .. "<br><br>" .. i18n("host_details.reset_host_stats_note"),
          confirm = i18n("reset"),
        }
      })
@@ -1996,10 +1987,7 @@ elseif(page == "contacts") then
 
 if(num > 0) then
    mode = "embed"
-   if(host["name"] == nil) then
-      host["name"] = host2name(host["ip"], host["vlan"])
-   end
-   name = host["name"]
+   name = host_label
    dofile(dirs.installdir .. "/scripts/lua/hosts_interaction.lua")
 
    print("<table class=\"table table-bordered table-striped\">\n")
@@ -2034,7 +2022,7 @@ if(num > 0) then
    info = interface.getHostInfo(k)
 
    if(info ~= nil) then
-      if(info["name"] ~= nil) then n = info["name"] else n = host2name(info["ip"], info["vlan"]) end
+      if(info["name"] ~= nil) then n = info["name"] else n = hostinfo2label(info) end
       url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(info).."\">"..n.."</A>"
    else
       url = k
@@ -2063,7 +2051,7 @@ if(num > 0) then
 	 v = host["contacts"]["server"][k]
    info = interface.getHostInfo(k)
 	 if(info ~= nil) then
-	    if(info["name"] ~= nil) then n = info["name"] else n = host2name(info["ip"], info["vlan"]) end
+	    if(info["name"] ~= nil) then n = info["name"] else n = hostinfo2label(info) end
 	    url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(info).."\">"..n.."</A>"
 	 else
 	    url = k
@@ -2138,6 +2126,9 @@ elseif (page == "config") then
       end
    end
 
+   -- NOTE: this only configures the alias associated to the IP address, not to the MAC
+   local ip_alias = ntop.getHashCache(getHostAltNamesKey(), host_info["host"])
+
    print[[
    <form id="host_config" class="form-inline" method="post">
    <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
@@ -2146,7 +2137,7 @@ elseif (page == "config") then
          <th>]] print(i18n("host_config.host_alias")) print[[</th>
          <td>
                <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]
-   if(host["label"] ~= nil) then print(host["label"]) end
+   if(ip_alias ~= host_name) then print(ip_alias) end
    print[["></input> ]]
 
    print [[
@@ -2162,7 +2153,7 @@ elseif (page == "config") then
          <td>
          <div class="custom-control custom-switch">
                <input class="custom-control-input" type="checkbox" id="check-top_hidden" name="top_hidden" value="1" ]] print(top_hidden_checked) print[[>
-               <label class="custom-control-label" for="check-top_hidden">]] print(i18n("host_config.hide_host_from_top_descr", {host=host["name"]})) print[[</label>
+               <label class="custom-control-label" for="check-top_hidden">]] print(i18n("host_config.hide_host_from_top_descr", {host=host_label})) print[[</label>
             </div>
          </td>
       </tr>]]

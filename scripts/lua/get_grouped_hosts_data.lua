@@ -170,9 +170,9 @@ local function print_single_group(value)
       print(value["id"]..'</A>", ')
    end
 
-   local alt = getHostAltName(value["id"])
-
-   if((alt ~= nil) and (alt ~= value["id"])) then alt = " ("..alt..")" else alt = "" end
+   --local alt = getHostAltName(value["id"])
+   --if((alt ~= nil) and (alt ~= value["id"])) then alt = " ("..alt..")" else alt = "" end
+   local alt = ""
    print('"column_link": "<A HREF=\''..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'\'>'.. value["id"]..alt..'</A>')
 
    -- TODO how is this used?

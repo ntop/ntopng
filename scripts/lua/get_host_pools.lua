@@ -85,7 +85,7 @@ if((ifid ~= nil) and (isAdministrator())) then
               alias = ""
             end
           elseif is_host then
-            alias = getHostAltName(host_key)
+            alias = hostinfo2label(hostkey2hostinfo(host_key))
 
             if alias == host_key then
               alias = ""
@@ -93,7 +93,7 @@ if((ifid ~= nil) and (isAdministrator())) then
 
             if active_hosts[host_key] and active_hosts[host_key].mac then
               if isEmptyString(alias) then
-                alias = getHostAltName(active_hosts[host_key].mac)
+                alias = mac2label(active_hosts[host_key].mac)
                 if alias == active_hosts[host_key].mac then
                   alias = ""
                 end

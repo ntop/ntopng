@@ -313,7 +313,7 @@ function handler_send_devices_info()
 
     if v.source_mac and (cont < limit) then 
       cont = cont + 1
-      text = text .. cont .." Nome: ".. getHostAltName(v.mac) .. "\n"
+      text = text .. cont .." Nome: ".. mac2label(v.mac) .. "\n"
       if v.manufacturer then manufacturer = v.manufacturer else manufacturer = "Sconosciuto" end
       text = text .. "Costruttore: " .. manufacturer .. "\n"
       text = text .. "Mac: " .. v.mac .. "\n"

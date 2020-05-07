@@ -56,7 +56,7 @@ for _, flow in ipairs(flows_stats) do
       source = cli_key
 
       if not hosts[source] then
-	 hosts[source] = {name = host2name(flow["cli.ip"], flow["cli.vlan"])}
+	 hosts[source] = {name = ip2label(flow["cli.ip"], flow["cli.vlan"])}
       end
    end
 
@@ -74,7 +74,7 @@ for _, flow in ipairs(flows_stats) do
       target = cli_key
 
       if not hosts[target] then
-	 hosts[target] = {name = host2name(flow["srv.ip"], flow["srv.vlan"])}
+	 hosts[target] = {name = ip2label(flow["srv.ip"], flow["srv.vlan"])}
       end
    end
 

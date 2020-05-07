@@ -167,7 +167,7 @@ if (_GET["hosts"] ~= nil) then
         vlan_id = " "
       end
 
-      local name = host2name(host_ip, vlan_id)
+      local name = ip2label(host_ip, vlan_id)
 
       print ("\t{\"name\": \"" .. name .. "\", \"ip\": \"" .. host_ip .. "\", \"vlan\": \"" .. vlan_id .. "\"}")
       node_size = node_size + 1

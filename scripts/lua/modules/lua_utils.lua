@@ -1116,7 +1116,6 @@ end
 
 -- #################################
 
--- NOTE: use host2name instead of this
 function hostVisualization(ip, name, vlan)
    if (ip ~= name) then
       if isIPv6(ip) then
@@ -1136,7 +1135,7 @@ end
 -- This function actively resolves an host if there is not information about it.
 -- NOTE: prefer the host2name on this function
 function resolveAddress(hostinfo, allow_empty)
-   local alt_name = getHostAltName(hostinfo["host"])
+   local alt_name = ip2label(hostinfo["host"])
 
    if(not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
       -- The host label has priority
@@ -1150,7 +1149,7 @@ function resolveAddress(hostinfo, allow_empty)
          return hostname
       else
          -- this function will take care of formatting the IP
-         return host2name(hostinfo)
+         return hostinfo2label(hostinfo)
       end
    end
    return hostVisualization(hostinfo["host"], hostname, hostinfo["vlan"])
@@ -1285,48 +1284,77 @@ end
 
 -- ##############################################
 
--- Used to avoid resolving host names too many times
-resolved_host_labels_cache = {}
-
--- host_ip can be a mac. host_mac can be null.
-function getHostAltName(host_ip, host_mac)
+-- Retrieve an host label from an host_info. The minimum fields of
+-- the host_info are "host" and "vlan", however a full JSON from Host::lua
+-- is needed to provide an accurate result.
+--
+-- The following order is used to determine the label:
+--    MAC label (LBD hosts only), IP label, MDNS/DHCP name from C, resolved IP
+--
+function hostinfo2label(host_info)
    local alt_name = nil
+   local ip = host_info["ip"] or host_info["host"]
 
-   if not isEmptyString(host_ip) then
-      alt_name = resolved_host_labels_cache[host_ip]
-   end
+   -- If local broadcast domain host and DHCP, try to get the label associated
+   -- to the MAC address
+   if host_info["mac"] and (host_info["broadcast_domain_host"] ~= false) and (host_info["dhcpHost"] ~= false) then
+      alt_name = ntop.getHashCache(getHostAltNamesKey(), host_info["mac"])
 
-   -- cache hit
-   if(alt_name ~= nil) then
-      return(alt_name)
-   end
-
-   alt_name = ntop.getHashCache(getHostAltNamesKey(), host_ip)
-
-   if (isEmptyString(alt_name) and (host_mac ~= nil)) then
-      alt_name = ntop.getHashCache(getHostAltNamesKey(), host_mac)
-   end
-
-   if isEmptyString(alt_name) and ifname ~= nil then
-      local key = getDhcpNamesKey(getInterfaceId(ifname))
-
-      if host_mac ~= nil then
-         alt_name = ntop.getHashCache(key, host_mac)
-      elseif isMacAddress(host_ip) then
-         alt_name = ntop.getHashCache(key, host_ip)
+      if not isEmptyString(alt_name) then
+         return(alt_name)
       end
    end
 
-   if isEmptyString(alt_name) then
-     alt_name = host_ip
-   end
+   alt_name = ntop.getHashCache(getHostAltNamesKey(), ip)
 
    if not isEmptyString(alt_name) then
-      resolved_host_labels_cache[host_ip] = alt_name
+      return(alt_name)
    end
 
-   return(alt_name)
+   -- Name info from C (e.g. DHCP name)
+   if not isEmptyString(host_info["name"]) then
+      return host_info["name"]
+   end
+
+   -- Try to get the resolved name
+   local hostname = ntop.getResolvedName(ip)
+   local rname = hostVisualization(ip, hostname, host_info["vlan"])
+
+   if not isEmptyString(rname) then
+      return rname
+   end
+
+   -- Fallback: just the IP and VLAN
+   return(hostinfo2hostkey(host_info))
 end
+
+-- ##############################################
+
+-- Just a convenience function for hostinfo2label with only IP and VLAN
+function ip2label(ip, vlan)
+   return hostinfo2label({host = ip, vlan = (vlan or 0)})
+end
+
+-- ##############################################
+
+function mac2label(mac)
+   local alt_name = ntop.getHashCache(getHostAltNamesKey(), mac)
+
+   if not isEmptyString(alt_name) and (alt_name ~= mac) then
+      return(alt_name)
+   end
+
+   alt_name = ntop.getHashCache(getDhcpNamesKey(interface.getId()), mac)
+
+   if not isEmptyString(alt_name) and (alt_name ~= mac) then
+      return(alt_name)
+   end
+
+   -- Fallback: just the MAC
+   return(mac)
+end
+
+-- ##############################################
 
 function setHostAltName(host_ip, alt_name)
    ntop.setHashCache(getHostAltNamesKey(), host_ip, alt_name)
@@ -1336,7 +1364,7 @@ end
 
 -- A function to give a useful device name
 function getDeviceName(device_mac, skip_manufacturer)
-   local name = getHostAltName(device_mac)
+   local name = mac2label(device_mac)
 
    if name == device_mac then
       -- Not found, try with first host
@@ -1348,7 +1376,7 @@ function getDeviceName(device_mac, skip_manufacturer)
             if not isEmptyString(host.name) and host.name ~= host.ip and host.name ~= "NoIP" then
                name = host.name
             elseif host.ip ~= "0.0.0.0" then
-               name = getHostAltName(host.ip)
+               name = ip2label(host.ip)
 
                if name == host.ip then
                   name = nil
@@ -1394,34 +1422,6 @@ end
 
 -- Flow Utils --
 
-function host2name(name, vlan)
-   if(type(name) == "table") then
-      -- Called as host2name(hostkey2hostinfo(...))
-      name = name["host"]
-      vlan = name["vlan"]
-   end
-
-   local orig_name = name
-
-   vlan = tonumber(vlan or "0")
-
-   name = getHostAltName(name)
-
-   if(name == orig_name) then
-      -- Use the resolved name
-      local hostname = ntop.getResolvedName(name)
-      local rname = hostVisualization(name, hostname, vlan)
-
-      if((rname ~= nil) and (rname ~= "")) then
-	 name = rname
-      end
-   elseif(vlan > 0) then
-      name = name .. '@' .. vlan
-   end
-
-   return name
-end
-
 function flowinfo2hostname(flow_info, host_type, alerts_view)
    local name
    local orig_name
@@ -1441,13 +1441,13 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
       end
    end
 
-   -- Do not use host name here as we need first to check if there is
-   -- an host alias defined for the IP address in host2name. getResolvedAddress
-   -- in host2name will return the host name if no alias is defined.
-   --~ name = flow_info[host_type..".host"]
-   name = flow_info[host_type..".ip"]
+   local hostinfo = {
+      host = flow_info[host_type..".ip"],
+      mac = flow_info[host_type..".mac"],
+      vlan = flow_info["vlan"],
+   }
 
-   return(host2name(name, flow_info["vlan"]))
+   return(hostinfo2label(hostinfo))
 end
 
 function flowinfo2process(process, host_info_to_url)

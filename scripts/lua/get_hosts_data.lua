@@ -44,7 +44,7 @@ function update_host_name(h)
    if(h["name"] == nil) then
       if(h["ip"] ~= nil) then
 
-         h["name"] = host2name(h["ip"])
+         h["name"] = ip2label(h["ip"])
       else
 	 h["name"] = h["mac"]
       end
@@ -275,7 +275,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    if(value["name"] == nil) then
       local hinfo = hostkey2hostinfo(word)
-      value["name"] = host2name(hinfo["host"], hinfo["vlan"])
+      value["name"] = hostinfo2label(hinfo)
    end
 
    if(value["name"] == "") then
@@ -284,6 +284,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local column_name
 
+   -- Visualize both the MDNS/DHCP name from C and (possibly) the host label
    if(long_names) then
       column_name = value["name"]
    else
@@ -291,7 +292,8 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if(value["ip"] ~= nil) then
-      local label = getHostAltName(value["ip"], value["mac"])
+      local label = hostinfo2label(value)
+
       if label ~= value["ip"] and column_name ~= label then
 	 column_name = column_name .. " ["..label.."]"
       end

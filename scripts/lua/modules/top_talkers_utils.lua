@@ -258,13 +258,13 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec, show_vlan)
 
       url = ntop.getHttpPrefix()..'/lua/host_details.lua?always_show_hist=true&host='
       -- Use the host alias as label, if set
-      local alt_name = getHostAltName(address)
+      local alt_name = ip2label(address)
       if not isEmptyString(alt_name) and (alt_name ~= address) then
         label = alt_name
       else
         local hinfo = hostkey2hostinfo(address)
         if not show_vlan then hinfo.vlan = 0 end
-        alt_name = host2name(hinfo.host, hinfo.vlan)
+        alt_name = hostinfo2label(hinfo)
 
         if not isEmptyString(alt_name) and (alt_name ~= address) then
            label = alt_name

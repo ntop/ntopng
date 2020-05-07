@@ -47,7 +47,11 @@ for _,member in ipairs(members) do
         matching = true
       else
         -- by IP/MAC altName
-        local altname = getHostAltName(info["ip"], info.mac)
+        local altname = mac2label(info.mac)
+
+        if(isEmptyString(altname) or (altname == info.mac)) then
+          altname = ip2label(info["ip"])
+        end
 
         if (altname ~= nil) and  string.contains(string.lower(altname), query) then
           results[#results + 1] = {name=altname, key=member.key}
@@ -57,7 +61,7 @@ for _,member in ipairs(members) do
     end
   elseif is_mac then
     -- by MAC altName
-    local altname = getHostAltName(member.address)
+    local altname = mac2label(member.address)
 
     if (altname ~= nil) and string.contains(string.lower(altname), query) then
       results[#results + 1] = {name=altname, key=member.key}

@@ -106,7 +106,7 @@ num = 0
 for _v,k in pairsByKeys(sortTable, rev) do key = k
    if(num < max_num) then
       local hinfo = hostkey2hostinfo(key)
-      symname = host2name(hinfo["host"], hinfo["vlan"])
+      symname = hostinfo2label(hinfo)
       print('var host'..num..' = fetchData("' .. key ..'", "'.. symname .. '");\n');
       num = num+1
    end

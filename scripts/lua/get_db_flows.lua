@@ -158,8 +158,8 @@ else
 	    local pname = l4ProtoToName(flow["PROTOCOL"])
 	    local lower_pname = string.lower(pname)
 
-	    client = shortenString(host2name(flow["IP_SRC_ADDR"], flow["VLAN_ID"]))
-	    server = shortenString(host2name(flow["IP_DST_ADDR"], flow["VLAN_ID"]))
+	    client = shortenString(ip2label(flow["IP_SRC_ADDR"], flow["VLAN_ID"]))
+	    server = shortenString(ip2label(flow["IP_DST_ADDR"], flow["VLAN_ID"]))
 
 	    --client = flow["IP_SRC_ADDR"]
 	    --server = flow["IP_DST_ADDR"]

@@ -520,7 +520,7 @@ function alerts_api.remoteToRemoteType(host_info, mac)
     alert_type = alert_consts.alert_types.alert_remote_to_remote,
     alert_severity = alert_consts.alert_severities.warning,
     alert_type_params = {
-      host = host2name(host_info["host"], host_info["vlan"]),
+      host = hostinfo2label(host_info),
       mac = mac,
     },
   })

@@ -65,7 +65,7 @@ if (pool_id == nil) then
 end
 
 local vlanId      = host_info["vlan"]
-local label       = getHostAltName(mac)
+local label       = mac2label(mac)
 
 local devicekey = hostinfo2hostkey(host_info)
 

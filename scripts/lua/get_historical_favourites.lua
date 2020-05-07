@@ -75,13 +75,13 @@ elseif action == "set" or action == "del" then
 	 entry = host
 
 	 local hinfo = hostkey2hostinfo(host)
-	 resolved = host2name(hinfo["host"], hinfo["vlan"])
+	 resolved = hostinfo2label(hinfo)
 
 	 if peer ~= "" and peer ~= nil then
 	    entry = entry..','..peer
 
 	    local hinfo = hostkey2hostinfo(peer)
-	    resolved = resolved..','..host2name(hinfo["host"], hinfo["vlan"])
+	    resolved = resolved..','..hostinfo2label(hinfo)
 	 end
       end
 
@@ -94,7 +94,7 @@ elseif action == "set" or action == "del" then
 	    entry = entry..','..host
 
 	    local hinfo = hostkey2hostinfo(host)
-	    resolved = resolved..','..host2name(hinfo["host"], hinfo["vlan"])
+	    resolved = resolved..','..hostinfo2label(hinfo)
 	 end
       end
    end
