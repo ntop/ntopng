@@ -652,6 +652,7 @@ function makeFindHostBeforeSubmitCallback(http_prefix) {
       _add_find_host_link(form, "asn", data.asn);
     } else {
       form.attr("action", http_prefix + "/lua/host_details.lua");
+      _add_find_host_link(form, "mode", "restore");
     }
 
     return true;
