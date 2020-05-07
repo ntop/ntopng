@@ -194,9 +194,15 @@ function notification_recipients.get_recipient(endpoint_recipient_name)
       return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
    end
 
+   local ec = notification_endpoints.get_endpoint_config(rc["endpoint_conf_name"])
+
+   if ec["status"] ~= "OK" then
+      return ec
+   end
+
    return {
       status = "OK",
-      endpoint_conf_name = rc["endpoint_conf_name"],
+      endpoint_conf = ec,
       recipient_params = json.decode(rc["recipient_params"])
    }
 end

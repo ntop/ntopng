@@ -195,6 +195,7 @@ res = notification_recipients.add_recipient("google_email", "sres", recipient_pa
 assert(res["status"] == "OK")
 
 res = notification_recipients.get_recipients()
+
 assert(#res == 3)
 for _, recipient in pairs(res) do
    assert(recipient["status"] == "OK")
