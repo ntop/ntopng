@@ -1,0 +1,26 @@
+<div class="modal fade" id="remove-recipient-modal" tabindex="-1" role="dialog" aria-labelledby="remove-recipient-modal-title"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="remove-recipient-modal-title">{{ i18n("endpoint_notifications.remove_recipient") }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form>
+                <div class="modal-body">
+                    <input name="recipient_name" type="text" hidden>
+                    <div class="alert alert-danger">
+                        {{ i18n('endpoint_notifications.remove_recipient_message') }}
+                    </div>
+                    <span class="invalid-feedback"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
+                    <button type="submit" class="btn btn-danger">{{i18n("remove")}}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -147,7 +147,7 @@ end
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_recipients.edit_recipient(endpoint_recipient_name, recipient_params)   
+function notification_recipients.edit_recipient(endpoint_recipient_name, recipient_params)
    local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
    if not ok then
       return status
@@ -203,7 +203,8 @@ function notification_recipients.get_recipient(endpoint_recipient_name)
    return {
       status = "OK",
       endpoint_conf = ec,
-      recipient_params = json.decode(rc["recipient_params"])
+      recipient_params = json.decode(rc["recipient_params"]),
+      recipient_name = endpoint_recipient_name
    }
 end
 

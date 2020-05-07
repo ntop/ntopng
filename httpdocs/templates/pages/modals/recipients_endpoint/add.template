@@ -1,0 +1,48 @@
+<div class="modal fade" id="add-recipient-modal" tabindex="-1" role="dialog" aria-labelledby="add-endpoint-modal-title"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="add-recipient-modal-title">{{ i18n("endpoint_notifications.add_new_recipient") }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="recipient-name-input">
+                            <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <input maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="recipient-name-input">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="recipient-type-select">
+                            <b>{{ i18n("endpoint_notifications.recipient_select") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <select required name="endpoint" class="form-control" id="endpoint-select">
+                                <option selected disabled></option>
+                                {% for _, endpoint in ipairs(endpoint_list) do %}
+                                    <option data-endpoint-key="{{ endpoint.endpoint_key }}" value="{{ endpoint.endpoint_conf_name }}">
+                                        {{ endpoint.endpoint_conf_name }}
+                                    </option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: none;" class="recipient-template-container border-top pt-2">
+
+                    </div>
+                    <span class="invalid-feedback"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
+                    <button type="submit" class="btn btn-primary">{{i18n("add")}}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
