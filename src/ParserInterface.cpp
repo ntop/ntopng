@@ -442,8 +442,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 	   flow->get_protocol_category(),
 	   zflow->l4_proto,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
-	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
-	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
+	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts));
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);

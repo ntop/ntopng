@@ -1132,7 +1132,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
           incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
 	           NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 	           0,
-	           len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	           len_on_wire, 1);
 
           return(pass_verdict);
         }
@@ -1161,7 +1161,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
             incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
 	             NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 	             0,
-	             len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	             len_on_wire, 1);
 
             return(ret);
           }
@@ -1212,7 +1212,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       when->tv_sec, ETHERTYPE_IP,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 	       0,
-	       len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       len_on_wire, 1);
       return(pass_verdict);
     }
     
@@ -1240,7 +1240,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       when->tv_sec, ETHERTYPE_IPV6,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 	       0,
-	       len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       len_on_wire, 1);
       return(pass_verdict);
     }
 
@@ -1258,7 +1258,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 		 when->tv_sec, ETHERTYPE_IPV6,
 		 NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 		 0,
-		 len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		 len_on_wire, 1);
 	return(pass_verdict);
       }
     }
@@ -1287,7 +1287,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", trusted_l4_packet_len);
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       0, len_on_wire, 1);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_UDP) {
@@ -1302,7 +1302,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", trusted_l4_packet_len);
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       0, len_on_wire, 1);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_SCTP) {
@@ -1318,7 +1318,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid SCTP packet received [%u bytes long]", trusted_l4_packet_len);
       incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       0, len_on_wire, 1);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_ICMP) {
@@ -1362,7 +1362,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   if(flow == NULL) {
     incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	     l4_proto, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     l4_proto, len_on_wire, 1);
     return(pass_verdict);
   } else {
 #ifdef HAVE_NEDGE
@@ -1592,7 +1592,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->getStatsProtocol(), flow->get_protocol_category(),
-	   l4_proto, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	   l4_proto, len_on_wire, 1);
 
   return(pass_verdict);
 }
@@ -1694,7 +1694,7 @@ datalink_check:
     default:
       incStats(ingressPacket, h->ts.tv_sec, 0,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       0, len_on_wire, 1);
       goto dissect_packet_end; /* Any other non IP protocol */
     }
 
@@ -1723,7 +1723,7 @@ datalink_check:
     default:
       incStats(ingressPacket, h->ts.tv_sec, 0,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       0, len_on_wire, 1);
       goto dissect_packet_end; /* Unknown IP protocol version */
     }
 
@@ -1739,7 +1739,7 @@ datalink_check:
   } else {
     incStats(ingressPacket, h->ts.tv_sec, 0,
 	     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	     0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     0, len_on_wire, 1);
     goto dissect_packet_end;
   }
 
@@ -1784,7 +1784,7 @@ decode_packet_eth:
     default:
       incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	       0, len_on_wire, 1);
       goto dissect_packet_end;
     }
     goto decode_packet_eth;
@@ -1801,7 +1801,7 @@ decode_packet_eth:
 	/* This is not IPv4 */
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
 		 NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-		 0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		 0, len_on_wire, 1);
 	goto dissect_packet_end;
       } else
 	frag_off = ntohs(iph->frag_off);
@@ -1881,7 +1881,7 @@ decode_packet_eth:
 	      /* FIX - Add IPv6 support */
 	      incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 		       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-		       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		       0, len_on_wire, 1);
 	      goto dissect_packet_end;
 	    }
 	  }
@@ -1918,7 +1918,7 @@ decode_packet_eth:
 	      if(offset >= h->caplen) {
 		incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 			 NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-			 0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+			 0, len_on_wire, 1);
 		goto dissect_packet_end;
 	      } else {
 		eth_offset = offset;
@@ -1951,7 +1951,7 @@ decode_packet_eth:
 	  if(ip_offset >= h->len) {
 	    incStats(ingressPacket, h->ts.tv_sec, 0,
 		     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-		     0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		     0, len_on_wire, 1);
 	    goto dissect_packet_end;
 	  }
 	  eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
@@ -1967,7 +1967,7 @@ decode_packet_eth:
 	  default:
 	    incStats(ingressPacket, h->ts.tv_sec, 0,
 		     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-		     0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		     0, len_on_wire, 1);
 	    goto dissect_packet_end;
 	  }
 	}
@@ -2011,7 +2011,7 @@ decode_packet_eth:
 	/* This is not IPv6 */
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 		 NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-		 0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		 0, len_on_wire, 1);
 	goto dissect_packet_end;
       } else {
 	u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
@@ -2067,7 +2067,7 @@ decode_packet_eth:
 	  if((ip_offset + ipv6_shift) >= h->len) {
 	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 		     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-		     0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		     0, len_on_wire, 1);
 	    goto dissect_packet_end;
 	  }
 
@@ -2095,7 +2095,7 @@ decode_packet_eth:
 	    if(ip_offset >= h->len) {
 	      incStats(ingressPacket, h->ts.tv_sec, 0,
 		       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-		       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		       0, len_on_wire, 1);
 	      goto dissect_packet_end;
 	    }
 	    eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
@@ -2111,7 +2111,7 @@ decode_packet_eth:
 	    default:
 	      incStats(ingressPacket, h->ts.tv_sec, 0,
 		       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-		       0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		       0, len_on_wire, 1);
 	      goto dissect_packet_end;
 	    }
 	  }
@@ -2251,7 +2251,7 @@ decode_packet_eth:
 
     incStats(ingressPacket, h->ts.tv_sec, eth_type,
 	     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	     0, len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     0, len_on_wire, 1);
     break;
   }
 

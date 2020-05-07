@@ -34,6 +34,11 @@ class PcapInterface : public NetworkInterface {
   pcap_stat last_pcap_stat;
   u_int32_t getNumDroppedPackets();
   void cleanupPcapDumpDir();
+  virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
+			   u_int32_t num_bytes, u_int pkt_overhead) {
+    if (!emulate_traffic_directions)
+      ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
+  };
 
  public:
   PcapInterface(const char *name, u_int8_t ifIdx);
@@ -44,11 +49,6 @@ class PcapInterface : public NetworkInterface {
   inline const char* get_type()     { return((read_pkts_from_pcap_dump && !reproducePcapOriginalSpeed()) ? CONST_INTERFACE_TYPE_PCAP_DUMP : CONST_INTERFACE_TYPE_PCAP); };
   inline pcap_t* get_pcap_handle()  { return(pcap_handle);   };
   inline virtual bool areTrafficDirectionsSupported() { return(emulate_traffic_directions); };
-  inline virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
-		u_int32_t num_bytes, u_int pkt_overhead) {
-    if (!emulate_traffic_directions)
-      ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
-  };
   inline void set_pcap_handle(pcap_t *p) { pcap_handle = p; };
   inline FILE*   get_pcap_list()   { return(pcap_list);     };
   void startPacketPolling();

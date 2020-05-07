@@ -268,6 +268,24 @@ class NetworkInterface : public AlertableEntity {
   bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeCompanionEvents();
   bool getInterfaceBooleanPref(const char *pref_key, bool default_pref_value) const;
+  virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
+			   u_int32_t num_bytes, u_int pkt_overhead) {
+    ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
+  };
+  inline void _incStats(bool ingressPacket, time_t when,
+			u_int16_t eth_proto,
+			u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
+			u_int8_t l4proto,
+		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
+    incEthStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
+    ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
+    // Note: here we are not currently interested in packet direction, so we tell it is receive
+    ndpiStats->incCategoryStats(when, ndpi_category, 0 /* see above comment */, pkt_len);
+    pktStats.incStats(1, pkt_len);
+    l4Stats.incStats(when, l4proto,
+      ingressPacket ? num_pkts : 0, ingressPacket ? pkt_len : 0,
+      !ingressPacket ? num_pkts : 0, !ingressPacket ? pkt_len : 0);
+  };
 
  public:
   /**
@@ -377,38 +395,17 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t getCheckPointNumPacketDrops();
   virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
   virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
-
-  inline virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
-		u_int32_t num_bytes, u_int pkt_overhead) {
-    ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
-  };
-
-  inline void _incStats(bool ingressPacket, time_t when,
-			u_int16_t eth_proto,
-			u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
-			u_int8_t l4proto,
-		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
-    incEthStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
-    ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
-    // Note: here we are not currently interested in packet direction, so we tell it is receive
-    ndpiStats->incCategoryStats(when, ndpi_category, 0 /* see above comment */, pkt_len);
-    pktStats.incStats(1, pkt_len);
-    l4Stats.incStats(when, l4proto,
-      ingressPacket ? num_pkts : 0, ingressPacket ? pkt_len : 0,
-      !ingressPacket ? num_pkts : 0, !ingressPacket ? pkt_len : 0);
-  };
-
   inline void incFlagStats(u_int8_t flags, bool cumulative_flags) {
     pktStats.incFlagStats(flags, cumulative_flags);
   };
   inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto,
 		       u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
-		       u_int8_t l4proto, u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
+		       u_int8_t l4proto, u_int pkt_len, u_int num_pkts) {
 #ifdef HAVE_NEDGE
     /* In nedge, we only update the stats periodically with conntrack */
     return;
 #endif
-
+    u_int pkt_overhead = getPacketOverhead();
     _incStats(ingressPacket, when, eth_proto, ndpi_proto, ndpi_category, l4proto, pkt_len, num_pkts, pkt_overhead);
   };
 
@@ -605,7 +602,8 @@ class NetworkInterface : public AlertableEntity {
   void findProcNameFlows(lua_State *vm, char *proc_name);
   void addAllAvailableInterfaces();
   inline bool idle() { return(is_idle); }
-  inline u_int16_t getMTU() { return(ifMTU); }
+  inline u_int16_t getMTU()         { return(ifMTU);                               }
+  virtual u_int getPacketOverhead() { return 24 /* 8 Preamble + 4 CRC + 12 IFG */; }
   inline void setIdleState(bool new_state)         { is_idle = new_state;  };
   inline StatsManager  *getStatsManager()          { return statsManager;  };
   AlertsManager *getAlertsManager() const;

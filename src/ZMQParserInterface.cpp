@@ -989,7 +989,6 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
 /* **************************************************** */
 
 void ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
-  time_t now = time(NULL);
   bool invalid_flow = false;
 
   if(flow->vlan_id && ntop->getPrefs()->do_ignore_vlans())
@@ -1037,7 +1036,14 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
     if(flow->pkt_sampling_rate == 0)
       flow->pkt_sampling_rate = 1;
 
+    
+#if 0 /*
+	Disabled as this causes timestamps to be altered at every run, invalidating
+	first and last switched, as well as throughput data.
+       */
     /* We need to fix the clock drift */
+    time_t now = time(NULL);
+
     if(getTimeLastPktRcvdRemote() > 0) {
       int drift = now - getTimeLastPktRcvdRemote();
 
@@ -1046,8 +1052,8 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
       else {
 	u_int32_t d = (u_int32_t)-drift;
 
-	if(d < flow->last_switched)  flow->last_switched  += drift;
-	if(d < flow->first_switched) flow->first_switched += drift;
+	if(d < flow->last_switched || d < flow->first_switched)
+	  flow->last_switched  += drift, flow->first_switched += drift;
       }
 
 #ifdef DEBUG
@@ -1067,6 +1073,7 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
        * drift calculation above on next flows, leading to incorrect timestamps.
        */
     }
+#endif
 
     /* Process Flow */
     PROFILING_SECTION_ENTER("processFlow", 30);

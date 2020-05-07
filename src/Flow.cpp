@@ -149,9 +149,6 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&tcp_seq_s2d, 0, sizeof(tcp_seq_s2d)), memset(&tcp_seq_d2s, 0, sizeof(tcp_seq_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 
-  if(!iface->isPacketInterface())
-    last_update_time.tv_sec = (long)first_seen;
-
   if(iface->isPacketInterface() && !iface->isSampledTraffic()) {
     cli2srvPktTime = new (std::nothrow) InterarrivalStats();
     srv2cliPktTime = new (std::nothrow) InterarrivalStats();
@@ -1385,9 +1382,6 @@ void Flow::updateThroughputStats(float tdiff_msec,
 				 u_int32_t diff_sent_packets, u_int64_t diff_sent_bytes, u_int64_t diff_sent_goodput_bytes,
 				 u_int32_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes, u_int64_t diff_rcvd_goodput_bytes) {
   if(tdiff_msec >= 1000 /* Do not update when less than 1 second (1000 msec) */) {
-    u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
-    u_int64_t diff_pkts  = diff_sent_packets + diff_rcvd_packets;
-
     // bps
     float bytes_msec_cli2srv         = ((float)(diff_sent_bytes*1000))/tdiff_msec;
     float bytes_msec_srv2cli         = ((float)(diff_rcvd_bytes*1000))/tdiff_msec;
@@ -1416,9 +1410,11 @@ void Flow::updateThroughputStats(float tdiff_msec,
       else if(goodput_bytes_thpt > goodput_bytes_msec) goodput_bytes_thpt_trend = trend_down;
       else                                             goodput_bytes_thpt_trend = trend_stable;
 
-      if(false)
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
-				     bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
+#if DEBUG_TREND
+      u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
+				   bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
+#endif
 
       // update the old values with the newly calculated ones
       bytes_thpt_cli2srv         = bytes_msec_cli2srv;
@@ -1466,9 +1462,11 @@ void Flow::updateThroughputStats(float tdiff_msec,
       pkts_thpt = pkts_msec;
       if(top_pkts_thpt < pkts_thpt) top_pkts_thpt = pkts_thpt;
 
-      if(false)
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
-				     pkts_msec, tdiff_msec, diff_pkts, pkts_thpt);
+#if DEBUG_TREND
+      u_int64_t diff_pkts = diff_sent_packets + diff_rcvd_packets;
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
+				   pkts_msec, tdiff_msec, diff_pkts, pkts_thpt);
+#endif
 
     }
   }
@@ -1548,7 +1546,9 @@ void Flow::periodic_stats_update(void *user_data) {
     }
   } /* Closes if(cli_host && srv_host) */
 
-  if(last_update_time.tv_sec > 0) {
+  /* Non-Packet interfaces (e.g., ZMQ) have flow throughput stats updated as soon as the flow is received.
+     This makes throughput more precise as it is averaged on a timespan which is last-first switched. */
+  if(iface->isPacketInterface() && last_update_time.tv_sec > 0) {
     float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
     updateThroughputStats(tdiff_msec,
 			  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
@@ -2603,17 +2603,35 @@ void Flow::addFlowStats(bool new_flow,
   if(!(in_bytes || out_bytes || in_pkts || out_pkts))
     return;
 
+  double thp_delta_time;
+
+  if(new_flow)
+    /* Average between last and first seen */
+    thp_delta_time = difftime(last_seen, first_seen);
+  else
+    /* Average of the latest update, that is between the new and the previous last_seen */
+    thp_delta_time = difftime(last_seen, get_last_seen());
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][bytes : %u][thpt: %.2f]",
+			       first_seen, last_seen,
+			       get_last_seen(),
+			       last_seen - first_seen,
+			       last_seen - get_last_seen(),
+			       in_bytes + out_bytes,
+			       ((in_bytes + out_bytes) / thp_delta_time) / 1024 / 1024 * 8);
+#endif
+
   updateSeen(last_seen);
 
-  /*
-    If the flow is new, the throughput is updated roughly by estimating
-    the average throughput between first and last seen. This prevents
+   /*
+    The throughput is updated roughly by estimating
+    the average throughput. This prevents
     having flows with seemingly zero throughput.
-  */
-  if(new_flow)
-    updateThroughputStats((last_seen - first_seen) * 1000,
-			  in_pkts, in_bytes, 0,
-			  out_pkts, out_bytes, 0);
+   */
+  updateThroughputStats(thp_delta_time * 1000,
+			in_pkts, in_bytes, 0,
+			out_pkts, out_bytes, 0);
 
   if(cli2srv_direction) {
     stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);

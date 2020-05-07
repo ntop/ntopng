@@ -461,8 +461,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 	       f->getStatsProtocol(), f->get_protocol_category(),
 	       f->get_protocol(),
 	       partials.get_srv2cli_bytes() + partials.get_cli2srv_bytes(),
-	       partials.get_srv2cli_packets() + partials.get_cli2srv_packets(),
-	       24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
+	       partials.get_srv2cli_packets() + partials.get_cli2srv_packets());
     }
   }
 }
