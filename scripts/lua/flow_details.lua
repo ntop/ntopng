@@ -879,7 +879,8 @@ else
 	    end
 	 end
 
-	 if(ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_tls_certificate_mismatch.status_key)) then
+	 if((flow_consts.status_types.status_tls_certificate_mismatch ~= nil)
+	    and ntop.bitmapIsSet(flow["status_map"], flow_consts.status_types.status_tls_certificate_mismatch.status_key)) then
 	    print("\n<br><i class=\"fas fa-exclamation-triangle fa-lg\" style=\"color: #f0ad4e;\"></i> <b><font color=\"#f0ad4e\">"..i18n("flow_details.certificates_not_match").."</font></b>")
 	 end
       end
