@@ -286,6 +286,8 @@ Flow::~Flow() {
     if(protos.tls.ja3.server_hash)     free(protos.tls.ja3.server_hash);
     if(protos.tls.client_alpn)                   free(protos.tls.client_alpn);
     if(protos.tls.client_tls_supported_versions) free(protos.tls.client_tls_supported_versions);
+    if(protos.tls.issuerDN)  free(protos.tls.issuerDN);
+    if(protos.tls.subjectDN) free(protos.tls.subjectDN);
   }
 
   if(bt_hash)                free(bt_hash);
@@ -466,6 +468,12 @@ void Flow::processExtraDissectedInformation() {
 	 && (ndpiFlow->protos.stun_ssl.ssl.tls_supported_versions != NULL))
 	protos.tls.client_tls_supported_versions = strdup(ndpiFlow->protos.stun_ssl.ssl.tls_supported_versions);
 
+      if((protos.tls.issuerDN == NULL) && (ndpiFlow->protos.stun_ssl.ssl.issuerDN != NULL))
+	protos.tls.issuerDN= strdup(ndpiFlow->protos.stun_ssl.ssl.issuerDN);
+
+      if((protos.tls.subjectDN == NULL) && (ndpiFlow->protos.stun_ssl.ssl.subjectDN != NULL))
+	protos.tls.subjectDN= strdup(ndpiFlow->protos.stun_ssl.ssl.subjectDN);
+      
       if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
 	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
 	updateCliJA3();
@@ -4305,6 +4313,12 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 
     if(protos.tls.client_tls_supported_versions)
       lua_push_str_table_entry(vm, "protos.tls.client_tls_supported_versions", protos.tls.client_tls_supported_versions);
+
+    if(protos.tls.issuerDN)
+      lua_push_str_table_entry(vm, "protos.tls.issuerDN", protos.tls.issuerDN);
+
+    if(protos.tls.subjectDN)
+      lua_push_str_table_entry(vm, "protos.tls.subjectDN", protos.tls.subjectDN);
 
     if(protos.tls.client_requested_server_name)
       lua_push_str_table_entry(vm, "protos.tls.client_requested_server_name",

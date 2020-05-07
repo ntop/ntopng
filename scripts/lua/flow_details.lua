@@ -901,22 +901,32 @@ else
       print(formatEpoch(flow["protos.tls.notAfter"]))
       print("</td></tr>\n")
    end
+
+   if(flow["protos.tls.issuerDN"] ~= nil) then
+      print('<tr><th width=30%>TLS issuerDN</A></th><td colspan=2>'..flow["protos.tls.issuerDN"]..'</td></tr>\n')
+   end
+   
+   if(flow["protos.tls.subjectDN"] ~= nil) then
+      print('<tr><th width=30%>TLS subjectDN</A></th><td colspan=2>'..flow["protos.tls.subjectDN"]..'</td></tr>\n')
+   end
    
    if((flow["protos.tls.ja3.client_hash"] ~= nil) or (flow["protos.tls.ja3.server_hash"] ~= nil)) then
       print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
       if(flow["protos.tls.ja3.client_malicious"]) then
         print('<i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
       end
+
       ja3url(flow["protos.tls.ja3.client_hash"], nil)
       print("</td><td>")
       if(flow["protos.tls.ja3.server_malicious"]) then
         print('<i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
       end
+      
       ja3url(flow["protos.tls.ja3.server_hash"], flow["protos.tls.ja3.server_unsafe_cipher"])
       --print(cipher2str(flow["protos.tls.ja3.server_cipher"]))
       print("</td></tr>")
    end
-
+   
    if(flow["protos.tls.client_alpn"] ~= nil) then
       print('<tr><th width=30%><a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation" data-toggle="tooltip" title="ALPN">TLS ALPN</A></th><td colspan=2>'..flow["protos.tls.client_alpn"]..'</td></tr>\n')
    end

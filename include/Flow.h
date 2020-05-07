@@ -146,7 +146,7 @@ class Flow : public GenericHashEntry {
     struct {
       u_int16_t tls_version;
       u_int32_t notBefore, notAfter;
-      char *client_alpn, *client_tls_supported_versions;
+      char *client_alpn, *client_tls_supported_versions, *issuerDN, *subjectDN;
       char *client_requested_server_name, *server_names;
       /* Certificate dissection */
       struct {
