@@ -142,43 +142,8 @@ elseif(action == "edit") then
       am_utils.deleteHost(old_am_host, old_measurement) -- also calls discardHostTimeseries
       am_utils.addHost(host, measurement, threshold, granularity)
    else
-      -- The key is the same, only update the value/granularity
-      if(old_granularity ~= granularity) then
-	 -- Need to discard the old timeseries as the granularity has changed
-	 am_utils.discardHostTimeseries(host, measurement)
-      end
-
-      am_utils.addHost(host, measurement, threshold, granularity)
-
-      local m_info = am_utils.getMeasurementInfo(measurement)
-      local last_update = am_utils.getLastAmUpdate(host, measurement)
-
-      if m_info and last_update then
-	 -- Recheck the threshold
-	 local key = am_utils.getAmHostKey(host, measurement)
-	 local value = last_update.value
-	 threshold = tonumber(threshold)
-
-	 -- NOTE: system interface must be manually sected and then unselected
-	 local old_iface = tostring(interface.getId())
-	 interface.select(getSystemInterfaceId())
-
-	 -- Drop the hour stats if the threshold has changed
-	 if(existing.threshold ~= threshold) then
-	    am_utils.dropHourStats(key)
-	 end
-
-	 -- Always release the old alert because:
-	 --  - If the granularity has changed, since the alert is bound to a specific granularity, it must be released
-	 --  - If the threshold has changed, we want to change the threshold in the alert message (if engaged)
-	 am_utils.releaseAlert(last_update.ip, key, value, threshold, old_granularity)
-
-	 if am_utils.hasExceededThreshold(threshold, m_info.operator, value) then
-	    am_utils.triggerAlert(last_update.ip, key, value, threshold, granularity)
-	 end
-
-	 interface.select(old_iface)
-      end
+      -- The key is the same, only update its settings
+      am_utils.editHost(host, measurement, threshold, granularity)
    end
 
    rv.message = i18n("active_monitoring_stats.host_edit_ok", {host=old_url})
