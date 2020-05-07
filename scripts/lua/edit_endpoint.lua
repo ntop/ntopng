@@ -18,6 +18,11 @@ end
 
 sendHTTPContentTypeHeader('application/json')
 
+if (not isAdministrator()) then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "The user doesn't have the privileges to edit a notification endpoint!")
+    reportError("The user doesn't have the privileges to edit a notification endpoint!")
+end
+
 if (action == nil) then
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'action' parameter. Bad CSRF?")
   reportError("Missing 'action' parameter. Bad CSRF?")
@@ -34,10 +39,6 @@ elseif (action == "edit") then
     response.result = notification_endpoints.edit_config(endpoint_conf_name, _POST)
 elseif (action == "remove") then
     response.result = notification_endpoints.delete_config(endpoint_conf_name)
-else
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid 'action' parameter.")
-    response.success = false
-    response.message = "Invalid 'action' parameter."
 end
 
 print(json.encode(response))
