@@ -15,7 +15,7 @@
                             <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>:
                         </label>
                         <div class="col-sm-5">
-                            <input maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="recipient-name-input">
+                            <input pattern=".*\S+.*" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="recipient-name-input">
                         </div>
                     </div>
                     <div class="form-group row">
