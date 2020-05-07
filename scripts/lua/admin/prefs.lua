@@ -1335,7 +1335,7 @@ function printSnmp()
   local t_values = {"0", "1"}
 
   multipleTableButtonPrefs(subpage_active.entries["default_snmp_proto_version"].title, subpage_active.entries["default_snmp_proto_version"].description,
-			   t_labels, t_values, "0", "primary", "default_snmp_version", "ntopng.prefs.default_snmp_version", disabled)
+			   t_labels, t_values, "1", "primary", "default_snmp_version", "ntopng.prefs.default_snmp_version", disabled)
 
   prefsInputFieldPrefs(subpage_active.entries["default_snmp_community"].title, subpage_active.entries["default_snmp_community"].description,
 		       "ntopng.prefs.",
