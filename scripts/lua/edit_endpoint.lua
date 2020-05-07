@@ -24,19 +24,16 @@ if (action == nil) then
   return
 end
 
-local json_data = _POST["JSON"]
-local data = json.decode(json_data)
-
-local response = {
-    csrf = ntop.getRandomCSRFValue()
-}
+local endpoint_conf_name = _POST["endpoint_conf_name"]
+local response = {}
 
 if (action == "add") then
-    response.result = notification_endpoints.add_config(data.type, data.name, data.conf_params)
+    local endpoint_conf_type = _POST["endpoint_conf_type"]
+    response.result = notification_endpoints.add_config(endpoint_conf_type, endpoint_conf_name, _POST)
 elseif (action == "edit") then
-    response.result = notification_endpoints.edit_config(data.name, data.conf_params)
+    response.result = notification_endpoints.edit_config(endpoint_conf_name, _POST)
 elseif (action == "remove") then
-    response.result = notification_endpoints.delete_config(data.name)
+    response.result = notification_endpoints.delete_config(endpoint_conf_name)
 else
     traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid 'action' parameter.")
     response.success = false
