@@ -165,6 +165,15 @@ extern void lua_push_bool_table_entry(lua_State *L, const char *key, bool value)
  */
 extern void lua_push_float_table_entry(lua_State *L, const char *key, float value);
 
+/**
+ * @brief Push boolean value to table entry specify the key.
+ * 
+ * @param L The lua state.
+ * @param key The key of hash table.
+ * @param value The value of hash table.
+ */
+extern void lua_push_bool_table_entry(lua_State *L, const char *key, bool value);
+
 int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
 
 void get_host_vlan_info(char* lua_ip, char** host_ip, u_int16_t* vlan_id, char *buf, u_int buf_len);

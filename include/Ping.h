@@ -33,6 +33,7 @@ class Ping {
   pthread_t resultPoller;
   Mutex m;
   std::map<std::string /* IP */, float /* RTT */> results_v4, results_v6;
+  std::map<std::string /* IP */, bool> pinged;
   
   u_int16_t checksum(void *b, int len);
   void setOpts(int fd);

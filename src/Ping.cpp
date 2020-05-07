@@ -184,15 +184,18 @@ int Ping::ping(char *_addr, bool use_v6) {
 		 (struct sockaddr*)&addr,
 		 sizeof(addr));
 
-#ifdef TRACE_PING
   if(res == -1)
     /* NOTE: This also happens when network is unreachable */
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to send ping [address: %s][v6: %u][reason: %s]",
 				 _addr, use_v6 ? 1 : 0, strerror(errno));
-  else
+  else {
+#ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging [address: %s][v6: %u]", _addr, use_v6 ? 1 : 0);
 #endif
-  
+
+    pinged[std::string(_addr)] = true;
+  }
+    
   return res;
 }
 
@@ -293,15 +296,22 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 
 void Ping::collectResponses(lua_State* vm, bool v6) {
   std::map<std::string /* IP */, float /* RTT */> *results = v6 ? &results_v6 : &results_v4;
+
   lua_newtable(vm);
-
+  
   m.lock(__FILE__, __LINE__);
-
-  for(std::map<std::string,float>::const_iterator it=results->begin(); it!=results->end(); ++it) {
+  
+  for(std::map<std::string,float>::const_iterator it = results->begin(); it != results->end(); ++it) {
     if(it->first.c_str()[0])
       lua_push_float_table_entry(vm, it->first.c_str(), it->second);
+    
+    pinged.erase(it->first);
   }
 
+  for(std::map<std::string,bool>::const_iterator it = pinged.begin(); it != pinged.end(); ++it)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "No response received from %s", it->first.c_str());
+  
+  pinged.clear();
   results->clear();
 
   m.unlock(__FILE__, __LINE__);

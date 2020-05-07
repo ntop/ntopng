@@ -129,11 +129,17 @@ void ContinuousPing::ping(char *_addr, bool use_v6) {
 void ContinuousPing::pingAll() {
   time_t last_beat, topurge = time(NULL) - 90 /* sec */;
   bool todiscard = false;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__);
   
   m.lock(__FILE__, __LINE__);
 
+  pinged.clear();
+  
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
     pinger->ping((char*)it->first.c_str(), false);
+    pinged[it->first] = true;
+    
     last_beat = it->second->getLastHeartbeat();
 
     if((last_beat > 0) && (last_beat < topurge))
@@ -147,6 +153,7 @@ void ContinuousPing::pingAll() {
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it) {
     pinger->ping((char*)it->first.c_str(), true);
+    pinged[it->first] = true;
     last_beat = it->second->getLastHeartbeat();
 
     if((last_beat > 0) && (last_beat < topurge))
@@ -169,6 +176,8 @@ void ContinuousPing::pingAll() {
 void ContinuousPing::readPingResults() {
   m.lock(__FILE__, __LINE__);
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__);
+  
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
     float f = pinger->getRTT(it->first.c_str(), false /* v6 */);
 
@@ -177,7 +186,7 @@ void ContinuousPing::readPingResults() {
 #endif
 
     if(f != -1)
-      it->second->update(f);
+      it->second->update(f), pinged.erase(it->first);
     else {
       it->second->incSent();
 #ifdef TRACE_PING_DROPS
@@ -194,7 +203,7 @@ void ContinuousPing::readPingResults() {
 #endif
 
     if(f != -1)
-      it->second->update(f);
+      it->second->update(f), pinged.erase(it->first);
     else {
       it->second->incSent();
 #ifdef TRACE_PING_DROPS
@@ -239,7 +248,23 @@ void ContinuousPing::collectResponses(lua_State* vm, bool v6) {
   m.lock(__FILE__, __LINE__);
 
   collectProtoResponse(vm, v6 ? &v6_results : &v4_results);
+
+  lua_newtable(vm);
+
+  for(std::map<std::string,bool>::const_iterator it = pinged.begin(); it != pinged.end(); ++it) {
+#ifdef TRACE_PING
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing ping response for %s", it->first.c_str());
+#endif
+    
+    lua_push_bool_table_entry(vm, (const char*)it->first.c_str(), true); 
+  }
   
+  lua_pushstring(vm, "no_response");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  pinged.clear();
+    
   m.unlock(__FILE__, __LINE__);
 }
 
