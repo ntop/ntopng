@@ -3,17 +3,15 @@ $(document).ready(function () {
     function makeFormData(formSelector) {
 
         const $inputsTemplate = $(`${formSelector} .endpoint-template-container [name]`);
-        const templateParams = {};
+        const params = {
+            endpoint_conf_name: $(`${formSelector} [name='name']`).val(),
+            endpoint_conf_type: $(`${formSelector} [name='type']`).val(),
+        };
         $inputsTemplate.each(function(i, input){
-            templateParams[$(this).attr('name')] = $(this).val();
+            params[$(this).attr('name')] = $(this).val();
         });
 
-        return {
-            name: $(`${formSelector} [name='name']`).val(),
-            type: $(`${formSelector} [name='type']`).val(),
-            conf_params: templateParams
-        }
-
+        return params;
     }
 
     function createTemplateOnSelect(formSelector) {
@@ -101,10 +99,9 @@ $(document).ready(function () {
             endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
             csrf: pageCsrf,
             beforeSumbit: function () {
-                return {
-                    action: 'edit',
-                    JSON: JSON.stringify(makeFormData(`#edit-endpoint-modal form`))
-                };
+                const body = makeFormData(`#edit-endpoint-modal form`);
+                body.action = 'edit';
+                return body;
             },
             loadFormData: function () {
                 return rowData;
@@ -134,10 +131,9 @@ $(document).ready(function () {
         endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
         csrf: pageCsrf,
         beforeSumbit: function () {
-            return {
-                action: 'add',
-                JSON: JSON.stringify(makeFormData(`#add-endpoint-modal form`))
-            };
+            const body = makeFormData(`#add-endpoint-modal form`);
+            body.action = 'add';
+            return body;
         },
         onModalInit: function() {
             createTemplateOnSelect(`#add-endpoint-modal`);
@@ -163,8 +159,8 @@ $(document).ready(function () {
             beforeSumbit: () => {
                 return {
                     action: 'remove',
-                    JSON: JSON.stringify({name: $(`#remove-endpoint-modal form [name='endpoint_conf_name']`).val()})
-                }
+                    endpoint_conf_name: $(`#remove-endpoint-modal form [name='endpoint_conf_name']`).val()
+                };
             },
             loadFormData: () => rowData.endpoint_conf_name,
             onModalInit: function (data) {

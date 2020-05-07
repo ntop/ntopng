@@ -1240,6 +1240,16 @@ local known_parameters = {
    ["confset_name"]            = validateUnquoted,
    ["confset_targets"]         = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
 
+-- NOTIFICATIONS ENDPOINT
+   ["recipient_name"]         = validateUnquoted,
+   ["endpoint_conf_name"]     = validateUnquoted,
+   ["endpoint_conf_type"]     = validateUnquoted,
+   ["smtp_server_name"]       = validateUnquoted,
+   ["sender"]                 = validateUnquoted,
+   ["cc"]                     = validateUnquoted,
+   ["to"]                     = validateUnquoted,
+
+
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
    ["__"]                      = validateUnquoted,              -- see LDAP prefs page

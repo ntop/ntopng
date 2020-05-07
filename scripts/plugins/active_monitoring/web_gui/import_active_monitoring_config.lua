@@ -9,7 +9,7 @@ require "lua_utils"
 local json = require ("dkjson")
 local page_utils = require("page_utils")
 local plugins_utils = require("plugins_utils")
-local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 local json = require ("dkjson")
 
@@ -45,12 +45,17 @@ end
 
 -- ################################################
 
-active_monitoring_utils.resetConfig()
+local old_hosts = am_utils.getHosts(true --[[ config only ]])
 
 for host_key, conf in pairs(data) do
-  host = active_monitoring_utils.key2host(host_key)
+  -- TODO Validate the configuration
+  local host = am_utils.key2host(host_key)
 
-  active_monitoring_utils.addHost(host.host, host.measurement, conf.threshold, conf.granularity)
+  if old_hosts[host_key] then
+    am_utils.editHost(host.host, host.measurement, conf.threshold, conf.granularity)
+  else
+    am_utils.addHost(host.host, host.measurement, conf.threshold, conf.granularity)
+  end
 end
 
 -- ################################################

@@ -699,4 +699,53 @@ end
 
 -- ##############################################
 
+function am_utils.editHost(host, measurement, threshold, granularity)
+  local existing = am_utils.getHost(host, measurement)
+
+  if(existing == nil) then
+    return(false)
+  end
+
+  if(existing.granularity ~= granularity) then
+    -- Need to discard the old timeseries as the granularity has changed
+    am_utils.discardHostTimeseries(host, measurement)
+  end
+
+  am_utils.addHost(host, measurement, threshold, granularity)
+
+  local m_info = am_utils.getMeasurementInfo(measurement)
+  local last_update = am_utils.getLastAmUpdate(host, measurement)
+
+  if m_info and last_update then
+    -- Recheck the threshold
+    local key = am_utils.getAmHostKey(host, measurement)
+    local value = last_update.value
+    threshold = tonumber(threshold)
+
+    -- Drop the hour stats if the threshold has changed
+    if(existing.threshold ~= threshold) then
+       am_utils.dropHourStats(key)
+    end
+
+    if((existing.granularity ~= granularity) or (existing.threshold ~= threshold)) then
+      -- NOTE: system interface must be manually sected and then unselected
+      local old_iface = tostring(interface.getId())
+      interface.select(getSystemInterfaceId())
+
+      -- Recheck the alerts
+      am_utils.releaseAlert(last_update.ip, key, value, threshold, old_granularity)
+
+      if am_utils.hasExceededThreshold(threshold, m_info.operator, value) then
+        am_utils.triggerAlert(last_update.ip, key, value, threshold, granularity)
+      end
+
+      interface.select(old_iface)
+    end
+  end
+
+  return(true)
+end
+
+-- ##############################################
+
 return am_utils
