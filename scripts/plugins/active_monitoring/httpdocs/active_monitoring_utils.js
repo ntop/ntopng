@@ -234,8 +234,7 @@ $(document).ready(function() {
     }
 
     const create_hours_heatmap = (td, data) => {
-
-        const squareLength = 10, squareHeight = 20;
+        const squareLength = 7, squareHeight = 20;
         const colors = ['#d3d3d3', '#28a745', '#f00', '#ffc107'];
         const $svg = $(td).find('svg');
 	    const this_hour = new Date().getHours();
@@ -509,7 +508,7 @@ $(document).ready(function() {
                 sortable: false,
                 render: function(data, type) {
                     if (type == 'display') {
-                        return `<svg width='288' height='20' viewBox='0 0 288 20'></svg>`;
+                        return `<svg width='220' height='20' viewBox='0 0 220 20'></svg>`;
                     }
                     return data;
                 },
