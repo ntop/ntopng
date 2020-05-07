@@ -5,7 +5,7 @@ $(document).ready(function () {
         const $inputsTemplate = $(`${formSelector} .recipient-template-container [name]`);
         const params = {};
         $inputsTemplate.each(function(i, input){
-            params[$(this).attr('name')] = $(this).val();
+            params[$(this).attr('name')] = $(this).val().trim();
         });
 
         params.recipient_name = $(`${formSelector} [name='name']`).val();

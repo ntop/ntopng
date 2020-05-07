@@ -8,7 +8,7 @@ $(document).ready(function () {
             endpoint_conf_type: $(`${formSelector} [name='type']`).val(),
         };
         $inputsTemplate.each(function(i, input){
-            params[$(this).attr('name')] = $(this).val();
+            params[$(this).attr('name')] = $(this).val().trim();
         });
 
         return params;

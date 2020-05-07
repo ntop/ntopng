@@ -1244,10 +1244,8 @@ local known_parameters = {
    ["recipient_name"]         = validateUnquoted,
    ["endpoint_conf_name"]     = validateUnquoted,
    ["endpoint_conf_type"]     = validateUnquoted,
-   ["smtp_server_name"]       = validateUnquoted,
-   ["sender"]                 = validateUnquoted,
-   ["cc"]                     = validateUnquoted,
-   ["to"]                     = validateUnquoted,
+   ["cc"]                     = validateEmptyOr(validateSingleWord),
+
 
 
 -- OTHER
