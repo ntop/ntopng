@@ -804,3 +804,12 @@ function serializeFormArray(serializedArray) {
   });
   return serialized;
 }
+
+function cleanForm(formSelector) {
+  /* remove validation fields and tracks */
+  $(formSelector).find('input,select,textarea').each(function(i, input) {
+    $(this).removeClass(`is-valid`).removeClass(`is-invalid`);
+  });
+  /* reset all the values */
+  $(formSelector)[0].reset();
+}

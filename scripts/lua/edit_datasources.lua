@@ -13,7 +13,7 @@ local http_lint = require("http_lint")
 local action = _POST["action"]
 
 local function reportError(msg)
-    print(json.encode({ message = msg, success = false, csrf = ntop.getRandomCSRFValue() }))
+    print(json.encode({ message = msg, success = false}))
 end
 
 sendHTTPContentTypeHeader('application/json')
@@ -29,7 +29,6 @@ local data = json.decode(json_data)
 
 
 local response = {
-    csrf = ntop.getRandomCSRFValue()
 }
 
 if (action == "add") then

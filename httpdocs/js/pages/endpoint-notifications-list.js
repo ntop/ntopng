@@ -97,7 +97,6 @@ $(document).ready(function () {
         $('#edit-endpoint-modal form').modalHandler({
             method: 'post',
             endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
-            csrf: pageCsrf,
             beforeSumbit: function () {
                 const body = makeFormData(`#edit-endpoint-modal form`);
                 body.action = 'edit';
@@ -129,8 +128,13 @@ $(document).ready(function () {
     $(`#add-endpoint-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
-        csrf: pageCsrf,
+        resetAfterSubmit: false,
         beforeSumbit: function () {
+
+            $(`#add-endpoint-modal form button[type='submit']`).click(function() {
+                $(`#add-endpoint-modal form span.invalid-feedback`).hide();
+            });
+
             const body = makeFormData(`#add-endpoint-modal form`);
             body.action = 'add';
             return body;
@@ -139,11 +143,20 @@ $(document).ready(function () {
             createTemplateOnSelect(`#add-endpoint-modal`);
         },
         onSubmitSuccess: function (response) {
+
             if (response.result.status == "OK") {
                 $(`#add-endpoint-modal`).modal('hide');
                 $(`#add-endpoint-modal form .endpoint-template-container`).hide();
+                cleanForm(`#add-endpoint-modal form`);
                 $endpointsTable.ajax.reload();
+                return;
             }
+
+            if (response.result.error) {
+                const localizedString = i18n[response.result.error.type];
+                $(`#add-endpoint-modal form span.invalid-feedback`).text(localizedString).show();
+            }
+
         }
     });
 
@@ -155,7 +168,6 @@ $(document).ready(function () {
         $(`#remove-endpoint-modal form`).modalHandler({
             method: 'post',
             endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
-            csrf: pageCsrf,
             beforeSumbit: () => {
                 return {
                     action: 'remove',

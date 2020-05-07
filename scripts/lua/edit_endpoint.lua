@@ -13,7 +13,7 @@ local notification_endpoints = require("notification_endpoints")
 local action = _POST["action"]
 
 local function reportError(msg)
-    print(json.encode({ message = msg, success = false, csrf = ntop.getRandomCSRFValue() }))
+    print(json.encode({ message = msg, success = false, }))
 end
 
 sendHTTPContentTypeHeader('application/json')

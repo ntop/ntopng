@@ -21,7 +21,7 @@ local measurement = _POST["measurement"]
 local rv = {}
 
 local function reportError(msg)
-   print(json.encode({ error = msg, success = false, csrf = ntop.getRandomCSRFValue() }))
+   print(json.encode({ error = msg, success = false}))
 end
 
 local function isValidHostMeasurementCombination(host, measurement)
@@ -165,5 +165,4 @@ end
 -- ################################################
 
 rv.success = true
-rv.csrf = ntop.getRandomCSRFValue()
 print(json.encode(rv))

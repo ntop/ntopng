@@ -11,7 +11,7 @@ local widgets_utils = require("widgets_utils")
 local http_lint = require("http_lint")
 
 local function reportError(msg)
-    print(json.encode({ message = msg, success = false, csrf = ntop.getRandomCSRFValue() }))
+    print(json.encode({ message = msg, success = false }))
 end
 
 local function format_params(data)
@@ -40,7 +40,6 @@ local data = json.decode(json_data)
 local params = format_params(data)
 
 local response = {
-    csrf = ntop.getRandomCSRFValue()
 }
 
 if (action == "add") then

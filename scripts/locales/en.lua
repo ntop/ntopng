@@ -1003,6 +1003,7 @@ local lang = {
     ["add_new_recipient"] = "Add New Recipient",
     ["create_endpoint_first"] = "Please create a notification endpoint first!",
     ["edit_endpoint"] = "Edit Endpoint",
+    ["endpoint_config_already_existing"] = "There is already a config with that name!",
     ["endpoint_list"] = "Notifications Endpoint List",
     ["enpoint_recipients_list"] = "Recipients Endpoint List",
     ["name"] = "Endpoint Name",

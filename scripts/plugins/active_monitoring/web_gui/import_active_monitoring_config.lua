@@ -23,7 +23,6 @@ if not haveAdminPrivileges() then
 end
 
 local result = {}
-result.csrf = ntop.getRandomCSRFValue()
 
 sendHTTPContentTypeHeader('application/json')
 

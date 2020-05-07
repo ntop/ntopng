@@ -34,7 +34,7 @@
                     <div style="display: none;" class="endpoint-template-container border-top pt-2">
 
                     </div>
-                    <span class="invalid-feedback"></span>
+                    <span class="invalid-feedback invalid-data-response"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
