@@ -2,14 +2,13 @@ $(document).ready(function () {
 
     class TimeserieSourceBuilder {
 
-	constructor() {
+        constructor() {
             this.counter = 0;
             this.currentSources = [];
-	    
             this.MIN_SOURCE_COUNTER = 1;
             this.MAX_SOURCE_COUNTER = 4;
-	}
-	
+        }
+
         canCreateSource() {
             return (this.currentSources.length <= this.MAX_SOURCE_COUNTER);
         }
@@ -121,7 +120,7 @@ $(document).ready(function () {
             }
         }
 
-        generateSelectOptions($select, values) {
+        generateSelectOptions($select, values, generateEmpty = true) {
 
             const generateOption = (val, label, disabled = false) => {
                 const $option = $(`<option value ${disabled ? 'disabled hidden selected' : ''}>${label}</option>`);
@@ -134,7 +133,7 @@ $(document).ready(function () {
             /* clean all the options */
             $select.find('option').remove();
 
-            generateOption(undefined, '', true);
+            if (generateEmpty) generateOption(undefined, '', true);
 
             if (values.length > 0) {
                 for (const val of values) generateOption(val, val);
@@ -165,7 +164,7 @@ $(document).ready(function () {
             /* render only schema which belongs to the selected family */
             const schema = this.timeseriesFamilies[this.$familiesSelect.val()][this.$schemasSelect.val()];
             const { metrics, tags } = schema;
-            this.generateSelectOptions(this.$metricsSelect, metrics);
+            this.generateSelectOptions(this.$metricsSelect, metrics, false);
             if (!this.preCreated) this.generateTags(tags);
 
             this.steps[1].fadeIn();
@@ -306,7 +305,6 @@ $(document).ready(function () {
         $('#edit-datasource-modal form').modalHandler({
             method: 'post',
             endpoint: `${http_prefix}/lua/edit_datasources.lua`,
-            csrf: edit_csrf,
             beforeSumbit: function () {
                 return {
                     action: 'edit',
@@ -355,7 +353,6 @@ $(document).ready(function () {
     $(`#add-datasource-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_datasources.lua`,
-        csrf: add_csrf,
         beforeSumbit: function () {
             return {
                 action: 'add',
@@ -381,7 +378,6 @@ $(document).ready(function () {
         $(`#remove-datasource-modal form`).modalHandler({
             method: 'post',
             endpoint: `${http_prefix}/lua/edit_datasources.lua`,
-            csrf: remove_csrf,
             beforeSumbit: () => {
                 return {
                     action: 'remove',
