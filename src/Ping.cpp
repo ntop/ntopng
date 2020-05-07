@@ -29,8 +29,6 @@
 
 #define PACKETSIZE	64
 
-/* #define PING_DEBUG */
-
 /* ****************************************** */
 
 struct ping_packet {
@@ -38,7 +36,7 @@ struct ping_packet {
   char msg[PACKETSIZE-sizeof(struct ndpi_icmphdr)];
 };
 
-// #define TRACE_PING 1
+#define TRACE_PING 1
 
 /* ****************************************** */
 
@@ -134,10 +132,6 @@ int Ping::ping(char *_addr, bool use_v6) {
   u_int i;
   struct timeval *tv;
   ssize_t res;
-
-#ifdef TRACE_PING
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s, v6: %u)", __FUNCTION__, _addr, use_v6 ? 1 : 0);
-#endif
   
   if(hname == NULL)
     return(-1);
@@ -190,10 +184,14 @@ int Ping::ping(char *_addr, bool use_v6) {
 				 _addr, use_v6 ? 1 : 0, strerror(errno));
   else {
 #ifdef TRACE_PING
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging [address: %s][v6: %u]", _addr, use_v6 ? 1 : 0);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging [address: %s][echo id: %u][v6: %u]",
+				 _addr, pckt.hdr.un.echo.id, use_v6 ? 1 : 0);
 #endif
 
-    pinged[std::string(_addr)] = true;
+    if(use_v6)
+      pinged_v6[std::string(_addr)] = true;
+    else
+      pinged_v4[std::string(_addr)] = true;
   }
     
   return res;
@@ -257,7 +255,12 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
  }
 
 #ifdef TRACE_PING
- ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__);
+ ntop->getTrace()->traceEvent(TRACE_NORMAL, "Handling response [%s][overflow: %u][echo id: %u][ping_id: %u][cnt: %u]",
+			      ip ? "ipv4" : "ipv6",
+			      overflow ? 1 : 0,
+			      icmp->un.echo.id,
+			      ping_id,
+			      cnt);
 #endif
  
  if((ip && (icmp->type != ICMP_ECHOREPLY))
@@ -284,8 +287,8 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
       results_v6[std::string(h)] = rtt;
     }
 
-#ifdef PING_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s: %.3f msec", h, rtt);
+#ifdef TRACE_PING
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Response received [%s]", h);
 #endif
     
     m.unlock(__FILE__, __LINE__);
@@ -296,7 +299,7 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 
 void Ping::collectResponses(lua_State* vm, bool v6) {
   std::map<std::string /* IP */, float /* RTT */> *results = v6 ? &results_v6 : &results_v4;
-
+  std::map<std::string /* IP */, bool> *pinged = v6 ? &pinged_v6 : &pinged_v4;
   lua_newtable(vm);
   
   m.lock(__FILE__, __LINE__);
@@ -305,13 +308,13 @@ void Ping::collectResponses(lua_State* vm, bool v6) {
     if(it->first.c_str()[0])
       lua_push_float_table_entry(vm, it->first.c_str(), it->second);
     
-    pinged.erase(it->first);
+    pinged->erase(it->first);
   }
 
-  for(std::map<std::string,bool>::const_iterator it = pinged.begin(); it != pinged.end(); ++it)
+  for(std::map<std::string,bool>::const_iterator it = pinged->begin(); it != pinged->end(); ++it)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "No response received from %s", it->first.c_str());
   
-  pinged.clear();
+  pinged->clear();
   results->clear();
 
   m.unlock(__FILE__, __LINE__);
