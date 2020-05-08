@@ -198,8 +198,6 @@ $(document).ready(function() {
         $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
         .then((data, result, xhr) => {
 
-            // always update the token
-            am_csrf = data.csrf;
             $(`form#am-${action}-modal button[type='submit']`).removeAttr("disabled");
             $('#am-alert').addClass('alert-success').removeClass('alert-danger');
 
