@@ -211,9 +211,14 @@ for ip,name in pairs(ip_to_name) do
 end
 
 -- Also look at the DHCP cache
-local mac_to_name = ntop.getHashAllCache(getDhcpNamesKey(getInterfaceId(ifname))) or {}
-for mac, name in pairs(mac_to_name) do
-   if string.contains(string.lower(name), string.lower(query)) then
+local key_prefix_offset = string.len(getDhcpNameKey(getInterfaceId(ifname), "")) + 1
+local mac_to_name = ntop.getKeysCache(getDhcpNameKey(getInterfaceId(ifname), "*")) or {}
+
+for k in pairs(mac_to_name) do
+   local mac = string.sub(k, key_prefix_offset)
+   local name = ntop.getCache(k)
+
+   if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
       res[mac] = hostVisualization(mac, name)
    end
 end

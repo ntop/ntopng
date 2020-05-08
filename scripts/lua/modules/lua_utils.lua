@@ -1278,8 +1278,8 @@ end
 
 -- ##############################################
 
-function getDhcpNamesKey(ifid)
-   return "ntopng.dhcp."..ifid..".cache"
+function getDhcpNameKey(ifid, mac)
+   return string.format("ntopng.dhcp.%d.cache.%s", ifid, mac)
 end
 
 -- ##############################################
@@ -1344,7 +1344,7 @@ function mac2label(mac)
       return(alt_name)
    end
 
-   alt_name = ntop.getHashCache(getDhcpNamesKey(interface.getId()), mac)
+   alt_name = ntop.getCache(getDhcpNameKey(interface.getId(), mac))
 
    if not isEmptyString(alt_name) and (alt_name ~= mac) then
       return(alt_name)

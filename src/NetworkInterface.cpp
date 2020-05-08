@@ -1465,8 +1465,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	      client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
 	      ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
 
-	      snprintf(key, sizeof(key), DHCP_CACHE, get_id());
-	      ntop->getRedis()->hashSet(key, client_mac, name);
+	      snprintf(key, sizeof(key), DHCP_CACHE, get_id(), client_mac);
+	      ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
 
 	      if((payload_cli_mac = getMac(&payload[28], false /* Do not create if missing */, true /* Inline call */)))
 		payload_cli_mac->inlineSetDHCPName(name);

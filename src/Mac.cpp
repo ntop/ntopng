@@ -429,9 +429,9 @@ void Mac::readDHCPCache() {
   if(!names.dhcp && !isNull()) {
     Utils::formatMac(get_mac(), mac_str, sizeof(mac_str));
 
-    snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id());
+    snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id(), mac_str);
 
-    if(ntop->getRedis()->hashGet(key, mac_str, buf, sizeof(buf)) == 0) {
+    if(ntop->getRedis()->get(key, buf, sizeof(buf)) == 0) {
       names.dhcp = strdup(buf);
     }
   }

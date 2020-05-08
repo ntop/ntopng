@@ -188,6 +188,11 @@ if(ntop.getCache("ntopng.cache.rrd_category_migration") ~= "1") then
    ntop.setCache("ntopng.cache.rrd_category_migration", "1")
 end
 
+-- Clear the unused DHCP cache keys
+for ifid, ifname in pairs(delete_data_utils.list_all_interfaces()) do
+   ntop.delCache("ntopng.dhcp."..ifid..".cache")
+end
+
 if(has_pcap_dump_interface) then
   -- Load the lists at the very beginning in order to avoid misclassification
   -- when reading from PCAP dump. This can take some time.

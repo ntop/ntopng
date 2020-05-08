@@ -78,7 +78,7 @@ local function delete_host_redis_keys(interface_id, host_info)
       serialized_k = string.format("ntopng.serialized_macs.ifid_%d__%s", interface_id, host_info["host"])
       devnames_k = string.format("ntopng.cache.devnames.%s", host_info["host"])
       devtypes_k = string.format("ntopng.prefs.device_types.%s", host_info["host"])
-      dhcp_k = getDhcpNamesKey(interface_id)
+      dhcp_k = getDhcpNameKey(interface_id, host_info["host"])
    end
 
    if not dry_run then
@@ -86,7 +86,7 @@ local function delete_host_redis_keys(interface_id, host_info)
       if devnames_k   then ntop.delCache(devnames_k) end
       if devtypes_k   then ntop.delCache(devtypes_k) end
       if dns_k        then ntop.delCache(dns_k) end
-      if dhcp_k       then ntop.delHashCache(dhcp_k, host_info["host"]) end
+      if dhcp_k       then ntop.delCache(dhcp_k) end
       if drop_k       then ntop.delHashCache(drop_k, hostkey) end
       if label_k      then ntop.delHashCache(label_k, hostkey) end
    end
