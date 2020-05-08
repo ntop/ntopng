@@ -318,9 +318,11 @@ void Ping::collectResponses(lua_State* vm, bool v6) {
     pinged->erase(it->first);
   }
 
+#ifdef TRACE_PING
   for(std::map<std::string,bool>::const_iterator it = pinged->begin(); it != pinged->end(); ++it)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "No response received from %s", it->first.c_str());
-  
+#endif  
+
   pinged->clear();
   results->clear();
 
