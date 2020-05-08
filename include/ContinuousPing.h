@@ -30,7 +30,7 @@ class ContinuousPing {
  private:
   std::map<std::string /* IP */, ContinuousPingStats* /* stats */> v4_results, v6_results;
   std::vector<std::string /* IP */> inactiveHostsV4, inactiveHostsV6;
-  std::map<std::string /* IP */, bool> pinged;
+  std::map<std::string /* IP */, bool> v4_pinged, v6_pinged;
   Ping *pinger;
   pthread_t poller;
   Mutex m;

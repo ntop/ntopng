@@ -43,7 +43,7 @@ struct ping_packet {
 static void* resultPollerFctn(void* ptr) {
   Utils::setThreadName("PingLoop");
 
-  ((Ping*)ptr)->pollResults(2 /* sec */);
+  ((Ping*)ptr)->pollResults();
   return(NULL);
 }
 
@@ -188,10 +188,14 @@ int Ping::ping(char *_addr, bool use_v6) {
 				 _addr, pckt.hdr.un.echo.id, use_v6 ? 1 : 0);
 #endif
 
+    m.lock(__FILE__, __LINE__);
+
     if(use_v6)
       pinged_v6[std::string(_addr)] = true;
     else
       pinged_v4[std::string(_addr)] = true;
+
+    m.unlock(__FILE__, __LINE__);
   }
     
   return res;
@@ -199,15 +203,16 @@ int Ping::ping(char *_addr, bool use_v6) {
 
 /* ****************************************** */
 
-void Ping::pollResults(u_int8_t max_wait_time_sec) {
+void Ping::pollResults() {
   int bytes, fd_max = max(sd, sd6);
   fd_set mask;
-  struct timeval wait_time = { 1, 0 };
-  time_t now = time(NULL), max_time;
+  static struct timeval wait_time = { 1, 0 };
 
-  max_time = now + max_wait_time_sec;
-  
-  while(now < max_time) {
+#ifdef TRACE_PING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started polling...");
+#endif
+
+  while(running) {
     FD_ZERO(&mask);
     if(sd != -1)  FD_SET(sd, &mask);
     if(sd6 != -1) FD_SET(sd6, &mask);
@@ -231,9 +236,11 @@ void Ping::pollResults(u_int8_t max_wait_time_sec) {
 	handleICMPResponse(buf, bytes, NULL, &addr.sin6_addr);
       }
     }
-
-    now = time(NULL);
   }
+			       
+#ifdef TRACE_PING
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "... polling done");
+#endif
 }
 
 /* ****************************************************** */
@@ -345,9 +352,18 @@ float Ping::getRTT(std::string who, bool v6) {
 
 void Ping::cleanup() {
   m.lock(__FILE__, __LINE__);
-  results_v4.clear();
-  results_v6.clear();
+
+  /* Clear any received result so far */
+  results_v4.clear(),
+    results_v6.clear();
+
+  /* Clear also any outstanding request without response */
+  pinged_v4.clear(),
+    pinged_v6.clear();
+
+  /* Start over with a new ping id */
   ping_id = rand(), cnt = 0;
+
   m.unlock(__FILE__, __LINE__);
 }
 

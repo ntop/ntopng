@@ -25,7 +25,7 @@
 
 /* #define TRACE_PING_DROPS */
 
-/* #define TRACE_PING */
+// #define TRACE_PING
 
 /*
   Usage example (minute.lua):
@@ -136,11 +136,14 @@ void ContinuousPing::pingAll() {
   
   m.lock(__FILE__, __LINE__);
 
-  pinged.clear();
+  pinger->cleanup();
+
+  v4_pinged.clear(),
+    v6_pinged.clear();
   
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
     pinger->ping((char*)it->first.c_str(), false);
-    pinged[it->first] = true;
+    v4_pinged[it->first] = true;
     
     last_beat = it->second->getLastHeartbeat();
 
@@ -155,7 +158,7 @@ void ContinuousPing::pingAll() {
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it) {
     pinger->ping((char*)it->first.c_str(), true);
-    pinged[it->first] = true;
+    v6_pinged[it->first] = true;
     last_beat = it->second->getLastHeartbeat();
 
     if((last_beat > 0) && (last_beat < topurge))
@@ -190,7 +193,7 @@ void ContinuousPing::readPingResults() {
 #endif
 
     if(f != -1)
-      it->second->update(f), pinged.erase(it->first);
+      it->second->update(f), v4_pinged.erase(it->first);
     else {
       it->second->incSent();
 #ifdef TRACE_PING_DROPS
@@ -207,7 +210,7 @@ void ContinuousPing::readPingResults() {
 #endif
 
     if(f != -1)
-      it->second->update(f), pinged.erase(it->first);
+      it->second->update(f), v6_pinged.erase(it->first);
     else {
       it->second->incSent();
 #ifdef TRACE_PING_DROPS
@@ -247,6 +250,7 @@ void ContinuousPing::collectProtoResponse(lua_State* vm, std::map<std::string,Co
 /* ***************************************** */
 
 void ContinuousPing::collectResponses(lua_State* vm, bool v6) {
+  std::map<std::string /* IP */, bool> * pinged = v6 ? &v6_pinged : &v4_pinged;
   lua_newtable(vm);
 
   m.lock(__FILE__, __LINE__);
@@ -255,7 +259,7 @@ void ContinuousPing::collectResponses(lua_State* vm, bool v6) {
 
   lua_newtable(vm);
 
-  for(std::map<std::string,bool>::const_iterator it = pinged.begin(); it != pinged.end(); ++it) {
+  for(std::map<std::string,bool>::const_iterator it = pinged->begin(); it != pinged->end(); ++it) {
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing ping response for %s", it->first.c_str());
 #endif
@@ -267,8 +271,8 @@ void ContinuousPing::collectResponses(lua_State* vm, bool v6) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  pinged.clear();
-    
+  pinged->clear();
+
   m.unlock(__FILE__, __LINE__);
 }
 
@@ -326,9 +330,11 @@ void ContinuousPing::runPingCampaign() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting ping campaign");
 #endif
 
-    pinger->cleanup();
+    /* Send out pings... */
     pingAll();
-    pinger->pollResults(2);
+    /* Allow a couple of seconds for results to come back... */
+    sleep(2);
+    /* Collect ping results */
     readPingResults();
   }
 
