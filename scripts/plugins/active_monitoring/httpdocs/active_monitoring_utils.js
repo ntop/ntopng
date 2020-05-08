@@ -295,7 +295,7 @@ $(document).ready(function() {
         for (let filter of filters) {
 
             const $entry = createEntry(filter.label, filter.key, (e) => {
-                table_api.column(column_index).search(filter.regex, true).draw(true);
+                table_api.column(column_index).search(filter.regex, true, false).draw();
             });
             $menuContainer.append($entry);
         }
@@ -336,7 +336,7 @@ $(document).ready(function() {
             filters.push({
                 key: measurement,
                 label: `${measurements_info[measurement].label} (${count})`,
-                regex: `${measurement}\:\/\/`
+                regex: `^(${measurement}://).+`
             });
         }
 
@@ -445,7 +445,7 @@ $(document).ready(function() {
             {
                 data: 'url',
 		        render: function(href, type, row) {
-                    if (type === 'display' || type === 'filter') {
+                    if (type === 'display') {
                         if (href == "" || href == undefined) return "";
 			                if(row.alerted) {
 			                    return ` ${href} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
