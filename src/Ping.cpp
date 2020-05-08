@@ -36,7 +36,7 @@ struct ping_packet {
   char msg[PACKETSIZE-sizeof(struct ndpi_icmphdr)];
 };
 
-#define TRACE_PING 1
+// #define TRACE_PING 1
 
 /* ****************************************** */
 
