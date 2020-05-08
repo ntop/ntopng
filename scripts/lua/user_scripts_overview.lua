@@ -102,7 +102,7 @@ print([[
                         <tr>
                             <th>]].. i18n("plugins_overview.script") ..[[</th>
                             <th>]].. i18n("plugins_overview.type") ..[[</th>
-                            <th>]].. i18n("plugins_overview.availability") ..[[</th>
+                            <th>]].. i18n("availability") ..[[</th>
                             <th>]].. i18n("plugins_overview.hooks") ..[[</th>
                             <th>]].. i18n("plugins_overview.filters") ..[[</th>
                             <th>]].. i18n("action") ..[[</th>
@@ -169,7 +169,7 @@ print([[
                 const types = [... new Set(table.columns(1).data()[0].flat())];
                 const availability = [... new Set(table.columns(2).data()[0].flat())];
 
-                addFilterDropdown(']].. i18n("plugins_overview.availability") ..[[', availability, 2, "#user-scripts_filter", table);
+                addFilterDropdown(']].. i18n("availability") ..[[', availability, 2, "#user-scripts_filter", table);
                 addFilterDropdown(']].. i18n("plugins_overview.type") ..[[', types, 1, "#user-scripts_filter", table);
             },
             pageLength: 25,

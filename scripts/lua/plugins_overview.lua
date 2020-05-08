@@ -35,7 +35,7 @@ local function printPlugins()
   local plugins = plugins_utils.getLoadedPlugins()
 
   print[[<table class="table table-bordered table-sm table-striped">
-    <tr><th width="20%">]] print(i18n("plugins_overview.plugin")) print[[</th><th>]] print(i18n("show_alerts.alert_description")) print[[</th><th>]] print(i18n("plugins_overview.source_location")) print[[</th><th width="10%">]] print(i18n("plugins_overview.availability")) print[[</th></tr>]]
+    <tr><th width="20%">]] print(i18n("plugins_overview.plugin")) print[[</th><th>]] print(i18n("show_alerts.alert_description")) print[[</th><th>]] print(i18n("plugins_overview.source_location")) print[[</th><th width="10%">]] print(i18n("availability")) print[[</th></tr>]]
 
   for _, plugin in pairsByField(plugins, "title", asc) do
     local available = ""

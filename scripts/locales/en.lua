@@ -20,6 +20,7 @@ local lang = {
   ["as"] = "AS",
   ["as_number"] = "AS number",
   ["asn"] = "ASN",
+  ["availability"] = "Availability",
   ["available"] = "Available",
   ["backup"] = "Backup",
   ["begin"] = "Begin",
