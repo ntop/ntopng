@@ -23,7 +23,8 @@ local function createPotentiallyDangerous(alert_severity, tls_version, tls_info)
 	 ["tls_crt.cli"] = client_cn,
 	 ["tls_crt.srv"] = server_cn,
 	 ["tls_crt.notBefore"] = tls_info["protos.tls.notBefore"],
-	 ["tls_crt.notAfter"] = tls_info["protos.tls.notAfter"],
+	 ["tls_crt.notAfter"]  = tls_info["protos.tls.notAfter"],
+	 ["tls_crt.issuerDN"]  = tls_info["protos.tls.issuerDN"] or "",
 	 ["tls_crt.now"] = os.time(),
 	 ["cli_ja3_signature"] = tls_info["protos.tls.ja3.client_hash"],
       }

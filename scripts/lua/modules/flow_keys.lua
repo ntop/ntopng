@@ -34,6 +34,7 @@ local flow_keys = {
       status_tls_unsafe_ciphers           = 25,
       status_udp_unidirectional           = 26,
       status_web_mining_detected          = 27,
+      status_tls_certificate_selfsigned   = 28,
       -- Add here additional flow statuses when writing ntopng plugins.
       -- User plugins should use statuses under key user.
       -- WARNING: no not overlap with user; MAXIMUM status is 58 unless
