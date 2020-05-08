@@ -371,7 +371,7 @@ $(document).ready(function() {
             }
         ]
 
-        const ALERTED_COLUMN_INDEX = 8;
+        const ALERTED_COLUMN_INDEX = 7;
         addFilterDropdown(i18n.alert_status, filters, ALERTED_COLUMN_INDEX, "#am-table_filter", table_api);
     }
 
