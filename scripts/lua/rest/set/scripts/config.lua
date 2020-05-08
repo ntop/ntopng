@@ -27,8 +27,6 @@ sendHTTPHeader('application/json')
 
 local result = {}
 
-result.csrf = ntop.getRandomCSRFValue()
-
 -- ################################################
 
 if(_POST["JSON"] == nil) then

@@ -600,7 +600,7 @@ print[[
   $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
   $('#updates-install-li').hide();
 
-  var updates_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
+  const updates_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
 
   /* Install latest update */
   var installUpdate = function() {
@@ -617,7 +617,6 @@ print[[
           csrf: updates_csrf
         },
         success: function(rsp) {
-          updates_csrf = rsp.csrf;
           $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
           $('#updates-install-li').hide();
           $('#admin-badge').hide();
@@ -636,7 +635,6 @@ print[[
         search: 'true'
       },
       success: function(rsp) {
-        updates_csrf = rsp.csrf;
         $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
         $('#updates-install-li').hide();
         $('#admin-badge').hide();
@@ -1080,7 +1078,7 @@ if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
 
  print[[
   <script type="text/javascript">
-   let restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
+   const restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
    let restartService = function() {
      if (confirm(']] print(i18n("restart.confirm", {product=info.product})) print[[')) {
        $.ajax({
@@ -1090,7 +1088,6 @@ if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
            csrf: restart_csrf
          },
          success: function(rsp) {
-           restart_csrf = rsp.csrf;
            alert("]] print(i18n("restart.restarting", {product=info.product})) print[[");
          }
        });

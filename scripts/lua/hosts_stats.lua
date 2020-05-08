@@ -520,7 +520,7 @@ if (_GET["page"] ~= "historical") then
    if(have_nedge) then
       print[[
 <script>
-  var block_host_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+  const block_host_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
   function block_host(host_key, host_url) {
     var url = "]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/toggle_block_host.lua?" + host_url;
@@ -533,7 +533,6 @@ if (_GET["page"] ~= "historical") then
       },
       success: function(content) {
         var data = jQuery.parseJSON(content);
-        block_host_csrf = data.csrf;
         if (data.status == "BLOCKED") {
           $('#'+host_key+'_info').find('.block-badge')
             .removeClass('badge-secondary').addClass('badge-danger');

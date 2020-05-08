@@ -158,7 +158,7 @@ if not info.oem then
 	print([[
 		$(document).ready(function() {
 
-			let csrf_notification = "]].. ntop.getRandomCSRFValue() ..[[";
+			const csrf_notification = "]].. ntop.getRandomCSRFValue() ..[[";
 			function blogNotifcationClick(e) {
 
 				if (e.type == "mousedown" && (e.metaKey || e.ctrlKey || e.which !== 2)) return;
@@ -183,7 +183,6 @@ if not info.oem then
 						}
 						$('.notification-bell').html(count);
 					}
-					csrf_notification = data.csrf;
 				});
 			}
 

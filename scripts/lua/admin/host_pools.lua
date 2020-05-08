@@ -476,7 +476,7 @@ print(
 
 print[[
   <script>
-    let import_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
+    const import_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
 
     $('#import-modal-btn').on("click", function(e) {
 
@@ -522,8 +522,6 @@ print[[
                                 $("#import-error").text("]] print(i18n("request_failed_message")) print [[" + xhr.statusText).show();
                             if (!d.success) {
                                 $("#import-error").text(d.error).show();
-                                // update token
-                                import_csrf = d.csrf;
                             } else {
                                 location.reload();
                             }

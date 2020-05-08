@@ -617,8 +617,6 @@ if am_utils and am_utils.isMeasurementAvailable('icmp') then
                   $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
                   .then((data, result, xhr) => {
 
-                     // always update the token
-                     am_csrf = data.csrf;
                      const $alert_message = $('<div class="alert"></div>');
                      if (data.success) {
                         $alert_message.addClass('alert-success').text(data.message);

@@ -16,6 +16,6 @@ end
 
 ntop.serviceRestart()
 
-res = { csrf = ntop.getRandomCSRFValue() }
+res = { }
 
 print(json.encode(res, nil, 1))

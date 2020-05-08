@@ -22,5 +22,4 @@ if (isNoLoginUser()) then username = 'no_login' end
 
 print(json.encode({
     success = blog_utils.updatePostState(tonumber(blog_notification_id), username),
-    csrf = ntop.getRandomCSRFValue()
 }))

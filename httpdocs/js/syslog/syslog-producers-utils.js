@@ -99,8 +99,6 @@ $(document).ready(function() {
         $.post(`${http_prefix}/lua/enterprise/edit_syslog_producer.lua`, data_to_send)
         .then((data, result, xhr) => {
 
-            // always update the token
-            syslog_producers_csrf = data.csrf;
             $(`form#syslog-producers-${action}-modal button[type='submit']`).removeAttr("disabled");
             $('#syslog-producers-alert').addClass('alert-success').removeClass('alert-danger');
 

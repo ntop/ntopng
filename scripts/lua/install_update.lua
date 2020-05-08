@@ -18,6 +18,6 @@ local upgrade_request_key = "ntopng.updates.run_upgrade"
 
 ntop.setCache(upgrade_request_key, "1", 600)
 
-res = { csrf = ntop.getRandomCSRFValue() }
+res = { }
 
 print(json.encode(res, nil, 1))

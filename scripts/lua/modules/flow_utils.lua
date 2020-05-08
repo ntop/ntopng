@@ -1395,7 +1395,6 @@ function printBlockFlowJs()
       success: function(content) {
         var data = jQuery.parseJSON(content);
         var row_id = flow_key + "_" + flow_hash_id;
-        block_flow_csrf = data.csrf;
         if (data.status == "BLOCKED") {
           $('#'+row_id+'_info').find('.block-badge')
             .removeClass('badge-secondary')

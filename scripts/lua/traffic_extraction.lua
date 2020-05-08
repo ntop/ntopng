@@ -43,7 +43,6 @@ else
 
     res.id = job_info.id
   end
-  res.csrf = ntop.getRandomCSRFValue()
 end
 
 print(json.encode(res))
