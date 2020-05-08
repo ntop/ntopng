@@ -1350,7 +1350,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     break;
   case NDPI_PROTOCOL_NETBIOS:
     if(cli_host) {
-      if(protos.netbios.name) cli_host->set_host_label(protos.netbios.name, true);
+      if(protos.netbios.name) cli_host->offlineSetNetbiosName(protos.netbios.name);
     }
     break;
   case NDPI_PROTOCOL_IP_ICMP:

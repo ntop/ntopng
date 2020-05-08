@@ -132,34 +132,6 @@ void Host::housekeepAlerts(ScriptPeriodicity p) {
 
 /* *************************************** */
 
-void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
-  if(label_name) {
-    char buf[64], buf1[64], *host = ip.print(buf, sizeof(buf));
-
-    host_label_set = true;
-
-    if(ignoreIfPresent
-       && (!ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, host, buf1, (u_int)sizeof(buf1)) /* Found into redis */
-       && (buf1[0] != '\0') /* Not empty */ ))
-      return;
-    else
-      ntop->getRedis()->hashSet((char*)HOST_LABEL_NAMES, host, label_name);
-  }
-}
-
-/* *************************************** */
-
-char *Host::get_host_label(char * const buf, ssize_t buf_size) {
-  char ip_buf[64], *host = ip.print(ip_buf, sizeof(ip_buf));
-
-  if(ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, host, buf, buf_size) != 0)
-    buf[0] = '\0';
-
-  return buf;
-}
-
-/* *************************************** */
-
 void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   char buf[64];
 
@@ -189,8 +161,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   active_alerted_flows = 0;
 
   flow_alert_counter = NULL;
-  nextResolveAttempt = 0, mdns_info = NULL;
-  host_label_set = false;
+  nextResolveAttempt = 0;
   vlan_id = _vlanId % MAX_NUM_VLAN,
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
@@ -363,6 +334,9 @@ void Host::lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_siz
 
   getResolvedName(buf, buf_size);
   if(buf[0]) lua_push_str_table_entry(vm, "resolved", buf);
+
+  getNetbiosName(buf, buf_size);
+  if(buf[0]) lua_push_str_table_entry(vm, "netbios", buf);
 
   if(isBroadcastDomainHost() && cur_mac) {
     cur_mac->getDHCPName(buf, buf_size);
@@ -660,7 +634,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
        the actual, original interface the host is associated to. */
     lua_push_uint64_table_entry(vm, "ifid", iface->get_id());
     if(!mask_host)
-      luaStrTableEntryLocked(vm, "info", mdns_info); /* locked to protect against data-reset changes */
+      luaStrTableEntryLocked(vm, "info", names.mdns_info); /* locked to protect against data-reset changes */
 
     lua_get_names(vm, buf, sizeof(buf));
 
@@ -741,6 +715,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 
   num_resolve_attempts++;
 
+  /* Most relevant names goes first */
   if(isBroadcastDomainHost()) {
     Mac *cur_mac = getMac(); /* Cache it as it can change */
     if (cur_mac) {
@@ -750,16 +725,24 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
     }
   }
 
-  getMDNSName(name_buf, sizeof(name_buf));
-  if(strlen(name_buf))
+  getMDNSTXTName(name_buf, sizeof(name_buf));
+  if(name_buf[0])
     goto out;
 
-  getMDNSTXTName(name_buf, sizeof(name_buf));
-  if(strlen(name_buf))
+  getMDNSName(name_buf, sizeof(name_buf));
+  if(name_buf[0])
+    goto out;
+
+  getMDNSInfo(name_buf, sizeof(name_buf));
+  if(name_buf[0])
+    goto out;
+
+  getNetbiosName(name_buf, sizeof(name_buf));
+  if(name_buf[0])
     goto out;
 
   getResolvedName(name_buf, sizeof(name_buf));
-  if(strlen(name_buf))
+  if(name_buf[0])
     goto out;
 
   if(!skip_resolution) {
@@ -776,6 +759,21 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
  out:
   snprintf(buf, buf_len, "%s", name_buf);
   return(buf);
+}
+
+/* ***************************************** */
+
+/* Retrieve the host label. This should only be used to store persistent
+ * information from C. In lua use hostinfo2label instead. */
+char * Host::get_host_label(char * const buf, ssize_t buf_len) {
+  /* Try to get a label first */
+  char ip_buf[64], *host = ip.print(ip_buf, sizeof(ip_buf));
+
+  if(ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, host, buf, buf_len) != 0)
+    /* Not found, use the internal names instead */
+    get_name(buf, buf_len, false /* don't resolve */);
+
+  return buf;
 }
 
 /* ***************************************** */
@@ -809,6 +807,30 @@ char * Host::getMDNSTXTName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
     m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", names.mdns_txt ? names.mdns_txt : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return buf;
+}
+
+/* ***************************************** */
+
+char * Host::getMDNSInfo(char * const buf, ssize_t buf_len) {
+  if(buf && buf_len) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.mdns_info ? names.mdns_info : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return buf;
+}
+
+/* ***************************************** */
+
+char * Host::getNetbiosName(char * const buf, ssize_t buf_len) {
+  if(buf && buf_len) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.netbios ? names.netbios : "");
     m.unlock(__FILE__, __LINE__);
   }
 
@@ -1217,7 +1239,7 @@ void Host::offlineSetMDNSInfo(char * const str) {
     NULL
   };
 
-  if(mdns_info || !str)
+  if(names.mdns_info || !str)
     return; /* Already set */
 
   if(strstr(str, ".ip6.arpa"))
@@ -1234,8 +1256,7 @@ void Host::offlineSetMDNSInfo(char * const str) {
 	}
 
 	/* Time to set the actual info */
-	mdns_info = cur_info;
-	set_host_label(mdns_info, true);
+	names.mdns_info = cur_info;
       }
 
       return;
@@ -1261,6 +1282,13 @@ void Host::offlineSetMDNSName(const char * const mdns_n) {
 
 void Host::offlineSetMDNSTXTName(const char * const mdns_n_txt) {
   if(!names.mdns_txt && mdns_n_txt && (names.mdns_txt = strdup(mdns_n_txt)))
+    ;
+}
+
+/* *************************************** */
+
+void Host::offlineSetNetbiosName(const char * const netbios_n) {
+  if(!names.netbios && netbios_n && (names.netbios = strdup(netbios_n)))
     ;
 }
 
@@ -1390,11 +1418,12 @@ void Host::checkBroadcastDomain() {
 /* *************************************** */
 
 void Host::freeHostNames() {
-  if(mdns_info)      { free(mdns_info); mdns_info = NULL;           }
   if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;     }
   if(names.mdns)     { free(names.mdns); names.mdns = NULL;         }
+  if(names.mdns_info){ free(names.mdns_info); names.mdns_info = NULL; }
   if(names.mdns_txt) { free(names.mdns_txt); names.mdns_txt = NULL; }
   if(names.resolved) { free(names.resolved); names.resolved = NULL; }
+  if(names.netbios)  { free(names.netbios); names.netbios = NULL;   }
 }
 
 /* *************************************** */
@@ -1418,7 +1447,6 @@ void Host::checkNameReset() {
 
 void Host::deleteHostData() {
   resetHostNames();
-  host_label_set = false;
   first_seen = last_seen;
 }
 
