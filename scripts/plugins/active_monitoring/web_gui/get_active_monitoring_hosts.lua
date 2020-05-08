@@ -58,12 +58,12 @@ for key, am_host in pairs(am_hosts) do
 
     if(column_last_value == nil) then
       chart = ""
+    end
+
+    if am_utils.hasAlerts(am_host) then
+       alerted = 1
     else
-      if am_utils.hasExceededThreshold(am_host.threshold, m_info.operator, column_last_value) then
-	alerted = 1
-      else
-	alerted = 0
-      end
+       alerted = 0
     end
 
     if last_update and last_update.jitter and last_update.mean and (last_update.jitter > 0 or last_update.mean > 0) then

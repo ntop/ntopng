@@ -657,6 +657,30 @@ end
 
 -- ##############################################
 
+-- @brief Checks if the `am_host` passed as parameter has alerts engaged
+--        `am_host` is one of the hosts obtained with `am_utils.getHosts()`
+-- @return True if the host has engaged alerts, false otherwise
+function am_utils.hasAlerts(am_host)
+   local alert_utils = require "alert_utils"
+   local am_key = am_utils.getAmHostKey(am_host.host, am_host.measurement)
+   local entity_info = alerts_api.amThresholdCrossEntity(am_key)
+
+   -- Active Monitored hosts alerts stay in the system interface,
+   -- so there's currenty need to temporarily select it
+   local old_ifid = interface.getId()
+   interface.select(getSystemInterfaceId())
+
+   local num_engaged_alerts = alert_utils.getNumAlerts("engaged", {
+							  entity = entity_info.alert_entity.entity_id,
+							  entity_val = entity_info.alert_entity_val })
+
+   interface.select(tostring(old_ifid))
+
+   return num_engaged_alerts > 0
+end
+
+-- ##############################################
+
 function am_utils.hasExceededThreshold(threshold, operator, value)
   operator = operator or "gt"
 
