@@ -6,7 +6,7 @@
 -- This module implements the ICMP probe.
 --
 
-local do_trace = true
+local do_trace = false
 
 -- #################################################################
 
