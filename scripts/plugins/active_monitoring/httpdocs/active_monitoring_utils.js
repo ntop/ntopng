@@ -491,18 +491,6 @@ $(document).ready(function() {
                 }
             },
             {
-                data: 'availability',
-                className: 'text-center',
-                render: function(data, type, row) {
-                    if(type === 'display' || type === 'filter') {
-                        return Math.round(row.availability) + " %";
-                    }
-
-                    // The raw data must be returned here for sorting
-                    return(data);
-                }
-            },
-            {
                 data: 'hours',
                 className: 'text-center dt-head-center',
                 sortable: false,
