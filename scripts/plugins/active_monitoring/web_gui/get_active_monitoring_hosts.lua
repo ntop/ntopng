@@ -66,7 +66,7 @@ for key, am_host in pairs(am_hosts) do
       end
     end
 
-    if last_update and last_update.jitter and last_update.mean then
+    if last_update and last_update.jitter and last_update.mean and (last_update.jitter > 0 or last_update.mean > 0) then
 	local jitter_unit = ""
 
 	if m_info.i18n_jitter_unit then
