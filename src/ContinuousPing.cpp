@@ -44,7 +44,7 @@ static void* pollerFctn(void* ptr) {
 
   Utils::setThreadName("ContinuousPingLoop");
 
-  while(!ntop->getGlobals()->isShutdown())
+  while(!ntop->getGlobals()->isShutdownRequested())
     cp->runPingCampaign();
 
 #ifdef TRACE_PING
@@ -76,6 +76,8 @@ ContinuousPing::~ContinuousPing() {
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it)
     delete it->second;
+
+  pthread_join(poller, NULL);
 
   delete pinger;
 }
@@ -325,7 +327,7 @@ void ContinuousPing::cleanupInactiveHosts() {
 /* ***************************************** */
 
 void ContinuousPing::runPingCampaign() {
-  if(ntop->isStarted() && (v4_results.size() || v6_results.size())) {
+  if(v4_results.size() || v6_results.size()) {
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting ping campaign");
 #endif
@@ -334,6 +336,8 @@ void ContinuousPing::runPingCampaign() {
     pingAll();
     /* Allow a couple of seconds for results to come back... */
     sleep(2);
+    /* Make sure there was no shutdown request signal during the sleep */
+    if(ntop->getGlobals()->isShutdownRequested()) return;
     /* Collect ping results */
     readPingResults();
   }
