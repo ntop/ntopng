@@ -130,7 +130,9 @@ void ContinuousPing::pingAll() {
   time_t last_beat, topurge = time(NULL) - 90 /* sec */;
   bool todiscard = false;
 
+#ifdef TRACE_PING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__);
+#endif
   
   m.lock(__FILE__, __LINE__);
 
@@ -176,7 +178,9 @@ void ContinuousPing::pingAll() {
 void ContinuousPing::readPingResults() {
   m.lock(__FILE__, __LINE__);
 
+#ifdef TRACE_PING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s()", __FUNCTION__);
+#endif
   
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
     float f = pinger->getRTT(it->first.c_str(), false /* v6 */);
