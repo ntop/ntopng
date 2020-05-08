@@ -2745,20 +2745,7 @@ static int ntop_get_resolved_address(lua_State* vm) {
   else
     snprintf(value, sizeof(value), "%s", tmp);
 
-#if 0
-  if(!strcmp(value, key)) {
-    char rsp[64];
-
-    if((ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, key, rsp, sizeof(rsp)) == 0)
-       && (rsp[0] !='\0'))
-      lua_pushfstring(vm, "%s", rsp);
-    else
-      lua_pushfstring(vm, "%s", value);
-  } else
-    lua_pushfstring(vm, "%s", value);
-#else
   lua_pushfstring(vm, "%s", value);
-#endif
 
   return(CONST_LUA_OK);
 }

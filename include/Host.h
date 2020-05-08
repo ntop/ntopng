@@ -46,13 +46,14 @@ class Host : public GenericHashEntry, public AlertableEntity {
   
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
-    char * mdns, * mdns_txt;
-    char * resolved; /* The name as resolved by ntopng DNS requests */
+    char *mdns /* name from a MDNS reply of any type */,
+    *mdns_txt /* name from a TXT MDNS reply after "nm=" field (most accurate) */,
+    *mdns_info /* name from a TXT MDNS reply */;
+    char *resolved; /* The name as resolved by ntopng DNS requests */
+    char *netbios; /* The Netbios name */
   } names;
 
-  char *mdns_info;
   char *ssdpLocation;
-  bool host_label_set;
   bool prefs_loaded;
   MudRecording mud_pref;
   /* END Host data: */
@@ -179,6 +180,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   char * getResolvedName(char * const buf, ssize_t buf_len);
   char * getMDNSName(char * const buf, ssize_t buf_len);
   char * getMDNSTXTName(char * const buf, ssize_t buf_len);
+  char * getMDNSInfo(char * const buf, ssize_t buf_len);
+  char * getNetbiosName(char * const buf, ssize_t buf_len);
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
@@ -255,9 +258,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_geoloc(lua_State *vm);
   
   void resolveHostName();
-  void set_host_label(char *label_name, bool ignoreIfPresent);
   char *get_host_label(char * const buf, ssize_t buf_size);
-  inline bool is_label_set() { return(host_label_set); };
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
   inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };
   void incStats(u_int32_t when, u_int8_t l4_proto,
@@ -346,6 +347,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void housekeepAlerts(ScriptPeriodicity p);
   virtual void inlineSetOSDetail(const char *detail) { }
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
+  void offlineSetNetbiosName(const char * const n);
   void offlineSetSSDPLocation(const char * const url);
   void offlineSetMDNSInfo(char * const s);
   void offlineSetMDNSName(const char * const n);
