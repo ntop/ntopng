@@ -207,7 +207,7 @@ else
   elif test -f "/usr/lib/libssl.so"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
     SSL_INC="-I/usr/include"
-    SSL_LIB="-L/usr/lib -lssl"
+    SSL_LIB="-L/usr/lib -lssl -lcrypto"
   else
     echo "Please install openssl-dev(el) package prerequisite"
     exit -1
