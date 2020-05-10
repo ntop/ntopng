@@ -2076,6 +2076,18 @@ local lang = {
     ["trace_debug_restored_host_info"] = "Restored Host Info",
     ["unknown_device_type"] = "Unknown Device Type",
   },
+  ["host_explorer_page"] = {
+    ["alerted_flows"] = "Alerted Flows",
+    ["all_flows"] = "All Flows",
+    ["dns_queries"] = "DNS Queries vs Replies",
+    ["misbehaving_flows"] = "Misbehaving Flows",
+    ["syn_distribution"] = "SYN Distribution",
+    ["syn_vs_rst"] = "SYN vs RST",
+    ["syn_vs_synack"] = "SYN vs SYNACK",
+    ["tcp_bytes_sent_vs_rcvd"] = "TCP Bytes Sent/Received",
+    ["tcp_pkts_sent_vs_rcvd"] = "TCP Packets Sent/Received",
+    ["unreach_flows"] = "Unreacheable Flows",
+  },
   ["host_pools"] = {
     ["active_pool_members"] = "Active pool members",
     ["alias_or_manufacturer"] = "Alias / Manufacturer",

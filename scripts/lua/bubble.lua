@@ -29,17 +29,17 @@ print([[
 
 
 local modes = {
-   { mode = 0, label = "All Flows" },
-   { mode = 1, label = "Unreacheable Flows" },
-   { mode = 2, label = "Misbehaving Flows" },
-   { mode = 3, label = "DNS Queries vs Replies" },
-   { mode = 4, label = "SYN Distribution" },
-   { mode = 5, label = "SYN vs RST" },
-   { mode = 6, label = "SYN vs SYNACK" },
-   { mode = 7, label = "TCP Packets Sent/Received" },
-   { mode = 8, label = "TCP Bytes Sent/Received" }
+   { mode = 0, label = i18n("host_explorer_page.all_flows") },
+   { mode = 1, label = i18n("host_explorer_page.unreach_flows") },
+   { mode = 2, label = i18n("host_explorer_page.misbehaving_flows") },
+   { mode = 3, label = i18n("host_explorer_page.dns_queries") },
+   { mode = 4, label = i18n("host_explorer_page.syn_distribution") },
+   { mode = 5, label = i18n("host_explorer_page.syn_vs_rst") },
+   { mode = 6, label = i18n("host_explorer_page.syn_vs_synack") },
+   { mode = 7, label = i18n("host_explorer_page.tcp_pkts_sent_vs_rcvd") },
+   { mode = 8, label = i18n("host_explorer_page.tcp_bytes_sent_vs_rcvd") },
+   { mode = 9, label = i18n("host_explorer_page.alerted_flows") }
 }
-
 
 local show_remote  = true
 local local_hosts  = { }
@@ -85,6 +85,9 @@ elseif(bubble_mode == 7) then
 elseif(bubble_mode == 8) then
    x_label = 'TCP Bytes Sent'
    y_label = 'TCP Bytes Received'
+elseif(bubble_mode == 9) then
+   x_label = 'Flows as Server'
+   y_label = 'Flows as Client'
 end
 
 function string.starts(String,Start)
@@ -96,8 +99,8 @@ function processHost(hostname, host)
 
    --io.write("================================\n")
    --io.write(hostname.."\n")
-   --tprint(host)
-
+   -- tprint(host)
+   
    local label = hostinfo2hostkey(host)
 
    if((label == nil) or (string.len(label) == 0) or string.starts(label, "@")) then label = hostname end
@@ -144,6 +147,10 @@ function processHost(hostname, host)
 	       r = stats["tcp.bytes.sent"]+stats["tcp.bytes.rcvd"] }
       -- io.write("--------------------------\n")
       -- tprint(host)
+   elseif(bubble_mode == 9) then
+      if(host["active_alerted_flows"] > 0) then
+	 line = { link = hostname, label = label, x = host["active_flows.as_server"], y = host["active_flows.as_client"], r = host["active_alerted_flows"] }
+      end
    end
 
    if(line ~= nil) then
