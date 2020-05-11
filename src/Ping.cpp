@@ -158,12 +158,12 @@ int Ping::ping(char *_addr, bool use_v6) {
     each connection must have a unique ID, otherwise some replies
     will not arrive.
   */
-  pckt.hdr.un.echo.id = ping_id + cnt;
+  pckt.hdr.un.echo.id = htons(ping_id + cnt);
 
   for(i = 0; i < sizeof(pckt.msg)-1; i++) pckt.msg[i] = i+'0';
   
   pckt.msg[i] = 0;
-  pckt.hdr.un.echo.sequence = cnt++;
+  pckt.hdr.un.echo.sequence = htons(cnt++);
   tv = (struct timeval*)pckt.msg;
   gettimeofday(tv, NULL);
 
@@ -180,12 +180,12 @@ int Ping::ping(char *_addr, bool use_v6) {
 
   if(res == -1)
     /* NOTE: This also happens when network is unreachable */
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to send ping [address: %s][v6: %u][reason: %s]",
-				 _addr, use_v6 ? 1 : 0, strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to send ping [pinger: %p][address: %s][v6: %u][reason: %s]",
+				 this, _addr, use_v6 ? 1 : 0, strerror(errno));
   else {
 #ifdef TRACE_PING
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging [address: %s][echo id: %u][v6: %u]",
-				 _addr, pckt.hdr.un.echo.id, use_v6 ? 1 : 0);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging [pinger: %p][address: %s][echo id: %u][sequence: %u][cnt: %u][v6: %u]",
+				 this, _addr, ntohs(pckt.hdr.un.echo.id), ntohs(pckt.hdr.un.echo.sequence), cnt, use_v6 ? 1 : 0);
 #endif
 
     m.lock(__FILE__, __LINE__);
@@ -247,40 +247,49 @@ void Ping::pollResults() {
 
 void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 			      struct in_addr *ip, struct in6_addr *ip6) {
-  struct ndpi_icmphdr *icmp;
-  struct ping_packet *pckt;
+  struct ndpi_icmphdr *icmp = NULL;
+  struct ping_packet *pckt = NULL;
+  u_int16_t echo_id;
   bool overflow = ((u_int16_t)(ping_id + cnt) < ping_id);
 
- if(ip) {
-   struct ndpi_iphdr *ip4 = (struct ndpi_iphdr*)buf;
+  if(ip) {
+    if(buf_len != sizeof(ndpi_iphdr) + sizeof(ping_packet)) {
+      return; /* Response doesn't match the expected response size */
+    }
 
-   icmp = (struct ndpi_icmphdr*)(buf+ip4->ihl*4);
-   pckt  = (struct ping_packet*)icmp;   
- } else {
-   icmp = (struct ndpi_icmphdr*)buf;
-   pckt  = (struct ping_packet*)icmp;
- }
+    struct ndpi_iphdr *ip4 = (struct ndpi_iphdr*)buf;
+    icmp = (struct ndpi_icmphdr*)(buf + ip4->ihl * 4);
+    pckt  = (struct ping_packet*)icmp;
+  } else {
+    icmp = (struct ndpi_icmphdr*)buf;
+    pckt  = (struct ping_packet*)icmp;
+  }
+
+  echo_id = ntohs(icmp->un.echo.id);
 
 #ifdef TRACE_PING
- ntop->getTrace()->traceEvent(TRACE_NORMAL, "Handling response [%s][overflow: %u][echo id: %u][ping_id: %u][cnt: %u]",
-			      ip ? "ipv4" : "ipv6",
-			      overflow ? 1 : 0,
-			      icmp->un.echo.id,
-			      ping_id,
-			      cnt);
+  u_int16_t echo_seq = ntohs(icmp->un.echo.sequence);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Handling response [pinger: %p][%s][overflow: %u][echo id: %u][sequence: %u][ping_id: %u][cnt: %u]",
+			       this,
+			       ip ? "ipv4" : "ipv6",
+			       overflow ? 1 : 0,
+			       echo_id,
+			       echo_seq,
+			       ping_id,
+			       cnt);
 #endif
- 
- if((ip && (icmp->type != ICMP_ECHOREPLY))
-    || (ip6 && (icmp->type != ICMP6_ECHO_REPLY)))
-   return;
+
+  if((ip && (icmp->type != ICMP_ECHOREPLY))
+     || (ip6 && (icmp->type != ICMP6_ECHO_REPLY)))
+    return;
 
   /* The PING ID must be between ping_id (inclusive) and ping_id + cnt (exclusive) */
-  if((!overflow && ((icmp->un.echo.id >= ping_id) && (icmp->un.echo.id < (ping_id + cnt)))) ||
-     (overflow && ((icmp->un.echo.id >= ping_id) || (icmp->un.echo.id <= ((u_int16_t)ping_id + cnt))))) {
+  if((!overflow && ((echo_id >= ping_id) && (echo_id < (ping_id + cnt)))) ||
+     (overflow && ((echo_id >= ping_id) || (echo_id <= ((u_int16_t)ping_id + cnt))))) {
     float rtt;
     struct timeval end, *begin = (struct timeval*)pckt->msg;
     char *h, buf[64];
-    
+
     gettimeofday(&end, NULL);
     rtt = ((float)Utils::usecTimevalDiff(&end,begin))/1000.0;
 
@@ -295,9 +304,9 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
     }
 
 #ifdef TRACE_PING
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Response received [%s]", h);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Response received [pinger: %p][%s]", this, h);
 #endif
-    
+
     m.unlock(__FILE__, __LINE__);
   }
 }
