@@ -357,58 +357,57 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["remote.name"] ~= nil) then
-      local remote_if_addr, remote_probe_ip, remote_probe_public_ip = '', '', ''
-      local num_remote_flow_exports, num_remote_flow_exporters = '', ''
+      local max_items_per_row = 3
+      local cur_i = 0
+      local title = i18n("if_stats_overview.remote_probe")
 
+      if ifstats["remote.name"] == "none" then
+	 title = title .. " [" .. i18n("if_stats_overview.remote_probe_collector_mode") .. "]"
+      end
+
+      print("<tr><th colspan=7 nowrap>".. title .."</th></tr><tr>")
+
+      if(ifstats["remote.name"] ~= "none") then
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>".. i18n("if_stats_overview.interface_name") .."</th><td nowrap>".. string.format("%s [%s]", ifstats["remote.name"], bitsToSize(ifstats.speed*1000000)) .."</td>")
+	 cur_i = cur_i + 1
+      end
 
       if not isEmptyString(ifstats["remote.if_addr"]) then
-	 remote_if_addr = "<b>"..i18n("if_stats_overview.interface_ip").."</b>: "..ifstats["remote.if_addr"]
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>".. i18n("if_stats_overview.interface_ip") .."</th><td nowrap>" .. ifstats["remote.if_addr"] .. "</td>")
+	 cur_i = cur_i + 1
       end
 
       if not isEmptyString(ifstats["probe.ip"]) then
-	 remote_probe_ip = "<b>"..i18n("if_stats_overview.probe_ip").."</b>: "..ifstats["probe.ip"]
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>".. i18n("if_stats_overview.probe_ip") .."</th><td nowrap>" .. ifstats["probe.ip"] .. "</td>")
+	 cur_i = cur_i + 1
       end
 
       if not isEmptyString(ifstats["probe.public_ip"]) then
-	 remote_probe_public_ip = "<b>"..i18n("if_stats_overview.public_probe_ip").."</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fas fa-external-link-alt'></i></td>\n"
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>".. i18n("if_stats_overview.public_probe_ip") .."</th><td nowrap><A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fas fa-external-link-alt'></i></td>")
+	 cur_i = cur_i + 1
       end
 
-      if not isEmptyString(ifstats["zmq.num_flow_exports"]) then
-	 num_remote_flow_exports = "<b>"..i18n("if_stats_overview.probe_zmq_num_flow_exports").."</b>: <span id=if_num_remote_zmq_flow_exports>"..formatValue(ifstats["zmq.num_flow_exports"]).."</span>"
+      if ifstats["timeout.lifetime"] > 0 then
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime").."</th><td nowrap>"..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
+	 cur_i = cur_i + 1
+      end
+      if ifstats["timeout.idle"] > 0 then
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</th><td nowrap>"..secondsToTime(ifstats["timeout.idle"]).."</td>")
+	 cur_i = cur_i + 1
       end
 
       if not isEmptyString(ifstats["zmq.num_exporters"]) then
-	 num_remote_flow_exporters = "<b>"..i18n("if_stats_overview.probe_zmq_num_endpoints").."</b>: <span id=if_num_remote_zmq_exporters>"..formatValue(ifstats["zmq.num_exporters"]).."</span>"
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_num_endpoints").."</th><td nowrap><span id=if_num_remote_zmq_exporters>"..formatValue(ifstats["zmq.num_exporters"]).."</span></td>")
+	 cur_i = cur_i + 1
       end
 
-      local remote_ifname = ''
-      if ifstats["remote.name"] == "none" then
-	 remote_ifname = i18n("if_stats_overview.remote_probe_collector_mode")
-      else
-	 remote_ifname = string.format("<b>%s</b>: %s [%s]", i18n("if_stats_overview.interface_name"), ifstats["remote.name"], bitsToSize(ifstats.speed*1000000))
-      end
-
-      print("<tr><th rowspan=3>"..i18n("if_stats_overview.remote_probe").."</th><td nowrap>"..remote_ifname.."</td>")
-      print("<td nowrap>"..remote_if_addr.."</td>")
-      print("<td nowrap>"..remote_probe_ip.."</td>")
-      print("<td nowrap colspan=2>"..remote_probe_public_ip.."</td>\n")
-      print("</tr>\n")
-
-      print("<tr>")
-      local colspan = 4
-
-      if ifstats["timeout.lifetime"] > 0 then
-	 print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_lifetime").."</b>: "..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
-      else
-	 colspan = colspan - 1
-      end
-      if ifstats["timeout.idle"] > 0 then
-	 print("<td nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</b>: "..secondsToTime(ifstats["timeout.idle"]).."</td>")
-      else
-	 colspan = colspan - 1
-      end
-
-      print("<td nowrap colspan="..colspan..">"..num_remote_flow_exporters.."</td>")
       print("</tr>")
 
       local has_drops_export_queue_full = (tonumber(ifstats["zmq.drops.export_queue_full"]) and tonumber(ifstats["zmq.drops.export_queue_full"]) > 0)
@@ -417,11 +416,10 @@ if((page == "overview") or (page == nil)) then
       local has_remote_drops = (has_drops_export_queue_full or has_drops_flow_collection_drops)
 
       if not has_remote_drops then
-	 print('<tr style="display: none;">')
+	 --print('<tr style="display: none;">')
       else
 	 print("<tr>")
-	 local export_queue_full, flow_collection_drops
-	 local colspan = 6
+	 local cur_i = 0
 
 	 if has_drops_export_queue_full then
 	    local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
@@ -429,7 +427,11 @@ if((page == "overview") or (page == nil)) then
 	    if num_full > 0 then
 	       span_class = 'class="badge badge-danger"'
 	    end
-	    export_queue_full = "<b>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span>"
+
+	    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	    print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></th>")
+	    print("<td nowrap><span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span></td>")
+	    cur_i = cur_i + 1
 	 end
 
 	 if has_drops_flow_collection_drops then
@@ -438,7 +440,11 @@ if((page == "overview") or (page == nil)) then
 	    if num_full > 0 then
 	       span_class = 'class="badge badge-danger"'
 	    end
-	    flow_collection_drops = "<b>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span>"
+
+	    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	    print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></th>")
+	    print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span></td>")
+	    cur_i = cur_i + 1
 	 end
 
 	 if has_drops_flow_collection_udp_socket_drops then
@@ -447,23 +453,11 @@ if((page == "overview") or (page == nil)) then
 	    if num_full > 0 then
 	       span_class = 'class="badge badge-danger"'
 	    end
-	    flow_collection_udp_socket_drops = "<b>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></b>: <span "..span_class.." id=if_zmq_drops_flow_collection_udp_socket_drops>"..formatValue(ifstats["zmq.drops.flow_collection_udp_socket_drops"]).."</span>"
-	 end
 
-	 if export_queue_full then
-	    print("<td>"..export_queue_full.."</td>")
-	    colspan = colspan - 1
-	 end
-	 if flow_collection_drops then
-	    print("<td>"..flow_collection_drops.."</td>")
-	    colspan = colspan - 1
-	 end
-	 if flow_collection_udp_socket_drops then
-	    print("<td>"..flow_collection_udp_socket_drops.."</td>")
-	    colspan = colspan - 1
-	 end
-	 if colspan then
-	    print("<td colspan="..colspan.."></td>")
+	    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	    print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></th>")
+	    print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_udp_socket_drops>"..formatValue(ifstats["zmq.drops.flow_collection_udp_socket_drops"]).."</span></td>")
+	    cur_i = cur_i + 1
 	 end
       end
 
