@@ -1034,6 +1034,18 @@ static int ntop_flow_get_dns_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_risk_info(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  lua_newtable(vm);
+
+  if(f) f->lua_get_risk_info(vm, false);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_ndpi_match_packet(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1140,6 +1152,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getSSHInfo",               ntop_flow_get_ssh_info               },
   { "getHTTPInfo",              ntop_flow_get_http_info              },
   { "getDNSInfo",               ntop_flow_get_dns_info               },
+  { "getRiskInfo",              ntop_flow_risk_info                  },
 
   { NULL,                       NULL }
 };

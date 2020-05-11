@@ -350,6 +350,7 @@ sendHTTPContentTypeHeader('text/html')
 warn_shown = 0
 
 local alert_banners = {}
+local status_icon = "<i class=\"fas fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
 
 if isAdministrator() then
    if _POST["custom_hosts"] and _POST["l7proto"] then
@@ -1023,6 +1024,20 @@ else
 
    -- ######################################
 
+   if(flow["flow_risk"] ~= nil) then
+      local risk = flow["flow_risk"]
+      
+      print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
+
+      for k,v in pairs(risk) do
+	 print("<li>".. k .."</li>\n")
+      end
+      
+      print("</td></tr>")
+   end
+   
+   -- ######################################
+
    local alerted_status = nil
    local status_infos = flow["status_infos"]
 
@@ -1050,7 +1065,6 @@ else
    end
 
    if(additional_status ~= 0) then
-      local status_icon = "<i class=\"fas fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
       local configsets = user_scripts.getConfigsets()
       local view_ifid
 

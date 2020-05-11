@@ -49,7 +49,7 @@ class Flow : public GenericHashEntry {
   u_int16_t cli_score, srv_score, flow_score;
   bool peers_score_accounted;
   struct ndpi_flow_struct *ndpiFlow;
-
+  u_int16_t ndpi_flow_risk_bitmap;
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
   StatusInfo *status_infos;       /* An array of 64 StatusInfo, one for each status (lazy allocation upon setStatus call) */
   FlowStatus alerted_status;      /* This is the status which has triggered the alert */
@@ -524,7 +524,8 @@ class Flow : public GenericHashEntry {
   void lua_get_tcp_info(lua_State *vm) const;
   void lua_get_port(lua_State *vm, bool client) const;
   void lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_city) const;
-
+  void lua_get_risk_info(lua_State* vm, bool as_table);
+  
   bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,

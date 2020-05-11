@@ -492,6 +492,16 @@ void Flow::processExtraDissectedInformation() {
       if(getInterface()->isPacketInterface())
 	free_ndpi_memory = false;
       break;
+
+    case NDPI_PROTOCOL_HTTP:
+      if(protos.http.last_url) {
+	u_int16_t risk = ndpi_validate_url(protos.http.last_url);
+
+	if(risk != NDPI_NO_RISK)
+	  ndpi_flow_risk_bitmap |= risk;
+      }
+      
+      break;
     }
   }
 
@@ -559,6 +569,7 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 #endif
 
   if(detected) {
+    ndpi_flow_risk_bitmap = ndpiFlow->risk;
     updateProtocol(proto_id);
     setProtocolDetectionCompleted();
     setMatchedPacketPayload(payload, payload_len);
@@ -1861,13 +1872,17 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       has_json_info = true;
     } else if (get_tlv_info()) {
       ndpi_deserializer deserializer;
+      
       if (ndpi_init_deserializer(&deserializer, get_tlv_info()) == 0) {
         ndpi_serializer serializer;
+	
         if (ndpi_init_serializer(&serializer, ndpi_serialization_format_json) >= 0) {
           char *buffer;
           u_int32_t buffer_len;
+	  
           ndpi_deserialize_clone_all(&deserializer, &serializer);
           buffer = ndpi_serializer_get_buffer(&serializer, &buffer_len);
+	  
           if (buffer) {
             lua_push_str_table_entry(vm, "moreinfo.json", buffer);
             has_json_info = true;
@@ -1900,6 +1915,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(alert_status_info)
       lua_push_str_table_entry(vm, "status_info", alert_status_info);
+
+    lua_get_risk_info(vm, true);
   }
 
   lua_get_status(vm);
@@ -1907,6 +1924,27 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   // this is used to dynamicall update entries in the GUI
   lua_push_uint64_table_entry(vm, "ntopng.key", key()); // Key
   lua_push_uint64_table_entry(vm, "hash_entry_id", get_hash_entry_id());
+}
+
+/* *************************************** */
+
+void Flow::lua_get_risk_info(lua_State* vm, bool as_table) {
+  if(ndpi_flow_risk_bitmap != 0) {
+    u_int i;
+    
+    if(as_table)
+      lua_newtable(vm);
+    
+    for(i=0; i<NDPI_MAX_RISK; i++)
+      if(NDPI_ISSET_BIT_16(ndpi_flow_risk_bitmap, i))
+	lua_push_int32_table_entry(vm, ndpi_risk2str((ndpi_risk)i), i);
+
+    if(as_table) {
+      lua_pushstring(vm, "flow_risk");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+  }
 }
 
 /* *************************************** */
