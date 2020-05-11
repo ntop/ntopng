@@ -481,7 +481,7 @@ function printTelemetry()
 			    t_labels, t_values,
 			    "", -- leave the default empty so one is forced to either chose opt-in or opt-out
 			    "primary", "toggle_send_telemetry_data", "ntopng.prefs.send_telemetry_data", nil,
-			    elementToSwitch, showElementArray, javascriptAfterSwitch, true--[[show]])
+			    elementToSwitch, showElementArray, nil, true--[[show]])
 
    prefsInputFieldPrefs(subpage_active.entries["telemetry_email"].title,
 			subpage_active.entries["telemetry_email"].description,
@@ -719,23 +719,23 @@ local function printLdapAuth()
 
   local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group", "admin_group", "row_toggle_ldap_referrals"}
 
-  local javascriptAfterSwitch = "";
-  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#toggle_ldap_auth_input\").val() == \"1\") {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"table-row\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"table-row\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
-
   prefsToggleButton(subpage_active, {
 	      field = auth_toggles.ldap,
 	      pref = "ldap.auth_enabled",
 	      default = "0",
 	      to_switch = elementToSwitch,
-        js_after_switch = javascriptAfterSwitch,
+
+        -- Similar to "to_switch" but for nested items (e.g. "local hosts cache" only
+        -- enabled when both "host cache" and "cache" are enabled).
+        -- The following inputs will be shown/hidden when this preference changes.
+        nested_to_switch = {
+          -- input: the input ID to toggle (e.g. the "local hosts cache")
+          -- parent: the parent of the input which affects the input logic (e.g. "host cache")
+          -- parent_enabled_value: the parent input value that should make the child input visible
+          -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
+          {input="bind_dn", parent="input-toggle_ldap_anonymous_bind", parent_enabled_value="0", pref_enabled_value="1"},
+          {input="bind_pwd", parent="input-toggle_ldap_anonymous_bind", parent_enabled_value="0", pref_enabled_value="1"},
+        },
 	})
 
   local showElements = (ntop.getPref("ntopng.prefs.ldap.auth_enabled") == "1")
@@ -907,23 +907,22 @@ function printInMemory()
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.local_hosts_cache_settings")..'</th></tr></thead>')
 
-  local javascriptAfterSwitch = "";
-  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#check-toggle_local_host_cache_enabled\").is(\":checked\")) {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#check-toggle_active_local_host_cache_enabled\").is(\":checked\")) {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#active_local_host_cache_interval\").css(\"display\",\"table-row\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#active_local_host_cache_interval\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."  } else {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#active_local_host_cache_interval\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
-
   prefsToggleButton(subpage_active, {
     field = "toggle_local_host_cache_enabled",
     default = "1",
     pref = "is_local_host_cache_enabled",
     to_switch = {"local_host_cache_duration","row_toggle_active_local_host_cache_enabled","active_local_host_cache_interval"},
-    js_after_switch = javascriptAfterSwitch,
+
+    -- Similar to "to_switch" but for nested items (e.g. "local hosts cache" only
+    -- enabled when both "host cache" and "cache" are enabled).
+    -- The following inputs will be shown/hidden when this preference changes.
+    nested_to_switch = {
+      -- input: the input ID to toggle (e.g. the "local hosts cache")
+      -- parent: the parent of the input which affects the input logic (e.g. "host cache")
+      -- parent_enabled_value: the parent input value that should make the child input visible
+      -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
+      {input="active_local_host_cache_interval", parent="input-toggle_active_local_host_cache_enabled", parent_enabled_value="1", pref_enabled_value="1"},
+    },
   })
 
   local showLocalHostCacheInterval = false
@@ -1024,24 +1023,22 @@ function printStatsTimeseries()
   local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention", "row_toggle_influx_auth", "influx_username", "influx_password", "row_ts_high_resolution"}
   local showElementArray = {false, true, false}
 
-  local javascriptAfterSwitch = "";
-  javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-timeseries_driver\").val() == \"influxdb\") {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#toggle_influx_auth_input\").val() == \"1\") {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_username\").css(\"display\",\"table-row\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_password\").css(\"display\",\"table-row\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_username\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#influx_password\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."  } else if($(\"#id-toggle-timeseries_driver\").val() == \"rrd\") {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    $(\"#old_rrd_files_retention\").css(\"display\",\"table-row\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
-
   local active_driver = "rrd"
   local influx_active = false
 
   if not force_rrd then
+    -- Similar to "to_switch" but for nested items (e.g. "local hosts cache" only
+    -- enabled when both "host cache" and "cache" are enabled).
+    -- The following inputs will be shown/hidden when this preference changes.
+    local nested_to_switch = {
+      -- input: the input ID to toggle (e.g. the "local hosts cache")
+      -- parent: the parent of the input which affects the input logic (e.g. "host cache")
+      -- parent_enabled_value: the parent input value that should make the child input visible
+      -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
+      {input="influx_username", parent="input-toggle_influx_auth", parent_enabled_value="1", pref_enabled_value="influxdb"},
+      {input="influx_password", parent="input-toggle_influx_auth", parent_enabled_value="1", pref_enabled_value="influxdb"},
+    }
+
     multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
 				    subpage_active.entries["multiple_timeseries_database"].description,
 				    {"RRD", "InfluxDB 1.x"}, {"rrd", "influxdb" },
@@ -1049,7 +1046,7 @@ function printStatsTimeseries()
 				    "primary",
 				    "timeseries_driver",
 				    "ntopng.prefs.timeseries_driver", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch, true--[[show]])
+				    elementToSwitch, showElementArray, nested_to_switch, true--[[show]])
 
     active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
     influx_active = (active_driver == "influxdb")
@@ -1122,7 +1119,6 @@ function printStatsTimeseries()
 
   local elementToSwitch = { }
   local showElementArray = nil -- { true, false, false }
-  local javascriptAfterSwitch = "";
 
   prefsToggleButton(subpage_active, {
 	field = "toggle_interface_traffic_rrd_creation",
@@ -1140,7 +1136,7 @@ function printStatsTimeseries()
 				    "primary",
 				    "interfaces_ndpi_timeseries_creation",
 				    "ntopng.prefs.interface_ndpi_timeseries_creation", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+				    elementToSwitch, showElementArray, nil, showElement)
 
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n('prefs.local_hosts_timeseries')..'</th></tr></thead>')
@@ -1157,7 +1153,7 @@ function printStatsTimeseries()
 				    "primary",
 				    "hosts_ts_creation",
 				    "ntopng.prefs.hosts_ts_creation", nil,
-				    hostElemsToSwitch, hostShowElementArray, "", true)
+				    hostElemsToSwitch, hostShowElementArray, nil, true)
 
   local show_host_l7 = (ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full")
 
@@ -1168,7 +1164,7 @@ function printStatsTimeseries()
 				    "primary",
 				    "hosts_ndpi_timeseries_creation",
 				    "ntopng.prefs.host_ndpi_timeseries_creation", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch, show_host_l7)
+				    elementToSwitch, showElementArray, nil, show_host_l7)
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n('prefs.l2_devices_timeseries')..'</th></tr></thead>')
 
@@ -1193,7 +1189,7 @@ function printStatsTimeseries()
 				    "primary",
 				    "l2_devices_ndpi_timeseries_creation",
 				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
-				    elementToSwitch, showElementArray, javascriptAfterSwitch, showElement)
+				    elementToSwitch, showElementArray, nil, showElement)
 
   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n('prefs.system_probes_timeseries')..'</th></tr></thead>')
 

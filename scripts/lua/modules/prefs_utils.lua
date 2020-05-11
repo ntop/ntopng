@@ -436,8 +436,24 @@ function toggleTableButton(label, comment, on_label, on_value, on_color , off_la
   return(value)
 end
 
-function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field,
-                                redis_key, default_value, disabled, elementToSwitch, hideOn, showElement, javascriptAfterSwitch)
+local function printNestedToSwitchLogic(nested_to_switch, submit_field)
+  if((type(nested_to_switch) ~= "table") or (table.empty(nested_to_switch))) then
+    return
+  end
+
+  for _, item in ipairs(nested_to_switch) do
+    print[[
+      if(($("#]] print(submit_field) print[[").val() == "]] print(item.pref_enabled_value or "1") print[[") &&
+         ($("#]] print(item.parent) print[[").val() == "]] print(item.parent_enabled_value) print[["))
+        $("#]] print(item.input) print[[").css("display", "table-row");
+      else
+        $("#]] print(item.input) print[[").css("display", "none");
+    ]]
+  end
+end
+
+local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field,
+                                redis_key, default_value, disabled, elementToSwitch, hideOn, showElement, nested_to_switch)
 
 
  local value 
@@ -521,9 +537,8 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
       end
     end
 
-    if javascriptAfterSwitch ~= nil then
-      print(javascriptAfterSwitch)
-    end
+    printNestedToSwitchLogic(nested_to_switch, "input-" .. submit_field)
+
     print[[
   }
   ]]
@@ -542,9 +557,8 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
       end
     end
 
-    if javascriptAfterSwitch ~= nil then
-      print(javascriptAfterSwitch)
-    end
+    printNestedToSwitchLogic(nested_to_switch, "input-" .. submit_field)
+
     print [[
   }]]
   print('</script>\n')
@@ -566,7 +580,7 @@ function prefsToggleButton(subpage_active, params)
     off_value = "0",            -- The value when the button is off
     off_class = "danger",       -- The css class when the button is off
     reverse_switch = false,     -- If true, elements are hidden when the item is enabled
-    js_after_switch = nil,      -- javascript after switch
+    nested_to_switch = {},      -- Similar to "to_switch" but for nested items
   }
 
   local options = table.merge(defaults, params)
@@ -577,12 +591,12 @@ function prefsToggleButton(subpage_active, params)
     options.on_text, options.on_value, options.on_class,
     options.off_text, options.off_value, options.off_class,
     options.field, redis_key,
-    options.default, options.disabled, options.to_switch, options.reverse_switch, not options.hidden, options.js_after_switch)
+    options.default, options.disabled, options.to_switch, options.reverse_switch, not options.hidden, options.nested_to_switch)
 end
 
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
-                                  javascriptAfterSwitch, showElement, initialValue, toggleElementArray)
+                                  nested_to_switch, showElement, initialValue, toggleElementArray)
   local value
   local disabled_attr
 
@@ -702,9 +716,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         end
       end
 
-      if javascriptAfterSwitch ~= nil then
-        print(javascriptAfterSwitch)
-      end
+      printNestedToSwitchLogic(nested_to_switch, "id-toggle-" .. submit_field)
 
       print('});\n')
     end
