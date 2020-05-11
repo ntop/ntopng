@@ -34,7 +34,7 @@ local script = {
 local function run_am_check(params, all_hosts, granularity)
   local hosts_am = {}
   local resolved_unreachable_hosts = {}
-  local when = params.when
+  local when = params.when - (params.when % 60)
   local am_schema = am_utils.getAmSchemaForGranularity(granularity)
 
   if(do_trace) then
