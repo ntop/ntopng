@@ -49,13 +49,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
       pcap_handle = pcap_fopen_offline(stdin, pcap_error_buffer);
       pcap_datalink_type = pcap_datalink(pcap_handle);
       read_pkts_from_pcap_dump = false;
-    } else if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) == NULL) {
-      if((pcap_list = fopen(name, "r")) == NULL) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s", name);
-	exit(0);
-      }	else
-	read_pkts_from_pcap_dump = true;
-    } else {
+    } else if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) != NULL) {
       char *slash = strrchr(ifname, '/');
 
       if(slash) {
@@ -67,6 +61,14 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s...", ifname);
       read_pkts_from_pcap_dump = true, purge_idle_flows_hosts = false;      
       pcap_datalink_type = pcap_datalink(pcap_handle);
+    } else {
+      /* Trying to open a playlist */
+      if((pcap_list = fopen(name, "r")) != NULL) {
+	read_pkts_from_pcap_dump = true;
+      }	else {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s", name);
+	exit(0);
+      }
     }
   } else {
     pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(ifname),
@@ -201,7 +203,7 @@ static void* packetPollLoop(void* ptr) {
 	while((l > 0) && (path[l] == ' ')) path[l--] = '\0';	
 
 	while(l > 0) {
-	  if(!isascii(path[l])) {
+	  if(!isascii(path[l--])) {
 	    /* This looks like a bad file */
 	    fname = NULL;	    
 	    break;
