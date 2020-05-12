@@ -356,17 +356,42 @@ $(document).ready(function() {
         }
     }
 
-    const addAlertedFilter = (table_api) => {
+    const countAlertedHosts = (data) => {
+
+        const alertedCounts = { alerted: 0, not_alerted: 0 };
+        data.forEach((row) => {
+            if (row.alerted) {
+                alertedCounts.alerted++;
+            }
+            else {
+                alertedCounts.not_alerted++;
+            }
+        });
+        return alertedCounts;
+    }
+
+    const updateAlertFilter = (data) => {
+
+        const count = countAlertedHosts(data);
+        for (const [key, value] of Object.entries(count)) {
+            const label = `${i18n[key]} (${value})`;
+            $(`[data-filter-key='${key}']`).text(label);
+        }
+    }
+
+    const addAlertedFilter = (table_api, data) => {
+
+        const count = countAlertedHosts(data);
 
         const filters = [
             {
                 key: 'alerted',
-                label: i18n.alerted,
+                label: `${i18n.alerted} (${count.alerted})`,
                 regex: `1`
             },
             {
                 key: 'not_alerted',
-                label: i18n.not_alerted,
+                label: `${i18n.not_alerted} (${count.not_alerted})`,
                 regex: `0`
             }
         ]
@@ -399,11 +424,12 @@ $(document).ready(function() {
 
             const table = settings.oInstance.api();
             addMeasurementFilter(table, data);
-            addAlertedFilter(table);
+            addAlertedFilter(table, data);
 
             setInterval(() => {
                 $am_table.ajax.reload(function(data) {
                     updateMeasurementFilter(data);
+                    updateAlertFilter(data);
                 });
             }, 15000);
         },
