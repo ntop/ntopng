@@ -1371,6 +1371,17 @@ function printDumpSettings()
        "row_toggle_aggregated_flows_export_limit",
        "max_num_aggregated_flows_per_export",
     },
+    -- Similar to "to_switch" but for nested items (e.g. "local hosts cache" only
+    -- enabled when both "host cache" and "cache" are enabled).
+    -- The following inputs will be shown/hidden when this preference changes.
+    nested_to_switch = {
+      -- input: the input ID to toggle (e.g. the "local hosts cache")
+      -- parent: the parent of the input which affects the input logic (e.g. "host cache")
+      -- parent_enabled_value: the parent input value that should make the child input visible
+      -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
+      {input="max_num_packets_per_tiny_flow", parent="input-toggle_tiny_flows_dump", parent_enabled_value="1", pref_enabled_value="1"},
+      {input="max_num_bytes_per_tiny_flow", parent="input-toggle_tiny_flows_dump", parent_enabled_value="1", pref_enabled_value="1"},
+    },
    })
 
    local showAllElements = ntop.getPref("ntopng.prefs.enable_runtime_flows_dump") ~= "0"
