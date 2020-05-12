@@ -1381,6 +1381,7 @@ function printDumpSettings()
       -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
       {input="max_num_packets_per_tiny_flow", parent="input-toggle_tiny_flows_dump", parent_enabled_value="1", pref_enabled_value="1"},
       {input="max_num_bytes_per_tiny_flow", parent="input-toggle_tiny_flows_dump", parent_enabled_value="1", pref_enabled_value="1"},
+      {input="max_num_aggregated_flows_per_export", parent="input-toggle_aggregated_flows_export_limit", parent_enabled_value="1", pref_enabled_value="1"},
     },
    })
 
