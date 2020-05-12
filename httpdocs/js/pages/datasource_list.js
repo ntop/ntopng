@@ -17,7 +17,7 @@ $(document).ready(function () {
             return (this.currentSources.length > this.MIN_SOURCE_COUNTER);
         }
 
-        buildNewSource(name = `source-${this.counter++}`) {
+        buildNewSource(accordionName, name = `source-${this.counter++}`) {
 
             const timeserieSourceTemplate = $(`template#ds-source`).html();
             const tagTemplate = $(`template#ds-source-tag`).html();
@@ -26,6 +26,7 @@ $(document).ready(function () {
                 tagTemplate: tagTemplate,
                 timeseriesFamilies: timeseriesFamilies,
                 builder: this,
+                accordionName: accordionName,
                 $domElement: $(timeserieSourceTemplate),
                 $tagElement: $(tagTemplate),
             });
@@ -44,7 +45,7 @@ $(document).ready(function () {
 
         constructor(args) {
 
-            const { $domElement, $tagElement, name, timeseriesFamilies, builder } = args;
+            const { $domElement, $tagElement, name, timeseriesFamilies, builder, accordionName } = args;
             this.$domElement = $domElement;
             this.$cardTitle = $domElement.find(`a[data-toggle='collapse']`);
             this.$btnRemoveSource = $domElement.find(`.btn-remove-source`);
@@ -54,17 +55,23 @@ $(document).ready(function () {
             this.$tagsContainer = $domElement.find('.tags-container');
             this.$tagElement = $tagElement;
 
+            this.parentName = accordionName;
             this.steps = [$domElement.find('.step-1'), $domElement.find('.step-2')];
             this.stepsCompleted = [false, false];
             this.timeseriesFamilies = timeseriesFamilies;
             this.builder = builder;
 
             this.setSourceId(name);
+            this.setAccordionParent(this.parentName);
             this.setEventListeners();
         }
 
         get getDomElement() {
             return this.$domElement;
+        }
+
+        setAccordionParent(parentName) {
+            this.$domElement.find('.collapse').attr('data-parent', parentName);
         }
 
         setEventListeners() {
@@ -315,27 +322,38 @@ $(document).ready(function () {
                 return rowData;
             },
             onModalInit: function(data) {
+
                 /* fill default datasource values */
                 $(`#edit-datasource-modal form`).find('[name]').each(function(e) {
                     $(this).val(data[$(this).attr('name')]);
                 });
+
                 const $sourcesContainer = $(`#edit-datasource-modal .ds-source-container`);
                 const $btnAddSource = $(`#edit-datasource-modal .btn-add-source`);
                 $btnAddSource.hide();
                 $sourcesContainer.hide().empty();
+
                 /* if the origin is of type timeseries then prepare sources */
                 if (data.origin != "timeseries.lua") return;
+
                 const schemas = data.schemas;
                 for (const [key, schema] of Object.entries(schemas)) {
-                    const source = timeseriesSourceBuilder.buildNewSource(`source-${data.hash}-${schema.metric}`);
+
+                    const source = timeseriesSourceBuilder.buildNewSource(
+                        `#edit-ds-source-container`,
+                        `source-${data.hash}-${schema.metric}`
+                    );
+
                     source.setCardTitle(`${key} / ${schema.metric}`);
                     source.fillSource({
                         schema: key,
                         metric: schema.metric,
                         tags: schema.tags
                     });
+
                     $sourcesContainer.append(source.$domElement);
                 }
+
                 $sourcesContainer.show();
                 $btnAddSource.show();
             },
@@ -400,10 +418,16 @@ $(document).ready(function () {
     /* **************************************************************************************** */
 
     $(`.btn-add-source`).click(function (e) {
+
         e.preventDefault(); e.stopPropagation();
+
         const $sourcesContainer = $(this).parents('form').find(`.ds-source-container`);
-        if (timeseriesSourceBuilder.canCreateSource())
-            $sourcesContainer.append(timeseriesSourceBuilder.buildNewSource().$domElement);
+        if (timeseriesSourceBuilder.canCreateSource()) {
+            $sourcesContainer.find('.collapse').collapse('hide');
+            $sourcesContainer.append(
+                timeseriesSourceBuilder.buildNewSource(`#add-ds-source-container`).$domElement
+            );
+        }
     });
 
     $(`#add-datasource-modal select[name='origin'], #edit-datasource-modal select[name='origin']`).change(function (e) {
@@ -418,7 +442,7 @@ $(document).ready(function () {
         }
         // be sure to create new elements
         timeseriesSourceBuilder.emptyCurrentSources();
-        $sourcesContainer.append(timeseriesSourceBuilder.buildNewSource().$domElement);
+        $sourcesContainer.append(timeseriesSourceBuilder.buildNewSource(`#add-ds-source-container`).$domElement);
         $sourcesContainer.fadeIn();
         $btnAddSource.fadeIn();
     });

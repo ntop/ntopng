@@ -50,7 +50,7 @@
                             </button>
                         </div>
                     </div>
-                    <div id="edit-ds-source-container" style="display: none;" class="border-top py-1 ds-source-container">
+                    <div id="edit-ds-source-container" style="display: none;" class="border-top py-1 ds-source-container accordion">
 
                     </div>
                     <span class="invalid-feedback"></span>
