@@ -6,10 +6,11 @@ local alert_keys = require "alert_keys"
 
 -- #######################################################
 
-local function createKPoNSPAlert(alert_severity)
+local function createKPoNSPAlert(alert_severity, l7_proto)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
+	 l7_proto = l7_proto
       }
    }
 

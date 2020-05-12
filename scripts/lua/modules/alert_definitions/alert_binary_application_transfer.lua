@@ -6,10 +6,11 @@ local alert_keys = require "alert_keys"
 
 -- #######################################################
 
-local function createBATAlert(alert_severity)
+local function createBATAlert(alert_severity, url)
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
+	 url = url
       }
    }
 
