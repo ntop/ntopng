@@ -50,7 +50,7 @@ Flow::Flow(NetworkInterface *_iface,
   alerted_status = status_normal;
   peers_score_accounted = false;
   status_infos = NULL;
-
+  ndpi_flow_risk_bitmap = 0;
   detection_completed = false;
   extra_dissection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
