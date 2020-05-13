@@ -13,7 +13,7 @@ local endpoint = {}
 endpoint = {
    key = "email",
    conf_params = {
-      { param_name = "smtp_server", param_type = "text" },
+      { param_name = "smtp_server", param_type = "text", regex="[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\\.[a-zA-Z]{2,})+" },
       { param_name = "email_sender", param_type = "email" },
       { param_name = "smtp_username", param_type = "text", optional = true },
       { param_name = "smtp_password", param_type = "password", optional = true },

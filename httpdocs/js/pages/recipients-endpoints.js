@@ -98,6 +98,7 @@ $(document).ready(function () {
 
         $('#edit-recipient-modal form').modalHandler({
             method: 'post',
+            csrf: pageCsrf,
             endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
             beforeSumbit: function () {
                 const data = makeFormData(`#edit-recipient-modal form`);
@@ -130,6 +131,7 @@ $(document).ready(function () {
     $(`#add-recipient-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
+        csrf: pageCsrf,
         resetAfterSubmit: false,
         beforeSumbit: function () {
 
@@ -167,6 +169,7 @@ $(document).ready(function () {
 
         $(`#remove-recipient-modal form`).modalHandler({
             method: 'post',
+            csrf: pageCsrf,
             endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
             beforeSumbit: () => {
                 return {

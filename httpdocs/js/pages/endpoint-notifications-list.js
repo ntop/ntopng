@@ -96,6 +96,7 @@ $(document).ready(function () {
 
         $('#edit-endpoint-modal form').modalHandler({
             method: 'post',
+            csrf: csrf,
             endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
             beforeSumbit: function () {
                 const body = makeFormData(`#edit-endpoint-modal form`);
@@ -128,6 +129,7 @@ $(document).ready(function () {
     $(`#add-endpoint-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
+        csrf: csrf,
         resetAfterSubmit: false,
         beforeSumbit: function () {
 
@@ -167,6 +169,7 @@ $(document).ready(function () {
 
         $(`#remove-endpoint-modal form`).modalHandler({
             method: 'post',
+            csrf: csrf,
             endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
             beforeSumbit: () => {
                 return {

@@ -21,7 +21,12 @@
                 {{ param.param_name }}
             </label>
             <div class="col-sm-5">
-                <input name="{{ param.param_name }}" type="{{ param.param_type }}" class="form-control" {{ (param.optional and '' or 'required') }}>
+                <input
+                    name="{{ param.param_name }}"
+                    type="{{ param.param_type }}"
+                    class="form-control"
+                    {{ (param.regex and 'pattern='..param.regex..'' or '') }}
+                    {{ (param.optional and '' or 'required') }}>
             </div>
         </div>
         {% end %}
@@ -35,6 +40,8 @@
 
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">
+
+    let csrf = "{{ ntop.getRandomCSRFValue() }}";
 
     i18n.warning ="{{ i18n('warning', {}) }}";
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";

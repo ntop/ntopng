@@ -7,14 +7,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
-local plugins_utils = require "plugins_utils"
 local notification_endpoints = require("notification_endpoints")
 
 local action = _POST["action"]
 
 sendHTTPContentTypeHeader('application/json')
 
-if not haveAdminPrivileges() then
+if (not haveAdminPrivileges(true)) then
     return
 end
 
