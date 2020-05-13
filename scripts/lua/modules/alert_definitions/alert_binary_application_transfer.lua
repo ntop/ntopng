@@ -6,12 +6,14 @@ local alert_keys = require "alert_keys"
 
 -- #######################################################
 
-local function createBATAlert(alert_severity, url)
+-- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param http_info A lua table containing flow HTTP information obtained with `flow.getHTTPInfo()`
+-- @return A table with the alert built
+local function createBATAlert(alert_severity, http_info)
    local built = {
       alert_severity = alert_severity,
-      alert_type_params = {
-	 url = url
-      }
+      alert_type_params = http_info
    }
 
    return built
@@ -24,6 +26,6 @@ return {
    alert_key = alert_keys.ntopng.alert_binary_application_transfer,
    -- scripts/locales/en.lua
    i18n_title = "alerts_dashboard.binary_application_transfer",
-   icon = "fab fa-exclamation",
+   icon = "fas fa-file-download",
    creator = createBATAlert,
 }

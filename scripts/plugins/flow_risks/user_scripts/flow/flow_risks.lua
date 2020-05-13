@@ -29,15 +29,15 @@ function script.hooks.protocolDetected(now)
 
    for label,value in pairs(flow_risk) do
       if(value == 4) then
-	 local httpInfo = flow.getHTTPInfo()
-	 local url      = httpInfo["protos.http.last_url"] or ""
+	 local http_info = flow.getHTTPInfo()
+	 local url      = http_info["protos.http.last_url"] or ""
 	 
 	 -- NDPI_BINARY_APPLICATION_TRANSFER
 	 -- scripts/lua/modules/alert_definitions/alert_binary_application_transfer.lua
 	 flow.triggerStatus(
 	    flow_consts.status_types.status_binary_application_transfer.create(
 	       flow_consts.status_types.status_binary_application_transfer.alert_severity,
-	       url
+	       http_info
 	    ),
 	    200, -- flow_score
 	    200, -- cli_score
@@ -47,12 +47,11 @@ function script.hooks.protocolDetected(now)
 	 -- NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT
 	 -- scripts/lua/modules/alert_definitions/alert_known_proto_on_non_std_port.lua
 	 local info = flow.getInfo()
-	 local ndpi_proto = info["proto.ndpi_app"] or "?"
 
 	 flow.triggerStatus(
 	    flow_consts.status_types.status_known_proto_on_non_std_port.create(
 	       flow_consts.status_types.status_known_proto_on_non_std_port.alert_severity,
-	       ndpi_proto
+	       info
 	    ),
 	    100, -- flow_score
 	    100, -- cli_score
