@@ -1,0 +1,59 @@
+<div id='am-add-modal' class="modal fade" tabindex="-1" role="dialog">
+  <form method="post" id='am-add-form'>
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+	<div class="modal-header">
+	  <h5 class="modal-title">{{ dialog.add_record }}</h5>
+	  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	    <span aria-hidden="true">&times;</span>
+	  </button>
+	</div>
+	<div class="modal-body container-fluid">
+	  <div class="form-group row">
+	    <label class="col-sm-3 col-form-label">{{ dialog.measurement }}</label>
+	    <div class="col-sm-5">
+	      {* dialog.add_measurement_select *}
+	    </div>
+	  </div>
+	  <div class="form-group row">
+	    <label class="col-sm-3 col-form-label">{{ dialog.am_host }}</label>
+	    <div class="col-sm-5">
+	      <input placeholder="yourhostname.org" required id="input-add-host" type="text" name="host" class="form-control measurement-host" />
+	    </div>
+	  </div>
+	  <div class="form-group row">
+	    <label class="col-sm-3 col-form-label">{{ dialog.periodicity }}</label>
+	    <div class="col-sm-5">
+	      {* dialog.add_granularity_select *}
+	    </div>
+	  </div>
+	  <div class="form-group row">
+	    <label class="col-sm-3 col-form-label">{{ dialog.threshold }}</label>
+	    <div class="col-sm-5">
+	      <div class="input-group">
+		<div class="input-group-prepend">
+		  <span class="input-group-text measurement-operator"></span>
+		</div>
+		<input required id="input-add-threshold" value="100" name="threshold" type="number" class="form-control rounded-right measurement-threshold" min="1" max="10000">
+		<span class="my-auto ml-1 measurement-unit"></span>
+	      </div>
+	    </div>
+	  </div>
+	  <div id='script-description' class='alert alert-light' role='alert'>
+	  {{ dialog.notes }}
+	  <ul>
+	    <li>{{ dialog.note_icmp }}</li>
+	    <li>{{ dialog.note_http }}</li>
+	    <li>{{ dialog.note_alert }}</li>
+	  </ul>
+	  </div>
+	  <span class="invalid-feedback"></span>
+	</div>
+	<div class="modal-footer">
+	  <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ dialog.cancel }}</button>
+	  <button type="submit" class="btn btn-primary">{{ dialog.add }}</button>
+	</div>
+      </div>
+    </div>
+  </form>
+</div>
