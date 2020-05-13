@@ -363,8 +363,8 @@ local function influx_query_multi(base_url, query, username, password, options)
   local debug_influxdb_queries = (ntop.getPref("ntopng.prefs.influxdb.print_queries") == "1")
 
   if debug_influxdb_queries then
-    local _, num_queries = string.gsub(query, ";", "")
-    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("influx_query[#%u][%ds]: %s", num_queries+1, tdiff, query))
+     local _, num_queries = string.gsub(query, ";", "")
+     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("influx_query[#%u][%ds]: %s", num_queries+1, tdiff, query))
   end
 
   if tdiff >= timeout then
