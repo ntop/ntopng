@@ -33,10 +33,10 @@ function script.hooks.protocolDetected(now)
 	 local url      = http_info["protos.http.last_url"] or ""
 	 
 	 -- NDPI_BINARY_APPLICATION_TRANSFER
-	 -- scripts/lua/modules/alert_definitions/alert_binary_application_transfer.lua
+	 -- scripts/lua/modules/alert_definitions/alert_suspicious_file_transfer.lua
 	 flow.triggerStatus(
-	    flow_consts.status_types.status_binary_application_transfer.create(
-	       flow_consts.status_types.status_binary_application_transfer.alert_severity,
+	    flow_consts.status_types.status_suspicious_file_transfer.create(
+	       flow_consts.status_types.status_suspicious_file_transfer.alert_severity,
 	       http_info
 	    ),
 	    200, -- flow_score

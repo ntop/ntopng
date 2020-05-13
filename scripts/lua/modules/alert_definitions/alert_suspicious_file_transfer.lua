@@ -23,9 +23,9 @@ end
 
 return {
    -- scripts/lua/modules/alert_keys.lua
-   alert_key = alert_keys.ntopng.alert_binary_application_transfer,
+   alert_key = alert_keys.ntopng.alert_suspicious_file_transfer,
    -- scripts/locales/en.lua
-   i18n_title = "alerts_dashboard.binary_application_transfer",
+   i18n_title = "alerts_dashboard.suspicious_file_transfer",
    icon = "fas fa-file-download",
    creator = createBATAlert,
 }

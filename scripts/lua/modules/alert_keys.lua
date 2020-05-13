@@ -69,7 +69,7 @@ local alert_keys = {
       alert_user_script_calls_drops        = {NO_PEN, 54},
       alert_web_mining                     = {NO_PEN, 55},
       alert_connection_issues              = {NO_PEN, 56},
-      alert_binary_application_transfer    = {NO_PEN, 57},
+      alert_suspicious_file_transfer       = {NO_PEN, 57},
       alert_known_proto_on_non_std_port    = {NO_PEN, 58},
       
       -- Add here additional keys for alerts generated
