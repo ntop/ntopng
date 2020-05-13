@@ -26,6 +26,8 @@ function flow_risk_utils.risk_id_2_i18n(risk_id)
    if risk_id and id_2_i18n[risk_id] then
       return i18n("flow_risk."..id_2_i18n[risk_id])
    end
+
+   return ''
 end
 
 -- ##############################################
