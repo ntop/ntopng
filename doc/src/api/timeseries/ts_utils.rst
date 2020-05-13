@@ -10,7 +10,7 @@ ts_utils API
   - *calculate_stats*: if true, calculate additional stats (like average and 95th percentile).
 
 `Query result` (returned by `ts_utils.query` and `ts_utils.topk`):
-  - *start*: result start time.
+  - *start*: result start time epoch (adjusted to UTC).
   - *step*: result time step in seconds between consecutive series points.
   - *count*: number of points for each data series.
   - *series*: a list of data series. See below for details.
