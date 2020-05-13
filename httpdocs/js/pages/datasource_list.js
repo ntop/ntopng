@@ -269,10 +269,16 @@ $(document).ready(function () {
                 targets: -1,
                 className: 'text-center',
                 data: null,
-                render: function () {
+                render: function (data) {
+
+                    const isDeleteDisabled = data.in_use;
+
                     return (`
                         <a data-toggle='modal' href='#edit-datasource-modal' class="badge badge-info">Edit</a>
-                        <a data-toggle='modal' href='#remove-datasource-modal' class="badge badge-danger">Delete</a>
+                        <a
+                            data-toggle='modal'
+                            href='${isDeleteDisabled ? '#' : '#remove-datasource-modal'}'
+                            class="badge badge-${isDeleteDisabled ? 'secondary' : 'danger'}">Delete</a>
                     `);
                 }
             }
