@@ -1937,7 +1937,7 @@ void Flow::lua_get_risk_info(lua_State* vm, bool as_table) {
     
     for(i=0; i<NDPI_MAX_RISK; i++)
       if(NDPI_ISSET_BIT_16(ndpi_flow_risk_bitmap, i))
-	lua_push_int32_table_entry(vm, ndpi_risk2str((ndpi_risk)i), i);
+	lua_push_uint64_table_entry(vm, ndpi_risk2str((ndpi_risk)i), i);
 
     if(as_table) {
       lua_pushstring(vm, "flow_risk");

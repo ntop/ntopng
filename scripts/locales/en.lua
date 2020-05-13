@@ -1187,6 +1187,17 @@ local lang = {
     ["web_mining"] = "Web Mining",
     ["web_mining_description"] = "Toggle alerts generated when traffic from/to hosts known to perform cryptocurrencies mining is detected",
   },
+  ["flow_risk"] = {
+     ["ndpi_no_risk"] = "No risk",
+     ["ndpi_url_possible_xss"] = "Possible XSS",
+     ["ndpi_url_possible_sql_injection"] = "Possible SQL Injection",
+     ["ndpi_url_possible_rce_injection"] = "Possible Remote Code Execution (RCE)",
+     ["ndpi_binary_application_transfer"] = "Suspicious File Transfer",
+     ["ndpi_known_protocol_on_non_standard_port"] = "Known Application on Non-Standard Port",
+     ["ndpi_tls_selfsigned_certificate"] = "TLS Certificate Self-signed",
+     ["ndpi_tls_obsolete_version"] = "Obsolete TLS Version",
+     ["ndpi_tls_weak_cipher"] = "Weak TLS Cipher",
+  },
   ["flow_details"] = {
     ["acceptable_label"] = "Acceptable",
     ["actual_peak_throughput"] = "Actual / Peak Throughput",

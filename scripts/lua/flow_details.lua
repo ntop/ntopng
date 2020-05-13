@@ -1025,17 +1025,18 @@ else
    -- ######################################
 
    if(flow["flow_risk"] ~= nil) then
+      local flow_risk_utils = require "flow_risk_utils"
       local risk = flow["flow_risk"]
       
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
 
       local cur_risk = 1
-      for k,v in pairs(risk) do
+      for risk_str,risk_id in pairs(risk) do
 	 if cur_risk > 1 then
 	    print("<br>")
 	 end
 
-	 print(k)
+	 print(flow_risk_utils.risk_id_2_i18n(risk_id))
       end
       
       print("</td></tr>")
