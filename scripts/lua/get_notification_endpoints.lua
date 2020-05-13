@@ -13,9 +13,8 @@ local json = require "dkjson"
 
 sendHTTPContentTypeHeader('application/json')
 
-if (not isAdministrator()) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "The user doesn't have the privileges to get notification endpoint!")
-    reportError("The user doesn't have the privileges to get notification endpoint!")
+if not haveAdminPrivileges(true) then
+    return
 end
 
 local endpoints = notification_endpoints.get_configs()

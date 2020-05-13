@@ -14,6 +14,10 @@ local notification_endpoints = require("notification_endpoints")
 
 local endpoints = notification_endpoints.get_configs()
 
+if not haveAdminPrivileges() then
+    return
+end
+
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.endpoint_recipients)

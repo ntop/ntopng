@@ -14,6 +14,10 @@ local notification_endpoints = require("notification_endpoints")
 
 sendHTTPContentTypeHeader('text/html')
 
+if not haveAdminPrivileges() then
+    return
+end
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.endpoint_notifications)
 
 -- append the menu above the page

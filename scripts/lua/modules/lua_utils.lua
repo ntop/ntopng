@@ -2111,17 +2111,25 @@ end
 
  -- ##############################################
 
-function haveAdminPrivileges()
-   if(isAdministrator()) then
+function haveAdminPrivileges(isJsonResponse)
+
+   if (isAdministrator()) then
       return(true)
+   end
+
+   local isJson = isJsonResponse or false
+
+   if (isJson) then
+      local json = require("dkjson")
+      print(json.encode({}))
    else
       local page_utils = require("page_utils")
-
       page_utils.print_header()
       dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
       print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Access forbidden</div>")
-      return(false)
    end
+
+   return(false)
 end
 
  -- ##############################################

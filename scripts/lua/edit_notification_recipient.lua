@@ -12,21 +12,10 @@ local notification_recipients = require("notification_recipients")
 
 local action = _POST["action"]
 
-local function reportError(msg)
-    print(json.encode({ message = msg, success = false }))
-end
-
 sendHTTPContentTypeHeader('application/json')
 
-if (not isAdministrator()) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "The user doesn't have the privileges to edit notification endpoint recipients!")
-    reportError("The user doesn't have the privileges to edit notification endpoint recipients!")
-end
-
-if (action == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'action' parameter. Bad CSRF?")
-  reportError("Missing 'action' parameter. Bad CSRF?")
-  return
+if not haveAdminPrivileges() then
+    return
 end
 
 local response = {}
