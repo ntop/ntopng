@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND noninteractive
 
 # Pass --build-arg TZ=<YOUR_TZ> when running docker build to override this.
-ARG TZ=America/Los_Angeles
+ARG TZ=Europe/Rome
 
 RUN apt-get update && apt-get -y install wget lsb-release gnupg tzdata
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
