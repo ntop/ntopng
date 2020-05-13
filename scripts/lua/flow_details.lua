@@ -1029,8 +1029,13 @@ else
       
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
 
+      local cur_risk = 1
       for k,v in pairs(risk) do
-	 print("<li>".. k .."</li>\n")
+	 if cur_risk > 1 then
+	    print("<br>")
+	 end
+
+	 print(k)
       end
       
       print("</td></tr>")
