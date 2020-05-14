@@ -10,7 +10,7 @@ local page_utils = require("page_utils")
 local template = require "template_utils"
 local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
-local notification_endpoints = require("notification_endpoints")
+local notification_configs = require("notification_configs")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -27,7 +27,7 @@ page_utils.print_page_title(i18n("endpoint_notifications.endpoint_list"))
 -- Prepare the response
 local context = {
     notifications = {
-        endpoints = notification_endpoints.get_types(),
+        endpoints = notification_configs.get_types(),
     },
     template_utils = template,
     page_utils = page_utils,

@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local plugins_utils = require("plugins_utils")
 local json = require "dkjson"
-local notification_endpoints = require("notification_endpoints")
+local notification_configs = require("notification_configs")
 
 -- #################################################################
 
@@ -92,7 +92,7 @@ local function check_endpoint_recipient_params(endpoint_key, recipient_params)
    -- Create a safe_params table with only expected params
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
-   for _, param in ipairs(notification_endpoints.get_types()[endpoint_key].recipient_params) do
+   for _, param in ipairs(notification_configs.get_types()[endpoint_key].recipient_params) do
       -- param is a lua table so we access its elements
       local param_name = param["param_name"]
       local optional = param["optional"]
@@ -110,7 +110,7 @@ end
 -- #################################################################
 
 function notification_recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, recipient_params)
-   local ec = notification_endpoints.get_endpoint_config(endpoint_conf_name)
+   local ec = notification_configs.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
       return ec
@@ -159,7 +159,7 @@ function notification_recipients.edit_recipient(endpoint_recipient_name, recipie
       return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
    end
 
-   local ec = notification_endpoints.get_endpoint_config(rc["endpoint_conf_name"])
+   local ec = notification_configs.get_endpoint_config(rc["endpoint_conf_name"])
 
    if ec["status"] ~= "OK" then
       return ec
@@ -194,7 +194,7 @@ function notification_recipients.get_recipient(endpoint_recipient_name)
       return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
    end
 
-   local ec = notification_endpoints.get_endpoint_config(rc["endpoint_conf_name"])
+   local ec = notification_configs.get_endpoint_config(rc["endpoint_conf_name"])
 
    if ec["status"] ~= "OK" then
       return ec
@@ -249,7 +249,7 @@ end
 -- #################################################################
 
 function notification_recipients.delete_recipients(endpoint_conf_name)
-   local ec = notification_endpoints.get_endpoint_config(endpoint_conf_name)
+   local ec = notification_configs.get_endpoint_config(endpoint_conf_name)
 
    if ec["status"] ~= "OK" then
       return ec

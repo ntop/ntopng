@@ -64,7 +64,7 @@ $(document).ready(function () {
             }
         },
         ajax: {
-            url: `${http_prefix}/lua/get_notification_endpoints.lua`,
+            url: `${http_prefix}/lua/get_notification_configs.lua`,
             type: 'GET',
             dataSrc: ''
         },

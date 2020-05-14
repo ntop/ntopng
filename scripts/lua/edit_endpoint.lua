@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
-local notification_endpoints = require("notification_endpoints")
+local notification_configs = require("notification_configs")
 
 local action = _POST["action"]
 
@@ -22,11 +22,11 @@ local response = {}
 
 if (action == "add") then
     local endpoint_conf_type = _POST["endpoint_conf_type"]
-    response.result = notification_endpoints.add_config(endpoint_conf_type, endpoint_conf_name, _POST)
+    response.result = notification_configs.add_config(endpoint_conf_type, endpoint_conf_name, _POST)
 elseif (action == "edit") then
-    response.result = notification_endpoints.edit_config(endpoint_conf_name, _POST)
+    response.result = notification_configs.edit_config(endpoint_conf_name, _POST)
 elseif (action == "remove") then
-    response.result = notification_endpoints.delete_config(endpoint_conf_name)
+    response.result = notification_configs.delete_config(endpoint_conf_name)
 end
 
 print(json.encode(response))
