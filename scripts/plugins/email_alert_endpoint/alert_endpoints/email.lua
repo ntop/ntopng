@@ -2,7 +2,18 @@
 -- (C) 2017-20 - ntop.org
 --
 
-local email = {}
+local email = {
+   conf_params = {
+      { param_name = "smtp_server", param_type = "text", regex="[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\\.[a-zA-Z]{2,})+" },
+      { param_name = "email_sender", param_type = "email" },
+      { param_name = "smtp_username", param_type = "text", optional = true },
+      { param_name = "smtp_password", param_type = "password", optional = true },
+   },
+   recipient_params = {
+      { param_name = "email_recipient", param_type = "email" },
+      { param_name = "cc", param_type = "email", optional = true },
+   }
+}
 
 local json = require("dkjson")
 local alert_utils = require "alert_utils"

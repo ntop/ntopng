@@ -40,15 +40,26 @@ local notification_configs = {}
 local endpoint_types = nil
 
 function notification_configs.get_types()
-   if(endpoint_types ~= nil) then
-      return(endpoint_types)
+   if endpoint_types then
+      return endpoint_types
    end
 
-   -- TODO laod dinamically
    endpoint_types = {}
-   endpoint_types["email"] = dofile(dirs.installdir .. "/scripts/plugins/notification_configs/endpoints/email.lua")
 
-   return(endpoint_types)
+   -- Currently, we load all the available alert endpoints
+   local available_endpoints = plugins_utils.getLoadedAlertEndpoints()
+
+   -- Then, we actually consider vaid types for the notification configs
+   -- only those modules that have their `conf_params` and `recipient_params`.
+   -- Eventually, when the migration between alert endpoints and generic notification endpoints
+   -- will be completed, all the available endpoints will have `conf_params` and `recipient_params`.
+   for _, endpoint in ipairs(available_endpoints) do
+      if endpoint.conf_params and endpoint.recipient_params then
+	 endpoint_types[endpoint.key] = endpoint
+      end
+   end
+
+   return endpoint_types
 end
 
 -- #################################################################
