@@ -1023,8 +1023,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         if(show_all_smooth) {
           for(fn_to_use in smooth_functions)
             add_smoothed_serie(fn_to_use);
-        } else
-          add_smoothed_serie("trend");
+        }
       }
 
       /* Add extra lines. These are different from the extra series as
