@@ -1046,6 +1046,19 @@ static int ntop_flow_risk_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_has_risk(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(f && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK)
+    lua_pushboolean(vm, f->hasRisk((ndpi_risk)lua_tointeger(vm, 1)));
+  else
+    lua_pushboolean(vm, false);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_ndpi_match_packet(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1153,6 +1166,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getHTTPInfo",              ntop_flow_get_http_info              },
   { "getDNSInfo",               ntop_flow_get_dns_info               },
   { "getRiskInfo",              ntop_flow_risk_info                  },
+  { "hasRisk",                  ntop_flow_has_risk                   },
 
   { NULL,                       NULL }
 };

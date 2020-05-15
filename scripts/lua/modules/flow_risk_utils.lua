@@ -6,8 +6,8 @@ local flow_risk_utils = {}
 
 -- ##############################################
 
--- Keep in sync with ndpi_typedefs.h
-local id_2_i18n = {
+-- Keep in sync with ndpi_typedefs.h, table keys are risk ids as found in nDPI
+local id2name = {
    [0] = "ndpi_no_risk",
    [1] = "ndpi_url_possible_xss",
    [2] = "ndpi_url_possible_sql_injection",
@@ -21,10 +21,18 @@ local id_2_i18n = {
 
 -- ##############################################
 
+-- Same as id2name, just with keys swapped
+flow_risk_utils["risks"] = {}
+for risk_id, risk_name in pairs(id2name) do
+   flow_risk_utils["risks"][risk_name] = risk_id
+end
+
+-- ##############################################
+
 -- @brief Returns an i18n-localized risk description given a risk_id as defined in nDPI
 function flow_risk_utils.risk_id_2_i18n(risk_id)
-   if risk_id and id_2_i18n[risk_id] then
-      return i18n("flow_risk."..id_2_i18n[risk_id])
+   if risk_id and id2name[risk_id] then
+      return i18n("flow_risk."..id2name[risk_id])
    end
 
    return ''

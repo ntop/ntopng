@@ -1037,6 +1037,7 @@ else
 	 end
 
 	 print(flow_risk_utils.risk_id_2_i18n(risk_id))
+	 cur_risk = cur_risk + 1
       end
       
       print("</td></tr>")

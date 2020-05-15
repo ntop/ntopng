@@ -566,8 +566,9 @@ class Flow : public GenericHashEntry {
 
     return 0;
   }
-  inline bool hasInvalidDNSQueryChars() { return(isDNS() && protos.dns.invalid_chars_in_query); }
-  inline bool hasMaliciousSignature() { return(has_malicious_cli_signature || has_malicious_srv_signature); }
+  inline bool hasInvalidDNSQueryChars()  { return(isDNS() && protos.dns.invalid_chars_in_query); }
+  inline bool hasMaliciousSignature()    { return(has_malicious_cli_signature || has_malicious_srv_signature); }
+  bool hasRisk(ndpi_risk r) const;
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   inline void  setDNSQuery(char *v) {
     if(isDNS()) {

@@ -1935,8 +1935,8 @@ void Flow::lua_get_risk_info(lua_State* vm, bool as_table) {
     if(as_table)
       lua_newtable(vm);
     
-    for(i=0; i<NDPI_MAX_RISK; i++)
-      if(NDPI_ISSET_BIT_16(ndpi_flow_risk_bitmap, i))
+    for(i = 0; i < NDPI_MAX_RISK; i++)
+      if(hasRisk((ndpi_risk)i))
 	lua_push_uint64_table_entry(vm, ndpi_risk2str((ndpi_risk)i), i);
 
     if(as_table) {
@@ -1945,6 +1945,15 @@ void Flow::lua_get_risk_info(lua_State* vm, bool as_table) {
       lua_settable(vm, -3);
     }
   }
+}
+
+/* *************************************** */
+
+bool Flow::hasRisk(ndpi_risk r) const {
+  if(r < NDPI_MAX_RISK)
+    return NDPI_ISSET_BIT_16(ndpi_flow_risk_bitmap, r);
+
+  return false;
 }
 
 /* *************************************** */
