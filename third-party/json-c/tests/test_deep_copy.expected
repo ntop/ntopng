@@ -1,0 +1,152 @@
+PASSED - loaded input data
+PASSED - all json_object_deep_copy() returned succesful
+PASSED - all json_object_deep_copy() returned EINVAL for non-null pointer
+PASSED - all json_object_equal() tests returned succesful
+PASSED - comparison of string output
+PASSED - trying to overrwrite an object that has refcount > 1
+Printing JSON objects for visual inspection
+------------------------------------------------
+ JSON1
+{
+  "glossary":{
+    "title":"example glossary",
+    "GlossDiv":{
+      "number":16446744073709551615,
+      "title":"S",
+      "null_obj":null,
+      "exixt":false,
+      "quantity":20,
+      "univalent":19.8,
+      "GlossList":{
+        "GlossEntry":{
+          "ID":"SGML",
+          "SortAs":"SGML",
+          "GlossTerm":"Standard Generalized Markup Language",
+          "Acronym":"SGML",
+          "Abbrev":"ISO 8879:1986",
+          "GlossDef":{
+            "para":"A meta-markup language, used to create markup languages such as DocBook.",
+            "GlossSeeAlso":[
+              "GML",
+              "XML"
+            ]
+          },
+          "GlossSee":"markup"
+        }
+      }
+    }
+  }
+}
+------------------------------------------------
+------------------------------------------------
+ JSON2
+{
+  "menu":{
+    "header":"SVG Viewer",
+    "items":[
+      {
+        "id":"Open"
+      },
+      {
+        "id":"OpenNew",
+        "label":"Open New"
+      },
+      null,
+      {
+        "id":"ZoomIn",
+        "label":"Zoom In"
+      },
+      {
+        "id":"ZoomOut",
+        "label":"Zoom Out"
+      },
+      {
+        "id":"OriginalView",
+        "label":"Original View"
+      },
+      null,
+      {
+        "id":"Quality",
+        "another_null":null
+      },
+      {
+        "id":"Pause"
+      },
+      {
+        "id":"Mute"
+      },
+      null,
+      {
+        "id":"Find",
+        "label":"Find..."
+      },
+      {
+        "id":"FindAgain",
+        "label":"Find Again"
+      },
+      {
+        "id":"Copy"
+      },
+      {
+        "id":"CopyAgain",
+        "label":"Copy Again"
+      },
+      {
+        "id":"CopySVG",
+        "label":"Copy SVG"
+      },
+      {
+        "id":"ViewSVG",
+        "label":"View SVG"
+      },
+      {
+        "id":"ViewSource",
+        "label":"View Source"
+      },
+      {
+        "id":"SaveAs",
+        "label":"Save As"
+      },
+      null,
+      {
+        "id":"Help"
+      },
+      {
+        "id":"About",
+        "label":"About Adobe CVG Viewer..."
+      }
+    ]
+  }
+}
+------------------------------------------------
+------------------------------------------------
+ JSON3
+------------------------------------------------
+{
+  "menu":{
+    "id":"file",
+    "value":"File",
+    "popup":{
+      "menuitem":[
+        {
+          "value":"New",
+          "onclick":"CreateNewDoc()"
+        },
+        {
+          "value":"Open",
+          "onclick":"OpenDoc()"
+        },
+        {
+          "value":"Close",
+          "onclick":"CloseDoc()"
+        }
+      ]
+    }
+  }
+}
+------------------------------------------------
+
+Testing deep_copy with a custom serializer set
+CALLED: my_shallow_copy on with_serializer object
+
+deep_copy with custom serializer worked OK.

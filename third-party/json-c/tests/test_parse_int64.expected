@@ -1,0 +1,57 @@
+==========json_parse_int64() test===========
+buf=x parseit=1, value=-666 
+buf=0 parseit=0, value=0 
+buf=-0 parseit=0, value=0 
+buf=00000000 parseit=0, value=0 
+buf=-00000000 parseit=0, value=0 
+buf=1 parseit=0, value=1 
+buf=2147483647 parseit=0, value=2147483647 
+buf=-1 parseit=0, value=-1 
+buf=   -1 parseit=0, value=-1 
+buf=00001234 parseit=0, value=1234 
+buf=0001234x parseit=0, value=1234 
+buf=-00001234 parseit=0, value=-1234 
+buf=-00001234x parseit=0, value=-1234 
+buf=4294967295 parseit=0, value=4294967295 
+buf=4294967296 parseit=0, value=4294967296 
+buf=21474836470 parseit=0, value=21474836470 
+buf=31474836470 parseit=0, value=31474836470 
+buf=-2147483647 parseit=0, value=-2147483647 
+buf=-2147483648 parseit=0, value=-2147483648 
+buf=-2147483649 parseit=0, value=-2147483649 
+buf=-21474836480 parseit=0, value=-21474836480 
+buf=9223372036854775806 parseit=0, value=9223372036854775806 
+buf=9223372036854775807 parseit=0, value=9223372036854775807 
+buf=9223372036854775808 parseit=0, value=9223372036854775807 
+buf=-9223372036854775808 parseit=0, value=-9223372036854775808 
+buf=-9223372036854775809 parseit=0, value=-9223372036854775808 
+buf=18446744073709551614 parseit=0, value=9223372036854775807 
+buf=18446744073709551615 parseit=0, value=9223372036854775807 
+buf=18446744073709551616 parseit=0, value=9223372036854775807 
+buf=-18446744073709551616 parseit=0, value=-9223372036854775808 
+buf=123 parseit=0, value=123 
+
+==========json_parse_uint64() test===========
+buf=x parseit=1, value=666 
+buf=0 parseit=0, value=0 
+buf=-0 parseit=1, value=666 
+buf=00000000 parseit=0, value=0 
+buf=-00000000 parseit=1, value=666 
+buf=1 parseit=0, value=1 
+buf=2147483647 parseit=0, value=2147483647 
+buf=-1 parseit=1, value=666 
+buf=-9223372036854775808 parseit=1, value=666 
+buf=   1 parseit=0, value=1 
+buf=00001234 parseit=0, value=1234 
+buf=0001234x parseit=0, value=1234 
+buf=4294967295 parseit=0, value=4294967295 
+buf=4294967296 parseit=0, value=4294967296 
+buf=21474836470 parseit=0, value=21474836470 
+buf=31474836470 parseit=0, value=31474836470 
+buf=9223372036854775806 parseit=0, value=9223372036854775806 
+buf=9223372036854775807 parseit=0, value=9223372036854775807 
+buf=9223372036854775808 parseit=0, value=9223372036854775808 
+buf=18446744073709551614 parseit=0, value=18446744073709551614 
+buf=18446744073709551615 parseit=0, value=18446744073709551615 
+buf=18446744073709551616 parseit=0, value=18446744073709551615 
+buf=123 parseit=0, value=123 

@@ -1,0 +1,78 @@
+my_string=	
+my_string.to_string()="\t"
+my_string=\
+my_string.to_string()="\\"
+my_string=/
+my_string.to_string()="\/"
+my_string.to_string(NOSLASHESCAPE)="/"
+my_string=/foo/bar/baz
+my_string.to_string()="\/foo\/bar\/baz"
+my_string.to_string(NOSLASHESCAPE)="/foo/bar/baz"
+my_string=foo
+my_string.to_string()="foo"
+my_int=9
+my_int.to_string()=9
+my_null.to_string()=null
+my_array=
+	[0]=1
+	[1]=2
+	[2]=3
+	[3]=null
+	[4]=5
+my_array.to_string()=[1,2,3,null,5]
+my_array=
+	[0]=1
+	[1]=2
+	[2]=3
+	[3]=4
+	[4]=5
+	[5]=null
+	[6]=7
+my_array.to_string()=[1,2,3,4,5,null,7]
+after del_idx(0,1)=0, my_array.to_string()=[2,3,4,5,null,7]
+after del_idx(0,1)=0, my_array.to_string()=[3,4,5,null,7]
+after del_idx(0,1)=0, my_array.to_string()=[4,5,null,7]
+after del_idx(0,1)=0, my_array.to_string()=[5,null,7]
+after del_idx(0,1)=0, my_array.to_string()=[null,7]
+after del_idx(0,1)=0, my_array.to_string()=[7]
+after del_idx(0,1)=0, my_array.to_string()=[]
+after del_idx(0,1)=-1, my_array.to_string()=[]
+after del_idx(0,7)=0, my_array.to_string()=[]
+after del_idx(0,8)=-1, my_array.to_string()=[1,2,3,4,5,null,7]
+after del_idx(0,6)=0, my_array.to_string()=[7]
+after adding more entries, my_array.to_string()=[7,"s1","s2","s3"]
+my_array=
+	[0]=1
+	[1]=2
+	[2]=3
+	[3]=4
+	[4]=5
+	[5]=null
+	[6]=7
+my_array.to_string()=[1,2,3,4,5,null,7]
+put_idx(5,6)=0
+put_idx(63,0)=0
+put_idx(129,0)=0
+put_idx(SIZE_T_MAX,0)=-1
+my_array=
+	[0]=3
+	[1]=1
+	[2]=2
+	[3]=null
+	[4]=0
+my_array.to_string()=[3,1,2,null,0]
+my_array=
+	[0]=null
+	[1]=0
+	[2]=1
+	[3]=2
+	[4]=3
+my_array.to_string()=[null,0,1,2,3]
+find json_object(1) in my_array successfully: 1
+baz_obj.to_string()="fark"
+my_object=
+	abc: 12
+	foo: "bar"
+	bool0: false
+	bool1: true
+my_object.to_string()={"abc":12,"foo":"bar","bool0":false,"bool1":true}

@@ -1,0 +1,37 @@
+version: '{branch}.{build}'
+os: Windows Server 2012 R2
+
+platform: x64
+
+# There should be a better way to set-up a build matrix.
+environment:
+  matrix:
+    - b_toolset: Windows7.1SDK
+      b_config: Debug
+
+    - b_toolset: Windows7.1SDK
+      b_config: Release
+
+    - b_toolset: v120
+      b_config: Debug
+
+    - b_toolset: v120
+      b_config: Release
+
+    - b_toolset: v140
+      b_config: Debug
+
+    - b_toolset: v140
+      b_config: Release
+
+build_script:
+- cmake -T %b_toolset% -DCMAKE_BUILD_TYPE=%b_config% -DCMAKE_INSTALL_PREFIX=t_install .
+- cmake --build . --target install
+
+after_build:
+- cd t_install
+- 7z a ../json-c.win32.%b_toolset%.%b_config%.zip *
+
+artifacts:
+- path: json-c.win32.%b_toolset%.%b_config%.zip
+  name: json-c.win32.%b_toolset%.%b_config%.zip

@@ -1,0 +1,30 @@
+JSON integer comparison is correct
+JSON same object comparison is correct
+JSON same integer comparison is correct
+JSON usigned integer comparison is correct
+JSON same usigned object comparison is correct
+JSON same usigned integer comparison is correct
+JSON integer & usigned integer comparison is correct
+JSON integer & usigned integer comparison is correct
+JSON integer & usigned integer comparison is correct
+JSON integer & usigned integer comparison is correct
+JSON usigned integer & integer comparison is correct
+JSON usigned integer & integer comparison is correct
+JSON usigned integer & integer comparison is correct
+JSON usigned integer & integer comparison is correct
+Comparing equal strings is correct
+Comparing different strings is correct
+Comparing equal doubles is correct
+Comparing different doubles is correct
+Comparing equal arrays is correct
+Comparing arrays of different len is correct
+Comparing different arrays is correct
+Comparing different arrays (one empty) is correct
+Comparing JSON object with different key order is correct
+Comparing different objects is correct
+Comparing different objects is correct
+Comparing different objects is correct
+Comparing different objects is correct
+JSON integer and NULL comparison is correct
+JSON NULL and double comparison is correct
+JSON integer and double comparison is correct

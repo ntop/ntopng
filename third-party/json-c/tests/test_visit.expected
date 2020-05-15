@@ -1,0 +1,89 @@
+jso.to_string()={ "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+flags: 0x0, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+flags: 0x0, key: obj1, index: -1, value: 123
+flags: 0x0, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: subobj1, index: -1, value: "aaa"
+flags: 0x0, key: subobj2, index: -1, value: "bbb"
+flags: 0x0, key: subobj3, index: -1, value: [ "elem1", "elem2", true ]
+flags: 0x0, key: (null), index: 0, value: "elem1"
+flags: 0x0, key: (null), index: 1, value: "elem2"
+flags: 0x0, key: (null), index: 2, value: true
+flags: 0x2, key: subobj3, index: -1, value: [ "elem1", "elem2", true ]
+flags: 0x2, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: obj3, index: -1, value: 1.234
+flags: 0x0, key: obj4, index: -1, value: [ true, false, null ]
+flags: 0x0, key: (null), index: 0, value: true
+flags: 0x0, key: (null), index: 1, value: false
+flags: 0x0, key: (null), index: 2, value: null
+flags: 0x2, key: obj4, index: -1, value: [ true, false, null ]
+flags: 0x2, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+json_c_visit(emit_object)=0
+================================
+
+flags: 0x0, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+flags: 0x0, key: obj1, index: -1, value: 123
+flags: 0x0, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: subobj1, index: -1, value: "aaa"
+flags: 0x0, key: subobj2, index: -1, value: "bbb"
+flags: 0x0, key: subobj3, index: -1, value: [ "elem1", "elem2", true ]
+flags: 0x2, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: obj3, index: -1, value: 1.234
+flags: 0x0, key: obj4, index: -1, value: [ true, false, null ]
+flags: 0x2, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+json_c_visit(skip_arrays)=0
+================================
+
+flags: 0x0, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+flags: 0x0, key: obj1, index: -1, value: 123
+flags: 0x0, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: subobj1, index: -1, value: "aaa"
+POP after handling subobj1
+flags: 0x2, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: obj3, index: -1, value: 1.234
+STOP after handling obj3
+json_c_visit(pop_and_stop)=0
+================================
+
+flags: 0x0, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+flags: 0x0, key: obj1, index: -1, value: 123
+flags: 0x0, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: subobj1, index: -1, value: "aaa"
+flags: 0x0, key: subobj2, index: -1, value: "bbb"
+ERROR after handling subobj1
+json_c_visit(err_on_subobj2)=-1
+================================
+
+flags: 0x0, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+flags: 0x0, key: obj1, index: -1, value: 123
+flags: 0x0, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: subobj1, index: -1, value: "aaa"
+flags: 0x0, key: subobj2, index: -1, value: "bbb"
+flags: 0x0, key: subobj3, index: -1, value: [ "elem1", "elem2", true ]
+flags: 0x0, key: (null), index: 0, value: "elem1"
+POP after handling array[0]
+flags: 0x2, key: subobj3, index: -1, value: [ "elem1", "elem2", true ]
+flags: 0x2, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: obj3, index: -1, value: 1.234
+flags: 0x0, key: obj4, index: -1, value: [ true, false, null ]
+flags: 0x0, key: (null), index: 0, value: true
+POP after handling array[0]
+flags: 0x2, key: obj4, index: -1, value: [ true, false, null ]
+flags: 0x2, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+json_c_visit(pop_array)=0
+================================
+
+flags: 0x0, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+flags: 0x0, key: obj1, index: -1, value: 123
+flags: 0x0, key: obj2, index: -1, value: { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }
+flags: 0x0, key: subobj1, index: -1, value: "aaa"
+flags: 0x0, key: subobj2, index: -1, value: "bbb"
+flags: 0x0, key: subobj3, index: -1, value: [ "elem1", "elem2", true ]
+flags: 0x0, key: (null), index: 0, value: "elem1"
+STOP after handling array[1]
+json_c_visit(stop_array)=0
+================================
+
+flags: 0x0, key: (null), index: -1, value: { "obj1": 123, "obj2": { "subobj1": "aaa", "subobj2": "bbb", "subobj3": [ "elem1", "elem2", true ] }, "obj3": 1.234, "obj4": [ true, false, null ] }
+json_c_visit(err_return)=-1
+================================
+

@@ -187,10 +187,12 @@ if test "$?" -ne 1; then
   JSON_INC=`pkg-config --cflags json-c`
   JSON_LIB=`pkg-config --libs json-c`
 else
-  echo "Please install libjson-c-dev package prerequisite"
-  exit -1
+dnl  echo "Please install libjson-c-dev package prerequisite"
+dnl  exit -1
+  JSON_HOME=${PWD}/third-party/json-c
+  JSON_INC=-I$JSON_HOME
+  JSON_LIB=$JSON_HOME/libjson-c.a
 fi
-
 
 pkg-config --exists libssl
 if test "$?" -ne 1; then

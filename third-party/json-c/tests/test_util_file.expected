@@ -1,0 +1,40 @@
+OK: json_object_from_fd(valid.json)={ "foo": 123 }
+OK: json_object_from_fd_ex(valid_nested.json, 20)={ "foo": 123, "obj2": { "obj3": { "obj4": { "foo": 999 } } } }
+OK: correctly unable to parse contents of valid_nested.json with low max depth: json_tokener_parse_ex failed: nesting too deep
+
+OK: json_object_from_file(./not_present.json) correctly returned NULL: json_object_from_file: error opening file ./not_present.json: ERRNO=ENOENT
+
+OK: json_object_from_fd(closed_fd), expecting NULL, EBADF, got:NULL, json_object_from_fd: error reading fd 10: ERRNO=EBADF
+
+OK: json_object_to_file(json.out, jso)=0
+file[json.out], size=336, contents={"foo":1234,"foo1":"abcdefghijklmnopqrstuvwxyz","foo2":"abcdefghijklmnopqrstuvwxyz","foo3":"abcdefghijklmnopqrstuvwxyz","foo4":"abcdefghijklmnopqrstuvwxyz","foo5":"abcdefghijklmnopqrstuvwxyz","foo6":"abcdefghijklmnopqrstuvwxyz","foo7":"abcdefghijklmnopqrstuvwxyz","foo8":"abcdefghijklmnopqrstuvwxyz","foo9":"abcdefghijklmnopqrstuvwxyz"}
+
+OK: json_object_to_file_ext(json2.out, jso, JSON_C_TO_STRING_PRETTY)=0
+file[json2.out], size=367, contents={
+  "foo":1234,
+  "foo1":"abcdefghijklmnopqrstuvwxyz",
+  "foo2":"abcdefghijklmnopqrstuvwxyz",
+  "foo3":"abcdefghijklmnopqrstuvwxyz",
+  "foo4":"abcdefghijklmnopqrstuvwxyz",
+  "foo5":"abcdefghijklmnopqrstuvwxyz",
+  "foo6":"abcdefghijklmnopqrstuvwxyz",
+  "foo7":"abcdefghijklmnopqrstuvwxyz",
+  "foo8":"abcdefghijklmnopqrstuvwxyz",
+  "foo9":"abcdefghijklmnopqrstuvwxyz"
+}
+OK: json_object_to_fd(json3.out, jso, JSON_C_TO_STRING_PRETTY)=0
+OK: json_object_to_fd(json3.out, jso, JSON_C_TO_STRING_PLAIN)=0
+file[json3.out], size=703, contents={
+  "foo":1234,
+  "foo1":"abcdefghijklmnopqrstuvwxyz",
+  "foo2":"abcdefghijklmnopqrstuvwxyz",
+  "foo3":"abcdefghijklmnopqrstuvwxyz",
+  "foo4":"abcdefghijklmnopqrstuvwxyz",
+  "foo5":"abcdefghijklmnopqrstuvwxyz",
+  "foo6":"abcdefghijklmnopqrstuvwxyz",
+  "foo7":"abcdefghijklmnopqrstuvwxyz",
+  "foo8":"abcdefghijklmnopqrstuvwxyz",
+  "foo9":"abcdefghijklmnopqrstuvwxyz"
+}{"foo":1234,"foo1":"abcdefghijklmnopqrstuvwxyz","foo2":"abcdefghijklmnopqrstuvwxyz","foo3":"abcdefghijklmnopqrstuvwxyz","foo4":"abcdefghijklmnopqrstuvwxyz","foo5":"abcdefghijklmnopqrstuvwxyz","foo6":"abcdefghijklmnopqrstuvwxyz","foo7":"abcdefghijklmnopqrstuvwxyz","foo8":"abcdefghijklmnopqrstuvwxyz","foo9":"abcdefghijklmnopqrstuvwxyz"}
+OK: json_object_from_file(valid.json)={ "foo": 123, "obj2": { "obj3": { "obj4": { "foo": 999 } } } }
+OK: json_object_from_fd(valid.json)={ "foo": 123, "obj2": { "obj3": { "obj4": { "foo": 999 } } } }
