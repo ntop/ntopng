@@ -185,11 +185,20 @@ if test "$?" -ne 1; then
   JSON_INC=`pkg-config --cflags json-c`
   JSON_LIB=`pkg-config --libs json-c`
 else
-dnl  echo "Please install libjson-c-dev package prerequisite"
-dnl  exit -1
-  JSON_HOME=${PWD}/third-party/json-c
-  JSON_INC=-I$JSON_HOME
-  JSON_LIB=$JSON_HOME/libjson-c.a
+  echo "Please install libjson-c-dev package prerequisite"
+  exit -1
+fi
+
+dnl> Temporary using json-c from third party on Ubuntu 18/20 
+dnl> due to https://bugs.launchpad.net/ubuntu/+source/json-c/+bug/1878738
+if test -f "/usr/bin/lsb_release"; then
+  UBUNTU_RELEASE=`lsb_release -r|cut -f 2|cut -f 1 -d '.'`
+  if test "$UBUNTU_RELEASE" = "18" || test "$UBUNTU_RELEASE" = "20"; then
+    cd third-party/json-c && cmake . && make && cd -
+    JSON_HOME=${PWD}/third-party/json-c
+    JSON_INC=-I$JSON_HOME
+    JSON_LIB=$JSON_HOME/libjson-c.a
+  fi
 fi
 
 pkg-config --exists libssl

@@ -39,11 +39,6 @@ cat configure.seed | sed \
 
 rm -f config.h config.h.in *~ #*
 
-pkg-config --exists json-c
-if test "$?" -eq 1; then
-cd third-party/json-c && cmake . && make && cd -
-fi
-
 echo "Wait please..."
 autoreconf -if
 echo ""
