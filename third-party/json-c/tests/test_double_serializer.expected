@@ -1,0 +1,24 @@
+Test default serializer:
+obj.to_string(standard)=0.5
+Test default serializer with custom userdata:
+obj.to_string(userdata)=0.5
+Test explicit serializer with custom userdata:
+obj.to_string(custom)=test
+Test reset serializer:
+obj.to_string(reset)=0.5
+Test no zero reset serializer:
+obj.to_string(reset)=3.1415000000000002
+obj.to_string(default format)=0.52381
+obj.to_string(with global format)=x0.524y
+obj.to_string(with thread format)=T0.52X
+obj.to_string(long thread format)=Ttttttttttttt0.52xxxxxxxxxxxxxxxxxxX
+obj.to_string(back to global format)=x0.524y
+obj.to_string(back to default format)=0.52381
+obj(12.0).to_string(default format)=12.0
+obj(12.0).to_string(%.0f)=12
+obj(12.0).to_string(%.0g)=1e+01
+obj(12.0).to_string(%.1g)=12.0
+obj(-12.0).to_string(default format)=-12.0
+obj(0.0/0.0)=NaN
+obj(1.0/0.0)=Infinity
+obj(-1.0/0.0)=-Infinity

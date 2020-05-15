@@ -1,0 +1,14 @@
+string_of_digits
+"123"
+regular_number
+222
+decimal_number
+99.55
+boolean_true
+true
+boolean_false
+false
+big_number
+2147483649
+a_null
+null

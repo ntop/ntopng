@@ -1,0 +1,34 @@
+test_basic_printbuf_memset: starting test
+Buffer contents:blue:1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+test_basic_printbuf_memset: end test
+========================================
+test_printbuf_memset_length: starting test
+Buffer length: 0
+Buffer length: 12
+Buffer length: 18
+Buffer length: 76
+Buffer length: 76
+Buffer length: 77
+test_printbuf_memset_length: end test
+========================================
+test_printbuf_memappend: starting test
+Buffer length: 0
+Appended 32 bytes for resize: [xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
+Partial append: 3, [blu]
+With embedded \0 character: 4, [ab]
+Append to just before resize: 31, [XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX]
+Append to just after resize: 32, [XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX]
+Buffer size after printbuf_strappend(): 16, [XXXXXXXXXXXXXXXX]
+test_printbuf_memappend: end test
+========================================
+test_sprintbuf: starting test
+Buffer length: 0
+sprintbuf to just after resize(31+1): 32, [XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX], strlen(buf)=32
+5, [plain]
+6, [plain1]
+16, [plain12147483647]
+27, [plain12147483647-2147483648]
+29, [plain12147483647-2147483648%s]
+284, [plain12147483647-2147483648%sif string is greater than stack buffer, then use dynamic string with vasprintf.  Note: some implementation of vsnprintf return -1  if output is truncated whereas some return the number of bytes that  would have been written - this code handles both cases.]
+test_sprintbuf: end test
+========================================

@@ -1,0 +1,39 @@
+PASSED - GET - LOADED TEST JSON
+{ "foo": [ "bar", "baz" ], "": 0, "a\/b": 1, "c%d": 2, "e^f": 3, "g|h": 4, "i\\j": 5, "k\"l": 6, " ": 7, "m~n": 8 }
+PASSED - GET - ENTIRE OBJECT WORKED
+PASSED - GET - /foo == ['bar', 'baz']
+PASSED - GET - /foo/0 == 'bar'
+PASSED - GET -  / == 0
+PASSED - GET -  /a~1b == 1
+PASSED - GET -  /c%d == 2
+PASSED - GET -  /e^f == 3
+PASSED - GET -  /g|h == 4
+PASSED - GET -  /i\j == 5
+PASSED - GET -  /k"l == 6
+PASSED - GET -  /  == 7
+PASSED - GET -  /m~0n == 8
+{ "arr": [ { "obj": [ { }, { }, { "obj1": 0, "obj2": "1" } ] } ], "obj": { "obj": { "obj": [ { "obj1": 0, "obj2": "1" } ] } } }
+PASSED - GET - RECURSION TEST
+PASSED - GET - LOADED TEST JSON
+{ "foo": [ "bar", "baz" ], "": 0, "a\/b": 1, "c%d": 2, "e^f": 3, "g|h": 4, "i\\j": 5, "k\"l": 6, " ": 7, "m~n": 8 }
+PASSED - GET - MISSING /
+PASSED - GET - NULL INPUTS
+PASSED - GET - INVALID INDEXES
+PASSED - SET - LOADED TEST JSON
+{ "foo": [ "bar", "baz" ], "": 0, "a\/b": 1, "c%d": 2, "e^f": 3, "g|h": 4, "i\\j": 5, "k\"l": 6, " ": 7, "m~n": 8 }
+PASSED - SET - 'cod' in /foo/1
+PASSED - SET - non-existing /fud/gaw
+PASSED - SET - /fud == {}
+PASSED - SET - /fug/gaw == [1,2,3]
+PASSED - SET - /fug/gaw == [0,2,3]
+PASSED - SET - /fug/gaw == [0,2,3,4]
+PASSED - SET - / == 9
+PASSED - SET - Final JSON is: { "foo": [ "bar", "cod" ], "": 9, "a\/b": 1, "c%d": 2, "e^f": 3, "g|h": 4, "i\\j": 5, "k\"l": 6, " ": 7, "m~n": 8, "fud": { "gaw": [ 0, 2, 3, 4 ] } }
+10
+PASSED - SET - LOADED TEST JSON
+{ "foo": [ "bar", "baz" ], "": 0, "a\/b": 1, "c%d": 2, "e^f": 3, "g|h": 4, "i\\j": 5, "k\"l": 6, " ": 7, "m~n": 8 }
+PASSED - SET - failed with NULL params for input json & path
+PASSED - SET - failed 'cod' with path 'foo/bar'
+PASSED - SET - failed 'cod' with path 'foo/bar'
+PASSED - SET - failed with invalid array index'
+PASSED - SET - failed to set index to non-array
