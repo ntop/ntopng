@@ -923,10 +923,16 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       if(j) {
 	/*  {"scope":"private","alias":"luca2","origin":"main.lua","data_retention":1,"hash":"543c484ea2af859a9157480cea8b5903"} */
-	const char *scope  = json_object_get_string(json_object_object_get(j, "scope"));
-	const char *origin = json_object_get_string(json_object_object_get(j, "origin"));
+        json_object *jscope, *jorigin;
+	const char *scope  = NULL, *origin = NULL;
+
+        if (json_object_object_get_ex(j, "scope", &jscope))
+          scope = json_object_get_string(jscope);
+
+        if (json_object_object_get_ex(j, "origin", &jorigin))
+          origin = json_object_get_string(jorigin);
 	
-	if(strcmp(scope, "public") != 0) {
+	if(scope != NULL && strcmp(scope, "public") != 0) {
 	  /* This is a private URL and it needs authentication */
 	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
 
@@ -938,8 +944,11 @@ static int handle_lua_request(struct mg_connection *conn) {
 	  }
 	}
 
-	original_uri = request_info->uri;       
-	snprintf(tmp_uri, sizeof(tmp_uri),  "/lua/datasources/%s", origin);
+        if (origin != NULL) {
+          original_uri = request_info->uri;       
+	  snprintf(tmp_uri, sizeof(tmp_uri),  "/lua/datasources/%s", origin);
+        }
+
 	json_object_put(j);
       }
     }
@@ -953,7 +962,11 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       if(j) {
 	/*  {"scope":"private","alias":"luca2","origin":"main.lua","data_retention":1,"hash":"543c484ea2af859a9157480cea8b5903"} */
-	const char *origin = json_object_get_string(json_object_object_get(j, "origin"));
+        json_object *jorigin;
+	const char *origin = NULL;
+
+        if (json_object_object_get_ex(j, "origin", &jorigin))
+          origin = json_object_get_string(jorigin);
 
 #if 0
 	const char *scope  = json_object_get_string(json_object_object_get(j, "scope"));
@@ -969,9 +982,12 @@ static int handle_lua_request(struct mg_connection *conn) {
 	  }
 	}
 #endif
-	
-	original_uri = request_info->uri;       
-	snprintf(tmp_uri, sizeof(tmp_uri),  "/lua/widgets/%s", origin);
+
+        if (origin != NULL) {	
+          original_uri = request_info->uri;       
+          snprintf(tmp_uri, sizeof(tmp_uri),  "/lua/widgets/%s", origin);
+        }
+
 	json_object_put(j);
       }
     }
