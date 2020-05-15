@@ -313,7 +313,7 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-code-branch\"></i>",
 			      },
 			      {
-				 hidden = have_nedge or not isAdministrator() or not ntop.isEnterpriseL() or not ifstats.isSyslog,
+				 hidden = have_nedge or not isAdministrator() or not ifstats.isSyslog,
 				 active = page == "syslog_producers",
 				 page_name = "syslog_producers",
 				 label = "<i class=\"fas fa-lg fa-hand-holding\"></i>",
@@ -1999,8 +1999,8 @@ elseif(page == "sub_interfaces") then
       dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/sub_interfaces.lua")
    end
 elseif(page == "syslog_producers") then
-   if(isAdministrator() and ntop.isEnterpriseL()) then
-      dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/syslog_producers.lua")
+   if(isAdministrator()) then
+      dofile(dirs.installdir .. "/scripts/lua/syslog_producers.lua")
    end
 elseif(page == "pools") then
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")

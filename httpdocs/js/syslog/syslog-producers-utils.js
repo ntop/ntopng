@@ -96,7 +96,7 @@ $(document).ready(function() {
         $('#syslog-producers-alert').hide();
         $(`form#syslog-producers-${action}-modal button[type='submit']`).attr("disabled", "disabled");
 
-        $.post(`${http_prefix}/lua/enterprise/edit_syslog_producer.lua`, data_to_send)
+        $.post(`${http_prefix}/lua/edit_syslog_producer.lua`, data_to_send)
         .then((data, result, xhr) => {
 
             $(`form#syslog-producers-${action}-modal button[type='submit']`).removeAttr("disabled");
@@ -160,7 +160,7 @@ $(document).ready(function() {
             }, 15000);
         },
         ajax: {
-            url: `${http_prefix}/lua/enterprise/get_syslog_producers.lua`,
+            url: `${http_prefix}/lua/get_syslog_producers.lua`,
             type: 'get',
             dataSrc: ''
         },
