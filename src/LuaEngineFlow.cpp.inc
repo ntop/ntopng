@@ -1050,7 +1050,7 @@ static int ntop_flow_has_risk(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(f && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK)
-    lua_pushboolean(vm, f->hasRisk((ndpi_risk)lua_tointeger(vm, 1)));
+    lua_pushboolean(vm, f->hasRisk((ndpi_risk_enum)lua_tointeger(vm, 1)));
   else
     lua_pushboolean(vm, false);
 

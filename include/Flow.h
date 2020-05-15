@@ -49,7 +49,7 @@ class Flow : public GenericHashEntry {
   u_int16_t cli_score, srv_score, flow_score;
   bool peers_score_accounted;
   struct ndpi_flow_struct *ndpiFlow;
-  u_int16_t ndpi_flow_risk_bitmap;
+  ndpi_risk ndpi_flow_risk_bitmap;
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
   StatusInfo *status_infos;       /* An array of 64 StatusInfo, one for each status (lazy allocation upon setStatus call) */
   FlowStatus alerted_status;      /* This is the status which has triggered the alert */
@@ -568,7 +568,7 @@ class Flow : public GenericHashEntry {
   }
   inline bool hasInvalidDNSQueryChars()  { return(isDNS() && protos.dns.invalid_chars_in_query); }
   inline bool hasMaliciousSignature()    { return(has_malicious_cli_signature || has_malicious_srv_signature); }
-  bool hasRisk(ndpi_risk r) const;
+  bool hasRisk(ndpi_risk_enum r) const;
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   inline void  setDNSQuery(char *v) {
     if(isDNS()) {
