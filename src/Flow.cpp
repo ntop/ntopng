@@ -392,6 +392,46 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
+
+    if(ndpiFlow->http.url) {
+      if(protos.http.last_url) free(protos.http.last_url);
+      protos.http.last_url = strdup(ndpiFlow->http.url);
+      
+      if(protos.http.last_method) free(protos.http.last_method);
+      switch(ndpiFlow->http.method) {
+      case NDPI_HTTP_METHOD_OPTIONS:
+	protos.http.last_method = strdup("OPTIONS");
+	break;
+      case NDPI_HTTP_METHOD_GET:
+	protos.http.last_method = strdup("GET");
+	break;
+      case NDPI_HTTP_METHOD_HEAD:
+	protos.http.last_method = strdup("HEAD");
+	break;
+      case NDPI_HTTP_METHOD_PATCH:
+	protos.http.last_method = strdup("PATCH");
+	break;
+      case NDPI_HTTP_METHOD_POST:
+	protos.http.last_method = strdup("POST");
+	break;
+      case NDPI_HTTP_METHOD_PUT:
+	protos.http.last_method = strdup("PUT");
+	break;
+      case NDPI_HTTP_METHOD_DELETE:
+	protos.http.last_method = strdup("DELETE");
+	break;
+      case NDPI_HTTP_METHOD_TRACE:
+	protos.http.last_method = strdup("TRACE");
+	break;
+      case NDPI_HTTP_METHOD_CONNECT:
+	protos.http.last_method = strdup("CONNECT");
+	break;
+
+      case NDPI_HTTP_METHOD_UNKNOWN:
+	protos.http.last_method = NULL;
+	break;
+      }
+    }
     if(ndpiFlow->host_server_name[0] != '\0') {
       char *doublecol, delimiter = ':';
 
