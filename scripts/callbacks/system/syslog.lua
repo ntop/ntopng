@@ -24,13 +24,13 @@ end
 -- #################################################################
 
 -- The function below is called for each received alert
-function handleEvent(name, message)
+function handleEvent(name, message, host, priority)
    local event_handler = syslog_modules.hooks["handleEvent"][name]
 
    -- TODO use syslog_conf
 
    if(event_handler ~= nil) then
-      event_handler(message)
+      event_handler(message, host, priority)
    end
 end 
 

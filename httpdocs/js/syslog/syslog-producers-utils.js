@@ -184,7 +184,7 @@ $(document).ready(function() {
         },
         columns: [
             {
-                data: 'producer'
+                data: 'producer_title'
             },
             {
                 data: 'host',

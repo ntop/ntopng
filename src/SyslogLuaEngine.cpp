@@ -82,11 +82,14 @@ bool SyslogLuaEngine::pcall(int num_args, int num_results) {
 
 /* **************************************************** */
 
-void SyslogLuaEngine::handleEvent(const char *application, const char *message) {
+void SyslogLuaEngine::handleEvent(const char *producer, const char *message,
+    const char *host, int priority) {
   lua_State *L = getState();
   lua_getglobal(L, SYSLOG_SCRIPT_CALLBACK_EVENT);
-  lua_pushstring(L, application);
-  lua_pushstring(L, message);
-  pcall(2 /* num args */, 0);
+  lua_pushstring(L, producer ? producer : "");
+  lua_pushstring(L, message ? message : "");
+  lua_pushstring(L, host ? host : "");
+  lua_pushinteger(L, priority);
+  pcall(4 /* num args */, 0);
 }
 

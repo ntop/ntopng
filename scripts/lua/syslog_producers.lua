@@ -24,7 +24,7 @@ end
 local producer_types = {};
 local syslog_plugins = user_scripts.listScripts(user_scripts.script_types.syslog, "syslog")
 for k,v in pairs(syslog_plugins) do
-  table.insert(producer_types, { title = v,   value = v  })
+  table.insert(producer_types, { title = i18n(v.."_collector.title"), value = v  })
 end
 
 -- #######################################################

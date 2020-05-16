@@ -158,7 +158,10 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
     producer_name, content);
 #endif
 
-  if (le) le->handleEvent(producer_name, content);
+  if (le) 
+    le->handleEvent(producer_name, content, 
+      parsed_client_ip ? parsed_client_ip : client_ip, 
+      prio ? atoi(prio) : 0);
 
   return 0;
 }

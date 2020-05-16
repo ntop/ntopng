@@ -20,8 +20,8 @@ local syslog_module = {
   hooks = {},
 
   gui = {
-    i18n_title = "external_stats.suricata",
-    i18n_description = "external_stats.suricata_description",
+    i18n_title = "suricata_collector.title",
+    i18n_description = "suricata_collector.description",
   },
 }
 
@@ -162,7 +162,7 @@ local function parseStats(event_stats)
      external_stats.signatures_failed = external_stats.signatures_failed + engine.rules_failed
    end
 
-   external_stats.i18n_title = "external_stats.suricata_statistics"
+   external_stats.i18n_title = "suricata_collector.statistics"
 
    local external_json_stats = json.encode(external_stats)
    ntop.setCache(external_stats_key, external_json_stats)
@@ -171,7 +171,7 @@ end
 -- #################################################################
 
 -- The function below is called for each received alert
-function syslog_module.hooks.handleEvent(message)
+function syslog_module.hooks.handleEvent(message, host, priority)
    local event = json.decode(message)
    if event == nil then
       return

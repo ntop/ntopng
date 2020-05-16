@@ -33,7 +33,8 @@ class SyslogLuaEngine : public LuaEngine {
   SyslogLuaEngine(NetworkInterface *iface);
   virtual ~SyslogLuaEngine();
 
-  void handleEvent(const char *application, const char *message);
+  void handleEvent(const char *producer, const char *message,
+    const char *host, int priority);
 };
 
 #endif

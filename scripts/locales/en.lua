@@ -1061,9 +1061,6 @@ local lang = {
     ["capture_packets"] = "Captured Packets",
     ["signatures_failed"] = "Signatures Failed",
     ["signatures_loaded"] = "Signatures Loaded",
-    ["suricata"] = "Suricata",
-    ["suricata_description"] = "Extracts alerts and metadata from Suricata",
-    ["suricata_statistics"] = "Suricata Statistics",
     ["title"] = "External Statistics",
   },
   ["field_units"] = {
