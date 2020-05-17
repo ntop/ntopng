@@ -12,6 +12,9 @@ local script = {
    -- Script category
    category = user_scripts.script_categories.security, 
 
+   -- Priority
+   prio = -20, -- Lower priority (executed after) than default 0 priority
+
    -- NOTE: hooks defined below
    hooks = {},
 

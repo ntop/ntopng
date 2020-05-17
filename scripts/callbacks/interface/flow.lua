@@ -68,12 +68,12 @@ end
 
 -- #################################################################
 
-local function addL4Callaback(l4_proto, hook_name, script_key, callback)
-   local l4_scripts = available_modules.l4_hooks[l4_proto]
+local function addL4Callaback(l4_hooks, l4_proto, hook_name, script_key, callback)
+   local l4_scripts = l4_hooks[l4_proto]
 
    if not l4_scripts then
       l4_scripts = {}
-      available_modules.l4_hooks[l4_proto] = l4_scripts
+      l4_hooks[l4_proto] = l4_scripts
    end
 
    l4_scripts[hook_name] = l4_scripts[hook_name] or {}
@@ -85,6 +85,52 @@ local function skip_disabled_flow_scripts(user_script)
    -- concept of entity_value for a flow.
    return(user_scripts.getTargetHookConfig(flows_config, user_script).enabled)
 end
+
+-- #################################################################
+
+local function prioritizeL4Callabacks(l4_hooks)
+   -- Set the priority to the `prio` indicated in the module, or to zero,
+   -- if no `prio` is indicated
+   local mod_prios = {}
+   for mod_key, mod in pairs(available_modules.modules) do
+      mod_prios[mod_key] = tonumber(mod.prio) or 0
+   end
+
+   -- Sort available modules by descending `prio`
+   -- That is from lower (negative) to higher (positive) priorities
+   -- E.g., a prio -20 is executed after a prio 0 which, in turn, is executed
+   -- after a prio 20
+   local mods_by_prio = {}
+   for mod_key, mod_prio in pairsByValues(mod_prios, rev) do
+      mods_by_prio[#mods_by_prio + 1] = mod_key
+   end
+
+   -- Updates l4_hooks and convert modules to ordered lua arrays
+   for l4_proto, hooks in pairs(l4_hooks) do
+      -- e.g.:
+      -- 1 (l4_proto) -> protocolDetected (hooks table)
+      -- 1 (l4_proto) -> periodicUpdate (hooks table)
+      for hook_name, modules in pairs(hooks) do
+	 -- e.g.:
+	 -- protocolDetected (hook_name) -> invalid_dns_query
+	 -- protocolDetected (hook_name) -> web_mining
+	 local sorted_modules = {}
+	 for _, mod_key in ipairs(mods_by_prio) do
+	    if modules[mod_key] then
+	       sorted_modules[#sorted_modules + 1] = {mod_key = mod_key, mod_fn = modules[mod_key]}
+	    end
+	 end
+
+	 -- Update the hooks with sorted hooks
+	 hooks[hook_name] = sorted_modules
+      end
+   end
+
+   -- Sets l4_hooks with the sorted hooks
+   available_modules.l4_hooks = l4_hooks
+end
+
+-- #################################################################
 
 -- The function below is called once (#pragma once)
 function setup()
@@ -116,7 +162,9 @@ function setup()
 
    -- Reorganize the modules to optimize lookup by L4 protocol
    -- E.g. l4_hooks = {tcp -> {periodicUpdate -> {check_tcp_retr}}, other -> {protocolDetected -> {mud, score}}}
-   available_modules.l4_hooks = {}
+
+   -- Prepare the l4 hooks
+   local l4_hooks = {}
 
    for hook_name, hooks in pairs(available_modules.hooks) do
       -- available_modules.l4_hooks
@@ -129,7 +177,7 @@ function setup()
             if not l4_proto then
                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Unknown l4_proto '%s' in module '%s', skipping", script.l4_proto, script_key))
             else
-               addL4Callaback(l4_proto, hook_name, script_key, callback)
+               addL4Callaback(l4_hooks, l4_proto, hook_name, script_key, callback)
             end
          else
             -- No l4 filter is active for the specified module
@@ -138,12 +186,14 @@ function setup()
                local l4_proto = l4_proto[3]
 
                if l4_proto > 0 then
-                  addL4Callaback(l4_proto, hook_name, script_key, callback)
+                  addL4Callaback(l4_hooks, l4_proto, hook_name, script_key, callback)
                end
             end
          end
       end
    end
+
+   prioritizeL4Callabacks(l4_hooks)
 
    if(ntop.isEnterpriseM()) then
       ids_utils = require("ids_utils")
@@ -316,7 +366,9 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    local now = os.time()
    local twh_in_progress = l4_proto == 6 --[[TCP]] and not flow.isTwhOK()
 
-   for mod_key, hook_fn in pairs(hooks) do
+   for _, mod in ipairs(hooks) do
+      local mod_key = mod.mod_key
+      local hook_fn = mod.mod_fn
       local script = all_modules[mod_key]
 
       if mod_fn == "periodicUpdate" then

@@ -9,6 +9,9 @@ local script = {
   -- Script category
   category = user_scripts.script_categories.security, 
 
+  -- Priodity
+  prio = 20, -- Higher priority (executed sooner) than default 0 priority
+
   -- This module is disabled by default
   default_enabled = false,
 
