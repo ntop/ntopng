@@ -2863,3 +2863,15 @@ void Ntop::refreshPluginsDir() {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Current plugins directory set to '%s'", plugins_dir);
 }
+
+/* *************************************** */
+
+bool Ntop::isValidInterfaceId(int interfaceId) {
+  if((interfaceId < 0)
+     || (interfaceId > num_defined_interfaces)
+     || (getInterfaceById(interfaceId) == NULL)
+     )
+    return(false);
+  else
+    return(true);
+}

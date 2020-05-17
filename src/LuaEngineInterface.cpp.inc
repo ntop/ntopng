@@ -166,6 +166,25 @@ static int ntop_get_interface_id(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_valid_interface_id(lua_State* vm) {
+  NetworkInterface *iface;
+  int ifid;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    ifid = atoi((char*)lua_tostring(vm, 1));
+  } else if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+  } else
+    return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, ntop->isValidInterfaceId(ifid));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_max_if_speed(lua_State* vm) {
   char *ifname = NULL;
   int ifid;
@@ -4503,6 +4522,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getFirstInterfaceId",      ntop_get_first_interface_id },
   { "select",                   ntop_select_interface },
   { "getId",                    ntop_get_interface_id },
+  { "isValidIfId",              ntop_is_valid_interface_id },
 
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
   { "hasVLANs",                 ntop_interface_has_vlans },

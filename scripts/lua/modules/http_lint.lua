@@ -100,7 +100,8 @@ http_lint.validateEmptyOr = validateEmptyOr
 local function validateNumber(p)
    -- integer number validation
    local num = tonumber(p)
-   if num == nil then
+   
+   if(num == nil) then
       return false
    end
 
@@ -735,8 +736,7 @@ local function validateCountry(p)
 end
 
 local function validateInterface(i)
-   -- TODO
-   return validateNumber(i)
+   return interface.isValidIfId(i)
 end
 
 local function validateNetwork(i)
@@ -1813,7 +1813,7 @@ local function validateParameter(k, v)
 
       if(type(f) == "function") then
 	 -- We apply the default parameter cleanup
-	 v = ntop.httpPurifyParam(v)
+	 v = ntop.httpPurifyParam(tostring(v))
 	 ret = known_parameters[k](v)
       else
 	 -- We apply the custom cleanup
@@ -1824,6 +1824,7 @@ local function validateParameter(k, v)
       if ret then
          return true, v
       else
+	 -- io.write(debug.traceback())
          return false, "Validation error"
       end
    end
@@ -1831,6 +1832,7 @@ end
 
 local function validateSpecialParameter(param, value)
    -- These parameters are made up of one string prefix plus a string suffix
+  
    for k, v in pairs(special_parameters) do
       if starts(param, k) then
          local suffix = split(param, k)[2]
@@ -1853,13 +1855,20 @@ end
 function http_lint.validationError(t, param, value, message)
    -- TODO graceful exit
    local s_id
-   if t == _GET then s_id = "_GET" else s_id = "_POST" end
+   if t == _GET then
+      s_id = "_GET"
+   else
+      s_id = "_POST"
+   end
 
+   t[param] = nil
+   
    -- Must use urlencode to print these values or an attacker could perform XSS.
    -- Indeed, the web page returned by mongoose will show the error below and
    -- one could place something like '><script>alert(1)</script> in the value
    -- to close the html and execute a script
-   error("[LINT] " .. s_id .. "[\"" .. urlencode(param) .. "\"] = \"" .. urlencode(value or 'nil') .. "\" parameter error: " .. message.."")
+
+   --error("[LINT] " .. s_id .. "[\"" .. urlencode(param) .. "\"] = \"" .. urlencode(value or 'nil') .. "\" parameter error: " .. message.."")
 end
 
 -- #################################################################
@@ -1923,8 +1932,10 @@ local function parsePOSTpayload()
    if((_POST ~= nil) and (_POST["payload"] ~= nil)) then
       local info, pos, err = json.decode(_POST["payload"], 1, nil)
 
-      for k,v in pairs(info) do
-	 _GET[k] = v
+      if(info ~= nil) then
+	 for k,v in pairs(info) do
+	    _GET[k] = v
+	 end
       end
    end
 end

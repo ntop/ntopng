@@ -557,7 +557,7 @@ bool LuaEngine::setParamsTable(lua_State* vm,
   char *query_string = query ? strdup(query) : NULL;
   bool ret = false;
 
-  lua_newtable(L);
+  lua_newtable(vm);
 
   if(query_string
      && strcmp(request_info->uri, CAPTIVE_PORTAL_INFO_URL) /* Ignore informative portal */
@@ -671,7 +671,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     if((post_data = (char*)malloc(content_len * sizeof(char))) == NULL
        || (post_data_len = mg_read(conn, post_data, content_len)) == 0) {
       valid_csrf = 0;
-
     } else if(post_data_len > content_len - 1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Too much data submitted with the form. [post_data_len: %u]",
@@ -691,7 +690,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       }
     }
 
-    if(valid_csrf) {
+    if(valid_csrf && (csrf[0] != '\0')) {
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
 	*attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
@@ -716,9 +715,15 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	}
       }
 
-    } else
+    } else {
       *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
-
+      if(post_data) {
+	lua_newtable(L);
+	lua_push_str_table_entry(L, "payload", post_data);
+	lua_setglobal(L, "_POST");
+      }
+    }
+    
     if(post_data)
       free(post_data);
   } else

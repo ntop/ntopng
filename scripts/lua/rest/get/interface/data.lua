@@ -51,7 +51,7 @@ local function countHosts()
 end
 
 function dumpInterfaceStats(ifid)
-   local interface_name = getInterfaceName(ifid)
+   local interface_name = getInterfaceName(ifid)  
    interface.select(ifid..'')
 
    local ifstats = interface.getStats()

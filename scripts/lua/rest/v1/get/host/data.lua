@@ -1,0 +1,132 @@
+--
+-- (C) 2013-20 - ntop.org
+--
+
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
+require "lua_utils"
+local json = require ("dkjson")
+local tracker = require("tracker")
+local rest_utils = require("rest_utils")
+
+--
+-- Read information about a host
+-- Example: curl -u admin:admin -d '{"ifid": "1", "host" : "192.168.1.1"}' http://localhost:3000/lua/rest/v1/get/host/data.lua
+--
+-- NOTE: in case of invalid login, no error is returned but redirected to login
+--
+
+
+-- whether to return host statistics: on by default
+local host_stats           = _GET["host_stats"]
+
+-- whether to return statistics regarding host flows: off by default
+local host_stats_flows     = _GET["host_stats_flows"]
+local host_stats_flows_num = _GET["limit"]
+
+local host_info = url2hostinfo(_GET)
+local rc = rest_utils.consts_ok
+
+local function flows2protocolthpt(flows)
+   local protocol_thpt = {}
+   for _, flow in pairs(flows) do
+      local proto_ndpi = ""
+      if flow["proto.ndpi"] == nil or flow["proto.ndpi"] == "" then
+	 goto continue
+      else
+	 proto_ndpi = flow["proto.ndpi"]
+      end
+
+      if protocol_thpt[proto_ndpi] == nil then
+	 protocol_thpt[proto_ndpi] =
+	    {["cli2srv"]={["throughput_bps"]=0, ["throughput_pps"]=0},
+	       ["srv2cli"]={["throughput_bps"]=0, ["throughput_pps"]=0}}
+      end
+
+      for _, dir in pairs({"cli2srv", "srv2cli"}) do
+	 for _, dim in pairs({"bps", "pps"}) do
+	    protocol_thpt[proto_ndpi][dir]["throughput_"..dim] =
+	       protocol_thpt[proto_ndpi][dir]["throughput_"..dim] + flow[dir..".throughput_"..dim]
+	 end
+      end
+      ::continue::
+   end
+   return protocol_thpt
+end
+
+local ifid = _GET["ifid"]
+-- parse interface names and possibly fall back to the selected interface:
+-- priority goes to the interface id
+if ifid ~= nil and ifid ~= "" then
+   if_name = getInterfaceName(ifid)
+   -- finally, we fall back to the default selected interface name
+else
+   print(rest_utils.rc(rest_utils.consts_invalid_interface))
+   return
+end
+
+local res = {}
+
+sendHTTPHeader('application/json')
+
+if host_info["host"] then
+   interface.select(if_name)
+   local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
+
+   if host then
+      local hj = host
+
+      -- hosts stats are on by default, one must explicitly disable them
+      if not (host_stats == nil or host_stats == "" or host_stats == "true" or host_stats == "1") then
+	 hj = {}
+      end
+
+      -- host flow stats are off by default and must be explicitly enabled
+      if host_stats_flows ~= nil and host_stats_flows ~= "" then
+	 if host_stats_flows_num == nil or tonumber(host_stats_flows_num) == nil then
+	    -- default: do not limit the number of flows
+	    host_stats_flows_num = 99999
+	 else
+	    -- ... unless otherwise specified
+	    host_stats_flows_num = tonumber(host_stats_flows_num)
+	 end
+	 local total = 0
+
+	 local pageinfo = {["sortColumn"]="column_bytes", ["a2zSortOrder"]=false,
+	    ["maxHits"]=host_stats_flows_num, ["toSkip"]=0, ["detailedResults"]=true}
+	 --local flows = interface.getFlowsInfo(host_info["host"], nil, "column_bytes", host_stats_flows_num, 0, false)
+	 local flows = interface.getFlowsInfo(host_info["host"], pageinfo)
+	 flows = flows["flows"]
+	 for i, fl in ipairs(flows) do
+	    flows[i] = {
+	       ["srv.ip"] = fl["srv.ip"], ["cli.ip"] = fl["cli.ip"],
+	       ["srv.port"] = fl["srv.port"], ["cli.port"] = fl["cli.port"],
+	       ["proto.ndpi_id"] = fl["proto.ndpi_id"], ["proto.ndpi"] = fl["proto.ndpi"],
+	       ["bytes"] = fl["bytes"],
+	       ["cli2srv.throughput_bps"] = round(fl["throughput_cli2srv_bps"], 2),
+	       ["srv2cli.throughput_bps"] = round(fl["throughput_srv2cli_bps"], 2),
+	       ["cli2srv.throughput_pps"] = round(fl["throughput_cli2srv_pps"], 2),
+	       ["srv2cli.throughput_pps"] = round(fl["throughput_srv2cli_pps"], 2),
+	    }
+	    if fl["proto.l4"] == "TCP" then
+	       flows[i]["cli2srv.tcp_flags"] = TCPFlags2table(fl["cli2srv.tcp_flags"])
+	       flows[i]["srv2cli.tcp_flags"] = TCPFlags2table(fl["srv2cli.tcp_flags"])
+	       flows[i]["tcp_established"]   = fl["tcp_established"]
+	    end
+	 end
+	 hj["ndpiThroughputStats"] = flows2protocolthpt(flows)
+	 hj["flows"] = flows
+	 hj["flows_count"] = total
+      end
+
+      res = hj
+   else
+      rc = rest_utils.consts_not_found
+   end
+end
+
+tracker.log("host_get_json", {host_info["host"], host_info["vlan"]})
+
+print(rest_utils.rc(rc, res))
+

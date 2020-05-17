@@ -61,7 +61,7 @@ end
 -- ##############################################
 
 -- See also getHumanReadableInterfaceName
-function getInterfaceName(interface_id, windows_skip_description)
+function getInterfaceName(interface_id, windows_skip_description)   
    if(interface_id == getSystemInterfaceId()) then
       return(getSystemInterfaceName())
    end
