@@ -80,73 +80,77 @@ $(document).ready(function() {
         `);
     });
 
-    $(`#widgets-list`).on('click', `a[href='#remove-widget-modal']`, function(e) {
+    let removeWRowData = null;
 
-        const rowData = $widgets_table.row($(this).parent()).data();
-
-        $(`#remove-widget-modal form`).modalHandler({
-            method: 'post',
-            endpoint: `${http_prefix}/lua/edit_widgets.lua`,
-            csrf: remove_csrf,
-            beforeSumbit: () => {
-                return {
-                    action: 'remove',
-                    JSON: JSON.stringify({
-                        widget_key: rowData.key
-                    })
-                };
-            },
-            onModalInit: function(data) {
-                $(`#remove-widget-modal form input[name='widget_key']`).val(data);
-            },
-            onSubmitSuccess: function(response) {
-                if (response.success) {
-                    $widgets_table.ajax.reload();
-                    $('#remove-widget-modal').modal('hide');
-                }
+    const remove_widget_modal = $(`#remove-widget-modal form`).modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/lua/edit_widgets.lua`,
+        csrf: remove_csrf,
+        skipAys: true,
+        beforeSumbit: () => {
+            return {
+                action: 'remove',
+                JSON: JSON.stringify({
+                    widget_key: removeWRowData.key
+                })
+            };
+        },
+        onModalInit: function(data) {
+            $(`#remove-widget-modal form input[name='widget_key']`).val(data);
+        },
+        onSubmitSuccess: function(response) {
+            if (response.success) {
+                $widgets_table.ajax.reload();
+                $('#remove-widget-modal').modal('hide');
             }
-        });
+        }
+    });
+
+    $(`#widgets-list`).on('click', `a[href='#remove-widget-modal']`, function(e) {
+        removeWRowData = $widgets_table.row($(this).parent()).data();
+        remove_widget_modal.invokeModalInit();
+    });
+
+    let editWRowData = null;
+
+    const edit_widget_modal = $(`#edit-widget-modal form`).modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/lua/edit_widgets.lua`,
+        csrf: edit_csrf,
+        beforeSumbit: function() {
+            return {
+                action: 'edit',
+                JSON: JSON.stringify(serializeFormArray($(`#edit-widget-modal form`).serializeArray()))
+            };
+        },
+        loadFormData: function() {
+            return editWRowData;
+        },
+        onModalInit: function(data) {
+
+            const editParams = Object.assign({
+                name:       data.name,
+                type:       data.type,
+                ds_hash:    data.ds_hash,
+                interface:  data.params.ifid,
+                widget_key: data.key,
+            }, data.params);
+
+            delete editParams.ifid;
+
+            $(`#edit-widget-modal form`).find('[name]').each(function(e) {
+                $(this).val(editParams[$(this).attr('name')]);
+            });
+        },
+        onSubmitSuccess: function(response) {
+            $widgets_table.ajax.reload();
+            $('#edit-widget-modal').modal('hide');
+        }
     });
 
     $(`#widgets-list`).on('click', `a[href='#edit-widget-modal']`, function(e) {
-
-        const rowData = $widgets_table.row($(this).parent()).data();
-
-        $(`#edit-widget-modal form`).modalHandler({
-            method: 'post',
-            endpoint: `${http_prefix}/lua/edit_widgets.lua`,
-            csrf: edit_csrf,
-            beforeSumbit: function() {
-                return {
-                    action: 'edit',
-                    JSON: JSON.stringify(serializeFormArray($(`#edit-widget-modal form`).serializeArray()))
-                };
-            },
-            loadFormData: function() {
-                return rowData;
-            },
-            onModalInit: function(data) {
-
-                const editParams = Object.assign({
-                    name:       data.name,
-                    type:       data.type,
-                    ds_hash:    data.ds_hash,
-                    interface:  data.params.ifid,
-                    widget_key: data.key,
-                }, data.params);
-
-                delete editParams.ifid;
-
-                $(`#edit-widget-modal form`).find('[name]').each(function(e) {
-                    $(this).val(editParams[$(this).attr('name')]);
-                });
-            },
-            onSubmitSuccess: function(response) {
-                $widgets_table.ajax.reload();
-                $('#edit-widget-modal').modal('hide');
-            }
-        });
-
+        editWRowData = $widgets_table.row($(this).parent()).data();
+        edit_widget_modal.invokeModalInit();
     });
 
     $(`#add-widget-modal form`).modalHandler({
@@ -164,6 +168,6 @@ $(document).ready(function() {
             $widgets_table.ajax.reload();
             $('#add-widget-modal').modal('hide');
         }
-    });
+    }).invokeModalInit();
 
 });

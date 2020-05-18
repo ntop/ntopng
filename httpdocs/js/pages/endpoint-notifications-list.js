@@ -89,40 +89,42 @@ $(document).ready(function () {
         ]
     });
 
+    let rowData = null;
+
+    const edit_endpoint_modal = $('#edit-endpoint-modal form').modalHandler({
+        method: 'post',
+        csrf: csrf,
+        endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
+        beforeSumbit: function () {
+            const body = makeFormData(`#edit-endpoint-modal form`);
+            body.action = 'edit';
+            return body;
+        },
+        loadFormData: function () {
+            return rowData;
+        },
+        onModalInit: function (data) {
+            /* load the right template from templates */
+            $(`#edit-endpoint-modal form .endpoint-template-container`)
+                .empty().append(loadTemplate(data.endpoint_key));
+            /* load the values inside the template */
+            $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
+            $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function(i, input) {
+                $(this).val(data.endpoint_conf[$(this).attr('name')]);
+            });
+        },
+        onSubmitSuccess: function (response) {
+            if (response.result.status == "OK") {
+                $(`#edit-endpoint-modal`).modal('hide');
+                $endpointsTable.ajax.reload();
+            }
+        }
+    });
+
     /* bind edit endpoint event */
     $(`table#notification-list`).on('click', `a[href='#edit-endpoint-modal']`, function (e) {
-
-        const rowData = $endpointsTable.row($(this).parent()).data();
-
-        $('#edit-endpoint-modal form').modalHandler({
-            method: 'post',
-            csrf: csrf,
-            endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
-            beforeSumbit: function () {
-                const body = makeFormData(`#edit-endpoint-modal form`);
-                body.action = 'edit';
-                return body;
-            },
-            loadFormData: function () {
-                return rowData;
-            },
-            onModalInit: function (data) {
-                /* load the right template from templates */
-                $(`#edit-endpoint-modal form .endpoint-template-container`)
-                    .empty().append(loadTemplate(data.endpoint_key));
-                /* load the values inside the template */
-                $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
-                $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function(i, input) {
-                    $(this).val(data.endpoint_conf[$(this).attr('name')]);
-                });
-            },
-            onSubmitSuccess: function (response) {
-                if (response.result.status == "OK") {
-                    $(`#edit-endpoint-modal`).modal('hide');
-                    $endpointsTable.ajax.reload();
-                }
-            }
-        });
+        rowData = $endpointsTable.row($(this).parent()).data();
+        edit_endpoint_modal.invokeModalInit();
     });
 
     /* bind add endpoint event */
@@ -160,34 +162,37 @@ $(document).ready(function () {
             }
 
         }
+    }).invokeModalInit();
+
+    let removeModalData = null;
+
+    const remove_endpoint_modal = $(`#remove-endpoint-modal form`).modalHandler({
+        method: 'post',
+        csrf: csrf,
+        skipAys: true,
+        endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
+        beforeSumbit: () => {
+            return {
+                action: 'remove',
+                endpoint_conf_name: $(`#remove-endpoint-modal form [name='endpoint_conf_name']`).val()
+            };
+        },
+        loadFormData: () => removeModalData.endpoint_conf_name,
+        onModalInit: function (data) {
+            $(`#remove-endpoint-modal form [name='endpoint_conf_name']`).val(data);
+        },
+        onSubmitSuccess: function (response) {
+            if (response.result.status == "OK") {
+                $(`#remove-endpoint-modal`).modal('hide');
+                $endpointsTable.ajax.reload();
+            }
+        }
     });
 
     /* bind remove endpoint event */
     $(`table#notification-list`).on('click', `a[href='#remove-endpoint-modal']`, function (e) {
-
-        const rowData = $endpointsTable.row($(this).parent()).data();
-
-        $(`#remove-endpoint-modal form`).modalHandler({
-            method: 'post',
-            csrf: csrf,
-            endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
-            beforeSumbit: () => {
-                return {
-                    action: 'remove',
-                    endpoint_conf_name: $(`#remove-endpoint-modal form [name='endpoint_conf_name']`).val()
-                };
-            },
-            loadFormData: () => rowData.endpoint_conf_name,
-            onModalInit: function (data) {
-                $(`#remove-endpoint-modal form [name='endpoint_conf_name']`).val(data);
-            },
-            onSubmitSuccess: function (response) {
-                if (response.result.status == "OK") {
-                    $(`#remove-endpoint-modal`).modal('hide');
-                    $endpointsTable.ajax.reload();
-                }
-            }
-        });
+        removeModalData = $endpointsTable.row($(this).parent()).data();
+        remove_endpoint_modal.invokeModalInit();
     });
 
 

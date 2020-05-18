@@ -91,40 +91,42 @@ $(document).ready(function () {
         ]
     });
 
+    let cur_row_data = null;
+
+    const edit_recipient_modal = $('#edit-recipient-modal form').modalHandler({
+        method: 'post',
+        csrf: pageCsrf,
+        endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
+        beforeSumbit: function () {
+            const data = makeFormData(`#edit-recipient-modal form`);
+            data.action = 'edit';
+            return data;
+        },
+        loadFormData: function () {
+            return cur_row_data;
+        },
+        onModalInit: function (data) {
+            /* load the right template from templates */
+            $(`#edit-recipient-modal form .recipient-template-container`)
+                .empty().append(loadTemplate(data.endpoint_conf.endpoint_key));
+            /* load the values inside the template */
+            $(`#edit-recipient-modal form [name='name']`).val(data.recipient_name);
+            $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function(i, input) {
+                $(this).val(data.recipient_params[$(this).attr('name')]);
+            });
+        },
+        onSubmitSuccess: function (response) {
+            if (response.result.status == "OK") {
+                $(`#edit-recipient-modal`).modal('hide');
+                $recipientsTable.ajax.reload();
+            }
+        }
+    });
+
     /* bind edit recipient event */
     $(`table#recipient-list`).on('click', `a[href='#edit-recipient-modal']`, function (e) {
-
-        const rowData = $recipientsTable.row($(this).parent()).data();
-
-        $('#edit-recipient-modal form').modalHandler({
-            method: 'post',
-            csrf: pageCsrf,
-            endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
-            beforeSumbit: function () {
-                const data = makeFormData(`#edit-recipient-modal form`);
-                data.action = 'edit';
-                return data;
-            },
-            loadFormData: function () {
-                return rowData;
-            },
-            onModalInit: function (data) {
-                /* load the right template from templates */
-                $(`#edit-recipient-modal form .recipient-template-container`)
-                    .empty().append(loadTemplate(data.endpoint_conf.endpoint_key));
-                /* load the values inside the template */
-                $(`#edit-recipient-modal form [name='name']`).val(data.recipient_name);
-                $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function(i, input) {
-                    $(this).val(data.recipient_params[$(this).attr('name')]);
-                });
-            },
-            onSubmitSuccess: function (response) {
-                if (response.result.status == "OK") {
-                    $(`#edit-recipient-modal`).modal('hide');
-                    $recipientsTable.ajax.reload();
-                }
-            }
-        });
+        cur_row_data = $recipientsTable.row($(this).parent()).data();
+        edit_recipient_modal.invokeModalInit();
     });
 
     /* bind add endpoint event */
@@ -160,30 +162,34 @@ $(document).ready(function () {
                 $(`#add-recipient-modal form span.invalid-feedback`).text(localizedString).show();
             }
         }
+    }).invokeModalInit();
+
+    let rowData = null;
+
+    const recipients_list = $(`#remove-recipient-modal form`).modalHandler({
+        method: 'post',
+        csrf: pageCsrf,
+        endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
+        skipAys: true,
+        beforeSumbit: () => {
+            return {
+                action: 'remove',
+                recipient_name: rowData.recipient_name
+            }
+        },
+        onSubmitSuccess: function (response) {
+            if (response.result.status == "OK") {
+                $(`#remove-recipient-modal`).modal('hide');
+                $recipientsTable.ajax.reload();
+            }
+        }
     });
 
     /* bind remove endpoint event */
     $(`table#recipient-list`).on('click', `a[href='#remove-recipient-modal']`, function (e) {
+        rowData = $recipientsTable.row($(this).parent()).data();
 
-        const rowData = $recipientsTable.row($(this).parent()).data();
-
-        $(`#remove-recipient-modal form`).modalHandler({
-            method: 'post',
-            csrf: pageCsrf,
-            endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
-            beforeSumbit: () => {
-                return {
-                    action: 'remove',
-                    recipient_name: rowData.recipient_name
-                }
-            },
-            onSubmitSuccess: function (response) {
-                if (response.result.status == "OK") {
-                    $(`#remove-recipient-modal`).modal('hide');
-                    $recipientsTable.ajax.reload();
-                }
-            }
-        });
+        recipients_list.invokeModalInit();
     });
 
 

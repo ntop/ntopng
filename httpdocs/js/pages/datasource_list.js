@@ -310,67 +310,69 @@ $(document).ready(function () {
         return serialized;
     }
 
-    /* bind edit datasource event */
-    $(`#datasources-list`).on('click', `a[href='#edit-datasource-modal']`, function (e) {
+    let rowData = null;
 
-        const rowData = $datasources_table.row($(this).parent()).data();
+    const edit_datasource_modal = $('#edit-datasource-modal form').modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/lua/edit_datasources.lua`,
+        beforeSumbit: function () {
+            return {
+                action: 'edit',
+                JSON: JSON.stringify(prepareFormData(`#edit-datasource-modal form`))
+            };
+        },
+        loadFormData: function() {
+            return rowData;
+        },
+        onModalInit: function(data) {
 
-        $('#edit-datasource-modal form').modalHandler({
-            method: 'post',
-            endpoint: `${http_prefix}/lua/edit_datasources.lua`,
-            beforeSumbit: function () {
-                return {
-                    action: 'edit',
-                    JSON: JSON.stringify(prepareFormData(`#edit-datasource-modal form`))
-                };
-            },
-            loadFormData: function() {
-                return rowData;
-            },
-            onModalInit: function(data) {
+            /* fill default datasource values */
+            $(`#edit-datasource-modal form`).find('[name]').each(function(e) {
+                $(this).val(data[$(this).attr('name')]);
+            });
 
-                /* fill default datasource values */
-                $(`#edit-datasource-modal form`).find('[name]').each(function(e) {
-                    $(this).val(data[$(this).attr('name')]);
+            const $sourcesContainer = $(`#edit-datasource-modal .ds-source-container`);
+            const $btnAddSource = $(`#edit-datasource-modal .btn-add-source`);
+            $btnAddSource.hide();
+            $sourcesContainer.hide().empty();
+
+            /* if the origin is of type timeseries then prepare sources */
+            if (data.origin != "timeseries.lua") return;
+
+            const schemas = data.schemas;
+            for (const [key, schema] of Object.entries(schemas)) {
+
+                const source = timeseriesSourceBuilder.buildNewSource(
+                    `#edit-ds-source-container`,
+                    `source-${data.hash}-${schema.metric}`
+                );
+
+                source.setCardTitle(`${key} / ${schema.metric}`);
+                source.fillSource({
+                    schema: key,
+                    metric: schema.metric,
+                    tags: schema.tags
                 });
 
-                const $sourcesContainer = $(`#edit-datasource-modal .ds-source-container`);
-                const $btnAddSource = $(`#edit-datasource-modal .btn-add-source`);
-                $btnAddSource.hide();
-                $sourcesContainer.hide().empty();
-
-                /* if the origin is of type timeseries then prepare sources */
-                if (data.origin != "timeseries.lua") return;
-
-                const schemas = data.schemas;
-                for (const [key, schema] of Object.entries(schemas)) {
-
-                    const source = timeseriesSourceBuilder.buildNewSource(
-                        `#edit-ds-source-container`,
-                        `source-${data.hash}-${schema.metric}`
-                    );
-
-                    source.setCardTitle(`${key} / ${schema.metric}`);
-                    source.fillSource({
-                        schema: key,
-                        metric: schema.metric,
-                        tags: schema.tags
-                    });
-
-                    $sourcesContainer.append(source.$domElement);
-                }
-
-                $sourcesContainer.show();
-                $btnAddSource.show();
-            },
-            onSubmitSuccess: function(response) {
-                if (response.success) {
-                    $datasources_table.ajax.reload();
-                    timeseriesSourceBuilder.emptyCurrentSources();
-                    $('#edit-datasource-modal').modal('hide');
-                }
+                $sourcesContainer.append(source.$domElement);
             }
-        });
+
+            $sourcesContainer.show();
+            $btnAddSource.show();
+        },
+        onSubmitSuccess: function(response) {
+            if (response.success) {
+                $datasources_table.ajax.reload();
+                timeseriesSourceBuilder.emptyCurrentSources();
+                $('#edit-datasource-modal').modal('hide');
+            }
+        }
+    });
+
+    /* bind edit datasource event */
+    $(`#datasources-list`).on('click', `a[href='#edit-datasource-modal']`, function (e) {
+        rowData = $datasources_table.row($(this).parent()).data();
+        edit_datasource_modal.invokeModalInit();
     });
 
     /* bind add datasource event */
@@ -392,33 +394,36 @@ $(document).ready(function () {
                 $datasources_table.ajax.reload();
             }
         }
+    }).invokeModalInit();
+
+    let dsRowData = null;
+
+    const remove_ds_modal = $(`#remove-datasource-modal form`).modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/lua/edit_datasources.lua`,
+        skipAys: true,
+        beforeSumbit: () => {
+            return {
+                action: 'remove',
+                JSON: JSON.stringify({
+                    ds_key: $(`#remove-datasource-modal form input[name='ds_key']`).val()
+                })
+            }
+        },
+        loadFormData: () => dsRowData.hash,
+        onModalInit: function (data) {
+            $(`#remove-datasource-modal form input[name='ds_key']`).val(data);
+        },
+        onSubmitSuccess: function (response) {
+            $datasources_table.ajax.reload();
+            $('#remove-datasource-modal').modal('hide');
+        }
     });
 
     /* bind remove datasource event */
     $(`#datasources-list`).on('click', `a[href='#remove-datasource-modal']`, function (e) {
-
-        const rowData = $datasources_table.row($(this).parent()).data();
-
-        $(`#remove-datasource-modal form`).modalHandler({
-            method: 'post',
-            endpoint: `${http_prefix}/lua/edit_datasources.lua`,
-            beforeSumbit: () => {
-                return {
-                    action: 'remove',
-                    JSON: JSON.stringify({
-                        ds_key: $(`#remove-datasource-modal form input[name='ds_key']`).val()
-                    })
-                }
-            },
-            loadFormData: () => rowData.hash,
-            onModalInit: function (data) {
-                $(`#remove-datasource-modal form input[name='ds_key']`).val(data);
-            },
-            onSubmitSuccess: function (response) {
-                $datasources_table.ajax.reload();
-                $('#remove-datasource-modal').modal('hide');
-            }
-        });
+        dsRowData = $datasources_table.row($(this).parent()).data();
+        remove_ds_modal.invokeModalInit();
     });
 
     /* **************************************************************************************** */
