@@ -752,7 +752,7 @@ end
 -- *Limitation*
 -- tags_filter is expected to contain all the tags of the schema except the last
 -- one. For such tag, a list of available values will be returned.
-local function _listSeries(schema, tags_filter, wildcard_tags, start_time)
+function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
    if #wildcard_tags > 1 then
       tprint({schema_name = schema.name, wildcards=wildcard_tags})
     traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support listSeries on multiple tags")
@@ -821,12 +821,6 @@ end
 
 -- ##############################################
 
-function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
-  return _listSeries(schema, tags_filter, wildcard_tags, start_time)
-end
-
--- ##############################################
-
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
   if #top_tags > 1 then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support topk on multiple tags")
@@ -840,7 +834,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     return nil
   end
 
-  local series = _listSeries(schema, tags, top_tags, tstart)
+  local series = driver:listSeries(schema, tags, top_tags, tstart)
   if not series then
     return nil
   end
