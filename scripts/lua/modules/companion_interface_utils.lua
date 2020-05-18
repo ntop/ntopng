@@ -31,6 +31,12 @@ function companion_interface_utils.getCurrentCompanion(ifid)
    return ""
 end
 
+function companion_interface_utils.getCurrentCompanionOf(ifid)
+   local k = string.format(companion_of_key, ifid)
+   local of_ifaces = ntop.getMembersCache(k) or {}
+   return of_ifaces
+end
+
 function companion_interface_utils.setCompanion(ifid, companion_ifid)
    local k = string.format(companion_interface_key, ifid)
    local cur_companion = companion_interface_utils.getCurrentCompanion(ifid)
