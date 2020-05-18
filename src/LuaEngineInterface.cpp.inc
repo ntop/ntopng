@@ -175,7 +175,6 @@ static int ntop_is_valid_interface_id(lua_State* vm) {
 
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
-    errno = 0; 
     ifid = strtol(lua_tostring(vm, 1), NULL, 0); /* Sets errno when the conversion fails, e.g., string is NaN once converted */
   } else if(lua_type(vm, 1) == LUA_TNUMBER) {
     ifid = lua_tointeger(vm, 1);
