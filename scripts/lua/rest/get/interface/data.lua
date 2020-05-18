@@ -241,9 +241,8 @@ else
    local ifid = nil
    if not isEmptyString(_GET["ifid"]) then
       ifid = _GET["ifid"]
+      res = dumpInterfaceStats(ifid)
    end
-   res = dumpInterfaceStats(ifid)
-
 end
 
 print(json.encode(res))

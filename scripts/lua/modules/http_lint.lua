@@ -1861,12 +1861,16 @@ function http_lint.validationError(t, param, value, message)
       s_id = "_POST"
    end
 
+   -- Remove the param which failed the validation
    t[param] = nil
    
    -- Must use urlencode to print these values or an attacker could perform XSS.
    -- Indeed, the web page returned by mongoose will show the error below and
    -- one could place something like '><script>alert(1)</script> in the value
    -- to close the html and execute a script
+
+   -- Print of errors has been disabled to avoid logs to be flooded. Lint validation must be handled
+   -- as part of HTTP responses, not printed in ntopng logs
 
    --error("[LINT] " .. s_id .. "[\"" .. urlencode(param) .. "\"] = \"" .. urlencode(value or 'nil') .. "\" parameter error: " .. message.."")
 end
@@ -1898,8 +1902,10 @@ local function lintParams()
                if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
             else
                local success, message = validateParameter(k, v)
+
                if not success then
                   if message ~= nil then
+		     -- tprint("k: "..k.. " v: "..v.. " success: "..tostring(success).. " message: "..message)
                      http_lint.validationError(id, k, v, message)
                   else
                      success, message = validateSpecialParameter(k, v)
