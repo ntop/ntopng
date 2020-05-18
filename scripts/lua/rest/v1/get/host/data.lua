@@ -17,6 +17,10 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
+sendHTTPHeader('application/json')
+
+local rc = rest_utils.consts_ok
+local res = {}
 
 -- whether to return host statistics: on by default
 local host_stats           = _GET["host_stats"]
@@ -26,7 +30,6 @@ local host_stats_flows     = _GET["host_stats_flows"]
 local host_stats_flows_num = _GET["limit"]
 
 local host_info = url2hostinfo(_GET)
-local rc = rest_utils.consts_ok
 
 local function flows2protocolthpt(flows)
    local protocol_thpt = {}
@@ -58,17 +61,13 @@ end
 local ifid = _GET["ifid"]
 -- parse interface names and possibly fall back to the selected interface:
 -- priority goes to the interface id
-if ifid ~= nil and ifid ~= "" then
+if not isEmptyString(ifid) then
    if_name = getInterfaceName(ifid)
    -- finally, we fall back to the default selected interface name
 else
    print(rest_utils.rc(rest_utils.consts_invalid_interface))
    return
 end
-
-local res = {}
-
-sendHTTPHeader('application/json')
 
 if host_info["host"] then
    interface.select(if_name)
