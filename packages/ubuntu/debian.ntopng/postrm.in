@@ -1,0 +1,27 @@
+#!/bin/sh -e
+
+set -e
+
+case "$1" in
+	purge|remove)
+	if [ -f /etc/init.d/ntopng ]; then
+		update-rc.d ntopng remove >/dev/null
+	fi
+
+	if [ @APP@ = nedge ]; then
+		if [ -f /etc/network/interfaces.old ]; then
+			mv /etc/network/interfaces.old /etc/network/interfaces
+		fi
+
+		if [ -f /etc/netplan/20-nedge.yaml ]; then
+                	rm -f /etc/netplan/20-nedge.yaml
+		fi
+
+		for f in $(find /etc/netplan -name "*.yaml.old"); do
+			mv "$f" "${f%%.old}"
+		done
+	fi
+	;;
+esac
+
+exit 0

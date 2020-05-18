@@ -1865,6 +1865,8 @@ ac_config_files="$ac_config_files debian.ntopng/postinst"
 
 ac_config_files="$ac_config_files debian.ntopng/prerm"
 
+ac_config_files="$ac_config_files debian.ntopng/postrm"
+
 ac_config_files="$ac_config_files debian.ntopng-data/changelog"
 
 ac_config_files="$ac_config_files debian.ntopng-data/files"
@@ -2584,6 +2586,7 @@ do
     "debian.ntopng/rules") CONFIG_FILES="$CONFIG_FILES debian.ntopng/rules" ;;
     "debian.ntopng/postinst") CONFIG_FILES="$CONFIG_FILES debian.ntopng/postinst" ;;
     "debian.ntopng/prerm") CONFIG_FILES="$CONFIG_FILES debian.ntopng/prerm" ;;
+    "debian.ntopng/postrm") CONFIG_FILES="$CONFIG_FILES debian.ntopng/postrm" ;;
     "debian.ntopng-data/changelog") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/changelog" ;;
     "debian.ntopng-data/files") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/files" ;;
     "debian.ntopng-data/control") CONFIG_FILES="$CONFIG_FILES debian.ntopng-data/control" ;;
