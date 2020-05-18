@@ -13,12 +13,16 @@ how to setup the connection and the historical views available for this mode.
 However, due to the users feedback on the MySQL low performance with high flow
 insertion rates, ntopng now integrates a specialized flows
 dump database called nIndex which overcomes the limits of MySQL. This is currently
-available only in the enterprise version of ntopng.
+available only in the enterprise version of ntopng for x86_64 architectures.
 
 .. note::
 
   The historical views provided with the MySQL integration (like the "Historical Explorer")
   are *not* compatible with nIndex.
+
+.. warning::
+
+  nIndex is only available for x86_64 architectures. ARM is not supported.
 
 The rest of this page documents the use of nIndex as flows storage.
 
