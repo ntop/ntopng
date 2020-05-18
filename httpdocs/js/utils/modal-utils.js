@@ -1,9 +1,17 @@
 (function ($) {
+    /* Assign a unique ID to each modal */
+    let modal_id_ctr = 0;
 
+    /* Use with:
+     *
+     * $('#edit-recipient-modal form').modalHandler({ ... })
+     */
     class ModalHandler {
 
+        /* element is the form object */
         constructor(element, options) {
             this.element = element;
+            this.dialog = $(element).closest(".modal");
             this.options = options;
             this.csrf = options.csrf;
             this.observer = new MutationObserver((list) => {
@@ -16,6 +24,37 @@
 
             const submitButton = $(this.element).find(`[type='submit']`);
             if (!submitButton) throw new Error("The submit button was not found inside the form!");
+
+            /* Are you sure */
+            const modal_id = modal_id_ctr++;
+
+            $(this.element).attr("data-modal-handler-id", modal_id);
+            this.form_sel = `[data-modal-handler-id="${modal_id}"]`;
+            aysHandleForm(this.form_sel);
+
+            const self = this;
+
+            // handle modal-script close event
+            this.dialog.on("hide.bs.modal", function(e) {
+                // If the form data has changed, ask the user if he wants to discard
+                // the changes
+                if($(self.element).hasClass('dirty')) {
+                    // ask to user if he REALLY wants close modal
+                    const result = confirm(`${i18n.are_you_sure}`);
+
+                    if(!result)
+                        e.preventDefault();
+                    else
+                        aysResetForm(self.form_sel);
+                }
+            }).on("shown.bs.modal", function(e) {
+                // add focus to btn apply to enable focusing on the modal hence user can press escape button to
+                // close the modal
+                $(self.element).find("[type='submit']").trigger('focus');
+
+                // Reinitialize the form AYS state with the new data
+                aysResetForm(self.form_sel);
+            });
         }
 
         fillFormModal() {
@@ -101,6 +140,9 @@
                     /* unbind the old closure on submit event and bind a new one */
                     $(self.element).off('submit', self.submitHandler);
                     self.delegateSubmit();
+
+                    /* Allow the form to be closed */
+                    aysResetForm(self.form_sel);
                 })
                 .fail(function (jqxhr, textStatus, errorThrown) {
                     self.options.onSubmitError(dataToSend, textStatus, errorThrown);
@@ -113,9 +155,11 @@
         delegateResetButton() {
 
             const resetButton = $form.find(`[type='reset']`);
+            const self = this;
             if (!resetButton) return;
             resetButton.click(function(event) {
                 /* TODO: finisch the reset logic */
+                aysResetForm(self.form_sel);
             });
         }
     }
