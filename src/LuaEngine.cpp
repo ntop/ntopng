@@ -690,7 +690,9 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       }
     }
 
-    if(valid_csrf && (csrf[0] != '\0')) {
+    /* Empty CSRF only allowed for nologin user. Such user has no associated
+     * session so it has an empty CSRF. */
+    if(valid_csrf && ((csrf[0] != '\0') || (strcmp(user, NTOP_NOLOGIN_USER) == 0))) {
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
 	*attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
