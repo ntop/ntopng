@@ -11,11 +11,12 @@ local json = require ("dkjson")
 
 local rest_utils = {}
 
-rest_utils.consts_ok                = 0
+rest_utils.consts_ok                =  0
 rest_utils.consts_not_found         = -1
 rest_utils.consts_invalid_interface = -2
 rest_utils.consts_not_granted       = -3
 rest_utils.consts_invalid_host      = -4
+rest_utils.consts_invalid_args      = -5
 
 local rc_str_consts = {
    [rest_utils.consts_ok] = "OK",
@@ -23,6 +24,7 @@ local rc_str_consts = {
    [rest_utils.consts_invalid_interface] = "INVALID_INTERFACE",
    [rest_utils.consts_not_granted] = "NOT_GRANTED",
    [rest_utils.consts_invalid_host] = "INVALID_HOST",
+   [rest_utils.consts_invalid_args] = "INVALID_ARGUMENTS",
 }
 
 function rest_utils.rc(ret_code, response)
