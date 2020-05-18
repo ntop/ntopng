@@ -31,6 +31,17 @@ local host_stats_flows_num = _GET["limit"]
 
 local host_info = url2hostinfo(_GET)
 
+local ifid = _GET["ifid"]
+-- parse interface names and possibly fall back to the selected interface:
+-- priority goes to the interface id
+if not isEmptyString(ifid) then
+   if_name = getInterfaceName(ifid)
+   -- finally, we fall back to the default selected interface name
+else
+   print(rest_utils.rc(rest_utils.consts_invalid_interface))
+   return
+end
+
 local function flows2protocolthpt(flows)
    local protocol_thpt = {}
    for _, flow in pairs(flows) do
@@ -56,17 +67,6 @@ local function flows2protocolthpt(flows)
       ::continue::
    end
    return protocol_thpt
-end
-
-local ifid = _GET["ifid"]
--- parse interface names and possibly fall back to the selected interface:
--- priority goes to the interface id
-if not isEmptyString(ifid) then
-   if_name = getInterfaceName(ifid)
-   -- finally, we fall back to the default selected interface name
-else
-   print(rest_utils.rc(rest_utils.consts_invalid_interface))
-   return
 end
 
 if host_info["host"] then

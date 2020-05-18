@@ -14,11 +14,15 @@ local rest_utils = {}
 rest_utils.consts_ok                = 0
 rest_utils.consts_not_found         = -1
 rest_utils.consts_invalid_interface = -2
+rest_utils.consts_not_granted       = -3
+rest_utils.consts_invalid_host      = -4
 
 local rc_str_consts = {
    [rest_utils.consts_ok] = "OK",
    [rest_utils.consts_not_found] = "NOT_FOUND",
-   [rest_utils.consts_invalid_interface] = "INVALID_INTEFACE",
+   [rest_utils.consts_invalid_interface] = "INVALID_INTERFACE",
+   [rest_utils.consts_not_granted] = "NOT_GRANTED",
+   [rest_utils.consts_invalid_host] = "INVALID_HOST",
 }
 
 function rest_utils.rc(ret_code, response)
