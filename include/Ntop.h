@@ -496,7 +496,6 @@ class Ntop {
 #endif
   inline bool hasDroppedPrivileges()         { return(privileges_dropped); }
   inline void setDroppedPrivileges()         { privileges_dropped = true; }
-  bool isValidInterfaceId(int interfaceId);
 };
 
 extern Ntop *ntop;

@@ -177,9 +177,9 @@ static int ntop_is_valid_interface_id(lua_State* vm) {
   } else if(lua_type(vm, 1) == LUA_TNUMBER) {
     ifid = lua_tointeger(vm, 1);
   } else
-    return(CONST_LUA_ERROR);
+    lua_pushboolean(vm, false);
 
-  lua_pushboolean(vm, ntop->isValidInterfaceId(ifid));
+  lua_pushboolean(vm, ntop->getInterfaceById(ifid) != NULL);
   return(CONST_LUA_OK);
 }
 
