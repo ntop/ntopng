@@ -1272,6 +1272,7 @@ local known_parameters = {
    ["flow_hash_id"]            = validateNumber,                -- The ID uniquely identifying the flow in the hash table
    ["pool"]                    = validateNumber,                -- A pool ID
    ["direction"]               = validateDirection,             -- Sent or Received direction
+   ["download"]                = validateBool,
    ["stats_type"]              = validateStatsType,             -- A mode for historical stats queries
    ["alertstats_type"]         = validateAlertStatsType,        -- A mode for alerts stats queries
    ["flowhosts_type"]          = validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions

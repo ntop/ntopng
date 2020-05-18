@@ -378,7 +378,9 @@ print[[
       </form>
 
       <div style="float:left">
-        <form action="/lua/rest/get/pool/config.lua" class="form-inline" method="GET" data-ays-ignore="true">
+        <form action="/lua/rest/v1/get/pool/config.lua" class="form-inline" method="GET" data-ays-ignore="true">
+          <input type="hidden" name="ifid" value="]] print(ifId) print[[" />
+          <input type="hidden" name="download" value="true" />
           <button type="submit" class="btn btn-secondary"><span>]] print(i18n("host_pools.config_export")) print[[</span></button>
         </form>
         <button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>]] print(i18n("host_pools.config_import")) print[[</span></button>
