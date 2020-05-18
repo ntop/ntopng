@@ -22,7 +22,7 @@ available only in the enterprise version of ntopng for x86_64 architectures.
 
 .. warning::
 
-  nIndex is only available for x86_64 architectures. ARM is not supported.
+  nIndex is only available on Linux/x86_64 architectures.
 
 The rest of this page documents the use of nIndex as flows storage.
 
