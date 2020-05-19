@@ -168,20 +168,20 @@ static int ntop_get_interface_id(lua_State* vm) {
 
 static int ntop_is_valid_interface_id(lua_State* vm) {
   int ifid;
-
-  errno = 0; /* Reset as possibly used with strtol. This is thread-safe. */
+  bool valid_int = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
+    errno = 0; /* Reset as possibly set by strtol. This is thread-safe. */
     ifid = strtol(lua_tostring(vm, 1), NULL, 0); /* Sets errno when the conversion fails, e.g., string is NaN once converted */
+    if(!errno) valid_int = true;
   } else if(lua_type(vm, 1) == LUA_TNUMBER) {
     ifid = lua_tointeger(vm, 1);
-  } else
-    errno = 1;
+    valid_int = true;
+  }
 
-  /* if errno hasn't been set, ifid is a valid integer and can be avaluated, otherwise just return false */
-  lua_pushboolean(vm, !errno ? ntop->getInterfaceById(ifid) != NULL : false);
+  lua_pushboolean(vm, valid_int ? ntop->getInterfaceById(ifid) != NULL : false);
   return(CONST_LUA_OK);
 }
 
