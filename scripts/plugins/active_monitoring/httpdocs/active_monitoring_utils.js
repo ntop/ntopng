@@ -1,98 +1,99 @@
 $(document).ready(function() {
 
     let am_alert_timeout = null;
+    let row_data = null;
 
-    $("#am-add-form").on('submit', function(event) {
-
-        event.preventDefault();
-
-        const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
-        const granularity = $("#select-add-granularity").val();
-        const threshold = $("#input-add-threshold").val();
-
-        perform_request(make_data_to_send('add', host, threshold, measurement, granularity, am_csrf));
-
-    });
-
-    $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
-
-        const row_data = get_am_data($am_table, $(this));
-        $("#delete-host").html(`<b>${row_data.url}</b>`);
-        $(`#am-delete-modal span.invalid-feedback`).hide();
-
-        $('#am-delete-form').off('submit').on('submit', function(e) {
-
-            e.preventDefault();
-            perform_request({
+    const delete_host_modal = $(`#am-delete-modal form`).modalHandler({
+        method: 'post',
+        csrf: am_csrf,
+        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        skipAys: true,
+        onModalInit: function() {
+            $("#delete-host").html(`<b>${row_data.url}</b>`);
+        },
+        beforeSumbit: () => {
+            return {
                 action: 'delete',
                 am_host: row_data.host,
                 measurement: row_data.measurement,
                 csrf: am_csrf
-            })
-        });
-
+            }
+        },
+        onSubmitSuccess: function (response) {
+            if (response.success) {
+                $(`#am-delete-modal`).modal('hide');
+                $am_table.ajax.reload();
+            }
+        }
     });
 
-    let old_submit_handler = null;
+    $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
+        row_data = get_am_data($am_table, $(this));
+        delete_host_modal.invokeModalInit();
+    });
 
-    $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
+    let edit_host_data = null;
 
-        const fill_form = (data) => {
+    $("#select-edit-measurement").on('change', function(event) {
+        dialogRefreshMeasurement($("#am-edit-modal"));
+    });
 
+    const edit_host_modal = $(`#am-edit-form`).modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        csrf: am_csrf,
+        onModalInit: function () {
             const DEFAULT_THRESHOLD     = 500;
             const DEFAULT_GRANULARITY   = "min";
             const DEFAULT_MEASUREMENT   = "icmp";
             const DEFAULT_HOST          = "";
 
-            const cur_measurement = data.measurement || DEFAULT_MEASUREMENT;
+            const cur_measurement = edit_host_data.measurement || DEFAULT_MEASUREMENT;
             const $dialog = $('#am-edit-modal');
             dialogDisableUniqueMeasurements($dialog, cur_measurement);
             // fill input boxes
-            $('#input-edit-threshold').val(data.threshold || DEFAULT_THRESHOLD);
+            $('#input-edit-threshold').val(edit_host_data.threshold || DEFAULT_THRESHOLD);
             $('#select-edit-measurement').val(cur_measurement);
-            $('#select-edit-granularity').val(data.granularity || DEFAULT_GRANULARITY);
-            $('#input-edit-host').val(data.host || DEFAULT_HOST);
-            dialogRefreshMeasurement($dialog, data.granularity);
-        }
-
-        const data = get_am_data($am_table, $(this));
-
-        // bind submit to form for edits
-        if(old_submit_handler)
-            $("#am-edit-form").off('submit', old_submit_handler);
-
-        old_submit_handler = function(event) {
-            event.preventDefault();
-
+            $('#select-edit-granularity').val(edit_host_data.granularity || DEFAULT_GRANULARITY);
+            $('#input-edit-host').val(edit_host_data.host || DEFAULT_HOST);
+            dialogRefreshMeasurement($dialog, edit_host_data.granularity);
+        },
+        beforeSumbit: function () {
             const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
             const granularity = $("#select-edit-granularity").val();
             const threshold = $("#input-edit-threshold").val();
 
-            const data_to_send = {
+            return {
                 action: 'edit',
                 threshold: threshold,
                 am_host: host,
                 measurement: measurement,
-                old_am_host: data.host,
-                old_measurement: data.measurement,
+                old_am_host: edit_host_data.host,
+                old_measurement: edit_host_data.measurement,
                 granularity: granularity,
-                old_granularity: data.granularity,
-                csrf: am_csrf
+                old_granularity: edit_host_data.granularity,
             };
+        },
+        onSubmitSuccess: function (response) {
+            if (response.success) {
+                if (!am_alert_timeout) clearTimeout(am_alert_timeout);
+                am_alert_timeout = setTimeout(() => {
+                    $('#am-alert').fadeOut();
+                }, 1000)
 
-            perform_request(data_to_send);
-        };
+                $('#am-alert .alert-body').text(response.message);
+                $('#am-alert').fadeIn();
+                $(`#am-edit-modal`).modal('hide');
+                $am_table.ajax.reload(function(data) {
+                    updateMeasurementFilter(data);
+                });
+            }
+        }
+    });
 
-        $("#am-edit-form").on('submit', old_submit_handler);
-
-        // create a closure for reset button
-        $('#btn-reset-defaults').off('click').on('click', function() {
-            fill_form(data);
-        });
-
-        fill_form(data);
-        $(`#am-edit-modal span.invalid-feedback`).hide();
-
+    $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
+        edit_host_data = get_am_data($am_table, $(this));
+        edit_host_modal.invokeModalInit();
     });
 
     // Disable the already defined measurements for forced_hosts since
@@ -170,59 +171,6 @@ $(document).ready(function() {
             $granularities.val(granularity);
         else if(old_val_ok)
             $granularities.val(old_val);
-    }
-
-    const make_data_to_send = (action, am_host, threshold, am_measure, granularity, csrf) => {
-        return {
-            action: action,
-            am_host: am_host,
-            threshold: threshold,
-            measurement: am_measure,
-            granularity: granularity,
-            csrf: csrf
-        }
-    }
-
-    const perform_request = (data_to_send) => {
-
-        const {action} = data_to_send;
-        if (action != 'add' && action != 'edit' && action != "delete") {
-            console.error("The requested action is not valid!");
-            return;
-        }
-
-        $(`#am-${action}-modal span.invalid-feedback`).hide();
-        $('#am-alert').hide();
-        $(`form#am-${action}-modal button[type='submit']`).attr("disabled", "disabled");
-
-        $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
-        .then((data, result, xhr) => {
-
-            $(`form#am-${action}-modal button[type='submit']`).removeAttr("disabled");
-            $('#am-alert').addClass('alert-success').removeClass('alert-danger');
-
-            if (data.success) {
-                if (!am_alert_timeout) clearTimeout(am_alert_timeout);
-                am_alert_timeout = setTimeout(() => {
-                    $('#am-alert').fadeOut();
-                }, 1000)
-
-                $('#am-alert .alert-body').text(data.message);
-                $('#am-alert').fadeIn();
-                $(`#am-${action}-modal`).modal('hide');
-                $am_table.ajax.reload(function(data) {
-                    updateMeasurementFilter(data);
-                });
-                return;
-            }
-
-            const error_message = data.error;
-            $(`#am-${action}-modal span.invalid-feedback`).html(error_message).show();
-        })
-        .fail((status) => {
-            $('#am-alert').removeClass('alert-success').addClass('alert-danger');
-            $('#am-alert .alert-body').text(i18n.expired_csrf);
-        });
     }
 
     const get_am_data = ($am_table, $button_caller) => {
@@ -380,7 +328,6 @@ $(document).ready(function() {
     }
 
     const addAlertedFilter = (table_api, data) => {
-
         const count = countAlertedHosts(data);
 
         const filters = [
@@ -399,6 +346,57 @@ $(document).ready(function() {
         const ALERTED_COLUMN_INDEX = 7;
         addFilterDropdown(i18n.alert_status, filters, ALERTED_COLUMN_INDEX, "#am-table_filter", table_api);
     }
+
+    $("#select-add-measurement").on('change', function(event) {
+        dialogRefreshMeasurement($("#am-add-modal"));
+    });
+
+    const add_host_modal = $(`#am-add-form`).modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        csrf: am_csrf,
+        onModalInit: function () {
+            const $dialog = $('#am-add-modal');
+            dialogDisableUniqueMeasurements($dialog);
+
+            // select the first non-disabled option (after dialogDisableUniqueMeasurements)
+            $("#select-add-measurement").val($("#select-add-measurement").find("option:not([disabled]):first").val());
+
+            $('#input-add-host').val('');
+            $('#input-add-threshold').val(100);
+            $(`#am-add-modal span.invalid-feedback`).hide();
+            $('#am-add-modal').modal('show');
+            dialogRefreshMeasurement($dialog, null, true /* use defaults */);
+        },
+        beforeSumbit: function () {
+            const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
+            const granularity = $("#select-add-granularity").val();
+            const threshold = $("#input-add-threshold").val();
+
+            return {
+                action: 'add',
+                am_host: host,
+                threshold: threshold,
+                measurement: measurement,
+                granularity: granularity,
+            }
+        },
+        onSubmitSuccess: function (response) {
+            if (response.success) {
+                if (!am_alert_timeout) clearTimeout(am_alert_timeout);
+                am_alert_timeout = setTimeout(() => {
+                    $('#am-alert').fadeOut();
+                }, 1000)
+
+                $('#am-alert .alert-body').text(response.message);
+                $('#am-alert').fadeIn();
+                $(`#am-add-modal`).modal('hide');
+                $am_table.ajax.reload(function(data) {
+                    updateMeasurementFilter(data);
+                });
+            }
+        }
+    });
 
     const $am_table = $("#am-table").DataTable({
         pagingType: 'full_numbers',
@@ -444,17 +442,7 @@ $(document).ready(function() {
                     text: '<i class="fas fa-plus"></i>',
                     className: 'btn-link',
                     action: function(e, dt, node, config) {
-                        const $dialog = $('#am-add-modal');
-                        dialogDisableUniqueMeasurements($dialog);
-
-                        // select the first non-disabled option (after dialogDisableUniqueMeasurements)
-                        $("#select-add-measurement").val($("#select-add-measurement").find("option:not([disabled]):first").val());
-
-                        $('#input-add-host').val('');
-                        $('#input-add-threshold').val(100);
-                        $(`#am-add-modal span.invalid-feedback`).hide();
-                        $('#am-add-modal').modal('show');
-                        dialogRefreshMeasurement($dialog, null, true /* use defaults */);
+                        add_host_modal.invokeModalInit();
                     }
                 }
             ],
@@ -579,14 +567,6 @@ $(document).ready(function() {
         ]
     });
 
-    $("#select-add-measurement").on('change', function(event) {
-        dialogRefreshMeasurement($("#am-add-modal"));
-    });
-
-    $("#select-edit-measurement").on('change', function(event) {
-        dialogRefreshMeasurement($("#am-edit-modal"));
-    });
-
     importModalHelper({
         load_config_xhr: (json_conf) => {
           return $.post(http_prefix + "/plugins/import_active_monitoring_config.lua", {
@@ -597,8 +577,4 @@ $(document).ready(function() {
             import_csrf = new_csrf;
         }
     });
-
-    aysHandleModal("#am-edit-modal", "#am-edit-form");
-    aysHandleModal("#am-add-modal", "#am-add-form");
-
 });

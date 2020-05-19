@@ -10,6 +10,10 @@
 
         /* element is the form object */
         constructor(element, options) {
+            /* Check mandatory options */
+            if(!options.csrf)
+                throw "modalHandler: Missing CSRF";
+
             this.element = element;
             this.dialog = $(element).closest(".modal");
             this.options = options;

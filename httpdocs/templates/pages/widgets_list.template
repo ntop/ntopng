@@ -36,5 +36,4 @@
     i18n.search = "{{ i18n('search') }}";
 
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/modal-utils.js"></script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/widget_list.js"></script>

@@ -67,7 +67,8 @@ local context = {
     template_utils = template,
     page_utils = page_utils,
     json = json,
-    info = ntop.getInfo()
+    info = ntop.getInfo(),
+    csrf = ntop.getRandomCSRFValue(),
 }
 
 -- print config_list.html template

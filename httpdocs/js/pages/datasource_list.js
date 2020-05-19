@@ -315,6 +315,7 @@ $(document).ready(function () {
     const edit_datasource_modal = $('#edit-datasource-modal form').modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_datasources.lua`,
+        csrf: ds_csrf,
         beforeSumbit: function () {
             return {
                 action: 'edit',
@@ -379,6 +380,7 @@ $(document).ready(function () {
     $(`#add-datasource-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_datasources.lua`,
+        csrf: ds_csrf,
         beforeSumbit: function () {
             return {
                 action: 'add',
@@ -402,6 +404,7 @@ $(document).ready(function () {
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_datasources.lua`,
         skipAys: true,
+        csrf: ds_csrf,
         beforeSumbit: () => {
             return {
                 action: 'remove',

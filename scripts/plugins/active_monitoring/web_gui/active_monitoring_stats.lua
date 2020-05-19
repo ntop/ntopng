@@ -199,7 +199,7 @@ if(page == "overview") then
 
     print(plugins_utils.renderTemplate("active_monitoring", "am_delete_host_modal.html", {
       dialog = {
-	confirm_delete = "active_monitoring_stats.confirm_delete",
+	confirm_delete = i18n("active_monitoring_stats.confirm_delete"),
 	delete = i18n("delete"),
 	cancel = i18n("cancel"),
       }

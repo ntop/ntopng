@@ -47,5 +47,4 @@
     i18n.createEndpointFirst = "{{ (#notifications.endpoint_list > 0 and '' or i18n('endpoint_notifications.create_endpoint_first')) }}";
     i18n.endpoint_recipient_already_existing = "{{ i18n('endpoint_notifications.endpoint_recipient_already_existing') }}";
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/modal-utils.js"></script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js"></script>

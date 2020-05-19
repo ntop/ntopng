@@ -52,5 +52,4 @@
     i18n.endpoint_config_already_existing = "{{ i18n('endpoint_notifications.endpoint_config_already_existing') }}";
 
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/modal-utils.js"></script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/endpoint-notifications-list.js"></script>
