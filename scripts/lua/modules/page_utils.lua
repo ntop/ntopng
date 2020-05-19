@@ -400,10 +400,7 @@ function page_utils.print_menubar()
 
    print('<div id="n-sidebar" class="bg-'.. navbar_style ..' py-0 px-2">')
 
-   print([[
-	<h3 class='muted'>
-	       <a href='/'>
-	]])
+   print("<h3 class='muted'><a href='"..ntop.getHttpPrefix().."/'>")	
 
    if (logo_path ~= nil) then
       print("<img class=\"logo-brand\" height=\"52px\" src=\""..logo_path.."\" alt='Custom Logo' />")
