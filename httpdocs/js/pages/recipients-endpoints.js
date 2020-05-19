@@ -170,7 +170,7 @@ $(document).ready(function () {
         method: 'post',
         csrf: pageCsrf,
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
-        skipAys: true,
+        dontDisableSubmit: true,
         beforeSumbit: () => {
             return {
                 action: 'remove',

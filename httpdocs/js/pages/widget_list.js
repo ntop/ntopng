@@ -86,7 +86,7 @@ $(document).ready(function() {
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_widgets.lua`,
         csrf: remove_csrf,
-        skipAys: true,
+        dontDisableSubmit: true,
         beforeSumbit: () => {
             return {
                 action: 'remove',

@@ -7,7 +7,7 @@ $(document).ready(function() {
         method: 'post',
         csrf: am_csrf,
         endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
-        skipAys: true,
+        dontDisableSubmit: true,
         onModalInit: function() {
             $("#delete-host").html(`<b>${row_data.url}</b>`);
         },

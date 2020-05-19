@@ -403,7 +403,7 @@ $(document).ready(function () {
     const remove_ds_modal = $(`#remove-datasource-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_datasources.lua`,
-        skipAys: true,
+        dontDisableSubmit: true,
         csrf: ds_csrf,
         beforeSumbit: () => {
             return {

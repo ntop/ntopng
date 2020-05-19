@@ -169,7 +169,7 @@ $(document).ready(function () {
     const remove_endpoint_modal = $(`#remove-endpoint-modal form`).modalHandler({
         method: 'post',
         csrf: csrf,
-        skipAys: true,
+        dontDisableSubmit: true,
         endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
         beforeSumbit: () => {
             return {

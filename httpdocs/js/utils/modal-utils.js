@@ -18,7 +18,7 @@
             this.dialog = $(element).closest(".modal");
             this.options = options;
             this.csrf = options.csrf;
-            this.skipAys = options.skipAys;
+            this.dontDisableSubmit = options.dontDisableSubmit;
             this.observer = new MutationObserver((list) => {
                 this.bindFormValidation();
             });
@@ -31,7 +31,7 @@
             if (!submitButton) throw new Error("The submit button was not found inside the form!");
 
             /* Are you sure */
-            if(!this.skipAys) {
+            if(!this.dontDisableSubmit) {
                 const modal_id = modal_id_ctr++;
 
                 $(this.element).attr("data-modal-handler-id", modal_id);
@@ -149,7 +149,7 @@
                     self.delegateSubmit();
 
                     /* Allow the form to be closed */
-                    if(!self.skipAys)
+                    if(!self.dontDisableSubmit)
                         aysResetForm(self.form_sel);
                 })
                 .fail(function (jqxhr, textStatus, errorThrown) {
@@ -167,7 +167,7 @@
             if (!resetButton) return;
             resetButton.click(function(event) {
                 /* TODO: finisch the reset logic */
-                if(!self.skipAys)
+                if(!self.dontDisableSubmit)
                     aysResetForm(self.form_sel);
             });
         }
@@ -181,7 +181,7 @@
             csrf:               '',
             endpoint:           '',
             resetAfterSubmit:   true,
-            skipAys:            false, /* True to skip the are-you-sure check on the dialog */
+            dontDisableSubmit:  false, /* True to skip the are-you-sure check on the dialog */
             method:             'get',
             /**
              * Fetch data asynchronusly from the server or
