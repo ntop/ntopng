@@ -101,8 +101,8 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
       return
    end
 
-   -- Discard info messages (we should probably add a conf for this)
-   if level > host_log.all.script_conf.threshold then
+   -- Discard info messages
+   if level > syslog_conf.host_log.all.script_conf.threshold then
       return
    end
 

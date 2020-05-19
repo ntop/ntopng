@@ -2,5 +2,5 @@
 
 return {
    title = "Host Log",
-   description = "Collect syslog logs from hosts and trigger alerts according to the configured severity level (0..7)",
+   description = "Collect syslog logs from hosts and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
 }
