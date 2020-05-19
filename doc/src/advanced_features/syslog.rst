@@ -1,7 +1,8 @@
 Syslog Log Ingestion
 ====================
 
-ntopng can collect logs from external sources, including IDS systems and Firewalls.
+ntopng can collect logs from external sources including IDS systems, Firewalls or
+hosts running a standard syslog server.
 
 Log collection from IDS systems like `Suricata <https://suricata-ids.org>`_ can be 
 used to enrich ntopng with additional security-oriented information including *flow* 
@@ -12,7 +13,15 @@ case please read the Suricata Integration section.
 Firewall logs instead can be ingested by ntopng to provide visibility over firewall
 activities. An example is the *Identity Management*, in fact it is possible to track
 all connection/disconnection events logged by a VPN server, in order to associate 
-traffic to users.
+traffic to users. 
+
+ntopng Enterprose L includes plugin for collecting VPN logs and correlate network
+traffic to VPN users supporting multiple devices from the vendors below:
+
+- Fortinet
+- OPNsense
+- SonicWall
+- Sophos
 
 ntopng Configuration
 ~~~~~~~~~~~~~~~~~~~~
@@ -72,7 +81,7 @@ ntopng already includes a daemon able to listen for syslog logs on TCP or UDP at
 that endpoint.
 
 In some cases (e.g. an IDS running on the same host) a syslog client (the same applies
-to relay configurations)  *rsyslog* should be installed and configured to export logs 
+to relay configurations) like *rsyslog* should be installed and configured to export logs 
 to ntopng. This is possible by creating a new configuration file under :code:`/etc/rsyslog.d` 
 specifying the IP, the port and the protocol where ntopng will listen for connections.
 
@@ -87,4 +96,36 @@ Note: if log messages from the IDS are printed to the console by journalctl
 as broadcast messages, you probably want to suppress them by setting 
 :code:`ForwardToWall=no` in */etc/systemd/journald.conf*.
 Please remember to *restart* the *systemd-journald* service to apply the change.
+
+Hosts Log Ingestion
+~~~~~~~~~~~~~~~~~~~
+
+The syslog integration in ntopng can also be used to collect logs from hosts
+in the network, and trigger alerts when some log exceeding the configured severity
+level is exceeded. This can be accomplished by creating the same configuration
+described in the previous section for setting up a Syslog Relay using *rsyslog*
+on each host. Example:
+
+.. code:: bash
+
+   cat /etc/rsyslog.d/99-remote.conf 
+   *.*  action(type="omfwd" target="10.0.0.1" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
+
+Please remember to *restart* the *rsyslog* service in order to apply the configuration.
+
+At this point the host should start sending syslog logs to ntopng.
+In order to instruct ntopng to treat those logs as coming from hosts in
+the monitored network, it is requested to specify the producer IP and 
+producer type (in this case Host Log) under *Interface* -> *Syslog Log Producers*
+as explained in the *Logs Demultiplexing* section.
+
+Please note that it is also possible to change the severity level for
+controlling which log event should actually trigger an alert in ntopng
+under *Settings* -> *Syslog* -> *Edit* -> *Host Log* -> *Edit*.
+
+It's a common practice to setup syslog ingestion for (important) hosts in the
+monitored network. In this case it is convenient to have alerts generated in 
+the same interface (the syslog interface should be used otherwise) where network 
+traffic for the corresponding host is analysed. This is possible by configuring
+the syslog interface as companion interface under *Interface* -> *Settings* -> *Companion Interface*.
 
