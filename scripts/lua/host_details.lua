@@ -525,7 +525,6 @@ if((page == "overview") or (page == nil)) then
       if(host["privatehost"] == true) then print(' <span class="badge badge-warning">'..i18n("details.label_private_ip")..'</span>') end
       if(host["systemhost"] == true) then print(' <span class="badge badge-info"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="badge badge-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
-
       print("</td><td></td>\n")
    end
 
