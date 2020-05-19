@@ -11,7 +11,7 @@
         /* element is the form object */
         constructor(element, options) {
             /* Check mandatory options */
-            if(!options.csrf)
+            if(typeof options.csrf === "undefined")
                 throw "modalHandler: Missing CSRF";
 
             this.element = element;
