@@ -379,7 +379,7 @@ local lang = {
     ["host_log"] = "Log from <a href=\"%{url}\">%{host}</a> (%{facility}) %{line}",
     ["host_pool_has_connected"] = "The host pool <a href=\"%{url}\">%{pool}</a> has connected to the network.",
     ["host_pool_has_disconnected"] = "The host pool <a href=\"%{url}\">%{pool}</a> has disconnected from the network.",
-    ["host_remote_to_remote"] = "Remote host <a href=\"%{url}\">%{ip}</a> [ <a href=\"%{mac_url}\">%{mac}</a> ] has contacted a remote host. Remote-to-remote flows available from the <a href=\"%{flow_alerts_url}\">flow alerts page</a>.",
+    ["host_remote_to_remote"] = "Remote host <a href=\"%{url}\">%{ip}</a> %{mac} has contacted a remote host. Remote-to-remote flows available from the <a href=\"%{flow_alerts_url}\">flow alerts page</a>.",
     ["iface_alerts_dropped"] = "%{num_dropped} alerts dropped on interface <a href=\"%{url}\">%{iface}</a>.",
     ["influxdb_dropped_points"] = "Points dropped. Could not send them to \"%{influxdb}\".",
     ["influxdb_migration_msg"] = "You have a lot of local hosts. Please consider <a href='%{url}'>moving from RRD to InfluxDB</a> for timeseries storage to improve performance.",

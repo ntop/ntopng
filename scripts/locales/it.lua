@@ -359,7 +359,7 @@ local lang = {
     ["host_entity"] = "host %{entity_value}",
     ["host_pool_has_connected"] = "L'host pool <a href=\"%{url}\">%{pool}</a> si è connesso alla rete.",
     ["host_pool_has_disconnected"] = "L'host pool <a href=\"%{url}\">%{pool}</a> si è disconnesso dalla rete.",
-    ["host_remote_to_remote"] = "L'host remoto <a href=\"%{url}\">%{ip}</a> [ <a href=\"%{mac_url}\">%{mac}</a> ] ha contattato un host remoto. I flussi remoto-a-remoto sono disponibili nella pagina degli <a href=\"%{flow_alerts_url}\">allarmi dei flussi</a>.",
+    ["host_remote_to_remote"] = "L'host remoto <a href=\"%{url}\">%{ip}</a> %{mac} ha contattato un host remoto. I flussi remoto-a-remoto sono disponibili nella pagina degli <a href=\"%{flow_alerts_url}\">allarmi dei flussi</a>.",
     ["iface_alerts_dropped"] = "%{num_dropped} allarmi persi sull'interfaccia <a href=\"%{url}\">%{iface}</a>.",
     ["influxdb_dropped_points"] = "Punti persi. Impossibile esportarli a \"%{influxdb}\".",
     ["influxdb_migration_msg"] = "Troppi local host. Passare a <a href='%{url}'>InfluxDB</a> per migliorare la performance.",

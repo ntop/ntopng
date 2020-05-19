@@ -2277,6 +2277,7 @@ function get_mac_classification(m, extended_name)
 end
 
 local magic_macs = {
+   ["00:00:00:00:00:00"] = "",
    ["FF:FF:FF:FF:FF:FF"] = "Broadcast",
    ["01:00:0C:CC:CC:CC"] = "CDP",
    ["01:00:0C:CC:CC:CD"] = "CiscoSTP",
@@ -2326,6 +2327,18 @@ function get_symbolic_mac(mac_address, only_symbolic)
 	 end
       end
    end
+end
+
+function get_mac_url(mac)
+   local m = get_symbolic_mac(mac, true)
+
+   if isEmptyString(m) then
+      return ""
+   end
+
+   local url = ntop.getHttpPrefix() .."/lua/mac_details.lua?host="..mac
+
+   return string.format('[ <a href=\"%s\">%s</a> ]', url, m)
 end
 
 function get_manufacturer_mac(mac_address)

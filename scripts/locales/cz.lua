@@ -258,7 +258,7 @@ local lang = {
     ["host_entity"] = "host %{entity_value}",
     ["host_pool_has_connected"] = "Hostitelský fond <a href=\"%{url}\">%{pool}</a> se připojil do sítě",
     ["host_pool_has_disconnected"] = "Hostitelský fond <a href=\"%{url}\">%{pool}</a> se odpojil od sítě.",
-    ["host_remote_to_remote"] = "Vzdálený host <a href=\"%{url}\">%{ip}</a> [ <a href=\"%{mac_url}\">%{mac}</a> ] kontaktoval vzdáleného hosta. Vzdálené dálkové toky dostupné z  <a href=\"%{flow_alerts_url}\">stránky s upozorněním na toky</a>.",
+    ["host_remote_to_remote"] = "Vzdálený host <a href=\"%{url}\">%{ip}</a> %{mac} kontaktoval vzdáleného hosta. Vzdálené dálkové toky dostupné z  <a href=\"%{flow_alerts_url}\">stránky s upozorněním na toky</a>.",
     ["influxdb_dropped_points"] = "Points dropped. Nelze je odeslat do \"%{influxdb}\".",
     ["influxdb_partial_write"] = "To lze opravit nastavením \"max-values-per-tag = 0\" v konfiguraci serveru InfluxDB.",
     ["influxdb_write_error"] = "Při odesílání dat časových adres do došlo k chybě \"%{influxdb}\": %{err}",
