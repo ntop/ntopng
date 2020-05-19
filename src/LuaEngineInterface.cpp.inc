@@ -167,12 +167,11 @@ static int ntop_get_interface_id(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_is_valid_interface_id(lua_State* vm) {
-  NetworkInterface *iface;
   int ifid;
+
   errno = 0; /* Reset as possibly used with strtol. This is thread-safe. */
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
     ifid = strtol(lua_tostring(vm, 1), NULL, 0); /* Sets errno when the conversion fails, e.g., string is NaN once converted */
