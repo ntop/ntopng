@@ -26,3 +26,11 @@ To set a product name, place it in a single-line text file under
 .. code:: bash
 
   /etc/ntopng/product_name
+
+Automatic updates are disabled in OEM mode, unless a custom repository is configured.
+The sources file for the repository should be placed under
+
+.. code:: bash
+
+  /etc/apt/sources.list.d/ntop-oem.list
+

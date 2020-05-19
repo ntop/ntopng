@@ -23,6 +23,7 @@ QUIET=true
 LOGFILE_BASE="/var/log/ntopng-updates"
 LOGFILE="${LOGFILE_BASE}.log"
 RETAIN_NUM_LINES=1000
+APT_SOURCE="ntop@STABLE_SUFFIX@.list"
 
 # Required by apt-get on Ubuntu 18 to run in non interactive mode
 export DEBIAN_FRONTEND="noninteractive"
@@ -179,7 +180,7 @@ function run_upgrade() {
 		# Debian or Ubuntu
 
 		# Update repo index
-		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop@STABLE_SUFFIX@.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Install
 		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated ${PRODUCT}
@@ -225,7 +226,7 @@ function check_updates() {
 		# Debian or Ubuntu
 
 		# Update repo index
-		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/ntop@STABLE_SUFFIX@.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Check for broken packages
 		${APT_GET} --just-print upgrade 2>&1 >/dev/null
@@ -302,7 +303,10 @@ fi
 # Check OEM mode
 OEM_MODE=$(${REDIS_CLI} ${REDIS_CLI_OPT} EXISTS ${REDIS_PRODUCT_NAME_KEY} 2>/dev/null | grep 1)
 if [ "${OEM_MODE}" == "1" ]; then
-	exit 0
+	# Exit unless there is an OEM source file
+	APT_SOURCE="ntop-oem.list"
+	eval $(apt-config shell APT_ETC Dir::Etc)
+	[ -e "/${APT_ETC}sources.list.d/${APT_SOURCE}" ] || exit 0
 fi
 
 if [ $ACTION == "check-updates" ]; then
