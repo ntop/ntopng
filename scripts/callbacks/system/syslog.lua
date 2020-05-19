@@ -27,10 +27,8 @@ end
 function handleEvent(name, message, host, priority)
    local event_handler = syslog_modules.hooks["handleEvent"][name]
 
-   -- TODO use syslog_conf
-
    if(event_handler ~= nil) then
-      event_handler(message, host, priority)
+      event_handler(syslog_conf, message, host, priority)
    end
 end 
 

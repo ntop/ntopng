@@ -171,7 +171,7 @@ end
 -- #################################################################
 
 -- The function below is called for each received alert
-function syslog_module.hooks.handleEvent(message, host, priority)
+function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
    local event = json.decode(message)
    if event == nil then
       return

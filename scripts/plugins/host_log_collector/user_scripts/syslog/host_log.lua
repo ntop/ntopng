@@ -22,6 +22,15 @@ local syslog_module = {
   gui = {
     i18n_title = "host_log_collector.title",
     i18n_description = "host_log_collector.description",
+    input_builder = "threshold_cross",
+    field_max = 7,
+    field_min = 0,
+    field_operator = "lt"
+  },
+
+  default_value = {
+    operator = "lt",
+    threshold = 5,
   },
 }
 
@@ -78,7 +87,7 @@ end
 -- #################################################################
 
 -- The function below is called for each received alert
-function syslog_module.hooks.handleEvent(message, host, priority)
+function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
    -- Priority = Facility * 8 + Level
    local facility = math.floor(priority / 8)
    local level = priority - (facility * 8)
@@ -93,7 +102,7 @@ function syslog_module.hooks.handleEvent(message, host, priority)
    end
 
    -- Discard info messages (we should probably add a conf for this)
-   if level > 4 then
+   if level > host_log.all.script_conf.threshold then
       return
    end
 
