@@ -129,6 +129,35 @@ alert_consts.ids_rule_maker = {
 
 -- ##############################################
 
+alert_consts.alert_entities_id_to_key = {}
+alert_consts.alert_severities_id_to_key = {}
+alert_consts.alerts_granularities_id_to_key = {}
+alert_consts.alerts_granularities_seconds_to_key = {}
+
+local function initMappings()
+   -- alert_entities_id_to_key
+   for key, entity_info in pairs(alert_consts.alert_entities) do
+      alert_consts.alert_entities_id_to_key[entity_info.entity_id] = key
+   end
+
+   -- alert_severities_id_to_key 
+   for key, severity_info in pairs(alert_consts.alert_severities) do
+      alert_consts.alert_severities_id_to_key[severity_info.severity_id] = key
+   end
+
+   -- alerts_granularities_id_to_key 
+   for key, granularity_info in pairs(alert_consts.alerts_granularities) do
+     alert_consts.alerts_granularities_id_to_key[granularity_info.granularity_id] = key
+   end
+
+   -- alerts_granularities_seconds_to_key
+   for key, granularity_info in pairs(alert_consts.alerts_granularities) do
+     alert_consts.alerts_granularities_seconds_to_key[granularity_info.granularity_seconds] = key
+   end
+end
+
+-- ##############################################
+
 function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
    require "flow_utils"
    local value
@@ -222,14 +251,6 @@ function alert_consts.getDefinititionDirs()
 end
 
 -- ##############################################
-
-alert_consts.alert_entities_id_to_key = {}
-
-local function initEntityMapping()
-  for key, entity_info in pairs(alert_consts.alert_entities) do
-    alert_consts.alert_entities_id_to_key[entity_info.entity_id] = key
-  end
-end
 
 function alert_consts.alertEntityRaw(entity_id)
   entity_id = tonumber(entity_id)
@@ -388,13 +409,8 @@ end
 
 function alert_consts.alertSeverityRaw(severity_id)
    severity_id = tonumber(severity_id)
- 
-   for key, severity_info in pairs(alert_consts.alert_severities) do
-     if(severity_info.severity_id == severity_id) then
-       return(key)
-     end
-   end
- end
+   return alert_consts.alert_severities_id_to_key[severity_id] 
+end
 
  -- ################################################################################
 
@@ -435,12 +451,7 @@ end
  
 function alert_consts.alertTypeRaw(type_id)
    type_id = tonumber(type_id)
- 
-   for key, type_info in pairs(alert_consts.alert_types) do
-     if(type_info.alert_key == type_id) then
-       return(key)
-     end
-   end
+   return alerts_by_id[type_id]
 end
 
  -- ################################################################################
@@ -448,12 +459,7 @@ end
 -- Rename engine -> granulariy
 local function alertEngineRaw(granularity_id)
    granularity_id = tonumber(granularity_id)
- 
-   for key, granularity_info in pairs(alert_consts.alerts_granularities) do
-     if(granularity_info.granularity_id == granularity_id) then
-       return(key)
-     end
-   end
+   return alert_consts.alerts_granularities_id_to_key[granularity_id] 
 end
  
 -- ################################################################################
@@ -492,22 +498,17 @@ end
 function alert_consts.granularity2id(granularity)
    -- TODO replace alertEngine
    return(alert_consts.alertEngine(granularity))
- end
+end
 
 -- ################################################################################
 
 function alert_consts.sec2granularity(seconds)
    seconds = tonumber(seconds)
- 
-   for key, granularity_info in pairs(alert_consts.alerts_granularities) do
-     if(granularity_info.granularity_seconds == seconds) then
-       return(key)
-     end
-   end
- end
+   return alert_consts.alerts_granularities_seconds_to_key[seconds]
+end
  
 -- Load definitions now
 loadAlertsDefs()
-initEntityMapping()
+initMappings()
 
 return alert_consts
