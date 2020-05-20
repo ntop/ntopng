@@ -480,7 +480,7 @@ bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
   char iface_key[64], ifname_key[64];
   char iface_id[16];
 
-  iface = ntop->getNetworkInterface(vm, atoi(ifid));
+  iface = ntop->getNetworkInterface(ifid, vm);
 
   if(iface == NULL)
     return false;
