@@ -425,10 +425,8 @@ void Ntop::registerNagios(void) {
 void Ntop::resetNetworkInterfaces() {
   if(iface) delete []iface;
 
-  if((iface = new NetworkInterface*[MAX_NUM_DEFINED_INTERFACES]) == NULL)
+  if((iface = new NetworkInterface*[MAX_NUM_DEFINED_INTERFACES]()) == NULL)
     throw "Not enough memory";
-
-  memset(iface, 0, (sizeof(NetworkInterface*) * MAX_NUM_DEFINED_INTERFACES));
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interfaces Available: %u", MAX_NUM_DEFINED_INTERFACES);
 }
