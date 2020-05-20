@@ -48,8 +48,8 @@ class Ntop {
   char working_dir[MAX_PATH]; /**< Working directory. */
   char install_dir[MAX_PATH]; /**< Install directory. */
   char startup_dir[MAX_PATH]; /**< Startup directory. */
-  char plugins_dir[MAX_PATH]; /**< Current Plugins directory. */
-  char shadow_plugins_dir[MAX_PATH]; /**< Shadow Plugins directory. */
+  char plugins0_dir[MAX_PATH];
+  char plugins1_dir[MAX_PATH];
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
   NetworkInterface *system_interface; /** The system interface */
@@ -82,7 +82,7 @@ class Ntop {
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
   cpu_load_stats cpu_stats;
   float cpu_load;
-  bool is_started, cur_plugins_dir, can_send_icmp, privileges_dropped;
+  bool is_started, plugins0_active, can_send_icmp, privileges_dropped;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoStringsQueue *sqlite_alerts_queue, *alerts_notifications_queue;
   FifoSerializerQueue *internal_alerts_queue;
@@ -351,10 +351,12 @@ class Ntop {
   inline char* get_install_dir()                     { return(install_dir);         };
   inline void  set_install_dir(char *id)             { snprintf(install_dir, MAX_PATH, "%s", id); };
 
-  inline char* get_plugins_dir()                     { return(plugins_dir);         };
-  inline char* get_shadow_plugins_dir()              { return(shadow_plugins_dir);  };
-  inline bool is_plugins0_dir()                      { return(cur_plugins_dir);     };
-  inline void swap_plugins_dir()                     { cur_plugins_dir = !cur_plugins_dir; refreshPluginsDir(); };
+  inline char* get_plugins_dir()                     { return(plugins0_active ? plugins0_dir : plugins1_dir); };
+  inline char* get_shadow_plugins_dir()              { return(plugins0_active ? plugins1_dir : plugins0_dir); };
+  inline char* get_plugins0_dir()                    { return(plugins0_dir); };
+  inline char* get_plugins1_dir()                    { return(plugins1_dir); };
+  inline bool is_plugins0_dir()                      { return(plugins0_active); };
+  inline void swap_plugins_dir()                     { plugins0_active = !plugins0_active; };
 
   inline Bloom*            getResolutionBloom()      { return(resolvedHostsBloom);  };
   inline NtopGlobals*      getGlobals()              { return(globals);             };

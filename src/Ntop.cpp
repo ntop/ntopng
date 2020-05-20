@@ -133,7 +133,7 @@ Ntop::Ntop(char *appName) {
   else
     snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
 
-  cur_plugins_dir = 0;
+  plugins0_active = 0;
 
   //umask(0);
   
@@ -2850,17 +2850,12 @@ void Ntop::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t p
 /* *************************************** */
 
 void Ntop::refreshPluginsDir() {
-  const char *current_dir = cur_plugins_dir ? "plugins0" : "plugins1";
-  const char *shadow_dir = cur_plugins_dir ? "plugins1" : "plugins0";
-
 #ifdef WIN32
-  snprintf(plugins_dir, sizeof(plugins_dir), "%s\\%s", get_working_dir(), current_dir);
-  snprintf(shadow_plugins_dir, sizeof(shadow_plugins_dir), "%s\\%s", get_working_dir(), shadow_dir);
+  snprintf(plugins0_dir, sizeof(plugins0_dir), "%s\\plugins0", get_working_dir());
+  snprintf(plugins1_dir, sizeof(plugins1_dir), "%s\\plugins1", get_working_dir());
 #else
-  snprintf(plugins_dir, sizeof(plugins_dir), "%s/%s", get_working_dir(), current_dir);
-  snprintf(shadow_plugins_dir, sizeof(shadow_plugins_dir), "%s/%s", get_working_dir(), shadow_dir);
+  snprintf(plugins0_dir, sizeof(plugins0_dir), "%s/plugins0", get_working_dir());
+  snprintf(plugins1_dir, sizeof(plugins1_dir), "%s/plugins1", get_working_dir());
 #endif
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Current plugins directory set to '%s'", plugins_dir);
 }
 

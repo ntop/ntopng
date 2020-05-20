@@ -1358,8 +1358,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
    * plugins0 and plugins1 directories. See plugins_utils.getHttpdocsDir */
   snprintf(plugins_httpdocs_rewrite, sizeof(plugins_httpdocs_rewrite),
     "/plugins0_httpdocs/=%s/httpdocs/,/plugins1_httpdocs/=%s/httpdocs/",
-    ntop->is_plugins0_dir() ? ntop->get_plugins_dir() : ntop->get_shadow_plugins_dir(),
-    ntop->is_plugins0_dir() ? ntop->get_shadow_plugins_dir() : ntop->get_plugins_dir());
+    ntop->get_plugins0_dir(), ntop->get_plugins1_dir());
 
   /* HTTP options */
   addHTTPOption("listening_ports", ports);
