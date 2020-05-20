@@ -560,8 +560,17 @@ end
 -- ##############################################
 
 function page_utils.set_system_view(toggle)
-   local t = (toggle and "1" or "0")
-   ntop.setPref("ntopng.prefs.system_mode_enabled", t)
+   local t
+
+   if toggle == "1" or toggle == true then
+      t = "1"
+   elseif toggle == "0" or toggle == false then
+      t = "0"
+   end
+
+   if t then
+      ntop.setPref("ntopng.prefs.system_mode_enabled", t)
+   end
 end
 
 -- ##############################################

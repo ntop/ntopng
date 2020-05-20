@@ -13,7 +13,8 @@ local system_interface_toggled = _POST["system_interface"]
 local res = true
 
 if system_interface_toggled then
-   ntop.setPref("ntopng.prefs.system_mode_enabled", system_interface_toggled)
+   local page_utils = require "page_utils"
+   page_utils.set_system_view(system_interface_toggled)
 else
    res = false
 end
