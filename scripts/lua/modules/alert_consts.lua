@@ -42,6 +42,93 @@ alert_consts.alert_severities = {
 
 -- ##############################################
 
+-- See flow_consts.status_types in flow_consts for flow alerts
+
+-- Keep in sync with ntop_typedefs.h:AlertEntity
+alert_consts.alert_entities = {
+   interface = {
+    entity_id = 0,
+    label = "Interface",
+   }, host = {
+    entity_id = 1,
+    label = "Host",
+   }, network = {
+    entity_id = 2,
+    label = "Network",
+   }, snmp_device = {
+    entity_id = 3,
+    label = "SNMP device",
+   }, flow = {
+    entity_id = 4,
+    label = "Flow",
+   }, mac = {
+    entity_id = 5,
+    label = "Device",
+   }, host_pool = {
+    entity_id = 6,
+    label = "Host Pool",
+   }, process = {
+    entity_id = 7,
+    label = "Process",
+   }, user = {
+    entity_id = 8,
+    label = "User",
+   }, influx_db = {
+    entity_id = 9,
+    label = "Influx DB",
+   }, test = {
+    entity_id = 10,
+    label = "Test",
+   }, category_lists = {
+    entity_id = 11,
+    label = "Category Lists",
+   }, am_host = {
+    entity_id = 12,
+    label = "Active Monitoring Host",
+   }, periodic_activity = {
+    entity_id = 13,
+    label = "Periodic Activity",
+  }
+}
+
+-- Keep in sync with C
+alert_consts.alerts_granularities = {
+   ["min"] = {
+      granularity_id = 1,
+      granularity_seconds = 60,
+      i18n_title = "show_alerts.minute",
+      i18n_description = "alerts_thresholds_config.every_minute",
+   },
+   ["5mins"] = {
+      granularity_id = 2,
+      granularity_seconds = 300,
+      i18n_title = "show_alerts.5_min",
+      i18n_description = "alerts_thresholds_config.every_5_minutes",
+   },
+   ["hour"] = {
+      granularity_id = 3,
+      granularity_seconds = 3600,
+      i18n_title = "show_alerts.hourly",
+      i18n_description = "alerts_thresholds_config.hourly",
+   },
+   ["day"] = {
+      granularity_id = 4,
+      granularity_seconds = 86400,
+      i18n_title = "show_alerts.daily",
+      i18n_description = "alerts_thresholds_config.daily",
+   }
+}
+
+-- ################################################################################
+
+alert_consts.ids_rule_maker = {
+  GPL = "GPL",
+  SURICATA = "Suricata",
+  ET = "Emerging Threats",
+}
+
+-- ##############################################
+
 function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
    require "flow_utils"
    local value
@@ -136,14 +223,17 @@ end
 
 -- ##############################################
 
+alert_consts.alert_entities_id_to_key = {}
+
+local function initEntityMapping()
+  for key, entity_info in pairs(alert_consts.alert_entities) do
+    alert_consts.alert_entities_id_to_key[entity_info.entity_id] = key
+  end
+end
+
 function alert_consts.alertEntityRaw(entity_id)
   entity_id = tonumber(entity_id)
-
-  for key, entity_info in pairs(alert_consts.alert_entities) do
-    if(entity_info.entity_id == entity_id) then
-      return(key)
-    end
-  end
+  return alert_consts.alert_entities_id_to_key[entity_id]
 end
 
 function alert_consts.alertEntity(v)
@@ -294,93 +384,6 @@ function alert_consts.alertLevelToSyslogLevel(v)
   return alert_consts.alert_severities[v].syslog_severity
 end
 
--- ##############################################
-
--- See flow_consts.status_types in flow_consts for flow alerts
-
--- Keep in sync with ntop_typedefs.h:AlertEntity
-alert_consts.alert_entities = {
-   interface = {
-    entity_id = 0,
-    label = "Interface",
-   }, host = {
-    entity_id = 1,
-    label = "Host",
-   }, network = {
-    entity_id = 2,
-    label = "Network",
-   }, snmp_device = {
-    entity_id = 3,
-    label = "SNMP device",
-   }, flow = {
-    entity_id = 4,
-    label = "Flow",
-   }, mac = {
-    entity_id = 5,
-    label = "Device",
-   }, host_pool = {
-    entity_id = 6,
-    label = "Host Pool",
-   }, process = {
-    entity_id = 7,
-    label = "Process",
-   }, user = {
-    entity_id = 8,
-    label = "User",
-   }, influx_db = {
-    entity_id = 9,
-    label = "Influx DB",
-   }, test = {
-    entity_id = 10,
-    label = "Test",
-   }, category_lists = {
-    entity_id = 11,
-    label = "Category Lists",
-   }, am_host = {
-    entity_id = 12,
-    label = "Active Monitoring Host",
-   }, periodic_activity = {
-    entity_id = 13,
-    label = "Periodic Activity",
-  }
-}
-
--- Keep in sync with C
-alert_consts.alerts_granularities = {
-   ["min"] = {
-      granularity_id = 1,
-      granularity_seconds = 60,
-      i18n_title = "show_alerts.minute",
-      i18n_description = "alerts_thresholds_config.every_minute",
-   },
-   ["5mins"] = {
-      granularity_id = 2,
-      granularity_seconds = 300,
-      i18n_title = "show_alerts.5_min",
-      i18n_description = "alerts_thresholds_config.every_5_minutes",
-   },
-   ["hour"] = {
-      granularity_id = 3,
-      granularity_seconds = 3600,
-      i18n_title = "show_alerts.hourly",
-      i18n_description = "alerts_thresholds_config.hourly",
-   },
-   ["day"] = {
-      granularity_id = 4,
-      granularity_seconds = 86400,
-      i18n_title = "show_alerts.daily",
-      i18n_description = "alerts_thresholds_config.daily",
-   }
-}
-
--- ################################################################################
-
-alert_consts.ids_rule_maker = {
-  GPL = "GPL",
-  SURICATA = "Suricata",
-  ET = "Emerging Threats",
-}
-
 -- ################################################################################
 
 function alert_consts.alertSeverityRaw(severity_id)
@@ -505,5 +508,6 @@ function alert_consts.sec2granularity(seconds)
  
 -- Load definitions now
 loadAlertsDefs()
+initEntityMapping()
 
 return alert_consts
