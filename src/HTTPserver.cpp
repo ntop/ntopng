@@ -198,9 +198,9 @@ static void set_cookie(const struct mg_connection * const conn,
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
 	    "Set-Cookie: session=%s; path=/; max-age=%u;%s\r\n"  // Session ID
-	    "Location: %s%s\r\n\r\n",
+	    "Location: %s\r\n\r\n",
 	    session_id, session_duration, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
-	    ntop->getPrefs()->get_http_prefix(), referer ? referer : "/");
+	    referer ? referer : "/");
 
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
