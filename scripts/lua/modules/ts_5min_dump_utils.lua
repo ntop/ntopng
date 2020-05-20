@@ -215,10 +215,13 @@ end
 
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   -- Number of flows
-  ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
+  if(host["active_flows.as_client"]) then
+    ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
 				 flows_as_client = host["active_flows.as_client"],
 				 flows_as_server = host["active_flows.as_server"]},
          when)
+  end
+
   ts_utils.append("host:total_flows", {ifid=ifstats.id, host=hostname,
 				 flows_as_client = host["total_flows.as_client"],
 				 flows_as_server = host["total_flows.as_server"]},
@@ -307,13 +310,17 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 		  when)
 
   -- Engaged alerts
-  ts_utils.append("host:engaged_alerts", {ifid = ifstats.id, host = hostname,
+  if host["engaged_alerts"] then
+    ts_utils.append("host:engaged_alerts", {ifid = ifstats.id, host = hostname,
 					   alerts = host["engaged_alerts"]},
 		  when)
+  end
 
   -- Contacts
-  ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
+  if host["contacts.as_client"] then
+    ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
             num_as_client=host["contacts.as_client"], num_as_server=host["contacts.as_server"]}, when)
+  end
 
   -- L4 Protocols
   for id, _ in pairs(l4_keys) do

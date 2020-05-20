@@ -29,7 +29,7 @@ class LocalHost : public Host, public SerializableElement {
   int16_t local_network_id;
   bool systemHost;
   time_t initialization_time;
-  HostTimeseriesPoint *initial_ts_point;
+  LocalHostStats *initial_ts_point;
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   OperatingSystem os;
@@ -83,7 +83,7 @@ class LocalHost : public Host, public SerializableElement {
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
-  virtual void tsLua(lua_State* vm);
+  virtual void lua_get_timeseries(lua_State* vm);
 };
 
 #endif /* _LOCAL_HOST_H_ */

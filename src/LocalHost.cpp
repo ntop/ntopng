@@ -107,7 +107,7 @@ void LocalHost::initialize() {
 
   /* Clone the initial point. It will be written to the timeseries DB to
    * address the first point problem (https://github.com/ntop/ntopng/issues/2184). */
-  initial_ts_point = new HostTimeseriesPoint((LocalHostStats *)stats);
+  initial_ts_point = new LocalHostStats(*(LocalHostStats *)stats);
   initialization_time = time(NULL);
 
   char *strIP = ip.print(buf, sizeof(buf));
@@ -278,24 +278,37 @@ void LocalHost::inlineSetOSDetail(const char *_os_detail) {
 
 /* *************************************** */
 
-void LocalHost::tsLua(lua_State* vm) {
+/* Optimized method to fetch timeseries data for the host. Only returns
+ * the ::Lua of the needed fields. Moreover, some fields are represented
+ * in a compact way to speedup insertion and lookup (e.g. nDPIStats::lua with tsLua) */
+void LocalHost::lua_get_timeseries(lua_State* vm) {
   char buf_id[64], *host_id;
 
   lua_newtable(vm);
 
+  /* The timeseries point */
   lua_newtable(vm);
-  stats->tsLua(vm);
+  ((LocalHostStats*)stats)->lua_get_timeseries(vm);
+
+  /* NOTE: the following data is *not* exported for the initial_point */
+  lua_push_uint64_table_entry(vm, "active_flows.as_client", getNumOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
+  lua_push_uint64_table_entry(vm, "contacts.as_client", getNumActiveContactsAsClient());
+  lua_push_uint64_table_entry(vm, "contacts.as_server", getNumActiveContactsAsServer());
+  lua_push_uint64_table_entry(vm, "engaged_alerts", getNumTriggeredAlerts());
+
   lua_pushstring(vm, "ts_point");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
+  /* Additional data/metadata */
   lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
   if(initial_ts_point) {
     lua_push_uint64_table_entry(vm, "initial_point_time", initialization_time);
 
     /* Dump the initial host timeseries */
     lua_newtable(vm);
-    initial_ts_point->lua(vm, iface);
+    initial_ts_point->lua_get_timeseries(vm);
     lua_pushstring(vm, "initial_point");
     lua_insert(vm, -2);
     lua_settable(vm, -3);

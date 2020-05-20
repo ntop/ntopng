@@ -292,8 +292,6 @@ using namespace std;
 #include <radcli/radcli.h>
 #endif
 
-#include "TimeseriesPoint.h"
-#include "HostTimeseriesPoint.h"
 #include "FifoQueue.h"
 #include "FifoStringsQueue.h"
 #include "FifoSerializerQueue.h"
@@ -369,7 +367,6 @@ using namespace std;
 #include "PartializableFlowTrafficStats.h"
 #include "ViewInterfaceFlowStats.h"
 #include "FlowTrafficStats.h"
-#include "TimeseriesStats.h"
 #include "HostStats.h"
 #include "LocalHostStats.h"
 #include "HostScore.h"

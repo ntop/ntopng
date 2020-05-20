@@ -34,6 +34,17 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
 
 /* *************************************** */
 
+LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
+  top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
+  old_sites = strdup("{}");
+  dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
+  http = NULL;
+  icmp = NULL;
+  nextSitesUpdate = 0;
+}
+
+/* *************************************** */
+
 LocalHostStats::~LocalHostStats() {
   if(top_sites)       delete top_sites;
   if(old_sites)       free(old_sites);
@@ -102,8 +113,8 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
 
 /* *************************************** */
 
-void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua) {
-  HostStats::lua(vm, mask_host, details_level, tsLua);
+void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level) {
+  HostStats::lua(vm, mask_host, details_level);
 
   if((!mask_host) && top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
     char *cur_sites = top_sites->json();
@@ -222,11 +233,23 @@ void LocalHostStats::decNumFlows(bool as_client, Host *peer) {
 
 /* *************************************** */
 
-void LocalHostStats::tsLua(lua_State* vm) {
-  /* Use real time data */
-  HostTimeseriesPoint pt(this);
+void LocalHostStats::lua_get_timeseries(lua_State* vm) {
+  luaStats(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
 
-  pt.lua(vm, iface);
+  tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
+  tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
+
+  if(dns) dns->lua(vm, false /* NOT verbose */);
+
+  if(icmp) {
+    struct ts_icmp_stats icmp_s;
+    icmp->getTsStats(&icmp_s);
+
+    lua_push_uint64_table_entry(vm, "icmp.echo_pkts_sent", icmp_s.echo_packets_sent);
+    lua_push_uint64_table_entry(vm, "icmp.echo_pkts_rcvd", icmp_s.echo_packets_rcvd);
+    lua_push_uint64_table_entry(vm, "icmp.echo_reply_pkts_sent", icmp_s.echo_reply_packets_sent);
+    lua_push_uint64_table_entry(vm, "icmp.echo_reply_pkts_rcvd", icmp_s.echo_reply_packets_rcvd);
+  }
 }
 
 /* *************************************** */

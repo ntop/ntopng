@@ -2478,31 +2478,6 @@ static int ntop_get_interface_host_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_host_timeseries(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-  Host *h;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
-
-  if((!ntop_interface) || !(h = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */)))
-    return(CONST_LUA_ERROR);
-  else {
-    h->tsLua(vm);
-    return(CONST_LUA_OK);
-  }
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_host_country(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -4546,7 +4521,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getBatchedRemoteHostsInfo",   ntop_get_batched_interface_remote_hosts_info },
   { "getBatchedLocalHostsTs",   ntop_get_batched_interface_local_hosts_ts },
   { "getHostInfo",              ntop_get_interface_host_info },
-  { "getHostTimeseries",        ntop_get_interface_host_timeseries },
   { "getHostCountry",           ntop_get_interface_host_country },
   { "getGroupedHosts",          ntop_get_grouped_interface_hosts },
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },

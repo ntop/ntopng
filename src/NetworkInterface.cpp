@@ -4602,7 +4602,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
       if(!tsLua)
 	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
       else
-	h->tsLua(vm);
+	h->lua_get_timeseries(vm);
     }
   } else {
     for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
@@ -4611,7 +4611,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
       if(!tsLua)
 	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
       else
-	h->tsLua(vm);
+	h->lua_get_timeseries(vm);
     }
   }
 
@@ -5228,6 +5228,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "throughput_trend_bps", bytes_thpt.getTrend());
   lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt.getThpt());
   lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt.getTrend());
+  l4Stats.luaStats(vm);
 
   if(db) db->lua(vm, false /* Overall */);
 
@@ -5281,7 +5282,6 @@ void NetworkInterface::lua(lua_State *vm) {
   _ndpiStats.lua(this, vm, true);
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
-  l4Stats.luaStats(vm);
 
   if(discardProbingTraffic())
     _discardedProbingStats.lua(vm, "discarded_probing_");

@@ -24,9 +24,19 @@
 
 class Host;
 
-class HostStats: public TimeseriesStats {
+class HostStats: public GenericTrafficElement {
  protected:
   NetworkInterface *iface;
+  Host *host;
+
+  std::map<AlertType,u_int32_t> total_alerts;
+  u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;
+  u_int32_t misbehaving_flows_as_client, misbehaving_flows_as_server;
+  u_int32_t host_unreachable_flows_as_client, host_unreachable_flows_as_server;
+  u_int32_t total_num_flows_as_client, total_num_flows_as_server;
+  u_int32_t num_flow_alerts;
+  u_int64_t udp_sent_unicast, udp_sent_non_unicast;
+  L4Stats l4stats;
 
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   // NOTE: GenericTrafficElement inherited data is updated periodically too
@@ -67,6 +77,25 @@ class HostStats: public TimeseriesStats {
 
   virtual void computeAnomalyIndex(time_t when) {};
 
+  inline Host* getHost() const { return(host); }
+  inline void incNumMisbehavingFlows(bool as_client)   { if(as_client) misbehaving_flows_as_client++; else misbehaving_flows_as_server++; };
+  inline void incNumUnreachableFlows(bool as_server) { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
+  inline void incNumHostUnreachableFlows(bool as_server) { if(as_server) host_unreachable_flows_as_server++; else host_unreachable_flows_as_client++; };
+  inline void incNumFlowAlerts()                     { num_flow_alerts++; }
+  inline void incTotalAlerts(AlertType alert_type)   { total_alerts[alert_type]++; };
+
+  inline u_int32_t getTotalMisbehavingNumFlowsAsClient() const { return(misbehaving_flows_as_client);  };
+  inline u_int32_t getTotalMisbehavingNumFlowsAsServer() const { return(misbehaving_flows_as_server);  };
+  inline u_int32_t getTotalUnreachableNumFlowsAsClient() const { return(unreachable_flows_as_client);  };
+  inline u_int32_t getTotalUnreachableNumFlowsAsServer() const { return(unreachable_flows_as_server);  };
+  inline u_int32_t getTotalHostUnreachableNumFlowsAsClient() const { return(host_unreachable_flows_as_client);  };
+  inline u_int32_t getTotalHostUnreachableNumFlowsAsServer() const { return(host_unreachable_flows_as_server);  };
+  u_int32_t getTotalAlerts() const;
+  inline u_int32_t getNumFlowAlerts() const { return(num_flow_alerts); };
+  void luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);
+  virtual u_int16_t getNumActiveContactsAsClient() { return 0; }
+  virtual u_int16_t getNumActiveContactsAsServer() { return 0; }
+
   inline void incSentStats(u_int num_pkts, u_int pkt_len) { sent_stats.incStats(num_pkts, pkt_len); };
   inline void incRecvStats(u_int num_pkts, u_int pkt_len) { recv_stats.incStats(num_pkts, pkt_len); };
   inline void incnDPIFlows(u_int16_t l7_protocol)   { if(ndpiStats) ndpiStats->incFlowsStats(l7_protocol); };
@@ -78,7 +107,7 @@ class HostStats: public TimeseriesStats {
   virtual void decNumFlows(bool as_client, Host *peer) {};
   virtual bool hasAnomalies(time_t when) { return false; };
   virtual void luaAnomalies(lua_State* vm, time_t when) {};
-  virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua = false);
+  virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
 
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,
@@ -104,7 +133,6 @@ class HostStats: public TimeseriesStats {
   virtual void luaDNS(lua_State *vm, bool verbose) const  {}
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  {}
   virtual void incrVisitedWebSite(char *hostname) {}
-  virtual void tsLua(lua_State* vm) {}
   virtual HTTPstats* getHTTPstats()  const { return(NULL); }
   virtual DnsStats*  getDNSstats()   const { return(NULL); }
   virtual ICMPstats* getICMPstats()  const { return(NULL); }

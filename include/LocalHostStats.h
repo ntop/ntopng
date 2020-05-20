@@ -37,6 +37,7 @@ class LocalHostStats: public HostStats {
 
  public:
   LocalHostStats(Host *_host);
+  LocalHostStats(LocalHostStats &s);
   virtual ~LocalHostStats();
 
 
@@ -51,7 +52,7 @@ class LocalHostStats: public HostStats {
   virtual void updateStats(struct timeval *tv);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);
-  virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level, bool tsLua = false);
+  virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
   virtual void incNumFlows(bool as_client, Host *peer);
   virtual void decNumFlows(bool as_client, Host *peer);
 
@@ -59,7 +60,7 @@ class LocalHostStats: public HostStats {
   virtual void luaHTTP(lua_State *vm) const  { if(http) http->lua(vm); }
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { if (icmp) icmp->lua(isV4, vm, verbose); }
   virtual void incrVisitedWebSite(char *hostname);
-  virtual void tsLua(lua_State* vm);
+  virtual void lua_get_timeseries(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() const { return(http); };
