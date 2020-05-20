@@ -264,6 +264,9 @@ local function delete_interfaces_redis_keys(interfaces_list, preserve_prefs)
 	 -- examples:
 	 --  ntopng.prefs.enp2s0f0_not_idle
 	 string.format("%s.%s_*", pref_prefix, if_name),
+	 -- examples:
+	 --  ntopng.dhcp.0.cache
+	 string.format("ntopng.dhcp.%d.*", if_id),
       }
 
       delete_keys_patterns(keys_patterns, preserve_prefs)
@@ -325,7 +328,9 @@ end
 local function delete_interfaces_ids(interfaces_list)
    local status = "OK"
 
-   for if_id, if_name in pairs(interfaces_list) do
+   for if_id, _ in pairs(interfaces_list) do
+      local if_name = ntop.getHashCache(ALL_INTERFACES_HASH_KEYS, if_id)
+
       -- delete the interface from the all interfaces hash
       -- this will cause the id to be re-used
       if not dry_run then
