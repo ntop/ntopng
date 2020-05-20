@@ -1511,7 +1511,8 @@ local function getInfluxdbVersion(url, username, password)
   end
 
   local content = res.CONTENT or ""
-  return string.match(content, "\nX%-Influxdb%-Version: ([%d|%.]+)")
+  -- case-insensitive match as HAProxy transforms headers to lowercase (see #3964)
+  return string.match(content:lower(), "\nx%-influxdb%-version: ([%d|%.]+)")
 end
 
 function driver:getInfluxdbVersion()
