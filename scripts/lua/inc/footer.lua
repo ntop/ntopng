@@ -103,19 +103,17 @@ print([[
 	<script type="text/javascript">
 
 	   const toggle_system_flag = (is_system_switch = false, $form = null) => {
-
 		  // if form it's empty it means the call was not invoked
 		  // by a form request
 		  // prevent the non admin user to switch in system interface
 		  const is_admin = ]].. (is_admin and "true" or "false") ..[[;
 		  const flag = (is_system_switch && is_admin) ? "1" : "0";
 
-		  $.get(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
+		  $.post(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
 			 system_interface: flag,
 			 csrf: "]].. ntop.getRandomCSRFValue() ..[["
 		  }, function(data) {
-
-			 if (data.success && $form == null) location.href = '/';
+			 if (data.success && $form == null) location.href = ']]..ntop.getHttpPrefix()..[[/';
 			 if (data.success && $form != null) $form.submit();
 			 if (!data.success) {
 				console.error("An error has occurred!");
