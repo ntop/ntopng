@@ -281,7 +281,13 @@ void LocalHost::inlineSetOSDetail(const char *_os_detail) {
 void LocalHost::tsLua(lua_State* vm) {
   char buf_id[64], *host_id;
 
+  lua_newtable(vm);
+
+  lua_newtable(vm);
   stats->tsLua(vm);
+  lua_pushstring(vm, "ts_point");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   lua_push_str_table_entry(vm, "tskey", get_tskey(buf_id, sizeof(buf_id)));
   if(initial_ts_point) {

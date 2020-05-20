@@ -60,7 +60,7 @@ function ts_utils.getSchema(name)
      schema.options.insertion_step = schema.options.step
   end
 
-  if schema and interface.hasHighResTs() then
+  if schema and hasHighResolutionTs() then
     if((schema.options.step == 300) and (schema.options.is_system_schema ~= true)) then
       schema.options.insertion_step = 60
       schema.options.step = 60

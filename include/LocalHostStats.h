@@ -34,7 +34,6 @@ class LocalHostStats: public HostStats {
 
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
-  TimeseriesRing *ts_ring;
 
  public:
   LocalHostStats(Host *_host);

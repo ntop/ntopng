@@ -425,8 +425,6 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
       local host_key = host_ts.tskey
 
       if(dumped_hosts[host_key] == nil) then
-        local min_host_instant = min_instant
-
         if(host_ts.initial_point ~= nil) then
           -- Dump the first point
           if enable_debug then
@@ -434,24 +432,9 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
           end
 
           ts_dump.host_update_rrd(host_ts.initial_point_time, host_key, host_ts.initial_point, ifstats, verbose, config)
-          min_host_instant = math.max(min_host_instant, host_ts.initial_point_time + 1)
         end
 
-        host_ts = host_ts or {}
-
-        if enable_debug then
-          traceError(TRACE_NORMAL, TRACE_CONSOLE, "Dumping ".. (#host_ts) .." points for " .. host_key)
-        end
-
-        for _, host_point in ipairs(host_ts) do
-          local instant = host_point.instant
-
-          if instant >= min_host_instant then
-            ts_dump.host_update_rrd(instant, host_key, host_point, ifstats, verbose, config)
-          elseif enable_debug then
-            traceError(TRACE_NORMAL, TRACE_CONSOLE, "Skipping point: instant=" .. instant .. " but min_host_instant=" .. min_host_instant)
-          end
-        end
+        ts_dump.host_update_rrd(when, host_key, host_ts.ts_point, ifstats, verbose, config)
 
         -- mark the host as dumped
         dumped_hosts[host_key] = true

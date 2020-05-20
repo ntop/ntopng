@@ -1086,19 +1086,16 @@ function printStatsTimeseries()
 		       "influx_password", "",
            "password", auth_enabled, nil, nil,  {attributes={spellcheck="false"}, pattern="[^\\s]+"})
 
-  local ts_slots_labels = {"10s", "30s", "1m", "5m"}
-  local ts_slots_values = {"10", "30", "60", "300"}
-  -- Currently, high-resolution-timeseries seem to only work when the default housekeeping frequency is in place.
-  -- As a TODO, it would be nice to relax this assumption.
-  local has_custom_housekeeping = (tonumber(ntop.getPref("ntopng.prefs.housekeeping_frequency")) or 5) ~= 5
+  local resolutions_labels = {"1m", "5m"}
+  local resolutions_values = {"60", "300"}
 
   multipleTableButtonPrefs(subpage_active.entries["timeseries_resolution_resolution"].title,
-				    subpage_active.entries["timeseries_resolution_resolution"].description .. ternary(has_custom_housekeeping, "<br>" .. i18n("prefs.note_timeseries_resolution_disabled", {pref=i18n("prefs.housekeeping_frequency_title")}), ""),
-				    ts_slots_labels, ts_slots_values,
+				    subpage_active.entries["timeseries_resolution_resolution"].description,
+				    resolutions_labels, resolutions_values,
 				    "60",
 				    "primary",
 				    "ts_high_resolution",
-				    "ntopng.prefs.ts_high_resolution", has_custom_housekeeping,
+				    "ntopng.prefs.ts_resolution", nil,
 				    nil, nil, nil, influx_active)
 
   prefsInputFieldPrefs(subpage_active.entries["influxdb_query_timeout"].title, subpage_active.entries["influxdb_query_timeout"].description,
@@ -1594,50 +1591,6 @@ aysHandleForm("form", {
 /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
-
-local high_res_secs = tonumber(_POST["ts_high_resolution"])
-if high_res_secs then
-  -- update ts_write_slots
-  local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
-  local new_slots = 0
-  local new_steps = 0
-
-  -- high_res_secs must be <= 60 to be considered high-resolution
-  -- the only other option is 300 seconds (5 minutes) and there's
-  -- no need to use timeseries rings
-
-  if driver == "influxdb" and high_res_secs <= 60 then
-    new_slots = 60 / high_res_secs
-    new_steps = 60 / new_slots / 5 -- TODO: remove this hardcoded 5
-
-    -- important: add one extra slots to give "buffer" time to the writer
-    new_slots = new_slots + 1
-  end
-
-  -- When high resolution timeseries are enabled, the ntopng C core creates
-  -- timeseries rings with diffent slots. Each slot holds a snapshot of the
-  -- host/interface timeseries in a given time interval. For example, if 10s
-  -- resolution is choose, each slot holds a snapshot representing an interval
-  -- of 10s. Periodically (in NetworkInterface::periodicStatsUpdate) the slots
-  -- are polulated and then in minute.lua they are read and exported.
-  --
-  -- This Redis preferences tell the C core how to configure the ring:
-  --  - ntopng.prefs.ts_write_slots: the number of slots to allocate in the ring
-  --  - ntopng.prefs.ts_write_steps: how many ticks of NetworkInterface::periodicStatsUpdate
-  --    are necessary to fill a slot.
-  --
-  -- For the example above of 10s resolution:
-  --  - ntopng.prefs.ts_write_slots = 60 / 10 = 6 slots, + 1 extra slot as buffer (see above) = 7
-  --  - ntopng.prefs.ts_write_steps = 60 / 6 slots = 10s / 5 (5s is the periodicStatsUpdate interval) = 2
-  --
-  -- See TimseriesRing.cpp for more details.
-  --
-  ntop.setPref("ntopng.prefs.ts_write_slots", tostring(math.ceil(new_slots)))
-  ntop.setPref("ntopng.prefs.ts_write_steps", tostring(math.ceil(new_steps)))
-
---  tprint(ntop.getPref("ntopng.prefs.ts_write_slots"))
---  tprint(ntop.getPref("ntopng.prefs.ts_write_steps"))
-end
 
 if(_SERVER["REQUEST_METHOD"] == "POST") then
    -- Something has changed

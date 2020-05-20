@@ -264,3 +264,14 @@ function getSystemInterfaceName()
    -- NOTE: keep in sync with SYSTEM_INTERFACE_NAME in ntop_defines.h
    return "__system__"
 end
+
+-- ###########################################
+
+function hasHighResolutionTs()
+   local active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+
+   -- High resolution timeseries means dumping the host timeseries
+   -- every 60 seconds instead of 300 seconds.
+   return((active_driver == "influxdb") and
+    (ntop.getPref("ntopng.prefs.ts_resolution") ~= "300"))
+end

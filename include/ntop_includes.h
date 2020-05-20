@@ -293,9 +293,6 @@ using namespace std;
 #endif
 
 #include "TimeseriesPoint.h"
-#include "TimeseriesRingStatus.h"
-#include "TimeseriesRing.h"
-#include "TimeseriesRing.h"
 #include "HostTimeseriesPoint.h"
 #include "FifoQueue.h"
 #include "FifoStringsQueue.h"
@@ -306,7 +303,6 @@ using namespace std;
 #include "RRDTimeseriesExporter.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"
-#include "NetworkInterfaceTsPoint.h"
 #include "LuaEngine.h"
 #include "LuaReusableEngine.h"
 #include "AlertCheckLuaEngine.h"

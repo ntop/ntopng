@@ -266,19 +266,6 @@ static int ntop_interface_has_ebpf(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_has_high_res_ts(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool rv = false;
-
-  if(ntop_interface && ntop_interface != ntop->getSystemInterface())
-    rv = TimeseriesRing::isRingEnabled(ntop_interface);
-
-  lua_pushboolean(vm, rv);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 // *** API ***
 static int ntop_interface_is_packet_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -2516,21 +2503,6 @@ static int ntop_get_interface_host_timeseries(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_timeseries(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-  else {
-    ntop_interface->tsLua(vm);
-    return(CONST_LUA_OK);
-  }
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_host_country(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -4529,11 +4501,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
   { "hasVLANs",                 ntop_interface_has_vlans },
   { "hasEBPF",                  ntop_interface_has_ebpf  },
-  { "hasHighResTs",             ntop_interface_has_high_res_ts },
   { "getStats",                 ntop_get_interface_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
   { "updateDirectionStats",     ntop_update_interface_direction_stats },
-  { "getInterfaceTimeseries",   ntop_get_interface_timeseries },
   { "resetCounters",            ntop_interface_reset_counters },
   { "resetHostStats",           ntop_interface_reset_host_stats },
   { "deleteHostData",           ntop_interface_delete_host_data },

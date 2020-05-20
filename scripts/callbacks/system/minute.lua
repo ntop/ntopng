@@ -19,19 +19,16 @@ if(prefs_changed == "true") then
    prefs_dump_utils.savePrefsToDisk()
 end
 
+local ifstats = interface.getStats()
+local when = os.time()
+
 -- Dump periodic activities duration if the telementry timeseries preference is enabled
 if ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1" then
-   ts_dump.update_internals_periodic_activities_stats(os.time(), interface.getStats(), false)
+   ts_dump.update_internals_periodic_activities_stats(when, ifstats, false)
 end
 
 if(ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0") then
-   local iface_ts = interface.getInterfaceTimeseries()
-
-   for _, ifstats in ipairs(iface_ts or {}) do
-     local instant = ifstats.instant
-
-     ts_utils.append("iface:alerts_stats", {ifid=getSystemInterfaceId(), engaged_alerts=ifstats.stats.engaged_alerts, dropped_alerts=ifstats.stats.dropped_alerts}, instant)
-   end
+   ts_utils.append("iface:alerts_stats", {ifid=getSystemInterfaceId(), engaged_alerts=ifstats.num_alerts_engaged, dropped_alerts=ifstats.num_dropped_alerts}, when)
 end
 
 -- Run minute scripts

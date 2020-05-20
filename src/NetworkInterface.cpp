@@ -308,11 +308,6 @@ void NetworkInterface::init() {
 
   dhcp_ranges = dhcp_ranges_shadow = NULL;
 
-  ts_ring = NULL;
-
-  if(TimeseriesRing::isRingEnabled(this))
-    ts_ring = new TimeseriesRing(this);
-
   if(bridge_interface
      || is_dynamic_interface
      || isView())
@@ -601,7 +596,6 @@ NetworkInterface::~NetworkInterface() {
   if(hide_from_top_shadow)  delete(hide_from_top_shadow);
   if(influxdb_ts_exporter)  delete influxdb_ts_exporter;
   if(rrd_ts_exporter)       delete rrd_ts_exporter;
-  if(ts_ring)               delete ts_ring;
   if(dhcp_ranges)           delete[] dhcp_ranges;
   if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
   if (mdns)                 delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
@@ -2656,17 +2650,6 @@ void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
   for(u_int8_t network_id = 0; network_id < ntop->getNumLocalNetworks(); network_id++) {
     if(NetworkStats *ns = getNetworkStats(network_id))
       ns->updateStats(&tv);
-  }
-
-  if(!ts_ring && TimeseriesRing::isRingEnabled(this))
-    ts_ring = new TimeseriesRing(this);
-
-  if(ts_ring && ts_ring->isTimeToInsert()) {
-    NetworkInterfaceTsPoint *pt = new NetworkInterfaceTsPoint();
-    makeTsPoint(pt);
-
-    /* Ownership of the point is passed to the ring */
-    ts_ring->insert(pt, tv.tv_sec);
   }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
@@ -5227,6 +5210,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int32_table_entry(vm, "num_dropped_alerts", num_dropped_alerts);
   lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
 
+  /* .stats */
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets",     getNumPackets());
   lua_push_uint64_table_entry(vm, "bytes",       getNumBytes());
@@ -5297,6 +5281,7 @@ void NetworkInterface::lua(lua_State *vm) {
   _ndpiStats.lua(this, vm, true);
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
+  l4Stats.luaStats(vm);
 
   if(discardProbingTraffic())
     _discardedProbingStats.lua(vm, "discarded_probing_");
@@ -6958,46 +6943,6 @@ bool NetworkInterface::stopLiveCapture(int capture_id) {
   }
 
   return(rc);
-}
-
-/* *************************************** */
-
-void NetworkInterface::makeTsPoint(NetworkInterfaceTsPoint *pt) {
-  /* unused */
-  TcpFlowStats _tcpFlowStats;
-  EthStats _ethStats;
-  ProtoStats _discardedProbingStats;
-
-  sumStats(&_tcpFlowStats, &_ethStats, &pt->local_stats,
-	   &pt->ndpi, &pt->packetStats, &pt->tcpPacketStats, &_discardedProbingStats);
-
-  // Note: turn into a gauge for consistency with engaged_alerts
-  pt->dropped_alerts = (num_dropped_alerts - prev_dropped_alerts);
-  prev_dropped_alerts = num_dropped_alerts;
-
-  pt->engaged_alerts = getNumEngagedAlerts();
-  pt->hosts = getNumHosts();
-  pt->local_hosts = getNumLocalHosts();
-  pt->devices = getNumL2Devices();
-  pt->flows = getNumFlows();
-  pt->num_misbehaving_flows = getNumActiveMisbehavingFlows();
-  pt->num_alerted_flows = getNumActiveAlertedFlows();
-  pt->num_new_flows = getNumNewFlows();
-  pt->http_hosts = getNumHTTPHosts();
-  pt->l4Stats = l4Stats;
-}
-
-/* *************************************** */
-
-void NetworkInterface::tsLua(lua_State* vm) {
-  if(!ts_ring || !TimeseriesRing::isRingEnabled(this)) {
-    /* Use real time data */
-    NetworkInterfaceTsPoint pt;
-
-    makeTsPoint(&pt);
-    TimeseriesRing::luaSinglePoint(vm, this, &pt);
-  } else
-    ts_ring->lua(vm);
 }
 
 /* *************************************** */

@@ -30,11 +30,6 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   http = new (std::nothrow) HTTPstats(_host);
   icmp = new (std::nothrow) ICMPstats();
   nextSitesUpdate = 0;
-
-  if(TimeseriesRing::isRingEnabled(_host->getInterface()))
-    ts_ring = new TimeseriesRing(iface);
-  else
-    ts_ring = NULL;
 }
 
 /* *************************************** */
@@ -45,7 +40,6 @@ LocalHostStats::~LocalHostStats() {
   if(dns)             delete dns;
   if(http)            delete http;
   if(icmp)            delete icmp;
-  if(ts_ring)         delete ts_ring;
 }
 
 /* *************************************** */
@@ -90,17 +84,6 @@ void LocalHostStats::updateStats(struct timeval *tv) {
     }
 
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
-  }
-
-  /* The ring can be enabled at runtime so we need to check for allocation */
-  if(!ts_ring && TimeseriesRing::isRingEnabled(getHost()->getInterface()))
-    ts_ring = new TimeseriesRing(iface);
-  
-  if(ts_ring && ts_ring->isTimeToInsert()) {
-    HostTimeseriesPoint *pt = new HostTimeseriesPoint(this);
-
-    /* Ownership of the point is passed to the ring */
-    ts_ring->insert(pt, tv->tv_sec);
   }
 }
 
@@ -240,14 +223,12 @@ void LocalHostStats::decNumFlows(bool as_client, Host *peer) {
 /* *************************************** */
 
 void LocalHostStats::tsLua(lua_State* vm) {
-  if(!ts_ring || !TimeseriesRing::isRingEnabled(getHost()->getInterface())) {
-    /* Use real time data */
-    HostTimeseriesPoint pt(this);
-    
-    TimeseriesRing::luaSinglePoint(vm, iface, &pt);
-  } else
-    ts_ring->lua(vm);
+  /* Use real time data */
+  HostTimeseriesPoint pt(this);
+
+  pt.lua(vm, iface);
 }
+
 /* *************************************** */
 
 bool LocalHostStats::hasAnomalies(time_t when) {

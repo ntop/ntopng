@@ -22,7 +22,7 @@ local _ifname = ifstats.name
 
 ts_dump.run_5min_tasks(_ifname, ifstats)
 
-if not interface.hasHighResTs() then
+if not hasHighResolutionTs() then
   ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
 -- else: perform the ts_dump.run_5min_dump in minute.lua
 end

@@ -54,7 +54,6 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
-  num_ts_slots = CONST_DEFAULT_TS_NUM_SLOTS, ts_num_steps = CONST_DEFAULT_TS_NUM_STEPS;
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
   max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES;
   auth_session_duration = HTTP_SESSION_DURATION;
@@ -566,8 +565,6 @@ void Prefs::reloadPrefsFromRedis() {
     other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS),
     other_rrd_1h_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS),
     other_rrd_1d_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS),
-    ts_num_steps        = getDefaultPrefsValue(CONST_RUNTIME_TS_NUM_STEPS, CONST_DEFAULT_TS_NUM_STEPS);
-    num_ts_slots        = getDefaultPrefsValue(CONST_RUNTIME_TS_NUM_SLOTS, CONST_DEFAULT_TS_NUM_SLOTS);
 
     enable_top_talkers              = getDefaultBoolPrefsValue(CONST_TOP_TALKERS_ENABLED,
 							       CONST_DEFAULT_TOP_TALKERS_ENABLED),

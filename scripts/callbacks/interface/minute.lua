@@ -16,15 +16,14 @@ local verbose = ntop.verboseTrace()
 local when = os.time()
 local config = ts_dump.getConfig()
 
-local iface_ts = interface.getInterfaceTimeseries()
 local ifstats = interface.getStats()
 local _ifname = ifstats.name
 
 -- ########################################################
 
-ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when, verbose)
+ts_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
 
-if interface.hasHighResTs() then
+if hasHighResolutionTs() then
    local ts_5min_dump = require "ts_5min_dump_utils"
    local config = ts_5min_dump.getConfig()
 

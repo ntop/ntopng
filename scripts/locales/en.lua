@@ -3302,7 +3302,7 @@ local lang = {
     ["telemetry_email_title"] = "Contact",
     ["timeseries"] = "Timeseries",
     ["timeseries_database"] = "Timeseries Database",
-    ["timeseries_resolution_resolution_description"] = "The interval between consecutive timeseries data points for local hosts. Only effective for packet interfaces.<br><b>NOTE</b>:<ul><li> High resolution can have a strong impact on memory and disk usage for large networks.<li>Timeseries retention time can be set <A HREF=\"prefs.lua?tab=retention\">here</A></ul>",
+    ["timeseries_resolution_resolution_description"] = "The interval between consecutive timeseries data points for local hosts.<br><b>NOTE</b>:<ul><li> High resolution can have a strong impact on disk usage for large networks.<li>Timeseries retention time can be set <A HREF=\"prefs.lua?tab=retention\">here</A></ul>",
     ["timeseries_resolution_resolution_title"] = "Timeseries Resolution",
     ["toggle_access_log_description"] = "Toggle the creation of HTTP access log in the data dump directory. Settings will have effect at next %{product} startup.",
     ["toggle_access_log_title"] = "Enable HTTP Access Log",

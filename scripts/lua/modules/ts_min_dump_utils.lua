@@ -111,15 +111,15 @@ end
 
 function ts_dump.iface_update_general_stats(when, ifstats, verbose)
   -- General stats
-  ts_utils.append("iface:alerts_stats", {ifid=ifstats.id, engaged_alerts=ifstats.stats.engaged_alerts, dropped_alerts=ifstats.stats.dropped_alerts}, when)
+  ts_utils.append("iface:alerts_stats", {ifid=ifstats.id, engaged_alerts=ifstats.num_alerts_engaged, dropped_alerts=ifstats.num_dropped_alerts}, when)
   ts_utils.append("iface:hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when)
   ts_utils.append("iface:local_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.local_hosts}, when)
   ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when)
   ts_utils.append("iface:flows", {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when)
   ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when)
-  ts_utils.append("iface:alerted_flows", {ifid=ifstats.id, num_flows=ifstats.stats.num_alerted_flows}, when)
-  ts_utils.append("iface:misbehaving_flows", {ifid=ifstats.id, num_flows=ifstats.stats.num_misbehaving_flows}, when)
-  ts_utils.append("iface:new_flows", {ifid=ifstats.id, new_flows=ifstats.stats.num_new_flows}, when)
+  ts_utils.append("iface:alerted_flows", {ifid=ifstats.id, num_flows=ifstats.num_alerted_flows}, when)
+  ts_utils.append("iface:misbehaving_flows", {ifid=ifstats.id, num_flows=ifstats.num_misbehaving_flows}, when)
+  ts_utils.append("iface:new_flows", {ifid=ifstats.id, new_flows=ifstats.stats.new_flows}, when)
 end
 
 function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
@@ -311,7 +311,7 @@ end
 
 -- ########################################################
 
-function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when)
+function ts_dump.run_min_dump(_ifname, ifstats, config, when)
   dumpTopTalkers(_ifname, ifstats, verbose)
 
   user_scripts.runPeriodicScripts("min")
@@ -325,33 +325,27 @@ function ts_dump.run_min_dump(_ifname, ifstats, iface_ts, config, when)
   end
 
   ts_dump.subnet_update_rrds(when, ifstats, verbose)
-  for _, iface_point in ipairs(iface_ts or {}) do
-    local instant = iface_point.instant
 
-    -- compatibility fix with ifstats
-    iface_point.id = ifstats.id
+  ts_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
+  ts_dump.iface_update_general_stats(when, ifstats, verbose)
+  ts_dump.iface_update_l4_stats(when, ifstats, verbose)
 
-    ts_dump.iface_update_stats_rrds(instant, _ifname, iface_point, verbose)
-    ts_dump.iface_update_general_stats(instant, iface_point, verbose)
-    ts_dump.iface_update_l4_stats(instant, iface_point, verbose)
+  if not ifstats.has_seen_ebpf_events then
+     ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
+     ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
+  end
 
-    if not ifstats.has_seen_ebpf_events then
-       ts_dump.iface_update_tcp_flags(instant, iface_point, verbose)
-       ts_dump.iface_update_tcp_stats(instant, iface_point, verbose)
-    end
+  if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
+    ts_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose, config)
+  end
 
-    if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
-      ts_dump.iface_update_ndpi_rrds(instant, _ifname, iface_point, verbose, config)
-    end
+  if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
+    ts_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
+  end
 
-    if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation == "both" then
-      ts_dump.iface_update_categories_rrds(instant, _ifname, iface_point, verbose)
-    end
- 
-    -- create custom rrds
-    if ts_custom and ts_custom.iface_update_stats then
-       ts_custom.iface_update_stats(instant, _ifname, iface_point, verbose)
-    end
+  -- create custom rrds
+  if ts_custom and ts_custom.iface_update_stats then
+     ts_custom.iface_update_stats(when, _ifname, ifstats, verbose)
   end
 
   -- Only if the internal telemetry preference is enabled...

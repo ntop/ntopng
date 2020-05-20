@@ -443,8 +443,6 @@
 #define CONST_MAX_NUM_NETWORKS       255
 #define CONST_NUM_OPEN_DB_CACHE        8
 #define CONST_NUM_CONTACT_DBS          8
-#define CONST_DEFAULT_TS_NUM_SLOTS     0 /* disabled */
-#define CONST_DEFAULT_TS_NUM_STEPS     0 /* disabled */
 #define MAX_ZMQ_SUBSCRIBERS           32
 #define MAX_SYSLOG_SUBSCRIBERS         8
 #define MAX_ZMQ_POLL_WAIT_MS        1000 /* 1 sec */

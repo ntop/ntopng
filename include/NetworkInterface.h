@@ -168,7 +168,6 @@ class NetworkInterface : public AlertableEntity {
   FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
   TimeseriesExporter *influxdb_ts_exporter, *rrd_ts_exporter;
-  TimeseriesRing *ts_ring;
 
   TcpFlowStats tcpFlowStats;
   TcpPacketStats tcpPacketStats;
@@ -782,8 +781,6 @@ class NetworkInterface : public AlertableEntity {
   virtual bool read_from_pcap_dump_done() const { return(false); };
   virtual void set_read_from_pcap_dump_done()   { ; };
   virtual void updateDirectionStats()        { ; }
-  void makeTsPoint(NetworkInterfaceTsPoint *pt);
-  void tsLua(lua_State* vm);
   void reloadDhcpRanges();
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
   inline bool isFlowDumpDisabled()           { return(flow_dump_disabled); }
