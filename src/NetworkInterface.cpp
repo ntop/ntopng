@@ -58,10 +58,7 @@ NetworkInterface::NetworkInterface(const char *name,
   if(strcmp(name, "-") == 0) name = "stdin";
   if(strcmp(name, "-") == 0) name = "stdin";
 
-  if(ntop->getRedis())
-    id = Utils::ifname2id(name);
-  else
-    id = -1;
+  id = Utils::ifname2id(name);
 
   purge_idle_flows_hosts = true;
 
