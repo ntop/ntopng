@@ -34,13 +34,13 @@ if isEmptyString(ifid) then
    return
 end
 
+interface.select(ifid)
+
 if isEmptyString(what) then
    rc = rest_utils.consts_invalid_args
    print(rest_utils.rc(rc))
    return
 end
-
--- interface.select(ifid)
 
 local engaged = false
 if what == "engaged" then

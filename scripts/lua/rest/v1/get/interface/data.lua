@@ -33,6 +33,7 @@ local res = {}
 
 local ifid = _GET["ifid"]
 local iffilter = _GET["iffilter"]
+
 if isEmptyString(ifid) and isEmptyString(iffilter) then
    rc = rest_utils.consts_invalid_interface
    print(rest_utils.rc(rc))

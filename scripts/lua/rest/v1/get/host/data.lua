@@ -22,6 +22,8 @@ sendHTTPHeader('application/json')
 local rc = rest_utils.consts_ok
 local res = {}
 
+local ifid = _GET["ifid"]
+
 -- whether to return host statistics: on by default
 local host_stats           = _GET["host_stats"]
 
@@ -31,16 +33,13 @@ local host_stats_flows_num = _GET["limit"]
 
 local host_info = url2hostinfo(_GET)
 
-local ifid = _GET["ifid"]
--- parse interface names and possibly fall back to the selected interface:
--- priority goes to the interface id
-if not isEmptyString(ifid) then
-   if_name = getInterfaceName(ifid)
-   -- finally, we fall back to the default selected interface name
-else
+if isEmptyString(ifid) then
    print(rest_utils.rc(rest_utils.consts_invalid_interface))
    return
 end
+
+interface.select(ifid)
+local if_name = getInterfaceName(ifid)
 
 local function flows2protocolthpt(flows)
    local protocol_thpt = {}

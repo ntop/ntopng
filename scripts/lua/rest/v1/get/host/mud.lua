@@ -29,6 +29,8 @@ if isEmptyString(ifid) then
    return
 end
 
+interface.select(ifid)
+
 if isEmptyString(host) then
    print(rest_utils.rc(rest_utils.consts_invalid_host))
    return
