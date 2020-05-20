@@ -3,6 +3,7 @@
 --
 
 require "lua_utils"
+local graph_utils = require "graph_utils"
 local recording_utils = require "recording_utils"
 local format_utils = require "format_utils"
 local ifstats = interface.getStats()
