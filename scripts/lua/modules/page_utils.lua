@@ -149,7 +149,7 @@ page_utils.plugins_menu = menu or {}
 
 if entries_data then
     for k, v in pairs(entries_data) do
-	page_utils.menu_entries[k] = v
+       page_utils.menu_entries[k] = v
     end
 end
 

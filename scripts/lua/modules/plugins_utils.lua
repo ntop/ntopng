@@ -622,7 +622,9 @@ function plugins_utils.getMenuEntries()
     local menu_entry = dofile(full_path)
 
     if(menu_entry and ((not menu_entry.is_shown) or menu_entry.is_shown())) then
-      menu_entry.url = plugins_utils.getUrl(menu_entry.script)
+      -- Don't add any getHttpPrefix to the url here, it's the caller that
+      -- can potentially add it
+      menu_entry.url = "/plugins/" .. menu_entry.script
       menu[plugin_key] = menu_entry
 
       if menu_entry.menu_entry then
