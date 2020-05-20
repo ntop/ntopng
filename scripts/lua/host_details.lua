@@ -648,8 +648,6 @@ if am_utils and am_utils.isMeasurementAvailable('icmp') then
       ]])
 
    else
-
-
       local last_update = am_utils.getLastAmUpdate(host['ip'], icmp)
       local last_rtt = ""
 

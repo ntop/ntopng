@@ -25,7 +25,7 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-
+page_utils.set_system_view(true)
 page_utils.set_active_menu_entry(page_utils.menu_entries.active_monitor)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
