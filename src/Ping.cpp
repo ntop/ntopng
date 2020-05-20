@@ -178,11 +178,13 @@ int Ping::ping(char *_addr, bool use_v6) {
 		 (struct sockaddr*)&addr,
 		 sizeof(addr));
 
-  if(res == -1)
+  if(res == -1) {
     /* NOTE: This also happens when network is unreachable */
+#ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to send ping [pinger: %p][address: %s][v6: %u][reason: %s]",
 				 this, _addr, use_v6 ? 1 : 0, strerror(errno));
-  else {
+#endif
+  } else {
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pinging [pinger: %p][address: %s][echo id: %u][sequence: %u][cnt: %u][v6: %u]",
 				 this, _addr, ntohs(pckt.hdr.un.echo.id), ntohs(pckt.hdr.un.echo.sequence), cnt, use_v6 ? 1 : 0);
