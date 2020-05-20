@@ -47,7 +47,7 @@ if ((mode ~= "all") or (not isEmptyString(pool))) then
    hosts_filter = '<span class="fas fa-filter"></span>'
 end
 
-function getPageTitle()
+function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_, country, asninfo, mac, pool_, vlan_title)
    local mode_label = ""
 
    if mode == "remote" then
@@ -78,7 +78,30 @@ function getPageTitle()
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-page_utils.print_page_title(getPageTitle())
+
+local protocol_name = nil
+
+if((protocol ~= nil) and (protocol ~= "")) then
+   protocol_name = interface.getnDPIProtoName(tonumber(protocol))
+end
+
+if(protocol_name == nil) then protocol_name = protocol end
+
+local traffic_type_title
+if not isEmptyString(traffic_type) then
+   page_params["traffic_type"] = traffic_type
+   
+   if traffic_type == "one_way" then
+      traffic_type_title = i18n("hosts_stats.traffic_type_one_way")
+   elseif traffic_type == "bidirectional" then
+      traffic_type_title = i18n("hosts_stats.traffic_type_two_ways")
+   end
+else
+   traffic_type_title = ""
+end
+
+-- FIX: most parameters are set after this call: this is a bug
+page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_, country, asninfo, mac, pool_, vlan_title))
 
 prefs = ntop.getPrefs()
 
@@ -165,19 +188,6 @@ if (_GET["page"] ~= "historical") then
       ipver_title = ""
    end
 
-   local traffic_type_title
-   if not isEmptyString(traffic_type) then
-      page_params["traffic_type"] = traffic_type
-
-      if traffic_type == "one_way" then
-	 traffic_type_title = i18n("hosts_stats.traffic_type_one_way")
-      elseif traffic_type == "bidirectional" then
-	 traffic_type_title = i18n("hosts_stats.traffic_type_two_ways")
-      end
-   else
-      traffic_type_title = ""
-   end
-
    custom_column_utils.updateCustomColumn()
    local custom_name, custom_key, custom_align = custom_column_utils.getCustomColumnName()
 
@@ -253,14 +263,6 @@ if (_GET["page"] ~= "historical") then
       vlan_title = " ["..i18n("hosts_stats.vlan_title",{vlan=_GET["vlan"]}).."]"
    end
 
-   local protocol_name = nil
-
-   if((protocol ~= nil) and (protocol ~= "")) then
-      protocol_name = interface.getnDPIProtoName(tonumber(protocol))
-   end
-
-   if(protocol_name == nil) then protocol_name = protocol end
-
    if not isEmptyString(protocol_name) then
       charts_icon = " <a href='".. ntop.getHttpPrefix() .."/lua/if_stats.lua?ifid="..
          ifstats.id .. "&page=historical&ts_schema=iface:ndpi&protocol=" .. protocol_name..
@@ -294,13 +296,13 @@ if (_GET["page"] ~= "historical") then
       print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fas fa-users fa-lg\"></i></A></div>\', ')
       end]]
 
-   -- Ip version selector
+   -- IP version selector
    print[['<div class="btn-group float-right">]]
    custom_column_utils.printCustomColumnDropdown(base_url, page_params)
    print[[</div>']]
 
 
-   -- Ip version selector
+   -- IP version selector
    print[[, '<div class="btn-group float-right">]]
    printIpVersionDropdown(base_url, page_params)
    print[[</div>']]
