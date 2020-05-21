@@ -2476,6 +2476,107 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
 
 /* **************************************** */
 
+int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
+#if defined(linux)
+  struct ifreq ifr = {0};
+  struct ethtool_value ethv;
+  int fd;
+
+  fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+  if (fd == -1)
+    return -1;
+
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+
+  ethv.cmd = cmd;
+  ifr.ifr_data = (char *) &ethv;
+
+  if (ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
+    close(fd);
+    return -1;
+  }
+
+  *v = ethv.data;
+  close(fd);
+
+  return 0;
+#else
+  return -1;
+#endif
+}
+
+/* **************************************** */
+
+int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
+#if defined(linux)
+  struct ifreq ifr = {0};
+  struct ethtool_value ethv;
+  int fd;
+
+  fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+  if (fd == -1)
+    return -1;
+
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+
+  ethv.cmd = cmd;
+  ethv.data = v;
+  ifr.ifr_data = (char *) &ethv;
+
+  if (ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
+    close(fd);
+    return -1;
+  }
+
+  close(fd);
+
+  return 0;
+#else
+  return -1;
+#endif
+}
+
+/* **************************************** */
+
+int Utils::disableOffloads(const char *ifname) {
+#if defined(linux)
+  uint32_t v = 0;
+
+#ifdef ETHTOOL_GGRO
+  if (Utils::ethtoolGet(ifname, ETHTOOL_GGRO, &v) == 0 && v != 0)
+    Utils::ethtoolSet(ifname, ETHTOOL_SGRO, 0);
+#endif
+
+#ifdef ETHTOOL_GGSO
+  if (Utils::ethtoolGet(ifname, ETHTOOL_GGSO, &v) == 0 && v != 0)
+    Utils::ethtoolSet(ifname, ETHTOOL_SGSO, 0);
+#endif
+
+#ifdef ETHTOOL_GTSO
+  if (Utils::ethtoolGet(ifname, ETHTOOL_GTSO, &v) == 0 && v != 0)
+    Utils::ethtoolSet(ifname, ETHTOOL_STSO, 0);
+#endif
+
+#ifdef ETHTOOL_GSG
+  if (Utils::ethtoolGet(ifname, ETHTOOL_GSG, &v) == 0 && v != 0)
+    Utils::ethtoolSet(ifname, ETHTOOL_SSG, 0);
+#endif
+
+#ifdef ETHTOOL_GFLAGS
+  if (Utils::ethtoolGet(ifname, ETHTOOL_GFLAGS, &v) == 0 && (v & ETH_FLAG_LRO))
+    Utils::ethtoolSet(ifname, ETHTOOL_SFLAGS, v & ~ETH_FLAG_LRO);
+#endif
+
+  return 0;
+#else
+  return -1;
+#endif
+}
+
+/* **************************************** */
+
 bool Utils::isGoodNameToCategorize(char *name) {
   if((name[0] == '\0')
      || (strchr(name, '.') == NULL) /* Missing domain */

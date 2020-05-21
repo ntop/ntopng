@@ -200,15 +200,13 @@ NetworkInterface::NetworkInterface(const char *name,
      && strncmp(ifname, "lo", 2)
      && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      ) {
-    char buf[64], ifaces[128], *tmp, *iface;
+    char ifaces[128], *tmp, *iface;
 
     snprintf(ifaces, sizeof(ifaces), "%s", ifname);
     iface = strtok_r(ifaces, ",", &tmp);
 
     while(iface != NULL) {
-      snprintf(buf, sizeof(buf), "ethtool -K \"%s\" gro off gso off tso off 2>/dev/null", iface);
-      system(buf);
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Executing %s", buf);
+      Utils::disableOffloads(iface);
       iface = strtok_r(NULL, ",", &tmp);
     }
   }
