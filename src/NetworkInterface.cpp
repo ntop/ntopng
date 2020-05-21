@@ -203,7 +203,7 @@ NetworkInterface::NetworkInterface(const char *name,
     iface = strtok_r(ifaces, ",", &tmp);
 
     while(iface != NULL) {
-      snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off 2>/dev/null", iface);
+      snprintf(buf, sizeof(buf), "ethtool -K \"%s\" gro off gso off tso off 2>/dev/null", iface);
       system(buf);
       ntop->getTrace()->traceEvent(TRACE_INFO, "Executing %s", buf);
       iface = strtok_r(NULL, ",", &tmp);
