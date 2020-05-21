@@ -108,7 +108,7 @@ else
 end
 
 -- TODO show delete tab also in oem after https://github.com/ntop/ntopng/issues/2258 is fixed
-if isAdministrator() and (not info.oem) then
+if isAdministrator() then
    if((page == "delete")) then
       tab_delete_active = " in active"
       print[[<li class="nav-item active"><a class="nav-link active" data-toggle="tab" href="#delete">]] print(i18n("manage_data.delete_tab")) print[[</a></li>]]
