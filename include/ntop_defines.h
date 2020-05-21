@@ -187,6 +187,7 @@
 #define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define SYSTEM_INTERFACE_NAME   "__system__"
 #define SYSTEM_INTERFACE_ID     -1
+#define INVALID_INTERFACE_ID    -2
 #define DOMAIN_CATEGORY         "ntopng.domain.category"
 #define DOMAIN_TO_CATEGORIZE    "ntopng.domain.tocategorize"
 #define DOMAIN_WHITELIST_CAT    "ntopng.domain.whitelist"

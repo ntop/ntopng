@@ -984,8 +984,12 @@ extern "C" {
 int Utils::ifname2id(const char *name) {
   char rsp[MAX_INTERFACE_NAME_LEN], ifidx[8];
 
-  if (name == NULL)
-      return(-1);
+  if(name && !strcmp(name, SYSTEM_INTERFACE_NAME))
+    return SYSTEM_INTERFACE_ID;
+
+  if(name == NULL)
+    return INVALID_INTERFACE_ID;
+
 #ifdef WIN32
   else if (isdigit(name[0]))
       return(atoi(name));
@@ -993,26 +997,26 @@ int Utils::ifname2id(const char *name) {
   else if(!strncmp(name, "-", 1))
       name = (char*) "stdin";
 
-  if(!strcmp(name, SYSTEM_INTERFACE_NAME)) return(SYSTEM_INTERFACE_ID);
-
-  if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, (char*)name, rsp, sizeof(rsp)) == 0) {
-    /* Found */
-    return(atoi(rsp));
-  } else {
-    for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
-      snprintf(ifidx, sizeof(ifidx), "%d", i);
-      if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, ifidx, rsp, sizeof(rsp)) < 0) {
-	snprintf(rsp, sizeof(rsp), "%s", name);
-	ntop->getRedis()->hashSet((char*)CONST_IFACE_ID_PREFS, rsp, ifidx);
-	ntop->getRedis()->hashSet((char*)CONST_IFACE_ID_PREFS, ifidx, rsp);
-	return(i);
+  if(ntop->getRedis()) {
+    if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, (char*)name, rsp, sizeof(rsp)) == 0) {
+      /* Found */
+      return(atoi(rsp));
+    } else {
+      for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+	snprintf(ifidx, sizeof(ifidx), "%d", i);
+	if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, ifidx, rsp, sizeof(rsp)) < 0) {
+	  snprintf(rsp, sizeof(rsp), "%s", name);
+	  ntop->getRedis()->hashSet((char*)CONST_IFACE_ID_PREFS, rsp, ifidx);
+	  ntop->getRedis()->hashSet((char*)CONST_IFACE_ID_PREFS, ifidx, rsp);
+	  return(i);
+	}
       }
-    }
 
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface ids exhausted. Flush redis to create new interfaces.");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface ids exhausted. Flush redis to create new interfaces.");
+    }
   }
 
-  return(-1); /* This can't happen, hopefully */
+  return INVALID_INTERFACE_ID; /* This can't happen, hopefully */
 }
 
 /* **************************************************** */

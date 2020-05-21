@@ -420,7 +420,8 @@ void usage() {
 
   printf("\n");
 
-  NetworkInterface n("dummy");
+  /* Just create an instance of the system interface to print out the available interfaces */
+  NetworkInterface n(SYSTEM_INTERFACE_NAME);
   n.printAvailableInterfaces(true, 0, NULL, 0);
 
   exit(0);
