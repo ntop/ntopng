@@ -2736,7 +2736,7 @@ local lang = {
     ["telemetry_email_title"] = "Kontakt",
     ["timeseries"] = "Timeseries",
     ["timeseries_database"] = "Databáze Timeseries",
-    ["timeseries_resolution_resolution_description"] = "Interval mezi datovými body po sobě jdoucích časů pro místní hostitele. Účinné pouze pro rozhraní paketů.<br><b>POZNÁMKA</b>:<ul><li> Vysoké rozlišení může mít velký dopad na využití paměti a disku pro velké sítě.<li>Lze nastavit retenční časy Timeseries <A HREF=\"prefs.lua?tab=retention\">zde</ul>",
+    ["timeseries_resolution_resolution_description"] = "Interval mezi datovými body po sobě jdoucích časů pro místní hostitele. Účinné pouze pro rozhraní paketů.<br><b>POZNÁMKA</b>:<ul><li>Lze nastavit retenční časy Timeseries <A HREF=\"prefs.lua?tab=retention\">zde</a></li></ul>",
     ["timeseries_resolution_resolution_title"] = "Rozlišení Timeseries",
     ["toggle_access_log_description"] = "Přepnout vytvoření protokolu přístupu HTTP v adresáři výpisu dat. Nastavení se projeví po příštím %{product} spuštění.",
     ["toggle_access_log_title"] = "Povolit protokol přístupu HTTP",
