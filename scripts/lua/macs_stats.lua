@@ -105,6 +105,7 @@ print ('sort: [ ["' .. getDefaultTableSort("macs") ..'","' .. getDefaultTableSor
 print('buttons: [')
 
    -- Filter MACS
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local macs_params = table.clone(page_params)
    macs_params.devices_mode = nil
    print('\'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("mac_stats.filter_macs")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;"><li><a class="dropdown-item" href="')
@@ -120,6 +121,7 @@ print('buttons: [')
    print("</div>'")
 
    -- Filter Manufacturers
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local manufacturer_params = table.clone(page_params)
    manufacturer_params.manufacturer = nil
    print[[, '\
@@ -140,6 +142,7 @@ for manuf, count in pairsByKeys(interface.getMacManufacturers(nil, nil, device_t
    ']]
 
    -- Filter Device Type
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local devicetype_params = table.clone(page_params)
    devicetype_params.device_type = nil
    print[[, '\

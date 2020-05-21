@@ -21,6 +21,8 @@ local function printHashTablesDropdown(base_url, page_params)
    else
       hash_table_filter = ''
    end
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local hash_table_params = table.clone(page_params)
    hash_table_params["hash_table"] = nil
 
@@ -140,6 +142,8 @@ local function printPeriodicactivityIssuesDropdown(base_url, page_params)
    else
       periodic_activity_issue_filter = ''
    end
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local periodic_activity_issue_params = table.clone(page_params)
    periodic_activity_issue_params["periodic_script_issue"] = nil
 
@@ -166,6 +170,8 @@ local function printPeriodicactivityDropdown(base_url, page_params)
    else
       periodic_activity_filter = ''
    end
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local periodic_activity_params = table.clone(page_params)
 
    periodic_activity_params["periodic_script"] = nil
@@ -392,6 +398,8 @@ local function printUserScriptsDropdown(base_url, page_params)
    else
       user_script_target_filter = ''
    end
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local user_script_target_params = table.clone(page_params)
    user_script_target_params["user_script_target"] = nil
 

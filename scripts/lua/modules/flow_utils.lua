@@ -1423,6 +1423,7 @@ function printL4ProtoDropdown(base_url, page_params, l4_proto)
       l4proto_filter = ''
    end
 
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local l4proto_params = table.clone(page_params)
    l4proto_params["l4proto"] = nil
    -- Used to possibly remove tcp state filters when selecting a non-TCP l4 protocol
@@ -1480,6 +1481,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
       cur_dev_filter = '<span class="fas fa-filter"></span>'
    end
 
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local dev_params = table.clone(page_params)
    for _, p in pairs({"deviceIP", "outIfIdx", "inIfIdx"}) do
       dev_params[p] = nil
@@ -1525,6 +1527,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 	    cur_if_filter = '<span class="fas fa-filter"></span>'
 	 end
 
+	 -- table.clone needed to modify some parameters while keeping the original unchanged
 	 local if_params = table.clone(page_params)
 
 	 if_params[direction] = nil
@@ -1577,6 +1580,7 @@ end
 
 function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_ebpf_flows)
     -- Local / Remote hosts selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
     local flowhosts_type_params = table.clone(page_params)
     flowhosts_type_params["flowhosts_type"] = nil
 
@@ -1597,6 +1601,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     ']]
 
     -- Status selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
     local flow_status_params = table.clone(page_params)
     flow_status_params["flow_status"] = nil
 
@@ -1642,6 +1647,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     if not is_ebpf_flows then
        if page_params["l4proto"] and page_params["l4proto"] == "6" then
 	  -- TCP flow state filter
+	  -- table.clone needed to modify some parameters while keeping the original unchanged
 	  local tcp_state_params = table.clone(page_params)
 	  tcp_state_params["tcp_flow_state"] = nil
 
@@ -1664,6 +1670,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        end
 
        -- Unidirectional flows selector
+       -- table.clone needed to modify some parameters while keeping the original unchanged
 	local traffic_type_params = table.clone(page_params)
 	traffic_type_params["traffic_type"] = nil
 
@@ -1686,6 +1693,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	if not page_params.container then
 	    -- POD filter
 	    local pods = interface.getPodsStats()
+	    -- table.clone needed to modify some parameters while keeping the original unchanged
 	    local pods_params = table.clone(page_params)
 	    pods_params["pod"] = nil
 
@@ -1714,6 +1722,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	if not page_params.pod then
 	    -- Container filter
 	    local containers = interface.getContainersStats()
+	    -- table.clone needed to modify some parameters while keeping the original unchanged
 	    local container_params = table.clone(page_params)
 	    container_params["container"] = nil
 
@@ -1744,6 +1753,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("report.applications")..' ' .. getParamFilter(page_params, "application") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
     print('<li><a class="dropdown-item" href="')
 
+    -- table.clone needed to modify some parameters while keeping the original unchanged
     local application_filter_params = table.clone(page_params)
     application_filter_params["application"] = nil
     print(getPageUrl(base_url, application_filter_params))
@@ -1765,6 +1775,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     -- L7 Application Category
     print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("users.categories")..' ' .. getParamFilter(page_params, "category") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
     print('<li><a class="dropdown-item" href="')
+    -- table.clone needed to modify some parameters while keeping the original unchanged
     local category_filter_params = table.clone(page_params)
     category_filter_params["category"] = nil
     print(getPageUrl(base_url, category_filter_params))
@@ -1785,6 +1796,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print("</ul> </div>'")
 
     -- IP version selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
     local ipversion_params = table.clone(page_params)
     ipversion_params["version"] = nil
 
@@ -1793,6 +1805,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print [[</div>']]
 
     -- L4 protocol selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
     local l4proto_params = table.clone(page_params)
     l4proto_params["l4proto"] = nil
 
@@ -1801,6 +1814,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print [[</div>']]
 
     -- VLAN selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
     local vlan_params = table.clone(page_params)
     if ifstats.vlan then
        print[[, '<div class="btn-group float-right">]]
@@ -1822,6 +1836,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
         -- Traffic Profiles
         print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("traffic_profiles.traffic_profiles")..' ' .. getParamFilter(page_params, "traffic_profile") .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">')
         print('<li><a class="dropdown-item" href="')
+	-- table.clone needed to modify some parameters while keeping the original unchanged
         local traffic_profile_filter_params = table.clone(page_params)
         traffic_profile_filter_params["traffic_profile"] = nil
         print(getPageUrl(base_url, traffic_profile_filter_params))

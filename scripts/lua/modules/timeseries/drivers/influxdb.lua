@@ -764,6 +764,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
     if is_single_serie then
       -- optimization
+      -- table.clone needed as total_serie can be modified below (table.insert)
       total_serie = table.clone(series[1].data)
     else
       -- try to inherit label from existing series

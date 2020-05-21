@@ -347,6 +347,8 @@ function printIpVersionDropdown(base_url, page_params)
    else
       ipversion_filter = ''
    end
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local ipversion_params = table.clone(page_params)
    ipversion_params["version"] = nil
 
@@ -378,6 +380,7 @@ function printVLANFilterDropdown(base_url, page_params)
       vlan_id_filter = '<span class="fas fa-filter"></span>'
    end
 
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local vlan_id_params = table.clone(page_params)
    vlan_id_params["vlan"] = nil
 
@@ -405,6 +408,7 @@ function printTrafficTypeFilterDropdown(base_url, page_params)
       traffic_type_filter = '<span class="fas fa-filter"></span>'
    end
 
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local traffic_type_params = table.clone(page_params)
    traffic_type_params["traffic_type"] = nil
 

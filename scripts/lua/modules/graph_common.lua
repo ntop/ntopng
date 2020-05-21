@@ -78,6 +78,7 @@ function graph_common.populateGraphMenuEntry(label, base_url, params, tab_id, ne
    local url = getPageUrl(base_url, params)
    local step = nil
 
+   -- table.clone needed as entry_params is modified below
    local entry_params = table.clone(params)
    for k, v in pairs(splitUrl(base_url).params) do
       entry_params[k] = v
@@ -288,14 +289,17 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 
    if params.tskey then
       -- this can contain a MAC address for local broadcast domain hosts
+      -- table.clone needed as tags is modified below
       tags = table.clone(tags)
       tags.host = params.tskey
    end
 
    if(device_timeseries_mac ~= nil) then
+      -- table.clone needed as mac_tags is modified below
       mac_tags = table.clone(tags)
       mac_tags.host = nil
       mac_tags.mac = device_timeseries_mac
+      -- table.clone needed as mac_params is modified below
       mac_params = table.clone(params)
       mac_params.host = device_timeseries_mac
    end
@@ -413,6 +417,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
    -- nDPI applications
    if options.top_protocols then
       local schema = split(options.top_protocols, "top:")[2]
+      -- table.clone needed as proto_tags is modified below
       local proto_tags = table.clone(tags)
       proto_tags.protocol = nil
 
@@ -438,6 +443,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
    -- L4 protocols
    if options.l4_protocols then
       local schema = options.l4_protocols
+      -- table.clone needed as l4_tags is modified below
       local l4_tags = table.clone(tags)
       l4_tags.l4proto = nil
 
@@ -478,6 +484,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
    -- nDPI application categories
    if options.top_categories then
       local schema = split(options.top_categories, "top:")[2]
+      -- table.clone needed as cat_tags is modified below
       local cat_tags = table.clone(tags)
       cat_tags.category = nil
       local series = ts_utils.listSeries(schema, cat_tags, start_time)
@@ -612,6 +619,7 @@ function graph_common.getCustomSchemaTags(schema_id, query_tags, base_idx)
    end
 
    if schema_options.tags_override and schema_options.tags_override[base_idx] then
+      -- table.clone needed tags is modified below
       tags = table.clone(tags)
 
       for tag, override in pairs(schema_options.tags_override[base_idx]) do
@@ -620,6 +628,7 @@ function graph_common.getCustomSchemaTags(schema_id, query_tags, base_idx)
    end
 
    if schema_options.tags_ignore and schema_options.tags_ignore[base_idx] then
+      -- table.clone needed tags is modified below
       tags = table.clone(tags)
 
       for tag in pairs(schema_options.tags_ignore[base_idx]) do

@@ -683,6 +683,7 @@ function driver:query(schema, tstart, tend, tags, options)
     serie_idx = serie_idx + 1
   end
 
+  -- table.clone needed as series can be modified below (sampleSeries works on it in-place)
   local unsampled_series = table.clone(series)
   local unsampled_count = count
   local unsampled_fstep = fstep
@@ -928,6 +929,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
 
   local stats = nil
 
+  -- table.clone needed as augumented_total can be modified below (sampleSeries works on it in-place)
   local augumented_total = table.clone(total_serie)
 
   if options.initial_point and total_serie then

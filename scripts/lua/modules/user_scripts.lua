@@ -719,7 +719,7 @@ function user_scripts.listSubdirs()
    local rv = {}
 
    for _, subdir in ipairs(available_subdirs) do
-      local item = table.clone(subdir)
+      local item = subdir
       item.label = i18n(item.label) or item.label
 
       rv[#rv + 1] = item
@@ -894,7 +894,7 @@ function user_scripts.createOrReplaceConfigset(configset)
       new_confid = getNewConfigSetId(configsets)
    end
 
-   configsets[new_confid] = table.clone(configset)
+   configsets[new_confid] = configset
    configsets[new_confid].id = new_confid
 
    local rv, err = saveConfigsets(configsets)
@@ -951,7 +951,7 @@ function user_scripts.cloneConfigset(confid, new_name)
 
    local new_confid = getNewConfigSetId(configsets)
 
-   configsets[new_confid] = table.clone(configsets[confid])
+   configsets[new_confid] = configsets[confid]
    configsets[new_confid].id = new_confid
    configsets[new_confid].name = new_name
    configsets[new_confid].targets = {}

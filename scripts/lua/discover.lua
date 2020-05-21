@@ -136,6 +136,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
       i18n("mac_stats.manufacturer") .. ternary(not isEmptyString(manuf_filter), '<span class="fas fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local manuf_params = table.clone(page_params)
    manuf_params.manufacturer = nil
    print('<li><a class="dropdown-item" href="' .. getPageUrl(base_url, manuf_params) .. '">' .. i18n("mac_stats.all_manufacturers") .. '</a></li>')
@@ -150,6 +151,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print('</ul></div>\',')
 
    -- Device Type filter
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local type_params = table.clone(page_params)
    print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
       i18n("details.device_type") .. ternary(not isEmptyString(devtype_filter), '<span class="fas fa-filter"></span>', '') ..
@@ -168,6 +170,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    print('</ul></div>\',')
 
    -- OS filter
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local os_params = table.clone(page_params)
    print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
       i18n("os") .. ternary(not isEmptyString(os_filter), '<span class="fas fa-filter"></span>', '') ..

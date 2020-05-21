@@ -767,6 +767,7 @@ for round = 1, 2 do
 
          v = ifnames[k]
 
+	 -- table.clone needed to modify some parameters while keeping the original unchanged
          local page_params = table.clone(_GET)
          page_params.ifid = k
          -- ntop.g`tHttpPrefix()

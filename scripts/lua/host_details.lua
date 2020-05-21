@@ -943,6 +943,7 @@ print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "recv", ifid: "]]
 print (ntop.getHttpPrefix())
 print [[/lua/if_tcpflags_pkt_distro.lua', { ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 
+-- table.clone needed to change macinfo while keeping host_info unchanged
 local macinfo = table.clone(host_info)
 macinfo["host"] = host["mac"]
 

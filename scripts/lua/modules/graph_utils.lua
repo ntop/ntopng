@@ -238,7 +238,7 @@ function graph_utils.stackedProgressBars(total, bars, other_label, formatter, cs
    local legend_items = bars
 
    if other_label ~= nil then
-      legend_items = table.clone(bars)
+      legend_items = bars
 
       legend_items[#legend_items + 1] = {
          title = other_label,
@@ -367,6 +367,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 
    if options.tskey then
       -- this can contain a MAC address for local broadcast domain hosts
+      -- table.clone needed to modify some parameters while keeping the original unchanged
       tags = table.clone(tags)
       tags.host = options.tskey
    end

@@ -150,6 +150,8 @@ end
 
 function custom_column_utils.printCustomColumnDropdown(base_url, page_params)
    local custom_column = custom_column_utils.getCustomColumnName()
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local custom_column_params = table.clone(page_params)
    custom_column_params["custom_column"] = nil
 

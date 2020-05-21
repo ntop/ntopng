@@ -127,6 +127,7 @@ local function printDeviceProtocolsPage()
    if not isEmptyString(proto_filter) then
       local proto_name = interface.getnDPIProtoName(tonumber(proto_filter))
 
+      -- table.clone needed to modify some parameters while keeping the original unchanged
       local proto_filter_params = table.clone(page_params)
       proto_filter_params.device_type = device_type
       proto_filter_params.l7proto = nil
@@ -147,6 +148,7 @@ local function printDeviceProtocolsPage()
    print[[<td>]]
 
    -- Remove policy filter on search
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local after_search_params = table.clone(page_params)
    after_search_params.device_type = device_type
    after_search_params.l7proto = nil

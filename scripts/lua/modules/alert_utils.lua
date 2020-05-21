@@ -603,6 +603,8 @@ end
 
 local function getMenuEntries(status, selection_name, get_params)
    local actual_entries = {}
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
    local params = table.clone(get_params)
 
    -- Remove previous filters
