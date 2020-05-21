@@ -200,7 +200,7 @@ NetworkInterface::NetworkInterface(const char *name,
      && strncmp(ifname, "lo", 2)
      && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      ) {
-    char ifaces[128], *tmp, *iface;
+    char ifaces[MAX_INTERFACE_NAME_LEN], *tmp, *iface;
 
     snprintf(ifaces, sizeof(ifaces), "%s", ifname);
     iface = strtok_r(ifaces, ",", &tmp);
