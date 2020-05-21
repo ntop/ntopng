@@ -103,6 +103,9 @@ class Utils {
   static u_int32_t readIPv4(char *ifname);
   static u_int32_t getMaxIfSpeed(const char *ifname);
   static u_int16_t getIfMTU(const char *ifname);
+  static int ethtoolGet(const char *ifname, int cmd, uint32_t *v);
+  static int ethtoolSet(const char *ifname, int cmd, uint32_t v);
+  static int disableOffloads(const char *ifname);
   static bool isGoodNameToCategorize(char *name);
   static char* get2ndLevelDomain(char *_domainname);
   static char* tokenizer(char *arg, int c, char **data);
