@@ -35,7 +35,7 @@ function blog_utils.intersectPosts(s1, s2)
 
     -- insert the new posts
     for i = 1, MAX_POSTS do
-        if (firstOlderPost.epoch < s2[i].epoch) then
+        if (s2[i].epoch > firstOlderPost.epoch) then
             intersected[i] = s2[i]
             j = j + 1
         end
@@ -133,7 +133,7 @@ function blog_utils.fetchLatestPosts()
                 epoch = postEpoch
             }
 
-            table.insert(formattedPosts, post)
+            formattedPosts[#formattedPosts + 1] = post
         end
     end
 
