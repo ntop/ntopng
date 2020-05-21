@@ -72,16 +72,11 @@ print(template.gen("modal_confirm_dialog.html", {
 
 page_utils.print_page_title(i18n("remote_assistance.product_remote_assistance", {product=info.product}))
 
-local assistace_checked = ""
-local admin_checked = ""
 local assist_enabled = remote_assistance.isEnabled()
 local admin_enabled = false
 
 if assist_enabled then
-  assistace_checked = "checked"
-
   if ntop.getPref("ntopng.prefs.remote_assistance.admin_access") == "1" then
-    admin_checked = "checked"
     admin_enabled = true
   end
 end
@@ -120,12 +115,14 @@ print[[
         <tr>
           <th width=22%>]] print(i18n("remote_assistance.enable_remote_assistance")) print [[</th>
           <td>
-            <div class="form-group">
-              <div class="custom-control custom-switch">
-                <input class="custom-control-input" id="toggle_remote_assistance" name="toggle_remote_assistance" type="checkbox" value="1" ]] print(assistace_checked) print [[/>
-                <label for="toggle_remote_assistance" class="custom-control-label"></label>
-              </div>
-            </div>
+            <div class="form-group">]]
+
+print(template.gen("on_off_switch.html", {
+   id = "toggle_remote_assistance",
+   checked = assist_enabled,
+}))
+
+print[[</div>
             <div style="margin-left: 0.5em; display:inline">]] print(remote_assistance.statusLabel()) print[[</div>
              <br><small>]]
 
@@ -155,12 +152,14 @@ print[[
 
         <tr>
           <th>]] print(i18n("remote_assistance.admin_access")) print[[</th>
-          <td>
-          <div class="custom-control custom-switch">
-          <input class="custom-control-input" id="check-allow_admin_access" name="allow_admin_access" type="checkbox" value="1" ]] print(admin_checked) print [[/>
-          <label class="custom-control-label" for="check-allow_admin_access"></label>
-          </div>
-          <br>
+          <td>]]
+
+print(template.gen("on_off_switch.html", {
+  id = "allow_admin_access",
+  checked = admin_enabled,
+}))
+
+print[[<br>
           <small>]] print(i18n("remote_assistance.admin_access_descr", {product = info.product}))
 
 if((admin_checked == "checked") and (remote_assistance.getStatus() == "active")) then

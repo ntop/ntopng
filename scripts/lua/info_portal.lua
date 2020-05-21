@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 local page_utils = require("page_utils")
+local template = require("template_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -62,12 +63,13 @@ print [[
 
 <div class="form-group">
   <div class="form-check">
-    <label class="form-check-label" style="font-weight: normal;">
-    <div class="custom-control custom-switch">
-      <input id="tos" class="custom-control-input" type="checkbox" value="">
-      <label for="tos" class="custom-control-label"></label>
-      </div>
-]] print(i18n("login.informative_captive_portal_tos", {url="https://en.wikipedia.org/wiki/General_Data_Protection_Regulation"})) print[[
+    <label class="form-check-label" style="font-weight: normal;">]]
+
+print(template.gen("on_off_switch.html", {
+   id = "tos",
+}))
+
+print(i18n("login.informative_captive_portal_tos", {url="https://en.wikipedia.org/wiki/General_Data_Protection_Regulation"})) print[[
     </label>
   </div>
 </div>

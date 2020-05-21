@@ -692,7 +692,6 @@ end
 local function printConfigTab(entity_type, entity_value, page_name, page_params, alt_name, options)
    local trigger_alerts = true
    local ifid = interface.getId()
-   local trigger_alerts_checked
    local cur_bitmap
 
    if(entity_type == "host") then
@@ -730,11 +729,8 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
       trigger_alerts = (not alerts_api.hasSuppressedAlerts(ifid, entity_type_id, entity_value))
    end
 
-   if trigger_alerts == false then
-      trigger_alerts_checked = ""
-   else
+   if not (trigger_alerts == false) then
       trigger_alerts = true
-      trigger_alerts_checked = "checked"
    end
 
   local enable_label = options.enable_label or i18n("show_alerts.trigger_alert_descr")
@@ -746,14 +742,15 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
    <table class="table table-bordered table-striped">]]
   print[[<tr>
          <th width="25%">]] print(i18n("device_protocols.alert")) print[[</th>
-         <td>
-<div class="custom-control custom-switch">
-               <input id="check-trigger_alerts" class="custom-control-input" type="checkbox" name="trigger_alerts" value="1" ]] print(trigger_alerts_checked) print[[>
-               <label class="custom-control-label" for="check-trigger_alerts">
-               <i class="fas fa-exclamation-triangle fa-lg"></i>
-               ]] print(enable_label) print[[
-               </label>
-               </div>
+         <td>]]
+
+   print(template.gen("on_off_switch.html", {
+	 id = "trigger_alerts",
+	 checked = trigger_alerts,
+	 icon = [[<i class="fas fa-exclamation-triangle fa-lg"></i> ]] .. enable_label
+   }))
+   
+   print[[
          </td>
       </tr>]]
 

@@ -1419,12 +1419,10 @@ elseif(page == "config") then
 
    -- per-interface RRD generation
    local interface_rrd_creation = true
-   local interface_rrd_creation_checked = "checked"
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
       if _POST["interface_rrd_creation"] ~= "1" then
          interface_rrd_creation = false
-         interface_rrd_creation_checked = ""
       end
 
       ntop.setPref("ntopng.prefs.ifid_"..ifId..".interface_rrd_creation", tostring(interface_rrd_creation))
@@ -1433,17 +1431,19 @@ elseif(page == "config") then
 
       if interface_rrd_creation == "false" then
          interface_rrd_creation = false
-         interface_rrd_creation_checked = ""
       end
    end
 
    print [[<tr>
          <th>]] print(i18n("if_stats_config.interface_rrd_creation")) print[[</th>
-         <td>
-         <div class="custom-control custom-switch">
-            <input class="custom-control-input" id="interface_rrd_creation" name="interface_rrd_creation" type="checkbox" value="1" ]] print(interface_rrd_creation_checked) print[[>
-            <label class="custom-control-label" for="interface_rrd_creation"></label>
-         </div>
+         <td>]]
+
+   print(template.gen("on_off_switch.html", {
+	 id = "interface_rrd_creation",
+	 checked = interface_rrd_creation,
+       }))
+
+   print[[
             </td>
       </tr>
 
@@ -1457,12 +1457,10 @@ elseif(page == "config") then
 
    -- Skip timeseries for hosts with unidirectional traffic
    local interface_one_way_hosts_rrd_creation = true
-   local interface_one_way_hosts_rrd_creation_checked = "checked"
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
       if _POST["interface_one_way_hosts_rrd_creation"] ~= "1" then
 	 interface_one_way_hosts_rrd_creation = false
-	 interface_one_way_hosts_rrd_creation_checked = ""
       end
 
       ntop.setPref("ntopng.prefs.ifid_"..ifId..".interface_one_way_hosts_rrd_creation", tostring(interface_one_way_hosts_rrd_creation))
@@ -1471,59 +1469,63 @@ elseif(page == "config") then
 
       if interface_one_way_hosts_rrd_creation == "false" then
 	 interface_one_way_hosts_rrd_creation = false
-	 interface_one_way_hosts_rrd_creation_checked = ""
       end
    end
 
    print [[<tr class="rrd_creation" ]] if not interface_rrd_creation then print("style='display:none;'") end print[[>
 	 <th>]] print(i18n("if_stats_config.interface_one_way_hosts_rrd_creation")) print[[</th>
-    <td>
-    <div class="custom-control custom-switch">
-	    <input class="custom-control-input"  id="check-interface_one_way_hosts_rrd_creation" name="interface_one_way_hosts_rrd_creation" type="checkbox" value="1" ]] print(interface_one_way_hosts_rrd_creation_checked) print[[>
-       <label class="custom-control-label" for="check-interface_one_way_hosts_rrd_creation"></label>
-       </div>
+    <td>]]
+
+   print(template.gen("on_off_switch.html", {
+	 id = "interface_one_way_hosts_rrd_creation",
+	 checked = interface_one_way_hosts_rrd_creation,
+       }))
+
+   print[[
        </td>
       </tr>]]
 
    -- per-interface Top-Talkers generation
    local interface_top_talkers_creation = true
-   local interface_top_talkers_creation_checked = "checked"
 
    if _SERVER["REQUEST_METHOD"] == "POST" then
       if _POST["interface_top_talkers_creation"] ~= "1" then
 	 interface_top_talkers_creation = false
-	 interface_top_talkers_creation_checked = ""
 	 top_talkers_utils.disableTop(ifId)
       else
 	 top_talkers_utils.enableTop(ifId)
       end
    else
       if not top_talkers_utils.areTopEnabled(ifId) then
-	 interface_top_talkers_creation_checked = ""
+	 interface_top_talkers_creation = false
       end
    end
 
    print [[<tr>
          <th>]] print(i18n("if_stats_config.interface_top_talkers_creation")) print[[</th>
-         <td>
-            <div class="custom-control custom-switch">
-               <input class="custom-control-input" id="check-interface_top_talkers_creation" name="interface_top_talkers_creation" type="checkbox" value="1" ]] print(interface_top_talkers_creation_checked) print[[>
-               <label class="custom-control-label" for="check-interface_top_talkers_creation"></label>
-            </div>
+         <td>]]
+
+   print(template.gen("on_off_switch.html", {
+	 id = "interface_top_talkers_creation",
+	 checked = interface_top_talkers_creation,
+       }))
+
+   print[[
             </td>
       </tr>]]
 
    -- Flow dump
    if prefs.is_dump_flows_enabled then
-      local interface_flow_dump_checked = ternary(interface_flow_dump, "checked", "")
-
       print [[<tr>
          <th>]] print(i18n("if_stats_config.dump_flows_to_database")) print[[</th>
-         <td>
-            <div class="custom-control custom-switch">
-               <input class="custom-control-input" id="check-interface_flow_dump" name="interface_flow_dump" type="checkbox" value="1" ]] print(interface_flow_dump_checked) print[[>
-               <label class="custom-control-label" for="check-interface_flow_dump"></label>
-            </div>
+         <td>]]
+
+      print(template.gen("on_off_switch.html", {
+	 id = "interface_flow_dump",
+	 checked = interface_flow_dump,
+       }))
+
+      print[[
          </td>
       </tr>]]
    end
@@ -1531,13 +1533,11 @@ elseif(page == "config") then
    -- Mirrored Traffic
    if not ntop.isnEdge() and interface.isPacketInterface() then
       local is_mirrored_traffic = false
-      local is_mirrored_traffic_checked = ""
       local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["is_mirrored_traffic"] == "1" then
 	    is_mirrored_traffic = true
-	    is_mirrored_traffic_checked = "checked"
 	 end
 
 	 ntop.setPref(is_mirrored_traffic_pref,
@@ -1545,19 +1545,18 @@ elseif(page == "config") then
 	 interface.updateTrafficMirrored()
       else
 	 is_mirrored_traffic = ternary(ntop.getPref(is_mirrored_traffic_pref) == '1', true, false)
-
-	 if is_mirrored_traffic then
-	    is_mirrored_traffic_checked = "checked"
-	 end
       end
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.is_mirrored_traffic")) print[[</th>
-    <td>
-      <div class="custom-control custom-switch">
-         <input class="custom-control-input" type="checkbox" id="check-is_mirrored_traffic" name="is_mirrored_traffic" value="1" ]] print(is_mirrored_traffic_checked) print[[>
-         <label class="custom-control-label" for="check-is_mirrored_traffic"></label>
-      </div>
+    <td>]]
+
+      print(template.gen("on_off_switch.html", {
+	 id = "is_mirrored_traffic",
+	 checked = is_mirrored_traffic,
+       }))
+
+      print[[
 	 </td>
       </tr>]]
    end
@@ -1565,13 +1564,11 @@ elseif(page == "config") then
    -- Flows-Only Interface
    if not ntop.isnEdge() and not interface.isView() and not interface.isViewed() then
       local flows_only_interface = false
-      local flows_only_interface_checked = ""
       local flows_only_interface_pref = string.format("ntopng.prefs.ifid_%d.flows_only_interface", ifId)
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["flows_only_interface"] == "1" then
 	    flows_only_interface = true
-	    flows_only_interface_checked = "checked"
 	 end
 
 	 ntop.setPref(flows_only_interface_pref,
@@ -1579,19 +1576,18 @@ elseif(page == "config") then
 	 interface.updateDiscardProbingTraffic()
       else
 	 flows_only_interface = ternary(ntop.getPref(flows_only_interface_pref) == '1', true, false)
-
-	 if flows_only_interface then
-	    flows_only_interface_checked = "checked"
-	 end
       end
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.flows_only_interface")) print[[</th>
-    <td>
-      <div class="custom-control custom-switch">
-         <input class="custom-control-input" id="check-flows_only_interface" type="checkbox" name="flows_only_interface" value="1" ]] print(flows_only_interface_checked) print[[>
-         <label class="custom-control-label" for="check-flows_only_interface"></label>
-      </div>
+    <td>]]
+
+    print(template.gen("on_off_switch.html", {
+	 id = "flows_only_interface",
+	 checked = flows_only_interface,
+    }))
+
+    print[[
          </td>
       </tr>]]
    end
@@ -1599,13 +1595,11 @@ elseif(page == "config") then
    -- Discard Probing Traffic
    if not ntop.isnEdge() and not interface.isPacketInterface() then
       local discard_probing_traffic = false
-      local discard_probing_traffic_checked = ""
       local discard_probing_traffic_pref = string.format("ntopng.prefs.ifid_%d.discard_probing_traffic", ifId)
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["discard_probing_traffic"] == "1" then
 	    discard_probing_traffic = true
-	    discard_probing_traffic_checked = "checked"
 	 end
 
 	 ntop.setPref(discard_probing_traffic_pref,
@@ -1613,19 +1607,18 @@ elseif(page == "config") then
 	 interface.updateDiscardProbingTraffic()
       else
 	 discard_probing_traffic = ternary(ntop.getPref(discard_probing_traffic_pref) == '1', true, false)
-
-	 if discard_probing_traffic then
-	    discard_probing_traffic_checked = "checked"
-	 end
       end
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.discard_probing_traffic")) print[[</th>
-    <td>
-      <div class="custom-control custom-switch">
-         <input class="custom-control-input" id="check-discard_probing_traffic" type="checkbox" name="discard_probing_traffic" value="1" ]] print(discard_probing_traffic_checked) print[[>
-         <label class="custom-control-label" for="check-discard_probing_traffic"></label>
-      </div>
+    <td>]]
+
+    print(template.gen("on_off_switch.html", {
+	 id = "discard_probing_traffic",
+	 checked = discard_probing_traffic,
+    }))
+
+    print[[
          </td>
       </tr>]]
    end
@@ -1635,12 +1628,10 @@ elseif(page == "config") then
       local discover = require "discover_utils"
 
       local interface_network_discovery = true
-      local interface_network_discovery_checked = "checked"
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["interface_network_discovery"] ~= "1" then
 	    interface_network_discovery = false
-	    interface_network_discovery_checked = ""
 	 end
 
 	 ntop.setPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifId), tostring(interface_network_discovery))
@@ -1649,17 +1640,19 @@ elseif(page == "config") then
 
 	 if interface_network_discovery == "false" then
 	    interface_network_discovery = false
-	    interface_network_discovery_checked = ""
 	 end
       end
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.interface_network_discovery")) print[[</th>
-    <td>
-    <div class="custom-control custom-switch">
-      <input class="custom-control-input" id="check-interface_network_discovery" type="checkbox" name="interface_network_discovery" value="1" ]] print(interface_network_discovery_checked) print[[>
-    <label class="custom-control-label" for="check-interface_network_discovery"></label>
-      </div>
+    <td>]]
+
+    print(template.gen("on_off_switch.html", {
+	 id = "interface_network_discovery",
+	 checked = interface_network_discovery,
+    }))
+
+    print[[
       </td>
       </tr>]]
    end
@@ -1789,13 +1782,11 @@ elseif(page == "config") then
 
       -- Show dynamic traffic in the master interface
       local show_dyn_iface_traffic = false
-      local show_dyn_iface_traffic_checked = ""
       local show_dyn_iface_traffic_pref = string.format("ntopng.prefs.ifid_%d.show_dynamic_interface_traffic", ifId)
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["show_dyn_iface_traffic"] == "1" then
 	    show_dyn_iface_traffic = true
-	    show_dyn_iface_traffic_checked = "checked"
 	 end
 
 	 ntop.setPref(show_dyn_iface_traffic_pref,
@@ -1803,20 +1794,18 @@ elseif(page == "config") then
 	 interface.updateDynIfaceTrafficPolicy()
       else
 	 show_dyn_iface_traffic = ternary(ntop.getPref(show_dyn_iface_traffic_pref) == '1', true, false)
-
-	 if show_dyn_iface_traffic then
-	    show_dyn_iface_traffic_checked = "checked"
-	 end
       end
 
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.show_dyn_iface_traffic")) print[[</th>
-    <td>
-         <div class="custom-control custom-switch">
-           <input id="show_dyn_iface_traffic" class="custom-control-input" type="checkbox" name="show_dyn_iface_traffic" value="1" ]] print(show_dyn_iface_traffic_checked) print[[>
-          <label class="custom-control-label" for="show_dyn_iface_traffic"></label>
-         </div>
-           <br><br><small><p><b>]] print(i18n("notes")) print [[</b><ul><li>]] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print [[</li></ul></p></small>
+    <td>]]
+
+      print(template.gen("on_off_switch.html", {
+	 id = "show_dyn_iface_traffic",
+	 checked = show_dyn_iface_traffic,
+       }))
+         
+      print[[<br><br><small><p><b>]] print(i18n("notes")) print [[</b><ul><li>]] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print [[</li></ul></p></small>
 	 </td>
       </tr>]]
 

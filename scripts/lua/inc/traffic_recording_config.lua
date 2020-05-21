@@ -111,13 +111,15 @@ end
 print [[
       <tr>
         <th width=30%>]] print(i18n("traffic_recording.traffic_recording")) print [[</th>
-        <td colspan=2>
-<div class="custom-control custom-switch">
-    <input class="custom-control-input" id="check-record_traffic" name="record_traffic" type="checkbox" value="1" ]] print (record_traffic_checked) print [[>
-    <label class="custom-control-label" for="check-record_traffic"></label>
-    <i class="fas fa-hdd fa-lg"></i> ]] print(ternary(recording_utils.isSupportedZMQInterface(ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))) 
-    print [[</label>
-    </div>
+        <td colspan=2>]]
+
+  print(template.gen("on_off_switch.html", {
+    id = "record_traffic",
+    label = i18n("manage_users.allow_pcap_download_descr"),
+    icon = [[<i class="fas fa-hdd fa-lg"></i> ]] .. ternary(recording_utils.isSupportedZMQInterface(ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))
+  }))
+
+print [[
     </td>
       </tr>
 

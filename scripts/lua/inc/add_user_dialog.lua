@@ -1,5 +1,6 @@
 require("lua_utils")
 local host_pools_utils = require 'host_pools_utils'
+local template = require "template_utils"
 require("prefs_utils")
 
 local messages = {ntopng=ternary(ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user"))}
@@ -109,11 +110,14 @@ print [[
   </div>
 
     <div class="form-group">
-      <div class="form-check">
-        <div class="custom-control custom-switch">
-          <input id="allow_pcap_download_input" type="checkbox" name="allow_pcap_download" value="1" class="custom-control-input">
-          <label for="allow_pcap_download_input" class="custom-control-label">]] print(i18n("manage_users.allow_pcap_download_descr")) print[[</label>
-        </div>
+      <div class="form-check">]]
+
+   print(template.gen("on_off_switch.html", {
+     id = "allow_pcap_download",
+     label = i18n("manage_users.allow_pcap_download_descr"),
+   }))
+
+   print[[
       </div>
     </div>
 

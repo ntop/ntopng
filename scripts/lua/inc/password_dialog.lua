@@ -3,6 +3,7 @@ local host_pools_utils = require 'host_pools_utils'
 require("prefs_utils")
 
 local is_admin = isAdministrator()
+local template = require("template_utils")
 
 print [[
 
@@ -143,11 +144,14 @@ print [[
     </div>
 
     <div class="input-group mb-6">
-      <div class="form-check">
-        <div class="custom-control custom-switch d-inline">
-          <input id="allow_pcap_input" type="checkbox" name="allow_pcap_download" value="1" class="custom-control-input">
-          <label for="allow_pcap_input" class="custom-control-label">]] print(i18n("manage_users.allow_pcap_download_descr")) print[[</label>
-        </div>
+      <div class="form-check">]]
+
+    print(template.gen("on_off_switch.html", {
+     id = "allow_pcap_input",
+     label = i18n("manage_users.allow_pcap_download_descr"),
+    }))
+
+    print[[
       </div>
     </div>
 

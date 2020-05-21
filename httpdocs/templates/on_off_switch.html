@@ -1,0 +1,9 @@
+<div class="custom-control custom-switch">
+  <input id="{{ id }}" class="custom-control-input" type="checkbox" name="{{ id }}" value="{{ value or 1 }}"
+{% if checked then %}
+  checked
+{% end %}
+>
+  <label class="custom-control-label d-inline {{ label_class or "" }}" for="{{ id }}">{* label or "" *}</label>
+  {* icon or "" *}
+</div>
