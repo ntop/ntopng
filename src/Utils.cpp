@@ -3894,7 +3894,7 @@ void Utils::ntop_freealldevs(ntop_if_t *alldevsp) {
 bool Utils::validInterfaceName(const char *name) {
 #ifdef HAVE_NEDGE
   return((name && (strncmp(name, "nf:", 3) == 0)) ? true : false);
-#else
+#elif defined(linux)
   if(!name
      || !strncmp(name, "virbr", 5) /* Ignore virtual interfaces */
      )
@@ -3919,8 +3919,10 @@ bool Utils::validInterfaceName(const char *name) {
       return false;
   }
 
-  return true;
+
 #endif
+
+  return true;
 }
 
 /* ****************************************************** */
