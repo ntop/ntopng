@@ -3361,25 +3361,20 @@ void Utils::luaMeminfo(lua_State* vm) {
 /* ****************************************************** */
 
 char* Utils::getInterfaceDescription(char *ifname, char *buf, int buf_len) {
-  char ebuf[PCAP_ERRBUF_SIZE];
-  pcap_if_t *devs, *devpointer;
+  ntop_if_t *devpointer, *cur;
 
   snprintf(buf, buf_len, "%s", ifname);
-  ebuf[0] = '\0';
 
-  if(pcap_findalldevs(&devs, ebuf) == 0) {
-    devpointer = devs;
-
-    for(int i = 0; devpointer != NULL; i++) {
-      if(strcmp(devpointer->name, ifname) == 0) {
-	if(devpointer->description)
-	  snprintf(buf, buf_len, "%s", devpointer->description);
+  if(!Utils::ntop_findalldevs(&devpointer)) {
+    for(cur = devpointer; cur; cur = cur->next) {
+      if(strcmp(cur->name, ifname) == 0) {
+	if(cur->description && cur->description[0])
+	  snprintf(buf, buf_len, "%s", cur->description);
 	break;
-      } else
-	devpointer = devpointer->next;
+      }
     }
 
-    pcap_freealldevs(devs);
+    Utils::ntop_freealldevs(devpointer);
   }
 
   return(buf);
@@ -3758,14 +3753,48 @@ void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface
 /* ****************************************************** */
 
 void Utils::listInterfaces(lua_State* vm) {
+  ntop_if_t *devpointer, *cur;
+
+  if(Utils::ntop_findalldevs(&devpointer)) {
+    ;
+  } else {
+    for(cur = devpointer; cur; cur = cur->next) {
+      lua_newtable(vm);
+
+      lua_push_str_table_entry(vm, "description", cur->description);
+
+      if(cur->module) {
+	lua_push_str_table_entry(vm, "module", cur->module);
+	lua_push_bool_table_entry(vm, "license", !cur->license);
+      }
+
+      lua_pushstring(vm, cur->name);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+
+    Utils::ntop_freealldevs(devpointer);
+  }
+}
+
+/* ****************************************************** */
+
+int Utils::ntop_findalldevs(ntop_if_t **alldevsp) {
   char ebuf[PCAP_ERRBUF_SIZE];
   pcap_if_t *pdevs, *pdev;
 #ifdef HAVE_PF_RING
   pfring_if_t *pfdevs, *pfdev;
 #endif
+  ntop_if_t *tail = NULL;
+  ntop_if_t *cur;
+
+  if(!alldevsp)
+    return -1;
+
+  *alldevsp = NULL;
 
   if(pcap_findalldevs(&pdevs, ebuf) != 0) 
-    return;
+    return -1;
 
 #ifdef HAVE_PF_RING
   pfdevs = pfring_findalldevs();
@@ -3783,13 +3812,18 @@ void Utils::listInterfaces(lua_State* vm) {
 
     if(pdev == NULL /* not a standard interface (e.g. fpga) */
         || (Utils::isInterfaceUp(pfdev->system_name) && Utils::validInterface(pdev->description))) {
-      lua_newtable(vm);
-      lua_push_str_table_entry(vm, "description", (pdev && pdev->description) ? pdev->description : (char *) "");
-      lua_push_str_table_entry(vm, "module", pfdev->module);
-      lua_push_bool_table_entry(vm, "license", !!pfdev->license);
-      lua_pushstring(vm, pfdev->system_name ? pfdev->system_name : pfdev->name);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
+      cur = (ntop_if_t*)calloc(1, sizeof(ntop_if_t));
+
+      if(cur) {
+	cur->name = strdup(pfdev->system_name ? pfdev->system_name : pfdev->name);
+	cur->description = strdup((pdev && pdev->description) ? pdev->description : "");
+	cur->module = strdup(pfdev->module);
+	cur->license = pfdev->license;
+
+	if(!*alldevsp) *alldevsp = cur;
+	if(tail) tail->next = cur;
+	tail = cur;
+      }
     }
 
     pfdev = pfdev->next;
@@ -3812,11 +3846,16 @@ void Utils::listInterfaces(lua_State* vm) {
 
       if(pfdev == NULL) {
 #endif
-        lua_newtable(vm);
-        lua_push_str_table_entry(vm, "description", pdev->description ? pdev->description : (char *) "");
-        lua_pushstring(vm, pdev->name);
-        lua_insert(vm, -2);
-        lua_settable(vm, -3);
+	cur = (ntop_if_t*)calloc(1, sizeof(ntop_if_t));
+
+	if(cur) {
+	  cur->name = strdup(pdev->name);
+	  cur->description = strdup(pdev->description ? pdev->description : "");
+
+	  if(!*alldevsp) *alldevsp = cur;
+	  if(tail) tail->next = cur;
+	  tail = cur;
+	}
 #ifdef HAVE_PF_RING
       }
 #endif
@@ -3829,6 +3868,25 @@ void Utils::listInterfaces(lua_State* vm) {
   pfring_freealldevs(pfdevs);
 #endif
   pcap_freealldevs(pdevs);
+
+  return 0;
+}
+
+/* ****************************************************** */
+
+void Utils::ntop_freealldevs(ntop_if_t *alldevsp) {
+  ntop_if_t *cur;
+
+  while(alldevsp) {
+    cur = alldevsp;
+    alldevsp = alldevsp->next;
+
+    if(cur->name) free(cur->name);
+    if(cur->description) free(cur->description);
+    if(cur->module) free(cur->module);
+    
+    free(cur);
+  }
 }
 
 /* ****************************************************** */

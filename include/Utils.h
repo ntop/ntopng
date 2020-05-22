@@ -173,6 +173,21 @@ class Utils {
   static void listInterfaces(lua_State* vm); 
   static bool validInterface(char *name);
   static void containerInfoLua(lua_State *vm, const ContainerInfo * const cont);
+  /**
+   * @brief Return all the available interfaces
+   * @details Return all the available interfaces, unifying data from PF_RING and pcap, and excluding invalid interfaces
+   *          Interfaces are returned as a linked-list in the **alldevsp parameter.
+   *
+   * @return returns 0 on success and -1 on failure
+  */
+  static int ntop_findalldevs(ntop_if_t **alldevsp);
+  /**
+   * @brief Free data returned with `Utils::ntop_findalldevs`
+   * @details Frees data allocated during the call to `Utils::ntop_findalldevs`
+   *
+   * @return void
+  */
+  static void ntop_freealldevs(ntop_if_t *alldevs);
 
   /* System Host Montoring and Diagnose Functions */
   static bool getCpuLoad(cpu_load_stats *out);
