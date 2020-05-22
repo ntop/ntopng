@@ -3843,7 +3843,7 @@ int Utils::ntop_findalldevs(ntop_if_t **alldevsp) {
     }
 
     if(pdev == NULL /* not a standard interface (e.g. fpga) */
-        || (Utils::isInterfaceUp(pfdev->system_name) && Utils::validInterface(pdev->description))) {
+        || (Utils::isInterfaceUp(pfdev->system_name) && Utils::validInterface(pdev))) {
       cur = (ntop_if_t*)calloc(1, sizeof(ntop_if_t));
 
       if(cur) {
@@ -3864,7 +3864,7 @@ int Utils::ntop_findalldevs(ntop_if_t **alldevsp) {
 
   pdev = pdevs;
   while (pdev != NULL) {
-    if(Utils::validInterface(pdev->description) && 
+    if(Utils::validInterface(pdev) && 
         Utils::isInterfaceUp(pdev->name)) {
 
 #ifdef HAVE_PF_RING
@@ -3923,20 +3923,62 @@ void Utils::ntop_freealldevs(ntop_if_t *alldevsp) {
 
 /* ****************************************************** */
 
-bool Utils::validInterface(char *name) {
+bool Utils::validInterfaceName(const char *name) {
 #ifdef HAVE_NEDGE
   return((name && (strncmp(name, "nf:", 3) == 0)) ? true : false);
 #else
-  if(name &&
-     (strstr(name, "PPP")            /* Avoid to use the PPP interface              */
-      || strstr(name, "dialup")      /* Avoid to use the dialup interface           */
-      || strstr(name, "ICSHARE")     /* Avoid to use the internet sharing interface */
-      || strstr(name, "NdisWan"))) { /* Avoid to use the internet sharing interface */
-    return(false);
+  if(!name
+     || !strncmp(name, "virbr", 5) /* Ignore virtual interfaces */
+     )
+    return false;
+
+  /* 
+     Make strict checks when validating interface names. This is fundamental
+     To prevent injections in syscalls such as system() or popen(). Indeed,
+     interface names can be fancy and contain special characters, e.g,.
+
+     $ ip link add link eno1 name "\";whoami>b;\"" type vlan id 8
+     $ nmcli con add type vlan ifname ";whoami>b;" dev enp1s0 id 10
+
+     Hence, a valid interface name must have strict requirements.
+  */
+  for(int i = 0; name[i] != '\0'; i++) {
+    if(!isalnum(name[i])
+       && name[i] != '@'
+       && name[i] != '-'
+       && name[i] != ':'
+       && name[i] != '_')
+      return false;
   }
 
-  return(true);
+  return true;
 #endif
+}
+
+/* ****************************************************** */
+
+bool Utils::validInterfaceDescription(const char *description) {
+  if(description &&
+     (strstr(description, "PPP")            /* Avoid to use the PPP interface              */
+      || strstr(description, "dialup")      /* Avoid to use the dialup interface           */
+      || strstr(description, "ICSHARE")     /* Avoid to use the internet sharing interface */
+      || strstr(description, "NdisWan"))) { /* Avoid to use the internet sharing interface */
+    return false;
+  }
+
+  return true;
+}
+
+/* ****************************************************** */
+
+bool Utils::validInterface(const ntop_if_t *ntop_if) {
+  return Utils::validInterfaceName(ntop_if->name) && Utils::validInterfaceDescription(ntop_if->description);
+}
+
+/* ****************************************************** */
+
+bool Utils::validInterface(const pcap_if_t *pcap_if) {
+  return Utils::validInterfaceName(pcap_if->name) && Utils::validInterfaceDescription(pcap_if->description);
 }
 
 /* ****************************************************** */

@@ -36,8 +36,11 @@ typedef unsigned long long ticks;
 
 class Utils {
  private:
+  static bool validInterfaceName(const char *name);
+  static bool validInterfaceDescription(const char *description);
+  static bool validInterface(const pcap_if_t *pcap_if);
 
- public:
+public:
   static char* jsonLabel(int label,const char *label_str, char *buf, u_int buf_len);
   static char* formatTraffic(float numBits, bool bits, char *buf, u_int buf_len);
   static char* formatPackets(float numPkts, char *buf, u_int buf_len);
@@ -172,7 +175,7 @@ class Utils {
   static u_int64_t mac2int(u_int8_t *mac);
   static u_int8_t* int2mac(u_int64_t mac, u_int8_t *buf);
   static void listInterfaces(lua_State* vm); 
-  static bool validInterface(char *name);
+  static bool validInterface(const ntop_if_t *ntop_if);
   static void containerInfoLua(lua_State *vm, const ContainerInfo * const cont);
   /**
    * @brief Return all the available interfaces
