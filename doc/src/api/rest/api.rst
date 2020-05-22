@@ -1,5 +1,7 @@
-RESTful API Specification
-=========================
+RESTful API v0 Specification
+============================
+
+.. warning:: This API is deprecated and will be discountinued with ntopng 4.2, please move to the RESTful API v1
 
 Authentication
 --------------
@@ -21,3 +23,5 @@ API
 ---
 
 .. swaggerv2doc:: rest-api.json
+
+
