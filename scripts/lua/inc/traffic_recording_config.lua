@@ -118,7 +118,6 @@ print [[
 
   print(template.gen("on_off_switch.html", {
     id = "record_traffic",
-    label = i18n("manage_users.allow_pcap_download_descr"),
     icon = [[<i class="fas fa-hdd fa-lg"></i> ]] .. ternary(recording_utils.isSupportedZMQInterface(ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))
   }))
 
