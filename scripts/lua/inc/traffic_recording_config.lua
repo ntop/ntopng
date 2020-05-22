@@ -32,7 +32,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     local ext_ifname
     if not isEmptyString(_POST["custom_name"]) then
       -- param check
-      for ifname,_ in pairs(ext_interfaces) do
+      for ifname,_ in pairs(recording_utils.getExtInterfaces(ifid)) do
         if ifname == _POST["custom_name"] then
           ext_ifname = ifname
           break
@@ -87,6 +87,8 @@ print [[
 
 if recording_utils.isSupportedZMQInterface(ifid) then
   local ext_ifname = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.ext_ifname')
+  local ext_interfaces = recording_utils.getExtInterfaces(ifid)
+
   if isEmptyString(ext_ifname) then
     for ifname,_ in pairs(ext_interfaces) do
       ext_ifname = ifname
