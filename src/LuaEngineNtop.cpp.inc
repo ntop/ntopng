@@ -1343,7 +1343,7 @@ static int ntop_speedtest(lua_State* vm) {
 static void build_redirect(const char *url, const char * query_string,
 	char *buf, size_t bufsize) {
   snprintf(buf, bufsize, "HTTP/1.1 302 Found\r\n"
-     "Location: %s%s%s\r\n\r\n"
+     "Location: %s%s%s%s\r\n\r\n"
      "<html>\n"
      "<head>\n"
      "<title>Moved</title>\n"
@@ -1352,7 +1352,9 @@ static void build_redirect(const char *url, const char * query_string,
      "<h1>Moved</h1>\n"
      "<p>This page has moved to <a href=\"%s\">%s</a>.</p>\n"
      "</body>\n"
-     "</html>\n", url,
+     "</html>\n",
+     ntop->getPrefs()->get_http_prefix(),
+     url,
      query_string ? "?" : "",
      query_string ? query_string : "",
      url, url);
