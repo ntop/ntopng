@@ -5665,7 +5665,7 @@ u_int NetworkInterface::printAvailableInterfaces(bool printHelp, int idx,
     }
 
     for(cur = devpointer; cur; cur = cur->next) {
-      if(Utils::validInterface(cur->description)) {
+      if(Utils::validInterface(cur)) {
 	numInterfaces++;
 
 	if(ifname == NULL) {
@@ -5843,7 +5843,7 @@ void NetworkInterface::addAllAvailableInterfaces() {
   ntop_if_t *devpointer, *cur;
   if(!Utils::ntop_findalldevs(&devpointer)) {
     for(cur = devpointer; cur; cur = cur->next) {
-      if(Utils::validInterface(cur->description)
+      if(Utils::validInterface(cur)
 	 && (strncmp(cur->name, "virbr", 5) != 0) /* Ignore virtual interfaces */
 	 && Utils::isInterfaceUp(cur->name)
 	 ) {
