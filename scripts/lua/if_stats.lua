@@ -1707,7 +1707,7 @@ elseif(page == "config") then
 
 	    if provider["name"] == "ntopng" and not interface.isPacketInterface() then
 	       -- non-packet interfaces
-	       label = "none"
+	       label = "None"
 	    end
 
 	    print[[<option value="]] print(provider["name"]) print[[" ]] if cur_provider == provider["name"] then print('selected="selected"') end print[[">]] print(label) print[[</option>]]
