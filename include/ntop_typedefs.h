@@ -756,4 +756,15 @@ typedef enum mud_recording {
   mud_recording_disabled = 3,
 } MudRecording;
 
+/* Wrapper for pcap_if_t and pfring_if_t */
+typedef struct _ntop_if_t {
+  /* pcap fields */
+  char *name;
+  char *description;
+  /* PF_RING related fields */
+  char *module;
+  int license;
+  _ntop_if_t *next;
+} ntop_if_t;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

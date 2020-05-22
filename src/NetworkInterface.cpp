@@ -5620,16 +5620,13 @@ bool NetworkInterface::findHostsByName(lua_State* vm,
 
 u_int NetworkInterface::printAvailableInterfaces(bool printHelp, int idx,
 						 char *ifname, u_int ifname_len) {
-  char ebuf[256];
   int numInterfaces = 0;
-  pcap_if_t *devpointer;
+  ntop_if_t *devpointer, *cur;
 
   if(printHelp && help_printed)
     return(0);
 
-  ebuf[0] = '\0';
-
-  if(pcap_findalldevs(&devpointer, ebuf) < 0) {
+  if(Utils::ntop_findalldevs(&devpointer)) {
     ;
   } else {
     if(ifname == NULL) {
@@ -5640,8 +5637,8 @@ u_int NetworkInterface::printAvailableInterfaces(bool printHelp, int idx,
 				     "Available interfaces (-i <interface index>):");
     }
 
-    for(int i = 0; devpointer != NULL; i++) {
-      if(Utils::validInterface(devpointer->description)) {
+    for(cur = devpointer; cur; cur = cur->next) {
+      if(Utils::validInterface(cur->description)) {
 	numInterfaces++;
 
 	if(ifname == NULL) {
@@ -5649,25 +5646,23 @@ u_int NetworkInterface::printAvailableInterfaces(bool printHelp, int idx,
 #ifdef WIN32
 	    printf("   %d. %s\n"
 		   "\t%s\n", numInterfaces,
-		   devpointer->description ? devpointer->description : "",
-		   devpointer->name);
+		   cur->description ? cur->description : "",
+		   cur->name);
 #else
-	    printf("   %d. %s\n", numInterfaces, devpointer->name);
+	    printf("   %d. %s\n", numInterfaces, cur->name);
 #endif
 	  } else if(!help_printed)
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%d. %s (%s)\n",
-					 numInterfaces, devpointer->name,
-					 devpointer->description ? devpointer->description : devpointer->name);
+					 numInterfaces, cur->name,
+					 cur->description ? cur->description : cur->name);
 	} else if(numInterfaces == idx) {
-	  snprintf(ifname, ifname_len, "%s", devpointer->name);
+	  snprintf(ifname, ifname_len, "%s", cur->name);
 	  break;
 	}
       }
-
-      devpointer = devpointer->next;
     } /* for */
 
-    pcap_freealldevs(devpointer);
+    Utils::ntop_freealldevs(devpointer);
   } /* else */
 
   if(numInterfaces == 0) {
@@ -5818,27 +5813,22 @@ void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
 /* **************************************** */
 
 void NetworkInterface::addAllAvailableInterfaces() {
-  char ebuf[256] = { '\0' };
-  pcap_if_t *devpointer;
-
-  if(pcap_findalldevs(&devpointer, ebuf) < 0) {
-    ;
-  } else {
-    for(int i = 0; devpointer != 0; i++) {
-      if(Utils::validInterface(devpointer->description)
-	 && (strncmp(devpointer->name, "virbr", 5) != 0) /* Ignore virtual interfaces */
-	 && Utils::isInterfaceUp(devpointer->name)
+  ntop_if_t *devpointer, *cur;
+  if(!Utils::ntop_findalldevs(&devpointer)) {
+    for(cur = devpointer; cur; cur = cur->next) {
+      if(Utils::validInterface(cur->description)
+	 && (strncmp(cur->name, "virbr", 5) != 0) /* Ignore virtual interfaces */
+	 && Utils::isInterfaceUp(cur->name)
 	 ) {
-	ntop->getPrefs()->add_network_interface(devpointer->name,
-						devpointer->description);
+	ntop->getPrefs()->add_network_interface(cur->name,
+						cur->description);
       } else
 	ntop->getTrace()->traceEvent(TRACE_INFO,
 				     "Interface [%s][%s] not valid or down: discarded",
-				     devpointer->name, devpointer->description);
-
-      devpointer = devpointer->next;
+				     cur->name, cur->description);
     } /* for */
-    pcap_freealldevs(devpointer);
+
+    Utils::ntop_freealldevs(devpointer);
   }
 }
 
