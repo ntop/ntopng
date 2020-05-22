@@ -772,15 +772,15 @@ for round = 1, 2 do
          page_params.ifid = k
          -- ntop.g`tHttpPrefix()
          local url_query = getPageUrl("", page_params)
-
+	 
          print([[<li class="nav-item">]])
 
          if(v == ifname and not is_system_interface) then
             print("<a class=\"dropdown-item active\" href=\"#\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-            local action_url = ntop.getHttpPrefix() .. (is_system_interface and '/'..url_query or url_query)
-
+            local action_url = ntop.getHttpPrefix() .. '/' ..url_query
+	    
             print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[]]) print[[">]]
             print[[<input name="switch_interface" type="hidden" value="1" />]]
             print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
