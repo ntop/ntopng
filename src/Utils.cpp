@@ -3797,7 +3797,7 @@ void Utils::listInterfaces(lua_State* vm) {
 
       if(cur->module) {
 	lua_push_str_table_entry(vm, "module", cur->module);
-	lua_push_bool_table_entry(vm, "license", !cur->license);
+	lua_push_bool_table_entry(vm, "license", !!cur->license);
       }
 
       lua_pushstring(vm, cur->name);
