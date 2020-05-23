@@ -15,7 +15,7 @@ activities. An example is the *Identity Management*, in fact it is possible to t
 all connection/disconnection events logged by a VPN server, in order to associate 
 traffic to users. 
 
-ntopng Enterprose L includes plugin for collecting VPN logs and correlate network
+ntopng Enterprise L additionally includes plugin for collecting VPN logs and correlate network
 traffic to VPN users supporting multiple devices from the vendors below:
 
 - Fortinet
