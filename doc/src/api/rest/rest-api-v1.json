@@ -157,6 +157,169 @@
             }
          }
       },
+      "/lua/pro/rest/v1/get/db/flows.lua":{
+         "get":{
+            "tags":[
+               "Flows"
+            ],
+            "summary":"Get flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO.",
+            "description":"Executes a query to the flows database",
+            "operationId":"get_flows_data",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                   "name":"ifid",
+                   "in":"query",
+                   "description":"Interface identifier",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"begin_time_clause",
+                   "in":"query",
+                   "description":"Start time (epoch)",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"end_time_clause",
+                   "in":"query",
+                   "description":"Start time (epoch)",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"select_clause",
+                   "in":"query",
+                   "description":"Select clause (default: *)",
+                   "required":false,
+                   "type":"string"
+               },
+               {
+                   "name":"where_clause",
+                   "in":"query",
+                   "description":"Where clause (default: none)",
+                   "required":false,
+                   "type":"string"
+               },
+               {
+                   "name":"maxhits_clause",
+                   "in":"query",
+                   "description":"Max hits (default: 10)",
+                   "required":false,
+                   "type":"integer",
+                   "format":"int32"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-1":{"description":"NOT_FOUND"},
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-3":{"description":"NOT_GRANTED"},
+               "-5":{"description":"INVALID_ARGUMENTS"},
+               "-6":{"description":"INTERNAL_ERROR"}
+            }
+         }
+      },
+      "/lua/pro/rest/v1/get/db/topk_flows.lua":{
+         "get":{
+            "tags":[
+               "Flows"
+            ],
+            "summary":"Get Top-K flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO",
+            "description":"Executes a top-k query to the flows database",
+            "operationId":"get_topk_data",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                   "name":"ifid",
+                   "in":"query",
+                   "description":"Interface identifier",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"begin_time_clause",
+                   "in":"query",
+                   "description":"Start time (epoch)",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"end_time_clause",
+                   "in":"query",
+                   "description":"Start time (epoch)",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"select_keys_clause",
+                   "in":"query",
+                   "description":"Select keys (default: IPV4_SRC_ADDR,IPV4_DST_ADDR,L7_PROTO)",
+                   "required":false,
+                   "type":"string"
+               },
+               {
+                   "name":"select_values_clause",
+                   "in":"query",
+                   "description":"Select values (default: BYTES)",
+                   "required":false,
+                   "type":"string"
+               },
+               {
+                   "name":"where_clause",
+                   "in":"query",
+                   "description":"Where clause (default: none)",
+                   "required":false,
+                   "type":"string"
+               },
+               {
+                   "name":"topk_clause",
+                   "in":"query",
+                   "description":"Top-K clause (default: SUM)",
+                   "required":false,
+                   "type":"string"
+               },
+               {
+                   "name":"approx_search",
+                   "in":"query",
+                   "description":"Approximate search (default: true)",
+                   "required":false,
+                   "type":"string"
+               },
+               {
+                   "name":"maxhits_clause",
+                   "in":"query",
+                   "description":"Max hits (default: 10)",
+                   "required":false,
+                   "type":"integer",
+                   "format":"int32"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-1":{"description":"NOT_FOUND"},
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-3":{"description":"NOT_GRANTED"},
+               "-5":{"description":"INVALID_ARGUMENTS"},
+               "-6":{"description":"INTERNAL_ERROR"}
+            }
+         }
+      },
       "/lua/rest/v1/get/pcap/live_extraction.lua":{
          "get":{
             "tags":[
