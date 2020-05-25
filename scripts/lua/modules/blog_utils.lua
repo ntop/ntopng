@@ -89,7 +89,6 @@ function blog_utils.updateRedis(newPosts)
 
     -- intersect two notifications sets and marks the new
     local intersected = blog_utils.intersectPosts(oldPosts, newPosts)
-    tprint(intersected)
 
     -- save the posts inside redis
     ntop.setPref("ntopng.prefs.blog_feed", json.encode(intersected))
