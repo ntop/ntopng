@@ -79,7 +79,20 @@ end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+prefs = ntop.getPrefs()
+ifstats = interface.getStats()
+
+-- Parameters necessary for the page title
 local protocol_name = nil
+local network_name = nil
+local traffic_type_title = nil
+local ipver_title = nil
+local asninfo = nil
+local os_title = nil
+local country_title = nil
+local mac_title = nil
+local vlan_title = nil
+local pool_title = nil
 
 if((protocol ~= nil) and (protocol ~= "")) then
    protocol_name = interface.getnDPIProtoName(tonumber(protocol))
@@ -100,12 +113,73 @@ else
    traffic_type_title = ""
 end
 
--- FIX: most parameters are set after this call: this is a bug
-page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_, country, asninfo, mac, pool_, vlan_title))
+if(network ~= nil) then
+   local network_key = ntop.getNetworkNameById(tonumber(network))
+   network_name = getLocalNetworkAlias(network_key)
 
-prefs = ntop.getPrefs()
+   if isEmptyString(network_name) then
+      network_name = i18n("hosts_stats.remote")
+   end
+else
+   network_name = ""
+end
 
-ifstats = interface.getStats()
+if not isEmptyString(ipversion) then
+   ipver_title = i18n("hosts_stats.ipver_title", {version_num=ipversion})
+else
+   ipver_title = ""
+end
+
+if(asn ~= nil) then
+   asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
+      "<small>&nbsp;<i class='fas fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
+      asn .. "'><i class='fas fa-external-link-alt fa-sm' title=\\\"".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
+      "\\\"></i></A></small>"
+end
+
+if(os_ ~= nil) then
+   os_title = " " .. os_
+end
+
+if(country ~= nil) then
+   country_title = " " .. i18n("hosts_stats.country_title", {country=country})
+end
+
+if(mac ~= nil) then
+   mac_title = " " .. i18n("hosts_stats.mac_title", {mac=mac})
+end
+
+if(vlan ~= nil) then
+   vlan_title = " [".. i18n("hosts_stats.vlan_title", {vlan=vlan}) .."]"
+end
+
+if(pool ~= nil) then
+   local charts_available = areHostPoolsTimeseriesEnabled(ifstats.id)
+   local pool_edit = ""
+   local pool_link
+   local title
+
+   if(pool ~= host_pools_utils.DEFAULT_POOL_ID) or (have_nedge) then
+      if have_nedge then
+	 pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
+	 ternary(pool == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(pool))
+	 title = i18n("nedge.edit_user")
+      else
+	 pool_link = "/lua/if_stats.lua?page=pools&pool="..pool
+	 title = i18n("host_pools.manage_pools")
+      end
+
+      pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fas fa-cog fa-sm' title='"..title .. "'></i></A>"
+   end
+
+   pool_title = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
+		     {poolname=host_pools_utils.getPoolName(ifstats.id, pool)})
+      .."<small>".. pool_edit ..
+      ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool="..pool.."'><i class='fas fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
+      "</small>"
+end
+
+page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title))
 
 if (_GET["page"] ~= "historical") then
    if(asn ~= nil) then
@@ -159,7 +233,6 @@ if (_GET["page"] ~= "historical") then
    if(network ~= nil) then
       page_params["network"] = network
       local network_key = ntop.getNetworkNameById(tonumber(network))
-      network_name = getLocalNetworkAlias(network_key)
 
       if not isEmptyString(network_name) then
          local charts_available = areInterfaceTimeseriesEnabled(ifstats.id)
@@ -173,19 +246,11 @@ if (_GET["page"] ~= "historical") then
          end
 
          charts_icon = charts_icon.."</small>"
-      else
-         network_name = i18n("hosts_stats.remote")
       end
-   else
-      network_name = ""
    end
 
-   local ipver_title
    if not isEmptyString(ipversion) then
       page_params["version"] = ipversion
-      ipver_title = i18n("hosts_stats.ipver_title",{version_num=ipversion})
-   else
-      ipver_title = ""
    end
 
    custom_column_utils.updateCustomColumn()
@@ -211,57 +276,6 @@ if (_GET["page"] ~= "historical") then
 	 ]]
 
    if(protocol == nil) then protocol = "" end
-
-   if(asn ~= nil) then
-      asninfo = " " .. i18n("hosts_stats.asn_title",{asn=asn}) ..
-	 "<small>&nbsp;<i class='fas fa-info-circle fa-sm' aria-hidden='true'></i> <A HREF='https://stat.ripe.net/AS"..
-	 asn .. "'><i class='fas fa-external-link-alt fa-sm' title=\\\"".. i18n("hosts_stats.more_info_about_as_popup_msg") ..
-	 "\\\"></i></A></small>"
-   end
-
-   if(_GET["country"] ~= nil) then
-      country = " " .. i18n("hosts_stats.country_title",{country=_GET["country"]})
-   end
-
-   if(_GET["mac"] ~= nil) then
-      mac = " " .. i18n("hosts_stats.mac_title",{mac=_GET["mac"]})
-   end
-
-   if(_GET["os"] ~= nil) then
-      os_ = " ".._GET["os"]
-   end
-
-   if(_GET["pool"] ~= nil) then
-      local charts_available = areHostPoolsTimeseriesEnabled(ifstats.id)
-      local pool_edit = ""
-
-      if (_GET["pool"] ~= host_pools_utils.DEFAULT_POOL_ID) or (have_nedge) then
-	 local pool_link
-    local title
-
-	 if have_nedge then
-	    pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
-         ternary(_GET["pool"] == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(_GET["pool"]))
-       title = i18n("nedge.edit_user")
-	 else
-	    pool_link = "/lua/if_stats.lua?page=pools&pool=".._GET["pool"]
-       title = i18n("host_pools.manage_pools")
-	 end
-
-	 pool_edit = "&nbsp; <A HREF='"..ntop.getHttpPrefix()..pool_link.."'><i class='fas fa-cog fa-sm' title='"..title .. "'></i></A>"
-
-      end
-
-      pool_ = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
-			{poolname=host_pools_utils.getPoolName(ifstats.id, _GET["pool"])})
-	 .."<small>".. pool_edit ..
-	 ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool=".._GET["pool"].."'><i class='fas fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
-	 "</small>"
-   end
-
-   if(_GET["vlan"] ~= nil) then
-      vlan_title = " ["..i18n("hosts_stats.vlan_title",{vlan=_GET["vlan"]}).."]"
-   end
 
    if not isEmptyString(protocol_name) then
       charts_icon = " <a href='".. ntop.getHttpPrefix() .."/lua/if_stats.lua?ifid="..

@@ -201,7 +201,7 @@ if(host == nil) and (not only_historical) then
 	 if(not(restoreFailed) and (host_info ~= nil) and canRestoreHost(ifId, host_info["host"], host_vlan)) then
 	    printRestoreHostBanner()
 	 else
-	    print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i>')
+	    print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i> ')
 	    print(i18n("host_details.host_cannot_be_found_message",{host=hostinfo2hostkey(host_info)}) .. " ")
 	    print(purgedErrorString())
 	    print("</div>")
