@@ -1051,6 +1051,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL 3  /* Keepalive probes sent every 3 seconds */
 #define PERIODIC_TASK_POOL_SIZE      8 /* Threads */
 
+#define MAX_NUM_ASYNC_SNMP_ENGINES   8
 #define MIN_NUM_HASH_WALK_ELEMS      512
 
 #define COMPANION_QUEUE_LEN          4096

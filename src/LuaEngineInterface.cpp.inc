@@ -2682,64 +2682,6 @@ static int ntop_mdns_batch_any_query(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifndef HAVE_NEDGE
-static int ntop_snmp_batch_get(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
-  SNMP *snmp;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-
-  oid[0] = (char*)lua_tostring(vm, 3);
-
-  snmp = getLuaVMUserdata(vm, snmp);
-
-  if(snmp == NULL) {
-    snmp = new SNMP();
-
-    if(!snmp) return(CONST_LUA_ERROR);
-    getLuaVMUservalue(vm, snmp) = snmp;
-  }
-
-  snmp->send_snmp_request((char*)lua_tostring(vm, 1),
-			  (char*)lua_tostring(vm, 2),
-			  false /* SNMP GET */, oid,
-			  (u_int)lua_tonumber(vm, 4));
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-#endif
-
-/* ****************************************** */
-
-#ifndef HAVE_NEDGE
-static int ntop_snmp_read_responses(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  SNMP *snmp;
-
-  snmp = getLuaVMUserdata(vm, snmp);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if((!ntop_interface) || (!snmp))
-    return(CONST_LUA_ERROR);
-
-  snmp->snmp_fetch_responses(vm);
-  return(CONST_LUA_OK);
-}
-#endif
-
-/* ****************************************** */
-
 static int ntop_mdns_queue_name_to_resolve(lua_State* vm) {
   char *numIP;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4641,10 +4583,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "mdnsQueueNameToResolve",          ntop_mdns_queue_name_to_resolve },
   { "mdnsQueueAnyQuery",               ntop_mdns_batch_any_query       },
   { "mdnsReadQueuedResponses",         ntop_mdns_read_queued_responses },
-#ifndef HAVE_NEDGE
-  { "snmpGetBatch",                    ntop_snmp_batch_get             },
-  { "snmpReadResponses",               ntop_snmp_read_responses        },
-#endif
 
   /* DB */
   { "execSQLQuery",                    ntop_interface_exec_sql_query   },

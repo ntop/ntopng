@@ -607,7 +607,7 @@ struct ntopngLuaContext {
   Ping *ping;
 #endif
 #ifndef HAVE_NEDGE
-  SNMP *snmp;
+  SNMP *snmpBatch, *snmpAsyncEngine[MAX_NUM_ASYNC_SNMP_ENGINES];
 #endif
   Host *host;
   NetworkStats *network;

@@ -122,34 +122,38 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
 
 /* ******************************************* */
 
-int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext) {
+int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
   char *agent_host, *community;
-  u_int timeout = 5, version = snmp_version, oid_idx = 0, i;
+  u_int timeout = 5, version = snmp_version, oid_idx = 0, idx = skip_first_param ? 2 : 1;
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
     
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
-  agent_host = (char*)lua_tostring(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
+  agent_host = (char*)lua_tostring(vm, idx++);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
-  community = (char*)lua_tostring(vm, 2);
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
+  community = (char*)lua_tostring(vm, idx++);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
-  oid[oid_idx++] = (char*)lua_tostring(vm, 3);
-
-  i = 4;
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
+  oid[oid_idx++] = (char*)lua_tostring(vm, idx++);
   
   /* Optional timeout: take the minimum */
-  if(lua_type(vm, 4) == LUA_TNUMBER)
-    timeout = min(timeout, (u_int)lua_tointeger(vm, 4)), i++;
-
+  if(lua_type(vm, idx) == LUA_TNUMBER) {
+    timeout = min(timeout, (u_int)lua_tointeger(vm, idx));
+    idx++;
+  }
+  
   /* Optional version */
-  if(lua_type(vm, 5) == LUA_TNUMBER)
-    version = (u_int)lua_tointeger(vm, 5), i++;
-
+  if(lua_type(vm, idx) == LUA_TNUMBER) {
+    version = (u_int)lua_tointeger(vm, idx);
+    idx++;
+  }
+  
   /* Add additional OIDs */
-  while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, i) == LUA_TSTRING))
-    oid[oid_idx++] = (char*)lua_tostring(vm, i), i++;  
-
+  while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, idx) == LUA_TSTRING)) {
+    oid[oid_idx++] = (char*)lua_tostring(vm, idx);
+    idx++;  
+  }
+  
   send_snmp_request(agent_host, community, isGetNext, oid, version);
   
   return(snmp_read_response(vm, timeout));
@@ -157,11 +161,15 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext) {
 
 /* ******************************************* */
 
-int SNMP::get(lua_State* vm)     { return(snmp_get_fctn(vm, false));  }
+int SNMP::get(lua_State* vm) {
+  return(snmp_get_fctn(vm, false, false /* don't skip first param */));
+}
 
 /* ******************************************* */
 
-int SNMP::getnext(lua_State* vm) { return(snmp_get_fctn(vm, true));   }
+int SNMP::getnext(lua_State* vm, bool skip_first_param) {
+  return(snmp_get_fctn(vm, true, skip_first_param));
+}
 
 /* ******************************************* */
 

@@ -90,6 +90,7 @@ static void stackDump(lua_State *L) {
 LuaEngine::LuaEngine(lua_State *vm) {
   std::bad_alloc bax;
   void *ctx;
+
   loaded_script_path = NULL;
 
 #ifdef HAVE_NEDGE
@@ -137,8 +138,12 @@ LuaEngine::~LuaEngine() {
 
     if(ctx) {
 #ifndef HAVE_NEDGE
-      SNMP *snmp = ctx->snmp;
-      if(snmp) delete snmp;
+      if(ctx->snmpBatch) delete ctx->snmpBatch;
+
+      for(u_int8_t slot_id=0; slot_id<MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {
+	if(ctx->snmpAsyncEngine[slot_id] != NULL)
+	  delete ctx->snmpAsyncEngine[slot_id];
+      }
 #endif
 
       if(ctx->pkt_capture.end_capture > 0) {

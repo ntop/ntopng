@@ -2776,9 +2776,141 @@ static int ntop_resolve_host(lua_State* vm) {
 /* ****************************************** */
 
 #ifndef HAVE_NEDGE
-static int ntop_snmpget(lua_State* vm)     { SNMP s; return(s.get(vm));     }
-static int ntop_snmpgetnext(lua_State* vm) { SNMP s; return(s.getnext(vm)); }
-#endif
+
+/* Synchronous calls */
+static int ntop_snmpget(lua_State* vm)          { SNMP s; return(s.get(vm));            }
+static int ntop_snmpgetnext(lua_State* vm)      { SNMP s; return(s.getnext(vm, false)); }
+
+/* ****************************************** */
+
+/* Asynchronous calls */
+static int ntop_allocasnyncengine(lua_State* vm) {
+  SNMP **snmpAsyncEngine       = getLuaVMUserdata(vm, snmpAsyncEngine);
+  u_int8_t slot_id;
+  bool found = false;
+  
+  for(slot_id=0; slot_id<MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {
+    if(snmpAsyncEngine[slot_id] == NULL) {
+      found = true;
+      break;
+    }
+  } /* for */
+
+  if(!found) {    
+    if((snmpAsyncEngine[slot_id] = new SNMP()) != NULL) {
+      lua_pushinteger(vm, slot_id);
+      return(CONST_LUA_OK);
+    }
+  }
+
+  return(CONST_LUA_ERROR);      
+}
+
+/* ****************************************** */
+
+static int ntop_freeasnyncengine(lua_State* vm) {
+  SNMP **snmpAsyncEngine       = getLuaVMUserdata(vm, snmpAsyncEngine);
+  u_int8_t slot_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+
+  if((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES)
+     || (snmpAsyncEngine[slot_id] == NULL))
+    return(CONST_LUA_ERROR);
+
+  delete snmpAsyncEngine[slot_id];
+  snmpAsyncEngine[slot_id] = NULL;
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_snmpgetnextasync(lua_State* vm) {
+  SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
+  u_int8_t slot_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+
+  if((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES)
+     || (snmpAsyncEngine[slot_id] == NULL))
+    return(CONST_LUA_ERROR); /* Invalid slot selected */
+  
+  return(snmpAsyncEngine[slot_id]->getnext(vm, true /* Skip first param */));
+}
+
+/* ****************************************** */
+
+static int ntop_snmpgetnextasyncrsp(lua_State* vm) {
+  SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
+  u_int8_t slot_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+
+  if((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES)
+     || (snmpAsyncEngine[slot_id] == NULL))
+    return(CONST_LUA_ERROR); /* Invalid slot selected */
+  
+  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_snmp_batch_get(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
+  SNMP *snmp;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+
+  oid[0] = (char*)lua_tostring(vm, 3);
+
+  snmp = getLuaVMUserdata(vm, snmpBatch);
+
+  if(snmp == NULL) {
+    snmp = new SNMP();
+
+    if(!snmp) return(CONST_LUA_ERROR);
+    getLuaVMUservalue(vm, snmpBatch) = snmp;
+  }
+
+  snmp->send_snmp_request((char*)lua_tostring(vm, 1),
+			  (char*)lua_tostring(vm, 2),
+			  false /* SNMP GET */, oid,
+			  (u_int)lua_tonumber(vm, 4));
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_snmp_read_responses(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  SNMP *snmp = getLuaVMUserdata(vm, snmpBatch);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((!ntop_interface) || (!snmp))
+    return(CONST_LUA_ERROR);
+
+  snmp->snmp_fetch_responses(vm);
+  return(CONST_LUA_OK);
+}
+
+#endif /* HAVE_NEDGE */
 
 /* ****************************************** */
 
@@ -5420,8 +5552,19 @@ static const luaL_Reg ntop_reg[] = {
 
   /* SNMP */
 #ifndef HAVE_NEDGE
-  { "snmpget",          ntop_snmpget },
-  { "snmpgetnext",      ntop_snmpgetnext },
+  /* Synchronous */
+  { "snmpget",             ntop_snmpget                      },
+  { "snmpgetnext",         ntop_snmpgetnext                  },
+
+  /* Asynchronous */
+  { "snmpallocasnyncengine", ntop_allocasnyncengine,         },
+  { "snmpfreeasnycengine",   ntop_freeasnyncengine,          },
+  { "snmpgetnextasync",      ntop_snmpgetnextasync           },
+  { "snmpgetnextasyncrsp",   ntop_snmpgetnextasyncrsp        },
+
+  /* Batch */
+  { "snmpGetBatch",        ntop_snmp_batch_get               },
+  { "snmpReadResponses",   ntop_snmp_read_responses          },
 #endif
 
   /* Runtime */

@@ -36,7 +36,7 @@ class SNMP {
   
   int _get(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
   int _getnext(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
-  int snmp_get_fctn(lua_State* vm, bool isGetNext);  
+  int snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param);  
   int snmp_read_response(lua_State* vm, u_int timeout);
   
   public:
@@ -48,7 +48,7 @@ class SNMP {
   void snmp_fetch_responses(lua_State* vm);
   
   int get(lua_State* vm);
-  int getnext(lua_State* vm);
+  int getnext(lua_State* vm, bool skip_first_param);
 };
   
 #endif /* _SNMP_H_ */
