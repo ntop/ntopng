@@ -30,20 +30,21 @@ function blog_utils.intersectPosts(s1, s2)
     if (s2[1] == nil) then return s1 end
 
     local intersected = {}
-    local firstOlderPost = s1[1]
     local j = 1
 
     -- insert the new posts
     for i = 1, MAX_POSTS do
-        if (s2[i].epoch > firstOlderPost.epoch) then
+        if (s2[i].epoch > s1[1].epoch) then
             intersected[i] = s2[i]
             j = j + 1
         end
     end
 
     -- insert the olds posts if the array is not full
+    local k = 1
     for i = j, MAX_POSTS do
-        intersected[i] = s1[i]
+        intersected[i] = s1[k]
+        k = k + 1
     end
 
     return (intersected)
@@ -88,6 +89,7 @@ function blog_utils.updateRedis(newPosts)
 
     -- intersect two notifications sets and marks the new
     local intersected = blog_utils.intersectPosts(oldPosts, newPosts)
+    tprint(intersected)
 
     -- save the posts inside redis
     ntop.setPref("ntopng.prefs.blog_feed", json.encode(intersected))
