@@ -1212,7 +1212,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	       len_on_wire, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
-    
+
+    /* NOTE: ip_tot_len is not trusted as may be forged */
     ip_tot_len = ntohs(iph->tot_len);
 
     /* Use the actual h->len and not the h->caplen to determine
@@ -1227,7 +1228,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     l4 = ((u_int8_t *) iph + ip_len);
     l4_len = ip_tot_len - ip_len; /* use len from the ip header to compute sequence numbers */
     ip = (u_int8_t*)iph;
-    frame_padding = packet - ip + h->caplen - ip_tot_len;
+
+    /* An ethernet frame can contain padding at the end of the packet.
+     * Such padding can be identified by comparing the total packet length
+     * reported into the IP header with the ethernet frame size. Such padding
+     * should not be accounted in the L4 size. */
+    if(packet + h->caplen > ip + ip_tot_len)
+      frame_padding = packet + h->caplen - ip - ip_tot_len;
   } else {
     /* IPv6 */
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
@@ -1265,7 +1272,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     ip = (u_int8_t*)ip6;
   }
 
-  trusted_l4_packet_len = packet + h->caplen - l4 - frame_padding;
+  trusted_l4_packet_len = packet + h->caplen - l4;
+
+  if(trusted_l4_packet_len > frame_padding)
+    trusted_l4_packet_len -= frame_padding;
 
   if(l4_proto == IPPROTO_TCP) {
     if(trusted_l4_packet_len >= sizeof(struct ndpi_tcphdr)) {
