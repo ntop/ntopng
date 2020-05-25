@@ -1090,6 +1090,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress src_ip, dst_ip;
   ICMPinfo icmp_info;
+  u_int16_t frame_padding = 0;
   u_int16_t src_port = 0, dst_port = 0;
   struct ndpi_tcphdr *tcph = NULL;
   struct ndpi_udphdr *udph = NULL;
@@ -1218,8 +1219,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     l4_proto = iph->protocol;
     l4 = ((u_int8_t *) iph + ip_len);
     l4_len = ip_tot_len - ip_len; /* use len from the ip header to compute sequence numbers */
-
     ip = (u_int8_t*)iph;
+    frame_padding = packet - ip + h->caplen - ip_tot_len;
   } else {
     /* IPv6 */
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
@@ -1257,7 +1258,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     ip = (u_int8_t*)ip6;
   }
 
-  trusted_l4_packet_len = packet + h->caplen - l4;
+  trusted_l4_packet_len = packet + h->caplen - l4 - frame_padding;
 
   if(l4_proto == IPPROTO_TCP) {
     if(trusted_l4_packet_len >= sizeof(struct ndpi_tcphdr)) {
